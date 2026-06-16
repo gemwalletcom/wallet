@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{Device, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTypingStatus};
+use primitives::{Device, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -63,6 +63,8 @@ pub struct ChatwootWebhookPayload {
     #[serde(default)]
     pub created_at: Option<ChatwootDateTime>,
     pub sender: Option<Sender>,
+    pub user: Option<WebhookUser>,
+    pub is_private: Option<bool>,
     #[serde(default)]
     pub attachments: Vec<Attachment>,
     #[serde(default)]
@@ -113,6 +115,13 @@ pub struct Sender {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookUser {
+    pub name: Option<String>,
+    #[serde(rename = "type")]
+    pub user_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attachment {
     pub id: i64,
     pub file_type: Option<String>,
@@ -151,6 +160,18 @@ impl ChatwootWebhookPayload {
             self.created_at.as_ref()?.datetime()?,
             &self.attachments,
         )
+    }
+
+    pub fn support_typing(&self, status: SupportTypingStatus) -> Option<SupportTyping> {
+        if self.is_private == Some(true) {
+            return None;
+        }
+        let user = self.user.as_ref()?;
+        if user.user_type.as_deref() != Some("user") {
+            return None;
+        }
+        let name = user.name.clone()?;
+        Some(SupportTyping { status, agent: SupportAgent { name } })
     }
 }
 
@@ -371,6 +392,24 @@ mod tests {
         assert_eq!(messages[0].content, "from agent");
         assert_eq!(messages[0].sender, SupportMessageSender::Agent(SupportAgent { name: "Test Agent".to_string() }));
         assert_eq!(messages[0].status, SupportMessageStatus::Sent);
+    }
+
+    #[test]
+    fn test_support_typing() {
+        let agent_on: ChatwootWebhookPayload = serde_json::from_str(include_str!("../tests/testdata/chatwoot_conversation_typing_on.json")).unwrap();
+
+        let typing = agent_on.support_typing(SupportTypingStatus::On).unwrap();
+
+        assert_eq!(typing.status, SupportTypingStatus::On);
+        assert_eq!(typing.agent, SupportAgent { name: "Test Agent".to_string() });
+        assert_eq!(agent_on.get_device_id(), Some("test-device-id".to_string()));
+
+        let private: ChatwootWebhookPayload = serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":true,"user":{"name":"Test Agent","type":"user"}}"#).unwrap();
+        assert_eq!(private.support_typing(SupportTypingStatus::On), None);
+
+        let contact: ChatwootWebhookPayload =
+            serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":false,"user":{"name":"test-user","type":"contact"}}"#).unwrap();
+        assert_eq!(contact.support_typing(SupportTypingStatus::On), None);
     }
 
     #[test]

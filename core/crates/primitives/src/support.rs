@@ -90,6 +90,21 @@ pub enum SupportTypingStatus {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[typeshare(swift = "Sendable, Equatable")]
+pub struct SupportTyping {
+    pub status: SupportTypingStatus,
+    pub agent: SupportAgent,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Sendable")]
+#[serde(tag = "type", content = "data", rename_all = "camelCase")]
+pub enum SupportStreamEvent {
+    Message(SupportMessage),
+    Typing(SupportTyping),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[typeshare(swift = "Sendable, Equatable")]
 #[serde(tag = "type", content = "data", rename_all = "camelCase")]
 pub enum SupportAction {
     Typing(SupportTypingStatus),

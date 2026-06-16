@@ -59,6 +59,20 @@ data class SupportMessageInput (
 )
 
 @Serializable
+enum class SupportTypingStatus(val string: String) {
+	@SerialName("on")
+	On("on"),
+	@SerialName("off")
+	Off("off"),
+}
+
+@Serializable
+data class SupportTyping (
+	val status: SupportTypingStatus,
+	val agent: SupportAgent
+)
+
+@Serializable
 sealed class SupportAction {
 	@Serializable
 	@SerialName("typing")
@@ -69,10 +83,12 @@ sealed class SupportAction {
 }
 
 @Serializable
-enum class SupportTypingStatus(val string: String) {
-	@SerialName("on")
-	On("on"),
-	@SerialName("off")
-	Off("off"),
+sealed class SupportStreamEvent {
+	@Serializable
+	@SerialName("message")
+	data class Message(val data: SupportMessage): SupportStreamEvent()
+	@Serializable
+	@SerialName("typing")
+	data class Typing(val data: SupportTyping): SupportStreamEvent()
 }
 

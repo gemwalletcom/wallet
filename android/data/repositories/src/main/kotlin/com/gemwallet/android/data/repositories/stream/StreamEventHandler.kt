@@ -26,7 +26,7 @@ import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamNotificationUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
-import com.wallet.core.primitives.SupportMessage
+import com.wallet.core.primitives.SupportStreamEvent
 import com.wallet.core.primitives.WebSocketPricePayload
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -115,8 +115,11 @@ class StreamEventHandler(
         inAppNotificationsDao.put(listOf(update.notification.toRecord()))
     }
 
-    private suspend fun handleSupport(message: SupportMessage) {
-        supportMessagesDao.addMessages(listOf(message.toRecord()))
+    private suspend fun handleSupport(event: SupportStreamEvent) {
+        when (event) {
+            is SupportStreamEvent.Message -> supportMessagesDao.addMessages(listOf(event.data.toRecord()))
+            is SupportStreamEvent.Typing -> {}
+        }
     }
 
     companion object {

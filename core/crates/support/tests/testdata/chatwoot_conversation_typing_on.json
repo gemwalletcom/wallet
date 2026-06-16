@@ -1,0 +1,18 @@
+{
+  "event": "conversation_typing_on",
+  "is_private": false,
+  "user": {
+    "name": "Test Agent",
+    "type": "user"
+  },
+  "conversation": {
+    "id": 1,
+    "meta": {
+      "sender": {
+        "custom_attributes": {
+          "device_id": "test-device-id"
+        }
+      }
+    }
+  }
+}

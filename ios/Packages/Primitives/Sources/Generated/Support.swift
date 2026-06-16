@@ -106,6 +106,21 @@ public struct SupportMessageInput: Codable, Equatable, Sendable {
 	}
 }
 
+public enum SupportTypingStatus: String, Codable, CaseIterable, Equatable, Sendable {
+	case on
+	case off
+}
+
+public struct SupportTyping: Codable, Equatable, Sendable {
+	public let status: SupportTypingStatus
+	public let agent: SupportAgent
+
+	public init(status: SupportTypingStatus, agent: SupportAgent) {
+		self.status = status
+		self.agent = agent
+	}
+}
+
 public enum SupportAction: Codable, Equatable, Sendable {
 	case typing(SupportTypingStatus)
 	case lastSeen
@@ -148,7 +163,47 @@ public enum SupportAction: Codable, Equatable, Sendable {
 	}
 }
 
-public enum SupportTypingStatus: String, Codable, CaseIterable, Equatable, Sendable {
-	case on
-	case off
+public enum SupportStreamEvent: Codable, Sendable {
+	case message(SupportMessage)
+	case typing(SupportTyping)
+
+	enum CodingKeys: String, CodingKey, Codable {
+		case message,
+			typing
+	}
+
+	private enum ContainerCodingKeys: String, CodingKey {
+		case type, data
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
+		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
+			switch type {
+			case .message:
+				if let content = try? container.decode(SupportMessage.self, forKey: .data) {
+					self = .message(content)
+					return
+				}
+			case .typing:
+				if let content = try? container.decode(SupportTyping.self, forKey: .data) {
+					self = .typing(content)
+					return
+				}
+			}
+		}
+		throw DecodingError.typeMismatch(SupportStreamEvent.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for SupportStreamEvent"))
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
+		switch self {
+		case .message(let content):
+			try container.encode(CodingKeys.message, forKey: .type)
+			try container.encode(content, forKey: .data)
+		case .typing(let content):
+			try container.encode(CodingKeys.typing, forKey: .type)
+			try container.encode(content, forKey: .data)
+		}
+	}
 }

@@ -4,6 +4,8 @@ pub(crate) const CHATWOOT_DELIVERY_STATUS_READ: &str = "read";
 pub(crate) const CHATWOOT_DELIVERY_STATUS_SENT: &str = "sent";
 pub(crate) const CHATWOOT_FILE_TYPE_IMAGE: &str = "image";
 
+pub(crate) const EVENT_CONVERSATION_TYPING_OFF: &str = "conversation_typing_off";
+pub(crate) const EVENT_CONVERSATION_TYPING_ON: &str = "conversation_typing_on";
 pub(crate) const EVENT_MESSAGE_CREATED: &str = "message_created";
 
 pub(crate) const PATH_CONFIG: &str = "config";

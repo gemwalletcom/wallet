@@ -1,13 +1,24 @@
-use crate::{ChatwootWebhookPayload, constants::EVENT_MESSAGE_CREATED, markdown_plain_text};
+use crate::{
+    ChatwootWebhookPayload,
+    constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED},
+    markdown_plain_text,
+};
 use cacher::CacherClient;
 use localizer::LanguageLocalizer;
 use primitives::{
-    Device, GorushNotification, PushNotification, PushNotificationTypes, StreamEvent, SupportMessage, device_stream_channel, push_notification::PushNotificationSupport,
+    Device, GorushNotification, PushNotification, PushNotificationTypes, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus, device_stream_channel,
+    push_notification::PushNotificationSupport,
 };
 use std::error::Error;
 use storage::database::devices::DevicesStore;
 use storage::{Database, OptionalExtension};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+
+#[derive(Debug, Default)]
+pub struct SupportWebhookResult {
+    pub notifications: usize,
+    pub stream_events: usize,
+}
 
 pub struct SupportClient {
     database: Database,
@@ -28,21 +39,35 @@ impl SupportClient {
         Ok(DevicesStore::get_device(&mut self.database.client()?, device_id).optional()?.map(|d| d.as_primitive()))
     }
 
-    pub async fn process_webhook(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<(usize, usize), Box<dyn Error + Send + Sync>> {
-        if payload.event.as_str() != EVENT_MESSAGE_CREATED {
-            return Ok((0, 0));
+    pub async fn process_webhook(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
+        match payload.event.as_str() {
+            EVENT_MESSAGE_CREATED => self.process_message_created(device, payload).await,
+            EVENT_CONVERSATION_TYPING_ON => self.process_typing(device, payload, SupportTypingStatus::On).await,
+            EVENT_CONVERSATION_TYPING_OFF => self.process_typing(device, payload, SupportTypingStatus::Off).await,
+            _ => Ok(SupportWebhookResult::default()),
         }
+    }
 
-        let notifications_count = if let Some(notification) = Self::build_notification(device, payload) {
+    async fn process_message_created(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
+        let notifications = if let Some(notification) = Self::build_notification(device, payload) {
             self.stream_producer.publish_notifications_support(NotificationsPayload::new(vec![notification])).await?;
             1
         } else {
             0
         };
 
-        let stream_events_count = self.publish_stream_message(device, payload).await?;
+        let stream_events = self.publish_stream_message(device, payload).await?;
 
-        Ok((notifications_count, stream_events_count))
+        Ok(SupportWebhookResult { notifications, stream_events })
+    }
+
+    async fn process_typing(&self, device: &Device, payload: &ChatwootWebhookPayload, status: SupportTypingStatus) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
+        let Some(typing) = payload.support_typing(status) else {
+            return Ok(SupportWebhookResult::default());
+        };
+
+        self.publish_event(device, StreamEvent::Support(SupportStreamEvent::Typing(typing))).await?;
+        Ok(SupportWebhookResult { notifications: 0, stream_events: 1 })
     }
 
     fn build_notification(device: &Device, payload: &ChatwootWebhookPayload) -> Option<GorushNotification> {
@@ -68,13 +93,16 @@ impl SupportClient {
             return Ok(0);
         }
 
-        let channel = device_stream_channel(&device.id);
-        self.cacher.publish(&channel, &StreamEvent::Support(message)).await?;
+        self.publish_event(device, StreamEvent::Support(SupportStreamEvent::Message(message))).await?;
         Ok(1)
     }
 
     fn should_publish_stream_message(message: &SupportMessage) -> bool {
         message.sender.is_agent()
+    }
+
+    async fn publish_event(&self, device: &Device, event: StreamEvent) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.cacher.publish(&device_stream_channel(&device.id), &event).await
     }
 }
 
