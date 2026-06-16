@@ -19,4 +19,6 @@ interface PerpetualDetailsDataAggregate {
     val isIsolatedOnly: Boolean
     val marginType: PerpetualMarginType
         get() = if (isIsolatedOnly) PerpetualMarginType.Isolated else PerpetualMarginType.Cross
+    val coin: String
+        get() = asset.id.tokenId?.split("::")?.lastOrNull() ?: name
 }

@@ -1,12 +1,13 @@
 package com.gemwallet.android.features.perpetual.views.position
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualDetailsViewModel
 import com.gemwallet.android.features.perpetual.views.autoclose.AutocloseNavGraph
@@ -24,7 +25,15 @@ fun PerpetualPositionNavScreen(
     onTransaction: (TransactionId) -> Unit,
     viewModel: PerpetualDetailsViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(Unit) { viewModel.fetch() }
+    LifecycleResumeEffect(Unit) {
+        viewModel.fetch()
+        onPauseOrDispose { }
+    }
+
+    DisposableEffect(Unit) {
+        viewModel.onScreenEnter()
+        onDispose { viewModel.onScreenExit() }
+    }
 
     val perpetual by viewModel.perpetual.collectAsStateWithLifecycle()
     val position by viewModel.position.collectAsStateWithLifecycle()

@@ -2,6 +2,7 @@ package com.gemwallet.android.features.perpetual.views.market
 
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
@@ -38,6 +39,11 @@ fun PerpetualMarketNavScreen(
     }
 
     LaunchedEffect(Unit) { viewModel.fetch() }
+
+    DisposableEffect(Unit) {
+        viewModel.subscribeMarketPrices()
+        onDispose { viewModel.unsubscribeMarketPrices() }
+    }
 
     PerpetualMarketScene(
         sceneState = sceneState,

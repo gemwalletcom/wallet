@@ -8,12 +8,13 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
+import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
+
 import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
-import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.chart.ChartViewState
@@ -24,22 +25,28 @@ import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemPerpetualSubscription
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,13 +59,13 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val syncAssetTransactions: SyncAssetTransactions,
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val buildPerpetualParams: BuildPerpetualParams,
+    private val perpetualObserver: PerpetualObserver,
     getPerpetualChartPeriod: GetPerpetualChartPeriod,
     private val setPerpetualChartPeriod: SetPerpetualChartPeriod,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private companion object {
-        const val ChartRefreshIntervalMillis = 60_000L
         const val SubscriptionGraceMillis = 5_000L
     }
 
@@ -108,18 +115,20 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val refreshState = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = refreshState.asStateFlow()
 
-    private val ticker = tickerFlow(ChartRefreshIntervalMillis) {
-        viewModelScope.launch(Dispatchers.IO) { syncPerpetualPositions.syncPerpetualPositions() }
-    }
-
     val chart = combine(period, refreshTrigger) { period, _ -> period }
         .onEach { viewState.value = ChartViewState.Loading }
         .flatMapLatest { period ->
             flow {
                 try {
-                    emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
+                    var candles = getPerpetualChartData.getPerpetualChartData(assetId, period)
                     refreshState.value = false
-                    ticker.collect { emit(getPerpetualChartData.getPerpetualChartData(assetId, period)) }
+                    emit(candles)
+                    perpetualObserver.chartUpdates
+                        .filter { it.coin == perpetual.value?.coin && it.interval == period.hyperliquidInterval }
+                        .collect { update ->
+                            candles = candles.mergeCandle(update.candle)
+                            emit(candles)
+                        }
                 } catch (e: Exception) {
                     currentCoroutineContext().ensureActive()
                     viewState.value = ChartViewState.Error
@@ -132,6 +141,42 @@ class PerpetualDetailsViewModel @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), emptyList())
+
+    private val screenVisible = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch {
+            combine(
+                screenVisible,
+                perpetual.map { it?.coin }.distinctUntilChanged(),
+                period,
+            ) { isVisible, coin, period ->
+                if (isVisible && coin != null) coin to period else null
+            }
+                .distinctUntilChanged()
+                .collectLatest { subscriptionKey ->
+                    val (coin, period) = subscriptionKey ?: return@collectLatest
+                    val subscriptions = listOf(
+                        GemPerpetualSubscription.Candle(symbol = coin, interval = period.hyperliquidInterval),
+                        GemPerpetualSubscription.MarketData(symbol = coin),
+                    )
+                    subscriptions.forEach(perpetualObserver::subscribe)
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        subscriptions.forEach(perpetualObserver::unsubscribe)
+                    }
+                }
+        }
+    }
+
+    fun onScreenEnter() {
+        screenVisible.value = true
+    }
+
+    fun onScreenExit() {
+        screenVisible.value = false
+    }
 
     fun period(period: ChartPeriod) {
         setPerpetualChartPeriod(period)

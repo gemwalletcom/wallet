@@ -176,7 +176,7 @@ fun GemCandlestickChart(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(model) {
+                .pointerInput(chartSize, model.candles.size) {
                     detectTapGestures(onPress = { touch ->
                         touchToIndex(touch.x)?.let { index ->
                             if (index != lastHapticIndex) { haptic(view); lastHapticIndex = index }
@@ -186,7 +186,7 @@ fun GemCandlestickChart(
                         onSelectionChanged(null)
                     })
                 }
-                .pointerInput(model) {
+                .pointerInput(chartSize, model.candles.size) {
                     detectDragGestures(
                         onDragStart = { touch ->
                             touchToIndex(touch.x)?.let { index ->

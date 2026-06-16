@@ -48,7 +48,7 @@ internal fun PerpetualChartSection(
     onPeriodSelect: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var selectedIndex by remember(data) { mutableStateOf<Int?>(null) }
+    var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
     val safeSelectedIndex = selectedIndex?.takeIf { it in data.indices }
     val selectedCandle = safeSelectedIndex?.let { data[it] }
     val baseCandle = data.firstOrNull()

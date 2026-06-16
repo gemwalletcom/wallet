@@ -7,6 +7,7 @@ import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentA
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
+import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
@@ -21,6 +22,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import uniffi.gemstone.GemPerpetualSubscription
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +45,7 @@ class PerpetualMarketViewModel @Inject constructor(
     private val togglePin: TogglePerpetualPin,
     private val getRecentAssets: GetRecentAssets,
     private val updateRecentAsset: UpdateRecentAsset,
+    private val perpetualObserver: PerpetualObserver,
 ) : ViewModel() {
 
     val query = MutableStateFlow<String?>(null)
@@ -91,6 +94,14 @@ class PerpetualMarketViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             syncPerpetualPositions.syncPerpetualPositions()
         }
+    }
+
+    fun subscribeMarketPrices() {
+        perpetualObserver.subscribe(GemPerpetualSubscription.MarketPrices)
+    }
+
+    fun unsubscribeMarketPrices() {
+        perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices)
     }
 
     fun onTogglePin(perpetualId: PerpetualId) {
