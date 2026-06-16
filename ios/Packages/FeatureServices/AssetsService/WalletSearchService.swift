@@ -35,13 +35,13 @@ public struct WalletSearchService: Sendable {
         let chains = tag == nil ? (scopeChains.isEmpty ? Chain.allCases : scopeChains) : []
 
         async let networkAssets = assetsService.searchNetworkAsset(tokenId: query, chains: chains)
-        async let response = searchProvider.search(query: query, chains: scopeChains, tags: [tag].compactMap(\.self))
-        let assets = try await response.assets + networkAssets
+        async let searchResult = searchProvider.search(query: query, chains: scopeChains, tags: [tag].compactMap(\.self))
+        let assets = try await searchResult.assets + networkAssets
 
         let searchKey = searchHistoryKey(query: query, tag: tag)
         try store(assets: assets, wallet: wallet, searchKey: searchKey)
         if tag == nil {
-            try await store(perpetuals: response.perpetuals, searchKey: searchKey)
+            try await store(perpetuals: searchResult.perpetuals, searchKey: searchKey)
         }
     }
 }
