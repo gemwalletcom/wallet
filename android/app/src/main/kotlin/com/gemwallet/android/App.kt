@@ -13,6 +13,8 @@ import coil3.svg.SvgDecoder
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingService
+
+import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -22,6 +24,8 @@ class App : Application(), SingletonImageLoader.Factory, Application.ActivityLif
 
     @Inject
     lateinit var streamObserver: StreamObserverService
+    @Inject
+    lateinit var hyperliquidObserver: HyperliquidObserverService
     @Inject
     lateinit var syncPerpetualPositions: SyncPerpetualPositions
     @Inject
@@ -55,10 +59,12 @@ class App : Application(), SingletonImageLoader.Factory, Application.ActivityLif
 
     override fun onActivityResumed(activity: Activity) {
         streamObserver.start()
+        hyperliquidObserver.start()
     }
 
     override fun onActivityStopped(activity: Activity) {
         streamObserver.stop()
+        hyperliquidObserver.stop()
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
