@@ -19,8 +19,10 @@ import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualMarketData
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
+import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -85,6 +87,31 @@ class PerpetualRepositoryImpl(
 
     override suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>) {
         perpetualPositionDao.diffPositions(walletId.id, items.map { it.toDB(walletId.id) })
+    }
+
+    override suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
+        if (deleteIds.isEmpty() && positions.isEmpty()) return
+        perpetualPositionDao.applyDiff(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
+    }
+
+    override suspend fun getProviderPositions(walletId: WalletId, provider: PerpetualProvider): List<PerpetualPosition> {
+        return perpetualPositionDao.getPositionsByProvider(walletId.id, provider).map { it.toDto() }
+    }
+
+    override suspend fun updateMarket(market: PerpetualMarketData) {
+        perpetualDao.updateMarket(
+            coin = market.coin,
+            price = market.price,
+            pricePercentChange24h = market.pricePercentChange24h,
+            openInterest = market.openInterest,
+            volume24h = market.volume24h,
+            funding = market.funding,
+        )
+    }
+
+    override suspend fun updatePrices(prices: Map<String, Double>) {
+        if (prices.isEmpty()) return
+        perpetualDao.updatePrices(prices)
     }
 
     override fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>> {

@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.gemwallet.android.data.service.store.database.entities.DbPerpetualPosition
 import com.gemwallet.android.data.service.store.database.entities.DbPerpetualPositionData
+import com.wallet.core.primitives.PerpetualProvider
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,6 +24,26 @@ interface PerpetualPositionDao {
         deleteStale(walletId, items.map { it.id })
         upsertPositions(items)
     }
+
+    @Query("DELETE FROM perpetuals_positions WHERE walletId = :walletId AND id IN (:ids)")
+    suspend fun deleteByIds(walletId: String, ids: List<String>)
+
+    @Transaction
+    suspend fun applyDiff(walletId: String, deleteIds: List<String>, items: List<DbPerpetualPosition>) {
+        if (deleteIds.isNotEmpty()) {
+            deleteByIds(walletId, deleteIds)
+        }
+        if (items.isNotEmpty()) {
+            upsertPositions(items)
+        }
+    }
+
+    @Query(
+        "SELECT perpetuals_positions.* FROM perpetuals_positions " +
+            "INNER JOIN perpetuals ON perpetuals.id = perpetuals_positions.perpetualId " +
+            "WHERE perpetuals_positions.walletId = :walletId AND perpetuals.provider = :provider"
+    )
+    suspend fun getPositionsByProvider(walletId: String, provider: PerpetualProvider): List<DbPerpetualPosition>
 
     @Transaction
     @Query("SELECT * FROM perpetuals_positions WHERE walletId = :walletId ORDER BY updatedAt DESC")

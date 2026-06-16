@@ -1,16 +1,23 @@
 package com.gemwallet.android.domains.perpetual
 
 import com.gemwallet.android.domains.asset.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.CancelOrderData
 import com.wallet.core.primitives.PerpetualConfirmData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualModifyConfirmData
 import com.wallet.core.primitives.PerpetualModifyPositionType
+import com.wallet.core.primitives.PerpetualOrderType
+import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualReduceData
+import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.TPSLOrderData
 import uniffi.gemstone.GemPerpetualMarginType
+import uniffi.gemstone.GemPerpetualOrderType
+import uniffi.gemstone.GemPerpetualPosition
+import uniffi.gemstone.GemPerpetualTriggerOrder
 import uniffi.gemstone.CancelOrderData as GemCancelOrderData
 import uniffi.gemstone.PerpetualConfirmData as GemPerpetualConfirmData
 import uniffi.gemstone.PerpetualDirection as GemPerpetualDirection
@@ -67,6 +74,35 @@ fun CancelOrderData.toGem(): GemCancelOrderData = GemCancelOrderData(
     assetIndex = assetIndex,
     orderId = orderId.toULong(),
 )
+
+fun PerpetualPosition.toGem(): GemPerpetualPosition = GemPerpetualPosition(
+    id = id,
+    perpetualId = perpetualId.toIdentifier(),
+    assetId = assetId.toIdentifier(),
+    size = size,
+    sizeValue = sizeValue,
+    leverage = leverage,
+    entryPrice = entryPrice,
+    liquidationPrice = liquidationPrice,
+    marginType = marginType.toGem(),
+    direction = direction.toGem(),
+    marginAmount = marginAmount,
+    takeProfit = takeProfit?.toGem(),
+    stopLoss = stopLoss?.toGem(),
+    pnl = pnl,
+    funding = funding,
+)
+
+fun PerpetualTriggerOrder.toGem(): GemPerpetualTriggerOrder = GemPerpetualTriggerOrder(
+    price = price,
+    orderType = order_type.toGem(),
+    orderId = order_id,
+)
+
+fun PerpetualOrderType.toGem(): GemPerpetualOrderType = when (this) {
+    PerpetualOrderType.Market -> GemPerpetualOrderType.MARKET
+    PerpetualOrderType.Limit -> GemPerpetualOrderType.LIMIT
+}
 
 fun PerpetualDirection.toGem(): GemPerpetualDirection = when (this) {
     PerpetualDirection.Long -> GemPerpetualDirection.LONG

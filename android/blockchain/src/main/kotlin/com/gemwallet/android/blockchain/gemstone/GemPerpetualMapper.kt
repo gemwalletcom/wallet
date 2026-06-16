@@ -4,11 +4,13 @@ import com.gemwallet.android.domains.asset.toDTO
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPerpetualId
 import com.wallet.core.primitives.ChartCandleStick
+import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualMarketData
 import com.wallet.core.primitives.PerpetualMetadata
 import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
@@ -16,8 +18,11 @@ import com.wallet.core.primitives.PerpetualPositionsSummary
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
 import uniffi.gemstone.GemChartCandleStick
+import uniffi.gemstone.GemChartCandleUpdate
+import uniffi.gemstone.GemPerpetualBalance
 import uniffi.gemstone.GemPerpetualData
 import uniffi.gemstone.GemPerpetualMarginType
+import uniffi.gemstone.GemPerpetualMarketData
 import uniffi.gemstone.GemPerpetualOrderType
 import uniffi.gemstone.GemPerpetualPosition
 import uniffi.gemstone.GemPerpetualPositionsSummary
@@ -49,15 +54,38 @@ internal fun GemPerpetualData.toDTO(): PerpetualData? {
 internal fun GemPerpetualPositionsSummary.toDTO(): PerpetualPositionsSummary {
     return PerpetualPositionsSummary(
         positions = positions.mapNotNull { it.toDTO() },
-        balance = PerpetualBalance(
-            available = balance.available,
-            reserved = balance.reserved,
-            withdrawable = balance.withdrawable,
-        ),
+        balance = balance.toDTO(),
     )
 }
 
-internal fun GemPerpetualPosition.toDTO(): PerpetualPosition? {
+fun GemPerpetualBalance.toDTO(): PerpetualBalance {
+    return PerpetualBalance(
+        available = available,
+        reserved = reserved,
+        withdrawable = withdrawable,
+    )
+}
+
+fun GemPerpetualMarketData.toDTO(): PerpetualMarketData {
+    return PerpetualMarketData(
+        coin = coin,
+        price = price,
+        pricePercentChange24h = pricePercentChange24h,
+        openInterest = openInterest,
+        volume24h = volume24h,
+        funding = funding,
+    )
+}
+
+fun GemChartCandleUpdate.toDTO(): ChartCandleUpdate {
+    return ChartCandleUpdate(
+        coin = coin,
+        interval = interval,
+        candle = candle.toDTO(),
+    )
+}
+
+fun GemPerpetualPosition.toDTO(): PerpetualPosition? {
     return PerpetualPosition(
         id = id,
         perpetualId = perpetualId.toPerpetualId() ?: return null,
@@ -87,7 +115,7 @@ internal fun GemPerpetualPosition.toDTO(): PerpetualPosition? {
     )
 }
 
-internal fun GemChartCandleStick.toDTO(): ChartCandleStick {
+fun GemChartCandleStick.toDTO(): ChartCandleStick {
     return ChartCandleStick(
         date = date * 1_000L,
         open = open,

@@ -53,4 +53,25 @@ interface PerpetualDao {
 
     @Query("UPDATE perpetuals SET isPinned = :isPinned WHERE id = :perpetualId")
     suspend fun setPinned(perpetualId: String, isPinned: Boolean)
+
+    @Query(
+        "UPDATE perpetuals SET price = :price, pricePercentChange24h = :pricePercentChange24h, " +
+            "openInterest = :openInterest, volume24h = :volume24h, funding = :funding WHERE name = :coin"
+    )
+    suspend fun updateMarket(
+        coin: String,
+        price: Double,
+        pricePercentChange24h: Double,
+        openInterest: Double,
+        volume24h: Double,
+        funding: Double,
+    )
+
+    @Query("UPDATE perpetuals SET price = :price WHERE name = :name")
+    suspend fun updatePrice(name: String, price: Double)
+
+    @Transaction
+    suspend fun updatePrices(prices: Map<String, Double>) {
+        prices.forEach { (name, price) -> updatePrice(name, price) }
+    }
 }

@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualMarketData
 import com.wallet.core.primitives.PerpetualMetadata
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
@@ -84,6 +85,49 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             )
         }
         positionsFlow.value = currentPositions
+    }
+
+    override suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
+        val current = positionsFlow.value[walletId.id].orEmpty()
+            .filterNot { deleteIds.contains(it.position.id) }
+            .associateBy { it.position.id }
+            .toMutableMap()
+        positions.forEach { position ->
+            val perpetual = perpetualsFlow.value.firstOrNull { it.perpetual.id == position.perpetualId } ?: return@forEach
+            current[position.id] = PerpetualPositionData(
+                perpetual = perpetual.perpetual,
+                asset = perpetual.asset,
+                position = position,
+            )
+        }
+        positionsFlow.value = positionsFlow.value.toMutableMap().apply { put(walletId.id, current.values.toList()) }
+    }
+
+    override suspend fun getProviderPositions(walletId: WalletId, provider: PerpetualProvider): List<PerpetualPosition> {
+        return positionsFlow.value[walletId.id].orEmpty()
+            .filter { it.perpetual.provider == provider }
+            .map { it.position }
+    }
+
+    override suspend fun updateMarket(market: PerpetualMarketData) {
+        perpetualsFlow.value = perpetualsFlow.value.map { data ->
+            if (data.perpetual.name != market.coin) return@map data
+            data.copy(
+                perpetual = data.perpetual.copy(
+                    price = market.price,
+                    pricePercentChange24h = market.pricePercentChange24h,
+                    openInterest = market.openInterest,
+                    volume24h = market.volume24h,
+                    funding = market.funding,
+                )
+            )
+        }
+    }
+
+    override suspend fun updatePrices(prices: Map<String, Double>) {
+        perpetualsFlow.value = perpetualsFlow.value.map { data ->
+            prices[data.perpetual.name]?.let { price -> data.copy(perpetual = data.perpetual.copy(price = price)) } ?: data
+        }
     }
 
     override fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>> {
