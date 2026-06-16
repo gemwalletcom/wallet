@@ -13,7 +13,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
+fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Blue): AnnotatedString {
     // Define regex patterns
     val linkRegex = """\[(.*?)\]\((.*?)\)""".toRegex()
     val autolinkRegex = """<(https?://[^>\s]+)>""".toRegex()
@@ -51,7 +51,7 @@ fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
 
     tokens.sortBy { it.start }
 
-    val linkStyle = SpanStyle(color = Color.Blue, textDecoration = TextDecoration.Underline)
+    val linkStyle = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)
     val builder = AnnotatedString.Builder()
     var currentIndex = 0
 

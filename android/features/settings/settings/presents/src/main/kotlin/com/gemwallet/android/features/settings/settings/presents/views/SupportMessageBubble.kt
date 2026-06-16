@@ -88,7 +88,10 @@ internal fun SupportMessageBubble(
             val context = LocalContext.current
             val clipboard = LocalClipboard.current.nativeClipboard
             var menuExpanded by remember { mutableStateOf(false) }
-            val markdown = parseMarkdownToAnnotatedString(message.content)
+            val markdown = parseMarkdownToAnnotatedString(
+                message.content,
+                linkColor = if (isUser) Color.White else Color.Blue,
+            )
             val timeSpacerStyle = MaterialTheme.typography.labelSmall.toSpanStyle().copy(color = Color.Transparent)
             val text = buildAnnotatedString {
                 append(markdown)

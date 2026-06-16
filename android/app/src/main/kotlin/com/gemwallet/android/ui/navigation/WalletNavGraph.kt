@@ -214,6 +214,7 @@ fun WalletNavGraph(
                         SettingsAction.Cancel -> onCancel()
                     }
                 },
+                onOpenUrl = navigator::openNotificationUrl,
                 toastMessage = navigator::toastMessage,
                 onToastShown = navigator::clearToastMessage,
             )

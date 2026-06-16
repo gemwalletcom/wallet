@@ -1,6 +1,12 @@
 package com.gemwallet.android.ui.navigation.routes
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.settings.aboutus.presents.AboutUsScreen
@@ -60,6 +66,7 @@ data object NotificationsRoute : NavKey
 
 fun EntryProviderScope<NavKey>.settingsScreen(
     onAction: (SettingsAction) -> Unit,
+    onOpenUrl: (String) -> Boolean,
     toastMessage: (NavKey) -> String?,
     onToastShown: (NavKey) -> Unit,
 ) {
@@ -144,7 +151,20 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     }
 
     entry<SupportRoute> {
-        SupportChatNavScreen(onCancel = onCancel)
+        val defaultUriHandler = LocalUriHandler.current
+        val currentOnOpenUrl by rememberUpdatedState(onOpenUrl)
+        val uriHandler = remember(defaultUriHandler) {
+            object : UriHandler {
+                override fun openUri(uri: String) {
+                    if (!currentOnOpenUrl(uri)) {
+                        defaultUriHandler.openUri(uri)
+                    }
+                }
+            }
+        }
+        CompositionLocalProvider(LocalUriHandler provides uriHandler) {
+            SupportChatNavScreen(onCancel = onCancel)
+        }
     }
 }
 
