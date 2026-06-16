@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
+import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
@@ -20,6 +21,8 @@ import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.StreamEventHandler
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
+import com.gemwallet.android.data.repositories.stream.WebSocketConnection
+import com.gemwallet.android.data.repositories.stream.WebSocketRequest
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
@@ -33,6 +36,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.ktor.http.HttpMethod
 import uniffi.gemstone.GemGateway
 import javax.inject.Singleton
 
@@ -148,10 +152,17 @@ object AssetsModule {
         syncAssets = syncAssets,
         syncPerpetuals = syncPerpetuals,
         syncPerpetualPositions = syncPerpetualPositions,
-        deviceRequestSigner = deviceRequestSigner,
         subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,
-        reconnection = ExponentialReconnection(maxDelay = 30.0),
+        connection = WebSocketConnection(
+            requestProvider = {
+                WebSocketRequest(
+                    url = Constants.DEVICE_STREAM_WEBSOCKET_URL,
+                    headers = deviceRequestSigner.sign(HttpMethod.Get.value, Constants.DEVICE_STREAM_PATH).toHeaders(),
+                )
+            },
+            reconnection = ExponentialReconnection(maxDelay = 30.0),
+        ),
     )
 
     @Provides

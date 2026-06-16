@@ -5,4 +5,5 @@ object Constants {
     const val API_URL = "https://$API_HOST"
     const val ASSETS_URL = "https://assets.gemwallet.com"
     const val DEVICE_STREAM_PATH = "/v2/devices/stream"
+    const val DEVICE_STREAM_WEBSOCKET_URL = "wss://$API_HOST$DEVICE_STREAM_PATH"
 }
