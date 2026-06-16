@@ -62,6 +62,8 @@ class WalletSearchTokensTest {
         }
 
         assertTrue(result.exceptionOrNull() is CancellationException)
-        coVerify(exactly = 0) { tokensRepository.storeAssets(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { tokensRepository.updateAssets(any(), any()) }
+        coVerify(exactly = 0) { searchDao.put(any()) }
+        coVerify(exactly = 0) { searchDao.deleteAssets(any()) }
     }
 }

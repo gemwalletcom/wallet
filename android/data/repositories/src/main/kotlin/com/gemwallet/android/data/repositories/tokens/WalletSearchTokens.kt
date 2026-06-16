@@ -29,7 +29,13 @@ class WalletSearchTokens(
             gemSearch.search(query = query, chains = chains, tags = tags)
         }.getOrElse { return@withContext false }
         val priorityQuery = tags.toPriorityQuery(query)
-        val hasAssets = tokensRepository.storeAssets(query, response.assets, currency, priorityQuery)
+        tokensRepository.updateAssets(response.assets, currency)
+        if (response.assets.isEmpty()) {
+            searchDao.deleteAssets(priorityQuery)
+        } else {
+            searchDao.put(response.assets.toSearchRecord(priorityQuery))
+        }
+        val hasAssets = response.assets.isNotEmpty()
         val perpetuals = if (tags.isEmpty()) response.perpetuals else emptyList()
         if (perpetuals.isNotEmpty()) {
             runCatchingCancellable {

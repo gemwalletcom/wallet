@@ -87,7 +87,7 @@ class TokensRepository (
         Unit
     }
 
-    private suspend fun updateAssets(assets: List<AssetBasic>, currency: Currency) {
+    internal suspend fun updateAssets(assets: List<AssetBasic>, currency: Currency) {
         if (assets.isEmpty()) {
             return
         }
