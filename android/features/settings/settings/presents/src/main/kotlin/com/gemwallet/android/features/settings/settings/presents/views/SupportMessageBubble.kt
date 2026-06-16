@@ -90,7 +90,7 @@ internal fun SupportMessageBubble(
             var menuExpanded by remember { mutableStateOf(false) }
             val markdown = parseMarkdownToAnnotatedString(
                 message.content,
-                linkColor = if (isUser) Color.White else Color.Blue,
+                linkColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
             )
             val timeSpacerStyle = MaterialTheme.typography.labelSmall.toSpanStyle().copy(color = Color.Transparent)
             val text = buildAnnotatedString {

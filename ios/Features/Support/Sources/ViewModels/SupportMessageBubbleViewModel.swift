@@ -28,14 +28,6 @@ struct SupportMessageBubbleViewModel: Identifiable {
     var isSending: Bool { message.status == .sending }
     var isFailed: Bool { message.status == .failed }
 
-    var copyText: String {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard let attributed = try? AttributedString(markdown: content, options: options) else {
-            return content
-        }
-        return String(attributed.characters)
-    }
-
     var palette: Palette {
         switch message.sender {
         case .user: Palette(text: Colors.whiteSolid, background: Colors.blue, secondary: Colors.whiteSolid, link: Colors.whiteSolid)

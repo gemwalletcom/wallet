@@ -38,7 +38,7 @@ struct SupportMessageBubble: View {
             .padding(.horizontal, .space12)
             .background(model.palette.background)
             .clipShape(RoundedRectangle(cornerRadius: .space16))
-            .contextMenu(.copy(value: model.copyText))
+            .contextMenu(.copy(value: model.content))
     }
 
     private var timeSpacer: Text {
