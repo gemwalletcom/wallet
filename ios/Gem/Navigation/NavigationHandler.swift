@@ -2,6 +2,7 @@
 
 import AssetsService
 import Foundation
+import GemstonePrimitives
 import Primitives
 import SwiftUI
 import TransactionsService
@@ -48,6 +49,19 @@ final class NavigationHandler: Sendable {
             try await handleURLAction(action)
         } catch {
             debugLog("NavigationHandler URLAction error: \(error)")
+        }
+    }
+
+    @MainActor
+    func open(url: URL) -> Bool {
+        guard let action = try? URLParser.from(url: url) else { return false }
+
+        switch action {
+        case .walletConnect:
+            return false
+        case .deeplink:
+            Task { await handle(action) }
+            return true
         }
     }
 }

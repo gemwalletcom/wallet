@@ -21,6 +21,7 @@ import WalletSessionService
 
 struct SettingsNavigationStack: View {
     @Environment(\.navigationState) private var navigationState
+    @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.deviceService) private var deviceService
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetsService) private var assetsService
@@ -206,6 +207,11 @@ struct SettingsNavigationStack: View {
                     SupportChatScene(model: SupportChatSceneViewModel(service: supportChatService))
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 }
+                .environment(\.openURL, OpenURLAction { url in
+                    guard navigationHandler.open(url: url) else { return .systemAction }
+                    isPresentingSupport = false
+                    return .handled
+                })
             }
         }
     }

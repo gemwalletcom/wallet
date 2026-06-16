@@ -55,6 +55,7 @@ extension EnvironmentValues {
     @Entry var transactionsService: TransactionsService = AppResolver.main.services.transactionsService
     @Entry var assetsService: AssetsService = AppResolver.main.services.assetsService
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
+    @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
     @Entry var stakeService: StakeService = AppResolver.main.services.stakeService
     @Entry var connectionsService: ConnectionsService = AppResolver.main.services.connectionsService
     @Entry var walletConnectorManager: WalletConnectorManager = AppResolver.main.services.walletConnectorManager

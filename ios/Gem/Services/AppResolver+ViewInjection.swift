@@ -24,6 +24,7 @@ extension View {
             .environment(\.balanceService, services.balanceService)
             .environment(\.priceAlertService, services.priceAlertService)
             .environment(\.navigationPresenter, services.navigationPresenter)
+            .environment(\.navigationHandler, services.navigationHandler)
             .environment(\.chainServiceFactory, services.chainServiceFactory)
             .environment(\.priceService, services.priceService)
             .environment(\.streamSubscriptionService, services.streamSubscriptionService)
