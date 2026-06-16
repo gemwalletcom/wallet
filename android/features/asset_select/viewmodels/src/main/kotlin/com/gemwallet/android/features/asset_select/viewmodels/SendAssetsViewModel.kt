@@ -39,6 +39,7 @@ open class SendSelectViewModel @Inject constructor(
     toggleAssetPin,
     searchTokensCase,
     SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
+    remoteSearch = false,
 ) {
     override fun assetFilters() = setOf(AssetFilter.HasBalance)
 

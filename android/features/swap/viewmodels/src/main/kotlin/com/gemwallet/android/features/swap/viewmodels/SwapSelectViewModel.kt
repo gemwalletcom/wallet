@@ -77,6 +77,8 @@ class SwapSelectViewModel @Inject constructor(
 
     override fun assetFilters() = setOf(AssetFilter.Swappable)
 
+    override fun isNetworkSearchEnabled(): Boolean = select.value == SwapItemType.Receive
+
     override val recentTypes: List<RecentType> get() = listOf(RecentType.SwapSelect, RecentType.Swap)
 }
 

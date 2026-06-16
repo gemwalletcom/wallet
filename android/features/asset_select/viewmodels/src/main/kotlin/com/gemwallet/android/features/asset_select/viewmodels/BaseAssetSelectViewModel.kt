@@ -67,6 +67,7 @@ open class BaseAssetSelectViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val noResultsQuery = MutableStateFlow<String?>(null)
+    private val isSearching = MutableStateFlow(false)
 
     val availableChains = session
         .map { session -> session?.wallet?.accounts?.map { it.chain } ?: emptyList() }
@@ -143,12 +144,12 @@ open class BaseAssetSelectViewModel(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
-    val uiState = combine(assets, currentQuery, noResultsQuery) { assets, query, noResultsQuery ->
+    val uiState = combine(assets, currentQuery, isSearching) { assets, query, isSearching ->
         when {
             assets.isNotEmpty() -> UIState.Idle
-            query.isNotEmpty() && query == noResultsQuery -> UIState.Empty
-            query.isNotEmpty() -> UIState.Loading
-            else -> UIState.Idle
+            query.isEmpty() -> UIState.Idle
+            isSearching -> UIState.Loading
+            else -> UIState.Empty
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
@@ -213,9 +214,17 @@ open class BaseAssetSelectViewModel(
         if (remoteSearch) {
             viewModelScope.launch(Dispatchers.IO) {
                 searchRequests.collectLatest { (query, tag, currency, chains) ->
-                    delay(SEARCH_DEBOUNCE_MS)
-                    val ok = searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
-                    noResultsQuery.value = if (ok) null else query
+                    if (!isNetworkSearchEnabled()) {
+                        return@collectLatest
+                    }
+                    isSearching.value = query.isNotEmpty()
+                    try {
+                        delay(SEARCH_DEBOUNCE_MS)
+                        val ok = searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
+                        noResultsQuery.value = if (ok) null else query
+                    } finally {
+                        isSearching.value = false
+                    }
                 }
             }
         }
@@ -238,6 +247,8 @@ open class BaseAssetSelectViewModel(
     open fun assetFilters(): Set<AssetFilter> = emptySet()
 
     open fun assetsSearchLimit(query: String, tag: AssetTag?): Int = NO_QUERY_LIMIT
+
+    protected open fun isNetworkSearchEnabled(): Boolean = true
 
     private data class SearchRequest(
         val query: String,
