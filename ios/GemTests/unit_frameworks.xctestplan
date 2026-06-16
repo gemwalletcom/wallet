@@ -234,6 +234,13 @@
     {
       "target" : {
         "containerPath" : "container:Packages\/FeatureServices",
+        "identifier" : "AssetsServiceTests",
+        "name" : "AssetsServiceTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/FeatureServices",
         "identifier" : "PriceAlertServiceTests",
         "name" : "PriceAlertServiceTests"
       }

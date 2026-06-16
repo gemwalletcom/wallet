@@ -13,7 +13,7 @@ import SwiftUI
 public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Chain)
     case insufficientBalance(Asset, image: AssetImage)
-    case insufficientNetworkFee(Asset, image: AssetImage, required: BigInt?, action: InfoSheetAction)
+    case insufficientNetworkFee(Asset, image: AssetImage, required: BigInt?, price: Price?, currency: String, action: InfoSheetAction)
     case transactionState(imageURL: URL?, placeholder: Image?, state: TransactionState)
     case watchWallet
     case stakeLockTime(Image?)

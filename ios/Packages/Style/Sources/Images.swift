@@ -9,6 +9,10 @@ public enum Images {
         public static let icon = Image(.gemIcon)
     }
 
+    public enum Support {
+        public static let agent = Image(.supportAgent)
+    }
+
     public enum Chains {
         public static let aptos = Image(.aptos)
         public static let arbitrum = Image(.arbitrum)

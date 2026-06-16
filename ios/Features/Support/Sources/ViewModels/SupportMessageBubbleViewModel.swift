@@ -35,6 +35,13 @@ struct SupportMessageBubbleViewModel: Identifiable {
         }
     }
 
+    var alignment: Alignment {
+        switch message.sender {
+        case .user: .trailing
+        case .agent: .leading
+        }
+    }
+
     var time: String { message.createdAt.formatted(date: .omitted, time: .shortened) }
 
     var status: Status {

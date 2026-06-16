@@ -190,58 +190,61 @@ struct WalletNavigationStack: View {
                 )
             }
             .sheet(item: $model.isPresentingSheet) { sheet in
-                switch sheet {
-                case .wallets:
-                    WalletsNavigationStack()
-                case let .selectAsset(type):
-                    SelectAssetSceneNavigationStack(
-                        model: SelectAssetViewModel(
-                            wallet: model.wallet,
-                            selectType: type,
-                            searchService: assetSearchService,
-                            assetsEnabler: assetsEnabler,
-                            priceAlertService: priceAlertService,
-                            activityService: activityService,
-                        ),
-                    )
-                case let .infoSheet(type):
-                    InfoSheetScene(type: type)
-                case let .transferData(data):
-                    ConfirmTransferNavigationStack(
-                        wallet: model.wallet,
-                        transferData: data,
-                        onComplete: model.onTransferComplete,
-                    )
-                case let .perpetualRecipientData(data):
-                    PerpetualPositionNavigationStack(
-                        perpetualRecipientData: data,
-                        wallet: model.wallet,
-                        onComplete: { model.isPresentingSheet = nil },
-                    )
-                case let .setPriceAlert(asset):
-                    SetPriceAlertNavigationStack(
-                        model: SetPriceAlertViewModel(
-                            walletId: model.wallet.id,
-                            asset: asset,
-                            priceAlertService: priceAlertService,
-                        ) { model.onSetPriceAlertComplete(message: $0) },
-                    )
-                case .addAsset:
-                    AddAssetNavigationStack(wallet: model.wallet)
-                case let .portfolio(defaultType):
-                    PortfolioScene(
-                        model: PortfolioSceneViewModel(
-                            wallet: model.wallet,
-                            service: PortfolioDataService(
-                                portfolioService: portfolioService,
-                                perpetualService: perpetualService,
-                                priceService: priceService,
+                Group {
+                    switch sheet {
+                    case .wallets:
+                        WalletsNavigationStack()
+                    case let .selectAsset(type):
+                        SelectAssetSceneNavigationStack(
+                            model: SelectAssetViewModel(
+                                wallet: model.wallet,
+                                selectType: type,
+                                searchService: assetSearchService,
+                                assetsEnabler: assetsEnabler,
+                                priceAlertService: priceAlertService,
+                                activityService: activityService,
                             ),
-                            preferences: preferences,
-                            defaultType: defaultType,
-                        ),
-                    )
+                        )
+                    case let .infoSheet(type):
+                        InfoSheetScene(type: type)
+                    case let .transferData(data):
+                        ConfirmTransferNavigationStack(
+                            wallet: model.wallet,
+                            transferData: data,
+                            onComplete: model.onTransferComplete,
+                        )
+                    case let .perpetualRecipientData(data):
+                        PerpetualPositionNavigationStack(
+                            perpetualRecipientData: data,
+                            wallet: model.wallet,
+                            onComplete: { model.isPresentingSheet = nil },
+                        )
+                    case let .setPriceAlert(asset):
+                        SetPriceAlertNavigationStack(
+                            model: SetPriceAlertViewModel(
+                                walletId: model.wallet.id,
+                                asset: asset,
+                                priceAlertService: priceAlertService,
+                            ) { model.onSetPriceAlertComplete(message: $0) },
+                        )
+                    case .addAsset:
+                        AddAssetNavigationStack(wallet: model.wallet)
+                    case let .portfolio(defaultType):
+                        PortfolioScene(
+                            model: PortfolioSceneViewModel(
+                                wallet: model.wallet,
+                                service: PortfolioDataService(
+                                    portfolioService: portfolioService,
+                                    perpetualService: perpetualService,
+                                    priceService: priceService,
+                                ),
+                                preferences: preferences,
+                                defaultType: defaultType,
+                            ),
+                        )
+                    }
                 }
+                .id(sheet.id)
             }
             .safariSheet(url: $model.isPresentingUrl)
         }

@@ -7,6 +7,7 @@ import SwiftUI
 
 struct SupportMessageInputBar: View {
     @State private var model: SupportMessageInputBarViewModel
+    @FocusState private var focusedField: Bool
 
     init(model: SupportMessageInputBarViewModel) {
         _model = State(initialValue: model)
@@ -25,6 +26,7 @@ struct SupportMessageInputBar: View {
         .onChange(of: model.selectedItems) {
             model.sendSelectedImages()
         }
+        .onAppear { focusedField = true }
     }
 
     private var attachButton: some View {
@@ -45,6 +47,7 @@ struct SupportMessageInputBar: View {
 
     private var textField: some View {
         TextField(model.placeholder, text: $model.text, axis: .vertical)
+            .focused($focusedField)
             .lineLimit(1 ... 8)
             .padding(.vertical, .small)
             .padding(.horizontal, .space12)

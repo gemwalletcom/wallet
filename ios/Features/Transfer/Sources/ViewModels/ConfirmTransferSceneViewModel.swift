@@ -273,7 +273,7 @@ extension ConfirmTransferSceneViewModel {
             case let .insufficientBalance(asset):
                 isPresentingSheet = .info(.insufficientBalance(asset, image: AssetViewModel(asset: asset).assetImage))
             case let .insufficientNetworkFee(asset, required):
-                isPresentingSheet = .info(.insufficientNetworkFee(asset, image: AssetViewModel(asset: asset).assetImage, required: required, action: onSelectBuy))
+                isPresentingSheet = .info(.insufficientNetworkFee(asset, image: AssetViewModel(asset: asset).assetImage, required: required, price: metadata?.feePrice, currency: Preferences.standard.currency, action: onSelectBuy))
             case let .minimumAccountBalanceTooLow(asset, required):
                 isPresentingSheet = .info(.accountMinimalBalance(asset, required: required))
             }
@@ -372,13 +372,8 @@ extension ConfirmTransferSceneViewModel {
 
         do {
             let metadata = try confirmService.getMetadata(wallet: wallet, data: transferData)
-            try TransferAmountCalculator().validateNetworkFee(metadata.feeAvailable, feeAssetId: metadata.feeAssetId)
 
-            let transferTransactionData = try await confirmService.loadTransferTransactionData(
-                wallet: wallet, data: transferData,
-                priority: feeModel.priority,
-                available: metadata.available,
-            )
+            let transferTransactionData = try await preloadTransferTransactionData(metadata: metadata)
             let transferAmount = calculateTransferAmount(
                 assetBalance: metadata.assetBalance,
                 assetFeeBalance: metadata.assetFeeBalance,
@@ -402,6 +397,20 @@ extension ConfirmTransferSceneViewModel {
             simulationState = await nextSimulationState
             state.setError(error)
             debugLog("preload transaction error: \(error)")
+        }
+    }
+
+    private func preloadTransferTransactionData(metadata: TransferDataMetadata) async throws -> TransferTransactionData {
+        do {
+            return try await confirmService.loadTransferTransactionData(
+                wallet: wallet,
+                data: transferData,
+                priority: feeModel.priority,
+                available: metadata.available,
+            )
+        } catch {
+            try TransferAmountCalculator().validateNetworkFee(metadata.feeAvailable, feeAssetId: metadata.feeAssetId)
+            throw error
         }
     }
 

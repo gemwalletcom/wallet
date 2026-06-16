@@ -53,6 +53,7 @@ fun AddAssetScree(
                 network = network.asset(),
                 token = token,
                 explorerLink = explorerLink,
+                isLoading = uiState.isLoading,
                 onCancel = onCancel,
                 onScan = viewModel::onQrScan,
                 onAddAsset = { viewModel.addAsset(onFinish) },

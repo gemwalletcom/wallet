@@ -370,7 +370,7 @@ let package = Package(
                 "GemstonePrimitives",
             ],
             path: "AssetsService",
-            exclude: ["TestKit"],
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "AssetsServiceTestKit",
@@ -668,6 +668,18 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
             ],
             path: "FiatService/TestKit",
+        ),
+        .testTarget(
+            name: "AssetsServiceTests",
+            dependencies: [
+                "AssetsService",
+                "AssetsServiceTestKit",
+                .product(name: "GemAPITestKit", package: "GemAPI"),
+                .product(name: "ChainServiceTestKit", package: "ChainServices"),
+                .product(name: "BlockchainTestKit", package: "Blockchain"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "AssetsService/Tests",
         ),
         .testTarget(
             name: "TransactionStateServiceTests",

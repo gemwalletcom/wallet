@@ -3,11 +3,17 @@ package com.gemwallet.android.features.settings.settings.presents.views
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,7 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -25,7 +34,9 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
 fun SupportChatNavScreen(
@@ -45,7 +56,23 @@ fun SupportChatNavScreen(
     }
 
     Scene(
-        title = stringResource(R.string.settings_support),
+        titleContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.support_agent),
+                    contentDescription = null,
+                    modifier = Modifier.size(compactIconSize).clip(CircleShape),
+                )
+                Text(
+                    text = stringResource(R.string.settings_support),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
         onClose = onCancel,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {

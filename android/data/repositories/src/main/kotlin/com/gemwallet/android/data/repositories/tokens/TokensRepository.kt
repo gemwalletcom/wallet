@@ -21,6 +21,7 @@ import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
@@ -36,27 +37,26 @@ class TokensRepository (
         if (query.isEmpty() && tags.isEmpty()) {
             return@withContext false
         }
+        val nodeAssets = async { tokenService.search(query) }
         val tokens = runCatchingCancellable {
             searchAssets.searchAssets(
                 query = query,
                 chains = chains,
                 tags = tags,
             )
-        }.getOrElse { return@withContext false }
-        storeAssets(query, tokens, currency, tags.toPriorityQuery(query))
-    }
-
-    internal suspend fun storeAssets(query: String, tokens: List<AssetBasic>, currency: Currency, priorityQuery: String): Boolean {
-        return if (tokens.isEmpty()) {
-            searchDao.deleteAssets(priorityQuery)
-            val assets = tokenService.search(query)
-            runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
-            assets.isNotEmpty()
-        } else {
-            updateAssets(tokens, currency)
-            searchDao.put(tokens.toSearchRecord(priorityQuery))
-            true
+        }.getOrElse {
+            nodeAssets.cancel()
+            return@withContext false
         }
+        val priorityQuery = tags.toPriorityQuery(query)
+        val assets = (tokens + nodeAssets.await()).distinctBy { it.asset.id }
+        if (assets.isEmpty()) {
+            searchDao.deleteAssets(priorityQuery)
+            return@withContext false
+        }
+        updateAssets(assets, currency)
+        searchDao.put(assets.toSearchRecord(priorityQuery))
+        true
     }
 
     override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean {
