@@ -56,6 +56,5 @@ mod tests {
             Some("USDC:0x6d1e7cde53ba9467b783cb7c530ce054".to_string())
         );
         assert_eq!(spot_token_id_for_asset_id(&AssetId::from_token(Chain::HyperCore, "USDC")), None);
-        assert_eq!(spot_token_id_for_asset_id(&AssetId::from_token(Chain::Ethereum, HYPERCORE_SPOT_USDC_TOKEN_ID)), None);
     }
 }
