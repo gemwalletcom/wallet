@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -26,7 +25,6 @@ class StreamObserverService(
     private val userConfig: UserConfig,
     private val syncAssets: SyncAssets,
     private val syncPerpetuals: SyncPerpetuals,
-    private val syncPerpetualPositions: SyncPerpetualPositions,
     private val subscriptionService: StreamSubscriptionService,
     private val eventHandler: StreamEventHandler,
     private val connection: WebSocketConnectable,
@@ -50,7 +48,6 @@ class StreamObserverService(
             session = sessionRepository.session(),
             isPerpetualEnabled = userConfig.isPerpetualEnabled(),
             syncPerpetuals = syncPerpetuals,
-            syncPerpetualPositions = syncPerpetualPositions,
         )
     }
 
@@ -97,7 +94,6 @@ internal fun CoroutineScope.launchPerpetualSync(
     session: Flow<Session?>,
     isPerpetualEnabled: Flow<Boolean>,
     syncPerpetuals: SyncPerpetuals,
-    syncPerpetualPositions: SyncPerpetualPositions,
 ): Job = launch {
     combine(session, isPerpetualEnabled) { current, enabled ->
         val wallet = current?.wallet
@@ -107,6 +103,5 @@ internal fun CoroutineScope.launchPerpetualSync(
         .collectLatest { walletId ->
             if (walletId == null) return@collectLatest
             runCatching { syncPerpetuals.syncPerpetuals() }
-            runCatching { syncPerpetualPositions.syncPerpetualPositions() }
         }
 }

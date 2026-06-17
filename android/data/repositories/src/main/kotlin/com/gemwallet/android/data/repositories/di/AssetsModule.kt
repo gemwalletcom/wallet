@@ -142,7 +142,6 @@ object AssetsModule {
         userConfig: com.gemwallet.android.data.repositories.config.UserConfig,
         syncAssets: SyncAssets,
         syncPerpetuals: com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals,
-        syncPerpetualPositions: com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions,
         deviceRequestSigner: DeviceRequestSigner,
         streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
@@ -151,7 +150,6 @@ object AssetsModule {
         userConfig = userConfig,
         syncAssets = syncAssets,
         syncPerpetuals = syncPerpetuals,
-        syncPerpetualPositions = syncPerpetualPositions,
         subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,
         connection = WebSocketConnection(
