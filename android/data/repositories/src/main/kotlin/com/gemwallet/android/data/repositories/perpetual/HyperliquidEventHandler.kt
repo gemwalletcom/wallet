@@ -21,8 +21,8 @@ import uniffi.gemstone.Hyperliquid
 
 class HyperliquidEventHandler(
     private val perpetualRepository: PerpetualRepository,
+    private val hyperliquid: Hyperliquid,
 ) {
-    private val hyperliquid = Hyperliquid()
 
     private val chartFlow = MutableSharedFlow<ChartCandleUpdate>(
         extraBufferCapacity = CHART_BUFFER_CAPACITY,

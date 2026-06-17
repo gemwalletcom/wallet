@@ -54,16 +54,24 @@ object PerpetualModule {
 
     @Provides
     @Singleton
+    fun provideHyperliquid(): Hyperliquid = Hyperliquid()
+
+    @Provides
+    @Singleton
     fun provideHyperliquidEventHandler(
         perpetualRepository: PerpetualRepository,
+        hyperliquid: Hyperliquid,
     ): HyperliquidEventHandler = HyperliquidEventHandler(
         perpetualRepository = perpetualRepository,
+        hyperliquid = hyperliquid,
     )
 
     @Provides
     @Singleton
-    fun provideHyperliquidSubscriptionService(): HyperliquidSubscriptionService =
-        HyperliquidSubscriptionService(Hyperliquid()::websocketRequest)
+    fun provideHyperliquidSubscriptionService(
+        hyperliquid: Hyperliquid,
+    ): HyperliquidSubscriptionService =
+        HyperliquidSubscriptionService(hyperliquid::websocketRequest)
 
     @Provides
     @Singleton
