@@ -1,8 +1,6 @@
 package com.gemwallet.android
 
 import android.app.Application
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -11,12 +9,8 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.svg.SvgDecoder
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingService
-
-import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
-import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -24,11 +18,7 @@ import javax.inject.Inject
 class App : Application(), SingletonImageLoader.Factory {
 
     @Inject
-    lateinit var streamObserver: StreamObserverService
-    @Inject
-    lateinit var hyperliquidObserver: HyperliquidObserverService
-    @Inject
-    lateinit var syncPerpetualPositions: SyncPerpetualPositions
+    lateinit var appLifecycleCoordinator: AppLifecycleCoordinator
     @Inject
     lateinit var getTransactions: GetTransactions
     @Inject
@@ -36,19 +26,7 @@ class App : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
-        ProcessLifecycleOwner.get().lifecycle.addObserver(
-            object : DefaultLifecycleObserver {
-                override fun onStart(owner: LifecycleOwner) {
-                    streamObserver.start()
-                    hyperliquidObserver.start()
-                }
-
-                override fun onStop(owner: LifecycleOwner) {
-                    streamObserver.stop()
-                    hyperliquidObserver.stop()
-                }
-            },
-        )
+        ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleCoordinator)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
