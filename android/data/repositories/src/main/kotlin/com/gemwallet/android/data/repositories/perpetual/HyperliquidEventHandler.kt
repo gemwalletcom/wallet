@@ -16,8 +16,6 @@ import uniffi.gemstone.GemHyperliquidOpenOrder
 import uniffi.gemstone.GemHyperliquidSocketMessage
 import uniffi.gemstone.GemPerpetualBalance
 import uniffi.gemstone.GemPerpetualPosition
-import uniffi.gemstone.GemPerpetualSubscription
-import uniffi.gemstone.GemSubscriptionMethod
 import uniffi.gemstone.Hyperliquid
 
 class HyperliquidEventHandler(
@@ -32,10 +30,6 @@ class HyperliquidEventHandler(
     val chartUpdates: Flow<ChartCandleUpdate> = chartFlow.asSharedFlow()
 
     private var pricesUpdatedAt = 0L
-
-    fun subscriptionRequest(method: GemSubscriptionMethod, subscription: GemPerpetualSubscription): String {
-        return hyperliquid.websocketRequest(method, subscription)
-    }
 
     suspend fun handle(walletId: WalletId, text: String) {
         runCatchingCancellable {

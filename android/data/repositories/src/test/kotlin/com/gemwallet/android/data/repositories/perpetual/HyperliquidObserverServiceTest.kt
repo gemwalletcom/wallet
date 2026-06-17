@@ -2,13 +2,16 @@ package com.gemwallet.android.data.repositories.perpetual
 
 import com.gemwallet.android.data.repositories.stream.WebSocketConnectable
 import com.gemwallet.android.data.repositories.stream.WebSocketEvent
-import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Chain
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -16,8 +19,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.GemPerpetualSubscription
-import uniffi.gemstone.GemSubscriptionMethod
 
 class HyperliquidObserverServiceTest {
 
@@ -31,50 +32,35 @@ class HyperliquidObserverServiceTest {
     }
 
     @Test
-    fun `subscribe sends a subscribe request over the connection`() = runTest {
+    fun `on connect resubscribes defaults and routes messages to the event handler`() = runTest {
         val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
-        val connection = RecordingConnection()
-        val service = service(connection, scope)
-
-        service.subscribe(GemPerpetualSubscription.MarketPrices)
-        advanceUntilIdle()
-
-        assertEquals(listOf(SUBSCRIBE_REQUEST), connection.sent)
-        scope.cancel()
-    }
-
-    @Test
-    fun `unsubscribe sends an unsubscribe request over the connection`() = runTest {
-        val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
-        val connection = RecordingConnection()
-        val service = service(connection, scope)
-
-        service.unsubscribe(GemPerpetualSubscription.MarketPrices)
-        advanceUntilIdle()
-
-        assertEquals(listOf(UNSUBSCRIBE_REQUEST), connection.sent)
-        scope.cancel()
-    }
-
-    private fun service(connection: WebSocketConnectable, scope: CoroutineScope): HyperliquidObserverService {
-        val eventHandler = mockk<HyperliquidEventHandler> {
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.HyperCore, address = ADDRESS)))
+        val connection = RecordingConnection(listOf(WebSocketEvent.Connected, WebSocketEvent.Message(MESSAGE)))
+        val eventHandler = mockk<HyperliquidEventHandler>(relaxed = true) {
             every { chartUpdates } returns emptyFlow()
-            every { subscriptionRequest(GemSubscriptionMethod.SUBSCRIBE, any()) } returns SUBSCRIBE_REQUEST
-            every { subscriptionRequest(GemSubscriptionMethod.UNSUBSCRIBE, any()) } returns UNSUBSCRIBE_REQUEST
         }
-        return HyperliquidObserverService(
-            sessionRepository = mockk { every { session() } returns MutableStateFlow<Session?>(null) },
-            userConfig = mockk { every { isPerpetualEnabled() } returns flowOf(false) },
+        val observePerpetualWallet = mockk<ObservePerpetualWallet>()
+        every { observePerpetualWallet() } returns flowOf(wallet)
+        val observer = HyperliquidObserverService(
+            observePerpetualWallet = observePerpetualWallet,
             syncPerpetualPositions = mockk(relaxed = true),
             eventHandler = eventHandler,
+            subscriptionService = HyperliquidSubscriptionService { _, _ -> SUBSCRIBE_REQUEST },
             connection = connection,
             scope = scope,
         )
+
+        observer.start()
+        advanceUntilIdle()
+
+        assertEquals(listOf(SUBSCRIBE_REQUEST, SUBSCRIBE_REQUEST), connection.sent)
+        coVerify { eventHandler.handle(wallet.id, MESSAGE) }
+        scope.cancel()
     }
 
-    private class RecordingConnection : WebSocketConnectable {
+    private class RecordingConnection(private val events: List<WebSocketEvent>) : WebSocketConnectable {
         val sent = mutableListOf<String>()
-        override fun connect(): Flow<WebSocketEvent> = emptyFlow()
+        override fun connect(): Flow<WebSocketEvent> = events.asFlow()
         override suspend fun send(message: String): Boolean {
             sent.add(message)
             return true
@@ -82,7 +68,8 @@ class HyperliquidObserverServiceTest {
     }
 
     private companion object {
+        const val ADDRESS = "0xabc"
+        const val MESSAGE = "message"
         const val SUBSCRIBE_REQUEST = "subscribe-request"
-        const val UNSUBSCRIBE_REQUEST = "unsubscribe-request"
     }
 }

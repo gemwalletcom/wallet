@@ -5,13 +5,13 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPos
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
-import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidEventHandler
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
+import com.gemwallet.android.data.repositories.perpetual.HyperliquidSubscriptionService
+import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepositoryImpl
 import com.gemwallet.android.data.repositories.perpetual.toWebSocketUrl
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketRequest
@@ -28,6 +28,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import uniffi.gemstone.Hyperliquid
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -61,19 +62,24 @@ object PerpetualModule {
 
     @Provides
     @Singleton
+    fun provideHyperliquidSubscriptionService(): HyperliquidSubscriptionService =
+        HyperliquidSubscriptionService(Hyperliquid()::websocketRequest)
+
+    @Provides
+    @Singleton
     fun provideHyperliquidObserverService(
-        sessionRepository: SessionRepository,
-        userConfig: UserConfig,
+        observePerpetualWallet: ObservePerpetualWallet,
         syncPerpetualPositions: SyncPerpetualPositions,
         eventHandler: HyperliquidEventHandler,
+        subscriptionService: HyperliquidSubscriptionService,
         getNodesCase: GetNodesCase,
         getCurrentNodeCase: GetCurrentNodeCase,
         setCurrentNodeCase: SetCurrentNodeCase,
     ): HyperliquidObserverService = HyperliquidObserverService(
-        sessionRepository = sessionRepository,
-        userConfig = userConfig,
+        observePerpetualWallet = observePerpetualWallet,
         syncPerpetualPositions = syncPerpetualPositions,
         eventHandler = eventHandler,
+        subscriptionService = subscriptionService,
         connection = WebSocketConnection(
             requestProvider = {
                 val url = Chain.HyperCore.getNodeUrl(getNodesCase, getCurrentNodeCase, setCurrentNodeCase)
