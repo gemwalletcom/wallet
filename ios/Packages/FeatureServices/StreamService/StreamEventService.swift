@@ -10,6 +10,7 @@ import PriceAlertService
 import PriceService
 import Primitives
 import Store
+import SupportChatService
 import TransactionsService
 
 public struct StreamEventService: Sendable {
@@ -22,7 +23,7 @@ public struct StreamEventService: Sendable {
     private let nftService: NFTService
     private let perpetualService: any HyperliquidPerpetualServiceable
     private let fiatService: FiatService
-    private let supportChatStore: SupportChatStore
+    private let supportChatService: SupportChatService
     private let preferences: Preferences
 
     public init(
@@ -35,7 +36,7 @@ public struct StreamEventService: Sendable {
         nftService: NFTService,
         perpetualService: any HyperliquidPerpetualServiceable,
         fiatService: FiatService,
-        supportChatStore: SupportChatStore,
+        supportChatService: SupportChatService,
         preferences: Preferences,
     ) {
         self.walletStore = walletStore
@@ -47,7 +48,7 @@ public struct StreamEventService: Sendable {
         self.nftService = nftService
         self.perpetualService = perpetualService
         self.fiatService = fiatService
-        self.supportChatStore = supportChatStore
+        self.supportChatService = supportChatService
         self.preferences = preferences
     }
 
@@ -69,13 +70,8 @@ public struct StreamEventService: Sendable {
             Task { await perform { try await priceAlertService.update() } }
         case let .fiatTransaction(update):
             Task { await perform { try await handleFiatTransactionUpdate(update) } }
-        case let .support(event):
-            switch event {
-            case let .message(message):
-                await perform { try supportChatStore.addMessages([message]) }
-            case .typing:
-                break
-            }
+        case let .support(supportEvent):
+            await perform { try await supportChatService.receive(supportEvent) }
         }
     }
 }

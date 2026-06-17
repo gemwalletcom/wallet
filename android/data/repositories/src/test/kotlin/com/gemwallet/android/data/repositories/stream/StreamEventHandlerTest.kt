@@ -6,6 +6,7 @@ import com.gemwallet.android.application.transactions.coordinators.SyncTransacti
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.support.SupportTypingState
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
@@ -45,6 +46,7 @@ class StreamEventHandlerTest {
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
     private val inAppNotificationsDao = mockk<InAppNotificationsDao>(relaxed = true)
     private val supportMessagesDao = mockk<SupportMessagesDao>(relaxed = true)
+    private val supportTypingState = SupportTypingState()
 
     private val handler = StreamEventHandler(
         pricesDao = pricesDao,
@@ -58,6 +60,7 @@ class StreamEventHandlerTest {
         updateBalances = updateBalances,
         inAppNotificationsDao = inAppNotificationsDao,
         supportMessagesDao = supportMessagesDao,
+        supportTypingState = supportTypingState,
     )
 
     private val walletId = mockWalletId("w1")

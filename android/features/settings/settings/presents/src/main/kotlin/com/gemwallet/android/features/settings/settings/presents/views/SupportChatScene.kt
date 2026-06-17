@@ -45,6 +45,7 @@ fun SupportChatNavScreen(
 ) {
     val days by viewModel.days.collectAsStateWithLifecycle()
     val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
+    val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()
     var previewUrl by remember { mutableStateOf<String?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
@@ -79,6 +80,7 @@ fun SupportChatNavScreen(
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 SupportMessagesList(
                     days = days,
+                    typingAgentName = typingAgentName,
                     onImageClick = { previewUrl = it },
                     onRetry = viewModel::retry,
                 )

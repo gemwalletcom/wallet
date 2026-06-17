@@ -206,6 +206,7 @@ let package = Package(
                 "NFTService",
                 "PerpetualService",
                 "FiatService",
+                "SupportChatService",
                 "DeviceService",
                 "GemAPI",
                 .product(name: "GemAPIDevice", package: "GemAPI"),
@@ -219,6 +220,7 @@ let package = Package(
             name: "StreamServiceTestKit",
             dependencies: [
                 "StreamService",
+                "SupportChatService",
                 .product(name: "StoreTestKit", package: "Store"),
                 "PriceServiceTestKit",
                 "PriceAlertServiceTestKit",

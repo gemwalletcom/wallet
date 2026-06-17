@@ -43,6 +43,7 @@ private sealed interface ChatRow {
 @Composable
 internal fun SupportMessagesList(
     days: List<SupportChatDay>,
+    typingAgentName: String?,
     onImageClick: (String) -> Unit,
     onRetry: (SupportMessage) -> Unit,
 ) {
@@ -71,6 +72,12 @@ internal fun SupportMessagesList(
         }
     }
 
+    LaunchedEffect(typingAgentName) {
+        if (typingAgentName != null) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = listState,
@@ -78,6 +85,12 @@ internal fun SupportMessagesList(
         contentPadding = PaddingValues(horizontal = paddingDefault, vertical = paddingSmall),
         verticalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.Bottom),
     ) {
+        val typingName = typingAgentName
+        if (typingName != null) {
+            item(key = "typing") {
+                SupportTypingIndicator(name = typingName)
+            }
+        }
         items(rows, key = { it.key }, contentType = { it::class }) { row ->
             when (row) {
                 is ChatRow.Separator -> DaySeparator(row.day)

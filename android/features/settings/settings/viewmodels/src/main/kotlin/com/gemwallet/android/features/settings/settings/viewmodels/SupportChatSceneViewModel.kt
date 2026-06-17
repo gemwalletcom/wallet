@@ -34,6 +34,10 @@ class SupportChatSceneViewModel @Inject constructor(
         .map { it.isEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
+    val typingAgentName = repository.typing
+        .map { it?.name }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     fun fetch() = viewModelScope.launch(Dispatchers.IO) {
         perform("fetch") {
             repository.failPendingMessages()
@@ -58,6 +62,11 @@ class SupportChatSceneViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             perform("retry") { repository.retryMessage(message) }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        repository.clearTyping()
     }
 
     private suspend fun perform(context: String, block: suspend () -> Unit) {

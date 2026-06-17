@@ -24,6 +24,7 @@ public final class SupportChatSceneViewModel {
     var emptyTitle: String { Localized.Support.stateEmptyTitle }
     var emptyDescription: String { Localized.Support.stateEmptyDescription }
     var isEmpty: Bool { query.value.isEmpty }
+    var typingAgentName: String? { service.typing.agent?.name }
 
     @ObservationIgnored
     private(set) lazy var inputBarModel = SupportMessageInputBarViewModel(
@@ -52,6 +53,10 @@ public final class SupportChatSceneViewModel {
         case .inactive, .background: break
         @unknown default: break
         }
+    }
+
+    func onDisappear() {
+        service.typing.clear()
     }
 
     func sendText(_ content: String) {

@@ -7,6 +7,7 @@ import com.gemwallet.android.application.transactions.coordinators.SyncTransacti
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.support.SupportTypingState
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
@@ -42,6 +43,7 @@ class StreamEventHandler(
     private val updateBalances: UpdateBalances,
     private val inAppNotificationsDao: InAppNotificationsDao,
     private val supportMessagesDao: SupportMessagesDao,
+    private val supportTypingState: SupportTypingState,
 ) {
 
     suspend fun handle(event: StreamEvent) {
@@ -118,7 +120,7 @@ class StreamEventHandler(
     private suspend fun handleSupport(event: SupportStreamEvent) {
         when (event) {
             is SupportStreamEvent.Message -> supportMessagesDao.addMessages(listOf(event.data.toRecord()))
-            is SupportStreamEvent.Typing -> {}
+            is SupportStreamEvent.Typing -> supportTypingState.update(event.data)
         }
     }
 

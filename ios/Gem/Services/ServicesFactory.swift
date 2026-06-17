@@ -192,6 +192,8 @@ struct ServicesFactory {
             assetsService: assetsService,
             store: storeManager.fiatTransactionStore,
         )
+        let supportTypingState = SupportTypingState()
+        let supportChatService = SupportChatService(store: storeManager.supportChatStore, provider: apiService, typing: supportTypingState)
         let streamEventService = StreamEventService(
             walletStore: storeManager.walletStore,
             notificationStore: storeManager.inAppNotificationStore,
@@ -202,7 +204,7 @@ struct ServicesFactory {
             nftService: nftService,
             perpetualService: perpetualService,
             fiatService: fiatService,
-            supportChatStore: storeManager.supportChatStore,
+            supportChatService: supportChatService,
             preferences: preferences,
         )
         let streamObserverService = StreamObserverService(
@@ -303,8 +305,6 @@ struct ServicesFactory {
         )
 
         let contactService = ContactService(store: storeManager.contactStore, addressStore: storeManager.addressStore)
-
-        let supportChatService = SupportChatService(store: storeManager.supportChatStore, provider: apiService)
 
         let appLifecycleService = AppLifecycleService(
             preferences: preferences,

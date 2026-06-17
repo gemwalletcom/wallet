@@ -18,6 +18,7 @@ import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.StreamEventHandler
+import com.gemwallet.android.data.repositories.support.SupportTypingState
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -99,6 +100,7 @@ object AssetsModule {
         updateBalances: UpdateBalances,
         inAppNotificationsDao: InAppNotificationsDao,
         supportMessagesDao: SupportMessagesDao,
+        supportTypingState: SupportTypingState,
     ): StreamEventHandler = StreamEventHandler(
         pricesDao = pricesDao,
         sessionRepository = sessionRepository,
@@ -111,6 +113,7 @@ object AssetsModule {
         updateBalances = updateBalances,
         inAppNotificationsDao = inAppNotificationsDao,
         supportMessagesDao = supportMessagesDao,
+        supportTypingState = supportTypingState,
     )
 
     @Provides

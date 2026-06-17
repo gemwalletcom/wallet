@@ -24,8 +24,13 @@ public struct SupportChatScene: View {
                             groupView(group)
                         }
                     }
+                    if let name = model.typingAgentName {
+                        SupportTypingIndicator(name: name)
+                            .transition(.opacity)
+                    }
                 }
                 .padding(.medium)
+                .animation(.smooth, value: model.typingAgentName)
             }
             .defaultScrollAnchor(.bottom)
             if model.isEmpty {
@@ -61,6 +66,7 @@ public struct SupportChatScene: View {
             await model.fetch()
         }
         .onChange(of: scenePhase, model.onScenePhaseChange)
+        .onDisappear { model.onDisappear() }
         .quickLookPreview($model.previewURL)
     }
 

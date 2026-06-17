@@ -18,6 +18,7 @@ import PriceServiceTestKit
 import Store
 import StoreTestKit
 import StreamService
+import SupportChatService
 import TransactionsService
 import TransactionsServiceTestKit
 
@@ -32,7 +33,7 @@ public extension StreamEventService {
         nftService: NFTService = .mock(),
         perpetualService: any HyperliquidPerpetualServiceable = PerpetualServiceMock(),
         fiatService: FiatService = .mock(),
-        supportChatStore: SupportChatStore = .mock(),
+        supportChatService: SupportChatService = SupportChatService(store: .mock(), typing: SupportTypingState()),
         preferences: Preferences = .mock(),
     ) -> StreamEventService {
         StreamEventService(
@@ -45,7 +46,7 @@ public extension StreamEventService {
             nftService: nftService,
             perpetualService: perpetualService,
             fiatService: fiatService,
-            supportChatStore: supportChatStore,
+            supportChatService: supportChatService,
             preferences: preferences,
         )
     }
