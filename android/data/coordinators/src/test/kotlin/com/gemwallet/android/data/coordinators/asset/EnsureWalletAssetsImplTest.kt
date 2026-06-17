@@ -37,6 +37,9 @@ class EnsureWalletAssetsImplTest {
         coEvery {
             assetsRepository.hasWalletAssets("wallet-1", listOf(bitcoin.id, ethereum.id))
         } returns setOf(bitcoin.id)
+        coEvery {
+            assetsRepository.hasAssets(listOf(ethereum.id))
+        } returns setOf(ethereum.id)
 
         subject.ensureWalletAssets(wallet, listOf(bitcoin.id, ethereum.id, ethereum.id))
 
@@ -72,9 +75,37 @@ class EnsureWalletAssetsImplTest {
         coEvery {
             assetsRepository.hasWalletAssets("wallet-1", listOf(bitcoin.id, ethereum.id))
         } returns emptySet()
+        coEvery {
+            assetsRepository.hasAssets(listOf(bitcoin.id))
+        } returns setOf(bitcoin.id)
 
         subject.ensureWalletAssets(wallet, listOf(bitcoin.id, ethereum.id))
 
         coVerify(exactly = 1) { enableAsset(mockWalletId(), listOf(bitcoin.id)) }
+    }
+
+    @Test
+    fun ensureWalletAssets_skipsAssetsMissingLocally() = runTest {
+        val bitcoin = mockAsset()
+        val ethereum = mockAssetEthereum()
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(
+                mockAccount(chain = Chain.Bitcoin),
+                mockAccount(chain = Chain.Ethereum),
+            ),
+        )
+
+        coEvery {
+            assetsRepository.hasWalletAssets("wallet-1", listOf(bitcoin.id, ethereum.id))
+        } returns emptySet()
+        coEvery {
+            assetsRepository.hasAssets(listOf(bitcoin.id, ethereum.id))
+        } returns setOf(bitcoin.id)
+
+        subject.ensureWalletAssets(wallet, listOf(bitcoin.id, ethereum.id))
+
+        coVerify(exactly = 1) { enableAsset(mockWalletId(), listOf(bitcoin.id)) }
+        coVerify(exactly = 0) { enableAsset(mockWalletId(), listOf(ethereum.id)) }
     }
 }

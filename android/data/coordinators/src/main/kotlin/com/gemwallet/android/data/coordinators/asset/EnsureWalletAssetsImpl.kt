@@ -19,9 +19,15 @@ class EnsureWalletAssetsImpl(
         }
 
         val linked = assetsRepository.hasWalletAssets(wallet.id.id, requestedAssetIds)
-        val missing = requestedAssetIds
+        val unlinked = requestedAssetIds
             .filterNot(linked::contains)
             .filter { wallet.getAccount(it.chain) != null }
+        if (unlinked.isEmpty()) {
+            return
+        }
+
+        val existing = assetsRepository.hasAssets(unlinked)
+        val missing = unlinked.filter(existing::contains)
 
         if (missing.isEmpty()) {
             return
