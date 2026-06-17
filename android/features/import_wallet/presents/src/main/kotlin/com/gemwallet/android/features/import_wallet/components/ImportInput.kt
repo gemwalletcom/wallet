@@ -41,6 +41,7 @@ import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOper
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
+import com.gemwallet.android.ui.components.clipboard.clear
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
@@ -56,6 +57,15 @@ internal fun supportsPhraseSuggestions(walletType: WalletType): Boolean {
         WalletType.Multicoin,
         WalletType.Single -> true
         WalletType.PrivateKey,
+        WalletType.View -> false
+    }
+}
+
+internal fun shouldProtectInput(walletType: WalletType): Boolean {
+    return when (walletType) {
+        WalletType.Multicoin,
+        WalletType.Single,
+        WalletType.PrivateKey -> true
         WalletType.View -> false
     }
 }
@@ -181,6 +191,9 @@ internal fun ImportInput(
                         selection = TextRange(pastedText.length),
                     )
                 )
+                if (shouldProtectInput(importType.walletType)) {
+                    clipboardManager.clear()
+                }
             }
         }
     }

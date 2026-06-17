@@ -275,6 +275,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.lifecycle.viewmodel.savedstate)
+    implementation(libs.datastore)
 
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
@@ -282,7 +283,7 @@ dependencies {
     implementation(libs.widgets)
     implementation(libs.widgets.material3)
 
-    // EncryptedPreferences
+    // Legacy encrypted preferences migration
     implementation(libs.androidx.security.crypto)
     // Auth
     implementation(libs.androidx.biometric)

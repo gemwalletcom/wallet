@@ -18,6 +18,12 @@ impl SpotToken {
     }
 }
 
+pub fn spot_token_id_for_asset_id(asset_id: &AssetId) -> Option<String> {
+    let (symbol, contract, _) = asset_id.token_components()?;
+    let contract = contract?;
+    (!symbol.is_empty()).then(|| format!("{symbol}:{contract}"))
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpotTokensResponse {
     pub tokens: Vec<SpotToken>,
@@ -41,5 +47,14 @@ mod tests {
 
         assert_eq!(asset_id.chain, Chain::HyperCore);
         assert_eq!(asset_id.token_id, Some(HYPERCORE_SPOT_USDC_TOKEN_ID.to_string()));
+    }
+
+    #[test]
+    fn test_spot_token_id_for_asset_id() {
+        assert_eq!(
+            spot_token_id_for_asset_id(&AssetId::from_token(Chain::HyperCore, HYPERCORE_SPOT_USDC_TOKEN_ID)),
+            Some("USDC:0x6d1e7cde53ba9467b783cb7c530ce054".to_string())
+        );
+        assert_eq!(spot_token_id_for_asset_id(&AssetId::from_token(Chain::HyperCore, "USDC")), None);
     }
 }

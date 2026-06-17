@@ -5,8 +5,8 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
-import com.gemwallet.android.data.repositories.config.SecurityGemPreferences
 import com.gemwallet.android.data.repositories.config.SharedGemPreferences
+import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemapi.NativeProvider
 import com.gemwallet.android.data.services.gemapi.NativeProviderConfig
 import com.gemwallet.android.ui.R as UiR
@@ -57,7 +57,7 @@ object GatewayModule {
             preferences = SharedGemPreferences(
                 sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE)
             ),
-            securePreferences = SecurityGemPreferences(context),
+            securePreferences = TinkGemPreferences(context),
             apiUrl = Constants.API_URL
         )
     }

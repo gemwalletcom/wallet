@@ -21,7 +21,7 @@ use crate::{
         },
     },
     is_spot_swap,
-    models::timestamp::TimestampField,
+    models::{timestamp::TimestampField, token::spot_token_id_for_asset_id},
 };
 
 const REFERRAL_CODE: &str = "GEMWALLET";
@@ -58,8 +58,8 @@ impl HyperCoreSigner {
     fn sign_token_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
         let asset = input.input_type.get_asset();
         let amount = BigNumberFormatter::value(&input.value, asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
-        let token_id = asset.id.get_token_id()?;
-        self.sign_spot_send(&amount, &input.destination_address, token_id, private_key)
+        let token_id = spot_token_id_for_asset_id(&asset.id).ok_or_else(|| SignerError::InvalidInput(format!("Invalid spot token ID: {}", asset.id)))?;
+        self.sign_spot_send(&amount, &input.destination_address, &token_id, private_key)
     }
 
     fn sign_swap_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
@@ -398,8 +398,8 @@ mod tests {
     use crate::core::actions::Grouping;
     use num_bigint::BigUint;
     use primitives::{
-        Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, SignerInput, StakeType, TransactionFee, TransactionInputType,
-        TransactionLoadInput,
+        Asset, AssetId, AssetType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, SignerInput, StakeType, TransactionFee,
+        TransactionInputType, TransactionLoadInput, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID,
     };
 
     #[test]
@@ -502,6 +502,33 @@ mod tests {
         assert_eq!(request["action"]["type"], "approveAgent");
         assert_eq!(request["action"]["agentAddress"], "0xbec81216a5edeaed508709d8526078c750e307ad");
         assert_eq!(request["action"]["agentName"], "oldest");
+    }
+
+    #[test]
+    fn spot_token_transfer_uses_hyperliquid_token_field() {
+        let signer = HyperCoreSigner;
+        let asset = Asset::new(
+            AssetId::from_token(Chain::HyperCore, HYPERCORE_SPOT_USDC_TOKEN_ID),
+            "USD Coin".to_string(),
+            "USDC".to_string(),
+            8,
+            AssetType::TOKEN,
+        );
+        let input = TransactionLoadInput {
+            value: "2000000".into(),
+            sender_address: "0x1085c5f70f7f7591d97da281a64688385455c2bd".into(),
+            destination_address: "0xabcdef1234567890abcdef1234567890abcdef12".into(),
+            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer(asset))
+        };
+        let input = SignerInput::new(input, TransactionFee::default());
+        let private_key = [1u8; 32];
+
+        let response = signer.sign_token_transfer_action(&input, &private_key).unwrap();
+        let request: serde_json::Value = serde_json::from_str(&response).unwrap();
+
+        assert_eq!(request["action"]["type"], "spotSend");
+        assert_eq!(request["action"]["token"], "USDC:0x6d1e7cde53ba9467b783cb7c530ce054");
+        assert_eq!(request["action"]["amount"], "0.02");
     }
 
     #[test]
