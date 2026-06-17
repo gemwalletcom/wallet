@@ -1,8 +1,9 @@
 package com.gemwallet.android
 
-import android.app.Activity
 import android.app.Application
-import android.os.Bundle
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -20,7 +21,7 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
+class App : Application(), SingletonImageLoader.Factory {
 
     @Inject
     lateinit var streamObserver: StreamObserverService
@@ -35,7 +36,19 @@ class App : Application(), SingletonImageLoader.Factory, Application.ActivityLif
 
     override fun onCreate() {
         super.onCreate()
-        registerActivityLifecycleCallbacks(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    streamObserver.start()
+                    hyperliquidObserver.start()
+                }
+
+                override fun onStop(owner: LifecycleOwner) {
+                    streamObserver.stop()
+                    hyperliquidObserver.stop()
+                }
+            },
+        )
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
@@ -56,26 +69,6 @@ class App : Application(), SingletonImageLoader.Factory, Application.ActivityLif
             }
             .build()
     }
-
-    override fun onActivityResumed(activity: Activity) {
-        streamObserver.start()
-        hyperliquidObserver.start()
-    }
-
-    override fun onActivityStopped(activity: Activity) {
-        streamObserver.stop()
-        hyperliquidObserver.stop()
-    }
-
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
-
-    override fun onActivityStarted(activity: Activity) { }
-
-    override fun onActivityPaused(activity: Activity) { }
-
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { }
-
-    override fun onActivityDestroyed(activity: Activity) { }
 
     companion object {
         init {
