@@ -38,3 +38,7 @@ fun NativeClipboard.setPlainText(context: Context, data: String, isSensitive: Bo
 fun NativeClipboard.getPlainText(): String? {
     return primaryClip?.getItemAt(0)?.text?.toString()
 }
+
+fun NativeClipboard.clear() {
+    clearPrimaryClip()
+}
