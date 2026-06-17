@@ -10,6 +10,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PrefetchAssetsImplTest {
@@ -32,10 +33,11 @@ class PrefetchAssetsImplTest {
         coEvery { assetsRepository.hasAssets(assetIds) } returns setOf(bitcoin.id)
         coEvery { gemApiClient.getAssets(listOf(ethereum.id)) } returns listOf(ethereumBasic)
 
-        subject.prefetchAssets(listOf(bitcoin.id, ethereum.id, ethereum.id))
+        val result = subject.prefetchAssets(listOf(bitcoin.id, ethereum.id, ethereum.id))
 
         coVerify { gemApiClient.getAssets(listOf(ethereum.id)) }
         coVerify { assetsRepository.add(listOf(ethereumBasic)) }
+        assertEquals(listOf(ethereum.id), result)
     }
 
     @Test
@@ -44,9 +46,10 @@ class PrefetchAssetsImplTest {
 
         coEvery { assetsRepository.hasAssets(listOf(bitcoin.id)) } returns setOf(bitcoin.id)
 
-        subject.prefetchAssets(listOf(bitcoin.id))
+        val result = subject.prefetchAssets(listOf(bitcoin.id))
 
         coVerify(exactly = 0) { gemApiClient.getAssets(any()) }
         coVerify(exactly = 0) { assetsRepository.add(any<List<AssetBasic>>()) }
+        assertEquals(emptyList<com.wallet.core.primitives.AssetId>(), result)
     }
 }

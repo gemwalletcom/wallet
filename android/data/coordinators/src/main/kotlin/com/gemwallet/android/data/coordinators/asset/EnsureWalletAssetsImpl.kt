@@ -27,12 +27,12 @@ class EnsureWalletAssetsImpl(
         }
 
         val existing = assetsRepository.hasAssets(unlinked)
-        val missing = unlinked.filter(existing::contains)
+        val toEnable = unlinked.filter(existing::contains)
 
-        if (missing.isEmpty()) {
+        if (toEnable.isEmpty()) {
             return
         }
 
-        enableAsset(wallet.id, missing)
+        enableAsset(wallet.id, toEnable)
     }
 }

@@ -64,7 +64,7 @@ class NotificationNavigationTest {
             session.value = mockSession(wallet = invocation.args.first() as Wallet)
         }
         coJustRun { saveTransactions.saveTransactions(any(), any()) }
-        coJustRun { prefetchAssets.prefetchAssets(any()) }
+        coEvery { prefetchAssets.prefetchAssets(any()) } returns emptyList()
         coJustRun { ensureWalletAssets.ensureWalletAssets(any(), any()) }
         every { getAssetById(any()) } returns flowOf(null)
     }

@@ -11,16 +11,18 @@ class PrefetchAssetsImpl(
     private val assetsRepository: AssetsRepository,
 ) : PrefetchAssets {
 
-    override suspend fun prefetchAssets(assetIds: List<AssetId>) {
+    override suspend fun prefetchAssets(assetIds: List<AssetId>): List<AssetId> {
         val requestedAssetIds = assetIds.distinct()
         val existingAssetIds = assetsRepository.hasAssets(requestedAssetIds)
         val missingAssetIds = requestedAssetIds.filterNot(existingAssetIds::contains)
 
         if (missingAssetIds.isEmpty()) {
-            return
+            return emptyList()
         }
 
-        assetsRepository.add(loadAssets(missingAssetIds))
+        val loadedAssets = loadAssets(missingAssetIds)
+        assetsRepository.add(loadedAssets)
+        return loadedAssets.map { it.asset.id }
     }
 
     private suspend fun loadAssets(assetIds: List<AssetId>): List<AssetBasic> {

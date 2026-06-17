@@ -13,6 +13,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUp
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
+import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.mockDbAsset
 import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
@@ -157,6 +158,28 @@ class AssetsRepositoryTest {
         assertEquals(100.0, marketSlot.captured.totalVolume ?: 0.0, 0.0)
         assertEquals(150.0, marketSlot.captured.allTimeHigh ?: 0.0, 0.0)
         assertEquals(25.0, marketSlot.captured.allTimeLow ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun addBalancesIfMissing_insertsHiddenBalanceOnlyForExistingAssets() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+
+        val present = mockAssetSolana()
+        val absent = mockAssetEthereum()
+        val walletId = mockWalletId()
+
+        coEvery {
+            assetsDao.getAssetIds(listOf(present.id.toIdentifier(), absent.id.toIdentifier()))
+        } returns listOf(present.id.toIdentifier())
+
+        val subject = createSubject()
+        subject.addBalancesIfMissing(walletId, listOf(present.id, absent.id))
+
+        val balanceSlot = slot<DbBalance>()
+        coVerify(exactly = 1) { assetsDao.insertBalance(capture(balanceSlot)) }
+        assertEquals(present.id.toIdentifier(), balanceSlot.captured.assetId)
+        assertEquals(walletId.id, balanceSlot.captured.walletId)
+        assertEquals(false, balanceSlot.captured.isVisible)
     }
 
     @Test

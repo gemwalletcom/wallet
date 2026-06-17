@@ -11,6 +11,7 @@ import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
+import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinksModel
@@ -339,6 +340,23 @@ class AssetsRepository @Inject constructor(
         assetsDao.setWalletAssetVisibility(walletId, assetId.toIdentifier(), visible)
         if (visible) {
             streamSubscriptionService.addAssetIds(listOf(assetId))
+        }
+    }
+
+    suspend fun addBalancesIfMissing(walletId: WalletId, assetIds: List<AssetId>) = withContext(Dispatchers.IO) {
+        if (assetIds.isEmpty()) {
+            return@withContext
+        }
+        val existing = assetsDao.getAssetIds(assetIds.map { it.toIdentifier() }).toSet()
+        for (assetIdentifier in existing) {
+            assetsDao.insertBalance(
+                DbBalance(
+                    assetId = assetIdentifier,
+                    walletId = walletId.id,
+                    isVisible = false,
+                    updatedAt = null,
+                )
+            )
         }
     }
 

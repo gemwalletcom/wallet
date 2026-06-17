@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.cases.transactions.SaveTransactions
+import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
@@ -25,7 +25,7 @@ class SyncTransactionsImpl @Inject constructor(
     private val saveTransactions: SaveTransactions,
     private val saveAddressNames: SaveAddressNames,
     private val prefetchAssets: PrefetchAssets,
-    private val ensureWalletAssets: EnsureWalletAssets,
+    private val assetsRepository: AssetsRepository,
     private val sessionRepository: SessionRepository,
 ) : SyncTransactions, SyncAssetTransactions {
 
@@ -63,8 +63,8 @@ class SyncTransactionsImpl @Inject constructor(
         val assetIds = response.transactions
             .flatMap { it.getAssociatedAssetIds() }
             .distinct()
-        prefetchAssets.prefetchAssets(assetIds)
-        ensureWalletAssets.ensureWalletAssets(wallet, assetIds)
+        val newAssetIds = prefetchAssets.prefetchAssets(assetIds)
+        assetsRepository.addBalancesIfMissing(wallet.id, newAssetIds)
 
         saveTransactions.saveTransactions(walletId = wallet.id, response.transactions)
         saveAddressNames.saveAddressNames(response.addressNames)
