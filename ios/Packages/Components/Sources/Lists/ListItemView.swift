@@ -165,26 +165,52 @@ extension ListItemView {
         let titleTagType: TitleTagType
 
         var body: some View {
-            HStack(spacing: .tiny) {
-                Text(titleTag.text)
-                    .textStyle(titleTag.style)
-                    .lineLimit(titleTag.lineLimit)
-                    .minimumScaleFactor(0.8)
-
-                switch titleTagType {
-                case .none:
-                    EmptyView()
-                case let .progressView(scale):
-                    LoadingView(size: .small, tint: titleTag.style.color)
-                        .scaleEffect(scale)
-                case let .image(image):
-                    image
+            switch titleTagType {
+            case .none:
+                tag {
+                    text
+                        .lineLimit(titleTag.lineLimit)
+                        .minimumScaleFactor(0.8)
+                }
+            case .progressView, .image:
+                ViewThatFits(in: .horizontal) {
+                    tag {
+                        HStack(spacing: .tiny) {
+                            text
+                                .lineLimit(1)
+                                .fixedSize()
+                            accessory
+                        }
+                    }
+                    accessory
                 }
             }
-            .padding(.horizontal, .tiny)
-            .padding(.vertical, .extraSmall)
-            .background(titleTag.style.background)
-            .cornerRadius(6)
+        }
+
+        private var text: some View {
+            Text(titleTag.text)
+                .textStyle(titleTag.style)
+        }
+
+        @ViewBuilder
+        private var accessory: some View {
+            switch titleTagType {
+            case .none:
+                EmptyView()
+            case let .progressView(scale):
+                LoadingView(size: .small, tint: titleTag.style.color)
+                    .scaleEffect(scale)
+            case let .image(image):
+                image
+            }
+        }
+
+        private func tag(@ViewBuilder content: () -> some View) -> some View {
+            content()
+                .padding(.horizontal, .tiny)
+                .padding(.vertical, .extraSmall)
+                .background(titleTag.style.background)
+                .cornerRadius(6)
         }
     }
 }
