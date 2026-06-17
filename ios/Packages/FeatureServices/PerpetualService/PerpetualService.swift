@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemPerpetualBalance
 import struct Gemstone.GemPerpetualMarketData
 import struct Gemstone.GemPerpetualPosition
+import GemstonePrimitives
 import Preferences
 import Primitives
 import Store
@@ -162,7 +163,7 @@ extension PerpetualService: HyperliquidPerpetualServiceable {
     }
 
     public func updatePrices(_ prices: [String: Double]) throws {
-        guard preferences.perpetualPricesUpdatedAt.isOutdated(by: 5) else { return }
+        guard preferences.perpetualPricesUpdatedAt.isOutdated(by: PerpetualConfig.pricesUpdateIntervalSeconds) else { return }
         try store.updatePrices(prices)
         preferences.perpetualPricesUpdatedAt = .now
     }

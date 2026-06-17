@@ -8,6 +8,8 @@ pub const HYPERLIQUID_DEPOSIT_ADDRESS: &str = "0x2Df1c51E09aECF9cacB7bc98cB17427
 pub const MIN_DEPOSIT_AMOUNT: u64 = 5_000_000;
 pub const MIN_WITHDRAW_AMOUNT: u64 = 2_000_000;
 
+pub const PRICES_UPDATE_INTERVAL_SECONDS: u32 = 5;
+
 pub const TAKE_PROFIT_PERCENT_OPTIONS: &[u8] = &[0, 10, 25, 50, 100, 200];
 pub const STOP_LOSS_PERCENT_OPTIONS: &[u8] = &[0, 3, 5, 10, 25, 50];
 pub const DEFAULT_TAKE_PROFIT_PERCENT: u8 = 0;
@@ -27,6 +29,7 @@ pub struct PerpetualConfig {
     pub deposit_asset_id: String,
     pub min_deposit: u64,
     pub min_withdraw: u64,
+    pub prices_update_interval_seconds: u32,
 }
 
 pub fn get_perpetual_config() -> PerpetualConfig {
@@ -41,6 +44,7 @@ pub fn get_perpetual_config() -> PerpetualConfig {
         deposit_asset_id: ARBITRUM_USDC_ASSET_ID.to_string(),
         min_deposit: MIN_DEPOSIT_AMOUNT,
         min_withdraw: MIN_WITHDRAW_AMOUNT,
+        prices_update_interval_seconds: PRICES_UPDATE_INTERVAL_SECONDS,
     }
 }
 
@@ -95,6 +99,7 @@ mod tests {
         assert_eq!(config.deposit_asset_id, ARBITRUM_USDC_ASSET_ID.to_string());
         assert_eq!(config.min_deposit, MIN_DEPOSIT_AMOUNT);
         assert_eq!(config.min_withdraw, MIN_WITHDRAW_AMOUNT);
+        assert_eq!(config.prices_update_interval_seconds, PRICES_UPDATE_INTERVAL_SECONDS);
     }
 
     #[test]

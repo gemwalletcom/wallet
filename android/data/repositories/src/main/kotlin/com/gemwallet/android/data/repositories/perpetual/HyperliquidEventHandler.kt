@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.perpetual
 
 import android.util.Log
 import com.gemwallet.android.blockchain.gemstone.toDTO
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -29,6 +30,7 @@ class HyperliquidEventHandler(
     )
     val chartUpdates: Flow<ChartCandleUpdate> = chartFlow.asSharedFlow()
 
+    private val pricesUpdateIntervalMs = PerpetualConfig.pricesUpdateIntervalSeconds * 1000L
     private var pricesUpdatedAt = 0L
 
     suspend fun handle(walletId: WalletId, text: String) {
@@ -63,7 +65,7 @@ class HyperliquidEventHandler(
 
     private suspend fun handleMarketPrices(prices: Map<String, Double>) {
         val now = System.currentTimeMillis()
-        if (now - pricesUpdatedAt < PRICES_UPDATE_INTERVAL_MS) return
+        if (now - pricesUpdatedAt < pricesUpdateIntervalMs) return
         pricesUpdatedAt = now
         perpetualRepository.updatePrices(prices)
     }
@@ -74,7 +76,6 @@ class HyperliquidEventHandler(
 
     companion object {
         private const val TAG = "HyperliquidEventHandler"
-        private const val PRICES_UPDATE_INTERVAL_MS = 5_000L
         private const val CHART_BUFFER_CAPACITY = 64
     }
 }

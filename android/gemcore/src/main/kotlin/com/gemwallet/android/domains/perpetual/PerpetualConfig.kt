@@ -20,6 +20,8 @@ object PerpetualConfig {
 
     val minWithdraw: BigInteger get() = config.minWithdraw.toLong().toBigInteger()
 
+    val pricesUpdateIntervalSeconds: Int get() = config.pricesUpdateIntervalSeconds.toInt()
+
     val leverageOptions: List<Int> get() = config.leverageOptions.toUnsignedInts()
 
     val takeProfitOptions: List<Int> get() = config.takeProfitPercentOptions.toUnsignedInts()
