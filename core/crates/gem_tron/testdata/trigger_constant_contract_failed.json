@@ -1,7 +1,6 @@
 {
   "result": {
-    "result": false,
-    "code": "CONTRACT_VALIDATE_ERROR"
-  },
-  "energy_used": 0
+    "code": "CONTRACT_VALIDATE_ERROR",
+    "message": "Smart contract is not exist."
+  }
 }

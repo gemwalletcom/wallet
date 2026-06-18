@@ -275,10 +275,12 @@ mod tests {
 
         let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_failed.json").as_bytes().to_vec()));
         let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
-        let result = client
+        let error = client
             .estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string())
-            .await;
-        assert!(result.is_err());
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("CONTRACT_VALIDATE_ERROR"), "expected structured Tron RPC error, got: {error}");
     }
 
     #[test]

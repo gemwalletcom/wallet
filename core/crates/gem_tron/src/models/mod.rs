@@ -149,8 +149,7 @@ pub struct TriggerConstantContractResponse {
     #[serde(default)]
     pub constant_result: Vec<String>,
     pub result: Option<TriggerContractResult>,
-    pub energy_used: u64,
-    #[serde(default)]
+    pub energy_used: Option<u64>,
     pub energy_penalty: Option<u64>,
 }
 
@@ -160,7 +159,10 @@ impl TriggerConstantContractResponse {
         if let Some(error) = self.result.as_ref().and_then(|r| r.check_error()) {
             return Err(error);
         }
-        Ok(self.energy_used)
+        self.energy_used.ok_or_else(|| TronRpcError {
+            code: None,
+            message: Some("Tron triggerconstantcontract response missing energy_used".to_string()),
+        })
     }
 }
 
