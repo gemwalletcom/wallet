@@ -17,6 +17,7 @@ pub static RESERVED_NATIVE_FEES: LazyLock<HashMap<Chain, &'static str>> = LazyLo
         (Chain::Berachain, "5000000000000000"),  // 0.005 BERA
         (Chain::Sui, "50000000"),                // 0.05 SUI
         (Chain::Solana, "5000000"),              // 0.005 SOL: base + priority fees + wSOL ATA rent
+        (Chain::Tron, "2000000"),                // 2 TRX: native Chainflip memo transfer fee plus buffer
         (Chain::Ton, "20000000"),                // 0.02 TON
         (Chain::Aptos, "20000000"),              // 0.2 APT
         (Chain::Monad, "5000000000000000"),      // 0.005 MON
@@ -54,12 +55,22 @@ pub fn max_quote_value_with_fee_reserve(request: &QuoteRequest) -> Result<String
 mod tests {
     use super::*;
     use crate::{Options, SwapperQuoteAsset};
-    use primitives::{AssetId, asset_constants::SOLANA_USDC_TOKEN_ID};
+    use primitives::{
+        AssetId,
+        asset_constants::{SOLANA_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID},
+    };
 
     #[test]
     fn solana_reserve_covers_rent_and_priority_fees() {
         let reserve: u64 = reserved_transaction_fees(Chain::Solana).unwrap().parse().unwrap();
         assert!(reserve >= 2_500_000, "Solana reserve {reserve} too small to cover wSOL ATA rent plus priority fees");
+    }
+
+    #[test]
+    fn tron_reserve_covers_native_chainflip_memo_transfer() {
+        let reserve: u64 = reserved_transaction_fees(Chain::Tron).unwrap().parse().unwrap();
+        assert_eq!(reserve, 2_000_000);
+        assert!(reserve >= 1_398_000 * 120 / 100);
     }
 
     #[test]
@@ -84,5 +95,13 @@ mod tests {
         request.from_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana));
         request.options.use_max_amount = false;
         assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "105814789");
+
+        request.from_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Tron));
+        request.value = "50000000".to_string();
+        request.options.use_max_amount = true;
+        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "48000000");
+
+        request.from_asset = SwapperQuoteAsset::from(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
+        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "50000000");
     }
 }
