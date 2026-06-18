@@ -8,11 +8,13 @@ pub struct ChainflipAsset {
     pub asset: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct RefundParameters {
     pub retry_duration: u32,
     pub refund_address: String,
     pub min_price: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_oracle_price_slippage: Option<u8>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

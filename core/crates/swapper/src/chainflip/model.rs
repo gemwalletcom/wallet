@@ -8,4 +8,8 @@ pub struct ChainflipRouteData {
     pub fee_bps: u32,
     pub estimated_price: String,
     pub dca_parameters: Option<DcaParameters>,
+    #[serde(default)]
+    pub live_price_slippage_bps: Option<u8>,
+    #[serde(default)]
+    pub retry_duration_blocks: Option<u32>,
 }

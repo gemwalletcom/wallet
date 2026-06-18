@@ -3,6 +3,8 @@
       "intermediateAmount": "25516863276",
       "egressAmount": "145118751424",
       "recommendedSlippageTolerancePercent": 2.5,
+      "recommendedLivePriceSlippageTolerancePercent": 1,
+      "recommendedRetryDurationMinutes": 5,
       "includedFees": [
         {
           "type": "INGRESS",
