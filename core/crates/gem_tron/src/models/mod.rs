@@ -155,11 +155,12 @@ pub struct TriggerConstantContractResponse {
 }
 
 impl TriggerConstantContractResponse {
+    /// Returns `energy_used` (the total, which already includes `energy_penalty` — don't add it) and surfaces failed simulations as errors.
     pub fn get_energy(&self) -> Result<u64, TronRpcError> {
         if let Some(error) = self.result.as_ref().and_then(|r| r.check_error()) {
             return Err(error);
         }
-        Ok(self.energy_used + self.energy_penalty.unwrap_or_default())
+        Ok(self.energy_used)
     }
 }
 

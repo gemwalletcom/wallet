@@ -238,7 +238,7 @@ impl<C: Client> TronClient<C> {
             visible: true,
         };
 
-        Ok(self.trigger_constant_contract_request(&request).await?.energy_used)
+        Ok(self.trigger_constant_contract_request(&request).await?.get_energy()?)
     }
 }
 
@@ -261,6 +261,25 @@ impl<C: Client + Clone> chain_traits::ChainProvider for TronClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_client::testkit::MockClient;
+
+    #[tokio::test]
+    async fn test_estimate_trc20_transfer_gas_uses_total_energy_and_surfaces_errors() {
+        let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_with_penalty.json").as_bytes().to_vec()));
+        let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
+        let energy = client
+            .estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string())
+            .await
+            .unwrap();
+        assert_eq!(energy, 64285);
+
+        let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_failed.json").as_bytes().to_vec()));
+        let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
+        let result = client
+            .estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string())
+            .await;
+        assert!(result.is_err());
+    }
 
     #[test]
     fn test_value_encoding_for_trc20_transfer() {
