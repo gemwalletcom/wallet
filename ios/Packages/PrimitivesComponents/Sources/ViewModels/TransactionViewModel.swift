@@ -154,11 +154,11 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleTagTextValue: TextValue? {
+        let model = TransactionStateViewModel(state: transaction.transaction.state)
         let title: String? = switch transaction.transaction.state {
         case .confirmed: .none
-        case .pending, .inTransit, .failed, .reverted: TransactionStateViewModel(state: transaction.transaction.state).title
+        case .pending, .inTransit, .failed, .reverted: model.title
         }
-        let model = TransactionStateViewModel(state: transaction.transaction.state)
         return title.map {
             TextValue(
                 text: $0,
@@ -310,10 +310,6 @@ public struct TransactionViewModel: Sendable {
         case .incoming: transaction.transaction.from
         case .outgoing, .selfTransfer: transaction.transaction.to
         }
-    }
-
-    private var addressLink: BlockExplorerLink {
-        explorerService.addressUrl(chain: assetId.chain, address: participant)
     }
 
     private var assetId: AssetId {

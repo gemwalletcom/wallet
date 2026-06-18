@@ -298,7 +298,7 @@ private fun TypeSelection(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
         selectedTabIndex = importTypeTabIndex(importType.walletType, importType.chain),
         indicator = { Box {} },
-        containerColor = Color.Transparent,//(0xFFEBEBEB),
+        containerColor = Color.Transparent,
         divider = {}
     ) {
         importWalletTabs(importType.chain).forEach { walletType ->

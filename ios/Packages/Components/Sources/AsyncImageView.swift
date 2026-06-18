@@ -4,6 +4,8 @@ import Style
 import SwiftUI
 
 public struct AsyncImageView: View {
+    @Environment(\.displayScale) private var displayScale
+
     let url: URL?
     let size: CGFloat
     let placeholder: Placeholder
@@ -23,7 +25,7 @@ public struct AsyncImageView: View {
     }
 
     public var body: some View {
-        CachedAsyncImage(url: url, scale: UIScreen.main.scale) {
+        CachedAsyncImage(url: url, scale: displayScale) {
             $0.resizable()
         } placeholder: {
             switch placeholder {

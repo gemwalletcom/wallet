@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.presents.chart
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import com.gemwallet.android.ext.AddressFormatter
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -77,6 +79,8 @@ fun AssetChartScene(
     val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
     Scene(
         title = title,
@@ -112,7 +116,7 @@ fun AssetChartScene(
                     assetContract(it.asset, it.explorerName)
                     assetSupply(it.asset, it.marketInfo)
                     assetAllTime(it.currency, it.asset, it.marketInfo)
-                    links(it.assetLinks)
+                    links(it.assetLinks, uriHandler, context)
                 }
             }
         }
@@ -157,12 +161,10 @@ private fun PriceAlertsItem(
     )
 }
 
-private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>) {
+private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>, uriHandler: UriHandler, context: Context) {
     if (links.isEmpty()) return
     item { SubheaderItem(R.string.social_links) }
     itemsIndexed(links) { index, item ->
-        val uriHandler = LocalUriHandler.current
-        val context = LocalContext.current
         PropertyItem(
             modifier = Modifier.clickable { uriHandler.open(context, item.url) },
             title = { PropertyTitleText(item.label, trailing = { AsyncImage(model = item.icon, size = smallIconSize) }) },

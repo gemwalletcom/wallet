@@ -190,7 +190,7 @@ fun PriceInfo(
                 Modifier.background(color.copy(alpha = alpha10), MaterialTheme.shapes.small)
             } else {
                 Modifier
-            },//.padding(horizontal = 4.dp),
+            },
             text = changes,
             color = color,
             style = style,
