@@ -24,7 +24,7 @@ pub(crate) struct TronRawData {
 }
 
 impl TronRawData {
-    pub(crate) fn from_input(input: &SignerInput, contract: TronContract, fee_limit: u64) -> Result<Self, SignerError> {
+    pub(crate) fn from_input_with_data(input: &SignerInput, contract: TronContract, fee_limit: u64, data: Option<Vec<u8>>) -> Result<Self, SignerError> {
         let TransactionLoadMetadata::Tron {
             block_number,
             block_version,
@@ -62,7 +62,7 @@ impl TronRawData {
             expiration: block_timestamp
                 .checked_add(EXPIRATION_DURATION_MS)
                 .ok_or_else(|| SignerError::invalid_input("Tron expiration overflow"))?,
-            data: input.get_memo().map(|memo| memo.as_bytes().to_vec()),
+            data: data.or_else(|| input.get_memo().map(|memo| memo.as_bytes().to_vec())),
             contract,
             timestamp: *block_timestamp,
             fee_limit,

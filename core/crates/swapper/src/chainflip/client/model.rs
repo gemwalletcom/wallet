@@ -111,6 +111,7 @@ fn chainflip_chain_to_chain(chain: &str) -> Option<Chain> {
         "Bitcoin" => Some(Chain::Bitcoin),
         "Solana" => Some(Chain::Solana),
         "Arbitrum" => Some(Chain::Arbitrum),
+        "Tron" => Some(Chain::Tron),
         _ => None,
     }
 }
@@ -126,6 +127,8 @@ static CHAINFLIP_ASSETS: LazyLock<Vec<(Chain, &'static str, AssetId)>> = LazyLoc
         (Chain::Solana, "SOL", AssetId::from_chain(Chain::Solana)),
         (Chain::Solana, "USDC", SOLANA_USDC.id.clone()),
         (Chain::Solana, "USDT", SOLANA_USDT.id.clone()),
+        (Chain::Tron, "TRX", AssetId::from_chain(Chain::Tron)),
+        (Chain::Tron, "USDT", TRON_USDT.id.clone()),
         (Chain::Arbitrum, "ETH", AssetId::from_chain(Chain::Arbitrum)),
         (Chain::Arbitrum, "USDC", ARBITRUM_USDC.id.clone()),
         (Chain::Arbitrum, "USDT", ARBITRUM_USDT.id.clone()),

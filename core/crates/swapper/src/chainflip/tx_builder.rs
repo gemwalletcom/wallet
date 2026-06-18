@@ -1,14 +1,33 @@
-use super::broker::SolanaVaultSwapResponse;
+use super::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
 #[cfg(test)]
 use crate::solana::gas_limit_from_transaction;
-use crate::{alien::RpcProvider, client_factory::create_client_with_chain, solana};
+use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain, solana};
 
 use alloy_primitives::hex;
 use gem_encoding::encode_base64;
 use gem_solana::{jsonrpc::SolanaRpc, models::LatestBlockhash, try_decode_blockhash};
-use primitives::Chain;
+use gem_tron::address::TronAddress;
+use primitives::{Chain, decode_hex, swap::SwapQuoteDataType::Contract};
 use solana_primitives::{AccountMeta, InstructionBuilder, Pubkey, TransactionBuilder, compute_budget::set_compute_unit_limit};
 use std::{str::FromStr, sync::Arc};
+
+pub fn build_tron_quote_data(response: &TronVaultSwapResponse) -> Result<SwapperQuoteData, SwapperError> {
+    let address = response.source_token_address.as_deref().unwrap_or(&response.to);
+    let to = TronAddress::from_hex_or_base58(address)
+        .map(|address| address.to_string())
+        .ok_or_else(|| SwapperError::TransactionError(format!("invalid Tron address: {address}")))?;
+    let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::TransactionError("invalid Tron calldata".to_string()))?;
+
+    Ok(SwapperQuoteData {
+        to,
+        data_type: Contract,
+        value: response.value.to_string(),
+        data: hex::encode(calldata),
+        memo: Some(response.note.clone()),
+        approval: None,
+        gas_limit: None,
+    })
+}
 
 pub async fn build_solana_tx(fee_payer: &str, response: &SolanaVaultSwapResponse, provider: Arc<dyn RpcProvider>) -> Result<String, String> {
     let fee_payer = Pubkey::from_str(fee_payer).map_err(|_| "Invalid fee payer".to_string())?;
@@ -43,10 +62,74 @@ mod tests {
     use super::*;
     use crate::{
         alien::mock::{MockFn, ProviderMock},
-        chainflip::broker::SolanaVaultSwapResponse,
+        chainflip::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse},
     };
     use gem_jsonrpc::types::JsonRpcResponse;
+    use num_bigint::BigUint;
     use std::time::Duration;
+
+    #[test]
+    fn test_build_tron_quote_data_maps_trc20_contract_call_fields() {
+        let note = "0x0300";
+        let data = build_tron_quote_data(&TronVaultSwapResponse {
+            calldata: "0xa9059cbb".to_string(),
+            value: BigUint::from(0u32),
+            to: "0x2523ae929fecd9d665f472f59b99a8ce6b179510".to_string(),
+            note: note.to_string(),
+            source_token_address: Some("0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f".to_string()),
+        })
+        .unwrap();
+
+        assert_eq!(data.data_type, Contract);
+        assert_eq!(data.to, "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf");
+        assert_eq!(data.memo, Some(note.to_string()));
+        assert_eq!(data.value, "0");
+        assert_eq!(data.data, "a9059cbb");
+
+        let data = build_tron_quote_data(&TronVaultSwapResponse {
+            calldata: "0xa9059cbb".to_string(),
+            value: BigUint::from(0u32),
+            to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
+            note: note.to_string(),
+            source_token_address: Some("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf".to_string()),
+        })
+        .unwrap();
+
+        assert_eq!(data.to, "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf");
+    }
+
+    #[test]
+    fn test_build_tron_quote_data_maps_native_contract_transfer_fields() {
+        let note = "0x0300";
+        for calldata in ["", "0x"] {
+            let data = build_tron_quote_data(&TronVaultSwapResponse {
+                calldata: calldata.to_string(),
+                value: BigUint::from(50_000_000u32),
+                to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
+                note: note.to_string(),
+                source_token_address: None,
+            })
+            .unwrap();
+
+            assert_eq!(data.to, "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi");
+            assert_eq!(data.value, "50000000");
+            assert_eq!(data.data, "");
+        }
+    }
+
+    #[test]
+    fn test_build_tron_quote_data_rejects_invalid_calldata() {
+        let err = build_tron_quote_data(&TronVaultSwapResponse {
+            calldata: "0xzz".to_string(),
+            value: BigUint::from(50_000_000u32),
+            to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
+            note: "0x0300".to_string(),
+            source_token_address: None,
+        })
+        .unwrap_err();
+
+        assert!(matches!(err, SwapperError::TransactionError(message) if message.contains("invalid Tron calldata")));
+    }
 
     #[tokio::test]
     async fn test_build_solana_tx_with_mocked_blockhash() -> Result<(), String> {

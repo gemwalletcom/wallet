@@ -33,6 +33,7 @@ run-device: build
 _run-adb TARGET:
     #!/usr/bin/env bash
     set -euo pipefail
+    PACKAGE="com.gemwallet.android"
     if [ "{{TARGET}}" = "emulator" ]; then
         DEVICE=$(adb devices | awk '$2=="device" && $1 ~ /^emulator-/ {print $1; exit}')
         [ -z "$DEVICE" ] && { echo "No emulator found (try 'just start-emulator')"; exit 1; }
@@ -44,16 +45,34 @@ _run-adb TARGET:
     echo "==> Installing on $DEVICE..."
     adb -s "$DEVICE" install -r "$APK"
     echo "==> Launching app..."
-    adb -s "$DEVICE" shell am start -n com.gemwallet.android/com.gemwallet.android.MainActivity
+    adb -s "$DEVICE" shell am start -W -n "$PACKAGE/$PACKAGE.MainActivity"
     echo "==> Streaming logs (Ctrl+C to stop)..."
-    sleep 1
-    PID=$(adb -s "$DEVICE" shell pidof com.gemwallet.android)
+    PID=""
+    for _ in {1..60}; do
+        PID=$(adb -s "$DEVICE" shell pidof -s "$PACKAGE" | tr -d '\r' || true)
+        [ -n "$PID" ] && break
+        sleep 0.5
+    done
     if [ -z "$PID" ]; then
-        echo "App not running, showing unfiltered logcat"
-        adb -s "$DEVICE" logcat
-    else
-        adb -s "$DEVICE" logcat --pid="$PID"
+        echo "App process not found after launch; showing recent app errors"
+        adb -s "$DEVICE" logcat -d -t 500 | grep -E "$PACKAGE|AndroidRuntime|FATAL EXCEPTION" || true
+        exit 1
     fi
+    trap 'echo; echo "==> Log streaming stopped."; exit 0' INT TERM
+    set +e
+    adb -s "$DEVICE" logcat --pid="$PID"
+    STATUS=$?
+    set -e
+    case "$STATUS" in
+        0|130|143)
+            echo
+            echo "==> Log streaming stopped."
+            exit 0
+            ;;
+        *)
+            exit "$STATUS"
+            ;;
+    esac
 
 build-test:
     @./gradlew assembleGoogleDebugAndroidTest

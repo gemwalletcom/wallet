@@ -99,6 +99,30 @@ impl SignerInput {
         )
     }
 
+    pub fn mock_tron(
+        input_type: TransactionInputType,
+        sender: &str,
+        destination: &str,
+        value: &str,
+        transaction_fee: TransactionFee,
+        memo: Option<&str>,
+        metadata: TransactionLoadMetadata,
+    ) -> Self {
+        SignerInput::new(
+            TransactionLoadInput {
+                input_type,
+                sender_address: sender.to_string(),
+                destination_address: destination.to_string(),
+                value: value.to_string(),
+                gas_price: GasPriceType::regular(0),
+                memo: memo.map(str::to_string),
+                is_max_value: false,
+                metadata,
+            },
+            transaction_fee,
+        )
+    }
+
     pub fn mock_osmosis(input_type: TransactionInputType, destination: &str) -> Self {
         let fee_amount = BigInt::from(10_000u64);
         SignerInput::new(

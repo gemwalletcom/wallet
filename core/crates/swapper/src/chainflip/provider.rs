@@ -7,7 +7,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use super::{
     ChainflipRouteData,
-    broker::{BrokerClient, ChainflipAsset, DcaParameters, RefundParameters, VaultSwapEvmExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras},
+    broker::{BrokerClient, ChainflipAsset, DcaParameters, RefundParameters, VaultSwapChainExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras},
     capitalize::capitalize_first_letter,
     client::{CHAINFLIP_SUPPORTED_ASSETS, ChainflipClient, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, map_swap_result},
     price::{apply_slippage, price_to_hex_price},
@@ -27,6 +27,8 @@ use crate::{
 use primitives::{Asset, ChainType, chain::Chain, swap::QuoteAsset};
 
 const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
+const CHAINFLIP_EVM_REFUND_RETRY_BLOCKS: u32 = 150;
+const CHAINFLIP_DEFAULT_REFUND_RETRY_BLOCKS: u32 = 10;
 
 const VAULT_ETH: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const VAULT_ARB: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
@@ -77,7 +79,7 @@ fn map_asset_id(asset: &QuoteAsset) -> ChainflipAsset {
 
 fn build_quote_request(request: &QuoteRequest) -> Result<ChainflipQuoteRequestData, SwapperError> {
     match request.from_asset.chain().chain_type() {
-        ChainType::Ethereum | ChainType::Solana => {}
+        ChainType::Ethereum | ChainType::Solana | ChainType::Tron => {}
         _ => return Err(SwapperError::NotSupportedChain),
     }
     let from_value = request.value.clone();
@@ -231,11 +233,20 @@ where
         let base_asset_decimals = quote.request.from_asset.decimals;
         let min_price = price_to_hex_price(price_slippage, quote_asset_decimals, base_asset_decimals).map_err(SwapperError::TransactionError)?;
         let extra_params = match from_asset.chain.chain_type() {
-            ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapEvmExtras {
+            ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapChainExtras {
                 chain,
                 input_amount: input_amount.clone(),
                 refund_parameters: RefundParameters {
-                    retry_duration: 150,
+                    retry_duration: CHAINFLIP_EVM_REFUND_RETRY_BLOCKS,
+                    refund_address: quote.request.wallet_address.clone(),
+                    min_price,
+                },
+            }),
+            ChainType::Tron => VaultSwapExtras::Tron(VaultSwapChainExtras {
+                chain,
+                input_amount: input_amount.clone(),
+                refund_parameters: RefundParameters {
+                    retry_duration: CHAINFLIP_DEFAULT_REFUND_RETRY_BLOCKS,
                     refund_address: quote.request.wallet_address.clone(),
                     min_price,
                 },
@@ -246,7 +257,7 @@ where
                 chain,
                 input_amount: input_amount.to_u64().unwrap(),
                 refund_parameters: RefundParameters {
-                    retry_duration: 10,
+                    retry_duration: CHAINFLIP_DEFAULT_REFUND_RETRY_BLOCKS,
                     refund_address: quote.request.wallet_address.clone(),
                     min_price,
                 },
@@ -290,6 +301,7 @@ where
 
                 Ok(SwapperQuoteData::new_contract(response.to, value, response.calldata, approval, gas_limit))
             }
+            VaultSwapResponse::Tron(response) => tx_builder::build_tron_quote_data(&response),
             VaultSwapResponse::Solana(response) => {
                 let data = tx_builder::build_solana_tx(&quote.request.wallet_address, &response, self.rpc_provider.clone())
                     .await
@@ -321,6 +333,11 @@ mod tests {
     use super::*;
     use crate::SwapperQuoteAsset;
     use primitives::AssetId;
+
+    #[cfg(feature = "swap_integration_tests")]
+    use crate::NativeProvider;
+    #[cfg(feature = "swap_integration_tests")]
+    use primitives::swap::SwapStatus;
 
     #[test]
     fn test_chainflip_min_amount_error() {
@@ -399,9 +416,6 @@ mod tests {
     #[tokio::test]
     #[cfg(feature = "swap_integration_tests")]
     async fn test_get_swap_result() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        use crate::alien::reqwest_provider::NativeProvider;
-        use primitives::swap::SwapStatus;
-
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = ChainflipProvider::new(network_provider.clone());
 

@@ -36,6 +36,7 @@ where
     ) -> Result<VaultSwapResponse, SwapperError> {
         let extra_params_json = match extra_params {
             VaultSwapExtras::Evm(evm) => serde_json::to_value(evm).unwrap(),
+            VaultSwapExtras::Tron(tron) => serde_json::to_value(tron).unwrap(),
             VaultSwapExtras::Solana(sol) => serde_json::to_value(sol).unwrap(),
             VaultSwapExtras::None => Value::Null,
         };

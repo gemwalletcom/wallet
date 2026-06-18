@@ -73,6 +73,10 @@ impl SwapData {
         }
     }
 
+    pub fn mock_with_quote_data(quote: SwapQuote, data: SwapQuoteData) -> Self {
+        SwapData { quote, data }
+    }
+
     pub fn mock_contract(provider: SwapProvider, from_value: &str, to_value: &str, value: &str) -> Self {
         let swap_data = Self::mock_with_values(provider, from_value, to_value);
         SwapData {
@@ -113,13 +117,17 @@ impl SwapQuote {
     }
 
     pub fn mock_with_values(provider: SwapProvider, from_value: &str, to_value: &str) -> Self {
+        Self::mock_with_addresses(provider, TEST_EVM_RECIPIENT, from_value, TEST_EVM_RECIPIENT, to_value)
+    }
+
+    pub fn mock_with_addresses(provider: SwapProvider, from_address: &str, from_value: &str, to_address: &str, to_value: &str) -> Self {
         SwapQuote {
             from_value: from_value.to_string(),
             min_from_value: None,
             to_value: to_value.to_string(),
             provider_data: SwapProviderData::mock_with_provider(provider),
-            from_address: TEST_EVM_RECIPIENT.to_string(),
-            to_address: TEST_EVM_RECIPIENT.to_string(),
+            from_address: from_address.to_string(),
+            to_address: to_address.to_string(),
             slippage_bps: 50,
             eta_in_seconds: Some(30),
             use_max_amount: None,
@@ -142,6 +150,18 @@ impl SwapQuoteData {
 
     pub fn mock_with_gas_limit(gas_limit: Option<String>) -> Self {
         SwapQuoteData { gas_limit, ..Self::mock() }
+    }
+
+    pub fn mock_contract_call(to: &str, value: &str, data: &str, memo: Option<&str>) -> Self {
+        SwapQuoteData {
+            data_type: SwapQuoteDataType::Contract,
+            to: to.to_string(),
+            value: value.to_string(),
+            data: data.to_string(),
+            memo: memo.map(String::from),
+            approval: None,
+            gas_limit: None,
+        }
     }
 }
 

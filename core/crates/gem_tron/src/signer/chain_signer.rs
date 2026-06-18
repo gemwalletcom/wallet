@@ -41,9 +41,10 @@ mod tests {
     use gem_hash::sha2::sha256;
     use num_bigint::BigInt;
     use primitives::{
-        Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, Resource, SignerInput, StakeType, TransactionFee, TransactionInputType,
-        TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote,
+        Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, Resource, SignerInput, StakeType, SwapProvider, TransactionFee,
+        TransactionInputType, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote,
         WalletConnectionSessionAppMetadata, decode_hex,
+        swap::{SwapData, SwapQuote, SwapQuoteData},
     };
     use serde_json::{Value, json};
 
@@ -91,32 +92,8 @@ mod tests {
         TransactionFee::new_gas_price_type(GasPriceType::regular(0), BigInt::from(fee), BigInt::from(gas_limit), HashMap::new())
     }
 
-    fn signer_input(
-        input_type: TransactionInputType,
-        sender: &str,
-        destination: &str,
-        value: &str,
-        transaction_fee: TransactionFee,
-        memo: Option<&str>,
-        metadata: TransactionLoadMetadata,
-    ) -> SignerInput {
-        SignerInput::new(
-            TransactionLoadInput {
-                input_type,
-                sender_address: sender.to_string(),
-                destination_address: destination.to_string(),
-                value: value.to_string(),
-                gas_price: GasPriceType::regular(0),
-                memo: memo.map(str::to_string),
-                is_max_value: false,
-                metadata,
-            },
-            transaction_fee,
-        )
-    }
-
     fn native_input(value: &str, transaction_fee: TransactionFee, memo: Option<&str>) -> SignerInput {
-        signer_input(
+        SignerInput::mock_tron(
             TransactionInputType::Transfer(Asset::from_chain(Chain::Tron)),
             SENDER,
             RECIPIENT,
@@ -183,7 +160,7 @@ mod tests {
     // https://github.com/trustwallet/wallet-core/blob/master/tests/chains/Tron/SignerTests.cpp
     #[test]
     fn sign_transfer_with_memo_matches_wallet_core() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Transfer(Asset::from_chain(Chain::Tron)),
             "TFnYQCt892UNjn67pjAULTSTkB7YvqsnPp",
             "TBUCzgc29vykkvFaEG2mgRtxKvaKe6skwX",
@@ -213,7 +190,7 @@ mod tests {
 
     #[test]
     fn sign_token_transfer_builds_trc20_trigger_contract() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Transfer(trc20_asset(RECIPIENT)),
             SENDER,
             "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z",
@@ -239,7 +216,7 @@ mod tests {
 
     #[test]
     fn sign_token_transfer_uses_gas_limit_as_fee_limit() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Transfer(trc20_asset(RECIPIENT)),
             SENDER,
             "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z",
@@ -254,10 +231,10 @@ mod tests {
     }
 
     fn swap_input(use_max_amount: Option<bool>, min_from_value: Option<&str>, value: &str, transaction_fee: TransactionFee) -> SignerInput {
-        let mut swap_data = primitives::swap::SwapData::mock_transfer(primitives::SwapProvider::Okx, value, "1", "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z");
+        let mut swap_data = SwapData::mock_transfer(SwapProvider::Okx, value, "1", "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z");
         swap_data.quote.use_max_amount = use_max_amount;
         swap_data.quote.min_from_value = min_from_value.map(str::to_string);
-        signer_input(
+        SignerInput::mock_tron(
             TransactionInputType::Swap(Asset::from_chain(Chain::Tron), Asset::from_chain(Chain::Tron), swap_data),
             SENDER,
             RECIPIENT,
@@ -305,11 +282,68 @@ mod tests {
         assert!(TronChainSigner.sign_swap(&input, &private_key()).is_err());
     }
 
+    #[test]
+    fn sign_contract_swap_native_transfer_attaches_hex_memo() {
+        let note = "0x03001111111111111111111111111111111111111111008101010a0000002523ae929fecd9d665f472f59b99a8ce6b1795100000000000000000000000000000000000000000000000000000000000000000000000009e8d88ae895c9b37b2dead9757a3452f7c2299704d91ddfa444d87723f94fe0c000000";
+        let input = SignerInput::mock_tron(
+            TransactionInputType::Swap(
+                Asset::from_chain(Chain::Tron),
+                Asset::from_chain(Chain::Ethereum),
+                SwapData::mock_with_quote_data(
+                    SwapQuote::mock_with_addresses(SwapProvider::Okx, NILE_SENDER, "10000000", "0x1111111111111111111111111111111111111111", "1"),
+                    SwapQuoteData::mock_contract_call("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi", "10000000", "", Some(note)),
+                ),
+            ),
+            NILE_SENDER,
+            "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi",
+            "10000000",
+            TransactionFee::default(),
+            Some(note),
+            nile_metadata(TronStakeData::Votes(vec![])),
+        );
+
+        let output = signed_json(TronChainSigner.sign_swap(&input, &nile_private_key()).unwrap().remove(0));
+
+        assert_eq!(output["raw_data"]["contract"][0]["type"], "TransferContract");
+        assert_eq!(output["raw_data"]["data"], note.trim_start_matches("0x"));
+    }
+
+    #[test]
+    fn sign_contract_swap_token_uses_quote_calldata() {
+        let note = "0x03001111111111111111111111111111111111111111008901010a0000002523ae929fecd9d665f472f59b99a8ce6b17951000000000000000000000000000000000000000000000000000000000000000000001320000009e8d88ae895c9b37b2dead9757a3452f7c2299704d91ddfa444d87723f94fe0c000000";
+        let calldata = "0xa9059cbb0000000000000000000000002523ae929fecd9d665f472f59b99a8ce6b17951000000000000000000000000000000000000000000000000000000000004c4b40";
+        let source_token_address = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
+        let input = SignerInput::mock_tron(
+            TransactionInputType::Swap(
+                trc20_asset(source_token_address),
+                Asset::from_chain(Chain::Ethereum),
+                SwapData::mock_with_quote_data(
+                    SwapQuote::mock_with_addresses(SwapProvider::Okx, NILE_SENDER, "5000000", "0x1111111111111111111111111111111111111111", "1"),
+                    SwapQuoteData::mock_contract_call(source_token_address, "0", calldata, Some(note)),
+                ),
+            ),
+            NILE_SENDER,
+            "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi",
+            "5000000",
+            fee(0, 100_000_000),
+            Some(note),
+            nile_metadata(TronStakeData::Votes(vec![])),
+        );
+
+        let output = signed_json(TronChainSigner.sign_swap(&input, &nile_private_key()).unwrap().remove(0));
+        let value = &output["raw_data"]["contract"][0]["parameter"]["value"];
+
+        assert_eq!(output["raw_data"]["contract"][0]["type"], "TriggerSmartContract");
+        assert_eq!(value["contract_address"], "41eca9bc828a3005b9a3b909f2cc5c2a54794de05f");
+        assert_eq!(value["data"], calldata.trim_start_matches("0x"));
+        assert_eq!(output["raw_data"]["data"], note.trim_start_matches("0x"));
+    }
+
     // Source vector:
     // https://github.com/trustwallet/wallet-core/blob/master/tests/chains/Tron/SignerTests.cpp
     #[test]
     fn sign_vote_witness_matches_wallet_core() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Stake(validator(RECIPIENT))),
             SENDER,
             RECIPIENT,
@@ -332,7 +366,7 @@ mod tests {
 
     #[test]
     fn sign_vote_witness_keeps_multiple_votes() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Stake(validator(RECIPIENT))),
             SENDER,
             RECIPIENT,
@@ -362,7 +396,7 @@ mod tests {
 
     #[test]
     fn sign_unstake_votes_builds_vote_witness_contract() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Unstake(Delegation::mock_tron(RECIPIENT))),
             SENDER,
             RECIPIENT,
@@ -388,7 +422,7 @@ mod tests {
 
     #[test]
     fn sign_freeze_v2_builds_energy_contract() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Freeze(Resource::Energy)),
             NILE_SENDER,
             RECIPIENT,
@@ -408,7 +442,7 @@ mod tests {
 
     #[test]
     fn sign_unfreeze_v2_builds_contract() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Unfreeze(Resource::Energy)),
             NILE_SENDER,
             RECIPIENT,
@@ -429,7 +463,7 @@ mod tests {
     // https://github.com/trustwallet/wallet-core/blob/master/tests/chains/Tron/SignerTests.cpp
     #[test]
     fn sign_withdraw_rewards_matches_wallet_core() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Rewards(vec![])),
             SENDER,
             RECIPIENT,
@@ -449,7 +483,7 @@ mod tests {
 
     #[test]
     fn sign_withdraw_expire_unfreeze_builds_contract() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Withdraw(Delegation::mock_tron(RECIPIENT))),
             NILE_SENDER,
             RECIPIENT,
@@ -470,7 +504,7 @@ mod tests {
 
     #[test]
     fn sign_unstake_unfreeze_outputs_one_transaction_per_unfreeze() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Stake(Asset::from_chain(Chain::Tron), StakeType::Unstake(Delegation::mock_tron(RECIPIENT))),
             SENDER,
             RECIPIENT,
@@ -525,7 +559,7 @@ mod tests {
 
     fn generic_payload(payload: Value, output_type: TransferDataOutputType) -> SignerInput {
         let payload = serde_json::to_vec(&payload).unwrap();
-        signer_input(
+        SignerInput::mock_tron(
             TransactionInputType::Generic(
                 Asset::from_chain(Chain::Tron),
                 WalletConnectionSessionAppMetadata {
@@ -679,7 +713,7 @@ mod tests {
 
     #[test]
     fn sign_transfer_rejects_invalid_address() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Transfer(Asset::from_chain(Chain::Tron)),
             SENDER,
             "INVALID_NOT_BASE58",
@@ -707,7 +741,7 @@ mod tests {
 
     #[test]
     fn sign_transfer_rejects_invalid_metadata() {
-        let input = signer_input(
+        let input = SignerInput::mock_tron(
             TransactionInputType::Transfer(Asset::from_chain(Chain::Tron)),
             SENDER,
             RECIPIENT,

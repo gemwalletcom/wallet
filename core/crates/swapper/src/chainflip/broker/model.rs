@@ -23,13 +23,14 @@ pub struct DcaParameters {
 
 #[derive(Debug)]
 pub enum VaultSwapExtras {
-    Evm(VaultSwapEvmExtras),
+    Evm(VaultSwapChainExtras),
+    Tron(VaultSwapChainExtras),
     Solana(VaultSwapSolanaExtras),
     None,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VaultSwapEvmExtras {
+pub struct VaultSwapChainExtras {
     pub chain: String,
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str", serialize_with = "serialize_biguint_to_hex_str")]
     pub input_amount: BigUint,
@@ -48,6 +49,7 @@ pub struct VaultSwapSolanaExtras {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 pub enum VaultSwapResponse {
+    Tron(TronVaultSwapResponse),
     Evm(EvmVaultSwapResponse),
     Solana(SolanaVaultSwapResponse),
 }
@@ -72,4 +74,54 @@ pub struct AccountMeta {
     pub is_signer: bool,
     pub is_writable: bool,
     pub pubkey: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct TronVaultSwapResponse {
+    pub calldata: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
+    pub value: BigUint,
+    pub to: String,
+    pub note: String,
+    pub source_token_address: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tron_vault_swap_response_deserializes_before_evm() {
+        let response: VaultSwapResponse = serde_json::from_value(serde_json::json!({
+            "calldata": "0xa9059cbb",
+            "value": "0x0",
+            "to": "0x2523ae929fecd9d665f472f59b99a8ce6b179510",
+            "note": "0x0300",
+            "source_token_address": "0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f"
+        }))
+        .unwrap();
+
+        let VaultSwapResponse::Tron(response) = response else {
+            panic!("expected Tron vault swap response");
+        };
+        assert_eq!(response.value, BigUint::from(0u32));
+        assert_eq!(response.note, "0x0300");
+        assert_eq!(response.source_token_address, Some("0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f".to_string()));
+    }
+
+    #[test]
+    fn test_evm_vault_swap_response_keeps_original_shape() {
+        let response: VaultSwapResponse = serde_json::from_value(serde_json::json!({
+            "calldata": "0x1234",
+            "value": "0x3e8",
+            "to": "0x1111111111111111111111111111111111111111"
+        }))
+        .unwrap();
+
+        let VaultSwapResponse::Evm(response) = response else {
+            panic!("expected EVM vault swap response");
+        };
+        assert_eq!(response.value, BigUint::from(1000u32));
+        assert_eq!(response.to, "0x1111111111111111111111111111111111111111");
+    }
 }
