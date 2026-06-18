@@ -244,41 +244,26 @@ pub mod test {
 
     #[test]
     fn test_quote_recommendations_convert_to_broker_units() {
-        let quote_response = serde_json::from_value::<QuoteResponse>(serde_json::json!({
-            "egressAmount": "1000",
-            "recommendedSlippageTolerancePercent": 0.5,
-            "recommendedLivePriceSlippageTolerancePercent": 1,
-            "recommendedRetryDurationMinutes": 5,
-            "estimatedDurationSeconds": 60,
-            "type": "REGULAR",
-            "depositAmount": "100",
-            "isVaultSwap": true,
-            "estimatedPrice": "10"
-        }))
-        .unwrap();
+        let cases: [(f64, f64, Option<u8>, Option<u32>); 2] = [(1.0, 5.0, Some(100), Some(50)), (2.55, 0.0, None, None)];
 
-        assert_eq!(quote_response.slippage_bps(), 50);
-        assert_eq!(quote_response.live_price_slippage_bps(), Some(100));
-        assert_eq!(quote_response.retry_duration_blocks(), Some(50));
-    }
+        for (live_price_slippage_percent, retry_duration_minutes, expected_live_price_slippage_bps, expected_retry_duration_blocks) in cases {
+            let quote_response = serde_json::from_value::<QuoteResponse>(serde_json::json!({
+                "egressAmount": "1000",
+                "recommendedSlippageTolerancePercent": 0.5,
+                "recommendedLivePriceSlippageTolerancePercent": live_price_slippage_percent,
+                "recommendedRetryDurationMinutes": retry_duration_minutes,
+                "estimatedDurationSeconds": 60,
+                "type": "REGULAR",
+                "depositAmount": "100",
+                "isVaultSwap": true,
+                "estimatedPrice": "10"
+            }))
+            .unwrap();
 
-    #[test]
-    fn test_quote_recommendations_omit_unusable_values() {
-        let quote_response = serde_json::from_value::<QuoteResponse>(serde_json::json!({
-            "egressAmount": "1000",
-            "recommendedSlippageTolerancePercent": 0.5,
-            "recommendedLivePriceSlippageTolerancePercent": 2.55,
-            "recommendedRetryDurationMinutes": 0,
-            "estimatedDurationSeconds": 60,
-            "type": "REGULAR",
-            "depositAmount": "100",
-            "isVaultSwap": true,
-            "estimatedPrice": "10"
-        }))
-        .unwrap();
-
-        assert_eq!(quote_response.live_price_slippage_bps(), None);
-        assert_eq!(quote_response.retry_duration_blocks(), None);
+            assert_eq!(quote_response.slippage_bps(), 50);
+            assert_eq!(quote_response.live_price_slippage_bps(), expected_live_price_slippage_bps);
+            assert_eq!(quote_response.retry_duration_blocks(), expected_retry_duration_blocks);
+        }
     }
 
     #[test]

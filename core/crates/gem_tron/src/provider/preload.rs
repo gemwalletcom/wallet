@@ -281,26 +281,22 @@ mod tests {
     use primitives::swap::SwapQuoteData;
 
     #[test]
-    fn test_swap_quote_memo_counts_for_fee_preload() {
+    fn test_swap_memo_fee_preload_uses_quote_memo_bytes() {
         let mut data = SwapQuoteData::new_contract("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(), "0".to_string(), String::new(), None, None);
+
         assert!(!has_swap_quote_memo(None, &data));
+        assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap(), None);
+
         assert!(has_swap_quote_memo(Some("memo"), &data));
+        assert_eq!(swap_contract_memo_data_bytes(Some("memo"), &data).unwrap(), Some(4));
 
         data.memo = Some(String::new());
         assert!(!has_swap_quote_memo(None, &data));
-
-        data.memo = Some("0x0100".to_string());
-        assert!(has_swap_quote_memo(None, &data));
-        assert!(has_swap_quote_memo(Some("memo"), &data));
-    }
-
-    #[test]
-    fn test_swap_contract_memo_data_bytes_prefers_quote_memo() {
-        let mut data = SwapQuoteData::new_contract("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(), "0".to_string(), String::new(), None, None);
         assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap(), None);
-        assert_eq!(swap_contract_memo_data_bytes(Some("memo"), &data).unwrap(), Some(4));
 
         data.memo = Some("0x010203".to_string());
+        assert!(has_swap_quote_memo(None, &data));
+        assert!(has_swap_quote_memo(Some("memo"), &data));
         assert_eq!(swap_contract_memo_data_bytes(Some("memo"), &data).unwrap(), Some(3));
 
         data.memo = Some("0xzz".to_string());

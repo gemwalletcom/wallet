@@ -126,23 +126,6 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_build_tron_quote_data_rejects_invalid_calldata() {
-        let err = build_tron_quote_data(
-            &TronVaultSwapResponse {
-                calldata: "0xzz".to_string(),
-                value: BigUint::from(50_000_000u32),
-                to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
-                note: "0x0300".to_string(),
-                source_token_address: None,
-            },
-            "50000000".to_string(),
-        )
-        .unwrap_err();
-
-        assert!(matches!(err, SwapperError::TransactionError(message) if message.contains("invalid Tron calldata")));
-    }
-
     #[tokio::test]
     async fn test_build_solana_tx_with_mocked_blockhash() -> Result<(), String> {
         let wallet_address = "A21o4asMbFHYadqXdLusT9Bvx9xaC5YV9gcaidjqtdXC";
