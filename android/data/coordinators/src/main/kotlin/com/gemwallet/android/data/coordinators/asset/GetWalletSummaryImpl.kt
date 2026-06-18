@@ -5,6 +5,8 @@ import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
@@ -12,10 +14,13 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
+import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.isSwapSupport
+import com.gemwallet.android.ext.total
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,24 +38,33 @@ import java.math.MathContext
 class GetWalletSummaryImpl(
     private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
+    private val perpetualRepository: PerpetualRepository,
+    private val observePerpetualWallet: ObservePerpetualWallet,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
+    private val perpetualCollateral: Flow<PerpetualBalance?> =
+        observePerpetualWallet().flatMapLatest { wallet ->
+            wallet?.let { perpetualRepository.getBalance(it.id, HypercoreUSDC.id) } ?: flowOf(null)
+        }
+
     private val walletSummary = sessionRepository.session().flatMapLatest { session ->
         val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
 
         combine(
             assetsRepository.getAssetsInfo(),
+            perpetualCollateral,
             hasMultiSign.hasMultiSign(wallet),
             userConfig.isHideBalances(),
-        ) { assets, hasMultiSign, hideBalances ->
-            val (totalValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
+        ) { assets, perpetualBalance, hasMultiSign, hideBalances ->
+            val (assetsValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
                 val currentValue = asset.balance.fiatTotalAmount.toBigDecimal()
                 val currentChangedValue = currentValue * ((asset.price?.price?.priceChangePercentage24h ?: 0.0) / 100).toBigDecimal()
 
                 (total + currentValue) to (changed + currentChangedValue)
             }
+            val totalValue = assetsValue + (perpetualBalance?.total?.toBigDecimal() ?: BigDecimal.ZERO)
 
             WalletSummaryAggregateImpl(
                 wallet = wallet,

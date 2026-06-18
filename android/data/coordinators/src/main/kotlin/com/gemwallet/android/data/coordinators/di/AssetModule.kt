@@ -55,6 +55,8 @@ import com.gemwallet.android.data.coordinators.asset.ToggleAssetPinImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.services.gemapi.GemApiClient
@@ -123,11 +125,15 @@ object AssetModule {
     fun provideGetWalletSummary(
         sessionRepository: SessionRepository,
         assetsRepository: AssetsRepository,
+        perpetualRepository: PerpetualRepository,
+        observePerpetualWallet: ObservePerpetualWallet,
         hasMultiSign: HasMultiSign,
         userConfig: UserConfig,
     ): GetWalletSummary = GetWalletSummaryImpl(
         sessionRepository = sessionRepository,
         assetsRepository = assetsRepository,
+        perpetualRepository = perpetualRepository,
+        observePerpetualWallet = observePerpetualWallet,
         hasMultiSign = hasMultiSign,
         userConfig = userConfig,
     )
