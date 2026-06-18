@@ -22,8 +22,14 @@ public struct SupportChatService: Sendable {
 
     public func receive(_ event: SupportStreamEvent) async throws {
         switch event {
-        case let .message(message): try store.addMessages([message])
-        case let .typing(payload): await typing.update(payload)
+        case let .message(message):
+            try store.addMessages([message])
+            switch message.sender {
+            case .user: break
+            case .agent: await typing.clear()
+            }
+        case let .typing(payload):
+            await typing.update(payload)
         }
     }
 

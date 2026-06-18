@@ -27,6 +27,7 @@ import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamNotificationUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
+import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportStreamEvent
 import com.wallet.core.primitives.WebSocketPricePayload
 import kotlinx.coroutines.flow.firstOrNull
@@ -119,7 +120,13 @@ class StreamEventHandler(
 
     private suspend fun handleSupport(event: SupportStreamEvent) {
         when (event) {
-            is SupportStreamEvent.Message -> supportMessagesDao.addMessages(listOf(event.data.toRecord()))
+            is SupportStreamEvent.Message -> {
+                supportMessagesDao.addMessages(listOf(event.data.toRecord()))
+                when (event.data.sender) {
+                    is SupportMessageSender.User -> { }
+                    is SupportMessageSender.Agent -> supportTypingState.clear()
+                }
+            }
             is SupportStreamEvent.Typing -> supportTypingState.update(event.data)
         }
     }
