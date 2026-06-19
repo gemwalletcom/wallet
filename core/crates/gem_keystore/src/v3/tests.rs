@@ -4,7 +4,7 @@ use sha3::{Digest, Keccak256};
 use zeroize::Zeroizing;
 
 use super::{
-    constants::{AES_128_KEY_LEN, DERIVED_KEY_LEN},
+    constants::{AES_128_KEY_LEN, DERIVED_KEY_LEN, MAX_SALT_LEN},
     crypto::{Aes128Ctr, derive_scrypt_key},
     types::{KdfParamsV3, KeystoreV3, KindV3, ReaderV3, SecretV3},
 };
@@ -17,7 +17,10 @@ use crate::{
 const V3_MINIMAL_TEMPLATE: &str = include_str!("../../testdata/v3_minimal_template.json");
 
 fn mock_v3_json(kind: &str, plaintext: &[u8], password: &[u8]) -> String {
-    let salt = [1u8; 16];
+    mock_v3_json_with_salt(kind, plaintext, password, &[1u8; 16])
+}
+
+fn mock_v3_json_with_salt(kind: &str, plaintext: &[u8], password: &[u8], salt: &[u8]) -> String {
     let iv = [2u8; 16];
     let kdfparams = KdfParamsV3 {
         dklen: DERIVED_KEY_LEN as u32,
@@ -74,6 +77,25 @@ fn test_v3_accepts_extra_legacy_metadata_fields() {
     let json = serde_json::to_string(&value).unwrap();
 
     assert_eq!(ReaderV3::decrypt_json(&json, password).unwrap(), SecretV3::Mnemonic(ABANDON_PHRASE.to_string()));
+}
+
+#[test]
+fn test_v3_accepts_empty_and_short_scrypt_salt() {
+    let password = b"v3-password";
+
+    for salt in [Vec::new(), vec![7u8; 8]] {
+        let json = mock_v3_json_with_salt("mnemonic", ABANDON_PHRASE.as_bytes(), password, &salt);
+        let parsed = KeystoreV3::parse(json.as_bytes()).unwrap();
+        assert_eq!(parsed.crypto.kdfparams.salt.len(), salt.len());
+        assert_eq!(ReaderV3::decrypt_json(&json, password).unwrap(), SecretV3::Mnemonic(ABANDON_PHRASE.to_string()));
+        assert_eq!(ReaderV3::decrypt_json(&json, b"wrong").unwrap_err(), KeystoreError::AuthenticationFailed);
+    }
+
+    let valid = mock_v3_json_with_salt("mnemonic", ABANDON_PHRASE.as_bytes(), password, &[1u8; 16]);
+    let mut value: Value = serde_json::from_str(&valid).unwrap();
+    value["crypto"]["kdfparams"]["salt"] = Value::String(hex::encode(vec![1u8; MAX_SALT_LEN + 1]));
+    let oversized = serde_json::to_string(&value).unwrap();
+    assert_eq!(KeystoreV3::parse(oversized.as_bytes()).unwrap_err(), KeystoreError::corrupt_file("invalid v3 hex length"));
 }
 
 #[test]

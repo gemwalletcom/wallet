@@ -79,6 +79,32 @@ fun WalletSecretDataNavScreen(
         return
     }
 
+    if (value?.isError == true) {
+        Scene(
+            title = stringResource(id = content.titleRes),
+            padding = sceneContentPaddingValues(),
+            onClose = onCancel,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingDefault),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "Couldn't access this wallet's keys on this device. " +
+                        "If you have your recovery phrase, remove this wallet and import it again to restore access.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+        return
+    }
+
     Scene(
         title = stringResource(id = content.titleRes),
         padding = sceneContentPaddingValues(),

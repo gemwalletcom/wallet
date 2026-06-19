@@ -3,7 +3,7 @@ use std::fmt;
 use serde::Deserialize;
 use zeroize::{Zeroize, Zeroizing};
 
-use super::constants::{DERIVED_KEY_LEN, MAX_SALT_LEN, MAX_SCRYPT_N, MAX_SCRYPT_P, MAX_SCRYPT_R, MIN_SALT_LEN, V3_CIPHER, V3_KDF, WHOLE_FILE_CAP};
+use super::constants::{DERIVED_KEY_LEN, MAX_SALT_LEN, MAX_SCRYPT_N, MAX_SCRYPT_P, MAX_SCRYPT_R, V3_CIPHER, V3_KDF, WHOLE_FILE_CAP};
 use super::deserialize::{deserialize_ciphertext, deserialize_iv, deserialize_mac, deserialize_salt, map_json_error};
 use crate::KeystoreError;
 
@@ -119,7 +119,8 @@ impl KdfParamsV3 {
         if self.p == 0 || self.p > MAX_SCRYPT_P {
             return Err(KeystoreError::corrupt_file("invalid v3 scrypt p"));
         }
-        if self.salt.len() < MIN_SALT_LEN || self.salt.len() > MAX_SALT_LEN {
+        // Legacy WalletCore wrote some keystores with an empty scrypt salt; accept short salts (the MAC still authenticates) and only cap the max.
+        if self.salt.len() > MAX_SALT_LEN {
             return Err(KeystoreError::corrupt_file("invalid v3 hex length"));
         }
         Ok(())

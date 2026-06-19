@@ -6,7 +6,6 @@ pub(super) const AES_128_KEY_LEN: usize = 16;
 pub(super) const AES_128_CTR_IV_LEN: usize = 16;
 pub(super) const DERIVED_KEY_LEN: usize = 32;
 pub(super) const MAC_LEN: usize = 32;
-pub(super) const MIN_SALT_LEN: usize = 16;
 pub(super) const MAX_SALT_LEN: usize = 64;
 pub(super) const MAX_SCRYPT_N: u64 = 16_384;
 pub(super) const MAX_SCRYPT_R: u32 = 8;

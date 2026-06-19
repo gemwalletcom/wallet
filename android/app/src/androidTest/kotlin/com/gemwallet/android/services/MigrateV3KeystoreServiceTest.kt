@@ -86,6 +86,21 @@ class MigrateV3KeystoreServiceTest {
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
     }
 
+    @Test
+    fun migrateV3WithEmptyScryptSalt_createsV4AndRecoversKey() = runBlocking {
+        val walletId = WalletId("multicoin_$KEYSTORE_TEST_ETH_ADDRESS")
+        val current = mockWallet(id = walletId.id, type = WalletType.Multicoin, source = WalletSource.Import)
+        every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
+        prepareV3File(walletId, "v3_empty_salt_mnemonic.json")
+
+        service()
+
+        val keystoreId = uniffi.gemstone.keystoreIdForWallet(walletId.id)
+        assertTrue("v4 file must exist after migrating an empty-salt v3 file", File(baseDir, "$keystoreId.json").exists())
+        assertFalse("v3 file must be deleted after a verified migration", File(baseDir, walletId.id).exists())
+        assertEquals(EXPECTED_PRIVATE_KEY, loadKey(current, Chain.Ethereum, KEYSTORE_TEST_PASSWORD).hex)
+    }
+
     private fun prepareV3File(walletId: WalletId, assetName: String) {
         val fixture = InstrumentationRegistry.getInstrumentation().context.assets
             .open(assetName).bufferedReader().use { it.readText() }

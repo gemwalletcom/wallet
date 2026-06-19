@@ -36,6 +36,16 @@ struct MigrateV3KeystoreTests {
     }
 
     @Test
+    func migrateV3WithEmptyScryptSalt() async throws {
+        let legacy = Wallet.mock(
+            id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
+            type: .privateKey,
+            source: .import,
+        )
+        try await assertMigratesAndIsIdempotent(legacy, fixture: "v3_empty_salt_private_key")
+    }
+
+    @Test
     func migrationWithoutV3FileDoesNotReadThePassword() async throws {
         let directory = "migrate-test-\(UUID().uuidString)"
         let baseDir = try FileManager.default
@@ -116,7 +126,7 @@ struct MigrateV3KeystoreTests {
     }
 
     @discardableResult
-    private func assertMigratesAndIsIdempotent(_ legacy: Wallet) async throws -> String {
+    private func assertMigratesAndIsIdempotent(_ legacy: Wallet, fixture: String = "v3_ios_private_key") async throws -> String {
         let directory = "migrate-test-\(UUID().uuidString)"
         let baseDir = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
@@ -129,7 +139,7 @@ struct MigrateV3KeystoreTests {
             keystorePassword: mockPassword,
         )
 
-        let fixtureURL = try #require(Bundle.module.url(forResource: "v3_ios_private_key", withExtension: "json"))
+        let fixtureURL = try #require(Bundle.module.url(forResource: fixture, withExtension: "json"))
         let v3URL = baseDir.appending(path: legacy.legacyV3Id, directoryHint: .notDirectory)
         try FileManager.default.copyItem(at: fixtureURL, to: v3URL)
 

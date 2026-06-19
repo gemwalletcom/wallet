@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::constants::{AES_128_CTR_IV_LEN, CIPHERTEXT_CAP, MAC_LEN, MAX_SALT_LEN, MIN_SALT_LEN};
+use super::constants::{AES_128_CTR_IV_LEN, CIPHERTEXT_CAP, MAC_LEN, MAX_SALT_LEN};
 use crate::KeystoreError;
 
 const ERROR_HEX: &str = "invalid v3 hex";
@@ -25,7 +25,7 @@ pub(super) fn deserialize_salt<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Er
 where
     D: serde::Deserializer<'de>,
 {
-    deserialize_hex_in_range(deserializer, MIN_SALT_LEN, MAX_SALT_LEN, ERROR_HEX_LENGTH)
+    deserialize_hex_in_range(deserializer, 0, MAX_SALT_LEN, ERROR_HEX_LENGTH)
 }
 
 pub(super) fn deserialize_ciphertext<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>

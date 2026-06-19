@@ -244,6 +244,7 @@ mod migration_tests {
 
     const V3_MNEMONIC: &str = include_str!("../../../crates/gem_keystore/testdata/v3_ios_mnemonic.json");
     const V3_PRIVATE_KEY: &str = include_str!("../../../crates/gem_keystore/testdata/v3_ios_private_key.json");
+    const V3_EMPTY_SALT_MNEMONIC: &str = include_str!("../../../crates/gem_keystore/testdata/v3_empty_salt_mnemonic.json");
     const V3_PASSWORD: &[u8] = b"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
     const NEW_PASSWORD: &[u8] = b"raw-v4-password-bytes";
     const EXPECTED_PHRASE: &str =
@@ -291,6 +292,28 @@ mod migration_tests {
         let again = keystore.migrate_v3(v3_path, V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id).unwrap();
         assert_eq!(again.keystore_id, keystore_id);
         assert_eq!(keystore.export_recovery_phrase(keystore_id, NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn migrate_v3_empty_salt_mnemonic_round_trip() {
+        let (base, v3_path) = prepare("empty_salt", V3_EMPTY_SALT_MNEMONIC);
+        let keystore = GemKeystore::new(base.to_string_lossy().into_owned()).unwrap();
+        let wallet_id = MNEMONIC_WALLET_ID.to_string();
+        let keystore_id = keystore_id_for_wallet(wallet_id.clone());
+
+        let migration = keystore
+            .migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone())
+            .unwrap();
+        assert_eq!(migration.keystore_id, keystore_id);
+        assert!(!Path::new(&v3_path).exists(), "v3 file must be removed after a verified migration");
+        assert_eq!(
+            keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "),
+            EXPECTED_PHRASE
+        );
+        let accounts = keystore.add_accounts(keystore_id, NEW_PASSWORD.to_vec(), vec![Chain::Ethereum]).unwrap();
+        assert_eq!(accounts[0].address, EXPECTED_ETHEREUM_ADDRESS);
 
         let _ = std::fs::remove_dir_all(&base);
     }

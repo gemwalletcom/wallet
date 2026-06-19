@@ -311,7 +311,7 @@ func withV4Password<T>(
     _ operation: (Data) throws -> T,
 ) throws -> T {
     guard password.isNotEmpty else {
-        throw AnyError("keystore password is missing")
+        throw AnyError("Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.")
     }
     var passwordBytes = try password.v4KeystorePasswordBytes()
     defer { passwordBytes.zeroize() }

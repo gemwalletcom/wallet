@@ -1,0 +1,30 @@
+{
+  "activeAccounts": [
+    {
+      "address": "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3",
+      "coin": 60,
+      "derivationPath": "m/44'/60'/0'/0/0",
+      "publicKey": "0411111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+    }
+  ],
+  "crypto": {
+    "cipher": "aes-128-ctr",
+    "cipherparams": {
+      "iv": "02020202020202020202020202020202"
+    },
+    "ciphertext": "694794c24b4ef152f91130aa2959ee2c238cb328439a83b6a53c46ba89b8689ef0228bab10cb9921fd5e9a737a77512435bf1f2b143a3710ce2cce9aa97a6bbbdf557529294be4a6054001e62c2c3e669fa7f42741b07051788e7ba6827718df4df14a94ae248880526e151ae796d70c9948a088db7f767fd0f499b1d67e5476239496a0c6ebeda1299f0195c73d8f91c796436c22651b2037041084c9e7132414",
+    "kdf": "scrypt",
+    "kdfparams": {
+      "dklen": 32,
+      "n": 16,
+      "p": 1,
+      "r": 1,
+      "salt": ""
+    },
+    "mac": "939249695743756d274bc400f5bafacd1bff085c0252bfffd3a877d1a0f0ba16"
+  },
+  "id": "4b8fc216-dc74-481e-8011-bd4d1bc968ab",
+  "name": "Ethereum Wallet #4",
+  "type": "mnemonic",
+  "version": 3
+}
