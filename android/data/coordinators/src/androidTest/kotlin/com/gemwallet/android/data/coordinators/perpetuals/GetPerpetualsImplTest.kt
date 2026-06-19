@@ -59,6 +59,6 @@ class GetPerpetualsImplTest {
         assertEquals("\$95,420.50", item.price.valueFormatted)
         assertEquals("+2.50%", item.price.changePercentageFormatted)
         assertEquals(ValueDirection.Up, item.price.state)
-        assertEquals("\$15.00B", item.volume)
+        assertEquals("\$15B", item.volume)
     }
 }

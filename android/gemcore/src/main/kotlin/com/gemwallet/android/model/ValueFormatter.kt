@@ -51,7 +51,7 @@ class ValueFormatter(
 
     private fun abbreviated(decimal: BigDecimal): String {
         val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
-        formatter.maximumFractionDigits = 2
+        formatter.maximumSignificantDigits = 2
         return formatter.format(decimal)
     }
 
@@ -69,6 +69,6 @@ class ValueFormatter(
     companion object {
         private val SMALL_AMOUNT_THRESHOLD: BigDecimal = BigDecimal("0.1")
         private val DUST_THRESHOLD: BigDecimal = BigDecimal("0.0001")
-        val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(10_000)
+        val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(100_000)
     }
 }

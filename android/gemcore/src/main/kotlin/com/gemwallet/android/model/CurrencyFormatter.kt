@@ -25,7 +25,7 @@ class CurrencyFormatter(
     private val abbreviatedFormatter: CompactDecimalFormat by lazy {
         CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT).apply {
             currency = android.icu.util.Currency.getInstance(this@CurrencyFormatter.currency.string)
-            maximumFractionDigits = 2
+            maximumSignificantDigits = 2
         }
     }
 

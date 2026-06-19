@@ -2,7 +2,7 @@
 
 import Foundation
 
-public let defaultAbbreviationThreshold: Decimal = 10000.0
+public let defaultAbbreviationThreshold: Decimal = 100000.0
 
 public struct AbbreviatedFormatter {
     private let locale: Locale
@@ -33,7 +33,7 @@ public struct AbbreviatedFormatter {
             .number
                 .notation(.compactName)
                 .locale(locale)
-                .precision(.fractionLength(0 ... 2)),
+                .precision(.significantDigits(1 ... 2)),
         )
     }
 
@@ -46,7 +46,7 @@ public struct AbbreviatedFormatter {
             .currency(code: currency)
                 .notation(.compactName)
                 .locale(locale)
-                .precision(.fractionLength(0 ... 2)),
+                .precision(.significantDigits(1 ... 2)),
         )
     }
 }

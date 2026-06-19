@@ -29,7 +29,7 @@ struct CandleTooltipViewModelTests {
         #expect(model.changeField.value.text == "+0.55%")
 
         #expect(model.volumeField.title.text == Localized.Perpetual.volume)
-        #expect(model.volumeField.value.text == "$34.04M")
+        #expect(model.volumeField.value.text == "$34M")
     }
 
     @Test

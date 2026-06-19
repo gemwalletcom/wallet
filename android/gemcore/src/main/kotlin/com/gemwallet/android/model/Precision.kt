@@ -35,7 +35,7 @@ internal fun adaptivePrecision(magnitude: BigDecimal): Precision =
         Precision.fourSignificant
     }
 
-internal val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(10_000)
+internal val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(100_000)
 
 private val SMALL_VALUE_THRESHOLD: BigDecimal = BigDecimal("0.99")
 private val DUST_THRESHOLD: BigDecimal = BigDecimal("0.0000000001")

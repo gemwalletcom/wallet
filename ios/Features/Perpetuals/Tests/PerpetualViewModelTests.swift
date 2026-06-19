@@ -19,7 +19,7 @@ struct PerpetualViewModelTests {
 
     @Test
     func openInterestField() {
-        #expect(PerpetualViewModel(perpetual: .mock(openInterest: 5_250_000)).openInterestField.value.text == "$5.25M")
+        #expect(PerpetualViewModel(perpetual: .mock(openInterest: 5_250_000)).openInterestField.value.text == "$5.2M")
     }
 
     @Test

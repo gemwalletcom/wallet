@@ -54,14 +54,14 @@ final class CurrencyFormatterTests {
         #expect(abbreviatedFormatterUS.string(0) == "$0.00")
         #expect(abbreviatedFormatterUS.string(12) == "$12.00")
         #expect(abbreviatedFormatterUS.string(1234) == "$1,234.00")
-        #expect(abbreviatedFormatterUS.string(10000) == "$10K")
+        #expect(abbreviatedFormatterUS.string(10000) == "$10,000.00")
         #expect(abbreviatedFormatterUS.string(-1234) == "-$1,234.00")
-        #expect(abbreviatedFormatterUS.string(-10000) == "-$10K")
+        #expect(abbreviatedFormatterUS.string(-10000) == "-$10,000.00")
         #expect(abbreviatedFormatterUS.string(-5_600_000) == "-$5.6M")
 
-        #expect(abbreviatedFormatterUK.string(123_456) == "£123.46k")
+        #expect(abbreviatedFormatterUK.string(123_456) == "£120k")
         #expect(abbreviatedFormatterUK.string(5_000_000) == "£5m")
-        #expect(abbreviatedFormatterUK.string(7_890_000_000) == "£7.89bn")
+        #expect(abbreviatedFormatterUK.string(7_890_000_000) == "£7.9bn")
         #expect(abbreviatedFormatterUK.string(1_200_000_000_000) == "£1.2tn")
         #expect(abbreviatedFormatterUK.string(-9_999_999_999) == "-£10bn")
     }
