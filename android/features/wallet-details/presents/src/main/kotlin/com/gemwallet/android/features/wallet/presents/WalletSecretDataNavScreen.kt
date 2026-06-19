@@ -80,28 +80,7 @@ fun WalletSecretDataNavScreen(
     }
 
     if (value?.isError == true) {
-        Scene(
-            title = stringResource(id = content.titleRes),
-            padding = sceneContentPaddingValues(),
-            onClose = onCancel,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingDefault),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "Couldn't access this wallet's keys on this device. " +
-                        "If you have your recovery phrase, remove this wallet and import it again to restore access.",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
+        WalletSecretDataErrorScene(title = stringResource(id = content.titleRes), onCancel = onCancel)
         return
     }
 
@@ -154,6 +133,32 @@ fun WalletSecretDataNavScreen(
             } ?: PhraseLayout(words = value?.phrase() ?: emptyList())
 
             CopyButton(onClick = { clipboardManager.setPlainText(context, value.toString(), true) })
+        }
+    }
+}
+
+@Composable
+private fun WalletSecretDataErrorScene(title: String, onCancel: () -> Unit) {
+    Scene(
+        title = title,
+        padding = sceneContentPaddingValues(),
+        onClose = onCancel,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingDefault),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Couldn't access this wallet's keys on this device. " +
+                    "If you have your recovery phrase, remove this wallet and import it again to restore access.",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

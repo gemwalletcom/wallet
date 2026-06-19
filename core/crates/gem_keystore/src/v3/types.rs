@@ -119,7 +119,7 @@ impl KdfParamsV3 {
         if self.p == 0 || self.p > MAX_SCRYPT_P {
             return Err(KeystoreError::corrupt_file("invalid v3 scrypt p"));
         }
-        // Legacy WalletCore wrote some keystores with an empty scrypt salt; accept short salts (the MAC still authenticates) and only cap the max.
+        // The MAC still authenticates the secret, so short/empty salts are safe; legacy WalletCore emitted empty scrypt salts. Only cap the max length.
         if self.salt.len() > MAX_SALT_LEN {
             return Err(KeystoreError::corrupt_file("invalid v3 hex length"));
         }

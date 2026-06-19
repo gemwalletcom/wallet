@@ -91,7 +91,7 @@ class MigrateV3KeystoreServiceTest {
         val walletId = WalletId("multicoin_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.Multicoin, source = WalletSource.Import)
         every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
-        prepareV3File(walletId, "v3_empty_salt_mnemonic.json")
+        prepareV3File(walletId, "v3_android_empty_salt_mnemonic.json")
 
         service()
 

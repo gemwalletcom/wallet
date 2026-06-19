@@ -20,7 +20,7 @@ struct MigrateV3KeystoreTests {
             type: .privateKey,
             source: .import,
         )
-        try await assertMigratesAndIsIdempotent(legacy)
+        try await assertMigratesAndIsIdempotent(legacy, fixture: "v3_ios_private_key")
     }
 
     @Test
@@ -31,7 +31,7 @@ struct MigrateV3KeystoreTests {
             type: .privateKey,
             source: .import,
         )
-        let keystoreId = try await assertMigratesAndIsIdempotent(legacy)
+        let keystoreId = try await assertMigratesAndIsIdempotent(legacy, fixture: "v3_ios_private_key")
         #expect(keystoreId != legacy.externalId)
     }
 
@@ -42,7 +42,7 @@ struct MigrateV3KeystoreTests {
             type: .privateKey,
             source: .import,
         )
-        try await assertMigratesAndIsIdempotent(legacy, fixture: "v3_empty_salt_private_key")
+        try await assertMigratesAndIsIdempotent(legacy, fixture: "v3_ios_empty_salt_private_key")
     }
 
     @Test
@@ -126,7 +126,7 @@ struct MigrateV3KeystoreTests {
     }
 
     @discardableResult
-    private func assertMigratesAndIsIdempotent(_ legacy: Wallet, fixture: String = "v3_ios_private_key") async throws -> String {
+    private func assertMigratesAndIsIdempotent(_ legacy: Wallet, fixture: String) async throws -> String {
         let directory = "migrate-test-\(UUID().uuidString)"
         let baseDir = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)

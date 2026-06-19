@@ -29,7 +29,6 @@ class GetWalletSecretDataImpl(
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Throwable) {
-                // Surface keystore read failures as an error, not a blank phrase.
                 WalletSecretDataValueImpl(emptyList(), isError = true)
             }
         }
