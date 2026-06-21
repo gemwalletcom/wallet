@@ -1,0 +1,1 @@
+Secure crypto wallet for 100+ blockchains: Bitcoin, USDT, ETH, Solana, and more.
