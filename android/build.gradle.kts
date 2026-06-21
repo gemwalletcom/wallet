@@ -3,7 +3,6 @@ buildscript {
         gradlePluginPortal()
         google()
         mavenCentral()
-        mavenLocal()
     }
     dependencies {
         classpath(libs.gradle)
@@ -20,6 +19,8 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
 }
 
+val fdroidBuild = System.getenv("FDROID_BUILD") == "true"
+
 allprojects {
     repositories {
         val propFile = File(rootDir.absolutePath, "local.properties")
@@ -33,7 +34,6 @@ allprojects {
         }
         google()
         mavenCentral()
-        mavenLocal()
         maven { url = uri("https://jitpack.io") }
     }
 
@@ -47,6 +47,10 @@ subprojects {
         lockAllConfigurations()
     }
     configurations.configureEach {
+        if (fdroidBuild) {
+            exclude(group = "com.google.firebase")
+            exclude(group = "com.google.android.gms")
+        }
         resolutionStrategy.activateDependencyLocking()
     }
 }

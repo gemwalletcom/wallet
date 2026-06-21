@@ -12,21 +12,24 @@
 #   public *;
 #}
 
-# Preserve stack traces and fix R8 non-deterministic map-id for reproducible builds.
--keepattributes SourceFile,LineNumberTable
+# Keep SourceFile stable and avoid path-derived R8 SourceFile names.
+-keepattributes SourceFile
 -renamesourcefileattribute SourceFile
 
 -verbose
 #-dontobfuscate
 -ignorewarnings
 
-# These lines allow optimisation whilst preserving stack traces
--optimizations !code/allocation/variable
--optimizations !class/unboxing/enum
+# Disable R8 optimization to keep pg-map-id and DEX output stable across clean builds.
+-dontoptimize
+
+# Keep method names for stack traces while allowing shrinking.
 -keep,allowshrinking,allowoptimization class * { <methods>; }
 -keepattributes Signature
 
 -dontwarn com.google.firebase.analytics.connector.AnalyticsConnector
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
 
 -keep class com.gemwallet.android.** { *; }
 -keep class com.sun.jna.** { *; }

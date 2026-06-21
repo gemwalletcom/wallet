@@ -1,6 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
+val fdroidBuild = System.getenv("FDROID_BUILD") == "true"
+
 plugins {
     alias(libs.plugins.android.library)
     id("com.google.devtools.ksp")
@@ -55,17 +57,21 @@ dependencies {
     implementation(project(":data:services:store"))
     api(project(":data:services:remote-gem"))
 
-    // Wallet Connect
-    api(platform(libs.walletconnect.bom))
-    api(libs.walletconnect.core) {
-        exclude(group = "com.jakewharton.timber", module = "timber")
+    if (fdroidBuild) {
+        api(project(":flavors:walletconnect-stub"))
+    } else {
+        api(platform(libs.walletconnect.bom))
+        api(libs.walletconnect.core) {
+            exclude(group = "com.jakewharton.timber", module = "timber")
+        }
+        api(libs.walletconnect.web3wallet)
     }
-    api(libs.walletconnect.web3wallet)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore)
+    implementation(libs.androidx.security.crypto)
 
     api(libs.ktor.core)
     api(libs.ktor.cio)

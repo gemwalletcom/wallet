@@ -6,6 +6,8 @@ pluginManagement {
     }
 }
 rootProject.name = "wallet"
+val fdroidBuild = System.getenv("FDROID_BUILD") == "true"
+
 include(":gemstone")
 include (":app")
 include(":blockchain")
@@ -19,8 +21,11 @@ include(":data:repositories")
 include(":data:services:remote-gem")
 include(":flavors")
 include(":flavors:pushes-stub")
-include(":flavors:fcm")
-include(":flavors:google-review")
+include(":flavors:walletconnect-stub")
+if (!fdroidBuild) {
+    include(":flavors:fcm")
+    include(":flavors:google-review")
+}
 include(":flavors:review-stub")
 include(":features")
 include(":features:recipient")
