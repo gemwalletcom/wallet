@@ -16,7 +16,6 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.isSwapSupport
-import com.gemwallet.android.ext.total
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
@@ -64,7 +63,8 @@ class GetWalletSummaryImpl(
 
                 (total + currentValue) to (changed + currentChangedValue)
             }
-            val totalValue = assetsValue + (perpetualBalance?.total?.toBigDecimal() ?: BigDecimal.ZERO)
+            val perpetualCollateral = perpetualBalance?.let { (it.available + it.reserved).toBigDecimal() } ?: BigDecimal.ZERO
+            val totalValue = assetsValue + perpetualCollateral
 
             WalletSummaryAggregateImpl(
                 wallet = wallet,
