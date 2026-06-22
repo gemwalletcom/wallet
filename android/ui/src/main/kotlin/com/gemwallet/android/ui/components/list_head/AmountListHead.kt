@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_head
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -188,6 +189,14 @@ fun HeaderIcon(
     )
 }
 
+private data class AssetHeadActionItem(
+    @param:StringRes val title: Int,
+    val imageVector: ImageVector,
+    val enabled: Boolean,
+    val onClick: (() -> Unit)?,
+    val testTag: String? = null,
+)
+
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun AssetHeadActions(
@@ -204,65 +213,31 @@ fun AssetHeadActions(
         AssetWatchOnly()
         return
     }
+    val actions = listOf(
+        AssetHeadActionItem(R.string.wallet_send, AppIcons.Send, transferEnabled && operationsEnabled, onTransfer),
+        AssetHeadActionItem(R.string.wallet_receive, AppIcons.Receive, operationsEnabled, onReceive),
+        AssetHeadActionItem(R.string.wallet_buy, AppIcons.Buy, operationsEnabled, onBuy, testTag = "assetBuy"),
+        AssetHeadActionItem(R.string.wallet_swap, AppIcons.Swap, operationsEnabled, onSwap),
+    )
     Row(
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (onTransfer != null) {
+        actions.forEach { action ->
+            val onClick = action.onClick ?: return@forEach
             AmountHeadAction(
-                modifier = Modifier.weight(1f),
-                title = stringResource(id = R.string.wallet_send),
-                imageVector = AppIcons.Send,
-                enabled = transferEnabled && operationsEnabled,
-                contentDescription = stringResource(id = R.string.wallet_send),
+                modifier = Modifier
+                    .weight(1f)
+                    .then(if (action.testTag != null) Modifier.testTag(action.testTag) else Modifier),
+                title = stringResource(id = action.title),
+                imageVector = action.imageVector,
+                enabled = action.enabled,
+                contentDescription = stringResource(id = action.title),
                 fontSize = actionFontSize,
                 onNextFontSize = {
                     if (actionFontSize > it) actionFontSize = it
                 },
-                onClick = onTransfer,
-            )
-        }
-        if (onReceive != null) {
-            AmountHeadAction(
-                modifier = Modifier.weight(1f),
-                title = stringResource(id = R.string.wallet_receive),
-                imageVector = AppIcons.Receive,
-                enabled = operationsEnabled,
-                contentDescription = stringResource(id = R.string.wallet_receive),
-                fontSize = actionFontSize,
-                onNextFontSize = {
-                    if (actionFontSize > it) actionFontSize = it
-                },
-                onClick = onReceive,
-            )
-        }
-        if (onBuy != null) {
-            AmountHeadAction(
-                modifier = Modifier.weight(1f)
-                .testTag("assetBuy"),
-                title = stringResource(id = R.string.wallet_buy),
-                imageVector = AppIcons.Buy,
-                enabled = operationsEnabled,
-                contentDescription = stringResource(id = R.string.wallet_buy),
-                fontSize = actionFontSize,
-                onNextFontSize = {
-                    if (actionFontSize > it) actionFontSize = it
-                },
-                onClick = onBuy,
-            )
-        }
-        if (onSwap != null) {
-            AmountHeadAction(
-                modifier = Modifier.weight(1f),
-                title = stringResource(id = R.string.wallet_swap),
-                imageVector = AppIcons.Swap,
-                enabled = operationsEnabled,
-                contentDescription = stringResource(id = R.string.wallet_swap),
-                fontSize = actionFontSize,
-                onNextFontSize = {
-                    if (actionFontSize > it) actionFontSize = it
-                },
-                onClick = onSwap,
+                onClick = onClick,
             )
         }
     }
