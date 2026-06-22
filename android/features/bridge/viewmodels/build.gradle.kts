@@ -1,12 +1,14 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
-val fdroidBuild = System.getenv("FDROID_BUILD") == "true"
-
 plugins {
     alias(libs.plugins.android.library)
     id("com.google.devtools.ksp")
 }
+
+apply(from = "$rootDir/gradle/channels.gradle.kts")
+
+val walletConnectEnabled: Boolean by extra
 
 android {
     namespace = "com.gemwallet.android.features.bridge.viewmodels"
@@ -54,7 +56,7 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":data:repositories"))
 
-    if (fdroidBuild) {
+    if (!walletConnectEnabled) {
         api(project(":flavors:walletconnect-stub"))
     } else {
         api(platform(libs.walletconnect.bom))

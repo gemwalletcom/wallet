@@ -10,26 +10,29 @@ plugins {
     id("androidx.room")
 }
 
-val googleServicesExcludedFlavors = setOf("fdroid")
-val fdroidBuild = System.getenv("FDROID_BUILD") == "true"
+apply(from = "$rootDir/gradle/channels.gradle.kts")
+
+@Suppress("UNCHECKED_CAST")
+val gemChannels: Map<String, Map<String, Any?>> by extra
+val gemChannel: String by extra
+val features = gemChannels.getValue(gemChannel)
+
+gradle.startParameter.projectProperties["channel"]?.takeIf { it.isNotBlank() }?.let { explicit ->
+    val mismatched = gradle.startParameter.taskNames
+        .map { it.lowercase() }
+        .flatMap { task -> gemChannels.keys.filter { task.contains("assemble$it") || task.contains("bundle$it") } }
+        .toSet()
+        .filter { it != explicit }
+    require(mismatched.isEmpty()) {
+        "Channel mismatch: -Pchannel=$explicit but requested tasks build flavor(s) $mismatched. Build one channel per invocation."
+    }
+}
+
+val googleServicesExcludedFlavors = gemChannels.filterValues { it["googleServices"] != true }.keys
 val googleServicesExcludedTaskPrefixes = googleServicesExcludedFlavors.map { flavor ->
     "process${flavor.replaceFirstChar { it.uppercase() }}"
 }
-val googleServicesTasks = gradle.startParameter.taskNames
-    .map { it.substringAfterLast(":").lowercase() }
-    .filterNot { it == "clean" }
-val shouldApplyGoogleServices = file("google-services.json").isFile &&
-    (
-        googleServicesTasks.isEmpty() ||
-            googleServicesTasks.any { task ->
-                googleServicesExcludedFlavors.none { flavor -> task.contains(flavor) } ||
-                    task in setOf("assemble", "build", "bundle") ||
-                    task == "assemblerelease" ||
-                    task == "bundlerelease"
-            }
-    )
-
-if (shouldApplyGoogleServices) {
+if (file("google-services.json").isFile && features["googleServices"] == true) {
     apply(plugin = "com.google.gms.google-services")
 
     tasks.configureEach {
@@ -67,7 +70,6 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        buildConfigField("boolean", "WALLET_CONNECT_ENABLED", "true")
 
         splits {
             abi {
@@ -78,64 +80,22 @@ android {
         }
     }
     productFlavors {
-        create("google") {
-            dimension = channelDimension
-            isDefault = true
-            ndk {
-                abiFilters.add("armeabi-v7a")
-                abiFilters.add("arm64-v8a")
+        gemChannels.forEach { (name, channel) ->
+            create(name) {
+                dimension = channelDimension
+                if (channel["isDefault"] == true) {
+                    isDefault = true
+                }
+                ndk {
+                    @Suppress("UNCHECKED_CAST")
+                    (channel["abis"] as List<String>).forEach { abiFilters.add(it) }
+                }
+                val updateUrl = ((channel["updateUrlEnv"] as String?)
+                    ?.let { providers.environmentVariable(it).orNull }
+                    ?: (channel["updateUrl"] as String)).removeSurrounding("\"")
+                buildConfigField("String", "UPDATE_URL", "\"$updateUrl\"")
+                buildConfigField("boolean", "WALLET_CONNECT_ENABLED", (channel["walletConnect"] as Boolean).toString())
             }
-            buildConfigField("String", "UPDATE_URL", "\"https://play.google.com/store/apps/details?id=com.gemwallet.android\"")
-        }
-
-        create("fdroid") {
-            dimension = channelDimension
-            ndk {
-                abiFilters.add("armeabi-v7a")
-                abiFilters.add("arm64-v8a")
-            }
-            buildConfigField("String", "UPDATE_URL", "\"\"")
-            buildConfigField("boolean", "WALLET_CONNECT_ENABLED", "false")
-        }
-        create("huawei") {
-            dimension = channelDimension
-            ndk {
-                abiFilters.add("armeabi-v7a")
-                abiFilters.add("arm64-v8a")
-            }
-            buildConfigField("String", "UPDATE_URL", "\"https://appgallery.huawei.com/app/C109713129\"")
-        }
-        create("solana") {
-            dimension = channelDimension
-            ndk {
-                abiFilters.add("arm64-v8a")
-            }
-            buildConfigField("String", "UPDATE_URL", "\"solanadappstore://details?id=com.gemwallet.android\"")
-        }
-        create("universal") {
-            dimension = channelDimension
-            ndk {
-                abiFilters.add("armeabi-v7a")
-                abiFilters.add("arm64-v8a")
-            }
-            buildConfigField("String", "UPDATE_URL", "\"https://apk.gemwallet.com/gem_wallet_latest.apk\"")
-        }
-        create("samsung") {
-            dimension = channelDimension
-            ndk {
-                abiFilters.add("armeabi-v7a")
-                abiFilters.add("arm64-v8a")
-            }
-            buildConfigField("String", "UPDATE_URL", "\"https://apps.samsung.com/appquery/appDetail.as?appId=com.gemwallet.android\"")
-        }
-
-        create("emerald") {
-            dimension = channelDimension
-            ndk {
-                abiFilters.add("armeabi-v7a")
-                abiFilters.add("arm64-v8a")
-            }
-            buildConfigField("String", "UPDATE_URL", System.getenv("UPDATE_URL") ?: "\"https://apk.gemwallet.com/gem_wallet_latest.apk\"")
         }
     }
     signingConfigs {
@@ -217,8 +177,8 @@ android {
         buildConfig = true
     }
     dependenciesInfo {
-        includeInApk = !fdroidBuild
-        includeInBundle = !fdroidBuild
+        includeInApk = features["dependenciesInfo"] == true
+        includeInBundle = features["dependenciesInfo"] == true
     }
     packaging {
         jniLibs {
@@ -336,29 +296,12 @@ dependencies {
 
     implementation(libs.reorderable)
 
-    if (System.getenv("FDROID_BUILD") != "true") {
-        // Google Play
-        "googleImplementation"(project(":flavors:fcm"))
-        "googleImplementation"(project(":flavors:google-review"))
-        // Solana Store
-        "solanaImplementation"(project(":flavors:fcm"))
-        "solanaImplementation"(project(":flavors:review-stub"))
-        // Universal
-        "universalImplementation"(project(":flavors:fcm"))
-        "universalImplementation"(project(":flavors:google-review"))
-        // Samsung
-        "samsungImplementation"(project(":flavors:fcm"))
-        "samsungImplementation"(project(":flavors:review-stub"))
-        // emerald
-        "emeraldImplementation"(project(":flavors:fcm"))
-        "emeraldImplementation"(project(":flavors:review-stub"))
+    gemChannels.forEach { (name, channel) ->
+        val push = channel["push"] as String
+        val review = channel["review"] as String
+        if (rootProject.findProject(push) != null) add("${name}Implementation", project(push))
+        if (rootProject.findProject(review) != null) add("${name}Implementation", project(review))
     }
-    // huawei
-    "huaweiImplementation"(project(":flavors:pushes-stub"))
-    "huaweiImplementation"(project(":flavors:review-stub"))
-    // fdroid
-    "fdroidImplementation"(project(":flavors:pushes-stub"))
-    "fdroidImplementation"(project(":flavors:review-stub"))
 
     // Preview
     debugImplementation(libs.androidx.ui.tooling)

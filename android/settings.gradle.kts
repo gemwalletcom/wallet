@@ -6,7 +6,9 @@ pluginManagement {
     }
 }
 rootProject.name = "wallet"
-val fdroidBuild = System.getenv("FDROID_BUILD") == "true"
+
+apply(from = "gradle/channels.gradle.kts")
+val firebaseEnabled: Boolean by extra
 
 include(":gemstone")
 include (":app")
@@ -22,7 +24,7 @@ include(":data:services:remote-gem")
 include(":flavors")
 include(":flavors:pushes-stub")
 include(":flavors:walletconnect-stub")
-if (!fdroidBuild) {
+if (firebaseEnabled) {
     include(":flavors:fcm")
     include(":flavors:google-review")
 }

@@ -1,6 +1,9 @@
 package com.reown.walletkit.client
 
 object WalletKit {
+    private fun unavailable() = Wallet.Model.Error(UnsupportedOperationException("WalletConnect is not available in this build"))
+    private fun fail(onError: (Wallet.Model.Error) -> Unit) = onError(unavailable())
+
     interface WalletDelegate {
         val onSessionAuthenticate: (Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit
         fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal)
@@ -17,9 +20,7 @@ object WalletKit {
         params: Wallet.Params.Init,
         onSuccess: () -> Unit,
         onError: (Wallet.Model.Error) -> Unit,
-    ) {
-        onSuccess()
-    }
+    ) = onSuccess()
 
     fun setWalletDelegate(delegate: WalletDelegate) = Unit
 
@@ -27,33 +28,24 @@ object WalletKit {
         params: Wallet.Params.SessionRequestResponse,
         onSuccess: () -> Unit,
         onError: (Wallet.Model.Error) -> Unit,
-    ) {
-        onSuccess()
-    }
+    ) = onSuccess()
 
     fun getPendingListOfSessionRequests(topic: String): List<Wallet.Model.SessionRequest> = emptyList()
-
     fun getVerifyContext(id: Long): Wallet.Model.VerifyContext? = null
-
     fun pingSession(params: Wallet.Params.Ping, onError: ((Wallet.Model.Error) -> Unit)?) = Unit
-
     fun getListOfActiveSessions(): List<Wallet.Model.Session> = emptyList()
 
     fun disconnectSession(
         params: Wallet.Params.SessionDisconnect,
         onSuccess: () -> Unit,
         onError: (Wallet.Model.Error) -> Unit,
-    ) {
-        onSuccess()
-    }
+    ) = onSuccess()
 
     fun pair(
         params: Wallet.Params.Pair,
         onSuccess: () -> Unit,
         onError: (Wallet.Model.Error) -> Unit,
-    ) {
-        onError(Wallet.Model.Error(UnsupportedOperationException("WalletConnect is not available in this build")))
-    }
+    ) = fail(onError)
 
     fun generateApprovedNamespaces(
         sessionProposal: Wallet.Model.SessionProposal,
@@ -64,33 +56,25 @@ object WalletKit {
         params: Wallet.Params.SessionApprove,
         onError: (Wallet.Model.Error) -> Unit,
         onSuccess: () -> Unit,
-    ) {
-        onError(Wallet.Model.Error(UnsupportedOperationException("WalletConnect is not available in this build")))
-    }
+    ) = fail(onError)
 
     fun rejectSession(
         params: Wallet.Params.SessionReject,
         onSuccess: () -> Unit,
         onError: (Wallet.Model.Error) -> Unit,
-    ) {
-        onSuccess()
-    }
+    ) = onSuccess()
 
     fun approveSessionAuthenticate(
         params: Wallet.Params.ApproveSessionAuthenticate,
         onSuccess: () -> Unit,
         onError: (Wallet.Model.Error) -> Unit,
-    ) {
-        onError(Wallet.Model.Error(UnsupportedOperationException("WalletConnect is not available in this build")))
-    }
+    ) = fail(onError)
 
     fun rejectSessionAuthenticate(
         params: Wallet.Params.RejectSessionAuthenticate,
         onSuccess: () -> Unit,
         onError: (Wallet.Model.Error) -> Unit,
-    ) {
-        onSuccess()
-    }
+    ) = onSuccess()
 
     fun getSessionProposals(): List<Wallet.Model.SessionProposal> = emptyList()
 
@@ -98,16 +82,16 @@ object WalletKit {
         payloadParams: Wallet.Model.PayloadAuthRequestParams,
         supportedChains: List<String>,
         supportedMethods: List<String>,
-    ): Wallet.Model.PayloadAuthRequestParams = Wallet.Model.PayloadAuthRequestParams(
+    ) = Wallet.Model.PayloadAuthRequestParams(
         chains = payloadParams.chains.filter { it in supportedChains },
         methods = supportedMethods,
     )
 
-    fun formatAuthMessage(params: Wallet.Params.FormatAuthMessage): String = ""
+    fun formatAuthMessage(params: Wallet.Params.FormatAuthMessage) = ""
 
     fun generateAuthObject(
         payloadParams: Wallet.Model.PayloadAuthRequestParams,
         issuer: String,
         signature: Wallet.Model.Cacao.Signature,
-    ): Wallet.Model.Cacao = Wallet.Model.Cacao(signature)
+    ) = Wallet.Model.Cacao()
 }

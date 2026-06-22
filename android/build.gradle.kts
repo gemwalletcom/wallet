@@ -19,7 +19,8 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
 }
 
-val fdroidBuild = System.getenv("FDROID_BUILD") == "true"
+apply(from = "$rootDir/gradle/channels.gradle.kts")
+val firebaseEnabled: Boolean by extra
 
 allprojects {
     repositories {
@@ -47,7 +48,7 @@ subprojects {
         lockAllConfigurations()
     }
     configurations.configureEach {
-        if (fdroidBuild) {
+        if (!firebaseEnabled) {
             exclude(group = "com.google.firebase")
             exclude(group = "com.google.android.gms")
         }

@@ -4,30 +4,15 @@ on:
   push:
     tags:
       - "*"
-  release:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "GitHub Release tag to upload the APK to"
-        required: false
-        type: string
-      source_ref:
-        description: "Git ref to build; defaults to the release tag"
-        required: false
-        type: string
 
 permissions:
   contents: write
-  packages: read
 
 env:
-  RELEASE_TAG: ${{ github.event.inputs.release_tag || github.event.release.tag_name || github.ref_name }}
-  SOURCE_REF: ${{ github.event.inputs.source_ref || github.event.inputs.release_tag || github.event.release.tag_name || github.ref_name }}
+  RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
   create-release:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Create release
@@ -37,82 +22,3 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           draft: false
           generate_release_notes: true
-
-  build-fdroid-apk:
-    name: Build F-Droid APK
-    needs: create-release
-    if: ${{ always() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch' || needs.create-release.result == 'success') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          ref: ${{ env.SOURCE_REF }}
-
-      - name: Show build refs
-        run: |
-          echo "release_tag=$RELEASE_TAG"
-          echo "source_ref=$SOURCE_REF"
-
-      - name: Set up JDK
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.0.0
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Install Linux build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential just
-
-      - name: Install Android NDK
-        run: |
-          set -euo pipefail
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;28.1.13356709"
-
-      - name: Prepare F-Droid toolchain
-        working-directory: android
-        run: |
-          set -euo pipefail
-          export NDK_PATH="$ANDROID_HOME/ndk/28.1.13356709"
-          test -d "$NDK_PATH"
-          reproducible/fdroid/init.sh
-
-      - name: Prepare signing
-        env:
-          ANDROID_FDROID_KEYSTORE_CONTENT_BASE64: ${{ secrets.ANDROID_FDROID_KEYSTORE_CONTENT_BASE64 }}
-        run: |
-          set -euo pipefail
-          : "${ANDROID_FDROID_KEYSTORE_CONTENT_BASE64:?ANDROID_FDROID_KEYSTORE_CONTENT_BASE64 is required}"
-          touch android/local.properties
-          echo -n "$ANDROID_FDROID_KEYSTORE_CONTENT_BASE64" | base64 --decode > android/app/fdroid-release.keystore
-
-      - name: Build F-Droid APK
-        working-directory: android
-        env:
-          ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_FDROID_KEYSTORE_ALIAS }}
-          ANDROID_KEYSTORE_FILENAME: fdroid-release.keystore
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_FDROID_KEYSTORE_PASSWORD }}
-          GPR_USERNAME: ${{ github.actor }}
-          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SKIP_SIGN: "false"
-          GRADLE_COMMAND: ./gradlew
-        run: |
-          set -euo pipefail
-          export NDK_PATH="$ANDROID_HOME/ndk/28.1.13356709"
-          test -d "$NDK_PATH"
-          reproducible/fdroid/build.sh
-
-      - name: Prepare release asset
-        id: asset
-        run: |
-          set -euo pipefail
-          apk="android/app/build/outputs/apk/fdroid/release/app-fdroid-release.apk"
-          asset="android/app/build/outputs/apk/fdroid/release/gem_wallet_fdroid_${RELEASE_TAG}.apk"
-          test -f "$apk"
-          cp "$apk" "$asset"
-          echo "path=$asset" >> "$GITHUB_OUTPUT"
-
-      - name: Upload F-Droid APK
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          files: ${{ steps.asset.outputs.path }}

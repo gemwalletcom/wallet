@@ -6,12 +6,12 @@ import com.reown.walletkit.client.Wallet
 
 object Core {
     object Model {
-        data class AppMetaData(
+        class AppMetaData(
             val name: String,
             val description: String,
             val url: String,
             val icons: List<String>,
-            val redirect: String? = null,
+            redirect: String? = null,
         )
     }
 }
@@ -29,9 +29,7 @@ object CoreClient {
         connectionType: ConnectionType,
         telemetryEnabled: Boolean,
         onSuccess: () -> Unit,
-    ) {
-        onSuccess()
-    }
+    ) = onSuccess()
 
     fun setDelegate(delegate: CoreDelegate) = Unit
 }
