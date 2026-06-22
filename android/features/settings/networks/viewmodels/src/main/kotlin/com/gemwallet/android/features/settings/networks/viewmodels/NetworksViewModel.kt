@@ -224,56 +224,46 @@ class NetworksViewModel @Inject constructor(
                         val nodeState = withContext(Dispatchers.IO) {
                             nodeStatusClient.getNodeStatus(chain, node.url).toStatusState()
                         }
-                        updateState { current ->
-                            if (
-                                current.chain != chain ||
-                                current.refreshNonce != refreshNonce ||
-                                current.nodes.none { currentNode -> currentNode.url == node.url }
-                            ) {
+                        updateNodesIfCurrent(chain, refreshNonce) { current ->
+                            if (current.nodes.none { it.url == node.url }) {
                                 current
                             } else {
-                                val currentNodes = current.nodes
-                                val refreshedCurrentNode = currentNodeFor(chain, currentNodes, current.currentNode)
                                 val nodeStates = visibleNodeStates(
-                                    currentNodes,
+                                    current.nodes,
                                     current.nodeStates + (node.url to nodeState),
                                 )
-                                current.copy(
-                                    currentNode = refreshedCurrentNode,
-                                    nodeStates = nodeStates,
-                                    nodeRows = buildNodeRows(
-                                        chain = chain,
-                                        nodes = currentNodes,
-                                        currentNode = refreshedCurrentNode,
-                                        nodeStates = nodeStates,
-                                        defaultNodeUrls = current.defaultNodeUrls,
-                                    ),
-                                )
+                                current.copy(nodeStates = nodeStates).refreshedNodeRows(chain, nodeStates)
                             }
                         }
                     }
                 }
             }
 
-            updateState { current ->
-                if (current.chain != chain || current.refreshNonce != refreshNonce) {
-                    current
-                } else {
-                    val currentNodes = current.nodes
-                    val refreshedCurrentNode = currentNodeFor(chain, currentNodes, current.currentNode)
-                    current.copy(
-                        currentNode = refreshedCurrentNode,
-                        nodeRows = buildNodeRows(
-                            chain = chain,
-                            nodes = currentNodes,
-                            currentNode = refreshedCurrentNode,
-                            nodeStates = visibleNodeStates(currentNodes, current.nodeStates),
-                            defaultNodeUrls = current.defaultNodeUrls,
-                        ),
-                    )
-                }
+            updateNodesIfCurrent(chain, refreshNonce) { current ->
+                current.refreshedNodeRows(chain, visibleNodeStates(current.nodes, current.nodeStates))
             }
         }
+    }
+
+    private fun updateNodesIfCurrent(chain: Chain, refreshNonce: Long, transform: (State) -> State) {
+        updateState { current ->
+            if (current.chain != chain || current.refreshNonce != refreshNonce) current
+            else transform(current)
+        }
+    }
+
+    private fun State.refreshedNodeRows(chain: Chain, nodeStates: Map<String, NodeStatusState>): State {
+        val refreshedCurrentNode = currentNodeFor(chain, nodes, currentNode)
+        return copy(
+            currentNode = refreshedCurrentNode,
+            nodeRows = buildNodeRows(
+                chain = chain,
+                nodes = nodes,
+                currentNode = refreshedCurrentNode,
+                nodeStates = nodeStates,
+                defaultNodeUrls = defaultNodeUrls,
+            ),
+        )
     }
 
     private fun updateState(transform: (State) -> State) {
