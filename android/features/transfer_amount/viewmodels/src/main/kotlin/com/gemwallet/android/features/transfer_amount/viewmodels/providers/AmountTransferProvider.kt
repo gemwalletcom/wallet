@@ -9,6 +9,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.DestinationAddress
+import com.wallet.core.primitives.Asset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +53,13 @@ class AmountTransferProvider(
         getAssetInfo(params.assetId)
             .flowOn(Dispatchers.IO)
             .stateIn(scope, SharingStarted.Eagerly, null)
+
+    val displayAsset: Asset? by lazy {
+        when (params) {
+            is AmountParams.Withdraw -> PerpetualConfig.depositAsset
+            else -> null
+        }
+    }
 
     override val availableBalance: StateFlow<BigInteger> =
         assetInfo.filterNotNull()
