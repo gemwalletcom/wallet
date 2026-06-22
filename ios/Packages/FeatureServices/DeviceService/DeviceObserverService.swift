@@ -26,6 +26,10 @@ public actor DeviceObserverService {
         }
     }
 
+    public func synchronizeIfNeeded() async throws {
+        try await deviceService.synchronizeIfNeeded()
+    }
+
     public func startNodeAuthTokenUpdates() {
         guard nodeAuthTokenUpdateTask == nil else { return }
 
