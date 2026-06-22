@@ -84,7 +84,10 @@ public final class AmountSceneViewModel {
     }
 
     var assetImage: AssetImage {
-        AssetViewModel(asset: asset).assetImage
+        if case let .transfer(transfer) = provider {
+            return AssetViewModel(asset: transfer.displayAsset).assetImage
+        }
+        return AssetViewModel(asset: asset).assetImage
     }
 
     var assetName: String {

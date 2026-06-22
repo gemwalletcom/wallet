@@ -129,7 +129,7 @@ public struct SelectAssetScene: View {
             case .buy, .receive, .send, .deposit, .withdraw:
                 NavigationCustomLink(
                     with: ListAssetItemSelectionView(
-                        assetData: assetData,
+                        assetData: model.displayAssetData(assetData),
                         currencyCode: model.currencyCode,
                         type: model.selectType.listType,
                         action: model.onAssetAction,

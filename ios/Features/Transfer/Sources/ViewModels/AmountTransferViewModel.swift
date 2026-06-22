@@ -28,6 +28,13 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         self.action = action
     }
 
+    var displayAsset: Asset {
+        switch action {
+        case .withdraw: PerpetualConfig.depositAsset
+        case .send, .deposit: asset
+        }
+    }
+
     var title: String {
         switch action {
         case .send: Localized.Transfer.Send.title
