@@ -28,9 +28,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -54,8 +56,9 @@ class NetworksViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
-    private val _uiState = MutableStateFlow(state.value.toUIState())
-    val uiState = _uiState.asStateFlow()
+    val uiState = state
+        .map { it.toUIState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, state.value.toUIState())
     val chainFilter = TextFieldState()
 
     private var observeNodesJob: Job? = null
@@ -274,11 +277,7 @@ class NetworksViewModel @Inject constructor(
     }
 
     private fun updateState(transform: (State) -> State) {
-        state.update { current ->
-            transform(current).also { updated ->
-                _uiState.value = updated.toUIState()
-            }
-        }
+        state.update(transform)
     }
 
     private fun currentNodeFor(chain: Chain, nodes: List<Node>, selectedNode: Node? = null): Node {
