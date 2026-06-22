@@ -20,11 +20,12 @@ public struct WalletService: Sendable {
         walletStore: WalletStore,
         preferences: ObservablePreferences,
         avatarService: AvatarService,
+        walletSessionService: any WalletSessionManageable,
     ) {
         self.keystore = keystore
         self.walletStore = walletStore
         self.avatarService = avatarService
-        walletSessionService = WalletSessionService(walletStore: walletStore, preferences: preferences)
+        self.walletSessionService = walletSessionService
         self.preferences = preferences
     }
 

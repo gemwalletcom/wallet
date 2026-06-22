@@ -428,6 +428,8 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
                 "BalanceServiceTestKit",
                 "WalletService",
+                "WalletSessionService",
+                "WalletSessionServiceTestKit",
             ],
             path: "WalletService/TestKit",
         ),

@@ -106,11 +106,16 @@ struct ServicesFactory {
             chainFactory: chainServiceFactory,
         )
 
+        let walletSessionService = WalletSessionService(
+            walletStore: storeManager.walletStore,
+            preferences: storages.observablePreferences,
+        )
         let walletService = Self.makeWalletService(
             preferences: storages.observablePreferences,
             keystore: storages.keystore,
             walletStore: storeManager.walletStore,
             avatarService: avatarService,
+            walletSessionService: walletSessionService,
         )
         let balanceService = Self.makeBalanceService(
             balanceStore: storeManager.balanceStore,
@@ -215,10 +220,6 @@ struct ServicesFactory {
         let explorerService = ExplorerService.standard
         let swapService = SwapService(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
 
-        let walletSessionService = WalletSessionService(
-            walletStore: storeManager.walletStore,
-            preferences: storages.observablePreferences,
-        )
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)
         let connectionsService = Self.makeConnectionsService(
@@ -445,12 +446,14 @@ extension ServicesFactory {
         keystore: any Keystore,
         walletStore: WalletStore,
         avatarService: AvatarService,
+        walletSessionService: any WalletSessionManageable,
     ) -> WalletService {
         WalletService(
             keystore: keystore,
             walletStore: walletStore,
             preferences: preferences,
             avatarService: avatarService,
+            walletSessionService: walletSessionService,
         )
     }
 

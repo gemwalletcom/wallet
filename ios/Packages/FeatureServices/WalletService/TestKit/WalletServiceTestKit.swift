@@ -9,6 +9,8 @@ import PreferencesTestKit
 import Store
 import StoreTestKit
 import WalletService
+import WalletSessionService
+import WalletSessionServiceTestKit
 
 public extension WalletService {
     static func mock(
@@ -21,6 +23,7 @@ public extension WalletService {
             walletStore: walletStore,
             preferences: preferences,
             avatarService: AvatarService(store: walletStore),
+            walletSessionService: WalletSessionService.mock(store: walletStore, preferences: preferences),
         )
     }
 
