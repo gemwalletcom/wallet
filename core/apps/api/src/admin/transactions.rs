@@ -3,13 +3,13 @@ use rocket::serde::json::Json;
 use rocket::{State, post, tokio::sync::Mutex};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
 
-use crate::admin::AdminAuthorized;
+use crate::api_clients::PermissionAdminWrite;
 use crate::chain::ChainClient;
 use crate::responders::{ApiError, ApiResponse};
 
 #[post("/transactions/add", format = "json", data = "<transaction_id>")]
 pub async fn add_transaction(
-    _admin: AdminAuthorized,
+    _permission: PermissionAdminWrite,
     transaction_id: Json<TransactionId>,
     chain_client: &State<Mutex<ChainClient>>,
     stream_producer: &State<StreamProducer>,

@@ -4,21 +4,29 @@ use primitives::{AssetId, swap::SwapResult};
 use rocket::{State, get};
 use swapper::{Options, QuoteRequest, SwapQuotes, SwapperQuoteAsset, config::get_default_slippage, cross_chain::VaultAddresses, swapper::GemSwapper};
 
+use crate::api_clients::PermissionChainRead;
 use crate::params::{AddressParam, AssetIdParam, ChainParam, SwapProviderParam};
 use crate::responders::{ApiError, ApiResponse};
 
 #[get("/chain/swaps/<provider>/transaction/<hash>?<chain>")]
-pub async fn get_swap_result(provider: SwapProviderParam, hash: &str, chain: ChainParam, swapper: &State<Arc<GemSwapper>>) -> Result<ApiResponse<SwapResult>, ApiError> {
+pub async fn get_swap_result(
+    _permission: PermissionChainRead,
+    provider: SwapProviderParam,
+    hash: &str,
+    chain: ChainParam,
+    swapper: &State<Arc<GemSwapper>>,
+) -> Result<ApiResponse<SwapResult>, ApiError> {
     Ok(swapper.get_swap_result(chain.0, provider.0, hash).await?.into())
 }
 
 #[get("/chain/swaps/<provider>/vault_addresses")]
-pub async fn get_vault_addresses(provider: SwapProviderParam, swapper: &State<Arc<GemSwapper>>) -> Result<ApiResponse<VaultAddresses>, ApiError> {
+pub async fn get_vault_addresses(_permission: PermissionChainRead, provider: SwapProviderParam, swapper: &State<Arc<GemSwapper>>) -> Result<ApiResponse<VaultAddresses>, ApiError> {
     Ok(swapper.get_vault_addresses(&provider.0, None).await?.into())
 }
 
 #[get("/chain/swaps/quote?<from_asset>&<to_asset>&<value>&<wallet_address>&<destination_address>")]
 pub async fn get_swap_quote(
+    _permission: PermissionChainRead,
     from_asset: AssetIdParam,
     to_asset: AssetIdParam,
     value: &str,

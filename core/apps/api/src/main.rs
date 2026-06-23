@@ -1,4 +1,5 @@
 mod admin;
+mod api_clients;
 mod assets;
 mod auth;
 mod catchers;
@@ -29,7 +30,6 @@ use strum::IntoEnumIterator;
 use ::fiat::FiatClient;
 use ::fiat::FiatProviderFactory;
 use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig};
-use admin::AdminConfig;
 use api_connector::PusherClient;
 use assets::{AssetsClient, SearchClient};
 use cacher::CacherClient;
@@ -78,28 +78,11 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 assets::get_assets,
                 assets::get_assets_search,
                 assets::get_search,
-                chain::block::get_latest_block_number,
-                chain::block::get_block_transactions,
-                chain::block::get_block_transactions_finalize,
-                chain::swap::get_swap_result,
-                chain::swap::get_swap_quote,
-                chain::swap::get_vault_addresses,
                 swap::get_swap_assets,
                 nft::get_nft_asset_preview,
                 nft::get_nft_asset_resource,
                 nft::get_nft_collection_preview,
                 markets::get_markets,
-                chain::staking::get_validators,
-                chain::staking::get_staking_apy,
-                chain::token::get_token,
-                chain::address::get_balances,
-                chain::address::get_assets,
-                chain::address::get_transactions,
-                chain::nft::get_nfts,
-                chain::nft::get_nft_asset,
-                chain::nft::get_nft_collection,
-                chain::transaction::get_transaction,
-                chain::transaction::get_transaction_status,
                 referral::get_rewards_leaderboard,
                 swap::post_near_intents_quote,
                 swap::okx::post_okx_quote,
@@ -168,6 +151,23 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::nft::update_nft_asset,
                 admin::nft::update_nft_collection,
                 admin::fiat::get_fiat_quotes,
+                chain::block::get_latest_block_number,
+                chain::block::get_block_transactions,
+                chain::block::get_block_transactions_finalize,
+                chain::swap::get_swap_result,
+                chain::swap::get_swap_quote,
+                chain::swap::get_vault_addresses,
+                chain::staking::get_validators,
+                chain::staking::get_staking_apy,
+                chain::token::get_token,
+                chain::address::get_balances,
+                chain::address::get_assets,
+                chain::address::get_transactions,
+                chain::nft::get_nfts,
+                chain::nft::get_nft_asset,
+                chain::nft::get_nft_collection,
+                chain::transaction::get_transaction,
+                chain::transaction::get_transaction_status,
             ],
         )
     } else {
@@ -263,7 +263,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
         expiry: settings.api.auth.jwt.expiry,
     };
     let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.tolerance, jwt_config);
-    let mut rocket = rocket::build()
+    let rocket = rocket::build()
         .manage(auth_config)
         .manage(database)
         .manage(Mutex::new(fiat_quotes_client))
@@ -296,12 +296,6 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
         .manage(Mutex::new(portfolio_client))
         .manage(auth_client)
         .manage(stream_producer);
-
-    if settings.api.admin.enabled {
-        rocket = rocket.manage(AdminConfig {
-            token: settings.api.admin.token.clone(),
-        });
-    }
 
     Ok(mount_routes(rocket, settings.api.admin.enabled))
 }

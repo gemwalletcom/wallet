@@ -18,21 +18,35 @@ impl ApiClientsStore for DatabaseClient {
             return Ok(0);
         }
 
-        let client_rows = values
+        let names = values
             .iter()
             .map(|value| value.client_name.clone())
             .collect::<BTreeSet<_>>()
             .into_iter()
+            .collect::<Vec<_>>();
+
+        let existing_names = api_clients::table
+            .filter(api_clients::name.eq_any(names.clone()))
+            .select(api_clients::name)
+            .load::<String>(&mut self.connection)?
+            .into_iter()
+            .collect::<BTreeSet<_>>();
+
+        let client_rows = names
+            .iter()
+            .filter(|name| !existing_names.contains(*name))
+            .cloned()
             .map(|name| NewApiClientRow { name })
             .collect::<Vec<_>>();
 
-        diesel::insert_into(api_clients::table)
-            .values(client_rows)
-            .on_conflict(api_clients::name)
-            .do_nothing()
-            .execute(&mut self.connection)?;
+        if !client_rows.is_empty() {
+            diesel::insert_into(api_clients::table)
+                .values(client_rows)
+                .on_conflict(api_clients::name)
+                .do_nothing()
+                .execute(&mut self.connection)?;
+        }
 
-        let names = values.iter().map(|value| value.client_name.clone()).collect::<Vec<_>>();
         let clients = api_clients::table
             .filter(api_clients::name.eq_any(names))
             .select(ApiClientRow::as_select())

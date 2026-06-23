@@ -113,28 +113,39 @@ fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error +
 }
 
 fn api_client_grants() -> Vec<ApiClientGrant> {
-    let agent = [
+    let admin = [
+        ApiClientScope::AdminWrite,
+        ApiClientScope::ChainRead,
         ApiClientScope::DevicesRead,
         ApiClientScope::DevicesSubscriptionsRead,
         ApiClientScope::DevicesTransactionsRead,
+        ApiClientScope::FiatQuotesRead,
     ]
     .into_iter()
     .map(|scope| ApiClientGrant {
-        client_name: "agent".to_string(),
+        client_name: "admin".to_string(),
         scope,
         resource: ApiClientResource::Global,
     });
 
-    let webhooks = [(WebhookKind::Transactions, "dynode".to_string()), (WebhookKind::Support, "chatwoot".to_string())]
+    let webhook_senders = [(WebhookKind::Transactions, "dynode".to_string()), (WebhookKind::Support, "chatwoot".to_string())]
         .into_iter()
         .chain(FiatProviderName::all().into_iter().map(|provider| (WebhookKind::Fiat, provider.id().to_string())))
-        .map(|(kind, sender)| ApiClientGrant {
-            client_name: format!("webhook:{}:{}", kind.as_ref(), sender),
-            scope: ApiClientScope::webhook(kind),
-            resource: ApiClientResource::WebhookSender(sender),
-        });
+        .collect::<Vec<_>>();
 
-    agent.chain(webhooks).collect()
+    let admin_webhooks = webhook_senders.clone().into_iter().map(|(kind, sender)| ApiClientGrant {
+        client_name: "admin".to_string(),
+        scope: ApiClientScope::webhook(kind),
+        resource: ApiClientResource::WebhookSender(sender),
+    });
+
+    let webhooks = webhook_senders.into_iter().map(|(kind, sender)| ApiClientGrant {
+        client_name: format!("webhook:{}:{}", kind.as_ref(), sender),
+        scope: ApiClientScope::webhook(kind),
+        resource: ApiClientResource::WebhookSender(sender),
+    });
+
+    admin.chain(admin_webhooks).chain(webhooks).collect()
 }
 
 async fn setup_search_index(settings: &Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

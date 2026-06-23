@@ -25,6 +25,18 @@ struct AmountTransferViewModelTests {
     }
 
     @Test
+    func displayAsset() {
+        let usdc = Asset.mock(symbol: "USDC")
+
+        #expect(AmountTransferViewModel(asset: usdc, action: .send(.mock())).displayAsset.id == usdc.id)
+        #expect(AmountTransferViewModel(asset: usdc, action: .deposit(.mock())).displayAsset.id == usdc.id)
+
+        let withdraw = AmountTransferViewModel(asset: usdc, action: .withdraw(.mock())).displayAsset
+        #expect(withdraw.id.identifier == PerpetualConfig.depositAssetId)
+        #expect(withdraw.type == .token)
+    }
+
+    @Test
     func availableValue() {
         let assetData = AssetData.mock(balance: .mock(available: 1000, withdrawable: 500))
 

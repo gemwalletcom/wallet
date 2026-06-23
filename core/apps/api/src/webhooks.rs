@@ -1,3 +1,4 @@
+use gem_auth::{AUTHORIZATION_HEADER, BEARER_PREFIX};
 use gem_tracing::info_with_fields;
 use primitives::{TransactionId, WebhookKind};
 use rocket::http::Status;
@@ -9,10 +10,7 @@ use storage::{ApiClientResource, ApiClientScope, ApiClientsRepository, Database}
 use streamer::{QueueName, StreamProducer, SupportWebhookPayload};
 
 use crate::devices::FiatQuotesClient;
-use crate::responders::ApiError;
-
-const AUTHORIZATION_HEADER: &str = "Authorization";
-const BEARER_PREFIX: &str = "Bearer ";
+use crate::responders::{ApiError, ApiResponse};
 
 pub struct WebhooksClient {
     stream_producer: StreamProducer,
@@ -84,7 +82,7 @@ async fn process_webhook(
     webhook_data: Json<serde_json::Value>,
     fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
     webhooks_client: &State<Mutex<WebhooksClient>>,
-) -> Result<Status, ApiError> {
+) -> Result<ApiResponse<bool>, ApiError> {
     authorize_webhook(database, kind.0, sender, secret)?;
 
     let webhook_data = webhook_data.0;
@@ -100,7 +98,7 @@ async fn process_webhook(
             fiat_quotes_client.lock().await.process_and_publish_webhook(sender, webhook_data).await?;
         }
     }
-    Ok(Status::Ok)
+    Ok(true.into())
 }
 
 #[post("/webhooks/<kind>/<sender>/<secret>", data = "<webhook_data>")]
@@ -112,7 +110,7 @@ pub async fn create_webhook(
     webhook_data: Json<serde_json::Value>,
     fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
     webhooks_client: &State<Mutex<WebhooksClient>>,
-) -> Result<Status, ApiError> {
+) -> Result<ApiResponse<bool>, ApiError> {
     process_webhook(kind, sender, secret, database, webhook_data, fiat_quotes_client, webhooks_client).await
 }
 
@@ -125,6 +123,6 @@ pub async fn create_webhook_with_header(
     webhook_data: Json<serde_json::Value>,
     fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
     webhooks_client: &State<Mutex<WebhooksClient>>,
-) -> Result<Status, ApiError> {
+) -> Result<ApiResponse<bool>, ApiError> {
     process_webhook(kind, sender, &secret.0, database, webhook_data, fiat_quotes_client, webhooks_client).await
 }

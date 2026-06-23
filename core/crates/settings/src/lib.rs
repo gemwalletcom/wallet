@@ -312,7 +312,6 @@ pub struct Jwt {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Admin {
     pub enabled: bool,
-    pub token: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

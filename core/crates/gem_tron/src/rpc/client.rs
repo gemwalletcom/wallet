@@ -1,21 +1,16 @@
 use async_trait::async_trait;
 use chain_traits::{ChainAccount, ChainPerpetual, ChainTraits};
 use num_bigint::BigUint;
-use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain, decode_hex};
+use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain};
 use std::{error::Error, str::FromStr};
 
-use crate::address::TronAddress;
 use crate::models::{
     Block, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, Transaction, TransactionReceiptData, TriggerConstantContractRequest,
     TriggerConstantContractResponse, TronTransactionBroadcast, WitnessesList,
 };
-use crate::models::{
-    TriggerSmartContractData, TronAccount, TronAccountRequest, TronAccountUsage, TronBlock, TronEmptyAccount, TronReward, TronSmartContractCall, TronSmartContractResult,
-};
+use crate::models::{TriggerSmartContractData, TronAccount, TronAccountRequest, TronAccountUsage, TronBlock, TronEmptyAccount, TronReward};
 use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, NAME_SELECTOR, SYMBOL_SELECTOR};
 use crate::rpc::trongrid::client::TronGridClient;
-use alloy_primitives::Address as AlloyAddress;
-use alloy_sol_types::SolCall;
 use gem_client::{Client, ClientExt};
 use gem_evm::contracts::erc20::{decode_abi_string, decode_abi_uint8};
 
@@ -89,43 +84,6 @@ impl<C: Client> TronClient<C> {
         Ok(self.client.post("/wallet/triggerconstantcontract", request).await?)
     }
 
-    pub async fn get_token_allowance(&self, owner_address: &str, token_address: &str, spender_address: &str) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
-        let owner = AlloyAddress::from_slice(TronAddress::parse(owner_address)?.account_id());
-        let spender = AlloyAddress::from_slice(TronAddress::parse(spender_address)?.account_id());
-        let encoded = gem_evm::contracts::erc20::IERC20::allowanceCall { owner, spender }.abi_encode();
-        let parameter = hex::encode(&encoded[4..]);
-
-        let result = self
-            .trigger_constant_contract_with_owner(owner_address, token_address, "allowance(address,address)", &parameter)
-            .await?;
-        let allowance_bytes = decode_hex(&result)?;
-        let allowance = BigUint::from_bytes_be(&allowance_bytes);
-        Ok(allowance)
-    }
-
-    pub async fn estimate_energy(
-        &self,
-        owner_address: &str,
-        contract_address: &str,
-        function_selector: &str,
-        parameter: &str,
-        fee_limit: u64,
-        call_value: u64,
-    ) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let request_payload = TriggerConstantContractRequest {
-            owner_address: owner_address.to_string(),
-            contract_address: contract_address.to_string(),
-            function_selector: function_selector.to_string(),
-            parameter: parameter.to_string(),
-            fee_limit: Some(fee_limit),
-            call_value: Some(call_value),
-            visible: true,
-        };
-
-        let response = self.trigger_constant_contract_request(&request_payload).await?;
-        Ok(response.get_energy()?)
-    }
-
     pub async fn estimate_energy_with_data(&self, contract_data: &TriggerSmartContractData) -> Result<u64, Box<dyn Error + Send + Sync>> {
         let request_payload = serde_json::json!({
             "owner_address": contract_data.owner_address,
@@ -196,10 +154,6 @@ impl<C: Client> TronClient<C> {
         };
 
         Ok(self.client.post("/wallet/getReward", &request).await?)
-    }
-
-    pub async fn trigger_smart_contract(&self, request: &TronSmartContractCall) -> Result<TronSmartContractResult, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post("/wallet/triggerconstantcontract", request).await?)
     }
 
     pub async fn is_new_account(&self, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {

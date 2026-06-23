@@ -1,9 +1,12 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TYPE api_client_scope AS ENUM (
+    'admin_write',
+    'chain_read',
     'devices_read',
     'devices_subscriptions_read',
     'devices_transactions_read',
+    'fiat_quotes_read',
     'webhooks_transactions',
     'webhooks_support',
     'webhooks_fiat'

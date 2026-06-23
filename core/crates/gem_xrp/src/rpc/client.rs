@@ -58,11 +58,6 @@ impl<C: Client + Clone> XRPClient<C> {
         self.call("ledger_current", params).await
     }
 
-    pub async fn get_last_ledger_sequence(&self) -> Result<u32, Box<dyn Error + Send + Sync>> {
-        let current = self.get_ledger_current().await?;
-        Ok((current.ledger_current_index + 20) as u32)
-    }
-
     pub async fn get_fees(&self) -> Result<FeesResult, Box<dyn Error + Send + Sync>> {
         let params = json!([{}]);
         self.call("fee", params).await

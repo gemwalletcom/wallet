@@ -21,13 +21,6 @@ impl AlienError {
     pub fn response_error(msg: impl Into<String>) -> Self {
         Self::ResponseError { msg: msg.into() }
     }
-
-    pub fn http_error(status: u16, len: usize) -> Self {
-        Self::Http {
-            status,
-            len: len.min(u32::MAX as usize) as u32,
-        }
-    }
 }
 
 impl std::fmt::Display for AlienError {

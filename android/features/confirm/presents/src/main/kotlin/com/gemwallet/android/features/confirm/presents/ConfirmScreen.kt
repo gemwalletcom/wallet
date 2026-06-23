@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.domains.confirm.ConfirmError
@@ -179,7 +180,11 @@ fun ConfirmScreen(
                     else -> AmountListHead(
                         amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent,
-                        icon = amountModel?.asset?.asset,
+                        icon = if (params is ConfirmParams.TransferParams.Withdrawal) {
+                            PerpetualConfig.depositAsset
+                        } else {
+                            amountModel?.asset?.asset
+                        },
                     )
                 }
             }

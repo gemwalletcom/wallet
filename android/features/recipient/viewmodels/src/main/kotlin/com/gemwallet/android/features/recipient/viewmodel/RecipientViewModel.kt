@@ -9,6 +9,7 @@ import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.cases.contacts.ContactRecipient
 import com.gemwallet.android.cases.contacts.GetContacts
+import com.gemwallet.android.cases.name.ResolveName
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
@@ -27,8 +28,8 @@ import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NameRecord
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,6 +63,7 @@ class RecipientViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
     private val validateAddressOperator: ValidateAddressOperator,
+    private val resolveName: ResolveName,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -121,11 +123,11 @@ class RecipientViewModel @Inject constructor(
         val resolvedAddress = record?.address ?: address
         when (state) {
             RecipientState.Loading -> RecipientError.None
-            is RecipientState.Ready -> if (resolvedAddress.isEmpty()) {
-                RecipientError.None
-            } else {
-                validateDestination(
-                    chain = state.type.assetInfo.asset.chain,
+            is RecipientState.Ready -> when {
+                resolvedAddress.isEmpty() -> RecipientError.None
+                resolveName.canResolveName(address) -> RecipientError.None
+                else -> validateDestination(
+                    asset = state.type.assetInfo.asset,
                     destination = DestinationAddress(resolvedAddress, record?.name),
                 )
             }
@@ -174,9 +176,11 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        val validation = validateDestination(type.assetInfo.asset.chain, destination)
+        val validation = validateDestination(type.assetInfo.asset, destination)
         if (validation != RecipientError.None) {
-            addressError.update { validation }
+            if (!resolveName.canResolveName(destination.address)) {
+                addressError.update { validation }
+            }
             return
         }
         when (type) {
@@ -242,10 +246,10 @@ class RecipientViewModel @Inject constructor(
         confirmAction(params)
     }
 
-    private fun validateDestination(chain: Chain, destination: DestinationAddress): RecipientError =
-        if (validateAddressOperator(destination.address, chain).getOrNull() == true) {
+    private fun validateDestination(asset: Asset, destination: DestinationAddress): RecipientError =
+        if (validateAddressOperator(destination.address, asset.chain).getOrNull() == true) {
             RecipientError.None
         } else {
-            RecipientError.IncorrectAddress
+            RecipientError.IncorrectAddress(asset.name)
         }
 }

@@ -1,12 +1,11 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use gem_auth::{DeviceAuthPayload, device_auth_message, device_body_hash, parse_device_auth, verify_device_signature};
+use gem_auth::{AUTHORIZATION_HEADER, DeviceAuthPayload, device_auth_message, device_body_hash, parse_device_auth, verify_device_signature};
 use rocket::http::Status;
 use rocket::outcome::Outcome::Success;
 use rocket::{Request, State};
 
 use crate::devices::auth_config::AuthConfig;
-use crate::devices::constants::AUTHORIZATION_HEADER;
 use crate::devices::error::DeviceError;
 
 fn verify_request_signature(req: &Request<'_>, components: &DeviceAuthPayload, tolerance_ms: u64) -> Result<(), (Status, String)> {

@@ -6,15 +6,10 @@ pub fn now() -> NaiveDateTime {
 }
 
 pub trait DurationExt {
-    fn as_days(&self) -> i64;
     fn as_days_ceil(&self) -> i64;
 }
 
 impl DurationExt for StdDuration {
-    fn as_days(&self) -> i64 {
-        (self.as_secs() / crate::duration::SECONDS_PER_DAY) as i64
-    }
-
     fn as_days_ceil(&self) -> i64 {
         let seconds_days = self.as_secs().div_ceil(crate::duration::SECONDS_PER_DAY);
         let extra_day = u64::from(self.subsec_nanos() > 0 && self.as_secs().is_multiple_of(crate::duration::SECONDS_PER_DAY));
@@ -28,17 +23,11 @@ pub trait NaiveDateTimeExt {
     fn days_ago(&self, days: i64) -> NaiveDateTime;
     fn hours_ago(&self, hours: i64) -> NaiveDateTime;
     fn ago(&self, duration: StdDuration) -> NaiveDateTime;
-    fn is_within_duration(&self, duration: StdDuration) -> bool;
 }
 
 impl NaiveDateTimeExt for NaiveDateTime {
     fn is_within_days(&self, days: i64) -> bool {
         *self > Utc::now().naive_utc() - Duration::days(days)
-    }
-
-    fn is_within_duration(&self, duration: StdDuration) -> bool {
-        let chrono_duration = Duration::seconds(duration.as_secs() as i64);
-        *self > Utc::now().naive_utc() - chrono_duration
     }
 
     fn is_older_than_days(&self, days: i64) -> bool {

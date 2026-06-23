@@ -29,20 +29,6 @@ impl FeeCalculator {
         Self
     }
 
-    pub fn calculate_min_priority_fee(&self, gas_used_ratios: &[f64], base_fee: &BigInt, default_min_priority_fee: u64) -> Result<u64, Box<dyn std::error::Error + Sync + Send>> {
-        if gas_used_ratios.is_empty() || base_fee == &BigInt::from(0) {
-            return Ok(default_min_priority_fee);
-        }
-        let avg_ratio: f64 = gas_used_ratios.iter().sum::<f64>() / gas_used_ratios.len() as f64;
-
-        let result = match avg_ratio {
-            r if r >= 0.9 => default_min_priority_fee,
-            r if r >= 0.7 => default_min_priority_fee / 2,
-            _ => default_min_priority_fee / 10,
-        };
-        Ok(result)
-    }
-
     pub fn calculate_priority_fees(
         &self,
         fee_history: &EthereumFeeHistory,
@@ -128,18 +114,6 @@ mod tests {
     #[test]
     fn test_get_reward_percentiles() {
         assert_eq!(get_reward_percentiles(), [20, 40, 60]);
-    }
-
-    #[test]
-    fn test_calculate_min_priority_fee() {
-        let calculator = FeeCalculator::new();
-        let default_fee = 1_000_000_000;
-        let base_fee = BigInt::from(20_000_000_000u64);
-
-        assert_eq!(calculator.calculate_min_priority_fee(&[0.9, 0.95, 1.0], &base_fee, default_fee).unwrap(), 1_000_000_000);
-        assert_eq!(calculator.calculate_min_priority_fee(&[0.7, 0.8, 0.75], &base_fee, default_fee).unwrap(), 500_000_000);
-        assert_eq!(calculator.calculate_min_priority_fee(&[0.1, 0.2, 0.3], &base_fee, default_fee).unwrap(), 100_000_000);
-        assert_eq!(calculator.calculate_min_priority_fee(&[], &base_fee, default_fee).unwrap(), 1_000_000_000);
     }
 
     #[test]

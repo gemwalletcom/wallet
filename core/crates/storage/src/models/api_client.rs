@@ -15,9 +15,12 @@ use strum::{AsRefStr, EnumString};
 #[strum(serialize_all = "snake_case")]
 #[diesel(sql_type = crate::schema::sql_types::ApiClientScope)]
 pub enum ApiClientScope {
+    AdminWrite,
+    ChainRead,
     DevicesRead,
     DevicesSubscriptionsRead,
     DevicesTransactionsRead,
+    FiatQuotesRead,
     WebhooksTransactions,
     WebhooksSupport,
     WebhooksFiat,

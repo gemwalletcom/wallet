@@ -3,12 +3,6 @@ use serde_serializers::f64::deserialize_f64_from_str;
 
 use crate::models::UInt64;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UserRole {
-    pub role: String,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum UserAbstractionMode {

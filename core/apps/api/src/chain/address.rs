@@ -1,5 +1,6 @@
 use rocket::{State, get, tokio::sync::Mutex};
 
+use crate::api_clients::PermissionChainRead;
 use crate::params::{AddressParam, ChainParam};
 use crate::responders::{ApiError, ApiResponse};
 use primitives::{AddressBalances, AssetBalance, ChainAddress, Transaction};
@@ -7,7 +8,12 @@ use primitives::{AddressBalances, AssetBalance, ChainAddress, Transaction};
 use super::ChainClient;
 
 #[get("/chain/address/<chain>/<address>/balances")]
-pub async fn get_balances(chain: ChainParam, address: AddressParam, client: &State<Mutex<ChainClient>>) -> Result<ApiResponse<AddressBalances>, ApiError> {
+pub async fn get_balances(
+    _permission: PermissionChainRead,
+    chain: ChainParam,
+    address: AddressParam,
+    client: &State<Mutex<ChainClient>>,
+) -> Result<ApiResponse<AddressBalances>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
     let client = client.lock().await;
     let coin = client.get_balances_coin(request.clone()).await?;
@@ -17,13 +23,19 @@ pub async fn get_balances(chain: ChainParam, address: AddressParam, client: &Sta
 }
 
 #[get("/chain/address/<chain>/<address>/assets")]
-pub async fn get_assets(chain: ChainParam, address: AddressParam, client: &State<Mutex<ChainClient>>) -> Result<ApiResponse<Vec<AssetBalance>>, ApiError> {
+pub async fn get_assets(
+    _permission: PermissionChainRead,
+    chain: ChainParam,
+    address: AddressParam,
+    client: &State<Mutex<ChainClient>>,
+) -> Result<ApiResponse<Vec<AssetBalance>>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
     Ok(client.lock().await.get_balances_assets(request).await?.into())
 }
 
 #[get("/chain/address/<chain>/<address>/transactions?<from_timestamp>")]
 pub async fn get_transactions(
+    _permission: PermissionChainRead,
     chain: ChainParam,
     address: AddressParam,
     from_timestamp: Option<u64>,

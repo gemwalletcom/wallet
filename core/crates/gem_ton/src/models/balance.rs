@@ -33,12 +33,6 @@ pub struct Jetton {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleJettonBalance {
-    #[serde(deserialize_with = "deserialize_biguint_from_str")]
-    pub balance: BigUint,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JettonWalletsResponse {
     pub jetton_wallets: Vec<JettonWallet>,
 }

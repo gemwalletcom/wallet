@@ -46,11 +46,6 @@ impl ReqwestClient {
         Self::new_with_retry(url, 30, 3)
     }
 
-    pub fn with_user_agent(mut self, user_agent: String) -> Self {
-        self.user_agent = Some(user_agent);
-        self
-    }
-
     fn build_url(&self, path: &str) -> String {
         format!("{}{}", self.base_url.trim_end_matches('/'), path)
     }

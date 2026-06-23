@@ -44,7 +44,7 @@ mod tests {
 
     use super::DeviceJson;
     use crate::devices::auth_config::AuthConfig;
-    use crate::devices::constants::AUTHORIZATION_HEADER;
+    use gem_auth::AUTHORIZATION_HEADER;
 
     #[post("/", format = "json", data = "<body>")]
     async fn echo(body: DeviceJson<serde_json::Value>) -> &'static str {

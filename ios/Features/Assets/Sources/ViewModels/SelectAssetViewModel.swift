@@ -5,6 +5,7 @@ import AssetsService
 import BalanceService
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Preferences
 import PriceAlertService
@@ -326,6 +327,18 @@ extension SelectAssetViewModel {
 
     func onSelectAsset(_ assetData: AssetData) {
         assetSelection = .regular(SelectAssetInput(type: selectType, assetAddress: assetData.assetAddress))
+    }
+
+    func displayAssetData(_ assetData: AssetData) -> AssetData {
+        guard selectType == .withdraw else { return assetData }
+        return AssetData(
+            asset: PerpetualConfig.depositAsset,
+            balance: assetData.balance,
+            account: assetData.account,
+            price: assetData.price,
+            priceAlerts: assetData.priceAlerts,
+            metadata: assetData.metadata,
+        )
     }
 
     public func onSelectRecent(_ asset: Asset) {

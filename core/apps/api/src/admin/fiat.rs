@@ -1,6 +1,6 @@
 use rocket::{State, get, tokio::sync::Mutex};
 
-use crate::admin::AdminAuthorized;
+use crate::api_clients::PermissionFiatQuotesRead;
 use crate::devices::FiatQuotesClient;
 use crate::params::{AssetIdParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam};
 use crate::responders::{ApiError, ApiResponse};
@@ -8,7 +8,7 @@ use primitives::{FiatQuoteRequest, FiatQuotes};
 
 #[get("/fiat/quotes/<quote_type>?<asset_id>&<amount>&<currency>&<provider_id>&<ip_address>")]
 pub async fn get_fiat_quotes(
-    _admin: AdminAuthorized,
+    _permission: PermissionFiatQuotesRead,
     quote_type: FiatQuoteTypeParam,
     asset_id: AssetIdParam,
     amount: f64,

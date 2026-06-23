@@ -44,11 +44,6 @@ pub struct InflationResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnnualProvisionsResponse {
-    pub annual_provisions: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SupplyResponse {
     pub amount: SupplyAmount,
 }

@@ -8,7 +8,7 @@ use gem_client::{Client, ClientExt, build_path_with_query};
 
 use crate::models::{
     ApiResult, BroadcastTransaction, Chainhead, JettonInfo, JettonOffchainMetadata, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest,
-    RunGetMethodResult, SimpleJettonBalance, StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
+    RunGetMethodResult, StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
 };
 
 const TONCENTER_V3_BLOCK_LIMIT: usize = 100;
@@ -41,14 +41,6 @@ impl<C: Client> TonClient<C> {
     pub async fn get_wallet_information(&self, address: String) -> Result<WalletInfo, Box<dyn Error + Send + Sync>> {
         let response: ApiResult<WalletInfo> = self.client.get(&format!("/api/v2/getWalletInformation?address={}", address)).await?;
         Ok(response.result)
-    }
-
-    pub async fn get_token_balance(&self, address: String) -> Result<SimpleJettonBalance, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v2/getTokenData?address={}", address)).await?)
-    }
-
-    pub async fn get_native_balance(&self, address: String) -> Result<String, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v2/getAddressBalance?address={}", address)).await?)
     }
 
     pub async fn broadcast_transaction(&self, data: String) -> Result<ApiResult<BroadcastTransaction>, Box<dyn Error + Send + Sync>> {

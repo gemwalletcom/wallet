@@ -5,6 +5,9 @@ mod device_signature;
 mod jwt;
 mod signature;
 
+pub const AUTHORIZATION_HEADER: &str = "Authorization";
+pub const BEARER_PREFIX: &str = "Bearer ";
+
 #[cfg(feature = "client")]
 pub use client::AuthClient;
 pub use device_signature::{

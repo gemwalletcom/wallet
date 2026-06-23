@@ -1,7 +1,10 @@
 package com.gemwallet.android.domains.perpetual
 
+import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toAssetId
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetType
 import uniffi.gemstone.Config
 import java.math.BigInteger
 
@@ -15,6 +18,8 @@ object PerpetualConfig {
     val depositAssetId: AssetId get() = requireNotNull(config.depositAssetId.toAssetId()) {
         "Invalid perpetual deposit asset id: ${config.depositAssetId}"
     }
+
+    val depositAsset: Asset get() = HypercoreUSDC.copy(id = depositAssetId, type = AssetType.TOKEN)
 
     val minDeposit: BigInteger get() = config.minDeposit.toLong().toBigInteger()
 

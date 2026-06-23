@@ -11,8 +11,8 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use crate::models::{
-    Account, Block, DelegationPoolStake, GasFee, Ledger, ReconfigurationState, Resource, ResourceData, SimulateTransactionQuery, StakingConfig, Transaction, TransactionPayload,
-    TransactionResponse, TransactionSignature, TransactionSimulation, ValidatorSet,
+    Account, Block, DelegationPoolStake, GasFee, Ledger, Resource, SimulateTransactionQuery, StakingConfig, Transaction, TransactionPayload, TransactionResponse,
+    TransactionSignature, TransactionSimulation, ValidatorSet,
 };
 use crate::provider::payload_builder::{
     build_stake_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload, build_unstake_transaction_payload,
@@ -55,10 +55,6 @@ impl<C: Client> AptosClient<C> {
 
     pub async fn get_account_balance(&self, address: &str, asset_type: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(&format!("/v1/accounts/{}/balance/{}", address, asset_type)).await?)
-    }
-
-    pub async fn get_account_resources(&self, address: &str) -> Result<Vec<Resource<ResourceData>>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v1/accounts/{}/resources", address)).await?)
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {
@@ -201,13 +197,6 @@ impl<C: Client> AptosClient<C> {
         let commission_bps = result.first().and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
 
         Ok(commission_bps as f64 / 100.0)
-    }
-
-    pub async fn get_reconfiguration_state(&self) -> Result<ReconfigurationState, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .get_account_resource::<ReconfigurationState>("0x1".to_string(), "0x1::reconfiguration::Configuration")
-            .await?
-            .data)
     }
 
     pub async fn get_stake_lockup_secs(&self, pool_address: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {

@@ -44,11 +44,6 @@ impl Target {
             body: Some(serde_json::to_vec(body).expect("Failed to serialize JSON body")),
         }
     }
-
-    pub fn set_cache_ttl(mut self, ttl: u64) -> Self {
-        self.headers.get_or_insert_with(HashMap::new).insert(X_CACHE_TTL.into(), ttl.to_string());
-        self
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -49,7 +49,7 @@ public struct TransactionInputViewModel: Sendable {
 
         return TransactionInfoViewModel(
             currency: preferences.currency,
-            asset: asset,
+            asset: displayAsset,
             assetPrice: metaData?.assetPrice,
             feeAsset: asset.feeAsset,
             feeAssetPrice: metaData?.feePrice,
@@ -57,6 +57,13 @@ public struct TransactionInputViewModel: Sendable {
             feeValue: transactionData?.fee.fee,
             direction: nil,
         )
+    }
+
+    private var displayAsset: Asset {
+        switch data.type {
+        case .withdrawal: PerpetualConfig.depositAsset
+        default: data.type.asset
+        }
     }
 
     var networkFeeText: String? {

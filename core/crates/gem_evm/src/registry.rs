@@ -279,10 +279,6 @@ impl ContractRegistry {
     pub fn get_by_address(&self, address: &Address, chain: Chain) -> Option<&ContractEntry> {
         self.entries.iter().find(|entry| entry.address == *address && entry.chain == chain)
     }
-
-    pub fn get_by_chain(&self, chain: Chain) -> Vec<&ContractEntry> {
-        self.entries.iter().filter(|entry| entry.chain == chain).collect()
-    }
 }
 
 impl Default for ContractRegistry {
@@ -304,15 +300,5 @@ mod tests {
 
         assert_eq!(entry.provider, "PancakeSwap v3");
         assert_eq!(entry.chain, Chain::SmartChain);
-    }
-
-    #[test]
-    fn test_get_by_chain() {
-        let registry = ContractRegistry::new();
-        let bnb_contracts = registry.get_by_chain(Chain::SmartChain);
-
-        for contract in bnb_contracts {
-            assert_eq!(contract.chain, Chain::SmartChain);
-        }
     }
 }

@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use rocket::{State, get, tokio::sync::Mutex};
 
+use crate::api_clients::PermissionChainRead;
 use crate::params::ChainParam;
 use crate::responders::{ApiError, ApiResponse};
 use primitives::{Transaction, TransactionStateRequest, TransactionUpdate};
@@ -8,12 +9,18 @@ use primitives::{Transaction, TransactionStateRequest, TransactionUpdate};
 use super::ChainClient;
 
 #[get("/chain/transactions/<chain>/<hash>")]
-pub async fn get_transaction(chain: ChainParam, hash: &str, client: &State<Mutex<ChainClient>>) -> Result<ApiResponse<Option<Transaction>>, ApiError> {
+pub async fn get_transaction(
+    _permission: PermissionChainRead,
+    chain: ChainParam,
+    hash: &str,
+    client: &State<Mutex<ChainClient>>,
+) -> Result<ApiResponse<Option<Transaction>>, ApiError> {
     Ok(client.lock().await.get_transaction_by_hash(chain.0, hash.to_string()).await?.into())
 }
 
 #[get("/chain/transactions/<chain>/<hash>/status?<sender_address>&<created_at>&<from_timestamp>&<block_number>")]
 pub async fn get_transaction_status(
+    _permission: PermissionChainRead,
     chain: ChainParam,
     hash: &str,
     sender_address: Option<String>,

@@ -3,6 +3,7 @@
 import BigInt
 import Foundation
 import class Gemstone.Config
+import Primitives
 
 public struct PerpetualConfig {
     private init() {}
@@ -17,6 +18,14 @@ public struct PerpetualConfig {
 
     public static var depositAssetId: String {
         Config.shared.getPerpetualConfig().depositAssetId
+    }
+
+    public static var depositAsset: Asset {
+        guard let assetId = try? AssetId(id: depositAssetId) else {
+            preconditionFailure("Invalid perpetual deposit asset id: \(depositAssetId)")
+        }
+        let usdc = Asset.hypercoreUSDC()
+        return Asset(id: assetId, name: usdc.name, symbol: usdc.symbol, decimals: usdc.decimals, type: .token)
     }
 
     public static var minDeposit: BigInt {

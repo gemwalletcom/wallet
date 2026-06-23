@@ -173,16 +173,6 @@ pub fn encode_claim_call(operator_address: &str, request_number: u64) -> Result<
     Ok(call.abi_encode())
 }
 
-pub fn encode_claim_batch_call(operator_addresses: Vec<String>, request_numbers: Vec<u64>) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
-    let operator_addresses = operator_addresses.iter().map(|x| Address::from_str(x)).collect::<Result<Vec<Address>, _>>()?;
-    let request_numbers = request_numbers.iter().map(|x| U256::from(*x)).collect::<Vec<U256>>();
-    let call = IStakeHub::claimBatchCall {
-        operatorAddresses: operator_addresses,
-        requestNumbers: request_numbers,
-    };
-    Ok(call.abi_encode())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -263,15 +253,5 @@ mod tests {
 
         // Check the function selector
         assert_eq!(hex::encode(&data[0..4]), "aad3ec96");
-    }
-
-    #[test]
-    fn test_encode_claim_batch_call() {
-        let data = encode_claim_batch_call(vec!["0xE5572297718e1943A92BfEde2E67A060439e8EFd".to_string()], vec![0]).unwrap();
-
-        assert_eq!(
-            hex::encode(data),
-            "d7c2dfc8000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001000000000000000000000000e5572297718e1943a92bfede2e67a060439e8efd00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"
-        );
     }
 }
