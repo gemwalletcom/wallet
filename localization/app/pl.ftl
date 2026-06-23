@@ -1,9 +1,9 @@
 # Common
 
-common_cancel = Anulować
+common_cancel = Anuluj
 common_done = Gotowe
 common_secret_phrase = Tajne zdanie
-common_next = Następny
+common_next = Dalej
 common_copy = Kopiuj
 common_share = Udostępnij
 common_continue = Kontynuuj
@@ -12,22 +12,22 @@ common_loading = Ładowanie
 common_address = Adres
 common_back = Powrót
 common_try_again = Spróbuj ponownie
-common_paste = Pasta
-common_delete = Usuwać
+common_paste = Wklej
+common_delete = Usuń
 common_delete_confirmation = Czy na pewno chcesz usunąć %@?
-common_hide = Ukrywać
+common_hide = Ukryj
 common_wallet = Portfel
-common_show = %@
+common_show = Pokaż %@
 common_copied = Skopiowano: %@
-common_recommended = Zalecana
+common_recommended = Zalecane
 common_all = Wszystko
 common_not_available = Niedostępne
 common_phrase = Wyrażenie
-common_manage = Zarządzać
+common_manage = Zarządzaj
 common_type = Typ
 common_no_results_found = Nie znaleziono wyników
 common_yes = Tak
-common_no = NIE
+common_no = Nie
 common_none = Brak
 common_url = Adres URL
 common_private_key = Klucz prywatny
@@ -36,42 +36,42 @@ common_open_settings = Otwórz ustawienia
 common_pin = Przypnij
 common_pinned = Przypięty
 common_unpin = Odepnij
-common_skip = Pominąć
+common_skip = Pomiń
 common_warning = Ostrzeżenie
 common_learn_more = Dowiedz się więcej
 common_short_name = Gem
 common_description = Opis
-common_emoji = Emotikony
+common_emoji = Emoji
 common_style = Styl
-common_avatar = Awatara
+common_avatar = Awatar
 common_photo = Zdjęcie
-common_save = Ratować
+common_save = Zapisz
 common_edit = Edytuj
 common_percentage = Procent
-common_details = Bliższe dane
+common_details = Szczegóły
 common_info = Informacje
 common_get_started = Rozpocznij
 common_earn = Zarabiaj
 common_method = Metoda
-common_token = Znak
+common_token = Token
 common_suspicious_address = Podejrzany adres
-common_refresh = Odświeżać
+common_refresh = Odśwież
 common_no_thanks = Nie, dziękuję
-common_grant_permission = Dać pozwolenie
+common_grant_permission = Udziel pozwolenia
 common_required_field = %@ jest wymagane
 
 # Welcome
 
-welcome_title = Witamy w rodzinie klejnotów
+welcome_title = Witamy w Gem Family
 
 # Wallet
 
 wallet_create_new_wallet = Utwórz nowy portfel
 wallet_import_existing_wallet = Zaimportuj istniejący portfel
-wallet_send = Wysłać
-wallet_receive = Odbierać
-wallet_buy = Kupić
-wallet_swap = Zamieniać
+wallet_send = Wyślij
+wallet_receive = Odbierz
+wallet_buy = Kup
+wallet_swap = Zamień
 wallet_import_title = Importuj portfel
 wallet_new_title = Nowy portfel
 wallet_name = Nazwa
@@ -85,26 +85,26 @@ wallet_default_name = Portfel #%d
 wallet_default_name_chain = %@ Portfel #%d
 wallet_copy_address = Skopiuj adres
 wallet_watch_tooltip_title = Oglądasz ten portfel.
-wallet_stake = Stawka
+wallet_stake = Postaw
 wallet_receive_no_memo_required = Nie jest wymagana żadna notatka
 wallet_receive_no_destination_tag_required = Nie jest wymagany tag miejsca docelowego
 wallet_title = Portfel
 wallet_add_token_title = Dodaj token
-wallet_sell = Sprzedać
+wallet_sell = Sprzedaj
 wallet_receive_collection = Odbierz kolekcję
 wallet_more = Więcej
 wallet_import_contract_address_field = Kontrakt lub ID tokena
 wallet_import_address_warning = Możesz przeglądać salda i transakcje dla tego adresu, ale **nie możesz wysyłać ani sprzedawać środków**.
 wallet_deposit = Depozyt
-wallet_withdraw = Wycofać
+wallet_withdraw = Wypłać
 wallet_available_balance = Dostępne: %@
-wallet_portfolio_title = Teczka
+wallet_portfolio_title = Portfel inwestycyjny
 wallet_import_already_imported_message = Ten portfel został już zaimportowany.
 
 # Wallets
 
 wallets_title = Portfele
-wallets_watch = Oglądaj
+wallets_watch = Obserwowany
 
 # Receive
 
@@ -115,8 +115,8 @@ receive_warning = To jest Twój adres — wysyłaj tylko %@ na %@ sieć.
 
 buy_title = Kup %@
 buy_providers_title = Dostawcy
-buy_rate = Oceń
-buy_no_results = Brak dostępnych cytatów
+buy_rate = Kurs
+buy_no_results = Brak dostępnych ofert
 
 # Transfer
 
@@ -129,17 +129,17 @@ transfer_max = Maks
 transfer_network = Sieć
 transfer_recipient_title = Odbiorca
 transfer_balance = Saldo: %@
-transfer_title = Przenosić
+transfer_title = Transfer
 transfer_recipient_address_field = Adres lub nazwa
 transfer_send_title = Wysłać
 transfer_insufficient_balance = Niewystarczające %@ saldo.
 transfer_insufficient_network_fee_balance = Niewystarczające saldo %@ na pokrycie opłat sieciowych.
-transfer_approve_title = Zatwierdzić
+transfer_approve_title = Zatwierdź
 transfer_stake_title = Stawka
 transfer_claim_rewards_title = Odbierz nagrody
-transfer_unstake_title = Odstaw
+transfer_unstake_title = Wycofaj stake
 transfer_redelegate_title = Ponowne delegowanie
-transfer_withdraw_title = Wycofać
+transfer_withdraw_title = Wypłać
 transfer_rewards_title = Nagrody
 transfer_minimum_amount = Minimalna kwota to %@
 transfer_activate_asset_title = Aktywuj zasób
@@ -150,8 +150,8 @@ transfer_smart_contract_title = Inteligentny kontrakt
 transfer_other_title = Inne
 transfer_maximum_amount = Maksymalna kwota to %@
 transfer_reserved_fees = Pozostawiliśmy %@ na Twoim koncie na pokrycie przyszłych opłat sieciowych.
-transfer_freeze_title = Zamrażać
-transfer_unfreeze_title = Odmrozić
+transfer_freeze_title = Zamroź
+transfer_unfreeze_title = Odmroź
 transfer_sign_transaction_title = Podpisz transakcję
 transfer_review_request = Prośba o przegląd
 transfer_amount = Kwota
@@ -164,11 +164,11 @@ settings_privacy_policy = Polityka prywatności
 settings_title = Ustawienia
 settings_developer = Deweloper
 settings_version = Wersja
-settings_community = Wspólnota
+settings_community = Społeczność
 settings_aboutus = O nas
 settings_networks_title = Sieci
 settings_networks_source = Źródło
-settings_networks_explorer = poszukiwacz
+settings_networks_explorer = Eksplorator
 settings_currency = Waluta
 settings_rate_app = Oceń aplikację
 settings_website = Odwiedź stronę
@@ -208,7 +208,7 @@ errors_invalid_url = nieprawidłowy URL
 errors_error_occured = Wystąpił błąd!
 errors_invalid_network_id = Nieprawidłowy identyfikator sieci
 errors_error = Błąd
-errors_connections_user_cancelled = Użytkownik anulowany
+errors_connections_user_cancelled = Anulowane przez użytkownika
 errors_not_supported = Nieobsługiwane
 errors_permissions_not_granted = Uprawnienia nie zostały przyznane
 errors_decoding = Błąd dekodowania
@@ -249,7 +249,7 @@ errors_network_offline = Połączenie internetowe wydaje się być niedostępne.
 
 # Activity
 
-activity_title = Działalność
+activity_title = Aktywność
 activity_state_empty_title = Twoja aktywność będzie tutaj wyświetlana
 activity_state_empty_description = Dokonaj pierwszej transakcji
 activity_state_empty_search_description = Wyczyść filtry, aby odświeżyć swoje działania
@@ -274,7 +274,7 @@ transaction_view_on = Zobacz w %@
 transaction_status = Stan
 transaction_status_confirmed = Udany
 transaction_status_pending = Oczekujące
-transaction_status_failed = Przegrany
+transaction_status_failed = Nieudana
 transaction_status_reverted = Przywrócony
 transaction_title_received = Otrzymane
 transaction_title_sent = Wysłano
@@ -286,22 +286,22 @@ transaction_status_refunded = Zwrócono
 # Asset
 
 asset_balances = Salda
-asset_balances_available = Dostępny
+asset_balances_available = Dostępne
 asset_price = Cena
 asset_market_cap = Kapitalizacja rynkowa
 asset_trading_volume = Wolumen obrotu (24h)
 asset_market_cap_rank = Ranking kapitalizacji rynkowej
 asset_total_supply = Całkowita podaż
-asset_circulating_supply = Krążące zaopatrzenie
-asset_balances_reserved = Skryty
+asset_circulating_supply = Podaż w obiegu
+asset_balances_reserved = Zarezerwowane
 asset_view_token_on = Wyświetl token na %@
 asset_view_address_on = Zobacz adres na %@
 asset_name = Nazwa
 asset_symbol = Symbol
-asset_decimals = Dziesiętne
+asset_decimals = Miejsca dziesiętne
 asset_token_id = Identyfikator tokena
-asset_contract = Umowa
-asset_state_empty_title = Twoje transakcje pojawią się tutaj️
+asset_contract = Kontrakt
+asset_state_empty_title = Twoje transakcje pojawią się tutaj
 asset_state_empty_description = Odbierz, wymień lub kup %@
 asset_verification_unverified = Niesprawdzony
 asset_verification_suspicious = Podejrzany
@@ -321,11 +321,11 @@ charts_day = 1D
 charts_hour = 1H
 charts_week = 1W
 charts_month = 1M
-charts_year = 1 rok
+charts_year = 1R
 charts_all = Wszystko
 charts_entry = Wejście
 charts_price_open = Otwarte
-charts_price_close = Zamknąć
+charts_price_close = Zamknięcie
 charts_price_high = Wysoki
 charts_price_low = Niski
 charts_price_change = Zmiana
@@ -339,8 +339,8 @@ date_yesterday = Wczoraj
 
 wallet_connect_title = WalletConnect
 wallet_connect_connection_title = Połączenie
-wallet_connect_disconnect = Rozłączyć się
-wallet_connect_connect_title = Łączyć
+wallet_connect_disconnect = Rozłącz
+wallet_connect_connect_title = Połącz
 wallet_connect_app = Aplikacja
 wallet_connect_website = Strona internetowa
 wallet_connect_brand_name = WalletConnect
@@ -378,14 +378,14 @@ stake_activating = Aktywacja
 stake_deactivating = Dezaktywacja
 stake_awaiting_withdrawal = Oczekiwanie na wypłatę
 stake_active_in = Aktywne w
-stake_minimum_amount = Stawka minimalna
-stake_viagem = Stawka za pośrednictwem portfela Gem
+stake_minimum_amount = Minimalna kwota
+stake_viagem = Stakuj przez Gem Wallet
 stake_no_active_staking = Nie ma jeszcze aktywnego obstawiania.
 stake_state_empty_title = Twoje stawki pojawią się tutaj
 stake_state_empty_description = Postaw swoją pierwszą %@
-stake_resource = Ratunek
+stake_resource = Zasób
 stake_resource_energy = Energia
-stake_resource_bandwidth = Przepustowość łącza
+stake_resource_bandwidth = Przepustowość
 stake_delegations = Delegacje
 
 # Assets
@@ -420,13 +420,13 @@ secret_phrase_content_hidden_description = Zawartość ukryta podczas nagrywania
 
 # Social
 
-social_x = X (formerly Twitter)
+social_x = X (dawniej Twitter)
 social_discord = Discord
 social_reddit = Reddit
 social_telegram = Telegram
 social_github = GitHub
 social_youtube = YouTube
-social_links = Spinki do mankietów
+social_links = Linki
 social_facebook = Facebook
 social_coingecko = CoinGecko
 social_website = Strona internetowa
@@ -481,7 +481,7 @@ banner_perpetuals_description = Wpłacaj, handluj i zarabiaj dzięki Hyperliquid
 
 # Filter
 
-filter_clear = Jasne
+filter_clear = Wyczyść
 filter_title = Filtry
 filter_types = Typy
 filter_has_balance = Ma równowagę
@@ -491,11 +491,11 @@ filter_has_balance = Ma równowagę
 price_alerts_enabled_for = Alert cenowy włączony dla %@
 price_alerts_disabled_for = Alert cenowy wyłączony dla %@
 price_alerts_get_notified_explain_message = Otrzymuj powiadomienia o znaczących zmianach cen Twoich ulubionych kryptowalut.
-price_alerts_direction_over = Koniec
+price_alerts_direction_over = Powyżej
 price_alerts_direction_under = Pod
 price_alerts_direction_increases_by = Zwiększa się o
 price_alerts_direction_decreases_by = Zmniejsza się o
-price_alerts_set_alert_price_over = Kiedy cena się skończy
+price_alerts_set_alert_price_over = Gdy cena jest powyżej
 price_alerts_set_alert_price_under = Kiedy cena jest poniżej
 price_alerts_set_alert_price_increases_by = Gdy cena wzrasta o
 price_alerts_set_alert_price_decreases_by = Gdy cena spada o
@@ -522,7 +522,7 @@ lock_footer = Chroń dostęp do tej aplikacji na swoim urządzeniu
 
 # Verify
 
-verify_phrase_title = Potwierdzać
+verify_phrase_title = Potwierdź
 
 # Warnings
 
@@ -535,7 +535,7 @@ sell_title = Sprzedaj %@
 # Info
 
 info_network_fee_title = Opłata sieciowa
-info_watch_wallet_title = Obejrzyj Portfel
+info_watch_wallet_title = Portfel obserwowany
 info_watch_wallet_description = Portfel, do którego nie masz dostępu, ale możesz śledzić zawarte w nim transakcje i ruchy.
 info_network_fee_description = Każda transakcja w sieci %@ wymaga opłaty w wysokości %@ płaconej górnikom za przetworzenie Twojej transakcji, a nie Gem Wallet. Opłaty sieciowe różnią się w zależności od wykorzystania sieci.
 info_transaction_error_description = Transakcja nie mogła zostać ukończona z powodu błędu, takiego jak niewystarczające środki, nieprawidłowe dane wejściowe lub odrzucenie przez sieć. Sprawdź szczegóły i spróbuj ponownie.
@@ -603,7 +603,7 @@ permissions_image_photo_access_denied_description = Ta aplikacja nie ma uprawnie
 
 markets_title = Rynki
 markets_state_empty_title = Twoje dane rynkowe pojawią się tutaj
-markets_daily_volume = Objętość 24h
+markets_daily_volume = Wolumen 24h
 
 # Search
 
@@ -645,7 +645,7 @@ perpetual_pnl = PnL
 perpetual_long = Długie
 perpetual_short = Krótkie
 perpetual_entry_price = Cena wejścia
-perpetual_modify = Modyfikować
+perpetual_modify = Modyfikuj
 perpetual_reduce_position = Zmniejsz pozycję
 perpetual_increase_position = Zwiększ pozycję
 perpetual_open_direction = Otwórz %@
@@ -666,30 +666,30 @@ perpetual_modify_position = Modyfikuj pozycję
 perpetual_auto_close_stop_loss = Stop-loss
 perpetual_value = Wartość
 perpetual_unrealized_pnl = Niezrealizowany zysk/strata
-perpetual_volume = Tom
+perpetual_volume = Wolumen
 perpetual_all_time_pnl = Całkowity zysk i strata
 perpetual_margin_usage = Wykorzystanie marży
 perpetual_account_leverage = Dźwignia konta
 perpetual_margin_cross = Krzyż
-perpetual_margin_isolated = Odizolowany
+perpetual_margin_isolated = Izolowana
 
 # Perpetuals
 
 perpetuals_title = Wieczyste
 perpetuals_markets = Rynki
-perpetuals_empty_state_no_markets = Żadnych rynków
+perpetuals_empty_state_no_markets = Brak rynków
 perpetuals_empty_state_no_markets_found = Nie znaleziono rynków
 
 # Rewards
 
 rewards_title = Nagrody
-rewards_share_text = Dołączyć Gem Wallet z moim linkiem polecającym i zyskaj nagrody: %@
+rewards_share_text = Dołącz do Gem Wallet z moim linkiem polecającym i zyskaj nagrody: %@
 rewards_my_referral_code = Mój kod polecający
 rewards_invite_friends_title = Zaproś znajomych
-rewards_invite_friends_description = Zarabiać %@ punktów za każdego dołączonego znajomego.
+rewards_invite_friends_description = Zarabiaj %@ punktów za każdego dołączonego znajomego.
 rewards_referral_code = Kod polecający
 rewards_invited_by = Zaproszony przez
-rewards_points = Zwrotnica
+rewards_points = Punkty
 rewards_referrals = Polecenia
 rewards_earn_points_title = Zdobądź punkty
 rewards_get_rewards_title = Zdobądź nagrody
@@ -699,9 +699,9 @@ rewards_create_referral_code_title = Utwórz nazwę użytkownika
 rewards_create_referral_code_info = To będzie Twój osobisty pseudonim dla obecnego portfela.
 rewards_username = Nazwa użytkownika
 rewards_ways_spend_title = Sposoby wydawania pieniędzy
-rewards_ways_spend_asset_title = Dostawać %@
+rewards_ways_spend_asset_title = Zdobądź %@
 rewards_insufficient_points = Za mało punktów
-rewards_confirm_redeem = Dostawać %@ Do %@!
+rewards_confirm_redeem = Zdobądź %@ za %@!
 rewards_pending_title = Bonus w toku
 rewards_pending_description = Dostępne w %@
 rewards_pending_description_ready = Twój bonus jest gotowy!
@@ -724,11 +724,11 @@ notifications_inapp_rewards_invite_subtitle = Zaproś znajomych i zdobywajcie na
 # Earn
 
 earn_state_empty_title = Twoje pozycje będą widoczne tutaj
-earn_state_empty_description = Wpłać swoją pierwszą wpłatę %@
+earn_state_empty_description = Wpłać swój pierwszy %@
 
 # Contacts
 
-contacts_title = Łączność
+contacts_title = Kontakty
 contacts_contact = Kontakt
 contacts_addresses = Adresy
 contacts_state_empty_title = Brak kontaktów

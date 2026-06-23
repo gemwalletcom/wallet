@@ -1,33 +1,33 @@
 # Common
 
-common_cancel = İptal etmek
-common_done = Tamamlamak
-common_secret_phrase = Gizli Söz
+common_cancel = İptal
+common_done = Tamam
+common_secret_phrase = Gizli İfade
 common_next = Sonraki
 common_copy = Kopyala
-common_share = Paylaşmak
-common_continue = Devam etmek
+common_share = Paylaş
+common_continue = Devam et
 common_provider = Sağlayıcı
 common_loading = Yükleniyor
 common_address = Adres
 common_back = Geri
 common_try_again = Tekrar deneyin
-common_paste = Yapıştırmak
-common_delete = Silmek
+common_paste = Yapıştır
+common_delete = Sil
 common_delete_confirmation = %@ silmek istediğinizden emin misiniz?
-common_hide = Saklamak
+common_hide = Gizle
 common_wallet = Cüzdan
 common_show = %@ göster
 common_copied = Kopyalandı: %@
 common_recommended = Tavsiye edilen
-common_all = Tüm
+common_all = Tümü
 common_not_available = Müsait değil
-common_phrase = Cümle
-common_manage = Üstesinden gelmek
+common_phrase = İfade
+common_manage = Yönet
 common_type = Tip
 common_no_results_found = Sonuç bulunamadı
 common_yes = Evet
-common_no = HAYIR
+common_no = Hayır
 common_none = Yok
 common_url = URL'si
 common_private_key = Özel Anahtar
@@ -36,7 +36,7 @@ common_open_settings = Ayarları aç
 common_pin = Sabitle
 common_pinned = Sabitlendi
 common_unpin = Kaldır
-common_skip = Atlamak
+common_skip = Atla
 common_warning = Uyarı
 common_learn_more = Daha fazla bilgi edin
 common_short_name = Gem
@@ -45,7 +45,7 @@ common_emoji = Emoji
 common_style = Stil
 common_avatar = Avatar
 common_photo = Fotoğraf
-common_save = Kaydetmek
+common_save = Kaydet
 common_edit = Düzenle
 common_percentage = Yüzde
 common_details = Detaylar
@@ -68,15 +68,15 @@ welcome_title = Gem Ailesine Hoş Geldiniz
 
 wallet_create_new_wallet = Yeni Cüzdan Oluştur
 wallet_import_existing_wallet = Mevcut Bir Cüzdanı İçe Aktarma
-wallet_send = Göndermek
-wallet_receive = Aldığın
-wallet_buy = %s Satın Al
+wallet_send = Gönder
+wallet_receive = Al
+wallet_buy = Satın Al
 wallet_swap = Takas
 wallet_import_title = Cüzdanı İçe Aktar
 wallet_new_title = Yeni Cüzdan
 wallet_name = İsim
 wallet_import_action = Cüzdanı İçe Aktar
-wallet_multicoin = Çoklu Para
+wallet_multicoin = Çoklu Coin
 wallet_import_address_field = Adres veya Ad
 wallet_manage_token_list = Jetonları Yönet
 wallet_scan_qr_code = QR Kodunu Tara
@@ -85,18 +85,18 @@ wallet_default_name = Cüzdan # %d
 wallet_default_name_chain = %@ Cüzdan # %d
 wallet_copy_address = Adresi Kopyala
 wallet_watch_tooltip_title = Bu cüzdanı izliyorsunuz.
-wallet_stake = Bahis
+wallet_stake = Stake
 wallet_receive_no_memo_required = Memo gerekli değil
-wallet_receive_no_destination_tag_required = Miktar gereklidir
+wallet_receive_no_destination_tag_required = Hedef etiketi gerekmiyor
 wallet_title = Cüzdan
 wallet_add_token_title = Jeton Ekle
-wallet_sell = Satmak
+wallet_sell = Sat
 wallet_receive_collection = Koleksiyon Al
-wallet_more = Daha
+wallet_more = Daha Fazla
 wallet_import_contract_address_field = Sözleşme veya Token ID
 wallet_import_address_warning = Bu adrese ait bakiyeleri ve işlemleri görüntüleyebilirsiniz, ancak **para gönderemez veya satamazsınız**.
-wallet_deposit = Mevduat
-wallet_withdraw = Geri çekilmek
+wallet_deposit = Para Yatır
+wallet_withdraw = Para Çek
 wallet_available_balance = Mevcut: %@
 wallet_portfolio_title = Portföy
 wallet_import_already_imported_message = Bu cüzdan zaten içe aktarıldı.
@@ -109,37 +109,37 @@ wallets_watch = İzle
 # Receive
 
 receive_title = %@ alın
-receive_warning = Bu sizin adresiniz — sadece bu adrese gönderin. %@ üzerinde %@ ağ.
+receive_warning = Bu sizin adresiniz — yalnızca %@ varlığını %@ ağında gönderin.
 
 # Buy
 
 buy_title = %@ satın al
 buy_providers_title = Sağlayıcılar
-buy_rate = Uygulamayı Değerlendirin
-buy_no_results = Alıntılar mevcut değil
+buy_rate = Kur
+buy_no_results = Teklif bulunamadı
 
 # Transfer
 
-transfer_network_fee = Ağ
-transfer_memo = Hafıza
-transfer_confirm = Onaylamak
+transfer_network_fee = Ağ Ücreti
+transfer_memo = Memo
+transfer_confirm = Onayla
 transfer_from = Kimden
-transfer_to = İle
-transfer_max = Maksimum
+transfer_to = Kime
+transfer_max = Maks
 transfer_network = Ağ
 transfer_recipient_title = Alıcı
 transfer_balance = Bakiye: %@
 transfer_title = Aktar
 transfer_recipient_address_field = Adres veya Ad
-transfer_send_title = gönder
+transfer_send_title = Gönder
 transfer_insufficient_balance = Yetersiz %@ bakiye.
-transfer_insufficient_network_fee_balance = Yetersiz %@ bakiye.
-transfer_approve_title = Onaylamak
-transfer_stake_title = Bahis
+transfer_insufficient_network_fee_balance = Ağ ücretlerini karşılamak için yetersiz %@ bakiyesi.
+transfer_approve_title = Onayla
+transfer_stake_title = Stake
 transfer_claim_rewards_title = Ödüller
-transfer_unstake_title = Bahisleri kaldırmak
-transfer_redelegate_title = Yeniden delege etme
-transfer_withdraw_title = Çekil
+transfer_unstake_title = Stake'i Kaldır
+transfer_redelegate_title = Yeniden Delege Et
+transfer_withdraw_title = Para Çek
 transfer_rewards_title = Ödüller
 transfer_minimum_amount = Minimum Tutar %@
 transfer_activate_asset_title = Varlığı Etkinleştir
@@ -150,8 +150,8 @@ transfer_smart_contract_title = Akıllı Sözleşme
 transfer_other_title = Diğer
 transfer_maximum_amount = Maksimum Tutar %@
 transfer_reserved_fees = Gelecekteki ağ ücretlerini karşılamak için bakiyenizde %@ bıraktık.
-transfer_freeze_title = Donmak
-transfer_unfreeze_title = Çözmek
+transfer_freeze_title = Dondur
+transfer_unfreeze_title = Çöz
 transfer_sign_transaction_title = İmza İşlemi
 transfer_review_request = İnceleme Talebi
 transfer_amount = Miktar
@@ -161,7 +161,7 @@ transfer_amount_title = Miktar
 
 settings_terms_of_services = Hizmet Şartları
 settings_privacy_policy = Gizlilik Politikası
-settings_title = Ayarları aç
+settings_title = Ayarlar
 settings_developer = Geliştirici
 settings_version = Sürüm
 settings_community = Toplum
@@ -201,12 +201,12 @@ errors_validation = Doğrulama Hatası: %@
 errors_create_wallet = Cüzdan Oluşturma Hatası: %@
 errors_invalid_address_name = Geçersiz adres veya ad
 errors_invalid_amount = Geçersiz tutar
-errors_token_invalid_id = Geçersiz adres veya ad
+errors_token_invalid_id = Geçersiz Jeton Kimliği
 errors_import_invalid_secret_phrase = Geçersiz Gizli İfade
 errors_import_invalid_secret_phrase_word = Geçersiz Gizli İfade kelimesi: %@
 errors_invalid_url = Geçersiz URL
-errors_error_occured = Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.
-errors_invalid_network_id = Geçersiz adres veya ad
+errors_error_occured = Bir hata oluştu!
+errors_invalid_network_id = Geçersiz Ağ Kimliği
 errors_error = Hata
 errors_connections_user_cancelled = Kullanıcı iptal etti
 errors_not_supported = Desteklenmiyor
@@ -216,7 +216,7 @@ errors_unknown = Bilinmeyen
 errors_not_supported_qr = Bu cihaz QR kod taramasını desteklemiyor. Kütüphaneden yalnızca QR kod görüntüsünü seçebilirsiniz.
 errors_camera_permissions_not_granted = Kamera izni verilmedi. Lütfen QR kodunu taramak için ayarlarda kamera erişimini etkinleştirin.
 errors_decoding_qr = QR kodu çözülemedi. Lütfen farklı bir QR koduyla tekrar deneyin.
-errors_transfer_error = Aktar
+errors_transfer_error = Transfer Hatası
 errors_unable_estimate_network_fee = Şu anda ağ ücretini hesaplayamıyoruz.
 errors_invalid_asset_address = Geçersiz %@ adresi
 errors_dust_threshold = İşlem, tutarın %@ ağının minimum gereksinimini (toz eşiği) karşılamak için çok küçük olması nedeniyle başarısız oldu. Bu sınır, işlem değerinin ücretleri ve işlem maliyetlerini karşılamasını sağlar.
@@ -242,7 +242,7 @@ errors_dust_threshold_short = Ağ bu miktarı toz olarak değerlendiriyor; ücre
 errors_swap_minimum_amount = Minimum işlem tutarı %@. Lütfen daha yüksek bir tutar girin.
 errors_perpetual_trigger_price_lower = Tetikleme fiyatı piyasa fiyatından düşük olmalıdır
 errors_perpetual_trigger_price_higher = Tetikleme fiyatı piyasa fiyatından yüksek olmalıdır
-errors_token_unable_fetch_token_information = Belirteç bilgileri getirilemiyor: %@
+errors_token_unable_fetch_token_information = Jeton bilgileri getirilemiyor: %@
 errors_unknown_try_again = Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.
 errors_network_error = Ağ hatası: %@
 errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
@@ -270,13 +270,13 @@ update_app_downloading = İndiriliyor...
 transaction_recipient = Alıcı
 transaction_sender = Gönderen
 transaction_date = Tarih
-transaction_view_on = %@ tarihinde görüntüle
+transaction_view_on = %@ üzerinde görüntüle
 transaction_status = Durum
 transaction_status_confirmed = Başarılı
 transaction_status_pending = Beklemede
-transaction_status_failed = Arızalı
+transaction_status_failed = Başarısız
 transaction_status_reverted = Geri alındı
-transaction_title_received = Kabul edilmiş
+transaction_title_received = Alındı
 transaction_title_sent = Gönderilmiş
 transaction_swap_again = Tekrar Değiştir
 transaction_status_completed = Tamamlandı
@@ -294,12 +294,12 @@ asset_market_cap_rank = Piyasa Değeri Sıralaması
 asset_total_supply = Toplam Arz
 asset_circulating_supply = Dolaşımdaki Tedarik
 asset_balances_reserved = Rezerve
-asset_view_token_on = %@ tarihinde görüntüle
+asset_view_token_on = Jetonu %@ üzerinde görüntüle
 asset_view_address_on = %@ üzerinde adresi görüntüle
 asset_name = İsim
 asset_symbol = Sembol
 asset_decimals = Ondalıklar
-asset_token_id = Jeton Ekle
+asset_token_id = Jeton Kimliği
 asset_contract = Sözleşme
 asset_state_empty_title = İşlemleriniz burada görünecek️
 asset_state_empty_description = %@ alın, takas edin veya satın alın
@@ -322,13 +322,13 @@ charts_hour = 1S
 charts_week = 1H
 charts_month = 1M
 charts_year = 1Y
-charts_all = Tüm
+charts_all = Tümü
 charts_entry = Giriş
 charts_price_open = Açık
 charts_price_close = Kapalı
 charts_price_high = Yüksek
 charts_price_low = Düşük
-charts_price_change = Değiştirmek
+charts_price_change = Değişim
 
 # Date
 
@@ -354,10 +354,10 @@ wallet_connect_permissions_approval_requests = Onay isteklerini gönderin
 # Swap
 
 swap_you_pay = Öde
-swap_you_receive = Aldığın
+swap_you_receive = Alacağın
 swap_price_impact = Fiyat Etkisi
 swap_slippage = Kayma
-swap_price_impact_warning_description = Bu işlemde %@ 'inizin %@ 'ini kaybedeceksiniz. Devam etmek istediğinizden emin misiniz?
+swap_price_impact_warning_description = Bu işlemde %@ kaybedeceksiniz; bu, %@ varlığınızın bir kısmıdır. Devam etmek istediğinizden emin misiniz?
 swap_price_impact_warning_title = Yüksek Fiyat Etkisi
 swap_estimated_time_title = Tahmini Süre
 swap_min_receive = Alınacak minimum
@@ -370,19 +370,19 @@ stake_pending = Beklemede
 stake_rewards = Ödüller
 stake_validator = Doğrulayıcı
 stake_validators = Doğrulayıcılar
-stake_apr = NİSAN %@
-stake_available_in = Uygun
+stake_apr = APR %@
+stake_available_in = Şu süre içinde
 stake_inactive = Etkin değil
 stake_lock_time = Kilit Zamanı
 stake_activating = Etkinleştiriliyor
 stake_deactivating = Devre dışı bırakılıyor
 stake_awaiting_withdrawal = Para Çekme Bekleniyor
-stake_active_in = Aktif
+stake_active_in = Şunda aktif olur
 stake_minimum_amount = Minimum miktar
-stake_viagem = Gem Cüzdanı aracılığıyla stake etme
+stake_viagem = Gem Wallet ile stake et
 stake_no_active_staking = Henüz aktif staking yok.
-stake_state_empty_title = Bahisleriniz burada görünecek
-stake_state_empty_description = İlk %@ bahsinizi yapın
+stake_state_empty_title = Stake'leriniz burada görünecek
+stake_state_empty_description = İlk %@ stake'inizi yapın
 stake_resource = Kaynak
 stake_resource_energy = Enerji
 stake_resource_bandwidth = Bant genişliği
@@ -391,7 +391,7 @@ stake_delegations = Yetkilendirmeler
 # Assets
 
 assets_no_assets_found = Sonuç bulunamadı
-assets_add_custom_token = Jeton Ekle
+assets_add_custom_token = Özel Jeton Ekle
 assets_select_asset = Varlık Seç
 assets_popular = Popüler varlıklar
 assets_tags_trending = Trend olan
@@ -404,7 +404,7 @@ assets_title = Varlıklar
 
 # Sign Message
 
-sign_message_title = İleti
+sign_message_title = Mesajı İmzala
 sign_message_message = İleti
 sign_message_view_full_message = Mesajın Tamamını Görüntüle
 
@@ -438,12 +438,12 @@ social_coinmarketcap = CoinMarketCap
 
 # Nodes
 
-nodes_import_node_title = Jeton Ekle
+nodes_import_node_title = Düğüm Ekle
 nodes_import_node_chain_id = Zincir Kimliği
 nodes_import_node_in_sync = Senkronize
-nodes_import_node_latest_block = Son İşlemler
+nodes_import_node_latest_block = Son Blok
 nodes_import_node_latency = Gecikme
-nodes_gem_wallet_node = Gem Cüzdan Düğümü
+nodes_gem_wallet_node = Gem Wallet Düğümü
 nodes_import_node_warning_message = Özel düğümler kötü amaçlı olabilir ve işlem verilerinizi ifşa edebilir veya yanlış bilgi sağlayabilir.
 
 # Library
@@ -484,18 +484,18 @@ banner_perpetuals_description = Hyperliquid kalıcı varlıklarıyla para yatır
 filter_clear = Temizle
 filter_title = Filtreler
 filter_types = Türler
-filter_has_balance = Dengesi var
+filter_has_balance = Bakiyesi var
 
 # Price Alerts
 
 price_alerts_enabled_for = %@ için fiyat uyarısı etkinleştirildi
 price_alerts_disabled_for = Fiyat uyarısı %@ için devre dışı bırakıldı
 price_alerts_get_notified_explain_message = Favori kripto varlıklarınızda önemli bir fiyat değişikliği olduğunda bildirim alın.
-price_alerts_direction_over = Bitti
+price_alerts_direction_over = Üzeri
 price_alerts_direction_under = Altında
-price_alerts_direction_increases_by = Artışlar
+price_alerts_direction_increases_by = Artış
 price_alerts_direction_decreases_by = Azalır
-price_alerts_set_alert_price_over = Fiyat bittiğinde
+price_alerts_set_alert_price_over = Fiyat şunun üzerindeyken
 price_alerts_set_alert_price_under = Fiyat düşük olduğunda
 price_alerts_set_alert_price_increases_by = Fiyat arttığında
 price_alerts_set_alert_price_decreases_by = Fiyat düştüğünde
@@ -534,7 +534,7 @@ sell_title = %@ sat
 
 # Info
 
-info_network_fee_title = Ağ
+info_network_fee_title = Ağ Ücreti
 info_watch_wallet_title = Cüzdanı İzle
 info_watch_wallet_description = Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.
 info_network_fee_description = %@ ağındaki her işlem, işleminizi gerçekleştirmek için madencilere Gem Wallet'a değil, %@ tutarında bir ücret ödenmesini gerektirir. Ağ ücretleri ağ kullanımına göre değişir.
@@ -547,7 +547,7 @@ info_slippage_description = Kayma, bir işlemin beklenen fiyatı ile gerçekleş
 info_asset_status_unverified_description = Doğrulanmamış token'lar güvenilir üçüncü taraf hizmetleri tarafından yeterince doğrulanmamıştır. Airdrop'lar, transferler veya manuel içe aktarmalar nedeniyle cüzdanınızda görünebilirler.
 info_asset_status_suspicious_description = Şüpheli veya spam token'lar potansiyel dolandırıcılık veya zararlı varlıklar olarak tanımlanır. Airdrop'lar, transferler veya manuel ithalatlar nedeniyle cüzdanınızda görünebilirler.
 info_insufficient_network_fee_balance_title = %@ gerekli
-info_insufficient_network_fee_balance_description = Bu işlem %@ 'un %@ madencilerine ödenen ağ ücretini karşılamasını gerektirir, Gem Walletdeğil. Yeterli %@olduğundan emin olun.
+info_insufficient_network_fee_balance_description = Bu işlem %@ 'un %@ madencilerine ödenen ağ ücretini karşılamasını gerektirir, Gem Wallet değil. Yeterli %@ olduğundan emin olun.
 info_insufficient_balance_title = Yetersiz Bakiye
 info_insufficient_balance_description = Bu işlemi tamamlamak için yeterli %@ iniz yok. Lütfen cüzdanınıza para yükleyin, alın veya takas edin ve tekrar deneyin.
 info_account_minimum_balance_title = Minimum bakiye
@@ -588,7 +588,7 @@ nft_save_to_photos = Fotoğraflara Kaydet
 nft_set_as_avatar = Avatar olarak ayarla
 nft_state_empty_title = NFT'leriniz burada görünecek️
 nft_state_empty_description = İlk NFT'nizi alın
-nft_report_reason_spam = İstenmeyen e-posta
+nft_report_reason_spam = Spam
 nft_report_reason_malicious = Kötü niyetli
 nft_report_reason_inappropriate = Uygunsuz İçerik
 nft_report_reason_copyright = Telif hakkı
@@ -615,7 +615,7 @@ networks_state_empty_search_title = Hiçbir ağ bulunamadı
 
 # Onboarding
 
-onboarding_security_create_wallet_intro_title = Gizli bir Cümle alacaksınız; bu, cüzdanınıza erişmenin tek yoludur.
+onboarding_security_create_wallet_intro_title = Gizli bir İfade alacaksınız; bu, cüzdanınıza erişmenin tek yoludur.
 onboarding_security_create_wallet_confirm_title = Anlıyorum ve devam etmek istiyorum
 onboarding_security_create_wallet_do_not_share_title = Kimseyle Paylaşmayın
 onboarding_security_create_wallet_do_not_share_subtitle = Gizli cümlenizi ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir.
@@ -639,8 +639,8 @@ brand_name = Gem Wallet
 perpetual_positions = Pozisyonlar
 perpetual_size = Boyut
 perpetual_margin = Marj
-perpetual_position = Konum
-perpetual_close_position = Yakın pozisyon
+perpetual_position = Pozisyon
+perpetual_close_position = Pozisyonu Kapat
 perpetual_pnl = PnL
 perpetual_long = Uzun
 perpetual_short = Kısa
@@ -668,7 +668,7 @@ perpetual_value = Değer
 perpetual_unrealized_pnl = Gerçekleşmemiş Kar ve Zarar
 perpetual_volume = Hacim
 perpetual_all_time_pnl = Tüm Zamanların Kar ve Zarar Tablosu
-perpetual_margin_usage = Kenar Boşluğu Kullanımı
+perpetual_margin_usage = Marj Kullanımı
 perpetual_account_leverage = Hesap Kaldıraç
 perpetual_margin_cross = Çapraz
 perpetual_margin_isolated = İzole
@@ -711,7 +711,7 @@ rewards_unverified_description = Uygulamayı daha çok kullandıkça ödüller o
 
 # Recent Activity
 
-recent_activity_title = Son Haberler
+recent_activity_title = Son Kullanılanlar
 recent_activity_state_empty_title = Son aramalarınız burada görünecek
 recent_activity_state_empty_description = Yakın zamanda kullandığınız varlıklar burada görünecek
 
@@ -738,7 +738,7 @@ contacts_add_to_contacts = Kişilere Ekle
 # Simulation
 
 simulation_header_unlimited_asset = Sınırsız %@
-simulation_warning_unlimited_token_approval_description = Bu, harcama yapan kişiye, siz onayı iptal edene veya süresi dolana kadar bu belirteci kullanma erişimi sağlar.
+simulation_warning_unlimited_token_approval_description = Bu, harcayan tarafa, siz onayı iptal edene veya süresi dolana kadar bu jetonu kullanma erişimi sağlar.
 simulation_warning_externally_owned_spender_description = Bu onay, normal bir cüzdan adresinin (EOA) varlıklarınızı kullanmasına izin verir. Yalnızca bu adrese güveniyorsanız onaylayın.
 simulation_warning_nft_collection_approval_title = NFT koleksiyonunun tamamına erişim talep edildi.
 simulation_warning_unlimited_token_approval_title = Sınırsız token onayı

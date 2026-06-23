@@ -19,7 +19,7 @@ common_hide = Boye
 common_wallet = Wallet
 common_show = Nuna %@
 common_copied = An Kwafi: %@
-common_recommended = Nasiha
+common_recommended = An ba da shawarar
 common_all = Duka
 common_not_available = Babu
 common_phrase = Jumla
@@ -85,7 +85,7 @@ wallet_default_name = Wallet #%d
 wallet_default_name_chain = %@ Wallet #%d
 wallet_copy_address = Kwafi Adireshin
 wallet_watch_tooltip_title = Kuna kallon wannan walat.
-wallet_stake = Rago
+wallet_stake = Saka hannun jari
 wallet_receive_no_memo_required = Babu memo da ake buƙata
 wallet_receive_no_destination_tag_required = Babu alamar makoma da ake buƙata
 wallet_title = Wallet
@@ -98,7 +98,7 @@ wallet_import_address_warning = Kuna iya duba ma'auni da ma'amaloli don wannan a
 wallet_deposit = Ajiya
 wallet_withdraw = Janyewa
 wallet_available_balance = Akwai: %@
-wallet_portfolio_title = Fayil ɗin Fayil
+wallet_portfolio_title = Fayil ɗin Kadari
 wallet_import_already_imported_message = An riga an shigo da wannan walat ɗin.
 
 # Wallets
@@ -129,13 +129,13 @@ transfer_max = Max
 transfer_network = Cibiyar sadarwa
 transfer_recipient_title = Mai karɓa
 transfer_balance = Ma'auni: %@
-transfer_title = Canja wurin
+transfer_title = Canja wuri
 transfer_recipient_address_field = Adireshi ko Suna
 transfer_send_title = Aika
 transfer_insufficient_balance = Rashin isassun ma'auni %@.
 transfer_insufficient_network_fee_balance = Rashin isassun ma'auni %@ don biyan kuɗin hanyar sadarwa.
 transfer_approve_title = Amincewa
-transfer_stake_title = Rago
+transfer_stake_title = Saka Hannun Jari
 transfer_claim_rewards_title = Da'awar Lada
 transfer_unstake_title = Cire hannun jari
 transfer_redelegate_title = Sake wakilci
@@ -208,7 +208,7 @@ errors_invalid_url = URL mara inganci
 errors_error_occured = An sami kuskure!
 errors_invalid_network_id = ID na hanyar sadarwa mara inganci
 errors_error = Kuskure
-errors_connections_user_cancelled = An soke mai amfani
+errors_connections_user_cancelled = Mai amfani ya soke
 errors_not_supported = Ba a Tallafawa
 errors_permissions_not_granted = Ba a Ba da izini ba
 errors_decoding = Kuskuren yankewa
@@ -245,12 +245,12 @@ errors_perpetual_trigger_price_higher = Farashin kunnawa ya kamata ya zama sama 
 errors_token_unable_fetch_token_information = Ba a iya samo bayanan alamar: %@
 errors_unknown_try_again = An sami kuskuren da ba a sani ba. Da fatan za a sake gwadawa.
 errors_network_error = Kuskuren hanyar sadarwa: %@
-errors_network_offline = Haɗin intanet ɗin ya bayyana a layi.
+errors_network_offline = Da alama haɗin intanet ɗin ya katse.
 
 # Activity
 
 activity_title = Ayyuka
-activity_state_empty_title = Ayyukanku zai bayyana a nan
+activity_state_empty_title = Ayyukanku za su bayyana a nan
 activity_state_empty_description = Yi ciniki na farko
 activity_state_empty_search_description = Share masu tacewa don sabunta ayyukanku
 activity_state_empty_search_title = Babu ayyukan da aka samu
@@ -275,12 +275,12 @@ transaction_status = Matsayi
 transaction_status_confirmed = Nasara
 transaction_status_pending = Ana jiran
 transaction_status_failed = Ba a yi nasara ba
-transaction_status_reverted = Komawa
+transaction_status_reverted = An mayar
 transaction_title_received = An karɓa
 transaction_title_sent = An aika
-transaction_swap_again = Sauke Sake
+transaction_swap_again = Sake Musanya
 transaction_status_completed = An kammala
-transaction_status_inprogress = Ana kai
+transaction_status_inprogress = Ana ci gaba
 transaction_status_refunded = An mayar da kuɗi
 
 # Asset
@@ -288,10 +288,10 @@ transaction_status_refunded = An mayar da kuɗi
 asset_balances = Ma'auni
 asset_balances_available = Akwai
 asset_price = Farashin
-asset_market_cap = Kasuwa Cap
+asset_market_cap = Ƙimar Kasuwa
 asset_trading_volume = Girman Kasuwanci (24h)
 asset_market_cap_rank = Matsayin Kasuwa
-asset_total_supply = Jimlar Kayyade
+asset_total_supply = Jimlar Wadata
 asset_circulating_supply = Wadatar Dawowa
 asset_balances_reserved = Ajiye
 asset_view_token_on = Duba alamar akan %@
@@ -301,7 +301,7 @@ asset_symbol = Alama
 asset_decimals = Decimals
 asset_token_id = ID na Alamar
 asset_contract = Kwangila
-asset_state_empty_title = Kasuwancin ku zai bayyana a nan️
+asset_state_empty_title = Ma'amalolinku za su bayyana a nan️
 asset_state_empty_description = Karɓa, musanya ko siya %@
 asset_verification_unverified = Ba a tantance ba
 asset_verification_suspicious = Abin tuhuma
@@ -311,8 +311,8 @@ asset_buy_asset = Sayi %@
 asset_add_to_wallet = Ƙara zuwa walat
 asset_hide_from_wallet = Boye daga walat
 asset_resources = Albarkatu
-asset_verification_verified = Tabbatarwa
-asset_all_time_high = Babban Lokaci
+asset_verification_verified = An tantance
+asset_all_time_high = Mafi Girma a Kowane Lokaci
 asset_all_time_low = Ƙasa a Kowane Lokaci
 
 # Charts
@@ -353,7 +353,7 @@ wallet_connect_permissions_approval_requests = Aika buƙatun amincewa
 
 # Swap
 
-swap_you_pay = Ka Bayar
+swap_you_pay = Kuna Biya
 swap_you_receive = Kuna karba
 swap_price_impact = Tasirin Farashin
 swap_slippage = Zamewa
@@ -379,14 +379,14 @@ stake_deactivating = Yana kashewa
 stake_awaiting_withdrawal = Ana jiran Janyewa
 stake_active_in = Active In
 stake_minimum_amount = Mafi ƙarancin adadin
-stake_viagem = Hannun jari ta hanyar Gem Wallet
+stake_viagem = Saka hannun jari ta Gem Wallet
 stake_no_active_staking = Har yanzu babu wani saka hannun jari.
 stake_state_empty_title = Hannun jarinku zai bayyana a nan
 stake_state_empty_description = Bada %@ na farko
 stake_resource = Albarkatu
 stake_resource_energy = Makamashi
 stake_resource_bandwidth = Bandwidth
-stake_delegations = Wakilai
+stake_delegations = Wakilci
 
 # Assets
 
@@ -477,7 +477,7 @@ banner_asset_status_description = Alamar na iya zama mara lafiya ko yaudara. Ci 
 banner_onboarding_title = Walat ɗin ku yana shirye
 banner_onboarding_description = Sayi ko Karɓar crypto don farawa
 banner_perpetuals_title = Ciniki Perpetuals akan Hyperliquid
-banner_perpetuals_description = Ajiye, kasuwanci, da riba tare da har abada Hyperliquid
+banner_perpetuals_description = Ajiye, kasuwanci, da samun riba tare da Hyperliquid perpetuals
 
 # Filter
 
@@ -491,11 +491,11 @@ filter_has_balance = Yana da ma'auni
 price_alerts_enabled_for = An kunna faɗakarwar farashi don %@
 price_alerts_disabled_for = An kashe faɗakarwar farashi don %@
 price_alerts_get_notified_explain_message = Samun sanarwa lokacin da akwai gagarumin canjin farashi a cikin kadarorin crypto da kuka fi so.
-price_alerts_direction_over = Ƙarshe
+price_alerts_direction_over = Sama
 price_alerts_direction_under = Karkashin
 price_alerts_direction_increases_by = Yana ƙaruwa ta
 price_alerts_direction_decreases_by = Ragewa ta
-price_alerts_set_alert_price_over = Lokacin da farashin ya ƙare
+price_alerts_set_alert_price_over = Lokacin da farashin ya wuce
 price_alerts_set_alert_price_under = Lokacin da farashin ke ƙasa
 price_alerts_set_alert_price_increases_by = Lokacin da farashin ya ƙaru da
 price_alerts_set_alert_price_decreases_by = Lokacin da farashin ya ragu da
@@ -541,22 +541,22 @@ info_network_fee_description = Kowace ciniki akan hanyar sadarwar %@ tana buƙat
 info_transaction_error_description = Ba za a iya kammala cinikin ba saboda kuskure, kamar rashin isassun kuɗi, shigarwa mara inganci, ko kin amincewa da hanyar sadarwa. Da fatan za a sake nazarin cikakkun bayanai kuma a sake gwadawa.
 info_transaction_pending_description = An ƙaddamar da ma'amala kuma yana jiran tabbaci akan hanyar sadarwar. Lokutan sarrafawa na iya bambanta. Da fatan za a duba baya don sabuntawa.
 info_transaction_success_description = An kammala cinikin kuma an tabbatar da shi akan hanyar sadarwa. Kuna iya duba cikakkun bayanai don tabbatar da matsayinsa.
-info_lock_time_description = Lokacin kulle, wanda kuma aka sani da lokacin kwancewa ko rashin daskarewa, shine tsawon lokacin da kadarorin da ke hannun jari ba su isa ba bayan kun yanke shawarar cire su.
+info_lock_time_description = Lokacin kulle, wanda kuma aka sani da lokacin kwancewa ko rashin daskarewa, shine tsawon lokacin da kadarorin da aka saka ba a iya samun su bayan kun yanke shawarar cire su.
 info_price_impact_description = Tasirin farashi shine canjin farashin alamar da girman cinikin ku ya haifar. Tasirin farashi mafi girma yana nufin ka karɓi ƴan alamu saboda ƙarancin kuɗi ko girman oda.
-info_slippage_description = Slippage yana nufin bambanci tsakanin farashin ciniki da ake tsammani da ainihin farashin da ake aiwatar da shi.
+info_slippage_description = Zamewa yana nufin bambanci tsakanin farashin ciniki da ake tsammani da ainihin farashin da ake aiwatar da shi.
 info_asset_status_unverified_description = Amintattun ayyuka na ɓangare na uku ba su tabbatar da isassun alamun da ba a tantance ba. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.
 info_asset_status_suspicious_description = Ana gano alamun tuhuma ko spam a matsayin masu yuwuwar zamba ko kadarorin cutarwa. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.
 info_insufficient_network_fee_balance_title = %@ ake bukata
-info_insufficient_network_fee_balance_description = Wannan ciniki yana buƙatar %@ don biyan kuɗin hanyar sadarwa da aka biya %@ masu hakar ma'adinai, ba Gem WalletTabbatar kana da isassun kayan aiki %@.
+info_insufficient_network_fee_balance_description = Wannan ciniki yana buƙatar %@ don biyan kuɗin hanyar sadarwa da aka biya %@ masu hakar ma'adinai, ba Gem Wallet ba. Tabbatar kana da isassun %@.
 info_insufficient_balance_title = Rashin Isasshen Ma'auni
-info_insufficient_balance_description = Baku da isassun %@ don kammala wannan ciniki. Da fatan za a yi sama, karɓa, ko musanya a cikin walat ɗin ku kuma a sake gwadawa.
+info_insufficient_balance_description = Baku da isassun %@ don kammala wannan ciniki. Da fatan za a cika asusu, karɓa, ko musanya a cikin walat ɗin ku kuma a sake gwadawa.
 info_account_minimum_balance_title = Mafi ƙarancin ma'auni
 info_perpetual_funding_payments_title = Biyan Kuɗi
 info_perpetual_funding_payments_description = Biyan kuɗi kuɗi ne na lokaci-lokaci tsakanin ƴan kasuwa don kiyaye farashin kwangila na dindindin kusa da ainihin ƙimar kadara. Kudi mai kyau yana nufin matsayi mai tsawo yana biyan gajerun matsayi, yayin da kudade mara kyau yana nufin gajeren matsayi yana biyan matsayi mai tsawo.
 info_perpetual_funding_rate_title = Tallafawa
 info_perpetual_funding_rate_description = Adadin kuɗi yana ƙayyade farashin riƙe matsayi na har abada. Ana ƙididdige shi kowane sa'o'i kuma yana taimakawa kiyaye daidaiton farashi tsakanin kwangilar dindindin da farashin tabo na kadari.
 info_perpetual_liquidation_price_title = Farashin Liquidation
-info_perpetual_liquidation_price_description = Farashin ruwa shine matakin farashin wanda za'a rufe matsayin ku ta atomatik don hana ƙarin asara. Lokacin da farashin kasuwa ya kai wannan matakin, matsayin ku ya lalace kuma kuna rasa gefen ku.
+info_perpetual_liquidation_price_description = Farashin ruwa shine matakin farashin wanda za'a rufe matsayin ku ta atomatik don hana ƙarin asara. Lokacin da farashin kasuwa ya kai wannan matakin, ana share matsayin ku kuma kuna rasa margin ɗin ku.
 info_perpetual_open_interest_title = Buɗe Sha'awa
 info_perpetual_open_interest_description = Buɗaɗɗen sha'awa tana wakiltar jimillar ƙimar duk wasu fitattun kwangiloli na dindindin waɗanda ba a daidaita su ba. Yana ba da haske game da ayyukan kasuwa da yawan ruwa.
 info_no_quote_description = Ba za a iya dawo da ƙididdiga don nau'in alamar da aka zaɓa ba, maiyuwa saboda ƙarancin ƙima, ƙarancin ruwa, ko iyakan fasaha.
@@ -568,10 +568,10 @@ info_fully_diluted_valuation_title = Kimantawa Mai Cikakken Nauyi
 info_fully_diluted_valuation_description = Darajar kasuwa ta ka'ida idan duk tsabar kudi suna yawo. An ƙididdige shi azaman farashi da aka ninka ta hanyar mafi girman wadata.
 info_circulating_supply_description = Adadin tsabar kuɗi da ake da su a kasuwa a yanzu haka.
 info_total_supply_description = Jimillar tsabar kuɗin da ke akwai, gami da tsabar kuɗi da aka kulle ko aka ajiye.
-info_max_supply_title = Mafi girman wadata
+info_max_supply_title = Matsakaicin Wadata
 info_max_supply_description = Matsakaicin adadin tsabar kuɗi da za su wanzu.
 info_perpetual_funding_apr_title = Tallafin APR
-info_perpetual_funding_apr_description = Matsakaicin adadin shekara-shekara wanda masu tsayi ke biyan gajerun wando (idan mara kyau, gajerun wando suna biyan dogon lokaci). Babu wasu kudade da ke da alaƙa da kudade, wanda shine canja wuri tsakanin-tsara tsakanin masu amfani don tura farashin zuwa farashin tabo.
+info_perpetual_funding_apr_description = Matsakaicin adadin shekara-shekara wanda masu doguwa ke biyan masu gajere (idan mara kyau, masu gajere suna biyan masu doguwa). Babu wasu kudade da ke da alaƙa da kudade, wanda shine canja wuri tsakanin-tsara tsakanin masu amfani don tura farashin zuwa farashin tabo.
 info_minimum_amount_title = Mafi ƙarancin kuɗi
 info_minimum_amount_description = A kan hanyar sadarwar %@, mafi ƙarancin adadin wannan ma'amala shi ne %@.
 
@@ -675,14 +675,14 @@ perpetual_margin_isolated = Ware
 
 # Perpetuals
 
-perpetuals_title = Na dindindin
+perpetuals_title = Perpetuals
 perpetuals_markets = Kasuwanni
 perpetuals_empty_state_no_markets = Babu kasuwanni
 perpetuals_empty_state_no_markets_found = Babu kasuwanni da aka samu
 
 # Rewards
 
-rewards_title = Ladabi
+rewards_title = Lada
 rewards_share_text = Shiga Gem Wallet tare da hanyar haɗin yanar gizo na kuma sami lada: %@
 rewards_my_referral_code = Lambar da na bayar ta hanyar sadarwa
 rewards_invite_friends_title = Gayyaci Abokai
@@ -738,7 +738,7 @@ contacts_add_to_contacts = Ƙara zuwa Lambobin Sadarwa
 # Simulation
 
 simulation_header_unlimited_asset = Unlimited %@
-simulation_warning_unlimited_token_approval_description = Wannan yana ba mai kashe kuɗi damar amfani da wannan alamar har sai kun soke amincewa ko kuma ta ƙare.
+simulation_warning_unlimited_token_approval_description = Wannan yana ba mai kashewa damar amfani da wannan alamar har sai kun soke amincewa ko kuma ta ƙare.
 simulation_warning_externally_owned_spender_description = Wannan amincewar tana ba adireshin walat na yau da kullum (EOA) damar amfani da kadarorinku. Tabbatar kawai idan kun amince da wannan adireshin.
 simulation_warning_nft_collection_approval_title = An nemi cikakken damar tattara NFT
 simulation_warning_unlimited_token_approval_title = Amincewa da alamar mara iyaka
