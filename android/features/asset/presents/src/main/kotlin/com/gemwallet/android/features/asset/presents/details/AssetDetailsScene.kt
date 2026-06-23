@@ -61,7 +61,7 @@ internal fun AssetDetailsScene(
     onChart: (AssetId) -> Unit,
     openNetwork: AssetIdAction,
     onStake: (AssetId) -> Unit,
-    toggkePriceAlert: (AssetId) -> Unit,
+    togglePriceAlert: (AssetId) -> Unit,
     onPriceAlerts: (AssetId) -> Unit,
     onConfirm: (ConfirmParams) -> Unit,
     onPin: () -> Unit,
@@ -94,7 +94,7 @@ internal fun AssetDetailsScene(
                 uiState = uiState,
                 priceAlertEnabled = priceAlertEnabled,
                 snackBar = snackBar,
-                onPriceAlert = toggkePriceAlert,
+                onPriceAlert = togglePriceAlert,
             )
         },
         onClose = onCancel,

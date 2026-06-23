@@ -53,7 +53,7 @@ fun AssetDetailsScreen(
             onChart = onChart,
             openNetwork = openNetwork,
             onStake = onStake,
-            toggkePriceAlert = viewModel::enablePriceAlert,
+            togglePriceAlert = viewModel::enablePriceAlert,
             onPriceAlerts = onPriceAlerts,
             onConfirm = onConfirm,
             onPin = viewModel::pin,
