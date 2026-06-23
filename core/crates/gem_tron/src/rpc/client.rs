@@ -46,8 +46,12 @@ impl<C: Client> TronClient<C> {
         Ok(self.client.get(&format!("/wallet/gettransactionbyid?value={}", id)).await?)
     }
 
-    pub async fn get_transaction_reciept(&self, id: String) -> Result<TransactionReceiptData, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/wallet/gettransactioninfobyid?value={}", id)).await?)
+    pub async fn get_transaction_reciept(&self, id: String) -> Result<Option<TransactionReceiptData>, Box<dyn Error + Send + Sync>> {
+        let response: serde_json::Value = self.client.get(&format!("/wallet/gettransactioninfobyid?value={}", id)).await?;
+        if response.as_object().is_some_and(|object| object.is_empty()) {
+            return Ok(None);
+        }
+        Ok(Some(serde_json::from_value(response)?))
     }
 
     pub async fn trigger_constant_contract(&self, contract_address: &str, function_selector: &str, parameter: &str) -> Result<String, Box<dyn Error + Send + Sync>> {

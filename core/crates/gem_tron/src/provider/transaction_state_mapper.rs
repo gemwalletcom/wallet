@@ -4,7 +4,11 @@ use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 use crate::models::TransactionReceiptData;
 use crate::rpc::constants::{RECEIPT_FAILED, RECEIPT_OUT_OF_ENERGY};
 
-pub fn map_transaction_status(receipt: &TransactionReceiptData) -> TransactionUpdate {
+pub fn map_transaction_status(receipt: Option<&TransactionReceiptData>) -> TransactionUpdate {
+    let Some(receipt) = receipt else {
+        return TransactionUpdate::new_state(TransactionState::Pending);
+    };
+
     if let Some(receipt_result) = &receipt.receipt.result
         && (receipt_result == RECEIPT_OUT_OF_ENERGY || receipt_result == RECEIPT_FAILED)
     {
@@ -44,7 +48,7 @@ mod tests {
     fn test_map_transaction_status_confirmed() {
         let receipt = create_receipt(None, 10, Some(100));
 
-        let result = map_transaction_status(&receipt);
+        let result = map_transaction_status(Some(&receipt));
         assert_eq!(result.state, TransactionState::Confirmed);
         assert!(!result.changes.is_empty());
     }
@@ -53,7 +57,7 @@ mod tests {
     fn test_map_transaction_status_reverted_out_of_energy() {
         let receipt = create_receipt(Some(RECEIPT_OUT_OF_ENERGY), 10, Some(100));
 
-        let result = map_transaction_status(&receipt);
+        let result = map_transaction_status(Some(&receipt));
         assert_eq!(result.state, TransactionState::Reverted);
     }
 
@@ -61,7 +65,7 @@ mod tests {
     fn test_map_transaction_status_reverted_failed() {
         let receipt = create_receipt(Some(RECEIPT_FAILED), 10, Some(100));
 
-        let result = map_transaction_status(&receipt);
+        let result = map_transaction_status(Some(&receipt));
         assert_eq!(result.state, TransactionState::Reverted);
     }
 
@@ -69,7 +73,9 @@ mod tests {
     fn test_map_transaction_status_pending() {
         let receipt = create_receipt(None, 0, None);
 
-        let result = map_transaction_status(&receipt);
+        let result = map_transaction_status(Some(&receipt));
         assert_eq!(result.state, TransactionState::Pending);
+
+        assert_eq!(map_transaction_status(None).state, TransactionState::Pending);
     }
 }

@@ -1,9 +1,13 @@
 #[cfg(test)]
 use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccountPermission, TronAccountPermissionKey, TronFrozen, TronVote};
-#[cfg(all(test, feature = "chain_integration_tests"))]
+#[cfg(test)]
 use crate::rpc::client::TronClient;
+#[cfg(test)]
+use crate::rpc::trongrid::client::TronGridClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_client::ReqwestClient;
+#[cfg(test)]
+use gem_client::{ClientError, testkit::MockClient};
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -58,9 +62,14 @@ impl TronAccount {
     }
 }
 
+#[cfg(test)]
+pub fn mock_tron_client(get_handler: impl Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static) -> TronClient<MockClient> {
+    let mock = MockClient::new().with_get(get_handler);
+    TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()))
+}
+
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_test_client() -> TronClient<ReqwestClient> {
-    use crate::rpc::trongrid::client::TronGridClient;
     let settings = get_test_settings();
     let reqwest_client = ReqwestClient::new(settings.chains.tron.url, reqwest::Client::new());
     let trongrid_client = TronGridClient::new(reqwest_client.clone(), settings.trongrid.key.secret);
