@@ -8,5 +8,5 @@ import com.gemwallet.android.ui.R
 @Composable
 fun recipientErrorString(error: RecipientError): String = when (error) {
     RecipientError.None -> ""
-    RecipientError.IncorrectAddress -> stringResource(id = R.string.errors_invalid_address_name)
+    is RecipientError.IncorrectAddress -> stringResource(id = R.string.errors_invalid_asset_address, error.assetName)
 }

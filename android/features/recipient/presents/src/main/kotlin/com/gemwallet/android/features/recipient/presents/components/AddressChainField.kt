@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.recipient.presents.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +26,7 @@ import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
@@ -48,59 +48,56 @@ fun ColumnScope.AddressChainField(
     val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
 
-    Column(
-        modifier = Modifier,
-        verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
-    ) {
-        GemTextField(
+    GemTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged {
+                if (it.hasFocus) keyboardController?.show() else keyboardController?.hide()
+            },
+        value = value,
+        singleLine = true,
+        readOnly = !editable,
+        label = label,
+        onValueChange = onValueChange,
+        trailing = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+            ) {
+                when (state) {
+                    NameRecordState.Loading -> CircularProgressIndicator16()
+                    NameRecordState.Error -> Icon(
+                        modifier = Modifier.size(smallIconSize),
+                        imageVector = AppIcons.Error,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                    is NameRecordState.Complete -> Icon(
+                        modifier = Modifier.size(smallIconSize),
+                        imageVector = AppIcons.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                    )
+                    NameRecordState.None -> Unit
+                }
+                TransferTextFieldActions(
+                    value = value,
+                    paste = { (onPaste ?: onValueChange)(clipboardManager.getPlainText() ?: "") },
+                    qrScanner = onQrScanner,
+                    onClean = { onValueChange("") },
+                )
+            }
+        }
+    )
+    if (error.isNotEmpty()) {
+        Text(
             modifier = Modifier
                 .fillMaxWidth()
-                .onFocusChanged {
-                    if (it.hasFocus) keyboardController?.show() else keyboardController?.hide()
-                },
-            value = value,
-            singleLine = true,
-            readOnly = !editable,
-            label = label,
-            onValueChange = onValueChange,
-            trailing = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(paddingSmall),
-                ) {
-                    when (state) {
-                        NameRecordState.Loading -> CircularProgressIndicator16()
-                        NameRecordState.Error -> Icon(
-                            modifier = Modifier.size(smallIconSize),
-                            imageVector = AppIcons.Error,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                        is NameRecordState.Complete -> Icon(
-                            modifier = Modifier.size(smallIconSize),
-                            imageVector = AppIcons.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
-                        )
-                        NameRecordState.None -> Unit
-                    }
-                    TransferTextFieldActions(
-                        value = value,
-                        paste = { (onPaste ?: onValueChange)(clipboardManager.getPlainText() ?: "") },
-                        qrScanner = onQrScanner,
-                        onClean = { onValueChange("") },
-                    )
-                }
-            }
+                .padding(start = sceneContentPadding() + paddingDefault, end = sceneContentPadding(), top = paddingHalfSmall),
+            text = error,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
         )
-        if (error.isNotEmpty()) {
-            Text(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = sceneContentPadding()),
-                text = error,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelMedium,
-            )
-        }
     }
 }
 

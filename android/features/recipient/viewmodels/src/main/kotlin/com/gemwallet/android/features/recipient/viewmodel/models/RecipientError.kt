@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.recipient.viewmodel.models
 
-enum class RecipientError {
-    None,
-    IncorrectAddress,
+sealed interface RecipientError {
+    data object None : RecipientError
+    data class IncorrectAddress(val assetName: String) : RecipientError
 }
