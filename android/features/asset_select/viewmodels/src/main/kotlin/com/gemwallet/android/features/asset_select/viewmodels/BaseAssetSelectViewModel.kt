@@ -66,7 +66,6 @@ open class BaseAssetSelectViewModel(
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val noResultsQuery = MutableStateFlow<String?>(null)
     private val isSearching = MutableStateFlow(false)
 
     val availableChains = session
@@ -94,11 +93,7 @@ open class BaseAssetSelectViewModel(
     private val assets = combine(
         filters,
         search.items(filters),
-        noResultsQuery,
-    ) { filters, items, noResultsQuery ->
-        val query = filters?.query.orEmpty()
-        if (query.isNotEmpty() && noResultsQuery != null) return@combine emptyList()
-
+    ) { filters, items ->
         val chainFilter = filters?.chainFilter.orEmpty()
         val balanceFilter = filters?.hasBalance == true
         val wallet = session.value?.wallet
@@ -217,8 +212,7 @@ open class BaseAssetSelectViewModel(
                     isSearching.value = query.isNotEmpty()
                     try {
                         delay(SEARCH_DEBOUNCE_MS)
-                        val ok = searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
-                        noResultsQuery.value = if (ok) null else query
+                        searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
                     } finally {
                         isSearching.value = false
                     }
