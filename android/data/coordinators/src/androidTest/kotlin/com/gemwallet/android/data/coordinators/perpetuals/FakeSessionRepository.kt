@@ -35,7 +35,6 @@ class FakeSessionRepository(
                     )
                 ),
                 index = 0,
-                order = 0,
                 isPinned = false,
                 source = WalletSource.Create
             ),

@@ -11,7 +11,6 @@ material = "1.14.0"
 constraint = "1.1.1"
 web-view = "0.33.6"
 uiautomator = "2.3.0"
-reorderable = "3.1.0"
 walletconnect = "1.6.13"
 biometric = "1.2.0-alpha05"
 coilCompose = "3.4.0"
@@ -129,8 +128,6 @@ lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", v
 lifecycle-viewmodel-savedstate = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "lifecycleRuntimeCompose" }
 
 androidx-material3-adaptive-android = { group = "androidx.compose.material3", name = "material3-adaptive-android", version.ref = "material3AdaptiveAndroid" }
-
-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
 datastore = { module ="androidx.datastore:datastore-preferences", version.ref = "datastore" }
 

@@ -289,8 +289,6 @@ dependencies {
     // Auth
     implementation(libs.androidx.biometric)
 
-    implementation(libs.reorderable)
-
     // Google Play
     "googleImplementation"(project(":flavors:fcm"))
     "googleImplementation"(project(":flavors:google-review"))

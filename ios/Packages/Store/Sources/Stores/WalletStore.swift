@@ -90,24 +90,6 @@ public struct WalletStore: Sendable {
         }
     }
 
-    public func swapOrder(from: WalletId, to: WalletId) throws {
-        guard
-            let fromWallet = try getWallet(id: from),
-            let toWallet = try getWallet(id: to)
-        else {
-            throw AnyError("Unable to locate wallets to swap order")
-        }
-        return try db.write { db in
-            try WalletRecord
-                .filter(WalletRecord.Columns.id == fromWallet.id.id)
-                .updateAll(db, WalletRecord.Columns.order.set(to: toWallet.order))
-
-            try WalletRecord
-                .filter(WalletRecord.Columns.id == toWallet.id.id)
-                .updateAll(db, WalletRecord.Columns.order.set(to: fromWallet.order))
-        }
-    }
-
     public func observer() -> SubscriptionsObserver {
         SubscriptionsObserver(dbQueue: db)
     }
@@ -123,14 +105,6 @@ public struct WalletStore: Sendable {
                 .updateAll(db, assignments)
         }
     }
-
-    func setOrder(walletId: String, order: Int) throws {
-        _ = try db.write { db in
-            try WalletRecord
-                .filter(WalletRecord.Columns.id == walletId)
-                .updateAll(db, WalletRecord.Columns.order.set(to: order))
-        }
-    }
 }
 
 extension WalletRecord {
@@ -142,7 +116,6 @@ extension WalletRecord {
             index: index.asInt32,
             type: type,
             accounts: [],
-            order: order.asInt32,
             isPinned: isPinned,
             imageUrl: imageUrl,
             source: source,

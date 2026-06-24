@@ -30,7 +30,6 @@ fun DbWallet.toDTO(accounts: List<DbAccount>): Wallet {
         type = type,
         accounts = accounts.toDTO(),
         index = index,
-        order = 0,
         isPinned = pinned,
         imageUrl = imageUrl,
         source = source,

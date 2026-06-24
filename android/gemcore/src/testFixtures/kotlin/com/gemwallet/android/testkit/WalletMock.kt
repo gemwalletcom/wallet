@@ -16,7 +16,6 @@ fun mockWallet(
     index: Int = 0,
     type: WalletType = WalletType.Multicoin,
     accounts: List<Account> = emptyList(),
-    order: Int = 0,
     isPinned: Boolean = false,
     source: WalletSource = WalletSource.Create,
 ) = Wallet(
@@ -25,7 +24,6 @@ fun mockWallet(
     index = index,
     type = type,
     accounts = accounts,
-    order = order,
     isPinned = isPinned,
     source = source,
 )

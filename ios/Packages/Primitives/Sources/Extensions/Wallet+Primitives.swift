@@ -62,7 +62,6 @@ public extension Wallet {
                     extendedPublicKey: "",
                 ),
             ],
-            order: 0,
             isPinned: false,
             imageUrl: nil,
             source: .import,

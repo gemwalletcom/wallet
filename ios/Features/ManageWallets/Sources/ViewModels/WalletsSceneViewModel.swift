@@ -81,10 +81,6 @@ extension WalletsSceneViewModel {
             try service.pin(wallet: wallet)
         }
     }
-
-    private func swapOrder(from: WalletId, to: WalletId) throws {
-        try service.swapOrder(from: from, to: to)
-    }
 }
 
 // MARK: - Actions
@@ -107,24 +103,6 @@ extension WalletsSceneViewModel {
     func onSelect(wallet: Wallet, dismiss: DismissAction) {
         setCurrent(wallet.id)
         dismiss()
-    }
-
-    func onMovePinned(from source: IndexSet, to destination: Int) {
-        guard let source = source.first else { return }
-        do {
-            try performSwapOrder(wallets: pinnedWallets, source: source, destination: destination)
-        } catch {
-            debugLog("WalletsSceneViewModel move pinned error: \(error)")
-        }
-    }
-
-    func onMove(from source: IndexSet, to destination: Int) {
-        guard let source = source.first else { return }
-        do {
-            try performSwapOrder(wallets: wallets, source: source, destination: destination)
-        } catch {
-            debugLog("WalletsSceneViewModel move error: \(error)")
-        }
     }
 
     func onDelete(wallet: Wallet) {
@@ -162,34 +140,5 @@ extension WalletsSceneViewModel {
             return false
         }
         return true
-    }
-
-    private func performSwapOrder(wallets: [Wallet], source: Int, destination: Int) throws {
-        guard source != destination else { return }
-
-        let from = try wallets.getElement(safe: source)
-        if source - destination == 1 { // if next to each other, swap
-            let to = try wallets.getElement(safe: destination)
-            try swapOrder(
-                from: from.id,
-                to: to.id,
-            )
-        } else if source == 0 || wallets.count == destination { // moving to last position
-            for i in source ..< destination - 1 {
-                let to = try wallets.getElement(safe: i + 1)
-                try swapOrder(
-                    from: from.id,
-                    to: to.id,
-                )
-            }
-        } else if source == wallets.count - 1 { // moving to the first position
-            for i in stride(from: wallets.count - 1, through: destination + 1, by: -1) {
-                let to = try wallets.getElement(safe: i - 1)
-                try swapOrder(
-                    from: from.id,
-                    to: to.id,
-                )
-            }
-        }
     }
 }

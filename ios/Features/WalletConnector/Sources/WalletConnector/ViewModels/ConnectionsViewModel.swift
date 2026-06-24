@@ -57,7 +57,7 @@ public final class ConnectionsViewModel {
     var sections: [ListSection<WalletConnection>] {
         let grouped = Dictionary(grouping: connections, by: { $0.wallet })
         return grouped.keys
-            .sorted { $0.order < $1.order }
+            .sorted { $0.index < $1.index }
             .map { wallet in
                 ListSection(
                     id: wallet.id.id,

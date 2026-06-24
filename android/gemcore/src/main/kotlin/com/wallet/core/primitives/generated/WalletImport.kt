@@ -13,3 +13,4 @@ data class WalletImport (
 	val walletType: WalletType,
 	val accounts: List<Account>
 )
+

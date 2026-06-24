@@ -74,7 +74,7 @@ extension NewBanner {
     var record: BannerRecord {
         let wallet: Wallet? = {
             if let walletId, let id = try? WalletId.from(id: walletId) {
-                return Wallet(id: id, externalId: nil, name: "", index: 0, type: .multicoin, accounts: [], order: 0, isPinned: false, imageUrl: nil, source: .create)
+                return Wallet(id: id, externalId: nil, name: "", index: 0, type: .multicoin, accounts: [], isPinned: false, imageUrl: nil, source: .create)
             }
             return .none
         }()

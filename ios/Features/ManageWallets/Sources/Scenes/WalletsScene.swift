@@ -52,7 +52,6 @@ public struct WalletsScene: View {
                             onDelete: model.onDelete,
                         )
                     }
-                    .onMove(perform: model.onMovePinned)
                 } header: {
                     HStack {
                         Images.System.pin
@@ -72,7 +71,6 @@ public struct WalletsScene: View {
                         onDelete: model.onDelete,
                     )
                 }
-                .onMove(perform: model.onMove)
             }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
