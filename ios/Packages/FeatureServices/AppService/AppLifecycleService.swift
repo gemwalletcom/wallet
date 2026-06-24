@@ -107,7 +107,18 @@ extension AppLifecycleService {
 
     private func connectStreamObserver() async {
         guard currentWallet != nil else { return }
+        if preferences.isDeviceRegistered == false {
+            await registerDevice()
+        }
         await streamObserverService.connect()
+    }
+
+    private func registerDevice() async {
+        do {
+            try await deviceObserverService.synchronizeIfNeeded()
+        } catch {
+            debugLog("AppLifecycleService registerDevice error: \(error)")
+        }
     }
 
     private func connectPerpetual() async {
