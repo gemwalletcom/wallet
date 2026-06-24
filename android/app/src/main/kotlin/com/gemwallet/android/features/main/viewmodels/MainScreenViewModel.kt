@@ -25,7 +25,7 @@ class MainScreenViewModel @Inject constructor(
     bridgesRepository: BridgesRepository,
     getTransactions: GetPendingTransactionsCount
 ) : ViewModel() {
-    val isWalletConnectAvailable: Boolean = bridgesRepository.isWalletConnectAvailable
+    val isWalletConnectEnabled: Boolean = bridgesRepository.isWalletConnectEnabled
 
     val pendingTxCount = sessionRepository.session()
         .filterNotNull()

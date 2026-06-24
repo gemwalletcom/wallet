@@ -223,7 +223,7 @@ fun MainScreen(
                             scrollState = settingsScrollState,
                             onSecurity = navigator::openSecurity,
                             onBridges = navigator::openBridgeConnections,
-                            walletConnectAvailable = viewModel.isWalletConnectAvailable,
+                            walletConnectEnabled = viewModel.isWalletConnectEnabled,
                             onDevelop = navigator::openDevelop,
                             onWallets = navigator::openWallets,
                             onNotifications = navigator::openNotifications,

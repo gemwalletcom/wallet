@@ -307,7 +307,6 @@ class WCAuthViewModel @Inject constructor(
     }
 
     private fun WalletConnectAuthenticationRequest.toSessionUI(): SessionUI {
-        val metadata = metadata
         return WalletConnectionSessionAppMetadata(
             name = walletConnectAppName(metadata?.name, metadata?.url),
             description = metadata?.description ?: "",

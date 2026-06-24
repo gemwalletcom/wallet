@@ -4,7 +4,7 @@ import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import kotlinx.coroutines.flow.Flow
 
 interface WalletConnectClient {
-    val isAvailable: Boolean
+    val isEnabled: Boolean
     val events: Flow<WalletConnectEvent>
 
     fun initialize(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {})

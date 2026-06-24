@@ -37,7 +37,7 @@ class ReownWalletConnectClient @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : WalletConnectClient, WalletKit.WalletDelegate, CoreClient.CoreDelegate {
 
-    override val isAvailable: Boolean = true
+    override val isEnabled: Boolean = true
 
     private val walletEvents = MutableSharedFlow<WalletConnectEvent>(
         replay = 1,

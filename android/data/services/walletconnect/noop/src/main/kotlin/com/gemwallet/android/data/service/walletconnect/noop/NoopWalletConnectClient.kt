@@ -18,7 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 class NoopWalletConnectClient @Inject constructor() : WalletConnectClient {
-    override val isAvailable: Boolean = false
+    override val isEnabled: Boolean = false
     override val events: Flow<WalletConnectEvent> = emptyFlow()
 
     override fun initialize(onSuccess: () -> Unit, onError: (String) -> Unit) = onSuccess()

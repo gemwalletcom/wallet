@@ -33,7 +33,7 @@ class BridgesRepository(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) {
 
-    val isWalletConnectAvailable: Boolean get() = walletConnectClient.isAvailable
+    val isWalletConnectEnabled: Boolean = walletConnectClient.isEnabled
 
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
