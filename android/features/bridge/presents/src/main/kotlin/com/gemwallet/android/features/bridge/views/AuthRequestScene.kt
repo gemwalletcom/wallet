@@ -19,6 +19,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.bridge.viewmodels.AuthSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
 import com.gemwallet.android.model.AuthRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
@@ -35,12 +37,11 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsCon
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.reown.walletkit.client.Wallet
 
 @Composable
 fun AuthRequestScene(
-    request: Wallet.Model.SessionAuthenticate,
-    verifyContext: Wallet.Model.VerifyContext,
+    request: WalletConnectAuthenticationRequest,
+    verifyContext: WalletConnectVerifyContext,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current

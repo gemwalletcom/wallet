@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.WalletConnectEvent
-import com.reown.walletkit.client.Wallet
-import com.reown.walletkit.client.WalletKit
+import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,15 +40,13 @@ class WalletConnectViewModel @Inject constructor(
         _uiState.update { WalletConnectIntent.Idle }
     }
 
-    fun rejectSessionRequest(request: Wallet.Model.SessionRequest) {
-        WalletKit.respondSessionRequest(
-            params = Wallet.Params.SessionRequestResponse(
-                sessionTopic = request.topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                    id = request.request.id,
-                    code = 4001,
-                    message = "User rejected the request",
-                ),
+    fun rejectSessionRequest(request: WalletConnectSessionRequest) {
+        bridgesRepository.respondSessionRequest(
+            topic = request.topic,
+            id = request.request.id,
+            response = WalletConnectJsonRpcResponse.Error(
+                code = 4001,
+                message = "User rejected the request",
             ),
             onSuccess = {},
             onError = {},
@@ -53,12 +54,12 @@ class WalletConnectViewModel @Inject constructor(
         onCancel()
     }
 
-    fun rejectSessionProposal(proposal: Wallet.Model.SessionProposal) {
+    fun rejectSessionProposal(proposal: WalletConnectSessionProposal) {
         bridgesRepository.rejectConnection(proposal, onSuccess = {}, onError = {})
         onCancel()
     }
 
-    fun rejectSessionAuthenticate(request: Wallet.Model.SessionAuthenticate) {
+    fun rejectSessionAuthenticate(request: WalletConnectAuthenticationRequest) {
         bridgesRepository.rejectAuthentication(request, onSuccess = {}, onError = {})
         onCancel()
     }
@@ -76,28 +77,24 @@ sealed interface WalletConnectIntent {
         override val requiresUserAction = false
     }
 
-    class SessionRequest(val request: Wallet.Model.SessionRequest, val verifyContext: Wallet.Model.VerifyContext?) : WalletConnectIntent {
+    class SessionRequest(val request: WalletConnectSessionRequest, val verifyContext: WalletConnectVerifyContext?) : WalletConnectIntent {
         override val requiresUserAction = true
     }
 
-    class AuthRequest(val request: Wallet.Model.SessionAuthenticate, val verifyContext: Wallet.Model.VerifyContext?) : WalletConnectIntent {
+    class AuthRequest(val request: WalletConnectAuthenticationRequest, val verifyContext: WalletConnectVerifyContext?) : WalletConnectIntent {
         override val requiresUserAction = true
     }
 
-    class SessionProposal(val sessionProposal: Wallet.Model.SessionProposal, val verifyContext: Wallet.Model.VerifyContext?) : WalletConnectIntent {
+    class SessionProposal(val sessionProposal: WalletConnectSessionProposal, val verifyContext: WalletConnectVerifyContext?) : WalletConnectIntent {
         override val requiresUserAction = true
-    }
-
-    class ConnectionState(val error: String?) : WalletConnectIntent {
-        override val requiresUserAction = false
     }
 }
 
 private fun WalletConnectEvent.toUIState(): WalletConnectIntent? {
-    return when (val model = model) {
-        is Wallet.Model.SessionRequest -> WalletConnectIntent.SessionRequest(model, verifyContext)
-        is Wallet.Model.SessionAuthenticate -> WalletConnectIntent.AuthRequest(model, verifyContext)
-        is Wallet.Model.SessionProposal -> WalletConnectIntent.SessionProposal(model, verifyContext)
+    return when (this) {
+        is WalletConnectEvent.SessionRequest -> WalletConnectIntent.SessionRequest(request, verifyContext)
+        is WalletConnectEvent.AuthenticationRequest -> WalletConnectIntent.AuthRequest(request, verifyContext)
+        is WalletConnectEvent.SessionProposal -> WalletConnectIntent.SessionProposal(proposal, verifyContext)
         else -> null
     }
 }

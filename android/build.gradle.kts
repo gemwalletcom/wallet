@@ -19,9 +19,6 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
 }
 
-apply(from = "$rootDir/gradle/channels.gradle.kts")
-val firebaseEnabled: Boolean by extra
-
 allprojects {
     repositories {
         val propFile = File(rootDir.absolutePath, "local.properties")
@@ -48,10 +45,6 @@ subprojects {
         lockAllConfigurations()
     }
     configurations.configureEach {
-        if (!firebaseEnabled) {
-            exclude(group = "com.google.firebase")
-            exclude(group = "com.google.android.gms")
-        }
         resolutionStrategy.activateDependencyLocking()
     }
 }

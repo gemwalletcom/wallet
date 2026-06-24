@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
 import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
 import com.gemwallet.android.data.repositories.bridge.walletConnectNamespace
-import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet as GemWallet
 import com.wallet.core.primitives.WalletType
@@ -12,7 +12,7 @@ internal data class WalletConnectProposalChains(
     val optional: Set<Chain>,
 )
 
-internal fun Wallet.Model.SessionProposal.supportedWalletConnectProposalChains(): WalletConnectProposalChains? {
+internal fun WalletConnectSessionProposal.supportedWalletConnectProposalChains(): WalletConnectProposalChains? {
     val requiredValues = requiredNamespaces.values.flatMap { it.chains.orEmpty() }
     val requiredChains = requiredValues.mapNotNull { Chain.fromWalletConnectChainId(it) }
     if (requiredChains.size != requiredValues.size) {

@@ -1,18 +1,11 @@
 package com.gemwallet.android.data.repositories.bridge
 
-import android.app.Application
-import android.content.Context
 import androidx.core.net.toUri
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.canSign
-import com.reown.android.Core
-import com.reown.android.CoreClient
-import com.reown.android.relay.ConnectionType
-import com.reown.walletkit.client.Wallet
-import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.Wallet as GemWallet
@@ -21,27 +14,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.WalletConnect
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BridgesRepository(
-    private val context: Context,
     private val walletsRepository: WalletsRepository,
     private val connectionsDao: ConnectionsDao,
+    private val walletConnectClient: WalletConnectClient,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) {
 
+    val isWalletConnectAvailable: Boolean get() = walletConnectClient.isAvailable
+
+    private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
     val bridgeEvents = isWalletConnectInit.flatMapLatest {
         if (it) {
-            WalletConnectDelegate.walletEvents
+            merge(walletConnectClient.events, pendingEvents)
         } else {
             emptyFlow()
         }
@@ -58,47 +56,27 @@ class BridgesRepository(
         }
         scope.launch(Dispatchers.IO) {
             bridgeEvents.collect { event ->
-                when (val model = event.model) {
-                    is Wallet.Model.SettledSessionResponse.Result -> addConnection(model.session)
-                    is Wallet.Model.SessionDelete.Success -> deleteConnection(model.topic)
+                when (event) {
+                    is WalletConnectEvent.SessionSettled -> addConnection(event.session)
+                    is WalletConnectEvent.SessionDeleted -> deleteConnection(event.topic)
                     else -> Unit
                 }
             }
         }
     }
 
-    private fun initWalletConnect(onSuccess: () -> Unit = {}) {
+    private fun initWalletConnect(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         if (isWalletConnectInit.value) {
             onSuccess()
             return
         }
-
-        val projectId = "3bc07cd7179d11ea65335fb9377702b6"
-        val connectionType = ConnectionType.AUTOMATIC
-        val metaData = Core.Model.AppMetaData(
-            name = "Gem Wallet",
-            description = "Gem Web3 Wallet",
-            url = "https://gemwallet.com",
-            icons = listOf("https://gemwallet.com/images/gem-logo-256x256.png"),
-            redirect = "gem://wc/"
-        )
-        CoreClient.initialize(
-            application = context as Application,
-            projectId = projectId,
-            metaData = metaData,
-            connectionType = connectionType,
-            telemetryEnabled = false,
-        ) {
-        }
-        val initParams = Wallet.Params.Init(core = CoreClient)
-        WalletKit.initialize(
-            initParams,
-            {
-                WalletConnectDelegate.bind()
+        walletConnectClient.initialize(
+            onSuccess = {
                 isWalletConnectInit.update { true }
                 onSuccess()
-            }
-        ) { _ -> }
+            },
+            onError = onError,
+        )
     }
 
     fun getConnections(): Flow<List<WalletConnection>> {
@@ -144,21 +122,20 @@ class BridgesRepository(
 
     private fun handlePendingRequests() {
         for (session in activeSessions()) {
-            val request = WalletKit.getPendingListOfSessionRequests(session.topic)
-                .firstOrNull() ?: continue
-            val verifyContext = WalletKit.getVerifyContext(request.request.id) ?: continue
-            WalletConnectDelegate.onSessionRequest(request, verifyContext)
+            val request = walletConnectClient.pendingSessionRequests(session.topic).firstOrNull() ?: continue
+            val verifyContext = walletConnectClient.verifyContext(request.request.id) ?: continue
+            pendingEvents.tryEmit(WalletConnectEvent.SessionRequest(request, verifyContext))
         }
     }
 
     private fun pingActiveSessions() {
         for (session in activeSessions()) {
-            WalletKit.pingSession(Wallet.Params.Ping(session.topic), null)
+            walletConnectClient.pingSession(session.topic)
         }
     }
 
-    private fun activeSessions(): List<Wallet.Model.Session> =
-        runCatching { WalletKit.getListOfActiveSessions().filter { it.metaData != null } }
+    private fun activeSessions(): List<WalletConnectSession> =
+        runCatching { walletConnectClient.activeSessions().filter { it.metadata != null } }
             .getOrDefault(emptyList())
 
     suspend fun disconnect(id: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
@@ -166,152 +143,131 @@ class BridgesRepository(
         connectionsDao.delete(id)
         val activeSession = activeSessions().firstOrNull { it.topic == connection.session.sessionId }
         if (activeSession != null) {
-            WalletKit.disconnectSession(
-                params = Wallet.Params.SessionDisconnect(activeSession.topic),
-                onSuccess = {},
-                onError = {},
-            )
+            walletConnectClient.disconnectSession(activeSession.topic, onSuccess = {}, onError = {})
         }
         onSuccess()
     }
 
     fun addPairing(uri: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         initWalletConnect(
-            {
+            onSuccess = {
                 try {
-                    WalletKit.pair(
-                        params = Wallet.Params.Pair(uri),
+                    walletConnectClient.pair(
+                        uri = uri,
                         onSuccess = { onSuccess() },
-                        onError = {
-                            onError(it.throwable.message ?: "Pair to ${uri.toUri().host} fail")
-                        }
+                        onError = { onError(it.ifBlank { "Pair to ${uri.toUri().host} fail" }) },
                     )
                 } catch (err: Throwable) {
                     onError("Wallet Connect unavailable: ${err.message}")
                 }
-            }
+            },
+            onError = { onError(it.ifBlank { "Wallet Connect unavailable" }) },
         )
     }
 
     fun approveConnection(
         wallet: GemWallet,
-        proposal: Wallet.Model.SessionProposal,
+        proposal: WalletConnectSessionProposal,
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        val sessionProposal = getPendingSessionProposal(proposal)
-        if (sessionProposal == null) {
-            onSuccess()
-            return
-        }
         val supportedNamespaces = getSupportedNamespaces(wallet)
-        val sessionNamespaces = WalletKit.generateApprovedNamespaces(
-            sessionProposal = sessionProposal,
-            supportedNamespaces = supportedNamespaces
+        val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
+            proposal = proposal,
+            supportedNamespaces = supportedNamespaces,
         )
         val sessionProperties = WalletConnect().configSessionProperties(
             properties = proposal.properties ?: emptyMap(),
             caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() },
         )
-        val approveProposal = Wallet.Params.SessionApprove(
-            proposerPublicKey = sessionProposal.proposerPublicKey,
-            namespaces = sessionNamespaces,
-            properties = sessionProperties,
-        )
         val activeBefore = activeSessions().map { it.topic }.toSet()
 
-        WalletKit.approveSession(
-            params = approveProposal,
-            onError = { error -> onError(error.throwable.message ?: "Unknown error") },
+        walletConnectClient.approveSession(
+            proposal = proposal,
+            namespaces = sessionNamespaces,
+            properties = sessionProperties,
             onSuccess = {
                 persistNewSessions(wallet, activeBefore, "Connection failed", onSuccess, onError)
             },
+            onError = onError,
         )
     }
 
     fun rejectConnection(
-        proposal: Wallet.Model.SessionProposal,
+        proposal: WalletConnectSessionProposal,
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        val sessionProposal = getPendingSessionProposal(proposal)
-        if (sessionProposal == null) {
-            onSuccess()
-            return
-        }
-
-        WalletKit.rejectSession(
-            params = Wallet.Params.SessionReject(
-                proposerPublicKey = sessionProposal.proposerPublicKey,
-                reason = "Reject Session"
-            ),
-            onSuccess = {
-                onSuccess()
-            },
-            onError = {
-                onError(it.throwable.message ?: "")
-            },
-        )
+        walletConnectClient.rejectSession(proposal, onSuccess, onError)
     }
 
     fun approveAuthentication(
-        request: Wallet.Model.SessionAuthenticate,
-        auths: List<Wallet.Model.Cacao>,
+        request: WalletConnectAuthenticationRequest,
+        auths: List<WalletConnectAuthObject>,
         wallet: GemWallet,
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
         val activeBefore = activeSessions().map { it.topic }.toSet()
-        WalletKit.approveSessionAuthenticate(
-            params = Wallet.Params.ApproveSessionAuthenticate(
-                id = request.id,
-                auths = auths,
-            ),
+        walletConnectClient.approveAuthentication(
+            request = request,
+            auths = auths,
             onSuccess = {
                 persistNewSessions(wallet, activeBefore, "Authentication failed", onSuccess, onError)
             },
-            onError = { error ->
-                onError(error.throwable.message ?: "Authentication failed")
-            },
+            onError = onError,
         )
     }
 
     fun rejectAuthentication(
-        request: Wallet.Model.SessionAuthenticate,
+        request: WalletConnectAuthenticationRequest,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {},
     ) {
-        WalletKit.rejectSessionAuthenticate(
-            params = Wallet.Params.RejectSessionAuthenticate(
-                id = request.id,
-                reason = "Reject Session Authentication",
-            ),
-            onSuccess = {
-                onSuccess()
-            },
-            onError = {
-                onError(it.throwable.message ?: "")
-            },
-        )
+        walletConnectClient.rejectAuthentication(request, onSuccess, onError)
     }
 
-    private fun getPendingSessionProposal(proposal: Wallet.Model.SessionProposal): Wallet.Model.SessionProposal? {
-        val proposalPublicKey = proposal.proposerPublicKey
-        return WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposalPublicKey }
+    fun respondSessionRequest(
+        topic: String,
+        id: Long,
+        response: WalletConnectJsonRpcResponse,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        walletConnectClient.respondSessionRequest(topic, id, response, onSuccess, onError)
     }
 
-    private suspend fun addConnection(session: Wallet.Model.Session) {
+    fun generateAuthPayloadParams(
+        payloadParams: WalletConnectAuthPayloadParams,
+        supportedChains: List<String>,
+        supportedMethods: List<String>,
+    ): WalletConnectAuthPayloadParams {
+        return walletConnectClient.generateAuthPayloadParams(payloadParams, supportedChains, supportedMethods)
+    }
+
+    fun formatAuthMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String {
+        return walletConnectClient.formatAuthMessage(payloadParams, issuer)
+    }
+
+    fun generateAuthObject(
+        payloadParams: WalletConnectAuthPayloadParams,
+        issuer: String,
+        signature: String,
+    ): WalletConnectAuthObject {
+        return walletConnectClient.generateAuthObject(payloadParams, issuer, signature)
+    }
+
+    private suspend fun addConnection(session: WalletConnectSession) {
         if (connectionsDao.getBySessionId(session.topic) != null) {
             updateConnection(session)
             return
         }
-        val wallet = walletForSession(session)
-            ?: return
+        val wallet = walletForSession(session) ?: return
         addConnection(session, wallet)
     }
 
     private suspend fun addConnection(
-        session: Wallet.Model.Session,
+        session: WalletConnectSession,
         wallet: GemWallet,
     ) {
         connectionsDao.insert(
@@ -322,7 +278,7 @@ class BridgesRepository(
         )
     }
 
-    private suspend fun updateConnection(session: Wallet.Model.Session) {
+    private suspend fun updateConnection(session: WalletConnectSession) {
         val record = connectionsDao.getBySessionId(session.topic) ?: return
         connectionsDao.insert(
             session.toConnectionRecord(
@@ -369,7 +325,7 @@ class BridgesRepository(
             .forEach { addConnection(it, wallet) }
     }
 
-    private suspend fun walletForSession(session: Wallet.Model.Session): GemWallet? {
+    private suspend fun walletForSession(session: WalletConnectSession): GemWallet? {
         val sessionAccounts = session.accounts()
         if (sessionAccounts.isEmpty()) return null
         val wallets = walletsRepository.getAll().firstOrNull() ?: return null
@@ -378,12 +334,12 @@ class BridgesRepository(
         }
     }
 
-    private fun getSupportedNamespaces(wallet: GemWallet): Map<String, Wallet.Model.Namespace.Session> {
+    private fun getSupportedNamespaces(wallet: GemWallet): Map<String, WalletConnectSessionNamespace> {
         return wallet.accounts
             .mapNotNull { it.toSupportedAccount() }
             .groupBy { it.namespace }
             .map { (namespace, accounts) ->
-                namespace.string to Wallet.Model.Namespace.Session(
+                namespace.string to WalletConnectSessionNamespace(
                     chains = accounts.map { it.chainId },
                     methods = namespace.methodIds,
                     events = namespace.eventIds,
@@ -392,7 +348,6 @@ class BridgesRepository(
             }
             .toMap()
     }
-
 }
 
 private data class SupportedAccount(

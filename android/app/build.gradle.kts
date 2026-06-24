@@ -15,32 +15,27 @@ apply(from = "$rootDir/gradle/channels.gradle.kts")
 @Suppress("UNCHECKED_CAST")
 val gemChannels: Map<String, Map<String, Any?>> by extra
 val gemChannel: String by extra
-val features = gemChannels.getValue(gemChannel)
 
 gradle.startParameter.projectProperties["channel"]?.takeIf { it.isNotBlank() }?.let { explicit ->
-    val mismatched = gradle.startParameter.taskNames
-        .map { it.lowercase() }
-        .flatMap { task -> gemChannels.keys.filter { task.contains("assemble$it") || task.contains("bundle$it") } }
+    val requestedChannels = gradle.startParameter.taskNames
+        .asSequence()
+        .flatMap { task ->
+            gemChannels.keys.asSequence().filter { channel ->
+                task.contains("assemble$channel", ignoreCase = true) || task.contains("bundle$channel", ignoreCase = true)
+            }
+        }
         .toSet()
         .filter { it != explicit }
-    require(mismatched.isEmpty()) {
-        "Channel mismatch: -Pchannel=$explicit but requested tasks build flavor(s) $mismatched. Build one channel per invocation."
+    require(requestedChannels.isEmpty()) {
+        "Channel mismatch: -Pchannel=$explicit but requested task(s) for $requestedChannels. Build one channel per invocation."
     }
 }
 
-val googleServicesExcludedFlavors = gemChannels.filterValues { it["googleServices"] != true }.keys
-val googleServicesExcludedTaskPrefixes = googleServicesExcludedFlavors.map { flavor ->
-    "process${flavor.replaceFirstChar { it.uppercase() }}"
-}
-if (file("google-services.json").isFile && features["googleServices"] == true) {
+if (file("google-services.json").isFile) {
     apply(plugin = "com.google.gms.google-services")
 
     tasks.configureEach {
-        if (
-            name.startsWith("process") &&
-                name.endsWith("GoogleServices") &&
-                googleServicesExcludedTaskPrefixes.any { prefix -> name.startsWith(prefix) }
-        ) {
+        if (name.startsWith("processFdroid") && name.endsWith("GoogleServices")) {
             enabled = false
         }
     }
@@ -83,18 +78,18 @@ android {
         gemChannels.forEach { (name, channel) ->
             create(name) {
                 dimension = channelDimension
-                if (channel["isDefault"] == true) {
-                    isDefault = true
-                }
+                isDefault = channel["isDefault"] == true
                 ndk {
                     @Suppress("UNCHECKED_CAST")
-                    (channel["abis"] as List<String>).forEach { abiFilters.add(it) }
+                    abiFilters.addAll(channel.getValue("abis") as List<String>)
                 }
-                val updateUrl = ((channel["updateUrlEnv"] as String?)
-                    ?.let { providers.environmentVariable(it).orNull }
-                    ?: (channel["updateUrl"] as String)).removeSurrounding("\"")
-                buildConfigField("String", "UPDATE_URL", "\"$updateUrl\"")
-                buildConfigField("boolean", "WALLET_CONNECT_ENABLED", (channel["walletConnect"] as Boolean).toString())
+                val updateUrl = channel.getValue("updateUrl") as String
+                val updateUrlEnv = channel["updateUrlEnv"] as String?
+                val resolvedUpdateUrl = (updateUrlEnv?.let { providers.environmentVariable(it).orNull } ?: updateUrl)
+                    .removeSurrounding("\"")
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                buildConfigField("String", "UPDATE_URL", "\"$resolvedUpdateUrl\"")
             }
         }
     }
@@ -177,8 +172,9 @@ android {
         buildConfig = true
     }
     dependenciesInfo {
-        includeInApk = features["dependenciesInfo"] == true
-        includeInBundle = features["dependenciesInfo"] == true
+        val enabled = gemChannel != "fdroid"
+        includeInApk = enabled
+        includeInBundle = enabled
     }
     packaging {
         jniLibs {
@@ -297,10 +293,13 @@ dependencies {
     implementation(libs.reorderable)
 
     gemChannels.forEach { (name, channel) ->
-        val push = channel["push"] as String
-        val review = channel["review"] as String
-        if (rootProject.findProject(push) != null) add("${name}Implementation", project(push))
-        if (rootProject.findProject(review) != null) add("${name}Implementation", project(review))
+        val configuration = "${name}Implementation"
+        listOf("push", "review", "walletConnect").forEach { key ->
+            val module = channel[key] as String
+            if (rootProject.findProject(module) != null) {
+                add(configuration, project(module))
+            }
+        }
     }
 
     // Preview

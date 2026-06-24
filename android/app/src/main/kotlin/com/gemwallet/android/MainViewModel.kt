@@ -48,10 +48,12 @@ class MainViewModel @Inject constructor(
 
     private val activeAuthRequestId = AtomicLong(NoActiveAuthRequestId)
 
+    val isWalletConnectAvailable: Boolean get() = bridgesRepository.isWalletConnectAvailable
+
     private val walletConnectHandler = object : PendingNavigationCoordinator.WalletConnectHandler {
         override fun onPairing(uri: String) = addPairing(uri)
         override fun onRequest() {
-            if (BuildConfig.WALLET_CONNECT_ENABLED) {
+            if (isWalletConnectAvailable) {
                 showWalletConnectPairingToast()
             } else {
                 showWalletConnectUnsupported()
@@ -163,7 +165,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun addPairing(uri: String) {
-        if (!BuildConfig.WALLET_CONNECT_ENABLED) {
+        if (!isWalletConnectAvailable) {
             showWalletConnectUnsupported()
             return
         }

@@ -7,9 +7,6 @@ pluginManagement {
 }
 rootProject.name = "wallet"
 
-apply(from = "gradle/channels.gradle.kts")
-val firebaseEnabled: Boolean by extra
-
 include(":gemstone")
 include (":app")
 include(":blockchain")
@@ -21,11 +18,14 @@ include(":data:services")
 include(":data:services:store")
 include(":data:repositories")
 include(":data:services:remote-gem")
+include(":data:services:walletconnect:noop")
+include(":data:services:walletconnect:reown")
 include(":flavors")
 include(":flavors:pushes-stub")
-include(":flavors:walletconnect-stub")
-if (firebaseEnabled) {
+if (file("flavors/fcm").isDirectory) {
     include(":flavors:fcm")
+}
+if (file("flavors/google-review").isDirectory) {
     include(":flavors:google-review")
 }
 include(":flavors:review-stub")

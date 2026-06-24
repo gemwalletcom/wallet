@@ -93,7 +93,6 @@ private fun WalletConnectOverlay(
                     viewModel.rejectSessionAuthenticate(event.request)
                 }
             }
-            is WalletConnectIntent.ConnectionState,
             WalletConnectIntent.Idle,
             WalletConnectIntent.Cancel -> Unit
         }
@@ -103,7 +102,6 @@ private fun WalletConnectOverlay(
         modifier = Modifier.navigationBarsPadding(),
     ) {
         when (val event = walletConnect) {
-            is WalletConnectIntent.ConnectionState,
             WalletConnectIntent.Idle,
             WalletConnectIntent.Cancel -> Unit
             is WalletConnectIntent.AuthRequest -> {

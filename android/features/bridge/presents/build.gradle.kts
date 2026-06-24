@@ -7,10 +7,6 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-apply(from = "$rootDir/gradle/channels.gradle.kts")
-
-val walletConnectEnabled: Boolean by extra
-
 android {
     namespace = "com.gemwallet.android.features.bridge.presents"
     compileSdk = 37
@@ -57,16 +53,9 @@ android {
 
 dependencies {
     implementation(project(":ui"))
+    api(project(":data:repositories"))
     implementation(project(":features:bridge:viewmodels"))
     implementation(project(":features:confirm:presents"))
-
-    if (!walletConnectEnabled) {
-        api(project(":flavors:walletconnect-stub"))
-    } else {
-        api(platform(libs.walletconnect.bom))
-        api(libs.walletconnect.core)
-        api(libs.walletconnect.web3wallet)
-    }
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.features.activities.presents.list.TransactionsNavScreen
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.AssetsScreen
@@ -224,7 +223,7 @@ fun MainScreen(
                             scrollState = settingsScrollState,
                             onSecurity = navigator::openSecurity,
                             onBridges = navigator::openBridgeConnections,
-                            walletConnectAvailable = BuildConfig.WALLET_CONNECT_ENABLED,
+                            walletConnectAvailable = viewModel.isWalletConnectAvailable,
                             onDevelop = navigator::openDevelop,
                             onWallets = navigator::openWallets,
                             onNotifications = navigator::openNotifications,
