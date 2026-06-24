@@ -15,6 +15,7 @@ import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
@@ -211,8 +212,10 @@ open class BaseAssetSelectViewModel(
                 searchRequests.collectLatest { (query, tag, currency, chains) ->
                     isSearching.value = query.isNotEmpty()
                     try {
-                        delay(SEARCH_DEBOUNCE_MS)
-                        searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
+                        runCatchingCancellable {
+                            delay(SEARCH_DEBOUNCE_MS)
+                            searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
+                        }
                     } finally {
                         isSearching.value = false
                     }
