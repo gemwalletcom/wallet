@@ -36,6 +36,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -91,7 +92,7 @@ open class BaseAssetSelectViewModel(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val assets = combine(
+    private val assetsContent = combine(
         filters,
         search.items(filters),
     ) { filters, items ->
@@ -106,7 +107,10 @@ open class BaseAssetSelectViewModel(
             }
     }
     .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>())
+    .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+
+    private val assets = assetsContent
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>())
 
     val popular = assets.map { items ->
         items.filter {
@@ -140,10 +144,9 @@ open class BaseAssetSelectViewModel(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
-    val uiState = combine(assets, currentQuery, isSearching) { assets, query, isSearching ->
+    val uiState = combine(assetsContent, isSearching) { assets, isSearching ->
         when {
             assets.isNotEmpty() -> UIState.Idle
-            query.isEmpty() -> UIState.Idle
             isSearching -> UIState.Loading
             else -> UIState.Empty
         }

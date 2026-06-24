@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -34,9 +35,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
@@ -167,6 +170,7 @@ fun AssetSelectScene(
     var showSelectNetworks by remember { mutableStateOf(false) }
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
     val showTags = query.text.isEmpty()
+    var tagsHeightPx by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         snapshotFlow { query.text.toString() }
@@ -211,19 +215,21 @@ fun AssetSelectScene(
         ) {
             if (showTags) {
                 item {
-                    TabsBar(
-                        tabs = tags,
-                        selected = selectedTag,
-                        onSelect = { onAction(AssetSelectAction.SelectTag(it)) },
-                        scrollable = true,
-                        equalWidth = false,
-                    ) { item ->
-                        Text(
-                            stringResource(item.labelRes()),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            softWrap = false,
-                        )
+                    Box(modifier = Modifier.onSizeChanged { tagsHeightPx = it.height }) {
+                        TabsBar(
+                            tabs = tags,
+                            selected = selectedTag,
+                            onSelect = { onAction(AssetSelectAction.SelectTag(it)) },
+                            scrollable = true,
+                            equalWidth = false,
+                        ) { item ->
+                            Text(
+                                stringResource(item.labelRes()),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                softWrap = false,
+                            )
+                        }
                     }
                 }
             }
@@ -255,7 +261,7 @@ fun AssetSelectScene(
             }
             assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             loading(state)
-            notFound(state = state, onAddAsset = { onAction(AssetSelectAction.AddAsset) }, isAddAvailable = isAddAvailable)
+            notFound(state = state, onAddAsset = { onAction(AssetSelectAction.AddAsset) }, isAddAvailable = isAddAvailable, topOffset = if (showTags) tagsHeightPx else 0)
         }
     }
 
@@ -348,6 +354,7 @@ fun AssetSelectRow(
 private fun LazyListScope.notFound(
     state: UIState,
     isAddAvailable: Boolean = false,
+    topOffset: Int = 0,
     onAddAsset: (() -> Unit)? = null,
 ) {
     if (state !is UIState.Empty) {
@@ -358,7 +365,10 @@ private fun LazyListScope.notFound(
             type = EmptyContentType.SearchAssets(
                 onAddCustomToken = if (isAddAvailable) onAddAsset else null,
             ),
-            modifier = Modifier.animateItem().fillParentMaxSize(),
+            modifier = Modifier
+                .animateItem()
+                .fillParentMaxSize()
+                .offset { IntOffset(0, -topOffset) },
         )
     }
 }
