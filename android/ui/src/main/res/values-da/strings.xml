@@ -3,14 +3,12 @@
   <string name="common_cancel">Ophæve</string>
   <string name="common_done">Færdig</string>
   <string name="common_secret_phrase">Hemmelig sætning</string>
-  <string name="common_next">Næste</string>
   <string name="common_copy">Kopiér</string>
   <string name="common_share">Del</string>
   <string name="common_continue">Fortsæt</string>
   <string name="common_provider">Udbyder</string>
   <string name="common_loading">Indlæser</string>
   <string name="common_address">Adresse</string>
-  <string name="common_back">Tilbage</string>
   <string name="common_try_again">Prøv igen</string>
   <string name="common_paste">Indsæt</string>
   <string name="common_delete">Slet</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Administrer</string>
   <string name="common_type">Type</string>
   <string name="common_no_results_found">Ingen resultater fundet</string>
-  <string name="common_yes">Ja</string>
   <string name="common_no">Nej</string>
   <string name="common_none">Ingen</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Spring over</string>
   <string name="common_warning">Advarsel</string>
   <string name="common_learn_more">Lær mere</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Beskrivelse</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Stil</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Foto</string>
   <string name="common_save">Gem</string>
-  <string name="common_edit">Rediger</string>
   <string name="common_percentage">Procent</string>
   <string name="common_details">Detaljer</string>
   <string name="common_info">Info</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Vi har efterladt %1$s på din saldo til dækning af fremtidige netværksgebyrer.</string>
   <string name="transfer_freeze_title">Fryse</string>
   <string name="transfer_unfreeze_title">Optø</string>
-  <string name="transfer_sign_transaction_title">Underskriv transaktion</string>
   <string name="transfer_review_request">Anmodning om gennemgang</string>
   <string name="transfer_amount">Beløb</string>
   <string name="transfer_amount_title">Beløb</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Kilde</string>
   <string name="settings_networks_explorer">Explorer</string>
   <string name="settings_currency">Valuta</string>
-  <string name="settings_rate_app">Bedøm app</string>
   <string name="settings_website">Besøg hjemmesiden</string>
   <string name="settings_security">Sikkerhed</string>
   <string name="settings_enable_value">Aktiver %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Ugyldig %1$s adresse</string>
   <string name="errors_dust_threshold">Transaktionen mislykkedes, fordi beløbet er for lille til at opfylde %1$s netværkets minimumskrav (støvtærskel). Denne grænse sikrer, at transaktionsværdien dækker gebyrer og behandlingsomkostninger.</string>
   <string name="errors_swap_no_quote_available">Ingen pris er tilgængelig.</string>
-  <string name="errors_swap_not_supported_chain">Ikke understøttet kæde.</string>
   <string name="errors_swap_not_supported_asset">Ikke understøttet aktiv.</string>
-  <string name="errors_swap_not_supported_pair">Ikke understøttet par.</string>
   <string name="errors_connections_invalid_send_parameters">Ugyldige parametre angivet til afsendelse af en transaktion.</string>
   <string name="errors_connections_invalid_sign_parameters">Ugyldige parametre angivet til signering.</string>
   <string name="errors_connections_no_supported_wallets">Ingen understøttede tegnebøger er tilgængelige.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Pris</string>
   <string name="asset_market_cap">Markedsværdi</string>
   <string name="asset_trading_volume">Handelsvolumen (24 timer)</string>
-  <string name="asset_market_cap_rank">Markedsværdiplacering</string>
   <string name="asset_total_supply">Samlet Udbud</string>
   <string name="asset_circulating_supply">Cirkulerende forsyning</string>
   <string name="asset_balances_reserved">Reserveret</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Afbryd forbindelsen</string>
   <string name="wallet_connect_connect_title">Forbind</string>
   <string name="wallet_connect_app">App</string>
-  <string name="wallet_connect_website">Hjemmeside</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Ingen aktive forbindelser</string>
   <string name="wallet_connect_state_empty_description">Scan eller indsæt kode for at oprette forbindelse til DApp\'en</string>
-  <string name="wallet_connect_domain">Domæne</string>
   <string name="wallet_connect_permissions_title">Tilladelser</string>
   <string name="wallet_connect_permissions_view_balance">Se din saldo og aktivitet</string>
   <string name="wallet_connect_permissions_approval_requests">Send godkendelsesanmodninger</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Afventer tilbagetrækning</string>
   <string name="stake_active_in">Aktiv i</string>
   <string name="stake_minimum_amount">Minimumsbeløb</string>
-  <string name="stake_viagem">Indsats via Gem Wallet</string>
-  <string name="stake_no_active_staking">Ingen aktiv indsats endnu.</string>
   <string name="stake_state_empty_title">Dine indsatser vil blive vist her</string>
   <string name="stake_state_empty_description">Indsæt dine første %1$s</string>
   <string name="stake_resource">Ressource</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stablecoins</string>
   <string name="assets_state_empty_search_description">Du kan prøve at tilføje det manuelt</string>
   <string name="assets_title">Aktiver</string>
-  <string name="sign_message_title">Underskriv besked</string>
   <string name="sign_message_message">Besked</string>
   <string name="sign_message_view_full_message">Se hele beskeden</string>
   <string name="secret_phrase_do_not_share_title">Del ikke din hemmelige sætning!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Minimumsaldo</string>
   <string name="info_perpetual_funding_payments_title">Finansieringsbetalinger</string>
   <string name="info_perpetual_funding_payments_description">Finansieringsbetalinger er periodiske betalinger mellem handlende for at holde den evige kontraktpris tæt på det underliggende aktivs spotpris. Positiv finansiering betyder, at lange positioner betaler korte positioner, mens negativ funding betyder, at korte positioner betaler lange positioner.</string>
-  <string name="info_perpetual_funding_rate_title">Finansiering</string>
-  <string name="info_perpetual_funding_rate_description">Funding rate bestemmer omkostningerne ved at holde en evig position. Den beregnes hver time og hjælper med at opretholde prisligevægten mellem den evige kontrakt og det underliggende aktivs spotpris.</string>
   <string name="info_perpetual_liquidation_price_title">Likvidationspris</string>
   <string name="info_perpetual_liquidation_price_description">Likvidationsprisen er det prisniveau, hvor din position automatisk lukkes for at forhindre yderligere tab. Når markedsprisen når dette niveau, er din position likvideret, og du mister din margin.</string>
   <string name="info_perpetual_open_interest_title">Åben interesse</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Jeg forstår, at Gem ikke er en bank eller børs, og at det er strengt forbudt at bruge den til ulovlige formål.</string>
   <string name="onboarding_accept_terms_item3_message">Jeg forstår, at hvis jeg nogensinde mister adgangen til mine tegnebøger, er Gem ikke ansvarlig og kan ikke hjælpe på nogen måde.</string>
   <string name="onboarding_accept_terms_continue">Enig og fortsæt</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Positioner</string>
   <string name="perpetual_size">Størrelse</string>
   <string name="perpetual_margin">Margin</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Åbn %1$s</string>
   <string name="perpetual_close_direction">Luk %1$s</string>
   <string name="perpetual_leverage">Gearing</string>
-  <string name="perpetual_direction">Retning</string>
   <string name="perpetual_auto_close">Automatisk lukning</string>
   <string name="perpetual_auto_close_take_profit">Tag profit</string>
   <string name="perpetual_market_price">Markedspris</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Aktiver, du for nylig har brugt, vises her</string>
   <string name="notifications_inapp_state_empty_title">Ingen notifikationer endnu</string>
   <string name="notifications_inapp_state_empty_description">Du kan se opdateringer om dine notifikationer her</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Inviter venner og optjen belønninger sammen</string>
   <string name="earn_state_empty_title">Dine stillinger vil blive vist her</string>
   <string name="earn_state_empty_description">Indbetal din første %1$s</string>
   <string name="contacts_title">Kontakter</string>

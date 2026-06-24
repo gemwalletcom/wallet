@@ -3,14 +3,12 @@
   <string name="common_cancel">取消</string>
   <string name="common_done">完畢</string>
   <string name="common_secret_phrase">秘密短語</string>
-  <string name="common_next">下一步</string>
   <string name="common_copy">複製</string>
   <string name="common_share">共享</string>
   <string name="common_continue">繼續</string>
   <string name="common_provider">供應商</string>
   <string name="common_loading">載入中</string>
   <string name="common_address">地址</string>
-  <string name="common_back">返回</string>
   <string name="common_try_again">重試</string>
   <string name="common_paste">粘貼</string>
   <string name="common_delete">刪除</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">管理</string>
   <string name="common_type">類型</string>
   <string name="common_no_results_found">未找到結果</string>
-  <string name="common_yes">是</string>
   <string name="common_no">否</string>
   <string name="common_none">無</string>
   <string name="common_url">網址</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">跳過</string>
   <string name="common_warning">警告</string>
   <string name="common_learn_more">了解更多</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">描述</string>
   <string name="common_emoji">表情符號</string>
-  <string name="common_style">風格</string>
   <string name="common_avatar">頭像</string>
-  <string name="common_photo">照片</string>
   <string name="common_save">儲存</string>
-  <string name="common_edit">編輯</string>
   <string name="common_percentage">百分比</string>
   <string name="common_details">詳情</string>
   <string name="common_info">資訊</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">我們已在您的餘額中留下%1$s以支付未來的網路費用。</string>
   <string name="transfer_freeze_title">凍結</string>
   <string name="transfer_unfreeze_title">解凍</string>
-  <string name="transfer_sign_transaction_title">簽署交易</string>
   <string name="transfer_review_request">審查請求</string>
   <string name="transfer_amount">數量</string>
   <string name="transfer_amount_title">金額</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">來源</string>
   <string name="settings_networks_explorer">區塊瀏覽器</string>
   <string name="settings_currency">貨幣</string>
-  <string name="settings_rate_app">評價應用</string>
   <string name="settings_website">訪問網站</string>
   <string name="settings_security">安全設置</string>
   <string name="settings_enable_value">開啟%1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">無效的 %1$s 地址</string>
   <string name="errors_dust_threshold">交易失敗，因為金額太小，無法滿足%1$s網路的最低要求（灰塵閾值）。此限制確保交易價值涵蓋費用和處理成本。</string>
   <string name="errors_swap_no_quote_available">暫無報價</string>
-  <string name="errors_swap_not_supported_chain">暫不支援該區塊鏈網絡</string>
   <string name="errors_swap_not_supported_asset">暫不支持該資產。</string>
-  <string name="errors_swap_not_supported_pair">暫不支持該交易對。</string>
   <string name="errors_connections_invalid_send_parameters">發送交易時提供的參數無效。</string>
   <string name="errors_connections_invalid_sign_parameters">提供的簽名參數無效。</string>
   <string name="errors_connections_no_supported_wallets">暫無可用錢包</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">價格</string>
   <string name="asset_market_cap">市值</string>
   <string name="asset_trading_volume">交易量（24小時）</string>
-  <string name="asset_market_cap_rank">市值排名</string>
   <string name="asset_total_supply">總供應量</string>
   <string name="asset_circulating_supply">循環供應</string>
   <string name="asset_balances_reserved">系統保留</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">斷開</string>
   <string name="wallet_connect_connect_title">連接</string>
   <string name="wallet_connect_app">應用程式</string>
-  <string name="wallet_connect_website">網站</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">沒有活動連接</string>
   <string name="wallet_connect_state_empty_description">掃描或複製連結以連接到DApp</string>
-  <string name="wallet_connect_domain">網域</string>
   <string name="wallet_connect_permissions_title">權限</string>
   <string name="wallet_connect_permissions_view_balance">查看您的餘額和活動</string>
   <string name="wallet_connect_permissions_approval_requests">發送審批請求</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">等待贖回</string>
   <string name="stake_active_in">激活於</string>
   <string name="stake_minimum_amount">最低金額</string>
-  <string name="stake_viagem">透過 Gem 錢包質押</string>
-  <string name="stake_no_active_staking">當前沒有啟用的質押</string>
   <string name="stake_state_empty_title">您的質押將顯示在這裡️</string>
   <string name="stake_state_empty_description">質押第一個%1$s</string>
   <string name="stake_resource">資源</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">穩定幣</string>
   <string name="assets_state_empty_search_description">請嘗試手動新增</string>
   <string name="assets_title">資產</string>
-  <string name="sign_message_title">簽名訊息</string>
   <string name="sign_message_message">訊息</string>
   <string name="sign_message_view_full_message">查看完整訊息</string>
   <string name="secret_phrase_do_not_share_title">切勿洩漏助記詞！</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">最低餘額</string>
   <string name="info_perpetual_funding_payments_title">資金費用</string>
   <string name="info_perpetual_funding_payments_description">資金費用是交易者之間的定期支付，用以使永續合約價格接近標的資產的現貨價格。正向資金費用表示多頭支付空頭，負向資金費用則表示空頭支付多頭。</string>
-  <string name="info_perpetual_funding_rate_title">資金費率</string>
-  <string name="info_perpetual_funding_rate_description">資金費率決定持有永續合約的成本，按小時計算，有助於維持永續合約與標的資產現貨價格之間的價格平衡。</string>
   <string name="info_perpetual_liquidation_price_title">強制平倉價格</string>
   <string name="info_perpetual_liquidation_price_description">強制平倉價格是當您的持倉價格達到此水平時，系統會自動平倉以防止進一步損失。當市場價格觸及此價格，您的持倉將被清算，並損失保證金。</string>
   <string name="info_perpetual_open_interest_title">未平倉合約量</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">我了解 Gem 不是銀行或交易所，嚴禁用於任何非法用途。</string>
   <string name="onboarding_accept_terms_item3_message">我了解若遺失錢包存取權限，Gem 不負任何責任且無法提供協助。</string>
   <string name="onboarding_accept_terms_continue">我了解，繼續</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">倉位</string>
   <string name="perpetual_size">倉位大小</string>
   <string name="perpetual_margin">保證金</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">打開%1$s</string>
   <string name="perpetual_close_direction">關閉%1$s</string>
   <string name="perpetual_leverage">槓桿</string>
-  <string name="perpetual_direction">方向</string>
   <string name="perpetual_auto_close">自動關閉</string>
   <string name="perpetual_auto_close_take_profit">止盈</string>
   <string name="perpetual_market_price">市價</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">您最近使用過的資源將顯示在此處</string>
   <string name="notifications_inapp_state_empty_title">暫無通知</string>
   <string name="notifications_inapp_state_empty_description">您可以在這裡查看通知更新。</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">邀請好友，一起贏取獎勵</string>
   <string name="earn_state_empty_title">您的持倉將顯示在此。</string>
   <string name="earn_state_empty_description">存入您的第一筆款項 %1$s</string>
   <string name="contacts_title">聯絡方式</string>

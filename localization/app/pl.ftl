@@ -3,14 +3,12 @@
 common_cancel = Anuluj
 common_done = Gotowe
 common_secret_phrase = Tajne zdanie
-common_next = Dalej
 common_copy = Kopiuj
 common_share = Udostępnij
 common_continue = Kontynuuj
 common_provider = Dostawca
 common_loading = Ładowanie
 common_address = Adres
-common_back = Powrót
 common_try_again = Spróbuj ponownie
 common_paste = Wklej
 common_delete = Usuń
@@ -26,7 +24,6 @@ common_phrase = Wyrażenie
 common_manage = Zarządzaj
 common_type = Typ
 common_no_results_found = Nie znaleziono wyników
-common_yes = Tak
 common_no = Nie
 common_none = Brak
 common_url = Adres URL
@@ -39,14 +36,10 @@ common_unpin = Odepnij
 common_skip = Pomiń
 common_warning = Ostrzeżenie
 common_learn_more = Dowiedz się więcej
-common_short_name = Gem
 common_description = Opis
 common_emoji = Emoji
-common_style = Styl
 common_avatar = Awatar
-common_photo = Zdjęcie
 common_save = Zapisz
-common_edit = Edytuj
 common_percentage = Procent
 common_details = Szczegóły
 common_info = Informacje
@@ -152,7 +145,6 @@ transfer_maximum_amount = Maksymalna kwota to %@
 transfer_reserved_fees = Pozostawiliśmy %@ na Twoim koncie na pokrycie przyszłych opłat sieciowych.
 transfer_freeze_title = Zamroź
 transfer_unfreeze_title = Odmroź
-transfer_sign_transaction_title = Podpisz transakcję
 transfer_review_request = Prośba o przegląd
 transfer_amount = Kwota
 transfer_amount_title = Kwota
@@ -170,7 +162,6 @@ settings_networks_title = Sieci
 settings_networks_source = Źródło
 settings_networks_explorer = Eksplorator
 settings_currency = Waluta
-settings_rate_app = Oceń aplikację
 settings_website = Odwiedź stronę
 settings_security = Bezpieczeństwo
 settings_enable_value = Włącz %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Obecnie nie jesteśmy w stanie obliczyć op
 errors_invalid_asset_address = Nieprawidłowy adres %@
 errors_dust_threshold = Transakcja nie powiodła się, ponieważ kwota jest zbyt mała, aby spełnić minimalne wymagania sieci %@ (próg pyłu). Ten limit zapewnia, że wartość transakcji pokrywa opłaty i koszty przetwarzania.
 errors_swap_no_quote_available = Brak dostępnej wyceny.
-errors_swap_not_supported_chain = Nieobsługiwany łańcuch.
 errors_swap_not_supported_asset = Nieobsługiwany zasób.
-errors_swap_not_supported_pair = Nieobsługiwana para.
 errors_connections_invalid_send_parameters = Podano nieprawidłowe parametry do wysłania transakcji.
 errors_connections_invalid_sign_parameters = Podano nieprawidłowe parametry do podpisania.
 errors_connections_no_supported_wallets = Brak obsługiwanych portfeli.
@@ -290,7 +279,6 @@ asset_balances_available = Dostępne
 asset_price = Cena
 asset_market_cap = Kapitalizacja rynkowa
 asset_trading_volume = Wolumen obrotu (24h)
-asset_market_cap_rank = Ranking kapitalizacji rynkowej
 asset_total_supply = Całkowita podaż
 asset_circulating_supply = Podaż w obiegu
 asset_balances_reserved = Zarezerwowane
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Połączenie
 wallet_connect_disconnect = Rozłącz
 wallet_connect_connect_title = Połącz
 wallet_connect_app = Aplikacja
-wallet_connect_website = Strona internetowa
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Brak aktywnych połączeń
 wallet_connect_state_empty_description = Zeskanuj lub wklej kod, aby połączyć się z aplikacją DApp
-wallet_connect_domain = Domena
 wallet_connect_permissions_title = Uprawnienia
 wallet_connect_permissions_view_balance = Wyświetl swoje saldo i aktywność
 wallet_connect_permissions_approval_requests = Wyślij prośby o zatwierdzenie
@@ -379,8 +365,6 @@ stake_deactivating = Dezaktywacja
 stake_awaiting_withdrawal = Oczekiwanie na wypłatę
 stake_active_in = Aktywne w
 stake_minimum_amount = Minimalna kwota
-stake_viagem = Stakuj przez Gem Wallet
-stake_no_active_staking = Nie ma jeszcze aktywnego obstawiania.
 stake_state_empty_title = Twoje stawki pojawią się tutaj
 stake_state_empty_description = Postaw swoją pierwszą %@
 stake_resource = Zasób
@@ -404,7 +388,6 @@ assets_title = Aktywa
 
 # Sign Message
 
-sign_message_title = Podpisz wiadomość
 sign_message_message = Wiadomość
 sign_message_view_full_message = Wyświetl pełną wiadomość
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Nie masz wystarczająco %@ aby ukończy�
 info_account_minimum_balance_title = Minimalne saldo
 info_perpetual_funding_payments_title = Płatności finansowe
 info_perpetual_funding_payments_description = Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że ​​długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że ​​krótkie pozycje opłacają długie pozycje.
-info_perpetual_funding_rate_title = Finansowanie
-info_perpetual_funding_rate_description = Stopa finansowania określa koszt utrzymywania pozycji wieczystej. Jest obliczany co godzinę i pomaga utrzymać równowagę cenową pomiędzy kontraktem wieczystym a ceną spot instrumentu bazowego.
 info_perpetual_liquidation_price_title = Cena likwidacyjna
 info_perpetual_liquidation_price_description = Cena likwidacji to poziom ceny, przy którym Twoja pozycja zostanie automatycznie zamknięta, aby zapobiec dalszym stratom. Kiedy cena rynkowa osiągnie ten poziom, Twoja pozycja zostanie zlikwidowana, a Ty stracisz marżę.
 info_perpetual_open_interest_title = Otwarte zainteresowanie
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Zgadzam się i kontynuuj
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Zwiększ pozycję
 perpetual_open_direction = Otwórz %@
 perpetual_close_direction = Zamknij %@
 perpetual_leverage = Dźwignia finansowa
-perpetual_direction = Kierunek
 perpetual_auto_close = Automatyczne zamykanie
 perpetual_auto_close_take_profit = Weź zysk
 perpetual_market_price = Cena rynkowa
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Tutaj pojawią się ostatnio używane 
 
 notifications_inapp_state_empty_title = Brak powiadomień
 notifications_inapp_state_empty_description = Tutaj zobaczysz aktualizacje dotyczące powiadomień
-notifications_inapp_rewards_invite_subtitle = Zaproś znajomych i zdobywajcie nagrody razem
 
 # Earn
 

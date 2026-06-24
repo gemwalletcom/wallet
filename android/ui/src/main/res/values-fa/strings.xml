@@ -3,14 +3,12 @@
   <string name="common_cancel">لغو کردن</string>
   <string name="common_done">انجام شد</string>
   <string name="common_secret_phrase">عبارت مخفی</string>
-  <string name="common_next">بعدی</string>
   <string name="common_copy">کپی کردن</string>
   <string name="common_share">اشتراک گذاری</string>
   <string name="common_continue">ادامه</string>
   <string name="common_provider">ارائه دهنده</string>
   <string name="common_loading">در حال بارگذاری</string>
   <string name="common_address">آدرس</string>
-  <string name="common_back">بازگشت</string>
   <string name="common_try_again">تلاش دوباره</string>
   <string name="common_paste">جای گذاری</string>
   <string name="common_delete">پاک کردن</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">مدیریت</string>
   <string name="common_type">نوع</string>
   <string name="common_no_results_found">هیچ نتیجه ای یافت نشد.</string>
-  <string name="common_yes">بله</string>
   <string name="common_no">نه</string>
   <string name="common_none">هیچکدام</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">پرش کنید</string>
   <string name="common_warning">هشدار</string>
   <string name="common_learn_more">بیشتر بدانید</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">توضیحات</string>
   <string name="common_emoji">ایموجی</string>
-  <string name="common_style">سبک</string>
   <string name="common_avatar">آواتار</string>
-  <string name="common_photo">عکس</string>
   <string name="common_save">ذخیره کنید</string>
-  <string name="common_edit">ویرایش کنید</string>
   <string name="common_percentage">درصد</string>
   <string name="common_details">جزئیات</string>
   <string name="common_info">اطلاعات</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">ما %1$s را برای پوشش هزینه‌های شبکه در آینده در موجودی شما باقی گذاشته‌ایم.</string>
   <string name="transfer_freeze_title">فریز کردن</string>
   <string name="transfer_unfreeze_title">یخ‌زدایی</string>
-  <string name="transfer_sign_transaction_title">امضای تراکنش</string>
   <string name="transfer_review_request">درخواست بررسی</string>
   <string name="transfer_amount">مبلغ</string>
   <string name="transfer_amount_title">مبلغ</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">منبع</string>
   <string name="settings_networks_explorer">پیمایشگر</string>
   <string name="settings_currency">ارز</string>
-  <string name="settings_rate_app">امتیاز دادن به برنامه</string>
   <string name="settings_website">بازدید از وب سایت</string>
   <string name="settings_security">امنیت</string>
   <string name="settings_enable_value">فعال کردن %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">آدرس %1$s نامعتبر است.</string>
   <string name="errors_dust_threshold">تراکنش به دلیل کم بودن مبلغ برای برآورده کردن حداقل لازم شبکه %1$s (آستانه گرد و غبار) انجام نشد. این محدودیت تضمین می‌کند که ارزش تراکنش، کارمزدها و هزینه‌های پردازش را پوشش می‌دهد.</string>
   <string name="errors_swap_no_quote_available">هیچ قیمتی در دسترس نیست.</string>
-  <string name="errors_swap_not_supported_chain">زنجیره پشتیبانی نمی شود.</string>
   <string name="errors_swap_not_supported_asset">دارایی پشتیبانی نمی شود.</string>
-  <string name="errors_swap_not_supported_pair">جفت پشتیبانی نمی شود.</string>
   <string name="errors_connections_invalid_send_parameters">پارامترهای نامعتبر برای ارسال تراکنش ارائه شده است.</string>
   <string name="errors_connections_invalid_sign_parameters">پارامترهای نامعتبر برای امضا ارائه شده است.</string>
   <string name="errors_connections_no_supported_wallets">هیچ کیف پول پشتیبانی شده ای در دسترس نیست.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">قيمت</string>
   <string name="asset_market_cap">ارزش بازار</string>
   <string name="asset_trading_volume">حجم معاملات (24 ساعت)</string>
-  <string name="asset_market_cap_rank">رتبه ارزش بازار</string>
   <string name="asset_total_supply">عرضه کل</string>
   <string name="asset_circulating_supply">عرضه در گردش</string>
   <string name="asset_balances_reserved">رزرو شده.</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">قطع اتصال</string>
   <string name="wallet_connect_connect_title">متصل شدن</string>
   <string name="wallet_connect_app">برنامه</string>
-  <string name="wallet_connect_website">وب سایت</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">اتصال فعالی یافت نشد.</string>
   <string name="wallet_connect_state_empty_description">برای اتصال به DApp، کد را اسکن یا جای‌گذاری کنید</string>
-  <string name="wallet_connect_domain">دامنه</string>
   <string name="wallet_connect_permissions_title">مجوزها</string>
   <string name="wallet_connect_permissions_view_balance">مشاهده موجودی و فعالیت خود</string>
   <string name="wallet_connect_permissions_approval_requests">ارسال درخواست‌های تأیید</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">در انتظار برداشت</string>
   <string name="stake_active_in">فعال در</string>
   <string name="stake_minimum_amount">حداقل مبلغ</string>
-  <string name="stake_viagem">از طریق Gem Wallet استیک کنید</string>
-  <string name="stake_no_active_staking">استیک فعالی پیدا نشد.</string>
   <string name="stake_state_empty_title">استیک‌های شما اینجا نمایش داده می‌شوند</string>
   <string name="stake_state_empty_description">اولین %1$s خود را استیک کنید</string>
   <string name="stake_resource">منبع</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">استیبل کوین ها</string>
   <string name="assets_state_empty_search_description">می‌توانید سعی کنید آن را به صورت دستی اضافه کنید</string>
   <string name="assets_title">دارایی‌ها</string>
-  <string name="sign_message_title">پیام را امضا کنید</string>
   <string name="sign_message_message">پیام</string>
   <string name="sign_message_view_full_message">مشاهده کامل پیام</string>
   <string name="secret_phrase_do_not_share_title">عبارات خصوصی خود را با کسی به اشتراک نگذارید.</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">حداقل موجودی</string>
   <string name="info_perpetual_funding_payments_title">پرداخت های مالی</string>
   <string name="info_perpetual_funding_payments_description">پرداخت های تامین مالی، پرداخت های دوره ای بین معامله گران است تا قیمت قرارداد دائمی را نزدیک به قیمت لحظه ای دارایی پایه نگه دارند. تامین مالی مثبت به این معنی است که موقعیت‌های لانگ به موقعیت‌های شورت پرداخت می‌کنند، در حالی که تامین مالی منفی به معنای پرداخت موقعیت‌های شورت به موقعیت‌های لانگ است.</string>
-  <string name="info_perpetual_funding_rate_title">تامین مالی</string>
-  <string name="info_perpetual_funding_rate_description">نرخ تامین مالی هزینه های حفظ یک موقعیت دائمی را تعیین می کند. به صورت ساعتی محاسبه می شود و به حفظ تعادل قیمت بین قرارداد دائمی و قیمت لحظه ای دارایی اساسی کمک می کند.</string>
   <string name="info_perpetual_liquidation_price_title">قیمت انحلال</string>
   <string name="info_perpetual_liquidation_price_description">قیمت انحلال سطح قیمتی است که در آن موقعیت شما به طور خودکار بسته می شود تا از زیان بیشتر جلوگیری شود. هنگامی که قیمت بازار به این سطح می رسد، موقعیت شما منحل می شود و حاشیه خود را از دست می دهید.</string>
   <string name="info_perpetual_open_interest_title">بهره باز</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">من متوجه هستم که Gem بانک یا صرافی نیست و استفاده از آن برای مقاصد غیرقانونی اکیداً ممنوع است.</string>
   <string name="onboarding_accept_terms_item3_message">می‌دانم که اگر دسترسی به کیف پول‌هایم را از دست بدهم، Gem مسئولیتی ندارد و به هیچ وجه نمی‌تواند کمک کند.</string>
   <string name="onboarding_accept_terms_continue">موافقت کنید و ادامه دهید</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">موقعیت‌ها</string>
   <string name="perpetual_size">اندازه</string>
   <string name="perpetual_margin">حاشیه</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">باز کردن %1$s</string>
   <string name="perpetual_close_direction">بستن %1$s</string>
   <string name="perpetual_leverage">اهرم مالی</string>
-  <string name="perpetual_direction">جهت</string>
   <string name="perpetual_auto_close">بستن خودکار</string>
   <string name="perpetual_auto_close_take_profit">سود ببرید</string>
   <string name="perpetual_market_price">قیمت بازار</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">دارایی هایی که اخیراً استفاده کرده اید در اینجا ظاهر می شوند</string>
   <string name="notifications_inapp_state_empty_title">هنوز هیچ اعلانی وجود ندارد</string>
   <string name="notifications_inapp_state_empty_description">به‌روزرسانی‌های مربوط به اعلان‌هایتان را اینجا خواهید دید</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">دوستان را دعوت کنید و با هم پاداش کسب کنید</string>
   <string name="earn_state_empty_title">موقعیت‌های شما اینجا نمایش داده می‌شوند</string>
   <string name="earn_state_empty_description">اولین واریز خود را انجام دهید %1$s</string>
   <string name="contacts_title">مخاطبین</string>

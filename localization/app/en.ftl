@@ -9,7 +9,6 @@ common_done = Done
 # Used in shared app UI for the secret phrase label.
 common_secret_phrase = Secret Phrase
 # Used in shared app UI for the next label.
-common_next = Next
 # Used in shared app UI for the copy label.
 common_copy = Copy
 # Used in shared app UI for the share label.
@@ -23,7 +22,6 @@ common_loading = Loading
 # Used in shared app UI for the address label.
 common_address = Address
 # Used in shared app UI for the back label.
-common_back = Back
 # Used in shared app UI for the try again label.
 common_try_again = Try Again
 # Used in shared app UI for the paste label.
@@ -55,7 +53,6 @@ common_type = Type
 # Used in shared app UI for the no results found label.
 common_no_results_found = No Results Found
 # Used in shared app UI for the yes label.
-common_yes = Yes
 # Used in shared app UI for the no label.
 common_no = No
 # Empty optional value shown in selection rows and detail fields.
@@ -81,21 +78,17 @@ common_warning = Warning
 # Used in shared app UI for the learn more label.
 common_learn_more = Learn More
 # Used in shared app UI for the short name label.
-common_short_name = Gem
 # Used in shared app UI as a description.
 common_description = Description
 # Used in shared app UI for the emoji label.
 common_emoji = Emoji
 # Used in shared app UI for the style label.
-common_style = Style
 # Used in shared app UI for the avatar label.
 common_avatar = Avatar
 # Used in shared app UI for the photo label.
-common_photo = Photo
 # Used in shared app UI for the save label.
 common_save = Save
 # Used in shared app UI for the edit label.
-common_edit = Edit
 # Used in shared app UI for the percentage label.
 common_percentage = Percentage
 # Used in shared app UI for the details label.
@@ -289,7 +282,6 @@ transfer_freeze_title = Freeze
 # Used in Transfer, Send, Stake, and confirmation flows for the unfreeze title.
 transfer_unfreeze_title = Unfreeze
 # Used in Transfer, Send, Stake, and confirmation flows for the sign transaction title.
-transfer_sign_transaction_title = Sign Transaction
 # Used in Transfer, Send, Stake, and confirmation flows for the review request label.
 transfer_review_request = Review Request
 # Used in Transfer, Send, Stake, and confirmation flows for the amount label.
@@ -322,7 +314,6 @@ settings_networks_explorer = Explorer
 # Used in Settings screens for the currency label.
 settings_currency = Currency
 # Used in Settings screens for the rate app label.
-settings_rate_app = Rate App
 # Used in Settings screens for the website label.
 settings_website = Visit Website
 # Used in Settings screens for the security label.
@@ -418,11 +409,9 @@ errors_dust_threshold = The transaction failed because the amount is too small t
 # Swap screen error when providers cannot return a quote for the selected pair or amount.
 errors_swap_no_quote_available = No quote available.
 # Used in error cards and validation UI for the swap not supported chain label.
-errors_swap_not_supported_chain = Not supported chain.
 # Used in error cards and validation UI for the swap not supported asset label.
 errors_swap_not_supported_asset = Not supported asset.
 # Used in error cards and validation UI for the swap not supported pair label.
-errors_swap_not_supported_pair = Not supported pair.
 # Used in error cards and validation UI for the connections invalid send parameters label.
 errors_connections_invalid_send_parameters = Invalid parameters provided for sending a transaction.
 # Used in error cards and validation UI for the connections invalid sign parameters label.
@@ -544,7 +533,6 @@ asset_market_cap = Market Cap
 # Used in asset detail and asset verification screens for the trading volume label.
 asset_trading_volume = Trading Volume (24h)
 # Used in asset detail and asset verification screens for the market cap rank label.
-asset_market_cap_rank = Market Cap Rank
 # Used in asset detail and asset verification screens for the total supply label.
 asset_total_supply = Total Supply
 # Used in asset detail and asset verification screens for the circulating supply label.
@@ -639,7 +627,6 @@ wallet_connect_connect_title = Connect
 # Used in WalletConnect connection and request screens for the app label.
 wallet_connect_app = App
 # Used in WalletConnect connection and request screens for the website label.
-wallet_connect_website = Website
 # Used in WalletConnect connection and request screens for the brand name label.
 wallet_connect_brand_name = WalletConnect
 # Used in WalletConnect connection and request screens for the no active connections label.
@@ -647,7 +634,6 @@ wallet_connect_no_active_connections = No active connections
 # Used in WalletConnect connection and request screens for the state empty description.
 wallet_connect_state_empty_description = Scan or paste code to connect to the DApp
 # Used in WalletConnect connection and request screens for the domain label.
-wallet_connect_domain = Domain
 # Used in WalletConnect connection and request screens for the permissions title.
 wallet_connect_permissions_title = Permissions
 # Used in WalletConnect connection and request screens for the permissions view balance label.
@@ -707,9 +693,7 @@ stake_active_in = Active In
 # Used in Earn, staking, delegation, and validator screens for the minimum amount label.
 stake_minimum_amount = Minimum amount
 # Used in Earn, staking, delegation, and validator screens for the viagem label.
-stake_viagem = Stake via Gem Wallet
 # Used in Earn, staking, delegation, and validator screens for the no active staking label.
-stake_no_active_staking = No active staking yet.
 # Used in Earn, staking, delegation, and validator screens for the state empty title.
 stake_state_empty_title = Your stakes will appear here
 # Used in Earn, staking, delegation, and validator screens for the state empty description. Contains 1 string placeholder.
@@ -751,7 +735,6 @@ assets_title = Assets
 # Sign Message
 
 # Used in sign UI for the message title.
-sign_message_title = Sign Message
 # Used in sign UI for the message message.
 sign_message_message = Message
 # Used in sign UI for the message view full message.
@@ -1007,9 +990,7 @@ info_perpetual_funding_payments_title = Funding Payments
 # Used in Info bottom sheets for the perpetual funding payments description.
 info_perpetual_funding_payments_description = Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.
 # Used in Info bottom sheets for the perpetual funding rate title.
-info_perpetual_funding_rate_title = Funding
 # Used in Info bottom sheets for the perpetual funding rate description.
-info_perpetual_funding_rate_description = The funding rate determines the cost of holding a perpetual position. It is calculated hourly and helps maintain price equilibrium between the perpetual contract and the underlying asset's spot price.
 # Used in Info bottom sheets for the perpetual liquidation price title.
 info_perpetual_liquidation_price_title = Liquidation Price
 # Used in Info bottom sheets for the perpetual liquidation price description.
@@ -1141,7 +1122,6 @@ onboarding_accept_terms_continue = Agree and Continue
 # Brand
 
 # Used in brand display UI for the name label.
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -1176,7 +1156,6 @@ perpetual_close_direction = Close %@
 # Used in perpetual trading and position screens for the leverage label.
 perpetual_leverage = Leverage
 # Used in perpetual trading and position screens for the direction label.
-perpetual_direction = Direction
 # Used in perpetual trading and position screens for the auto close label.
 perpetual_auto_close = Auto Close
 # Used in perpetual trading and position screens for the auto close take profit label.
@@ -1300,7 +1279,6 @@ notifications_inapp_state_empty_title = No notifications yet
 # Used in in-app notification screens for the inapp state empty description.
 notifications_inapp_state_empty_description = You'll see updates about your notifications here
 # Used in in-app notification screens for the inapp rewards invite subtitle.
-notifications_inapp_rewards_invite_subtitle = Invite friends and earn rewards together
 
 # Earn
 

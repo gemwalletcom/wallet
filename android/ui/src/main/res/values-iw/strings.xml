@@ -3,14 +3,12 @@
   <string name="common_cancel">לְבַטֵל</string>
   <string name="common_done">בוצע</string>
   <string name="common_secret_phrase">ביטוי סודי</string>
-  <string name="common_next">הבא</string>
   <string name="common_copy">העתק</string>
   <string name="common_share">שתף</string>
   <string name="common_continue">המשך</string>
   <string name="common_provider">ספק</string>
   <string name="common_loading">טוען</string>
   <string name="common_address">כתובת</string>
-  <string name="common_back">חזרה</string>
   <string name="common_try_again">נסה שוב</string>
   <string name="common_paste">הדבק</string>
   <string name="common_delete">מחק</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">נהל</string>
   <string name="common_type">סוג</string>
   <string name="common_no_results_found">לא נמצאו תוצאות</string>
-  <string name="common_yes">כן</string>
   <string name="common_no">לא</string>
   <string name="common_none">ללא</string>
   <string name="common_url">כתובת אתר</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">לְדַלֵג</string>
   <string name="common_warning">אַזהָרָה</string>
   <string name="common_learn_more">למידע נוסף</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">תֵאוּר</string>
   <string name="common_emoji">אימוג\'י</string>
-  <string name="common_style">סִגְנוֹן</string>
   <string name="common_avatar">גִלגוּל</string>
-  <string name="common_photo">תַצלוּם</string>
   <string name="common_save">שמור</string>
-  <string name="common_edit">ערוך</string>
   <string name="common_percentage">אֲחוּזִים</string>
   <string name="common_details">פרטים</string>
   <string name="common_info">מידע</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">השארנו %1$s ביתרה שלך לכיסוי עמלות רשת עתידיות.</string>
   <string name="transfer_freeze_title">הַקפָּאָה</string>
   <string name="transfer_unfreeze_title">לְהַפְשִׁיר</string>
-  <string name="transfer_sign_transaction_title">חתימה על עסקה</string>
   <string name="transfer_review_request">סקור בקשה</string>
   <string name="transfer_amount">כמות</string>
   <string name="transfer_amount_title">כמות</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">מקור</string>
   <string name="settings_networks_explorer">סייר</string>
   <string name="settings_currency">מטבע</string>
-  <string name="settings_rate_app">דרג אפליקציה</string>
   <string name="settings_website">בקר באתר</string>
   <string name="settings_security">אבטחה</string>
   <string name="settings_enable_value">הפעל את %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">כתובת %1$s לא חוקית</string>
   <string name="errors_dust_threshold">העסקה נכשלה מכיוון שהסכום קטן מדי לעמוד בדרישת המינימום של רשת %1$s (ערך אבק). מגבלה זו מבטיחה שערך העסקה יכסה את העמלות ואת עלויות העיבוד.</string>
   <string name="errors_swap_no_quote_available">אין הצעת מחיר זמינה.</string>
-  <string name="errors_swap_not_supported_chain">שרשרת לא נתמכת.</string>
   <string name="errors_swap_not_supported_asset">נכס לא נתמך.</string>
-  <string name="errors_swap_not_supported_pair">זוג לא נתמך.</string>
   <string name="errors_connections_invalid_send_parameters">פרמטרים לא חוקיים סופקו לשליחת עסקה.</string>
   <string name="errors_connections_invalid_sign_parameters">פרמטרים לא חוקיים סופקו לחתימה.</string>
   <string name="errors_connections_no_supported_wallets">אין ארנקים נתמכים זמינים.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">מחיר</string>
   <string name="asset_market_cap">שווי שוק</string>
   <string name="asset_trading_volume">נפח מסחר (24 שעות)</string>
-  <string name="asset_market_cap_rank">דירוג שווי שוק</string>
   <string name="asset_total_supply">אספקה כוללת</string>
   <string name="asset_circulating_supply">אספקה במחזור</string>
   <string name="asset_balances_reserved">שָׁמוּר</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">התנתק</string>
   <string name="wallet_connect_connect_title">התחבר</string>
   <string name="wallet_connect_app">אפליקציה</string>
-  <string name="wallet_connect_website">אֲתַר אִינטֶרנֶט</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">אין חיבורים פעילים</string>
   <string name="wallet_connect_state_empty_description">סרוק או הדבק קוד כדי להתחבר ל-DApp</string>
-  <string name="wallet_connect_domain">דומיין</string>
   <string name="wallet_connect_permissions_title">הרשאות</string>
   <string name="wallet_connect_permissions_view_balance">צפה ביתרה ובפעילות שלך</string>
   <string name="wallet_connect_permissions_approval_requests">שלח בקשות אישור</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">ממתין למשיכה</string>
   <string name="stake_active_in">פעיל בעוד</string>
   <string name="stake_minimum_amount">סכום מינימלי</string>
-  <string name="stake_viagem">הימור באמצעות ארנק Gem</string>
-  <string name="stake_no_active_staking">עדיין אין הימור פעיל.</string>
   <string name="stake_state_empty_title">ההימור שלך יופיע כאן</string>
   <string name="stake_state_empty_description">החזק את %1$s הראשון שלך</string>
   <string name="stake_resource">מַשׁאָב</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stablecoins</string>
   <string name="assets_state_empty_search_description">אתה יכול לנסות להוסיף את זה ידנית</string>
   <string name="assets_title">נכסים</string>
-  <string name="sign_message_title">חתום על הודעה</string>
   <string name="sign_message_message">הודעה</string>
   <string name="sign_message_view_full_message">צפה בהודעה המלאה</string>
   <string name="secret_phrase_do_not_share_title">אל תשתף את הביטוי הסודי שלך!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">יתרה מינימלית</string>
   <string name="info_perpetual_funding_payments_title">מימון תשלומים</string>
   <string name="info_perpetual_funding_payments_description">תשלומי מימון הם תשלומים תקופתיים בין סוחרים כדי לשמור על מחיר החוזה התמידי קרוב למחיר הספוט של נכס הבסיס. מימון חיובי פירושו שפוזיציות ארוכות משלמות פוזיציות שורט, בעוד מימון שלילי פירושו פוזיציות שורט משלמות פוזיציות לונג.</string>
-  <string name="info_perpetual_funding_rate_title">מימון</string>
-  <string name="info_perpetual_funding_rate_description">שיעור המימון קובע את עלות החזקת פוזיציה נצחית. הוא מחושב לפי שעה ועוזר לשמור על שיווי משקל בין החוזה התמידי למחיר הספוט של נכס הבסיס.</string>
   <string name="info_perpetual_liquidation_price_title">מחיר פירוק</string>
   <string name="info_perpetual_liquidation_price_description">מחיר הפירוק הוא רמת המחיר שבה הפוזיציה שלך תיסגר אוטומטית כדי למנוע הפסדים נוספים. כאשר מחיר השוק מגיע לרמה זו, הפוזיציה שלך מחוסלת ואתה מאבד את המרווח שלך.</string>
   <string name="info_perpetual_open_interest_title">עניין פתוח</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">אני מבין ש-Gem אינו בנק או בורסה, והשימוש בו למטרות בלתי חוקיות אסור בהחלט.</string>
   <string name="onboarding_accept_terms_item3_message">אני מבין שאם אי פעם אאבד גישה לארנקים שלי, Gem לא תישא באחריות ולא יכולה לעזור בשום צורה.</string>
   <string name="onboarding_accept_terms_continue">מסכים והמשך</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">פוזיציות</string>
   <string name="perpetual_size">גוֹדֶל</string>
   <string name="perpetual_margin">מרג\'ין</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">פתח %1$s</string>
   <string name="perpetual_close_direction">סגור %1$s</string>
   <string name="perpetual_leverage">מינוף</string>
-  <string name="perpetual_direction">כיוון</string>
   <string name="perpetual_auto_close">סגירה אוטומטית</string>
   <string name="perpetual_auto_close_take_profit">קח רווח</string>
   <string name="perpetual_market_price">מחיר שוק</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">נכסים שבהם השתמשת לאחרונה יופיעו כאן</string>
   <string name="notifications_inapp_state_empty_title">אין עדיין התראות</string>
   <string name="notifications_inapp_state_empty_description">כאן תראו עדכונים לגבי ההתראות שלכם</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">הזמינו חברים וצברו יחד פרסים</string>
   <string name="earn_state_empty_title">המיקומים שלך יופיעו כאן</string>
   <string name="earn_state_empty_description">הפקד את הראשון שלך %1$s</string>
   <string name="contacts_title">אנשי קשר</string>

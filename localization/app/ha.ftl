@@ -3,14 +3,12 @@
 common_cancel = Soke
 common_done = Anyi
 common_secret_phrase = Kalmomin Sirri
-common_next = Na gaba
 common_copy = Kwafi
 common_share = Raba
 common_continue = Ci gaba
 common_provider = Mai bayarwa
 common_loading = Ana lodawa
 common_address = Adireshi
-common_back = Baya
 common_try_again = Gwada kuma
 common_paste = Manna
 common_delete = Share
@@ -26,7 +24,6 @@ common_phrase = Jumla
 common_manage = Sarrafa
 common_type = Nau'in
 common_no_results_found = Ba a Samu Sakamako ba
-common_yes = Ee
 common_no = A'a
 common_none = Babu
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Cire
 common_skip = Tsallake
 common_warning = Gargadi
 common_learn_more = Ƙara Koyi
-common_short_name = Gem
 common_description = Bayani
 common_emoji = Emoji
-common_style = Salo
 common_avatar = Avatar
-common_photo = Hoto
 common_save = Ajiye
-common_edit = Gyara
 common_percentage = Kashi
 common_details = Cikakkun bayanai
 common_info = Bayani
@@ -152,7 +145,6 @@ transfer_maximum_amount = Matsakaicin adadin shine %@
 transfer_reserved_fees = Mun bar %@ cikin ma'auni don biyan kuɗin hanyar sadarwa na gaba.
 transfer_freeze_title = Daskare
 transfer_unfreeze_title = Cire daskarewa
-transfer_sign_transaction_title = Sa hannu kan Ma'amala
 transfer_review_request = Buƙatar Bita
 transfer_amount = Adadin
 transfer_amount_title = Adadin
@@ -170,7 +162,6 @@ settings_networks_title = Hanyoyin sadarwa
 settings_networks_source = Source
 settings_networks_explorer = Explorer
 settings_currency = Kudi
-settings_rate_app = Rate App
 settings_website = Ziyarci Yanar Gizo
 settings_security = Tsaro
 settings_enable_value = Kunna %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = A halin yanzu ba mu iya ƙididdige kuɗin h
 errors_invalid_asset_address = Adireshin %@ mara inganci
 errors_dust_threshold = Kasuwancin ya gaza saboda adadin ya yi ƙanƙanta da zai iya biyan mafi ƙarancin buƙatun hanyar sadarwa na %@ (ƙafar ƙura). Wannan iyaka yana tabbatar da ƙimar ciniki ta rufe kudade da farashin sarrafawa.
 errors_swap_no_quote_available = Babu farashi a halin yanzu.
-errors_swap_not_supported_chain = Sarkar da ba ta da goyan baya.
 errors_swap_not_supported_asset = Ba a goyan bayan kadari.
-errors_swap_not_supported_pair = Ba a goyan bayan nau'i biyu ba.
 errors_connections_invalid_send_parameters = An samar da sigogi marasa inganci don aika ma'amala.
 errors_connections_invalid_sign_parameters = An samar da sigogi marasa inganci don sa hannu.
 errors_connections_no_supported_wallets = Babu goyan bayan walat.
@@ -290,7 +279,6 @@ asset_balances_available = Akwai
 asset_price = Farashin
 asset_market_cap = Ƙimar Kasuwa
 asset_trading_volume = Girman Kasuwanci (24h)
-asset_market_cap_rank = Matsayin Kasuwa
 asset_total_supply = Jimlar Wadata
 asset_circulating_supply = Wadatar Dawowa
 asset_balances_reserved = Ajiye
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Haɗin kai
 wallet_connect_disconnect = Cire haɗin
 wallet_connect_connect_title = Haɗa
 wallet_connect_app = App
-wallet_connect_website = Yanar Gizo
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Babu haɗin kai mai aiki
 wallet_connect_state_empty_description = Duba ko liƙa lamba don haɗi zuwa DApp
-wallet_connect_domain = Yankin
 wallet_connect_permissions_title = Izini
 wallet_connect_permissions_view_balance = Duba ma'aunin ku da ayyukan ku
 wallet_connect_permissions_approval_requests = Aika buƙatun amincewa
@@ -379,8 +365,6 @@ stake_deactivating = Yana kashewa
 stake_awaiting_withdrawal = Ana jiran Janyewa
 stake_active_in = Active In
 stake_minimum_amount = Mafi ƙarancin adadin
-stake_viagem = Saka hannun jari ta Gem Wallet
-stake_no_active_staking = Har yanzu babu wani saka hannun jari.
 stake_state_empty_title = Hannun jarinku zai bayyana a nan
 stake_state_empty_description = Bada %@ na farko
 stake_resource = Albarkatu
@@ -404,7 +388,6 @@ assets_title = Kadari
 
 # Sign Message
 
-sign_message_title = Saƙon Sa hannu
 sign_message_message = Sako
 sign_message_view_full_message = Duba Cikakken Saƙo
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Baku da isassun %@ don kammala wannan ci
 info_account_minimum_balance_title = Mafi ƙarancin ma'auni
 info_perpetual_funding_payments_title = Biyan Kuɗi
 info_perpetual_funding_payments_description = Biyan kuɗi kuɗi ne na lokaci-lokaci tsakanin ƴan kasuwa don kiyaye farashin kwangila na dindindin kusa da ainihin ƙimar kadara. Kudi mai kyau yana nufin matsayi mai tsawo yana biyan gajerun matsayi, yayin da kudade mara kyau yana nufin gajeren matsayi yana biyan matsayi mai tsawo.
-info_perpetual_funding_rate_title = Tallafawa
-info_perpetual_funding_rate_description = Adadin kuɗi yana ƙayyade farashin riƙe matsayi na har abada. Ana ƙididdige shi kowane sa'o'i kuma yana taimakawa kiyaye daidaiton farashi tsakanin kwangilar dindindin da farashin tabo na kadari.
 info_perpetual_liquidation_price_title = Farashin Liquidation
 info_perpetual_liquidation_price_description = Farashin ruwa shine matakin farashin wanda za'a rufe matsayin ku ta atomatik don hana ƙarin asara. Lokacin da farashin kasuwa ya kai wannan matakin, ana share matsayin ku kuma kuna rasa margin ɗin ku.
 info_perpetual_open_interest_title = Buɗe Sha'awa
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Yarda da Ci gaba
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Ƙara Matsayi
 perpetual_open_direction = Bude %@
 perpetual_close_direction = Rufe %@
 perpetual_leverage = Amfani
-perpetual_direction = Hanyar
 perpetual_auto_close = Rufe atomatik
 perpetual_auto_close_take_profit = Ci riba
 perpetual_market_price = Farashin Kasuwa
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Kadarorin da kuka yi amfani da su kwan
 
 notifications_inapp_state_empty_title = Babu sanarwa tukuna
 notifications_inapp_state_empty_description = Za ku ga sabbin bayanai game da sanarwarku a nan
-notifications_inapp_rewards_invite_subtitle = Gayyaci abokai kuma ku sami lada tare
 
 # Earn
 

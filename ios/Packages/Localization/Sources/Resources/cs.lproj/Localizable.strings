@@ -1,14 +1,12 @@
 "common.cancel" = "Zrušit";
 "common.done" = "Hotovo";
 "common.secret_phrase" = "Tajná fráze";
-"common.next" = "Další";
 "common.copy" = "Kopírovat";
 "common.share" = "Sdílet";
 "common.continue" = "Pokračovat";
 "common.provider" = "Poskytovatel";
 "common.loading" = "Načítání";
 "common.address" = "Adresa";
-"common.back" = "Zpět";
 "common.try_again" = "Zkuste to znovu";
 "common.paste" = "Vložit";
 "common.delete" = "Vymazat";
@@ -24,7 +22,6 @@
 "common.manage" = "Spravovat";
 "common.type" = "Typ";
 "common.no_results_found" = "Nebyly nalezeny žádné výsledky";
-"common.yes" = "Ano";
 "common.no" = "Ne";
 "common.none" = "Žádná";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Přeskočit";
 "common.warning" = "Varování";
 "common.learn_more" = "Další informace";
-"common.short_name" = "Gem";
 "common.description" = "Popis";
 "common.emoji" = "Emoji";
-"common.style" = "Styl";
 "common.avatar" = "Avatar";
-"common.photo" = "Fotografie";
 "common.save" = "Uložit";
-"common.edit" = "Upravit";
 "common.percentage" = "Procento";
 "common.details" = "Podrobnosti";
 "common.info" = "Informace";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Na vašem zůstatku jsme nechali %@ na pokrytí budoucích poplatků za síť.";
 "transfer.freeze.title" = "Zmrazit";
 "transfer.unfreeze.title" = "Uvolnit";
-"transfer.sign_transaction.title" = "Podepsat transakci";
 "transfer.review_request" = "Žádost o kontrolu";
 "settings.terms_of_services" = "Podmínky služeb";
 "settings.privacy_policy" = "Zásady ochrany osobních údajů";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Zdroj";
 "settings.networks.explorer" = "Průzkumník";
 "settings.currency" = "Měna";
-"settings.rate_app" = "Ohodnoťte aplikaci";
 "settings.website" = "Navštivte webové stránky";
 "settings.security" = "Zabezpečení";
 "settings.enable_value" = "Povolit %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Neplatná adresa %@";
 "errors.dust_threshold" = "Transakce se nezdařila, protože částka je příliš malá na to, aby splnila minimální požadavek sítě %@ (prahová hodnota prachu). Tento limit zajišťuje, že hodnota transakce pokryje poplatky a náklady na zpracování.";
 "errors.swap.no_quote_available" = "Není dostupná žádná nabídka.";
-"errors.swap.not_supported_chain" = "Nepodporovaný řetězec.";
 "errors.swap.not_supported_asset" = "Nepodporované aktivum.";
-"errors.swap.not_supported_pair" = "Nepodporovaný pár.";
 "errors.connections.invalid_send_parameters" = "Zadané neplatné parametry pro odeslání transakce.";
 "errors.connections.invalid_sign_parameters" = "Zadané neplatné parametry pro podepisování.";
 "errors.connections.no_supported_wallets" = "Nejsou k dispozici žádné podporované peněženky.";
@@ -236,7 +225,6 @@
 "asset.price" = "Cena";
 "asset.market_cap" = "Tržní kapitalizace";
 "asset.trading_volume" = "Objem obchodování (24 hodin)";
-"asset.market_cap_rank" = "Pořadí tržní kapitalizace";
 "asset.total_supply" = "Celková nabídka";
 "asset.circulating_supply" = "Cirkulující zásobování";
 "asset.balances.reserved" = "Rezervováno";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Odpojit";
 "wallet_connect.connect.title" = "Připojit";
 "wallet_connect.app" = "App";
-"wallet_connect.website" = "Webové stránky";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Žádná aktivní připojení";
 "wallet_connect.state.empty.description" = "Naskenujte nebo vložte kód pro připojení k DApp";
-"wallet_connect.domain" = "Doména";
 "wallet_connect.permissions.title" = "Oprávnění";
 "wallet_connect.permissions.view_balance" = "Zobrazení zůstatku a aktivity";
 "wallet_connect.permissions.approval_requests" = "Odeslat žádosti o schválení";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Čeká na stažení";
 "stake.active_in" = "Aktivní v";
 "stake.minimum_amount" = "Minimální částka";
-"stake.viagem" = "Sázka přes Gem Wallet";
-"stake.no_active_staking" = "Zatím bez aktivního stakingu.";
 "stake.state.empty.title" = "Vaše sázky se zobrazí zde";
 "stake.state.empty.description" = "Vsaďte si první %@";
 "stake.resource" = "Zdroj";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Stablecoiny";
 "assets.state.empty.search_description" = "Můžete to zkusit přidat ručně";
 "assets.title" = "Aktiva";
-"sign_message.title" = "Podepsat zprávu";
 "sign_message.message" = "Zpráva";
 "sign_message.view_full_message" = "Zobrazit celou zprávu";
 "secret_phrase.do_not_share.title" = "Nesdílejte svou tajnou frázi!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Minimální zůstatek";
 "info.perpetual.funding_payments.title" = "Financování plateb";
 "info.perpetual.funding_payments.description" = "Platby financování jsou pravidelné platby mezi obchodníky, jejichž cílem je udržet stálou smluvní cenu blízkou spotové ceně podkladového aktiva. Pozitivní financování znamená, že dlouhé pozice platí krátké pozice, zatímco negativní financování znamená, že krátké pozice platí dlouhé pozice.";
-"info.perpetual.funding_rate.title" = "Financování";
-"info.perpetual.funding_rate.description" = "Míra financování určuje náklady na držení trvalé pozice. Počítá se každou hodinu a pomáhá udržovat cenovou rovnováhu mezi věčným kontraktem a spotovou cenou podkladového aktiva.";
 "info.perpetual.liquidation_price.title" = "Likvidační cena";
 "info.perpetual.liquidation_price.description" = "Likvidační cena je cenová hladina, na které bude vaše pozice automaticky uzavřena, aby se předešlo dalším ztrátám. Když tržní cena dosáhne této úrovně, vaše pozice je zlikvidována a ztrácíte marži.";
 "info.perpetual.open_interest.title" = "Otevřený úrok";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Chápu, že Gem není banka ani burza a jeho používání k nelegálním účelům je přísně zakázáno.";
 "onboarding.accept_terms.item3.message" = "Chápu, že pokud někdy ztratím přístup ke svým peněženkám, Gem nenese žádnou odpovědnost a nemůže žádným způsobem pomoci.";
 "onboarding.accept_terms.continue" = "Souhlasit a pokračovat";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Pozice";
 "perpetual.size" = "Velikost";
 "perpetual.margin" = "Marže";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Otevřít %@";
 "perpetual.close_direction" = "Zavřít %@";
 "perpetual.leverage" = "Finanční páka";
-"perpetual.direction" = "Směr";
 "perpetual.auto_close" = "Automatické zavření";
 "perpetual.auto_close.take_profit" = "Take profit";
 "perpetual.market_price" = "Tržní cena";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Zde se zobrazí položky, které jste nedávno použili";
 "notifications.inapp.state.empty.title" = "Zatím žádná oznámení";
 "notifications.inapp.state.empty.description" = "Zde se zobrazí aktuální informace o vašich oznámeních";
-"notifications.inapp.rewards.invite.subtitle" = "Pozvěte přátele a společně sbírejte odměny";
 "earn.state.empty.title" = "Vaše pozice se zde zobrazí";
 "earn.state.empty.description" = "Vložte svůj první %@";
 "contacts.title" = "Kontakty";

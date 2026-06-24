@@ -3,14 +3,12 @@
 common_cancel = Annuleren
 common_done = Klaar
 common_secret_phrase = Geheime zin
-common_next = Volgende
 common_copy = Kopieer
 common_share = Deel
 common_continue = Ga door
 common_provider = Aanbieder
 common_loading = Laden
 common_address = Adres
-common_back = Terug
 common_try_again = Probeer het opnieuw
 common_paste = Plakken
 common_delete = Verwijderen
@@ -26,7 +24,6 @@ common_phrase = Zin
 common_manage = Beheer
 common_type = Typ
 common_no_results_found = Geen resultaten gevonden
-common_yes = Ja
 common_no = Nee
 common_none = Geen
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Losmaken
 common_skip = Overslaan
 common_warning = Waarschuwing
 common_learn_more = Meer informatie
-common_short_name = Gem
 common_description = Beschrijving
 common_emoji = Emoji
-common_style = Stijl
 common_avatar = Avatar
-common_photo = Foto
 common_save = Opslaan
-common_edit = Bewerken
 common_percentage = Percentage
 common_details = Details
 common_info = Informatie
@@ -152,7 +145,6 @@ transfer_maximum_amount = Maximaal bedrag is %@
 transfer_reserved_fees = We hebben %@ op uw saldo laten staan om toekomstige netwerkkosten te dekken.
 transfer_freeze_title = Bevriezen
 transfer_unfreeze_title = Ontvriezen
-transfer_sign_transaction_title = Transactie ondertekenen
 transfer_review_request = Verzoek controleren
 transfer_amount = Bedrag
 transfer_amount_title = Bedrag
@@ -170,7 +162,6 @@ settings_networks_title = Netwerken
 settings_networks_source = Bron
 settings_networks_explorer = Explorer
 settings_currency = Valuta
-settings_rate_app = Beoordeel App
 settings_website = Bezoek website
 settings_security = Beveiliging
 settings_enable_value = Schakel %@ in
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Momenteel kunnen wij de netwerkkosten niet 
 errors_invalid_asset_address = Ongeldig %@ adres
 errors_dust_threshold = De transactie is mislukt omdat het bedrag te klein is om te voldoen aan de minimumvereiste van het %@-netwerk (stofdrempel). Deze limiet zorgt ervoor dat de transactiewaarde de vergoedingen en verwerkingskosten dekt.
 errors_swap_no_quote_available = Geen offerte beschikbaar.
-errors_swap_not_supported_chain = Niet-ondersteunde keten.
 errors_swap_not_supported_asset = Niet-ondersteunde asset.
-errors_swap_not_supported_pair = Niet ondersteund paar.
 errors_connections_invalid_send_parameters = Ongeldige parameters opgegeven voor het verzenden van een transactie.
 errors_connections_invalid_sign_parameters = Ongeldige parameters opgegeven voor ondertekening.
 errors_connections_no_supported_wallets = Er zijn geen ondersteunde wallets beschikbaar.
@@ -290,7 +279,6 @@ asset_balances_available = Beschikbaar
 asset_price = Prijs
 asset_market_cap = Marktkapitalisatie
 asset_trading_volume = Handelsvolume (24 uur)
-asset_market_cap_rank = Marktkapitalisatierang
 asset_total_supply = Totaal aanbod
 asset_circulating_supply = Circulerend aanbod
 asset_balances_reserved = Gereserveerd
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Verbinding
 wallet_connect_disconnect = Verbreek de verbinding
 wallet_connect_connect_title = Verbinden
 wallet_connect_app = App
-wallet_connect_website = Website
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Geen actieve verbindingen
 wallet_connect_state_empty_description = Scan of plak de code om verbinding te maken met de DApp
-wallet_connect_domain = Domein
 wallet_connect_permissions_title = Toestemmingen
 wallet_connect_permissions_view_balance = Bekijk je saldo en activiteit
 wallet_connect_permissions_approval_requests = Verzoeken om goedkeuring verzenden
@@ -379,8 +365,6 @@ stake_deactivating = Deactiveren
 stake_awaiting_withdrawal = In afwachting van intrekking
 stake_active_in = Actief In
 stake_minimum_amount = Minimumbedrag
-stake_viagem = Staken via Gem Wallet
-stake_no_active_staking = Nog geen actieve staking.
 stake_state_empty_title = Uw inzet verschijnt hier
 stake_state_empty_description = Zet je eerste %@ in
 stake_resource = Hulpbron
@@ -404,7 +388,6 @@ assets_title = Activa
 
 # Sign Message
 
-sign_message_title = Teken bericht
 sign_message_message = Bericht
 sign_message_view_full_message = Bekijk het volledige bericht
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Je hebt niet genoeg %@ om deze transacti
 info_account_minimum_balance_title = Minimumsaldo
 info_perpetual_funding_payments_title = Financieringsbetalingen
 info_perpetual_funding_payments_description = Financieringsbetalingen zijn periodieke betalingen tussen handelaren om de eeuwigdurende contractprijs dicht bij de spotprijs van de onderliggende waarde te houden. Positieve financiering betekent dat longposities shortposities betalen, terwijl negatieve financiering betekent dat shortposities longposities betalen.
-info_perpetual_funding_rate_title = Financiering
-info_perpetual_funding_rate_description = Het financieringspercentage bepaalt de kosten voor het aanhouden van een eeuwigdurende positie. Het wordt elk uur berekend en helpt het prijsevenwicht tussen het eeuwigdurende contract en de spotprijs van de onderliggende waarde te handhaven.
 info_perpetual_liquidation_price_title = Liquidatieprijs
 info_perpetual_liquidation_price_description = De liquidatieprijs is het prijsniveau waarbij uw positie automatisch wordt gesloten om verdere verliezen te voorkomen. Wanneer de marktprijs dit niveau bereikt, wordt uw positie geliquideerd en verliest u uw marge.
 info_perpetual_open_interest_title = Open Interest
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Akkoord en doorgaan
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Positie verhogen
 perpetual_open_direction = Open %@
 perpetual_close_direction = Sluiten %@
 perpetual_leverage = Hefboom
-perpetual_direction = Richting
 perpetual_auto_close = Automatisch sluiten
 perpetual_auto_close_take_profit = Winst nemen
 perpetual_market_price = Marktprijs
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Activa die u onlangs heeft gebruikt, w
 
 notifications_inapp_state_empty_title = Nog geen meldingen
 notifications_inapp_state_empty_description = Je ziet hier updates over je meldingen.
-notifications_inapp_rewards_invite_subtitle = Nodig vrienden uit en verdien samen beloningen.
 
 # Earn
 

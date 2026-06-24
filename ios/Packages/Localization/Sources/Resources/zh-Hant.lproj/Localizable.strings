@@ -1,14 +1,12 @@
 "common.cancel" = "取消";
 "common.done" = "完畢";
 "common.secret_phrase" = "秘密短語";
-"common.next" = "下一步";
 "common.copy" = "複製";
 "common.share" = "共享";
 "common.continue" = "繼續";
 "common.provider" = "供應商";
 "common.loading" = "載入中";
 "common.address" = "地址";
-"common.back" = "返回";
 "common.try_again" = "重試";
 "common.paste" = "粘貼";
 "common.delete" = "刪除";
@@ -24,7 +22,6 @@
 "common.manage" = "管理";
 "common.type" = "類型";
 "common.no_results_found" = "未找到結果";
-"common.yes" = "是";
 "common.no" = "否";
 "common.none" = "無";
 "common.url" = "網址";
@@ -37,14 +34,10 @@
 "common.skip" = "跳過";
 "common.warning" = "警告";
 "common.learn_more" = "了解更多";
-"common.short_name" = "Gem";
 "common.description" = "描述";
 "common.emoji" = "表情符號";
-"common.style" = "風格";
 "common.avatar" = "頭像";
-"common.photo" = "照片";
 "common.save" = "儲存";
-"common.edit" = "編輯";
 "common.percentage" = "百分比";
 "common.details" = "詳情";
 "common.info" = "資訊";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "我們已在您的餘額中留下%@以支付未來的網路費用。";
 "transfer.freeze.title" = "凍結";
 "transfer.unfreeze.title" = "解凍";
-"transfer.sign_transaction.title" = "簽署交易";
 "transfer.review_request" = "審查請求";
 "settings.terms_of_services" = "服務條款";
 "settings.privacy_policy" = "隱私政策";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "來源";
 "settings.networks.explorer" = "區塊瀏覽器";
 "settings.currency" = "貨幣";
-"settings.rate_app" = "評價應用";
 "settings.website" = "訪問網站";
 "settings.security" = "安全設置";
 "settings.enable_value" = "開啟%@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "無效的 %@ 地址";
 "errors.dust_threshold" = "交易失敗，因為金額太小，無法滿足%@網路的最低要求（灰塵閾值）。此限制確保交易價值涵蓋費用和處理成本。";
 "errors.swap.no_quote_available" = "暫無報價";
-"errors.swap.not_supported_chain" = "暫不支援該區塊鏈網絡";
 "errors.swap.not_supported_asset" = "暫不支持該資產。";
-"errors.swap.not_supported_pair" = "暫不支持該交易對。";
 "errors.connections.invalid_send_parameters" = "發送交易時提供的參數無效。";
 "errors.connections.invalid_sign_parameters" = "提供的簽名參數無效。";
 "errors.connections.no_supported_wallets" = "暫無可用錢包";
@@ -236,7 +225,6 @@
 "asset.price" = "價格";
 "asset.market_cap" = "市值";
 "asset.trading_volume" = "交易量（24小時）";
-"asset.market_cap_rank" = "市值排名";
 "asset.total_supply" = "總供應量";
 "asset.circulating_supply" = "循環供應";
 "asset.balances.reserved" = "系統保留";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "斷開";
 "wallet_connect.connect.title" = "連接";
 "wallet_connect.app" = "應用程式";
-"wallet_connect.website" = "網站";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "沒有活動連接";
 "wallet_connect.state.empty.description" = "掃描或複製連結以連接到DApp";
-"wallet_connect.domain" = "網域";
 "wallet_connect.permissions.title" = "權限";
 "wallet_connect.permissions.view_balance" = "查看您的餘額和活動";
 "wallet_connect.permissions.approval_requests" = "發送審批請求";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "等待贖回";
 "stake.active_in" = "激活於";
 "stake.minimum_amount" = "最低金額";
-"stake.viagem" = "透過 Gem 錢包質押";
-"stake.no_active_staking" = "當前沒有啟用的質押";
 "stake.state.empty.title" = "您的質押將顯示在這裡️";
 "stake.state.empty.description" = "質押第一個%@";
 "stake.resource" = "資源";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "穩定幣";
 "assets.state.empty.search_description" = "請嘗試手動新增";
 "assets.title" = "資產";
-"sign_message.title" = "簽名訊息";
 "sign_message.message" = "訊息";
 "sign_message.view_full_message" = "查看完整訊息";
 "secret_phrase.do_not_share.title" = "切勿洩漏助記詞！";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "最低餘額";
 "info.perpetual.funding_payments.title" = "資金費用";
 "info.perpetual.funding_payments.description" = "資金費用是交易者之間的定期支付，用以使永續合約價格接近標的資產的現貨價格。正向資金費用表示多頭支付空頭，負向資金費用則表示空頭支付多頭。";
-"info.perpetual.funding_rate.title" = "資金費率";
-"info.perpetual.funding_rate.description" = "資金費率決定持有永續合約的成本，按小時計算，有助於維持永續合約與標的資產現貨價格之間的價格平衡。";
 "info.perpetual.liquidation_price.title" = "強制平倉價格";
 "info.perpetual.liquidation_price.description" = "強制平倉價格是當您的持倉價格達到此水平時，系統會自動平倉以防止進一步損失。當市場價格觸及此價格，您的持倉將被清算，並損失保證金。";
 "info.perpetual.open_interest.title" = "未平倉合約量";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "我了解 Gem 不是銀行或交易所，嚴禁用於任何非法用途。";
 "onboarding.accept_terms.item3.message" = "我了解若遺失錢包存取權限，Gem 不負任何責任且無法提供協助。";
 "onboarding.accept_terms.continue" = "我了解，繼續";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "倉位";
 "perpetual.size" = "倉位大小";
 "perpetual.margin" = "保證金";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "打開%@";
 "perpetual.close_direction" = "關閉%@";
 "perpetual.leverage" = "槓桿";
-"perpetual.direction" = "方向";
 "perpetual.auto_close" = "自動關閉";
 "perpetual.auto_close.take_profit" = "止盈";
 "perpetual.market_price" = "市價";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "您最近使用過的資源將顯示在此處";
 "notifications.inapp.state.empty.title" = "暫無通知";
 "notifications.inapp.state.empty.description" = "您可以在這裡查看通知更新。";
-"notifications.inapp.rewards.invite.subtitle" = "邀請好友，一起贏取獎勵";
 "earn.state.empty.title" = "您的持倉將顯示在此。";
 "earn.state.empty.description" = "存入您的第一筆款項 %@";
 "contacts.title" = "聯絡方式";

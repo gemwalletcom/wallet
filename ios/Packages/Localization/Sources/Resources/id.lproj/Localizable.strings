@@ -1,14 +1,12 @@
 "common.cancel" = "Batalkan";
 "common.done" = "Selesai";
 "common.secret_phrase" = "Frasa Rahasia";
-"common.next" = "Selanjutnya";
 "common.copy" = "Salin";
 "common.share" = "Bagikan";
 "common.continue" = "Lanjutkan";
 "common.provider" = "Penyedia";
 "common.loading" = "Memuat";
 "common.address" = "Alamat";
-"common.back" = "Kembali";
 "common.try_again" = "Coba Lagi";
 "common.paste" = "Tempel";
 "common.delete" = "Hapus";
@@ -24,7 +22,6 @@
 "common.manage" = "Kelola";
 "common.type" = "Tipe";
 "common.no_results_found" = "Hasil Tidak Ditemukan";
-"common.yes" = "Ya";
 "common.no" = "Tidak";
 "common.none" = "Tidak ada";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Lewati";
 "common.warning" = "Peringatan";
 "common.learn_more" = "Pelajari lebih lanjut";
-"common.short_name" = "Gem";
 "common.description" = "Keterangan";
 "common.emoji" = "Emoji";
-"common.style" = "Gaya";
 "common.avatar" = "Avatar";
-"common.photo" = "Foto";
 "common.save" = "Simpan";
-"common.edit" = "Sunting";
 "common.percentage" = "Persentase";
 "common.details" = "Rincian";
 "common.info" = "Informasi";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Kami telah meninggalkan %@ di saldo Anda untuk menutupi biaya jaringan di masa mendatang.";
 "transfer.freeze.title" = "Bekukan";
 "transfer.unfreeze.title" = "Cairkan";
-"transfer.sign_transaction.title" = "Menandatangani Transaksi";
 "transfer.review_request" = "Tinjau Permintaan";
 "settings.terms_of_services" = "Syarat dan Ketentuan";
 "settings.privacy_policy" = "Kebijakan Privasi";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Sumber";
 "settings.networks.explorer" = "Penjelajah";
 "settings.currency" = "Mata Uang";
-"settings.rate_app" = "Nilai Aplikasi";
 "settings.website" = "Kunjungi Website";
 "settings.security" = "Keamanan";
 "settings.enable_value" = "Aktifkan %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Alamat %@ tidak valid";
 "errors.dust_threshold" = "Transaksi gagal karena jumlahnya terlalu kecil untuk memenuhi persyaratan minimum jaringan %@ (ambang batas debu). Batas ini memastikan nilai transaksi mencakup biaya dan ongkos pemrosesan.";
 "errors.swap.no_quote_available" = "Tidak ada kuotasi yang tersedia.";
-"errors.swap.not_supported_chain" = "Rantai tidak didukung.";
 "errors.swap.not_supported_asset" = "Aset yang tidak didukung.";
-"errors.swap.not_supported_pair" = "Pasangan tidak didukung.";
 "errors.connections.invalid_send_parameters" = "Parameter yang diberikan untuk mengirim transaksi tidak valid.";
 "errors.connections.invalid_sign_parameters" = "Parameter yang diberikan untuk penandatanganan tidak valid.";
 "errors.connections.no_supported_wallets" = "Tidak ada dompet yang didukung tersedia.";
@@ -236,7 +225,6 @@
 "asset.price" = "Harga";
 "asset.market_cap" = "Kapitalisasi Pasar";
 "asset.trading_volume" = "Volume Perdagangan (24h)";
-"asset.market_cap_rank" = "Peringkat Kapitalisasi Pasar";
 "asset.total_supply" = "Total Suplai";
 "asset.circulating_supply" = "Suplai Beredar";
 "asset.balances.reserved" = "Cadangan";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Putuskan Koneksi";
 "wallet_connect.connect.title" = "Hubungkan";
 "wallet_connect.app" = "Aplikasi";
-"wallet_connect.website" = "Situs Web";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Tidak ada koneksi aktif";
 "wallet_connect.state.empty.description" = "Pindai atau tempel kode untuk terhubung ke DApp";
-"wallet_connect.domain" = "Domain";
 "wallet_connect.permissions.title" = "Izin";
 "wallet_connect.permissions.view_balance" = "Lihat saldo dan aktivitas Anda";
 "wallet_connect.permissions.approval_requests" = "Kirim permintaan persetujuan";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Penarikan Sedang Diproses";
 "stake.active_in" = "Aktif Di";
 "stake.minimum_amount" = "Jumlah minimum";
-"stake.viagem" = "Staking melalui Gem Wallet";
-"stake.no_active_staking" = "Belum ada staking aktif.";
 "stake.state.empty.title" = "Staking Anda akan muncul di sini";
 "stake.state.empty.description" = "Staking %@ pertama Anda";
 "stake.resource" = "Sumber";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Koin stabil";
 "assets.state.empty.search_description" = "Anda dapat mencoba menambahkannya secara manual";
 "assets.title" = "Aset";
-"sign_message.title" = "Tandatangani Pesan";
 "sign_message.message" = "Pesan";
 "sign_message.view_full_message" = "Lihat Pesan Lengkap";
 "secret_phrase.do_not_share.title" = "Jangan sebarkan Frasa Rahasia Anda!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Saldo minimum";
 "info.perpetual.funding_payments.title" = "Pembayaran Pendanaan";
 "info.perpetual.funding_payments.description" = "Pembayaran pendanaan adalah pembayaran berkala antar pedagang untuk menjaga harga kontrak abadi tetap dekat dengan harga spot aset dasar. Pendanaan positif berarti posisi panjang membayar posisi pendek, sedangkan pendanaan negatif berarti posisi pendek membayar posisi panjang.";
-"info.perpetual.funding_rate.title" = "Pendanaan";
-"info.perpetual.funding_rate.description" = "Tingkat pendanaan menentukan biaya untuk mempertahankan posisi abadi. Ini dihitung setiap jam dan membantu menjaga keseimbangan harga antara kontrak abadi dan harga spot aset yang mendasarinya.";
 "info.perpetual.liquidation_price.title" = "Harga Likuidasi";
 "info.perpetual.liquidation_price.description" = "Harga likuidasi adalah tingkat harga di mana posisi Anda akan ditutup secara otomatis untuk mencegah kerugian lebih lanjut. Ketika harga pasar mencapai level ini, posisi Anda dilikuidasi dan Anda kehilangan margin.";
 "info.perpetual.open_interest.title" = "Minat Terbuka";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Saya memahami bahwa Gem bukanlah bank atau bursa, dan menggunakannya untuk tujuan ilegal sangat dilarang.";
 "onboarding.accept_terms.item3.message" = "Saya memahami bahwa jika saya kehilangan akses ke dompet saya, Gem tidak bertanggung jawab dan tidak dapat membantu dengan cara apa pun.";
 "onboarding.accept_terms.continue" = "Setuju dan Lanjutkan";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Posisi";
 "perpetual.size" = "Ukuran";
 "perpetual.margin" = "Margin";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Buka %@";
 "perpetual.close_direction" = "Tutup %@";
 "perpetual.leverage" = "Leverage";
-"perpetual.direction" = "Arah";
 "perpetual.auto_close" = "Tutup Otomatis";
 "perpetual.auto_close.take_profit" = "Ambil untung";
 "perpetual.market_price" = "Harga Pasar";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Aset yang baru-baru ini Anda gunakan akan muncul di sini";
 "notifications.inapp.state.empty.title" = "Belum ada notifikasi";
 "notifications.inapp.state.empty.description" = "Anda akan melihat pembaruan tentang notifikasi Anda di sini.";
-"notifications.inapp.rewards.invite.subtitle" = "Ajak teman dan dapatkan hadiah bersama.";
 "earn.state.empty.title" = "Posisi Anda akan muncul di sini.";
 "earn.state.empty.description" = "Setorkan pertama Anda %@";
 "contacts.title" = "Kontak";

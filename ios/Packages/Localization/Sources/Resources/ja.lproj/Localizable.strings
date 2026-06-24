@@ -1,14 +1,12 @@
 "common.cancel" = "キャンセル";
 "common.done" = "完了";
 "common.secret_phrase" = "秘密のフレーズ";
-"common.next" = "次へ";
 "common.copy" = "コピー";
 "common.share" = "共有";
 "common.continue" = "続ける";
 "common.provider" = "プロバイダー";
 "common.loading" = "読み込み中";
 "common.address" = "アドレス";
-"common.back" = "戻る";
 "common.try_again" = "もう一度やり直してください";
 "common.paste" = "ペースト";
 "common.delete" = "消去";
@@ -24,7 +22,6 @@
 "common.manage" = "管理";
 "common.type" = "タイプ";
 "common.no_results_found" = "結果が見つかりません";
-"common.yes" = "はい";
 "common.no" = "いいえ";
 "common.none" = "なし";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "スキップ";
 "common.warning" = "警告";
 "common.learn_more" = "もっと詳しく知る";
-"common.short_name" = "Gem";
 "common.description" = "説明";
 "common.emoji" = "絵文字";
-"common.style" = "スタイル";
 "common.avatar" = "アバター";
-"common.photo" = "写真";
 "common.save" = "保存";
-"common.edit" = "編集";
 "common.percentage" = "割合";
 "common.details" = "詳細";
 "common.info" = "情報";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "将来のネットワーク手数料をカバーするために、残高に%@を残しておきました。";
 "transfer.freeze.title" = "フリーズ";
 "transfer.unfreeze.title" = "凍結解除";
-"transfer.sign_transaction.title" = "トランザクションに署名";
 "transfer.review_request" = "レビューリクエスト";
 "settings.terms_of_services" = "利用規約";
 "settings.privacy_policy" = "プライバシーポリシー";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "ソース";
 "settings.networks.explorer" = "エクスプローラー";
 "settings.currency" = "通貨";
-"settings.rate_app" = "アプリを評価";
 "settings.website" = "ウェブサイトを訪問";
 "settings.security" = "安全";
 "settings.enable_value" = "%@を有効にする";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "無効な %@ アドレス";
 "errors.dust_threshold" = "金額が%@ネットワークの最小要件（ダストしきい値）を満たしていないため、取引は失敗しました。この制限は、取引額が手数料と処理コストをカバーすることを保証するものです。";
 "errors.swap.no_quote_available" = "現在の見積もりはありません";
-"errors.swap.not_supported_chain" = "サポートされていないチェーン。";
 "errors.swap.not_supported_asset" = "サポートされていないアセット。";
-"errors.swap.not_supported_pair" = "サポートされていないペア。";
 "errors.connections.invalid_send_parameters" = "トランザクションの送信に無効なパラメータが指定されました。";
 "errors.connections.invalid_sign_parameters" = "署名に無効なパラメータが指定されました。";
 "errors.connections.no_supported_wallets" = "サポートされているウォレットは利用できません。";
@@ -236,7 +225,6 @@
 "asset.price" = "価格";
 "asset.market_cap" = "時価総額";
 "asset.trading_volume" = "取引量（24時間）";
-"asset.market_cap_rank" = "時価総額ランキング";
 "asset.total_supply" = "総供給量";
 "asset.circulating_supply" = "循環供給量";
 "asset.balances.reserved" = "予約済み";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "切断";
 "wallet_connect.connect.title" = "接続する";
 "wallet_connect.app" = "アプリ";
-"wallet_connect.website" = "Webサイト";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "アクティブな接続はありません";
 "wallet_connect.state.empty.description" = "コードをスキャンするか貼り付けて、DAppに接続してください";
-"wallet_connect.domain" = "ドメイン";
 "wallet_connect.permissions.title" = "権限";
 "wallet_connect.permissions.view_balance" = "残高とアクティビティを確認する";
 "wallet_connect.permissions.approval_requests" = "承認依頼を送信する";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "引き出し待ち";
 "stake.active_in" = "有効化まで";
 "stake.minimum_amount" = "最小額";
-"stake.viagem" = "Gem ウォレット経由でステークする";
-"stake.no_active_staking" = "アクティブなステーキングはまだありません。";
 "stake.state.empty.title" = "ステークはここに表示されます";
 "stake.state.empty.description" = "初めてステーキング %@";
 "stake.resource" = "リソース";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "ステーブルコイン";
 "assets.state.empty.search_description" = "手動で追加してみてください";
 "assets.title" = "資産";
-"sign_message.title" = "メッセージを署名する";
 "sign_message.message" = "メッセージ";
 "sign_message.view_full_message" = "メッセージ全文を表示";
 "secret_phrase.do_not_share.title" = "秘密のフレーズを共有しないでください。";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "最低残高";
 "info.perpetual.funding_payments.title" = "ファンディングペイメント";
 "info.perpetual.funding_payments.description" = "ファンディングペイメントは、永久契約の価格を基礎資産のスポット価格に近づけるためにトレーダー間で定期的に行われる支払いです。プラスのファンディングではロングポジションがショートポジションに支払い、マイナスのファンディングではショートポジションがロングポジションに支払います。";
-"info.perpetual.funding_rate.title" = "資金調達率";
-"info.perpetual.funding_rate.description" = "ファンディングレートは永久ポジションの保有コストを決定します。これは毎時計算され、永久契約と基礎資産のスポット価格の価格均衡を維持するのに役立ちます。";
 "info.perpetual.liquidation_price.title" = "清算価格";
 "info.perpetual.liquidation_price.description" = "清算価格は、損失拡大を防ぐためにポジションが自動的に決済される価格水準です。市場価格がこの水準に達するとポジションは清算され、証拠金を失います。";
 "info.perpetual.open_interest.title" = "未決済建玉";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Gemは銀行や取引所ではなく、違法目的での使用は禁止されていることを理解しています。";
 "onboarding.accept_terms.item3.message" = "ウォレットへのアクセスを失った場合、Gemは責任を負わず、支援もできないことを理解しています。";
 "onboarding.accept_terms.continue" = "同意して続行";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "ポジション";
 "perpetual.size" = "サイズ";
 "perpetual.margin" = "マージン";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "%@を開く";
 "perpetual.close_direction" = "%@を閉じる";
 "perpetual.leverage" = "レバレッジ";
-"perpetual.direction" = "方向";
 "perpetual.auto_close" = "自動決済";
 "perpetual.auto_close.take_profit" = "利益確定";
 "perpetual.market_price" = "市場価格";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "最近使用したアセットがここに表示されます";
 "notifications.inapp.state.empty.title" = "まだ通知はありません";
 "notifications.inapp.state.empty.description" = "通知に関する最新情報はここで確認できます";
-"notifications.inapp.rewards.invite.subtitle" = "友達を招待して一緒に報酬を獲得しましょう";
 "earn.state.empty.title" = "あなたのポジションはここに表示されます";
 "earn.state.empty.description" = "初回入金 %@";
 "contacts.title" = "連絡先";

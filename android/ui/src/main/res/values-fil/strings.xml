@@ -3,14 +3,12 @@
   <string name="common_cancel">Kanselahin</string>
   <string name="common_done">Tapos na</string>
   <string name="common_secret_phrase">Lihim na Parirala</string>
-  <string name="common_next">Susunod</string>
   <string name="common_copy">Kopyahin</string>
   <string name="common_share">Ibahagi</string>
   <string name="common_continue">Magpatuloy</string>
   <string name="common_provider">Provider</string>
   <string name="common_loading">Naglo-load</string>
   <string name="common_address">Address</string>
-  <string name="common_back">Bumalik</string>
   <string name="common_try_again">Subukan Muli</string>
   <string name="common_paste">Idikit</string>
   <string name="common_delete">Tanggalin</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Pamahalaan</string>
   <string name="common_type">Uri</string>
   <string name="common_no_results_found">Walang Nahanap na Resulta</string>
-  <string name="common_yes">Oo</string>
   <string name="common_no">Hindi</string>
   <string name="common_none">Wala</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Laktawan</string>
   <string name="common_warning">Babala</string>
   <string name="common_learn_more">Matuto pa</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Paglalarawan</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Estilo</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Larawan</string>
   <string name="common_save">I-save</string>
-  <string name="common_edit">I-edit</string>
   <string name="common_percentage">Porsiyento</string>
   <string name="common_details">Mga Detalye</string>
   <string name="common_info">Impormasyon</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Iniwan namin ang %1$s sa iyong balanse upang mabayaran ang mga bayarin sa network sa hinaharap.</string>
   <string name="transfer_freeze_title">I-freeze</string>
   <string name="transfer_unfreeze_title">I-unfreeze</string>
-  <string name="transfer_sign_transaction_title">Pirmahan ang Transaksyon</string>
   <string name="transfer_review_request">Suriin ang Kahilingan</string>
   <string name="transfer_amount">Halaga</string>
   <string name="transfer_amount_title">Halaga</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Pinagmulan</string>
   <string name="settings_networks_explorer">Explorer</string>
   <string name="settings_currency">Pera</string>
-  <string name="settings_rate_app">I-rate ang App</string>
   <string name="settings_website">Bisitahin ang Website</string>
   <string name="settings_security">Seguridad</string>
   <string name="settings_enable_value">Paganahin ang %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Di-wastong %1$s address</string>
   <string name="errors_dust_threshold">Nabigo ang transaksyon dahil napakaliit ng halaga upang matugunan ang minimum na kinakailangan ng %1$s network (dust threshold). Tinitiyak ng limitasyong ito na saklaw ng halaga ng transaksyon ang mga bayarin at gastos sa pagproseso.</string>
   <string name="errors_swap_no_quote_available">Walang available na quote.</string>
-  <string name="errors_swap_not_supported_chain">Hindi suportadong chain.</string>
   <string name="errors_swap_not_supported_asset">Hindi sinusuportahang asset.</string>
-  <string name="errors_swap_not_supported_pair">Hindi sinusuportahang pares.</string>
   <string name="errors_connections_invalid_send_parameters">Mga di-wastong parameter na ibinigay para sa pagpapadala ng transaksyon.</string>
   <string name="errors_connections_invalid_sign_parameters">Mga di-wastong parameter na ibinigay para sa pagpirma.</string>
   <string name="errors_connections_no_supported_wallets">Walang available na suportadong wallet.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Presyo</string>
   <string name="asset_market_cap">Market Cap</string>
   <string name="asset_trading_volume">Dami ng pangangalakal (24h)</string>
-  <string name="asset_market_cap_rank">Ranggo ng Market Cap</string>
   <string name="asset_total_supply">Kabuuang Supply</string>
   <string name="asset_circulating_supply">Umiikot na Supply</string>
   <string name="asset_balances_reserved">Nakareserba</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Idiskonekta</string>
   <string name="wallet_connect_connect_title">Kumonekta</string>
   <string name="wallet_connect_app">App</string>
-  <string name="wallet_connect_website">Website</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Walang aktibong koneksyon</string>
   <string name="wallet_connect_state_empty_description">I-scan o i-paste ang code para kumonekta sa DApp</string>
-  <string name="wallet_connect_domain">Domain</string>
   <string name="wallet_connect_permissions_title">Mga Pahintulot</string>
   <string name="wallet_connect_permissions_view_balance">Tingnan ang iyong balanse at aktibidad</string>
   <string name="wallet_connect_permissions_approval_requests">Magpadala ng mga kahilingan sa pag-apruba</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Naghihintay ng Withdrawal</string>
   <string name="stake_active_in">Aktibo Sa</string>
   <string name="stake_minimum_amount">Minimum na halaga</string>
-  <string name="stake_viagem">Mag-stake sa pamamagitan ng Gem Wallet</string>
-  <string name="stake_no_active_staking">Wala pang active staking.</string>
   <string name="stake_state_empty_title">Lalabas dito ang iyong mga stake</string>
   <string name="stake_state_empty_description">Mag-stake ng iyong unang %1$s</string>
   <string name="stake_resource">mapagkukunan</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Mga Stablecoin</string>
   <string name="assets_state_empty_search_description">Maaari mong subukang idagdag ito nang manu-mano</string>
   <string name="assets_title">Mga asset</string>
-  <string name="sign_message_title">Lagda ng Mensahe</string>
   <string name="sign_message_message">Mensahe</string>
   <string name="sign_message_view_full_message">Tingnan ang Buong Mensahe</string>
   <string name="secret_phrase_do_not_share_title">Huwag ibahagi ang iyong Lihim na Parirala!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Minimum na balanse</string>
   <string name="info_perpetual_funding_payments_title">Mga Pagbabayad sa Pagpopondo</string>
   <string name="info_perpetual_funding_payments_description">Ang mga pagbabayad sa pagpopondo ay mga pana-panahong pagbabayad sa pagitan ng mga mangangalakal upang panatilihing malapit ang panghabang-buhay na presyo ng kontrata sa presyo ng pinagbabatayan ng asset. Ang ibig sabihin ng positibong pagpopondo ay ang mga mahabang posisyon ay nagbabayad ng mga maikling posisyon, habang ang negatibong pagpopondo ay nangangahulugan na ang mga maikling posisyon ay nagbabayad ng mga mahabang posisyon.</string>
-  <string name="info_perpetual_funding_rate_title">Pagpopondo</string>
-  <string name="info_perpetual_funding_rate_description">Tinutukoy ng rate ng pagpopondo ang halaga ng paghawak ng isang walang hanggang posisyon. Ito ay kinakalkula bawat oras at tumutulong na mapanatili ang ekwilibriyo ng presyo sa pagitan ng panghabang-buhay na kontrata at ang pinagbabatayan na presyo ng lugar ng asset.</string>
   <string name="info_perpetual_liquidation_price_title">Presyo ng Liquidation</string>
   <string name="info_perpetual_liquidation_price_description">Ang presyo ng pagpuksa ay ang antas ng presyo kung saan awtomatikong isasara ang iyong posisyon upang maiwasan ang karagdagang pagkalugi. Kapag ang presyo sa merkado ay umabot sa antas na ito, ililikida ang iyong posisyon at mawawala ang iyong margin.</string>
   <string name="info_perpetual_open_interest_title">Bukas na Interes</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Naiintindihan ko na ang Gem ay hindi isang bangko o exchange, at ang paggamit nito para sa mga iligal na layunin ay mahigpit na ipinagbabawal.</string>
   <string name="onboarding_accept_terms_item3_message">Naiintindihan ko na kung sakaling mawalan ako ng access sa aking mga wallet, walang pananagutan si Gem at hindi makakatulong sa anumang paraan.</string>
   <string name="onboarding_accept_terms_continue">Sumang-ayon at Magpatuloy</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Mga posisyon</string>
   <string name="perpetual_size">Sukat</string>
   <string name="perpetual_margin">Margin</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Buksan ang %1$s</string>
   <string name="perpetual_close_direction">Isara ang %1$s</string>
   <string name="perpetual_leverage">Leverage</string>
-  <string name="perpetual_direction">Direksyon</string>
   <string name="perpetual_auto_close">Auto Close</string>
   <string name="perpetual_auto_close_take_profit">Take Profit</string>
   <string name="perpetual_market_price">Presyo sa Pamilihan</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Lalabas dito ang mga asset na ginamit mo kamakailan</string>
   <string name="notifications_inapp_state_empty_title">Wala pang mga abiso</string>
   <string name="notifications_inapp_state_empty_description">Makakakita ka ng mga update tungkol sa iyong mga notification dito</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Mag-imbita ng mga kaibigan at kumita ng mga gantimpala nang sama-sama</string>
   <string name="earn_state_empty_title">Lalabas dito ang iyong mga posisyon</string>
   <string name="earn_state_empty_description">Ideposito ang iyong unang %1$s</string>
   <string name="contacts_title">Mga Kontak</string>

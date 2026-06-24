@@ -3,14 +3,12 @@
   <string name="common_cancel">ยกเลิก</string>
   <string name="common_done">เสร็จแล้ว</string>
   <string name="common_secret_phrase">วลีลับ</string>
-  <string name="common_next">ถัดไป</string>
   <string name="common_copy">คัดลอก</string>
   <string name="common_share">แบ่งปัน</string>
   <string name="common_continue">ดำเนินการต่อ</string>
   <string name="common_provider">ผู้ให้บริการ</string>
   <string name="common_loading">กำลังโหลด</string>
   <string name="common_address">ที่อยู่</string>
-  <string name="common_back">กลับ</string>
   <string name="common_try_again">ลองอีกครั้ง</string>
   <string name="common_paste">วาง</string>
   <string name="common_delete">ลบ</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">จัดการ</string>
   <string name="common_type">ประเภท</string>
   <string name="common_no_results_found">ไม่พบผลลัพธ์</string>
-  <string name="common_yes">ใช่</string>
   <string name="common_no">ไม่</string>
   <string name="common_none">ไม่มี</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">ข้าม</string>
   <string name="common_warning">คำเตือน</string>
   <string name="common_learn_more">เรียนรู้เพิ่มเติม</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">คำอธิบาย</string>
   <string name="common_emoji">อิโมจิ</string>
-  <string name="common_style">สไตล์</string>
   <string name="common_avatar">อวตาร</string>
-  <string name="common_photo">รูปถ่าย</string>
   <string name="common_save">บันทึก</string>
-  <string name="common_edit">แก้ไข</string>
   <string name="common_percentage">เปอร์เซ็นต์</string>
   <string name="common_details">รายละเอียด</string>
   <string name="common_info">ข้อมูล</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">เราได้เหลือ %1$s ไว้ในยอดคงเหลือของคุณเพื่อครอบคลุมค่าธรรมเนียมเครือข่ายในอนาคต</string>
   <string name="transfer_freeze_title">ฟรีซ</string>
   <string name="transfer_unfreeze_title">ยกเลิกการฟรีซ</string>
-  <string name="transfer_sign_transaction_title">ลงนามในธุรกรรม</string>
   <string name="transfer_review_request">คำขอตรวจสอบ</string>
   <string name="transfer_amount">จำนวน</string>
   <string name="transfer_amount_title">จำนวน</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">แหล่งที่มา</string>
   <string name="settings_networks_explorer">นักสำรวจ</string>
   <string name="settings_currency">สกุลเงิน</string>
-  <string name="settings_rate_app">ให้คะแนนแอป</string>
   <string name="settings_website">เยี่ยมชมเว็บไซต์</string>
   <string name="settings_security">ความปลอดภัย</string>
   <string name="settings_enable_value">เปิดใช้งาน %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">ที่อยู่ %1$s ไม่ถูกต้อง</string>
   <string name="errors_dust_threshold">ธุรกรรมล้มเหลวเนื่องจากจำนวนเงินน้อยเกินไปที่จะตรงตามข้อกำหนดขั้นต่ำของเครือข่าย %1$s (เกณฑ์ค่าฝุ่น) ขีดจำกัดนี้ช่วยให้มั่นใจว่ามูลค่าธุรกรรมครอบคลุมค่าธรรมเนียมและต้นทุนการประมวลผล เพิ่มจำนวนเงินหรือลดค่าธรรมเนียมเพื่อดำเนินการต่อ</string>
   <string name="errors_swap_no_quote_available">ไม่มีราคาเสนอให้ใช้งาน</string>
-  <string name="errors_swap_not_supported_chain">ไม่รองรับห่วงโซ่</string>
   <string name="errors_swap_not_supported_asset">ไม่รองรับสินทรัพย์นี้</string>
-  <string name="errors_swap_not_supported_pair">ไม่รองรับคู่</string>
   <string name="errors_connections_invalid_send_parameters">มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการส่งธุรกรรม</string>
   <string name="errors_connections_invalid_sign_parameters">มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการลงนาม</string>
   <string name="errors_connections_no_supported_wallets">ไม่มีกระเป๋าเงินที่รองรับ</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">ราคา</string>
   <string name="asset_market_cap">มูลค่าตลาด</string>
   <string name="asset_trading_volume">ปริมาณการซื้อขาย (24 ชม.)</string>
-  <string name="asset_market_cap_rank">อันดับมูลค่าตลาด</string>
   <string name="asset_total_supply">อุปทานทั้งหมด</string>
   <string name="asset_circulating_supply">อุปทานหมุนเวียน</string>
   <string name="asset_balances_reserved">ที่สงวนไว้</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">ตัดการเชื่อมต่อ</string>
   <string name="wallet_connect_connect_title">เชื่อมต่อ</string>
   <string name="wallet_connect_app">แอพ</string>
-  <string name="wallet_connect_website">เว็บไซต์</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">ไม่มีการเชื่อมต่อที่ใช้งานอยู่</string>
   <string name="wallet_connect_state_empty_description">สแกนหรือวางรหัสเพื่อเชื่อมต่อกับ DApp</string>
-  <string name="wallet_connect_domain">โดเมน</string>
   <string name="wallet_connect_permissions_title">สิทธิ์การเข้าถึง</string>
   <string name="wallet_connect_permissions_view_balance">ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ</string>
   <string name="wallet_connect_permissions_approval_requests">ส่งคำขออนุมัติ</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">รอการถอนเงิน</string>
   <string name="stake_active_in">ใช้งานอยู่</string>
   <string name="stake_minimum_amount">จำนวนเงินขั้นต่ำ</string>
-  <string name="stake_viagem">สเตคผ่าน Gem Wallet</string>
-  <string name="stake_no_active_staking">ยังไม่มีการสเตคที่ใช้งานอยู่</string>
   <string name="stake_state_empty_title">การสเตคของคุณจะปรากฏที่นี่</string>
   <string name="stake_state_empty_description">สเตคครั้งแรกของคุณ %1$s</string>
   <string name="stake_resource">ทรัพยากร</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">สเตเบิลคอยน์</string>
   <string name="assets_state_empty_search_description">คุณสามารถลองเพิ่มมันด้วยตนเองได้</string>
   <string name="assets_title">สินทรัพย์</string>
-  <string name="sign_message_title">ลงนามข้อความ</string>
   <string name="sign_message_message">ข้อความ</string>
   <string name="sign_message_view_full_message">ดูข้อความฉบับเต็ม</string>
   <string name="secret_phrase_do_not_share_title">อย่าเปิดเผยวลีลับของคุณ!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">ยอดคงเหลือขั้นต่ำ</string>
   <string name="info_perpetual_funding_payments_title">การชำระเงินเงินทุน</string>
   <string name="info_perpetual_funding_payments_description">การจ่ายเงินเป็นงวด ๆ ระหว่างเทรดเดอร์เพื่อรักษาราคาสัญญาถาวรให้ใกล้กับราคาสปอตของสินทรัพย์อ้างอิง funding ที่เป็นบวกหมายถึงตำแหน่ง Long จ่ายให้ตำแหน่ง Short ในขณะที่ funding ติดลบหมายถึงตำแหน่ง Short จ่ายให้ตำแหน่ง Long</string>
-  <string name="info_perpetual_funding_rate_title">เงินทุน</string>
-  <string name="info_perpetual_funding_rate_description">อัตราการระดมทุนจะกำหนดต้นทุนในการดำรงตำแหน่งถาวร มีการคำนวณรายชั่วโมงและช่วยรักษาสมดุลของราคาระหว่างสัญญาระยะยาวกับราคาสปอตของสินทรัพย์อ้างอิง</string>
   <string name="info_perpetual_liquidation_price_title">ราคาการชำระบัญชี</string>
   <string name="info_perpetual_liquidation_price_description">ราคาการชำระบัญชีคือระดับราคาที่สถานะของคุณจะถูกปิดโดยอัตโนมัติเพื่อป้องกันการสูญเสียเพิ่มเติม เมื่อราคาตลาดถึงระดับนี้ ตำแหน่งของคุณจะถูกชำระบัญชีและคุณจะสูญเสียหลักประกัน</string>
   <string name="info_perpetual_open_interest_title">Open Interest</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">ฉันเข้าใจว่า Gem ไม่ใช่ธนาคารหรือศูนย์แลกเปลี่ยน และการใช้เพื่อวัตถุประสงค์ที่ผิดกฎหมายถือเป็นสิ่งต้องห้ามอย่างเด็ดขาด</string>
   <string name="onboarding_accept_terms_item3_message">ฉันเข้าใจว่าหากฉันสูญเสียการเข้าถึงกระเป๋าเงินของฉัน Gem จะไม่รับผิดชอบและไม่สามารถช่วยเหลือได้ในทางใดทางหนึ่ง</string>
   <string name="onboarding_accept_terms_continue">เห็นด้วยและดำเนินการต่อ</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">ตำแหน่ง</string>
   <string name="perpetual_size">ขนาด</string>
   <string name="perpetual_margin">ระยะขอบ</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">เปิด %1$s</string>
   <string name="perpetual_close_direction">ปิด %1$s</string>
   <string name="perpetual_leverage">อัตราทดทางการเงิน</string>
-  <string name="perpetual_direction">ทิศทาง</string>
   <string name="perpetual_auto_close">ปิดอัตโนมัติ</string>
   <string name="perpetual_auto_close_take_profit">รับผลกำไร</string>
   <string name="perpetual_market_price">ราคาตลาด</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">เนื้อหาที่คุณใช้ล่าสุดจะปรากฏที่นี่</string>
   <string name="notifications_inapp_state_empty_title">ยังไม่มีการแจ้งเตือนใดๆ</string>
   <string name="notifications_inapp_state_empty_description">คุณจะเห็นการอัปเดตเกี่ยวกับการแจ้งเตือนของคุณได้ที่นี่</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">ชวนเพื่อนมารับรางวัลด้วยกัน</string>
   <string name="earn_state_empty_title">ตำแหน่งของคุณจะปรากฏที่นี่</string>
   <string name="earn_state_empty_description">ฝากเงินครั้งแรกของคุณ %1$s</string>
   <string name="contacts_title">การติดต่อ</string>

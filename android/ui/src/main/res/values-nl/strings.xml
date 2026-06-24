@@ -3,14 +3,12 @@
   <string name="common_cancel">Annuleren</string>
   <string name="common_done">Klaar</string>
   <string name="common_secret_phrase">Geheime zin</string>
-  <string name="common_next">Volgende</string>
   <string name="common_copy">Kopieer</string>
   <string name="common_share">Deel</string>
   <string name="common_continue">Ga door</string>
   <string name="common_provider">Aanbieder</string>
   <string name="common_loading">Laden</string>
   <string name="common_address">Adres</string>
-  <string name="common_back">Terug</string>
   <string name="common_try_again">Probeer het opnieuw</string>
   <string name="common_paste">Plakken</string>
   <string name="common_delete">Verwijderen</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Beheer</string>
   <string name="common_type">Typ</string>
   <string name="common_no_results_found">Geen resultaten gevonden</string>
-  <string name="common_yes">Ja</string>
   <string name="common_no">Nee</string>
   <string name="common_none">Geen</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Overslaan</string>
   <string name="common_warning">Waarschuwing</string>
   <string name="common_learn_more">Meer informatie</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Beschrijving</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Stijl</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Foto</string>
   <string name="common_save">Opslaan</string>
-  <string name="common_edit">Bewerken</string>
   <string name="common_percentage">Percentage</string>
   <string name="common_details">Details</string>
   <string name="common_info">Informatie</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">We hebben %1$s op uw saldo laten staan om toekomstige netwerkkosten te dekken.</string>
   <string name="transfer_freeze_title">Bevriezen</string>
   <string name="transfer_unfreeze_title">Ontvriezen</string>
-  <string name="transfer_sign_transaction_title">Transactie ondertekenen</string>
   <string name="transfer_review_request">Verzoek controleren</string>
   <string name="transfer_amount">Bedrag</string>
   <string name="transfer_amount_title">Bedrag</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Bron</string>
   <string name="settings_networks_explorer">Explorer</string>
   <string name="settings_currency">Valuta</string>
-  <string name="settings_rate_app">Beoordeel App</string>
   <string name="settings_website">Bezoek website</string>
   <string name="settings_security">Beveiliging</string>
   <string name="settings_enable_value">Schakel %1$s in</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Ongeldig %1$s adres</string>
   <string name="errors_dust_threshold">De transactie is mislukt omdat het bedrag te klein is om te voldoen aan de minimumvereiste van het %1$s-netwerk (stofdrempel). Deze limiet zorgt ervoor dat de transactiewaarde de vergoedingen en verwerkingskosten dekt.</string>
   <string name="errors_swap_no_quote_available">Geen offerte beschikbaar.</string>
-  <string name="errors_swap_not_supported_chain">Niet-ondersteunde keten.</string>
   <string name="errors_swap_not_supported_asset">Niet-ondersteunde asset.</string>
-  <string name="errors_swap_not_supported_pair">Niet ondersteund paar.</string>
   <string name="errors_connections_invalid_send_parameters">Ongeldige parameters opgegeven voor het verzenden van een transactie.</string>
   <string name="errors_connections_invalid_sign_parameters">Ongeldige parameters opgegeven voor ondertekening.</string>
   <string name="errors_connections_no_supported_wallets">Er zijn geen ondersteunde wallets beschikbaar.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Prijs</string>
   <string name="asset_market_cap">Marktkapitalisatie</string>
   <string name="asset_trading_volume">Handelsvolume (24 uur)</string>
-  <string name="asset_market_cap_rank">Marktkapitalisatierang</string>
   <string name="asset_total_supply">Totaal aanbod</string>
   <string name="asset_circulating_supply">Circulerend aanbod</string>
   <string name="asset_balances_reserved">Gereserveerd</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Verbreek de verbinding</string>
   <string name="wallet_connect_connect_title">Verbinden</string>
   <string name="wallet_connect_app">App</string>
-  <string name="wallet_connect_website">Website</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Geen actieve verbindingen</string>
   <string name="wallet_connect_state_empty_description">Scan of plak de code om verbinding te maken met de DApp</string>
-  <string name="wallet_connect_domain">Domein</string>
   <string name="wallet_connect_permissions_title">Toestemmingen</string>
   <string name="wallet_connect_permissions_view_balance">Bekijk je saldo en activiteit</string>
   <string name="wallet_connect_permissions_approval_requests">Verzoeken om goedkeuring verzenden</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">In afwachting van intrekking</string>
   <string name="stake_active_in">Actief In</string>
   <string name="stake_minimum_amount">Minimumbedrag</string>
-  <string name="stake_viagem">Staken via Gem Wallet</string>
-  <string name="stake_no_active_staking">Nog geen actieve staking.</string>
   <string name="stake_state_empty_title">Uw inzet verschijnt hier</string>
   <string name="stake_state_empty_description">Zet je eerste %1$s in</string>
   <string name="stake_resource">Hulpbron</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stabiele munten</string>
   <string name="assets_state_empty_search_description">U kunt proberen het handmatig toe te voegen</string>
   <string name="assets_title">Activa</string>
-  <string name="sign_message_title">Teken bericht</string>
   <string name="sign_message_message">Bericht</string>
   <string name="sign_message_view_full_message">Bekijk het volledige bericht</string>
   <string name="secret_phrase_do_not_share_title">Deel uw geheime zin niet!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Minimumsaldo</string>
   <string name="info_perpetual_funding_payments_title">Financieringsbetalingen</string>
   <string name="info_perpetual_funding_payments_description">Financieringsbetalingen zijn periodieke betalingen tussen handelaren om de eeuwigdurende contractprijs dicht bij de spotprijs van de onderliggende waarde te houden. Positieve financiering betekent dat longposities shortposities betalen, terwijl negatieve financiering betekent dat shortposities longposities betalen.</string>
-  <string name="info_perpetual_funding_rate_title">Financiering</string>
-  <string name="info_perpetual_funding_rate_description">Het financieringspercentage bepaalt de kosten voor het aanhouden van een eeuwigdurende positie. Het wordt elk uur berekend en helpt het prijsevenwicht tussen het eeuwigdurende contract en de spotprijs van de onderliggende waarde te handhaven.</string>
   <string name="info_perpetual_liquidation_price_title">Liquidatieprijs</string>
   <string name="info_perpetual_liquidation_price_description">De liquidatieprijs is het prijsniveau waarbij uw positie automatisch wordt gesloten om verdere verliezen te voorkomen. Wanneer de marktprijs dit niveau bereikt, wordt uw positie geliquideerd en verliest u uw marge.</string>
   <string name="info_perpetual_open_interest_title">Open Interest</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Ik begrijp dat Gem geen bank of beurs is en dat het strikt verboden is om Gem voor illegale doeleinden te gebruiken.</string>
   <string name="onboarding_accept_terms_item3_message">Ik begrijp dat als ik ooit de toegang tot mijn portemonnee verlies, Gem niet aansprakelijk is en op geen enkele manier kan helpen.</string>
   <string name="onboarding_accept_terms_continue">Akkoord en doorgaan</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Posities</string>
   <string name="perpetual_size">Omvang</string>
   <string name="perpetual_margin">Marge</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Open %1$s</string>
   <string name="perpetual_close_direction">Sluiten %1$s</string>
   <string name="perpetual_leverage">Hefboom</string>
-  <string name="perpetual_direction">Richting</string>
   <string name="perpetual_auto_close">Automatisch sluiten</string>
   <string name="perpetual_auto_close_take_profit">Winst nemen</string>
   <string name="perpetual_market_price">Marktprijs</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Activa die u onlangs heeft gebruikt, worden hier weergegeven</string>
   <string name="notifications_inapp_state_empty_title">Nog geen meldingen</string>
   <string name="notifications_inapp_state_empty_description">Je ziet hier updates over je meldingen.</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Nodig vrienden uit en verdien samen beloningen.</string>
   <string name="earn_state_empty_title">Uw posities verschijnen hier.</string>
   <string name="earn_state_empty_description">Stort uw eerste %1$s</string>
   <string name="contacts_title">Contacten</string>

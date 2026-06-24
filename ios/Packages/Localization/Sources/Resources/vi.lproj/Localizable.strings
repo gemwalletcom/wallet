@@ -1,14 +1,12 @@
 "common.cancel" = "Hủy bỏ";
 "common.done" = "Xong";
 "common.secret_phrase" = "Cụm từ bí mật";
-"common.next" = "Tiếp theo";
 "common.copy" = "Sao chép";
 "common.share" = "Chia sẻ";
 "common.continue" = "Tiếp tục";
 "common.provider" = "Nhà cung cấp";
 "common.loading" = "Đang tải";
 "common.address" = "Địa chỉ";
-"common.back" = "Quay lại";
 "common.try_again" = "Thử lại";
 "common.paste" = "Dán";
 "common.delete" = "Xóa bỏ";
@@ -24,7 +22,6 @@
 "common.manage" = "Quản lý";
 "common.type" = "Kiểu";
 "common.no_results_found" = "Không có kết quả nào được tìm thấy";
-"common.yes" = "Có";
 "common.no" = "Không";
 "common.none" = "Không có";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Bỏ qua";
 "common.warning" = "Cảnh báo";
 "common.learn_more" = "Tìm hiểu thêm";
-"common.short_name" = "Gem";
 "common.description" = "Sự miêu tả";
 "common.emoji" = "Emoji";
-"common.style" = "Phong cách";
 "common.avatar" = "Hình đại diện";
-"common.photo" = "Ảnh";
 "common.save" = "Lưu";
-"common.edit" = "Chỉnh sửa";
 "common.percentage" = "Phần trăm";
 "common.details" = "Chi tiết";
 "common.info" = "Thông tin";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Chúng tôi đã để lại %@ trong số dư của bạn để trang trải phí mạng trong tương lai.";
 "transfer.freeze.title" = "Đóng băng";
 "transfer.unfreeze.title" = "Giải đông";
-"transfer.sign_transaction.title" = "Ký giao dịch";
 "transfer.review_request" = "Yêu cầu xem xét";
 "settings.terms_of_services" = "Điều khoản dịch vụ";
 "settings.privacy_policy" = "Chính sách bảo mật";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Nguồn";
 "settings.networks.explorer" = "Trình duyệt khối";
 "settings.currency" = "Tiền tệ";
-"settings.rate_app" = "Đánh giá ứng dụng";
 "settings.website" = "Truy cập trang web";
 "settings.security" = "Bảo vệ";
 "settings.enable_value" = "Bật %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Địa chỉ %@ không hợp lệ";
 "errors.dust_threshold" = "Giao dịch không thành công vì số tiền quá nhỏ để đáp ứng yêu cầu tối thiểu của mạng %@ (ngưỡng bụi). Giới hạn này đảm bảo giá trị giao dịch bao gồm phí và chi phí xử lý.";
 "errors.swap.no_quote_available" = "Không có báo giá khả dụng.";
-"errors.swap.not_supported_chain" = "Chuỗi không được hỗ trợ.";
 "errors.swap.not_supported_asset" = "Tài sản không được hỗ trợ.";
-"errors.swap.not_supported_pair" = "Cặp không được hỗ trợ.";
 "errors.connections.invalid_send_parameters" = "Tham số được cung cấp để gửi giao dịch không hợp lệ.";
 "errors.connections.invalid_sign_parameters" = "Các tham số được cung cấp để ký không hợp lệ.";
 "errors.connections.no_supported_wallets" = "Không có ví nào được hỗ trợ.";
@@ -236,7 +225,6 @@
 "asset.price" = "Giá";
 "asset.market_cap" = "Vốn hóa thị trường";
 "asset.trading_volume" = "Khối lượng giao dịch (24h)";
-"asset.market_cap_rank" = "Xếp hạng vốn hóa thị trường";
 "asset.total_supply" = "Tổng cung";
 "asset.circulating_supply" = "Nguồn cung lưu thông";
 "asset.balances.reserved" = "Dự trữ";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Ngắt kết nối";
 "wallet_connect.connect.title" = "Kết nối";
 "wallet_connect.app" = "Ứng dụng";
-"wallet_connect.website" = "Trang mạng";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Không có kết nối hoạt động";
 "wallet_connect.state.empty.description" = "Quét hoặc dán mã để kết nối với DApp";
-"wallet_connect.domain" = "Tên miền";
 "wallet_connect.permissions.title" = "Quyền hạn";
 "wallet_connect.permissions.view_balance" = "Xem số dư và hoạt động của bạn";
 "wallet_connect.permissions.approval_requests" = "Gửi yêu cầu phê duyệt";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Đang chờ rút tiền";
 "stake.active_in" = "Đang hoạt động ở";
 "stake.minimum_amount" = "Số tiền tối thiểu";
-"stake.viagem" = "Đặt cọc qua Gem Wallet";
-"stake.no_active_staking" = "Chưa có hoạt động đặt cược nào.";
 "stake.state.empty.title" = "Khoản đặt cọc của bạn sẽ xuất hiện ở đây";
 "stake.state.empty.description" = "Đặt cược %@ đầu tiên của bạn";
 "stake.resource" = "Tài nguyên";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Đồng tiền ổn định";
 "assets.state.empty.search_description" = "Bạn có thể thử thêm nó theo cách thủ công";
 "assets.title" = "Tài sản";
-"sign_message.title" = "Ký tin nhắn";
 "sign_message.message" = "Tin nhắn";
 "sign_message.view_full_message" = "Xem toàn bộ tin nhắn";
 "secret_phrase.do_not_share.title" = "Đừng chia sẻ Cụm từ bí mật của bạn!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Số dư tối thiểu";
 "info.perpetual.funding_payments.title" = "Thanh toán tài trợ";
 "info.perpetual.funding_payments.description" = "Thanh toán cấp vốn là khoản thanh toán định kỳ giữa các nhà giao dịch để giữ giá hợp đồng vĩnh viễn gần với giá giao ngay của tài sản cơ bản. Nguồn vốn dương có nghĩa là các vị thế mua sẽ trả cho các vị thế bán, trong khi nguồn vốn âm có nghĩa là các vị thế bán sẽ trả cho các vị thế mua.";
-"info.perpetual.funding_rate.title" = "Tài trợ";
-"info.perpetual.funding_rate.description" = "Tỷ lệ tài trợ xác định chi phí để giữ một vị thế vĩnh viễn. Nó được tính toán hàng giờ và giúp duy trì sự cân bằng giá giữa hợp đồng vĩnh viễn và giá giao ngay của tài sản cơ bản.";
 "info.perpetual.liquidation_price.title" = "Giá thanh lý";
 "info.perpetual.liquidation_price.description" = "Giá thanh lý là mức giá mà tại đó vị thế của bạn sẽ tự động bị đóng để tránh thua lỗ thêm. Khi giá thị trường đạt đến mức này, vị thế của bạn sẽ bị thanh lý và bạn mất tiền ký quỹ.";
 "info.perpetual.open_interest.title" = "Vị thế mở";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Tôi hiểu rằng Gem không phải là ngân hàng hay sàn giao dịch và việc sử dụng Gem cho mục đích bất hợp pháp là hoàn toàn bị nghiêm cấm.";
 "onboarding.accept_terms.item3.message" = "Tôi hiểu rằng nếu tôi mất quyền truy cập vào ví của mình, Gem sẽ không chịu trách nhiệm pháp lý và không thể trợ giúp dưới bất kỳ hình thức nào.";
 "onboarding.accept_terms.continue" = "Đồng ý và tiếp tục";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Vị thế";
 "perpetual.size" = "Kích cỡ";
 "perpetual.margin" = "Ký quỹ";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Mở %@";
 "perpetual.close_direction" = "Đóng %@";
 "perpetual.leverage" = "Đòn bẩy";
-"perpetual.direction" = "Phương hướng";
 "perpetual.auto_close" = "Tự động đóng";
 "perpetual.auto_close.take_profit" = "Kiếm lợi nhuận";
 "perpetual.market_price" = "Giá thị trường";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Nội dung bạn sử dụng gần đây sẽ xuất hiện ở đây";
 "notifications.inapp.state.empty.title" = "Chưa có thông báo nào";
 "notifications.inapp.state.empty.description" = "Bạn sẽ thấy các cập nhật về thông báo của mình ở đây.";
-"notifications.inapp.rewards.invite.subtitle" = "Mời bạn bè và cùng nhau nhận phần thưởng.";
 "earn.state.empty.title" = "Vị trí của bạn sẽ hiển thị ở đây";
 "earn.state.empty.description" = "Gửi khoản tiền đầu tiên của bạn %@";
 "contacts.title" = "Liên hệ";

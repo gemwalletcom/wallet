@@ -3,14 +3,12 @@
 common_cancel = Ghairi
 common_done = Imekamilika
 common_secret_phrase = Kifungu cha Siri
-common_next = Inayofuata
 common_copy = Nakili
 common_share = Shiriki
 common_continue = Endelea
 common_provider = Mtoa huduma
 common_loading = Inapakia
 common_address = Anwani
-common_back = Nyuma
 common_try_again = Jaribu Tena
 common_paste = Bandika
 common_delete = Futa
@@ -26,7 +24,6 @@ common_phrase = Maneno
 common_manage = Dhibiti
 common_type = Aina
 common_no_results_found = Hakuna Matokeo Yaliyopatikana
-common_yes = Ndiyo
 common_no = Hapana
 common_none = Hakuna
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Bandua
 common_skip = Ruka
 common_warning = Onyo
 common_learn_more = Jifunze Zaidi
-common_short_name = Gem
 common_description = Maelezo
 common_emoji = Emoji
-common_style = Mtindo
 common_avatar = Avatar
-common_photo = Picha
 common_save = Hifadhi
-common_edit = Hariri
 common_percentage = Asilimia
 common_details = Maelezo
 common_info = Habari
@@ -152,7 +145,6 @@ transfer_maximum_amount = Kiasi cha juu ni %@
 transfer_reserved_fees = Tumeacha %@ katika salio lako ili kulipia ada za mtandao za siku zijazo.
 transfer_freeze_title = Kuganda
 transfer_unfreeze_title = Ondoa kuganda
-transfer_sign_transaction_title = Saini Muamala
 transfer_review_request = Ombi la Uhakiki
 transfer_amount = Kiasi
 transfer_amount_title = Kiasi
@@ -170,7 +162,6 @@ settings_networks_title = Mitandao
 settings_networks_source = Chanzo
 settings_networks_explorer = Mchunguzi
 settings_currency = Sarafu
-settings_rate_app = Kadiria Programu
 settings_website = Tembelea Tovuti
 settings_security = Usalama
 settings_enable_value = Washa %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Kwa sasa hatuwezi kukokotoa ada ya mtandao.
 errors_invalid_asset_address = Anwani %@ si sahihi
 errors_dust_threshold = Muamala haukufaulu kwa sababu kiasi hicho ni kidogo sana kutosheleza mahitaji ya chini ya mtandao %@ (kiwango cha juu cha vumbi). Kikomo hiki kinahakikisha thamani ya muamala inashughulikia ada na gharama za usindikaji.
 errors_swap_no_quote_available = Hakuna nukuu inayopatikana.
-errors_swap_not_supported_chain = Mnyororo hautumiki.
 errors_swap_not_supported_asset = Kipengee hakitumiki.
-errors_swap_not_supported_pair = Jozi haitumiki.
 errors_connections_invalid_send_parameters = Vigezo batili vimetolewa kwa ajili ya kutuma muamala.
 errors_connections_invalid_sign_parameters = Vigezo batili vimetolewa kwa ajili ya kusaini.
 errors_connections_no_supported_wallets = Hakuna pochi zinazotumika zinazopatikana.
@@ -290,7 +279,6 @@ asset_balances_available = Inapatikana
 asset_price = Bei
 asset_market_cap = Thamani ya Soko
 asset_trading_volume = Kiasi cha Biashara (saa 24)
-asset_market_cap_rank = Nafasi ya Thamani ya Soko
 asset_total_supply = Jumla ya Ugavi
 asset_circulating_supply = Ugavi wa Kuzunguka
 asset_balances_reserved = Imehifadhiwa
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Muunganisho
 wallet_connect_disconnect = Tenganisha
 wallet_connect_connect_title = Unganisha
 wallet_connect_app = Programu
-wallet_connect_website = Tovuti
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Hakuna miunganisho inayotumika
 wallet_connect_state_empty_description = Changanua au ubandike msimbo ili kuunganisha kwenye DApp
-wallet_connect_domain = Kikoa
 wallet_connect_permissions_title = Ruhusa
 wallet_connect_permissions_view_balance = Tazama salio na shughuli zako
 wallet_connect_permissions_approval_requests = Tuma maombi ya idhini
@@ -379,8 +365,6 @@ stake_deactivating = Inazima
 stake_awaiting_withdrawal = Inasubiri Kuondolewa
 stake_active_in = Inayotumika Katika
 stake_minimum_amount = Kiasi cha chini
-stake_viagem = Weka hisa kupitia Gem Wallet
-stake_no_active_staking = Bado hakuna uwekaji hisa.
 stake_state_empty_title = Hisa zako zitaonekana hapa
 stake_state_empty_description = Shiriki %@ yako ya kwanza
 stake_resource = Rasilimali
@@ -404,7 +388,6 @@ assets_title = Mali
 
 # Sign Message
 
-sign_message_title = Saini Ujumbe
 sign_message_message = Ujumbe
 sign_message_view_full_message = Tazama Ujumbe Kamili
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Huna %@ ya kutosha kukamilisha muamala h
 info_account_minimum_balance_title = Salio la chini
 info_perpetual_funding_payments_title = Malipo ya Ufadhili
 info_perpetual_funding_payments_description = Malipo ya ufadhili ni malipo ya mara kwa mara kati ya wafanyabiashara ili kuweka bei ya kudumu ya mkataba karibu na bei ya msingi ya mali. Ufadhili mzuri unamaanisha nafasi ndefu kulipa nafasi fupi, wakati ufadhili hasi unamaanisha nafasi fupi kulipa nafasi ndefu.
-info_perpetual_funding_rate_title = Ufadhili
-info_perpetual_funding_rate_description = Kiwango cha ufadhili huamua gharama ya kushikilia nafasi ya kudumu. Hukokotolewa kila saa na husaidia kudumisha usawa wa bei kati ya mkataba wa kudumu na bei ya msingi ya kipengee.
 info_perpetual_liquidation_price_title = Bei ya Kufilisi
 info_perpetual_liquidation_price_description = Bei ya kufilisi ni kiwango cha bei ambapo nafasi yako itafungwa kiotomatiki ili kuzuia hasara zaidi. Wakati bei ya soko inafikia kiwango hiki, nafasi yako inafutwa na unapoteza kiasi chako.
 info_perpetual_open_interest_title = Riba Wazi
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Kubali na Uendelee
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Ongeza Nafasi
 perpetual_open_direction = Fungua %@
 perpetual_close_direction = Funga %@
 perpetual_leverage = Uwiano wa Mtaji
-perpetual_direction = Mwelekeo
 perpetual_auto_close = Funga Kiotomatiki
 perpetual_auto_close_take_profit = Chukua faida
 perpetual_market_price = Bei ya Soko
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Vipengee ambavyo umetumia hivi karibun
 
 notifications_inapp_state_empty_title = Hakuna arifa bado
 notifications_inapp_state_empty_description = Utaona masasisho kuhusu arifa zako hapa
-notifications_inapp_rewards_invite_subtitle = Alika marafiki na upate zawadi pamoja
 
 # Earn
 

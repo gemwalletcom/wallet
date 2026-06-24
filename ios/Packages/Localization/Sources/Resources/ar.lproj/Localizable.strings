@@ -1,14 +1,12 @@
 "common.cancel" = "يلغي";
 "common.done" = "تم";
 "common.secret_phrase" = "العبارة السرية";
-"common.next" = "التالي";
 "common.copy" = "نسخ";
 "common.share" = "مشاركة";
 "common.continue" = "يكمل";
 "common.provider" = "مزود";
 "common.loading" = "تحميل";
 "common.address" = "عنوان";
-"common.back" = "خلف";
 "common.try_again" = "حاول ثانية";
 "common.paste" = "لصق";
 "common.delete" = "يمسح";
@@ -24,7 +22,6 @@
 "common.manage" = "يدير";
 "common.type" = "النوع";
 "common.no_results_found" = "لم يتم العثور على نتائج";
-"common.yes" = "نعم";
 "common.no" = "لا";
 "common.none" = "لا شيء";
 "common.url" = "عنوان URL";
@@ -37,14 +34,10 @@
 "common.skip" = "يتخطى";
 "common.warning" = "تحذير";
 "common.learn_more" = "يتعلم أكثر";
-"common.short_name" = "Gem";
 "common.description" = "وصف";
 "common.emoji" = "الرموز التعبيرية";
-"common.style" = "أسلوب";
 "common.avatar" = "الصورة الرمزية";
-"common.photo" = "صورة";
 "common.save" = "يحفظ";
-"common.edit" = "يحرر";
 "common.percentage" = "نسبة مئوية";
 "common.details" = "تفاصيل";
 "common.info" = "معلومات";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "لقد تركنا %@ في رصيدك لتغطية رسوم الشبكة المستقبلية.";
 "transfer.freeze.title" = "تجميد";
 "transfer.unfreeze.title" = "إزالة التجميد";
-"transfer.sign_transaction.title" = "توقيع المعاملة";
 "transfer.review_request" = "طلب مراجعة";
 "settings.terms_of_services" = "شروط الخدمات";
 "settings.privacy_policy" = "سياسة الخصوصية";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "مصدر";
 "settings.networks.explorer" = "إكسبلورر";
 "settings.currency" = "عملة";
-"settings.rate_app" = "قيم التطبيق";
 "settings.website" = "زيارة الموقع";
 "settings.security" = "حماية";
 "settings.enable_value" = "تمكين %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "عنوان %@ غير صالح";
 "errors.dust_threshold" = "فشلت المعاملة لأن المبلغ صغير جدًا بحيث لا يلبي الحد الأدنى لمتطلبات شبكة %@ (حد الغبار). يضمن هذا الحد أن قيمة المعاملة تغطي الرسوم وتكاليف المعالجة. زد المبلغ أو قلل الرسوم للمتابعة.";
 "errors.swap.no_quote_available" = "لا يوجد عرض سعر متاح.";
-"errors.swap.not_supported_chain" = "سلسلة غير مدعومة.";
 "errors.swap.not_supported_asset" = "أصل غير مدعوم.";
-"errors.swap.not_supported_pair" = "زوج غير مدعوم.";
 "errors.connections.invalid_send_parameters" = "تم توفير معلمات غير صالحة لإرسال المعاملة.";
 "errors.connections.invalid_sign_parameters" = "تم توفير معلمات غير صالحة للتوقيع.";
 "errors.connections.no_supported_wallets" = "لا تتوفر محافظ مدعومة.";
@@ -236,7 +225,6 @@
 "asset.price" = "سعر";
 "asset.market_cap" = "القيمة السوقية";
 "asset.trading_volume" = "حجم التداول (24 ساعة)";
-"asset.market_cap_rank" = "رتبة القيمة السوقية";
 "asset.total_supply" = "إجمالي العرض";
 "asset.circulating_supply" = "العرض المتداول";
 "asset.balances.reserved" = "محجوز";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "قطع الاتصال";
 "wallet_connect.connect.title" = "يتصل";
 "wallet_connect.app" = "برنامج";
-"wallet_connect.website" = "موقع إلكتروني";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "لا توجد اتصالات نشطة";
 "wallet_connect.state.empty.description" = "امسح أو الصق الكود للاتصال بالتطبيق اللامركزي";
-"wallet_connect.domain" = "اِختِصاص";
 "wallet_connect.permissions.title" = "الأذونات";
 "wallet_connect.permissions.view_balance" = "اطلع على رصيدك ونشاطك";
 "wallet_connect.permissions.approval_requests" = "إرسال طلبات الموافقة";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "في انتظار الانسحاب";
 "stake.active_in" = "نشط في";
 "stake.minimum_amount" = "الحد الأدنى للمبلغ";
-"stake.viagem" = "التخزين عبر Gem Wallet";
-"stake.no_active_staking" = "لا يوجد تخزين نشط حتى الآن.";
 "stake.state.empty.title" = "ستظهر عمليات التخزين هنا";
 "stake.state.empty.description" = "قم بتخزين أول %@";
 "stake.resource" = "المورد";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "العملات المستقرة";
 "assets.state.empty.search_description" = "يمكنك محاولة إضافته يدويًا";
 "assets.title" = "أصول";
-"sign_message.title" = "توقيع الرسالة";
 "sign_message.message" = "رسالة";
 "sign_message.view_full_message" = "عرض الرسالة كاملة";
 "secret_phrase.do_not_share.title" = "لا تشارك العبارة السرية الخاصة بك!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "الحد الأدنى للرصيد";
 "info.perpetual.funding_payments.title" = "مدفوعات التمويل";
 "info.perpetual.funding_payments.description" = "مدفوعات التمويل هي دفعات دورية بين المتداولين لإبقاء سعر العقد الدائم قريبًا من السعر الفوري للأصل الأساسي. التمويل الإيجابي يعني أن المراكز الطويلة تدفع المراكز القصيرة، في حين أن التمويل السلبي يعني أن المراكز القصيرة تدفع المراكز الطويلة.";
-"info.perpetual.funding_rate.title" = "التمويل";
-"info.perpetual.funding_rate.description" = "ويحدد معدل التمويل تكلفة الاحتفاظ بمركز دائم. يتم حسابه كل ساعة ويساعد في الحفاظ على توازن السعر بين العقد الدائم والسعر الفوري للأصل الأساسي.";
 "info.perpetual.liquidation_price.title" = "سعر التصفية";
 "info.perpetual.liquidation_price.description" = "سعر التصفية هو مستوى السعر الذي سيتم عنده إغلاق مركزك تلقائيًا لمنع المزيد من الخسائر. عندما يصل سعر السوق إلى هذا المستوى، تتم تصفية مركزك وتفقد الهامش الخاص بك.";
 "info.perpetual.open_interest.title" = "الاهتمام المفتوح";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "أتفهم أن Gem ليس بنكًا أو بورصة، واستخدامه لأغراض غير قانونية محظور تمامًا.";
 "onboarding.accept_terms.item3.message" = "أدرك أنه إذا فقدت إمكانية الوصول إلى محفظتي، فإن Gem ليست مسؤولة ولا يمكنها المساعدة بأي شكل من الأشكال.";
 "onboarding.accept_terms.continue" = "الموافقة والمتابعة";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "المراكز";
 "perpetual.size" = "مقاس";
 "perpetual.margin" = "هامِش";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "افتح %@";
 "perpetual.close_direction" = "إغلاق %@";
 "perpetual.leverage" = "الرافعة المالية";
-"perpetual.direction" = "اتجاه";
 "perpetual.auto_close" = "إغلاق تلقائي";
 "perpetual.auto_close.take_profit" = "جني الأرباح";
 "perpetual.market_price" = "سعر السوق";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "ستظهر هنا الأصول التي استخدمتها مؤخرًا";
 "notifications.inapp.state.empty.title" = "لم تصل أي إشعارات بعد";
 "notifications.inapp.state.empty.description" = "ستجد هنا تحديثات حول إشعاراتك";
-"notifications.inapp.rewards.invite.subtitle" = "ادعُ أصدقاءك واربحوا المكافآت معًا";
 "earn.state.empty.title" = "ستظهر وظائفك هنا";
 "earn.state.empty.description" = "أودع أول مبلغ لك %@";
 "contacts.title" = "جهات الاتصال";

@@ -3,14 +3,12 @@
   <string name="common_cancel">Anula</string>
   <string name="common_done">Gata</string>
   <string name="common_secret_phrase">Frază secretă</string>
-  <string name="common_next">În continuare</string>
   <string name="common_copy">Copiere</string>
   <string name="common_share">Distribuie</string>
   <string name="common_continue">Continuă</string>
   <string name="common_provider">Furnizor</string>
   <string name="common_loading">Încărcare</string>
   <string name="common_address">Adresa</string>
-  <string name="common_back">Înapoi</string>
   <string name="common_try_again">Încercați din nou</string>
   <string name="common_paste">Lipiți</string>
   <string name="common_delete">Ștergeți</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Gestionează</string>
   <string name="common_type">Tip</string>
   <string name="common_no_results_found">Nu s-au găsit rezultate</string>
-  <string name="common_yes">Da</string>
   <string name="common_no">Nu</string>
   <string name="common_none">Niciuna</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Sari peste</string>
   <string name="common_warning">Avertizare</string>
   <string name="common_learn_more">Aflați mai multe</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Descriere</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Stil</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Fotografie</string>
   <string name="common_save">Salvați</string>
-  <string name="common_edit">Editați</string>
   <string name="common_percentage">Procent</string>
   <string name="common_details">Detalii</string>
   <string name="common_info">Informații</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Am lăsat %1$s în soldul dumneavoastră pentru a acoperi viitoarele taxe de rețea.</string>
   <string name="transfer_freeze_title">Îngheață</string>
   <string name="transfer_unfreeze_title">Dezghețare</string>
-  <string name="transfer_sign_transaction_title">Semnează tranzacția</string>
   <string name="transfer_review_request">Cerere de revizuire</string>
   <string name="transfer_amount">Suma</string>
   <string name="transfer_amount_title">Suma</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Sursa</string>
   <string name="settings_networks_explorer">Explorer</string>
   <string name="settings_currency">Moneda</string>
-  <string name="settings_rate_app">Evaluați aplicația</string>
   <string name="settings_website">Vizitați site-ul web</string>
   <string name="settings_security">Securitate</string>
   <string name="settings_enable_value">Activați %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Adresă %1$s nevalidă</string>
   <string name="errors_dust_threshold">Tranzacția a eșuat deoarece suma este prea mică pentru a îndeplini cerințele minime ale rețelei %1$s (pragul de praf). Această limită asigură că valoarea tranzacției acoperă taxele și costurile de procesare.</string>
   <string name="errors_swap_no_quote_available">Nu există nicio cotație disponibilă.</string>
-  <string name="errors_swap_not_supported_chain">Lanț neacceptat.</string>
   <string name="errors_swap_not_supported_asset">Activ neacceptat.</string>
-  <string name="errors_swap_not_supported_pair">Perechea nu este acceptată.</string>
   <string name="errors_connections_invalid_send_parameters">Parametri nevalidi furnizați pentru trimiterea unei tranzacții.</string>
   <string name="errors_connections_invalid_sign_parameters">Parametrii nevalidi furnizați pentru semnare.</string>
   <string name="errors_connections_no_supported_wallets">Nu sunt disponibile portofele acceptate.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Preț</string>
   <string name="asset_market_cap">Capitalizarea pieței</string>
   <string name="asset_trading_volume">Volumul tranzacțiilor (24h)</string>
-  <string name="asset_market_cap_rank">Poziția de capitalizare a pieței</string>
   <string name="asset_total_supply">Aprovizionare totală</string>
   <string name="asset_circulating_supply">Aprovizionare în circulație</string>
   <string name="asset_balances_reserved">Rezervat</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Deconectați-vă</string>
   <string name="wallet_connect_connect_title">Conectați-vă</string>
   <string name="wallet_connect_app">App</string>
-  <string name="wallet_connect_website">Site-ul web</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Nu există conexiuni active</string>
   <string name="wallet_connect_state_empty_description">Scanați sau lipiți codul pentru a vă conecta la DApp</string>
-  <string name="wallet_connect_domain">Domeniul</string>
   <string name="wallet_connect_permissions_title">Permisiuni</string>
   <string name="wallet_connect_permissions_view_balance">Vizualizați soldul și activitatea dvs.</string>
   <string name="wallet_connect_permissions_approval_requests">Trimiteți cereri de aprobare</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">În așteptarea retragerii</string>
   <string name="stake_active_in">Activ în</string>
   <string name="stake_minimum_amount">Suma minimă</string>
-  <string name="stake_viagem">Mizați prin Gem Wallet</string>
-  <string name="stake_no_active_staking">Nicio miză activă încă.</string>
   <string name="stake_state_empty_title">Mizele tale vor apărea aici</string>
   <string name="stake_state_empty_description">Mizează primul tău %1$s</string>
   <string name="stake_resource">Resursă</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Monede stabile</string>
   <string name="assets_state_empty_search_description">Poți încerca să-l adaugi manual</string>
   <string name="assets_title">Active</string>
-  <string name="sign_message_title">Semnează mesajul</string>
   <string name="sign_message_message">Mesaj</string>
   <string name="sign_message_view_full_message">Vezi mesajul complet</string>
   <string name="secret_phrase_do_not_share_title">Nu împărtășiți expresia dvs. secretă!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Sold minim</string>
   <string name="info_perpetual_funding_payments_title">Plăți de finanțare</string>
   <string name="info_perpetual_funding_payments_description">Plățile de finanțare sunt plăți periodice între comercianți pentru a menține prețul contractului perpetuu aproape de prețul spot al activului suport. Finanțarea pozitivă înseamnă că pozițiile lungi plătesc poziții scurte, în timp ce finanțarea negativă înseamnă că pozițiile scurte plătesc poziții lungi.</string>
-  <string name="info_perpetual_funding_rate_title">Finanțare</string>
-  <string name="info_perpetual_funding_rate_description">Rata de finanțare determină costul deținerii unei poziții perpetue. Este calculat pe oră și ajută la menținerea echilibrului prețurilor între contractul perpetuu și prețul spot al activului suport.</string>
   <string name="info_perpetual_liquidation_price_title">Preț de lichidare</string>
   <string name="info_perpetual_liquidation_price_description">Prețul de lichidare este nivelul prețului la care poziția dvs. va fi închisă automat pentru a preveni alte pierderi. Când prețul pieței atinge acest nivel, poziția ta este lichidată și îți pierzi marja.</string>
   <string name="info_perpetual_open_interest_title">Interes deschis</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Înțeleg că Gem nu este o bancă sau o bursă, iar utilizarea sa în scopuri ilegale este strict interzisă.</string>
   <string name="onboarding_accept_terms_item3_message">Înțeleg că, dacă pierd vreodată accesul la portofelele mele, Gem nu este responsabil și nu poate ajuta în niciun fel.</string>
   <string name="onboarding_accept_terms_continue">De acord și continua</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Poziții</string>
   <string name="perpetual_size">Dimensiune</string>
   <string name="perpetual_margin">Marjă</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Deschis %1$s</string>
   <string name="perpetual_close_direction">Închide %1$s</string>
   <string name="perpetual_leverage">Efect de levier</string>
-  <string name="perpetual_direction">Direcţie</string>
   <string name="perpetual_auto_close">Închidere automată</string>
   <string name="perpetual_auto_close_take_profit">Take Profit</string>
   <string name="perpetual_market_price">Prețul de piață</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Elementele pe care le-ați folosit recent vor apărea aici</string>
   <string name="notifications_inapp_state_empty_title">Nicio notificare încă</string>
   <string name="notifications_inapp_state_empty_description">Vei vedea actualizări despre notificările tale aici</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Invită-ți prietenii și câștigă recompense împreună</string>
   <string name="earn_state_empty_title">Pozițiile dumneavoastră vor apărea aici</string>
   <string name="earn_state_empty_description">Depuneți prima dvs. depunere %1$s</string>
   <string name="contacts_title">Contacte</string>

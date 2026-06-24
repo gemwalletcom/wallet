@@ -3,14 +3,12 @@
 common_cancel = Anula
 common_done = Gata
 common_secret_phrase = Frază secretă
-common_next = În continuare
 common_copy = Copiere
 common_share = Distribuie
 common_continue = Continuă
 common_provider = Furnizor
 common_loading = Încărcare
 common_address = Adresa
-common_back = Înapoi
 common_try_again = Încercați din nou
 common_paste = Lipiți
 common_delete = Ștergeți
@@ -26,7 +24,6 @@ common_phrase = Frază
 common_manage = Gestionează
 common_type = Tip
 common_no_results_found = Nu s-au găsit rezultate
-common_yes = Da
 common_no = Nu
 common_none = Niciuna
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Anulați fixarea
 common_skip = Sari peste
 common_warning = Avertizare
 common_learn_more = Aflați mai multe
-common_short_name = Gem
 common_description = Descriere
 common_emoji = Emoji
-common_style = Stil
 common_avatar = Avatar
-common_photo = Fotografie
 common_save = Salvați
-common_edit = Editați
 common_percentage = Procent
 common_details = Detalii
 common_info = Informații
@@ -152,7 +145,6 @@ transfer_maximum_amount = Suma maximă este %@
 transfer_reserved_fees = Am lăsat %@ în soldul dumneavoastră pentru a acoperi viitoarele taxe de rețea.
 transfer_freeze_title = Îngheață
 transfer_unfreeze_title = Dezghețare
-transfer_sign_transaction_title = Semnează tranzacția
 transfer_review_request = Cerere de revizuire
 transfer_amount = Suma
 transfer_amount_title = Suma
@@ -170,7 +162,6 @@ settings_networks_title = Rețele
 settings_networks_source = Sursa
 settings_networks_explorer = Explorer
 settings_currency = Moneda
-settings_rate_app = Evaluați aplicația
 settings_website = Vizitați site-ul web
 settings_security = Securitate
 settings_enable_value = Activați %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = În prezent, nu putem calcula taxa de rețe
 errors_invalid_asset_address = Adresă %@ nevalidă
 errors_dust_threshold = Tranzacția a eșuat deoarece suma este prea mică pentru a îndeplini cerințele minime ale rețelei %@ (pragul de praf). Această limită asigură că valoarea tranzacției acoperă taxele și costurile de procesare.
 errors_swap_no_quote_available = Nu există nicio cotație disponibilă.
-errors_swap_not_supported_chain = Lanț neacceptat.
 errors_swap_not_supported_asset = Activ neacceptat.
-errors_swap_not_supported_pair = Perechea nu este acceptată.
 errors_connections_invalid_send_parameters = Parametri nevalidi furnizați pentru trimiterea unei tranzacții.
 errors_connections_invalid_sign_parameters = Parametrii nevalidi furnizați pentru semnare.
 errors_connections_no_supported_wallets = Nu sunt disponibile portofele acceptate.
@@ -290,7 +279,6 @@ asset_balances_available = Disponibil
 asset_price = Preț
 asset_market_cap = Capitalizarea pieței
 asset_trading_volume = Volumul tranzacțiilor (24h)
-asset_market_cap_rank = Poziția de capitalizare a pieței
 asset_total_supply = Aprovizionare totală
 asset_circulating_supply = Aprovizionare în circulație
 asset_balances_reserved = Rezervat
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Conexiune
 wallet_connect_disconnect = Deconectați-vă
 wallet_connect_connect_title = Conectați-vă
 wallet_connect_app = App
-wallet_connect_website = Site-ul web
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Nu există conexiuni active
 wallet_connect_state_empty_description = Scanați sau lipiți codul pentru a vă conecta la DApp
-wallet_connect_domain = Domeniul
 wallet_connect_permissions_title = Permisiuni
 wallet_connect_permissions_view_balance = Vizualizați soldul și activitatea dvs.
 wallet_connect_permissions_approval_requests = Trimiteți cereri de aprobare
@@ -379,8 +365,6 @@ stake_deactivating = Dezactivare
 stake_awaiting_withdrawal = În așteptarea retragerii
 stake_active_in = Activ în
 stake_minimum_amount = Suma minimă
-stake_viagem = Mizați prin Gem Wallet
-stake_no_active_staking = Nicio miză activă încă.
 stake_state_empty_title = Mizele tale vor apărea aici
 stake_state_empty_description = Mizează primul tău %@
 stake_resource = Resursă
@@ -404,7 +388,6 @@ assets_title = Active
 
 # Sign Message
 
-sign_message_title = Semnează mesajul
 sign_message_message = Mesaj
 sign_message_view_full_message = Vezi mesajul complet
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Nu aveți suficienți %@ pentru a finali
 info_account_minimum_balance_title = Sold minim
 info_perpetual_funding_payments_title = Plăți de finanțare
 info_perpetual_funding_payments_description = Plățile de finanțare sunt plăți periodice între comercianți pentru a menține prețul contractului perpetuu aproape de prețul spot al activului suport. Finanțarea pozitivă înseamnă că pozițiile lungi plătesc poziții scurte, în timp ce finanțarea negativă înseamnă că pozițiile scurte plătesc poziții lungi.
-info_perpetual_funding_rate_title = Finanțare
-info_perpetual_funding_rate_description = Rata de finanțare determină costul deținerii unei poziții perpetue. Este calculat pe oră și ajută la menținerea echilibrului prețurilor între contractul perpetuu și prețul spot al activului suport.
 info_perpetual_liquidation_price_title = Preț de lichidare
 info_perpetual_liquidation_price_description = Prețul de lichidare este nivelul prețului la care poziția dvs. va fi închisă automat pentru a preveni alte pierderi. Când prețul pieței atinge acest nivel, poziția ta este lichidată și îți pierzi marja.
 info_perpetual_open_interest_title = Interes deschis
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = De acord și continua
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Creșteți poziția
 perpetual_open_direction = Deschis %@
 perpetual_close_direction = Închide %@
 perpetual_leverage = Efect de levier
-perpetual_direction = Direcţie
 perpetual_auto_close = Închidere automată
 perpetual_auto_close_take_profit = Take Profit
 perpetual_market_price = Prețul de piață
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Elementele pe care le-ați folosit rec
 
 notifications_inapp_state_empty_title = Nicio notificare încă
 notifications_inapp_state_empty_description = Vei vedea actualizări despre notificările tale aici
-notifications_inapp_rewards_invite_subtitle = Invită-ți prietenii și câștigă recompense împreună
 
 # Earn
 

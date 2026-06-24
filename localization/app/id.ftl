@@ -3,14 +3,12 @@
 common_cancel = Batalkan
 common_done = Selesai
 common_secret_phrase = Frasa Rahasia
-common_next = Selanjutnya
 common_copy = Salin
 common_share = Bagikan
 common_continue = Lanjutkan
 common_provider = Penyedia
 common_loading = Memuat
 common_address = Alamat
-common_back = Kembali
 common_try_again = Coba Lagi
 common_paste = Tempel
 common_delete = Hapus
@@ -26,7 +24,6 @@ common_phrase = Frasa
 common_manage = Kelola
 common_type = Tipe
 common_no_results_found = Hasil Tidak Ditemukan
-common_yes = Ya
 common_no = Tidak
 common_none = Tidak ada
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Lepas sematan
 common_skip = Lewati
 common_warning = Peringatan
 common_learn_more = Pelajari lebih lanjut
-common_short_name = Gem
 common_description = Keterangan
 common_emoji = Emoji
-common_style = Gaya
 common_avatar = Avatar
-common_photo = Foto
 common_save = Simpan
-common_edit = Sunting
 common_percentage = Persentase
 common_details = Rincian
 common_info = Informasi
@@ -152,7 +145,6 @@ transfer_maximum_amount = Jumlah Maksimum adalah %@
 transfer_reserved_fees = Kami telah meninggalkan %@ di saldo Anda untuk menutupi biaya jaringan di masa mendatang.
 transfer_freeze_title = Bekukan
 transfer_unfreeze_title = Cairkan
-transfer_sign_transaction_title = Menandatangani Transaksi
 transfer_review_request = Tinjau Permintaan
 transfer_amount = Jumlah
 transfer_amount_title = Jumlah
@@ -170,7 +162,6 @@ settings_networks_title = Jaringan
 settings_networks_source = Sumber
 settings_networks_explorer = Penjelajah
 settings_currency = Mata Uang
-settings_rate_app = Nilai Aplikasi
 settings_website = Kunjungi Website
 settings_security = Keamanan
 settings_enable_value = Aktifkan %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Saat ini kami tidak bisa menghitung biaya j
 errors_invalid_asset_address = Alamat %@ tidak valid
 errors_dust_threshold = Transaksi gagal karena jumlahnya terlalu kecil untuk memenuhi persyaratan minimum jaringan %@ (ambang batas debu). Batas ini memastikan nilai transaksi mencakup biaya dan ongkos pemrosesan.
 errors_swap_no_quote_available = Tidak ada kuotasi yang tersedia.
-errors_swap_not_supported_chain = Rantai tidak didukung.
 errors_swap_not_supported_asset = Aset yang tidak didukung.
-errors_swap_not_supported_pair = Pasangan tidak didukung.
 errors_connections_invalid_send_parameters = Parameter yang diberikan untuk mengirim transaksi tidak valid.
 errors_connections_invalid_sign_parameters = Parameter yang diberikan untuk penandatanganan tidak valid.
 errors_connections_no_supported_wallets = Tidak ada dompet yang didukung tersedia.
@@ -290,7 +279,6 @@ asset_balances_available = Tersedia
 asset_price = Harga
 asset_market_cap = Kapitalisasi Pasar
 asset_trading_volume = Volume Perdagangan (24h)
-asset_market_cap_rank = Peringkat Kapitalisasi Pasar
 asset_total_supply = Total Suplai
 asset_circulating_supply = Suplai Beredar
 asset_balances_reserved = Cadangan
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Koneksi
 wallet_connect_disconnect = Putuskan Koneksi
 wallet_connect_connect_title = Hubungkan
 wallet_connect_app = Aplikasi
-wallet_connect_website = Situs Web
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Tidak ada koneksi aktif
 wallet_connect_state_empty_description = Pindai atau tempel kode untuk terhubung ke DApp
-wallet_connect_domain = Domain
 wallet_connect_permissions_title = Izin
 wallet_connect_permissions_view_balance = Lihat saldo dan aktivitas Anda
 wallet_connect_permissions_approval_requests = Kirim permintaan persetujuan
@@ -379,8 +365,6 @@ stake_deactivating = Sedang Menonaktifkan
 stake_awaiting_withdrawal = Penarikan Sedang Diproses
 stake_active_in = Aktif Di
 stake_minimum_amount = Jumlah minimum
-stake_viagem = Staking melalui Gem Wallet
-stake_no_active_staking = Belum ada staking aktif.
 stake_state_empty_title = Staking Anda akan muncul di sini
 stake_state_empty_description = Staking %@ pertama Anda
 stake_resource = Sumber
@@ -404,7 +388,6 @@ assets_title = Aset
 
 # Sign Message
 
-sign_message_title = Tandatangani Pesan
 sign_message_message = Pesan
 sign_message_view_full_message = Lihat Pesan Lengkap
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Anda tidak memiliki cukup %@ untuk menye
 info_account_minimum_balance_title = Saldo minimum
 info_perpetual_funding_payments_title = Pembayaran Pendanaan
 info_perpetual_funding_payments_description = Pembayaran pendanaan adalah pembayaran berkala antar pedagang untuk menjaga harga kontrak abadi tetap dekat dengan harga spot aset dasar. Pendanaan positif berarti posisi panjang membayar posisi pendek, sedangkan pendanaan negatif berarti posisi pendek membayar posisi panjang.
-info_perpetual_funding_rate_title = Pendanaan
-info_perpetual_funding_rate_description = Tingkat pendanaan menentukan biaya untuk mempertahankan posisi abadi. Ini dihitung setiap jam dan membantu menjaga keseimbangan harga antara kontrak abadi dan harga spot aset yang mendasarinya.
 info_perpetual_liquidation_price_title = Harga Likuidasi
 info_perpetual_liquidation_price_description = Harga likuidasi adalah tingkat harga di mana posisi Anda akan ditutup secara otomatis untuk mencegah kerugian lebih lanjut. Ketika harga pasar mencapai level ini, posisi Anda dilikuidasi dan Anda kehilangan margin.
 info_perpetual_open_interest_title = Minat Terbuka
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Setuju dan Lanjutkan
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Tingkatkan Posisi
 perpetual_open_direction = Buka %@
 perpetual_close_direction = Tutup %@
 perpetual_leverage = Leverage
-perpetual_direction = Arah
 perpetual_auto_close = Tutup Otomatis
 perpetual_auto_close_take_profit = Ambil untung
 perpetual_market_price = Harga Pasar
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Aset yang baru-baru ini Anda gunakan a
 
 notifications_inapp_state_empty_title = Belum ada notifikasi
 notifications_inapp_state_empty_description = Anda akan melihat pembaruan tentang notifikasi Anda di sini.
-notifications_inapp_rewards_invite_subtitle = Ajak teman dan dapatkan hadiah bersama.
 
 # Earn
 

@@ -3,14 +3,12 @@
   <string name="common_cancel">يلغي</string>
   <string name="common_done">تم</string>
   <string name="common_secret_phrase">العبارة السرية</string>
-  <string name="common_next">التالي</string>
   <string name="common_copy">نسخ</string>
   <string name="common_share">مشاركة</string>
   <string name="common_continue">يكمل</string>
   <string name="common_provider">مزود</string>
   <string name="common_loading">تحميل</string>
   <string name="common_address">عنوان</string>
-  <string name="common_back">خلف</string>
   <string name="common_try_again">حاول ثانية</string>
   <string name="common_paste">لصق</string>
   <string name="common_delete">يمسح</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">يدير</string>
   <string name="common_type">النوع</string>
   <string name="common_no_results_found">لم يتم العثور على نتائج</string>
-  <string name="common_yes">نعم</string>
   <string name="common_no">لا</string>
   <string name="common_none">لا شيء</string>
   <string name="common_url">عنوان URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">يتخطى</string>
   <string name="common_warning">تحذير</string>
   <string name="common_learn_more">يتعلم أكثر</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">وصف</string>
   <string name="common_emoji">الرموز التعبيرية</string>
-  <string name="common_style">أسلوب</string>
   <string name="common_avatar">الصورة الرمزية</string>
-  <string name="common_photo">صورة</string>
   <string name="common_save">يحفظ</string>
-  <string name="common_edit">يحرر</string>
   <string name="common_percentage">نسبة مئوية</string>
   <string name="common_details">تفاصيل</string>
   <string name="common_info">معلومات</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">لقد تركنا %1$s في رصيدك لتغطية رسوم الشبكة المستقبلية.</string>
   <string name="transfer_freeze_title">تجميد</string>
   <string name="transfer_unfreeze_title">إزالة التجميد</string>
-  <string name="transfer_sign_transaction_title">توقيع المعاملة</string>
   <string name="transfer_review_request">طلب مراجعة</string>
   <string name="transfer_amount">كمية</string>
   <string name="transfer_amount_title">كمية</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">مصدر</string>
   <string name="settings_networks_explorer">إكسبلورر</string>
   <string name="settings_currency">عملة</string>
-  <string name="settings_rate_app">قيم التطبيق</string>
   <string name="settings_website">زيارة الموقع</string>
   <string name="settings_security">حماية</string>
   <string name="settings_enable_value">تمكين %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">عنوان %1$s غير صالح</string>
   <string name="errors_dust_threshold">فشلت المعاملة لأن المبلغ صغير جدًا بحيث لا يلبي الحد الأدنى لمتطلبات شبكة %1$s (حد الغبار). يضمن هذا الحد أن قيمة المعاملة تغطي الرسوم وتكاليف المعالجة. زد المبلغ أو قلل الرسوم للمتابعة.</string>
   <string name="errors_swap_no_quote_available">لا يوجد عرض سعر متاح.</string>
-  <string name="errors_swap_not_supported_chain">سلسلة غير مدعومة.</string>
   <string name="errors_swap_not_supported_asset">أصل غير مدعوم.</string>
-  <string name="errors_swap_not_supported_pair">زوج غير مدعوم.</string>
   <string name="errors_connections_invalid_send_parameters">تم توفير معلمات غير صالحة لإرسال المعاملة.</string>
   <string name="errors_connections_invalid_sign_parameters">تم توفير معلمات غير صالحة للتوقيع.</string>
   <string name="errors_connections_no_supported_wallets">لا تتوفر محافظ مدعومة.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">سعر</string>
   <string name="asset_market_cap">القيمة السوقية</string>
   <string name="asset_trading_volume">حجم التداول (24 ساعة)</string>
-  <string name="asset_market_cap_rank">رتبة القيمة السوقية</string>
   <string name="asset_total_supply">إجمالي العرض</string>
   <string name="asset_circulating_supply">العرض المتداول</string>
   <string name="asset_balances_reserved">محجوز</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">قطع الاتصال</string>
   <string name="wallet_connect_connect_title">يتصل</string>
   <string name="wallet_connect_app">برنامج</string>
-  <string name="wallet_connect_website">موقع إلكتروني</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">لا توجد اتصالات نشطة</string>
   <string name="wallet_connect_state_empty_description">امسح أو الصق الكود للاتصال بالتطبيق اللامركزي</string>
-  <string name="wallet_connect_domain">اِختِصاص</string>
   <string name="wallet_connect_permissions_title">الأذونات</string>
   <string name="wallet_connect_permissions_view_balance">اطلع على رصيدك ونشاطك</string>
   <string name="wallet_connect_permissions_approval_requests">إرسال طلبات الموافقة</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">في انتظار الانسحاب</string>
   <string name="stake_active_in">نشط في</string>
   <string name="stake_minimum_amount">الحد الأدنى للمبلغ</string>
-  <string name="stake_viagem">التخزين عبر Gem Wallet</string>
-  <string name="stake_no_active_staking">لا يوجد تخزين نشط حتى الآن.</string>
   <string name="stake_state_empty_title">ستظهر عمليات التخزين هنا</string>
   <string name="stake_state_empty_description">قم بتخزين أول %1$s</string>
   <string name="stake_resource">المورد</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">العملات المستقرة</string>
   <string name="assets_state_empty_search_description">يمكنك محاولة إضافته يدويًا</string>
   <string name="assets_title">أصول</string>
-  <string name="sign_message_title">توقيع الرسالة</string>
   <string name="sign_message_message">رسالة</string>
   <string name="sign_message_view_full_message">عرض الرسالة كاملة</string>
   <string name="secret_phrase_do_not_share_title">لا تشارك العبارة السرية الخاصة بك!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">الحد الأدنى للرصيد</string>
   <string name="info_perpetual_funding_payments_title">مدفوعات التمويل</string>
   <string name="info_perpetual_funding_payments_description">مدفوعات التمويل هي دفعات دورية بين المتداولين لإبقاء سعر العقد الدائم قريبًا من السعر الفوري للأصل الأساسي. التمويل الإيجابي يعني أن المراكز الطويلة تدفع المراكز القصيرة، في حين أن التمويل السلبي يعني أن المراكز القصيرة تدفع المراكز الطويلة.</string>
-  <string name="info_perpetual_funding_rate_title">التمويل</string>
-  <string name="info_perpetual_funding_rate_description">ويحدد معدل التمويل تكلفة الاحتفاظ بمركز دائم. يتم حسابه كل ساعة ويساعد في الحفاظ على توازن السعر بين العقد الدائم والسعر الفوري للأصل الأساسي.</string>
   <string name="info_perpetual_liquidation_price_title">سعر التصفية</string>
   <string name="info_perpetual_liquidation_price_description">سعر التصفية هو مستوى السعر الذي سيتم عنده إغلاق مركزك تلقائيًا لمنع المزيد من الخسائر. عندما يصل سعر السوق إلى هذا المستوى، تتم تصفية مركزك وتفقد الهامش الخاص بك.</string>
   <string name="info_perpetual_open_interest_title">الاهتمام المفتوح</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">أتفهم أن Gem ليس بنكًا أو بورصة، واستخدامه لأغراض غير قانونية محظور تمامًا.</string>
   <string name="onboarding_accept_terms_item3_message">أدرك أنه إذا فقدت إمكانية الوصول إلى محفظتي، فإن Gem ليست مسؤولة ولا يمكنها المساعدة بأي شكل من الأشكال.</string>
   <string name="onboarding_accept_terms_continue">الموافقة والمتابعة</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">المراكز</string>
   <string name="perpetual_size">مقاس</string>
   <string name="perpetual_margin">هامِش</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">افتح %1$s</string>
   <string name="perpetual_close_direction">إغلاق %1$s</string>
   <string name="perpetual_leverage">الرافعة المالية</string>
-  <string name="perpetual_direction">اتجاه</string>
   <string name="perpetual_auto_close">إغلاق تلقائي</string>
   <string name="perpetual_auto_close_take_profit">جني الأرباح</string>
   <string name="perpetual_market_price">سعر السوق</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">ستظهر هنا الأصول التي استخدمتها مؤخرًا</string>
   <string name="notifications_inapp_state_empty_title">لم تصل أي إشعارات بعد</string>
   <string name="notifications_inapp_state_empty_description">ستجد هنا تحديثات حول إشعاراتك</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">ادعُ أصدقاءك واربحوا المكافآت معًا</string>
   <string name="earn_state_empty_title">ستظهر وظائفك هنا</string>
   <string name="earn_state_empty_description">أودع أول مبلغ لك %1$s</string>
   <string name="contacts_title">جهات الاتصال</string>

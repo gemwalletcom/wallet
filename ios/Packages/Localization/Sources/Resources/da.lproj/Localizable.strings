@@ -1,14 +1,12 @@
 "common.cancel" = "Ophæve";
 "common.done" = "Færdig";
 "common.secret_phrase" = "Hemmelig sætning";
-"common.next" = "Næste";
 "common.copy" = "Kopiér";
 "common.share" = "Del";
 "common.continue" = "Fortsæt";
 "common.provider" = "Udbyder";
 "common.loading" = "Indlæser";
 "common.address" = "Adresse";
-"common.back" = "Tilbage";
 "common.try_again" = "Prøv igen";
 "common.paste" = "Indsæt";
 "common.delete" = "Slet";
@@ -24,7 +22,6 @@
 "common.manage" = "Administrer";
 "common.type" = "Type";
 "common.no_results_found" = "Ingen resultater fundet";
-"common.yes" = "Ja";
 "common.no" = "Nej";
 "common.none" = "Ingen";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Spring over";
 "common.warning" = "Advarsel";
 "common.learn_more" = "Lær mere";
-"common.short_name" = "Gem";
 "common.description" = "Beskrivelse";
 "common.emoji" = "Emoji";
-"common.style" = "Stil";
 "common.avatar" = "Avatar";
-"common.photo" = "Foto";
 "common.save" = "Gem";
-"common.edit" = "Rediger";
 "common.percentage" = "Procent";
 "common.details" = "Detaljer";
 "common.info" = "Info";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Vi har efterladt %@ på din saldo til dækning af fremtidige netværksgebyrer.";
 "transfer.freeze.title" = "Fryse";
 "transfer.unfreeze.title" = "Optø";
-"transfer.sign_transaction.title" = "Underskriv transaktion";
 "transfer.review_request" = "Anmodning om gennemgang";
 "settings.terms_of_services" = "Servicevilkår";
 "settings.privacy_policy" = "Privatlivspolitik";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Kilde";
 "settings.networks.explorer" = "Explorer";
 "settings.currency" = "Valuta";
-"settings.rate_app" = "Bedøm app";
 "settings.website" = "Besøg hjemmesiden";
 "settings.security" = "Sikkerhed";
 "settings.enable_value" = "Aktiver %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Ugyldig %@ adresse";
 "errors.dust_threshold" = "Transaktionen mislykkedes, fordi beløbet er for lille til at opfylde %@ netværkets minimumskrav (støvtærskel). Denne grænse sikrer, at transaktionsværdien dækker gebyrer og behandlingsomkostninger.";
 "errors.swap.no_quote_available" = "Ingen pris er tilgængelig.";
-"errors.swap.not_supported_chain" = "Ikke understøttet kæde.";
 "errors.swap.not_supported_asset" = "Ikke understøttet aktiv.";
-"errors.swap.not_supported_pair" = "Ikke understøttet par.";
 "errors.connections.invalid_send_parameters" = "Ugyldige parametre angivet til afsendelse af en transaktion.";
 "errors.connections.invalid_sign_parameters" = "Ugyldige parametre angivet til signering.";
 "errors.connections.no_supported_wallets" = "Ingen understøttede tegnebøger er tilgængelige.";
@@ -236,7 +225,6 @@
 "asset.price" = "Pris";
 "asset.market_cap" = "Markedsværdi";
 "asset.trading_volume" = "Handelsvolumen (24 timer)";
-"asset.market_cap_rank" = "Markedsværdiplacering";
 "asset.total_supply" = "Samlet Udbud";
 "asset.circulating_supply" = "Cirkulerende forsyning";
 "asset.balances.reserved" = "Reserveret";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Afbryd forbindelsen";
 "wallet_connect.connect.title" = "Forbind";
 "wallet_connect.app" = "App";
-"wallet_connect.website" = "Hjemmeside";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Ingen aktive forbindelser";
 "wallet_connect.state.empty.description" = "Scan eller indsæt kode for at oprette forbindelse til DApp'en";
-"wallet_connect.domain" = "Domæne";
 "wallet_connect.permissions.title" = "Tilladelser";
 "wallet_connect.permissions.view_balance" = "Se din saldo og aktivitet";
 "wallet_connect.permissions.approval_requests" = "Send godkendelsesanmodninger";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Afventer tilbagetrækning";
 "stake.active_in" = "Aktiv i";
 "stake.minimum_amount" = "Minimumsbeløb";
-"stake.viagem" = "Indsats via Gem Wallet";
-"stake.no_active_staking" = "Ingen aktiv indsats endnu.";
 "stake.state.empty.title" = "Dine indsatser vil blive vist her";
 "stake.state.empty.description" = "Indsæt dine første %@";
 "stake.resource" = "Ressource";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "Du kan prøve at tilføje det manuelt";
 "assets.title" = "Aktiver";
-"sign_message.title" = "Underskriv besked";
 "sign_message.message" = "Besked";
 "sign_message.view_full_message" = "Se hele beskeden";
 "secret_phrase.do_not_share.title" = "Del ikke din hemmelige sætning!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Minimumsaldo";
 "info.perpetual.funding_payments.title" = "Finansieringsbetalinger";
 "info.perpetual.funding_payments.description" = "Finansieringsbetalinger er periodiske betalinger mellem handlende for at holde den evige kontraktpris tæt på det underliggende aktivs spotpris. Positiv finansiering betyder, at lange positioner betaler korte positioner, mens negativ funding betyder, at korte positioner betaler lange positioner.";
-"info.perpetual.funding_rate.title" = "Finansiering";
-"info.perpetual.funding_rate.description" = "Funding rate bestemmer omkostningerne ved at holde en evig position. Den beregnes hver time og hjælper med at opretholde prisligevægten mellem den evige kontrakt og det underliggende aktivs spotpris.";
 "info.perpetual.liquidation_price.title" = "Likvidationspris";
 "info.perpetual.liquidation_price.description" = "Likvidationsprisen er det prisniveau, hvor din position automatisk lukkes for at forhindre yderligere tab. Når markedsprisen når dette niveau, er din position likvideret, og du mister din margin.";
 "info.perpetual.open_interest.title" = "Åben interesse";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Jeg forstår, at Gem ikke er en bank eller børs, og at det er strengt forbudt at bruge den til ulovlige formål.";
 "onboarding.accept_terms.item3.message" = "Jeg forstår, at hvis jeg nogensinde mister adgangen til mine tegnebøger, er Gem ikke ansvarlig og kan ikke hjælpe på nogen måde.";
 "onboarding.accept_terms.continue" = "Enig og fortsæt";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Positioner";
 "perpetual.size" = "Størrelse";
 "perpetual.margin" = "Margin";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Åbn %@";
 "perpetual.close_direction" = "Luk %@";
 "perpetual.leverage" = "Gearing";
-"perpetual.direction" = "Retning";
 "perpetual.auto_close" = "Automatisk lukning";
 "perpetual.auto_close.take_profit" = "Tag profit";
 "perpetual.market_price" = "Markedspris";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Aktiver, du for nylig har brugt, vises her";
 "notifications.inapp.state.empty.title" = "Ingen notifikationer endnu";
 "notifications.inapp.state.empty.description" = "Du kan se opdateringer om dine notifikationer her";
-"notifications.inapp.rewards.invite.subtitle" = "Inviter venner og optjen belønninger sammen";
 "earn.state.empty.title" = "Dine stillinger vil blive vist her";
 "earn.state.empty.description" = "Indbetal din første %@";
 "contacts.title" = "Kontakter";

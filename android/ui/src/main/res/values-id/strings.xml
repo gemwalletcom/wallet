@@ -3,14 +3,12 @@
   <string name="common_cancel">Batalkan</string>
   <string name="common_done">Selesai</string>
   <string name="common_secret_phrase">Frasa Rahasia</string>
-  <string name="common_next">Selanjutnya</string>
   <string name="common_copy">Salin</string>
   <string name="common_share">Bagikan</string>
   <string name="common_continue">Lanjutkan</string>
   <string name="common_provider">Penyedia</string>
   <string name="common_loading">Memuat</string>
   <string name="common_address">Alamat</string>
-  <string name="common_back">Kembali</string>
   <string name="common_try_again">Coba Lagi</string>
   <string name="common_paste">Tempel</string>
   <string name="common_delete">Hapus</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Kelola</string>
   <string name="common_type">Tipe</string>
   <string name="common_no_results_found">Hasil Tidak Ditemukan</string>
-  <string name="common_yes">Ya</string>
   <string name="common_no">Tidak</string>
   <string name="common_none">Tidak ada</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Lewati</string>
   <string name="common_warning">Peringatan</string>
   <string name="common_learn_more">Pelajari lebih lanjut</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Keterangan</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Gaya</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Foto</string>
   <string name="common_save">Simpan</string>
-  <string name="common_edit">Sunting</string>
   <string name="common_percentage">Persentase</string>
   <string name="common_details">Rincian</string>
   <string name="common_info">Informasi</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Kami telah meninggalkan %1$s di saldo Anda untuk menutupi biaya jaringan di masa mendatang.</string>
   <string name="transfer_freeze_title">Bekukan</string>
   <string name="transfer_unfreeze_title">Cairkan</string>
-  <string name="transfer_sign_transaction_title">Menandatangani Transaksi</string>
   <string name="transfer_review_request">Tinjau Permintaan</string>
   <string name="transfer_amount">Jumlah</string>
   <string name="transfer_amount_title">Jumlah</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Sumber</string>
   <string name="settings_networks_explorer">Penjelajah</string>
   <string name="settings_currency">Mata Uang</string>
-  <string name="settings_rate_app">Nilai Aplikasi</string>
   <string name="settings_website">Kunjungi Website</string>
   <string name="settings_security">Keamanan</string>
   <string name="settings_enable_value">Aktifkan %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Alamat %1$s tidak valid</string>
   <string name="errors_dust_threshold">Transaksi gagal karena jumlahnya terlalu kecil untuk memenuhi persyaratan minimum jaringan %1$s (ambang batas debu). Batas ini memastikan nilai transaksi mencakup biaya dan ongkos pemrosesan.</string>
   <string name="errors_swap_no_quote_available">Tidak ada kuotasi yang tersedia.</string>
-  <string name="errors_swap_not_supported_chain">Rantai tidak didukung.</string>
   <string name="errors_swap_not_supported_asset">Aset yang tidak didukung.</string>
-  <string name="errors_swap_not_supported_pair">Pasangan tidak didukung.</string>
   <string name="errors_connections_invalid_send_parameters">Parameter yang diberikan untuk mengirim transaksi tidak valid.</string>
   <string name="errors_connections_invalid_sign_parameters">Parameter yang diberikan untuk penandatanganan tidak valid.</string>
   <string name="errors_connections_no_supported_wallets">Tidak ada dompet yang didukung tersedia.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Harga</string>
   <string name="asset_market_cap">Kapitalisasi Pasar</string>
   <string name="asset_trading_volume">Volume Perdagangan (24h)</string>
-  <string name="asset_market_cap_rank">Peringkat Kapitalisasi Pasar</string>
   <string name="asset_total_supply">Total Suplai</string>
   <string name="asset_circulating_supply">Suplai Beredar</string>
   <string name="asset_balances_reserved">Cadangan</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Putuskan Koneksi</string>
   <string name="wallet_connect_connect_title">Hubungkan</string>
   <string name="wallet_connect_app">Aplikasi</string>
-  <string name="wallet_connect_website">Situs Web</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Tidak ada koneksi aktif</string>
   <string name="wallet_connect_state_empty_description">Pindai atau tempel kode untuk terhubung ke DApp</string>
-  <string name="wallet_connect_domain">Domain</string>
   <string name="wallet_connect_permissions_title">Izin</string>
   <string name="wallet_connect_permissions_view_balance">Lihat saldo dan aktivitas Anda</string>
   <string name="wallet_connect_permissions_approval_requests">Kirim permintaan persetujuan</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Penarikan Sedang Diproses</string>
   <string name="stake_active_in">Aktif Di</string>
   <string name="stake_minimum_amount">Jumlah minimum</string>
-  <string name="stake_viagem">Staking melalui Gem Wallet</string>
-  <string name="stake_no_active_staking">Belum ada staking aktif.</string>
   <string name="stake_state_empty_title">Staking Anda akan muncul di sini</string>
   <string name="stake_state_empty_description">Staking %1$s pertama Anda</string>
   <string name="stake_resource">Sumber</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Koin stabil</string>
   <string name="assets_state_empty_search_description">Anda dapat mencoba menambahkannya secara manual</string>
   <string name="assets_title">Aset</string>
-  <string name="sign_message_title">Tandatangani Pesan</string>
   <string name="sign_message_message">Pesan</string>
   <string name="sign_message_view_full_message">Lihat Pesan Lengkap</string>
   <string name="secret_phrase_do_not_share_title">Jangan sebarkan Frasa Rahasia Anda!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Saldo minimum</string>
   <string name="info_perpetual_funding_payments_title">Pembayaran Pendanaan</string>
   <string name="info_perpetual_funding_payments_description">Pembayaran pendanaan adalah pembayaran berkala antar pedagang untuk menjaga harga kontrak abadi tetap dekat dengan harga spot aset dasar. Pendanaan positif berarti posisi panjang membayar posisi pendek, sedangkan pendanaan negatif berarti posisi pendek membayar posisi panjang.</string>
-  <string name="info_perpetual_funding_rate_title">Pendanaan</string>
-  <string name="info_perpetual_funding_rate_description">Tingkat pendanaan menentukan biaya untuk mempertahankan posisi abadi. Ini dihitung setiap jam dan membantu menjaga keseimbangan harga antara kontrak abadi dan harga spot aset yang mendasarinya.</string>
   <string name="info_perpetual_liquidation_price_title">Harga Likuidasi</string>
   <string name="info_perpetual_liquidation_price_description">Harga likuidasi adalah tingkat harga di mana posisi Anda akan ditutup secara otomatis untuk mencegah kerugian lebih lanjut. Ketika harga pasar mencapai level ini, posisi Anda dilikuidasi dan Anda kehilangan margin.</string>
   <string name="info_perpetual_open_interest_title">Minat Terbuka</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Saya memahami bahwa Gem bukanlah bank atau bursa, dan menggunakannya untuk tujuan ilegal sangat dilarang.</string>
   <string name="onboarding_accept_terms_item3_message">Saya memahami bahwa jika saya kehilangan akses ke dompet saya, Gem tidak bertanggung jawab dan tidak dapat membantu dengan cara apa pun.</string>
   <string name="onboarding_accept_terms_continue">Setuju dan Lanjutkan</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Posisi</string>
   <string name="perpetual_size">Ukuran</string>
   <string name="perpetual_margin">Margin</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Buka %1$s</string>
   <string name="perpetual_close_direction">Tutup %1$s</string>
   <string name="perpetual_leverage">Leverage</string>
-  <string name="perpetual_direction">Arah</string>
   <string name="perpetual_auto_close">Tutup Otomatis</string>
   <string name="perpetual_auto_close_take_profit">Ambil untung</string>
   <string name="perpetual_market_price">Harga Pasar</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Aset yang baru-baru ini Anda gunakan akan muncul di sini</string>
   <string name="notifications_inapp_state_empty_title">Belum ada notifikasi</string>
   <string name="notifications_inapp_state_empty_description">Anda akan melihat pembaruan tentang notifikasi Anda di sini.</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Ajak teman dan dapatkan hadiah bersama.</string>
   <string name="earn_state_empty_title">Posisi Anda akan muncul di sini.</string>
   <string name="earn_state_empty_description">Setorkan pertama Anda %1$s</string>
   <string name="contacts_title">Kontak</string>

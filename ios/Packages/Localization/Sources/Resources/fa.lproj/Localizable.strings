@@ -1,14 +1,12 @@
 "common.cancel" = "لغو کردن";
 "common.done" = "انجام شد";
 "common.secret_phrase" = "عبارت مخفی";
-"common.next" = "بعدی";
 "common.copy" = "کپی کردن";
 "common.share" = "اشتراک گذاری";
 "common.continue" = "ادامه";
 "common.provider" = "ارائه دهنده";
 "common.loading" = "در حال بارگذاری";
 "common.address" = "آدرس";
-"common.back" = "بازگشت";
 "common.try_again" = "تلاش دوباره";
 "common.paste" = "جای گذاری";
 "common.delete" = "پاک کردن";
@@ -24,7 +22,6 @@
 "common.manage" = "مدیریت";
 "common.type" = "نوع";
 "common.no_results_found" = "هیچ نتیجه ای یافت نشد.";
-"common.yes" = "بله";
 "common.no" = "نه";
 "common.none" = "هیچکدام";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "پرش کنید";
 "common.warning" = "هشدار";
 "common.learn_more" = "بیشتر بدانید";
-"common.short_name" = "Gem";
 "common.description" = "توضیحات";
 "common.emoji" = "ایموجی";
-"common.style" = "سبک";
 "common.avatar" = "آواتار";
-"common.photo" = "عکس";
 "common.save" = "ذخیره کنید";
-"common.edit" = "ویرایش کنید";
 "common.percentage" = "درصد";
 "common.details" = "جزئیات";
 "common.info" = "اطلاعات";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "ما %@ را برای پوشش هزینه‌های شبکه در آینده در موجودی شما باقی گذاشته‌ایم.";
 "transfer.freeze.title" = "فریز کردن";
 "transfer.unfreeze.title" = "یخ‌زدایی";
-"transfer.sign_transaction.title" = "امضای تراکنش";
 "transfer.review_request" = "درخواست بررسی";
 "settings.terms_of_services" = "شرایط استفاده از خدمات";
 "settings.privacy_policy" = "سیاست حفظ حریم خصوصی";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "منبع";
 "settings.networks.explorer" = "پیمایشگر";
 "settings.currency" = "ارز";
-"settings.rate_app" = "امتیاز دادن به برنامه";
 "settings.website" = "بازدید از وب سایت";
 "settings.security" = "امنیت";
 "settings.enable_value" = "فعال کردن %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "آدرس %@ نامعتبر است.";
 "errors.dust_threshold" = "تراکنش به دلیل کم بودن مبلغ برای برآورده کردن حداقل لازم شبکه %@ (آستانه گرد و غبار) انجام نشد. این محدودیت تضمین می‌کند که ارزش تراکنش، کارمزدها و هزینه‌های پردازش را پوشش می‌دهد.";
 "errors.swap.no_quote_available" = "هیچ قیمتی در دسترس نیست.";
-"errors.swap.not_supported_chain" = "زنجیره پشتیبانی نمی شود.";
 "errors.swap.not_supported_asset" = "دارایی پشتیبانی نمی شود.";
-"errors.swap.not_supported_pair" = "جفت پشتیبانی نمی شود.";
 "errors.connections.invalid_send_parameters" = "پارامترهای نامعتبر برای ارسال تراکنش ارائه شده است.";
 "errors.connections.invalid_sign_parameters" = "پارامترهای نامعتبر برای امضا ارائه شده است.";
 "errors.connections.no_supported_wallets" = "هیچ کیف پول پشتیبانی شده ای در دسترس نیست.";
@@ -236,7 +225,6 @@
 "asset.price" = "قيمت";
 "asset.market_cap" = "ارزش بازار";
 "asset.trading_volume" = "حجم معاملات (24 ساعت)";
-"asset.market_cap_rank" = "رتبه ارزش بازار";
 "asset.total_supply" = "عرضه کل";
 "asset.circulating_supply" = "عرضه در گردش";
 "asset.balances.reserved" = "رزرو شده.";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "قطع اتصال";
 "wallet_connect.connect.title" = "متصل شدن";
 "wallet_connect.app" = "برنامه";
-"wallet_connect.website" = "وب سایت";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "اتصال فعالی یافت نشد.";
 "wallet_connect.state.empty.description" = "برای اتصال به DApp، کد را اسکن یا جای‌گذاری کنید";
-"wallet_connect.domain" = "دامنه";
 "wallet_connect.permissions.title" = "مجوزها";
 "wallet_connect.permissions.view_balance" = "مشاهده موجودی و فعالیت خود";
 "wallet_connect.permissions.approval_requests" = "ارسال درخواست‌های تأیید";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "در انتظار برداشت";
 "stake.active_in" = "فعال در";
 "stake.minimum_amount" = "حداقل مبلغ";
-"stake.viagem" = "از طریق Gem Wallet استیک کنید";
-"stake.no_active_staking" = "استیک فعالی پیدا نشد.";
 "stake.state.empty.title" = "استیک‌های شما اینجا نمایش داده می‌شوند";
 "stake.state.empty.description" = "اولین %@ خود را استیک کنید";
 "stake.resource" = "منبع";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "استیبل کوین ها";
 "assets.state.empty.search_description" = "می‌توانید سعی کنید آن را به صورت دستی اضافه کنید";
 "assets.title" = "دارایی‌ها";
-"sign_message.title" = "پیام را امضا کنید";
 "sign_message.message" = "پیام";
 "sign_message.view_full_message" = "مشاهده کامل پیام";
 "secret_phrase.do_not_share.title" = "عبارات خصوصی خود را با کسی به اشتراک نگذارید.";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "حداقل موجودی";
 "info.perpetual.funding_payments.title" = "پرداخت های مالی";
 "info.perpetual.funding_payments.description" = "پرداخت های تامین مالی، پرداخت های دوره ای بین معامله گران است تا قیمت قرارداد دائمی را نزدیک به قیمت لحظه ای دارایی پایه نگه دارند. تامین مالی مثبت به این معنی است که موقعیت‌های لانگ به موقعیت‌های شورت پرداخت می‌کنند، در حالی که تامین مالی منفی به معنای پرداخت موقعیت‌های شورت به موقعیت‌های لانگ است.";
-"info.perpetual.funding_rate.title" = "تامین مالی";
-"info.perpetual.funding_rate.description" = "نرخ تامین مالی هزینه های حفظ یک موقعیت دائمی را تعیین می کند. به صورت ساعتی محاسبه می شود و به حفظ تعادل قیمت بین قرارداد دائمی و قیمت لحظه ای دارایی اساسی کمک می کند.";
 "info.perpetual.liquidation_price.title" = "قیمت انحلال";
 "info.perpetual.liquidation_price.description" = "قیمت انحلال سطح قیمتی است که در آن موقعیت شما به طور خودکار بسته می شود تا از زیان بیشتر جلوگیری شود. هنگامی که قیمت بازار به این سطح می رسد، موقعیت شما منحل می شود و حاشیه خود را از دست می دهید.";
 "info.perpetual.open_interest.title" = "بهره باز";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "من متوجه هستم که Gem بانک یا صرافی نیست و استفاده از آن برای مقاصد غیرقانونی اکیداً ممنوع است.";
 "onboarding.accept_terms.item3.message" = "می‌دانم که اگر دسترسی به کیف پول‌هایم را از دست بدهم، Gem مسئولیتی ندارد و به هیچ وجه نمی‌تواند کمک کند.";
 "onboarding.accept_terms.continue" = "موافقت کنید و ادامه دهید";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "موقعیت‌ها";
 "perpetual.size" = "اندازه";
 "perpetual.margin" = "حاشیه";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "باز کردن %@";
 "perpetual.close_direction" = "بستن %@";
 "perpetual.leverage" = "اهرم مالی";
-"perpetual.direction" = "جهت";
 "perpetual.auto_close" = "بستن خودکار";
 "perpetual.auto_close.take_profit" = "سود ببرید";
 "perpetual.market_price" = "قیمت بازار";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "دارایی هایی که اخیراً استفاده کرده اید در اینجا ظاهر می شوند";
 "notifications.inapp.state.empty.title" = "هنوز هیچ اعلانی وجود ندارد";
 "notifications.inapp.state.empty.description" = "به‌روزرسانی‌های مربوط به اعلان‌هایتان را اینجا خواهید دید";
-"notifications.inapp.rewards.invite.subtitle" = "دوستان را دعوت کنید و با هم پاداش کسب کنید";
 "earn.state.empty.title" = "موقعیت‌های شما اینجا نمایش داده می‌شوند";
 "earn.state.empty.description" = "اولین واریز خود را انجام دهید %@";
 "contacts.title" = "مخاطبین";

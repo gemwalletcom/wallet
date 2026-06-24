@@ -3,14 +3,12 @@
 common_cancel = Annuler
 common_done = Terminé
 common_secret_phrase = Phrase secrète
-common_next = Suivant
 common_copy = Copier
 common_share = Partager
 common_continue = Continuer
 common_provider = Fournisseur
 common_loading = Chargement
 common_address = Adresse
-common_back = Retour
 common_try_again = Réessayer
 common_paste = Coller
 common_delete = Supprimer
@@ -26,7 +24,6 @@ common_phrase = Phrase
 common_manage = Gérer
 common_type = Type
 common_no_results_found = Aucun résultat trouvé
-common_yes = Oui
 common_no = Non
 common_none = Aucun
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Désépingler
 common_skip = Passer
 common_warning = Avertissement
 common_learn_more = En savoir plus
-common_short_name = Gem
 common_description = Descriptif
 common_emoji = Émoji
-common_style = Style
 common_avatar = Avatar
-common_photo = Photo
 common_save = Sauvegarder
-common_edit = Modifier
 common_percentage = Pourcentage
 common_details = Détails
 common_info = Informations
@@ -152,7 +145,6 @@ transfer_maximum_amount = Le montant maximum est de %@
 transfer_reserved_fees = Nous avons laissé %@ sur votre solde pour couvrir les futurs frais de réseau.
 transfer_freeze_title = Geler
 transfer_unfreeze_title = Dégeler
-transfer_sign_transaction_title = Signer la transaction
 transfer_review_request = Examiner la demande
 transfer_amount = Montant
 transfer_amount_title = Montant
@@ -170,7 +162,6 @@ settings_networks_title = Réseaux
 settings_networks_source = Origine
 settings_networks_explorer = Explorateur
 settings_currency = Devise
-settings_rate_app = Noter l'application
 settings_website = Visitez le site Web
 settings_security = Sécurité
 settings_enable_value = Activer %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Nous ne sommes actuellement pas en mesure d
 errors_invalid_asset_address = Adresse %@ invalide
 errors_dust_threshold = La transaction a échoué car le montant est trop faible pour atteindre le seuil minimal du réseau %@. Cette limite garantit que la valeur de la transaction couvre les frais et les coûts de traitement.
 errors_swap_no_quote_available = Aucun devis disponible.
-errors_swap_not_supported_chain = Chaîne non prise en charge.
 errors_swap_not_supported_asset = Actif non pris en charge.
-errors_swap_not_supported_pair = Paire non prise en charge.
 errors_connections_invalid_send_parameters = Paramètres non valides fournis pour l'envoi d'une transaction.
 errors_connections_invalid_sign_parameters = Paramètres non valides fournis pour la signature.
 errors_connections_no_supported_wallets = Aucun portefeuille pris en charge n'est disponible.
@@ -290,7 +279,6 @@ asset_balances_available = Disponible
 asset_price = Prix
 asset_market_cap = Capitalisation boursière
 asset_trading_volume = Volume des échanges (24h)
-asset_market_cap_rank = Classement de la capitalisation boursière
 asset_total_supply = Offre totale
 asset_circulating_supply = Offre en circulation
 asset_balances_reserved = Réservé
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Connexion
 wallet_connect_disconnect = Déconnecter
 wallet_connect_connect_title = Connecter
 wallet_connect_app = Application
-wallet_connect_website = Site web
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Aucune connexion active
 wallet_connect_state_empty_description = Scannez ou collez le code pour vous connecter à la DApp
-wallet_connect_domain = Domaine
 wallet_connect_permissions_title = Autorisations
 wallet_connect_permissions_view_balance = Consultez votre solde et votre activité
 wallet_connect_permissions_approval_requests = Envoyer les demandes d'approbation
@@ -379,8 +365,6 @@ stake_deactivating = Désactivation
 stake_awaiting_withdrawal = En attente de retrait
 stake_active_in = Actif dans
 stake_minimum_amount = Montant minimal
-stake_viagem = Staking via Gem Wallet
-stake_no_active_staking = Pas de staking actif pour l'instant.
 stake_state_empty_title = Vos positions de staking apparaîtront ici
 stake_state_empty_description = Faites votre premier staking de %@
 stake_resource = Ressource
@@ -404,7 +388,6 @@ assets_title = Actifs
 
 # Sign Message
 
-sign_message_title = Message de signature
 sign_message_message = Message
 sign_message_view_full_message = Afficher le message complet
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Vous n'avez pas assez de %@ pour finalis
 info_account_minimum_balance_title = Solde minimum
 info_perpetual_funding_payments_title = Paiements de financement
 info_perpetual_funding_payments_description = Les paiements de financement sont des paiements périodiques entre traders visant à maintenir le prix du contrat perpétuel proche du prix au comptant de l'actif sous-jacent. Un financement positif signifie que les positions longues paient les positions courtes, tandis qu'un financement négatif signifie que les positions courtes paient les positions longues.
-info_perpetual_funding_rate_title = Financement
-info_perpetual_funding_rate_description = Le taux de financement détermine le coût de détention d'une position perpétuelle. Il est calculé toutes les heures et permet de maintenir l'équilibre de prix entre le contrat perpétuel et le prix spot de l'actif sous-jacent.
 info_perpetual_liquidation_price_title = Prix de liquidation
 info_perpetual_liquidation_price_description = Le prix de liquidation est le niveau de prix auquel votre position sera automatiquement fermée pour éviter de nouvelles pertes. Lorsque le prix du marché atteint ce niveau, votre position est liquidée et vous perdez votre marge.
 info_perpetual_open_interest_title = Open Interest
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Accepter et continuer
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Augmenter la position
 perpetual_open_direction = Ouvrir %@
 perpetual_close_direction = Fermer %@
 perpetual_leverage = Effet de levier
-perpetual_direction = Direction
 perpetual_auto_close = Fermeture automatique
 perpetual_auto_close_take_profit = Take Profit
 perpetual_market_price = Prix du marché
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Les éléments que vous avez récemmen
 
 notifications_inapp_state_empty_title = Aucune notification pour le moment
 notifications_inapp_state_empty_description = Vous trouverez ici les mises à jour concernant vos notifications.
-notifications_inapp_rewards_invite_subtitle = Invitez vos amis et gagnez des récompenses ensemble.
 
 # Earn
 

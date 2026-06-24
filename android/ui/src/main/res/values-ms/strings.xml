@@ -3,14 +3,12 @@
   <string name="common_cancel">Batal</string>
   <string name="common_done">Selesai</string>
   <string name="common_secret_phrase">Frasa Rahsia</string>
-  <string name="common_next">Seterusnya</string>
   <string name="common_copy">Salin</string>
   <string name="common_share">Kongsi</string>
   <string name="common_continue">Teruskan</string>
   <string name="common_provider">Pembekal</string>
   <string name="common_loading">Memuatkan</string>
   <string name="common_address">Alamat</string>
-  <string name="common_back">Kembali</string>
   <string name="common_try_again">Cuba Lagi</string>
   <string name="common_paste">Tampal</string>
   <string name="common_delete">Padam</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Urus</string>
   <string name="common_type">Taip</string>
   <string name="common_no_results_found">Tiada Hasil Ditemui</string>
-  <string name="common_yes">Ya</string>
   <string name="common_no">Tidak</string>
   <string name="common_none">Tiada</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Langkau</string>
   <string name="common_warning">Amaran</string>
   <string name="common_learn_more">Ketahui Lebih Lanjut</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Penerangan</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Gaya</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Foto</string>
   <string name="common_save">Simpan</string>
-  <string name="common_edit">Sunting</string>
   <string name="common_percentage">Peratusan</string>
   <string name="common_details">Butiran</string>
   <string name="common_info">Info</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Kami telah meninggalkan %1$s dalam baki anda untuk menampung yuran rangkaian masa hadapan.</string>
   <string name="transfer_freeze_title">Bekukan</string>
   <string name="transfer_unfreeze_title">Nyahbekukan</string>
-  <string name="transfer_sign_transaction_title">Tandatangan Transaksi</string>
   <string name="transfer_review_request">Semak Permintaan</string>
   <string name="transfer_amount">Jumlah</string>
   <string name="transfer_amount_title">Jumlah</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Sumber</string>
   <string name="settings_networks_explorer">Penjelajah</string>
   <string name="settings_currency">Mata wang</string>
-  <string name="settings_rate_app">Apl Nilai</string>
   <string name="settings_website">Lawati Laman Web</string>
   <string name="settings_security">Keselamatan</string>
   <string name="settings_enable_value">Dayakan %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Alamat %1$s tidak sah</string>
   <string name="errors_dust_threshold">Urus niaga gagal kerana jumlahnya terlalu kecil untuk memenuhi keperluan minimum rangkaian %1$s (ambang habuk). Had ini memastikan nilai transaksi meliputi yuran dan kos pemprosesan.</string>
   <string name="errors_swap_no_quote_available">Tiada sebut harga tersedia.</string>
-  <string name="errors_swap_not_supported_chain">Tidak disokong rantai.</string>
   <string name="errors_swap_not_supported_asset">Aset tidak disokong.</string>
-  <string name="errors_swap_not_supported_pair">Tidak disokong pasangan.</string>
   <string name="errors_connections_invalid_send_parameters">Parameter tidak sah disediakan untuk menghantar transaksi.</string>
   <string name="errors_connections_invalid_sign_parameters">Parameter tidak sah disediakan untuk menandatangani.</string>
   <string name="errors_connections_no_supported_wallets">Tiada dompet yang disokong tersedia.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Harga</string>
   <string name="asset_market_cap">Modal Pasaran</string>
   <string name="asset_trading_volume">Jumlah dagangan (24j)</string>
-  <string name="asset_market_cap_rank">Kedudukan Cap Pasaran</string>
   <string name="asset_total_supply">Jumlah Bekalan</string>
   <string name="asset_circulating_supply">Bekalan Beredar</string>
   <string name="asset_balances_reserved">Terpelihara</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Putuskan sambungan</string>
   <string name="wallet_connect_connect_title">Sambung</string>
   <string name="wallet_connect_app">Apl</string>
-  <string name="wallet_connect_website">Laman web</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Tiada sambungan aktif</string>
   <string name="wallet_connect_state_empty_description">Imbas atau tampal kod untuk menyambung ke DApp</string>
-  <string name="wallet_connect_domain">Domain</string>
   <string name="wallet_connect_permissions_title">Kebenaran</string>
   <string name="wallet_connect_permissions_view_balance">Lihat baki dan aktiviti anda</string>
   <string name="wallet_connect_permissions_approval_requests">Hantar permintaan kelulusan</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Menunggu Pengeluaran</string>
   <string name="stake_active_in">Aktif Dalam</string>
   <string name="stake_minimum_amount">Jumlah minimum</string>
-  <string name="stake_viagem">Stake melalui Gem Wallet</string>
-  <string name="stake_no_active_staking">Tiada staking aktif lagi.</string>
   <string name="stake_state_empty_title">Pertaruhan anda akan muncul di sini</string>
   <string name="stake_state_empty_description">Pertaruhkan %1$s pertama anda</string>
   <string name="stake_resource">Sumber</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stablecoin</string>
   <string name="assets_state_empty_search_description">Anda boleh cuba menambahnya secara manual</string>
   <string name="assets_title">Aset</string>
-  <string name="sign_message_title">Tandatangan Mesej</string>
   <string name="sign_message_message">Mesej</string>
   <string name="sign_message_view_full_message">Lihat Mesej Penuh</string>
   <string name="secret_phrase_do_not_share_title">Jangan kongsi Frasa Rahsia anda!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Baki minimum</string>
   <string name="info_perpetual_funding_payments_title">Pembayaran Pembiayaan</string>
   <string name="info_perpetual_funding_payments_description">Pembayaran pembiayaan ialah pembayaran berkala antara pedagang untuk memastikan harga kontrak kekal hampir dengan harga spot aset pendasar. Pembiayaan positif bermakna kedudukan panjang membayar kedudukan pendek, manakala pembiayaan negatif bermakna kedudukan pendek membayar kedudukan panjang.</string>
-  <string name="info_perpetual_funding_rate_title">Pembiayaan</string>
-  <string name="info_perpetual_funding_rate_description">Kadar pembiayaan menentukan kos memegang kedudukan kekal. Ia dikira setiap jam dan membantu mengekalkan keseimbangan harga antara kontrak kekal dan harga spot aset pendasar.</string>
   <string name="info_perpetual_liquidation_price_title">Harga Pembubaran</string>
   <string name="info_perpetual_liquidation_price_description">Harga pembubaran ialah paras harga di mana kedudukan anda akan ditutup secara automatik untuk mengelakkan kerugian selanjutnya. Apabila harga pasaran mencapai tahap ini, kedudukan anda dibubarkan dan anda kehilangan margin anda.</string>
   <string name="info_perpetual_open_interest_title">Minat Terbuka</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Saya faham bahawa Gem bukan bank atau bursa, dan menggunakannya untuk tujuan yang menyalahi undang-undang adalah dilarang sama sekali.</string>
   <string name="onboarding_accept_terms_item3_message">Saya faham bahawa jika saya kehilangan akses kepada dompet saya, Gem tidak bertanggungjawab dan tidak boleh membantu dalam apa jua cara.</string>
   <string name="onboarding_accept_terms_continue">Setuju dan Teruskan</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Kedudukan</string>
   <string name="perpetual_size">Saiz</string>
   <string name="perpetual_margin">Margin</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Buka %1$s</string>
   <string name="perpetual_close_direction">Tutup %1$s</string>
   <string name="perpetual_leverage">Leverage</string>
-  <string name="perpetual_direction">Arah</string>
   <string name="perpetual_auto_close">Auto Tutup</string>
   <string name="perpetual_auto_close_take_profit">Ambil untung</string>
   <string name="perpetual_market_price">Harga Pasaran</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Aset yang anda gunakan baru-baru ini akan dipaparkan di sini</string>
   <string name="notifications_inapp_state_empty_title">Tiada pemberitahuan lagi</string>
   <string name="notifications_inapp_state_empty_description">Anda akan melihat kemas kini tentang pemberitahuan anda di sini</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Jemput rakan-rakan dan dapatkan ganjaran bersama-sama</string>
   <string name="earn_state_empty_title">Kedudukan anda akan dipaparkan di sini</string>
   <string name="earn_state_empty_description">Depositkan yang pertama %1$s</string>
   <string name="contacts_title">Kenalan</string>

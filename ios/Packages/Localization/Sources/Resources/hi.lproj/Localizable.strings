@@ -1,14 +1,12 @@
 "common.cancel" = "रद्द करना";
 "common.done" = "हो गया";
 "common.secret_phrase" = "गुप्त वाक्यांश";
-"common.next" = "अगला";
 "common.copy" = "प्रतिलिपि";
 "common.share" = "साझा करें";
 "common.continue" = "जारी रखें";
 "common.provider" = "प्रदाता";
 "common.loading" = "लोड हो रहा है";
 "common.address" = "पता";
-"common.back" = "वापस";
 "common.try_again" = "पुनः प्रयास करें";
 "common.paste" = "चिपकाएँ";
 "common.delete" = "हटाएँ";
@@ -24,7 +22,6 @@
 "common.manage" = "प्रबंधित करें";
 "common.type" = "प्रकार";
 "common.no_results_found" = "कोई परिणाम नहीं मिला";
-"common.yes" = "हाँ";
 "common.no" = "नहीं";
 "common.none" = "कोई नहीं";
 "common.url" = "यूआरएल";
@@ -37,14 +34,10 @@
 "common.skip" = "छोडना";
 "common.warning" = "चेतावनी";
 "common.learn_more" = "और अधिक जानें";
-"common.short_name" = "Gem";
 "common.description" = "विवरण";
 "common.emoji" = "इमोजी";
-"common.style" = "शैली";
 "common.avatar" = "अवतार";
-"common.photo" = "तस्वीर";
 "common.save" = "बचाना";
-"common.edit" = "संपादित करें";
 "common.percentage" = "प्रतिशत";
 "common.details" = "विवरण";
 "common.info" = "जानकारी";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "हमने भविष्य में नेटवर्क शुल्क को कवर करने के लिए आपके बैलेंस में %@ छोड़ दिया है।";
 "transfer.freeze.title" = "जमाना";
 "transfer.unfreeze.title" = "अनफ़्रीज़";
-"transfer.sign_transaction.title" = "लेनदेन पर हस्ताक्षर करें";
 "transfer.review_request" = "समीक्षा अनुरोध";
 "settings.terms_of_services" = "सेवा की शर्तें";
 "settings.privacy_policy" = "गोपनीयता नीति";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "स्रोत";
 "settings.networks.explorer" = "एक्सप्लोरर";
 "settings.currency" = "मुद्रा";
-"settings.rate_app" = "रेट ऐप";
 "settings.website" = "वेबसाइट पर जाएँ";
 "settings.security" = "सुरक्षा";
 "settings.enable_value" = "%@ सक्षम करें";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "अमान्य %@ पता";
 "errors.dust_threshold" = "लेन-देन विफल रहा क्योंकि राशि %@ नेटवर्क की न्यूनतम आवश्यकता (डस्ट थ्रेशोल्ड) को पूरा करने के लिए बहुत कम है। यह सीमा सुनिश्चित करती है कि लेन-देन का मूल्य शुल्क और प्रसंस्करण लागत को कवर करता है।";
 "errors.swap.no_quote_available" = "कोई कोट उपलब्ध नहीं है।";
-"errors.swap.not_supported_chain" = "समर्थित श्रृंखला नहीं.";
 "errors.swap.not_supported_asset" = "समर्थित परिसंपत्ति नहीं.";
-"errors.swap.not_supported_pair" = "समर्थित जोड़ी नहीं.";
 "errors.connections.invalid_send_parameters" = "लेनदेन भेजने के लिए अमान्य पैरामीटर प्रदान किए गए.";
 "errors.connections.invalid_sign_parameters" = "हस्ताक्षर के लिए अमान्य पैरामीटर प्रदान किए गए.";
 "errors.connections.no_supported_wallets" = "कोई समर्थित वॉलेट उपलब्ध नहीं है.";
@@ -236,7 +225,6 @@
 "asset.price" = "कीमत";
 "asset.market_cap" = "मार्केट कैप";
 "asset.trading_volume" = "ट्रेडिंग वॉल्यूम (24 घंटे)";
-"asset.market_cap_rank" = "मार्केट कैप रैंक";
 "asset.total_supply" = "कुल आपूर्ति";
 "asset.circulating_supply" = "परिसंचारी आपूर्ति";
 "asset.balances.reserved" = "सुरक्षित";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "डिस्कनेक्ट करें";
 "wallet_connect.connect.title" = "कनेक्ट करें";
 "wallet_connect.app" = "ऐप";
-"wallet_connect.website" = "वेबसाइट";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "कोई सक्रिय कनेक्शन नहीं";
 "wallet_connect.state.empty.description" = "DApp से कनेक्ट करने के लिए कोड स्कैन करें या पेस्ट करें";
-"wallet_connect.domain" = "डोमेन";
 "wallet_connect.permissions.title" = "अनुमतियां";
 "wallet_connect.permissions.view_balance" = "अपना बैलेंस और गतिविधि देखें";
 "wallet_connect.permissions.approval_requests" = "अनुमोदन अनुरोध भेजें";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "वापसी की प्रतीक्षा में";
 "stake.active_in" = "में सक्रिय";
 "stake.minimum_amount" = "न्यूनतम राशि";
-"stake.viagem" = "Gem Wallet के माध्यम से स्टेक करें";
-"stake.no_active_staking" = "अभी तक कोई सक्रिय हिस्सेदारी नहीं है.";
 "stake.state.empty.title" = "आपके स्टेक यहां दिखाई देंगे";
 "stake.state.empty.description" = "अपना पहला %@ स्टेक करें";
 "stake.resource" = "संसाधन";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "स्थिर सिक्के";
 "assets.state.empty.search_description" = "आप इसे मैन्युअल रूप से जोड़ने का प्रयास कर सकते हैं";
 "assets.title" = "संपत्ति";
-"sign_message.title" = "संदेश पर हस्ताक्षर करें";
 "sign_message.message" = "संदेश";
 "sign_message.view_full_message" = "पूरा संदेश देखें";
 "secret_phrase.do_not_share.title" = "अपना गुप्त वाक्यांश साझा न करें!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "न्यूनतम शेष";
 "info.perpetual.funding_payments.title" = "फंडिंग भुगतान";
 "info.perpetual.funding_payments.description" = "स्थायी अनुबंध मूल्य को अंतर्निहित परिसंपत्ति के हाजिर मूल्य के करीब रखने के लिए व्यापारियों के बीच फंडिंग भुगतान आवधिक भुगतान है। सकारात्मक फंडिंग का मतलब है कि लंबी पोजीशनें छोटी पोजीशनों के लिए भुगतान करती हैं, जबकि नकारात्मक फंडिंग का मतलब है कि छोटी पोजीशनें लंबी पोजीशनों के लिए भुगतान करती हैं।";
-"info.perpetual.funding_rate.title" = "फंडिंग";
-"info.perpetual.funding_rate.description" = "फंडिंग दर एक स्थायी पद धारण करने की लागत निर्धारित करती है। इसकी गणना प्रति घंटा की जाती है और स्थायी अनुबंध और अंतर्निहित परिसंपत्ति की हाजिर कीमत के बीच मूल्य संतुलन बनाए रखने में मदद करती है।";
 "info.perpetual.liquidation_price.title" = "परिसमापन मूल्य";
 "info.perpetual.liquidation_price.description" = "परिसमापन मूल्य वह मूल्य स्तर है जिस पर आगे के नुकसान को रोकने के लिए आपकी स्थिति स्वचालित रूप से बंद हो जाएगी। जब बाजार मूल्य इस स्तर पर पहुंच जाता है, तो आपकी स्थिति समाप्त हो जाती है और आप अपना मार्जिन खो देते हैं।";
 "info.perpetual.open_interest.title" = "ओपन इंटरेस्ट";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "मैं समझता हूं कि Gem कोई बैंक या एक्सचेंज नहीं है, और इसका अवैध उद्देश्यों के लिए उपयोग करना सख्त वर्जित है।";
 "onboarding.accept_terms.item3.message" = "मैं समझता हूं कि यदि मैं कभी भी अपने बटुए तक पहुंच खो देता हूं, तो Gem उत्तरदायी नहीं है और किसी भी तरह से मदद नहीं कर सकता है।";
 "onboarding.accept_terms.continue" = "सहमत हों और जारी रखें";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "स्थितियां";
 "perpetual.size" = "आकार";
 "perpetual.margin" = "मार्जिन";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "%@ खोलें";
 "perpetual.close_direction" = "बंद करें %@";
 "perpetual.leverage" = "उत्तोलन";
-"perpetual.direction" = "दिशा";
 "perpetual.auto_close" = "स्वतः बंद";
 "perpetual.auto_close.take_profit" = "टेक प्रॉफिट";
 "perpetual.market_price" = "बाजार कीमत";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "आपके द्वारा हाल ही में उपयोग की गई संपत्तियाँ यहाँ दिखाई देंगी";
 "notifications.inapp.state.empty.title" = "अभी तक कोई सूचना नहीं मिली है";
 "notifications.inapp.state.empty.description" = "आपको अपनी सूचनाओं से संबंधित अपडेट यहां मिलेंगे।";
-"notifications.inapp.rewards.invite.subtitle" = "दोस्तों को आमंत्रित करें और साथ मिलकर पुरस्कार जीतें";
 "earn.state.empty.title" = "आपके पद यहां दिखाई देंगे";
 "earn.state.empty.description" = "अपनी पहली राशि जमा करें %@";
 "contacts.title" = "संपर्क";

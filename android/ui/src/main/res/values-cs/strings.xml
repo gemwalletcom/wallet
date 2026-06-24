@@ -3,14 +3,12 @@
   <string name="common_cancel">Zrušit</string>
   <string name="common_done">Hotovo</string>
   <string name="common_secret_phrase">Tajná fráze</string>
-  <string name="common_next">Další</string>
   <string name="common_copy">Kopírovat</string>
   <string name="common_share">Sdílet</string>
   <string name="common_continue">Pokračovat</string>
   <string name="common_provider">Poskytovatel</string>
   <string name="common_loading">Načítání</string>
   <string name="common_address">Adresa</string>
-  <string name="common_back">Zpět</string>
   <string name="common_try_again">Zkuste to znovu</string>
   <string name="common_paste">Vložit</string>
   <string name="common_delete">Vymazat</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Spravovat</string>
   <string name="common_type">Typ</string>
   <string name="common_no_results_found">Nebyly nalezeny žádné výsledky</string>
-  <string name="common_yes">Ano</string>
   <string name="common_no">Ne</string>
   <string name="common_none">Žádná</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Přeskočit</string>
   <string name="common_warning">Varování</string>
   <string name="common_learn_more">Další informace</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Popis</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Styl</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Fotografie</string>
   <string name="common_save">Uložit</string>
-  <string name="common_edit">Upravit</string>
   <string name="common_percentage">Procento</string>
   <string name="common_details">Podrobnosti</string>
   <string name="common_info">Informace</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Na vašem zůstatku jsme nechali %1$s na pokrytí budoucích poplatků za síť.</string>
   <string name="transfer_freeze_title">Zmrazit</string>
   <string name="transfer_unfreeze_title">Uvolnit</string>
-  <string name="transfer_sign_transaction_title">Podepsat transakci</string>
   <string name="transfer_review_request">Žádost o kontrolu</string>
   <string name="transfer_amount">Množství</string>
   <string name="transfer_amount_title">Množství</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Zdroj</string>
   <string name="settings_networks_explorer">Průzkumník</string>
   <string name="settings_currency">Měna</string>
-  <string name="settings_rate_app">Ohodnoťte aplikaci</string>
   <string name="settings_website">Navštivte webové stránky</string>
   <string name="settings_security">Zabezpečení</string>
   <string name="settings_enable_value">Povolit %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Neplatná adresa %1$s</string>
   <string name="errors_dust_threshold">Transakce se nezdařila, protože částka je příliš malá na to, aby splnila minimální požadavek sítě %1$s (prahová hodnota prachu). Tento limit zajišťuje, že hodnota transakce pokryje poplatky a náklady na zpracování.</string>
   <string name="errors_swap_no_quote_available">Není dostupná žádná nabídka.</string>
-  <string name="errors_swap_not_supported_chain">Nepodporovaný řetězec.</string>
   <string name="errors_swap_not_supported_asset">Nepodporované aktivum.</string>
-  <string name="errors_swap_not_supported_pair">Nepodporovaný pár.</string>
   <string name="errors_connections_invalid_send_parameters">Zadané neplatné parametry pro odeslání transakce.</string>
   <string name="errors_connections_invalid_sign_parameters">Zadané neplatné parametry pro podepisování.</string>
   <string name="errors_connections_no_supported_wallets">Nejsou k dispozici žádné podporované peněženky.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Cena</string>
   <string name="asset_market_cap">Tržní kapitalizace</string>
   <string name="asset_trading_volume">Objem obchodování (24 hodin)</string>
-  <string name="asset_market_cap_rank">Pořadí tržní kapitalizace</string>
   <string name="asset_total_supply">Celková nabídka</string>
   <string name="asset_circulating_supply">Cirkulující zásobování</string>
   <string name="asset_balances_reserved">Rezervováno</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Odpojit</string>
   <string name="wallet_connect_connect_title">Připojit</string>
   <string name="wallet_connect_app">App</string>
-  <string name="wallet_connect_website">Webové stránky</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Žádná aktivní připojení</string>
   <string name="wallet_connect_state_empty_description">Naskenujte nebo vložte kód pro připojení k DApp</string>
-  <string name="wallet_connect_domain">Doména</string>
   <string name="wallet_connect_permissions_title">Oprávnění</string>
   <string name="wallet_connect_permissions_view_balance">Zobrazení zůstatku a aktivity</string>
   <string name="wallet_connect_permissions_approval_requests">Odeslat žádosti o schválení</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Čeká na stažení</string>
   <string name="stake_active_in">Aktivní v</string>
   <string name="stake_minimum_amount">Minimální částka</string>
-  <string name="stake_viagem">Sázka přes Gem Wallet</string>
-  <string name="stake_no_active_staking">Zatím bez aktivního stakingu.</string>
   <string name="stake_state_empty_title">Vaše sázky se zobrazí zde</string>
   <string name="stake_state_empty_description">Vsaďte si první %1$s</string>
   <string name="stake_resource">Zdroj</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stablecoiny</string>
   <string name="assets_state_empty_search_description">Můžete to zkusit přidat ručně</string>
   <string name="assets_title">Aktiva</string>
-  <string name="sign_message_title">Podepsat zprávu</string>
   <string name="sign_message_message">Zpráva</string>
   <string name="sign_message_view_full_message">Zobrazit celou zprávu</string>
   <string name="secret_phrase_do_not_share_title">Nesdílejte svou tajnou frázi!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Minimální zůstatek</string>
   <string name="info_perpetual_funding_payments_title">Financování plateb</string>
   <string name="info_perpetual_funding_payments_description">Platby financování jsou pravidelné platby mezi obchodníky, jejichž cílem je udržet stálou smluvní cenu blízkou spotové ceně podkladového aktiva. Pozitivní financování znamená, že dlouhé pozice platí krátké pozice, zatímco negativní financování znamená, že krátké pozice platí dlouhé pozice.</string>
-  <string name="info_perpetual_funding_rate_title">Financování</string>
-  <string name="info_perpetual_funding_rate_description">Míra financování určuje náklady na držení trvalé pozice. Počítá se každou hodinu a pomáhá udržovat cenovou rovnováhu mezi věčným kontraktem a spotovou cenou podkladového aktiva.</string>
   <string name="info_perpetual_liquidation_price_title">Likvidační cena</string>
   <string name="info_perpetual_liquidation_price_description">Likvidační cena je cenová hladina, na které bude vaše pozice automaticky uzavřena, aby se předešlo dalším ztrátám. Když tržní cena dosáhne této úrovně, vaše pozice je zlikvidována a ztrácíte marži.</string>
   <string name="info_perpetual_open_interest_title">Otevřený úrok</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Chápu, že Gem není banka ani burza a jeho používání k nelegálním účelům je přísně zakázáno.</string>
   <string name="onboarding_accept_terms_item3_message">Chápu, že pokud někdy ztratím přístup ke svým peněženkám, Gem nenese žádnou odpovědnost a nemůže žádným způsobem pomoci.</string>
   <string name="onboarding_accept_terms_continue">Souhlasit a pokračovat</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Pozice</string>
   <string name="perpetual_size">Velikost</string>
   <string name="perpetual_margin">Marže</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Otevřít %1$s</string>
   <string name="perpetual_close_direction">Zavřít %1$s</string>
   <string name="perpetual_leverage">Finanční páka</string>
-  <string name="perpetual_direction">Směr</string>
   <string name="perpetual_auto_close">Automatické zavření</string>
   <string name="perpetual_auto_close_take_profit">Take profit</string>
   <string name="perpetual_market_price">Tržní cena</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Zde se zobrazí položky, které jste nedávno použili</string>
   <string name="notifications_inapp_state_empty_title">Zatím žádná oznámení</string>
   <string name="notifications_inapp_state_empty_description">Zde se zobrazí aktuální informace o vašich oznámeních</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Pozvěte přátele a společně sbírejte odměny</string>
   <string name="earn_state_empty_title">Vaše pozice se zde zobrazí</string>
   <string name="earn_state_empty_description">Vložte svůj první %1$s</string>
   <string name="contacts_title">Kontakty</string>

@@ -1,14 +1,12 @@
 "common.cancel" = "ยกเลิก";
 "common.done" = "เสร็จแล้ว";
 "common.secret_phrase" = "วลีลับ";
-"common.next" = "ถัดไป";
 "common.copy" = "คัดลอก";
 "common.share" = "แบ่งปัน";
 "common.continue" = "ดำเนินการต่อ";
 "common.provider" = "ผู้ให้บริการ";
 "common.loading" = "กำลังโหลด";
 "common.address" = "ที่อยู่";
-"common.back" = "กลับ";
 "common.try_again" = "ลองอีกครั้ง";
 "common.paste" = "วาง";
 "common.delete" = "ลบ";
@@ -24,7 +22,6 @@
 "common.manage" = "จัดการ";
 "common.type" = "ประเภท";
 "common.no_results_found" = "ไม่พบผลลัพธ์";
-"common.yes" = "ใช่";
 "common.no" = "ไม่";
 "common.none" = "ไม่มี";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "ข้าม";
 "common.warning" = "คำเตือน";
 "common.learn_more" = "เรียนรู้เพิ่มเติม";
-"common.short_name" = "Gem";
 "common.description" = "คำอธิบาย";
 "common.emoji" = "อิโมจิ";
-"common.style" = "สไตล์";
 "common.avatar" = "อวตาร";
-"common.photo" = "รูปถ่าย";
 "common.save" = "บันทึก";
-"common.edit" = "แก้ไข";
 "common.percentage" = "เปอร์เซ็นต์";
 "common.details" = "รายละเอียด";
 "common.info" = "ข้อมูล";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "เราได้เหลือ %@ ไว้ในยอดคงเหลือของคุณเพื่อครอบคลุมค่าธรรมเนียมเครือข่ายในอนาคต";
 "transfer.freeze.title" = "ฟรีซ";
 "transfer.unfreeze.title" = "ยกเลิกการฟรีซ";
-"transfer.sign_transaction.title" = "ลงนามในธุรกรรม";
 "transfer.review_request" = "คำขอตรวจสอบ";
 "settings.terms_of_services" = "ข้อกำหนดในการให้บริการ";
 "settings.privacy_policy" = "นโยบายความเป็นส่วนตัว";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "แหล่งที่มา";
 "settings.networks.explorer" = "นักสำรวจ";
 "settings.currency" = "สกุลเงิน";
-"settings.rate_app" = "ให้คะแนนแอป";
 "settings.website" = "เยี่ยมชมเว็บไซต์";
 "settings.security" = "ความปลอดภัย";
 "settings.enable_value" = "เปิดใช้งาน %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "ที่อยู่ %@ ไม่ถูกต้อง";
 "errors.dust_threshold" = "ธุรกรรมล้มเหลวเนื่องจากจำนวนเงินน้อยเกินไปที่จะตรงตามข้อกำหนดขั้นต่ำของเครือข่าย %@ (เกณฑ์ค่าฝุ่น) ขีดจำกัดนี้ช่วยให้มั่นใจว่ามูลค่าธุรกรรมครอบคลุมค่าธรรมเนียมและต้นทุนการประมวลผล เพิ่มจำนวนเงินหรือลดค่าธรรมเนียมเพื่อดำเนินการต่อ";
 "errors.swap.no_quote_available" = "ไม่มีราคาเสนอให้ใช้งาน";
-"errors.swap.not_supported_chain" = "ไม่รองรับห่วงโซ่";
 "errors.swap.not_supported_asset" = "ไม่รองรับสินทรัพย์นี้";
-"errors.swap.not_supported_pair" = "ไม่รองรับคู่";
 "errors.connections.invalid_send_parameters" = "มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการส่งธุรกรรม";
 "errors.connections.invalid_sign_parameters" = "มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการลงนาม";
 "errors.connections.no_supported_wallets" = "ไม่มีกระเป๋าเงินที่รองรับ";
@@ -236,7 +225,6 @@
 "asset.price" = "ราคา";
 "asset.market_cap" = "มูลค่าตลาด";
 "asset.trading_volume" = "ปริมาณการซื้อขาย (24 ชม.)";
-"asset.market_cap_rank" = "อันดับมูลค่าตลาด";
 "asset.total_supply" = "อุปทานทั้งหมด";
 "asset.circulating_supply" = "อุปทานหมุนเวียน";
 "asset.balances.reserved" = "ที่สงวนไว้";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "ตัดการเชื่อมต่อ";
 "wallet_connect.connect.title" = "เชื่อมต่อ";
 "wallet_connect.app" = "แอพ";
-"wallet_connect.website" = "เว็บไซต์";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "ไม่มีการเชื่อมต่อที่ใช้งานอยู่";
 "wallet_connect.state.empty.description" = "สแกนหรือวางรหัสเพื่อเชื่อมต่อกับ DApp";
-"wallet_connect.domain" = "โดเมน";
 "wallet_connect.permissions.title" = "สิทธิ์การเข้าถึง";
 "wallet_connect.permissions.view_balance" = "ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ";
 "wallet_connect.permissions.approval_requests" = "ส่งคำขออนุมัติ";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "รอการถอนเงิน";
 "stake.active_in" = "ใช้งานอยู่";
 "stake.minimum_amount" = "จำนวนเงินขั้นต่ำ";
-"stake.viagem" = "สเตคผ่าน Gem Wallet";
-"stake.no_active_staking" = "ยังไม่มีการสเตคที่ใช้งานอยู่";
 "stake.state.empty.title" = "การสเตคของคุณจะปรากฏที่นี่";
 "stake.state.empty.description" = "สเตคครั้งแรกของคุณ %@";
 "stake.resource" = "ทรัพยากร";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "สเตเบิลคอยน์";
 "assets.state.empty.search_description" = "คุณสามารถลองเพิ่มมันด้วยตนเองได้";
 "assets.title" = "สินทรัพย์";
-"sign_message.title" = "ลงนามข้อความ";
 "sign_message.message" = "ข้อความ";
 "sign_message.view_full_message" = "ดูข้อความฉบับเต็ม";
 "secret_phrase.do_not_share.title" = "อย่าเปิดเผยวลีลับของคุณ!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "ยอดคงเหลือขั้นต่ำ";
 "info.perpetual.funding_payments.title" = "การชำระเงินเงินทุน";
 "info.perpetual.funding_payments.description" = "การจ่ายเงินเป็นงวด ๆ ระหว่างเทรดเดอร์เพื่อรักษาราคาสัญญาถาวรให้ใกล้กับราคาสปอตของสินทรัพย์อ้างอิง funding ที่เป็นบวกหมายถึงตำแหน่ง Long จ่ายให้ตำแหน่ง Short ในขณะที่ funding ติดลบหมายถึงตำแหน่ง Short จ่ายให้ตำแหน่ง Long";
-"info.perpetual.funding_rate.title" = "เงินทุน";
-"info.perpetual.funding_rate.description" = "อัตราการระดมทุนจะกำหนดต้นทุนในการดำรงตำแหน่งถาวร มีการคำนวณรายชั่วโมงและช่วยรักษาสมดุลของราคาระหว่างสัญญาระยะยาวกับราคาสปอตของสินทรัพย์อ้างอิง";
 "info.perpetual.liquidation_price.title" = "ราคาการชำระบัญชี";
 "info.perpetual.liquidation_price.description" = "ราคาการชำระบัญชีคือระดับราคาที่สถานะของคุณจะถูกปิดโดยอัตโนมัติเพื่อป้องกันการสูญเสียเพิ่มเติม เมื่อราคาตลาดถึงระดับนี้ ตำแหน่งของคุณจะถูกชำระบัญชีและคุณจะสูญเสียหลักประกัน";
 "info.perpetual.open_interest.title" = "Open Interest";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "ฉันเข้าใจว่า Gem ไม่ใช่ธนาคารหรือศูนย์แลกเปลี่ยน และการใช้เพื่อวัตถุประสงค์ที่ผิดกฎหมายถือเป็นสิ่งต้องห้ามอย่างเด็ดขาด";
 "onboarding.accept_terms.item3.message" = "ฉันเข้าใจว่าหากฉันสูญเสียการเข้าถึงกระเป๋าเงินของฉัน Gem จะไม่รับผิดชอบและไม่สามารถช่วยเหลือได้ในทางใดทางหนึ่ง";
 "onboarding.accept_terms.continue" = "เห็นด้วยและดำเนินการต่อ";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "ตำแหน่ง";
 "perpetual.size" = "ขนาด";
 "perpetual.margin" = "ระยะขอบ";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "เปิด %@";
 "perpetual.close_direction" = "ปิด %@";
 "perpetual.leverage" = "อัตราทดทางการเงิน";
-"perpetual.direction" = "ทิศทาง";
 "perpetual.auto_close" = "ปิดอัตโนมัติ";
 "perpetual.auto_close.take_profit" = "รับผลกำไร";
 "perpetual.market_price" = "ราคาตลาด";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "เนื้อหาที่คุณใช้ล่าสุดจะปรากฏที่นี่";
 "notifications.inapp.state.empty.title" = "ยังไม่มีการแจ้งเตือนใดๆ";
 "notifications.inapp.state.empty.description" = "คุณจะเห็นการอัปเดตเกี่ยวกับการแจ้งเตือนของคุณได้ที่นี่";
-"notifications.inapp.rewards.invite.subtitle" = "ชวนเพื่อนมารับรางวัลด้วยกัน";
 "earn.state.empty.title" = "ตำแหน่งของคุณจะปรากฏที่นี่";
 "earn.state.empty.description" = "ฝากเงินครั้งแรกของคุณ %@";
 "contacts.title" = "การติดต่อ";

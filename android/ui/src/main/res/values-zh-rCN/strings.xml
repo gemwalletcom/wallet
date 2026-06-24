@@ -3,14 +3,12 @@
   <string name="common_cancel">取消</string>
   <string name="common_done">完成</string>
   <string name="common_secret_phrase">秘密短语</string>
-  <string name="common_next">下一步</string>
   <string name="common_copy">复制</string>
   <string name="common_share">分享</string>
   <string name="common_continue">继续</string>
   <string name="common_provider">服务商</string>
   <string name="common_loading">加载中</string>
   <string name="common_address">地址</string>
-  <string name="common_back">返回</string>
   <string name="common_try_again">重试</string>
   <string name="common_paste">粘贴</string>
   <string name="common_delete">删除</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">管理</string>
   <string name="common_type">类型</string>
   <string name="common_no_results_found">未找到结果</string>
-  <string name="common_yes">是</string>
   <string name="common_no">否</string>
   <string name="common_none">无</string>
   <string name="common_url">网址</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">跳过</string>
   <string name="common_warning">警告</string>
   <string name="common_learn_more">了解更多</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">描述</string>
   <string name="common_emoji">表情符号</string>
-  <string name="common_style">风格</string>
   <string name="common_avatar">头像</string>
-  <string name="common_photo">照片</string>
   <string name="common_save">保存</string>
-  <string name="common_edit">编辑</string>
   <string name="common_percentage">百分比</string>
   <string name="common_details">详情</string>
   <string name="common_info">信息</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">我们已在您的余额中留下%1$s以支付未来的网络费用。</string>
   <string name="transfer_freeze_title">冻结</string>
   <string name="transfer_unfreeze_title">解冻</string>
-  <string name="transfer_sign_transaction_title">签署交易</string>
   <string name="transfer_review_request">审查请求</string>
   <string name="transfer_amount">金额</string>
   <string name="transfer_amount_title">数额</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">来源</string>
   <string name="settings_networks_explorer">区块浏览器</string>
   <string name="settings_currency">货币</string>
-  <string name="settings_rate_app">评价应用</string>
   <string name="settings_website">访问网站</string>
   <string name="settings_security">安全设置</string>
   <string name="settings_enable_value">启用%1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">无效的 %1$s 地址</string>
   <string name="errors_dust_threshold">交易失败，因为金额太小，无法满足%1$s网络的最低要求（粉尘阈值）。此限制可确保交易金额足以覆盖手续费和处理成本。</string>
   <string name="errors_swap_no_quote_available">暂无报价</string>
-  <string name="errors_swap_not_supported_chain">暂不支持该链。</string>
   <string name="errors_swap_not_supported_asset">暂不支持该资产。</string>
-  <string name="errors_swap_not_supported_pair">暂不支持该交易对。</string>
   <string name="errors_connections_invalid_send_parameters">发送交易时提供的参数无效。</string>
   <string name="errors_connections_invalid_sign_parameters">提供的签名参数无效。</string>
   <string name="errors_connections_no_supported_wallets">暂无可用钱包</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">价格</string>
   <string name="asset_market_cap">市值</string>
   <string name="asset_trading_volume">交易量 (24小时)</string>
-  <string name="asset_market_cap_rank">市值排名</string>
   <string name="asset_total_supply">总供应量</string>
   <string name="asset_circulating_supply">流通供应量</string>
   <string name="asset_balances_reserved">系统保留</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">断开</string>
   <string name="wallet_connect_connect_title">连接</string>
   <string name="wallet_connect_app">应用</string>
-  <string name="wallet_connect_website">网站</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">没有活跃的连接</string>
   <string name="wallet_connect_state_empty_description">扫描或复制链接以连接到 DApp</string>
-  <string name="wallet_connect_domain">域名</string>
   <string name="wallet_connect_permissions_title">权限</string>
   <string name="wallet_connect_permissions_view_balance">查看您的余额和活动</string>
   <string name="wallet_connect_permissions_approval_requests">发送审批请求</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">等待赎回</string>
   <string name="stake_active_in">激活于</string>
   <string name="stake_minimum_amount">最低金额</string>
-  <string name="stake_viagem">通过 Gem 钱包质押</string>
-  <string name="stake_no_active_staking">当前没有激活的质押</string>
   <string name="stake_state_empty_title">质押将显示在这里️</string>
   <string name="stake_state_empty_description">质押第一个%1$s</string>
   <string name="stake_resource">资源</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">稳定币</string>
   <string name="assets_state_empty_search_description">请尝试手动添加</string>
   <string name="assets_title">资产</string>
-  <string name="sign_message_title">签名消息</string>
   <string name="sign_message_message">消息</string>
   <string name="sign_message_view_full_message">查看完整消息</string>
   <string name="secret_phrase_do_not_share_title">切勿泄露助记词！</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">最低余额</string>
   <string name="info_perpetual_funding_payments_title">资金费用</string>
   <string name="info_perpetual_funding_payments_description">资金费用是交易者之间的定期支付，用于使永续合约价格接近标的资产现货价格。正资金费用表示多头支付空头，负资金费用表示空头支付多头。</string>
-  <string name="info_perpetual_funding_rate_title">资金费率</string>
-  <string name="info_perpetual_funding_rate_description">资金费率决定持有永续仓位的成本。它按小时计算，有助于维持永续合约与标的资产现货价格之间的价格平衡。</string>
   <string name="info_perpetual_liquidation_price_title">强平价格</string>
   <string name="info_perpetual_liquidation_price_description">强平价格是当市场价格达到该水平时，您的仓位将被自动平仓以防止进一步亏损的价格。当市场价触及此价位，仓位被强制平仓，保证金将被扣除。</string>
   <string name="info_perpetual_open_interest_title">未平仓合约</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">我明白 Gem 不是银行或交易所，严禁将其用于非法用途。</string>
   <string name="onboarding_accept_terms_item3_message">我明白如果丢失钱包访问权限，Gem 不承担任何责任，也无法提供帮助。</string>
   <string name="onboarding_accept_terms_continue">我已了解，继续</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">仓位</string>
   <string name="perpetual_size">持仓量</string>
   <string name="perpetual_margin">保证金</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">开仓 %1$s</string>
   <string name="perpetual_close_direction">平仓 %1$s</string>
   <string name="perpetual_leverage">杠杆</string>
-  <string name="perpetual_direction">方向</string>
   <string name="perpetual_auto_close">自动平仓</string>
   <string name="perpetual_auto_close_take_profit">获利</string>
   <string name="perpetual_market_price">市价</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">您最近使用过的资源将显示在此处</string>
   <string name="notifications_inapp_state_empty_title">暂无通知</string>
   <string name="notifications_inapp_state_empty_description">您可以在这里查看通知更新。</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">邀请好友，一起赢取奖励</string>
   <string name="earn_state_empty_title">您的持仓将显示在此处。</string>
   <string name="earn_state_empty_description">存入您的第一笔款项 %1$s</string>
   <string name="contacts_title">联系方式</string>

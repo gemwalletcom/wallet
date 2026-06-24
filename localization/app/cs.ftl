@@ -3,14 +3,12 @@
 common_cancel = Zrušit
 common_done = Hotovo
 common_secret_phrase = Tajná fráze
-common_next = Další
 common_copy = Kopírovat
 common_share = Sdílet
 common_continue = Pokračovat
 common_provider = Poskytovatel
 common_loading = Načítání
 common_address = Adresa
-common_back = Zpět
 common_try_again = Zkuste to znovu
 common_paste = Vložit
 common_delete = Vymazat
@@ -26,7 +24,6 @@ common_phrase = Fráze
 common_manage = Spravovat
 common_type = Typ
 common_no_results_found = Nebyly nalezeny žádné výsledky
-common_yes = Ano
 common_no = Ne
 common_none = Žádná
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Odepnout
 common_skip = Přeskočit
 common_warning = Varování
 common_learn_more = Další informace
-common_short_name = Gem
 common_description = Popis
 common_emoji = Emoji
-common_style = Styl
 common_avatar = Avatar
-common_photo = Fotografie
 common_save = Uložit
-common_edit = Upravit
 common_percentage = Procento
 common_details = Podrobnosti
 common_info = Informace
@@ -152,7 +145,6 @@ transfer_maximum_amount = Maximální částka je %@
 transfer_reserved_fees = Na vašem zůstatku jsme nechali %@ na pokrytí budoucích poplatků za síť.
 transfer_freeze_title = Zmrazit
 transfer_unfreeze_title = Uvolnit
-transfer_sign_transaction_title = Podepsat transakci
 transfer_review_request = Žádost o kontrolu
 transfer_amount = Množství
 transfer_amount_title = Množství
@@ -170,7 +162,6 @@ settings_networks_title = Sítě
 settings_networks_source = Zdroj
 settings_networks_explorer = Průzkumník
 settings_currency = Měna
-settings_rate_app = Ohodnoťte aplikaci
 settings_website = Navštivte webové stránky
 settings_security = Zabezpečení
 settings_enable_value = Povolit %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = V současné době nejsme schopni vypočít
 errors_invalid_asset_address = Neplatná adresa %@
 errors_dust_threshold = Transakce se nezdařila, protože částka je příliš malá na to, aby splnila minimální požadavek sítě %@ (prahová hodnota prachu). Tento limit zajišťuje, že hodnota transakce pokryje poplatky a náklady na zpracování.
 errors_swap_no_quote_available = Není dostupná žádná nabídka.
-errors_swap_not_supported_chain = Nepodporovaný řetězec.
 errors_swap_not_supported_asset = Nepodporované aktivum.
-errors_swap_not_supported_pair = Nepodporovaný pár.
 errors_connections_invalid_send_parameters = Zadané neplatné parametry pro odeslání transakce.
 errors_connections_invalid_sign_parameters = Zadané neplatné parametry pro podepisování.
 errors_connections_no_supported_wallets = Nejsou k dispozici žádné podporované peněženky.
@@ -290,7 +279,6 @@ asset_balances_available = K dispozici
 asset_price = Cena
 asset_market_cap = Tržní kapitalizace
 asset_trading_volume = Objem obchodování (24 hodin)
-asset_market_cap_rank = Pořadí tržní kapitalizace
 asset_total_supply = Celková nabídka
 asset_circulating_supply = Cirkulující zásobování
 asset_balances_reserved = Rezervováno
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Spojení
 wallet_connect_disconnect = Odpojit
 wallet_connect_connect_title = Připojit
 wallet_connect_app = App
-wallet_connect_website = Webové stránky
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Žádná aktivní připojení
 wallet_connect_state_empty_description = Naskenujte nebo vložte kód pro připojení k DApp
-wallet_connect_domain = Doména
 wallet_connect_permissions_title = Oprávnění
 wallet_connect_permissions_view_balance = Zobrazení zůstatku a aktivity
 wallet_connect_permissions_approval_requests = Odeslat žádosti o schválení
@@ -379,8 +365,6 @@ stake_deactivating = Deaktivace
 stake_awaiting_withdrawal = Čeká na stažení
 stake_active_in = Aktivní v
 stake_minimum_amount = Minimální částka
-stake_viagem = Sázka přes Gem Wallet
-stake_no_active_staking = Zatím bez aktivního stakingu.
 stake_state_empty_title = Vaše sázky se zobrazí zde
 stake_state_empty_description = Vsaďte si první %@
 stake_resource = Zdroj
@@ -404,7 +388,6 @@ assets_title = Aktiva
 
 # Sign Message
 
-sign_message_title = Podepsat zprávu
 sign_message_message = Zpráva
 sign_message_view_full_message = Zobrazit celou zprávu
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Nemáte dostatek %@ k dokončení této 
 info_account_minimum_balance_title = Minimální zůstatek
 info_perpetual_funding_payments_title = Financování plateb
 info_perpetual_funding_payments_description = Platby financování jsou pravidelné platby mezi obchodníky, jejichž cílem je udržet stálou smluvní cenu blízkou spotové ceně podkladového aktiva. Pozitivní financování znamená, že dlouhé pozice platí krátké pozice, zatímco negativní financování znamená, že krátké pozice platí dlouhé pozice.
-info_perpetual_funding_rate_title = Financování
-info_perpetual_funding_rate_description = Míra financování určuje náklady na držení trvalé pozice. Počítá se každou hodinu a pomáhá udržovat cenovou rovnováhu mezi věčným kontraktem a spotovou cenou podkladového aktiva.
 info_perpetual_liquidation_price_title = Likvidační cena
 info_perpetual_liquidation_price_description = Likvidační cena je cenová hladina, na které bude vaše pozice automaticky uzavřena, aby se předešlo dalším ztrátám. Když tržní cena dosáhne této úrovně, vaše pozice je zlikvidována a ztrácíte marži.
 info_perpetual_open_interest_title = Otevřený úrok
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Souhlasit a pokračovat
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Zvýšit pozici
 perpetual_open_direction = Otevřít %@
 perpetual_close_direction = Zavřít %@
 perpetual_leverage = Finanční páka
-perpetual_direction = Směr
 perpetual_auto_close = Automatické zavření
 perpetual_auto_close_take_profit = Take profit
 perpetual_market_price = Tržní cena
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Zde se zobrazí položky, které jste 
 
 notifications_inapp_state_empty_title = Zatím žádná oznámení
 notifications_inapp_state_empty_description = Zde se zobrazí aktuální informace o vašich oznámeních
-notifications_inapp_rewards_invite_subtitle = Pozvěte přátele a společně sbírejte odměny
 
 # Earn
 

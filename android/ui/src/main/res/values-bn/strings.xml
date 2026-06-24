@@ -3,14 +3,12 @@
   <string name="common_cancel">বাতিল করুন</string>
   <string name="common_done">সম্পন্ন</string>
   <string name="common_secret_phrase">গোপন বাক্যাংশ</string>
-  <string name="common_next">পরবর্তী</string>
   <string name="common_copy">কপি</string>
   <string name="common_share">শেয়ার করুন</string>
   <string name="common_continue">চালিয়ে যান</string>
   <string name="common_provider">প্রদানকারী</string>
   <string name="common_loading">লোড হচ্ছে</string>
   <string name="common_address">ঠিকানা</string>
-  <string name="common_back">পিছনে</string>
   <string name="common_try_again">আবার চেষ্টা করুন</string>
   <string name="common_paste">পেস্ট করুন</string>
   <string name="common_delete">মুছুন</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">পরিচালনা করুন</string>
   <string name="common_type">ধরন</string>
   <string name="common_no_results_found">কোন ফলাফল পাওয়া যায়নি</string>
-  <string name="common_yes">হ্যাঁ</string>
   <string name="common_no">না</string>
   <string name="common_none">কোনোটি নয়</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">এড়িয়ে যান</string>
   <string name="common_warning">সতর্কতা</string>
   <string name="common_learn_more">আরও জানুন</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">বর্ণনা</string>
   <string name="common_emoji">ইমোজি</string>
-  <string name="common_style">শৈলী</string>
   <string name="common_avatar">অবতার</string>
-  <string name="common_photo">ছবি</string>
   <string name="common_save">সংরক্ষণ করুন</string>
-  <string name="common_edit">সম্পাদনা করুন</string>
   <string name="common_percentage">শতাংশ</string>
   <string name="common_details">বিস্তারিত</string>
   <string name="common_info">তথ্য</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">ভবিষ্যতের নেটওয়ার্ক ফি মেটানোর জন্য আমরা আপনার ব্যালেন্সে %1$s রেখে দিয়েছি।</string>
   <string name="transfer_freeze_title">ফ্রিজ করুন</string>
   <string name="transfer_unfreeze_title">আনফ্রিজ করুন</string>
-  <string name="transfer_sign_transaction_title">লেনদেন স্বাক্ষর করুন</string>
   <string name="transfer_review_request">পর্যালোচনার অনুরোধ</string>
   <string name="transfer_amount">পরিমাণ</string>
   <string name="transfer_amount_title">পরিমাণ</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">উৎস</string>
   <string name="settings_networks_explorer">এক্সপ্লোরার</string>
   <string name="settings_currency">মুদ্রা</string>
-  <string name="settings_rate_app">অ্যাপকে রেট দিন</string>
   <string name="settings_website">ওয়েবসাইট ভিজিট করুন</string>
   <string name="settings_security">নিরাপত্তা</string>
   <string name="settings_enable_value">%1$s সক্ষম করুন</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">অবৈধ %1$s ঠিকানা</string>
   <string name="errors_dust_threshold">লেনদেন ব্যর্থ হয়েছে কারণ পরিমাণটি %1$s নেটওয়ার্কের ন্যূনতম প্রয়োজনীয়তা (ডাস্ট থ্রেশহোল্ড) পূরণ করতে খুব কম। এই সীমা নিশ্চিত করে যে লেনদেনের মূল্য ফি এবং প্রক্রিয়াকরণের খরচ কভার করে।</string>
   <string name="errors_swap_no_quote_available">কোনো কোট উপলব্ধ নেই।</string>
-  <string name="errors_swap_not_supported_chain">সমর্থিত চেন নয়।</string>
   <string name="errors_swap_not_supported_asset">সমর্থিত সম্পদ নয়।</string>
-  <string name="errors_swap_not_supported_pair">সমর্থিত জুটি নয়।</string>
   <string name="errors_connections_invalid_send_parameters">একটি লেনদেন পাঠানোর জন্য অবৈধ প্যারামিটার প্রদান করা হয়েছে৷</string>
   <string name="errors_connections_invalid_sign_parameters">স্বাক্ষর করার জন্য অবৈধ পরামিতি প্রদান করা হয়েছে.</string>
   <string name="errors_connections_no_supported_wallets">কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">দাম</string>
   <string name="asset_market_cap">মার্কেট ক্যাপ</string>
   <string name="asset_trading_volume">ট্রেডিং ভলিউম (24 ঘন্টা)</string>
-  <string name="asset_market_cap_rank">মার্কেট ক্যাপ র‍্যাঙ্ক</string>
   <string name="asset_total_supply">মোট সরবরাহ</string>
   <string name="asset_circulating_supply">প্রচলিত সরবরাহ</string>
   <string name="asset_balances_reserved">সংরক্ষিত</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">সংযোগ বিচ্ছিন্ন করুন</string>
   <string name="wallet_connect_connect_title">সংযোগ করুন</string>
   <string name="wallet_connect_app">অ্যাপ</string>
-  <string name="wallet_connect_website">ওয়েবসাইট</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">কোনো সক্রিয় সংযোগ নেই</string>
   <string name="wallet_connect_state_empty_description">DApp-এর সাথে সংযোগ করতে কোড স্ক্যান বা পেস্ট করুন।</string>
-  <string name="wallet_connect_domain">ডোমেইন</string>
   <string name="wallet_connect_permissions_title">অনুমতি</string>
   <string name="wallet_connect_permissions_view_balance">আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন</string>
   <string name="wallet_connect_permissions_approval_requests">অনুমোদনের অনুরোধ পাঠান</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">প্রত্যাহারের অপেক্ষায়</string>
   <string name="stake_active_in">যখন সক্রিয় হবে</string>
   <string name="stake_minimum_amount">সর্বনিম্ন পরিমাণ</string>
-  <string name="stake_viagem">Gem Wallet-এর মাধ্যমে স্টেক করুন</string>
-  <string name="stake_no_active_staking">এখনও কোনো সক্রিয় স্টেকিং নেই।</string>
   <string name="stake_state_empty_title">আপনার বাজি এখানে প্রদর্শিত হবে।</string>
   <string name="stake_state_empty_description">আপনার প্রথম %1$s স্টেক করুন</string>
   <string name="stake_resource">রিসোর্স</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">স্টেবলকয়েন</string>
   <string name="assets_state_empty_search_description">আপনি এটি ম্যানুয়ালি যোগ করার চেষ্টা করতে পারেন।</string>
   <string name="assets_title">সম্পদ</string>
-  <string name="sign_message_title">সাইন মেসেজ</string>
   <string name="sign_message_message">বার্তা</string>
   <string name="sign_message_view_full_message">সম্পূর্ণ বার্তা দেখুন</string>
   <string name="secret_phrase_do_not_share_title">আপনার গোপন বাক্যাংশ শেয়ার করবেন না!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">ন্যূনতম ব্যালেন্স</string>
   <string name="info_perpetual_funding_payments_title">ফান্ডিং পেমেন্ট</string>
   <string name="info_perpetual_funding_payments_description">ফান্ডিং পেমেন্ট হল ট্রেডারদের মধ্যে পর্যায়ক্রমিক পেমেন্ট যাতে অন্তর্নিহিত সম্পদের স্পট মূল্যের কাছাকাছি স্থায়ী চুক্তির মূল্য থাকে। পজিটিভ ফান্ডিং মানে লং পজিশনগুলো শর্ট পজিশন দেয়, অন্যদিকে নেতিবাচক ফান্ডিং মানে শর্ট পজিশন লং পজিশন দেয়।</string>
-  <string name="info_perpetual_funding_rate_title">ফান্ডিং</string>
-  <string name="info_perpetual_funding_rate_description">তহবিলের হার একটি চিরস্থায়ী অবস্থান ধরে রাখার খরচ নির্ধারণ করে। এটি প্রতি ঘণ্টায় গণনা করা হয় এবং চিরস্থায়ী চুক্তি এবং অন্তর্নিহিত সম্পদের স্পট মূল্যের মধ্যে মূল্যের ভারসাম্য বজায় রাখতে সাহায্য করে।</string>
   <string name="info_perpetual_liquidation_price_title">লিকুইডেশন মূল্য</string>
   <string name="info_perpetual_liquidation_price_description">লিকুইডেশন প্রাইস হল সেই প্রাইস লেভেল যেখানে আপনার পজিশন স্বয়ংক্রিয়ভাবে বন্ধ হয়ে যাবে যাতে আরও ক্ষতি রোধ করা যায়। যখন বাজার মূল্য এই স্তরে পৌঁছায়, তখন আপনার অবস্থান বাতিল হয়ে যায় এবং আপনি আপনার মার্জিন হারাবেন।</string>
   <string name="info_perpetual_open_interest_title">ওপেন ইন্টারেস্ট</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">আমি বুঝতে পারছি যে Gem কোনও ব্যাংক বা এক্সচেঞ্জ নয়, এবং অবৈধ উদ্দেশ্যে এটি ব্যবহার করা কঠোরভাবে নিষিদ্ধ।</string>
   <string name="onboarding_accept_terms_item3_message">আমি বুঝি যে আমি যদি কখনো আমার ওয়ালেটে অ্যাক্সেস হারাই, তবে Gem দায়বদ্ধ নয় এবং কোনোভাবেই সাহায্য করতে পারবে না।</string>
   <string name="onboarding_accept_terms_continue">সম্মত হন এবং চালিয়ে যান</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">পজিশন</string>
   <string name="perpetual_size">আকার</string>
   <string name="perpetual_margin">মার্জিন</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">%1$s খুলুন</string>
   <string name="perpetual_close_direction">%1$s বন্ধ করুন</string>
   <string name="perpetual_leverage">লিভারেজ</string>
-  <string name="perpetual_direction">দিকনির্দেশনা</string>
   <string name="perpetual_auto_close">স্বয়ংক্রিয়ভাবে বন্ধ করুন</string>
   <string name="perpetual_auto_close_take_profit">লাভ নিন</string>
   <string name="perpetual_market_price">বাজার মূল্য</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">আপনার সম্প্রতি ব্যবহার করা সম্পদ এখানে প্রদর্শিত হবে</string>
   <string name="notifications_inapp_state_empty_title">এখনও কোনও বিজ্ঞপ্তি নেই</string>
   <string name="notifications_inapp_state_empty_description">আপনার বিজ্ঞপ্তি সম্পর্কে আপডেটগুলি এখানে দেখতে পাবেন।</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">বন্ধুদের আমন্ত্রণ জানান এবং একসাথে পুরস্কার জিতুন</string>
   <string name="earn_state_empty_title">আপনার অবস্থানগুলি এখানে প্রদর্শিত হবে</string>
   <string name="earn_state_empty_description">আপনার প্রথম আমানত জমা দিন %1$s</string>
   <string name="contacts_title">পরিচিতি</string>

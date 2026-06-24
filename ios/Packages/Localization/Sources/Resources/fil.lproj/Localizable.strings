@@ -1,14 +1,12 @@
 "common.cancel" = "Kanselahin";
 "common.done" = "Tapos na";
 "common.secret_phrase" = "Lihim na Parirala";
-"common.next" = "Susunod";
 "common.copy" = "Kopyahin";
 "common.share" = "Ibahagi";
 "common.continue" = "Magpatuloy";
 "common.provider" = "Provider";
 "common.loading" = "Naglo-load";
 "common.address" = "Address";
-"common.back" = "Bumalik";
 "common.try_again" = "Subukan Muli";
 "common.paste" = "Idikit";
 "common.delete" = "Tanggalin";
@@ -24,7 +22,6 @@
 "common.manage" = "Pamahalaan";
 "common.type" = "Uri";
 "common.no_results_found" = "Walang Nahanap na Resulta";
-"common.yes" = "Oo";
 "common.no" = "Hindi";
 "common.none" = "Wala";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Laktawan";
 "common.warning" = "Babala";
 "common.learn_more" = "Matuto pa";
-"common.short_name" = "Gem";
 "common.description" = "Paglalarawan";
 "common.emoji" = "Emoji";
-"common.style" = "Estilo";
 "common.avatar" = "Avatar";
-"common.photo" = "Larawan";
 "common.save" = "I-save";
-"common.edit" = "I-edit";
 "common.percentage" = "Porsiyento";
 "common.details" = "Mga Detalye";
 "common.info" = "Impormasyon";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Iniwan namin ang %@ sa iyong balanse upang mabayaran ang mga bayarin sa network sa hinaharap.";
 "transfer.freeze.title" = "I-freeze";
 "transfer.unfreeze.title" = "I-unfreeze";
-"transfer.sign_transaction.title" = "Pirmahan ang Transaksyon";
 "transfer.review_request" = "Suriin ang Kahilingan";
 "settings.terms_of_services" = "Mga Tuntunin ng Serbisyo";
 "settings.privacy_policy" = "Patakaran sa Privacy";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Pinagmulan";
 "settings.networks.explorer" = "Explorer";
 "settings.currency" = "Pera";
-"settings.rate_app" = "I-rate ang App";
 "settings.website" = "Bisitahin ang Website";
 "settings.security" = "Seguridad";
 "settings.enable_value" = "Paganahin ang %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Di-wastong %@ address";
 "errors.dust_threshold" = "Nabigo ang transaksyon dahil napakaliit ng halaga upang matugunan ang minimum na kinakailangan ng %@ network (dust threshold). Tinitiyak ng limitasyong ito na saklaw ng halaga ng transaksyon ang mga bayarin at gastos sa pagproseso.";
 "errors.swap.no_quote_available" = "Walang available na quote.";
-"errors.swap.not_supported_chain" = "Hindi suportadong chain.";
 "errors.swap.not_supported_asset" = "Hindi sinusuportahang asset.";
-"errors.swap.not_supported_pair" = "Hindi sinusuportahang pares.";
 "errors.connections.invalid_send_parameters" = "Mga di-wastong parameter na ibinigay para sa pagpapadala ng transaksyon.";
 "errors.connections.invalid_sign_parameters" = "Mga di-wastong parameter na ibinigay para sa pagpirma.";
 "errors.connections.no_supported_wallets" = "Walang available na suportadong wallet.";
@@ -236,7 +225,6 @@
 "asset.price" = "Presyo";
 "asset.market_cap" = "Market Cap";
 "asset.trading_volume" = "Dami ng pangangalakal (24h)";
-"asset.market_cap_rank" = "Ranggo ng Market Cap";
 "asset.total_supply" = "Kabuuang Supply";
 "asset.circulating_supply" = "Umiikot na Supply";
 "asset.balances.reserved" = "Nakareserba";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Idiskonekta";
 "wallet_connect.connect.title" = "Kumonekta";
 "wallet_connect.app" = "App";
-"wallet_connect.website" = "Website";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Walang aktibong koneksyon";
 "wallet_connect.state.empty.description" = "I-scan o i-paste ang code para kumonekta sa DApp";
-"wallet_connect.domain" = "Domain";
 "wallet_connect.permissions.title" = "Mga Pahintulot";
 "wallet_connect.permissions.view_balance" = "Tingnan ang iyong balanse at aktibidad";
 "wallet_connect.permissions.approval_requests" = "Magpadala ng mga kahilingan sa pag-apruba";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Naghihintay ng Withdrawal";
 "stake.active_in" = "Aktibo Sa";
 "stake.minimum_amount" = "Minimum na halaga";
-"stake.viagem" = "Mag-stake sa pamamagitan ng Gem Wallet";
-"stake.no_active_staking" = "Wala pang active staking.";
 "stake.state.empty.title" = "Lalabas dito ang iyong mga stake";
 "stake.state.empty.description" = "Mag-stake ng iyong unang %@";
 "stake.resource" = "mapagkukunan";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Mga Stablecoin";
 "assets.state.empty.search_description" = "Maaari mong subukang idagdag ito nang manu-mano";
 "assets.title" = "Mga asset";
-"sign_message.title" = "Lagda ng Mensahe";
 "sign_message.message" = "Mensahe";
 "sign_message.view_full_message" = "Tingnan ang Buong Mensahe";
 "secret_phrase.do_not_share.title" = "Huwag ibahagi ang iyong Lihim na Parirala!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Minimum na balanse";
 "info.perpetual.funding_payments.title" = "Mga Pagbabayad sa Pagpopondo";
 "info.perpetual.funding_payments.description" = "Ang mga pagbabayad sa pagpopondo ay mga pana-panahong pagbabayad sa pagitan ng mga mangangalakal upang panatilihing malapit ang panghabang-buhay na presyo ng kontrata sa presyo ng pinagbabatayan ng asset. Ang ibig sabihin ng positibong pagpopondo ay ang mga mahabang posisyon ay nagbabayad ng mga maikling posisyon, habang ang negatibong pagpopondo ay nangangahulugan na ang mga maikling posisyon ay nagbabayad ng mga mahabang posisyon.";
-"info.perpetual.funding_rate.title" = "Pagpopondo";
-"info.perpetual.funding_rate.description" = "Tinutukoy ng rate ng pagpopondo ang halaga ng paghawak ng isang walang hanggang posisyon. Ito ay kinakalkula bawat oras at tumutulong na mapanatili ang ekwilibriyo ng presyo sa pagitan ng panghabang-buhay na kontrata at ang pinagbabatayan na presyo ng lugar ng asset.";
 "info.perpetual.liquidation_price.title" = "Presyo ng Liquidation";
 "info.perpetual.liquidation_price.description" = "Ang presyo ng pagpuksa ay ang antas ng presyo kung saan awtomatikong isasara ang iyong posisyon upang maiwasan ang karagdagang pagkalugi. Kapag ang presyo sa merkado ay umabot sa antas na ito, ililikida ang iyong posisyon at mawawala ang iyong margin.";
 "info.perpetual.open_interest.title" = "Bukas na Interes";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Naiintindihan ko na ang Gem ay hindi isang bangko o exchange, at ang paggamit nito para sa mga iligal na layunin ay mahigpit na ipinagbabawal.";
 "onboarding.accept_terms.item3.message" = "Naiintindihan ko na kung sakaling mawalan ako ng access sa aking mga wallet, walang pananagutan si Gem at hindi makakatulong sa anumang paraan.";
 "onboarding.accept_terms.continue" = "Sumang-ayon at Magpatuloy";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Mga posisyon";
 "perpetual.size" = "Sukat";
 "perpetual.margin" = "Margin";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Buksan ang %@";
 "perpetual.close_direction" = "Isara ang %@";
 "perpetual.leverage" = "Leverage";
-"perpetual.direction" = "Direksyon";
 "perpetual.auto_close" = "Auto Close";
 "perpetual.auto_close.take_profit" = "Take Profit";
 "perpetual.market_price" = "Presyo sa Pamilihan";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Lalabas dito ang mga asset na ginamit mo kamakailan";
 "notifications.inapp.state.empty.title" = "Wala pang mga abiso";
 "notifications.inapp.state.empty.description" = "Makakakita ka ng mga update tungkol sa iyong mga notification dito";
-"notifications.inapp.rewards.invite.subtitle" = "Mag-imbita ng mga kaibigan at kumita ng mga gantimpala nang sama-sama";
 "earn.state.empty.title" = "Lalabas dito ang iyong mga posisyon";
 "earn.state.empty.description" = "Ideposito ang iyong unang %@";
 "contacts.title" = "Mga Kontak";

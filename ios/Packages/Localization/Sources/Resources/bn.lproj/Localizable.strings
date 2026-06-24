@@ -1,14 +1,12 @@
 "common.cancel" = "বাতিল করুন";
 "common.done" = "সম্পন্ন";
 "common.secret_phrase" = "গোপন বাক্যাংশ";
-"common.next" = "পরবর্তী";
 "common.copy" = "কপি";
 "common.share" = "শেয়ার করুন";
 "common.continue" = "চালিয়ে যান";
 "common.provider" = "প্রদানকারী";
 "common.loading" = "লোড হচ্ছে";
 "common.address" = "ঠিকানা";
-"common.back" = "পিছনে";
 "common.try_again" = "আবার চেষ্টা করুন";
 "common.paste" = "পেস্ট করুন";
 "common.delete" = "মুছুন";
@@ -24,7 +22,6 @@
 "common.manage" = "পরিচালনা করুন";
 "common.type" = "ধরন";
 "common.no_results_found" = "কোন ফলাফল পাওয়া যায়নি";
-"common.yes" = "হ্যাঁ";
 "common.no" = "না";
 "common.none" = "কোনোটি নয়";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "এড়িয়ে যান";
 "common.warning" = "সতর্কতা";
 "common.learn_more" = "আরও জানুন";
-"common.short_name" = "Gem";
 "common.description" = "বর্ণনা";
 "common.emoji" = "ইমোজি";
-"common.style" = "শৈলী";
 "common.avatar" = "অবতার";
-"common.photo" = "ছবি";
 "common.save" = "সংরক্ষণ করুন";
-"common.edit" = "সম্পাদনা করুন";
 "common.percentage" = "শতাংশ";
 "common.details" = "বিস্তারিত";
 "common.info" = "তথ্য";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "ভবিষ্যতের নেটওয়ার্ক ফি মেটানোর জন্য আমরা আপনার ব্যালেন্সে %@ রেখে দিয়েছি।";
 "transfer.freeze.title" = "ফ্রিজ করুন";
 "transfer.unfreeze.title" = "আনফ্রিজ করুন";
-"transfer.sign_transaction.title" = "লেনদেন স্বাক্ষর করুন";
 "transfer.review_request" = "পর্যালোচনার অনুরোধ";
 "settings.terms_of_services" = "পরিষেবার শর্তাবলী";
 "settings.privacy_policy" = "গোপনীয়তা নীতি";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "উৎস";
 "settings.networks.explorer" = "এক্সপ্লোরার";
 "settings.currency" = "মুদ্রা";
-"settings.rate_app" = "অ্যাপকে রেট দিন";
 "settings.website" = "ওয়েবসাইট ভিজিট করুন";
 "settings.security" = "নিরাপত্তা";
 "settings.enable_value" = "%@ সক্ষম করুন";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "অবৈধ %@ ঠিকানা";
 "errors.dust_threshold" = "লেনদেন ব্যর্থ হয়েছে কারণ পরিমাণটি %@ নেটওয়ার্কের ন্যূনতম প্রয়োজনীয়তা (ডাস্ট থ্রেশহোল্ড) পূরণ করতে খুব কম। এই সীমা নিশ্চিত করে যে লেনদেনের মূল্য ফি এবং প্রক্রিয়াকরণের খরচ কভার করে।";
 "errors.swap.no_quote_available" = "কোনো কোট উপলব্ধ নেই।";
-"errors.swap.not_supported_chain" = "সমর্থিত চেন নয়।";
 "errors.swap.not_supported_asset" = "সমর্থিত সম্পদ নয়।";
-"errors.swap.not_supported_pair" = "সমর্থিত জুটি নয়।";
 "errors.connections.invalid_send_parameters" = "একটি লেনদেন পাঠানোর জন্য অবৈধ প্যারামিটার প্রদান করা হয়েছে৷";
 "errors.connections.invalid_sign_parameters" = "স্বাক্ষর করার জন্য অবৈধ পরামিতি প্রদান করা হয়েছে.";
 "errors.connections.no_supported_wallets" = "কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।";
@@ -236,7 +225,6 @@
 "asset.price" = "দাম";
 "asset.market_cap" = "মার্কেট ক্যাপ";
 "asset.trading_volume" = "ট্রেডিং ভলিউম (24 ঘন্টা)";
-"asset.market_cap_rank" = "মার্কেট ক্যাপ র‍্যাঙ্ক";
 "asset.total_supply" = "মোট সরবরাহ";
 "asset.circulating_supply" = "প্রচলিত সরবরাহ";
 "asset.balances.reserved" = "সংরক্ষিত";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "সংযোগ বিচ্ছিন্ন করুন";
 "wallet_connect.connect.title" = "সংযোগ করুন";
 "wallet_connect.app" = "অ্যাপ";
-"wallet_connect.website" = "ওয়েবসাইট";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "কোনো সক্রিয় সংযোগ নেই";
 "wallet_connect.state.empty.description" = "DApp-এর সাথে সংযোগ করতে কোড স্ক্যান বা পেস্ট করুন।";
-"wallet_connect.domain" = "ডোমেইন";
 "wallet_connect.permissions.title" = "অনুমতি";
 "wallet_connect.permissions.view_balance" = "আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন";
 "wallet_connect.permissions.approval_requests" = "অনুমোদনের অনুরোধ পাঠান";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "প্রত্যাহারের অপেক্ষায়";
 "stake.active_in" = "যখন সক্রিয় হবে";
 "stake.minimum_amount" = "সর্বনিম্ন পরিমাণ";
-"stake.viagem" = "Gem Wallet-এর মাধ্যমে স্টেক করুন";
-"stake.no_active_staking" = "এখনও কোনো সক্রিয় স্টেকিং নেই।";
 "stake.state.empty.title" = "আপনার বাজি এখানে প্রদর্শিত হবে।";
 "stake.state.empty.description" = "আপনার প্রথম %@ স্টেক করুন";
 "stake.resource" = "রিসোর্স";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "স্টেবলকয়েন";
 "assets.state.empty.search_description" = "আপনি এটি ম্যানুয়ালি যোগ করার চেষ্টা করতে পারেন।";
 "assets.title" = "সম্পদ";
-"sign_message.title" = "সাইন মেসেজ";
 "sign_message.message" = "বার্তা";
 "sign_message.view_full_message" = "সম্পূর্ণ বার্তা দেখুন";
 "secret_phrase.do_not_share.title" = "আপনার গোপন বাক্যাংশ শেয়ার করবেন না!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "ন্যূনতম ব্যালেন্স";
 "info.perpetual.funding_payments.title" = "ফান্ডিং পেমেন্ট";
 "info.perpetual.funding_payments.description" = "ফান্ডিং পেমেন্ট হল ট্রেডারদের মধ্যে পর্যায়ক্রমিক পেমেন্ট যাতে অন্তর্নিহিত সম্পদের স্পট মূল্যের কাছাকাছি স্থায়ী চুক্তির মূল্য থাকে। পজিটিভ ফান্ডিং মানে লং পজিশনগুলো শর্ট পজিশন দেয়, অন্যদিকে নেতিবাচক ফান্ডিং মানে শর্ট পজিশন লং পজিশন দেয়।";
-"info.perpetual.funding_rate.title" = "ফান্ডিং";
-"info.perpetual.funding_rate.description" = "তহবিলের হার একটি চিরস্থায়ী অবস্থান ধরে রাখার খরচ নির্ধারণ করে। এটি প্রতি ঘণ্টায় গণনা করা হয় এবং চিরস্থায়ী চুক্তি এবং অন্তর্নিহিত সম্পদের স্পট মূল্যের মধ্যে মূল্যের ভারসাম্য বজায় রাখতে সাহায্য করে।";
 "info.perpetual.liquidation_price.title" = "লিকুইডেশন মূল্য";
 "info.perpetual.liquidation_price.description" = "লিকুইডেশন প্রাইস হল সেই প্রাইস লেভেল যেখানে আপনার পজিশন স্বয়ংক্রিয়ভাবে বন্ধ হয়ে যাবে যাতে আরও ক্ষতি রোধ করা যায়। যখন বাজার মূল্য এই স্তরে পৌঁছায়, তখন আপনার অবস্থান বাতিল হয়ে যায় এবং আপনি আপনার মার্জিন হারাবেন।";
 "info.perpetual.open_interest.title" = "ওপেন ইন্টারেস্ট";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "আমি বুঝতে পারছি যে Gem কোনও ব্যাংক বা এক্সচেঞ্জ নয়, এবং অবৈধ উদ্দেশ্যে এটি ব্যবহার করা কঠোরভাবে নিষিদ্ধ।";
 "onboarding.accept_terms.item3.message" = "আমি বুঝি যে আমি যদি কখনো আমার ওয়ালেটে অ্যাক্সেস হারাই, তবে Gem দায়বদ্ধ নয় এবং কোনোভাবেই সাহায্য করতে পারবে না।";
 "onboarding.accept_terms.continue" = "সম্মত হন এবং চালিয়ে যান";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "পজিশন";
 "perpetual.size" = "আকার";
 "perpetual.margin" = "মার্জিন";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "%@ খুলুন";
 "perpetual.close_direction" = "%@ বন্ধ করুন";
 "perpetual.leverage" = "লিভারেজ";
-"perpetual.direction" = "দিকনির্দেশনা";
 "perpetual.auto_close" = "স্বয়ংক্রিয়ভাবে বন্ধ করুন";
 "perpetual.auto_close.take_profit" = "লাভ নিন";
 "perpetual.market_price" = "বাজার মূল্য";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "আপনার সম্প্রতি ব্যবহার করা সম্পদ এখানে প্রদর্শিত হবে";
 "notifications.inapp.state.empty.title" = "এখনও কোনও বিজ্ঞপ্তি নেই";
 "notifications.inapp.state.empty.description" = "আপনার বিজ্ঞপ্তি সম্পর্কে আপডেটগুলি এখানে দেখতে পাবেন।";
-"notifications.inapp.rewards.invite.subtitle" = "বন্ধুদের আমন্ত্রণ জানান এবং একসাথে পুরস্কার জিতুন";
 "earn.state.empty.title" = "আপনার অবস্থানগুলি এখানে প্রদর্শিত হবে";
 "earn.state.empty.description" = "আপনার প্রথম আমানত জমা দিন %@";
 "contacts.title" = "পরিচিতি";

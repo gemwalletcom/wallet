@@ -3,14 +3,12 @@
   <string name="common_cancel">Soke</string>
   <string name="common_done">Anyi</string>
   <string name="common_secret_phrase">Kalmomin Sirri</string>
-  <string name="common_next">Na gaba</string>
   <string name="common_copy">Kwafi</string>
   <string name="common_share">Raba</string>
   <string name="common_continue">Ci gaba</string>
   <string name="common_provider">Mai bayarwa</string>
   <string name="common_loading">Ana lodawa</string>
   <string name="common_address">Adireshi</string>
-  <string name="common_back">Baya</string>
   <string name="common_try_again">Gwada kuma</string>
   <string name="common_paste">Manna</string>
   <string name="common_delete">Share</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Sarrafa</string>
   <string name="common_type">Nau\'in</string>
   <string name="common_no_results_found">Ba a Samu Sakamako ba</string>
-  <string name="common_yes">Ee</string>
   <string name="common_no">A\'a</string>
   <string name="common_none">Babu</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Tsallake</string>
   <string name="common_warning">Gargadi</string>
   <string name="common_learn_more">Ƙara Koyi</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Bayani</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Salo</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Hoto</string>
   <string name="common_save">Ajiye</string>
-  <string name="common_edit">Gyara</string>
   <string name="common_percentage">Kashi</string>
   <string name="common_details">Cikakkun bayanai</string>
   <string name="common_info">Bayani</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Mun bar %1$s cikin ma\'auni don biyan kuɗin hanyar sadarwa na gaba.</string>
   <string name="transfer_freeze_title">Daskare</string>
   <string name="transfer_unfreeze_title">Cire daskarewa</string>
-  <string name="transfer_sign_transaction_title">Sa hannu kan Ma\'amala</string>
   <string name="transfer_review_request">Buƙatar Bita</string>
   <string name="transfer_amount">Adadin</string>
   <string name="transfer_amount_title">Adadin</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Source</string>
   <string name="settings_networks_explorer">Explorer</string>
   <string name="settings_currency">Kudi</string>
-  <string name="settings_rate_app">Rate App</string>
   <string name="settings_website">Ziyarci Yanar Gizo</string>
   <string name="settings_security">Tsaro</string>
   <string name="settings_enable_value">Kunna %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Adireshin %1$s mara inganci</string>
   <string name="errors_dust_threshold">Kasuwancin ya gaza saboda adadin ya yi ƙanƙanta da zai iya biyan mafi ƙarancin buƙatun hanyar sadarwa na %1$s (ƙafar ƙura). Wannan iyaka yana tabbatar da ƙimar ciniki ta rufe kudade da farashin sarrafawa.</string>
   <string name="errors_swap_no_quote_available">Babu farashi a halin yanzu.</string>
-  <string name="errors_swap_not_supported_chain">Sarkar da ba ta da goyan baya.</string>
   <string name="errors_swap_not_supported_asset">Ba a goyan bayan kadari.</string>
-  <string name="errors_swap_not_supported_pair">Ba a goyan bayan nau\'i biyu ba.</string>
   <string name="errors_connections_invalid_send_parameters">An samar da sigogi marasa inganci don aika ma\'amala.</string>
   <string name="errors_connections_invalid_sign_parameters">An samar da sigogi marasa inganci don sa hannu.</string>
   <string name="errors_connections_no_supported_wallets">Babu goyan bayan walat.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Farashin</string>
   <string name="asset_market_cap">Ƙimar Kasuwa</string>
   <string name="asset_trading_volume">Girman Kasuwanci (24h)</string>
-  <string name="asset_market_cap_rank">Matsayin Kasuwa</string>
   <string name="asset_total_supply">Jimlar Wadata</string>
   <string name="asset_circulating_supply">Wadatar Dawowa</string>
   <string name="asset_balances_reserved">Ajiye</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Cire haɗin</string>
   <string name="wallet_connect_connect_title">Haɗa</string>
   <string name="wallet_connect_app">App</string>
-  <string name="wallet_connect_website">Yanar Gizo</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Babu haɗin kai mai aiki</string>
   <string name="wallet_connect_state_empty_description">Duba ko liƙa lamba don haɗi zuwa DApp</string>
-  <string name="wallet_connect_domain">Yankin</string>
   <string name="wallet_connect_permissions_title">Izini</string>
   <string name="wallet_connect_permissions_view_balance">Duba ma\'aunin ku da ayyukan ku</string>
   <string name="wallet_connect_permissions_approval_requests">Aika buƙatun amincewa</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Ana jiran Janyewa</string>
   <string name="stake_active_in">Active In</string>
   <string name="stake_minimum_amount">Mafi ƙarancin adadin</string>
-  <string name="stake_viagem">Saka hannun jari ta Gem Wallet</string>
-  <string name="stake_no_active_staking">Har yanzu babu wani saka hannun jari.</string>
   <string name="stake_state_empty_title">Hannun jarinku zai bayyana a nan</string>
   <string name="stake_state_empty_description">Bada %1$s na farko</string>
   <string name="stake_resource">Albarkatu</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stablecoins</string>
   <string name="assets_state_empty_search_description">Kuna iya ƙoƙarin ƙara shi da hannu</string>
   <string name="assets_title">Kadari</string>
-  <string name="sign_message_title">Saƙon Sa hannu</string>
   <string name="sign_message_message">Sako</string>
   <string name="sign_message_view_full_message">Duba Cikakken Saƙo</string>
   <string name="secret_phrase_do_not_share_title">Kada ku raba Kalmar sirrinku!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Mafi ƙarancin ma\'auni</string>
   <string name="info_perpetual_funding_payments_title">Biyan Kuɗi</string>
   <string name="info_perpetual_funding_payments_description">Biyan kuɗi kuɗi ne na lokaci-lokaci tsakanin ƴan kasuwa don kiyaye farashin kwangila na dindindin kusa da ainihin ƙimar kadara. Kudi mai kyau yana nufin matsayi mai tsawo yana biyan gajerun matsayi, yayin da kudade mara kyau yana nufin gajeren matsayi yana biyan matsayi mai tsawo.</string>
-  <string name="info_perpetual_funding_rate_title">Tallafawa</string>
-  <string name="info_perpetual_funding_rate_description">Adadin kuɗi yana ƙayyade farashin riƙe matsayi na har abada. Ana ƙididdige shi kowane sa\'o\'i kuma yana taimakawa kiyaye daidaiton farashi tsakanin kwangilar dindindin da farashin tabo na kadari.</string>
   <string name="info_perpetual_liquidation_price_title">Farashin Liquidation</string>
   <string name="info_perpetual_liquidation_price_description">Farashin ruwa shine matakin farashin wanda za\'a rufe matsayin ku ta atomatik don hana ƙarin asara. Lokacin da farashin kasuwa ya kai wannan matakin, ana share matsayin ku kuma kuna rasa margin ɗin ku.</string>
   <string name="info_perpetual_open_interest_title">Buɗe Sha\'awa</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Na fahimci cewa Gem ba banki ba ne ko musanya, kuma an haramta amfani da shi don dalilai na doka.</string>
   <string name="onboarding_accept_terms_item3_message">Na fahimci cewa idan na rasa damar shiga wallet dina, Gem ba abin dogaro bane kuma ba zai iya taimakawa ta kowace hanya ba.</string>
   <string name="onboarding_accept_terms_continue">Yarda da Ci gaba</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Matsayi</string>
   <string name="perpetual_size">Girman</string>
   <string name="perpetual_margin">Margin</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Bude %1$s</string>
   <string name="perpetual_close_direction">Rufe %1$s</string>
   <string name="perpetual_leverage">Amfani</string>
-  <string name="perpetual_direction">Hanyar</string>
   <string name="perpetual_auto_close">Rufe atomatik</string>
   <string name="perpetual_auto_close_take_profit">Ci riba</string>
   <string name="perpetual_market_price">Farashin Kasuwa</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Kadarorin da kuka yi amfani da su kwanan nan za su bayyana a nan</string>
   <string name="notifications_inapp_state_empty_title">Babu sanarwa tukuna</string>
   <string name="notifications_inapp_state_empty_description">Za ku ga sabbin bayanai game da sanarwarku a nan</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Gayyaci abokai kuma ku sami lada tare</string>
   <string name="earn_state_empty_title">Matsayinka zai bayyana a nan</string>
   <string name="earn_state_empty_description">Ajiye kuɗin farko %1$s</string>
   <string name="contacts_title">Lambobin Sadarwa</string>
