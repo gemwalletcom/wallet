@@ -12,7 +12,7 @@ public enum GemAPI: TargetType {
     case getAsset(AssetId)
     case getAssets([AssetId], currency: String?)
     case getSearchAssets(query: String, chains: [Chain], tags: [AssetTag])
-    case getSearch(query: String, chains: [Chain], tags: [AssetTag])
+    case getSearch(query: String, chains: [Chain], tags: [String])
     case markets
 
     public var baseUrl: URL {
@@ -77,12 +77,17 @@ public enum GemAPI: TargetType {
             ])
         case let .getPrices(request):
             .encodable(request)
-        case let .getSearchAssets(query, chains, tags),
-             let .getSearch(query, chains, tags):
+        case let .getSearchAssets(query, chains, tags):
             .params([
                 "query": query,
                 "chains": chains.map(\.rawValue).joined(separator: ","),
                 "tags": tags.map(\.rawValue).joined(separator: ","),
+            ])
+        case let .getSearch(query, chains, tags):
+            .params([
+                "query": query,
+                "chains": chains.map(\.rawValue).joined(separator: ","),
+                "tags": tags.joined(separator: ","),
             ])
         }
     }

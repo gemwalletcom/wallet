@@ -113,7 +113,7 @@ public protocol GemAPIRewardsService: Sendable {
 }
 
 public protocol GemAPISearchService: Sendable {
-    func search(query: String, chains: [Chain], tags: [AssetTag]) async throws -> SearchResponse
+    func search(query: String, chains: [Chain], tags: [String]) async throws -> SearchResponse
 }
 
 public protocol GemAPIPortfolioService: Sendable {
@@ -381,7 +381,7 @@ extension GemAPIService: GemAPIRewardsService {
 }
 
 extension GemAPIService: GemAPISearchService {
-    public func search(query: String, chains: [Chain], tags: [AssetTag]) async throws -> SearchResponse {
+    public func search(query: String, chains: [Chain], tags: [String]) async throws -> SearchResponse {
         try await provider
             .request(.getSearch(query: query, chains: chains, tags: tags))
             .mapResponse(as: SearchResponse.self)
