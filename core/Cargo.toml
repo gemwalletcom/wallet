@@ -92,7 +92,7 @@ chrono = { version = "0.4.45", features = ["serde"] }
 
 # crypto
 base64 = { version = "0.22.1" }
-bech32 = { version = "0.11.1" }
+bech32 = { version = "0.12.0" }
 bitcoin = { version = "0.32.100" }
 bitcoincash-addr = { version = "0.5.2" }
 blake2b_simd = { version = "1.0.4" }
