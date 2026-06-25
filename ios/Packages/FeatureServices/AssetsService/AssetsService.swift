@@ -96,11 +96,7 @@ public final class AssetsService: Sendable {
     }
 
     public func addBalanceIfMissing(walletId: WalletId, assetId: AssetId) throws {
-        let exist = try balanceStore.isBalanceExist(walletId: walletId, assetId: assetId)
-        if !exist {
-            let balance = AddBalance(assetId: assetId, isEnabled: false)
-            try balanceStore.addBalance([balance], for: walletId)
-        }
+        try balanceStore.addBalance(assetIds: [assetId], isEnabled: false, for: walletId)
     }
 
     public func updateEnabled(walletId: WalletId, assetIds: [AssetId], enabled: Bool) throws {
