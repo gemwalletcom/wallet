@@ -1,6 +1,6 @@
 use crate::{DatabaseError, DieselResultExt};
 use chrono::Utc;
-use primitives::{AssetId, AssetIdVecExt, Price, PriceId, PriceProvider};
+use primitives::{AssetId, Price, PriceId, PriceProvider};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
@@ -27,8 +27,7 @@ pub trait PricesRepository {
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceRow>, DatabaseError>;
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAssetRow>, DatabaseError>;
     fn delete_prices(&mut self, ids: Vec<String>) -> Result<usize, DatabaseError>;
-    fn get_assets_with_prices_by_filter(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<PriceAssetDataRow>, DatabaseError>;
-    fn get_assets_with_prices(&mut self, asset_ids: Vec<AssetId>, max_age: Duration) -> Result<Vec<PriceAssetDataRow>, DatabaseError>;
+    fn get_assets_with_prices(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<PriceAssetDataRow>, DatabaseError>;
     fn update_prices(&mut self, price_ids: Vec<String>, updates: Vec<PriceUpdate>) -> Result<usize, DatabaseError>;
     fn update_extremes_for_price(&mut self, price_id: &str) -> Result<usize, DatabaseError>;
 }
@@ -112,22 +111,6 @@ impl PricesRepository for DatabaseClient {
         Ok(PricesStore::delete_prices(self, ids)?)
     }
 
-    fn get_assets_with_prices_by_filter(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<PriceAssetDataRow>, DatabaseError> {
-        let since = filters.iter().map(|AssetsWithPricesFilter::UpdatedSince(value)| *value).next();
-        let asset_ids: Vec<String> = match since {
-            Some(value) => {
-                let mut asset_ids = AssetsStore::get_asset_ids_updated_since(self, value)?;
-                asset_ids.extend(PricesStore::get_asset_ids_updated_since(self, value)?);
-                asset_ids.sort();
-                asset_ids.dedup();
-                asset_ids
-            }
-            None => AssetsStore::get_all_asset_ids(self)?,
-        };
-        let asset_ids = asset_ids.into_iter().filter_map(|id| AssetId::new(&id)).collect();
-        self.get_assets_with_prices(asset_ids, max_age)
-    }
-
     fn update_prices(&mut self, price_ids: Vec<String>, updates: Vec<PriceUpdate>) -> Result<usize, DatabaseError> {
         if updates.is_empty() {
             return Ok(0);
@@ -186,13 +169,40 @@ impl PricesRepository for DatabaseClient {
         Ok(mappings.into_iter().map(|m| m.asset_id.0).collect::<HashSet<_>>().into_iter().collect())
     }
 
-    fn get_assets_with_prices(&mut self, asset_ids: Vec<AssetId>, max_age: Duration) -> Result<Vec<PriceAssetDataRow>, DatabaseError> {
+    fn get_assets_with_prices(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<PriceAssetDataRow>, DatabaseError> {
+        let mut ids = None;
+        let mut since = None;
+        for filter in filters {
+            match filter {
+                AssetsWithPricesFilter::Ids(values) => ids = Some(values),
+                AssetsWithPricesFilter::UpdatedSince(value) => since = Some(value),
+            }
+        }
+
+        let asset_ids = match since {
+            Some(value) => {
+                let mut asset_ids = AssetsStore::get_asset_ids_updated_since(self, value)?;
+                asset_ids.extend(PricesStore::get_asset_ids_updated_since(self, value)?);
+                asset_ids.sort();
+                asset_ids.dedup();
+                if let Some(ids) = ids {
+                    let ids = ids.into_iter().collect::<HashSet<_>>();
+                    asset_ids.retain(|id| ids.contains(id));
+                }
+                asset_ids
+            }
+            None => match ids {
+                Some(ids) => ids,
+                None => AssetsStore::get_all_asset_ids(self)?,
+            },
+        };
+
         if asset_ids.is_empty() {
             return Ok(vec![]);
         }
 
         let providers = PricesProvidersStore::get_prices_providers(self)?;
-        let assets = AssetsStore::get_assets(self, asset_ids.ids())?;
+        let assets = AssetsStore::get_assets(self, asset_ids)?;
         let mut prices_by_asset: HashMap<String, Vec<PriceRow>> = PricesStore::get_prices_for_asset_ids(self, &assets.iter().map(|a| a.id.clone()).collect::<Vec<_>>())?
             .into_iter()
             .fold(HashMap::new(), |mut acc, (asset_id, row)| {

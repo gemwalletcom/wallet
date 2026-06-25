@@ -6,14 +6,15 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
-import com.reown.walletkit.client.Wallet
-import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionSession
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.wallet.core.primitives.SimulationResult
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
 import javax.inject.Inject
@@ -53,8 +53,8 @@ class WCRequestViewModel @Inject constructor(
     val sceneState = state.map { it.toSceneState() }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
 
     fun onRequest(
-        sessionRequest: Wallet.Model.SessionRequest,
-        verifyContext: Wallet.Model.VerifyContext,
+        sessionRequest: WalletConnectSessionRequest,
+        verifyContext: WalletConnectVerifyContext,
         onNotify: (BridgeRequestError) -> Unit
     ) {
         requestJob?.cancel()
@@ -125,7 +125,7 @@ class WCRequestViewModel @Inject constructor(
 
     private fun handleChainOperation(
         action: WalletConnectAction.ChainOperation,
-        sessionRequest: Wallet.Model.SessionRequest,
+        sessionRequest: WalletConnectSessionRequest,
     ) {
         when (action.operation) {
             uniffi.gemstone.WalletConnectChainOperation.AddChain,
@@ -146,7 +146,7 @@ class WCRequestViewModel @Inject constructor(
 
     private suspend fun buildRequest(
         action: WalletConnectAction,
-        sessionRequest: Wallet.Model.SessionRequest,
+        sessionRequest: WalletConnectSessionRequest,
         account: Account,
         appMetadata: WalletConnectionSessionAppMetadata,
         chain: Chain,
@@ -193,7 +193,7 @@ class WCRequestViewModel @Inject constructor(
         is WalletConnectAction.Unsupported -> throw BridgeRequestError.MethodUnsupported
     }
 
-    private fun respondWithNull(request: Wallet.Model.SessionRequest) {
+    private fun respondWithNull(request: WalletConnectSessionRequest) {
         response(request.topic, request.request.id, "null")
     }
 
@@ -238,28 +238,22 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun response(topic: String, id: Long, payload: String) {
-        WalletKit.respondSessionRequest(
-            params = Wallet.Params.SessionRequestResponse(
-                sessionTopic = topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(id, payload)
-            ),
+        bridgeRepository.respondSessionRequest(
+            topic = topic,
+            id = id,
+            response = WalletConnectJsonRpcResponse.Result(payload),
             onSuccess = { state.update { it.copy(canceled = true) } },
-            onError = { error ->
-                state.update { it.copy(responseState = RequestResponseState.Idle, error = error.throwable.message ?: "Request failed") }
-            }
+            onError = { error -> state.update { it.copy(responseState = RequestResponseState.Idle, error = error.ifBlank { "Request failed" }) } },
         )
     }
 
     private fun respondError(topic: String, id: Long, code: Int, message: String) {
-        WalletKit.respondSessionRequest(
-            params = Wallet.Params.SessionRequestResponse(
-                sessionTopic = topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(id, code, message)
-            ),
+        bridgeRepository.respondSessionRequest(
+            topic = topic,
+            id = id,
+            response = WalletConnectJsonRpcResponse.Error(code, message),
             onSuccess = { state.update { it.copy(canceled = true) } },
-            onError = { error ->
-                state.update { it.copy(error = error.throwable.message ?: "Request failed") }
-            }
+            onError = { error -> state.update { it.copy(error = error.ifBlank { "Request failed" }) } },
         )
     }
 
@@ -273,7 +267,7 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun handleRequestFailure(
-        sessionRequest: Wallet.Model.SessionRequest,
+        sessionRequest: WalletConnectSessionRequest,
         error: BridgeRequestError,
         onNotify: (BridgeRequestError) -> Unit
     ) {
@@ -283,22 +277,16 @@ class WCRequestViewModel @Inject constructor(
         rejectRequest(sessionRequest)
     }
 
-    private fun rejectRequest(sessionRequest: Wallet.Model.SessionRequest) {
-        val result = Wallet.Params.SessionRequestResponse(
-            sessionTopic = sessionRequest.topic,
-            jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                id = sessionRequest.request.id,
+    private fun rejectRequest(sessionRequest: WalletConnectSessionRequest) {
+        bridgeRepository.respondSessionRequest(
+            topic = sessionRequest.topic,
+            id = sessionRequest.request.id,
+            response = WalletConnectJsonRpcResponse.Error(
                 code = 4001,
-                message = "User rejected the request"
-            )
-        )
-
-        WalletKit.respondSessionRequest(
-            result,
+                message = "User rejected the request",
+            ),
             onSuccess = { state.update { it.copy(canceled = true) } },
-            onError = { error ->
-                state.update { it.copy(error = error.throwable.message ?: "Request failed") }
-            }
+            onError = { error -> state.update { it.copy(error = error.ifBlank { "Request failed" }) } },
         )
     }
 
@@ -316,7 +304,7 @@ class WCRequestViewModel @Inject constructor(
 }
 
 private data class RequestViewModelState(
-    val sessionRequest: Wallet.Model.SessionRequest? = null,
+    val sessionRequest: WalletConnectSessionRequest? = null,
     val error: String? = null,
     val canceled: Boolean = false,
     val wallet: com.wallet.core.primitives.Wallet? = null,

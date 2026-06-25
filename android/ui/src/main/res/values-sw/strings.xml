@@ -3,14 +3,12 @@
   <string name="common_cancel">Ghairi</string>
   <string name="common_done">Imekamilika</string>
   <string name="common_secret_phrase">Kifungu cha Siri</string>
-  <string name="common_next">Inayofuata</string>
   <string name="common_copy">Nakili</string>
   <string name="common_share">Shiriki</string>
   <string name="common_continue">Endelea</string>
   <string name="common_provider">Mtoa huduma</string>
   <string name="common_loading">Inapakia</string>
   <string name="common_address">Anwani</string>
-  <string name="common_back">Nyuma</string>
   <string name="common_try_again">Jaribu Tena</string>
   <string name="common_paste">Bandika</string>
   <string name="common_delete">Futa</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Dhibiti</string>
   <string name="common_type">Aina</string>
   <string name="common_no_results_found">Hakuna Matokeo Yaliyopatikana</string>
-  <string name="common_yes">Ndiyo</string>
   <string name="common_no">Hapana</string>
   <string name="common_none">Hakuna</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Ruka</string>
   <string name="common_warning">Onyo</string>
   <string name="common_learn_more">Jifunze Zaidi</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Maelezo</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Mtindo</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Picha</string>
   <string name="common_save">Hifadhi</string>
-  <string name="common_edit">Hariri</string>
   <string name="common_percentage">Asilimia</string>
   <string name="common_details">Maelezo</string>
   <string name="common_info">Habari</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Tumeacha %1$s katika salio lako ili kulipia ada za mtandao za siku zijazo.</string>
   <string name="transfer_freeze_title">Kuganda</string>
   <string name="transfer_unfreeze_title">Ondoa kuganda</string>
-  <string name="transfer_sign_transaction_title">Saini Muamala</string>
   <string name="transfer_review_request">Ombi la Uhakiki</string>
   <string name="transfer_amount">Kiasi</string>
   <string name="transfer_amount_title">Kiasi</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Chanzo</string>
   <string name="settings_networks_explorer">Mchunguzi</string>
   <string name="settings_currency">Sarafu</string>
-  <string name="settings_rate_app">Kadiria Programu</string>
   <string name="settings_website">Tembelea Tovuti</string>
   <string name="settings_security">Usalama</string>
   <string name="settings_enable_value">Washa %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Anwani %1$s si sahihi</string>
   <string name="errors_dust_threshold">Muamala haukufaulu kwa sababu kiasi hicho ni kidogo sana kutosheleza mahitaji ya chini ya mtandao %1$s (kiwango cha juu cha vumbi). Kikomo hiki kinahakikisha thamani ya muamala inashughulikia ada na gharama za usindikaji.</string>
   <string name="errors_swap_no_quote_available">Hakuna nukuu inayopatikana.</string>
-  <string name="errors_swap_not_supported_chain">Mnyororo hautumiki.</string>
   <string name="errors_swap_not_supported_asset">Kipengee hakitumiki.</string>
-  <string name="errors_swap_not_supported_pair">Jozi haitumiki.</string>
   <string name="errors_connections_invalid_send_parameters">Vigezo batili vimetolewa kwa ajili ya kutuma muamala.</string>
   <string name="errors_connections_invalid_sign_parameters">Vigezo batili vimetolewa kwa ajili ya kusaini.</string>
   <string name="errors_connections_no_supported_wallets">Hakuna pochi zinazotumika zinazopatikana.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Bei</string>
   <string name="asset_market_cap">Thamani ya Soko</string>
   <string name="asset_trading_volume">Kiasi cha Biashara (saa 24)</string>
-  <string name="asset_market_cap_rank">Nafasi ya Thamani ya Soko</string>
   <string name="asset_total_supply">Jumla ya Ugavi</string>
   <string name="asset_circulating_supply">Ugavi wa Kuzunguka</string>
   <string name="asset_balances_reserved">Imehifadhiwa</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Tenganisha</string>
   <string name="wallet_connect_connect_title">Unganisha</string>
   <string name="wallet_connect_app">Programu</string>
-  <string name="wallet_connect_website">Tovuti</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Hakuna miunganisho inayotumika</string>
   <string name="wallet_connect_state_empty_description">Changanua au ubandike msimbo ili kuunganisha kwenye DApp</string>
-  <string name="wallet_connect_domain">Kikoa</string>
   <string name="wallet_connect_permissions_title">Ruhusa</string>
   <string name="wallet_connect_permissions_view_balance">Tazama salio na shughuli zako</string>
   <string name="wallet_connect_permissions_approval_requests">Tuma maombi ya idhini</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Inasubiri Kuondolewa</string>
   <string name="stake_active_in">Inayotumika Katika</string>
   <string name="stake_minimum_amount">Kiasi cha chini</string>
-  <string name="stake_viagem">Weka hisa kupitia Gem Wallet</string>
-  <string name="stake_no_active_staking">Bado hakuna uwekaji hisa.</string>
   <string name="stake_state_empty_title">Hisa zako zitaonekana hapa</string>
   <string name="stake_state_empty_description">Shiriki %1$s yako ya kwanza</string>
   <string name="stake_resource">Rasilimali</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stablecoins</string>
   <string name="assets_state_empty_search_description">Unaweza kujaribu kuiongeza wewe mwenyewe</string>
   <string name="assets_title">Mali</string>
-  <string name="sign_message_title">Saini Ujumbe</string>
   <string name="sign_message_message">Ujumbe</string>
   <string name="sign_message_view_full_message">Tazama Ujumbe Kamili</string>
   <string name="secret_phrase_do_not_share_title">Usishiriki Maneno yako ya Siri!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Salio la chini</string>
   <string name="info_perpetual_funding_payments_title">Malipo ya Ufadhili</string>
   <string name="info_perpetual_funding_payments_description">Malipo ya ufadhili ni malipo ya mara kwa mara kati ya wafanyabiashara ili kuweka bei ya kudumu ya mkataba karibu na bei ya msingi ya mali. Ufadhili mzuri unamaanisha nafasi ndefu kulipa nafasi fupi, wakati ufadhili hasi unamaanisha nafasi fupi kulipa nafasi ndefu.</string>
-  <string name="info_perpetual_funding_rate_title">Ufadhili</string>
-  <string name="info_perpetual_funding_rate_description">Kiwango cha ufadhili huamua gharama ya kushikilia nafasi ya kudumu. Hukokotolewa kila saa na husaidia kudumisha usawa wa bei kati ya mkataba wa kudumu na bei ya msingi ya kipengee.</string>
   <string name="info_perpetual_liquidation_price_title">Bei ya Kufilisi</string>
   <string name="info_perpetual_liquidation_price_description">Bei ya kufilisi ni kiwango cha bei ambapo nafasi yako itafungwa kiotomatiki ili kuzuia hasara zaidi. Wakati bei ya soko inafikia kiwango hiki, nafasi yako inafutwa na unapoteza kiasi chako.</string>
   <string name="info_perpetual_open_interest_title">Riba Wazi</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Ninaelewa kuwa Gem si benki au ubadilishaji, na kuitumia kwa madhumuni yasiyo halali ni marufuku kabisa.</string>
   <string name="onboarding_accept_terms_item3_message">Ninaelewa kuwa nikipoteza ufikiaji wa pochi zangu, Gem haiwajibikiwi na haiwezi kusaidia kwa njia yoyote.</string>
   <string name="onboarding_accept_terms_continue">Kubali na Uendelee</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Vyeo</string>
   <string name="perpetual_size">Ukubwa</string>
   <string name="perpetual_margin">Margin</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Fungua %1$s</string>
   <string name="perpetual_close_direction">Funga %1$s</string>
   <string name="perpetual_leverage">Uwiano wa Mtaji</string>
-  <string name="perpetual_direction">Mwelekeo</string>
   <string name="perpetual_auto_close">Funga Kiotomatiki</string>
   <string name="perpetual_auto_close_take_profit">Chukua faida</string>
   <string name="perpetual_market_price">Bei ya Soko</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Vipengee ambavyo umetumia hivi karibuni vitaonekana hapa</string>
   <string name="notifications_inapp_state_empty_title">Hakuna arifa bado</string>
   <string name="notifications_inapp_state_empty_description">Utaona masasisho kuhusu arifa zako hapa</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Alika marafiki na upate zawadi pamoja</string>
   <string name="earn_state_empty_title">Nafasi zako zitaonekana hapa</string>
   <string name="earn_state_empty_description">Weka pesa zako kwanza %1$s</string>
   <string name="contacts_title">Anwani</string>

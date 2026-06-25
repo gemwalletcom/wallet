@@ -1,14 +1,12 @@
 "common.cancel" = "Annuleren";
 "common.done" = "Klaar";
 "common.secret_phrase" = "Geheime zin";
-"common.next" = "Volgende";
 "common.copy" = "Kopieer";
 "common.share" = "Deel";
 "common.continue" = "Ga door";
 "common.provider" = "Aanbieder";
 "common.loading" = "Laden";
 "common.address" = "Adres";
-"common.back" = "Terug";
 "common.try_again" = "Probeer het opnieuw";
 "common.paste" = "Plakken";
 "common.delete" = "Verwijderen";
@@ -24,7 +22,6 @@
 "common.manage" = "Beheer";
 "common.type" = "Typ";
 "common.no_results_found" = "Geen resultaten gevonden";
-"common.yes" = "Ja";
 "common.no" = "Nee";
 "common.none" = "Geen";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Overslaan";
 "common.warning" = "Waarschuwing";
 "common.learn_more" = "Meer informatie";
-"common.short_name" = "Gem";
 "common.description" = "Beschrijving";
 "common.emoji" = "Emoji";
-"common.style" = "Stijl";
 "common.avatar" = "Avatar";
-"common.photo" = "Foto";
 "common.save" = "Opslaan";
-"common.edit" = "Bewerken";
 "common.percentage" = "Percentage";
 "common.details" = "Details";
 "common.info" = "Informatie";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "We hebben %@ op uw saldo laten staan om toekomstige netwerkkosten te dekken.";
 "transfer.freeze.title" = "Bevriezen";
 "transfer.unfreeze.title" = "Ontvriezen";
-"transfer.sign_transaction.title" = "Transactie ondertekenen";
 "transfer.review_request" = "Verzoek controleren";
 "settings.terms_of_services" = "Servicevoorwaarden";
 "settings.privacy_policy" = "Privacybeleid";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Bron";
 "settings.networks.explorer" = "Explorer";
 "settings.currency" = "Valuta";
-"settings.rate_app" = "Beoordeel App";
 "settings.website" = "Bezoek website";
 "settings.security" = "Beveiliging";
 "settings.enable_value" = "Schakel %@ in";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Ongeldig %@ adres";
 "errors.dust_threshold" = "De transactie is mislukt omdat het bedrag te klein is om te voldoen aan de minimumvereiste van het %@-netwerk (stofdrempel). Deze limiet zorgt ervoor dat de transactiewaarde de vergoedingen en verwerkingskosten dekt.";
 "errors.swap.no_quote_available" = "Geen offerte beschikbaar.";
-"errors.swap.not_supported_chain" = "Niet-ondersteunde keten.";
 "errors.swap.not_supported_asset" = "Niet-ondersteunde asset.";
-"errors.swap.not_supported_pair" = "Niet ondersteund paar.";
 "errors.connections.invalid_send_parameters" = "Ongeldige parameters opgegeven voor het verzenden van een transactie.";
 "errors.connections.invalid_sign_parameters" = "Ongeldige parameters opgegeven voor ondertekening.";
 "errors.connections.no_supported_wallets" = "Er zijn geen ondersteunde wallets beschikbaar.";
@@ -236,7 +225,6 @@
 "asset.price" = "Prijs";
 "asset.market_cap" = "Marktkapitalisatie";
 "asset.trading_volume" = "Handelsvolume (24 uur)";
-"asset.market_cap_rank" = "Marktkapitalisatierang";
 "asset.total_supply" = "Totaal aanbod";
 "asset.circulating_supply" = "Circulerend aanbod";
 "asset.balances.reserved" = "Gereserveerd";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Verbreek de verbinding";
 "wallet_connect.connect.title" = "Verbinden";
 "wallet_connect.app" = "App";
-"wallet_connect.website" = "Website";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Geen actieve verbindingen";
 "wallet_connect.state.empty.description" = "Scan of plak de code om verbinding te maken met de DApp";
-"wallet_connect.domain" = "Domein";
 "wallet_connect.permissions.title" = "Toestemmingen";
 "wallet_connect.permissions.view_balance" = "Bekijk je saldo en activiteit";
 "wallet_connect.permissions.approval_requests" = "Verzoeken om goedkeuring verzenden";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "In afwachting van intrekking";
 "stake.active_in" = "Actief In";
 "stake.minimum_amount" = "Minimumbedrag";
-"stake.viagem" = "Staken via Gem Wallet";
-"stake.no_active_staking" = "Nog geen actieve staking.";
 "stake.state.empty.title" = "Uw inzet verschijnt hier";
 "stake.state.empty.description" = "Zet je eerste %@ in";
 "stake.resource" = "Hulpbron";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Stabiele munten";
 "assets.state.empty.search_description" = "U kunt proberen het handmatig toe te voegen";
 "assets.title" = "Activa";
-"sign_message.title" = "Teken bericht";
 "sign_message.message" = "Bericht";
 "sign_message.view_full_message" = "Bekijk het volledige bericht";
 "secret_phrase.do_not_share.title" = "Deel uw geheime zin niet!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Minimumsaldo";
 "info.perpetual.funding_payments.title" = "Financieringsbetalingen";
 "info.perpetual.funding_payments.description" = "Financieringsbetalingen zijn periodieke betalingen tussen handelaren om de eeuwigdurende contractprijs dicht bij de spotprijs van de onderliggende waarde te houden. Positieve financiering betekent dat longposities shortposities betalen, terwijl negatieve financiering betekent dat shortposities longposities betalen.";
-"info.perpetual.funding_rate.title" = "Financiering";
-"info.perpetual.funding_rate.description" = "Het financieringspercentage bepaalt de kosten voor het aanhouden van een eeuwigdurende positie. Het wordt elk uur berekend en helpt het prijsevenwicht tussen het eeuwigdurende contract en de spotprijs van de onderliggende waarde te handhaven.";
 "info.perpetual.liquidation_price.title" = "Liquidatieprijs";
 "info.perpetual.liquidation_price.description" = "De liquidatieprijs is het prijsniveau waarbij uw positie automatisch wordt gesloten om verdere verliezen te voorkomen. Wanneer de marktprijs dit niveau bereikt, wordt uw positie geliquideerd en verliest u uw marge.";
 "info.perpetual.open_interest.title" = "Open Interest";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Ik begrijp dat Gem geen bank of beurs is en dat het strikt verboden is om Gem voor illegale doeleinden te gebruiken.";
 "onboarding.accept_terms.item3.message" = "Ik begrijp dat als ik ooit de toegang tot mijn portemonnee verlies, Gem niet aansprakelijk is en op geen enkele manier kan helpen.";
 "onboarding.accept_terms.continue" = "Akkoord en doorgaan";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Posities";
 "perpetual.size" = "Omvang";
 "perpetual.margin" = "Marge";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Open %@";
 "perpetual.close_direction" = "Sluiten %@";
 "perpetual.leverage" = "Hefboom";
-"perpetual.direction" = "Richting";
 "perpetual.auto_close" = "Automatisch sluiten";
 "perpetual.auto_close.take_profit" = "Winst nemen";
 "perpetual.market_price" = "Marktprijs";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Activa die u onlangs heeft gebruikt, worden hier weergegeven";
 "notifications.inapp.state.empty.title" = "Nog geen meldingen";
 "notifications.inapp.state.empty.description" = "Je ziet hier updates over je meldingen.";
-"notifications.inapp.rewards.invite.subtitle" = "Nodig vrienden uit en verdien samen beloningen.";
 "earn.state.empty.title" = "Uw posities verschijnen hier.";
 "earn.state.empty.description" = "Stort uw eerste %@";
 "contacts.title" = "Contacten";

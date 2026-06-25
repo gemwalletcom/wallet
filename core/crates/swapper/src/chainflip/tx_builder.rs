@@ -13,9 +13,7 @@ use std::{str::FromStr, sync::Arc};
 
 pub fn build_tron_quote_data(response: &TronVaultSwapResponse, value: String) -> Result<SwapperQuoteData, SwapperError> {
     let address = response.source_token_address.as_deref().unwrap_or(&response.to);
-    let to = TronAddress::from_hex_or_base58(address)
-        .map(|address| address.to_string())
-        .ok_or_else(|| SwapperError::TransactionError(format!("invalid Tron address: {address}")))?;
+    let to = TronAddress::parse_hex_or_base58(address)?.to_string();
     let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::TransactionError("invalid Tron calldata".to_string()))?;
 
     Ok(SwapperQuoteData {

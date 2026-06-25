@@ -1,7 +1,9 @@
-mod api;
+mod asset;
 mod config_store;
+mod deposit;
 mod hubpool;
 mod provider;
+mod status;
 
 pub use provider::Across;
 

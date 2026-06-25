@@ -3,6 +3,7 @@ package com.gemwallet.android.features.main.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
+import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.isNftSupported
 import com.wallet.core.primitives.Wallet
@@ -21,8 +22,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
+    bridgesRepository: BridgesRepository,
     getTransactions: GetPendingTransactionsCount
 ) : ViewModel() {
+    val isWalletConnectEnabled: Boolean = bridgesRepository.isWalletConnectEnabled
+
     val pendingTxCount = sessionRepository.session()
         .filterNotNull()
         .flatMapLatest { getTransactions.getPendingTransactionsCount() }

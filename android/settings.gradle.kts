@@ -6,6 +6,7 @@ pluginManagement {
     }
 }
 rootProject.name = "wallet"
+
 include(":gemstone")
 include (":app")
 include(":blockchain")
@@ -17,10 +18,16 @@ include(":data:services")
 include(":data:services:store")
 include(":data:repositories")
 include(":data:services:remote-gem")
+include(":data:services:walletconnect:noop")
+include(":data:services:walletconnect:reown")
 include(":flavors")
 include(":flavors:pushes-stub")
-include(":flavors:fcm")
-include(":flavors:google-review")
+if (file("flavors/fcm").isDirectory) {
+    include(":flavors:fcm")
+}
+if (file("flavors/google-review").isDirectory) {
+    include(":flavors:google-review")
+}
 include(":flavors:review-stub")
 include(":features")
 include(":features:recipient")

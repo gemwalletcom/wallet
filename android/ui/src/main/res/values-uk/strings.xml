@@ -3,14 +3,12 @@
   <string name="common_cancel">Скасувати</string>
   <string name="common_done">Готово</string>
   <string name="common_secret_phrase">Секретна фраза</string>
-  <string name="common_next">Далі</string>
   <string name="common_copy">Скопіювати</string>
   <string name="common_share">Поділитися</string>
   <string name="common_continue">Продовжити</string>
   <string name="common_provider">Провайдер</string>
   <string name="common_loading">Завантаження</string>
   <string name="common_address">Адреса</string>
-  <string name="common_back">Назад</string>
   <string name="common_try_again">Спробувати знову</string>
   <string name="common_paste">Вставити</string>
   <string name="common_delete">Видалити</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Керувати</string>
   <string name="common_type">Тип</string>
   <string name="common_no_results_found">Нічого не знайдено</string>
-  <string name="common_yes">Так</string>
   <string name="common_no">Ні</string>
   <string name="common_none">Жодного</string>
   <string name="common_url">URL-адреса</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Пропустити</string>
   <string name="common_warning">Попередження</string>
   <string name="common_learn_more">Дізнайтеся більше</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Опис</string>
   <string name="common_emoji">Емодзі</string>
-  <string name="common_style">Стиль</string>
   <string name="common_avatar">Аватар</string>
-  <string name="common_photo">Фото</string>
   <string name="common_save">Зберегти</string>
-  <string name="common_edit">Редагувати</string>
   <string name="common_percentage">Відсоток</string>
   <string name="common_details">Деталі</string>
   <string name="common_info">Інформація</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Ми залишили на вашому балансі %1$s для покриття майбутніх мережевих платежів.</string>
   <string name="transfer_freeze_title">Заморозити</string>
   <string name="transfer_unfreeze_title">Розморозити</string>
-  <string name="transfer_sign_transaction_title">Підписати транзакцію</string>
   <string name="transfer_review_request">Переглянути запит</string>
   <string name="transfer_amount">Сума</string>
   <string name="transfer_amount_title">Сума</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Джерело</string>
   <string name="settings_networks_explorer">Оглядач</string>
   <string name="settings_currency">Валюта</string>
-  <string name="settings_rate_app">Оцініть додаток</string>
   <string name="settings_website">Відвідати вебсайт</string>
   <string name="settings_security">Безпека</string>
   <string name="settings_enable_value">Увімкнути %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Недійсна адреса %1$s</string>
   <string name="errors_dust_threshold">Транзакцію не вдалося виконати, оскільки сума занадто мала, щоб відповідати мінімальним вимогам мережі %1$s (поріг пилу). Це обмеження гарантує, що сума транзакції покриває комісії та витрати на обробку.</string>
   <string name="errors_swap_no_quote_available">Котирування недоступне.</string>
-  <string name="errors_swap_not_supported_chain">Ланцюг не підтримується.</string>
   <string name="errors_swap_not_supported_asset">Не підтримуваний актив.</string>
-  <string name="errors_swap_not_supported_pair">Пара не підтримується.</string>
   <string name="errors_connections_invalid_send_parameters">Надано недійсні параметри для відправки транзакції.</string>
   <string name="errors_connections_invalid_sign_parameters">Для підпису надано недійсні параметри.</string>
   <string name="errors_connections_no_supported_wallets">Немає підтримуваних гаманців.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Ціна</string>
   <string name="asset_market_cap">Ринкова капіталізація</string>
   <string name="asset_trading_volume">Обсяг Торгів (24г)</string>
-  <string name="asset_market_cap_rank">Рейтинг ринкової капіталізації</string>
   <string name="asset_total_supply">Загальна пропозиція</string>
   <string name="asset_circulating_supply">В обігу</string>
   <string name="asset_balances_reserved">Зарезервовано</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Відключити</string>
   <string name="wallet_connect_connect_title">Підключитися</string>
   <string name="wallet_connect_app">Додаток</string>
-  <string name="wallet_connect_website">Веб-сторінка</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Немає активних з\'єднань</string>
   <string name="wallet_connect_state_empty_description">Відскануйте або вставте код для підключення до DApp</string>
-  <string name="wallet_connect_domain">Домен</string>
   <string name="wallet_connect_permissions_title">Дозволи</string>
   <string name="wallet_connect_permissions_view_balance">Перегляд вашого балансу та активності</string>
   <string name="wallet_connect_permissions_approval_requests">Надсилати запити на схвалення</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">В очікуванні виведення коштів</string>
   <string name="stake_active_in">Активний в</string>
   <string name="stake_minimum_amount">Мінімальна сума</string>
-  <string name="stake_viagem">Робіть ставки через Gem Wallet</string>
-  <string name="stake_no_active_staking">Активного стейкінгу поки що немає.</string>
   <string name="stake_state_empty_title">Ваші стейкинги з\'являться тут</string>
   <string name="stake_state_empty_description">Зробіть свій перший стейкінг %1$s</string>
   <string name="stake_resource">Ресурс</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Стайблкойни</string>
   <string name="assets_state_empty_search_description">Ви можете спробувати додати його вручну</string>
   <string name="assets_title">Активи</string>
-  <string name="sign_message_title">Підписати повідомлення</string>
   <string name="sign_message_message">Повідомлення</string>
   <string name="sign_message_view_full_message">Переглянути повне повідомлення</string>
   <string name="secret_phrase_do_not_share_title">Не діліться своєю секретною фразою!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Мінімальний баланс</string>
   <string name="info_perpetual_funding_payments_title">Фінансування платежів</string>
   <string name="info_perpetual_funding_payments_description">Платежі фінансування — це періодичні платежі між трейдерами, щоб підтримувати постійну ціну контракту близькою до спотової ціни базового активу. Позитивне фінансування означає, що довгі позиції оплачують короткі позиції, тоді як негативне фінансування означає, що короткі позиції оплачують довгі позиції.</string>
-  <string name="info_perpetual_funding_rate_title">Фінансування</string>
-  <string name="info_perpetual_funding_rate_description">Ставка фінансування визначає вартість утримання безстрокової позиції. Вона розраховується щогодини та допомагає підтримувати цінову рівновагу між безстроковим контрактом і спотовою ціною базового активу.</string>
   <string name="info_perpetual_liquidation_price_title">Ліквідаційна ціна</string>
   <string name="info_perpetual_liquidation_price_description">Ліквідаційна ціна – це рівень ціни, на якому ваша позиція буде автоматично закрита, щоб запобігти подальшим втратам. Коли ринкова ціна досягає цього рівня, ваша позиція ліквідується, і ви втрачаєте маржу.</string>
   <string name="info_perpetual_open_interest_title">Відкритий інтерес</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Я розумію, що Gem не є банком чи біржею, і його використання в незаконних цілях суворо заборонено.</string>
   <string name="onboarding_accept_terms_item3_message">Я розумію, що якщо я коли-небудь втрачу доступ до своїх гаманців, Gem не несе відповідальності та не зможе жодним чином допомогти.</string>
   <string name="onboarding_accept_terms_continue">Погодьтеся та продовжуйте</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Позиції</string>
   <string name="perpetual_size">Розмір</string>
   <string name="perpetual_margin">Маржа</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Відкрити %1$s</string>
   <string name="perpetual_close_direction">Закрити %1$s</string>
   <string name="perpetual_leverage">Кредитне плече</string>
-  <string name="perpetual_direction">Напрямок</string>
   <string name="perpetual_auto_close">Авто закриття</string>
   <string name="perpetual_auto_close_take_profit">Зафіксуйте прибуток</string>
   <string name="perpetual_market_price">Ринкова ціна</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Тут відображатимуться активи, які ви нещодавно використовували</string>
   <string name="notifications_inapp_state_empty_title">Поки що немає сповіщень</string>
   <string name="notifications_inapp_state_empty_description">Тут ви побачите оновлення щодо своїх сповіщень</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Запрошуйте друзів та отримуйте винагороди разом</string>
   <string name="earn_state_empty_title">Ваші позиції з\'являться тут</string>
   <string name="earn_state_empty_description">Внесіть свій перший депозит %1$s</string>
   <string name="contacts_title">Контакти</string>

@@ -37,6 +37,10 @@ impl TronAddress {
         Self::try_parse(value).or_else(|| Self::from_hex(value))
     }
 
+    pub fn parse_hex_or_base58(value: &str) -> Result<Self, AddressError> {
+        Self::from_hex_or_base58(value).ok_or_else(|| AddressError::new(format!("invalid Tron address: {value}")))
+    }
+
     pub fn abi_address_parameter(&self) -> String {
         format!("{:0>width$}", hex::encode(self.account_id()), width = ABI_ADDRESS_PARAMETER_HEX_LEN)
     }

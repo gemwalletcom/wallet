@@ -3,14 +3,12 @@
 common_cancel = Ophæve
 common_done = Færdig
 common_secret_phrase = Hemmelig sætning
-common_next = Næste
 common_copy = Kopiér
 common_share = Del
 common_continue = Fortsæt
 common_provider = Udbyder
 common_loading = Indlæser
 common_address = Adresse
-common_back = Tilbage
 common_try_again = Prøv igen
 common_paste = Indsæt
 common_delete = Slet
@@ -26,7 +24,6 @@ common_phrase = Sætning
 common_manage = Administrer
 common_type = Type
 common_no_results_found = Ingen resultater fundet
-common_yes = Ja
 common_no = Nej
 common_none = Ingen
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Frigør
 common_skip = Spring over
 common_warning = Advarsel
 common_learn_more = Lær mere
-common_short_name = Gem
 common_description = Beskrivelse
 common_emoji = Emoji
-common_style = Stil
 common_avatar = Avatar
-common_photo = Foto
 common_save = Gem
-common_edit = Rediger
 common_percentage = Procent
 common_details = Detaljer
 common_info = Info
@@ -152,7 +145,6 @@ transfer_maximum_amount = Det maksimale beløb er %@
 transfer_reserved_fees = Vi har efterladt %@ på din saldo til dækning af fremtidige netværksgebyrer.
 transfer_freeze_title = Fryse
 transfer_unfreeze_title = Optø
-transfer_sign_transaction_title = Underskriv transaktion
 transfer_review_request = Anmodning om gennemgang
 transfer_amount = Beløb
 transfer_amount_title = Beløb
@@ -170,7 +162,6 @@ settings_networks_title = Netværk
 settings_networks_source = Kilde
 settings_networks_explorer = Explorer
 settings_currency = Valuta
-settings_rate_app = Bedøm app
 settings_website = Besøg hjemmesiden
 settings_security = Sikkerhed
 settings_enable_value = Aktiver %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Vi er i øjeblikket ikke i stand til at ber
 errors_invalid_asset_address = Ugyldig %@ adresse
 errors_dust_threshold = Transaktionen mislykkedes, fordi beløbet er for lille til at opfylde %@ netværkets minimumskrav (støvtærskel). Denne grænse sikrer, at transaktionsværdien dækker gebyrer og behandlingsomkostninger.
 errors_swap_no_quote_available = Ingen pris er tilgængelig.
-errors_swap_not_supported_chain = Ikke understøttet kæde.
 errors_swap_not_supported_asset = Ikke understøttet aktiv.
-errors_swap_not_supported_pair = Ikke understøttet par.
 errors_connections_invalid_send_parameters = Ugyldige parametre angivet til afsendelse af en transaktion.
 errors_connections_invalid_sign_parameters = Ugyldige parametre angivet til signering.
 errors_connections_no_supported_wallets = Ingen understøttede tegnebøger er tilgængelige.
@@ -290,7 +279,6 @@ asset_balances_available = Tilgængelig
 asset_price = Pris
 asset_market_cap = Markedsværdi
 asset_trading_volume = Handelsvolumen (24 timer)
-asset_market_cap_rank = Markedsværdiplacering
 asset_total_supply = Samlet Udbud
 asset_circulating_supply = Cirkulerende forsyning
 asset_balances_reserved = Reserveret
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Forbindelse
 wallet_connect_disconnect = Afbryd forbindelsen
 wallet_connect_connect_title = Forbind
 wallet_connect_app = App
-wallet_connect_website = Hjemmeside
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Ingen aktive forbindelser
 wallet_connect_state_empty_description = Scan eller indsæt kode for at oprette forbindelse til DApp'en
-wallet_connect_domain = Domæne
 wallet_connect_permissions_title = Tilladelser
 wallet_connect_permissions_view_balance = Se din saldo og aktivitet
 wallet_connect_permissions_approval_requests = Send godkendelsesanmodninger
@@ -379,8 +365,6 @@ stake_deactivating = Deaktiverer
 stake_awaiting_withdrawal = Afventer tilbagetrækning
 stake_active_in = Aktiv i
 stake_minimum_amount = Minimumsbeløb
-stake_viagem = Indsats via Gem Wallet
-stake_no_active_staking = Ingen aktiv indsats endnu.
 stake_state_empty_title = Dine indsatser vil blive vist her
 stake_state_empty_description = Indsæt dine første %@
 stake_resource = Ressource
@@ -404,7 +388,6 @@ assets_title = Aktiver
 
 # Sign Message
 
-sign_message_title = Underskriv besked
 sign_message_message = Besked
 sign_message_view_full_message = Se hele beskeden
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Du har ikke nok %@ til at gennemføre de
 info_account_minimum_balance_title = Minimumsaldo
 info_perpetual_funding_payments_title = Finansieringsbetalinger
 info_perpetual_funding_payments_description = Finansieringsbetalinger er periodiske betalinger mellem handlende for at holde den evige kontraktpris tæt på det underliggende aktivs spotpris. Positiv finansiering betyder, at lange positioner betaler korte positioner, mens negativ funding betyder, at korte positioner betaler lange positioner.
-info_perpetual_funding_rate_title = Finansiering
-info_perpetual_funding_rate_description = Funding rate bestemmer omkostningerne ved at holde en evig position. Den beregnes hver time og hjælper med at opretholde prisligevægten mellem den evige kontrakt og det underliggende aktivs spotpris.
 info_perpetual_liquidation_price_title = Likvidationspris
 info_perpetual_liquidation_price_description = Likvidationsprisen er det prisniveau, hvor din position automatisk lukkes for at forhindre yderligere tab. Når markedsprisen når dette niveau, er din position likvideret, og du mister din margin.
 info_perpetual_open_interest_title = Åben interesse
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Enig og fortsæt
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Øg position
 perpetual_open_direction = Åbn %@
 perpetual_close_direction = Luk %@
 perpetual_leverage = Gearing
-perpetual_direction = Retning
 perpetual_auto_close = Automatisk lukning
 perpetual_auto_close_take_profit = Tag profit
 perpetual_market_price = Markedspris
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Aktiver, du for nylig har brugt, vises
 
 notifications_inapp_state_empty_title = Ingen notifikationer endnu
 notifications_inapp_state_empty_description = Du kan se opdateringer om dine notifikationer her
-notifications_inapp_rewards_invite_subtitle = Inviter venner og optjen belønninger sammen
 
 # Earn
 

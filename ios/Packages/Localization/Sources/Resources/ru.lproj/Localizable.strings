@@ -1,14 +1,12 @@
 "common.cancel" = "Отмена";
 "common.done" = "Готово";
 "common.secret_phrase" = "Секретная фраза";
-"common.next" = "Далее";
 "common.copy" = "Копировать";
 "common.share" = "Поделиться";
 "common.continue" = "Продолжить";
 "common.provider" = "Провайдер";
 "common.loading" = "Загрузка";
 "common.address" = "Адрес";
-"common.back" = "Назад";
 "common.try_again" = "Повторить";
 "common.paste" = "Вставить";
 "common.delete" = "Удалить";
@@ -24,7 +22,6 @@
 "common.manage" = "Управление";
 "common.type" = "Тип";
 "common.no_results_found" = "Результатов не найдено";
-"common.yes" = "Да";
 "common.no" = "Нет";
 "common.none" = "Нет";
 "common.url" = "URL-адрес";
@@ -37,14 +34,10 @@
 "common.skip" = "Пропустить";
 "common.warning" = "Предупреждение";
 "common.learn_more" = "Узнать больше";
-"common.short_name" = "Gem";
 "common.description" = "Описание";
 "common.emoji" = "Эмодзи";
-"common.style" = "Стиль";
 "common.avatar" = "Аватар";
-"common.photo" = "Фото";
 "common.save" = "Сохранить";
-"common.edit" = "Редактировать";
 "common.percentage" = "Процент";
 "common.details" = "Детали";
 "common.info" = "Информация";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Мы оставили %@ на вашем балансе для покрытия будущих сетевых сборов.";
 "transfer.freeze.title" = "Заморозить";
 "transfer.unfreeze.title" = "Разморозить";
-"transfer.sign_transaction.title" = "Подписать транзакцию";
 "transfer.review_request" = "Просмотр запроса";
 "settings.terms_of_services" = "Условия предоставления услуг";
 "settings.privacy_policy" = "Политика конфиденциальности";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Источник";
 "settings.networks.explorer" = "Эксплорер";
 "settings.currency" = "Валюта";
-"settings.rate_app" = "Оценить приложение";
 "settings.website" = "Посетить сайт";
 "settings.security" = "Безопасность";
 "settings.enable_value" = "Включить %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Неверный адрес %@";
 "errors.dust_threshold" = "Транзакция не удалась, так как сумма слишком мала для соответствия минимальным требованиям сети %@ (порог пыли). Этот предел гарантирует, что сумма транзакции покрывает комиссии и затраты на обработку.";
 "errors.swap.no_quote_available" = "Котировка недоступна.";
-"errors.swap.not_supported_chain" = "Не поддерживается цепочка.";
 "errors.swap.not_supported_asset" = "Неподдерживаемый актив.";
-"errors.swap.not_supported_pair" = "Не поддерживаемая пара.";
 "errors.connections.invalid_send_parameters" = "Для отправки транзакции указаны неверные параметры.";
 "errors.connections.invalid_sign_parameters" = "Для подписи предоставлены неверные параметры.";
 "errors.connections.no_supported_wallets" = "Поддерживаемые кошельки отсутствуют.";
@@ -236,7 +225,6 @@
 "asset.price" = "Цена";
 "asset.market_cap" = "Капитализация";
 "asset.trading_volume" = "Объём торгов (24ч)";
-"asset.market_cap_rank" = "Рейтинг рыночной капитализации";
 "asset.total_supply" = "Всего";
 "asset.circulating_supply" = "В обороте";
 "asset.balances.reserved" = "Зарезервировано";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Отключить";
 "wallet_connect.connect.title" = "Подключить";
 "wallet_connect.app" = "Приложение";
-"wallet_connect.website" = "Веб-сайт";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Нет активных подключений";
 "wallet_connect.state.empty.description" = "Отсканируйте или вставьте код для подключения к DApp";
-"wallet_connect.domain" = "Домен";
 "wallet_connect.permissions.title" = "Разрешения";
 "wallet_connect.permissions.view_balance" = "Просматривать баланс и активность";
 "wallet_connect.permissions.approval_requests" = "Отправлять запросы на подтверждение";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Ожидание вывода средств";
 "stake.active_in" = "Активен в";
 "stake.minimum_amount" = "Минимальная сумма";
-"stake.viagem" = "Стейкинг через Gem Wallet";
-"stake.no_active_staking" = "Активного стейкинга пока нет.";
 "stake.state.empty.title" = "Ваш стейкинг будет отображаться здесь";
 "stake.state.empty.description" = "Начните стейкать %@";
 "stake.resource" = "Ресурс";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Стейблкоины";
 "assets.state.empty.search_description" = "Вы можете попробовать добавить его вручную.";
 "assets.title" = "Активы";
-"sign_message.title" = "Подписать сообщение";
 "sign_message.message" = "Сообщение";
 "sign_message.view_full_message" = "Посмотреть полное сообщение";
 "secret_phrase.do_not_share.title" = "Не делитесь своей секретной фразой!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Минимальный баланс";
 "info.perpetual.funding_payments.title" = "Платежи по финансированию";
 "info.perpetual.funding_payments.description" = "Платежи финансирования — это периодические платежи между трейдерами, позволяющие поддерживать цену бессрочного контракта близкой к спотовой цене базового актива. Положительное финансирование означает, что длинные позиции оплачиваются короткими позициями, а отрицательное финансирование означает, что короткие позиции оплачиваются длинными позициями.";
-"info.perpetual.funding_rate.title" = "Финансирование";
-"info.perpetual.funding_rate.description" = "Ставка финансирования определяет стоимость поддержания бессрочной позиции. Он рассчитывается ежечасно и помогает поддерживать ценовое равновесие между бессрочным контрактом и спотовой ценой базового актива.";
 "info.perpetual.liquidation_price.title" = "Цена ликвидации";
 "info.perpetual.liquidation_price.description" = "Цена ликвидации — это уровень цен, при котором ваша позиция будет автоматически закрыта, чтобы предотвратить дальнейшие убытки. Когда рыночная цена достигает этого уровня, ваша позиция ликвидируется, и вы теряете свою маржу.";
 "info.perpetual.open_interest.title" = "Открытый интерес";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Я понимаю, что Gem не является банком или биржей, и использование его в незаконных целях строго запрещено.";
 "onboarding.accept_terms.item3.message" = "Я понимаю, что если я потеряю доступ к своим кошелькам, Gem не несет ответственности и не сможет оказать никакой помощи.";
 "onboarding.accept_terms.continue" = "Согласиться и продолжить";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Позиции";
 "perpetual.size" = "Размер";
 "perpetual.margin" = "Маржа";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Открыть %@";
 "perpetual.close_direction" = "Закрыть %@";
 "perpetual.leverage" = "Кредитное плечо";
-"perpetual.direction" = "Направление";
 "perpetual.auto_close" = "Автозакрытие";
 "perpetual.auto_close.take_profit" = "Тейк-профит";
 "perpetual.market_price" = "Рыночная цена";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Здесь будут отображаться активы, которые вы недавно использовали";
 "notifications.inapp.state.empty.title" = "Уведомлений пока нет.";
 "notifications.inapp.state.empty.description" = "Здесь вы будете видеть обновления, касающиеся ваших уведомлений.";
-"notifications.inapp.rewards.invite.subtitle" = "Приглашайте друзей и зарабатывайте награды вместе.";
 "earn.state.empty.title" = "Ваши позиции будут отображаться здесь";
 "earn.state.empty.description" = "Внесите свой первый депозит %@";
 "contacts.title" = "Контакты";

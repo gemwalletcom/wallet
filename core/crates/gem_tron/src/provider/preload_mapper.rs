@@ -9,7 +9,8 @@ use crate::models::account::{TronAccount, TronFrozen};
 use crate::rpc::constants::{DEFAULT_BANDWIDTH_BYTES, GET_CREATE_ACCOUNT_FEE, GET_CREATE_NEW_ACCOUNT_FEE_IN_SYSTEM_CONTRACT, GET_ENERGY_FEE, GET_MEMO_FEE, GET_TRANSACTION_FEE};
 use primitives::{StakeType, TransactionFee, TronStakeData, TronUnfreeze, TronVote};
 
-const FEE_LIMIT_BUFFER_PERCENT: u64 = 20;
+pub(crate) const FEE_LIMIT_BUFFER_PERCENT: u64 = 20;
+pub(crate) const SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT: u64 = 30;
 
 pub(crate) struct FeeEstimateContext<'a> {
     pub(crate) chain_parameters: &'a [ChainParameter],
@@ -52,20 +53,13 @@ pub fn calculate_transfer_fee_rate(
     Ok(BigInt::from(base_fee + memo_fee))
 }
 
-pub fn calculate_transfer_token_fee_rate(
-    chain_parameters: &[ChainParameter],
-    account_usage: &TronAccountUsage,
-    estimated_energy: u64,
-) -> Result<TokenTransferFee, Box<dyn Error + Send + Sync>> {
-    calculate_transfer_token_fee_rate_with_data(chain_parameters, account_usage, estimated_energy, 0, false)
-}
-
-pub fn calculate_transfer_token_fee_rate_with_data(
+pub(crate) fn calculate_token_fee_rate_with_data(
     chain_parameters: &[ChainParameter],
     account_usage: &TronAccountUsage,
     estimated_energy: u64,
     data_bytes: u64,
     has_memo: bool,
+    buffer_percent: u64,
 ) -> Result<TokenTransferFee, Box<dyn Error + Send + Sync>> {
     let energy_price = get_chain_parameter_value(chain_parameters, GET_ENERGY_FEE)? as u64;
     let bandwidth_price = get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)? as u64;
@@ -76,7 +70,7 @@ pub fn calculate_transfer_token_fee_rate_with_data(
     };
     let bandwidth_bytes = DEFAULT_BANDWIDTH_BYTES.saturating_add(data_bytes);
 
-    let fee = calculate_token_transfer_fee_for_bandwidth(account_usage, estimated_energy, energy_price, bandwidth_price, bandwidth_bytes, memo_fee);
+    let fee = calculate_token_transfer_fee_for_bandwidth(account_usage, estimated_energy, energy_price, bandwidth_price, bandwidth_bytes, memo_fee, buffer_percent);
     Ok(fee)
 }
 
@@ -94,7 +88,15 @@ pub struct TokenTransferFee {
 }
 
 pub fn calculate_token_transfer_fee(account_usage: &TronAccountUsage, estimated_energy: u64, energy_price: u64, bandwidth_price: u64) -> TokenTransferFee {
-    calculate_token_transfer_fee_for_bandwidth(account_usage, estimated_energy, energy_price, bandwidth_price, DEFAULT_BANDWIDTH_BYTES, 0)
+    calculate_token_transfer_fee_for_bandwidth(
+        account_usage,
+        estimated_energy,
+        energy_price,
+        bandwidth_price,
+        DEFAULT_BANDWIDTH_BYTES,
+        0,
+        FEE_LIMIT_BUFFER_PERCENT,
+    )
 }
 
 fn calculate_token_transfer_fee_for_bandwidth(
@@ -104,8 +106,9 @@ fn calculate_token_transfer_fee_for_bandwidth(
     bandwidth_price: u64,
     bandwidth_bytes: u64,
     memo_fee: u64,
+    buffer_percent: u64,
 ) -> TokenTransferFee {
-    let energy_with_buffer = apply_buffer(estimated_energy, FEE_LIMIT_BUFFER_PERCENT);
+    let energy_with_buffer = apply_buffer(estimated_energy, buffer_percent);
     let chargeable_energy = account_usage.missing_energy(energy_with_buffer);
 
     let energy_fee = chargeable_energy * energy_price;
@@ -309,6 +312,19 @@ mod tests {
     }
 
     #[test]
+    fn test_calculate_smart_contract_fee_uses_larger_buffer() {
+        let usage = account_usage(0, 0, 0);
+        let params = vec![chain_parameter(GET_ENERGY_FEE, 420), chain_parameter(GET_TRANSACTION_FEE, 1000)];
+
+        let fee = calculate_token_fee_rate_with_data(&params, &usage, 64285, 0, false, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT).unwrap();
+
+        // energy_with_buffer = 64285 * 1.3 = 83570
+        assert_eq!(fee.fee, 83570 * 420 + DEFAULT_BANDWIDTH_BYTES * 1000);
+        assert_eq!(fee.fee_limit, 83570 * 420);
+        assert_eq!(fee.energy_price, 420);
+    }
+
+    #[test]
     fn test_calculate_token_transfer_fee_with_staked_energy() {
         let usage = account_usage(DEFAULT_BANDWIDTH_BYTES, 0, 60000);
 
@@ -334,7 +350,7 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_transfer_token_fee_rate_with_data() {
+    fn test_calculate_token_fee_rate_with_data() {
         let params = vec![
             chain_parameter(GET_ENERGY_FEE, 420),
             chain_parameter(GET_TRANSACTION_FEE, 1000),
@@ -342,7 +358,7 @@ mod tests {
         ];
         let usage = account_usage(0, 0, 0);
 
-        let fee = calculate_transfer_token_fee_rate_with_data(&params, &usage, 100, 65, true).unwrap();
+        let fee = calculate_token_fee_rate_with_data(&params, &usage, 100, 65, true, FEE_LIMIT_BUFFER_PERCENT).unwrap();
 
         assert_eq!(fee.fee, 120 * 420 + (DEFAULT_BANDWIDTH_BYTES + 65) * 1000 + 1_000_000);
         assert_eq!(fee.fee_limit, 120 * 420);

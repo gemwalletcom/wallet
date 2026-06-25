@@ -48,9 +48,17 @@ class MainViewModel @Inject constructor(
 
     private val activeAuthRequestId = AtomicLong(NoActiveAuthRequestId)
 
+    val isWalletConnectEnabled: Boolean = bridgesRepository.isWalletConnectEnabled
+
     private val walletConnectHandler = object : PendingNavigationCoordinator.WalletConnectHandler {
         override fun onPairing(uri: String) = addPairing(uri)
-        override fun onRequest() = showWalletConnectPairingToast()
+        override fun onRequest() {
+            if (isWalletConnectEnabled) {
+                showWalletConnectPairingToast()
+            } else {
+                showWalletConnectUnsupported()
+            }
+        }
     }
 
     init {
@@ -149,7 +157,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun resetWalletConnectError() {
-        _uiState.update { it.copy(walletConnectError = null) }
+        _uiState.update { it.copy(walletConnectError = null, isWalletConnectUnsupportedVisible = false) }
     }
 
     fun showWalletConnectError(error: String) {
@@ -157,6 +165,10 @@ class MainViewModel @Inject constructor(
     }
 
     private fun addPairing(uri: String) {
+        if (!isWalletConnectEnabled) {
+            showWalletConnectUnsupported()
+            return
+        }
         showWalletConnectPairingToast()
         viewModelScope.launch(Dispatchers.IO) {
             bridgesRepository.addPairing(
@@ -171,6 +183,10 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(isWalletConnectPairingToastVisible = true) }
     }
 
+    private fun showWalletConnectUnsupported() {
+        _uiState.update { it.copy(isWalletConnectUnsupportedVisible = true) }
+    }
+
     data class MainUIState(
         val initialAuth: AuthState = AuthState.Required,
         val authState: AuthState? = null,
@@ -178,6 +194,7 @@ class MainViewModel @Inject constructor(
         val hasUnlockedApp: Boolean = false,
         val isWalletConnectPairingToastVisible: Boolean = false,
         val walletConnectError: String? = null,
+        val isWalletConnectUnsupportedVisible: Boolean = false,
     )
 }
 

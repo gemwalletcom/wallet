@@ -3,14 +3,12 @@
 common_cancel = Batal
 common_done = Selesai
 common_secret_phrase = Frasa Rahsia
-common_next = Seterusnya
 common_copy = Salin
 common_share = Kongsi
 common_continue = Teruskan
 common_provider = Pembekal
 common_loading = Memuatkan
 common_address = Alamat
-common_back = Kembali
 common_try_again = Cuba Lagi
 common_paste = Tampal
 common_delete = Padam
@@ -26,7 +24,6 @@ common_phrase = Frasa
 common_manage = Urus
 common_type = Taip
 common_no_results_found = Tiada Hasil Ditemui
-common_yes = Ya
 common_no = Tidak
 common_none = Tiada
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = Nyahsemat
 common_skip = Langkau
 common_warning = Amaran
 common_learn_more = Ketahui Lebih Lanjut
-common_short_name = Gem
 common_description = Penerangan
 common_emoji = Emoji
-common_style = Gaya
 common_avatar = Avatar
-common_photo = Foto
 common_save = Simpan
-common_edit = Sunting
 common_percentage = Peratusan
 common_details = Butiran
 common_info = Info
@@ -152,7 +145,6 @@ transfer_maximum_amount = Jumlah Maksimum ialah %@
 transfer_reserved_fees = Kami telah meninggalkan %@ dalam baki anda untuk menampung yuran rangkaian masa hadapan.
 transfer_freeze_title = Bekukan
 transfer_unfreeze_title = Nyahbekukan
-transfer_sign_transaction_title = Tandatangan Transaksi
 transfer_review_request = Semak Permintaan
 transfer_amount = Jumlah
 transfer_amount_title = Jumlah
@@ -170,7 +162,6 @@ settings_networks_title = Rangkaian
 settings_networks_source = Sumber
 settings_networks_explorer = Penjelajah
 settings_currency = Mata wang
-settings_rate_app = Apl Nilai
 settings_website = Lawati Laman Web
 settings_security = Keselamatan
 settings_enable_value = Dayakan %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Kami tidak dapat mengira yuran rangkaian pa
 errors_invalid_asset_address = Alamat %@ tidak sah
 errors_dust_threshold = Urus niaga gagal kerana jumlahnya terlalu kecil untuk memenuhi keperluan minimum rangkaian %@ (ambang habuk). Had ini memastikan nilai transaksi meliputi yuran dan kos pemprosesan.
 errors_swap_no_quote_available = Tiada sebut harga tersedia.
-errors_swap_not_supported_chain = Tidak disokong rantai.
 errors_swap_not_supported_asset = Aset tidak disokong.
-errors_swap_not_supported_pair = Tidak disokong pasangan.
 errors_connections_invalid_send_parameters = Parameter tidak sah disediakan untuk menghantar transaksi.
 errors_connections_invalid_sign_parameters = Parameter tidak sah disediakan untuk menandatangani.
 errors_connections_no_supported_wallets = Tiada dompet yang disokong tersedia.
@@ -290,7 +279,6 @@ asset_balances_available = Tersedia
 asset_price = Harga
 asset_market_cap = Modal Pasaran
 asset_trading_volume = Jumlah dagangan (24j)
-asset_market_cap_rank = Kedudukan Cap Pasaran
 asset_total_supply = Jumlah Bekalan
 asset_circulating_supply = Bekalan Beredar
 asset_balances_reserved = Terpelihara
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Sambungan
 wallet_connect_disconnect = Putuskan sambungan
 wallet_connect_connect_title = Sambung
 wallet_connect_app = Apl
-wallet_connect_website = Laman web
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Tiada sambungan aktif
 wallet_connect_state_empty_description = Imbas atau tampal kod untuk menyambung ke DApp
-wallet_connect_domain = Domain
 wallet_connect_permissions_title = Kebenaran
 wallet_connect_permissions_view_balance = Lihat baki dan aktiviti anda
 wallet_connect_permissions_approval_requests = Hantar permintaan kelulusan
@@ -379,8 +365,6 @@ stake_deactivating = Menyahaktifkan
 stake_awaiting_withdrawal = Menunggu Pengeluaran
 stake_active_in = Aktif Dalam
 stake_minimum_amount = Jumlah minimum
-stake_viagem = Stake melalui Gem Wallet
-stake_no_active_staking = Tiada staking aktif lagi.
 stake_state_empty_title = Pertaruhan anda akan muncul di sini
 stake_state_empty_description = Pertaruhkan %@ pertama anda
 stake_resource = Sumber
@@ -404,7 +388,6 @@ assets_title = Aset
 
 # Sign Message
 
-sign_message_title = Tandatangan Mesej
 sign_message_message = Mesej
 sign_message_view_full_message = Lihat Mesej Penuh
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Anda tidak mempunyai cukup %@ untuk meny
 info_account_minimum_balance_title = Baki minimum
 info_perpetual_funding_payments_title = Pembayaran Pembiayaan
 info_perpetual_funding_payments_description = Pembayaran pembiayaan ialah pembayaran berkala antara pedagang untuk memastikan harga kontrak kekal hampir dengan harga spot aset pendasar. Pembiayaan positif bermakna kedudukan panjang membayar kedudukan pendek, manakala pembiayaan negatif bermakna kedudukan pendek membayar kedudukan panjang.
-info_perpetual_funding_rate_title = Pembiayaan
-info_perpetual_funding_rate_description = Kadar pembiayaan menentukan kos memegang kedudukan kekal. Ia dikira setiap jam dan membantu mengekalkan keseimbangan harga antara kontrak kekal dan harga spot aset pendasar.
 info_perpetual_liquidation_price_title = Harga Pembubaran
 info_perpetual_liquidation_price_description = Harga pembubaran ialah paras harga di mana kedudukan anda akan ditutup secara automatik untuk mengelakkan kerugian selanjutnya. Apabila harga pasaran mencapai tahap ini, kedudukan anda dibubarkan dan anda kehilangan margin anda.
 info_perpetual_open_interest_title = Minat Terbuka
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Setuju dan Teruskan
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Tingkatkan Kedudukan
 perpetual_open_direction = Buka %@
 perpetual_close_direction = Tutup %@
 perpetual_leverage = Leverage
-perpetual_direction = Arah
 perpetual_auto_close = Auto Tutup
 perpetual_auto_close_take_profit = Ambil untung
 perpetual_market_price = Harga Pasaran
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Aset yang anda gunakan baru-baru ini a
 
 notifications_inapp_state_empty_title = Tiada pemberitahuan lagi
 notifications_inapp_state_empty_description = Anda akan melihat kemas kini tentang pemberitahuan anda di sini
-notifications_inapp_rewards_invite_subtitle = Jemput rakan-rakan dan dapatkan ganjaran bersama-sama
 
 # Earn
 

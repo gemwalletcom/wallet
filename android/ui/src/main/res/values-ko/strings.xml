@@ -3,14 +3,12 @@
   <string name="common_cancel">취소</string>
   <string name="common_done">완료</string>
   <string name="common_secret_phrase">비밀 문구</string>
-  <string name="common_next">다음</string>
   <string name="common_copy">복사</string>
   <string name="common_share">공유</string>
   <string name="common_continue">계속</string>
   <string name="common_provider">공급자</string>
   <string name="common_loading">로딩 중</string>
   <string name="common_address">주소</string>
-  <string name="common_back">뒤로</string>
   <string name="common_try_again">다시 시도</string>
   <string name="common_paste">붙여넣기</string>
   <string name="common_delete">삭제</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">관리</string>
   <string name="common_type">유형</string>
   <string name="common_no_results_found">검색 결과가 없습니다</string>
-  <string name="common_yes">예</string>
   <string name="common_no">아니요</string>
   <string name="common_none">없음</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">건너뛰기</string>
   <string name="common_warning">경고</string>
   <string name="common_learn_more">더 알아보기</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">설명</string>
   <string name="common_emoji">이모티콘</string>
-  <string name="common_style">스타일</string>
   <string name="common_avatar">아바타</string>
-  <string name="common_photo">사진</string>
   <string name="common_save">저장</string>
-  <string name="common_edit">편집</string>
   <string name="common_percentage">백분율</string>
   <string name="common_details">세부</string>
   <string name="common_info">정보</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">향후 네트워크 수수료를 충당하기 위해 잔액에 %1$s 남겨두었습니다.</string>
   <string name="transfer_freeze_title">동결</string>
   <string name="transfer_unfreeze_title">녹이다</string>
-  <string name="transfer_sign_transaction_title">거래 서명</string>
   <string name="transfer_review_request">검토 요청</string>
   <string name="transfer_amount">금액</string>
   <string name="transfer_amount_title">금액</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">원천</string>
   <string name="settings_networks_explorer">익스플로러</string>
   <string name="settings_currency">통화</string>
-  <string name="settings_rate_app">앱 평가</string>
   <string name="settings_website">웹사이트 방문</string>
   <string name="settings_security">보안</string>
   <string name="settings_enable_value">%1$s 활성화</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">잘못된 %1$s 주소</string>
   <string name="errors_dust_threshold">거래가 %1$s 네트워크의 최소 요구 사항(먼지 임계값)을 충족하기에 너무 적어 실패했습니다. 이 한도는 거래 금액이 수수료 및 처리 비용을 충당할 수 있도록 보장합니다.</string>
   <string name="errors_swap_no_quote_available">사용 가능한 견적이 없습니다.</string>
-  <string name="errors_swap_not_supported_chain">지원되지 않는 체인입니다.</string>
   <string name="errors_swap_not_supported_asset">지원되지 않는 자산입니다.</string>
-  <string name="errors_swap_not_supported_pair">지원되지 않는 쌍입니다.</string>
   <string name="errors_connections_invalid_send_parameters">거래를 보내기 위한 매개변수가 잘못되었습니다.</string>
   <string name="errors_connections_invalid_sign_parameters">서명에 잘못된 매개변수가 제공되었습니다.</string>
   <string name="errors_connections_no_supported_wallets">지원되는 지갑이 없습니다.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">가격</string>
   <string name="asset_market_cap">시가총액</string>
   <string name="asset_trading_volume">거래량(24시간)</string>
-  <string name="asset_market_cap_rank">시가총액 순위</string>
   <string name="asset_total_supply">총 공급량</string>
   <string name="asset_circulating_supply">유통 공급량</string>
   <string name="asset_balances_reserved">예약된</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">연결 끊기</string>
   <string name="wallet_connect_connect_title">연결하다</string>
   <string name="wallet_connect_app">앱</string>
-  <string name="wallet_connect_website">웹사이트</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">활성 연결 없음</string>
   <string name="wallet_connect_state_empty_description">DApp에 연결하려면 코드를 스캔하거나 붙여넣으세요.</string>
-  <string name="wallet_connect_domain">도메인</string>
   <string name="wallet_connect_permissions_title">권한</string>
   <string name="wallet_connect_permissions_view_balance">잔액과 활동 내역을 확인하세요</string>
   <string name="wallet_connect_permissions_approval_requests">승인 요청 보내기</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">출금 대기 중</string>
   <string name="stake_active_in">활성 상태</string>
   <string name="stake_minimum_amount">최소 금액</string>
-  <string name="stake_viagem">Gem Wallet을 통한 스테이킹</string>
-  <string name="stake_no_active_staking">아직 활성 스테이킹이 없습니다.</string>
   <string name="stake_state_empty_title">스테이킹 내역이 여기에 표시됩니다</string>
   <string name="stake_state_empty_description">첫 번째 %1$s 스테이킹하세요</string>
   <string name="stake_resource">리소스</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">스테이블코인</string>
   <string name="assets_state_empty_search_description">수동으로 추가해보세요</string>
   <string name="assets_title">자산</string>
-  <string name="sign_message_title">메시지 서명</string>
   <string name="sign_message_message">메시지</string>
   <string name="sign_message_view_full_message">전체 메시지 보기</string>
   <string name="secret_phrase_do_not_share_title">비밀 문구를 공유하지 마세요!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">최소 잔액</string>
   <string name="info_perpetual_funding_payments_title">자금 지불</string>
   <string name="info_perpetual_funding_payments_description">펀딩 지급은 영구 계약 가격을 기초 자산의 현물 가격에 가깝게 유지하기 위해 거래자 간에 정기적으로 지급하는 것입니다. 포지티브 펀딩은 롱 포지션이 숏 포지션에 돈을 지불한다는 의미이고, 네거티브 펀딩은 숏 포지션이 롱 포지션에 돈을 지불한다는 의미입니다.</string>
-  <string name="info_perpetual_funding_rate_title">자금 조달</string>
-  <string name="info_perpetual_funding_rate_description">펀딩 비율에 따라 영구 포지션을 유지하는 데 드는 비용이 결정됩니다. 시간 단위로 계산되며 무기한 계약과 기초 자산의 현물 가격 간의 가격 균형을 유지하는 데 도움이 됩니다.</string>
   <string name="info_perpetual_liquidation_price_title">청산 가격</string>
   <string name="info_perpetual_liquidation_price_description">청산 가격은 추가 손실을 방지하기 위해 귀하의 포지션이 자동으로 청산되는 가격 수준입니다. 시장 가격이 이 수준에 도달하면 귀하의 포지션은 청산되고 증거금을 잃게 됩니다.</string>
   <string name="info_perpetual_open_interest_title">미결제약정</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Gem은 은행이나 거래소가 아니며, 불법적인 목적으로 사용하는 것은 엄격히 금지되어 있다는 것을 알고 있습니다.</string>
   <string name="onboarding_accept_terms_item3_message">본인은 지갑에 접근할 수 없는 경우 Gem이 책임을 지지 않으며 어떤 방식으로도 도움을 줄 수 없다는 점을 이해합니다.</string>
   <string name="onboarding_accept_terms_continue">동의하고 계속하세요</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">위치</string>
   <string name="perpetual_size">크기</string>
   <string name="perpetual_margin">여유</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">%1$s 열기</string>
   <string name="perpetual_close_direction">%1$s 닫기</string>
   <string name="perpetual_leverage">레버리지</string>
-  <string name="perpetual_direction">방향</string>
   <string name="perpetual_auto_close">자동 닫기</string>
   <string name="perpetual_auto_close_take_profit">이익 실현</string>
   <string name="perpetual_market_price">시장 가격</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">최근에 사용한 애셋이 여기에 표시됩니다.</string>
   <string name="notifications_inapp_state_empty_title">아직 알림이 없습니다.</string>
   <string name="notifications_inapp_state_empty_description">알림 관련 업데이트는 여기에서 확인하실 수 있습니다.</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">친구를 초대하고 함께 보상을 받으세요</string>
   <string name="earn_state_empty_title">귀하의 직책이 여기에 표시됩니다.</string>
   <string name="earn_state_empty_description">첫 입금 %1$s</string>
   <string name="contacts_title">연락처</string>

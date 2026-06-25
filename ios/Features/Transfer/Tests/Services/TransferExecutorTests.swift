@@ -40,7 +40,7 @@ struct TransferExecutorTests {
         )
         try await executor.execute(input: input)
 
-        let transactions = try transactionStore.getTransactions(state: .pending)
+        let transactions = try transactionStore.getTransactions(states: [.pending])
         #expect(transactions.count == 1)
         #expect(transactions.first?.id.hash == "order:413978262893")
     }
@@ -66,7 +66,7 @@ struct TransferExecutorTests {
         )
         try await executor.execute(input: input)
 
-        let transactions = try transactionStore.getTransactions(state: .pending)
+        let transactions = try transactionStore.getTransactions(states: [.pending])
         #expect(transactions.count == 2)
         #expect(transactions.map(\.id.hash).sorted() == ["hash0", "hash1"])
     }
@@ -111,7 +111,7 @@ struct TransferExecutorTests {
         )
         try await executor.execute(input: input)
 
-        let transactions = try transactionStore.getTransactions(state: .pending)
+        let transactions = try transactionStore.getTransactions(states: [.pending])
         #expect(transactions.count == 1)
         #expect(transactions.first?.id.hash == "order:413978262893")
         #expect(transactions.first?.type == .swap)
@@ -147,7 +147,7 @@ struct TransferExecutorTests {
         )
         try await executor.execute(input: input)
 
-        let transactions = try transactionStore.getTransactions(state: .pending)
+        let transactions = try transactionStore.getTransactions(states: [.pending])
         #expect(transactions.count == 1)
         #expect(transactions.first?.id.hash == "action:cWithdraw:3001423:1780078264489")
     }
@@ -174,7 +174,7 @@ struct TransferExecutorTests {
 
         try await executor.execute(input: input)
 
-        let transactions = try transactionStore.getTransactions(state: .pending)
+        let transactions = try transactionStore.getTransactions(states: [.pending])
         #expect(transactions.count == 1)
         #expect(transactions.first?.id.hash == "hash")
     }
@@ -201,7 +201,7 @@ struct TransferExecutorTests {
 
         try await executor.execute(input: input)
 
-        let transactions = try transactionStore.getTransactions(state: .pending)
+        let transactions = try transactionStore.getTransactions(states: [.pending])
         #expect(transactions.isEmpty)
     }
 }

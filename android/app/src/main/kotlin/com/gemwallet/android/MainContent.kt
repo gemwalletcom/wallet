@@ -9,8 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.model.AuthState
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
+import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.theme.WalletTheme
 
 @Composable
@@ -19,6 +22,7 @@ internal fun MainContent(
     pendingNavigation: PendingNavigation?,
     systemAuthEnrollmentMissing: Boolean,
     walletConnectViewModel: WalletConnectViewModel,
+    walletConnectEnabled: Boolean,
     onSystemAuthRequired: () -> Unit,
     onIntentConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
@@ -32,7 +36,16 @@ internal fun MainContent(
     val isWalletUnlocked = state.initialAuth == AuthState.Success
     val isEnrollmentRequired = state.initialAuth == AuthState.Required && systemAuthEnrollmentMissing
     val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
-    val walletConnectOverlay = rememberWalletConnectOverlay(walletConnectViewModel, onWalletConnectError)
+    val unsupportedWalletConnectError = if (state.isWalletConnectUnsupportedVisible) {
+        "${stringResource(R.string.wallet_connect_title)}: ${stringResource(R.string.errors_not_supported)}"
+    } else {
+        null
+    }
+    val walletConnectOverlay: @Composable (AssetIdAction) -> Unit = if (walletConnectEnabled) {
+        rememberWalletConnectOverlay(walletConnectViewModel, onWalletConnectError)
+    } else {
+        remember { { _: AssetIdAction -> } }
+    }
     var isWalletContentReady by remember { mutableStateOf(state.hasUnlockedApp) }
     val onWalletContentReady: () -> Unit = remember { { isWalletContentReady = true } }
     val shouldShowLockedSplash = !isWalletUnlocked || !isWalletContentReady
@@ -62,12 +75,14 @@ internal fun MainContent(
             }
         }
 
-        WalletConnectPairingToast(
-            visible = state.isWalletConnectPairingToastVisible,
-            onShown = onWalletConnectPairingToastShown,
-        )
+        if (walletConnectEnabled) {
+            WalletConnectPairingToast(
+                visible = state.isWalletConnectPairingToastVisible,
+                onShown = onWalletConnectPairingToastShown,
+            )
+        }
         WalletConnectErrorDialog(
-            error = state.walletConnectError,
+            error = state.walletConnectError ?: unsupportedWalletConnectError,
             onDismiss = onWalletConnectErrorDismiss,
         )
     }

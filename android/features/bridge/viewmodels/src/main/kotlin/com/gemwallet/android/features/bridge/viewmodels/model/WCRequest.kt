@@ -9,7 +9,7 @@ import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
-import com.reown.walletkit.client.Wallet
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
@@ -27,7 +27,7 @@ import uniffi.gemstone.WalletConnectTransactionType
 import java.math.BigInteger
 
 sealed class WCRequest(
-    internal val sessionRequest: Wallet.Model.SessionRequest,
+    internal val sessionRequest: WalletConnectSessionRequest,
     internal val account: Account,
     private val appMetadata: WalletConnectionSessionAppMetadata,
 ) {
@@ -46,7 +46,7 @@ sealed class WCRequest(
     val chain: Chain get() = account.chain
 
     class SignMessage(
-        sessionRequest: Wallet.Model.SessionRequest,
+        sessionRequest: WalletConnectSessionRequest,
         account: Account,
         appMetadata: WalletConnectionSessionAppMetadata,
         val action: WalletConnectAction.SignMessage,
@@ -97,7 +97,7 @@ sealed class WCRequest(
     }
 
     abstract class Transaction(
-        sessionRequest: Wallet.Model.SessionRequest,
+        sessionRequest: WalletConnectSessionRequest,
         account: Account,
         appMetadata: WalletConnectionSessionAppMetadata,
         val isSendable: Boolean,
@@ -113,7 +113,7 @@ sealed class WCRequest(
         abstract fun execute(result: String): String
 
         abstract class Signing(
-            sessionRequest: Wallet.Model.SessionRequest,
+            sessionRequest: WalletConnectSessionRequest,
             account: Account,
             appMetadata: WalletConnectionSessionAppMetadata,
             transactionType: WalletConnectTransactionType,
@@ -131,7 +131,7 @@ sealed class WCRequest(
         )
 
         class SignTransaction(
-            sessionRequest: Wallet.Model.SessionRequest,
+            sessionRequest: WalletConnectSessionRequest,
             account: Account,
             appMetadata: WalletConnectionSessionAppMetadata,
             val action: WalletConnectAction.SignTransaction,
@@ -150,7 +150,7 @@ sealed class WCRequest(
         }
 
         class SignAllTransactions(
-            sessionRequest: Wallet.Model.SessionRequest,
+            sessionRequest: WalletConnectSessionRequest,
             account: Account,
             appMetadata: WalletConnectionSessionAppMetadata,
             transactionType: WalletConnectTransactionType,
@@ -170,7 +170,7 @@ sealed class WCRequest(
         }
 
         class SendTransaction(
-            sessionRequest: Wallet.Model.SessionRequest,
+            sessionRequest: WalletConnectSessionRequest,
             account: Account,
             appMetadata: WalletConnectionSessionAppMetadata,
             val action: WalletConnectAction.SendTransaction,

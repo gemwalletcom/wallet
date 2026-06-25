@@ -1,0 +1,32 @@
+<p>Gem Wallet is an open-source, non-custodial crypto wallet for managing assets across 100+ blockchains. No personal account is required: back up your recovery phrase and stay in control of your funds.</p>
+
+<strong>Wallet Features</strong>
+<ul>
+    <li>Send and receive Bitcoin, Ethereum, Solana, USDT, USDC, BNB, XRP, Tron, and many other assets.</li>
+    <li>Manage multiple wallets and accounts in one app.</li>
+    <li>Protect access with local encryption, PIN protection, and biometric authentication.</li>
+    <li>Add custom tokens and custom RPC nodes.</li>
+    <li>View balances, transactions, NFTs, staking, and market data.</li>
+</ul>
+
+<strong>DeFi and Payments</strong>
+<ul>
+    <li>Swap tokens through integrated decentralized exchange providers.</li>
+    <li>Use QR codes and saved contacts for payments.</li>
+    <li>Stake supported assets and track rewards.</li>
+    <li>Review transaction details before signing.</li>
+</ul>
+
+<strong>Privacy and Control</strong>
+<ul>
+    <li>Non-custodial design keeps private keys on your device.</li>
+    <li>No registration or personal account is required.</li>
+    <li>Open-source code is available for review.</li>
+</ul>
+
+<strong>Project Information</strong>
+<p>Author: Gem Wallet</p>
+<p>Website: https://gemwallet.com</p>
+<p>Source code: https://github.com/gemwalletcom/wallet</p>
+<p>Support: support@gemwallet.com</p>
+<p>Privacy Policy: https://gemwallet.com/privacy</p>

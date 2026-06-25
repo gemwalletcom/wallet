@@ -15,6 +15,10 @@ impl ChainSigner for TronChainSigner {
         transaction::sign_token_transfer(input, private_key)
     }
 
+    fn sign_token_approval(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        transaction::sign_token_approval(input, private_key)
+    }
+
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         transaction::sign_swap(input, private_key)
     }
@@ -44,7 +48,7 @@ mod tests {
         Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, Resource, SignerInput, StakeType, SwapProvider, TransactionFee,
         TransactionInputType, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote,
         WalletConnectionSessionAppMetadata, decode_hex,
-        swap::{SwapData, SwapQuote, SwapQuoteData},
+        swap::{ApprovalData, SwapData, SwapQuote, SwapQuoteData},
     };
     use serde_json::{Value, json};
 
@@ -230,6 +234,41 @@ mod tests {
         assert_eq!(output["raw_data"]["fee_limit"], 20);
     }
 
+    #[test]
+    fn sign_token_approval_builds_trc20_trigger_contract() {
+        let transaction_fee = fee(0, 25_000_000);
+        let input = SignerInput::mock_tron(
+            TransactionInputType::TokenApprove(
+                trc20_asset("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+                ApprovalData {
+                    token: "0xa614f803B6FD780986A42c78Ec9c7f77e6DeD13C".to_string(),
+                    spender: "0xc148aF9B50Bc03Cc0c616Cd85C66Aae9bD90cD80".to_string(),
+                    value: "10000000".to_string(),
+                    is_unlimited: true,
+                },
+            ),
+            SENDER,
+            RECIPIENT,
+            "0",
+            transaction_fee.clone(),
+            None,
+            metadata(TronStakeData::Votes(vec![])),
+        );
+        let output = signed_json(TronChainSigner.sign_token_approval(&input, &private_key()).unwrap());
+        let contract = &output["raw_data"]["contract"][0];
+        let value = &contract["parameter"]["value"];
+
+        assert_eq!(contract["type"], "TriggerSmartContract");
+        assert_eq!(value["contract_address"], "41a614f803b6fd780986a42c78ec9c7f77e6ded13c");
+        assert_eq!(value["owner_address"], "415cd0fb0ab3ce40f3051414c604b27756e69e43db");
+        assert_eq!(
+            value["data"],
+            "095ea7b3000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        );
+        assert_eq!(output["raw_data"]["fee_limit"], transaction_fee.gas_limit().unwrap());
+        assert_raw_recovery_id(&output);
+    }
+
     fn swap_input(use_max_amount: Option<bool>, min_from_value: Option<&str>, value: &str, transaction_fee: TransactionFee) -> SignerInput {
         let mut swap_data = SwapData::mock_transfer(SwapProvider::Okx, value, "1", "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z");
         swap_data.quote.use_max_amount = use_max_amount;
@@ -313,6 +352,7 @@ mod tests {
         let note = "0x03001111111111111111111111111111111111111111008901010a0000002523ae929fecd9d665f472f59b99a8ce6b17951000000000000000000000000000000000000000000000000000000000000000000001320000009e8d88ae895c9b37b2dead9757a3452f7c2299704d91ddfa444d87723f94fe0c000000";
         let calldata = "0xa9059cbb0000000000000000000000002523ae929fecd9d665f472f59b99a8ce6b17951000000000000000000000000000000000000000000000000000000000004c4b40";
         let source_token_address = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
+        let transaction_fee = fee(0, 25_000_000);
         let input = SignerInput::mock_tron(
             TransactionInputType::Swap(
                 trc20_asset(source_token_address),
@@ -325,7 +365,7 @@ mod tests {
             NILE_SENDER,
             "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi",
             "5000000",
-            fee(0, 100_000_000),
+            transaction_fee.clone(),
             Some(note),
             nile_metadata(TronStakeData::Votes(vec![])),
         );
@@ -337,6 +377,59 @@ mod tests {
         assert_eq!(value["contract_address"], "41eca9bc828a3005b9a3b909f2cc5c2a54794de05f");
         assert_eq!(value["data"], calldata.trim_start_matches("0x"));
         assert_eq!(output["raw_data"]["data"], note.trim_start_matches("0x"));
+        assert_eq!(output["raw_data"]["fee_limit"], transaction_fee.gas_limit().unwrap());
+    }
+
+    #[test]
+    fn sign_contract_swap_with_approval_builds_approval_then_swap() {
+        let calldata = "0x7b9392320000000000000000000000005cd0fb0ab3ce40f3051414c604b27756e69e43db";
+        let source_token_address = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
+        let loaded_fee = fee(0, 55_000_000);
+        let mut quote_data = SwapQuoteData::mock_contract_call(source_token_address, "0", calldata, None);
+        quote_data.approval = Some(ApprovalData {
+            token: source_token_address.to_string(),
+            spender: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
+            value: "5000000".to_string(),
+            is_unlimited: true,
+        });
+
+        let input = SignerInput::mock_tron(
+            TransactionInputType::Swap(
+                trc20_asset(source_token_address),
+                Asset::from_chain(Chain::Ethereum),
+                SwapData::mock_with_quote_data(
+                    SwapQuote::mock_with_addresses(SwapProvider::Okx, NILE_SENDER, "5000000", "0x1111111111111111111111111111111111111111", "1"),
+                    quote_data,
+                ),
+            ),
+            NILE_SENDER,
+            "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi",
+            "5000000",
+            loaded_fee.clone(),
+            None,
+            nile_metadata(TronStakeData::Votes(vec![])),
+        );
+
+        let outputs = TronChainSigner.sign_swap(&input, &nile_private_key()).unwrap();
+
+        assert_eq!(outputs.len(), 2);
+
+        let approval = signed_json(outputs[0].clone());
+        let approval_value = &approval["raw_data"]["contract"][0]["parameter"]["value"];
+        assert_eq!(approval["raw_data"]["contract"][0]["type"], "TriggerSmartContract");
+        assert_eq!(approval_value["contract_address"], "41eca9bc828a3005b9a3b909f2cc5c2a54794de05f");
+        assert_eq!(
+            approval_value["data"],
+            "095ea7b30000000000000000000000412523ae929fecd9d665f472f59b99a8ce6b179510ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        );
+        assert_eq!(approval["raw_data"]["fee_limit"], loaded_fee.gas_limit().unwrap());
+
+        let swap = signed_json(outputs[1].clone());
+        let swap_value = &swap["raw_data"]["contract"][0]["parameter"]["value"];
+        assert_eq!(swap["raw_data"]["contract"][0]["type"], "TriggerSmartContract");
+        assert_eq!(swap_value["contract_address"], "41eca9bc828a3005b9a3b909f2cc5c2a54794de05f");
+        assert_eq!(swap_value["data"], calldata.trim_start_matches("0x"));
+        assert_eq!(swap["raw_data"]["fee_limit"], loaded_fee.gas_limit().unwrap());
     }
 
     // Source vector:

@@ -43,13 +43,9 @@ interface WebSocketConnectable {
 class WebSocketConnection(
     private val requestProvider: suspend () -> WebSocketRequest,
     private val reconnection: ExponentialReconnection = ExponentialReconnection(),
-    pingInterval: Long = PING_INTERVAL_MS,
+    private val pingInterval: Long = PING_INTERVAL_MS,
 ) : WebSocketConnectable {
-    private val client = HttpClient(CIO) {
-        install(WebSockets) {
-            pingIntervalMillis = pingInterval
-        }
-    }
+    private val client by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { createClient() }
 
     private val mutex = Mutex()
     private var sendChannel: SendChannel<String>? = null
@@ -100,6 +96,12 @@ class WebSocketConnection(
                 }
                 messages.close()
             }
+        }
+    }
+
+    private fun createClient(): HttpClient = HttpClient(CIO) {
+        install(WebSockets) {
+            pingIntervalMillis = pingInterval
         }
     }
 

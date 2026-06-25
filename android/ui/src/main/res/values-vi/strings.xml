@@ -3,14 +3,12 @@
   <string name="common_cancel">Hủy bỏ</string>
   <string name="common_done">Xong</string>
   <string name="common_secret_phrase">Cụm từ bí mật</string>
-  <string name="common_next">Tiếp theo</string>
   <string name="common_copy">Sao chép</string>
   <string name="common_share">Chia sẻ</string>
   <string name="common_continue">Tiếp tục</string>
   <string name="common_provider">Nhà cung cấp</string>
   <string name="common_loading">Đang tải</string>
   <string name="common_address">Địa chỉ</string>
-  <string name="common_back">Quay lại</string>
   <string name="common_try_again">Thử lại</string>
   <string name="common_paste">Dán</string>
   <string name="common_delete">Xóa bỏ</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Quản lý</string>
   <string name="common_type">Kiểu</string>
   <string name="common_no_results_found">Không có kết quả nào được tìm thấy</string>
-  <string name="common_yes">Có</string>
   <string name="common_no">Không</string>
   <string name="common_none">Không có</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Bỏ qua</string>
   <string name="common_warning">Cảnh báo</string>
   <string name="common_learn_more">Tìm hiểu thêm</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Sự miêu tả</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Phong cách</string>
   <string name="common_avatar">Hình đại diện</string>
-  <string name="common_photo">Ảnh</string>
   <string name="common_save">Lưu</string>
-  <string name="common_edit">Chỉnh sửa</string>
   <string name="common_percentage">Phần trăm</string>
   <string name="common_details">Chi tiết</string>
   <string name="common_info">Thông tin</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Chúng tôi đã để lại %1$s trong số dư của bạn để trang trải phí mạng trong tương lai.</string>
   <string name="transfer_freeze_title">Đóng băng</string>
   <string name="transfer_unfreeze_title">Giải đông</string>
-  <string name="transfer_sign_transaction_title">Ký giao dịch</string>
   <string name="transfer_review_request">Yêu cầu xem xét</string>
   <string name="transfer_amount">Số lượng</string>
   <string name="transfer_amount_title">Số lượng</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Nguồn</string>
   <string name="settings_networks_explorer">Trình duyệt khối</string>
   <string name="settings_currency">Tiền tệ</string>
-  <string name="settings_rate_app">Đánh giá ứng dụng</string>
   <string name="settings_website">Truy cập trang web</string>
   <string name="settings_security">Bảo vệ</string>
   <string name="settings_enable_value">Bật %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Địa chỉ %1$s không hợp lệ</string>
   <string name="errors_dust_threshold">Giao dịch không thành công vì số tiền quá nhỏ để đáp ứng yêu cầu tối thiểu của mạng %1$s (ngưỡng bụi). Giới hạn này đảm bảo giá trị giao dịch bao gồm phí và chi phí xử lý.</string>
   <string name="errors_swap_no_quote_available">Không có báo giá khả dụng.</string>
-  <string name="errors_swap_not_supported_chain">Chuỗi không được hỗ trợ.</string>
   <string name="errors_swap_not_supported_asset">Tài sản không được hỗ trợ.</string>
-  <string name="errors_swap_not_supported_pair">Cặp không được hỗ trợ.</string>
   <string name="errors_connections_invalid_send_parameters">Tham số được cung cấp để gửi giao dịch không hợp lệ.</string>
   <string name="errors_connections_invalid_sign_parameters">Các tham số được cung cấp để ký không hợp lệ.</string>
   <string name="errors_connections_no_supported_wallets">Không có ví nào được hỗ trợ.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Giá</string>
   <string name="asset_market_cap">Vốn hóa thị trường</string>
   <string name="asset_trading_volume">Khối lượng giao dịch (24h)</string>
-  <string name="asset_market_cap_rank">Xếp hạng vốn hóa thị trường</string>
   <string name="asset_total_supply">Tổng cung</string>
   <string name="asset_circulating_supply">Nguồn cung lưu thông</string>
   <string name="asset_balances_reserved">Dự trữ</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Ngắt kết nối</string>
   <string name="wallet_connect_connect_title">Kết nối</string>
   <string name="wallet_connect_app">Ứng dụng</string>
-  <string name="wallet_connect_website">Trang mạng</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Không có kết nối hoạt động</string>
   <string name="wallet_connect_state_empty_description">Quét hoặc dán mã để kết nối với DApp</string>
-  <string name="wallet_connect_domain">Tên miền</string>
   <string name="wallet_connect_permissions_title">Quyền hạn</string>
   <string name="wallet_connect_permissions_view_balance">Xem số dư và hoạt động của bạn</string>
   <string name="wallet_connect_permissions_approval_requests">Gửi yêu cầu phê duyệt</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Đang chờ rút tiền</string>
   <string name="stake_active_in">Đang hoạt động ở</string>
   <string name="stake_minimum_amount">Số tiền tối thiểu</string>
-  <string name="stake_viagem">Đặt cọc qua Gem Wallet</string>
-  <string name="stake_no_active_staking">Chưa có hoạt động đặt cược nào.</string>
   <string name="stake_state_empty_title">Khoản đặt cọc của bạn sẽ xuất hiện ở đây</string>
   <string name="stake_state_empty_description">Đặt cược %1$s đầu tiên của bạn</string>
   <string name="stake_resource">Tài nguyên</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Đồng tiền ổn định</string>
   <string name="assets_state_empty_search_description">Bạn có thể thử thêm nó theo cách thủ công</string>
   <string name="assets_title">Tài sản</string>
-  <string name="sign_message_title">Ký tin nhắn</string>
   <string name="sign_message_message">Tin nhắn</string>
   <string name="sign_message_view_full_message">Xem toàn bộ tin nhắn</string>
   <string name="secret_phrase_do_not_share_title">Đừng chia sẻ Cụm từ bí mật của bạn!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Số dư tối thiểu</string>
   <string name="info_perpetual_funding_payments_title">Thanh toán tài trợ</string>
   <string name="info_perpetual_funding_payments_description">Thanh toán cấp vốn là khoản thanh toán định kỳ giữa các nhà giao dịch để giữ giá hợp đồng vĩnh viễn gần với giá giao ngay của tài sản cơ bản. Nguồn vốn dương có nghĩa là các vị thế mua sẽ trả cho các vị thế bán, trong khi nguồn vốn âm có nghĩa là các vị thế bán sẽ trả cho các vị thế mua.</string>
-  <string name="info_perpetual_funding_rate_title">Tài trợ</string>
-  <string name="info_perpetual_funding_rate_description">Tỷ lệ tài trợ xác định chi phí để giữ một vị thế vĩnh viễn. Nó được tính toán hàng giờ và giúp duy trì sự cân bằng giá giữa hợp đồng vĩnh viễn và giá giao ngay của tài sản cơ bản.</string>
   <string name="info_perpetual_liquidation_price_title">Giá thanh lý</string>
   <string name="info_perpetual_liquidation_price_description">Giá thanh lý là mức giá mà tại đó vị thế của bạn sẽ tự động bị đóng để tránh thua lỗ thêm. Khi giá thị trường đạt đến mức này, vị thế của bạn sẽ bị thanh lý và bạn mất tiền ký quỹ.</string>
   <string name="info_perpetual_open_interest_title">Vị thế mở</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Tôi hiểu rằng Gem không phải là ngân hàng hay sàn giao dịch và việc sử dụng Gem cho mục đích bất hợp pháp là hoàn toàn bị nghiêm cấm.</string>
   <string name="onboarding_accept_terms_item3_message">Tôi hiểu rằng nếu tôi mất quyền truy cập vào ví của mình, Gem sẽ không chịu trách nhiệm pháp lý và không thể trợ giúp dưới bất kỳ hình thức nào.</string>
   <string name="onboarding_accept_terms_continue">Đồng ý và tiếp tục</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Vị thế</string>
   <string name="perpetual_size">Kích cỡ</string>
   <string name="perpetual_margin">Ký quỹ</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Mở %1$s</string>
   <string name="perpetual_close_direction">Đóng %1$s</string>
   <string name="perpetual_leverage">Đòn bẩy</string>
-  <string name="perpetual_direction">Phương hướng</string>
   <string name="perpetual_auto_close">Tự động đóng</string>
   <string name="perpetual_auto_close_take_profit">Kiếm lợi nhuận</string>
   <string name="perpetual_market_price">Giá thị trường</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Nội dung bạn sử dụng gần đây sẽ xuất hiện ở đây</string>
   <string name="notifications_inapp_state_empty_title">Chưa có thông báo nào</string>
   <string name="notifications_inapp_state_empty_description">Bạn sẽ thấy các cập nhật về thông báo của mình ở đây.</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Mời bạn bè và cùng nhau nhận phần thưởng.</string>
   <string name="earn_state_empty_title">Vị trí của bạn sẽ hiển thị ở đây</string>
   <string name="earn_state_empty_description">Gửi khoản tiền đầu tiên của bạn %1$s</string>
   <string name="contacts_title">Liên hệ</string>

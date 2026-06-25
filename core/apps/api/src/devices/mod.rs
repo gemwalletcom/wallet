@@ -375,7 +375,7 @@ pub async fn get_device_fiat_assets_v2(
     Ok(assets.into())
 }
 
-#[get("/devices/fiat/quotes/<quote_type>/<asset_id>?<amount>&<currency>&<provider>&<ip_address>")]
+#[get("/devices/fiat/quotes/<quote_type>/<asset_id>?<amount>&<currency>&<provider>")]
 pub async fn get_fiat_quotes_v2(
     _device: AuthenticatedDeviceWallet,
     quote_type: FiatQuoteTypeParam,
@@ -383,7 +383,6 @@ pub async fn get_fiat_quotes_v2(
     amount: f64,
     currency: CurrencyParam,
     provider: Option<FiatProviderIdParam>,
-    ip_address: Option<&str>,
     ip: std::net::IpAddr,
     client: &State<Mutex<FiatQuotesClient>>,
 ) -> Result<ApiResponse<FiatQuotes>, ApiError> {
@@ -393,7 +392,7 @@ pub async fn get_fiat_quotes_v2(
         amount,
         currency: currency.as_string(),
         provider_id: provider.map(|p| p.0.id().to_string()),
-        ip_address: ip_address.map(str::to_string).unwrap_or_else(|| ip.to_string()),
+        ip_address: ip.to_string(),
     };
     let quotes = client.lock().await.get_quotes(quote_request).await?;
     Ok(quotes.into())

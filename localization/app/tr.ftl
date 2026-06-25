@@ -3,14 +3,12 @@
 common_cancel = İptal
 common_done = Tamam
 common_secret_phrase = Gizli İfade
-common_next = Sonraki
 common_copy = Kopyala
 common_share = Paylaş
 common_continue = Devam et
 common_provider = Sağlayıcı
 common_loading = Yükleniyor
 common_address = Adres
-common_back = Geri
 common_try_again = Tekrar deneyin
 common_paste = Yapıştır
 common_delete = Sil
@@ -26,7 +24,6 @@ common_phrase = İfade
 common_manage = Yönet
 common_type = Tip
 common_no_results_found = Sonuç bulunamadı
-common_yes = Evet
 common_no = Hayır
 common_none = Yok
 common_url = URL'si
@@ -39,14 +36,10 @@ common_unpin = Kaldır
 common_skip = Atla
 common_warning = Uyarı
 common_learn_more = Daha fazla bilgi edin
-common_short_name = Gem
 common_description = Tanım
 common_emoji = Emoji
-common_style = Stil
 common_avatar = Avatar
-common_photo = Fotoğraf
 common_save = Kaydet
-common_edit = Düzenle
 common_percentage = Yüzde
 common_details = Detaylar
 common_info = Bilgi
@@ -152,7 +145,6 @@ transfer_maximum_amount = Maksimum Tutar %@
 transfer_reserved_fees = Gelecekteki ağ ücretlerini karşılamak için bakiyenizde %@ bıraktık.
 transfer_freeze_title = Dondur
 transfer_unfreeze_title = Çöz
-transfer_sign_transaction_title = İmza İşlemi
 transfer_review_request = İnceleme Talebi
 transfer_amount = Miktar
 transfer_amount_title = Miktar
@@ -170,7 +162,6 @@ settings_networks_title = Ağlar
 settings_networks_source = Kaynak
 settings_networks_explorer = Kaşif
 settings_currency = Para birimi
-settings_rate_app = Uygulamayı Değerlendirin
 settings_website = Web Sitesini Ziyaret Et
 settings_security = Güvenlik
 settings_enable_value = %@ etkinleştir
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Şu anda ağ ücretini hesaplayamıyoruz.
 errors_invalid_asset_address = Geçersiz %@ adresi
 errors_dust_threshold = İşlem, tutarın %@ ağının minimum gereksinimini (toz eşiği) karşılamak için çok küçük olması nedeniyle başarısız oldu. Bu sınır, işlem değerinin ücretleri ve işlem maliyetlerini karşılamasını sağlar.
 errors_swap_no_quote_available = Kullanılabilir teklif yok.
-errors_swap_not_supported_chain = Desteklenmeyen zincir.
 errors_swap_not_supported_asset = Desteklenmeyen varlık.
-errors_swap_not_supported_pair = Desteklenmeyen çift.
 errors_connections_invalid_send_parameters = Bir işlem göndermek için geçersiz parametreler sağlandı.
 errors_connections_invalid_sign_parameters = İmzalama için geçersiz parametreler sağlandı.
 errors_connections_no_supported_wallets = Desteklenen cüzdan yok.
@@ -290,7 +279,6 @@ asset_balances_available = Mevcut
 asset_price = Fiyat
 asset_market_cap = Piyasa değeri
 asset_trading_volume = İşlem Hacmi (24 saat)
-asset_market_cap_rank = Piyasa Değeri Sıralaması
 asset_total_supply = Toplam Arz
 asset_circulating_supply = Dolaşımdaki Tedarik
 asset_balances_reserved = Rezerve
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Bağlantı
 wallet_connect_disconnect = Bağlantıyı kes
 wallet_connect_connect_title = Bağlamak
 wallet_connect_app = Uygulama
-wallet_connect_website = İnternet sitesi
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Etkin bağlantı yok
 wallet_connect_state_empty_description = DApp'e bağlanmak için kodu tarayın veya yapıştırın
-wallet_connect_domain = Etki alanı
 wallet_connect_permissions_title = İzinler
 wallet_connect_permissions_view_balance = Bakiyenizi ve işlemlerinizi görüntüleyin.
 wallet_connect_permissions_approval_requests = Onay isteklerini gönderin
@@ -379,8 +365,6 @@ stake_deactivating = Devre dışı bırakılıyor
 stake_awaiting_withdrawal = Para Çekme Bekleniyor
 stake_active_in = Şunda aktif olur
 stake_minimum_amount = Minimum miktar
-stake_viagem = Gem Wallet ile stake et
-stake_no_active_staking = Henüz aktif staking yok.
 stake_state_empty_title = Stake'leriniz burada görünecek
 stake_state_empty_description = İlk %@ stake'inizi yapın
 stake_resource = Kaynak
@@ -404,7 +388,6 @@ assets_title = Varlıklar
 
 # Sign Message
 
-sign_message_title = Mesajı İmzala
 sign_message_message = İleti
 sign_message_view_full_message = Mesajın Tamamını Görüntüle
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Bu işlemi tamamlamak için yeterli %@ i
 info_account_minimum_balance_title = Minimum bakiye
 info_perpetual_funding_payments_title = Finansman Ödemeleri
 info_perpetual_funding_payments_description = Fonlama ödemeleri, daimi sözleşme fiyatını dayanak varlığın spot fiyatına yakın tutmak için yatırımcılar arasında yapılan periyodik ödemelerdir. Pozitif fonlama, uzun pozisyonların kısa pozisyon ödediği anlamına gelirken, negatif fonlama, kısa pozisyonların uzun pozisyon ödediği anlamına gelir.
-info_perpetual_funding_rate_title = Finansman
-info_perpetual_funding_rate_description = Fonlama oranı, kalıcı bir pozisyon tutmanın maliyetini belirler. Saatlik olarak hesaplanır ve kalıcı sözleşme ile dayanak varlığın spot fiyatı arasındaki fiyat dengesinin korunmasına yardımcı olur.
 info_perpetual_liquidation_price_title = Tasfiye Fiyatı
 info_perpetual_liquidation_price_description = Tasfiye fiyatı, daha fazla kaybın önlenmesi amacıyla pozisyonunuzun otomatik olarak kapatılacağı fiyat seviyesidir. Piyasa fiyatı bu seviyeye ulaştığında pozisyonunuz tasfiye edilir ve marjınızı kaybedersiniz.
 info_perpetual_open_interest_title = Açık Pozisyon
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Kabul et ve Devam Et
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Pozisyonu Artır
 perpetual_open_direction = %@ yi aç
 perpetual_close_direction = %@ yi kapatın
 perpetual_leverage = Kaldıraç
-perpetual_direction = Yön
 perpetual_auto_close = Otomatik Kapatma
 perpetual_auto_close_take_profit = Kar al
 perpetual_market_price = Piyasa Fiyatı
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Yakın zamanda kullandığınız varl�
 
 notifications_inapp_state_empty_title = Henüz hiçbir bildirim yok.
 notifications_inapp_state_empty_description = Bildirimlerinizle ilgili güncellemeleri burada göreceksiniz.
-notifications_inapp_rewards_invite_subtitle = Arkadaşlarınızı davet edin ve birlikte ödüller kazanın.
 
 # Earn
 

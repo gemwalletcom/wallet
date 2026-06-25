@@ -3,14 +3,12 @@
 common_cancel = Kanselahin
 common_done = Tapos na
 common_secret_phrase = Lihim na Parirala
-common_next = Susunod
 common_copy = Kopyahin
 common_share = Ibahagi
 common_continue = Magpatuloy
 common_provider = Provider
 common_loading = Naglo-load
 common_address = Address
-common_back = Bumalik
 common_try_again = Subukan Muli
 common_paste = Idikit
 common_delete = Tanggalin
@@ -26,7 +24,6 @@ common_phrase = Parirala
 common_manage = Pamahalaan
 common_type = Uri
 common_no_results_found = Walang Nahanap na Resulta
-common_yes = Oo
 common_no = Hindi
 common_none = Wala
 common_url = URL
@@ -39,14 +36,10 @@ common_unpin = I-unpin
 common_skip = Laktawan
 common_warning = Babala
 common_learn_more = Matuto pa
-common_short_name = Gem
 common_description = Paglalarawan
 common_emoji = Emoji
-common_style = Estilo
 common_avatar = Avatar
-common_photo = Larawan
 common_save = I-save
-common_edit = I-edit
 common_percentage = Porsiyento
 common_details = Mga Detalye
 common_info = Impormasyon
@@ -152,7 +145,6 @@ transfer_maximum_amount = Ang Maximum na Halaga ay %@
 transfer_reserved_fees = Iniwan namin ang %@ sa iyong balanse upang mabayaran ang mga bayarin sa network sa hinaharap.
 transfer_freeze_title = I-freeze
 transfer_unfreeze_title = I-unfreeze
-transfer_sign_transaction_title = Pirmahan ang Transaksyon
 transfer_review_request = Suriin ang Kahilingan
 transfer_amount = Halaga
 transfer_amount_title = Halaga
@@ -170,7 +162,6 @@ settings_networks_title = Mga network
 settings_networks_source = Pinagmulan
 settings_networks_explorer = Explorer
 settings_currency = Pera
-settings_rate_app = I-rate ang App
 settings_website = Bisitahin ang Website
 settings_security = Seguridad
 settings_enable_value = Paganahin ang %@
@@ -221,9 +212,7 @@ errors_unable_estimate_network_fee = Kasalukuyan naming hindi makalkula ang baya
 errors_invalid_asset_address = Di-wastong %@ address
 errors_dust_threshold = Nabigo ang transaksyon dahil napakaliit ng halaga upang matugunan ang minimum na kinakailangan ng %@ network (dust threshold). Tinitiyak ng limitasyong ito na saklaw ng halaga ng transaksyon ang mga bayarin at gastos sa pagproseso.
 errors_swap_no_quote_available = Walang available na quote.
-errors_swap_not_supported_chain = Hindi suportadong chain.
 errors_swap_not_supported_asset = Hindi sinusuportahang asset.
-errors_swap_not_supported_pair = Hindi sinusuportahang pares.
 errors_connections_invalid_send_parameters = Mga di-wastong parameter na ibinigay para sa pagpapadala ng transaksyon.
 errors_connections_invalid_sign_parameters = Mga di-wastong parameter na ibinigay para sa pagpirma.
 errors_connections_no_supported_wallets = Walang available na suportadong wallet.
@@ -290,7 +279,6 @@ asset_balances_available = Available
 asset_price = Presyo
 asset_market_cap = Market Cap
 asset_trading_volume = Dami ng pangangalakal (24h)
-asset_market_cap_rank = Ranggo ng Market Cap
 asset_total_supply = Kabuuang Supply
 asset_circulating_supply = Umiikot na Supply
 asset_balances_reserved = Nakareserba
@@ -342,11 +330,9 @@ wallet_connect_connection_title = Koneksyon
 wallet_connect_disconnect = Idiskonekta
 wallet_connect_connect_title = Kumonekta
 wallet_connect_app = App
-wallet_connect_website = Website
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Walang aktibong koneksyon
 wallet_connect_state_empty_description = I-scan o i-paste ang code para kumonekta sa DApp
-wallet_connect_domain = Domain
 wallet_connect_permissions_title = Mga Pahintulot
 wallet_connect_permissions_view_balance = Tingnan ang iyong balanse at aktibidad
 wallet_connect_permissions_approval_requests = Magpadala ng mga kahilingan sa pag-apruba
@@ -379,8 +365,6 @@ stake_deactivating = Nagde-deactivate
 stake_awaiting_withdrawal = Naghihintay ng Withdrawal
 stake_active_in = Aktibo Sa
 stake_minimum_amount = Minimum na halaga
-stake_viagem = Mag-stake sa pamamagitan ng Gem Wallet
-stake_no_active_staking = Wala pang active staking.
 stake_state_empty_title = Lalabas dito ang iyong mga stake
 stake_state_empty_description = Mag-stake ng iyong unang %@
 stake_resource = mapagkukunan
@@ -404,7 +388,6 @@ assets_title = Mga asset
 
 # Sign Message
 
-sign_message_title = Lagda ng Mensahe
 sign_message_message = Mensahe
 sign_message_view_full_message = Tingnan ang Buong Mensahe
 
@@ -553,8 +536,6 @@ info_insufficient_balance_description = Wala kang sapat na %@ upang makumpleto a
 info_account_minimum_balance_title = Minimum na balanse
 info_perpetual_funding_payments_title = Mga Pagbabayad sa Pagpopondo
 info_perpetual_funding_payments_description = Ang mga pagbabayad sa pagpopondo ay mga pana-panahong pagbabayad sa pagitan ng mga mangangalakal upang panatilihing malapit ang panghabang-buhay na presyo ng kontrata sa presyo ng pinagbabatayan ng asset. Ang ibig sabihin ng positibong pagpopondo ay ang mga mahabang posisyon ay nagbabayad ng mga maikling posisyon, habang ang negatibong pagpopondo ay nangangahulugan na ang mga maikling posisyon ay nagbabayad ng mga mahabang posisyon.
-info_perpetual_funding_rate_title = Pagpopondo
-info_perpetual_funding_rate_description = Tinutukoy ng rate ng pagpopondo ang halaga ng paghawak ng isang walang hanggang posisyon. Ito ay kinakalkula bawat oras at tumutulong na mapanatili ang ekwilibriyo ng presyo sa pagitan ng panghabang-buhay na kontrata at ang pinagbabatayan na presyo ng lugar ng asset.
 info_perpetual_liquidation_price_title = Presyo ng Liquidation
 info_perpetual_liquidation_price_description = Ang presyo ng pagpuksa ay ang antas ng presyo kung saan awtomatikong isasara ang iyong posisyon upang maiwasan ang karagdagang pagkalugi. Kapag ang presyo sa merkado ay umabot sa antas na ito, ililikida ang iyong posisyon at mawawala ang iyong margin.
 info_perpetual_open_interest_title = Bukas na Interes
@@ -632,7 +613,6 @@ onboarding_accept_terms_continue = Sumang-ayon at Magpatuloy
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -651,7 +631,6 @@ perpetual_increase_position = Taasan ang Posisyon
 perpetual_open_direction = Buksan ang %@
 perpetual_close_direction = Isara ang %@
 perpetual_leverage = Leverage
-perpetual_direction = Direksyon
 perpetual_auto_close = Auto Close
 perpetual_auto_close_take_profit = Take Profit
 perpetual_market_price = Presyo sa Pamilihan
@@ -719,7 +698,6 @@ recent_activity_state_empty_description = Lalabas dito ang mga asset na ginamit 
 
 notifications_inapp_state_empty_title = Wala pang mga abiso
 notifications_inapp_state_empty_description = Makakakita ka ng mga update tungkol sa iyong mga notification dito
-notifications_inapp_rewards_invite_subtitle = Mag-imbita ng mga kaibigan at kumita ng mga gantimpala nang sama-sama
 
 # Earn
 

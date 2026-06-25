@@ -108,6 +108,9 @@ mobsfscan:
 release:
     @./gradlew clean :app:bundleGoogleRelease assembleUniversalRelease assembleHuaweiRelease assembleSolanaRelease assembleSamsungRelease --no-configuration-cache
 
+release-fdroid:
+    @./gradlew clean assembleFdroidRelease -Pchannel=fdroid --no-configuration-cache
+
 localize:
     @cd ../core && cargo run --package generate --bin generate localize android ../localization/app ../android/ui/src/main/res
 

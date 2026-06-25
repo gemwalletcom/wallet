@@ -1,14 +1,12 @@
 "common.cancel" = "Скасувати";
 "common.done" = "Готово";
 "common.secret_phrase" = "Секретна фраза";
-"common.next" = "Далі";
 "common.copy" = "Скопіювати";
 "common.share" = "Поділитися";
 "common.continue" = "Продовжити";
 "common.provider" = "Провайдер";
 "common.loading" = "Завантаження";
 "common.address" = "Адреса";
-"common.back" = "Назад";
 "common.try_again" = "Спробувати знову";
 "common.paste" = "Вставити";
 "common.delete" = "Видалити";
@@ -24,7 +22,6 @@
 "common.manage" = "Керувати";
 "common.type" = "Тип";
 "common.no_results_found" = "Нічого не знайдено";
-"common.yes" = "Так";
 "common.no" = "Ні";
 "common.none" = "Жодного";
 "common.url" = "URL-адреса";
@@ -37,14 +34,10 @@
 "common.skip" = "Пропустити";
 "common.warning" = "Попередження";
 "common.learn_more" = "Дізнайтеся більше";
-"common.short_name" = "Gem";
 "common.description" = "Опис";
 "common.emoji" = "Емодзі";
-"common.style" = "Стиль";
 "common.avatar" = "Аватар";
-"common.photo" = "Фото";
 "common.save" = "Зберегти";
-"common.edit" = "Редагувати";
 "common.percentage" = "Відсоток";
 "common.details" = "Деталі";
 "common.info" = "Інформація";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Ми залишили на вашому балансі %@ для покриття майбутніх мережевих платежів.";
 "transfer.freeze.title" = "Заморозити";
 "transfer.unfreeze.title" = "Розморозити";
-"transfer.sign_transaction.title" = "Підписати транзакцію";
 "transfer.review_request" = "Переглянути запит";
 "settings.terms_of_services" = "Умови надання послуг";
 "settings.privacy_policy" = "Політика конфіденційності";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Джерело";
 "settings.networks.explorer" = "Оглядач";
 "settings.currency" = "Валюта";
-"settings.rate_app" = "Оцініть додаток";
 "settings.website" = "Відвідати вебсайт";
 "settings.security" = "Безпека";
 "settings.enable_value" = "Увімкнути %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Недійсна адреса %@";
 "errors.dust_threshold" = "Транзакцію не вдалося виконати, оскільки сума занадто мала, щоб відповідати мінімальним вимогам мережі %@ (поріг пилу). Це обмеження гарантує, що сума транзакції покриває комісії та витрати на обробку.";
 "errors.swap.no_quote_available" = "Котирування недоступне.";
-"errors.swap.not_supported_chain" = "Ланцюг не підтримується.";
 "errors.swap.not_supported_asset" = "Не підтримуваний актив.";
-"errors.swap.not_supported_pair" = "Пара не підтримується.";
 "errors.connections.invalid_send_parameters" = "Надано недійсні параметри для відправки транзакції.";
 "errors.connections.invalid_sign_parameters" = "Для підпису надано недійсні параметри.";
 "errors.connections.no_supported_wallets" = "Немає підтримуваних гаманців.";
@@ -236,7 +225,6 @@
 "asset.price" = "Ціна";
 "asset.market_cap" = "Ринкова капіталізація";
 "asset.trading_volume" = "Обсяг Торгів (24г)";
-"asset.market_cap_rank" = "Рейтинг ринкової капіталізації";
 "asset.total_supply" = "Загальна пропозиція";
 "asset.circulating_supply" = "В обігу";
 "asset.balances.reserved" = "Зарезервовано";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Відключити";
 "wallet_connect.connect.title" = "Підключитися";
 "wallet_connect.app" = "Додаток";
-"wallet_connect.website" = "Веб-сторінка";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Немає активних з'єднань";
 "wallet_connect.state.empty.description" = "Відскануйте або вставте код для підключення до DApp";
-"wallet_connect.domain" = "Домен";
 "wallet_connect.permissions.title" = "Дозволи";
 "wallet_connect.permissions.view_balance" = "Перегляд вашого балансу та активності";
 "wallet_connect.permissions.approval_requests" = "Надсилати запити на схвалення";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "В очікуванні виведення коштів";
 "stake.active_in" = "Активний в";
 "stake.minimum_amount" = "Мінімальна сума";
-"stake.viagem" = "Робіть ставки через Gem Wallet";
-"stake.no_active_staking" = "Активного стейкінгу поки що немає.";
 "stake.state.empty.title" = "Ваші стейкинги з'являться тут";
 "stake.state.empty.description" = "Зробіть свій перший стейкінг %@";
 "stake.resource" = "Ресурс";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Стайблкойни";
 "assets.state.empty.search_description" = "Ви можете спробувати додати його вручну";
 "assets.title" = "Активи";
-"sign_message.title" = "Підписати повідомлення";
 "sign_message.message" = "Повідомлення";
 "sign_message.view_full_message" = "Переглянути повне повідомлення";
 "secret_phrase.do_not_share.title" = "Не діліться своєю секретною фразою!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Мінімальний баланс";
 "info.perpetual.funding_payments.title" = "Фінансування платежів";
 "info.perpetual.funding_payments.description" = "Платежі фінансування — це періодичні платежі між трейдерами, щоб підтримувати постійну ціну контракту близькою до спотової ціни базового активу. Позитивне фінансування означає, що довгі позиції оплачують короткі позиції, тоді як негативне фінансування означає, що короткі позиції оплачують довгі позиції.";
-"info.perpetual.funding_rate.title" = "Фінансування";
-"info.perpetual.funding_rate.description" = "Ставка фінансування визначає вартість утримання безстрокової позиції. Вона розраховується щогодини та допомагає підтримувати цінову рівновагу між безстроковим контрактом і спотовою ціною базового активу.";
 "info.perpetual.liquidation_price.title" = "Ліквідаційна ціна";
 "info.perpetual.liquidation_price.description" = "Ліквідаційна ціна – це рівень ціни, на якому ваша позиція буде автоматично закрита, щоб запобігти подальшим втратам. Коли ринкова ціна досягає цього рівня, ваша позиція ліквідується, і ви втрачаєте маржу.";
 "info.perpetual.open_interest.title" = "Відкритий інтерес";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Я розумію, що Gem не є банком чи біржею, і його використання в незаконних цілях суворо заборонено.";
 "onboarding.accept_terms.item3.message" = "Я розумію, що якщо я коли-небудь втрачу доступ до своїх гаманців, Gem не несе відповідальності та не зможе жодним чином допомогти.";
 "onboarding.accept_terms.continue" = "Погодьтеся та продовжуйте";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Позиції";
 "perpetual.size" = "Розмір";
 "perpetual.margin" = "Маржа";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Відкрити %@";
 "perpetual.close_direction" = "Закрити %@";
 "perpetual.leverage" = "Кредитне плече";
-"perpetual.direction" = "Напрямок";
 "perpetual.auto_close" = "Авто закриття";
 "perpetual.auto_close.take_profit" = "Зафіксуйте прибуток";
 "perpetual.market_price" = "Ринкова ціна";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Тут відображатимуться активи, які ви нещодавно використовували";
 "notifications.inapp.state.empty.title" = "Поки що немає сповіщень";
 "notifications.inapp.state.empty.description" = "Тут ви побачите оновлення щодо своїх сповіщень";
-"notifications.inapp.rewards.invite.subtitle" = "Запрошуйте друзів та отримуйте винагороди разом";
 "earn.state.empty.title" = "Ваші позиції з'являться тут";
 "earn.state.empty.description" = "Внесіть свій перший депозит %@";
 "contacts.title" = "Контакти";

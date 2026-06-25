@@ -3,14 +3,12 @@
   <string name="common_cancel">Cancelar</string>
   <string name="common_done">Feito</string>
   <string name="common_secret_phrase">Frase secreta</string>
-  <string name="common_next">Próximo</string>
   <string name="common_copy">Copiar</string>
   <string name="common_share">Compartilhar</string>
   <string name="common_continue">Continuar</string>
   <string name="common_provider">Provedor</string>
   <string name="common_loading">Carregando</string>
   <string name="common_address">Endereço</string>
-  <string name="common_back">Voltar</string>
   <string name="common_try_again">Tente novamente</string>
   <string name="common_paste">Colar</string>
   <string name="common_delete">Excluir</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Gerenciar</string>
   <string name="common_type">Tipo</string>
   <string name="common_no_results_found">Nenhum resultado encontrado</string>
-  <string name="common_yes">Sim</string>
   <string name="common_no">Não</string>
   <string name="common_none">Nenhum</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Pular</string>
   <string name="common_warning">Aviso</string>
   <string name="common_learn_more">Saber mais</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Descrição</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Estilo</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Foto</string>
   <string name="common_save">Salvar</string>
-  <string name="common_edit">Editar</string>
   <string name="common_percentage">Porcentagem</string>
   <string name="common_details">Detalhes</string>
   <string name="common_info">Informações</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Deixamos %1$s em seu saldo para cobrir futuras taxas de rede.</string>
   <string name="transfer_freeze_title">Congelar</string>
   <string name="transfer_unfreeze_title">Descongelar</string>
-  <string name="transfer_sign_transaction_title">Assinar transação</string>
   <string name="transfer_review_request">Solicitação de revisão</string>
   <string name="transfer_amount">Quantia</string>
   <string name="transfer_amount_title">Quantia</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Fonte</string>
   <string name="settings_networks_explorer">Explorador</string>
   <string name="settings_currency">Moeda</string>
-  <string name="settings_rate_app">Avaliar aplicativo</string>
   <string name="settings_website">Visite o site</string>
   <string name="settings_security">Segurança</string>
   <string name="settings_enable_value">Ativar %1$s</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Endereço %1$s inválido</string>
   <string name="errors_dust_threshold">A transação falhou porque o valor é muito pequeno para atender ao requisito mínimo da rede %1$s (limite de poeira). Este limite garante que o valor da transação cubra as taxas e os custos de processamento.</string>
   <string name="errors_swap_no_quote_available">Nenhuma cotação disponível.</string>
-  <string name="errors_swap_not_supported_chain">Cadeia não suportada.</string>
   <string name="errors_swap_not_supported_asset">Ativo não suportado.</string>
-  <string name="errors_swap_not_supported_pair">Par não suportado.</string>
   <string name="errors_connections_invalid_send_parameters">Parâmetros inválidos fornecidos para enviar uma transação.</string>
   <string name="errors_connections_invalid_sign_parameters">Parâmetros inválidos fornecidos para assinatura.</string>
   <string name="errors_connections_no_supported_wallets">Não há carteiras suportadas disponíveis.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Preço</string>
   <string name="asset_market_cap">Valor de mercado</string>
   <string name="asset_trading_volume">Volume de Negociação (24h)</string>
-  <string name="asset_market_cap_rank">Classificação de capitalização de mercado</string>
   <string name="asset_total_supply">Fornecimento total</string>
   <string name="asset_circulating_supply">Fornecimento Circulante</string>
   <string name="asset_balances_reserved">Reservado</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Desconectar</string>
   <string name="wallet_connect_connect_title">Conectar</string>
   <string name="wallet_connect_app">Aplicativo</string>
-  <string name="wallet_connect_website">Site</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Nenhuma conexão ativa</string>
   <string name="wallet_connect_state_empty_description">Escaneie ou cole o código para conectar ao DApp</string>
-  <string name="wallet_connect_domain">Domínio</string>
   <string name="wallet_connect_permissions_title">Permissões</string>
   <string name="wallet_connect_permissions_view_balance">Veja seu saldo e atividade</string>
   <string name="wallet_connect_permissions_approval_requests">Enviar solicitações de aprovação</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Aguardando Retirada</string>
   <string name="stake_active_in">Ativo em</string>
   <string name="stake_minimum_amount">Quantidade mínima</string>
-  <string name="stake_viagem">Faça stake via Gem Wallet</string>
-  <string name="stake_no_active_staking">Nenhum stake ativo ainda.</string>
   <string name="stake_state_empty_title">Seus stakes aparecerão aqui</string>
   <string name="stake_state_empty_description">Faça stake do seu primeiro %1$s</string>
   <string name="stake_resource">Recurso</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Moedas estáveis</string>
   <string name="assets_state_empty_search_description">Você pode tentar adicioná-lo manualmente</string>
   <string name="assets_title">Ativos</string>
-  <string name="sign_message_title">Assinar mensagem</string>
   <string name="sign_message_message">Mensagem</string>
   <string name="sign_message_view_full_message">Ver mensagem completa</string>
   <string name="secret_phrase_do_not_share_title">Não compartilhe sua frase secreta!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Saldo mínimo</string>
   <string name="info_perpetual_funding_payments_title">Pagamentos de financiamento</string>
   <string name="info_perpetual_funding_payments_description">Os pagamentos de financiamento são pagamentos periódicos entre traders para manter o preço do contrato perpétuo próximo do preço à vista do ativo subjacente. O financiamento positivo significa que as posições longas pagam as posições curtas, enquanto o financiamento negativo significa que as posições curtas pagam as posições longas.</string>
-  <string name="info_perpetual_funding_rate_title">Financiamento</string>
-  <string name="info_perpetual_funding_rate_description">A taxa de financiamento determina o custo de manter uma posição perpétua. É calculado de hora em hora e ajuda a manter o equilíbrio de preços entre o contrato perpétuo e o preço à vista do ativo subjacente.</string>
   <string name="info_perpetual_liquidation_price_title">Preço de liquidação</string>
   <string name="info_perpetual_liquidation_price_description">O preço de liquidação é o nível de preço no qual a sua posição será automaticamente fechada para evitar novas perdas. Quando o preço de mercado atinge este nível, a sua posição é liquidada e você perde a sua margem.</string>
   <string name="info_perpetual_open_interest_title">Contratos em Aberto</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Entendo que o Gem não é um banco nem uma bolsa de valores, e usá-lo para fins ilegais é estritamente proibido.</string>
   <string name="onboarding_accept_terms_item3_message">Entendo que se eu perder o acesso às minhas carteiras, a Gem não será responsável e não poderá ajudar de forma alguma.</string>
   <string name="onboarding_accept_terms_continue">Concordar e continuar</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Posições</string>
   <string name="perpetual_size">Tamanho</string>
   <string name="perpetual_margin">Margem</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">Abrir %1$s</string>
   <string name="perpetual_close_direction">Fechar %1$s</string>
   <string name="perpetual_leverage">Alavancagem</string>
-  <string name="perpetual_direction">Direção</string>
   <string name="perpetual_auto_close">Fechamento automático</string>
   <string name="perpetual_auto_close_take_profit">Obter lucro</string>
   <string name="perpetual_market_price">Preço de mercado</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Os recursos que você usou recentemente aparecerão aqui</string>
   <string name="notifications_inapp_state_empty_title">Ainda não há notificações.</string>
   <string name="notifications_inapp_state_empty_description">Você verá atualizações sobre suas notificações aqui.</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Convide amigos e ganhem recompensas juntos.</string>
   <string name="earn_state_empty_title">Suas posições aparecerão aqui.</string>
   <string name="earn_state_empty_description">Faça seu primeiro depósito %1$s</string>
   <string name="contacts_title">Contatos</string>

@@ -5,6 +5,7 @@ use super::filter::{build_assets_filters, build_filter, build_perpetuals_filters
 use super::model::SearchRequest;
 use chrono::{DateTime, Utc};
 use pricer::PriceClient;
+use primitives::asset_score::AssetRank;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetList, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
 use search_index::{
     ASSET_LISTS_INDEX_NAME, ASSETS_INDEX_NAME, AssetDocument, AssetListDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient,
@@ -28,15 +29,17 @@ impl AssetsClient {
     }
 
     pub fn get_assets(&self, asset_ids: Vec<AssetId>, rate: f64) -> Result<Vec<AssetBasic>, Box<dyn Error + Send + Sync>> {
-        let asset_ids = self
-            .database
-            .assets()?
-            .get_asset_ids_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::Ids(asset_ids.ids())])?;
-
         Ok(self
             .database
             .assets()?
-            .get_assets_with_prices(asset_ids, self.config.primary_price_max_age)?
+            .get_assets_with_prices(
+                vec![
+                    AssetFilter::IsEnabled(true),
+                    AssetFilter::RankGt(AssetRank::Trivial.threshold()),
+                    AssetFilter::Ids(asset_ids.ids()),
+                ],
+                self.config.primary_price_max_age,
+            )?
             .into_iter()
             .map(|asset| asset.asset_basic_with_rate(rate))
             .collect())

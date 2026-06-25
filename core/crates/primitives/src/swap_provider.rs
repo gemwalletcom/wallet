@@ -5,7 +5,7 @@ use typeshare::typeshare;
 use crate::{
     block_explorer::BlockExplorer,
     chain::Chain,
-    explorers::{ChainflipScan, MayaScan, MayanScan, NearIntents, RelayScan, RuneScan, SkipExplorer, SocketScan},
+    explorers::{AcrossScan, ChainflipScan, MayaScan, MayanScan, NearIntents, RelayScan, RuneScan, SkipExplorer},
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, AsRefStr, EnumString, Eq, PartialOrd, Ord, Serialize, Deserialize, EnumIter)]
@@ -75,7 +75,7 @@ impl SwapProvider {
             Self::Mayan => Some(MayanScan::boxed()),
             Self::Thorchain => Some(RuneScan::boxed()),
             Self::Mayachain => Some(MayaScan::boxed()),
-            Self::Across => Some(SocketScan::boxed()),
+            Self::Across => Some(AcrossScan::boxed()),
             Self::Chainflip => Some(ChainflipScan::boxed()),
             Self::NearIntents => Some(NearIntents::boxed()),
             Self::Relay => Some(RelayScan::boxed()),

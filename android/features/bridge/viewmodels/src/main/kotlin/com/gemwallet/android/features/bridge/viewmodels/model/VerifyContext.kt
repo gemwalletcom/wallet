@@ -1,14 +1,15 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
-import com.reown.walletkit.client.Wallet
+import com.gemwallet.android.data.repositories.bridge.WalletConnectValidation
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
-fun Wallet.Model.VerifyContext.map(): WalletConnectionVerificationStatus {
+fun WalletConnectVerifyContext.map(): WalletConnectionVerificationStatus {
     if (isScam == true) return WalletConnectionVerificationStatus.MALICIOUS
 
     return when (this.validation) {
-        Wallet.Model.Validation.VALID -> WalletConnectionVerificationStatus.VERIFIED
-        Wallet.Model.Validation.INVALID -> WalletConnectionVerificationStatus.INVALID
-        Wallet.Model.Validation.UNKNOWN -> WalletConnectionVerificationStatus.UNKNOWN
+        WalletConnectValidation.Valid -> WalletConnectionVerificationStatus.VERIFIED
+        WalletConnectValidation.Invalid -> WalletConnectionVerificationStatus.INVALID
+        WalletConnectValidation.Unknown -> WalletConnectionVerificationStatus.UNKNOWN
     }
 }

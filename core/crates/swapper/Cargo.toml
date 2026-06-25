@@ -18,7 +18,7 @@ gem_evm = { path = "../gem_evm", features = ["rpc"] }
 gem_sui = { path = "../gem_sui", features = ["rpc"] }
 gem_aptos = { path = "../gem_aptos", features = ["rpc"] }
 gem_cosmos = { path = "../gem_cosmos" }
-gem_tron = { path = "../gem_tron", default-features = false }
+gem_tron = { path = "../gem_tron", default-features = false, features = ["rpc"] }
 gem_hash = { path = "../gem_hash" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_client = { path = "../gem_client" }

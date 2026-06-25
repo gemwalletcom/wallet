@@ -96,8 +96,16 @@ impl Chain {
         self.config().network_id
     }
 
+    pub fn network_id_value(&self) -> Option<u64> {
+        let network_id = self.network_id();
+        network_id
+            .parse()
+            .ok()
+            .or_else(|| network_id.strip_prefix("0x").and_then(|hex| u64::from_str_radix(hex, 16).ok()))
+    }
+
     pub fn from_chain_id(chain_id: u64) -> Option<Self> {
-        Self::iter().find(|&x| x.network_id() == chain_id.to_string())
+        Self::iter().find(|&chain| chain.network_id_value().is_some_and(|network_id| network_id == chain_id))
     }
 
     pub fn is_utxo(&self) -> bool {
@@ -169,5 +177,10 @@ mod tests {
     #[test]
     fn test_mayachain_swap_not_supported() {
         assert!(!Chain::Mayachain.is_swap_supported());
+    }
+
+    #[test]
+    fn test_from_chain_id_supports_hex_network_id() {
+        assert_eq!(Chain::from_chain_id(728_126_428), Some(Chain::Tron));
     }
 }

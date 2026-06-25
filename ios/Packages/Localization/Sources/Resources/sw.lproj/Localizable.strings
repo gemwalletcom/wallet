@@ -1,14 +1,12 @@
 "common.cancel" = "Ghairi";
 "common.done" = "Imekamilika";
 "common.secret_phrase" = "Kifungu cha Siri";
-"common.next" = "Inayofuata";
 "common.copy" = "Nakili";
 "common.share" = "Shiriki";
 "common.continue" = "Endelea";
 "common.provider" = "Mtoa huduma";
 "common.loading" = "Inapakia";
 "common.address" = "Anwani";
-"common.back" = "Nyuma";
 "common.try_again" = "Jaribu Tena";
 "common.paste" = "Bandika";
 "common.delete" = "Futa";
@@ -24,7 +22,6 @@
 "common.manage" = "Dhibiti";
 "common.type" = "Aina";
 "common.no_results_found" = "Hakuna Matokeo Yaliyopatikana";
-"common.yes" = "Ndiyo";
 "common.no" = "Hapana";
 "common.none" = "Hakuna";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Ruka";
 "common.warning" = "Onyo";
 "common.learn_more" = "Jifunze Zaidi";
-"common.short_name" = "Gem";
 "common.description" = "Maelezo";
 "common.emoji" = "Emoji";
-"common.style" = "Mtindo";
 "common.avatar" = "Avatar";
-"common.photo" = "Picha";
 "common.save" = "Hifadhi";
-"common.edit" = "Hariri";
 "common.percentage" = "Asilimia";
 "common.details" = "Maelezo";
 "common.info" = "Habari";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Tumeacha %@ katika salio lako ili kulipia ada za mtandao za siku zijazo.";
 "transfer.freeze.title" = "Kuganda";
 "transfer.unfreeze.title" = "Ondoa kuganda";
-"transfer.sign_transaction.title" = "Saini Muamala";
 "transfer.review_request" = "Ombi la Uhakiki";
 "settings.terms_of_services" = "Masharti ya Huduma";
 "settings.privacy_policy" = "Sera ya Faragha";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Chanzo";
 "settings.networks.explorer" = "Mchunguzi";
 "settings.currency" = "Sarafu";
-"settings.rate_app" = "Kadiria Programu";
 "settings.website" = "Tembelea Tovuti";
 "settings.security" = "Usalama";
 "settings.enable_value" = "Washa %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Anwani %@ si sahihi";
 "errors.dust_threshold" = "Muamala haukufaulu kwa sababu kiasi hicho ni kidogo sana kutosheleza mahitaji ya chini ya mtandao %@ (kiwango cha juu cha vumbi). Kikomo hiki kinahakikisha thamani ya muamala inashughulikia ada na gharama za usindikaji.";
 "errors.swap.no_quote_available" = "Hakuna nukuu inayopatikana.";
-"errors.swap.not_supported_chain" = "Mnyororo hautumiki.";
 "errors.swap.not_supported_asset" = "Kipengee hakitumiki.";
-"errors.swap.not_supported_pair" = "Jozi haitumiki.";
 "errors.connections.invalid_send_parameters" = "Vigezo batili vimetolewa kwa ajili ya kutuma muamala.";
 "errors.connections.invalid_sign_parameters" = "Vigezo batili vimetolewa kwa ajili ya kusaini.";
 "errors.connections.no_supported_wallets" = "Hakuna pochi zinazotumika zinazopatikana.";
@@ -236,7 +225,6 @@
 "asset.price" = "Bei";
 "asset.market_cap" = "Thamani ya Soko";
 "asset.trading_volume" = "Kiasi cha Biashara (saa 24)";
-"asset.market_cap_rank" = "Nafasi ya Thamani ya Soko";
 "asset.total_supply" = "Jumla ya Ugavi";
 "asset.circulating_supply" = "Ugavi wa Kuzunguka";
 "asset.balances.reserved" = "Imehifadhiwa";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Tenganisha";
 "wallet_connect.connect.title" = "Unganisha";
 "wallet_connect.app" = "Programu";
-"wallet_connect.website" = "Tovuti";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Hakuna miunganisho inayotumika";
 "wallet_connect.state.empty.description" = "Changanua au ubandike msimbo ili kuunganisha kwenye DApp";
-"wallet_connect.domain" = "Kikoa";
 "wallet_connect.permissions.title" = "Ruhusa";
 "wallet_connect.permissions.view_balance" = "Tazama salio na shughuli zako";
 "wallet_connect.permissions.approval_requests" = "Tuma maombi ya idhini";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Inasubiri Kuondolewa";
 "stake.active_in" = "Inayotumika Katika";
 "stake.minimum_amount" = "Kiasi cha chini";
-"stake.viagem" = "Weka hisa kupitia Gem Wallet";
-"stake.no_active_staking" = "Bado hakuna uwekaji hisa.";
 "stake.state.empty.title" = "Hisa zako zitaonekana hapa";
 "stake.state.empty.description" = "Shiriki %@ yako ya kwanza";
 "stake.resource" = "Rasilimali";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "Unaweza kujaribu kuiongeza wewe mwenyewe";
 "assets.title" = "Mali";
-"sign_message.title" = "Saini Ujumbe";
 "sign_message.message" = "Ujumbe";
 "sign_message.view_full_message" = "Tazama Ujumbe Kamili";
 "secret_phrase.do_not_share.title" = "Usishiriki Maneno yako ya Siri!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Salio la chini";
 "info.perpetual.funding_payments.title" = "Malipo ya Ufadhili";
 "info.perpetual.funding_payments.description" = "Malipo ya ufadhili ni malipo ya mara kwa mara kati ya wafanyabiashara ili kuweka bei ya kudumu ya mkataba karibu na bei ya msingi ya mali. Ufadhili mzuri unamaanisha nafasi ndefu kulipa nafasi fupi, wakati ufadhili hasi unamaanisha nafasi fupi kulipa nafasi ndefu.";
-"info.perpetual.funding_rate.title" = "Ufadhili";
-"info.perpetual.funding_rate.description" = "Kiwango cha ufadhili huamua gharama ya kushikilia nafasi ya kudumu. Hukokotolewa kila saa na husaidia kudumisha usawa wa bei kati ya mkataba wa kudumu na bei ya msingi ya kipengee.";
 "info.perpetual.liquidation_price.title" = "Bei ya Kufilisi";
 "info.perpetual.liquidation_price.description" = "Bei ya kufilisi ni kiwango cha bei ambapo nafasi yako itafungwa kiotomatiki ili kuzuia hasara zaidi. Wakati bei ya soko inafikia kiwango hiki, nafasi yako inafutwa na unapoteza kiasi chako.";
 "info.perpetual.open_interest.title" = "Riba Wazi";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Ninaelewa kuwa Gem si benki au ubadilishaji, na kuitumia kwa madhumuni yasiyo halali ni marufuku kabisa.";
 "onboarding.accept_terms.item3.message" = "Ninaelewa kuwa nikipoteza ufikiaji wa pochi zangu, Gem haiwajibikiwi na haiwezi kusaidia kwa njia yoyote.";
 "onboarding.accept_terms.continue" = "Kubali na Uendelee";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Vyeo";
 "perpetual.size" = "Ukubwa";
 "perpetual.margin" = "Margin";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Fungua %@";
 "perpetual.close_direction" = "Funga %@";
 "perpetual.leverage" = "Uwiano wa Mtaji";
-"perpetual.direction" = "Mwelekeo";
 "perpetual.auto_close" = "Funga Kiotomatiki";
 "perpetual.auto_close.take_profit" = "Chukua faida";
 "perpetual.market_price" = "Bei ya Soko";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Vipengee ambavyo umetumia hivi karibuni vitaonekana hapa";
 "notifications.inapp.state.empty.title" = "Hakuna arifa bado";
 "notifications.inapp.state.empty.description" = "Utaona masasisho kuhusu arifa zako hapa";
-"notifications.inapp.rewards.invite.subtitle" = "Alika marafiki na upate zawadi pamoja";
 "earn.state.empty.title" = "Nafasi zako zitaonekana hapa";
 "earn.state.empty.description" = "Weka pesa zako kwanza %@";
 "contacts.title" = "Anwani";

@@ -3,7 +3,6 @@ buildscript {
         gradlePluginPortal()
         google()
         mavenCentral()
-        mavenLocal()
     }
     dependencies {
         classpath(libs.gradle)
@@ -33,7 +32,6 @@ allprojects {
         }
         google()
         mavenCentral()
-        mavenLocal()
         maven { url = uri("https://jitpack.io") }
     }
 

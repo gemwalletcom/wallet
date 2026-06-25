@@ -1,14 +1,12 @@
 "common.cancel" = "Batal";
 "common.done" = "Selesai";
 "common.secret_phrase" = "Frasa Rahsia";
-"common.next" = "Seterusnya";
 "common.copy" = "Salin";
 "common.share" = "Kongsi";
 "common.continue" = "Teruskan";
 "common.provider" = "Pembekal";
 "common.loading" = "Memuatkan";
 "common.address" = "Alamat";
-"common.back" = "Kembali";
 "common.try_again" = "Cuba Lagi";
 "common.paste" = "Tampal";
 "common.delete" = "Padam";
@@ -24,7 +22,6 @@
 "common.manage" = "Urus";
 "common.type" = "Taip";
 "common.no_results_found" = "Tiada Hasil Ditemui";
-"common.yes" = "Ya";
 "common.no" = "Tidak";
 "common.none" = "Tiada";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Langkau";
 "common.warning" = "Amaran";
 "common.learn_more" = "Ketahui Lebih Lanjut";
-"common.short_name" = "Gem";
 "common.description" = "Penerangan";
 "common.emoji" = "Emoji";
-"common.style" = "Gaya";
 "common.avatar" = "Avatar";
-"common.photo" = "Foto";
 "common.save" = "Simpan";
-"common.edit" = "Sunting";
 "common.percentage" = "Peratusan";
 "common.details" = "Butiran";
 "common.info" = "Info";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Kami telah meninggalkan %@ dalam baki anda untuk menampung yuran rangkaian masa hadapan.";
 "transfer.freeze.title" = "Bekukan";
 "transfer.unfreeze.title" = "Nyahbekukan";
-"transfer.sign_transaction.title" = "Tandatangan Transaksi";
 "transfer.review_request" = "Semak Permintaan";
 "settings.terms_of_services" = "Syarat Perkhidmatan";
 "settings.privacy_policy" = "Dasar Privasi";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Sumber";
 "settings.networks.explorer" = "Penjelajah";
 "settings.currency" = "Mata wang";
-"settings.rate_app" = "Apl Nilai";
 "settings.website" = "Lawati Laman Web";
 "settings.security" = "Keselamatan";
 "settings.enable_value" = "Dayakan %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Alamat %@ tidak sah";
 "errors.dust_threshold" = "Urus niaga gagal kerana jumlahnya terlalu kecil untuk memenuhi keperluan minimum rangkaian %@ (ambang habuk). Had ini memastikan nilai transaksi meliputi yuran dan kos pemprosesan.";
 "errors.swap.no_quote_available" = "Tiada sebut harga tersedia.";
-"errors.swap.not_supported_chain" = "Tidak disokong rantai.";
 "errors.swap.not_supported_asset" = "Aset tidak disokong.";
-"errors.swap.not_supported_pair" = "Tidak disokong pasangan.";
 "errors.connections.invalid_send_parameters" = "Parameter tidak sah disediakan untuk menghantar transaksi.";
 "errors.connections.invalid_sign_parameters" = "Parameter tidak sah disediakan untuk menandatangani.";
 "errors.connections.no_supported_wallets" = "Tiada dompet yang disokong tersedia.";
@@ -236,7 +225,6 @@
 "asset.price" = "Harga";
 "asset.market_cap" = "Modal Pasaran";
 "asset.trading_volume" = "Jumlah dagangan (24j)";
-"asset.market_cap_rank" = "Kedudukan Cap Pasaran";
 "asset.total_supply" = "Jumlah Bekalan";
 "asset.circulating_supply" = "Bekalan Beredar";
 "asset.balances.reserved" = "Terpelihara";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Putuskan sambungan";
 "wallet_connect.connect.title" = "Sambung";
 "wallet_connect.app" = "Apl";
-"wallet_connect.website" = "Laman web";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Tiada sambungan aktif";
 "wallet_connect.state.empty.description" = "Imbas atau tampal kod untuk menyambung ke DApp";
-"wallet_connect.domain" = "Domain";
 "wallet_connect.permissions.title" = "Kebenaran";
 "wallet_connect.permissions.view_balance" = "Lihat baki dan aktiviti anda";
 "wallet_connect.permissions.approval_requests" = "Hantar permintaan kelulusan";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Menunggu Pengeluaran";
 "stake.active_in" = "Aktif Dalam";
 "stake.minimum_amount" = "Jumlah minimum";
-"stake.viagem" = "Stake melalui Gem Wallet";
-"stake.no_active_staking" = "Tiada staking aktif lagi.";
 "stake.state.empty.title" = "Pertaruhan anda akan muncul di sini";
 "stake.state.empty.description" = "Pertaruhkan %@ pertama anda";
 "stake.resource" = "Sumber";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Stablecoin";
 "assets.state.empty.search_description" = "Anda boleh cuba menambahnya secara manual";
 "assets.title" = "Aset";
-"sign_message.title" = "Tandatangan Mesej";
 "sign_message.message" = "Mesej";
 "sign_message.view_full_message" = "Lihat Mesej Penuh";
 "secret_phrase.do_not_share.title" = "Jangan kongsi Frasa Rahsia anda!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Baki minimum";
 "info.perpetual.funding_payments.title" = "Pembayaran Pembiayaan";
 "info.perpetual.funding_payments.description" = "Pembayaran pembiayaan ialah pembayaran berkala antara pedagang untuk memastikan harga kontrak kekal hampir dengan harga spot aset pendasar. Pembiayaan positif bermakna kedudukan panjang membayar kedudukan pendek, manakala pembiayaan negatif bermakna kedudukan pendek membayar kedudukan panjang.";
-"info.perpetual.funding_rate.title" = "Pembiayaan";
-"info.perpetual.funding_rate.description" = "Kadar pembiayaan menentukan kos memegang kedudukan kekal. Ia dikira setiap jam dan membantu mengekalkan keseimbangan harga antara kontrak kekal dan harga spot aset pendasar.";
 "info.perpetual.liquidation_price.title" = "Harga Pembubaran";
 "info.perpetual.liquidation_price.description" = "Harga pembubaran ialah paras harga di mana kedudukan anda akan ditutup secara automatik untuk mengelakkan kerugian selanjutnya. Apabila harga pasaran mencapai tahap ini, kedudukan anda dibubarkan dan anda kehilangan margin anda.";
 "info.perpetual.open_interest.title" = "Minat Terbuka";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Saya faham bahawa Gem bukan bank atau bursa, dan menggunakannya untuk tujuan yang menyalahi undang-undang adalah dilarang sama sekali.";
 "onboarding.accept_terms.item3.message" = "Saya faham bahawa jika saya kehilangan akses kepada dompet saya, Gem tidak bertanggungjawab dan tidak boleh membantu dalam apa jua cara.";
 "onboarding.accept_terms.continue" = "Setuju dan Teruskan";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Kedudukan";
 "perpetual.size" = "Saiz";
 "perpetual.margin" = "Margin";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Buka %@";
 "perpetual.close_direction" = "Tutup %@";
 "perpetual.leverage" = "Leverage";
-"perpetual.direction" = "Arah";
 "perpetual.auto_close" = "Auto Tutup";
 "perpetual.auto_close.take_profit" = "Ambil untung";
 "perpetual.market_price" = "Harga Pasaran";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Aset yang anda gunakan baru-baru ini akan dipaparkan di sini";
 "notifications.inapp.state.empty.title" = "Tiada pemberitahuan lagi";
 "notifications.inapp.state.empty.description" = "Anda akan melihat kemas kini tentang pemberitahuan anda di sini";
-"notifications.inapp.rewards.invite.subtitle" = "Jemput rakan-rakan dan dapatkan ganjaran bersama-sama";
 "earn.state.empty.title" = "Kedudukan anda akan dipaparkan di sini";
 "earn.state.empty.description" = "Depositkan yang pertama %@";
 "contacts.title" = "Kenalan";

@@ -1,14 +1,12 @@
 "common.cancel" = "Cancelar";
 "common.done" = "Feito";
 "common.secret_phrase" = "Frase secreta";
-"common.next" = "Próximo";
 "common.copy" = "Copiar";
 "common.share" = "Compartilhar";
 "common.continue" = "Continuar";
 "common.provider" = "Provedor";
 "common.loading" = "Carregando";
 "common.address" = "Endereço";
-"common.back" = "Voltar";
 "common.try_again" = "Tente novamente";
 "common.paste" = "Colar";
 "common.delete" = "Excluir";
@@ -24,7 +22,6 @@
 "common.manage" = "Gerenciar";
 "common.type" = "Tipo";
 "common.no_results_found" = "Nenhum resultado encontrado";
-"common.yes" = "Sim";
 "common.no" = "Não";
 "common.none" = "Nenhum";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Pular";
 "common.warning" = "Aviso";
 "common.learn_more" = "Saber mais";
-"common.short_name" = "Gem";
 "common.description" = "Descrição";
 "common.emoji" = "Emoji";
-"common.style" = "Estilo";
 "common.avatar" = "Avatar";
-"common.photo" = "Foto";
 "common.save" = "Salvar";
-"common.edit" = "Editar";
 "common.percentage" = "Porcentagem";
 "common.details" = "Detalhes";
 "common.info" = "Informações";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Deixamos %@ em seu saldo para cobrir futuras taxas de rede.";
 "transfer.freeze.title" = "Congelar";
 "transfer.unfreeze.title" = "Descongelar";
-"transfer.sign_transaction.title" = "Assinar transação";
 "transfer.review_request" = "Solicitação de revisão";
 "settings.terms_of_services" = "Termos de Serviços";
 "settings.privacy_policy" = "Política de Privacidade";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Fonte";
 "settings.networks.explorer" = "Explorador";
 "settings.currency" = "Moeda";
-"settings.rate_app" = "Avaliar aplicativo";
 "settings.website" = "Visite o site";
 "settings.security" = "Segurança";
 "settings.enable_value" = "Ativar %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Endereço %@ inválido";
 "errors.dust_threshold" = "A transação falhou porque o valor é muito pequeno para atender ao requisito mínimo da rede %@ (limite de poeira). Este limite garante que o valor da transação cubra as taxas e os custos de processamento.";
 "errors.swap.no_quote_available" = "Nenhuma cotação disponível.";
-"errors.swap.not_supported_chain" = "Cadeia não suportada.";
 "errors.swap.not_supported_asset" = "Ativo não suportado.";
-"errors.swap.not_supported_pair" = "Par não suportado.";
 "errors.connections.invalid_send_parameters" = "Parâmetros inválidos fornecidos para enviar uma transação.";
 "errors.connections.invalid_sign_parameters" = "Parâmetros inválidos fornecidos para assinatura.";
 "errors.connections.no_supported_wallets" = "Não há carteiras suportadas disponíveis.";
@@ -236,7 +225,6 @@
 "asset.price" = "Preço";
 "asset.market_cap" = "Valor de mercado";
 "asset.trading_volume" = "Volume de Negociação (24h)";
-"asset.market_cap_rank" = "Classificação de capitalização de mercado";
 "asset.total_supply" = "Fornecimento total";
 "asset.circulating_supply" = "Fornecimento Circulante";
 "asset.balances.reserved" = "Reservado";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Desconectar";
 "wallet_connect.connect.title" = "Conectar";
 "wallet_connect.app" = "Aplicativo";
-"wallet_connect.website" = "Site";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Nenhuma conexão ativa";
 "wallet_connect.state.empty.description" = "Escaneie ou cole o código para conectar ao DApp";
-"wallet_connect.domain" = "Domínio";
 "wallet_connect.permissions.title" = "Permissões";
 "wallet_connect.permissions.view_balance" = "Veja seu saldo e atividade";
 "wallet_connect.permissions.approval_requests" = "Enviar solicitações de aprovação";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Aguardando Retirada";
 "stake.active_in" = "Ativo em";
 "stake.minimum_amount" = "Quantidade mínima";
-"stake.viagem" = "Faça stake via Gem Wallet";
-"stake.no_active_staking" = "Nenhum stake ativo ainda.";
 "stake.state.empty.title" = "Seus stakes aparecerão aqui";
 "stake.state.empty.description" = "Faça stake do seu primeiro %@";
 "stake.resource" = "Recurso";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Moedas estáveis";
 "assets.state.empty.search_description" = "Você pode tentar adicioná-lo manualmente";
 "assets.title" = "Ativos";
-"sign_message.title" = "Assinar mensagem";
 "sign_message.message" = "Mensagem";
 "sign_message.view_full_message" = "Ver mensagem completa";
 "secret_phrase.do_not_share.title" = "Não compartilhe sua frase secreta!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Saldo mínimo";
 "info.perpetual.funding_payments.title" = "Pagamentos de financiamento";
 "info.perpetual.funding_payments.description" = "Os pagamentos de financiamento são pagamentos periódicos entre traders para manter o preço do contrato perpétuo próximo do preço à vista do ativo subjacente. O financiamento positivo significa que as posições longas pagam as posições curtas, enquanto o financiamento negativo significa que as posições curtas pagam as posições longas.";
-"info.perpetual.funding_rate.title" = "Financiamento";
-"info.perpetual.funding_rate.description" = "A taxa de financiamento determina o custo de manter uma posição perpétua. É calculado de hora em hora e ajuda a manter o equilíbrio de preços entre o contrato perpétuo e o preço à vista do ativo subjacente.";
 "info.perpetual.liquidation_price.title" = "Preço de liquidação";
 "info.perpetual.liquidation_price.description" = "O preço de liquidação é o nível de preço no qual a sua posição será automaticamente fechada para evitar novas perdas. Quando o preço de mercado atinge este nível, a sua posição é liquidada e você perde a sua margem.";
 "info.perpetual.open_interest.title" = "Contratos em Aberto";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Entendo que o Gem não é um banco nem uma bolsa de valores, e usá-lo para fins ilegais é estritamente proibido.";
 "onboarding.accept_terms.item3.message" = "Entendo que se eu perder o acesso às minhas carteiras, a Gem não será responsável e não poderá ajudar de forma alguma.";
 "onboarding.accept_terms.continue" = "Concordar e continuar";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Posições";
 "perpetual.size" = "Tamanho";
 "perpetual.margin" = "Margem";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Abrir %@";
 "perpetual.close_direction" = "Fechar %@";
 "perpetual.leverage" = "Alavancagem";
-"perpetual.direction" = "Direção";
 "perpetual.auto_close" = "Fechamento automático";
 "perpetual.auto_close.take_profit" = "Obter lucro";
 "perpetual.market_price" = "Preço de mercado";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Os recursos que você usou recentemente aparecerão aqui";
 "notifications.inapp.state.empty.title" = "Ainda não há notificações.";
 "notifications.inapp.state.empty.description" = "Você verá atualizações sobre suas notificações aqui.";
-"notifications.inapp.rewards.invite.subtitle" = "Convide amigos e ganhem recompensas juntos.";
 "earn.state.empty.title" = "Suas posições aparecerão aqui.";
 "earn.state.empty.description" = "Faça seu primeiro depósito %@";
 "contacts.title" = "Contatos";

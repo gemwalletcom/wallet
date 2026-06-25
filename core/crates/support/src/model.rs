@@ -171,7 +171,10 @@ impl ChatwootWebhookPayload {
             return None;
         }
         let name = user.name.clone()?;
-        Some(SupportTyping { status, agent: SupportAgent { name } })
+        Some(SupportTyping {
+            status,
+            agent: SupportAgent { name },
+        })
     }
 }
 

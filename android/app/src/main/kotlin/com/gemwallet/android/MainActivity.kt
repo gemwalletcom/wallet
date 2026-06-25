@@ -45,6 +45,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 pendingNavigation = pendingNavigation,
                 systemAuthEnrollmentMissing = systemAuthEnrollmentMissing,
                 walletConnectViewModel = walletConnectViewModel,
+                walletConnectEnabled = viewModel.isWalletConnectEnabled,
                 onSystemAuthRequired = systemAuthenticator::authenticate,
                 onIntentConsumed = viewModel::consumePendingNavigation,
                 onOpenSystemAuthSettings = systemAuthenticator::openSettings,

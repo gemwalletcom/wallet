@@ -3,14 +3,12 @@
   <string name="common_cancel">İptal</string>
   <string name="common_done">Tamam</string>
   <string name="common_secret_phrase">Gizli İfade</string>
-  <string name="common_next">Sonraki</string>
   <string name="common_copy">Kopyala</string>
   <string name="common_share">Paylaş</string>
   <string name="common_continue">Devam et</string>
   <string name="common_provider">Sağlayıcı</string>
   <string name="common_loading">Yükleniyor</string>
   <string name="common_address">Adres</string>
-  <string name="common_back">Geri</string>
   <string name="common_try_again">Tekrar deneyin</string>
   <string name="common_paste">Yapıştır</string>
   <string name="common_delete">Sil</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">Yönet</string>
   <string name="common_type">Tip</string>
   <string name="common_no_results_found">Sonuç bulunamadı</string>
-  <string name="common_yes">Evet</string>
   <string name="common_no">Hayır</string>
   <string name="common_none">Yok</string>
   <string name="common_url">URL\'si</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">Atla</string>
   <string name="common_warning">Uyarı</string>
   <string name="common_learn_more">Daha fazla bilgi edin</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">Tanım</string>
   <string name="common_emoji">Emoji</string>
-  <string name="common_style">Stil</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_photo">Fotoğraf</string>
   <string name="common_save">Kaydet</string>
-  <string name="common_edit">Düzenle</string>
   <string name="common_percentage">Yüzde</string>
   <string name="common_details">Detaylar</string>
   <string name="common_info">Bilgi</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">Gelecekteki ağ ücretlerini karşılamak için bakiyenizde %1$s bıraktık.</string>
   <string name="transfer_freeze_title">Dondur</string>
   <string name="transfer_unfreeze_title">Çöz</string>
-  <string name="transfer_sign_transaction_title">İmza İşlemi</string>
   <string name="transfer_review_request">İnceleme Talebi</string>
   <string name="transfer_amount">Miktar</string>
   <string name="transfer_amount_title">Miktar</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">Kaynak</string>
   <string name="settings_networks_explorer">Kaşif</string>
   <string name="settings_currency">Para birimi</string>
-  <string name="settings_rate_app">Uygulamayı Değerlendirin</string>
   <string name="settings_website">Web Sitesini Ziyaret Et</string>
   <string name="settings_security">Güvenlik</string>
   <string name="settings_enable_value">%1$s etkinleştir</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">Geçersiz %1$s adresi</string>
   <string name="errors_dust_threshold">İşlem, tutarın %1$s ağının minimum gereksinimini (toz eşiği) karşılamak için çok küçük olması nedeniyle başarısız oldu. Bu sınır, işlem değerinin ücretleri ve işlem maliyetlerini karşılamasını sağlar.</string>
   <string name="errors_swap_no_quote_available">Kullanılabilir teklif yok.</string>
-  <string name="errors_swap_not_supported_chain">Desteklenmeyen zincir.</string>
   <string name="errors_swap_not_supported_asset">Desteklenmeyen varlık.</string>
-  <string name="errors_swap_not_supported_pair">Desteklenmeyen çift.</string>
   <string name="errors_connections_invalid_send_parameters">Bir işlem göndermek için geçersiz parametreler sağlandı.</string>
   <string name="errors_connections_invalid_sign_parameters">İmzalama için geçersiz parametreler sağlandı.</string>
   <string name="errors_connections_no_supported_wallets">Desteklenen cüzdan yok.</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">Fiyat</string>
   <string name="asset_market_cap">Piyasa değeri</string>
   <string name="asset_trading_volume">İşlem Hacmi (24 saat)</string>
-  <string name="asset_market_cap_rank">Piyasa Değeri Sıralaması</string>
   <string name="asset_total_supply">Toplam Arz</string>
   <string name="asset_circulating_supply">Dolaşımdaki Tedarik</string>
   <string name="asset_balances_reserved">Rezerve</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">Bağlantıyı kes</string>
   <string name="wallet_connect_connect_title">Bağlamak</string>
   <string name="wallet_connect_app">Uygulama</string>
-  <string name="wallet_connect_website">İnternet sitesi</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">Etkin bağlantı yok</string>
   <string name="wallet_connect_state_empty_description">DApp\'e bağlanmak için kodu tarayın veya yapıştırın</string>
-  <string name="wallet_connect_domain">Etki alanı</string>
   <string name="wallet_connect_permissions_title">İzinler</string>
   <string name="wallet_connect_permissions_view_balance">Bakiyenizi ve işlemlerinizi görüntüleyin.</string>
   <string name="wallet_connect_permissions_approval_requests">Onay isteklerini gönderin</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">Para Çekme Bekleniyor</string>
   <string name="stake_active_in">Şunda aktif olur</string>
   <string name="stake_minimum_amount">Minimum miktar</string>
-  <string name="stake_viagem">Gem Wallet ile stake et</string>
-  <string name="stake_no_active_staking">Henüz aktif staking yok.</string>
   <string name="stake_state_empty_title">Stake\'leriniz burada görünecek</string>
   <string name="stake_state_empty_description">İlk %1$s stake\'inizi yapın</string>
   <string name="stake_resource">Kaynak</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">Stabilcoinler</string>
   <string name="assets_state_empty_search_description">Manuel olarak eklemeyi deneyebilirsiniz</string>
   <string name="assets_title">Varlıklar</string>
-  <string name="sign_message_title">Mesajı İmzala</string>
   <string name="sign_message_message">İleti</string>
   <string name="sign_message_view_full_message">Mesajın Tamamını Görüntüle</string>
   <string name="secret_phrase_do_not_share_title">Gizli İfadenizi paylaşmayın!</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">Minimum bakiye</string>
   <string name="info_perpetual_funding_payments_title">Finansman Ödemeleri</string>
   <string name="info_perpetual_funding_payments_description">Fonlama ödemeleri, daimi sözleşme fiyatını dayanak varlığın spot fiyatına yakın tutmak için yatırımcılar arasında yapılan periyodik ödemelerdir. Pozitif fonlama, uzun pozisyonların kısa pozisyon ödediği anlamına gelirken, negatif fonlama, kısa pozisyonların uzun pozisyon ödediği anlamına gelir.</string>
-  <string name="info_perpetual_funding_rate_title">Finansman</string>
-  <string name="info_perpetual_funding_rate_description">Fonlama oranı, kalıcı bir pozisyon tutmanın maliyetini belirler. Saatlik olarak hesaplanır ve kalıcı sözleşme ile dayanak varlığın spot fiyatı arasındaki fiyat dengesinin korunmasına yardımcı olur.</string>
   <string name="info_perpetual_liquidation_price_title">Tasfiye Fiyatı</string>
   <string name="info_perpetual_liquidation_price_description">Tasfiye fiyatı, daha fazla kaybın önlenmesi amacıyla pozisyonunuzun otomatik olarak kapatılacağı fiyat seviyesidir. Piyasa fiyatı bu seviyeye ulaştığında pozisyonunuz tasfiye edilir ve marjınızı kaybedersiniz.</string>
   <string name="info_perpetual_open_interest_title">Açık Pozisyon</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Gem\'in bir banka veya borsa olmadığını ve yasa dışı amaçlarla kullanılmasının kesinlikle yasak olduğunu anlıyorum.</string>
   <string name="onboarding_accept_terms_item3_message">Cüzdanlarıma erişimi kaybedersem Gem\'in sorumlu olmayacağını ve hiçbir şekilde yardımcı olamayacağını anlıyorum.</string>
   <string name="onboarding_accept_terms_continue">Kabul et ve Devam Et</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">Pozisyonlar</string>
   <string name="perpetual_size">Boyut</string>
   <string name="perpetual_margin">Marj</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">%1$s yi aç</string>
   <string name="perpetual_close_direction">%1$s yi kapatın</string>
   <string name="perpetual_leverage">Kaldıraç</string>
-  <string name="perpetual_direction">Yön</string>
   <string name="perpetual_auto_close">Otomatik Kapatma</string>
   <string name="perpetual_auto_close_take_profit">Kar al</string>
   <string name="perpetual_market_price">Piyasa Fiyatı</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">Yakın zamanda kullandığınız varlıklar burada görünecek</string>
   <string name="notifications_inapp_state_empty_title">Henüz hiçbir bildirim yok.</string>
   <string name="notifications_inapp_state_empty_description">Bildirimlerinizle ilgili güncellemeleri burada göreceksiniz.</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">Arkadaşlarınızı davet edin ve birlikte ödüller kazanın.</string>
   <string name="earn_state_empty_title">Pozisyonlarınız burada görünecektir.</string>
   <string name="earn_state_empty_description">İlk para yatırma işleminizi gerçekleştirin. %1$s</string>
   <string name="contacts_title">İletişim</string>

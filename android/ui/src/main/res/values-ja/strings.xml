@@ -3,14 +3,12 @@
   <string name="common_cancel">キャンセル</string>
   <string name="common_done">完了</string>
   <string name="common_secret_phrase">秘密のフレーズ</string>
-  <string name="common_next">次へ</string>
   <string name="common_copy">コピー</string>
   <string name="common_share">共有</string>
   <string name="common_continue">続ける</string>
   <string name="common_provider">プロバイダー</string>
   <string name="common_loading">読み込み中</string>
   <string name="common_address">アドレス</string>
-  <string name="common_back">戻る</string>
   <string name="common_try_again">もう一度やり直してください</string>
   <string name="common_paste">ペースト</string>
   <string name="common_delete">消去</string>
@@ -26,7 +24,6 @@
   <string name="common_manage">管理</string>
   <string name="common_type">タイプ</string>
   <string name="common_no_results_found">結果が見つかりません</string>
-  <string name="common_yes">はい</string>
   <string name="common_no">いいえ</string>
   <string name="common_none">なし</string>
   <string name="common_url">URL</string>
@@ -39,14 +36,10 @@
   <string name="common_skip">スキップ</string>
   <string name="common_warning">警告</string>
   <string name="common_learn_more">もっと詳しく知る</string>
-  <string name="common_short_name">Gem</string>
   <string name="common_description">説明</string>
   <string name="common_emoji">絵文字</string>
-  <string name="common_style">スタイル</string>
   <string name="common_avatar">アバター</string>
-  <string name="common_photo">写真</string>
   <string name="common_save">保存</string>
-  <string name="common_edit">編集</string>
   <string name="common_percentage">割合</string>
   <string name="common_details">詳細</string>
   <string name="common_info">情報</string>
@@ -134,7 +127,6 @@
   <string name="transfer_reserved_fees">将来のネットワーク手数料をカバーするために、残高に%1$sを残しておきました。</string>
   <string name="transfer_freeze_title">フリーズ</string>
   <string name="transfer_unfreeze_title">凍結解除</string>
-  <string name="transfer_sign_transaction_title">トランザクションに署名</string>
   <string name="transfer_review_request">レビューリクエスト</string>
   <string name="transfer_amount">金額</string>
   <string name="transfer_amount_title">金額</string>
@@ -149,7 +141,6 @@
   <string name="settings_networks_source">ソース</string>
   <string name="settings_networks_explorer">エクスプローラー</string>
   <string name="settings_currency">通貨</string>
-  <string name="settings_rate_app">アプリを評価</string>
   <string name="settings_website">ウェブサイトを訪問</string>
   <string name="settings_security">安全</string>
   <string name="settings_enable_value">%1$sを有効にする</string>
@@ -194,9 +185,7 @@
   <string name="errors_invalid_asset_address">無効な %1$s アドレス</string>
   <string name="errors_dust_threshold">金額が%1$sネットワークの最小要件（ダストしきい値）を満たしていないため、取引は失敗しました。この制限は、取引額が手数料と処理コストをカバーすることを保証するものです。</string>
   <string name="errors_swap_no_quote_available">現在の見積もりはありません</string>
-  <string name="errors_swap_not_supported_chain">サポートされていないチェーン。</string>
   <string name="errors_swap_not_supported_asset">サポートされていないアセット。</string>
-  <string name="errors_swap_not_supported_pair">サポートされていないペア。</string>
   <string name="errors_connections_invalid_send_parameters">トランザクションの送信に無効なパラメータが指定されました。</string>
   <string name="errors_connections_invalid_sign_parameters">署名に無効なパラメータが指定されました。</string>
   <string name="errors_connections_no_supported_wallets">サポートされているウォレットは利用できません。</string>
@@ -251,7 +240,6 @@
   <string name="asset_price">価格</string>
   <string name="asset_market_cap">時価総額</string>
   <string name="asset_trading_volume">取引量（24時間）</string>
-  <string name="asset_market_cap_rank">時価総額ランキング</string>
   <string name="asset_total_supply">総供給量</string>
   <string name="asset_circulating_supply">循環供給量</string>
   <string name="asset_balances_reserved">予約済み</string>
@@ -294,11 +282,9 @@
   <string name="wallet_connect_disconnect">切断</string>
   <string name="wallet_connect_connect_title">接続する</string>
   <string name="wallet_connect_app">アプリ</string>
-  <string name="wallet_connect_website">Webサイト</string>
   <string name="wallet_connect_brand_name">WalletConnect</string>
   <string name="wallet_connect_no_active_connections">アクティブな接続はありません</string>
   <string name="wallet_connect_state_empty_description">コードをスキャンするか貼り付けて、DAppに接続してください</string>
-  <string name="wallet_connect_domain">ドメイン</string>
   <string name="wallet_connect_permissions_title">権限</string>
   <string name="wallet_connect_permissions_view_balance">残高とアクティビティを確認する</string>
   <string name="wallet_connect_permissions_approval_requests">承認依頼を送信する</string>
@@ -325,8 +311,6 @@
   <string name="stake_awaiting_withdrawal">引き出し待ち</string>
   <string name="stake_active_in">有効化まで</string>
   <string name="stake_minimum_amount">最小額</string>
-  <string name="stake_viagem">Gem ウォレット経由でステークする</string>
-  <string name="stake_no_active_staking">アクティブなステーキングはまだありません。</string>
   <string name="stake_state_empty_title">ステークはここに表示されます</string>
   <string name="stake_state_empty_description">初めてステーキング %1$s</string>
   <string name="stake_resource">リソース</string>
@@ -344,7 +328,6 @@
   <string name="assets_tags_stablecoins">ステーブルコイン</string>
   <string name="assets_state_empty_search_description">手動で追加してみてください</string>
   <string name="assets_title">資産</string>
-  <string name="sign_message_title">メッセージを署名する</string>
   <string name="sign_message_message">メッセージ</string>
   <string name="sign_message_view_full_message">メッセージ全文を表示</string>
   <string name="secret_phrase_do_not_share_title">秘密のフレーズを共有しないでください。</string>
@@ -451,8 +434,6 @@
   <string name="info_account_minimum_balance_title">最低残高</string>
   <string name="info_perpetual_funding_payments_title">ファンディングペイメント</string>
   <string name="info_perpetual_funding_payments_description">ファンディングペイメントは、永久契約の価格を基礎資産のスポット価格に近づけるためにトレーダー間で定期的に行われる支払いです。プラスのファンディングではロングポジションがショートポジションに支払い、マイナスのファンディングではショートポジションがロングポジションに支払います。</string>
-  <string name="info_perpetual_funding_rate_title">資金調達率</string>
-  <string name="info_perpetual_funding_rate_description">ファンディングレートは永久ポジションの保有コストを決定します。これは毎時計算され、永久契約と基礎資産のスポット価格の価格均衡を維持するのに役立ちます。</string>
   <string name="info_perpetual_liquidation_price_title">清算価格</string>
   <string name="info_perpetual_liquidation_price_description">清算価格は、損失拡大を防ぐためにポジションが自動的に決済される価格水準です。市場価格がこの水準に達するとポジションは清算され、証拠金を失います。</string>
   <string name="info_perpetual_open_interest_title">未決済建玉</string>
@@ -506,7 +487,6 @@
   <string name="onboarding_accept_terms_item2_message">Gemは銀行や取引所ではなく、違法目的での使用は禁止されていることを理解しています。</string>
   <string name="onboarding_accept_terms_item3_message">ウォレットへのアクセスを失った場合、Gemは責任を負わず、支援もできないことを理解しています。</string>
   <string name="onboarding_accept_terms_continue">同意して続行</string>
-  <string name="brand_name">Gem Wallet</string>
   <string name="perpetual_positions">ポジション</string>
   <string name="perpetual_size">サイズ</string>
   <string name="perpetual_margin">マージン</string>
@@ -522,7 +502,6 @@
   <string name="perpetual_open_direction">%1$sを開く</string>
   <string name="perpetual_close_direction">%1$sを閉じる</string>
   <string name="perpetual_leverage">レバレッジ</string>
-  <string name="perpetual_direction">方向</string>
   <string name="perpetual_auto_close">自動決済</string>
   <string name="perpetual_auto_close_take_profit">利益確定</string>
   <string name="perpetual_market_price">市場価格</string>
@@ -578,7 +557,6 @@
   <string name="recent_activity_state_empty_description">最近使用したアセットがここに表示されます</string>
   <string name="notifications_inapp_state_empty_title">まだ通知はありません</string>
   <string name="notifications_inapp_state_empty_description">通知に関する最新情報はここで確認できます</string>
-  <string name="notifications_inapp_rewards_invite_subtitle">友達を招待して一緒に報酬を獲得しましょう</string>
   <string name="earn_state_empty_title">あなたのポジションはここに表示されます</string>
   <string name="earn_state_empty_description">初回入金 %1$s</string>
   <string name="contacts_title">連絡先</string>

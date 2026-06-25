@@ -44,6 +44,7 @@ import com.gemwallet.android.ui.models.ListPosition
 fun SettingsScene(
     onSecurity: () -> Unit,
     onBridges: () -> Unit,
+    walletConnectEnabled: Boolean = true,
     onDevelop: () -> Unit,
     onWallets: () -> Unit,
     onAboutUs: () -> Unit,
@@ -112,12 +113,14 @@ fun SettingsScene(
                     onClick = onPreferences,
                 )
             }
-            LinkItem(
-                title = stringResource(id = R.string.wallet_connect_title),
-                icon = R.drawable.settings_wc,
-                listPosition = ListPosition.Single,
-            ) {
-                onBridges()
+            if (walletConnectEnabled) {
+                LinkItem(
+                    title = stringResource(id = R.string.wallet_connect_title),
+                    icon = R.drawable.settings_wc,
+                    listPosition = ListPosition.Single,
+                ) {
+                    onBridges()
+                }
             }
 
             LinkItem(

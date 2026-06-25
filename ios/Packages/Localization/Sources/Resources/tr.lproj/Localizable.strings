@@ -1,14 +1,12 @@
 "common.cancel" = "İptal";
 "common.done" = "Tamam";
 "common.secret_phrase" = "Gizli İfade";
-"common.next" = "Sonraki";
 "common.copy" = "Kopyala";
 "common.share" = "Paylaş";
 "common.continue" = "Devam et";
 "common.provider" = "Sağlayıcı";
 "common.loading" = "Yükleniyor";
 "common.address" = "Adres";
-"common.back" = "Geri";
 "common.try_again" = "Tekrar deneyin";
 "common.paste" = "Yapıştır";
 "common.delete" = "Sil";
@@ -24,7 +22,6 @@
 "common.manage" = "Yönet";
 "common.type" = "Tip";
 "common.no_results_found" = "Sonuç bulunamadı";
-"common.yes" = "Evet";
 "common.no" = "Hayır";
 "common.none" = "Yok";
 "common.url" = "URL'si";
@@ -37,14 +34,10 @@
 "common.skip" = "Atla";
 "common.warning" = "Uyarı";
 "common.learn_more" = "Daha fazla bilgi edin";
-"common.short_name" = "Gem";
 "common.description" = "Tanım";
 "common.emoji" = "Emoji";
-"common.style" = "Stil";
 "common.avatar" = "Avatar";
-"common.photo" = "Fotoğraf";
 "common.save" = "Kaydet";
-"common.edit" = "Düzenle";
 "common.percentage" = "Yüzde";
 "common.details" = "Detaylar";
 "common.info" = "Bilgi";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Gelecekteki ağ ücretlerini karşılamak için bakiyenizde %@ bıraktık.";
 "transfer.freeze.title" = "Dondur";
 "transfer.unfreeze.title" = "Çöz";
-"transfer.sign_transaction.title" = "İmza İşlemi";
 "transfer.review_request" = "İnceleme Talebi";
 "settings.terms_of_services" = "Hizmet Şartları";
 "settings.privacy_policy" = "Gizlilik Politikası";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Kaynak";
 "settings.networks.explorer" = "Kaşif";
 "settings.currency" = "Para birimi";
-"settings.rate_app" = "Uygulamayı Değerlendirin";
 "settings.website" = "Web Sitesini Ziyaret Et";
 "settings.security" = "Güvenlik";
 "settings.enable_value" = "%@ etkinleştir";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Geçersiz %@ adresi";
 "errors.dust_threshold" = "İşlem, tutarın %@ ağının minimum gereksinimini (toz eşiği) karşılamak için çok küçük olması nedeniyle başarısız oldu. Bu sınır, işlem değerinin ücretleri ve işlem maliyetlerini karşılamasını sağlar.";
 "errors.swap.no_quote_available" = "Kullanılabilir teklif yok.";
-"errors.swap.not_supported_chain" = "Desteklenmeyen zincir.";
 "errors.swap.not_supported_asset" = "Desteklenmeyen varlık.";
-"errors.swap.not_supported_pair" = "Desteklenmeyen çift.";
 "errors.connections.invalid_send_parameters" = "Bir işlem göndermek için geçersiz parametreler sağlandı.";
 "errors.connections.invalid_sign_parameters" = "İmzalama için geçersiz parametreler sağlandı.";
 "errors.connections.no_supported_wallets" = "Desteklenen cüzdan yok.";
@@ -236,7 +225,6 @@
 "asset.price" = "Fiyat";
 "asset.market_cap" = "Piyasa değeri";
 "asset.trading_volume" = "İşlem Hacmi (24 saat)";
-"asset.market_cap_rank" = "Piyasa Değeri Sıralaması";
 "asset.total_supply" = "Toplam Arz";
 "asset.circulating_supply" = "Dolaşımdaki Tedarik";
 "asset.balances.reserved" = "Rezerve";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Bağlantıyı kes";
 "wallet_connect.connect.title" = "Bağlamak";
 "wallet_connect.app" = "Uygulama";
-"wallet_connect.website" = "İnternet sitesi";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Etkin bağlantı yok";
 "wallet_connect.state.empty.description" = "DApp'e bağlanmak için kodu tarayın veya yapıştırın";
-"wallet_connect.domain" = "Etki alanı";
 "wallet_connect.permissions.title" = "İzinler";
 "wallet_connect.permissions.view_balance" = "Bakiyenizi ve işlemlerinizi görüntüleyin.";
 "wallet_connect.permissions.approval_requests" = "Onay isteklerini gönderin";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Para Çekme Bekleniyor";
 "stake.active_in" = "Şunda aktif olur";
 "stake.minimum_amount" = "Minimum miktar";
-"stake.viagem" = "Gem Wallet ile stake et";
-"stake.no_active_staking" = "Henüz aktif staking yok.";
 "stake.state.empty.title" = "Stake'leriniz burada görünecek";
 "stake.state.empty.description" = "İlk %@ stake'inizi yapın";
 "stake.resource" = "Kaynak";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Stabilcoinler";
 "assets.state.empty.search_description" = "Manuel olarak eklemeyi deneyebilirsiniz";
 "assets.title" = "Varlıklar";
-"sign_message.title" = "Mesajı İmzala";
 "sign_message.message" = "İleti";
 "sign_message.view_full_message" = "Mesajın Tamamını Görüntüle";
 "secret_phrase.do_not_share.title" = "Gizli İfadenizi paylaşmayın!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Minimum bakiye";
 "info.perpetual.funding_payments.title" = "Finansman Ödemeleri";
 "info.perpetual.funding_payments.description" = "Fonlama ödemeleri, daimi sözleşme fiyatını dayanak varlığın spot fiyatına yakın tutmak için yatırımcılar arasında yapılan periyodik ödemelerdir. Pozitif fonlama, uzun pozisyonların kısa pozisyon ödediği anlamına gelirken, negatif fonlama, kısa pozisyonların uzun pozisyon ödediği anlamına gelir.";
-"info.perpetual.funding_rate.title" = "Finansman";
-"info.perpetual.funding_rate.description" = "Fonlama oranı, kalıcı bir pozisyon tutmanın maliyetini belirler. Saatlik olarak hesaplanır ve kalıcı sözleşme ile dayanak varlığın spot fiyatı arasındaki fiyat dengesinin korunmasına yardımcı olur.";
 "info.perpetual.liquidation_price.title" = "Tasfiye Fiyatı";
 "info.perpetual.liquidation_price.description" = "Tasfiye fiyatı, daha fazla kaybın önlenmesi amacıyla pozisyonunuzun otomatik olarak kapatılacağı fiyat seviyesidir. Piyasa fiyatı bu seviyeye ulaştığında pozisyonunuz tasfiye edilir ve marjınızı kaybedersiniz.";
 "info.perpetual.open_interest.title" = "Açık Pozisyon";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Gem'in bir banka veya borsa olmadığını ve yasa dışı amaçlarla kullanılmasının kesinlikle yasak olduğunu anlıyorum.";
 "onboarding.accept_terms.item3.message" = "Cüzdanlarıma erişimi kaybedersem Gem'in sorumlu olmayacağını ve hiçbir şekilde yardımcı olamayacağını anlıyorum.";
 "onboarding.accept_terms.continue" = "Kabul et ve Devam Et";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Pozisyonlar";
 "perpetual.size" = "Boyut";
 "perpetual.margin" = "Marj";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "%@ yi aç";
 "perpetual.close_direction" = "%@ yi kapatın";
 "perpetual.leverage" = "Kaldıraç";
-"perpetual.direction" = "Yön";
 "perpetual.auto_close" = "Otomatik Kapatma";
 "perpetual.auto_close.take_profit" = "Kar al";
 "perpetual.market_price" = "Piyasa Fiyatı";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Yakın zamanda kullandığınız varlıklar burada görünecek";
 "notifications.inapp.state.empty.title" = "Henüz hiçbir bildirim yok.";
 "notifications.inapp.state.empty.description" = "Bildirimlerinizle ilgili güncellemeleri burada göreceksiniz.";
-"notifications.inapp.rewards.invite.subtitle" = "Arkadaşlarınızı davet edin ve birlikte ödüller kazanın.";
 "earn.state.empty.title" = "Pozisyonlarınız burada görünecektir.";
 "earn.state.empty.description" = "İlk para yatırma işleminizi gerçekleştirin. %@";
 "contacts.title" = "İletişim";

@@ -4,7 +4,9 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
 fun SubheaderItem(@StringRes title: Int, vararg formatArgs: Any) {
@@ -43,17 +46,34 @@ fun SubheaderItem(title: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun SubheaderItem(@StringRes title: Int, onClick: (() -> Unit)?) {
-    val text = stringResource(title)
-    if (onClick == null) SubheaderItem(text) else SubheaderItem(text, onClick)
+    SubheaderItem(title = stringResource(title), onClick = onClick)
 }
 
+private val subheaderTopPadding = paddingSmall
+private val subheaderHighlightPaddingHorizontal = paddingSmall
+private val subheaderHighlightPaddingVertical = paddingHalfSmall
+
 @Composable
-fun SubheaderItem(title: String, onClick: () -> Unit) {
-    Row(modifier = Modifier.sectionHeaderItem()) {
+fun SubheaderItem(title: String, onClick: (() -> Unit)?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                top = subheaderTopPadding - subheaderHighlightPaddingVertical,
+                start = sectionHeaderHorizontalPadding - subheaderHighlightPaddingHorizontal,
+                end = sectionHeaderHorizontalPadding - subheaderHighlightPaddingHorizontal,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(paddingHalfSmall))
-                .clickable(onClick = onClick),
+                .clip(RoundedCornerShape(paddingSmall))
+                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                .padding(
+                    horizontal = subheaderHighlightPaddingHorizontal,
+                    vertical = subheaderHighlightPaddingVertical,
+                )
+                .heightIn(min = ChevronIconDefaults.size),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -61,7 +81,9 @@ fun SubheaderItem(title: String, onClick: () -> Unit) {
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
             )
-            ChevronIcon()
+            if (onClick != null) {
+                ChevronIcon()
+            }
         }
     }
 }

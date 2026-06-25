@@ -22,6 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneState
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
@@ -45,14 +47,13 @@ import com.gemwallet.android.ui.components.icon
 import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
-import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @Composable
 fun ProposalScene(
-    proposal: Wallet.Model.SessionProposal,
-    verifyContext: Wallet.Model.VerifyContext,
+    proposal: WalletConnectSessionProposal,
+    verifyContext: WalletConnectVerifyContext,
     onCancel: () -> Unit,
     onError: (String) -> Unit,
 ) {

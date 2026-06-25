@@ -1,14 +1,12 @@
 "common.cancel" = "Soke";
 "common.done" = "Anyi";
 "common.secret_phrase" = "Kalmomin Sirri";
-"common.next" = "Na gaba";
 "common.copy" = "Kwafi";
 "common.share" = "Raba";
 "common.continue" = "Ci gaba";
 "common.provider" = "Mai bayarwa";
 "common.loading" = "Ana lodawa";
 "common.address" = "Adireshi";
-"common.back" = "Baya";
 "common.try_again" = "Gwada kuma";
 "common.paste" = "Manna";
 "common.delete" = "Share";
@@ -24,7 +22,6 @@
 "common.manage" = "Sarrafa";
 "common.type" = "Nau'in";
 "common.no_results_found" = "Ba a Samu Sakamako ba";
-"common.yes" = "Ee";
 "common.no" = "A'a";
 "common.none" = "Babu";
 "common.url" = "URL";
@@ -37,14 +34,10 @@
 "common.skip" = "Tsallake";
 "common.warning" = "Gargadi";
 "common.learn_more" = "Ƙara Koyi";
-"common.short_name" = "Gem";
 "common.description" = "Bayani";
 "common.emoji" = "Emoji";
-"common.style" = "Salo";
 "common.avatar" = "Avatar";
-"common.photo" = "Hoto";
 "common.save" = "Ajiye";
-"common.edit" = "Gyara";
 "common.percentage" = "Kashi";
 "common.details" = "Cikakkun bayanai";
 "common.info" = "Bayani";
@@ -129,7 +122,6 @@
 "transfer.reserved_fees" = "Mun bar %@ cikin ma'auni don biyan kuɗin hanyar sadarwa na gaba.";
 "transfer.freeze.title" = "Daskare";
 "transfer.unfreeze.title" = "Cire daskarewa";
-"transfer.sign_transaction.title" = "Sa hannu kan Ma'amala";
 "transfer.review_request" = "Buƙatar Bita";
 "settings.terms_of_services" = "Sharuɗɗan Sabis";
 "settings.privacy_policy" = "takardar kebantawa";
@@ -142,7 +134,6 @@
 "settings.networks.source" = "Source";
 "settings.networks.explorer" = "Explorer";
 "settings.currency" = "Kudi";
-"settings.rate_app" = "Rate App";
 "settings.website" = "Ziyarci Yanar Gizo";
 "settings.security" = "Tsaro";
 "settings.enable_value" = "Kunna %@";
@@ -187,9 +178,7 @@
 "errors.invalid_asset_address" = "Adireshin %@ mara inganci";
 "errors.dust_threshold" = "Kasuwancin ya gaza saboda adadin ya yi ƙanƙanta da zai iya biyan mafi ƙarancin buƙatun hanyar sadarwa na %@ (ƙafar ƙura). Wannan iyaka yana tabbatar da ƙimar ciniki ta rufe kudade da farashin sarrafawa.";
 "errors.swap.no_quote_available" = "Babu farashi a halin yanzu.";
-"errors.swap.not_supported_chain" = "Sarkar da ba ta da goyan baya.";
 "errors.swap.not_supported_asset" = "Ba a goyan bayan kadari.";
-"errors.swap.not_supported_pair" = "Ba a goyan bayan nau'i biyu ba.";
 "errors.connections.invalid_send_parameters" = "An samar da sigogi marasa inganci don aika ma'amala.";
 "errors.connections.invalid_sign_parameters" = "An samar da sigogi marasa inganci don sa hannu.";
 "errors.connections.no_supported_wallets" = "Babu goyan bayan walat.";
@@ -236,7 +225,6 @@
 "asset.price" = "Farashin";
 "asset.market_cap" = "Ƙimar Kasuwa";
 "asset.trading_volume" = "Girman Kasuwanci (24h)";
-"asset.market_cap_rank" = "Matsayin Kasuwa";
 "asset.total_supply" = "Jimlar Wadata";
 "asset.circulating_supply" = "Wadatar Dawowa";
 "asset.balances.reserved" = "Ajiye";
@@ -279,11 +267,9 @@
 "wallet_connect.disconnect" = "Cire haɗin";
 "wallet_connect.connect.title" = "Haɗa";
 "wallet_connect.app" = "App";
-"wallet_connect.website" = "Yanar Gizo";
 "wallet_connect.brand_name" = "WalletConnect";
 "wallet_connect.no_active_connections" = "Babu haɗin kai mai aiki";
 "wallet_connect.state.empty.description" = "Duba ko liƙa lamba don haɗi zuwa DApp";
-"wallet_connect.domain" = "Yankin";
 "wallet_connect.permissions.title" = "Izini";
 "wallet_connect.permissions.view_balance" = "Duba ma'aunin ku da ayyukan ku";
 "wallet_connect.permissions.approval_requests" = "Aika buƙatun amincewa";
@@ -310,8 +296,6 @@
 "stake.awaiting_withdrawal" = "Ana jiran Janyewa";
 "stake.active_in" = "Active In";
 "stake.minimum_amount" = "Mafi ƙarancin adadin";
-"stake.viagem" = "Saka hannun jari ta Gem Wallet";
-"stake.no_active_staking" = "Har yanzu babu wani saka hannun jari.";
 "stake.state.empty.title" = "Hannun jarinku zai bayyana a nan";
 "stake.state.empty.description" = "Bada %@ na farko";
 "stake.resource" = "Albarkatu";
@@ -329,7 +313,6 @@
 "assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "Kuna iya ƙoƙarin ƙara shi da hannu";
 "assets.title" = "Kadari";
-"sign_message.title" = "Saƙon Sa hannu";
 "sign_message.message" = "Sako";
 "sign_message.view_full_message" = "Duba Cikakken Saƙo";
 "secret_phrase.do_not_share.title" = "Kada ku raba Kalmar sirrinku!";
@@ -436,8 +419,6 @@
 "info.account_minimum_balance.title" = "Mafi ƙarancin ma'auni";
 "info.perpetual.funding_payments.title" = "Biyan Kuɗi";
 "info.perpetual.funding_payments.description" = "Biyan kuɗi kuɗi ne na lokaci-lokaci tsakanin ƴan kasuwa don kiyaye farashin kwangila na dindindin kusa da ainihin ƙimar kadara. Kudi mai kyau yana nufin matsayi mai tsawo yana biyan gajerun matsayi, yayin da kudade mara kyau yana nufin gajeren matsayi yana biyan matsayi mai tsawo.";
-"info.perpetual.funding_rate.title" = "Tallafawa";
-"info.perpetual.funding_rate.description" = "Adadin kuɗi yana ƙayyade farashin riƙe matsayi na har abada. Ana ƙididdige shi kowane sa'o'i kuma yana taimakawa kiyaye daidaiton farashi tsakanin kwangilar dindindin da farashin tabo na kadari.";
 "info.perpetual.liquidation_price.title" = "Farashin Liquidation";
 "info.perpetual.liquidation_price.description" = "Farashin ruwa shine matakin farashin wanda za'a rufe matsayin ku ta atomatik don hana ƙarin asara. Lokacin da farashin kasuwa ya kai wannan matakin, ana share matsayin ku kuma kuna rasa margin ɗin ku.";
 "info.perpetual.open_interest.title" = "Buɗe Sha'awa";
@@ -491,7 +472,6 @@
 "onboarding.accept_terms.item2.message" = "Na fahimci cewa Gem ba banki ba ne ko musanya, kuma an haramta amfani da shi don dalilai na doka.";
 "onboarding.accept_terms.item3.message" = "Na fahimci cewa idan na rasa damar shiga wallet dina, Gem ba abin dogaro bane kuma ba zai iya taimakawa ta kowace hanya ba.";
 "onboarding.accept_terms.continue" = "Yarda da Ci gaba";
-"brand_name" = "Gem Wallet";
 "perpetual.positions" = "Matsayi";
 "perpetual.size" = "Girman";
 "perpetual.margin" = "Margin";
@@ -507,7 +487,6 @@
 "perpetual.open_direction" = "Bude %@";
 "perpetual.close_direction" = "Rufe %@";
 "perpetual.leverage" = "Amfani";
-"perpetual.direction" = "Hanyar";
 "perpetual.auto_close" = "Rufe atomatik";
 "perpetual.auto_close.take_profit" = "Ci riba";
 "perpetual.market_price" = "Farashin Kasuwa";
@@ -563,7 +542,6 @@
 "recent_activity.state.empty.description" = "Kadarorin da kuka yi amfani da su kwanan nan za su bayyana a nan";
 "notifications.inapp.state.empty.title" = "Babu sanarwa tukuna";
 "notifications.inapp.state.empty.description" = "Za ku ga sabbin bayanai game da sanarwarku a nan";
-"notifications.inapp.rewards.invite.subtitle" = "Gayyaci abokai kuma ku sami lada tare";
 "earn.state.empty.title" = "Matsayinka zai bayyana a nan";
 "earn.state.empty.description" = "Ajiye kuɗin farko %@";
 "contacts.title" = "Lambobin Sadarwa";

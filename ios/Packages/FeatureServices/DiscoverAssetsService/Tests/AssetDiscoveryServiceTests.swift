@@ -80,7 +80,7 @@ struct AssetDiscoveryServiceTests {
 
         try await service.discoverAssets(wallet: wallet)
 
-        let initialSavedTransactions = try transactionStore.getTransactions(state: .confirmed)
+        let initialSavedTransactions = try transactionStore.getTransactions(states: [.confirmed])
         let initialSavedNFTs = try fetchNFTs(db: db, walletId: wallet.id)
 
         #expect(preferences.completeInitialLoadAssets)
@@ -125,7 +125,7 @@ struct AssetDiscoveryServiceTests {
         nftProvider.setNFTAssets([nextNFT])
 
         try await service.discoverAssets(wallet: wallet)
-        let savedTransactions = try transactionStore.getTransactions(state: .confirmed)
+        let savedTransactions = try transactionStore.getTransactions(states: [.confirmed])
         let savedNFTs = try fetchNFTs(db: db, walletId: wallet.id)
 
         #expect(savedTransactions.map(\.id.hash) == [initialTransaction.id.hash])

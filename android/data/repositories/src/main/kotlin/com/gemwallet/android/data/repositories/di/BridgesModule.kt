@@ -1,13 +1,13 @@
 package com.gemwallet.android.data.repositories.di
 
-import android.content.Context
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.ConnectionsRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -16,14 +16,21 @@ import javax.inject.Singleton
 object BridgesModule {
     @Singleton
     @Provides
-    fun provideBridgeRepository(
-        @ApplicationContext context: Context,
+    fun provideConnectionsRepository(
         walletsRepository: WalletsRepository,
         connectionsDao: ConnectionsDao,
-    ): BridgesRepository = BridgesRepository(
-        context = context,
+    ): ConnectionsRepository = ConnectionsRepository(
         walletsRepository = walletsRepository,
         connectionsDao = connectionsDao,
     )
-}
 
+    @Singleton
+    @Provides
+    fun provideBridgeRepository(
+        connectionsRepository: ConnectionsRepository,
+        walletConnectClient: WalletConnectClient,
+    ): BridgesRepository = BridgesRepository(
+        connectionsRepository = connectionsRepository,
+        walletConnectClient = walletConnectClient,
+    )
+}

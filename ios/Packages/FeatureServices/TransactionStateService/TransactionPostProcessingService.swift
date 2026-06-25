@@ -30,12 +30,10 @@ public struct TransactionPostProcessingService: Sendable {
     }
 
     func process(wallet: Wallet, transaction: Transaction) async throws {
-        Task {
-            await balanceUpdater.updateBalance(
-                for: wallet,
-                assetIds: (transaction.assetIds + [transaction.feeAssetId]).unique(),
-            )
-        }
+        await balanceUpdater.updateBalance(
+            for: wallet,
+            assetIds: (transaction.assetIds + [transaction.feeAssetId]).unique(),
+        )
 
         switch transaction.type {
         case .stakeDelegate, .stakeUndelegate, .stakeRewards, .stakeRedelegate, .stakeWithdraw:

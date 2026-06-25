@@ -7,19 +7,19 @@ import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.ChainNamespace
+import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
+import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.walletConnectAppName
-import com.gemwallet.android.ext.walletConnectIcon
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.PayloadField
-import com.reown.walletkit.client.Wallet as ReownWallet
-import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
@@ -50,22 +50,22 @@ class WCAuthViewModel @Inject constructor(
     private val originVerifier: WalletConnectOriginVerifier,
 ) : ViewModel() {
 
-    private var authRequest: ReownWallet.Model.SessionAuthenticate? = null
+    private var authRequest: WalletConnectAuthenticationRequest? = null
     private var hasResponded = false
 
     private val _state = MutableStateFlow<AuthSceneState>(AuthSceneState.Loading)
     val state: StateFlow<AuthSceneState> = _state.asStateFlow()
 
     fun onRequest(
-        request: ReownWallet.Model.SessionAuthenticate,
-        verifyContext: ReownWallet.Model.VerifyContext,
+        request: WalletConnectAuthenticationRequest,
+        verifyContext: WalletConnectVerifyContext,
     ) {
         authRequest = request
         hasResponded = false
         _state.update { AuthSceneState.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val verification = originVerifier.verify(request.participant.metadata?.url, verifyContext)
+                val verification = originVerifier.verify(request.metadata?.url, verifyContext)
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
@@ -152,13 +152,10 @@ class WCAuthViewModel @Inject constructor(
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                val authObject = WalletKit.generateAuthObject(
+                val authObject = bridgesRepository.generateAuthObject(
                     payloadParams = approval.payloadParams,
                     issuer = approval.issuer,
-                    signature = ReownWallet.Model.Cacao.Signature(
-                        t = "eip191",
-                        s = signature,
-                    ),
+                    signature = signature,
                 )
                 bridgesRepository.approveAuthentication(
                     request = request,
@@ -203,7 +200,7 @@ class WCAuthViewModel @Inject constructor(
     }
 
     private fun rejectRequest(
-        request: ReownWallet.Model.SessionAuthenticate,
+        request: WalletConnectAuthenticationRequest,
         state: AuthSceneState,
     ) {
         if (!isActiveRequest(request)) {
@@ -214,30 +211,25 @@ class WCAuthViewModel @Inject constructor(
         _state.update { state }
     }
 
-    private fun isActiveRequest(request: ReownWallet.Model.SessionAuthenticate): Boolean {
+    private fun isActiveRequest(request: WalletConnectAuthenticationRequest): Boolean {
         return authRequest?.id == request.id && !hasResponded
     }
 
     private fun buildApproval(
-        request: ReownWallet.Model.SessionAuthenticate,
+        request: WalletConnectAuthenticationRequest,
         wallet: Wallet,
     ): AuthApproval {
         val supportedAccounts = supportedAccounts(wallet, request)
         val selectedAccount = supportedAccounts.firstOrNull()
             ?: throw IllegalStateException("Requested chains are not supported")
         val supportedChains = supportedAccounts.map { it.chainId }.distinct()
-        val payloadParams = WalletKit.generateAuthPayloadParams(
+        val payloadParams = bridgesRepository.generateAuthPayloadParams(
             payloadParams = request.payloadParams,
             supportedChains = supportedChains,
             supportedMethods = ChainNamespace.Eip155.methodIds,
         )
         val issuer = selectedAccount.issuer
-        val message = WalletKit.formatAuthMessage(
-            ReownWallet.Params.FormatAuthMessage(
-                payloadParams = payloadParams,
-                issuer = issuer,
-            )
-        )
+        val message = bridgesRepository.formatAuthMessage(payloadParams, issuer)
         val payloadPreview = payloadPreview(selectedAccount.account.chain, message)
 
         return AuthApproval(
@@ -253,7 +245,7 @@ class WCAuthViewModel @Inject constructor(
 
     private fun supportedAccounts(
         wallet: Wallet,
-        request: ReownWallet.Model.SessionAuthenticate,
+        request: WalletConnectAuthenticationRequest,
     ): List<AuthAccount> {
         val requestedChains = request.payloadParams.chains.toSet()
         if (requestedChains.isEmpty()) {
@@ -314,13 +306,12 @@ class WCAuthViewModel @Inject constructor(
         }
     }
 
-    private fun ReownWallet.Model.SessionAuthenticate.toSessionUI(): SessionUI {
-        val metadata = participant.metadata
+    private fun WalletConnectAuthenticationRequest.toSessionUI(): SessionUI {
         return WalletConnectionSessionAppMetadata(
             name = walletConnectAppName(metadata?.name, metadata?.url),
             description = metadata?.description ?: "",
             url = metadata?.url ?: "",
-            icon = metadata?.icons.walletConnectIcon(),
+            icon = metadata?.icon ?: "",
         ).toSessionUI()
     }
 
@@ -363,7 +354,7 @@ sealed interface AuthSceneState {
 data class AuthApproval(
     val wallet: Wallet,
     val account: Account,
-    val payloadParams: ReownWallet.Model.PayloadAuthRequestParams,
+    val payloadParams: WalletConnectAuthPayloadParams,
     val issuer: String,
     val message: String,
     val primaryPayloadFields: List<PayloadField>,

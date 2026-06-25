@@ -10,16 +10,18 @@ use number_formatter::BigNumberFormatter;
 use primitives::{
     Asset, AssetSubtype, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
     TransactionPreloadInput, TransferDataOutputAction, TronStakeData, decode_hex,
-    swap::{SwapData, SwapQuoteData, SwapQuoteDataType},
+    swap::{ApprovalData, SwapData, SwapQuoteData, SwapQuoteDataType},
 };
 
 use crate::{
     address::TronAddress,
     models::{ChainParameter, TriggerSmartContractData, account::TronAccountUsage},
     provider::preload_mapper::{
-        FeeEstimateContext, calculate_stake_fee_rate, calculate_transfer_token_fee_rate, calculate_transfer_token_fee_rate_with_data, map_stake_data, native_transfer_fee,
+        FEE_LIMIT_BUFFER_PERCENT, FeeEstimateContext, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT, calculate_stake_fee_rate, calculate_token_fee_rate_with_data, map_stake_data,
+        native_transfer_fee,
     },
     rpc::client::TronClient,
+    trc20,
 };
 
 #[async_trait]
@@ -81,6 +83,7 @@ impl<C: Client> ChainTransactionLoad for TronClient<C> {
                 TransferDataOutputAction::Sign => native_transfer_fee(&fee_context, false)?,
             },
             TransactionInputType::Stake(_asset, stake_type) => TransactionFee::new_from_fee(calculate_stake_fee_rate(&chain_parameters, &account_usage, stake_type)?),
+            TransactionInputType::TokenApprove(_, approval) => self.estimate_token_approval_fee(&input.sender_address, approval, &chain_parameters, &account_usage).await?,
             TransactionInputType::Swap(from_asset, _, swap_data) => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
             _ => native_transfer_fee(&fee_context, has_memo)?,
         };
@@ -129,17 +132,31 @@ impl<C: Client> TronClient<C> {
         fee_context: &FeeEstimateContext<'_>,
         input_memo: Option<&str>,
     ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        if !swap_data.data.data.is_empty() {
+        let swap_fee = if !swap_data.data.data.is_empty() {
             let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
-            return self
-                .estimate_contract_call_fee(sender_address, &swap_data.data, fee_context.chain_parameters, fee_context.account_usage, memo_data_bytes)
-                .await;
-        }
-        if from_asset.id.token_id.is_some() {
+            self.estimate_contract_call_fee(sender_address, &swap_data.data, fee_context.chain_parameters, fee_context.account_usage, memo_data_bytes)
+                .await?
+        } else if from_asset.id.token_id.is_some() {
             return Err("Tron token contract swap calldata is required".into());
+        } else {
+            native_transfer_fee(fee_context, has_swap_quote_memo(input_memo, &swap_data.data))?
+        };
+
+        if let Some(approval) = &swap_data.data.approval {
+            let approval_fee = self
+                .estimate_token_approval_fee(sender_address, approval, fee_context.chain_parameters, fee_context.account_usage)
+                .await?;
+            let fee = &approval_fee.fee + &swap_fee.fee;
+            let gas_limit = &approval_fee.gas_limit + &swap_fee.gas_limit;
+            return Ok(TransactionFee {
+                fee,
+                gas_limit,
+                gas_price_type: approval_fee.gas_price_type,
+                options: approval_fee.options,
+            });
         }
 
-        native_transfer_fee(fee_context, has_swap_quote_memo(input_memo, &swap_data.data))
+        Ok(swap_fee)
     }
 
     async fn estimate_transfer_swap_fee(
@@ -179,20 +196,7 @@ impl<C: Client> TronClient<C> {
     ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let destination_parameter = TronAddress::parse(&destination_address)?.abi_address_parameter();
         let estimated_energy = self.estimate_trc20_transfer_gas(sender_address, token_id, destination_parameter, value).await?;
-        let token_fee = calculate_transfer_token_fee_rate_with_data(
-            chain_parameters,
-            account_usage,
-            estimated_energy,
-            memo_data_bytes.unwrap_or_default(),
-            memo_data_bytes.is_some(),
-        )?;
-
-        Ok(TransactionFee::new_gas_price_type(
-            GasPriceType::regular(BigInt::from(token_fee.energy_price)),
-            BigInt::from(token_fee.fee),
-            BigInt::from(token_fee.fee_limit),
-            HashMap::new(),
-        ))
+        transaction_fee_from_energy_estimate(chain_parameters, account_usage, estimated_energy, memo_data_bytes, FEE_LIMIT_BUFFER_PERCENT)
     }
 
     async fn estimate_contract_call_fee(
@@ -210,21 +214,37 @@ impl<C: Client> TronClient<C> {
             fee_limit: None,
             call_value: Some(data.value.parse::<u64>()?).filter(|value| *value > 0),
         };
-        let estimated_energy = self.estimate_energy_with_data(&contract_data).await?;
-        let token_fee = calculate_transfer_token_fee_rate_with_data(
-            chain_parameters,
-            account_usage,
-            estimated_energy,
-            memo_data_bytes.unwrap_or_default(),
-            memo_data_bytes.is_some(),
-        )?;
+        self.estimate_smart_contract_fee(contract_data, chain_parameters, account_usage, memo_data_bytes).await
+    }
 
-        Ok(TransactionFee::new_gas_price_type(
-            GasPriceType::regular(BigInt::from(token_fee.energy_price)),
-            BigInt::from(token_fee.fee),
-            BigInt::from(token_fee.fee_limit),
-            HashMap::new(),
-        ))
+    async fn estimate_token_approval_fee(
+        &self,
+        sender_address: &str,
+        approval: &ApprovalData,
+        chain_parameters: &[ChainParameter],
+        account_usage: &TronAccountUsage,
+    ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+        let contract_address = TronAddress::parse_hex_or_base58(&approval.token)?;
+        let spender = TronAddress::parse_hex_or_base58(&approval.spender)?;
+        let contract_data = TriggerSmartContractData {
+            contract_address: contract_address.to_string(),
+            data: hex::encode(trc20::encode_approval_max(&spender)?),
+            owner_address: sender_address.to_string(),
+            fee_limit: None,
+            call_value: None,
+        };
+        self.estimate_smart_contract_fee(contract_data, chain_parameters, account_usage, None).await
+    }
+
+    async fn estimate_smart_contract_fee(
+        &self,
+        contract_data: TriggerSmartContractData,
+        chain_parameters: &[ChainParameter],
+        account_usage: &TronAccountUsage,
+        memo_data_bytes: Option<u64>,
+    ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+        let estimated_energy = self.estimate_energy_with_data(&contract_data).await?;
+        transaction_fee_from_energy_estimate(chain_parameters, account_usage, estimated_energy, memo_data_bytes, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)
     }
 
     async fn estimate_fee_with_data(
@@ -238,15 +258,7 @@ impl<C: Client> TronClient<C> {
             return Ok(None);
         };
 
-        let estimated_energy = self.estimate_energy_with_data(&parsed).await?;
-        let token_fee = calculate_transfer_token_fee_rate(chain_parameters, account_usage, estimated_energy)?;
-
-        Ok(Some(TransactionFee::new_gas_price_type(
-            GasPriceType::regular(BigInt::from(token_fee.energy_price)),
-            BigInt::from(token_fee.fee),
-            BigInt::from(token_fee.fee_limit),
-            HashMap::new(),
-        )))
+        Ok(Some(self.estimate_smart_contract_fee(parsed, chain_parameters, account_usage, None).await?))
     }
 
     async fn get_is_new_account_for_input_type(&self, input: &TransactionLoadInput) -> Result<bool, Box<dyn Error + Send + Sync>> {
@@ -273,6 +285,23 @@ impl<C: Client> TronClient<C> {
             _ => Ok(TronStakeData::Votes(vec![])),
         }
     }
+}
+
+fn transaction_fee_from_energy_estimate(
+    chain_parameters: &[ChainParameter],
+    account_usage: &TronAccountUsage,
+    estimated_energy: u64,
+    memo_data_bytes: Option<u64>,
+    buffer_percent: u64,
+) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    let data_bytes = memo_data_bytes.unwrap_or(0);
+    let token_fee = calculate_token_fee_rate_with_data(chain_parameters, account_usage, estimated_energy, data_bytes, memo_data_bytes.is_some(), buffer_percent)?;
+    Ok(TransactionFee::new_gas_price_type(
+        GasPriceType::regular(BigInt::from(token_fee.energy_price)),
+        BigInt::from(token_fee.fee),
+        BigInt::from(token_fee.fee_limit),
+        HashMap::new(),
+    ))
 }
 
 #[cfg(test)]
