@@ -35,6 +35,7 @@ common_latency_in_ms = %d 毫秒
 common_open_settings = 開啟設定
 common_pin = 置頂
 common_pinned = 置頂
+common_lists = 列表
 common_unpin = 取消置頂
 common_skip = 跳過
 common_warning = 警告

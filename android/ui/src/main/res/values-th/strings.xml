@@ -35,6 +35,7 @@
   <string name="common_open_settings">เปิดการตั้งค่า</string>
   <string name="common_pin">พิน</string>
   <string name="common_pinned">ปักหมุดแล้ว</string>
+  <string name="common_lists">รายการ</string>
   <string name="common_unpin">เลิกปักหมุด</string>
   <string name="common_skip">ข้าม</string>
   <string name="common_warning">คำเตือน</string>

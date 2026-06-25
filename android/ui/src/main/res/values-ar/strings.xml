@@ -35,6 +35,7 @@
   <string name="common_open_settings">افتح الإعدادات</string>
   <string name="common_pin">دبوس</string>
   <string name="common_pinned">مثبت</string>
+  <string name="common_lists">القوائم</string>
   <string name="common_unpin">إزالة التثبيت</string>
   <string name="common_skip">يتخطى</string>
   <string name="common_warning">تحذير</string>

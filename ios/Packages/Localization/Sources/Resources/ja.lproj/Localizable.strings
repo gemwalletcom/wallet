@@ -33,6 +33,7 @@
 "common.open_settings" = "設定を開く";
 "common.pin" = "ピン留め";
 "common.pinned" = "ピン留め済み";
+"common.lists" = "リスト";
 "common.unpin" = "ピン解除";
 "common.skip" = "スキップ";
 "common.warning" = "警告";

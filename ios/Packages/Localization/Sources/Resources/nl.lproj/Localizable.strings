@@ -33,6 +33,7 @@
 "common.open_settings" = "Instellingen openen";
 "common.pin" = "Vastzetten";
 "common.pinned" = "Vastgezet";
+"common.lists" = "Lijsten";
 "common.unpin" = "Losmaken";
 "common.skip" = "Overslaan";
 "common.warning" = "Waarschuwing";

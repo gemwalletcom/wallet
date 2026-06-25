@@ -33,6 +33,7 @@
 "common.open_settings" = "Deschideți setările";
 "common.pin" = "Pin";
 "common.pinned" = "Fixat";
+"common.lists" = "Liste";
 "common.unpin" = "Anulați fixarea";
 "common.skip" = "Sari peste";
 "common.warning" = "Avertizare";

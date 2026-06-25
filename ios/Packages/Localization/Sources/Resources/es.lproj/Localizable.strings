@@ -33,6 +33,7 @@
 "common.open_settings" = "Abrir configuración";
 "common.pin" = "Alfiler";
 "common.pinned" = "Fijado";
+"common.lists" = "Listas";
 "common.unpin" = "Desanclar";
 "common.skip" = "Saltar";
 "common.warning" = "Advertencia";

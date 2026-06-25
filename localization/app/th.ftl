@@ -35,6 +35,7 @@ common_latency_in_ms = %d มิลลิวินาที
 common_open_settings = เปิดการตั้งค่า
 common_pin = พิน
 common_pinned = ปักหมุดแล้ว
+common_lists = รายการ
 common_unpin = เลิกปักหมุด
 common_skip = ข้าม
 common_warning = คำเตือน

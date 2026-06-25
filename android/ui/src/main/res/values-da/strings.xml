@@ -35,6 +35,7 @@
   <string name="common_open_settings">Åbn indstillinger</string>
   <string name="common_pin">Stift</string>
   <string name="common_pinned">Fastgjort</string>
+  <string name="common_lists">Lister</string>
   <string name="common_unpin">Frigør</string>
   <string name="common_skip">Spring over</string>
   <string name="common_warning">Advarsel</string>

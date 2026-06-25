@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Buka tetapan
 common_pin = Pin
 common_pinned = Disemat
+common_lists = Senarai
 common_unpin = Nyahsemat
 common_skip = Langkau
 common_warning = Amaran

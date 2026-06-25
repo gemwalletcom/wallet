@@ -35,6 +35,7 @@
   <string name="common_open_settings">Ayarları aç</string>
   <string name="common_pin">Sabitle</string>
   <string name="common_pinned">Sabitlendi</string>
+  <string name="common_lists">Listeler</string>
   <string name="common_unpin">Kaldır</string>
   <string name="common_skip">Atlamak</string>
   <string name="common_warning">Uyarı</string>

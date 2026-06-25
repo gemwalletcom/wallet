@@ -33,6 +33,7 @@
 "common.open_settings" = "開啟設定";
 "common.pin" = "置頂";
 "common.pinned" = "置頂";
+"common.lists" = "列表";
 "common.unpin" = "取消置頂";
 "common.skip" = "跳過";
 "common.warning" = "警告";

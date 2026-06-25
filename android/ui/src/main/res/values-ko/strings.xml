@@ -35,6 +35,7 @@
   <string name="common_open_settings">설정 열기</string>
   <string name="common_pin">핀</string>
   <string name="common_pinned">고정됨</string>
+  <string name="common_lists">목록</string>
   <string name="common_unpin">고정 해제</string>
   <string name="common_skip">건너뛰다</string>
   <string name="common_warning">경고</string>

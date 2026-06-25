@@ -33,6 +33,7 @@
 "common.open_settings" = "Ayarları aç";
 "common.pin" = "Sabitle";
 "common.pinned" = "Sabitlendi";
+"common.lists" = "Listeler";
 "common.unpin" = "Kaldır";
 "common.skip" = "Atlamak";
 "common.warning" = "Uyarı";

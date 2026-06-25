@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Buksan ang mga setting
 common_pin = Pin
 common_pinned = Naka-pin
+common_lists = Mga Listahan
 common_unpin = I-unpin
 common_skip = Laktawan
 common_warning = Babala

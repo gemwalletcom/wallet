@@ -33,6 +33,7 @@
 "common.open_settings" = "Открыть настройки";
 "common.pin" = "Закрепить";
 "common.pinned" = "Закрепленные";
+"common.lists" = "Списки";
 "common.unpin" = "Открепить";
 "common.skip" = "Пропустить";
 "common.warning" = "Внимание";

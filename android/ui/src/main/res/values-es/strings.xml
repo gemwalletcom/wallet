@@ -35,6 +35,7 @@
   <string name="common_open_settings">Abrir configuración</string>
   <string name="common_pin">Alfiler</string>
   <string name="common_pinned">Fijado</string>
+  <string name="common_lists">Listas</string>
   <string name="common_unpin">Desanclar</string>
   <string name="common_skip">Saltar</string>
   <string name="common_warning">Advertencia</string>

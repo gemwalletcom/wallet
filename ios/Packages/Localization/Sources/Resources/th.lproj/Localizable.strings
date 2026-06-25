@@ -33,6 +33,7 @@
 "common.open_settings" = "เปิดการตั้งค่า";
 "common.pin" = "พิน";
 "common.pinned" = "ปักหมุดแล้ว";
+"common.lists" = "รายการ";
 "common.unpin" = "เลิกปักหมุด";
 "common.skip" = "ข้าม";
 "common.warning" = "คำเตือน";

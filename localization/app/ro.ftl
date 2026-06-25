@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Deschideți setările
 common_pin = Pin
 common_pinned = Fixat
+common_lists = Liste
 common_unpin = Anulați fixarea
 common_skip = Sari peste
 common_warning = Avertizare

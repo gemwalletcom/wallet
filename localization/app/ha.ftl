@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Buɗe saitunan
 common_pin = Pin
 common_pinned = Pinned
+common_lists = Jerin
 common_unpin = Cire
 common_skip = Tsallake
 common_warning = Gargadi

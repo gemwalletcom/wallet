@@ -35,6 +35,7 @@ common_latency_in_ms = %d ミリ秒
 common_open_settings = 設定を開く
 common_pin = ピン留め
 common_pinned = ピン留め済み
+common_lists = リスト
 common_unpin = ピン解除
 common_skip = スキップ
 common_warning = 警告

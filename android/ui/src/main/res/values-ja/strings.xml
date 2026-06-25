@@ -35,6 +35,7 @@
   <string name="common_open_settings">設定を開く</string>
   <string name="common_pin">ピン留め</string>
   <string name="common_pinned">ピン留め済み</string>
+  <string name="common_lists">リスト</string>
   <string name="common_unpin">ピン解除</string>
   <string name="common_skip">スキップ</string>
   <string name="common_warning">警告</string>

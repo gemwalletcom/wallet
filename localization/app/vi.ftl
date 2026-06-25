@@ -35,6 +35,7 @@ common_latency_in_ms = %d mili giây
 common_open_settings = Mở cài đặt
 common_pin = Ghim
 common_pinned = Đã ghim
+common_lists = Danh sách
 common_unpin = Bỏ ghim
 common_skip = Nhảy
 common_warning = Cảnh báo

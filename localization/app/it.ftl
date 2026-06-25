@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Apri le impostazioni
 common_pin = Perno
 common_pinned = Appuntato
+common_lists = Liste
 common_unpin = Sblocca
 common_skip = Saltare
 common_warning = Avvertimento

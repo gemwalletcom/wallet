@@ -35,6 +35,7 @@ common_latency_in_ms = %dss
 common_open_settings = Abrir configurações
 common_pin = Pino
 common_pinned = Fixado
+common_lists = Listas
 common_unpin = Desafixar
 common_skip = Pular
 common_warning = Aviso

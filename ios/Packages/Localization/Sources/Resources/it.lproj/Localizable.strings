@@ -33,6 +33,7 @@
 "common.open_settings" = "Apri le impostazioni";
 "common.pin" = "Perno";
 "common.pinned" = "Appuntato";
+"common.lists" = "Liste";
 "common.unpin" = "Sblocca";
 "common.skip" = "Saltare";
 "common.warning" = "Avvertimento";

@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Ayarları aç
 common_pin = Sabitle
 common_pinned = Sabitlendi
+common_lists = Listeler
 common_unpin = Kaldır
 common_skip = Atlamak
 common_warning = Uyarı

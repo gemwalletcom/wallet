@@ -33,6 +33,7 @@
 "common.open_settings" = "설정 열기";
 "common.pin" = "핀";
 "common.pinned" = "고정됨";
+"common.lists" = "목록";
 "common.unpin" = "고정 해제";
 "common.skip" = "건너뛰다";
 "common.warning" = "경고";

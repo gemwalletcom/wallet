@@ -35,6 +35,7 @@ common_latency_in_ms = %d مللي ثانية
 common_open_settings = افتح الإعدادات
 common_pin = دبوس
 common_pinned = مثبت
+common_lists = القوائم
 common_unpin = إزالة التثبيت
 common_skip = يتخطى
 common_warning = تحذير

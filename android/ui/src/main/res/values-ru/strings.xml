@@ -35,6 +35,7 @@
   <string name="common_open_settings">Открыть настройки</string>
   <string name="common_pin">Закрепить</string>
   <string name="common_pinned">Закрепленные</string>
+  <string name="common_lists">Списки</string>
   <string name="common_unpin">Открепить</string>
   <string name="common_skip">Пропустить</string>
   <string name="common_warning">Внимание</string>

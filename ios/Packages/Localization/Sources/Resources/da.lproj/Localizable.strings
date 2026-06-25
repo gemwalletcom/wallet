@@ -33,6 +33,7 @@
 "common.open_settings" = "Åbn indstillinger";
 "common.pin" = "Stift";
 "common.pinned" = "Fastgjort";
+"common.lists" = "Lister";
 "common.unpin" = "Frigør";
 "common.skip" = "Spring over";
 "common.warning" = "Advarsel";

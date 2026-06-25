@@ -33,6 +33,7 @@
 "common.open_settings" = "Buka Pengaturan";
 "common.pin" = "Sematkan";
 "common.pinned" = "Disematkan";
+"common.lists" = "Daftar";
 "common.unpin" = "Lepas sematan";
 "common.skip" = "Melewati";
 "common.warning" = "Peringatan";

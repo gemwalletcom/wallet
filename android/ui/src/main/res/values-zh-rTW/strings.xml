@@ -35,6 +35,7 @@
   <string name="common_open_settings">開啟設定</string>
   <string name="common_pin">置頂</string>
   <string name="common_pinned">置頂</string>
+  <string name="common_lists">列表</string>
   <string name="common_unpin">取消置頂</string>
   <string name="common_skip">跳過</string>
   <string name="common_warning">警告</string>

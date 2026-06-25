@@ -35,6 +35,7 @@
   <string name="common_open_settings">Otwórz ustawienia</string>
   <string name="common_pin">Przypnij</string>
   <string name="common_pinned">Przypięty</string>
+  <string name="common_lists">Listy</string>
   <string name="common_unpin">Odepnij</string>
   <string name="common_skip">Pominąć</string>
   <string name="common_warning">Ostrzeżenie</string>

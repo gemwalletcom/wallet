@@ -35,6 +35,7 @@
   <string name="common_open_settings">Abrir configurações</string>
   <string name="common_pin">Pino</string>
   <string name="common_pinned">Fixado</string>
+  <string name="common_lists">Listas</string>
   <string name="common_unpin">Desafixar</string>
   <string name="common_skip">Pular</string>
   <string name="common_warning">Aviso</string>

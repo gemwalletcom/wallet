@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Fungua mipangilio
 common_pin = Bandika
 common_pinned = Imebandikwa
+common_lists = Orodha
 common_unpin = Bandua
 common_skip = Ruka
 common_warning = Onyo

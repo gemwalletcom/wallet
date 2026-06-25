@@ -33,6 +33,7 @@
 "common.open_settings" = "افتح الإعدادات";
 "common.pin" = "دبوس";
 "common.pinned" = "مثبت";
+"common.lists" = "القوائم";
 "common.unpin" = "إزالة التثبيت";
 "common.skip" = "يتخطى";
 "common.warning" = "تحذير";

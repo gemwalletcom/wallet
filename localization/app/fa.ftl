@@ -35,6 +35,7 @@ common_latency_in_ms = %d میلی ثانیه
 common_open_settings = باز کردن تنظیمات
 common_pin = پین کردن
 common_pinned = پین شده
+common_lists = فهرست‌ها
 common_unpin = از پین درآوردن
 common_skip = پرش کنید
 common_warning = هشدار

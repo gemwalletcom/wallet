@@ -35,6 +35,7 @@ common_latency_in_ms = %d밀리초
 common_open_settings = 설정 열기
 common_pin = 핀
 common_pinned = 고정됨
+common_lists = 목록
 common_unpin = 고정 해제
 common_skip = 건너뛰다
 common_warning = 경고

@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = Instellingen openen
 common_pin = Vastzetten
 common_pinned = Vastgezet
+common_lists = Lijsten
 common_unpin = Losmaken
 common_skip = Overslaan
 common_warning = Waarschuwing

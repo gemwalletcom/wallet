@@ -35,6 +35,7 @@ common_latency_in_ms = %d মি.সে
 common_open_settings = সেটিংস খুলুন
 common_pin = পিন
 common_pinned = পিন করা হয়েছে
+common_lists = তালিকা
 common_unpin = আনপিন করুন
 common_skip = এড়িয়ে যান
 common_warning = সতর্কতা

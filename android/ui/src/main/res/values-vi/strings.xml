@@ -35,6 +35,7 @@
   <string name="common_open_settings">Mở cài đặt</string>
   <string name="common_pin">Ghim</string>
   <string name="common_pinned">Đã ghim</string>
+  <string name="common_lists">Danh sách</string>
   <string name="common_unpin">Bỏ ghim</string>
   <string name="common_skip">Nhảy</string>
   <string name="common_warning">Cảnh báo</string>

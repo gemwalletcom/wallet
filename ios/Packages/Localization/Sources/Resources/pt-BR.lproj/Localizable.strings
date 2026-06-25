@@ -33,6 +33,7 @@
 "common.open_settings" = "Abrir configurações";
 "common.pin" = "Pino";
 "common.pinned" = "Fixado";
+"common.lists" = "Listas";
 "common.unpin" = "Desafixar";
 "common.skip" = "Pular";
 "common.warning" = "Aviso";

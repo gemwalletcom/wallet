@@ -35,6 +35,7 @@ common_latency_in_ms = %d ms
 common_open_settings = ترتیبات کھولیں۔
 common_pin = پن
 common_pinned = پن لگا ہوا
+common_lists = فہرستیں
 common_unpin = پن کھول دیں۔
 common_skip = چھوڑیں۔
 common_warning = وارننگ
