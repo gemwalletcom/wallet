@@ -19,6 +19,7 @@ public struct StoreManager: Sendable {
     public let perpetualStore: PerpetualStore
     public let recentActivityStore: RecentActivityStore
     public let searchStore: SearchStore
+    public let assetListStore: AssetListStore
     public let inAppNotificationStore: InAppNotificationStore
     public let contactStore: ContactStore
     public let fiatTransactionStore: FiatTransactionStore
@@ -41,6 +42,7 @@ public struct StoreManager: Sendable {
         perpetualStore = PerpetualStore(db: db)
         recentActivityStore = RecentActivityStore(db: db)
         searchStore = SearchStore(db: db)
+        assetListStore = AssetListStore(db: db)
         inAppNotificationStore = InAppNotificationStore(db: db)
         contactStore = ContactStore(db: db)
         fiatTransactionStore = FiatTransactionStore(db: db)

@@ -15,6 +15,7 @@ public struct SearchStore: Sendable {
         switch type {
         case .asset: try addAssets(query: query, ids: ids)
         case .perpetual: try addPerpetuals(query: query, ids: ids)
+        case .list: try addLists(query: query, ids: ids)
         case .nft: break
         }
     }
@@ -47,6 +48,18 @@ extension SearchStore {
                 .deleteAll(database)
             for (index, id) in ids.enumerated() {
                 try SearchRecord(query: query, perpetualId: id, priority: index).insert(database)
+            }
+        }
+    }
+
+    private func addLists(query: String, ids: [String]) throws {
+        try dbQueue.write { database in
+            try SearchRecord
+                .filter(SearchRecord.Columns.query == query)
+                .filter(SearchRecord.Columns.listId != nil)
+                .deleteAll(database)
+            for (index, id) in ids.enumerated() {
+                try SearchRecord(query: query, listId: id, priority: index).insert(database)
             }
         }
     }
