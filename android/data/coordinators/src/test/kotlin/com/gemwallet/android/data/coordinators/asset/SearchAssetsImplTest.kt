@@ -2,9 +2,9 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.testkit.mockAssetBasic
+import com.gemwallet.android.testkit.mockSearchResponse
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SearchResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -23,7 +23,7 @@ class SearchAssetsImplTest {
     @Test
     fun search_formatsChainsAndTagsForGemApi() = runTest {
         val asset = mockAssetBasic()
-        val response = SearchResponse(assets = listOf(asset), perpetuals = emptyList(), nfts = emptyList())
+        val response = mockSearchResponse(assets = listOf(asset))
         coEvery {
             gemApiClient.search(
                 query = "usd",
