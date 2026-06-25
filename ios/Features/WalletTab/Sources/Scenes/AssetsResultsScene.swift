@@ -37,7 +37,7 @@ public struct AssetsResultsScene: View {
                         PerpetualItemsView(
                             items: model.perpetuals,
                             onPin: model.onSelectPinPerpetual,
-                            onSelect: { model.onSelectAssetAction?($0) },
+                            onSelect: { model.onSelectAsset($0) },
                         )
                     },
                     header: { SectionHeaderView(title: model.perpetualsTitle) },
@@ -63,7 +63,7 @@ public struct AssetsResultsScene: View {
             items: items,
             currencyCode: model.currencyCode,
             contextMenuItems: model.contextMenuItems,
-            onSelect: { model.onSelectAssetAction?($0) },
+            onSelect: { model.onSelectAsset($0) },
         )
     }
 }

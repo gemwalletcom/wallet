@@ -162,6 +162,7 @@ struct WalletNavigationStack: View {
                         preferences: preferences.preferences,
                         searchService: walletSearchService,
                         perpetualService: perpetualService,
+                        activityService: activityService,
                         request: WalletSearchRequest(
                             walletId: model.wallet.id,
                             searchBy: destination.searchQuery,

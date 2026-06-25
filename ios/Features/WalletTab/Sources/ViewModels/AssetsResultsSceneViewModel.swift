@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import ActivityService
 import AssetsService
 import BalanceService
 import Components
@@ -23,6 +24,7 @@ public final class AssetsResultsSceneViewModel {
     private let preferences: Preferences
     private let searchService: WalletSearchService
     private let perpetualService: PerpetualService
+    private let activityService: ActivityService
     private let wallet: Wallet
 
     let title: String
@@ -43,6 +45,7 @@ public final class AssetsResultsSceneViewModel {
         preferences: Preferences,
         searchService: WalletSearchService,
         perpetualService: PerpetualService,
+        activityService: ActivityService,
         request: WalletSearchRequest,
         title: String,
         onSelectAsset: @escaping (Asset) -> Void,
@@ -53,6 +56,7 @@ public final class AssetsResultsSceneViewModel {
         self.preferences = preferences
         self.searchService = searchService
         self.perpetualService = perpetualService
+        self.activityService = activityService
         self.title = title
         searchQuery = ObservableQuery(request, initialValue: .empty)
         onSelectAssetAction = onSelectAsset
@@ -130,6 +134,15 @@ extension AssetsResultsSceneViewModel {
             state = .data(true)
         } catch {
             state.setError(error)
+        }
+    }
+
+    func onSelectAsset(_ asset: Asset) {
+        onSelectAssetAction?(asset)
+        do {
+            try activityService.updateRecent(data: .search(asset), walletId: wallet.id)
+        } catch {
+            debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
         }
     }
 

@@ -333,20 +333,9 @@ extension WalletSearchSceneViewModel {
         }
     }
 
-    private func activityData(for asset: Asset) -> RecentActivityData {
-        RecentActivityData(
-            type: asset.type == .perpetual ? .perpetual : .search,
-            assetId: asset.id,
-            toAssetId: nil,
-        )
-    }
-
     private func updateRecent(_ asset: Asset) {
         do {
-            try activityService.updateRecent(
-                data: activityData(for: asset),
-                walletId: wallet.id,
-            )
+            try activityService.updateRecent(data: .search(asset), walletId: wallet.id)
         } catch {
             debugLog("UpdateRecent error: \(error)")
         }
