@@ -3,7 +3,6 @@
 import AssetsService
 import Components
 import Localization
-import Perpetuals
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -24,20 +23,14 @@ public struct WalletSearchScene: View {
             isSearching: $model.isSearching,
             dismissSearch: $model.dismissSearch,
         )
-        .overlay {
-            if model.showLoading {
-                LoadingView()
-            } else if model.showEmpty {
-                EmptyContentView(
-                    model: EmptyContentTypeViewModel(
-                        type: .search(
-                            type: .assets,
-                            action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil,
-                        ),
-                    ),
-                )
-            }
-        }
+        .searchStateOverlay(
+            isLoading: model.showLoading,
+            isEmpty: model.showEmpty,
+            empty: .search(
+                type: .assets,
+                action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil,
+            ),
+        )
         .bindQuery(model.searchQuery, model.recentsQuery)
         .searchable(
             text: $model.searchModel.searchableQuery,
@@ -103,6 +96,13 @@ public struct WalletSearchScene: View {
                 .listRowInsets(.assetListRowInsets)
             }
 
+            if model.showLists {
+                Section(
+                    content: { listItems(for: model.sections.lists) },
+                    header: { SectionHeaderView(title: model.listsTitle) },
+                )
+            }
+
             if model.showPerpetuals {
                 Section(
                     content: { perpetualItems(for: model.previewPerpetuals) },
@@ -147,13 +147,18 @@ public struct WalletSearchScene: View {
         )
     }
 
-    private func perpetualItems(for items: [PerpetualData]) -> some View {
-        ForEach(items) { perpetualData in
-            PerpetualListItem(
-                perpetualData: perpetualData,
-                onPin: model.onSelectPinPerpetual,
-                onSelect: model.onSelectAsset,
-            )
+    private func listItems(for lists: [AssetList]) -> some View {
+        ForEach(lists) { list in
+            NavigationLink(value: model.listDestination(for: list)) {
+                ListItemView(
+                    title: list.name,
+                    imageStyle: .asset(assetImage: model.listImage(for: list)),
+                )
+            }
         }
+    }
+
+    private func perpetualItems(for items: [PerpetualData]) -> some View {
+        PerpetualItemsView(items: items, onPin: model.onSelectPinPerpetual, onSelect: model.onSelectAsset)
     }
 }

@@ -22,18 +22,18 @@ struct WalletSearchSceneViewModelTests {
     func searchRequestInitialization() {
         #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.limit == 13)
         #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.limit == 13)
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.types == [.asset, .perpetual])
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.types == [.asset, .perpetual])
+        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.types == [.asset, .perpetual, .list])
+        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.types == [.asset, .perpetual, .list])
     }
 
     @Test
     func hasMoreAssets() {
         let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
 
-        model.searchQuery.value = WalletSearchResult(assets: (0 ..< 12).map { _ in .mock() }, perpetuals: [])
+        model.searchQuery.value = .mock(assets: (0 ..< 12).map { _ in .mock() })
         #expect(model.hasMoreAssets == false)
 
-        model.searchQuery.value = WalletSearchResult(assets: (0 ..< 13).map { _ in .mock() }, perpetuals: [])
+        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in .mock() })
         #expect(model.hasMoreAssets == true)
     }
 
@@ -41,10 +41,10 @@ struct WalletSearchSceneViewModelTests {
     func hasMorePerpetuals() {
         let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
 
-        model.searchQuery.value = WalletSearchResult(assets: [], perpetuals: (0 ..< 3).map { _ in .mock() })
+        model.searchQuery.value = .mock(perpetuals: (0 ..< 3).map { _ in .mock() })
         #expect(model.hasMorePerpetuals == false)
 
-        model.searchQuery.value = WalletSearchResult(assets: [], perpetuals: (0 ..< 4).map { _ in .mock() })
+        model.searchQuery.value = .mock(perpetuals: (0 ..< 4).map { _ in .mock() })
         #expect(model.hasMorePerpetuals == true)
     }
 
@@ -58,8 +58,7 @@ struct WalletSearchSceneViewModelTests {
             wallet: wallet,
             preferences: .mock(isPerpetualEnabled: true),
         )
-        model.searchQuery.value = WalletSearchResult(
-            assets: [],
+        model.searchQuery.value = .mock(
             perpetuals: [
                 .mock(metadata: .mock(isPinned: false)),
                 .mock(metadata: .mock(isPinned: true)),
@@ -67,6 +66,20 @@ struct WalletSearchSceneViewModelTests {
         )
         #expect(model.showPerpetuals == false)
         #expect(model.showPinnedPerpetuals == false)
+    }
+
+    @Test
+    func listsSection() {
+        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+
+        #expect(model.showLists == false)
+
+        let list = AssetList(id: "stocks", name: "Stocks")
+        model.searchQuery.value = .mock(lists: [list])
+
+        #expect(model.showLists == true)
+        #expect(model.showEmpty == false)
+        #expect(model.listDestination(for: list) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
     }
 
     @Test

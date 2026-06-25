@@ -23,4 +23,8 @@ public struct AssetImageFormatter: Sendable {
     public func getValidatorUrl(chain: Chain, id: String) -> URL {
         URL(string: "\(Constants.assetsURL.absoluteString)/blockchains/\(chain.rawValue)/validators/\(id)/logo.png")!
     }
+
+    public func getListUrl(for id: String) -> URL {
+        URL(string: "\(Constants.assetsURL.absoluteString)/lists/\(id).png")!
+    }
 }

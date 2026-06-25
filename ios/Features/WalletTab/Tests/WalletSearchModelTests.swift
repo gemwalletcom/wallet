@@ -8,39 +8,39 @@ struct WalletSearchModelTests {
     @Test
     func searchMode() {
         var model = WalletSearchModel(selectType: .manage)
-        #expect(model.searchMode(tag: nil) == .initial)
-        #expect(model.searchMode(tag: "stablecoins") == .tagBrowsing)
+        #expect(model.searchMode(scope: .all) == .initial)
+        #expect(model.searchMode(scope: .filter(.stablecoins)) == .tagBrowsing)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.searchMode(tag: nil) == .searching)
+        #expect(model.searchMode(scope: .all) == .searching)
     }
 
     @Test
     func assetsLimit() {
         var model = WalletSearchModel(selectType: .manage)
 
-        #expect(model.assetsLimit(tag: nil) == 12)
-        #expect(model.assetsLimit(tag: "stablecoins") == 18)
+        #expect(model.assetsLimit(scope: .all) == 12)
+        #expect(model.assetsLimit(scope: .filter(.stablecoins)) == 18)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.assetsLimit(tag: nil) == 25)
+        #expect(model.assetsLimit(scope: .all) == 25)
     }
 
     @Test
     func fetchLimit() {
         var model = WalletSearchModel(selectType: .manage)
 
-        #expect(model.fetchLimit(tag: nil) == 13)
-        #expect(model.fetchLimit(tag: "stablecoins") == 19)
+        #expect(model.fetchLimit(scope: .all) == 13)
+        #expect(model.fetchLimit(scope: .filter(.stablecoins)) == 19)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.fetchLimit(tag: nil) == 100)
+        #expect(model.fetchLimit(scope: .all) == 100)
     }
 
     @Test
     func staticMembers() {
         #expect(WalletSearchModel.initialFetchLimit == 13)
-        #expect(WalletSearchModel.searchItemTypes == [.asset, .perpetual])
+        #expect(WalletSearchModel.searchItemTypes == [.asset, .perpetual, .list])
         #expect(WalletSearchModel.recentActivityTypes == RecentActivityType.allCases)
     }
 }

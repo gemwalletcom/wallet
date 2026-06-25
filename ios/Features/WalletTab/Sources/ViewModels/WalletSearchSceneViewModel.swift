@@ -24,6 +24,7 @@ public final class WalletSearchSceneViewModel: Sendable {
     private let balanceService: BalanceService
     private let perpetualService: PerpetualService
     private let preferences: ObservablePreferences
+    private let assetImageFormatter = AssetImageFormatter()
 
     private let wallet: Wallet
     private let onDismissSearch: VoidAction
@@ -102,6 +103,10 @@ public final class WalletSearchSceneViewModel: Sendable {
         Localized.Assets.title
     }
 
+    var listsTitle: String {
+        Localized.Common.lists
+    }
+
     var sections: WalletSearchSections {
         .from(searchResult)
     }
@@ -131,7 +136,7 @@ public final class WalletSearchSceneViewModel: Sendable {
     }
 
     var showEmpty: Bool {
-        !showRecents && !showPinned && !showAssets && !showPerpetuals
+        !showRecents && !showPinned && !showAssets && !showPerpetuals && !showLists
     }
 
     var showPinned: Bool {
@@ -144,6 +149,10 @@ public final class WalletSearchSceneViewModel: Sendable {
 
     var showAssets: Bool {
         sections.assets.isNotEmpty
+    }
+
+    var showLists: Bool {
+        sections.lists.isNotEmpty
     }
 
     var showAddToken: Bool {
@@ -179,8 +188,20 @@ public final class WalletSearchSceneViewModel: Sendable {
     var assetsResultsDestination: Scenes.AssetsResults {
         Scenes.AssetsResults(
             searchQuery: searchQuery.request.searchBy,
-            tag: searchQuery.request.tag,
+            scope: searchQuery.request.scope,
         )
+    }
+
+    func listDestination(for list: AssetList) -> Scenes.AssetsResults {
+        Scenes.AssetsResults(
+            searchQuery: .empty,
+            scope: .list(list.id),
+            title: list.name,
+        )
+    }
+
+    func listImage(for list: AssetList) -> AssetImage {
+        AssetImage(type: list.name, imageURL: assetImageFormatter.getListUrl(for: list.id))
     }
 
     func contextMenuItems(for assetData: AssetData) -> [ContextMenuItemType] {
@@ -217,10 +238,11 @@ extension WalletSearchSceneViewModel {
     func onSelectTag(tag: AssetTagSelection) {
         searchModel.tagsViewModel.selectedTag = tag
         searchModel.focus = .tags
-        searchQuery.request.tag = tag.tag?.rawValue
+        let scope: WalletSearchTag = if let assetTag = tag.tag { .filter(assetTag) } else { .all }
+        searchQuery.request.scope = scope
         updateRequest()
         Task {
-            await search(query: .empty, tag: tag.tag)
+            await search(query: .empty, scope: scope)
         }
     }
 
@@ -282,7 +304,7 @@ extension WalletSearchSceneViewModel {
         if isSearching {
             searchModel.focus = .search
             searchModel.tagsViewModel.selectedTag = AssetTagSelection.all
-            searchQuery.request.tag = nil
+            searchQuery.request.scope = .all
             updateRequest()
         }
     }
@@ -298,7 +320,7 @@ extension WalletSearchSceneViewModel {
 
 extension WalletSearchSceneViewModel {
     private var assetsPreviewLimit: Int {
-        searchModel.assetsLimit(tag: searchQuery.request.tag)
+        searchModel.assetsLimit(scope: searchQuery.request.scope)
     }
 
     private func enableAsset(_ assetId: AssetId) {
@@ -334,17 +356,17 @@ extension WalletSearchSceneViewModel {
         if searchModel.searchableQuery.isNotEmpty && searchModel.focus == .tags {
             searchModel.focus = .search
             searchModel.tagsViewModel.selectedTag = AssetTagSelection.all
-            searchQuery.request.tag = nil
+            searchQuery.request.scope = .all
         }
         searchQuery.request.searchBy = searchModel.searchableQuery
-        searchQuery.request.limit = searchModel.fetchLimit(tag: searchQuery.request.tag)
-        state = searchModel.searchableQuery.isNotEmpty || searchQuery.request.tag != nil ? .loading : .noData
+        searchQuery.request.limit = searchModel.fetchLimit(scope: searchQuery.request.scope)
+        state = searchModel.searchableQuery.isNotEmpty || !searchQuery.request.scope.isAll ? .loading : .noData
     }
 
-    private func search(query: String, tag: AssetTag? = nil) async {
+    private func search(query: String, scope: WalletSearchTag = .all) async {
         state = .loading
         do {
-            try await searchService.search(wallet: wallet, query: query, tag: tag)
+            try await searchService.search(wallet: wallet, query: query, scope: scope)
             state = .data(true)
         } catch {
             state.setError(error)

@@ -155,11 +155,13 @@ public enum Scenes {
 
     public struct AssetsResults: Hashable, Codable {
         public let searchQuery: String
-        public let tag: String?
+        public let scope: WalletSearchTag
+        public let title: String?
 
-        public init(searchQuery: String, tag: String?) {
+        public init(searchQuery: String, scope: WalletSearchTag, title: String? = nil) {
             self.searchQuery = searchQuery
-            self.tag = tag
+            self.scope = scope
+            self.title = title
         }
     }
 

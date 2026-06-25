@@ -46,30 +46,30 @@ extension WalletSearchModel {
     }
 
     static var searchItemTypes: [SearchItemType] {
-        [.asset, .perpetual]
+        [.asset, .perpetual, .list]
     }
 
     static var recentActivityTypes: [RecentActivityType] {
         RecentActivityType.allCases
     }
 
-    func searchMode(tag: String?) -> WalletSearchMode {
+    func searchMode(scope: WalletSearchTag) -> WalletSearchMode {
         if assetSearch.searchableQuery.isNotEmpty { return .searching }
-        if tag != nil { return .tagBrowsing }
+        if !scope.isAll { return .tagBrowsing }
         return .initial
     }
 
-    func assetsLimit(tag: String?) -> Int {
-        switch searchMode(tag: tag) {
+    func assetsLimit(scope: WalletSearchTag) -> Int {
+        switch searchMode(scope: scope) {
         case .initial: WalletSearchConfig.assetsInitialLimit
         case .tagBrowsing: WalletSearchConfig.assetsTagLimit
         case .searching: WalletSearchConfig.assetsSearchLimit
         }
     }
 
-    func fetchLimit(tag: String?) -> Int {
-        switch searchMode(tag: tag) {
-        case .initial, .tagBrowsing: assetsLimit(tag: tag) + 1
+    func fetchLimit(scope: WalletSearchTag) -> Int {
+        switch searchMode(scope: scope) {
+        case .initial, .tagBrowsing: assetsLimit(scope: scope) + 1
         case .searching: WalletSearchConfig.resultsLimit
         }
     }
