@@ -85,8 +85,8 @@ extension BalanceService {
         try balanceStore.getBalance(walletId: walletId, assetId: assetId)
     }
 
-    public func addAssetsBalancesIfMissing(assetIds: [AssetId], wallet: Wallet, isEnabled: Bool?) throws {
-        try balanceStore.addBalance(assetIds: assetIds, isEnabled: isEnabled ?? false, for: wallet.id)
+    public func addAssetsBalancesIfMissing(assetIds: [AssetId], wallet: Wallet, isEnabled: Bool) throws {
+        try balanceStore.addBalance(assetIds: assetIds, isEnabled: isEnabled, for: wallet.id)
     }
 
     // MARK: - Private Helpers
