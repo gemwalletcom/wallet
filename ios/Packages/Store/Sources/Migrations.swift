@@ -75,6 +75,7 @@ struct Migrations {
             try PerpetualPositionRecord.create(db: db)
 
             try RecentActivityRecord.create(db: db)
+            try AssetListRecord.create(db: db)
             try SearchRecord.create(db: db)
             try NotificationRecord.create(db: db)
             try FiatTransactionRecord.create(db: db)
@@ -492,6 +493,12 @@ struct Migrations {
                     NFTCollectionRecord.databaseTableName,
                 ],
             )
+        }
+
+        migrator.registerMigration("Create \(AssetListRecord.databaseTableName) and recreate \(SearchRecord.databaseTableName)") { db in
+            try? db.drop(table: SearchRecord.databaseTableName)
+            try AssetListRecord.create(db: db)
+            try SearchRecord.create(db: db)
         }
 
         migrator.registerMigration("Create \(SupportMessageRecord.databaseTableName)") { db in

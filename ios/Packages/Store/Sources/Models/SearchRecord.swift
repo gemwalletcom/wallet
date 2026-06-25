@@ -11,18 +11,21 @@ struct SearchRecord: Codable, PersistableRecord, FetchableRecord, TableRecord {
         static let query = Column("query")
         static let assetId = Column("assetId")
         static let perpetualId = Column("perpetualId")
+        static let listId = Column("listId")
         static let priority = Column("priority")
     }
 
     var query: String
     var assetId: String?
     var perpetualId: String?
+    var listId: String?
     var priority: Int
 
-    init(query: String, assetId: String? = nil, perpetualId: String? = nil, priority: Int) {
+    init(query: String, assetId: String? = nil, perpetualId: String? = nil, listId: String? = nil, priority: Int) {
         self.query = query
         self.assetId = assetId
         self.perpetualId = perpetualId
+        self.listId = listId
         self.priority = priority
     }
 }
@@ -37,10 +40,13 @@ extension SearchRecord: CreateTable {
                 .references(AssetRecord.databaseTableName, onDelete: .cascade)
             $0.column(Columns.perpetualId.name, .text)
                 .references(PerpetualRecord.databaseTableName, onDelete: .cascade)
+            $0.column(Columns.listId.name, .text)
+                .references(AssetListRecord.databaseTableName, onDelete: .cascade)
             $0.column(Columns.priority.name, .integer)
                 .notNull()
             $0.uniqueKey([Columns.query.name, Columns.assetId.name])
             $0.uniqueKey([Columns.query.name, Columns.perpetualId.name])
+            $0.uniqueKey([Columns.query.name, Columns.listId.name])
         }
     }
 }
