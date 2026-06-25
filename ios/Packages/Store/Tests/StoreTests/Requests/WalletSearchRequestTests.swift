@@ -18,6 +18,9 @@ struct WalletSearchRequestTests {
 
             #expect(btc.assets.first?.asset.symbol == "BTC")
             #expect(tokenId.assets.first?.asset.symbol == "USDT")
+
+            let defaultView = try WalletSearchRequest(walletId: .mock(), searchBy: "").fetch(db)
+            #expect(defaultView.assets.isNotEmpty)
         }
 
         let query = "priority test"
@@ -47,13 +50,48 @@ struct WalletSearchRequestTests {
 
         let query = "perp priority"
         try searchStore.add(type: .perpetual, query: query, ids: [btcPerpetual.id.identifier, ethPerpetual.id.identifier])
+        try searchStore.add(type: .perpetual, query: "tag:stocks", ids: [ethPerpetual.id.identifier])
 
         try db.dbQueue.read { db in
             let result = try WalletSearchRequest(walletId: .mock(), searchBy: query).fetch(db)
             #expect(result.perpetuals.first?.perpetual.id == btcPerpetual.id)
 
-            let withTag = try WalletSearchRequest(walletId: .mock(), searchBy: "ETH", tag: "staking").fetch(db)
-            #expect(withTag.perpetuals.isEmpty)
+            let defaultView = try WalletSearchRequest(walletId: .mock(), searchBy: "").fetch(db)
+            #expect(defaultView.perpetuals.isNotEmpty)
+
+            let listWithPerp = try WalletSearchRequest(walletId: .mock(), searchBy: "", scope: .list("stocks")).fetch(db)
+            #expect(listWithPerp.perpetuals.first?.perpetual.name == "ETH-USD")
+
+            let listWithoutPerp = try WalletSearchRequest(walletId: .mock(), searchBy: "", scope: .list("stocks_ai")).fetch(db)
+            #expect(listWithoutPerp.perpetuals.isEmpty)
+
+            let assetTagFilter = try WalletSearchRequest(walletId: .mock(), searchBy: "ETH", scope: .filter(.stablecoins)).fetch(db)
+            #expect(assetTagFilter.perpetuals.isEmpty)
+        }
+    }
+
+    @Test
+    func searchLists() throws {
+        let db = DB.mockAssets()
+        let searchStore = SearchStore(db: db)
+
+        let assetListStore = AssetListStore(db: db)
+        let query = "stocks"
+        let lists = [AssetList(id: "stocks", name: "Stocks"), AssetList(id: "ai", name: "AI")]
+        try assetListStore.upsert(lists)
+        try searchStore.add(type: .list, query: query, ids: lists.map(\.id))
+        try assetListStore.upsert(lists)
+        try searchStore.add(type: .list, query: query, ids: lists.map(\.id))
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, types: [.list]).fetch(db)
+            #expect(result.lists == lists)
+
+            let withTag = try WalletSearchRequest(walletId: .mock(), searchBy: query, scope: .list("stocks"), types: [.list]).fetch(db)
+            #expect(withTag.lists.isEmpty)
+
+            let withoutListType = try WalletSearchRequest(walletId: .mock(), searchBy: query).fetch(db)
+            #expect(withoutListType.lists.isEmpty)
         }
     }
 }
