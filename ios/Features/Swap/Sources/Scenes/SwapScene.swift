@@ -65,7 +65,7 @@ public struct SwapScene: View {
         )
         .onChange(of: model.amountInputModel.text, model.onChangeFromValue)
         .onChange(of: model.pairSelectorModel, model.onChangePair)
-        .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuoute)
+        .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuote)
         .onTimer(every: 30, id: model.fetchTrigger) {
             await model.fetch()
         }

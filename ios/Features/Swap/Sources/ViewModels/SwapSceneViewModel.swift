@@ -201,7 +201,7 @@ extension SwapSceneViewModel {
         toAssetQuery.request.assetId = newModel.toAssetId
     }
 
-    func onChangeSwapQuoute(_ _: SwapperQuote?, _ newQuote: SwapperQuote?) {
+    func onChangeSwapQuote(_ _: SwapperQuote?, _ newQuote: SwapperQuote?) {
         guard !isTransferDataLoading, let newQuote, let toAsset else { return }
         applyQuote(newQuote, asset: toAsset.asset)
     }

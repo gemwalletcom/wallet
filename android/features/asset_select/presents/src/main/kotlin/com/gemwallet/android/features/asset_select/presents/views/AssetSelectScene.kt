@@ -124,6 +124,7 @@ fun AssetSelectScene(
         availableChains = availableChains,
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,
+        searchable = searchable,
         onAction = onAction,
         itemTrailing = itemTrailing,
         actions = actions,
