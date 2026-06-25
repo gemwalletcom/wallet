@@ -160,12 +160,15 @@ struct WalletNavigationStack: View {
                         assetsEnabler: assetsEnabler,
                         balanceService: balanceService,
                         preferences: preferences.preferences,
+                        searchService: walletSearchService,
+                        perpetualService: perpetualService,
                         request: WalletSearchRequest(
                             walletId: model.wallet.id,
                             searchBy: destination.searchQuery,
-                            tag: destination.tag,
+                            scope: destination.scope,
                             limit: AssetsResultsSceneViewModel.defaultLimit,
                         ),
+                        title: destination.title ?? Localized.Assets.title,
                         onSelectAsset: navigationState.openAsset,
                     ),
                 )

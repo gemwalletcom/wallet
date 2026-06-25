@@ -30,11 +30,31 @@ public struct AssetsResultsScene: View {
                 }
                 .listRowInsets(.assetListRowInsets)
             }
+
+            if model.showPerpetuals {
+                Section(
+                    content: {
+                        PerpetualItemsView(
+                            items: model.perpetuals,
+                            onPin: model.onSelectPinPerpetual,
+                            onSelect: { model.onSelectAssetAction?($0) },
+                        )
+                    },
+                    header: { SectionHeaderView(title: model.perpetualsTitle) },
+                )
+            }
         }
         .listSectionSpacing(.compact)
+        .refreshable {
+            await model.refresh()
+        }
+        .searchStateOverlay(isLoading: model.showLoading, isEmpty: model.showEmpty, empty: .search(type: .assets))
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .bindQuery(model.searchQuery)
+        .taskOnce {
+            model.fetch()
+        }
         .toast(message: $model.isPresentingToastMessage)
     }
 
