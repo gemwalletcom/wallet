@@ -33,6 +33,7 @@
 "common.open_settings" = "Open settings";
 "common.pin" = "Pin";
 "common.pinned" = "Pinned";
+"common.lists" = "Lists";
 "common.unpin" = "Unpin";
 "common.skip" = "Skip";
 "common.warning" = "Warning";

@@ -275,6 +275,8 @@ public enum Localized {
     }
     /// Learn More
     public static let learnMore = Localized.tr("Localizable", "common.learn_more", fallback: "Learn More")
+    /// Lists
+    public static let lists = Localized.tr("Localizable", "common.lists", fallback: "Lists")
     /// Loading
     public static let loading = Localized.tr("Localizable", "common.loading", fallback: "Loading")
     /// Manage

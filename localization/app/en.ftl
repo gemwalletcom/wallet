@@ -72,6 +72,8 @@ common_open_settings = Open settings
 common_pin = Pin
 # Used in shared app UI for the pinned label.
 common_pinned = Pinned
+# Used in wallet search screen as the lists section header.
+common_lists = Lists
 # Used in shared app UI for the unpin label.
 common_unpin = Unpin
 # Used in shared app UI for the skip label.
