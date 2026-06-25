@@ -91,7 +91,7 @@ fun RequestScene(
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
                     params = request.confirmParams,
-                    walletConnectSimulation = request.simulation,
+                    simulationResult = request.simulation,
                     finishAction = { hash -> viewModel.onTransactionResult(hash) },
                     onBuy = onBuy,
                     cancelAction = viewModel::onReject,

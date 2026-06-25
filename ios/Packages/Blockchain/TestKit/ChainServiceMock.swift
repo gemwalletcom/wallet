@@ -19,6 +19,7 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var delegations: [DelegationBase] = []
     public var inSync: Bool = true
     public var tokenData: [String: Asset] = [:]
+    public var tokenDataError: (any Error)?
     public var transactionData: TransactionData = .init(fee: Fee(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero))
     public var transactionPreload: TransactionLoadMetadata = .none
     public var transactionState: TransactionChanges = .init(state: .pending, changes: [])
@@ -77,7 +78,13 @@ public extension ChainServiceMock {
     }
 
     func getTokenData(tokenId: String) async throws -> Asset {
-        tokenData[tokenId] ?? Asset(
+        if let asset = tokenData[tokenId] {
+            return asset
+        }
+        if let tokenDataError {
+            throw tokenDataError
+        }
+        return Asset(
             id: AssetId(chain: .ethereum, tokenId: nil),
             name: "Ethereum",
             symbol: "ETH",

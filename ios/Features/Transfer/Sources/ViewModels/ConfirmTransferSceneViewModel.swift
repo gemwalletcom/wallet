@@ -165,6 +165,10 @@ public final class ConfirmTransferSceneViewModel {
         ConfirmDetailsViewModel(type: transferData.type, metadata: metadata)
     }
 
+    var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
+        simulationState.balanceChanges.map(ConfirmBalanceChangeViewModel.init)
+    }
+
     private var headerType: TransactionHeaderType {
         if let headerData = simulationState.headerData {
             return .assetValue(headerData)

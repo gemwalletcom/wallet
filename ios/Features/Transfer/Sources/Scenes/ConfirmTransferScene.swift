@@ -23,8 +23,15 @@ public struct ConfirmTransferScene: View {
         )
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .safeAreaButton {
-            StateButton(model.confirmButtonModel)
+        .safeAreaView(edge: .bottom) {
+            VStack(spacing: .medium) {
+                if !model.balanceChangeModels.isEmpty {
+                    ConfirmBalanceChangesView(models: model.balanceChangeModels)
+                }
+                StateButton(model.confirmButtonModel)
+            }
+            .frame(maxWidth: .scene.button.maxWidth)
+            .padding(.bottom, .scene.bottom)
         }
         .frame(maxWidth: .infinity)
         .onChange(of: model.feeModel.priority) { _, _ in

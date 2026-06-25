@@ -9,6 +9,7 @@ struct ConfirmSimulationState {
     let secondaryFields: [SimulationPayloadField]
     let payloadAddressNames: [ChainAddress: AddressName]
     let headerData: AssetValueHeaderData?
+    let balanceChanges: [SimulationAssetChange]
 
     var hasDetails: Bool {
         !secondaryFields.isEmpty

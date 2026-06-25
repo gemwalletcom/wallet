@@ -2,6 +2,7 @@
 
 import AddressNameService
 import AssetsService
+import BigInt
 import Primitives
 import PrimitivesComponents
 
@@ -23,6 +24,7 @@ public struct ConfirmSimulationService: Sendable {
             payload: payloadFields(for: data.type, simulation: simulation),
             payloadAddressNames: [:],
             headerData: cachedHeaderData(data: data, simulation: simulation),
+            balanceChanges: cachedBalanceChanges(simulation: simulation),
         )
     }
 
@@ -30,12 +32,14 @@ public struct ConfirmSimulationService: Sendable {
         let payload = payloadFields(for: data.type, simulation: simulation)
         async let names = payloadAddressNames(chain: data.chain, payload: payload)
         async let headerData = headerData(data: data, simulation: simulation)
+        async let balanceChanges = balanceChanges(simulation: simulation)
 
         return await buildState(
             simulation: simulation,
             payload: payload,
             payloadAddressNames: names,
             headerData: headerData,
+            balanceChanges: balanceChanges,
         )
     }
 }
@@ -46,6 +50,7 @@ private extension ConfirmSimulationService {
         payload: [SimulationPayloadField],
         payloadAddressNames: [ChainAddress: AddressName],
         headerData: AssetValueHeaderData?,
+        balanceChanges: [SimulationAssetChange],
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(
             warnings: simulation?.warnings ?? [],
@@ -53,6 +58,7 @@ private extension ConfirmSimulationService {
             secondaryFields: payload.filter { $0.display == .secondary },
             payloadAddressNames: payloadAddressNames,
             headerData: headerData,
+            balanceChanges: balanceChanges,
         )
     }
 
@@ -126,6 +132,40 @@ private extension ConfirmSimulationService {
         }
     }
 
+    func cachedBalanceChanges(simulation: SimulationResult?) -> [SimulationAssetChange] {
+        let changes = simulationBalanceChanges(simulation)
+        guard !changes.isEmpty else {
+            return []
+        }
+
+        do {
+            let assets = try assetsService.getAssets(for: changes.map(\.assetId))
+            return mapBalanceChanges(changes, assets: assets)
+        } catch {
+            return mapBalanceChanges(changes, assets: [])
+        }
+    }
+
+    func balanceChanges(simulation: SimulationResult?) async -> [SimulationAssetChange] {
+        let changes = simulationBalanceChanges(simulation)
+        guard !changes.isEmpty else {
+            return []
+        }
+
+        var assets: [Asset] = []
+        for assetId in changes.map(\.assetId) {
+            do {
+                let asset = try await assetsService.getOrFetchTokenAsset(for: assetId)
+                assets.append(asset)
+            } catch {
+                if !error.isCancelled {
+                    debugLog("simulation balance change asset error: \(error)")
+                }
+            }
+        }
+        return mapBalanceChanges(changes, assets: assets)
+    }
+
     func payloadAddressNames(chain: Chain, payload: [SimulationPayloadField]) async -> [ChainAddress: AddressName] {
         let requests = payloadAddressRequests(chain: chain, payload: payload)
 
@@ -163,5 +203,28 @@ private extension ConfirmSimulationService {
             return nil
         }
         return (header.assetId, value)
+    }
+
+    func simulationBalanceChanges(_ simulation: SimulationResult?) -> [SimulationBalanceChange] {
+        simulation?.balanceChanges.filter {
+            guard let value = BigInt($0.value, radix: 10) else {
+                return false
+            }
+            return value != .zero
+        } ?? []
+    }
+
+    func mapBalanceChanges(_ changes: [SimulationBalanceChange], assets: [Asset]) -> [SimulationAssetChange] {
+        let assetsById = assets.reduce(into: [AssetId: Asset]()) { result, asset in
+            result[asset.id] = asset
+        }
+        return changes.compactMap { change in
+            guard let value = BigInt(change.value, radix: 10)
+            else {
+                return nil
+            }
+            let asset = assetsById[change.assetId] ?? change.assetId.unresolvedSimulationAsset()
+            return SimulationAssetChange(asset: asset, value: value)
+        }
     }
 }

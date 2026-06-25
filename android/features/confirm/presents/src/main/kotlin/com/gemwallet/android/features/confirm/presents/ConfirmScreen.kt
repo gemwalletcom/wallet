@@ -73,6 +73,10 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Alignment
+import com.gemwallet.android.features.confirm.presents.components.ConfirmBalanceChanges
+import com.gemwallet.android.ui.theme.Spacer8
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.TransactionType
 
@@ -80,7 +84,7 @@ import com.wallet.core.primitives.TransactionType
 @Composable
 fun ConfirmScreen(
     params: ConfirmParams? = null,
-    walletConnectSimulation: SimulationResult? = null,
+    simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
     onBuy: AssetIdAction,
@@ -95,7 +99,7 @@ fun ConfirmScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val feeRates by viewModel.feeRates.collectAsStateWithLifecycle()
     val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
-    val walletConnectReview by viewModel.walletConnectReview.collectAsStateWithLifecycle()
+    val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val isWalletConnect = params is ConfirmParams.TransferParams.Generic
     val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
@@ -110,9 +114,9 @@ fun ConfirmScreen(
         mutableStateOf((state as? ConfirmState.Error)?.message is ConfirmError.InsufficientFee)
     }
 
-    LaunchedEffect(params, walletConnectSimulation?.header?.assetId) {
+    LaunchedEffect(params, simulationResult) {
         if (params != null) {
-            viewModel.init(params, walletConnectSimulation)
+            viewModel.init(params, simulationResult)
         }
     }
 
@@ -126,18 +130,24 @@ fun ConfirmScreen(
         closeIcon = isWalletConnect,
         onClose = { cancelAction() },
         mainAction = {
-            MainActionButton(
-                title = state.buttonLabel(),
-                enabled = state !is ConfirmState.Prepare
-                    && state !is ConfirmState.Sending
-                    && !walletConnectReview.warnings.hasCriticalWarning(),
-                loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
-                onClick = {
-                    context.requestAuth(AuthRequest.Confirmation) {
-                        viewModel.send(finishAction)
-                    }
-                },
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                simulation.balanceChanges.takeIf { it.isNotEmpty() }?.let {
+                    ConfirmBalanceChanges(it)
+                    Spacer8()
+                }
+                MainActionButton(
+                    title = state.buttonLabel(),
+                    enabled = state !is ConfirmState.Prepare
+                        && state !is ConfirmState.Sending
+                        && !simulation.warnings.hasCriticalWarning(),
+                    loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
+                    onClick = {
+                        context.requestAuth(AuthRequest.Confirmation) {
+                            viewModel.send(finishAction)
+                        }
+                    },
+                )
+            }
         }
     ) { paddingValues ->
         LazyColumn(
@@ -146,12 +156,12 @@ fun ConfirmScreen(
         ) {
             item {
                 when {
-                    walletConnectReview.headerAsset != null -> {
-                        val asset = requireNotNull(walletConnectReview.headerAsset)
-                        val title = if (walletConnectReview.headerIsUnlimited) {
+                    simulation.headerAsset != null -> {
+                        val asset = requireNotNull(simulation.headerAsset)
+                        val title = if (simulation.headerIsUnlimited) {
                             stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
                         } else {
-                            walletConnectReview.headerValue?.toBigIntegerOrNull()
+                            simulation.headerValue?.toBigIntegerOrNull()
                                 ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: ""
                         }
                         AmountListHead(amount = title, icon = asset)
@@ -219,10 +229,10 @@ fun ConfirmScreen(
                     onClick = { selectedDetailElement = item },
                 )
             }
-            simulationWarningsContent(walletConnectReview.warnings)
+            simulationWarningsContent(simulation.warnings)
             simulationPayloadFieldsContent(
-                fields = walletConnectReview.primaryPayloadFields,
-                onDetailsClick = walletConnectReview.secondaryPayloadFields
+                fields = simulation.primaryPayloadFields,
+                onDetailsClick = simulation.secondaryPayloadFields
                     .takeIf { it.isNotEmpty() }
                     ?.let { { showWalletConnectDetails = true } },
             )
@@ -281,8 +291,8 @@ fun ConfirmScreen(
         ) {
             LazyColumn {
                 simulationPayloadDetailsContent(
-                    primaryFields = walletConnectReview.primaryPayloadFields,
-                    secondaryFields = walletConnectReview.secondaryPayloadFields,
+                    primaryFields = simulation.primaryPayloadFields,
+                    secondaryFields = simulation.secondaryPayloadFields,
                 )
             }
         }
