@@ -292,6 +292,7 @@ struct ServicesFactory {
             assetsService: assetsService,
             searchStore: storeManager.searchStore,
             perpetualStore: storeManager.perpetualStore,
+            assetListStore: storeManager.assetListStore,
             priceStore: storeManager.priceStore,
             preferences: preferences,
         )

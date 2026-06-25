@@ -12,6 +12,7 @@ public extension WalletSearchService {
         assetsService: AssetsService = .mock(),
         searchStore: SearchStore = .mock(),
         perpetualStore: PerpetualStore = .mock(),
+        assetListStore: AssetListStore = .mock(),
         priceStore: PriceStore = .mock(),
         preferences: Preferences = .mock(),
     ) -> WalletSearchService {
@@ -19,6 +20,7 @@ public extension WalletSearchService {
             assetsService: assetsService,
             searchStore: searchStore,
             perpetualStore: perpetualStore,
+            assetListStore: assetListStore,
             priceStore: priceStore,
             preferences: preferences,
         )

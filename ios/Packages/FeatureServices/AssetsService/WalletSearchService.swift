@@ -10,6 +10,7 @@ public struct WalletSearchService: Sendable {
     private let assetsService: AssetsService
     private let searchStore: SearchStore
     private let perpetualStore: PerpetualStore
+    private let assetListStore: AssetListStore
     private let priceStore: PriceStore
     private let preferences: Preferences
     private let searchProvider: any GemAPISearchService
@@ -18,6 +19,7 @@ public struct WalletSearchService: Sendable {
         assetsService: AssetsService,
         searchStore: SearchStore,
         perpetualStore: PerpetualStore,
+        assetListStore: AssetListStore,
         priceStore: PriceStore,
         preferences: Preferences,
         searchProvider: any GemAPISearchService = GemAPIService.shared,
@@ -25,23 +27,27 @@ public struct WalletSearchService: Sendable {
         self.assetsService = assetsService
         self.searchStore = searchStore
         self.perpetualStore = perpetualStore
+        self.assetListStore = assetListStore
         self.priceStore = priceStore
         self.preferences = preferences
         self.searchProvider = searchProvider
     }
 
-    public func search(wallet: Wallet, query: String, tag: AssetTag? = nil) async throws {
+    public func search(wallet: Wallet, query: String, scope: WalletSearchTag = .all) async throws {
         let scopeChains = WalletSearchScope.chains(for: wallet)
-        let chains = tag == nil ? (scopeChains.isEmpty ? Chain.allCases : scopeChains) : []
+        let chains = scope.isAll ? (scopeChains.isEmpty ? Chain.allCases : scopeChains) : []
 
         async let networkAssets = assetsService.searchNetworkAsset(tokenId: query, chains: chains)
-        async let searchResult = searchProvider.search(query: query, chains: scopeChains, tags: [tag].compactMap(\.self))
+        async let searchResult = searchProvider.search(query: query, chains: scopeChains, tags: [scope.apiTag].compactMap(\.self))
         let assets = try await searchResult.assets + networkAssets
 
-        let searchKey = searchHistoryKey(query: query, tag: tag)
+        let searchKey = scope.searchKey(query: query)
         try store(assets: assets, wallet: wallet, searchKey: searchKey)
-        if tag == nil {
+        if scope.includesPerpetuals {
             try await store(perpetuals: searchResult.perpetuals, searchKey: searchKey)
+        }
+        if scope.isAll {
+            try await store(lists: searchResult.lists, searchKey: searchKey)
         }
     }
 }
@@ -62,6 +68,11 @@ private extension WalletSearchService {
         try searchStore.add(type: .perpetual, query: searchKey, ids: perpetuals.map(\.perpetual.id.identifier))
     }
 
+    func store(lists: [AssetList], searchKey: String) throws {
+        try assetListStore.upsert(lists)
+        try searchStore.add(type: .list, query: searchKey, ids: lists.map(\.id))
+    }
+
     func prices(from assets: [AssetBasic]) -> [AssetPrice] {
         assets.compactMap { asset in
             guard let price = asset.price else { return nil }
@@ -72,9 +83,5 @@ private extension WalletSearchService {
                 updatedAt: price.updatedAt,
             )
         }
-    }
-
-    func searchHistoryKey(query: String, tag: AssetTag?) -> String {
-        tag.map { query.isEmpty ? "tag:\($0.rawValue)" : query } ?? query
     }
 }
