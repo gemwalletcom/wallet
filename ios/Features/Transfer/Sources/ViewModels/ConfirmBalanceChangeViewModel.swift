@@ -2,7 +2,10 @@
 
 import BigInt
 import Components
+import ExplorerService
 import Formatters
+import Localization
+import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -16,21 +19,21 @@ public struct ConfirmBalanceChangeViewModel {
         self.balanceChange = balanceChange
     }
 
-    private var assetViewModel: AssetViewModel {
-        AssetViewModel(asset: balanceChange.asset)
+    var isUnknown: Bool {
+        balanceChange.name == nil
     }
 
     public var assetTitle: String {
-        assetViewModel.title
+        balanceChange.name ?? balanceChange.symbol ?? Localized.Errors.unknown
     }
 
     public var assetImage: AssetImage {
-        assetViewModel.assetImage
+        AssetIdViewModel(assetId: balanceChange.assetId).assetImage
     }
 
     public var amount: String {
         let value = balanceChange.value < BigInt.zero ? -balanceChange.value : balanceChange.value
-        let formatted = Self.formatter.string(value, asset: balanceChange.asset)
+        let formatted = Self.formatter.string(value, decimals: Int(balanceChange.decimals), currency: balanceChange.symbol ?? "")
         if balanceChange.value > BigInt.zero {
             return "+\(formatted)"
         }
@@ -42,5 +45,12 @@ public struct ConfirmBalanceChangeViewModel {
 
     public var color: Color {
         PriceChangeColor.color(for: Double(balanceChange.value.signum()))
+    }
+
+    var explorerTokenURL: URL? {
+        guard let tokenId = balanceChange.assetId.tokenId else {
+            return nil
+        }
+        return ExplorerService.standard.tokenUrl(chain: balanceChange.assetId.chain, address: tokenId)?.url
     }
 }

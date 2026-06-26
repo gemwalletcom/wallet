@@ -117,7 +117,7 @@ public extension Gemstone.SimulationWarning {
 
 public extension Gemstone.SimulationBalanceChange {
     func map() throws -> Primitives.SimulationBalanceChange {
-        try Primitives.SimulationBalanceChange(assetId: AssetId(id: assetId), value: value)
+        try Primitives.SimulationBalanceChange(assetId: AssetId(id: assetId), value: value, decimals: decimals, name: name, symbol: symbol)
     }
 }
 

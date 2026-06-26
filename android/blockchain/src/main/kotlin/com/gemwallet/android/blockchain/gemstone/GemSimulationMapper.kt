@@ -49,7 +49,7 @@ private fun uniffi.gemstone.SimulationWarningType.toPrimitives(): SimulationWarn
 
 private fun uniffi.gemstone.SimulationBalanceChange.toPrimitives(): SimulationBalanceChange? {
     val id = assetId.toAssetId() ?: return null
-    return SimulationBalanceChange(assetId = id, value = value)
+    return SimulationBalanceChange(assetId = id, value = value, decimals = decimals, name = name, symbol = symbol)
 }
 
 private fun uniffi.gemstone.SimulationHeader.toPrimitives(): SimulationHeader? {

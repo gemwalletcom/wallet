@@ -342,6 +342,10 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
+    func onSelectUnknownBalanceChange(_ url: URL) {
+        isPresentingSheet = .url(url)
+    }
+
     func onSelectFeePicker() {
         isPresentingSheet = .networkFeeSelector
     }

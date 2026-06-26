@@ -2,20 +2,18 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.ext.assetType
-import com.gemwallet.android.ext.truncate
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationBalanceChange
 import com.wallet.core.primitives.SimulationPayloadFieldDisplay
 import com.wallet.core.primitives.SimulationPayloadFieldKind
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
+import uniffi.gemstone.Explorer
 import java.math.BigInteger
 
 data class Simulation(
@@ -29,14 +27,19 @@ data class Simulation(
 )
 
 data class SimulationAssetChange(
-    val asset: Asset,
+    val assetId: AssetId,
     val value: BigInteger,
-)
+    val decimals: Int,
+    val name: String?,
+    val symbol: String?,
+    val explorerUrl: String?,
+) {
+    val isUnknown: Boolean get() = name == null
+}
 
 fun SimulationResult.toSimulation(
     chain: Chain? = null,
     explorerName: String? = null,
-    balanceChangeAssets: List<Asset> = emptyList(),
 ): Simulation {
     val hideValueField = header != null
     val filtered = payload.filterNot { hideValueField && it.kind == SimulationPayloadFieldKind.Value }
@@ -49,15 +52,15 @@ fun SimulationResult.toSimulation(
             .withExplorerLinks(chain, explorerName),
         headerValue = header?.value,
         headerIsUnlimited = header?.isUnlimited == true,
-        balanceChanges = balanceChanges.toBalanceChanges(balanceChangeAssets),
+        balanceChanges = balanceChanges.toBalanceChanges(explorerName),
     )
 }
 
 val SimulationAssetChange.assetTitle: String
-    get() = if (asset.name == asset.symbol) asset.name else "${asset.name} (${asset.symbol})"
+    get() = name ?: symbol ?: ""
 
 fun SimulationAssetChange.formattedValue(): String {
-    val formatted = ValueFormatter(style = ValueFormatter.Style.Full).string(value, asset)
+    val formatted = ValueFormatter(style = ValueFormatter.Style.Full).string(value, decimals, symbol ?: "")
     return if (value > BigInteger.ZERO) "+$formatted" else formatted
 }
 
@@ -67,26 +70,25 @@ fun SimulationAssetChange.valueDirection(): ValueDirection = when {
     else -> ValueDirection.None
 }
 
-private fun List<SimulationBalanceChange>.toBalanceChanges(assets: List<Asset>): List<SimulationAssetChange> {
-    val assetsById = assets.associateBy { it.id }
+private fun List<SimulationBalanceChange>.toBalanceChanges(explorerName: String?): List<SimulationAssetChange> {
     return mapNotNull { change ->
         val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
         if (value == BigInteger.ZERO) return@mapNotNull null
-        val asset = assetsById[change.assetId] ?: change.assetId.unresolvedSimulationAsset()
-        SimulationAssetChange(asset = asset, value = value)
+        SimulationAssetChange(
+            assetId = change.assetId,
+            value = value,
+            decimals = change.decimals,
+            name = change.name,
+            symbol = change.symbol,
+            explorerUrl = if (change.name == null) change.assetId.explorerTokenUrl(explorerName) else null,
+        )
     }
 }
 
-private fun AssetId.unresolvedSimulationAsset(): Asset {
-    val identifier = tokenId?.truncate() ?: chain.string
-    val type = if (tokenId == null) AssetType.NATIVE else (chain.assetType() ?: AssetType.TOKEN)
-    return Asset(
-        id = this,
-        name = identifier,
-        symbol = identifier,
-        decimals = 0,
-        type = type,
-    )
+private fun AssetId.explorerTokenUrl(explorerName: String?): String? {
+    val mint = tokenId ?: return null
+    val name = explorerName ?: return null
+    return Explorer(chain.string).getTokenUrl(name, mint)
 }
 
 fun List<ConfirmProperty>.reorderWalletConnectProperties(): List<ConfirmProperty> {

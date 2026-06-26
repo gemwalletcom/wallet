@@ -92,6 +92,9 @@ impl SimulationWarning {
 pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
     pub value: String,
+    pub decimals: i32,
+    pub name: Option<String>,
+    pub symbol: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

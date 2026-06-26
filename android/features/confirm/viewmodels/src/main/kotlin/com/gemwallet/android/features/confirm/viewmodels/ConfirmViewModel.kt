@@ -99,28 +99,10 @@ class ConfirmViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val balanceChangeAssetInfos = simulationResult
-        .map { simulation -> simulation?.balanceChanges?.map { it.assetId }?.distinct().orEmpty() }
-        .distinctUntilChanged()
-        .flatMapLatest { assetIds ->
-            if (assetIds.isEmpty()) {
-                flowOf(emptyList())
-            } else {
-                combine(assetIds.map(::assetInfo)) { assetInfos ->
-                    assetInfos.filterNotNull()
-                }
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val simulation = combine(simulationResult, headerAssetInfo, balanceChangeAssetInfos, request) { simulationResult, headerAssetInfo, balanceChangeAssetInfos, params ->
+    val simulation = combine(simulationResult, headerAssetInfo, request) { simulationResult, headerAssetInfo, params ->
         val chain = params?.assetId?.chain
         val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
-        val balanceChangeAssets = buildList {
-            params?.asset?.let(::add)
-            addAll(balanceChangeAssetInfos.map { it.asset })
-        }
-        val simulation = simulationResult?.toSimulation(chain, explorerName, balanceChangeAssets) ?: Simulation()
+        val simulation = simulationResult?.toSimulation(chain, explorerName) ?: Simulation()
         val headerAssetId = simulationResult?.header?.assetId
         val asset = when {
             headerAssetId == null || params == null -> null

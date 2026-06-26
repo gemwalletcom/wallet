@@ -3,7 +3,7 @@ use crate::models::{
     balances::SolanaBalance,
     blockhash::SolanaBlockhashResult,
     prioritization_fee::SolanaPrioritizationFee,
-    simulation::SimulateTransactionValue,
+    simulation::SimulateTransactionResult,
     transaction::{BlockTransactions, SolanaTransaction},
 };
 use crate::{
@@ -165,7 +165,7 @@ impl<C: Client + Clone> SolanaClient<C> {
         self.rpc_call("sendTransaction", send_transaction_params(data, skip_preflight)).await
     }
 
-    pub async fn simulate_encoded_transaction(&self, encoded_transaction: &str) -> Result<SimulateTransactionValue, JsonRpcError> {
+    pub async fn simulate_encoded_transaction(&self, encoded_transaction: &str) -> Result<SimulateTransactionResult, JsonRpcError> {
         let params = serde_json::json!([
             encoded_transaction,
             {
@@ -175,7 +175,7 @@ impl<C: Client + Clone> SolanaClient<C> {
                 "replaceRecentBlockhash": true
             }
         ]);
-        let response: ValueResult<SimulateTransactionValue> = self.rpc_call("simulateTransaction", params).await?;
+        let response: ValueResult<SimulateTransactionResult> = self.rpc_call("simulateTransaction", params).await?;
         Ok(response.value)
     }
 

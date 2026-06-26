@@ -10,7 +10,10 @@ import kotlinx.serialization.SerialName
 @Serializable
 data class SimulationBalanceChange (
 	val assetId: AssetId,
-	val value: String
+	val value: String,
+	val decimals: Int,
+	val name: String? = null,
+	val symbol: String? = null
 )
 
 @Serializable

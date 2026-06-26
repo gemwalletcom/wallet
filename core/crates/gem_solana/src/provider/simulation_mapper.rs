@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
 use num_bigint::BigInt;
-use primitives::{AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType};
+use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType};
 use serde_json::Value;
 
-use crate::models::{SimulateTransactionValue, TokenBalance};
+use crate::models::{SimulateTransactionResult, TokenBalance};
 
-pub fn map_simulation_result(account_keys: &[String], signer_addresses: &HashSet<String>, simulation: SimulateTransactionValue) -> SimulationResult {
+pub fn map_simulation_result(account_keys: &[String], signer_addresses: &HashSet<String>, simulation: SimulateTransactionResult) -> SimulationResult {
     if let Some(err) = simulation.err {
         return SimulationResult::new(vec![simulation_error_warning(err)], vec![]);
     }
@@ -41,38 +41,51 @@ fn map_balance_changes(
     post_token_balances: &[TokenBalance],
 ) -> Vec<SimulationBalanceChange> {
     let mut deltas: HashMap<AssetId, BigInt> = HashMap::new();
-    for (asset_id, value) in signer_asset_values(account_keys, signer_addresses, post_balances, post_token_balances) {
-        *deltas.entry(asset_id).or_default() += value;
+    let mut decimals: HashMap<AssetId, i32> = HashMap::new();
+    for (asset_id, value, asset_decimals) in signer_asset_values(account_keys, signer_addresses, post_balances, post_token_balances) {
+        *deltas.entry(asset_id.clone()).or_default() += value;
+        decimals.insert(asset_id, asset_decimals);
     }
-    for (asset_id, value) in signer_asset_values(account_keys, signer_addresses, pre_balances, pre_token_balances) {
-        *deltas.entry(asset_id).or_default() -= value;
+    for (asset_id, value, asset_decimals) in signer_asset_values(account_keys, signer_addresses, pre_balances, pre_token_balances) {
+        *deltas.entry(asset_id.clone()).or_default() -= value;
+        decimals.entry(asset_id).or_insert(asset_decimals);
     }
 
     let mut balance_changes: Vec<SimulationBalanceChange> = deltas
         .into_iter()
         .filter(|(_, value)| *value != BigInt::from(0))
         .map(|(asset_id, value)| SimulationBalanceChange {
-            asset_id,
+            decimals: decimals.get(&asset_id).copied().unwrap_or_default(),
             value: value.to_string(),
+            name: None,
+            symbol: None,
+            asset_id,
         })
         .collect();
     balance_changes.sort_by_key(|change| change.asset_id.to_string());
     balance_changes
 }
 
-fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<String>, balances: &[u64], token_balances: &[TokenBalance]) -> Vec<(AssetId, BigInt)> {
-    let mut values: Vec<(AssetId, BigInt)> = token_balances
+fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<String>, balances: &[u64], token_balances: &[TokenBalance]) -> Vec<(AssetId, BigInt, i32)> {
+    let mut values: Vec<(AssetId, BigInt, i32)> = token_balances
         .iter()
         .filter(|token_balance| signer_addresses.contains(&token_balance.owner))
-        .map(|token_balance| (AssetId::from_token(Chain::Solana, &token_balance.mint), BigInt::from(token_balance.get_amount())))
+        .map(|token_balance| {
+            (
+                AssetId::from_token(Chain::Solana, &token_balance.mint),
+                BigInt::from(token_balance.get_amount()),
+                token_balance.ui_token_amount.decimals as i32,
+            )
+        })
         .collect();
 
+    let native_decimals = Asset::from_chain(Chain::Solana).decimals;
     for (index, address) in account_keys.iter().enumerate() {
         if !signer_addresses.contains(address) {
             continue;
         }
         if let Some(balance) = balances.get(index) {
-            values.push((AssetId::from_chain(Chain::Solana), BigInt::from(*balance)));
+            values.push((AssetId::from_chain(Chain::Solana), BigInt::from(*balance), native_decimals));
         }
     }
     values
@@ -103,10 +116,16 @@ mod tests {
                 SimulationBalanceChange {
                     asset_id: AssetId::from_chain(Chain::Solana),
                     value: "-100005000".to_string(),
+                    decimals: 9,
+                    name: None,
+                    symbol: None,
                 },
                 SimulationBalanceChange {
                     asset_id: SOLANA_USDC_ASSET_ID.clone(),
                     value: "-750000".to_string(),
+                    decimals: 6,
+                    name: None,
+                    symbol: None,
                 },
             ]
         );
@@ -127,6 +146,9 @@ mod tests {
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_chain(Chain::Solana),
                 value: "-5000".to_string(),
+                decimals: 9,
+                name: None,
+                symbol: None,
             }]
         );
     }
@@ -143,8 +165,26 @@ mod tests {
             vec![SimulationBalanceChange {
                 asset_id: SOLANA_USDC_ASSET_ID.clone(),
                 value: "-1000000".to_string(),
+                decimals: 6,
+                name: None,
+                symbol: None,
             }]
         );
+    }
+
+    #[test]
+    fn test_map_balance_changes_shows_native_alongside_tokens_in_token_swap() {
+        let account_keys = vec!["wallet".to_string()];
+        let other_mint = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+        let pre_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 1_000_000)];
+        let post_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 0), TokenBalance::mock(other_mint, "wallet", 2_000_000)];
+
+        let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &[1_000_000_000], &[997_960_720], &pre_tokens, &post_tokens);
+
+        assert_eq!(changes.len(), 3);
+        assert!(changes.iter().any(|change| change.asset_id.token_id.is_none() && change.value == "-2039280"));
+        assert!(changes.iter().any(|change| change.value == "-1000000"));
+        assert!(changes.iter().any(|change| change.value == "2000000"));
     }
 
     #[test]
@@ -158,6 +198,9 @@ mod tests {
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_chain(Chain::Solana),
                 value: "10000".to_string(),
+                decimals: 9,
+                name: None,
+                symbol: None,
             }]
         );
     }
@@ -173,6 +216,9 @@ mod tests {
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_chain(Chain::Solana),
                 value: "-5000".to_string(),
+                decimals: 9,
+                name: None,
+                symbol: None,
             }]
         );
     }
@@ -182,7 +228,7 @@ mod tests {
         let result = map_simulation_result(
             &[],
             &HashSet::new(),
-            SimulateTransactionValue {
+            SimulateTransactionResult {
                 err: Some(serde_json::json!({"InstructionError":[1, "InvalidArgument"]})),
                 pre_balances: vec![],
                 post_balances: vec![],

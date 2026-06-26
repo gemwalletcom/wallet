@@ -2,10 +2,11 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::ChainSimulation;
+use chain_traits::{ChainSimulation, ChainToken};
+use futures::future::join_all;
 use gem_client::Client;
 use gem_encoding::decode_base64;
-use primitives::{SimulationInput, SimulationResult};
+use primitives::{Asset, SimulationBalanceChange, SimulationInput, SimulationResult};
 use solana_primitives::VersionedTransaction;
 
 use crate::provider::simulation_mapper::map_simulation_result;
@@ -25,6 +26,31 @@ impl<C: Client + Clone> ChainSimulation for SolanaClient<C> {
             .collect();
 
         let simulation = self.simulate_encoded_transaction(&input.encoded_transaction).await?;
-        Ok(map_simulation_result(&account_keys, &signer_addresses, simulation))
+        let mut result = map_simulation_result(&account_keys, &signer_addresses, simulation);
+
+        let assets = self.get_balance_change_assets(&result.balance_changes).await;
+        for (change, (name, symbol)) in result.balance_changes.iter_mut().zip(assets) {
+            change.name = name;
+            change.symbol = symbol;
+        }
+        Ok(result)
+    }
+}
+
+impl<C: Client + Clone> SolanaClient<C> {
+    async fn get_balance_change_assets(&self, changes: &[SimulationBalanceChange]) -> Vec<(Option<String>, Option<String>)> {
+        join_all(changes.iter().map(|change| async move {
+            match &change.asset_id.token_id {
+                None => {
+                    let asset = Asset::from_chain(self.get_chain());
+                    (Some(asset.name), Some(asset.symbol))
+                }
+                Some(mint) => match self.get_token_data(mint.clone()).await {
+                    Ok(asset) => (Some(asset.name), Some(asset.symbol)),
+                    Err(_) => (None, None),
+                },
+            }
+        }))
+        .await
     }
 }

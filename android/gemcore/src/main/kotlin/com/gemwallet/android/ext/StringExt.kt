@@ -2,11 +2,6 @@ package com.gemwallet.android.ext
 
 fun String.boldMarkdown() = "**$this**"
 
-fun String.truncate(first: Int = 6, last: Int = 6): String {
-    if (length <= first + last) return this
-    return "${take(first)}...${takeLast(last)}"
-}
-
 fun String.words(): List<String> {
     val words = mutableListOf<String>()
     val word = StringBuilder()
