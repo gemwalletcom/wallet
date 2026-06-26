@@ -5,5 +5,5 @@ use crate::KeystoreError;
 static QUEUE: OnceLock<Mutex<()>> = OnceLock::new();
 
 pub(super) fn lock() -> Result<MutexGuard<'static, ()>, KeystoreError> {
-    QUEUE.get_or_init(|| Mutex::new(())).lock().map_err(|_| KeystoreError::io("keystore queue poisoned"))
+    Ok(QUEUE.get_or_init(|| Mutex::new(())).lock().unwrap_or_else(std::sync::PoisonError::into_inner))
 }

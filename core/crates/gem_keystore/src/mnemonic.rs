@@ -14,11 +14,11 @@ impl Mnemonic {
         Ok(mnemonic.words().map(|word| word.to_string()).collect())
     }
 
-    pub fn sanitize(phrase: &str) -> Result<String, KeystoreError> {
-        let sanitized = phrase.nfkd().collect::<String>();
-        let sanitized = sanitized.split_whitespace().map(|word| word.to_lowercase()).collect::<Vec<_>>().join(" ");
+    pub fn sanitize(phrase: &str) -> Result<Zeroizing<String>, KeystoreError> {
+        let sanitized = Zeroizing::new(phrase.nfkd().collect::<String>());
+        let sanitized = Zeroizing::new(sanitized.split_whitespace().map(|word| word.to_lowercase()).collect::<Vec<_>>().join(" "));
         let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &sanitized).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
-        Ok(mnemonic.words().collect::<Vec<_>>().join(" "))
+        Ok(Zeroizing::new(mnemonic.words().collect::<Vec<_>>().join(" ")))
     }
 
     pub fn is_valid(phrase: &str) -> bool {
@@ -35,13 +35,13 @@ impl Mnemonic {
     }
 
     pub fn seed(phrase: &str) -> Result<Zeroizing<[u8; 64]>, KeystoreError> {
-        let sanitized = Zeroizing::new(Self::sanitize(phrase)?);
+        let sanitized = Self::sanitize(phrase)?;
         let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &sanitized).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
         Ok(Zeroizing::new(mnemonic.to_seed_normalized("")))
     }
 
     pub fn entropy(phrase: &str) -> Result<Zeroizing<Vec<u8>>, KeystoreError> {
-        let sanitized = Zeroizing::new(Self::sanitize(phrase)?);
+        let sanitized = Self::sanitize(phrase)?;
         let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &sanitized).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
         let (entropy, len) = mnemonic.to_entropy_array();
         Ok(Zeroizing::new(entropy[..len].to_vec()))
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_sanitize() {
         let phrase = format!("  {} ", ABANDON_PHRASE.replacen("abandon abandon", "ABANDON   abandon", 1).replace("about", "ABOUT"));
-        assert_eq!(Mnemonic::sanitize(&phrase).unwrap(), ABANDON_PHRASE);
+        assert_eq!(Mnemonic::sanitize(&phrase).unwrap().as_str(), ABANDON_PHRASE);
         assert_eq!(Mnemonic::sanitize("abandon abandon").unwrap_err(), KeystoreError::invalid_input("mnemonic"));
     }
 

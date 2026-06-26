@@ -39,7 +39,7 @@ impl ReaderV3 {
                 let phrase = std::str::from_utf8(&plaintext).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?;
                 let sanitized = Mnemonic::sanitize(phrase).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?;
                 plaintext.zeroize();
-                SecretV3::Mnemonic(sanitized)
+                SecretV3::Mnemonic(sanitized.to_string())
             }
             KindV3::PrivateKey => {
                 if plaintext.len() != 32 {

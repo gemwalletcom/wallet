@@ -41,9 +41,9 @@ fn scheme_for_chain(chain: &Chain) -> SignatureScheme {
 }
 
 fn decode_base58(value: &str) -> Option<Vec<u8>> {
-    let decoded = bs58::decode(value).into_vec().ok()?;
+    let decoded = Zeroizing::new(bs58::decode(value).into_vec().ok()?);
     match decoded.len() {
-        32 => Some(decoded),
+        32 => Some(decoded.to_vec()),
         64 => Some(decoded[..32].to_vec()),
         _ => None,
     }
@@ -93,7 +93,7 @@ fn decode_base32_stellar(value: &str) -> Option<Vec<u8>> {
     if value.len() != 56 || !value.starts_with('S') {
         return None;
     }
-    let decoded = base32_decode(value.as_bytes())?;
+    let decoded = Zeroizing::new(base32_decode(value.as_bytes())?);
     if decoded.len() != 35 || decoded[0] != 0x90 {
         return None;
     }
@@ -127,14 +127,14 @@ fn validate_key(bytes: &[u8], scheme: SignatureScheme) -> Result<(), SignerError
 fn decode_key(value: &str, encodings: &[KeyEncoding], scheme: SignatureScheme) -> Result<Zeroizing<Vec<u8>>, SignerError> {
     for encoding in encodings {
         let decoded = match encoding {
-            KeyEncoding::Hex => decode_hex(value).ok(),
-            KeyEncoding::Base58 => decode_base58(value),
-            KeyEncoding::Base32 => decode_base32_stellar(value),
+            KeyEncoding::Hex => decode_hex(value).ok().map(Zeroizing::new),
+            KeyEncoding::Base58 => decode_base58(value).map(Zeroizing::new),
+            KeyEncoding::Base32 => decode_base32_stellar(value).map(Zeroizing::new),
         };
         if let Some(bytes) = decoded
             && validate_key(&bytes, scheme).is_ok()
         {
-            return Ok(Zeroizing::new(bytes));
+            return Ok(bytes);
         }
     }
     Err(SignerError::invalid_input("Invalid private key format"))
