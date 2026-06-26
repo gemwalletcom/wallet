@@ -55,17 +55,11 @@ dependencies {
     implementation(project(":data:services:store"))
     api(project(":data:services:remote-gem"))
 
-    // Wallet Connect
-    api(platform(libs.walletconnect.bom))
-    api(libs.walletconnect.core) {
-        exclude(group = "com.jakewharton.timber", module = "timber")
-    }
-    api(libs.walletconnect.web3wallet)
-
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore)
+    implementation(libs.androidx.security.crypto)
 
     api(libs.ktor.core)
     api(libs.ktor.cio)

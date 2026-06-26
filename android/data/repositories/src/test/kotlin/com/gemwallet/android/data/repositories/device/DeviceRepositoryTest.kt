@@ -390,7 +390,6 @@ class DeviceRepositoryTest {
             index = 0,
             type = type,
             accounts = accounts,
-            order = 0,
             isPinned = false,
             source = source
         )

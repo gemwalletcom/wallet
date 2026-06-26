@@ -3,31 +3,28 @@
 common_cancel = Hủy bỏ
 common_done = Xong
 common_secret_phrase = Cụm từ bí mật
-common_next = Tiếp theo
 common_copy = Sao chép
 common_share = Chia sẻ
 common_continue = Tiếp tục
 common_provider = Nhà cung cấp
 common_loading = Đang tải
 common_address = Địa chỉ
-common_back = Quay lại
 common_try_again = Thử lại
 common_paste = Dán
 common_delete = Xóa bỏ
 common_delete_confirmation = Bạn có chắc chắn muốn xóa %@ không?
-common_hide = Trốn
-common_wallet = Cái ví
-common_show = Trình diễn %@
+common_hide = Ẩn
+common_wallet = Ví
+common_show = Hiện %@
 common_copied = Đã sao chép: %@
-common_recommended = Khuyến khích
+common_recommended = Được đề xuất
 common_all = Tất cả
 common_not_available = Không có sẵn
 common_phrase = Cụm từ
 common_manage = Quản lý
 common_type = Kiểu
 common_no_results_found = Không có kết quả nào được tìm thấy
-common_yes = Đúng
-common_no = KHÔNG
+common_no = Không
 common_none = Không có
 common_url = URL
 common_private_key = Khóa riêng
@@ -37,33 +34,29 @@ common_pin = Ghim
 common_pinned = Đã ghim
 common_lists = Danh sách
 common_unpin = Bỏ ghim
-common_skip = Nhảy
+common_skip = Bỏ qua
 common_warning = Cảnh báo
 common_learn_more = Tìm hiểu thêm
-common_short_name = Gem
 common_description = Sự miêu tả
-common_emoji = Biểu tượng cảm xúc
-common_style = Phong cách
+common_emoji = Emoji
 common_avatar = Hình đại diện
-common_photo = Ảnh
-common_save = Cứu
-common_edit = Chỉnh sửa
+common_save = Lưu
 common_percentage = Phần trăm
 common_details = Chi tiết
 common_info = Thông tin
 common_get_started = Bắt đầu
 common_earn = Kiếm tiền
-common_method = Phương pháp
-common_token = Mã thông báo
+common_method = Phương thức
+common_token = Token
 common_suspicious_address = Địa chỉ đáng ngờ
-common_refresh = Làm cho khỏe lại
+common_refresh = Làm mới
 common_no_thanks = Không, cám ơn
 common_grant_permission = Cấp phép
 common_required_field = %@ là bắt buộc
 
 # Welcome
 
-welcome_title = Chào mừng đến với gia đình đá quý
+welcome_title = Chào mừng đến với Gem Family
 
 # Wallet
 
@@ -77,7 +70,7 @@ wallet_import_title = Nhập ví
 wallet_new_title = Ví mới
 wallet_name = Tên
 wallet_import_action = Nhập khẩu
-wallet_multicoin = Nhiều xu
+wallet_multicoin = Đa coin
 wallet_import_address_field = Địa chỉ hoặc Tên
 wallet_manage_token_list = Quản lý mã thông báo
 wallet_scan_qr_code = Quét mã QR
@@ -86,17 +79,17 @@ wallet_default_name = Ví #%d
 wallet_default_name_chain = %@ Ví #%d
 wallet_copy_address = Sao chép địa chỉ
 wallet_watch_tooltip_title = Bạn đang xem ví này.
-wallet_stake = Cổ phần
+wallet_stake = Đặt cọc
 wallet_receive_no_memo_required = Không cần ghi nhớ
 wallet_receive_no_destination_tag_required = Không cần thẻ đích
-wallet_title = Cái ví
+wallet_title = Ví
 wallet_add_token_title = Thêm mã thông báo
 wallet_sell = Bán
 wallet_receive_collection = Nhận bộ sưu tập
 wallet_more = Hơn
 wallet_import_contract_address_field = Hợp đồng hoặc ID token
 wallet_import_address_warning = Bạn có thể xem số dư và giao dịch của địa chỉ này, nhưng **không thể gửi hoặc bán tiền**.
-wallet_deposit = Tiền gửi
+wallet_deposit = Nạp tiền
 wallet_withdraw = Rút
 wallet_available_balance = Có sẵn: %@
 wallet_portfolio_title = Danh mục đầu tư
@@ -110,7 +103,7 @@ wallets_watch = Xem
 # Receive
 
 receive_title = Nhận %@
-receive_warning = Đây là địa chỉ của bạn — chỉ gửi thư %@ trên %@ mạng.
+receive_warning = Đây là địa chỉ của bạn — chỉ gửi %@ trên mạng %@.
 
 # Buy
 
@@ -122,21 +115,21 @@ buy_no_results = Không có báo giá nào
 # Transfer
 
 transfer_network_fee = Phí mạng
-transfer_memo = Bản ghi nhớ
+transfer_memo = Ghi chú
 transfer_confirm = Xác nhận
 transfer_from = Từ
 transfer_to = Đến
 transfer_max = Tối đa
 transfer_network = Mạng
 transfer_recipient_title = Người nhận
-transfer_balance = Cân %@
+transfer_balance = Số dư: %@
 transfer_title = Chuyển khoản
 transfer_recipient_address_field = Địa chỉ hoặc Tên
 transfer_send_title = Gửi
 transfer_insufficient_balance = Số dư %@ không đủ.
 transfer_insufficient_network_fee_balance = Số dư %@ không đủ để trả phí mạng.
 transfer_approve_title = Chấp thuận
-transfer_stake_title = Cọc
+transfer_stake_title = Đặt cọc
 transfer_claim_rewards_title = Yêu cầu phần thưởng
 transfer_unstake_title = Hủy đặt cược
 transfer_redelegate_title = Ủy quyền lại
@@ -151,9 +144,8 @@ transfer_smart_contract_title = Hợp đồng thông minh
 transfer_other_title = Khác
 transfer_maximum_amount = Số tiền tối đa là %@
 transfer_reserved_fees = Chúng tôi đã để lại %@ trong số dư của bạn để trang trải phí mạng trong tương lai.
-transfer_freeze_title = Đông cứng
+transfer_freeze_title = Đóng băng
 transfer_unfreeze_title = Giải đông
-transfer_sign_transaction_title = Ký giao dịch
 transfer_review_request = Yêu cầu xem xét
 transfer_amount = Số lượng
 transfer_amount_title = Số lượng
@@ -169,9 +161,8 @@ settings_community = Cộng đồng
 settings_aboutus = Về chúng tôi
 settings_networks_title = Mạng
 settings_networks_source = Nguồn
-settings_networks_explorer = nhà thám hiểm
+settings_networks_explorer = Trình duyệt khối
 settings_currency = Tiền tệ
-settings_rate_app = Đánh giá ứng dụng
 settings_website = Truy cập trang web
 settings_security = Bảo vệ
 settings_enable_value = Bật %@
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = Hiện tại chúng tôi không thể tính
 errors_invalid_asset_address = Địa chỉ %@ không hợp lệ
 errors_dust_threshold = Giao dịch không thành công vì số tiền quá nhỏ để đáp ứng yêu cầu tối thiểu của mạng %@ (ngưỡng bụi). Giới hạn này đảm bảo giá trị giao dịch bao gồm phí và chi phí xử lý.
 errors_swap_no_quote_available = Không có báo giá khả dụng.
-errors_swap_not_supported_chain = Chuỗi không được hỗ trợ.
 errors_swap_not_supported_asset = Tài sản không được hỗ trợ.
-errors_swap_not_supported_pair = Cặp không được hỗ trợ.
 errors_connections_invalid_send_parameters = Tham số được cung cấp để gửi giao dịch không hợp lệ.
 errors_connections_invalid_sign_parameters = Các tham số được cung cấp để ký không hợp lệ.
 errors_connections_no_supported_wallets = Không có ví nào được hỗ trợ.
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = Hoạt động đáng ngờ
 errors_connections_malicious_origin = Kết nối này đến từ một nguồn không đáng tin cậy.
 errors_no_data_available = Không có dữ liệu có sẵn
 errors_dust_threshold_short = Mạng lưới coi số tiền này là bụi - mức phí còn cao hơn cả số tiền thực tế.
-errors_swap_minimum_amount = Số tiền giao dịch tối thiểu là %@Vui lòng nhập số tiền lớn hơn.
+errors_swap_minimum_amount = Số tiền giao dịch tối thiểu là %@. Vui lòng nhập số tiền lớn hơn.
 errors_perpetual_trigger_price_lower = Giá kích hoạt phải thấp hơn giá thị trường
 errors_perpetual_trigger_price_higher = Giá kích hoạt phải cao hơn giá thị trường
 errors_token_unable_fetch_token_information = Không thể tìm nạp thông tin mã thông báo: %@
@@ -286,15 +275,14 @@ transaction_status_refunded = Đã hoàn tiền
 
 # Asset
 
-asset_balances = Cân bằng
+asset_balances = Số dư
 asset_balances_available = Có sẵn
 asset_price = Giá
 asset_market_cap = Vốn hóa thị trường
 asset_trading_volume = Khối lượng giao dịch (24h)
-asset_market_cap_rank = Xếp hạng vốn hóa thị trường
 asset_total_supply = Tổng cung
 asset_circulating_supply = Nguồn cung lưu thông
-asset_balances_reserved = Kín đáo
+asset_balances_reserved = Dự trữ
 asset_view_token_on = Xem mã thông báo trên %@
 asset_view_address_on = Xem địa chỉ trên %@
 asset_name = Tên
@@ -321,10 +309,10 @@ asset_all_time_low = Mức thấp nhất mọi thời đại
 charts_day = 1D
 charts_hour = 1H
 charts_week = 1W
-charts_month = 1 triệu
+charts_month = 1 tháng
 charts_year = 1 năm
 charts_all = Tất cả
-charts_entry = Nhập cảnh
+charts_entry = Điểm vào
 charts_price_open = Mở
 charts_price_close = Đóng
 charts_price_high = Cao
@@ -343,11 +331,9 @@ wallet_connect_connection_title = Sự liên quan
 wallet_connect_disconnect = Ngắt kết nối
 wallet_connect_connect_title = Kết nối
 wallet_connect_app = Ứng dụng
-wallet_connect_website = Trang mạng
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Không có kết nối hoạt động
 wallet_connect_state_empty_description = Quét hoặc dán mã để kết nối với DApp
-wallet_connect_domain = Tên miền
 wallet_connect_permissions_title = Quyền hạn
 wallet_connect_permissions_view_balance = Xem số dư và hoạt động của bạn
 wallet_connect_permissions_approval_requests = Gửi yêu cầu phê duyệt
@@ -370,7 +356,7 @@ stake_active = Tích cực
 stake_pending = Đang chờ xử lý
 stake_rewards = Phần thưởng
 stake_validator = Trình xác thực
-stake_validators = Trình xác nhận
+stake_validators = Trình xác thực
 stake_apr = APR %@
 stake_available_in = Có sẵn trong
 stake_inactive = Không hoạt động
@@ -380,9 +366,7 @@ stake_deactivating = Vô hiệu hóa
 stake_awaiting_withdrawal = Đang chờ rút tiền
 stake_active_in = Đang hoạt động ở
 stake_minimum_amount = Số tiền tối thiểu
-stake_viagem = Đặt cược qua ví đá quý
-stake_no_active_staking = Chưa có hoạt động đặt cược nào.
-stake_state_empty_title = Cổ phần của bạn sẽ xuất hiện ở đây
+stake_state_empty_title = Khoản đặt cọc của bạn sẽ xuất hiện ở đây
 stake_state_empty_description = Đặt cược %@ đầu tiên của bạn
 stake_resource = Tài nguyên
 stake_resource_energy = Năng lượng
@@ -405,7 +389,6 @@ assets_title = Tài sản
 
 # Sign Message
 
-sign_message_title = Ký tin nhắn
 sign_message_message = Tin nhắn
 sign_message_view_full_message = Xem toàn bộ tin nhắn
 
@@ -421,7 +404,7 @@ secret_phrase_content_hidden_description = Nội dung bị ẩn trong quá trìn
 
 # Social
 
-social_x = X (formerly Twitter)
+social_x = X (trước đây là Twitter)
 social_discord = Discord
 social_reddit = Reddit
 social_telegram = Telegram
@@ -477,8 +460,8 @@ banner_asset_status_title = Tài sản đáng ngờ
 banner_asset_status_description = Mã thông báo có thể không an toàn hoặc gây hiểu lầm. Chỉ tiếp tục nếu bạn hoàn toàn tin tưởng nó.
 banner_onboarding_title = Ví của bạn đã sẵn sàng
 banner_onboarding_description = Mua hoặc nhận tiền điện tử để bắt đầu
-banner_perpetuals_title = Giao dịch vĩnh viễn trên siêu thanh khoản
-banner_perpetuals_description = Gửi tiền, giao dịch và kiếm tiền với hợp đồng vĩnh viễn Hyperliquid
+banner_perpetuals_title = Giao dịch hợp đồng vĩnh cửu trên Hyperliquid
+banner_perpetuals_description = Gửi tiền, giao dịch và kiếm tiền với hợp đồng vĩnh cửu Hyperliquid
 
 # Filter
 
@@ -492,7 +475,7 @@ filter_has_balance = Có sự cân bằng
 price_alerts_enabled_for = Đã bật cảnh báo giá cho %@
 price_alerts_disabled_for = Cảnh báo giá đã bị vô hiệu hóa đối với %@
 price_alerts_get_notified_explain_message = Nhận thông báo khi có thay đổi đáng kể về giá của tài sản tiền điện tử yêu thích của bạn.
-price_alerts_direction_over = Kết thúc
+price_alerts_direction_over = Trên
 price_alerts_direction_under = Dưới
 price_alerts_direction_increases_by = Tăng lên bởi
 price_alerts_direction_decreases_by = Giảm bởi
@@ -548,17 +531,15 @@ info_slippage_description = Trượt giá là sự chênh lệch giữa giá d�
 info_asset_status_unverified_description = Các mã thông báo chưa được xác minh chưa được xác minh đầy đủ bởi các dịch vụ của bên thứ ba đáng tin cậy. Chúng có thể xuất hiện trong ví của bạn do airdrop, chuyển khoản hoặc nhập thủ công.
 info_asset_status_suspicious_description = Mã thông báo đáng ngờ hoặc thư rác được xác định là lừa đảo tiềm ẩn hoặc tài sản có hại. Chúng có thể xuất hiện trong ví của bạn do airdrop, chuyển khoản hoặc nhập thủ công.
 info_insufficient_network_fee_balance_title = %@ bắt buộc
-info_insufficient_network_fee_balance_description = Giao dịch này yêu cầu %@ để trang trải phí mạng đã trả cho %@ thợ mỏ, không phải Gem WalletHãy đảm bảo bạn có đủ %@.
+info_insufficient_network_fee_balance_description = Giao dịch này yêu cầu %@ để trang trải phí mạng đã trả cho %@ thợ mỏ, không phải Gem Wallet. Hãy đảm bảo bạn có đủ %@.
 info_insufficient_balance_title = Số dư không đủ
 info_insufficient_balance_description = Bạn không có đủ %@ để hoàn tất giao dịch này. Vui lòng nạp tiền, nhận hoặc đổi trong ví của bạn và thử lại.
 info_account_minimum_balance_title = Số dư tối thiểu
 info_perpetual_funding_payments_title = Thanh toán tài trợ
 info_perpetual_funding_payments_description = Thanh toán cấp vốn là khoản thanh toán định kỳ giữa các nhà giao dịch để giữ giá hợp đồng vĩnh viễn gần với giá giao ngay của tài sản cơ bản. Nguồn vốn dương có nghĩa là các vị thế mua sẽ trả cho các vị thế bán, trong khi nguồn vốn âm có nghĩa là các vị thế bán sẽ trả cho các vị thế mua.
-info_perpetual_funding_rate_title = Tài trợ
-info_perpetual_funding_rate_description = Tỷ lệ tài trợ xác định chi phí để giữ một vị thế vĩnh viễn. Nó được tính toán hàng giờ và giúp duy trì sự cân bằng giá giữa hợp đồng vĩnh viễn và giá giao ngay của tài sản cơ bản.
 info_perpetual_liquidation_price_title = Giá thanh lý
 info_perpetual_liquidation_price_description = Giá thanh lý là mức giá mà tại đó vị thế của bạn sẽ tự động bị đóng để tránh thua lỗ thêm. Khi giá thị trường đạt đến mức này, vị thế của bạn sẽ bị thanh lý và bạn mất tiền ký quỹ.
-info_perpetual_open_interest_title = Lãi suất mở
+info_perpetual_open_interest_title = Vị thế mở
 info_perpetual_open_interest_description = Lãi suất mở thể hiện tổng giá trị của tất cả các hợp đồng vĩnh viễn chưa thanh toán chưa được thanh toán. Nó cung cấp cái nhìn sâu sắc về hoạt động thị trường và tính thanh khoản.
 info_no_quote_description = Không thể trả về báo giá cho cặp mã thông báo đã chọn, có thể do số lượng thấp, thiếu thanh khoản hoặc hạn chế về mặt kỹ thuật.
 info_stake_reserved_title = Dành riêng cho Phí mạng
@@ -633,26 +614,24 @@ onboarding_accept_terms_continue = Đồng ý và tiếp tục
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
-perpetual_positions = Vị trí
+perpetual_positions = Vị thế
 perpetual_size = Kích cỡ
-perpetual_margin = Lề
-perpetual_position = Chức vụ
-perpetual_close_position = Đóng vị trí
+perpetual_margin = Ký quỹ
+perpetual_position = Vị thế
+perpetual_close_position = Đóng vị thế
 perpetual_pnl = PnL
 perpetual_long = Dài
 perpetual_short = Ngắn
-perpetual_entry_price = Giá nhập cảnh
+perpetual_entry_price = Giá vào lệnh
 perpetual_modify = Biến đổi
-perpetual_reduce_position = Giảm vị trí
-perpetual_increase_position = Tăng vị trí
+perpetual_reduce_position = Giảm vị thế
+perpetual_increase_position = Tăng vị thế
 perpetual_open_direction = Mở %@
 perpetual_close_direction = Đóng %@
 perpetual_leverage = Đòn bẩy
-perpetual_direction = Phương hướng
 perpetual_auto_close = Tự động đóng
 perpetual_auto_close_take_profit = Kiếm lợi nhuận
 perpetual_market_price = Giá thị trường
@@ -663,20 +642,20 @@ perpetual_increase_direction = Tăng %@
 perpetual_reduce_direction = Giảm %@
 perpetual_auto_close_expected_profit = Lợi nhuận dự kiến
 perpetual_auto_close_expected_loss = Dự kiến mất mát
-perpetual_modify_position = Sửa đổi vị trí
+perpetual_modify_position = Sửa đổi vị thế
 perpetual_auto_close_stop_loss = Dừng lỗ
 perpetual_value = Giá trị
 perpetual_unrealized_pnl = Lợi nhuận và lỗ chưa thực hiện
-perpetual_volume = Âm lượng
+perpetual_volume = Khối lượng
 perpetual_all_time_pnl = Lợi nhuận và thua lỗ mọi thời đại
-perpetual_margin_usage = Sử dụng lề
+perpetual_margin_usage = Sử dụng ký quỹ
 perpetual_account_leverage = Tận dụng tài khoản
 perpetual_margin_cross = Chéo
 perpetual_margin_isolated = Bị cô lập
 
 # Perpetuals
 
-perpetuals_title = Tiền vĩnh cửu
+perpetuals_title = Perpetual
 perpetuals_markets = Thị trường
 perpetuals_empty_state_no_markets = Không có thị trường
 perpetuals_empty_state_no_markets_found = Không tìm thấy thị trường
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = Nội dung bạn sử dụng gần đ�
 
 notifications_inapp_state_empty_title = Chưa có thông báo nào
 notifications_inapp_state_empty_description = Bạn sẽ thấy các cập nhật về thông báo của mình ở đây.
-notifications_inapp_rewards_invite_subtitle = Mời bạn bè và cùng nhau nhận phần thưởng.
 
 # Earn
 

@@ -13,6 +13,7 @@ import com.gemwallet.android.cases.name.ResolveName
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.mutableStateIn
@@ -120,16 +121,19 @@ class RecipientViewModel @Inject constructor(
         address,
         nameRecord,
     ) { state, address, record ->
-        val resolvedAddress = record?.address ?: address
         when (state) {
             RecipientState.Loading -> RecipientError.None
-            is RecipientState.Ready -> when {
-                resolvedAddress.isEmpty() -> RecipientError.None
-                resolveName.canResolveName(address) -> RecipientError.None
-                else -> validateDestination(
-                    asset = state.type.assetInfo.asset,
-                    destination = DestinationAddress(resolvedAddress, record?.name),
-                )
+            is RecipientState.Ready -> {
+                val asset = state.type.assetInfo.asset
+                val resolvedAddress = asset.chain.checksumAddress(record?.address ?: address)
+                when {
+                    resolvedAddress.isEmpty() -> RecipientError.None
+                    resolveName.canResolveName(address) -> RecipientError.None
+                    else -> validateDestination(
+                        asset = asset,
+                        destination = DestinationAddress(resolvedAddress, record?.name),
+                    )
+                }
             }
         }
     }.mutableStateIn(viewModelScope, RecipientError.None)
@@ -176,18 +180,21 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        val validation = validateDestination(type.assetInfo.asset, destination)
-        if (validation != RecipientError.None) {
-            if (!resolveName.canResolveName(destination.address)) {
-                addressError.update { validation }
+        val asset = type.assetInfo.asset
+        destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
+            val validation = validateDestination(asset, destination)
+            if (validation != RecipientError.None) {
+                if (!resolveName.canResolveName(destination.address)) {
+                    addressError.update { validation }
+                }
+                return
             }
-            return
-        }
-        when (type) {
-            is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
-            is RecipientType.Asset -> amountAction(
-                AmountParams.Transfer(type.assetInfo.id(), destination, memo.value)
-            )
+            when (type) {
+                is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
+                is RecipientType.Asset -> amountAction(
+                    AmountParams.Transfer(type.assetInfo.id(), destination, memo.value)
+                )
+            }
         }
     }
 
@@ -207,9 +214,9 @@ class RecipientViewModel @Inject constructor(
         } catch (_: Throwable) {
             null
         }
-        val address = paymentWrapper.address
-        val memo = paymentWrapper.memo
         val assetInfo = type.assetInfo
+        val address = assetInfo.asset.chain.checksumAddress(paymentWrapper.address)
+        val memo = paymentWrapper.memo
 
         val owner = assetInfo.owner
         if (

@@ -94,6 +94,7 @@ sol! {
         );
 
         function getCurrentTime() public view virtual returns (uint256);
+        function fillStatuses(bytes32 relayHash) external view returns (uint8);
 
         function depositV3(
             address depositor,

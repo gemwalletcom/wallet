@@ -209,6 +209,16 @@ mod tests {
     }
 
     #[test]
+    fn test_in_transit_swap_update_keeps_pending_swap_in_transit_without_metadata() {
+        let swap_update = TransactionUpdate::new_state(TransactionState::Pending);
+
+        let update = in_transit_swap_update(swap_update);
+
+        assert_eq!(update.state, TransactionState::InTransit);
+        assert!(update.changes.is_empty());
+    }
+
+    #[test]
     fn test_cross_chain_swap_state_maps_non_terminal_to_in_transit() {
         assert_eq!(cross_chain_swap_state(TransactionState::Pending), TransactionState::InTransit);
         assert_eq!(cross_chain_swap_state(TransactionState::InTransit), TransactionState::InTransit);

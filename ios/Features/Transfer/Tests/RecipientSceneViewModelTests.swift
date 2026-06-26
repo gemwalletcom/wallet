@@ -72,12 +72,34 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
+    func onContinueUsesChecksumAddress() {
+        let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
+        let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
+        var recipientData: RecipientData?
+        let model = RecipientSceneViewModel.mock(onRecipientDataAction: { recipientData = $0 })
+
+        model.addressInputModel.text = " \n\(address)\r "
+        model.onContinue()
+
+        #expect(recipientData?.recipient.address == checksummed)
+
+        recipientData = nil
+        model.addressInputModel.text = "test.eth"
+        model.addressInputModel.nameRecordViewModel.state = .complete(.mock(address: address))
+        model.onContinue()
+
+        #expect(recipientData?.recipient.address == checksummed)
+    }
+
+    @Test
     func getRecipientScanResult_transferData() throws {
         let asset = Asset.mockEthereum()
         let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
+        let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
+        let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
 
         let payment = PaymentScanResult(
-            address: "0x1234567890123456789012345678901234567890",
+            address: " \n\(address)\r ",
             amount: "1",
             memo: nil,
         )
@@ -87,7 +109,7 @@ struct RecipientSceneViewModelTests {
 
             switch result {
             case let .transferData(data):
-                #expect(data.recipientData.recipient.address == payment.address)
+                #expect(data.recipientData.recipient.address == checksummed)
                 #expect(data.canChangeValue == false)
             case .recipient:
                 Issue.record("Expected transferData but got recipient")

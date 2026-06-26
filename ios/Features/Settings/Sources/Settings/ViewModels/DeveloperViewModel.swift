@@ -84,7 +84,8 @@ public final class DeveloperViewModel {
 
     func clearPendingTransactions() {
         performAction {
-            let transactionIds = try transactionsService.transactionStore.getTransactions(state: .pending).map(\.id.identifier)
+            let states = [TransactionState.pending, TransactionState.inTransit]
+            let transactionIds = try transactionsService.transactionStore.getTransactions(states: states).map(\.id.identifier)
             _ = try transactionsService.transactionStore.deleteTransactionId(ids: transactionIds)
         }
     }

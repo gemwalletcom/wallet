@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
-import com.reown.walletkit.client.Wallet
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject
@@ -11,7 +11,7 @@ class WalletConnectOriginVerifier @Inject constructor() {
 
     fun verify(
         metadataUrl: String?,
-        verifyContext: Wallet.Model.VerifyContext,
+        verifyContext: WalletConnectVerifyContext,
     ): OriginVerification {
         val status = walletConnect.validateOrigin(
             metadataUrl = metadataUrl ?: "",

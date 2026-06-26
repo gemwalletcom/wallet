@@ -5,8 +5,6 @@ use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::ChainState;
 
-#[cfg(feature = "rpc")]
-use crate::provider::state_mapper;
 use crate::rpc::client::EthereumClient;
 use gem_client::Client;
 #[cfg(feature = "rpc")]
@@ -21,9 +19,8 @@ impl<C: Client + Clone> ChainState for EthereumClient<C> {
     }
 
     async fn get_node_status(&self) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
-        let sync_status = self.get_sync_status().await?;
         let latest_block = self.get_block_latest_number().await?;
-        state_mapper::map_node_status(&sync_status, latest_block)
+        Ok(NodeSyncStatus::synced(latest_block))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {

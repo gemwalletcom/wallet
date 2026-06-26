@@ -25,7 +25,7 @@ class SearchTokenTest {
         coEvery { searchCustomToken(any()) } returns true
         coEvery { observeToken(any()) } returns flowOf(token)
 
-        val result = searchToken(searchCustomToken, observeToken, Chain.Ethereum, "0x123")
+        val result = searchToken(searchCustomToken, observeToken, AssetId(Chain.Ethereum, "0x123"))
 
         assertEquals(TokenSearchState.Idle, result)
     }
@@ -35,7 +35,7 @@ class SearchTokenTest {
         coEvery { searchCustomToken(any()) } returns true
         coEvery { observeToken(any()) } returns flowOf(null)
 
-        val result = searchToken(searchCustomToken, observeToken, Chain.Ethereum, "0x123")
+        val result = searchToken(searchCustomToken, observeToken, AssetId(Chain.Ethereum, "0x123"))
 
         assertEquals(TokenSearchState.Error, result)
     }
@@ -44,7 +44,7 @@ class SearchTokenTest {
     fun `search throws exception returns Error`() = runTest {
         coEvery { searchCustomToken(any()) } throws RuntimeException("Network error")
 
-        val result = searchToken(searchCustomToken, observeToken, Chain.Ethereum, "0x123")
+        val result = searchToken(searchCustomToken, observeToken, AssetId(Chain.Ethereum, "0x123"))
 
         assertEquals(TokenSearchState.Error, result)
     }

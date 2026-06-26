@@ -67,7 +67,10 @@ impl SupportClient {
         };
 
         self.publish_event(device, StreamEvent::Support(SupportStreamEvent::Typing(typing))).await?;
-        Ok(SupportWebhookResult { notifications: 0, stream_events: 1 })
+        Ok(SupportWebhookResult {
+            notifications: 0,
+            stream_events: 1,
+        })
     }
 
     fn build_notification(device: &Device, payload: &ChatwootWebhookPayload) -> Option<GorushNotification> {

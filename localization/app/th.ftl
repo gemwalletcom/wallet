@@ -3,14 +3,12 @@
 common_cancel = ยกเลิก
 common_done = เสร็จแล้ว
 common_secret_phrase = วลีลับ
-common_next = ถัดไป
 common_copy = คัดลอก
 common_share = แบ่งปัน
 common_continue = ดำเนินการต่อ
 common_provider = ผู้ให้บริการ
 common_loading = กำลังโหลด
 common_address = ที่อยู่
-common_back = กลับ
 common_try_again = ลองอีกครั้ง
 common_paste = วาง
 common_delete = ลบ
@@ -26,7 +24,6 @@ common_phrase = วลี
 common_manage = จัดการ
 common_type = ประเภท
 common_no_results_found = ไม่พบผลลัพธ์
-common_yes = ใช่
 common_no = ไม่
 common_none = ไม่มี
 common_url = URL
@@ -40,19 +37,15 @@ common_unpin = เลิกปักหมุด
 common_skip = ข้าม
 common_warning = คำเตือน
 common_learn_more = เรียนรู้เพิ่มเติม
-common_short_name = Gem
 common_description = คำอธิบาย
 common_emoji = อิโมจิ
-common_style = สไตล์
 common_avatar = อวตาร
-common_photo = รูปถ่าย
 common_save = บันทึก
-common_edit = แก้ไข
 common_percentage = เปอร์เซ็นต์
 common_details = รายละเอียด
 common_info = ข้อมูล
 common_get_started = เริ่มต้นใช้งาน
-common_earn = รับ
+common_earn = รับผลตอบแทน
 common_method = วิธี
 common_token = โทเค็น
 common_suspicious_address = ที่อยู่น่าสงสัย
@@ -63,7 +56,7 @@ common_required_field = จำเป็นต้องระบุ %@
 
 # Welcome
 
-welcome_title = ยินดีต้อนรับสู่ครอบครัวอัญมณี
+welcome_title = ยินดีต้อนรับสู่ Gem Family
 
 # Wallet
 
@@ -86,7 +79,7 @@ wallet_default_name = กระเป๋าเงิน #%d
 wallet_default_name_chain = %@ กระเป๋าเงิน #%d
 wallet_copy_address = คัดลอกที่อยู่
 wallet_watch_tooltip_title = คุณกำลังดูกระเป๋าสตางค์นี้
-wallet_stake = เดิมพัน
+wallet_stake = สเตค
 wallet_receive_no_memo_required = ไม่จำเป็นต้องมีบันทึกช่วยจำ
 wallet_receive_no_destination_tag_required = ไม่ต้องใช้แท็กปลายทาง
 wallet_title = กระเป๋าเงิน
@@ -99,18 +92,18 @@ wallet_import_address_warning = คุณสามารถดูยอดคง
 wallet_deposit = เงินฝาก
 wallet_withdraw = ถอน
 wallet_available_balance = พร้อมใช้งาน: %@
-wallet_portfolio_title = ผลงาน
+wallet_portfolio_title = พอร์ตโฟลิโอ
 wallet_import_already_imported_message = กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว
 
 # Wallets
 
 wallets_title = กระเป๋าสตางค์
-wallets_watch = ชม
+wallets_watch = ติดตาม
 
 # Receive
 
 receive_title = รับ %@
-receive_warning = นี่คือที่อยู่ของคุณ — ส่งเฉพาะที่อยู่นี้เท่านั้น %@ บน %@ เครือข่าย
+receive_warning = นี่คือที่อยู่ของคุณ — ส่งเฉพาะ %@ บนเครือข่าย %@ เท่านั้น
 
 # Buy
 
@@ -136,9 +129,9 @@ transfer_send_title = ส่ง
 transfer_insufficient_balance = ยอดคงเหลือ %@ ไม่เพียงพอ
 transfer_insufficient_network_fee_balance = ยอดคงเหลือ %@ ไม่เพียงพอที่จะครอบคลุมค่าธรรมเนียมเครือข่าย
 transfer_approve_title = อนุมัติ
-transfer_stake_title = เสาหลัก
+transfer_stake_title = สเตค
 transfer_claim_rewards_title = รับรางวัล
-transfer_unstake_title = ถอนเดิมพัน
+transfer_unstake_title = เลิกสเตค
 transfer_redelegate_title = มอบหมายใหม่
 transfer_withdraw_title = ถอน
 transfer_rewards_title = รางวัล
@@ -151,9 +144,8 @@ transfer_smart_contract_title = สัญญาอัจฉริยะ
 transfer_other_title = อื่นๆ
 transfer_maximum_amount = จำนวนเงินสูงสุดคือ %@
 transfer_reserved_fees = เราได้เหลือ %@ ไว้ในยอดคงเหลือของคุณเพื่อครอบคลุมค่าธรรมเนียมเครือข่ายในอนาคต
-transfer_freeze_title = แช่แข็ง
-transfer_unfreeze_title = ละลายน้ำแข็ง
-transfer_sign_transaction_title = ลงนามในธุรกรรม
+transfer_freeze_title = ฟรีซ
+transfer_unfreeze_title = ยกเลิกการฟรีซ
 transfer_review_request = คำขอตรวจสอบ
 transfer_amount = จำนวน
 transfer_amount_title = จำนวน
@@ -171,7 +163,6 @@ settings_networks_title = เครือข่าย
 settings_networks_source = แหล่งที่มา
 settings_networks_explorer = นักสำรวจ
 settings_currency = สกุลเงิน
-settings_rate_app = ให้คะแนนแอป
 settings_website = เยี่ยมชมเว็บไซต์
 settings_security = ความปลอดภัย
 settings_enable_value = เปิดใช้งาน %@
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = ขณะนี้เราไม่สา�
 errors_invalid_asset_address = ที่อยู่ %@ ไม่ถูกต้อง
 errors_dust_threshold = ธุรกรรมล้มเหลวเนื่องจากจำนวนเงินน้อยเกินไปที่จะตรงตามข้อกำหนดขั้นต่ำของเครือข่าย %@ (เกณฑ์ค่าฝุ่น) ขีดจำกัดนี้ช่วยให้มั่นใจว่ามูลค่าธุรกรรมครอบคลุมค่าธรรมเนียมและต้นทุนการประมวลผล เพิ่มจำนวนเงินหรือลดค่าธรรมเนียมเพื่อดำเนินการต่อ
 errors_swap_no_quote_available = ไม่มีราคาเสนอให้ใช้งาน
-errors_swap_not_supported_chain = ไม่รองรับห่วงโซ่
-errors_swap_not_supported_asset = สินทรัพย์ที่ไม่สนับสนุน
-errors_swap_not_supported_pair = ไม่รองรับคู่
+errors_swap_not_supported_asset = ไม่รองรับสินทรัพย์นี้
 errors_connections_invalid_send_parameters = มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการส่งธุรกรรม
 errors_connections_invalid_sign_parameters = มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการลงนาม
 errors_connections_no_supported_wallets = ไม่มีกระเป๋าเงินที่รองรับ
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = กิจกรรมที่น่�
 errors_connections_malicious_origin = การเชื่อมต่อนี้มาจากแหล่งที่ไม่น่าเชื่อถือ
 errors_no_data_available = ไม่มีข้อมูล
 errors_dust_threshold_short = เครือข่ายถือว่าจำนวนนี้เป็นแค่ฝุ่น เพราะค่าธรรมเนียมนั้นสูงกว่าจำนวนที่แท้จริง
-errors_swap_minimum_amount = จำนวนเงินขั้นต่ำในการซื้อขายคือ %@กรุณาป้อนจำนวนเงินที่สูงกว่านี้
+errors_swap_minimum_amount = จำนวนเงินขั้นต่ำในการซื้อขายคือ %@ กรุณาป้อนจำนวนเงินที่สูงกว่านี้
 errors_perpetual_trigger_price_lower = ราคา Trigger ควรต่ำกว่าราคาตลาด
 errors_perpetual_trigger_price_higher = ราคา Trigger ควรสูงกว่าราคาตลาด
 errors_token_unable_fetch_token_information = ไม่สามารถดึงข้อมูลโทเค็น: %@
@@ -279,7 +268,7 @@ transaction_status_failed = ล้มเหลว
 transaction_status_reverted = เปลี่ยนกลับแล้ว
 transaction_title_received = ได้รับแล้ว
 transaction_title_sent = ส่งแล้ว
-transaction_swap_again = สลับอีกครั้ง
+transaction_swap_again = แลกเปลี่ยนอีกครั้ง
 transaction_status_completed = เสร็จสิ้น
 transaction_status_inprogress = อยู่ระหว่างดำเนินการ
 transaction_status_refunded = ได้รับเงินคืน
@@ -291,7 +280,6 @@ asset_balances_available = มีจำหน่าย
 asset_price = ราคา
 asset_market_cap = มูลค่าตลาด
 asset_trading_volume = ปริมาณการซื้อขาย (24 ชม.)
-asset_market_cap_rank = อันดับมูลค่าตลาด
 asset_total_supply = อุปทานทั้งหมด
 asset_circulating_supply = อุปทานหมุนเวียน
 asset_balances_reserved = ที่สงวนไว้
@@ -343,11 +331,9 @@ wallet_connect_connection_title = การเชื่อมต่อ
 wallet_connect_disconnect = ตัดการเชื่อมต่อ
 wallet_connect_connect_title = เชื่อมต่อ
 wallet_connect_app = แอพ
-wallet_connect_website = เว็บไซต์
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = ไม่มีการเชื่อมต่อที่ใช้งานอยู่
 wallet_connect_state_empty_description = สแกนหรือวางรหัสเพื่อเชื่อมต่อกับ DApp
-wallet_connect_domain = โดเมน
 wallet_connect_permissions_title = สิทธิ์การเข้าถึง
 wallet_connect_permissions_view_balance = ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ
 wallet_connect_permissions_approval_requests = ส่งคำขออนุมัติ
@@ -357,7 +343,7 @@ wallet_connect_permissions_approval_requests = ส่งคำขออนุม
 swap_you_pay = คุณจ่าย
 swap_you_receive = คุณได้รับ
 swap_price_impact = ผลกระทบต่อราคา
-swap_slippage = การเลื่อนหลุด
+swap_slippage = สลิปเพจ
 swap_price_impact_warning_description = คุณจะสูญเสีย %@ จาก %@ ของคุณในการซื้อขายครั้งนี้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?
 swap_price_impact_warning_title = ผลกระทบต่อราคาสูง
 swap_estimated_time_title = เวลาโดยประมาณ
@@ -369,7 +355,7 @@ swap_use_minimum_amount = ใช้ในปริมาณน้อยที่
 stake_active = ใช้งานอยู่
 stake_pending = รอดำเนินการ
 stake_rewards = รางวัล
-stake_validator = เครื่องมือตรวจสอบ
+stake_validator = ผู้ตรวจสอบ
 stake_validators = ผู้ตรวจสอบความถูกต้อง
 stake_apr = APR %@
 stake_available_in = มีจำหน่ายใน
@@ -380,10 +366,8 @@ stake_deactivating = กำลังปิดการใช้งาน
 stake_awaiting_withdrawal = รอการถอนเงิน
 stake_active_in = ใช้งานอยู่
 stake_minimum_amount = จำนวนเงินขั้นต่ำ
-stake_viagem = เดิมพันผ่าน Gem Wallet
-stake_no_active_staking = ยังไม่มีการวางเดิมพันที่ใช้งานอยู่
-stake_state_empty_title = เงินเดิมพันของคุณจะปรากฏที่นี่
-stake_state_empty_description = วางเดิมพันครั้งแรกของคุณ %@
+stake_state_empty_title = การสเตคของคุณจะปรากฏที่นี่
+stake_state_empty_description = สเตคครั้งแรกของคุณ %@
 stake_resource = ทรัพยากร
 stake_resource_energy = พลังงาน
 stake_resource_bandwidth = แบนด์วิดท์
@@ -397,7 +381,7 @@ assets_select_asset = เลือกสินทรัพย์
 assets_popular = สินทรัพย์ยอดนิยม
 assets_tags_trending = กำลังเป็นที่นิยม
 assets_tags_gainers = กำไร
-assets_tags_losers = ผู้แพ้
+assets_tags_losers = ราคาลง
 assets_tags_new = ใหม่
 assets_tags_stablecoins = สเตเบิลคอยน์
 assets_state_empty_search_description = คุณสามารถลองเพิ่มมันด้วยตนเองได้
@@ -405,7 +389,6 @@ assets_title = สินทรัพย์
 
 # Sign Message
 
-sign_message_title = ลงนามข้อความ
 sign_message_message = ข้อความ
 sign_message_view_full_message = ดูข้อความฉบับเต็ม
 
@@ -421,7 +404,7 @@ secret_phrase_content_hidden_description = เนื้อหาที่ซ่�
 
 # Social
 
-social_x = X (formerly Twitter)
+social_x = X (เดิมคือ Twitter)
 social_discord = Discord
 social_reddit = Reddit
 social_telegram = Telegram
@@ -468,8 +451,8 @@ fee_rate_gwei = %@ gwei
 
 banner_account_activation_title = ค่าธรรมเนียมการเปิดใช้งานบัญชี
 banner_account_activation_description = เครือข่าย %@ ต้องเสียค่าธรรมเนียมครั้งเดียวจำนวน %@
-banner_stake_title = เริ่มเดิมพัน %@
-banner_stake_description = รับรางวัล %@ จากเงินเดิมพันของคุณในขณะที่คุณนอนหลับ
+banner_stake_title = เริ่มสเตค %@
+banner_stake_description = รับรางวัล %@ จากการสเตคของคุณในขณะที่คุณนอนหลับ
 banner_enable_notifications_title = เปิดใช้งานการแจ้งเตือน
 banner_enable_notifications_description = ติดตามกิจกรรมกระเป๋าเงินของคุณ
 banner_activate_asset_description = ในการใช้สินทรัพย์ %@ ก่อนอื่นคุณต้องเปิดใช้งานบนเครือข่าย %@ โดยปฏิบัติตามข้อกำหนดเฉพาะของเครือข่าย
@@ -482,20 +465,20 @@ banner_perpetuals_description = ฝาก ซื้อขาย และรั�
 
 # Filter
 
-filter_clear = ชัดเจน
+filter_clear = ล้าง
 filter_title = ตัวกรอง
 filter_types = ประเภท
-filter_has_balance = มีความสมดุล
+filter_has_balance = มียอดคงเหลือ
 
 # Price Alerts
 
 price_alerts_enabled_for = เปิดใช้งานการแจ้งเตือนราคาสำหรับ %@
 price_alerts_disabled_for = ปิดใช้งานการแจ้งเตือนราคาสำหรับ %@
 price_alerts_get_notified_explain_message = รับการแจ้งเตือนเมื่อมีการเปลี่ยนแปลงราคาที่สำคัญในสินทรัพย์ crypto ที่คุณชื่นชอบ
-price_alerts_direction_over = จบแล้ว
+price_alerts_direction_over = สูงกว่า
 price_alerts_direction_under = ภายใต้
-price_alerts_direction_increases_by = เพิ่มขึ้นด้วย
-price_alerts_direction_decreases_by = ลดลงด้วย
+price_alerts_direction_increases_by = เพิ่มขึ้น
+price_alerts_direction_decreases_by = ลดลง
 price_alerts_set_alert_price_over = เมื่อราคาเกินกำหนด
 price_alerts_set_alert_price_under = เมื่อราคาอยู่ต่ำกว่า
 price_alerts_set_alert_price_increases_by = เมื่อราคาเพิ่มขึ้นโดย
@@ -542,28 +525,26 @@ info_network_fee_description = ทุกธุรกรรมบนเครื�
 info_transaction_error_description = ไม่สามารถทำธุรกรรมให้เสร็จสมบูรณ์ได้เนื่องจากเกิดข้อผิดพลาด เช่น เงินไม่เพียงพอ ข้อมูลที่ป้อนไม่ถูกต้อง หรือเครือข่ายปฏิเสธ โปรดตรวจสอบรายละเอียดและลองอีกครั้ง
 info_transaction_pending_description = ธุรกรรมได้รับการส่งแล้วและกำลังรอการยืนยันบนเครือข่าย เวลาในการประมวลผลอาจแตกต่างกัน โปรดตรวจสอบอีกครั้งเพื่อดูการอัปเดต
 info_transaction_success_description = ธุรกรรมเสร็จสมบูรณ์และได้รับการยืนยันบนเครือข่ายแล้ว คุณสามารถตรวจสอบรายละเอียดเพื่อยืนยันสถานะได้
-info_lock_time_description = เวลาล็อคหรือที่เรียกว่าช่วงปลดพันธะหรือยกเลิกการแช่แข็งคือระยะเวลาที่ไม่สามารถเข้าถึงสินทรัพย์ที่วางเดิมพันได้หลังจากที่คุณตัดสินใจที่จะปลดเดิมพันออก
+info_lock_time_description = เวลาล็อคหรือที่เรียกว่าช่วงปลดพันธะหรือยกเลิกการแช่แข็งคือระยะเวลาที่ไม่สามารถเข้าถึงสินทรัพย์ที่สเตคไว้ได้หลังจากที่คุณตัดสินใจเลิกสเตค
 info_price_impact_description = ผลกระทบต่อราคาคือการเปลี่ยนแปลงของราคาโทเค็นที่เกิดจากขนาดการซื้อขายของคุณ ผลกระทบต่อราคาที่สูงขึ้นหมายความว่าคุณได้รับโทเค็นน้อยลงเนื่องจากสภาพคล่องต่ำหรือขนาดคำสั่งซื้อที่ใหญ่
 info_slippage_description = ความสลิปเพจหมายถึงความแตกต่างระหว่างราคาที่คาดหวังของการซื้อขายและราคาจริงที่ดำเนินการ
 info_asset_status_unverified_description = โทเค็นที่ไม่ได้รับการตรวจสอบนั้นไม่ได้รับการตรวจสอบอย่างเพียงพอโดยบริการบุคคลที่สามที่เชื่อถือได้ โทเค็นเหล่านี้อาจปรากฏในกระเป๋าเงินของคุณเนื่องจากการส่งทางอากาศ การโอน หรือการนำเข้าด้วยตนเอง
 info_asset_status_suspicious_description = โทเค็นที่น่าสงสัยหรือเป็นสแปมจะถูกระบุว่าเป็นการหลอกลวงหรือทรัพย์สินที่เป็นอันตราย โทเค็นเหล่านี้อาจปรากฏในกระเป๋าเงินของคุณเนื่องจากการส่งทางอากาศ การโอน หรือการนำเข้าด้วยตนเอง
 info_insufficient_network_fee_balance_title = %@ จำเป็น
-info_insufficient_network_fee_balance_description = ธุรกรรมนี้ต้องการ %@ เพื่อชดเชยค่าธรรมเนียมเครือข่ายที่จ่ายไป %@ ไม่ใช่คนงานเหมือง Gem Walletตรวจสอบให้แน่ใจว่าคุณมีเพียงพอ %@.
+info_insufficient_network_fee_balance_description = ธุรกรรมนี้ต้องการ %@ เพื่อครอบคลุมค่าธรรมเนียมเครือข่ายที่จ่ายให้นักขุดของ %@ ไม่ใช่ Gem Wallet โปรดตรวจสอบว่าคุณมี %@ เพียงพอ
 info_insufficient_balance_title = ยอดเงินคงเหลือไม่เพียงพอ
 info_insufficient_balance_description = คุณมี %@ ไม่เพียงพอสำหรับการทำธุรกรรมนี้ โปรดเติมเงิน รับ หรือแลกเปลี่ยนในกระเป๋าสตางค์ของคุณแล้วลองอีกครั้ง
 info_account_minimum_balance_title = ยอดคงเหลือขั้นต่ำ
 info_perpetual_funding_payments_title = การชำระเงินเงินทุน
-info_perpetual_funding_payments_description = การจ่ายเงินเป็นงวด ๆ ระหว่างเทรดเดอร์เพื่อรักษาราคาสัญญาถาวรให้ใกล้กับราคาสปอตของสินทรัพย์อ้างอิง การระดมทุนที่เป็นบวกหมายถึงตำแหน่งที่ซื้อจะจ่ายตำแหน่งที่ซื้อ ในขณะที่การที่เงินทุนที่ติดลบหมายถึงตำแหน่งที่ซื้อจะจ่ายที่ตำแหน่งที่ซื้อ
-info_perpetual_funding_rate_title = เงินทุน
-info_perpetual_funding_rate_description = อัตราการระดมทุนจะกำหนดต้นทุนในการดำรงตำแหน่งถาวร มีการคำนวณรายชั่วโมงและช่วยรักษาสมดุลของราคาระหว่างสัญญาระยะยาวกับราคาสปอตของสินทรัพย์อ้างอิง
+info_perpetual_funding_payments_description = การจ่ายเงินเป็นงวด ๆ ระหว่างเทรดเดอร์เพื่อรักษาราคาสัญญาถาวรให้ใกล้กับราคาสปอตของสินทรัพย์อ้างอิง funding ที่เป็นบวกหมายถึงตำแหน่ง Long จ่ายให้ตำแหน่ง Short ในขณะที่ funding ติดลบหมายถึงตำแหน่ง Short จ่ายให้ตำแหน่ง Long
 info_perpetual_liquidation_price_title = ราคาการชำระบัญชี
 info_perpetual_liquidation_price_description = ราคาการชำระบัญชีคือระดับราคาที่สถานะของคุณจะถูกปิดโดยอัตโนมัติเพื่อป้องกันการสูญเสียเพิ่มเติม เมื่อราคาตลาดถึงระดับนี้ ตำแหน่งของคุณจะถูกชำระบัญชีและคุณจะสูญเสียหลักประกัน
-info_perpetual_open_interest_title = เปิดดอกเบี้ย
+info_perpetual_open_interest_title = Open Interest
 info_perpetual_open_interest_description = ดอกเบี้ยคงเหลือแสดงถึงมูลค่ารวมของสัญญาระยะยาวคงค้างทั้งหมดที่ยังไม่ได้ชำระ ให้ข้อมูลเชิงลึกเกี่ยวกับกิจกรรมทางการตลาดและสภาพคล่อง
 info_no_quote_description = ไม่สามารถส่งคืนใบเสนอราคาสำหรับคู่โทเค็นที่เลือกได้ อาจเป็นเพราะจำนวนเงินน้อย ขาดสภาพคล่อง หรือข้อจำกัดทางเทคนิค
 info_stake_reserved_title = สงวนไว้สำหรับค่าธรรมเนียมเครือข่าย
-info_stake_reserved_description = เงินจำนวนเล็กน้อยจะอยู่ในกระเป๋าเงินของคุณเพื่อชำระค่าธรรมเนียมการดำเนินการ เช่น การยกเลิกการเดิมพันหรือการรับรางวัล
-info_stake_apr_description = อัตราเปอร์เซ็นต์ต่อปี (APR) คืออัตราผลตอบแทนรายปีสำหรับการเดิมพันสกุลเงินดิจิทัลของคุณ
+info_stake_reserved_description = เงินจำนวนเล็กน้อยจะอยู่ในกระเป๋าเงินของคุณเพื่อชำระค่าธรรมเนียมการดำเนินการ เช่น การเลิกสเตคหรือการรับรางวัล
+info_stake_apr_description = อัตราเปอร์เซ็นต์ต่อปี (APR) คืออัตราผลตอบแทนรายปีสำหรับการสเตคสกุลเงินดิจิทัลของคุณ
 info_perpetual_auto_close_description = ปิดสถานะของคุณโดยอัตโนมัติเมื่อถึงระดับราคาที่กำหนด Take Profit ล็อกกำไร Stop Loss จำกัดการขาดทุน
 info_fully_diluted_valuation_title = การประเมินมูลค่าแบบเจือจางเต็มที่
 info_fully_diluted_valuation_description = มูลค่าตลาดตามทฤษฎีหากเหรียญทั้งหมดหมุนเวียนอยู่ในระบบ คำนวณจากราคาคูณด้วยจำนวนเหรียญสูงสุดที่มีอยู่
@@ -571,7 +552,7 @@ info_circulating_supply_description = จำนวนเหรียญที่
 info_total_supply_description = จำนวนเหรียญทั้งหมดที่มีอยู่ รวมทั้งเหรียญที่ถูกล็อกหรือสงวนไว้
 info_max_supply_title = แม็กซ์ซัพพลาย
 info_max_supply_description = จำนวนเหรียญสูงสุดที่จะมีอยู่ตลอดไป
-info_perpetual_funding_apr_title = เมษายนการระดมทุน
+info_perpetual_funding_apr_title = Funding APR
 info_perpetual_funding_apr_description = อัตรารายปีที่สัญญา Long จ่าย Short (หากติดลบ Short จะจ่าย Long) ไม่มีค่าธรรมเนียมที่เกี่ยวข้องกับการระดมทุน ซึ่งเป็นการโอนแบบเพียร์ทูเพียร์ระหว่างผู้ใช้เพื่อดันราคาไปสู่ราคาสปอต
 info_minimum_amount_title = จำนวนเงินขั้นต่ำ
 info_minimum_amount_description = บนเครือข่าย %@ จำนวนขั้นต่ำสำหรับธุรกรรมนี้คือ %@
@@ -633,7 +614,6 @@ onboarding_accept_terms_continue = เห็นด้วยและดำเน
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -645,14 +625,13 @@ perpetual_close_position = ตำแหน่งปิด
 perpetual_pnl = PnL
 perpetual_long = ยาว
 perpetual_short = สั้น
-perpetual_entry_price = ราคาเข้าชม
+perpetual_entry_price = ราคาเข้า
 perpetual_modify = แก้ไข
 perpetual_reduce_position = ลดตำแหน่ง
 perpetual_increase_position = เพิ่มตำแหน่ง
 perpetual_open_direction = เปิด %@
 perpetual_close_direction = ปิด %@
 perpetual_leverage = อัตราทดทางการเงิน
-perpetual_direction = ทิศทาง
 perpetual_auto_close = ปิดอัตโนมัติ
 perpetual_auto_close_take_profit = รับผลกำไร
 perpetual_market_price = ราคาตลาด
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = เนื้อหาที่คุ�
 
 notifications_inapp_state_empty_title = ยังไม่มีการแจ้งเตือนใดๆ
 notifications_inapp_state_empty_description = คุณจะเห็นการอัปเดตเกี่ยวกับการแจ้งเตือนของคุณได้ที่นี่
-notifications_inapp_rewards_invite_subtitle = ชวนเพื่อนมารับรางวัลด้วยกัน
 
 # Earn
 
@@ -739,8 +717,8 @@ contacts_add_to_contacts = เพิ่มลงในรายชื่อต�
 # Simulation
 
 simulation_header_unlimited_asset = ไม่จำกัด %@
-simulation_warning_unlimited_token_approval_description = これにより ผู้ใช้สามารถใช้โทเค็นนี้ได้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ
-simulation_warning_externally_owned_spender_description = การอนุมัตินี้ทำให้ที่อยู่วอลเล็ตทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้
+simulation_warning_unlimited_token_approval_description = สิ่งนี้ให้สิทธิ์ผู้ใช้จ่าย (spender) ในการใช้โทเค็นนี้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ
+simulation_warning_externally_owned_spender_description = การอนุมัตินี้ทำให้ที่อยู่กระเป๋าเงินทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้
 simulation_warning_nft_collection_approval_title = ขอสิทธิ์เข้าถึงคอลเลกชัน NFT ทั้งหมด
 simulation_warning_unlimited_token_approval_title = อนุมัติโทเค็นได้ไม่จำกัดจำนวน
 

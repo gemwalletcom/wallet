@@ -460,10 +460,11 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private func processConfirmation(transactionData: TransactionData, amount: TransferAmount) async {
+        guard let data = state.value?.data else { return }
         confirmingState = .loading
         do {
             let input = TransferConfirmationInput(
-                data: state.value!.data,
+                data: data,
                 wallet: wallet,
                 transactionData: transactionData,
                 amount: amount,

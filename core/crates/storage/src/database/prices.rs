@@ -13,6 +13,7 @@ diesel::define_sql_function! {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AssetsWithPricesFilter {
+    Ids(Vec<String>),
     UpdatedSince(NaiveDateTime),
 }
 

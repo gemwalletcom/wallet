@@ -17,17 +17,9 @@ public struct AssetRequestOptional: DatabaseQueryable {
     }
 
     public func fetch(_ db: Database) throws -> AssetData? {
-        try AssetRecord
-            .including(optional: AssetRecord.price)
-            .including(optional: AssetRecord.balance)
-            .including(optional: AssetRecord.account)
-            .including(all: AssetRecord.priceAlerts)
-            .joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
-            .joining(optional: AssetRecord.account.filter(AccountRecord.Columns.walletId == walletId.id))
-            .filter(AssetRecord.Columns.id == assetId?.identifier)
-            .asRequest(of: AssetRecordInfo.self)
-            .fetchOne(db)
-            .map(\.assetData)
+        try AssetRecord.assetInfoRequest(walletId: walletId, assetId: assetId)
+            .fetchOne(db)?
+            .assetData
     }
 }
 

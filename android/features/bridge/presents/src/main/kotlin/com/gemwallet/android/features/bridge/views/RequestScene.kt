@@ -15,6 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.RequestSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCRequestViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
@@ -37,12 +39,11 @@ import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.reown.walletkit.client.Wallet
 
 @Composable
 fun RequestScene(
-    request: Wallet.Model.SessionRequest,
-    verifyContext: Wallet.Model.VerifyContext,
+    request: WalletConnectSessionRequest,
+    verifyContext: WalletConnectVerifyContext,
     onBuy: AssetIdAction,
     onCancel: () -> Unit,
 ) {

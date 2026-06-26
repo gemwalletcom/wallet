@@ -134,7 +134,9 @@ extension NavigationHandler {
     }
 
     private func navigateToAsset(_ assetId: AssetId) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        guard let asset = try await preparedAssetForNavigation(assetId: assetId, wallet: walletService.currentWallet) else {
+            return
+        }
         navigationState.openAsset(asset)
     }
 
@@ -167,11 +169,19 @@ extension NavigationHandler {
     }
 
     private func assetForWalletNavigation(walletId: WalletId, assetId: AssetId) async throws -> Asset? {
-        guard let _ = try? walletService.getWallet(walletId: walletId) else {
+        guard let wallet = try? walletService.getWallet(walletId: walletId) else {
             return nil
         }
+        return try await preparedAssetForNavigation(assetId: assetId, wallet: wallet)
+    }
 
-        return try await assetsService.getOrFetchAsset(for: assetId)
+    private func preparedAssetForNavigation(assetId: AssetId, wallet: Wallet?) async throws -> Asset? {
+        guard let wallet, wallet.accounts.contains(where: { $0.chain == assetId.chain }) else {
+            return nil
+        }
+        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        try assetsService.addBalancesIfMissing(walletId: wallet.id, assetIds: [asset.id])
+        return asset
     }
 
     private func selectWalletIfNeeded(_ walletId: WalletId) async {

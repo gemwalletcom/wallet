@@ -39,10 +39,10 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    public func getTransactions(state: TransactionState) throws -> [Transaction] {
+    public func getTransactions(states: [TransactionState]) throws -> [Transaction] {
         try db.read { db in
             try TransactionRecord
-                .filter(TransactionRecord.Columns.state == state.rawValue)
+                .filter(states.map(\.rawValue).contains(TransactionRecord.Columns.state) )
                 .fetchAll(db)
                 .compactMap { $0.mapToTransaction() }
         }

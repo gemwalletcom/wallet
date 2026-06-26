@@ -4,7 +4,7 @@ use std::error::Error;
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::ChainTransactionState;
-use primitives::{TransactionStateRequest, TransactionUpdate};
+use primitives::{TransactionState, TransactionStateRequest, TransactionUpdate};
 
 use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::EthereumClient};
 use gem_client::Client;
@@ -13,7 +13,9 @@ use gem_client::Client;
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionState for EthereumClient<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
-        let receipt = self.get_transaction_receipt(&request.id).await?;
+        let Some(receipt) = self.get_transaction_receipt(&request.id).await? else {
+            return Ok(TransactionUpdate::new_state(TransactionState::Pending));
+        };
         Ok(map_transaction_status(&receipt))
     }
 }

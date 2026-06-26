@@ -79,7 +79,7 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             startDestination.value = getStartDestination()
         }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             handleAppVersion()
             rateAs()
             sessionRepository.session().collectLatest {

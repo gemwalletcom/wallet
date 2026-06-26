@@ -33,28 +33,12 @@ impl TransakClient {
         }
     }
 
-    pub async fn get_buy_quote(
-        &self,
-        symbol: String,
-        fiat_currency: String,
-        fiat_amount: f64,
-        network: String,
-        ip_address: String,
-    ) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
-        self.get_quote("buy", symbol, fiat_currency, Some(fiat_amount), None, network, ip_address).await
+    pub async fn get_buy_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64, network: String) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
+        self.get_quote("buy", symbol, fiat_currency, Some(fiat_amount), None, network).await
     }
 
-    pub async fn get_sell_quote(
-        &self,
-        symbol: String,
-        fiat_currency: String,
-        fiat_amount: f64,
-        network: String,
-        ip_address: String,
-    ) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
-        let buy_quote = self
-            .get_buy_quote(symbol.clone(), fiat_currency.clone(), fiat_amount, network.clone(), ip_address.clone())
-            .await?;
+    pub async fn get_sell_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64, network: String) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
+        let buy_quote = self.get_buy_quote(symbol.clone(), fiat_currency.clone(), fiat_amount, network.clone()).await?;
 
         let sell_quote = self
             .get_quote(
@@ -64,13 +48,11 @@ impl TransakClient {
                 None,
                 Some(&buy_quote.crypto_amount.to_string()),
                 network.clone(),
-                ip_address.clone(),
             )
             .await?;
 
         let crypto_amount = sell_quote.sell_crypto_amount(fiat_amount);
-        self.get_quote("sell", symbol, fiat_currency, None, Some(&crypto_amount.to_string()), network, ip_address)
-            .await
+        self.get_quote("sell", symbol, fiat_currency, None, Some(&crypto_amount.to_string()), network).await
     }
 
     pub async fn get_quote(
@@ -81,12 +63,10 @@ impl TransakClient {
         fiat_amount: Option<f64>,
         crypto_amount: Option<&str>,
         network: String,
-        country_code: String,
     ) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
         let url = format!("{TRANSAK_API_URL}/api/v1/pricing/public/quotes");
         let mut query = vec![
             ("isBuyOrSell", quote_type.to_string()),
-            ("quoteCountryCode", country_code.to_string()),
             ("fiatCurrency", fiat_currency.to_string()),
             ("cryptoCurrency", symbol.to_string()),
             ("network", network.to_string()),
@@ -99,10 +79,18 @@ impl TransakClient {
             query.push(("cryptoAmount", amount.to_string()));
         }
 
-        self.client.get(url).query(&query).send().await?.json::<TransakResponse<TransakQuote>>().await?.into()
+        self.client
+            .get(url)
+            .header("x-api-key", &self.api_key)
+            .query(&query)
+            .send()
+            .await?
+            .json::<TransakResponse<TransakQuote>>()
+            .await?
+            .into()
     }
 
-    pub async fn create_widget_url(&self, params: HashMap<String, Value>) -> Result<String, reqwest::Error> {
+    pub async fn create_widget_url(&self, params: HashMap<String, Value>, ip_address: &str) -> Result<String, reqwest::Error> {
         let access_token = self.get_access_token().await?;
         let url = format!("{TRANSAK_API_GATEWAY_URL}/api/v2/auth/session");
 
@@ -112,6 +100,8 @@ impl TransakClient {
             .client
             .post(&url)
             .header("access-token", &access_token)
+            .header("x-api-key", &self.api_key)
+            .header("x-user-ip", ip_address)
             .json(&request_body)
             .send()
             .await?
@@ -121,7 +111,7 @@ impl TransakClient {
         Ok(response.data.widget_url)
     }
 
-    pub async fn redirect_url(&self, quote: TransakQuote, address: String, quote_type: FiatQuoteType, fiat_amount: f64) -> Result<String, reqwest::Error> {
+    pub async fn redirect_url(&self, quote: TransakQuote, address: String, quote_type: FiatQuoteType, fiat_amount: f64, ip_address: &str) -> Result<String, reqwest::Error> {
         let mut params: HashMap<String, Value> = HashMap::new();
         params.insert("apiKey".to_string(), json!(self.api_key));
         params.insert("referrerDomain".to_string(), json!(self.referrer_domain));
@@ -142,7 +132,7 @@ impl TransakClient {
             }
         }
 
-        self.create_widget_url(params).await
+        self.create_widget_url(params, ip_address).await
     }
 
     pub async fn get_supported_assets(&self) -> Result<Response<Vec<Asset>>, reqwest::Error> {
@@ -182,7 +172,16 @@ impl TransakClient {
             "apiKey": self.api_key
         });
 
-        let response: Data<TokenResponse> = self.client.post(&url).header("api-secret", &self.api_secret).json(&body).send().await?.json().await?;
+        let response: Data<TokenResponse> = self
+            .client
+            .post(&url)
+            .header("x-api-key", &self.api_key)
+            .header("api-secret", &self.api_secret)
+            .json(&body)
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response.data.access_token)
     }

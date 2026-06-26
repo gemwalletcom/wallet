@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.operators.gemstone
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.wallet.core.primitives.Chain
 import junit.framework.TestCase.assertEquals
@@ -23,8 +24,9 @@ class ChecksumAddressTest {
         val bitcoinAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
 
         assertEquals(checksummed, Chain.Ethereum.checksumAddress(lowercase))
+        assertEquals(checksummed, Chain.Ethereum.checksumAddress(" \n$lowercase\r "))
         assertEquals(checksummed, Chain.SmartChain.checksumAddress(lowercase))
         assertEquals(checksummed, Chain.Ethereum.checksumAddress(checksummed))
-        assertEquals(bitcoinAddress, Chain.Bitcoin.checksumAddress(bitcoinAddress))
+        assertEquals(bitcoinAddress, Chain.Bitcoin.checksumAddress(" \n$bitcoinAddress\r "))
     }
 }

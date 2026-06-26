@@ -15,6 +15,7 @@ import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
@@ -35,6 +36,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -66,7 +68,6 @@ open class BaseAssetSelectViewModel(
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val noResultsQuery = MutableStateFlow<String?>(null)
     private val isSearching = MutableStateFlow(false)
 
     val availableChains = session
@@ -91,14 +92,10 @@ open class BaseAssetSelectViewModel(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val assets = combine(
+    private val assetsContent = combine(
         filters,
         search.items(filters),
-        noResultsQuery,
-    ) { filters, items, noResultsQuery ->
-        val query = filters?.query.orEmpty()
-        if (query.isNotEmpty() && noResultsQuery != null) return@combine emptyList()
-
+    ) { filters, items ->
         val chainFilter = filters?.chainFilter.orEmpty()
         val balanceFilter = filters?.hasBalance == true
         val wallet = session.value?.wallet
@@ -110,7 +107,10 @@ open class BaseAssetSelectViewModel(
             }
     }
     .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>())
+    .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+
+    private val assets = assetsContent
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>())
 
     val popular = assets.map { items ->
         items.filter {
@@ -144,10 +144,9 @@ open class BaseAssetSelectViewModel(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
-    val uiState = combine(assets, currentQuery, isSearching) { assets, query, isSearching ->
+    val uiState = combine(assetsContent, isSearching) { assets, isSearching ->
         when {
             assets.isNotEmpty() -> UIState.Idle
-            query.isEmpty() -> UIState.Idle
             isSearching -> UIState.Loading
             else -> UIState.Empty
         }
@@ -214,14 +213,12 @@ open class BaseAssetSelectViewModel(
         if (remoteSearch) {
             viewModelScope.launch(Dispatchers.IO) {
                 searchRequests.collectLatest { (query, tag, currency, chains) ->
-                    if (!isNetworkSearchEnabled()) {
-                        return@collectLatest
-                    }
                     isSearching.value = query.isNotEmpty()
                     try {
-                        delay(SEARCH_DEBOUNCE_MS)
-                        val ok = searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
-                        noResultsQuery.value = if (ok) null else query
+                        runCatchingCancellable {
+                            delay(SEARCH_DEBOUNCE_MS)
+                            searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
+                        }
                     } finally {
                         isSearching.value = false
                     }
@@ -247,8 +244,6 @@ open class BaseAssetSelectViewModel(
     open fun assetFilters(): Set<AssetFilter> = emptySet()
 
     open fun assetsSearchLimit(query: String, tag: AssetTag?): Int = NO_QUERY_LIMIT
-
-    protected open fun isNetworkSearchEnabled(): Boolean = true
 
     private data class SearchRequest(
         val query: String,

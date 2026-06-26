@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
-import com.gemwallet.android.blockchain.operators.gemstone.checksumAddress
 import com.gemwallet.android.cases.contacts.AddContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact
@@ -175,7 +174,7 @@ class ManageContactViewModel @Inject constructor(
 
         val address = contactAddress(
             chain = input.chain,
-            address = input.chain.checksumAddress(input.resolvedAddress),
+            address = input.resolvedAddress,
             memo = input.memo.ifBlank { null },
         )
 

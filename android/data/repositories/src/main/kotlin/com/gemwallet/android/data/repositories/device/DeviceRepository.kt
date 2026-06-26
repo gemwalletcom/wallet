@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.device
 
 import android.content.Context
-import android.net.http.HttpException
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -9,6 +8,7 @@ import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
+import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.RequestPushToken
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
@@ -57,7 +57,8 @@ class DeviceRepository(
     GetPushEnabled,
     GetPushToken,
     SetPushToken,
-    SyncSubscription
+    SyncSubscription,
+    IsDeviceRegistered
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
@@ -145,14 +146,12 @@ class DeviceRepository(
         return walletsRepository.getAll().firstOrNull() ?: emptyList()
     }
 
-    @Throws(HttpException::class)
-    private suspend fun isDeviceRegistered(): Boolean {
-        val local = context.dataStore.data.map { it[Key.DeviceRegistered] }.firstOrNull() == true
-        return local || gemDeviceApiClient.isDeviceRegistered()
+    override suspend fun isDeviceRegistered(): Boolean {
+        return context.dataStore.data.map { it[Key.DeviceRegistered] }.firstOrNull() == true
     }
 
     private suspend fun getOrCreateDevice(device: Device): Device {
-        if (isDeviceRegistered()) {
+        if (isDeviceRegistered() || gemDeviceApiClient.isDeviceRegistered()) {
             gemDeviceApiClient.getDevice()?.let { remoteDevice ->
                 setDeviceRegistered(true)
                 return remoteDevice

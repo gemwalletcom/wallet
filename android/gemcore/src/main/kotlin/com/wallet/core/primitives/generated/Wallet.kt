@@ -23,7 +23,6 @@ data class Wallet (
 	val index: Int,
 	val type: WalletType,
 	val accounts: List<Account>,
-	val order: Int,
 	val isPinned: Boolean,
 	val imageUrl: String? = null,
 	val source: WalletSource

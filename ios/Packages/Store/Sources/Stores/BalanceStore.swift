@@ -23,6 +23,17 @@ public struct BalanceStore: Sendable {
         }
     }
 
+    public func addBalance(
+        assetIds: [AssetId],
+        isEnabled: Bool,
+        for walletId: WalletId,
+    ) throws {
+        try addBalance(
+            assetIds.map { AddBalance(assetId: $0, isEnabled: isEnabled) },
+            for: walletId,
+        )
+    }
+
     public func updateBalances(
         _ balances: [UpdateBalance],
         for walletId: WalletId,

@@ -1,6 +1,9 @@
 pub mod address;
 pub mod models;
 
+#[cfg(any(feature = "rpc", feature = "signer"))]
+pub(crate) mod trc20;
+
 pub use address::validate_address;
 
 #[cfg(feature = "signer")]

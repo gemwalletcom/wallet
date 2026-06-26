@@ -3,14 +3,12 @@
 common_cancel = বাতিল করুন
 common_done = সম্পন্ন
 common_secret_phrase = গোপন বাক্যাংশ
-common_next = পরবর্তী
 common_copy = কপি
 common_share = শেয়ার করুন
 common_continue = চালিয়ে যান
 common_provider = প্রদানকারী
 common_loading = লোড হচ্ছে
 common_address = ঠিকানা
-common_back = ব্যাক
 common_try_again = আবার চেষ্টা করুন
 common_paste = পেস্ট করুন
 common_delete = মুছুন
@@ -24,9 +22,8 @@ common_all = সব
 common_not_available = উপলব্ধ নয়
 common_phrase = বাক্যাংশ
 common_manage = পরিচালনা করুন
-common_type = টাইপ
+common_type = ধরন
 common_no_results_found = কোন ফলাফল পাওয়া যায়নি
-common_yes = হ্যাঁ
 common_no = না
 common_none = কোনোটি নয়
 common_url = URL
@@ -40,14 +37,10 @@ common_unpin = আনপিন করুন
 common_skip = এড়িয়ে যান
 common_warning = সতর্কতা
 common_learn_more = আরও জানুন
-common_short_name = Gem
 common_description = বর্ণনা
 common_emoji = ইমোজি
-common_style = শৈলী
 common_avatar = অবতার
-common_photo = ছবি
 common_save = সংরক্ষণ করুন
-common_edit = সম্পাদনা করুন
 common_percentage = শতাংশ
 common_details = বিস্তারিত
 common_info = তথ্য
@@ -63,7 +56,7 @@ common_required_field = %@ প্রয়োজন
 
 # Welcome
 
-welcome_title = মণি পরিবার স্বাগতম
+welcome_title = Gem পরিবারে স্বাগতম
 
 # Wallet
 
@@ -86,9 +79,9 @@ wallet_default_name = ওয়ালেট #%d
 wallet_default_name_chain = %@ ওয়ালেট #%d
 wallet_copy_address = কপি ঠিকানা
 wallet_watch_tooltip_title = আপনি এই মানিব্যাগ দেখছেন.
-wallet_stake = বাজি
+wallet_stake = স্টেক
 wallet_receive_no_memo_required = কোন মেমো প্রয়োজন নেই
-wallet_receive_no_destination_tag_required = কোন গন্তব্য ট্যাগ প্রয়োজন
+wallet_receive_no_destination_tag_required = কোনো গন্তব্য ট্যাগ প্রয়োজন নেই
 wallet_title = ওয়ালেট
 wallet_add_token_title = টোকেন যোগ করুন
 wallet_sell = বিক্রয়
@@ -105,7 +98,7 @@ wallet_import_already_imported_message = এই ওয়ালেটটি ই�
 # Wallets
 
 wallets_title = ওয়ালেট
-wallets_watch = ঘড়ি
+wallets_watch = পর্যবেক্ষণ
 
 # Receive
 
@@ -117,15 +110,15 @@ receive_warning = এটি আপনার ঠিকানা — শুধু�
 buy_title = %@ কিনুন
 buy_providers_title = প্রদানকারী
 buy_rate = হার
-buy_no_results = কোন উদ্ধৃতি উপলব্ধ
+buy_no_results = কোনো উদ্ধৃতি উপলব্ধ নেই
 
 # Transfer
 
 transfer_network_fee = নেটওয়ার্ক ফি
 transfer_memo = মেমো
 transfer_confirm = নিশ্চিত করুন
-transfer_from = থেকে
-transfer_to = প্রতি
+transfer_from = প্রেরক
+transfer_to = প্রাপক
 transfer_max = সর্বোচ্চ
 transfer_network = নেটওয়ার্ক
 transfer_recipient_title = প্রাপক
@@ -136,10 +129,10 @@ transfer_send_title = পাঠান
 transfer_insufficient_balance = অপর্যাপ্ত %@ ব্যালেন্স।
 transfer_insufficient_network_fee_balance = নেটওয়ার্ক ফি কভার করার জন্য অপর্যাপ্ত %@ ব্যালেন্স।
 transfer_approve_title = অনুমোদন করুন
-transfer_stake_title = পণ
+transfer_stake_title = স্টেক
 transfer_claim_rewards_title = পুরস্কার দাবি করুন
 transfer_unstake_title = আনস্টেক
-transfer_redelegate_title = পুনরায় প্রতিনিধিত্ব করুন
+transfer_redelegate_title = পুনরায় ডেলিগেট করুন
 transfer_withdraw_title = প্রত্যাহার করুন
 transfer_rewards_title = পুরস্কার
 transfer_minimum_amount = ন্যূনতম পরিমাণ হল %@
@@ -151,9 +144,8 @@ transfer_smart_contract_title = স্মার্ট চুক্তি
 transfer_other_title = অন্যান্য
 transfer_maximum_amount = সর্বাধিক পরিমাণ হল %@
 transfer_reserved_fees = ভবিষ্যতের নেটওয়ার্ক ফি মেটানোর জন্য আমরা আপনার ব্যালেন্সে %@ রেখে দিয়েছি।
-transfer_freeze_title = জমে যাওয়া
+transfer_freeze_title = ফ্রিজ করুন
 transfer_unfreeze_title = আনফ্রিজ করুন
-transfer_sign_transaction_title = লেনদেন স্বাক্ষর করুন
 transfer_review_request = পর্যালোচনার অনুরোধ
 transfer_amount = পরিমাণ
 transfer_amount_title = পরিমাণ
@@ -171,7 +163,6 @@ settings_networks_title = নেটওয়ার্ক
 settings_networks_source = উৎস
 settings_networks_explorer = এক্সপ্লোরার
 settings_currency = মুদ্রা
-settings_rate_app = অ্যাপকে রেট দিন
 settings_website = ওয়েবসাইট ভিজিট করুন
 settings_security = নিরাপত্তা
 settings_enable_value = %@ সক্ষম করুন
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = আমরা বর্তমানে ন�
 errors_invalid_asset_address = অবৈধ %@ ঠিকানা
 errors_dust_threshold = লেনদেন ব্যর্থ হয়েছে কারণ পরিমাণটি %@ নেটওয়ার্কের ন্যূনতম প্রয়োজনীয়তা (ডাস্ট থ্রেশহোল্ড) পূরণ করতে খুব কম। এই সীমা নিশ্চিত করে যে লেনদেনের মূল্য ফি এবং প্রক্রিয়াকরণের খরচ কভার করে।
 errors_swap_no_quote_available = কোনো কোট উপলব্ধ নেই।
-errors_swap_not_supported_chain = সমর্থিত চেন নয়।
 errors_swap_not_supported_asset = সমর্থিত সম্পদ নয়।
-errors_swap_not_supported_pair = সমর্থিত জুটি নয়।
 errors_connections_invalid_send_parameters = একটি লেনদেন পাঠানোর জন্য অবৈধ প্যারামিটার প্রদান করা হয়েছে৷
 errors_connections_invalid_sign_parameters = স্বাক্ষর করার জন্য অবৈধ পরামিতি প্রদান করা হয়েছে.
 errors_connections_no_supported_wallets = কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।
@@ -291,9 +280,8 @@ asset_balances_available = পাওয়া যায়
 asset_price = দাম
 asset_market_cap = মার্কেট ক্যাপ
 asset_trading_volume = ট্রেডিং ভলিউম (24 ঘন্টা)
-asset_market_cap_rank = মার্কেট ক্যাপ র‍্যাঙ্ক
 asset_total_supply = মোট সরবরাহ
-asset_circulating_supply = সরবরাহ সরবরাহ
+asset_circulating_supply = প্রচলিত সরবরাহ
 asset_balances_reserved = সংরক্ষিত
 asset_view_token_on = %@ এ টোকেন দেখুন
 asset_view_address_on = %@ এ ঠিকানা দেখুন
@@ -343,22 +331,20 @@ wallet_connect_connection_title = সংযোগ
 wallet_connect_disconnect = সংযোগ বিচ্ছিন্ন করুন
 wallet_connect_connect_title = সংযোগ করুন
 wallet_connect_app = অ্যাপ
-wallet_connect_website = ওয়েবসাইট
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = কোনো সক্রিয় সংযোগ নেই
 wallet_connect_state_empty_description = DApp-এর সাথে সংযোগ করতে কোড স্ক্যান বা পেস্ট করুন।
-wallet_connect_domain = ডোমেইন
 wallet_connect_permissions_title = অনুমতি
 wallet_connect_permissions_view_balance = আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন
 wallet_connect_permissions_approval_requests = অনুমোদনের অনুরোধ পাঠান
 
 # Swap
 
-swap_you_pay = আপনি পে
-swap_you_receive = আপনি রিসিভ
+swap_you_pay = আপনি পরিশোধ করেন
+swap_you_receive = আপনি পাবেন
 swap_price_impact = দামের প্রভাব
 swap_slippage = স্লিপেজ
-swap_price_impact_warning_description = এই ট্রেডে আপনার %@ %@ ] হারাবেন। আপনি কি নিশ্চিত যে আপনি এগিয়ে যেতে চান?
+swap_price_impact_warning_description = এই ট্রেডে আপনি %@ হারাবেন, যা আপনার %@ এর একটি অংশ। আপনি কি নিশ্চিত যে এগিয়ে যেতে চান?
 swap_price_impact_warning_title = উচ্চ মূল্যের প্রভাব
 swap_estimated_time_title = আনুমানিক সময়
 swap_min_receive = প্রাপ্তির সর্বনিম্ন
@@ -371,19 +357,17 @@ stake_pending = মুলতুবি
 stake_rewards = পুরস্কার
 stake_validator = যাচাইকারী
 stake_validators = যাচাইকারী
-stake_apr = এপ্রিল %@
+stake_apr = APR %@
 stake_available_in = এ উপলব্ধ
 stake_inactive = নিষ্ক্রিয়
 stake_lock_time = লক টাইম
 stake_activating = সক্রিয় করা হচ্ছে
 stake_deactivating = নিষ্ক্রিয় করা হচ্ছে
 stake_awaiting_withdrawal = প্রত্যাহারের অপেক্ষায়
-stake_active_in = সক্রিয় ইন
+stake_active_in = যখন সক্রিয় হবে
 stake_minimum_amount = সর্বনিম্ন পরিমাণ
-stake_viagem = জেম ওয়ালেটের মাধ্যমে বাজি
-stake_no_active_staking = এখনও কোন সক্রিয় স্টেকিং.
 stake_state_empty_title = আপনার বাজি এখানে প্রদর্শিত হবে।
-stake_state_empty_description = আপনার প্রথম %@ ভাগ করুন
+stake_state_empty_description = আপনার প্রথম %@ স্টেক করুন
 stake_resource = রিসোর্স
 stake_resource_energy = শক্তি
 stake_resource_bandwidth = ব্যান্ডউইথ
@@ -405,7 +389,6 @@ assets_title = সম্পদ
 
 # Sign Message
 
-sign_message_title = সাইন মেসেজ
 sign_message_message = বার্তা
 sign_message_view_full_message = সম্পূর্ণ বার্তা দেখুন
 
@@ -468,7 +451,7 @@ fee_rate_gwei = %@ gwei
 
 banner_account_activation_title = অ্যাকাউন্ট অ্যাক্টিভেশন ফি
 banner_account_activation_description = %@ নেটওয়ার্কের জন্য %@ এর এককালীন ফি প্রয়োজন।
-banner_stake_title = স্টক করা শুরু করুন %@
+banner_stake_title = %@ স্টেক করা শুরু করুন
 banner_stake_description = আপনি যখন ঘুমান তখন আপনার বাজিতে %@ পুরষ্কার অর্জন করুন।
 banner_enable_notifications_title = বিজ্ঞপ্তি সক্রিয় করুন
 banner_enable_notifications_description = আপনার ওয়ালেট কার্যকলাপের শীর্ষে থাকুন।
@@ -477,8 +460,8 @@ banner_asset_status_title = সন্দেহজনক সম্পদ
 banner_asset_status_description = টোকেন অনিরাপদ বা বিভ্রান্তিকর হতে পারে। আপনি সম্পূর্ণরূপে বিশ্বাস করলেই এগিয়ে যান।
 banner_onboarding_title = তোমার মানিব্যাগ প্রস্তুত।
 banner_onboarding_description = শুরু করতে ক্রিপ্টো কিনুন বা গ্রহণ করুন
-banner_perpetuals_title = হাইপারলিকুইডের উপর চিরস্থায়ী বাণিজ্য
-banner_perpetuals_description = হাইপারলিকুইড পারপেচুয়ালের সাথে জমা করুন, বাণিজ্য করুন এবং উপার্জন করুন
+banner_perpetuals_title = Hyperliquid-এ পারপেচুয়াল ট্রেড করুন
+banner_perpetuals_description = Hyperliquid পারপেচুয়ালের সাথে জমা করুন, বাণিজ্য করুন এবং উপার্জন করুন
 
 # Filter
 
@@ -493,10 +476,10 @@ price_alerts_enabled_for = %@ এর জন্য মূল্য সতর্�
 price_alerts_disabled_for = %@ এর জন্য মূল্য সতর্কতা নিষ্ক্রিয় করা হয়েছে
 price_alerts_get_notified_explain_message = আপনার প্রিয় ক্রিপ্টো সম্পদের মূল্যের উল্লেখযোগ্য পরিবর্তন হলে বিজ্ঞপ্তি পান।
 price_alerts_direction_over = ওভার
-price_alerts_direction_under = অধীন
+price_alerts_direction_under = নিচে
 price_alerts_direction_increases_by = বৃদ্ধি পায়
 price_alerts_direction_decreases_by = কমে যায়
-price_alerts_set_alert_price_over = যখন দাম শেষ হয়ে যায়
+price_alerts_set_alert_price_over = যখন দাম এর উপরে যায়
 price_alerts_set_alert_price_under = যখন দাম কম থাকে
 price_alerts_set_alert_price_increases_by = যখন দাম বাড়ে
 price_alerts_set_alert_price_decreases_by = যখন দাম কমে যায়
@@ -538,7 +521,7 @@ sell_title = %@ বিক্রি করুন
 info_network_fee_title = নেটওয়ার্ক ফি
 info_watch_wallet_title = ওয়ালেট দেখুন
 info_watch_wallet_description = একটি মানিব্যাগ যা আপনার অ্যাক্সেস নেই, তবে আপনি এটির লেনদেন এবং গতিবিধি দেখতে পারেন।
-info_network_fee_description = %@ নেটওয়ার্কে প্রতিটি লেনদেনের জন্য আপনার লেনদেন প্রক্রিয়া করার জন্য %@-এ ফি দিতে হবে, জেম ওয়ালেট নয়। নেটওয়ার্ক ফি নেটওয়ার্ক ব্যবহারের উপর ভিত্তি করে পরিবর্তিত হয়।
+info_network_fee_description = %@ নেটওয়ার্কে প্রতিটি লেনদেনের জন্য আপনার লেনদেন প্রক্রিয়া করার জন্য %@-এ ফি দিতে হবে, Gem Wallet নয়। নেটওয়ার্ক ফি নেটওয়ার্ক ব্যবহারের উপর ভিত্তি করে পরিবর্তিত হয়।
 info_transaction_error_description = একটি ত্রুটির কারণে লেনদেন সম্পন্ন করা যায়নি, যেমন অপর্যাপ্ত তহবিল, অবৈধ ইনপুট, বা নেটওয়ার্ক দ্বারা প্রত্যাখ্যান। অনুগ্রহ করে বিস্তারিত পর্যালোচনা করুন এবং আবার চেষ্টা করুন।
 info_transaction_pending_description = লেনদেন জমা দেওয়া হয়েছে এবং নেটওয়ার্কে নিশ্চিতকরণের জন্য অপেক্ষা করছে। প্রক্রিয়াকরণের সময় পরিবর্তিত হতে পারে। আপডেটের জন্য আবার চেক করুন.
 info_transaction_success_description = নেটওয়ার্কে লেনদেন সম্পন্ন এবং নিশ্চিত করা হয়েছে। আপনি এর স্থিতি যাচাই করতে বিশদ পর্যালোচনা করতে পারেন।
@@ -552,17 +535,15 @@ info_insufficient_network_fee_balance_description = এই লেনদেনে
 info_insufficient_balance_title = অপর্যাপ্ত ব্যালেন্স
 info_insufficient_balance_description = এই লেনদেনটি সম্পন্ন করার জন্য আপনার কাছে পর্যাপ্ত %@ নেই। অনুগ্রহ করে আপনার ওয়ালেটে টাকা টপ আপ করুন, গ্রহণ করুন বা সোয়াপ করুন এবং আবার চেষ্টা করুন।
 info_account_minimum_balance_title = ন্যূনতম ব্যালেন্স
-info_perpetual_funding_payments_title = অর্থ প্রদানের অর্থ প্রদান
+info_perpetual_funding_payments_title = ফান্ডিং পেমেন্ট
 info_perpetual_funding_payments_description = ফান্ডিং পেমেন্ট হল ট্রেডারদের মধ্যে পর্যায়ক্রমিক পেমেন্ট যাতে অন্তর্নিহিত সম্পদের স্পট মূল্যের কাছাকাছি স্থায়ী চুক্তির মূল্য থাকে। পজিটিভ ফান্ডিং মানে লং পজিশনগুলো শর্ট পজিশন দেয়, অন্যদিকে নেতিবাচক ফান্ডিং মানে শর্ট পজিশন লং পজিশন দেয়।
-info_perpetual_funding_rate_title = অর্থায়ন
-info_perpetual_funding_rate_description = তহবিলের হার একটি চিরস্থায়ী অবস্থান ধরে রাখার খরচ নির্ধারণ করে। এটি প্রতি ঘণ্টায় গণনা করা হয় এবং চিরস্থায়ী চুক্তি এবং অন্তর্নিহিত সম্পদের স্পট মূল্যের মধ্যে মূল্যের ভারসাম্য বজায় রাখতে সাহায্য করে।
-info_perpetual_liquidation_price_title = অবসান মূল্য
+info_perpetual_liquidation_price_title = লিকুইডেশন মূল্য
 info_perpetual_liquidation_price_description = লিকুইডেশন প্রাইস হল সেই প্রাইস লেভেল যেখানে আপনার পজিশন স্বয়ংক্রিয়ভাবে বন্ধ হয়ে যাবে যাতে আরও ক্ষতি রোধ করা যায়। যখন বাজার মূল্য এই স্তরে পৌঁছায়, তখন আপনার অবস্থান বাতিল হয়ে যায় এবং আপনি আপনার মার্জিন হারাবেন।
 info_perpetual_open_interest_title = ওপেন ইন্টারেস্ট
 info_perpetual_open_interest_description = উন্মুক্ত সুদ সমস্ত অসামান্য চিরস্থায়ী চুক্তির মোট মূল্যের প্রতিনিধিত্ব করে যা নিষ্পত্তি করা হয়নি। এটি বাজারের কার্যকলাপ এবং তারল্য সম্পর্কে অন্তর্দৃষ্টি প্রদান করে।
 info_no_quote_description = নির্বাচিত টোকেন জোড়ার জন্য একটি উদ্ধৃতি ফেরত দিতে অক্ষম, সম্ভবত কম পরিমাণ, তারল্যের অভাব, অথবা প্রযুক্তিগত সীমাবদ্ধতার কারণে।
 info_stake_reserved_title = নেটওয়ার্ক ফি এর জন্য সংরক্ষিত
-info_stake_reserved_description = পুরষ্কার দাবি করা বা স্টক খোলার মতো ক্রিয়াকলাপের ফি মেটাতে আপনার ওয়ালেটে অল্প পরিমাণ টাকা থেকে যায়।
+info_stake_reserved_description = পুরষ্কার দাবি করা বা আনস্টেক করার মতো ক্রিয়াকলাপের ফি মেটাতে আপনার ওয়ালেটে অল্প পরিমাণ টাকা থেকে যায়।
 info_stake_apr_description = বার্ষিক শতাংশ হার (এপিআর) হল আপনার ক্রিপ্টোকারেন্সি শেয়ার করার জন্য বার্ষিক পুরষ্কারের হার।
 info_perpetual_auto_close_description = নির্ধারিত মূল্য স্তরে আপনার পজিশন স্বয়ংক্রিয়ভাবে বন্ধ করুন। টেক প্রফিট লাভকে আটকে রাখে, স্টপ লস লোকসানকে সীমাবদ্ধ করে।
 info_fully_diluted_valuation_title = সম্পূর্ণরূপে লঘুকৃত মূল্যায়ন
@@ -570,8 +551,8 @@ info_fully_diluted_valuation_description = যদি সমস্ত মুদ�
 info_circulating_supply_description = বর্তমানে বাজারে উপলব্ধ এবং লেনদেন হওয়া কয়েনের সংখ্যা।
 info_total_supply_description = লক করা বা সংরক্ষিত কয়েন সহ বিদ্যমান মোট কয়েনের সংখ্যা।
 info_max_supply_title = সর্বোচ্চ সরবরাহ
-info_max_supply_description = সর্বোচ্চ সংখ্যক কয়েন বিদ্যমান থাকবে।
-info_perpetual_funding_apr_title = অর্থায়ন এপিআর
+info_max_supply_description = কখনও বিদ্যমান থাকবে এমন সর্বোচ্চ সংখ্যক কয়েন।
+info_perpetual_funding_apr_title = ফান্ডিং APR
 info_perpetual_funding_apr_description = বার্ষিক হারে লংস শর্টস প্রদান করে (যদি নেতিবাচক, শর্টস লং পে করে)। তহবিলের সাথে সম্পর্কিত কোন ফি নেই, যা স্পট প্রাইসের দিকে দাম ঠেলে দেওয়ার জন্য ব্যবহারকারীদের মধ্যে পিয়ার-টু-পিয়ার স্থানান্তর।
 info_minimum_amount_title = ন্যূনতম পরিমাণ
 info_minimum_amount_description = %@ নেটওয়ার্কে, এই লেনদেনের ন্যূনতম পরিমাণ %@।
@@ -626,25 +607,24 @@ onboarding_security_create_wallet_keep_safe_title = এটি কোথাও �
 onboarding_security_create_wallet_no_recovery_title = আমরা আপনাকে এটি পুনরুদ্ধার করতে সাহায্য করতে পারি না
 onboarding_accept_terms_title = শর্তাবলী গ্রহণ করুন
 onboarding_accept_terms_message = চালিয়ে যাওয়ার আগে অনুগ্রহ করে নিম্নলিখিত শর্তাবলী পড়ুন এবং তাতে সম্মত হন।
-onboarding_accept_terms_item1_message = আমি বুঝতে পারছি যে আমার ওয়ালেটের নিরাপত্তা এবং ব্যাকআপের জন্য আমি সম্পূর্ণরূপে দায়ী, জেম নয়।
-onboarding_accept_terms_item2_message = আমি বুঝতে পারছি যে জেম কোনও ব্যাংক বা এক্সচেঞ্জ নয়, এবং অবৈধ উদ্দেশ্যে এটি ব্যবহার করা কঠোরভাবে নিষিদ্ধ।
-onboarding_accept_terms_item3_message = আমি বুঝি যে আমি যদি কখনো আমার ওয়ালেটে অ্যাক্সেস হারাই, তবে রত্ন দায়বদ্ধ নয় এবং কোনোভাবেই সাহায্য করতে পারবে না।
+onboarding_accept_terms_item1_message = আমি বুঝতে পারছি যে আমার ওয়ালেটের নিরাপত্তা এবং ব্যাকআপের জন্য আমি সম্পূর্ণরূপে দায়ী, Gem নয়।
+onboarding_accept_terms_item2_message = আমি বুঝতে পারছি যে Gem কোনও ব্যাংক বা এক্সচেঞ্জ নয়, এবং অবৈধ উদ্দেশ্যে এটি ব্যবহার করা কঠোরভাবে নিষিদ্ধ।
+onboarding_accept_terms_item3_message = আমি বুঝি যে আমি যদি কখনো আমার ওয়ালেটে অ্যাক্সেস হারাই, তবে Gem দায়বদ্ধ নয় এবং কোনোভাবেই সাহায্য করতে পারবে না।
 onboarding_accept_terms_continue = সম্মত হন এবং চালিয়ে যান
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
-perpetual_positions = পদ
+perpetual_positions = পজিশন
 perpetual_size = আকার
 perpetual_margin = মার্জিন
 perpetual_position = অবস্থান
 perpetual_close_position = বন্ধ অবস্থান
 perpetual_pnl = PnL
-perpetual_long = দীর্ঘ
-perpetual_short = সংক্ষিপ্ত
+perpetual_long = লং
+perpetual_short = শর্ট
 perpetual_entry_price = প্রবেশ মূল্য
 perpetual_modify = পরিবর্তন করুন
 perpetual_reduce_position = অবস্থান হ্রাস করুন
@@ -652,7 +632,6 @@ perpetual_increase_position = অবস্থান বৃদ্ধি করু
 perpetual_open_direction = %@ খুলুন
 perpetual_close_direction = %@ বন্ধ করুন
 perpetual_leverage = লিভারেজ
-perpetual_direction = দিকনির্দেশনা
 perpetual_auto_close = স্বয়ংক্রিয়ভাবে বন্ধ করুন
 perpetual_auto_close_take_profit = লাভ নিন
 perpetual_market_price = বাজার মূল্য
@@ -667,7 +646,7 @@ perpetual_modify_position = অবস্থান পরিবর্তন ক�
 perpetual_auto_close_stop_loss = স্টপ লস
 perpetual_value = মূল্য
 perpetual_unrealized_pnl = অবাস্তব PnL
-perpetual_volume = আয়তন
+perpetual_volume = ভলিউম
 perpetual_all_time_pnl = সর্বকালের পিএনএল
 perpetual_margin_usage = মার্জিন ব্যবহার
 perpetual_account_leverage = অ্যাকাউন্ট লিভারেজ
@@ -676,7 +655,7 @@ perpetual_margin_isolated = বিচ্ছিন্ন
 
 # Perpetuals
 
-perpetuals_title = চিরস্থায়ী
+perpetuals_title = পারপেচুয়াল
 perpetuals_markets = বাজার
 perpetuals_empty_state_no_markets = বাজার নেই
 perpetuals_empty_state_no_markets_found = কোন বাজার খুঁজে পাওয়া যায়নি
@@ -704,7 +683,7 @@ rewards_ways_spend_asset_title = পান %@
 rewards_insufficient_points = অপর্যাপ্ত পয়েন্ট
 rewards_confirm_redeem = পান %@ জন্য %@!
 rewards_pending_title = বোনাস মুলতুবি
-rewards_pending_description = পাওয়া যাচ্ছে %@
+rewards_pending_description = %@ এ পাওয়া যাবে
 rewards_pending_description_ready = আপনার বোনাস প্রস্তুত!
 rewards_nickname = ডাকনাম
 rewards_unverified_title = পুরস্কারগুলো এখনও সক্রিয় হয়নি।
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = আপনার সম্প্রত�
 
 notifications_inapp_state_empty_title = এখনও কোনও বিজ্ঞপ্তি নেই
 notifications_inapp_state_empty_description = আপনার বিজ্ঞপ্তি সম্পর্কে আপডেটগুলি এখানে দেখতে পাবেন।
-notifications_inapp_rewards_invite_subtitle = বন্ধুদের আমন্ত্রণ জানান এবং একসাথে পুরস্কার জিতুন
 
 # Earn
 

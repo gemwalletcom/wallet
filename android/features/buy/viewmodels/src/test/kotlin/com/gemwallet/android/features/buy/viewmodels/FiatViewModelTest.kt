@@ -6,6 +6,7 @@ import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.testkit.mockAsset
@@ -181,6 +182,22 @@ class FiatViewModelTest {
             assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
             runCurrent()
             assertEquals(FiatQuoteType.Buy, viewModel.type.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `random amount remains valid when current amount is at maximum`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            viewModel.updateAmount("1000")
+
+            viewModel.updateAmount(FiatSuggestion.RandomAmount)
+
+            val randomAmount = viewModel.amount.value.toInt()
+            assertTrue(randomAmount in FiatViewModel.MIN_FIAT_AMOUNT.toInt()..FiatViewModel.MAX_RANDOM_FIAT_AMOUNT)
         } finally {
             viewModel.viewModelScope.cancel()
         }

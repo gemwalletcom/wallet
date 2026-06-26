@@ -3,14 +3,12 @@
 common_cancel = Annuleren
 common_done = Klaar
 common_secret_phrase = Geheime zin
-common_next = Volgende
 common_copy = Kopieer
 common_share = Deel
 common_continue = Ga door
 common_provider = Aanbieder
 common_loading = Laden
 common_address = Adres
-common_back = Terug
 common_try_again = Probeer het opnieuw
 common_paste = Plakken
 common_delete = Verwijderen
@@ -26,7 +24,6 @@ common_phrase = Zin
 common_manage = Beheer
 common_type = Typ
 common_no_results_found = Geen resultaten gevonden
-common_yes = Ja
 common_no = Nee
 common_none = Geen
 common_url = URL
@@ -40,14 +37,10 @@ common_unpin = Losmaken
 common_skip = Overslaan
 common_warning = Waarschuwing
 common_learn_more = Meer informatie
-common_short_name = Gem
 common_description = Beschrijving
 common_emoji = Emoji
-common_style = Stijl
 common_avatar = Avatar
-common_photo = Foto
 common_save = Opslaan
-common_edit = Bewerken
 common_percentage = Percentage
 common_details = Details
 common_info = Informatie
@@ -96,16 +89,16 @@ wallet_receive_collection = Ontvang collectie
 wallet_more = Meer
 wallet_import_contract_address_field = Contract of token-ID
 wallet_import_address_warning = U kunt het saldo en de transacties voor dit adres bekijken, maar u kunt geen geld verzenden of verkopen.
-wallet_deposit = Borg
-wallet_withdraw = Terugtrekken
+wallet_deposit = Storten
+wallet_withdraw = Opnemen
 wallet_available_balance = Beschikbaar: %@
 wallet_portfolio_title = Portefeuille
 wallet_import_already_imported_message = Deze portemonnee is al geïmporteerd.
 
 # Wallets
 
-wallets_title = Portefeuilles
-wallets_watch = Kijk
+wallets_title = Portemonnees
+wallets_watch = Volgen
 
 # Receive
 
@@ -116,7 +109,7 @@ receive_warning = Dit is uw adres — alleen verzenden %@ op de %@ netwerk.
 
 buy_title = Koop %@
 buy_providers_title = Aanbieders
-buy_rate = Beoordeel
+buy_rate = Koers
 buy_no_results = Geen offertes beschikbaar
 
 # Transfer
@@ -125,7 +118,7 @@ transfer_network_fee = Netwerkkosten
 transfer_memo = Memo
 transfer_confirm = Bevestig
 transfer_from = Van
-transfer_to = Aan
+transfer_to = Naar
 transfer_max = Max
 transfer_network = Netwerk
 transfer_recipient_title = Ontvanger
@@ -138,12 +131,12 @@ transfer_insufficient_network_fee_balance = Onvoldoende saldo van %@ om de netwe
 transfer_approve_title = Goedkeuren
 transfer_stake_title = Inzet
 transfer_claim_rewards_title = Claim beloningen
-transfer_unstake_title = Uitzetten ongedaan maken
+transfer_unstake_title = Unstaken
 transfer_redelegate_title = Opnieuw delegeren
-transfer_withdraw_title = Terugtrekken
+transfer_withdraw_title = Opnemen
 transfer_rewards_title = Beloningen
 transfer_minimum_amount = Minimumbedrag is %@
-transfer_activate_asset_title = Activeer activa
+transfer_activate_asset_title = Activa activeren
 transfer_recipient_my_wallets = Mijn portemonnees
 transfer_recipient_view_wallets = Bekijk portemonnees
 transfer_minimum_account_balance = Hierna moet er minimaal %@ saldo overblijven, tenzij u uw volledige saldo gebruikt.
@@ -152,9 +145,8 @@ transfer_other_title = Anders
 transfer_maximum_amount = Maximaal bedrag is %@
 transfer_reserved_fees = We hebben %@ op uw saldo laten staan om toekomstige netwerkkosten te dekken.
 transfer_freeze_title = Bevriezen
-transfer_unfreeze_title = Ontdooien
-transfer_sign_transaction_title = Transactie ondertekenen
-transfer_review_request = Beoordelingsverzoek
+transfer_unfreeze_title = Ontvriezen
+transfer_review_request = Verzoek controleren
 transfer_amount = Bedrag
 transfer_amount_title = Bedrag
 
@@ -169,9 +161,8 @@ settings_community = Gemeenschap
 settings_aboutus = Over ons
 settings_networks_title = Netwerken
 settings_networks_source = Bron
-settings_networks_explorer = Ontdekkingsreiziger
+settings_networks_explorer = Explorer
 settings_currency = Valuta
-settings_rate_app = Beoordeel App
 settings_website = Bezoek website
 settings_security = Beveiliging
 settings_enable_value = Schakel %@ in
@@ -204,7 +195,7 @@ errors_invalid_address_name = Ongeldig adres of naam
 errors_invalid_amount = Ongeldig bedrag
 errors_token_invalid_id = Ongeldige token-ID
 errors_import_invalid_secret_phrase = Ongeldige geheime zin
-errors_import_invalid_secret_phrase_word = Ongeldig geheim woord: %@
+errors_import_invalid_secret_phrase_word = Ongeldig woord in geheime zin: %@
 errors_invalid_url = Ongeldige URL
 errors_error_occured = Er is een fout opgetreden!
 errors_invalid_network_id = Ongeldige netwerk-ID
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = Momenteel kunnen wij de netwerkkosten niet 
 errors_invalid_asset_address = Ongeldig %@ adres
 errors_dust_threshold = De transactie is mislukt omdat het bedrag te klein is om te voldoen aan de minimumvereiste van het %@-netwerk (stofdrempel). Deze limiet zorgt ervoor dat de transactiewaarde de vergoedingen en verwerkingskosten dekt.
 errors_swap_no_quote_available = Geen offerte beschikbaar.
-errors_swap_not_supported_chain = Niet ondersteunde ketting.
-errors_swap_not_supported_asset = Niet ondersteund item.
-errors_swap_not_supported_pair = Niet ondersteund paar.
+errors_swap_not_supported_asset = Niet-ondersteunde asset.
 errors_connections_invalid_send_parameters = Ongeldige parameters opgegeven voor het verzenden van een transactie.
 errors_connections_invalid_sign_parameters = Ongeldige parameters opgegeven voor ondertekening.
 errors_connections_no_supported_wallets = Er zijn geen ondersteunde wallets beschikbaar.
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = Verdachte activiteit
 errors_connections_malicious_origin = Deze verbinding komt van een onbetrouwbare bron.
 errors_no_data_available = Geen gegevens beschikbaar
 errors_dust_threshold_short = Het netwerk beschouwt deze hoeveelheid als stof; de vergoeding is hoger dan de hoeveelheid zelf.
-errors_swap_minimum_amount = Het minimale handelsbedrag is %@Voer een hoger bedrag in.
+errors_swap_minimum_amount = Het minimale handelsbedrag is %@. Voer een hoger bedrag in.
 errors_perpetual_trigger_price_lower = De triggerprijs moet lager zijn dan de marktprijs
 errors_perpetual_trigger_price_higher = De triggerprijs moet hoger zijn dan de marktprijs
 errors_token_unable_fetch_token_information = Kan tokeninformatie niet ophalen: %@
@@ -291,7 +280,6 @@ asset_balances_available = Beschikbaar
 asset_price = Prijs
 asset_market_cap = Marktkapitalisatie
 asset_trading_volume = Handelsvolume (24 uur)
-asset_market_cap_rank = Marktkapitalisatierang
 asset_total_supply = Totaal aanbod
 asset_circulating_supply = Circulerend aanbod
 asset_balances_reserved = Gereserveerd
@@ -324,9 +312,9 @@ charts_week = 1W
 charts_month = 1M
 charts_year = 1Y
 charts_all = Allemaal
-charts_entry = Binnenkomst
+charts_entry = Instap
 charts_price_open = Openen
-charts_price_close = Dichtbij
+charts_price_close = Slot
 charts_price_high = Hoog
 charts_price_low = Laag
 charts_price_change = Wijziging
@@ -343,11 +331,9 @@ wallet_connect_connection_title = Verbinding
 wallet_connect_disconnect = Verbreek de verbinding
 wallet_connect_connect_title = Verbinden
 wallet_connect_app = App
-wallet_connect_website = Website
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Geen actieve verbindingen
 wallet_connect_state_empty_description = Scan of plak de code om verbinding te maken met de DApp
-wallet_connect_domain = Domein
 wallet_connect_permissions_title = Toestemmingen
 wallet_connect_permissions_view_balance = Bekijk je saldo en activiteit
 wallet_connect_permissions_approval_requests = Verzoeken om goedkeuring verzenden
@@ -357,7 +343,7 @@ wallet_connect_permissions_approval_requests = Verzoeken om goedkeuring verzende
 swap_you_pay = Jij betaalt
 swap_you_receive = Jij ontvangt
 swap_price_impact = Prijsimpact
-swap_slippage = Slippen
+swap_slippage = Slippage
 swap_price_impact_warning_description = U verliest %@ van uw %@ in deze transactie. Weet u zeker dat u wilt doorgaan?
 swap_price_impact_warning_title = Hoge prijsimpact
 swap_estimated_time_title = Geschatte tijd
@@ -380,8 +366,6 @@ stake_deactivating = Deactiveren
 stake_awaiting_withdrawal = In afwachting van intrekking
 stake_active_in = Actief In
 stake_minimum_amount = Minimumbedrag
-stake_viagem = Inzet via Gem Wallet
-stake_no_active_staking = Nog geen actieve staking.
 stake_state_empty_title = Uw inzet verschijnt hier
 stake_state_empty_description = Zet je eerste %@ in
 stake_resource = Hulpbron
@@ -394,8 +378,8 @@ stake_delegations = Delegaties
 assets_no_assets_found = Geen activa gevonden
 assets_add_custom_token = Aangepaste token toevoegen
 assets_select_asset = Selecteer Activa
-assets_popular = Populaire assets
-assets_tags_trending = Populair
+assets_popular = Populair
+assets_tags_trending = Trending
 assets_tags_gainers = Winnaars
 assets_tags_losers = Verliezers
 assets_tags_new = Nieuw
@@ -405,7 +389,6 @@ assets_title = Activa
 
 # Sign Message
 
-sign_message_title = Teken bericht
 sign_message_message = Bericht
 sign_message_view_full_message = Bekijk het volledige bericht
 
@@ -421,7 +404,7 @@ secret_phrase_content_hidden_description = Inhoud verborgen tijdens schermopname
 
 # Social
 
-social_x = X (formerly Twitter)
+social_x = X (voorheen Twitter)
 social_discord = Discord
 social_reddit = Reddit
 social_telegram = Telegram
@@ -477,15 +460,15 @@ banner_asset_status_title = Verdachte activa
 banner_asset_status_description = Token kan onveilig of misleidend zijn. Ga alleen verder als u er volledig op vertrouwt.
 banner_onboarding_title = Je portemonnee is klaar
 banner_onboarding_description = Koop of ontvang crypto om te beginnen
-banner_perpetuals_title = Handel perpetuals op hyperliquid
+banner_perpetuals_title = Handel perpetuals op Hyperliquid
 banner_perpetuals_description = Stort, handel en verdien met Hyperliquid perpetuals
 
 # Filter
 
-filter_clear = Duidelijk
+filter_clear = Wissen
 filter_title = Filters
 filter_types = Soorten
-filter_has_balance = Heeft evenwicht
+filter_has_balance = Heeft saldo
 
 # Price Alerts
 
@@ -536,7 +519,7 @@ sell_title = Verkoop %@
 # Info
 
 info_network_fee_title = Netwerkkosten
-info_watch_wallet_title = Kijk Portemonnee
+info_watch_wallet_title = Kijk-portemonnee
 info_watch_wallet_description = Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.
 info_network_fee_description = Voor elke transactie op het %@ netwerk is een vergoeding van %@ vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.
 info_transaction_error_description = De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.
@@ -548,17 +531,15 @@ info_slippage_description = Slippage verwijst naar het verschil tussen de verwac
 info_asset_status_unverified_description = Ongeverifieerde tokens zijn niet voldoende geverifieerd door betrouwbare externe partijen. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.
 info_asset_status_suspicious_description = Verdachte of spamtokens worden herkend als potentiële oplichting of schadelijke activa. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.
 info_insufficient_network_fee_balance_title = %@ vereist
-info_insufficient_network_fee_balance_description = Deze transactie vereist %@ om de netwerkkosten te dekken die betaald worden aan %@ mijnwerkers, niet Gem WalletZorg ervoor dat je voldoende hebt. %@.
+info_insufficient_network_fee_balance_description = Deze transactie vereist %@ om de netwerkkosten te dekken die betaald worden aan %@ mijnwerkers, niet Gem Wallet. Zorg ervoor dat je voldoende %@ hebt.
 info_insufficient_balance_title = Onvoldoende saldo
 info_insufficient_balance_description = Je hebt niet genoeg %@ om deze transactie te voltooien. Vul je wallet aan, ontvang of wissel in en probeer het opnieuw.
 info_account_minimum_balance_title = Minimumsaldo
 info_perpetual_funding_payments_title = Financieringsbetalingen
 info_perpetual_funding_payments_description = Financieringsbetalingen zijn periodieke betalingen tussen handelaren om de eeuwigdurende contractprijs dicht bij de spotprijs van de onderliggende waarde te houden. Positieve financiering betekent dat longposities shortposities betalen, terwijl negatieve financiering betekent dat shortposities longposities betalen.
-info_perpetual_funding_rate_title = Financiering
-info_perpetual_funding_rate_description = Het financieringspercentage bepaalt de kosten voor het aanhouden van een eeuwigdurende positie. Het wordt elk uur berekend en helpt het prijsevenwicht tussen het eeuwigdurende contract en de spotprijs van de onderliggende waarde te handhaven.
 info_perpetual_liquidation_price_title = Liquidatieprijs
 info_perpetual_liquidation_price_description = De liquidatieprijs is het prijsniveau waarbij uw positie automatisch wordt gesloten om verdere verliezen te voorkomen. Wanneer de marktprijs dit niveau bereikt, wordt uw positie geliquideerd en verliest u uw marge.
-info_perpetual_open_interest_title = Open interesse
+info_perpetual_open_interest_title = Open Interest
 info_perpetual_open_interest_description = Open interest vertegenwoordigt de totale waarde van alle uitstaande eeuwigdurende contracten die nog niet zijn afgewikkeld. Het geeft inzicht in de marktactiviteit en liquiditeit.
 info_no_quote_description = Er kan geen offerte worden geretourneerd voor het geselecteerde tokenpaar, mogelijk vanwege een te laag bedrag, gebrek aan liquiditeit of technische beperkingen.
 info_stake_reserved_title = Gereserveerd voor netwerkkosten
@@ -571,14 +552,14 @@ info_circulating_supply_description = Het aantal munten dat momenteel beschikbaa
 info_total_supply_description = Het totale aantal munten dat bestaat, inclusief vergrendelde of gereserveerde munten.
 info_max_supply_title = Maximaal aanbod
 info_max_supply_description = Het maximale aantal munten dat ooit zal bestaan.
-info_perpetual_funding_apr_title = Financiering april
+info_perpetual_funding_apr_title = Funding APR
 info_perpetual_funding_apr_description = Het op jaarbasis berekende percentage waarmee longs shorts betalen (indien negatief, shorts betalen longs). Er zijn geen kosten verbonden aan financiering, wat een peer-to-peer overdracht tussen gebruikers is om de prijzen richting de spotprijs te duwen.
 info_minimum_amount_title = Minimumbedrag
 info_minimum_amount_description = Op het %@-netwerk is het minimumbedrag voor deze transactie %@.
 
 # Input
 
-input_enter_amount_to = Voer een bedrag in tot %@
+input_enter_amount_to = Voer het bedrag in om te %@
 
 # Nft
 
@@ -633,26 +614,24 @@ onboarding_accept_terms_continue = Akkoord en doorgaan
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
 perpetual_positions = Posities
-perpetual_size = Maat
+perpetual_size = Omvang
 perpetual_margin = Marge
 perpetual_position = Positie
 perpetual_close_position = Sluit positie
 perpetual_pnl = PnL
-perpetual_long = Lang
-perpetual_short = Kort
-perpetual_entry_price = Toegangsprijs
+perpetual_long = Long
+perpetual_short = Short
+perpetual_entry_price = Instapprijs
 perpetual_modify = Bewerken
 perpetual_reduce_position = Positie verkleinen
 perpetual_increase_position = Positie verhogen
 perpetual_open_direction = Open %@
 perpetual_close_direction = Sluiten %@
 perpetual_leverage = Hefboom
-perpetual_direction = Richting
 perpetual_auto_close = Automatisch sluiten
 perpetual_auto_close_take_profit = Winst nemen
 perpetual_market_price = Marktprijs
@@ -684,7 +663,7 @@ perpetuals_empty_state_no_markets_found = Geen markten gevonden
 # Rewards
 
 rewards_title = Beloningen
-rewards_share_text = Meedoen Gem Wallet Gebruik mijn verwijzingslink en verdien beloningen: %@
+rewards_share_text = Doe mee met Gem Wallet via mijn verwijzingslink en verdien beloningen: %@
 rewards_my_referral_code = Mijn verwijzingscode
 rewards_invite_friends_title = Nodig vrienden uit
 rewards_invite_friends_description = Verdienen %@ punten voor elke vriend die meedoet.
@@ -700,9 +679,9 @@ rewards_create_referral_code_title = Gebruikersnaam aanmaken
 rewards_create_referral_code_info = Dit wordt je persoonlijke bijnaam voor de huidige portemonnee.
 rewards_username = Gebruikersnaam
 rewards_ways_spend_title = Manieren om je geld uit te geven
-rewards_ways_spend_asset_title = Krijgen %@
+rewards_ways_spend_asset_title = %@ ontvangen
 rewards_insufficient_points = Onvoldoende punten
-rewards_confirm_redeem = Krijgen %@ voor %@!
+rewards_confirm_redeem = %@ ontvangen voor %@!
 rewards_pending_title = Bonus in afwachting
 rewards_pending_description = Beschikbaar in %@
 rewards_pending_description_ready = Je bonus staat klaar!
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = Activa die u onlangs heeft gebruikt, w
 
 notifications_inapp_state_empty_title = Nog geen meldingen
 notifications_inapp_state_empty_description = Je ziet hier updates over je meldingen.
-notifications_inapp_rewards_invite_subtitle = Nodig vrienden uit en verdien samen beloningen.
 
 # Earn
 

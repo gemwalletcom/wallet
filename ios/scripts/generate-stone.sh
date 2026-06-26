@@ -91,14 +91,13 @@ generate_bindings() {
 
 build_ios_static_libraries() {
     local profile="debug"
-    local clean_profile_flag="--profile dev"
     local build_flag=""
+    local targets="${GEMSTONE_IOS_TARGETS:-aarch64-apple-ios-sim aarch64-apple-ios}"
     local host_arch
     host_arch="$(uname -m)"
 
     if [ "${BUILD_MODE:-}" = "release" ]; then
         profile="release"
-        clean_profile_flag="--release"
         build_flag="--release"
     fi
 
@@ -107,13 +106,8 @@ build_ios_static_libraries() {
         exit 1
     fi
 
-    echo "note: Cleaning Gemstone iOS target artifacts ($profile)"
-    for rust_target in aarch64-apple-ios-sim aarch64-apple-ios; do
-        cargo clean --manifest-path "$STONE_DIR/Cargo.toml" --target "$rust_target" --package gemstone ${clean_profile_flag} --quiet
-    done
-
     echo "note: Building Gemstone iOS static libraries ($profile)"
-    for rust_target in aarch64-apple-ios-sim aarch64-apple-ios; do
+    for rust_target in $targets; do
         env -u MACOSX_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET -u XROS_DEPLOYMENT_TARGET \
             -u SWIFT_DEBUG_INFORMATION_FORMAT -u SWIFT_DEBUG_INFORMATION_VERSION \
             IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \

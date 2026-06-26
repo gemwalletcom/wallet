@@ -24,8 +24,6 @@ chain_traits = { path = "../chain_traits", optional = true }
 gem_hash = { path = "../gem_hash", optional = true }
 async-trait = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
-alloy-primitives = { workspace = true, optional = true }
-alloy-sol-types = { workspace = true, optional = true }
 
 [features]
 default = ["rpc"]
@@ -45,8 +43,6 @@ rpc = [
     "dep:chain_traits",
     "dep:async-trait",
     "dep:futures",
-    "dep:alloy-primitives",
-    "dep:alloy-sol-types",
 ]
 reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]

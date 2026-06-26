@@ -3,8 +3,22 @@ name: iOS Unit Tests
 on:
   push:
     branches: ["main"]
+    paths:
+      - "ios/**"
+      - "core/**"
+      - "localization/**"
+      - ".gitmodules"
+      - ".github/actions/**"
+      - ".github/workflows/ios-ci.yml"
   pull_request:
     branches: ["main"]
+    paths:
+      - "ios/**"
+      - "core/**"
+      - "localization/**"
+      - ".gitmodules"
+      - ".github/actions/**"
+      - ".github/workflows/ios-ci.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,12 +35,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
 
       - name: Setup iOS CI
         uses: ./.github/actions/setup-ios-ci
+
+      - name: Cache Swift Package Manager
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/.swiftpm
+            ios/build/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
 
       - name: Install dependencies
         working-directory: ios
@@ -35,6 +59,8 @@ jobs:
       - name: Build Core
         working-directory: ios
         run: just generate-stone
+        env:
+          GEMSTONE_IOS_TARGETS: "aarch64-apple-ios-sim"
 
       - name: Resolve SPM Dependencies
         working-directory: ios

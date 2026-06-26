@@ -3,6 +3,10 @@ list:
 
 bootstrap: install-rust install-toolchains install-ndk
 
+install-java:
+    @echo "==> Install Temurin JDK 17"
+    @brew install --cask temurin@17
+
 install-rust:
     @echo Install Rust
     @cd ../core && just install-rust
@@ -23,6 +27,9 @@ clean:
 
 build:
     @./gradlew assembleGoogleDebug
+
+ci-test:
+    @./gradlew assembleGoogleDebug testGoogleDebugUnitTest
 
 run: build
     @just _run-adb emulator
@@ -103,6 +110,9 @@ mobsfscan:
 
 release:
     @./gradlew clean :app:bundleGoogleRelease assembleUniversalRelease assembleHuaweiRelease assembleSolanaRelease assembleSamsungRelease --no-configuration-cache
+
+release-fdroid:
+    @./gradlew clean assembleFdroidRelease -Pchannel=fdroid --no-configuration-cache
 
 localize:
     @cd ../core && cargo run --package generate --bin generate localize android ../localization/app ../android/ui/src/main/res

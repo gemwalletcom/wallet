@@ -3,14 +3,12 @@
 common_cancel = 取消
 common_done = 完畢
 common_secret_phrase = 秘密短語
-common_next = 下一步
 common_copy = 複製
 common_share = 共享
 common_continue = 繼續
 common_provider = 供應商
-common_loading = 装载中
+common_loading = 載入中
 common_address = 地址
-common_back = 返回
 common_try_again = 重試
 common_paste = 粘貼
 common_delete = 刪除
@@ -26,7 +24,6 @@ common_phrase = 助記詞
 common_manage = 管理
 common_type = 類型
 common_no_results_found = 未找到結果
-common_yes = 是
 common_no = 否
 common_none = 無
 common_url = 網址
@@ -40,21 +37,17 @@ common_unpin = 取消置頂
 common_skip = 跳過
 common_warning = 警告
 common_learn_more = 了解更多
-common_short_name = Gem
 common_description = 描述
 common_emoji = 表情符號
-common_style = 風格
 common_avatar = 頭像
-common_photo = 照片
 common_save = 儲存
-common_edit = 編輯
 common_percentage = 百分比
 common_details = 詳情
 common_info = 資訊
 common_get_started = 開始使用
 common_earn = 賺取
 common_method = 方法
-common_token = 令牌
+common_token = 代幣
 common_suspicious_address = 可疑地址
 common_refresh = 重新整理
 common_no_thanks = 不用，謝謝
@@ -85,7 +78,7 @@ wallet_scan = 掃描
 wallet_default_name = 錢包 #%d
 wallet_default_name_chain = %@ 錢包 #%d
 wallet_copy_address = 複製地址
-wallet_watch_tooltip_title = 正在觀察這個錢包。
+wallet_watch_tooltip_title = 您正在觀察此錢包。
 wallet_stake = 質押
 wallet_receive_no_memo_required = 不需要備忘
 wallet_receive_no_destination_tag_required = 不需要目的地標籤
@@ -99,8 +92,8 @@ wallet_import_address_warning = 您可以查看此地址的餘額和交易，但
 wallet_deposit = 轉入
 wallet_withdraw = 提領
 wallet_available_balance = 可用： %@
-wallet_portfolio_title = 資料夾
-wallet_import_already_imported_message = 這個錢包已經進口了。
+wallet_portfolio_title = 投資組合
+wallet_import_already_imported_message = 此錢包已匯入。
 
 # Wallets
 
@@ -110,14 +103,14 @@ wallets_watch = 觀察
 # Receive
 
 receive_title = 接收%@
-receive_warning = 這是您的地址—請僅發送郵件 %@ 在 %@ 網路。
+receive_warning = 這是您的地址——請僅發送 %@，且僅在 %@ 網路上。
 
 # Buy
 
 buy_title = 購買%@
 buy_providers_title = 服務商
 buy_rate = 費率
-buy_no_results = 暫无報價
+buy_no_results = 暫無報價
 
 # Transfer
 
@@ -134,12 +127,12 @@ transfer_title = 轉賬
 transfer_recipient_address_field = 地址或域名
 transfer_send_title = 發送
 transfer_insufficient_balance = %@餘額不足
-transfer_insufficient_network_fee_balance = 餘額不足，無法支付網絡費用%@
+transfer_insufficient_network_fee_balance = %@ 餘額不足，無法支付網路費用。
 transfer_approve_title = 授權
 transfer_stake_title = 質押
 transfer_claim_rewards_title = 領取獎勵
 transfer_unstake_title = 取消質押
-transfer_redelegate_title = 重新質押
+transfer_redelegate_title = 重新委派
 transfer_withdraw_title = 贖回
 transfer_rewards_title = 獎勵
 transfer_minimum_amount = 最小金額為%@
@@ -153,7 +146,6 @@ transfer_maximum_amount = 最高金額為 %@
 transfer_reserved_fees = 我們已在您的餘額中留下%@以支付未來的網路費用。
 transfer_freeze_title = 凍結
 transfer_unfreeze_title = 解凍
-transfer_sign_transaction_title = 簽署交易
 transfer_review_request = 審查請求
 transfer_amount = 數量
 transfer_amount_title = 金額
@@ -171,7 +163,6 @@ settings_networks_title = 網路
 settings_networks_source = 來源
 settings_networks_explorer = 區塊瀏覽器
 settings_currency = 貨幣
-settings_rate_app = 評價應用
 settings_website = 訪問網站
 settings_security = 安全設置
 settings_enable_value = 開啟%@
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = 現在無法計算網路費用。
 errors_invalid_asset_address = 無效的 %@ 地址
 errors_dust_threshold = 交易失敗，因為金額太小，無法滿足%@網路的最低要求（灰塵閾值）。此限制確保交易價值涵蓋費用和處理成本。
 errors_swap_no_quote_available = 暫無報價
-errors_swap_not_supported_chain = 暫不支援該區塊鏈網絡
 errors_swap_not_supported_asset = 暫不支持該資產。
-errors_swap_not_supported_pair = 暫不支持該交易對。
 errors_connections_invalid_send_parameters = 發送交易時提供的參數無效。
 errors_connections_invalid_sign_parameters = 提供的簽名參數無效。
 errors_connections_no_supported_wallets = 暫無可用錢包
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = 可疑活動
 errors_connections_malicious_origin = 此連線來自不可信來源。
 errors_no_data_available = 暫無數據
 errors_dust_threshold_short = 網路將這筆金額視為微不足道的垃圾——手續費甚至高於金額本身。
-errors_swap_minimum_amount = 最低交易金額為 %@請輸入更高的金額。
+errors_swap_minimum_amount = 最低交易金額為 %@。請輸入更高的金額。
 errors_perpetual_trigger_price_lower = 觸發價格應低於市場價格
 errors_perpetual_trigger_price_higher = 觸發價格應高於市場價格
 errors_token_unable_fetch_token_information = 無法取得代幣資訊： %@
@@ -250,7 +239,7 @@ errors_network_offline = 網路連線似乎已斷開。
 
 # Activity
 
-activity_title = 事件
+activity_title = 活動
 activity_state_empty_title = 您的交易將顯示在此處
 activity_state_empty_description = 發起您的第一筆交易
 activity_state_empty_search_description = 清空篩選條件後將重新載入交易
@@ -271,7 +260,7 @@ update_app_downloading = 下載中...
 transaction_recipient = 接收人
 transaction_sender = 發送人
 transaction_date = 日期
-transaction_view_on = 在%@上查看
+transaction_view_on = 在 %@ 上查看
 transaction_status = 狀態
 transaction_status_confirmed = 成功
 transaction_status_pending = 等待確認
@@ -291,7 +280,6 @@ asset_balances_available = 可用餘額
 asset_price = 價格
 asset_market_cap = 市值
 asset_trading_volume = 交易量（24小時）
-asset_market_cap_rank = 市值排名
 asset_total_supply = 總供應量
 asset_circulating_supply = 循環供應
 asset_balances_reserved = 系統保留
@@ -305,7 +293,7 @@ asset_contract = 合約
 asset_state_empty_title = 交易將顯示在此處
 asset_state_empty_description = 接收、兌換或購買%@
 asset_verification_unverified = 未驗證
-asset_verification_suspicious = 可疑的
+asset_verification_suspicious = 可疑
 asset_verification_warning_title = 了解您正在新增的內容
 asset_verification_warning_message = 任何人都可以創建，包括假冒或惡意代幣。
 asset_buy_asset = 購買%@
@@ -324,7 +312,7 @@ charts_week = 1週
 charts_month = 1月
 charts_year = 1年
 charts_all = 全部
-charts_entry = 參賽作品
+charts_entry = 進場價
 charts_price_open = 打開
 charts_price_close = 關閉
 charts_price_high = 高的
@@ -343,11 +331,9 @@ wallet_connect_connection_title = 聯繫
 wallet_connect_disconnect = 斷開
 wallet_connect_connect_title = 連接
 wallet_connect_app = 應用程式
-wallet_connect_website = 網站
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = 沒有活動連接
 wallet_connect_state_empty_description = 掃描或複製連結以連接到DApp
-wallet_connect_domain = 網域
 wallet_connect_permissions_title = 權限
 wallet_connect_permissions_view_balance = 查看您的餘額和活動
 wallet_connect_permissions_approval_requests = 發送審批請求
@@ -358,8 +344,8 @@ swap_you_pay = 將支付
 swap_you_receive = 將收到
 swap_price_impact = 價格影響
 swap_slippage = 滑點
-swap_price_impact_warning_description = 您將在本次交易中損失%@ %@總金額。您確定要繼續嗎？
-swap_price_impact_warning_title = 滑點巨大
+swap_price_impact_warning_description = 您將在本次交易中損失 %@，這是您 %@ 的一部分。您確定要繼續嗎？
+swap_price_impact_warning_title = 價格影響過大
 swap_estimated_time_title = 預估時間
 swap_min_receive = 最少接收
 swap_use_minimum_amount = 使用最低金額
@@ -375,17 +361,15 @@ stake_apr = 年化 %@
 stake_available_in = 可用於
 stake_inactive = 未啟用
 stake_lock_time = 鎖定時間
-stake_activating = 啟用設定
+stake_activating = 啟用中
 stake_deactivating = 停用
 stake_awaiting_withdrawal = 等待贖回
 stake_active_in = 激活於
 stake_minimum_amount = 最低金額
-stake_viagem = 透過 Gem 錢包質押
-stake_no_active_staking = 當前沒有啟用的質押
 stake_state_empty_title = 您的質押將顯示在這裡️
 stake_state_empty_description = 質押第一個%@
 stake_resource = 資源
-stake_resource_energy = 活力
+stake_resource_energy = 能量
 stake_resource_bandwidth = 頻寬
 stake_delegations = 委託
 
@@ -400,19 +384,18 @@ assets_tags_gainers = 漲幅榜
 assets_tags_losers = 跌幅榜
 assets_tags_new = 新的
 assets_tags_stablecoins = 穩定幣
-assets_state_empty_search_description = 请嘗試手動新增
+assets_state_empty_search_description = 請嘗試手動新增
 assets_title = 資產
 
 # Sign Message
 
-sign_message_title = 簽名訊息
 sign_message_message = 訊息
 sign_message_view_full_message = 查看完整訊息
 
 # Secret Phrase
 
 secret_phrase_do_not_share_title = 切勿洩漏助記詞！
-secret_phrase_do_not_share_description = 任何人只要擁有助記詞，就能完全控制这个錢包！
+secret_phrase_do_not_share_description = 任何人只要擁有助記詞，就能完全控制您的錢包！
 secret_phrase_save_phrase_safely = 請將助記詞保存在安全位置，\n且只有您可以掌控。
 secret_phrase_confirm_quick_test_title = 完成這個快速測試，以確認您已正確保存所有內容
 secret_phrase_screenshot_detected_title = 偵測到螢幕截圖
@@ -477,7 +460,7 @@ banner_asset_status_title = 可疑資產
 banner_asset_status_description = 代幣可能不安全或具有誤導性。請僅在完全信任的情況下繼續操作。
 banner_onboarding_title = 您的錢包已準備就緒
 banner_onboarding_description = 購買或接收加密貨幣即可開始
-banner_perpetuals_title = 在超流動性上交易永續合約
+banner_perpetuals_title = 在 Hyperliquid 上交易永續合約
 banner_perpetuals_description = 使用 Hyperliquid 永續合約進行存款、交易和賺取收益
 
 # Filter
@@ -548,14 +531,12 @@ info_slippage_description = 滑點是指交易預期價格與實際成交價格�
 info_asset_status_unverified_description = 未驗證代幣是指未經可信任第三方服務充分驗證的代幣。它們可能因空投、轉帳或手動匯入而出現在您的錢包中。
 info_asset_status_suspicious_description = 可疑或垃圾代幣會被識別為潛在的詐騙或有害資產。它們可能因空投、轉帳或手動匯入而出現在您的錢包中。
 info_insufficient_network_fee_balance_title = 需要%@
-info_insufficient_network_fee_balance_description = 此交易需要 %@ 用於支付網路費用 %@ 礦工，而不是 Gem Wallet確保你有足夠的 %@。
+info_insufficient_network_fee_balance_description = 此交易需要 %@ 用於支付網路費用 %@ 礦工，而不是 Gem Wallet。確保你有足夠的 %@。
 info_insufficient_balance_title = 餘額不足
 info_insufficient_balance_description = 您的餘額不足%@ ，無法完成此交易。請充值、接收或兌換您的錢包，然後重試。
 info_account_minimum_balance_title = 最低餘額
 info_perpetual_funding_payments_title = 資金費用
 info_perpetual_funding_payments_description = 資金費用是交易者之間的定期支付，用以使永續合約價格接近標的資產的現貨價格。正向資金費用表示多頭支付空頭，負向資金費用則表示空頭支付多頭。
-info_perpetual_funding_rate_title = 資金費率
-info_perpetual_funding_rate_description = 資金費率決定持有永續合約的成本，按小時計算，有助於維持永續合約與標的資產現貨價格之間的價格平衡。
 info_perpetual_liquidation_price_title = 強制平倉價格
 info_perpetual_liquidation_price_description = 強制平倉價格是當您的持倉價格達到此水平時，系統會自動平倉以防止進一步損失。當市場價格觸及此價格，您的持倉將被清算，並損失保證金。
 info_perpetual_open_interest_title = 未平倉合約量
@@ -564,14 +545,14 @@ info_no_quote_description = 無法返回所選代幣對的報價，可能是由�
 info_stake_reserved_title = 預留網路費用
 info_stake_reserved_description = 您的錢包中會留有少量資金，用於支付取消質押或領取獎勵等操作的費用。
 info_stake_apr_description = 年利率（APR）是質押加密貨幣的年度報酬率。
-info_perpetual_auto_close_description = 以設定的價格自動平倉。停盈鎖定收益，停損限制損失。
+info_perpetual_auto_close_description = 以設定的價格自動平倉。止盈鎖定收益，止損限制損失。
 info_fully_diluted_valuation_title = 完全稀釋估值
 info_fully_diluted_valuation_description = 如果所有硬幣都在流通，其理論市場價值為：價格乘以最大供應量。
 info_circulating_supply_description = 目前市場上可供交易的加密貨幣數量。
 info_total_supply_description = 現存硬幣總數，包括已鎖定或已預留的硬幣。
 info_max_supply_title = 最大供應
 info_max_supply_description = 硬幣的最大存世量。
-info_perpetual_funding_apr_title = 資助年利率
+info_perpetual_funding_apr_title = 資金費率年化
 info_perpetual_funding_apr_description = 多頭支付空頭的年化利率（如果為負，則空頭支付多頭）。融資不收取任何費用，融資是用戶之間的點對點轉賬，旨在將價格推向現貨價格。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = 在 %@ 網路上，此交易的最低金額為 %@。
@@ -589,7 +570,7 @@ nft_save_to_photos = 儲存到照片
 nft_set_as_avatar = 設為頭像
 nft_state_empty_title = NFT 將顯示在這裡️
 nft_state_empty_description = 接收第一個 NFT
-nft_report_reason_spam = 垃圾郵件
+nft_report_reason_spam = 垃圾內容
 nft_report_reason_malicious = 惡意
 nft_report_reason_inappropriate = 不當內容
 nft_report_reason_copyright = 版權
@@ -633,13 +614,12 @@ onboarding_accept_terms_continue = 我了解，繼續
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
 perpetual_positions = 倉位
 perpetual_size = 倉位大小
-perpetual_margin = 利潤
+perpetual_margin = 保證金
 perpetual_position = 倉位
 perpetual_close_position = 平倉
 perpetual_pnl = 損益
@@ -648,13 +628,12 @@ perpetual_short = 做空
 perpetual_entry_price = 入場價格
 perpetual_modify = 調整
 perpetual_reduce_position = 減倉
-perpetual_increase_position = 增加職位
+perpetual_increase_position = 增加倉位
 perpetual_open_direction = 打開%@
 perpetual_close_direction = 關閉%@
-perpetual_leverage = 槓桿作用
-perpetual_direction = 方向
+perpetual_leverage = 槓桿
 perpetual_auto_close = 自動關閉
-perpetual_auto_close_take_profit = 獲利
+perpetual_auto_close_take_profit = 止盈
 perpetual_market_price = 市價
 perpetual_take_profit = TP
 perpetual_stop_loss = SL
@@ -663,20 +642,20 @@ perpetual_increase_direction = 增加%@
 perpetual_reduce_direction = 減少%@
 perpetual_auto_close_expected_profit = 預期利潤
 perpetual_auto_close_expected_loss = 預期損失
-perpetual_modify_position = 修改位置
+perpetual_modify_position = 修改倉位
 perpetual_auto_close_stop_loss = 停損
 perpetual_value = 價值
 perpetual_unrealized_pnl = 未實現損益
-perpetual_volume = 體積
+perpetual_volume = 成交量
 perpetual_all_time_pnl = 總損益
-perpetual_margin_usage = 邊際利用率
+perpetual_margin_usage = 保證金使用率
 perpetual_account_leverage = 帳戶槓桿
-perpetual_margin_cross = 克羅斯
-perpetual_margin_isolated = 隔離
+perpetual_margin_cross = 全倉
+perpetual_margin_isolated = 逐倉
 
 # Perpetuals
 
-perpetuals_title = 永久
+perpetuals_title = 永續合約
 perpetuals_markets = 市場
 perpetuals_empty_state_no_markets = 沒有市場
 perpetuals_empty_state_no_markets_found = 未找到任何市場
@@ -691,7 +670,7 @@ rewards_invite_friends_description = 賺 %@ 每邀請一位好友加入，即可
 rewards_referral_code = 推薦碼
 rewards_invited_by = 邀請者
 rewards_points = 積分
-rewards_referrals = 轉診
+rewards_referrals = 推薦
 rewards_earn_points_title = 賺取積分
 rewards_get_rewards_title = 獲得獎勵
 rewards_activate_referral_code_description = 有朋友的推薦碼嗎？
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = 您最近使用過的資源將顯示�
 
 notifications_inapp_state_empty_title = 暫無通知
 notifications_inapp_state_empty_description = 您可以在這裡查看通知更新。
-notifications_inapp_rewards_invite_subtitle = 邀請好友，一起贏取獎勵
 
 # Earn
 

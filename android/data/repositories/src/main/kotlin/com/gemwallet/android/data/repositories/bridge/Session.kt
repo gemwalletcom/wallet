@@ -7,7 +7,6 @@ import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.ext.walletConnectIcon
-import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.ChainType
@@ -16,7 +15,7 @@ import com.wallet.core.primitives.Wallet as GemWallet
 import uniffi.gemstone.ChainAddress as WalletConnectChainAddress
 import uniffi.gemstone.WalletConnect
 
-internal fun Wallet.Model.Session.toConnectionRecord(
+internal fun WalletConnectSession.toConnectionRecord(
     walletId: String,
     createdAt: Long,
 ): DbConnection {
@@ -28,16 +27,16 @@ internal fun Wallet.Model.Session.toConnectionRecord(
         chains = accounts().map { it.chain }.distinct(),
         createdAt = createdAt,
         expireAt = expiry.secondsToMillis(),
-        appName = walletConnectAppName(metaData?.name, metaData?.url),
-        appDescription = metaData?.description ?: "",
-        appUrl = metaData?.url ?: "",
-        appIcon = metaData?.icons.walletConnectIcon(),
+        appName = walletConnectAppName(metadata?.name, metadata?.url),
+        appDescription = metadata?.description ?: "",
+        appUrl = metadata?.url ?: "",
+        appIcon = listOf(metadata?.icon.orEmpty()).walletConnectIcon(),
         redirectNative = redirect,
         redirectUniversal = redirect,
     )
 }
 
-internal fun Wallet.Model.Session.accounts(): List<ChainAddress> {
+internal fun WalletConnectSession.accounts(): List<ChainAddress> {
     val walletConnect = WalletConnect()
     return namespaces.values
         .flatMap { it.accounts }
@@ -49,7 +48,7 @@ private fun WalletConnectChainAddress.toPrimitives(): ChainAddress? {
     return ChainAddress(chain, address)
 }
 
-internal fun Wallet.Model.Session.belongsTo(wallet: GemWallet): Boolean {
+internal fun WalletConnectSession.belongsTo(wallet: GemWallet): Boolean {
     return accounts().belongsTo(wallet)
 }
 

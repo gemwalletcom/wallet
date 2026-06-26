@@ -9,7 +9,7 @@ use dynode::monitoring::{NodeMonitor, NodeService};
 use dynode::proxy::{ProxyRequestBuilder, ProxyResponse};
 use dynode::response::{ErrorResponse, ProxyRocketResponse};
 use dynode::webhook::DynodeBroadcastWebhookClient;
-use gem_tracing::{error_fields, info_with_fields};
+use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::Chain;
 use reqwest::Method;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
@@ -96,8 +96,18 @@ async fn process_proxy(chain: Chain, method: Method, request: &Request<'_>, data
         }
     };
 
-    node_service.handle_request(proxy_request).await.map_err(|_| {
-        error_fields!("Proxy request failed");
+    let request_for_log = proxy_request.clone();
+    node_service.handle_request(proxy_request).await.map_err(|err| {
+        error_with_fields!(
+            "Proxy request failed",
+            err.as_ref(),
+            id = request_for_log.id.as_str(),
+            chain = request_for_log.chain.as_ref(),
+            method = request_for_log.method.as_str(),
+            uri = request_for_log.path.as_str(),
+            user_agent = request_for_log.user_agent.as_str(),
+            latency = DurationMs(request_for_log.elapsed()),
+        );
         ErrorResponse::new(Status::InternalServerError, "Proxy request failed".to_string())
     })
 }

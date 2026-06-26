@@ -85,29 +85,11 @@ extension BalanceService {
         try balanceStore.getBalance(walletId: walletId, assetId: assetId)
     }
 
-    public func addAssetsBalancesIfMissing(assetIds: [AssetId], wallet: Wallet, isEnabled: Bool?) throws {
-        let walletId = wallet.id
-        let balancesAssetIds = try balanceStore
-            .getBalances(walletId: walletId, assetIds: assetIds)
-            .map(\.assetId)
-        let missingBalancesAssetIds = assetIds.asSet().subtracting(balancesAssetIds)
-
-        try addBalance(
-            walletId: walletId,
-            balances: missingBalancesAssetIds.map {
-                AddBalance(
-                    assetId: $0,
-                    isEnabled: isEnabled ?? false,
-                )
-            },
-        )
+    public func addAssetsBalancesIfMissing(assetIds: [AssetId], wallet: Wallet, isEnabled: Bool) throws {
+        try balanceStore.addBalance(assetIds: assetIds, isEnabled: isEnabled, for: wallet.id)
     }
 
     // MARK: - Private Helpers
-
-    private func addBalance(walletId: WalletId, balances: [AddBalance]) throws {
-        try balanceStore.addBalance(balances, for: walletId)
-    }
 
     @discardableResult
     private func updateCoinBalance(walletId: WalletId, asset: AssetId, address: String) async -> [AssetBalanceChange] {
@@ -227,14 +209,7 @@ extension BalanceService {
     }
 
     private func updateBalances(_ balances: [UpdateBalance], walletId: WalletId) throws {
-        let assetIds = balances.map(\.assetId)
-        let existBalances = try balanceStore.getBalances(walletId: walletId, assetIds: assetIds)
-        let missingBalances = assetIds.asSet().subtracting(existBalances.map(\.assetId))
-        let addBalances: [AddBalance] = missingBalances.map {
-            AddBalance(assetId: $0, isEnabled: false)
-        }
-
-        try balanceStore.addBalance(addBalances, for: walletId)
+        try balanceStore.addBalance(assetIds: balances.map(\.assetId), isEnabled: false, for: walletId)
         try balanceStore.updateBalances(balances, for: walletId)
     }
 }

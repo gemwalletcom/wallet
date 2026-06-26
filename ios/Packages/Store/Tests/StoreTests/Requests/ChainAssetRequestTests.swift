@@ -32,4 +32,22 @@ struct ChainAssetRequestTests {
             #expect(result.feeAssetData.asset.id == token.chain.assetId)
         }
     }
+
+    @Test
+    func fetchTokenWithoutBalance() throws {
+        let db = DB.mockAssets()
+        let token = Asset.mockEthereumUSDT()
+        let balanceStore = BalanceStore(db: db)
+
+        try balanceStore.deleteBalance(assetId: token.id)
+
+        try db.dbQueue.read { db in
+            let result = try ChainAssetRequest(walletId: .mock(), assetId: token.id).fetch(db)
+
+            #expect(result.assetData.asset.id == token.id)
+            #expect(result.assetData.balance == .zero)
+            #expect(result.assetData.metadata.isBalanceEnabled == false)
+            #expect(result.feeAssetData.asset.id == token.chain.assetId)
+        }
+    }
 }

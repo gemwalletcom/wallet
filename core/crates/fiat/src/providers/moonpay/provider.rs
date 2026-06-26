@@ -129,3 +129,40 @@ mod fiat_integration_tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{FiatProvider, providers::moonpay::client::MoonPayClient};
+    use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
+    use streamer::FiatWebhook;
+
+    fn client() -> MoonPayClient {
+        MoonPayClient::new(reqwest::Client::new(), String::new(), String::new())
+    }
+
+    fn assert_transaction(webhook: FiatWebhook, expected: FiatTransactionUpdate) {
+        match webhook {
+            FiatWebhook::Transaction(transaction) => assert_eq!(transaction, expected),
+            webhook => panic!("unexpected webhook: {webhook:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_process_webhook_accepts_wrapped_transaction() {
+        let webhook_data = serde_json::from_str(include_str!("../../../testdata/moonpay/webhook_buy_complete.json")).unwrap();
+
+        let result = client().process_webhook(webhook_data).await.unwrap();
+
+        assert_transaction(
+            result,
+            FiatTransactionUpdate {
+                transaction_id: "1b6cdb1e-9299-45b1-9670-54db1ea5a21f".to_string(),
+                provider_transaction_id: None,
+                status: FiatTransactionStatus::Failed,
+                transaction_hash: None,
+                fiat_amount: Some(20.0),
+                fiat_currency: Some("USD".to_string()),
+            },
+        );
+    }
+}

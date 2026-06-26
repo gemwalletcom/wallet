@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -54,9 +55,9 @@ public final class AddressInputViewModel {
 
     public var resolvedAddress: String {
         if let resolved = nameResolveState.result {
-            return resolved.address
+            return chain.checksumAddress(resolved.address)
         }
-        return inputModel.text.trim()
+        return chain.checksumAddress(inputModel.text)
     }
 
     @discardableResult

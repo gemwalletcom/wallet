@@ -23,6 +23,7 @@ fun DevelopScene(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
+    val deviceId by viewModel.deviceId.collectAsState()
     val pushToken by viewModel.pushToken.collectAsState()
     Scene(
         title = stringResource(id = R.string.settings_developer),
@@ -44,8 +45,8 @@ fun DevelopScene(
                 }
             }
             item {
-                PropertyItem("Device Id", data = viewModel.getDeviceId()) {
-                    clipboardManager.setPlainText(context, viewModel.getDeviceId())
+                PropertyItem("Device Id", data = deviceId.ifEmpty { "-" }) {
+                    clipboardManager.setPlainText(context, deviceId)
                 }
                 PropertyItem("Push token", data = pushToken.ifEmpty { "-" }) {
                     clipboardManager.setPlainText(context, pushToken)

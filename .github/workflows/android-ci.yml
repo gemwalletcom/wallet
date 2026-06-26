@@ -3,8 +3,22 @@ name: Android Tests
 on:
   push:
     branches: ["main"]
+    paths:
+      - "android/**"
+      - "core/**"
+      - "localization/**"
+      - ".gitmodules"
+      - ".github/actions/**"
+      - ".github/workflows/android-ci.yml"
   pull_request:
     branches: ["main"]
+    paths:
+      - "android/**"
+      - "core/**"
+      - "localization/**"
+      - ".gitmodules"
+      - ".github/actions/**"
+      - ".github/workflows/android-ci.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,27 +40,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
 
       - name: Setup Android CI
         uses: ./.github/actions/setup-android-ci
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+
       - name: Bootstrap
         run: just bootstrap
 
-      - name: Clean Android build outputs
-        run: just clean
-
-      - name: Build
-        run: just build
-        env:
-          GPR_USERNAME: ${{ github.actor }}
-          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run unit tests
-        run: just test
+      - name: Build and run unit tests
+        run: just ci-test
         env:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,3 @@
-use alloy_primitives::U256;
-use std::str::FromStr;
-
 pub mod across;
 pub mod address;
 pub mod address_deserializer;
@@ -46,11 +43,3 @@ pub const ETHEREUM_MESSAGE_PREFIX: &str = "\x19Ethereum Signed Message:\n";
 pub use address::{EthereumAddress, ethereum_address_checksum, validate_address};
 pub use eip712::{EIP712Domain, EIP712Field, EIP712Type, EIP712TypedValue, eip712_domain_types};
 pub use primitives::contract_constants::EVM_ZERO_ADDRESS;
-
-pub fn parse_u256(value: &str) -> Option<U256> {
-    if let Some(stripped) = value.strip_prefix("0x") {
-        U256::from_str_radix(stripped, 16).ok()
-    } else {
-        U256::from_str(value).ok()
-    }
-}

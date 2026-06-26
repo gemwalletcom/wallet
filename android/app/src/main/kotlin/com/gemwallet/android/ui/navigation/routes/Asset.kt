@@ -2,14 +2,12 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
-import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.features.asset.presents.chart.AssetChartScene
+import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsScreen
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
 
 const val assetsRoute = "assets"
@@ -21,34 +19,12 @@ data class AssetRoute(val assetId: AssetId) : NavKey
 data class AssetChartRoute(val assetId: AssetId) : NavKey
 
 fun EntryProviderScope<NavKey>.assetScreen(
-    onCancel: () -> Unit,
-    onTransfer: AssetIdAction,
-    onReceive: (AssetId) -> Unit,
-    onBuy: (AssetId) -> Unit,
-    onSwap: (AssetId, AssetId?) -> Unit,
-    onTransaction: (TransactionId) -> Unit,
-    onChart: (AssetId) -> Unit,
-    openNetwork: AssetIdAction,
-    onStake: (AssetId) -> Unit,
-    onConfirm: (ConfirmParams) -> Unit,
-    onPriceAlerts: (AssetId) -> Unit,
+    onAction: (AssetDetailsAction.Navigation) -> Unit,
 ) {
     entry<AssetRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
-        AssetDetailsScreen(
-            onCancel = onCancel,
-            onTransfer = onTransfer,
-            onReceive = onReceive,
-            onBuy = onBuy,
-            onSwap = onSwap,
-            onTransaction = onTransaction,
-            onChart = onChart,
-            openNetwork = openNetwork,
-            onStake = onStake,
-            onConfirm = onConfirm,
-            onPriceAlerts = onPriceAlerts
-        )
+        AssetDetailsScreen(onAction = onAction)
     }
 }
 

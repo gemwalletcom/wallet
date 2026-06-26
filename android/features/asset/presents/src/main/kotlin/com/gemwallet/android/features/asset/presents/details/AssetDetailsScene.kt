@@ -20,12 +20,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getReserveBalanceUrl
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.asset.presents.details.components.AssetDetailsMenu
 import com.gemwallet.android.features.asset.presents.details.components.AssetHeadItem
@@ -38,9 +36,7 @@ import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
-import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,29 +47,15 @@ internal fun AssetDetailsScene(
     priceAlertEnabled: Boolean,
     priceAlertsCount: Int,
     isRefreshing: Boolean,
-    onRefresh: () -> Unit,
-    onCancel: () -> Unit,
-    onTransfer: AssetIdAction,
-    onReceive: (AssetId) -> Unit,
-    onBuy: (AssetId) -> Unit,
-    onSwap: (AssetId, AssetId?) -> Unit,
-    onTransaction: (TransactionId) -> Unit,
-    onChart: (AssetId) -> Unit,
-    openNetwork: AssetIdAction,
-    onStake: (AssetId) -> Unit,
-    togglePriceAlert: (AssetId) -> Unit,
-    onPriceAlerts: (AssetId) -> Unit,
-    onConfirm: (ConfirmParams) -> Unit,
-    onPin: () -> Unit,
-    onAdd: () -> Unit,
     isOperationEnabled: Boolean,
+    onAction: (AssetDetailsAction) -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val snackBar = remember { SnackbarHostState() }
     val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
-        { onSwap(uiState.asset.id, if (uiState.asset.type == AssetType.NATIVE) null else uiState.asset.id.chain.asset().id) }
+        { onAction(AssetDetailsAction.Swap(uiState.asset.id, if (uiState.asset.type == AssetType.NATIVE) null else uiState.asset.id.chain.asset().id)) }
     } else {
         null
     }
@@ -94,16 +76,16 @@ internal fun AssetDetailsScene(
                 uiState = uiState,
                 priceAlertEnabled = priceAlertEnabled,
                 snackBar = snackBar,
-                onPriceAlert = togglePriceAlert,
+                onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },
             )
         },
-        onClose = onCancel,
+        onClose = { onAction(AssetDetailsAction.Close) },
         snackbar = snackBar,
     ) {
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
+            onRefresh = { onAction(AssetDetailsAction.Refresh) },
             state = pullToRefreshState,
             indicator = {
                 PullToRefreshDefaults.Indicator(
@@ -121,17 +103,17 @@ internal fun AssetDetailsScene(
                     AssetHeadItem(
                         uiState = uiState,
                         isOperationEnabled = isOperationEnabled,
-                        onTransfer = onTransfer,
-                        onReceive = onReceive,
-                        onBuy = onBuy,
+                        onTransfer = { onAction(AssetDetailsAction.Transfer(it)) },
+                        onReceive = { onAction(AssetDetailsAction.Receive(it)) },
+                        onBuy = { onAction(AssetDetailsAction.Buy(it)) },
                         onSwap = swapAction,
                     )
                 }
-                item { BannerItem(uiState.assetInfo, onStake, onConfirm) }
-                manageAssetItem(uiState.assetInfo, onPin, onAdd)
+                item { BannerItem(uiState.assetInfo, { onAction(AssetDetailsAction.Stake(it)) }, { onAction(AssetDetailsAction.Confirm(it)) }) }
+                manageAssetItem(uiState.assetInfo, { onAction(AssetDetailsAction.Pin) }, { onAction(AssetDetailsAction.Add) })
                 status(uiState.asset, uiState.assetInfo.rank)
-                price(uiState, priceAlertsCount, onChart = onChart, onPriceAlerts = onPriceAlerts)
-                network(uiState, openNetwork)
+                price(uiState, priceAlertsCount, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
+                network(uiState) { onAction(AssetDetailsAction.OpenNetwork(it)) }
                 balancesHeader(uiState.accountInfoUIModel)
                 itemsPositioned(uiState.accountInfoUIModel.balances) { position, item ->
                     BalancePropertyItem(
@@ -141,7 +123,7 @@ internal fun AssetDetailsScene(
                         onAction = when (item.type) {
                             AssetInfoUIModel.BalanceViewType.Available -> null
                             AssetInfoUIModel.BalanceViewType.Stake -> {
-                                { onStake(uiState.asset.id) }
+                                { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
                             }
 
                             AssetInfoUIModel.BalanceViewType.Reserved -> {
@@ -159,11 +141,11 @@ internal fun AssetDetailsScene(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
                         isViewOnly = uiState.accountInfoUIModel.walletType == WalletType.View,
-                        onBuy = if (uiState.isBuyEnabled) { { onBuy(uiState.asset.id) } } else null,
+                        onBuy = if (uiState.isBuyEnabled) { { onAction(AssetDetailsAction.Buy(uiState.asset.id)) } } else null,
                         onSwap = if (!uiState.isBuyEnabled) swapAction else null,
                     )
                 }
-                transactionsList(transactions, onTransaction)
+                transactionsList(transactions) { onAction(AssetDetailsAction.OpenTransaction(it)) }
             }
         }
     }

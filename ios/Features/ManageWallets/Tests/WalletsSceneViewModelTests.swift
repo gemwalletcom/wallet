@@ -32,25 +32,6 @@ struct WalletsSceneViewModelTests {
 
         #expect(model.currentWalletId == .none)
     }
-
-    @Test
-    func onMove() throws {
-        let service: WalletService = try .mockWallets()
-        let model = WalletsSceneViewModel.mock(walletService: service)
-        model.walletsQuery.value = service.wallets
-
-        model.onMove(from: IndexSet(integer: 0), to: 0)
-        #expect(service.sortedWallets.ids == [.multicoin(address: "0x1"), .multicoin(address: "0x2"), .multicoin(address: "0x3")])
-
-        model.onMove(from: IndexSet(integer: 1), to: 0)
-        #expect(service.sortedWallets.ids == [.multicoin(address: "0x2"), .multicoin(address: "0x1"), .multicoin(address: "0x3")])
-
-        model.onMove(from: IndexSet(integer: 0), to: 3)
-        #expect(service.sortedWallets.ids == [.multicoin(address: "0x3"), .multicoin(address: "0x2"), .multicoin(address: "0x1")])
-
-        model.onMove(from: IndexSet(integer: 2), to: 0)
-        #expect(service.sortedWallets.ids == [.multicoin(address: "0x2"), .multicoin(address: "0x1"), .multicoin(address: "0x3")])
-    }
 }
 
 // MARK: - Mock Extensions
@@ -85,9 +66,5 @@ extension WalletService {
         service.setCurrent(for: wallet1.id)
 
         return service
-    }
-
-    var sortedWallets: [Wallet] {
-        wallets.sorted { $0.order < $1.order }
     }
 }

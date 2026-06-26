@@ -25,7 +25,7 @@ impl AssetsIndexUpdater {
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {
         let sync = self.sync_client.for_key(ConfigKey::SearchAssetsLastUpdatedAt)?;
         let filters = sync.since().map(AssetsWithPricesFilter::UpdatedSince).into_iter().collect();
-        let prices = self.database.prices()?.get_assets_with_prices_by_filter(filters, self.primary_price_max_age)?;
+        let prices = self.database.prices()?.get_assets_with_prices(filters, self.primary_price_max_age)?;
 
         if prices.is_empty() {
             return sync.write(ASSETS_INDEX_NAME, Vec::<AssetDocument>::new()).await;

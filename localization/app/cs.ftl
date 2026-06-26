@@ -3,16 +3,14 @@
 common_cancel = Zrušit
 common_done = Hotovo
 common_secret_phrase = Tajná fráze
-common_next = Další
-common_copy = Kopie
-common_share = Podíl
+common_copy = Kopírovat
+common_share = Sdílet
 common_continue = Pokračovat
 common_provider = Poskytovatel
 common_loading = Načítání
 common_address = Adresa
-common_back = Zadní
 common_try_again = Zkuste to znovu
-common_paste = Pasta
+common_paste = Vložit
 common_delete = Vymazat
 common_delete_confirmation = Opravdu chcete smazat %@?
 common_hide = Skrýt
@@ -26,35 +24,30 @@ common_phrase = Fráze
 common_manage = Spravovat
 common_type = Typ
 common_no_results_found = Nebyly nalezeny žádné výsledky
-common_yes = Ano
-common_no = Žádný
-common_none = Žádné
+common_no = Ne
+common_none = Žádná
 common_url = URL
 common_private_key = Soukromý klíč
 common_latency_in_ms = %d ms
 common_open_settings = Otevřete nastavení
-common_pin = Kolík
+common_pin = Připnout
 common_pinned = Připnuto
 common_lists = Seznamy
 common_unpin = Odepnout
 common_skip = Přeskočit
 common_warning = Varování
 common_learn_more = Další informace
-common_short_name = Gem
 common_description = Popis
 common_emoji = Emoji
-common_style = Styl
 common_avatar = Avatar
-common_photo = Fotografie
 common_save = Uložit
-common_edit = Upravit
 common_percentage = Procento
 common_details = Podrobnosti
 common_info = Informace
 common_get_started = Začít
 common_earn = Vydělat
 common_method = Metoda
-common_token = Žeton
+common_token = Token
 common_suspicious_address = Podezřelá adresa
 common_refresh = Obnovit
 common_no_thanks = Ne, děkuji
@@ -70,7 +63,7 @@ welcome_title = Vítejte v Gem Family
 wallet_create_new_wallet = Vytvořte novou peněženku
 wallet_import_existing_wallet = Importovat existující peněženku
 wallet_send = Poslat
-wallet_receive = Dostávat
+wallet_receive = Přijmout
 wallet_buy = Nakoupit
 wallet_swap = Výměna
 wallet_import_title = Importovat peněženku
@@ -86,7 +79,7 @@ wallet_default_name = Peněženka č. %d
 wallet_default_name_chain = %@ Peněženka č.%d
 wallet_copy_address = Kopírovat adresu
 wallet_watch_tooltip_title = Sledujete tuto peněženku.
-wallet_stake = kůl
+wallet_stake = Stake
 wallet_receive_no_memo_required = Není potřeba žádná poznámka
 wallet_receive_no_destination_tag_required = Není vyžadována žádná cílová značka
 wallet_title = Peněženka
@@ -105,7 +98,7 @@ wallet_import_already_imported_message = Tato peněženka již byla importována
 # Wallets
 
 wallets_title = Peněženky
-wallets_watch = Hodinky
+wallets_watch = Sledovat
 
 # Receive
 
@@ -116,7 +109,7 @@ receive_warning = Toto je vaše adresa – pouze pro odeslání %@ na %@ síť.
 
 buy_title = Koupit %@
 buy_providers_title = Poskytovatelé
-buy_rate = Hodnotit
+buy_rate = Kurz
 buy_no_results = Nejsou k dispozici žádné nabídky
 
 # Transfer
@@ -135,10 +128,10 @@ transfer_recipient_address_field = Adresa nebo Jméno
 transfer_send_title = Poslat
 transfer_insufficient_balance = Nedostatečný zůstatek %@.
 transfer_insufficient_network_fee_balance = Nedostatečný zůstatek %@ na pokrytí síťových poplatků.
-transfer_approve_title = Schvalovat
+transfer_approve_title = Schválit
 transfer_stake_title = Vsadit
 transfer_claim_rewards_title = Nárokujte si odměny
-transfer_unstake_title = Odsadit
+transfer_unstake_title = Zrušit stake
 transfer_redelegate_title = Znovu delegovat
 transfer_withdraw_title = Výběr
 transfer_rewards_title = Odměny
@@ -153,7 +146,6 @@ transfer_maximum_amount = Maximální částka je %@
 transfer_reserved_fees = Na vašem zůstatku jsme nechali %@ na pokrytí budoucích poplatků za síť.
 transfer_freeze_title = Zmrazit
 transfer_unfreeze_title = Uvolnit
-transfer_sign_transaction_title = Podepsat transakci
 transfer_review_request = Žádost o kontrolu
 transfer_amount = Množství
 transfer_amount_title = Množství
@@ -167,11 +159,10 @@ settings_developer = Vývojář
 settings_version = Verze
 settings_community = Společenství
 settings_aboutus = O nás
-settings_networks_title = sítě
+settings_networks_title = Sítě
 settings_networks_source = Zdroj
-settings_networks_explorer = Badatel
+settings_networks_explorer = Průzkumník
 settings_currency = Měna
-settings_rate_app = Ohodnoťte aplikaci
 settings_website = Navštivte webové stránky
 settings_security = Zabezpečení
 settings_enable_value = Povolit %@
@@ -182,7 +173,7 @@ settings_language = Jazyk
 settings_help_center = Centrum nápovědy
 settings_support = Podpora
 settings_price_alerts_title = Upozornění na cenu
-settings_hide_balance = Skrýt rovnováhu
+settings_hide_balance = Skrýt zůstatek
 settings_disable_value = Zakázat %@
 settings_preferences_title = Předvolby
 settings_preferences_perpetual_default_leverage = Výchozí pákový efekt
@@ -222,16 +213,14 @@ errors_unable_estimate_network_fee = V současné době nejsme schopni vypočít
 errors_invalid_asset_address = Neplatná adresa %@
 errors_dust_threshold = Transakce se nezdařila, protože částka je příliš malá na to, aby splnila minimální požadavek sítě %@ (prahová hodnota prachu). Tento limit zajišťuje, že hodnota transakce pokryje poplatky a náklady na zpracování.
 errors_swap_no_quote_available = Není dostupná žádná nabídka.
-errors_swap_not_supported_chain = Nepodporovaný řetězec.
-errors_swap_not_supported_asset = Nepodporované dílo.
-errors_swap_not_supported_pair = Nepodporovaný pár.
+errors_swap_not_supported_asset = Nepodporované aktivum.
 errors_connections_invalid_send_parameters = Zadané neplatné parametry pro odeslání transakce.
 errors_connections_invalid_sign_parameters = Zadané neplatné parametry pro podepisování.
 errors_connections_no_supported_wallets = Nejsou k dispozici žádné podporované peněženky.
 errors_connections_unsupported_chain = Zadaný řetězec není podporován.
 errors_connections_unsupported_method = Požadovaná metoda není podporována.
 errors_swap_amount_too_small = Příliš malé množství
-errors_required = Je vyžadován kód %@
+errors_required = %@ je vyžadováno
 errors_scan_transaction_malicious_description = Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.
 errors_scan_transaction_memo_required = Cílová adresa peněženky %@ vyžaduje cílovou značku / poznámku
 errors_wallets_limit_title = Dosažen limit peněženek
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = Podezřelá aktivita
 errors_connections_malicious_origin = Toto spojení pochází z nedůvěryhodného zdroje.
 errors_no_data_available = Nejsou k dispozici žádná data
 errors_dust_threshold_short = Síť toto množství považuje za prach – poplatek je vyšší než samotné množství.
-errors_swap_minimum_amount = Minimální částka obchodu je %@Zadejte prosím vyšší částku.
+errors_swap_minimum_amount = Minimální částka obchodu je %@. Zadejte prosím vyšší částku.
 errors_perpetual_trigger_price_lower = Spouštěcí cena musí být nižší než tržní cena
 errors_perpetual_trigger_price_higher = Spouštěcí cena musí být vyšší než tržní cena
 errors_token_unable_fetch_token_information = Nelze načíst informace o tokenu: %@
@@ -272,11 +261,11 @@ transaction_recipient = Příjemce
 transaction_sender = Odesílatel
 transaction_date = Datum
 transaction_view_on = Zobrazit na %@
-transaction_status = Postavení
+transaction_status = Stav
 transaction_status_confirmed = Úspěšný
 transaction_status_pending = Čeká na vyřízení
 transaction_status_failed = Nepodařilo se
-transaction_status_reverted = Vrátit zpět
+transaction_status_reverted = Vráceno
 transaction_title_received = Přijato
 transaction_title_sent = Odesláno
 transaction_swap_again = Znovu vyměnit
@@ -291,7 +280,6 @@ asset_balances_available = K dispozici
 asset_price = Cena
 asset_market_cap = Tržní kapitalizace
 asset_trading_volume = Objem obchodování (24 hodin)
-asset_market_cap_rank = Pořadí tržní kapitalizace
 asset_total_supply = Celková nabídka
 asset_circulating_supply = Cirkulující zásobování
 asset_balances_reserved = Rezervováno
@@ -325,11 +313,11 @@ charts_month = 1M
 charts_year = 1Y
 charts_all = Vše
 charts_entry = Vstup
-charts_price_open = OTEVŘENO
-charts_price_close = Blízko
+charts_price_open = Otevírací
+charts_price_close = Závěrečná
 charts_price_high = Vysoký
 charts_price_low = Nízký
-charts_price_change = Přeměna
+charts_price_change = Změna
 
 # Date
 
@@ -343,11 +331,9 @@ wallet_connect_connection_title = Spojení
 wallet_connect_disconnect = Odpojit
 wallet_connect_connect_title = Připojit
 wallet_connect_app = App
-wallet_connect_website = webové stránky
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Žádná aktivní připojení
 wallet_connect_state_empty_description = Naskenujte nebo vložte kód pro připojení k DApp
-wallet_connect_domain = Doména
 wallet_connect_permissions_title = Oprávnění
 wallet_connect_permissions_view_balance = Zobrazení zůstatku a aktivity
 wallet_connect_permissions_approval_requests = Odeslat žádosti o schválení
@@ -370,8 +356,8 @@ stake_active = Aktivní
 stake_pending = Čeká na vyřízení
 stake_rewards = Odměny
 stake_validator = Validátor
-stake_validators = Validátory
-stake_apr = DUBEN %@
+stake_validators = Validátoři
+stake_apr = APR %@
 stake_available_in = Dostupné v
 stake_inactive = Neaktivní
 stake_lock_time = Čas zámku
@@ -380,8 +366,6 @@ stake_deactivating = Deaktivace
 stake_awaiting_withdrawal = Čeká na stažení
 stake_active_in = Aktivní v
 stake_minimum_amount = Minimální částka
-stake_viagem = Sázka přes Gem Wallet
-stake_no_active_staking = Zatím bez aktivního stakingu.
 stake_state_empty_title = Vaše sázky se zobrazí zde
 stake_state_empty_description = Vsaďte si první %@
 stake_resource = Zdroj
@@ -393,7 +377,7 @@ stake_delegations = Delegace
 
 assets_no_assets_found = Nebyla nalezena žádná aktiva
 assets_add_custom_token = Přidat vlastní token
-assets_select_asset = Vyberte položku Dílo
+assets_select_asset = Vyberte aktivum
 assets_popular = Populární aktiva
 assets_tags_trending = Trendy
 assets_tags_gainers = Gainery
@@ -405,7 +389,6 @@ assets_title = Aktiva
 
 # Sign Message
 
-sign_message_title = Podepsat zprávu
 sign_message_message = Zpráva
 sign_message_view_full_message = Zobrazit celou zprávu
 
@@ -482,7 +465,7 @@ banner_perpetuals_description = Vkládejte, obchodujte a vydělávejte s Hyperli
 
 # Filter
 
-filter_clear = Jasný
+filter_clear = Vymazat
 filter_title = Filtry
 filter_types = Typy
 filter_has_balance = Má zůstatek
@@ -496,7 +479,7 @@ price_alerts_direction_over = Nad
 price_alerts_direction_under = Pod
 price_alerts_direction_increases_by = Zvyšuje se o
 price_alerts_direction_decreases_by = Sníží se o
-price_alerts_set_alert_price_over = Když cena skončí
+price_alerts_set_alert_price_over = Když je cena nad
 price_alerts_set_alert_price_under = Když je cena pod
 price_alerts_set_alert_price_increases_by = Když cena vzroste o
 price_alerts_set_alert_price_decreases_by = Když cena klesne o
@@ -536,7 +519,7 @@ sell_title = Prodat %@
 # Info
 
 info_network_fee_title = Síťový poplatek
-info_watch_wallet_title = Watch Wallet
+info_watch_wallet_title = Sledovaná peněženka
 info_watch_wallet_description = Peněženka, ke které nemáte přístup, ale můžete sledovat její transakce a pohyby.
 info_network_fee_description = Každá transakce v síti %@ vyžaduje poplatek ve výši %@ zaplacený těžařům za zpracování vaší transakce, nikoli Gem Wallet. Síťové poplatky se liší podle využití sítě.
 info_transaction_error_description = Transakci nebylo možné dokončit kvůli chybě, jako je nedostatek finančních prostředků, neplatný vstup nebo odmítnutí ze strany sítě. Zkontrolujte podrobnosti a zkuste to znovu.
@@ -544,21 +527,19 @@ info_transaction_pending_description = Transakce byla odeslána a čeká na potv
 info_transaction_success_description = Transakce byla dokončena a potvrzena v síti. Můžete zkontrolovat podrobnosti a ověřit jeho stav.
 info_lock_time_description = Doba uzamčení, známá také jako období rozvázání nebo rozmrazení, je doba, po kterou jsou vsazená aktiva nepřístupná poté, co se je rozhodnete zrušit.
 info_price_impact_description = Vliv ceny je změna ceny tokenu způsobená velikostí vašeho obchodu. Vyšší dopad na cenu znamená, že obdržíte méně tokenů kvůli nízké likviditě nebo velké velikosti objednávky.
-info_slippage_description = Slippage označuje rozdíl mezi očekávanou cenou obchodu a skutečnou cenou, za kterou je obchod proveden.
+info_slippage_description = Skluz označuje rozdíl mezi očekávanou cenou obchodu a skutečnou cenou, za kterou je obchod proveden.
 info_asset_status_unverified_description = Neověřené tokeny nebyly dostatečně ověřeny důvěryhodnými službami třetích stran. Mohou se ve vaší peněžence objevit v důsledku airdropů, převodů nebo ručního importu.
 info_asset_status_suspicious_description = Podezřelé nebo spamové tokeny jsou identifikovány jako potenciální podvody nebo škodlivá aktiva. Mohou se objevit ve vaší peněžence v důsledku airdropů, převodů nebo ručního importu.
 info_insufficient_network_fee_balance_title = %@ je vyžadováno
-info_insufficient_network_fee_balance_description = Tato transakce vyžaduje %@ na pokrytí síťového poplatku placeného %@ horníci, ne Gem WalletUjistěte se, že máte dostatek %@.
+info_insufficient_network_fee_balance_description = Tato transakce vyžaduje %@ na pokrytí síťového poplatku placeného těžařům sítě %@, ne Gem Wallet. Ujistěte se, že máte dostatek %@.
 info_insufficient_balance_title = Nedostatečný zůstatek
 info_insufficient_balance_description = Nemáte dostatek %@ k dokončení této transakce. Dobijte si prosím peněženku, přijměte ji nebo ji vyměňte a zkuste to znovu.
 info_account_minimum_balance_title = Minimální zůstatek
 info_perpetual_funding_payments_title = Financování plateb
 info_perpetual_funding_payments_description = Platby financování jsou pravidelné platby mezi obchodníky, jejichž cílem je udržet stálou smluvní cenu blízkou spotové ceně podkladového aktiva. Pozitivní financování znamená, že dlouhé pozice platí krátké pozice, zatímco negativní financování znamená, že krátké pozice platí dlouhé pozice.
-info_perpetual_funding_rate_title = Financování
-info_perpetual_funding_rate_description = Míra financování určuje náklady na držení trvalé pozice. Počítá se každou hodinu a pomáhá udržovat cenovou rovnováhu mezi věčným kontraktem a spotovou cenou podkladového aktiva.
 info_perpetual_liquidation_price_title = Likvidační cena
 info_perpetual_liquidation_price_description = Likvidační cena je cenová hladina, na které bude vaše pozice automaticky uzavřena, aby se předešlo dalším ztrátám. Když tržní cena dosáhne této úrovně, vaše pozice je zlikvidována a ztrácíte marži.
-info_perpetual_open_interest_title = Otevřený zájem
+info_perpetual_open_interest_title = Otevřený úrok
 info_perpetual_open_interest_description = Otevřený úrok představuje celkovou hodnotu všech nesplacených trvalých smluv, které nebyly vypořádány. Poskytuje pohled na tržní aktivitu a likviditu.
 info_no_quote_description = Nelze vrátit cenovou nabídku pro vybraný pár tokenů, pravděpodobně z důvodu nízkého množství, nedostatku likvidity nebo technických omezení.
 info_stake_reserved_title = Rezervováno pro síťový poplatek
@@ -602,7 +583,7 @@ permissions_image_photo_access_denied_description = Tato aplikace nemá oprávn�
 
 # Markets
 
-markets_title = trhy
+markets_title = Trhy
 markets_state_empty_title = Zde se zobrazí vaše tržní data
 markets_daily_volume = 24hodinový objem
 
@@ -633,18 +614,17 @@ onboarding_accept_terms_continue = Souhlasit a pokračovat
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
 perpetual_positions = Pozice
 perpetual_size = Velikost
-perpetual_margin = Okraj
+perpetual_margin = Marže
 perpetual_position = Pozice
 perpetual_close_position = Zavřít pozici
 perpetual_pnl = PnL
-perpetual_long = Dlouho
-perpetual_short = Krátký
+perpetual_long = Long
+perpetual_short = Short
 perpetual_entry_price = Vstupní cena
 perpetual_modify = Upravit
 perpetual_reduce_position = Snížit pozici
@@ -652,9 +632,8 @@ perpetual_increase_position = Zvýšit pozici
 perpetual_open_direction = Otevřít %@
 perpetual_close_direction = Zavřít %@
 perpetual_leverage = Finanční páka
-perpetual_direction = Směr
 perpetual_auto_close = Automatické zavření
-perpetual_auto_close_take_profit = Zisk z prodeje
+perpetual_auto_close_take_profit = Take profit
 perpetual_market_price = Tržní cena
 perpetual_take_profit = TP
 perpetual_stop_loss = SL
@@ -668,26 +647,26 @@ perpetual_auto_close_stop_loss = Zastavit ztrátu
 perpetual_value = Hodnota
 perpetual_unrealized_pnl = Nerealizovaný zisk/ztráta
 perpetual_volume = Objem
-perpetual_all_time_pnl = Výhra všech dob
+perpetual_all_time_pnl = Celkový PnL
 perpetual_margin_usage = Využití marže
 perpetual_account_leverage = Pákový efekt účtu
-perpetual_margin_cross = Kříž
+perpetual_margin_cross = Cross
 perpetual_margin_isolated = Izolovaný
 
 # Perpetuals
 
 perpetuals_title = Věčné
-perpetuals_markets = trhy
+perpetuals_markets = Trhy
 perpetuals_empty_state_no_markets = Žádné trhy
 perpetuals_empty_state_no_markets_found = Nenalezeny žádné trhy
 
 # Rewards
 
 rewards_title = Odměny
-rewards_share_text = Připojit se Gem Wallet s mým doporučovacím odkazem a získejte odměny: %@
+rewards_share_text = Připojte se ke Gem Wallet pomocí mého doporučovacího odkazu a získejte odměny: %@
 rewards_my_referral_code = Můj doporučovací kód
 rewards_invite_friends_title = Pozvat přátele
-rewards_invite_friends_description = Vydělat %@ body za každého přítele, který se připojí.
+rewards_invite_friends_description = Získejte %@ bodů za každého přítele, který se připojí.
 rewards_referral_code = Doporučovací kód
 rewards_invited_by = Pozván od
 rewards_points = Body
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = Zde se zobrazí položky, které jste 
 
 notifications_inapp_state_empty_title = Zatím žádná oznámení
 notifications_inapp_state_empty_description = Zde se zobrazí aktuální informace o vašich oznámeních
-notifications_inapp_rewards_invite_subtitle = Pozvěte přátele a společně sbírejte odměny
 
 # Earn
 
@@ -739,7 +717,7 @@ contacts_add_to_contacts = Přidat do kontaktů
 # Simulation
 
 simulation_header_unlimited_asset = Neomezený %@
-simulation_warning_unlimited_token_approval_description = To dává útratě přístup k používání tohoto tokenu, dokud schválení nezrušíte nebo dokud nevyprší jeho platnost.
+simulation_warning_unlimited_token_approval_description = To dává utrácející adrese přístup k používání tohoto tokenu, dokud schválení nezrušíte nebo dokud nevyprší jeho platnost.
 simulation_warning_externally_owned_spender_description = Toto schválení umožní běžné adrese peněženky (EOA) používat vaše aktiva. Potvrďte pouze tehdy, pokud této adrese důvěřujete.
 simulation_warning_nft_collection_approval_title = Požadován plný přístup k NFT kolekci
 simulation_warning_unlimited_token_approval_title = Neomezené schvalování tokenů

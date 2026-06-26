@@ -231,7 +231,6 @@ private fun ReferralScenePreview() {
                 index = 0,
                 type = WalletType.Multicoin,
                 accounts = emptyList(),
-                order = 0,
                 isPinned = false,
                 imageUrl = null,
                 source = WalletSource.Create
@@ -263,7 +262,6 @@ private fun ReferralSceneNoRewardsPreview() {
                 index = 0,
                 type = WalletType.Multicoin,
                 accounts = emptyList(),
-                order = 0,
                 isPinned = false,
                 imageUrl = null,
                 source = WalletSource.Create

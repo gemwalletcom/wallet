@@ -52,10 +52,6 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":data:repositories"))
 
-    api(platform(libs.walletconnect.bom))
-    api(libs.walletconnect.core)
-    api(libs.walletconnect.web3wallet)
-
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

@@ -3,14 +3,12 @@
 common_cancel = रद्द करना
 common_done = हो गया
 common_secret_phrase = गुप्त वाक्यांश
-common_next = अगला
 common_copy = प्रतिलिपि
 common_share = साझा करें
 common_continue = जारी रखें
 common_provider = प्रदाता
 common_loading = लोड हो रहा है
 common_address = पता
-common_back = वापस
 common_try_again = पुनः प्रयास करें
 common_paste = चिपकाएँ
 common_delete = हटाएँ
@@ -22,11 +20,10 @@ common_copied = कॉपी किया गया: %@
 common_recommended = अनुशंसित
 common_all = सब
 common_not_available = उपलब्ध नहीं है
-common_phrase = मुहावरा
+common_phrase = वाक्यांश
 common_manage = प्रबंधित करें
 common_type = प्रकार
 common_no_results_found = कोई परिणाम नहीं मिला
-common_yes = हाँ
 common_no = नहीं
 common_none = कोई नहीं
 common_url = यूआरएल
@@ -40,15 +37,11 @@ common_unpin = अनपिन करें
 common_skip = छोडना
 common_warning = चेतावनी
 common_learn_more = और अधिक जानें
-common_short_name = Gem
 common_description = विवरण
 common_emoji = इमोजी
-common_style = शैली
 common_avatar = अवतार
-common_photo = तस्वीर
 common_save = बचाना
-common_edit = संपादित करें
-common_percentage = को PERCENTAGE
+common_percentage = प्रतिशत
 common_details = विवरण
 common_info = जानकारी
 common_get_started = शुरू हो जाओ
@@ -63,7 +56,7 @@ common_required_field = %@ आवश्यक है
 
 # Welcome
 
-welcome_title = जेम परिवार में आपका स्वागत है
+welcome_title = Gem Family में आपका स्वागत है
 
 # Wallet
 
@@ -86,7 +79,7 @@ wallet_default_name = वॉलेट #%d
 wallet_default_name_chain = %@ वॉलेट #%d
 wallet_copy_address = पता कॉपी करें
 wallet_watch_tooltip_title = आप यह बटुआ देख रहे हैं.
-wallet_stake = दांव
+wallet_stake = स्टेक
 wallet_receive_no_memo_required = किसी मेमो की आवश्यकता नहीं
 wallet_receive_no_destination_tag_required = किसी गंतव्य टैग की आवश्यकता नहीं है
 wallet_title = बटुआ
@@ -110,7 +103,7 @@ wallets_watch = देखो
 # Receive
 
 receive_title = %@ प्राप्त करें
-receive_warning = यह आपका पता है — केवल संदेश भेजें %@ पर %@ नेटवर्क।
+receive_warning = यह आपका पता है — केवल %@ ही %@ नेटवर्क पर भेजें।
 
 # Buy
 
@@ -136,10 +129,10 @@ transfer_send_title = भेजना
 transfer_insufficient_balance = अपर्याप्त %@ शेष।
 transfer_insufficient_network_fee_balance = नेटवर्क शुल्क को कवर करने के लिए अपर्याप्त %@ शेष राशि।
 transfer_approve_title = स्वीकृत करें
-transfer_stake_title = दांव
+transfer_stake_title = स्टेक करें
 transfer_claim_rewards_title = पुरस्कार का दावा करें
-transfer_unstake_title = दाँव से उतारना
-transfer_redelegate_title = पुनः सौंपना
+transfer_unstake_title = अनस्टेक करें
+transfer_redelegate_title = पुनः डेलिगेट करें
 transfer_withdraw_title = निकालना
 transfer_rewards_title = पुरस्कार
 transfer_minimum_amount = न्यूनतम राशि %@ है
@@ -153,7 +146,6 @@ transfer_maximum_amount = अधिकतम राशि %@ है
 transfer_reserved_fees = हमने भविष्य में नेटवर्क शुल्क को कवर करने के लिए आपके बैलेंस में %@ छोड़ दिया है।
 transfer_freeze_title = जमाना
 transfer_unfreeze_title = अनफ़्रीज़
-transfer_sign_transaction_title = लेनदेन पर हस्ताक्षर करें
 transfer_review_request = समीक्षा अनुरोध
 transfer_amount = रकम
 transfer_amount_title = रकम
@@ -171,7 +163,6 @@ settings_networks_title = नेटवर्क
 settings_networks_source = स्रोत
 settings_networks_explorer = एक्सप्लोरर
 settings_currency = मुद्रा
-settings_rate_app = रेट ऐप
 settings_website = वेबसाइट पर जाएँ
 settings_security = सुरक्षा
 settings_enable_value = %@ सक्षम करें
@@ -182,7 +173,7 @@ settings_language = भाषा
 settings_help_center = सहायता केंद्र
 settings_support = सहायता
 settings_price_alerts_title = मूल्य अलर्ट
-settings_hide_balance = संतुलन छिपाएँ
+settings_hide_balance = बैलेंस छिपाएँ
 settings_disable_value = %@ अक्षम करें
 settings_preferences_title = प्राथमिकताएँ
 settings_preferences_perpetual_default_leverage = डिफ़ॉल्ट उत्तोलन
@@ -209,7 +200,7 @@ errors_invalid_url = अमान्य यूआरएल
 errors_error_occured = एक त्रुटि पाई गई!
 errors_invalid_network_id = अमान्य नेटवर्क आईडी
 errors_error = त्रुटि
-errors_connections_user_cancelled = उपयोगकर्ता रद्द कर दिया गया
+errors_connections_user_cancelled = उपयोगकर्ता ने रद्द किया
 errors_not_supported = समर्थित नहीं
 errors_permissions_not_granted = अनुमतियाँ नहीं दी गईं
 errors_decoding = डिकोडिंग त्रुटि
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = हम फिलहाल नेटवर�
 errors_invalid_asset_address = अमान्य %@ पता
 errors_dust_threshold = लेन-देन विफल रहा क्योंकि राशि %@ नेटवर्क की न्यूनतम आवश्यकता (डस्ट थ्रेशोल्ड) को पूरा करने के लिए बहुत कम है। यह सीमा सुनिश्चित करती है कि लेन-देन का मूल्य शुल्क और प्रसंस्करण लागत को कवर करता है।
 errors_swap_no_quote_available = कोई कोट उपलब्ध नहीं है।
-errors_swap_not_supported_chain = समर्थित श्रृंखला नहीं.
 errors_swap_not_supported_asset = समर्थित परिसंपत्ति नहीं.
-errors_swap_not_supported_pair = समर्थित जोड़ी नहीं.
 errors_connections_invalid_send_parameters = लेनदेन भेजने के लिए अमान्य पैरामीटर प्रदान किए गए.
 errors_connections_invalid_sign_parameters = हस्ताक्षर के लिए अमान्य पैरामीटर प्रदान किए गए.
 errors_connections_no_supported_wallets = कोई समर्थित वॉलेट उपलब्ध नहीं है.
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = संदिग्ध गतिवि�
 errors_connections_malicious_origin = यह कनेक्शन एक अविश्वसनीय स्रोत से आता है।
 errors_no_data_available = कोई डेटा मौजूद नहीं
 errors_dust_threshold_short = नेटवर्क इस राशि को धूल मानता है - शुल्क स्वयं राशि से अधिक है।
-errors_swap_minimum_amount = न्यूनतम व्यापार राशि है %@कृपया अधिक राशि दर्ज करें।
+errors_swap_minimum_amount = न्यूनतम व्यापार राशि है %@। कृपया अधिक राशि दर्ज करें।
 errors_perpetual_trigger_price_lower = ट्रिगर मूल्य बाजार मूल्य से कम होना चाहिए
 errors_perpetual_trigger_price_higher = ट्रिगर मूल्य बाजार मूल्य से अधिक होना चाहिए
 errors_token_unable_fetch_token_information = टोकन जानकारी लाने में असमर्थ: %@
@@ -286,12 +275,11 @@ transaction_status_refunded = वापस कर दिया गया
 
 # Asset
 
-asset_balances = संतुलन
+asset_balances = शेष राशि
 asset_balances_available = उपलब्ध
 asset_price = कीमत
 asset_market_cap = मार्केट कैप
 asset_trading_volume = ट्रेडिंग वॉल्यूम (24 घंटे)
-asset_market_cap_rank = मार्केट कैप रैंक
 asset_total_supply = कुल आपूर्ति
 asset_circulating_supply = परिसंचारी आपूर्ति
 asset_balances_reserved = सुरक्षित
@@ -314,7 +302,7 @@ asset_hide_from_wallet = बटुए से छिपाएँ
 asset_resources = संसाधन
 asset_verification_verified = सत्यापित
 asset_all_time_high = सर्वकालिक उच्च
-asset_all_time_low = सबसे कम
+asset_all_time_low = सर्वकालिक न्यूनतम
 
 # Charts
 
@@ -343,11 +331,9 @@ wallet_connect_connection_title = कनेक्शन
 wallet_connect_disconnect = डिस्कनेक्ट करें
 wallet_connect_connect_title = कनेक्ट करें
 wallet_connect_app = ऐप
-wallet_connect_website = वेबसाइट
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = कोई सक्रिय कनेक्शन नहीं
 wallet_connect_state_empty_description = DApp से कनेक्ट करने के लिए कोड स्कैन करें या पेस्ट करें
-wallet_connect_domain = डोमेन
 wallet_connect_permissions_title = अनुमतियां
 wallet_connect_permissions_view_balance = अपना बैलेंस और गतिविधि देखें
 wallet_connect_permissions_approval_requests = अनुमोदन अनुरोध भेजें
@@ -357,7 +343,7 @@ wallet_connect_permissions_approval_requests = अनुमोदन अनु�
 swap_you_pay = आप भुगतान करें
 swap_you_receive = आप प्राप्त करें
 swap_price_impact = मूल्य प्रभाव
-swap_slippage = फिसलन
+swap_slippage = स्लिपेज
 swap_price_impact_warning_description = इस व्यापार में आप अपना %@ %@ देंगे। क्या आप वाकई आगे बढ़ना चाहते हैं?
 swap_price_impact_warning_title = उच्च मूल्य प्रभाव
 swap_estimated_time_title = अनुमानित समय
@@ -371,7 +357,7 @@ stake_pending = लंबित
 stake_rewards = पुरस्कार
 stake_validator = सत्यापनकर्ता
 stake_validators = सत्यापनकर्ता
-stake_apr = अप्रैल %@
+stake_apr = APR %@
 stake_available_in = में उपलब्ध है
 stake_inactive = निष्क्रिय
 stake_lock_time = लॉक टाइम
@@ -380,10 +366,8 @@ stake_deactivating = निष्क्रिय करना
 stake_awaiting_withdrawal = वापसी की प्रतीक्षा में
 stake_active_in = में सक्रिय
 stake_minimum_amount = न्यूनतम राशि
-stake_viagem = जेम वॉलेट के माध्यम से हिस्सेदारी
-stake_no_active_staking = अभी तक कोई सक्रिय हिस्सेदारी नहीं है.
-stake_state_empty_title = आपके दांव यहां दिखाई देंगे
-stake_state_empty_description = अपना पहला दांव %@ लगाएं
+stake_state_empty_title = आपके स्टेक यहां दिखाई देंगे
+stake_state_empty_description = अपना पहला %@ स्टेक करें
 stake_resource = संसाधन
 stake_resource_energy = ऊर्जा
 stake_resource_bandwidth = बैंडविड्थ
@@ -405,7 +389,6 @@ assets_title = संपत्ति
 
 # Sign Message
 
-sign_message_title = संदेश पर हस्ताक्षर करें
 sign_message_message = संदेश
 sign_message_view_full_message = पूरा संदेश देखें
 
@@ -468,8 +451,8 @@ fee_rate_gwei = %@ gwei
 
 banner_account_activation_title = खाता सक्रियण शुल्क
 banner_account_activation_description = %@ नेटवर्क को %@ का एक बार शुल्क देना पड़ता है।
-banner_stake_title = दांव लगाना शुरू करें %@
-banner_stake_description = सोते समय अपने दांव पर %@ पुरस्कार अर्जित करें।
+banner_stake_title = %@ स्टेक करना शुरू करें
+banner_stake_description = सोते समय अपने स्टेक पर %@ पुरस्कार अर्जित करें।
 banner_enable_notifications_title = सूचनाएं सक्षम करें
 banner_enable_notifications_description = अपनी वॉलेट गतिविधि में शीर्ष पर रहें।
 banner_activate_asset_description = %@ एसेट का उपयोग करने के लिए, आपको पहले नेटवर्क की विशिष्ट आवश्यकताओं को पूरा करके इसे %@ नेटवर्क पर सक्षम करना होगा।
@@ -477,28 +460,28 @@ banner_asset_status_title = संदिग्ध संपत्ति
 banner_asset_status_description = टोकन असुरक्षित या भ्रामक हो सकता है. अगर आपको इस पर पूरा भरोसा है तो ही आगे बढ़ें।
 banner_onboarding_title = आपका बटुआ तैयार है
 banner_onboarding_description = आरंभ करने के लिए क्रिप्टो खरीदें या प्राप्त करें
-banner_perpetuals_title = हाइपरलिक्विड पर सतत व्यापार करें
-banner_perpetuals_description = हाइपरलिक्विड शाश्वत के साथ जमा करें, व्यापार करें और कमाएं
+banner_perpetuals_title = Hyperliquid पर सतत व्यापार करें
+banner_perpetuals_description = Hyperliquid शाश्वत के साथ जमा करें, व्यापार करें और कमाएं
 
 # Filter
 
 filter_clear = स्पष्ट
 filter_title = फिल्टर
 filter_types = प्रकार
-filter_has_balance = संतुलन है
+filter_has_balance = बैलेंस है
 
 # Price Alerts
 
 price_alerts_enabled_for = %@ के लिए मूल्य अलर्ट सक्षम किया गया
 price_alerts_disabled_for = %@ के लिए मूल्य चेतावनी अक्षम की गई
 price_alerts_get_notified_explain_message = जब आपकी पसंदीदा क्रिप्टो परिसंपत्तियों में कोई महत्वपूर्ण मूल्य परिवर्तन हो तो सूचना प्राप्त करें।
-price_alerts_direction_over = खत्म
+price_alerts_direction_over = ऊपर
 price_alerts_direction_under = के अंतर्गत
-price_alerts_direction_increases_by = इससे वृद्धि होती है
+price_alerts_direction_increases_by = इतनी बढ़ने पर
 price_alerts_direction_decreases_by = घटता है
-price_alerts_set_alert_price_over = जब कीमत खत्म हो जाती है
+price_alerts_set_alert_price_over = जब कीमत इससे ऊपर हो
 price_alerts_set_alert_price_under = जब कीमत नीचे हो
-price_alerts_set_alert_price_increases_by = जब कीमत बढ़ जाती है
+price_alerts_set_alert_price_increases_by = जब कीमत इतनी बढ़ जाए
 price_alerts_set_alert_price_decreases_by = जब कीमत कम हो जाती है
 price_alerts_set_alert_set_target_price = लक्ष्य मूल्य निर्धारित करें
 price_alerts_set_alert_current_price = वर्तमान मूल्य
@@ -538,7 +521,7 @@ sell_title = बेचें %@
 info_network_fee_title = नेटवर्क शुल्क
 info_watch_wallet_title = वॉलेट देखें
 info_watch_wallet_description = एक वॉलेट जिस तक आपकी पहुंच नहीं है, लेकिन आप इसके लेनदेन और गतिविधियों पर नजर रख सकते हैं।
-info_network_fee_description = %@ नेटवर्क पर प्रत्येक लेनदेन के लिए आपके लेनदेन को संसाधित करने के लिए खनिकों को भुगतान किए जाने वाले %@ शुल्क की आवश्यकता होती है, जेम वॉलेट की नहीं। नेटवर्क शुल्क नेटवर्क उपयोग के आधार पर भिन्न होता है।
+info_network_fee_description = %@ नेटवर्क पर प्रत्येक लेनदेन के लिए आपके लेनदेन को संसाधित करने के लिए खनिकों को भुगतान किए जाने वाले %@ शुल्क की आवश्यकता होती है, Gem Wallet की नहीं। नेटवर्क शुल्क नेटवर्क उपयोग के आधार पर भिन्न होता है।
 info_transaction_error_description = अपर्याप्त धनराशि, अमान्य इनपुट या नेटवर्क द्वारा अस्वीकृति जैसी किसी त्रुटि के कारण लेनदेन पूरा नहीं हो सका। कृपया विवरण की समीक्षा करें और पुनः प्रयास करें।
 info_transaction_pending_description = लेन-देन सबमिट कर दिया गया है और नेटवर्क पर पुष्टि की प्रतीक्षा कर रहा है। प्रसंस्करण समय अलग-अलग हो सकता है। कृपया अपडेट के लिए वापस जाँच करें।
 info_transaction_success_description = लेन-देन पूरा हो गया है और नेटवर्क पर इसकी पुष्टि हो गई है। आप इसकी स्थिति सत्यापित करने के लिए विवरण की समीक्षा कर सकते हैं।
@@ -548,14 +531,12 @@ info_slippage_description = स्लिपेज से तात्पर्�
 info_asset_status_unverified_description = असत्यापित टोकन को विश्वसनीय तृतीय-पक्ष सेवाओं द्वारा पर्याप्त रूप से सत्यापित नहीं किया गया है। वे एयरड्रॉप, ट्रांसफ़र या मैन्युअल आयात के कारण आपके वॉलेट में दिखाई दे सकते हैं।
 info_asset_status_suspicious_description = संदिग्ध या स्पैम टोकन को संभावित घोटाले या हानिकारक संपत्ति के रूप में पहचाना जाता है। वे एयरड्रॉप, ट्रांसफ़र या मैन्युअल आयात के कारण आपके वॉलेट में दिखाई दे सकते हैं।
 info_insufficient_network_fee_balance_title = %@ आवश्यक
-info_insufficient_network_fee_balance_description = इस लेनदेन के लिए आवश्यकता है %@ नेटवर्क शुल्क का भुगतान करने के लिए %@ खनिक, नहीं Gem Walletसुनिश्चित करें कि आपके पास पर्याप्त मात्रा में हो। %@.
+info_insufficient_network_fee_balance_description = इस लेनदेन में नेटवर्क शुल्क के लिए %@ की आवश्यकता है, जो %@ खनिकों को दिया जाता है, Gem Wallet को नहीं। सुनिश्चित करें कि आपके पास पर्याप्त %@ हो।
 info_insufficient_balance_title = अपर्याप्त शेषराशि
 info_insufficient_balance_description = इस लेनदेन को पूरा करने के लिए आपके पास पर्याप्त %@ नहीं है। कृपया अपने वॉलेट में टॉप अप करें, प्राप्त करें या स्वैप करें और फिर से प्रयास करें।
 info_account_minimum_balance_title = न्यूनतम शेष
 info_perpetual_funding_payments_title = फंडिंग भुगतान
 info_perpetual_funding_payments_description = स्थायी अनुबंध मूल्य को अंतर्निहित परिसंपत्ति के हाजिर मूल्य के करीब रखने के लिए व्यापारियों के बीच फंडिंग भुगतान आवधिक भुगतान है। सकारात्मक फंडिंग का मतलब है कि लंबी पोजीशनें छोटी पोजीशनों के लिए भुगतान करती हैं, जबकि नकारात्मक फंडिंग का मतलब है कि छोटी पोजीशनें लंबी पोजीशनों के लिए भुगतान करती हैं।
-info_perpetual_funding_rate_title = फंडिंग
-info_perpetual_funding_rate_description = फंडिंग दर एक स्थायी पद धारण करने की लागत निर्धारित करती है। इसकी गणना प्रति घंटा की जाती है और स्थायी अनुबंध और अंतर्निहित परिसंपत्ति की हाजिर कीमत के बीच मूल्य संतुलन बनाए रखने में मदद करती है।
 info_perpetual_liquidation_price_title = परिसमापन मूल्य
 info_perpetual_liquidation_price_description = परिसमापन मूल्य वह मूल्य स्तर है जिस पर आगे के नुकसान को रोकने के लिए आपकी स्थिति स्वचालित रूप से बंद हो जाएगी। जब बाजार मूल्य इस स्तर पर पहुंच जाता है, तो आपकी स्थिति समाप्त हो जाती है और आप अपना मार्जिन खो देते हैं।
 info_perpetual_open_interest_title = ओपन इंटरेस्ट
@@ -589,7 +570,7 @@ nft_save_to_photos = फ़ोटो में सहेजें
 nft_set_as_avatar = अवतार के रूप में सेट करें
 nft_state_empty_title = आपके NFT यहां दिखाई देंगे️
 nft_state_empty_description = अपना पहला NFT प्राप्त करें
-nft_report_reason_spam = अवांछित ईमेल
+nft_report_reason_spam = स्पैम
 nft_report_reason_malicious = दुर्भावनापूर्ण
 nft_report_reason_inappropriate = अनुपयुक्त सामग्री
 nft_report_reason_copyright = कॉपीराइट
@@ -626,35 +607,33 @@ onboarding_security_create_wallet_keep_safe_title = इसे किसी स�
 onboarding_security_create_wallet_no_recovery_title = हम इसे पुनर्प्राप्त करने में आपकी सहायता नहीं कर सकते
 onboarding_accept_terms_title = शर्तें स्वीकार करें
 onboarding_accept_terms_message = कृपया आगे बढ़ने से पहले निम्नलिखित शर्तों को पढ़ें और उनसे सहमत हों।
-onboarding_accept_terms_item1_message = मैं समझता हूं कि मैं अपने वॉलेट की सुरक्षा और बैकअप के लिए पूरी तरह जिम्मेदार हूं, जेम नहीं।
-onboarding_accept_terms_item2_message = मैं समझता हूं कि जेम कोई बैंक या एक्सचेंज नहीं है, और इसका अवैध उद्देश्यों के लिए उपयोग करना सख्त वर्जित है।
-onboarding_accept_terms_item3_message = मैं समझता हूं कि यदि मैं कभी भी अपने बटुए तक पहुंच खो देता हूं, तो जेम उत्तरदायी नहीं है और किसी भी तरह से मदद नहीं कर सकता है।
+onboarding_accept_terms_item1_message = मैं समझता हूं कि मैं अपने वॉलेट की सुरक्षा और बैकअप के लिए पूरी तरह जिम्मेदार हूं, Gem नहीं।
+onboarding_accept_terms_item2_message = मैं समझता हूं कि Gem कोई बैंक या एक्सचेंज नहीं है, और इसका अवैध उद्देश्यों के लिए उपयोग करना सख्त वर्जित है।
+onboarding_accept_terms_item3_message = मैं समझता हूं कि यदि मैं कभी भी अपने बटुए तक पहुंच खो देता हूं, तो Gem उत्तरदायी नहीं है और किसी भी तरह से मदद नहीं कर सकता है।
 onboarding_accept_terms_continue = सहमत हों और जारी रखें
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
 perpetual_positions = स्थितियां
 perpetual_size = आकार
-perpetual_margin = अंतर
-perpetual_position = पद
-perpetual_close_position = बंद स्थिति
+perpetual_margin = मार्जिन
+perpetual_position = पोजीशन
+perpetual_close_position = स्थिति बंद करें
 perpetual_pnl = PnL
 perpetual_long = लंबा
 perpetual_short = लघु
 perpetual_entry_price = प्रवेश मूल्य
-perpetual_modify = संशोधित
+perpetual_modify = संशोधित करें
 perpetual_reduce_position = स्थिति कम करें
 perpetual_increase_position = स्थिति बढ़ाएँ
 perpetual_open_direction = %@ खोलें
 perpetual_close_direction = बंद करें %@
 perpetual_leverage = उत्तोलन
-perpetual_direction = दिशा
 perpetual_auto_close = स्वतः बंद
-perpetual_auto_close_take_profit = लाभ लेने के
+perpetual_auto_close_take_profit = टेक प्रॉफिट
 perpetual_market_price = बाजार कीमत
 perpetual_take_profit = TP
 perpetual_stop_loss = SL
@@ -664,8 +643,8 @@ perpetual_reduce_direction = %@ कम करें
 perpetual_auto_close_expected_profit = अपेक्षित लाभ
 perpetual_auto_close_expected_loss = अपेक्षित हानि
 perpetual_modify_position = स्थिति संशोधित करें
-perpetual_auto_close_stop_loss = झड़ने बंद
-perpetual_value = कीमत
+perpetual_auto_close_stop_loss = स्टॉप लॉस
+perpetual_value = मूल्य
 perpetual_unrealized_pnl = अवास्तविक लाभ-हानि
 perpetual_volume = आयतन
 perpetual_all_time_pnl = सर्वकालिक लाभ एवं हानि
@@ -676,7 +655,7 @@ perpetual_margin_isolated = पृथक
 
 # Perpetuals
 
-perpetuals_title = स्थाई
+perpetuals_title = पर्पेचुअल्स
 perpetuals_markets = बाज़ार
 perpetuals_empty_state_no_markets = कोई बाज़ार नहीं
 perpetuals_empty_state_no_markets_found = कोई बाज़ार नहीं मिला
@@ -713,14 +692,13 @@ rewards_unverified_description = जैसे-जैसे आप ऐप का 
 # Recent Activity
 
 recent_activity_title = हाल ही
-recent_activity_state_empty_title = आपके हाल के लेख यहां दिखाई देंगे
+recent_activity_state_empty_title = आपकी हाल की गतिविधियाँ यहाँ दिखाई देंगी
 recent_activity_state_empty_description = आपके द्वारा हाल ही में उपयोग की गई संपत्तियाँ यहाँ दिखाई देंगी
 
 # Notifications
 
 notifications_inapp_state_empty_title = अभी तक कोई सूचना नहीं मिली है
 notifications_inapp_state_empty_description = आपको अपनी सूचनाओं से संबंधित अपडेट यहां मिलेंगे।
-notifications_inapp_rewards_invite_subtitle = दोस्तों को आमंत्रित करें और साथ मिलकर पुरस्कार जीतें
 
 # Earn
 

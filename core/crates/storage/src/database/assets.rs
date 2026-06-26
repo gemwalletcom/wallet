@@ -43,6 +43,7 @@ pub enum AssetFilter {
     HasPrice(bool),
     Chain(String),
     RankLte(i32),
+    RankGt(i32),
 }
 
 pub(crate) trait AssetsStore {
@@ -91,6 +92,9 @@ fn filter_assets(filters: Vec<AssetFilter>) -> crate::schema::assets::BoxedQuery
             }
             AssetFilter::RankLte(value) => {
                 query = query.filter(rank.le(value));
+            }
+            AssetFilter::RankGt(value) => {
+                query = query.filter(rank.gt(value));
             }
         }
     }

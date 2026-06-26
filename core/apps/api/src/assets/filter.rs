@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn build_assets_filters_short_query() {
-        let request = SearchRequest::new("USDT", None, None, None, None);
+        let request = SearchRequest::new("USDT TRC20", None, None, None, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 15"]);
@@ -46,7 +46,7 @@ mod tests {
 
     #[test]
     fn build_assets_filters_long_query() {
-        let request = SearchRequest::new("ethereum", None, None, None, None);
+        let request = SearchRequest::new("ethereum contract", None, None, None, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5"]);
@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn build_assets_filters_with_tags() {
-        let request = SearchRequest::new("longquery", None, Some("defi"), None, None);
+        let request = SearchRequest::new("ethereum contract", None, Some("defi"), None, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "tags IN [\"defi\"]"]);
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn build_assets_filters_with_chains() {
-        let request = SearchRequest::new("longquery", Some("ethereum"), None, None, None);
+        let request = SearchRequest::new("ethereum contract", Some("ethereum"), None, None, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "asset.chain IN [\"ethereum\"]"]);

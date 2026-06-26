@@ -6,6 +6,7 @@ Use Gradle for Android builds and tests, with `just` wrappers for the repo’s c
 
 ```bash
 just list
+just install-java
 just bootstrap
 just generate
 just generate-models

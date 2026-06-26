@@ -350,4 +350,17 @@ mod tests {
             .unwrap();
         assert_eq!(url.url, format!("https://explorer.near-intents.org/transactions/{recipient}?depositMemo=48694126"));
     }
+
+    #[test]
+    fn test_across_swap_url_uses_across_explorer() {
+        let explorer = Explorer::new(Chain::Tron.as_ref());
+        let transaction_hash = "0xec0e05178bb2e7a13131c86ef5e4891e116cfe8757d63d7337998f848c63d9af";
+
+        let url = explorer
+            .get_transaction_swap_url("TRONSCAN", transaction_hash.into(), SwapperProvider::Across.as_ref())
+            .unwrap();
+
+        assert_eq!(url.name, "Across");
+        assert_eq!(url.url, "https://across.to/transfer/0xec0e05178bb2e7a13131c86ef5e4891e116cfe8757d63d7337998f848c63d9af");
+    }
 }

@@ -21,15 +21,14 @@ class DevelopViewModel @Inject constructor(
     val platformStore: PlatformStore
 ) : ViewModel() {
 
-    fun getDeviceId(): String {
-        return getDeviceId.getDeviceId()
-    }
-
+    private val _deviceId = MutableStateFlow("")
+    val deviceId = _deviceId.asStateFlow()
     private val _pushToken = MutableStateFlow("")
     val pushToken = _pushToken.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+            _deviceId.value = getDeviceId.getDeviceId()
             _pushToken.value = getPushTokenCase.getPushToken()
         }
     }

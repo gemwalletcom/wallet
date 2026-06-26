@@ -13,11 +13,11 @@ import WalletConnectorServiceTestKit
 
 struct ConnectionsViewModelTests {
     @Test @MainActor
-    func sectionsOrderedByWalletOrder() {
+    func sectionsOrderedByWalletIndex() {
         let connections: [WalletConnection] = [
-            .mock(wallet: .mock(name: "Zebra", order: 2)),
-            .mock(wallet: .mock(name: "Alpha", order: 1)),
-            .mock(wallet: .mock(name: "Beta", order: 3)),
+            .mock(wallet: .mock(name: "Zebra", index: 2)),
+            .mock(wallet: .mock(name: "Alpha", index: 1)),
+            .mock(wallet: .mock(name: "Beta", index: 3)),
         ]
         let model = ConnectionsViewModel(service: .mock())
         model.query.value = connections

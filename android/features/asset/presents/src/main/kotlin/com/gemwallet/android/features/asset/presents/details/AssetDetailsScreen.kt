@@ -6,27 +6,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.TransactionId
 
 @Composable
 fun AssetDetailsScreen(
-    onCancel: () -> Unit,
-    onTransfer: AssetIdAction,
-    onReceive: (AssetId) -> Unit,
-    onBuy: (AssetId) -> Unit,
-    onSwap: (AssetId, AssetId?) -> Unit,
-    onTransaction: (TransactionId) -> Unit,
-    onChart: (AssetId) -> Unit,
-    openNetwork: AssetIdAction,
-    onStake: (AssetId) -> Unit,
-    onConfirm: (ConfirmParams) -> Unit,
-    onPriceAlerts: (AssetId) -> Unit,
+    onAction: (AssetDetailsAction.Navigation) -> Unit,
 ) {
     val viewModel: AssetDetailsViewModel = hiltViewModel()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -44,23 +30,20 @@ fun AssetDetailsScreen(
             priceAlertsCount = priceAlertsCount,
             isRefreshing = isRefreshing,
             isOperationEnabled = isOperationEnabled,
-            onRefresh = viewModel::refresh,
-            onTransfer = onTransfer,
-            onBuy = onBuy,
-            onSwap = onSwap,
-            onReceive = onReceive,
-            onTransaction = onTransaction,
-            onChart = onChart,
-            openNetwork = openNetwork,
-            onStake = onStake,
-            togglePriceAlert = viewModel::enablePriceAlert,
-            onPriceAlerts = onPriceAlerts,
-            onConfirm = onConfirm,
-            onPin = viewModel::pin,
-            onAdd = viewModel::add,
-            onCancel = onCancel,
+            onAction = { action ->
+                when (action) {
+                    AssetDetailsAction.Refresh -> viewModel.refresh()
+                    AssetDetailsAction.Pin -> viewModel.pin()
+                    AssetDetailsAction.Add -> viewModel.add()
+                    is AssetDetailsAction.TogglePriceAlert -> viewModel.enablePriceAlert(action.assetId)
+                    is AssetDetailsAction.Navigation -> onAction(action)
+                }
+            },
         )
     } else {
-        LoadingScene(stringResource(R.string.common_loading), onCancel)
+        LoadingScene(
+            title = stringResource(R.string.common_loading),
+            onCancel = { onAction(AssetDetailsAction.Close) },
+        )
     }
 }

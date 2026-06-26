@@ -559,7 +559,7 @@ struct WalletIdMigrationPreferenceTests {
 
         let ethAddress = "0xalready"
         let newFormatId = "multicoin_\(ethAddress)"
-        try walletStore.addWallet(.mock(id: .multicoin(address: ethAddress), type: .multicoin, accounts: [.mock(chain: .ethereum, address: ethAddress)], order: 1))
+        try walletStore.addWallet(.mock(id: .multicoin(address: ethAddress), type: .multicoin, accounts: [.mock(chain: .ethereum, address: ethAddress)]))
         try db.insertLegacyWallet(id: "uuid-other", type: .multicoin, accounts: [.mock(chain: .ethereum, address: "0xother")], order: 0)
 
         userDefaults.set(newFormatId, forKey: currentWalletKey)

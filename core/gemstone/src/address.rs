@@ -50,6 +50,7 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
 
 #[uniffi::export]
 pub fn checksum_address(address: &str, chain: Chain) -> String {
+    let address = address.trim();
     match chain.chain_type() {
         ChainType::Ethereum | ChainType::HyperCore => gem_evm::ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string()),
         _ => address.to_string(),
@@ -76,6 +77,7 @@ mod tests {
         assert!(validate_address("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2", Chain::Solana));
         assert!(validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75H", Chain::Xrp));
         assert!(!validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75J", Chain::Xrp));
+        assert!(validate_address("UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV", Chain::Ton));
         assert!(validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo", Chain::Polkadot));
         assert!(!validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXj", Chain::Polkadot));
         assert!(validate_address("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin));
@@ -98,9 +100,14 @@ mod tests {
             checksum_address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a", Chain::Ethereum),
             "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
         );
+        assert_eq!(
+            checksum_address(" \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", Chain::Ethereum),
+            "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
+        );
+        assert_eq!(checksum_address(" \ngemcoder.eth\r ", Chain::Ethereum), "gemcoder.eth");
         assert_eq!(checksum_address("invalid", Chain::Ethereum), "invalid");
         assert_eq!(
-            checksum_address("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2", Chain::Solana),
+            checksum_address(" \nGvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2\r ", Chain::Solana),
             "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"
         );
     }

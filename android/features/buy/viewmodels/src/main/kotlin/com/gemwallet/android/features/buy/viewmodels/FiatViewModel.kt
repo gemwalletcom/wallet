@@ -242,10 +242,7 @@ class FiatViewModel @Inject constructor(
         }
     }
 
-    private fun randomAmount(maxAmount: Double = 1000.0): Int {
-        val current = currentOperation().amount.value.toIntOrNull() ?: DEFAULT_BUY_AMOUNT.toInt()
-        return Random.nextInt(current, maxAmount.toInt())
-    }
+    private fun randomAmount(): Int = Random.nextInt(MIN_FIAT_AMOUNT.toInt(), MAX_RANDOM_FIAT_AMOUNT + 1)
 
     fun getUrl(callback: (String?) -> Unit) {
         viewModelScope.launch {
@@ -269,6 +266,7 @@ class FiatViewModel @Inject constructor(
         const val MIN_FIAT_AMOUNT = 5.0
         const val DEFAULT_BUY_AMOUNT = "50"
         const val DEFAULT_SELL_AMOUNT = "100"
+        internal const val MAX_RANDOM_FIAT_AMOUNT = 1000
     }
 }
 

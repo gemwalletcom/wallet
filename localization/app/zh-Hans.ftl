@@ -3,14 +3,12 @@
 common_cancel = 取消
 common_done = 完成
 common_secret_phrase = 秘密短语
-common_next = 下一步
 common_copy = 复制
 common_share = 分享
 common_continue = 继续
 common_provider = 服务商
 common_loading = 加载中
 common_address = 地址
-common_back = 返回
 common_try_again = 重试
 common_paste = 粘贴
 common_delete = 删除
@@ -26,7 +24,6 @@ common_phrase = 助记词
 common_manage = 管理
 common_type = 类型
 common_no_results_found = 未找到结果
-common_yes = 是
 common_no = 否
 common_none = 无
 common_url = 网址
@@ -34,27 +31,23 @@ common_private_key = 私钥
 common_latency_in_ms = %d 毫秒
 common_open_settings = 打开设置
 common_pin = 置顶
-common_pinned = 置顶
+common_pinned = 已置顶
 common_lists = 列表
 common_unpin = 取消置顶
 common_skip = 跳过
 common_warning = 警告
 common_learn_more = 了解更多
-common_short_name = Gem
 common_description = 描述
 common_emoji = 表情符号
-common_style = 风格
 common_avatar = 头像
-common_photo = 照片
 common_save = 保存
-common_edit = 编辑
 common_percentage = 百分比
 common_details = 详情
 common_info = 信息
 common_get_started = 开始使用
 common_earn = 赚取
 common_method = 方法
-common_token = 令牌
+common_token = 代币
 common_suspicious_address = 可疑地址
 common_refresh = 刷新
 common_no_thanks = 不用了, 谢谢
@@ -77,7 +70,7 @@ wallet_import_title = 导入钱包
 wallet_new_title = 新建钱包
 wallet_name = 名称
 wallet_import_action = 导入
-wallet_multicoin = 多链
+wallet_multicoin = 多币种
 wallet_import_address_field = 地址或域名
 wallet_manage_token_list = 管理代币
 wallet_scan_qr_code = 扫描二维码
@@ -99,8 +92,8 @@ wallet_import_address_warning = 您可以查看此地址的余额和交易，但
 wallet_deposit = 充值
 wallet_withdraw = 提现
 wallet_available_balance = 可用： %@
-wallet_portfolio_title = 文件夹
-wallet_import_already_imported_message = 这个钱包已经进口了。
+wallet_portfolio_title = 投资组合
+wallet_import_already_imported_message = 此钱包已导入。
 
 # Wallets
 
@@ -110,7 +103,7 @@ wallets_watch = 观察
 # Receive
 
 receive_title = 接收%@
-receive_warning = 这是您的地址——请仅发送邮件 %@ 在 %@ 网络。
+receive_warning = 这是您的地址——请仅发送 %@，且仅在 %@ 网络上。
 
 # Buy
 
@@ -124,7 +117,7 @@ buy_no_results = 暂无报价
 transfer_network_fee = 网络费用
 transfer_memo = 备注
 transfer_confirm = 确认
-transfer_from = 来自
+transfer_from = 从
 transfer_to = 发往
 transfer_max = 最大值
 transfer_network = 网络
@@ -134,7 +127,7 @@ transfer_title = 转账
 transfer_recipient_address_field = 地址或域名
 transfer_send_title = 发送
 transfer_insufficient_balance = %@余额不足
-transfer_insufficient_network_fee_balance = 余额不足，无法支付网络费用%@
+transfer_insufficient_network_fee_balance = %@ 余额不足，无法支付网络费用。
 transfer_approve_title = 授权
 transfer_stake_title = 质押
 transfer_claim_rewards_title = 领取奖励
@@ -153,7 +146,6 @@ transfer_maximum_amount = 最高金额为%@
 transfer_reserved_fees = 我们已在您的余额中留下%@以支付未来的网络费用。
 transfer_freeze_title = 冻结
 transfer_unfreeze_title = 解冻
-transfer_sign_transaction_title = 签署交易
 transfer_review_request = 审查请求
 transfer_amount = 金额
 transfer_amount_title = 数额
@@ -171,7 +163,6 @@ settings_networks_title = 网络
 settings_networks_source = 来源
 settings_networks_explorer = 区块浏览器
 settings_currency = 货币
-settings_rate_app = 评价应用
 settings_website = 访问网站
 settings_security = 安全设置
 settings_enable_value = 启用%@
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = 现在无法计算网络费用。
 errors_invalid_asset_address = 无效的 %@ 地址
 errors_dust_threshold = 交易失败，因为金额太小，无法满足%@网络的最低要求（粉尘阈值）。此限制可确保交易金额足以覆盖手续费和处理成本。
 errors_swap_no_quote_available = 暂无报价
-errors_swap_not_supported_chain = 暂不支持该链。
 errors_swap_not_supported_asset = 暂不支持该资产。
-errors_swap_not_supported_pair = 暂不支持该交易对。
 errors_connections_invalid_send_parameters = 发送交易时提供的参数无效。
 errors_connections_invalid_sign_parameters = 提供的签名参数无效。
 errors_connections_no_supported_wallets = 暂无可用钱包
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = 可疑活动
 errors_connections_malicious_origin = 此连接来自不可信来源。
 errors_no_data_available = 暂无数据
 errors_dust_threshold_short = 网络将这笔金额视为微不足道的垃圾——手续费甚至高于金额本身。
-errors_swap_minimum_amount = 最低交易金额为 %@请输入更高的金额。
+errors_swap_minimum_amount = 最低交易金额为 %@。请输入更高的金额。
 errors_perpetual_trigger_price_lower = 触发价格应低于市场价格
 errors_perpetual_trigger_price_higher = 触发价格应高于市场价格
 errors_token_unable_fetch_token_information = 无法获取代币信息： %@
@@ -250,7 +239,7 @@ errors_network_offline = 网络连接似乎已断开。
 
 # Activity
 
-activity_title = 交易
+activity_title = 活动
 activity_state_empty_title = 交易将在此显示
 activity_state_empty_description = 发起第一笔交易
 activity_state_empty_search_description = 清空筛选条件后将重新加载交易
@@ -291,7 +280,6 @@ asset_balances_available = 可用余额
 asset_price = 价格
 asset_market_cap = 市值
 asset_trading_volume = 交易量 (24小时)
-asset_market_cap_rank = 市值排名
 asset_total_supply = 总供应量
 asset_circulating_supply = 流通供应量
 asset_balances_reserved = 系统保留
@@ -310,11 +298,11 @@ asset_verification_warning_title = 了解您正在添加的内容
 asset_verification_warning_message = 任何人都可以创建，包括假冒或恶意代币。
 asset_buy_asset = 购买%@
 asset_add_to_wallet = 添加到钱包
-asset_hide_from_wallet = 隐藏钱包
+asset_hide_from_wallet = 从钱包隐藏
 asset_resources = 资源
 asset_verification_verified = 已验证
 asset_all_time_high = 历史最高点
-asset_all_time_low = 最低
+asset_all_time_low = 历史最低点
 
 # Charts
 
@@ -324,12 +312,12 @@ charts_week = 1周
 charts_month = 1月
 charts_year = 1年
 charts_all = 全部
-charts_entry = 参赛作品
-charts_price_open = 打开
-charts_price_close = 关闭
-charts_price_high = 高的
-charts_price_low = 低的
-charts_price_change = 改变
+charts_entry = 入场价
+charts_price_open = 开盘
+charts_price_close = 收盘
+charts_price_high = 最高
+charts_price_low = 最低
+charts_price_change = 涨跌幅
 
 # Date
 
@@ -343,11 +331,9 @@ wallet_connect_connection_title = 连接
 wallet_connect_disconnect = 断开
 wallet_connect_connect_title = 连接
 wallet_connect_app = 应用
-wallet_connect_website = 网站
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = 没有活跃的连接
 wallet_connect_state_empty_description = 扫描或复制链接以连接到 DApp
-wallet_connect_domain = 域名
 wallet_connect_permissions_title = 权限
 wallet_connect_permissions_view_balance = 查看您的余额和活动
 wallet_connect_permissions_approval_requests = 发送审批请求
@@ -358,7 +344,7 @@ swap_you_pay = 将支付
 swap_you_receive = 将收到
 swap_price_impact = 价格影响
 swap_slippage = 滑点
-swap_price_impact_warning_description = 本次交易滑点较大，预计损失 %@ %@。是否确认继续？
+swap_price_impact_warning_description = 本次交易您将损失 %@，这是您 %@ 的一部分。确定要继续吗？
 swap_price_impact_warning_title = 滑点巨大
 swap_estimated_time_title = 预计时间
 swap_min_receive = 最少接收
@@ -380,12 +366,10 @@ stake_deactivating = 停用
 stake_awaiting_withdrawal = 等待赎回
 stake_active_in = 激活于
 stake_minimum_amount = 最低金额
-stake_viagem = 通过 Gem 钱包质押
-stake_no_active_staking = 当前没有激活的质押
 stake_state_empty_title = 质押将显示在这里️
 stake_state_empty_description = 质押第一个%@
 stake_resource = 资源
-stake_resource_energy = 活力
+stake_resource_energy = 能量
 stake_resource_bandwidth = 带宽
 stake_delegations = 委托
 
@@ -405,7 +389,6 @@ assets_title = 资产
 
 # Sign Message
 
-sign_message_title = 签名消息
 sign_message_message = 消息
 sign_message_view_full_message = 查看完整消息
 
@@ -454,7 +437,7 @@ library_select_from_photo_library = 从照片中选取
 # Fee Rates
 
 fee_rates_info = 交易速度取决于向矿工支付的网络费用
-fee_rates_slow = 缓慢
+fee_rates_slow = 慢速
 fee_rates_fast = 极速
 fee_rates_normal = 普通
 
@@ -477,7 +460,7 @@ banner_asset_status_title = 可疑资产
 banner_asset_status_description = 代币可能不安全或具有误导性。请仅在完全信任的情况下继续操作。
 banner_onboarding_title = 您的钱包已准备就绪
 banner_onboarding_description = 购买或接收加密货币即可开始
-banner_perpetuals_title = 在超流动性上交易永续合约
+banner_perpetuals_title = 在 Hyperliquid 上交易永续合约
 banner_perpetuals_description = 使用 Hyperliquid 永续合约进行存款、交易和赚取收益
 
 # Filter
@@ -516,7 +499,7 @@ lock_five_minutes = 5 分钟
 lock_fifteen_minutes = 15 分钟
 lock_one_hour = 1 小时
 lock_six_hours = 6 小时
-lock_require_authentication = 锁定时间
+lock_require_authentication = 需要身份验证
 lock_unlock = 解锁
 lock_privacy_lock = 隐私锁
 lock_footer = 保护您设备上对此应用的访问
@@ -548,14 +531,12 @@ info_slippage_description = 滑点是指交易预期价格与实际执行价格�
 info_asset_status_unverified_description = 未验证代币是指未经可信第三方服务充分验证的代币。它们可能因空投、转账或手动导入而出现在您的钱包中。
 info_asset_status_suspicious_description = 可疑或垃圾代币会被识别为潜在的诈骗或有害资产。它们可能因空投、转账或手动导入而出现在您的钱包中。
 info_insufficient_network_fee_balance_title = 需要%@
-info_insufficient_network_fee_balance_description = 此交易需要 %@ 用于支付网络费用 %@ 矿工，而不是 Gem Wallet确保你有足够的 %@。
+info_insufficient_network_fee_balance_description = 此交易需要 %@ 支付给 %@ 矿工的网络费用，而非 Gem Wallet。请确保你有足够的 %@。
 info_insufficient_balance_title = 余额不足
 info_insufficient_balance_description = 您的余额不足%@ ，无法完成此交易。请充值、接收或兑换您的钱包，然后重试。
 info_account_minimum_balance_title = 最低余额
 info_perpetual_funding_payments_title = 资金费用
 info_perpetual_funding_payments_description = 资金费用是交易者之间的定期支付，用于使永续合约价格接近标的资产现货价格。正资金费用表示多头支付空头，负资金费用表示空头支付多头。
-info_perpetual_funding_rate_title = 资金费率
-info_perpetual_funding_rate_description = 资金费率决定持有永续仓位的成本。它按小时计算，有助于维持永续合约与标的资产现货价格之间的价格平衡。
 info_perpetual_liquidation_price_title = 强平价格
 info_perpetual_liquidation_price_description = 强平价格是当市场价格达到该水平时，您的仓位将被自动平仓以防止进一步亏损的价格。当市场价触及此价位，仓位被强制平仓，保证金将被扣除。
 info_perpetual_open_interest_title = 未平仓合约
@@ -571,7 +552,7 @@ info_circulating_supply_description = 目前市场上可供交易的加密货币
 info_total_supply_description = 现存硬币总数，包括已锁定或已预留的硬币。
 info_max_supply_title = 最大供应
 info_max_supply_description = 硬币的最大存世量。
-info_perpetual_funding_apr_title = 资助年利率
+info_perpetual_funding_apr_title = 资金费率年化
 info_perpetual_funding_apr_description = 多头支付空头的年化利率（如果为负，则空头支付多头）。融资不收取任何费用，融资是用户之间的点对点转账，旨在将价格推向现货价格。
 info_minimum_amount_title = 最低金额
 info_minimum_amount_description = 在 %@ 网络上，此交易的最低金额为 %@。
@@ -589,7 +570,7 @@ nft_save_to_photos = 保存到照片
 nft_set_as_avatar = 设为头像
 nft_state_empty_title = NFT 将显示在这里️
 nft_state_empty_description = 接收第一个 NFT
-nft_report_reason_spam = 垃圾邮件
+nft_report_reason_spam = 垃圾信息
 nft_report_reason_malicious = 恶意
 nft_report_reason_inappropriate = 不当内容
 nft_report_reason_copyright = 版权
@@ -633,13 +614,12 @@ onboarding_accept_terms_continue = 我已了解，继续
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
 perpetual_positions = 仓位
 perpetual_size = 持仓量
-perpetual_margin = 利润
+perpetual_margin = 保证金
 perpetual_position = 仓位
 perpetual_close_position = 平仓
 perpetual_pnl = 盈亏
@@ -648,12 +628,11 @@ perpetual_short = 做空
 perpetual_entry_price = 入场价格
 perpetual_modify = 调整
 perpetual_reduce_position = 减仓
-perpetual_increase_position = 增加职位
-perpetual_open_direction = 打开%@
-perpetual_close_direction = 关闭%@
-perpetual_leverage = 杠杆作用
-perpetual_direction = 方向
-perpetual_auto_close = 自动关闭
+perpetual_increase_position = 增加仓位
+perpetual_open_direction = 开仓 %@
+perpetual_close_direction = 平仓 %@
+perpetual_leverage = 杠杆
+perpetual_auto_close = 自动平仓
 perpetual_auto_close_take_profit = 获利
 perpetual_market_price = 市价
 perpetual_take_profit = TP
@@ -663,20 +642,20 @@ perpetual_increase_direction = 增加%@
 perpetual_reduce_direction = 减少%@
 perpetual_auto_close_expected_profit = 预期利润
 perpetual_auto_close_expected_loss = 预期损失
-perpetual_modify_position = 修改位置
+perpetual_modify_position = 修改仓位
 perpetual_auto_close_stop_loss = 止损
 perpetual_value = 价值
-perpetual_unrealized_pnl = 未实现损益
-perpetual_volume = 体积
+perpetual_unrealized_pnl = 未实现盈亏
+perpetual_volume = 交易量
 perpetual_all_time_pnl = 总损益
-perpetual_margin_usage = 边际利用率
+perpetual_margin_usage = 保证金使用率
 perpetual_account_leverage = 账户杠杆
-perpetual_margin_cross = 克罗斯
+perpetual_margin_cross = 全仓
 perpetual_margin_isolated = 隔离
 
 # Perpetuals
 
-perpetuals_title = 永久
+perpetuals_title = 永续合约
 perpetuals_markets = 市场
 perpetuals_empty_state_no_markets = 没有市场
 perpetuals_empty_state_no_markets_found = 未找到任何市场
@@ -691,7 +670,7 @@ rewards_invite_friends_description = 赚 %@ 每邀请一位好友加入，即可
 rewards_referral_code = 推荐码
 rewards_invited_by = 邀请者
 rewards_points = 积分
-rewards_referrals = 转诊
+rewards_referrals = 推荐
 rewards_earn_points_title = 赚取积分
 rewards_get_rewards_title = 获得奖励
 rewards_activate_referral_code_description = 有朋友的推荐码吗？
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = 您最近使用过的资源将显示�
 
 notifications_inapp_state_empty_title = 暂无通知
 notifications_inapp_state_empty_description = 您可以在这里查看通知更新。
-notifications_inapp_rewards_invite_subtitle = 邀请好友，一起赢取奖励
 
 # Earn
 
@@ -741,7 +719,7 @@ contacts_add_to_contacts = 添加到联系人
 simulation_header_unlimited_asset = 无限 %@
 simulation_warning_unlimited_token_approval_description = 这样，消费者就可以一直使用该代币，直到你撤销授权或代币过期为止。
 simulation_warning_externally_owned_spender_description = 此授权允许普通钱包地址 (EOA) 使用你的资产。仅在你信任该地址时确认。
-simulation_warning_nft_collection_approval_title = 请求访问完整的NFT收藏集
+simulation_warning_nft_collection_approval_title = 请求访问整个 NFT 收藏集
 simulation_warning_unlimited_token_approval_title = 无限代币批准
 
 # Application

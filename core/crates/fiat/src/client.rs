@@ -97,7 +97,7 @@ impl FiatClient {
         let webhook = match provider.process_webhook(webhook_data.clone()).await {
             Ok(webhook) => webhook,
             Err(e) => {
-                error_with_fields!("failed to decode fiat webhook", &*e, provider = provider_id);
+                error_with_fields!("failed to decode fiat webhook", &*e, provider = provider_id, payload = webhook_data.to_string());
                 return Err(e);
             }
         };

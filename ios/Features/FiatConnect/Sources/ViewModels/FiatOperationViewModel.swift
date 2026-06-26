@@ -125,6 +125,12 @@ final class FiatOperationViewModel {
         )
     }
 
+    func onAssetDataChange(_ assetData: AssetData) {
+        guard availableBalance != assetData.balance.available else { return }
+        availableBalance = assetData.balance.available
+        updateValidators()
+    }
+
     func setAmount(_ text: String) {
         if text != amount {
             selectedQuote = nil

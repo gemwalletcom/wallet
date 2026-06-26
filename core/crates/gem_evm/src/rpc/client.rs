@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 use super::{
     ankr::AnkrClient,
-    model::{Block, BlockTransactionsIds, EthSyncingStatus, Log, Transaction, TransactionReciept, TransactionReplayTrace},
+    model::{Block, BlockTransactionsIds, EthSyncingStatus, Transaction, TransactionReciept, TransactionReplayTrace},
 };
 use crate::jsonrpc::BlockParameter;
 use crate::models::fee::EthereumFeeHistory;
@@ -146,7 +146,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         self.client.batch_call::<TransactionReciept>(calls).await?.take_all()
     }
 
-    pub async fn get_transaction_receipt(&self, hash: &str) -> Result<TransactionReciept, JsonRpcError> {
+    pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReciept>, JsonRpcError> {
         let params = json!([hash]);
         self.client.call("eth_getTransactionReceipt", params).await
     }
@@ -226,16 +226,6 @@ impl<C: Client + Clone> EthereumClient<C> {
             .map(|x| ("eth_call".to_string(), json!([{"to": x, "data": &data}, Self::latest_block_parameter()])))
             .collect();
         Ok(self.client.batch_call::<String>(calls).await?.take_all()?)
-    }
-
-    pub async fn get_logs(&self, address: &str, topics: &[Option<String>], from_block: &str, to_block: &str) -> Result<Vec<Log>, JsonRpcError> {
-        let params = json!([{
-            "address": address,
-            "topics": topics,
-            "fromBlock": from_block,
-            "toBlock": to_block
-        }]);
-        self.client.call("eth_getLogs", params).await
     }
 
     pub async fn estimate_gas(&self, from: Option<&str>, to: &str, value: Option<&str>, data: Option<&str>) -> Result<String, JsonRpcError> {

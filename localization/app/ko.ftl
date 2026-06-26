@@ -3,19 +3,17 @@
 common_cancel = 취소
 common_done = 완료
 common_secret_phrase = 비밀 문구
-common_next = 다음
 common_copy = 복사
 common_share = 공유
 common_continue = 계속
 common_provider = 공급자
-common_loading = 로드 중
+common_loading = 로딩 중
 common_address = 주소
-common_back = 뒤로
 common_try_again = 다시 시도
-common_paste = 반죽
+common_paste = 붙여넣기
 common_delete = 삭제
 common_delete_confirmation = %@ (를) 삭제하시겠습니까?
-common_hide = 숨다
+common_hide = 숨기기
 common_wallet = 지갑
 common_show = %@ 표시
 common_copied = 복사됨: %@
@@ -23,10 +21,9 @@ common_recommended = 추천
 common_all = 모두
 common_not_available = 사용 불가
 common_phrase = 구절
-common_manage = 관리하다
+common_manage = 관리
 common_type = 유형
 common_no_results_found = 검색 결과가 없습니다
-common_yes = 예
 common_no = 아니요
 common_none = 없음
 common_url = URL
@@ -37,17 +34,13 @@ common_pin = 핀
 common_pinned = 고정됨
 common_lists = 목록
 common_unpin = 고정 해제
-common_skip = 건너뛰다
+common_skip = 건너뛰기
 common_warning = 경고
 common_learn_more = 더 알아보기
-common_short_name = Gem
 common_description = 설명
 common_emoji = 이모티콘
-common_style = 스타일
-common_avatar = 화신
-common_photo = 사진
-common_save = 구하다
-common_edit = 편집
+common_avatar = 아바타
+common_save = 저장
 common_percentage = 백분율
 common_details = 세부
 common_info = 정보
@@ -56,14 +49,14 @@ common_earn = 적립
 common_method = 방법
 common_token = 토큰
 common_suspicious_address = 의심스러운 주소
-common_refresh = 새로 고치다
-common_no_thanks = 고맙지 만 사양 할게
+common_refresh = 새로고침
+common_no_thanks = 사양할게요
 common_grant_permission = 권한 부여
 common_required_field = %@ 이(가) 필요합니다
 
 # Welcome
 
-welcome_title = 보석 가족에 오신 것을 환영합니다
+welcome_title = Gem Family에 오신 것을 환영합니다
 
 # Wallet
 
@@ -76,12 +69,12 @@ wallet_swap = 교환
 wallet_import_title = 지갑 가져오기
 wallet_new_title = 새로운 지갑
 wallet_name = 이름
-wallet_import_action = 수입
+wallet_import_action = 가져오기
 wallet_multicoin = 멀티코인
 wallet_import_address_field = 주소 또는 이름
 wallet_manage_token_list = 토큰 관리
 wallet_scan_qr_code = QR 코드 스캔
-wallet_scan = 주사
+wallet_scan = 스캔
 wallet_default_name = 지갑 #%d
 wallet_default_name_chain = %@ 지갑 #%d
 wallet_copy_address = 주소 복사
@@ -93,10 +86,10 @@ wallet_title = 지갑
 wallet_add_token_title = 토큰 추가하기
 wallet_sell = 팔다
 wallet_receive_collection = 컬렉션 수신
-wallet_more = 더
+wallet_more = 더 보기
 wallet_import_contract_address_field = 계약 또는 토큰 ID
 wallet_import_address_warning = 이 주소에 대한 잔액과 거래 내역은 볼 수 있지만, **자금을 보내거나 판매할 수는 없습니다**.
-wallet_deposit = 보증금
+wallet_deposit = 입금
 wallet_withdraw = 철회하다
 wallet_available_balance = 사용 가능: %@
 wallet_portfolio_title = 포트폴리오
@@ -110,7 +103,7 @@ wallets_watch = 시계
 # Receive
 
 receive_title = %@ 받습니다.
-receive_warning = 이 주소는 귀하의 주소입니다. 발송 전용입니다. %@ 위에 %@ 회로망.
+receive_warning = 이 주소는 귀하의 주소입니다. %@만 %@ 네트워크에서 보내세요.
 
 # Buy
 
@@ -124,9 +117,9 @@ buy_no_results = 사용 가능한 견적이 없습니다.
 transfer_network_fee = 네트워크 수수료
 transfer_memo = 메모
 transfer_confirm = 확인
-transfer_from = 에서
+transfer_from = 보내는 사람
 transfer_to = 받는 사람
-transfer_max = 맥스
+transfer_max = 최대
 transfer_network = 회로망
 transfer_recipient_title = 받는 사람
 transfer_balance = 잔액: %@
@@ -136,7 +129,7 @@ transfer_send_title = 보내다
 transfer_insufficient_balance = %@ 잔액이 부족합니다.
 transfer_insufficient_network_fee_balance = 네트워크 비용을 충당하기에는 %@ 잔액이 부족합니다.
 transfer_approve_title = 승인하다
-transfer_stake_title = 말뚝
+transfer_stake_title = 스테이킹
 transfer_claim_rewards_title = 보상 청구
 transfer_unstake_title = 언스테이크
 transfer_redelegate_title = 재위임
@@ -151,12 +144,11 @@ transfer_smart_contract_title = 스마트 계약
 transfer_other_title = 기타
 transfer_maximum_amount = 최대 금액은 %@입니다.
 transfer_reserved_fees = 향후 네트워크 수수료를 충당하기 위해 잔액에 %@ 남겨두었습니다.
-transfer_freeze_title = 꼭 매달리게 하다
+transfer_freeze_title = 동결
 transfer_unfreeze_title = 녹이다
-transfer_sign_transaction_title = 거래 서명
 transfer_review_request = 검토 요청
-transfer_amount = 양
-transfer_amount_title = 양
+transfer_amount = 금액
+transfer_amount_title = 금액
 
 # Settings
 
@@ -169,9 +161,8 @@ settings_community = 지역 사회
 settings_aboutus = 회사 소개
 settings_networks_title = 네트워크
 settings_networks_source = 원천
-settings_networks_explorer = 탐침
+settings_networks_explorer = 익스플로러
 settings_currency = 통화
-settings_rate_app = 앱 평가
 settings_website = 웹사이트 방문
 settings_security = 보안
 settings_enable_value = %@ 활성화
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = 현재 네트워크 요금을 계산할 수
 errors_invalid_asset_address = 잘못된 %@ 주소
 errors_dust_threshold = 거래가 %@ 네트워크의 최소 요구 사항(먼지 임계값)을 충족하기에 너무 적어 실패했습니다. 이 한도는 거래 금액이 수수료 및 처리 비용을 충당할 수 있도록 보장합니다.
 errors_swap_no_quote_available = 사용 가능한 견적이 없습니다.
-errors_swap_not_supported_chain = 지원되지 않는 체인입니다.
 errors_swap_not_supported_asset = 지원되지 않는 자산입니다.
-errors_swap_not_supported_pair = 지원되지 않는 쌍입니다.
 errors_connections_invalid_send_parameters = 거래를 보내기 위한 매개변수가 잘못되었습니다.
 errors_connections_invalid_sign_parameters = 서명에 잘못된 매개변수가 제공되었습니다.
 errors_connections_no_supported_wallets = 지원되는 지갑이 없습니다.
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = 의심스러운 활동
 errors_connections_malicious_origin = 이 연결은 신뢰할 수 없는 출처에서 나왔습니다.
 errors_no_data_available = 사용 가능한 데이터가 없습니다
 errors_dust_threshold_short = 네트워크는 이 금액을 먼지로 간주합니다. 수수료가 금액 자체보다 높기 때문입니다.
-errors_swap_minimum_amount = 최소 거래 금액은 %@더 높은 금액을 입력해 주세요.
+errors_swap_minimum_amount = 최소 거래 금액은 %@. 더 높은 금액을 입력해 주세요.
 errors_perpetual_trigger_price_lower = 트리거 가격은 시장 가격보다 낮아야 합니다
 errors_perpetual_trigger_price_higher = 트리거 가격은 시장 가격보다 높아야 합니다
 errors_token_unable_fetch_token_information = 토큰 정보를 가져올 수 없습니다: %@
@@ -291,14 +280,13 @@ asset_balances_available = 사용 가능
 asset_price = 가격
 asset_market_cap = 시가총액
 asset_trading_volume = 거래량(24시간)
-asset_market_cap_rank = 시가총액 순위
 asset_total_supply = 총 공급량
-asset_circulating_supply = 순환 공급
+asset_circulating_supply = 유통 공급량
 asset_balances_reserved = 예약된
 asset_view_token_on = %@에서 토큰 보기
 asset_view_address_on = %@에서 주소 보기
 asset_name = 이름
-asset_symbol = 상징
+asset_symbol = 심볼
 asset_decimals = 소수
 asset_token_id = 토큰 ID
 asset_contract = 계약
@@ -321,7 +309,7 @@ asset_all_time_low = 역대 최저치
 charts_day = 1D
 charts_hour = 1H
 charts_week = 1W
-charts_month = 1월
+charts_month = 1M
 charts_year = 1년
 charts_all = 모두
 charts_entry = 입장
@@ -343,22 +331,20 @@ wallet_connect_connection_title = 연결
 wallet_connect_disconnect = 연결 끊기
 wallet_connect_connect_title = 연결하다
 wallet_connect_app = 앱
-wallet_connect_website = 웹사이트
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = 활성 연결 없음
 wallet_connect_state_empty_description = DApp에 연결하려면 코드를 스캔하거나 붙여넣으세요.
-wallet_connect_domain = 도메인
 wallet_connect_permissions_title = 권한
 wallet_connect_permissions_view_balance = 잔액과 활동 내역을 확인하세요
 wallet_connect_permissions_approval_requests = 승인 요청 보내기
 
 # Swap
 
-swap_you_pay = 당신은 지불
-swap_you_receive = 당신은 받습니다
+swap_you_pay = 지불 금액
+swap_you_receive = 수령 금액
 swap_price_impact = 가격 영향
-swap_slippage = 미끄러짐
-swap_price_impact_warning_description = 이 거래에서 %@ 중 %@ 을(를) 잃게 됩니다. 계속하시겠습니까?
+swap_slippage = 슬리피지
+swap_price_impact_warning_description = 이 거래에서 %@을(를) 잃게 되며, 이는 보유하신 %@의 일부입니다. 계속하시겠습니까?
 swap_price_impact_warning_title = 높은 가격의 영향
 swap_estimated_time_title = 예상 시간
 swap_min_receive = 최소 수령
@@ -372,7 +358,7 @@ stake_rewards = 보상
 stake_validator = 검증인
 stake_validators = 검증인
 stake_apr = APR %@
-stake_available_in = 가능
+stake_available_in = 사용 가능 시점
 stake_inactive = 비활성
 stake_lock_time = 잠금 시간
 stake_activating = 활성화
@@ -380,11 +366,9 @@ stake_deactivating = 비활성화 중
 stake_awaiting_withdrawal = 출금 대기 중
 stake_active_in = 활성 상태
 stake_minimum_amount = 최소 금액
-stake_viagem = Gem Wallet을 통한 스테이킹
-stake_no_active_staking = 아직 활성 스테이킹이 없습니다.
-stake_state_empty_title = 귀하의 지분이 여기에 표시됩니다
+stake_state_empty_title = 스테이킹 내역이 여기에 표시됩니다
 stake_state_empty_description = 첫 번째 %@ 스테이킹하세요
-stake_resource = 의지
+stake_resource = 리소스
 stake_resource_energy = 에너지
 stake_resource_bandwidth = 대역폭
 stake_delegations = 위임
@@ -405,7 +389,6 @@ assets_title = 자산
 
 # Sign Message
 
-sign_message_title = 메시지 서명
 sign_message_message = 메시지
 sign_message_view_full_message = 전체 메시지 보기
 
@@ -485,7 +468,7 @@ banner_perpetuals_description = Hyperliquid 영구자산으로 예금, 거래 �
 filter_clear = 지우기
 filter_title = 필터
 filter_types = 유형
-filter_has_balance = 균형이 있다
+filter_has_balance = 잔액 있음
 
 # Price Alerts
 
@@ -548,14 +531,12 @@ info_slippage_description = 슬리피지란 거래의 예상 가격과 실제로
 info_asset_status_unverified_description = 검증되지 않은 토큰은 신뢰할 수 있는 제3자 서비스에서 충분히 검증되지 않은 토큰입니다. 에어드랍, 이체 또는 수동 가져오기로 인해 지갑에 나타날 수 있습니다.
 info_asset_status_suspicious_description = 의심스럽거나 스팸 토큰은 잠재적 사기 또는 유해 자산으로 식별됩니다. 이러한 토큰은 에어드랍, 이체 또는 수동 가져오기를 통해 지갑에 나타날 수 있습니다.
 info_insufficient_network_fee_balance_title = %@ 이 필요합니다
-info_insufficient_network_fee_balance_description = 이 거래에는 다음이 필요합니다. %@ 지불된 네트워크 수수료를 충당하기 위해 %@ 광부들이 아니라 Gem Wallet충분한 양을 확보하세요. %@.
+info_insufficient_network_fee_balance_description = 이 거래에는 네트워크 수수료를 충당하기 위해 %@이(가) 필요하며, 이 수수료는 Gem Wallet이 아닌 %@ 채굴자에게 지불됩니다. %@을(를) 충분히 보유하고 있는지 확인하세요.
 info_insufficient_balance_title = 잔액이 부족합니다
 info_insufficient_balance_description = 이 거래를 완료하기에 %@ 잔액이 부족합니다. 지갑에 충전, 수령 또는 스왑한 후 다시 시도해 주세요.
 info_account_minimum_balance_title = 최소 잔액
 info_perpetual_funding_payments_title = 자금 지불
 info_perpetual_funding_payments_description = 펀딩 지급은 영구 계약 가격을 기초 자산의 현물 가격에 가깝게 유지하기 위해 거래자 간에 정기적으로 지급하는 것입니다. 포지티브 펀딩은 롱 포지션이 숏 포지션에 돈을 지불한다는 의미이고, 네거티브 펀딩은 숏 포지션이 롱 포지션에 돈을 지불한다는 의미입니다.
-info_perpetual_funding_rate_title = 자금 조달
-info_perpetual_funding_rate_description = 펀딩 비율에 따라 영구 포지션을 유지하는 데 드는 비용이 결정됩니다. 시간 단위로 계산되며 무기한 계약과 기초 자산의 현물 가격 간의 가격 균형을 유지하는 데 도움이 됩니다.
 info_perpetual_liquidation_price_title = 청산 가격
 info_perpetual_liquidation_price_description = 청산 가격은 추가 손실을 방지하기 위해 귀하의 포지션이 자동으로 청산되는 가격 수준입니다. 시장 가격이 이 수준에 도달하면 귀하의 포지션은 청산되고 증거금을 잃게 됩니다.
 info_perpetual_open_interest_title = 미결제약정
@@ -571,7 +552,7 @@ info_circulating_supply_description = 현재 시장에서 거래되고 있는 �
 info_total_supply_description = 잠겨 있거나 예약된 코인을 포함하여 존재하는 전체 코인 수입니다.
 info_max_supply_title = 최대 공급
 info_max_supply_description = 세상에 존재할 수 있는 동전의 최대 개수.
-info_perpetual_funding_apr_title = 4월 자금 조달
+info_perpetual_funding_apr_title = 펀딩 APR
 info_perpetual_funding_apr_description = 매수자가 매도자에게 지급하는 연간 비율입니다(음수인 경우 매도자가 매수자에게 지급). 가격을 현물 가격으로 끌어올리기 위해 사용자 간에 P2P(Peer-to-Peer) 전송을 수행하는 자금 조달과 관련된 수수료는 없습니다.
 info_minimum_amount_title = 최소 금액
 info_minimum_amount_description = %@ 네트워크에서 이 거래의 최소 금액은 %@입니다.
@@ -633,7 +614,6 @@ onboarding_accept_terms_continue = 동의하고 계속하세요
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -644,15 +624,14 @@ perpetual_position = 위치
 perpetual_close_position = 닫기 위치
 perpetual_pnl = PnL
 perpetual_long = 롱
-perpetual_short = 짧은
-perpetual_entry_price = 입장료
+perpetual_short = 숏
+perpetual_entry_price = 진입 가격
 perpetual_modify = 수정하다
 perpetual_reduce_position = 위치 줄이기
 perpetual_increase_position = 위치 증가
 perpetual_open_direction = %@ 열기
 perpetual_close_direction = %@ 닫기
 perpetual_leverage = 레버리지
-perpetual_direction = 방향
 perpetual_auto_close = 자동 닫기
 perpetual_auto_close_take_profit = 이익 실현
 perpetual_market_price = 시장 가격
@@ -667,16 +646,16 @@ perpetual_modify_position = 위치 수정
 perpetual_auto_close_stop_loss = 손절매
 perpetual_value = 값
 perpetual_unrealized_pnl = 미실현 손익
-perpetual_volume = 용량
+perpetual_volume = 거래량
 perpetual_all_time_pnl = 역대 최고 PnL
 perpetual_margin_usage = 마진 사용
 perpetual_account_leverage = 계정 레버리지
-perpetual_margin_cross = 십자가
+perpetual_margin_cross = 크로스
 perpetual_margin_isolated = 절연
 
 # Perpetuals
 
-perpetuals_title = 영구
+perpetuals_title = 무기한 선물
 perpetuals_markets = 시장
 perpetuals_empty_state_no_markets = 시장 없음
 perpetuals_empty_state_no_markets_found = 시장을 찾을 수 없습니다
@@ -684,13 +663,13 @@ perpetuals_empty_state_no_markets_found = 시장을 찾을 수 없습니다
 # Rewards
 
 rewards_title = 보상
-rewards_share_text = 가입하다 Gem Wallet 제 추천 링크를 통해 가입하시고 보상을 받으세요: %@
+rewards_share_text = 제 추천 링크로 Gem Wallet에 가입하고 보상을 받으세요: %@
 rewards_my_referral_code = 내 추천 코드
 rewards_invite_friends_title = 친구 초대하기
 rewards_invite_friends_description = 벌다 %@ 친구가 가입할 때마다 포인트를 획득합니다.
 rewards_referral_code = 추천 코드
 rewards_invited_by = 초대자
-rewards_points = 전철기
+rewards_points = 포인트
 rewards_referrals = 추천
 rewards_earn_points_title = 포인트를 적립하세요
 rewards_get_rewards_title = 보상을 받으세요
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = 최근에 사용한 애셋이 여기�
 
 notifications_inapp_state_empty_title = 아직 알림이 없습니다.
 notifications_inapp_state_empty_description = 알림 관련 업데이트는 여기에서 확인하실 수 있습니다.
-notifications_inapp_rewards_invite_subtitle = 친구를 초대하고 함께 보상을 받으세요
 
 # Earn
 
@@ -729,7 +707,7 @@ earn_state_empty_description = 첫 입금 %@
 
 # Contacts
 
-contacts_title = 콘택트 렌즈
+contacts_title = 연락처
 contacts_contact = 연락하다
 contacts_addresses = 구애
 contacts_state_empty_title = 연락처 없음

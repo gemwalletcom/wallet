@@ -95,7 +95,7 @@ public extension Primitives.Chain {
     }
 
     func isValidAddress(_ address: String) -> Bool {
-        Gemstone.validateAddress(address: address, chain: rawValue)
+        Gemstone.validateAddress(address: checksumAddress(address), chain: rawValue)
     }
 
     func checksumAddress(_ address: String) -> String {

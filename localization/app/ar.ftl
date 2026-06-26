@@ -1,32 +1,29 @@
 # Common
 
 common_cancel = يلغي
-common_done = منتهي
+common_done = تم
 common_secret_phrase = العبارة السرية
-common_next = التالي
-common_copy = ينسخ
-common_share = يشارك
+common_copy = نسخ
+common_share = مشاركة
 common_continue = يكمل
 common_provider = مزود
 common_loading = تحميل
 common_address = عنوان
-common_back = خلف
 common_try_again = حاول ثانية
-common_paste = معجون
+common_paste = لصق
 common_delete = يمسح
 common_delete_confirmation = هل أنت متأكد أنك تريد حذف %@ ؟
 common_hide = يخفي
 common_wallet = محفظة
-common_show = %@
+common_show = إظهار %@
 common_copied = تم النسخ: %@
 common_recommended = مُستَحسَن
 common_all = الجميع
 common_not_available = غير متاح
 common_phrase = عبارة
 common_manage = يدير
-common_type = يكتب
+common_type = النوع
 common_no_results_found = لم يتم العثور على نتائج
-common_yes = نعم
 common_no = لا
 common_none = لا شيء
 common_url = عنوان URL
@@ -40,14 +37,10 @@ common_unpin = إزالة التثبيت
 common_skip = يتخطى
 common_warning = تحذير
 common_learn_more = يتعلم أكثر
-common_short_name = Gem
 common_description = وصف
 common_emoji = الرموز التعبيرية
-common_style = أسلوب
 common_avatar = الصورة الرمزية
-common_photo = صورة
 common_save = يحفظ
-common_edit = يحرر
 common_percentage = نسبة مئوية
 common_details = تفاصيل
 common_info = معلومات
@@ -63,7 +56,7 @@ common_required_field = %@ مطلوب
 
 # Welcome
 
-welcome_title = مرحبا بكم في عائلة جوهرة
+welcome_title = مرحبًا بكم في Gem Family
 
 # Wallet
 
@@ -86,7 +79,7 @@ wallet_default_name = المحفظة #%d
 wallet_default_name_chain = %@ المحفظة رقم %d
 wallet_copy_address = نسخ العنوان
 wallet_watch_tooltip_title = أنت تشاهد هذه المحفظة.
-wallet_stake = حصة
+wallet_stake = التخزين
 wallet_receive_no_memo_required = لا مذكرة المطلوبة
 wallet_receive_no_destination_tag_required = لا توجد علامة الوجهة المطلوبة
 wallet_title = محفظة
@@ -99,7 +92,7 @@ wallet_import_address_warning = يمكنك عرض الأرصدة والمعام�
 wallet_deposit = إيداع
 wallet_withdraw = ينسحب
 wallet_available_balance = متاح: %@
-wallet_portfolio_title = مَلَفّ
+wallet_portfolio_title = المحفظة الاستثمارية
 wallet_import_already_imported_message = تم استيراد هذه المحفظة بالفعل.
 
 # Wallets
@@ -117,7 +110,7 @@ receive_warning = هذا عنوانك — أرسل فقط %@ على %@ شبكة.
 buy_title = شراء %@
 buy_providers_title = مقدمي الخدمات
 buy_rate = معدل
-buy_no_results = لا توجد اقتباسات المتاحة
+buy_no_results = لا توجد عروض أسعار متاحة
 
 # Transfer
 
@@ -126,7 +119,7 @@ transfer_memo = مذكرة
 transfer_confirm = يتأكد
 transfer_from = من
 transfer_to = ل
-transfer_max = الأعلى
+transfer_max = الحد الأقصى
 transfer_network = شبكة
 transfer_recipient_title = متلقي
 transfer_balance = الرصيد: %@
@@ -135,10 +128,10 @@ transfer_recipient_address_field = العنوان أو الاسم
 transfer_send_title = يرسل
 transfer_insufficient_balance = رصيد %@ غير كافٍ.
 transfer_insufficient_network_fee_balance = رصيد %@ غير كافٍ لتغطية رسوم الشبكة.
-transfer_approve_title = يعتمد
-transfer_stake_title = حصة
+transfer_approve_title = الموافقة
+transfer_stake_title = التخزين
 transfer_claim_rewards_title = المطالبة بالمكافآت
-transfer_unstake_title = غير مستقر
+transfer_unstake_title = إلغاء التخزين
 transfer_redelegate_title = إعادة التفويض
 transfer_withdraw_title = ينسحب
 transfer_rewards_title = المكافآت
@@ -153,7 +146,6 @@ transfer_maximum_amount = الحد الأقصى للمبلغ هو %@
 transfer_reserved_fees = لقد تركنا %@ في رصيدك لتغطية رسوم الشبكة المستقبلية.
 transfer_freeze_title = تجميد
 transfer_unfreeze_title = إزالة التجميد
-transfer_sign_transaction_title = توقيع المعاملة
 transfer_review_request = طلب مراجعة
 transfer_amount = كمية
 transfer_amount_title = كمية
@@ -171,7 +163,6 @@ settings_networks_title = الشبكات
 settings_networks_source = مصدر
 settings_networks_explorer = إكسبلورر
 settings_currency = عملة
-settings_rate_app = قيم التطبيق
 settings_website = زيارة الموقع
 settings_security = حماية
 settings_enable_value = تمكين %@
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = لا يمكننا حاليًا حساب ر�
 errors_invalid_asset_address = عنوان %@ غير صالح
 errors_dust_threshold = فشلت المعاملة لأن المبلغ صغير جدًا بحيث لا يلبي الحد الأدنى لمتطلبات شبكة %@ (حد الغبار). يضمن هذا الحد أن قيمة المعاملة تغطي الرسوم وتكاليف المعالجة. زد المبلغ أو قلل الرسوم للمتابعة.
 errors_swap_no_quote_available = لا يوجد عرض سعر متاح.
-errors_swap_not_supported_chain = سلسلة غير مدعومة.
 errors_swap_not_supported_asset = أصل غير مدعوم.
-errors_swap_not_supported_pair = زوج غير مدعوم.
 errors_connections_invalid_send_parameters = تم توفير معلمات غير صالحة لإرسال المعاملة.
 errors_connections_invalid_sign_parameters = تم توفير معلمات غير صالحة للتوقيع.
 errors_connections_no_supported_wallets = لا تتوفر محافظ مدعومة.
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = نشاط مشبوه
 errors_connections_malicious_origin = يأتي هذا الاتصال من مصدر غير موثوق.
 errors_no_data_available = لا توجد بيانات متاحة
 errors_dust_threshold_short = تعتبر الشبكة هذه الكمية مجرد غبار، حيث أن الرسوم أعلى من الكمية نفسها.
-errors_swap_minimum_amount = الحد الأدنى لمبلغ التداول هو %@يرجى إدخال مبلغ أعلى.
+errors_swap_minimum_amount = الحد الأدنى لمبلغ التداول هو %@. يرجى إدخال مبلغ أعلى.
 errors_perpetual_trigger_price_lower = يجب أن يكون سعر التفعيل أقل من سعر السوق
 errors_perpetual_trigger_price_higher = يجب أن يكون سعر التفعيل أعلى من سعر السوق
 errors_token_unable_fetch_token_information = غير قادر على جلب معلومات الرمز المميز: %@
@@ -253,7 +242,7 @@ errors_network_offline = يبدو أن الاتصال بالإنترنت غير 
 activity_title = نشاط
 activity_state_empty_title = سوف يظهر نشاطك هنا
 activity_state_empty_description = قم بإجراء معاملتك الأولى
-activity_state_empty_search_description = قم بمسح المرشحات لتحديث أنشطتك
+activity_state_empty_search_description = امسح عوامل التصفية لتحديث أنشطتك
 activity_state_empty_search_title = لم يتم العثور على أي أنشطة
 
 # Update App
@@ -291,7 +280,6 @@ asset_balances_available = متاح
 asset_price = سعر
 asset_market_cap = القيمة السوقية
 asset_trading_volume = حجم التداول (24 ساعة)
-asset_market_cap_rank = رتبة القيمة السوقية
 asset_total_supply = إجمالي العرض
 asset_circulating_supply = العرض المتداول
 asset_balances_reserved = محجوز
@@ -343,11 +331,9 @@ wallet_connect_connection_title = اتصال
 wallet_connect_disconnect = قطع الاتصال
 wallet_connect_connect_title = يتصل
 wallet_connect_app = برنامج
-wallet_connect_website = موقع إلكتروني
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = لا توجد اتصالات نشطة
 wallet_connect_state_empty_description = امسح أو الصق الكود للاتصال بالتطبيق اللامركزي
-wallet_connect_domain = اِختِصاص
 wallet_connect_permissions_title = الأذونات
 wallet_connect_permissions_view_balance = اطلع على رصيدك ونشاطك
 wallet_connect_permissions_approval_requests = إرسال طلبات الموافقة
@@ -371,7 +357,7 @@ stake_pending = قيد الانتظار
 stake_rewards = المكافآت
 stake_validator = المدقق
 stake_validators = المدققون
-stake_apr = أبريل %@
+stake_apr = APR %@
 stake_available_in = متوفر في
 stake_inactive = غير نشط
 stake_lock_time = وقت القفل
@@ -380,11 +366,9 @@ stake_deactivating = التعطيل
 stake_awaiting_withdrawal = في انتظار الانسحاب
 stake_active_in = نشط في
 stake_minimum_amount = الحد الأدنى للمبلغ
-stake_viagem = حصة عبر Gem Wallet
-stake_no_active_staking = لا يوجد حصة نشطة حتى الآن.
-stake_state_empty_title = ستظهر حصصك هنا
-stake_state_empty_description = راهن بأول %@
-stake_resource = الموارد
+stake_state_empty_title = ستظهر عمليات التخزين هنا
+stake_state_empty_description = قم بتخزين أول %@
+stake_resource = المورد
 stake_resource_energy = طاقة
 stake_resource_bandwidth = عرض النطاق الترددي
 stake_delegations = التفويضات
@@ -405,7 +389,6 @@ assets_title = أصول
 
 # Sign Message
 
-sign_message_title = توقيع الرسالة
 sign_message_message = رسالة
 sign_message_view_full_message = عرض الرسالة كاملة
 
@@ -421,7 +404,7 @@ secret_phrase_content_hidden_description = المحتوى المخفي أثنا�
 
 # Social
 
-social_x = X (formerly Twitter)
+social_x = X (تويتر سابقًا)
 social_discord = Discord
 social_reddit = Reddit
 social_telegram = Telegram
@@ -468,7 +451,7 @@ fee_rate_gwei = %@ gwei
 
 banner_account_activation_title = رسوم تفعيل الحساب
 banner_account_activation_description = تتطلب شبكة %@ رسومًا لمرة واحدة قدرها %@.
-banner_stake_title = ابدأ التوقيع المساحي %@
+banner_stake_title = ابدأ تخزين %@
 banner_stake_description = احصل على مكافآت %@ على حصتك أثناء نومك.
 banner_enable_notifications_title = تمكين الإشعارات
 banner_enable_notifications_description = ابق على اطلاع بنشاط محفظتك.
@@ -477,7 +460,7 @@ banner_asset_status_title = الأصول المشبوهة
 banner_asset_status_description = قد يكون الرمز غير آمن أو مضللاً. تابع فقط إذا كنت تثق به تمامًا.
 banner_onboarding_title = محفظتك جاهزة
 banner_onboarding_description = قم بشراء أو استلام العملات المشفرة للبدء
-banner_perpetuals_title = تداول المنتجات الدائمة على Hyperliquid
+banner_perpetuals_title = تداول العقود الدائمة على Hyperliquid
 banner_perpetuals_description = قم بالإيداع والتداول وكسب المال مع Hyperliquid الدائم
 
 # Filter
@@ -485,14 +468,14 @@ banner_perpetuals_description = قم بالإيداع والتداول وكسب 
 filter_clear = واضح
 filter_title = المرشحات
 filter_types = أنواع
-filter_has_balance = لديه توازن
+filter_has_balance = يحتوي على رصيد
 
 # Price Alerts
 
 price_alerts_enabled_for = تم تفعيل تنبيه السعر لـ %@
 price_alerts_disabled_for = تم تعطيل تنبيه السعر لـ %@
 price_alerts_get_notified_explain_message = احصل على إشعار عندما يكون هناك تغيير كبير في سعر الأصول المشفرة المفضلة لديك.
-price_alerts_direction_over = زيادة
+price_alerts_direction_over = فوق
 price_alerts_direction_under = تحت
 price_alerts_direction_increases_by = يزيد بمقدار
 price_alerts_direction_decreases_by = ينخفض بمقدار
@@ -554,8 +537,6 @@ info_insufficient_balance_description = ليس لديك رصيد كافٍ %@ ل�
 info_account_minimum_balance_title = الحد الأدنى للرصيد
 info_perpetual_funding_payments_title = مدفوعات التمويل
 info_perpetual_funding_payments_description = مدفوعات التمويل هي دفعات دورية بين المتداولين لإبقاء سعر العقد الدائم قريبًا من السعر الفوري للأصل الأساسي. التمويل الإيجابي يعني أن المراكز الطويلة تدفع المراكز القصيرة، في حين أن التمويل السلبي يعني أن المراكز القصيرة تدفع المراكز الطويلة.
-info_perpetual_funding_rate_title = التمويل
-info_perpetual_funding_rate_description = ويحدد معدل التمويل تكلفة الاحتفاظ بمركز دائم. يتم حسابه كل ساعة ويساعد في الحفاظ على توازن السعر بين العقد الدائم والسعر الفوري للأصل الأساسي.
 info_perpetual_liquidation_price_title = سعر التصفية
 info_perpetual_liquidation_price_description = سعر التصفية هو مستوى السعر الذي سيتم عنده إغلاق مركزك تلقائيًا لمنع المزيد من الخسائر. عندما يصل سعر السوق إلى هذا المستوى، تتم تصفية مركزك وتفقد الهامش الخاص بك.
 info_perpetual_open_interest_title = الاهتمام المفتوح
@@ -571,7 +552,7 @@ info_circulating_supply_description = عدد العملات المتاحة حا�
 info_total_supply_description = إجمالي عدد العملات المعدنية الموجودة، بما في ذلك العملات المعدنية المقفلة أو المحجوزة.
 info_max_supply_title = أقصى إمداد
 info_max_supply_description = الحد الأقصى لعدد العملات المعدنية التي ستوجد على الإطلاق.
-info_perpetual_funding_apr_title = تمويل أبريل
+info_perpetual_funding_apr_title = APR التمويل
 info_perpetual_funding_apr_description = المعدل السنوي الذي تدفع به صفقات الشراء صفقات البيع (إذا كانت سلبية، تدفع صفقات البيع صفقات شراء). لا توجد رسوم مرتبطة بالتمويل، وهو عبارة عن تحويل من نظير إلى نظير بين المستخدمين لدفع الأسعار نحو السعر الفوري.
 info_minimum_amount_title = الحد الأدنى للمبلغ
 info_minimum_amount_description = على شبكة %@، الحد الأدنى لمبلغ هذه المعاملة هو %@.
@@ -633,26 +614,24 @@ onboarding_accept_terms_continue = الموافقة والمتابعة
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
-perpetual_positions = المناصب
+perpetual_positions = المراكز
 perpetual_size = مقاس
 perpetual_margin = هامِش
-perpetual_position = موضع
-perpetual_close_position = إغلاق الوضع
+perpetual_position = المركز
+perpetual_close_position = إغلاق المركز
 perpetual_pnl = PnL
 perpetual_long = طويل
 perpetual_short = قصير
 perpetual_entry_price = سعر الدخول
 perpetual_modify = يُعدِّل
-perpetual_reduce_position = تقليل الموضع
-perpetual_increase_position = زيادة الموقف
+perpetual_reduce_position = تقليل المركز
+perpetual_increase_position = زيادة المركز
 perpetual_open_direction = افتح %@
 perpetual_close_direction = إغلاق %@
 perpetual_leverage = الرافعة المالية
-perpetual_direction = اتجاه
 perpetual_auto_close = إغلاق تلقائي
 perpetual_auto_close_take_profit = جني الأرباح
 perpetual_market_price = سعر السوق
@@ -663,20 +642,20 @@ perpetual_increase_direction = زيادة %@
 perpetual_reduce_direction = تقليل %@
 perpetual_auto_close_expected_profit = الربح المتوقع
 perpetual_auto_close_expected_loss = الخسارة المتوقعة
-perpetual_modify_position = تعديل الموضع
+perpetual_modify_position = تعديل المركز
 perpetual_auto_close_stop_loss = وقف الخسارة
 perpetual_value = قيمة
 perpetual_unrealized_pnl = الأرباح والخسائر غير المحققة
 perpetual_volume = مقدار
 perpetual_all_time_pnl = إجمالي الربح والخسارة على مر الزمن
 perpetual_margin_usage = استخدام الهامش
-perpetual_account_leverage = الاستفادة من الحساب
-perpetual_margin_cross = يعبر
+perpetual_account_leverage = الرافعة المالية للحساب
+perpetual_margin_cross = متقاطع
 perpetual_margin_isolated = معزول
 
 # Perpetuals
 
-perpetuals_title = الأبدية
+perpetuals_title = العقود الدائمة
 perpetuals_markets = الأسواق
 perpetuals_empty_state_no_markets = لا أسواق
 perpetuals_empty_state_no_markets_found = لم يتم العثور على الأسواق
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = ستظهر هنا الأصول الت�
 
 notifications_inapp_state_empty_title = لم تصل أي إشعارات بعد
 notifications_inapp_state_empty_description = ستجد هنا تحديثات حول إشعاراتك
-notifications_inapp_rewards_invite_subtitle = ادعُ أصدقاءك واربحوا المكافآت معًا
 
 # Earn
 
@@ -739,7 +717,7 @@ contacts_add_to_contacts = أضف إلى جهات الاتصال
 # Simulation
 
 simulation_header_unlimited_asset = غير محدود %@
-simulation_warning_unlimited_token_approval_description = يمنح هذا المنفق إمكانية استخدام هذا الرمز المميز حتى تقوم بإلغاء الموافقة أو تنتهي صلاحيته.
+simulation_warning_unlimited_token_approval_description = يمنح هذا المُنفِق إمكانية استخدام هذا الرمز المميز حتى تقوم بإلغاء الموافقة أو تنتهي صلاحيته.
 simulation_warning_externally_owned_spender_description = تسمح هذه الموافقة لعنوان محفظة عادي (EOA) باستخدام أصولك. أكّد فقط إذا كنت تثق بهذا العنوان.
 simulation_warning_nft_collection_approval_title = تم طلب الوصول الكامل إلى مجموعة NFT
 simulation_warning_unlimited_token_approval_title = الموافقة على الرموز المميزة غير محدودة

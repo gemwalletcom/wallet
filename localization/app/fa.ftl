@@ -3,14 +3,12 @@
 common_cancel = لغو کردن
 common_done = انجام شد
 common_secret_phrase = عبارت مخفی
-common_next = بعدی
 common_copy = کپی کردن
 common_share = اشتراک گذاری
 common_continue = ادامه
 common_provider = ارائه دهنده
 common_loading = در حال بارگذاری
 common_address = آدرس
-common_back = بازگشت
 common_try_again = تلاش دوباره
 common_paste = جای گذاری
 common_delete = پاک کردن
@@ -24,9 +22,8 @@ common_all = همه
 common_not_available = در دسترس نیست
 common_phrase = عبارت
 common_manage = مدیریت
-common_type = گونه
+common_type = نوع
 common_no_results_found = هیچ نتیجه ای یافت نشد.
-common_yes = بله
 common_no = نه
 common_none = هیچکدام
 common_url = URL
@@ -40,14 +37,10 @@ common_unpin = از پین درآوردن
 common_skip = پرش کنید
 common_warning = هشدار
 common_learn_more = بیشتر بدانید
-common_short_name = Gem
 common_description = توضیحات
 common_emoji = ایموجی
-common_style = سبک
 common_avatar = آواتار
-common_photo = عکس
 common_save = ذخیره کنید
-common_edit = ویرایش کنید
 common_percentage = درصد
 common_details = جزئیات
 common_info = اطلاعات
@@ -86,7 +79,7 @@ wallet_default_name = کیف پول %d
 wallet_default_name_chain = %@ کیف پول %d
 wallet_copy_address = کپی کردن آدرس
 wallet_watch_tooltip_title = شما در حال تماشای این کیف پول هستید.
-wallet_stake = سهام
+wallet_stake = استیک
 wallet_receive_no_memo_required = به یادداشت نیاز نیست.
 wallet_receive_no_destination_tag_required = نیازی به برچسب مقصد نیست.
 wallet_title = کیف پول
@@ -99,7 +92,7 @@ wallet_import_address_warning = شما می‌توانید موجودی و تر�
 wallet_deposit = واریز
 wallet_withdraw = برداشت
 wallet_available_balance = موجود: %@
-wallet_portfolio_title = نمونه کارها
+wallet_portfolio_title = سبد دارایی
 wallet_import_already_imported_message = این کیف پول قبلاً وارد شده است.
 
 # Wallets
@@ -136,9 +129,9 @@ transfer_send_title = بفرست
 transfer_insufficient_balance = موجودی %@ ناکافی است.
 transfer_insufficient_network_fee_balance = موجودی %@ برای پوشش کارمزد شبکه ناکافی است.
 transfer_approve_title = اجازه دادن
-transfer_stake_title = سهام
+transfer_stake_title = استیک
 transfer_claim_rewards_title = برداشت پاداش ها
-transfer_unstake_title = رها کردن
+transfer_unstake_title = لغو استیک
 transfer_redelegate_title = تفویض اختیار
 transfer_withdraw_title = برداشت
 transfer_rewards_title = پاداش ها
@@ -153,7 +146,6 @@ transfer_maximum_amount = حداکثر مقدار %@ است
 transfer_reserved_fees = ما %@ را برای پوشش هزینه‌های شبکه در آینده در موجودی شما باقی گذاشته‌ایم.
 transfer_freeze_title = فریز کردن
 transfer_unfreeze_title = یخ‌زدایی
-transfer_sign_transaction_title = ثبت تراکنش
 transfer_review_request = درخواست بررسی
 transfer_amount = مبلغ
 transfer_amount_title = مبلغ
@@ -171,7 +163,6 @@ settings_networks_title = شبکه ها
 settings_networks_source = منبع
 settings_networks_explorer = پیمایشگر
 settings_currency = ارز
-settings_rate_app = امتیاز دادن به برنامه
 settings_website = بازدید از وب سایت
 settings_security = امنیت
 settings_enable_value = فعال کردن %@
@@ -182,7 +173,7 @@ settings_language = زبان
 settings_help_center = مرکز راهنمایی
 settings_support = پشتیبانی کنید
 settings_price_alerts_title = هشدارهای قیمت
-settings_hide_balance = مخفی کردن تعادل
+settings_hide_balance = مخفی کردن موجودی
 settings_disable_value = غیرفعال کردن %@
 settings_preferences_title = تنظیمات برگزیده
 settings_preferences_perpetual_default_leverage = اهرم پیش‌فرض
@@ -222,9 +213,7 @@ errors_unable_estimate_network_fee = درحال حاضر قادر به محاس�
 errors_invalid_asset_address = آدرس %@ نامعتبر است.
 errors_dust_threshold = تراکنش به دلیل کم بودن مبلغ برای برآورده کردن حداقل لازم شبکه %@ (آستانه گرد و غبار) انجام نشد. این محدودیت تضمین می‌کند که ارزش تراکنش، کارمزدها و هزینه‌های پردازش را پوشش می‌دهد.
 errors_swap_no_quote_available = هیچ قیمتی در دسترس نیست.
-errors_swap_not_supported_chain = زنجیره پشتیبانی نمی شود.
 errors_swap_not_supported_asset = دارایی پشتیبانی نمی شود.
-errors_swap_not_supported_pair = جفت پشتیبانی نمی شود.
 errors_connections_invalid_send_parameters = پارامترهای نامعتبر برای ارسال تراکنش ارائه شده است.
 errors_connections_invalid_sign_parameters = پارامترهای نامعتبر برای امضا ارائه شده است.
 errors_connections_no_supported_wallets = هیچ کیف پول پشتیبانی شده ای در دسترس نیست.
@@ -240,7 +229,7 @@ errors_scan_transaction_malicious_title = فعالیت مشکوک
 errors_connections_malicious_origin = این اتصال از یک منبع غیرقابل اعتماد می‌آید.
 errors_no_data_available = داده‌ای موجود نیست
 errors_dust_threshold_short = شبکه این مبلغ را داست (dust) در نظر می‌گیرد - کارمزد آن از خود مبلغ بیشتر است.
-errors_swap_minimum_amount = حداقل مبلغ معامله %@لطفا مبلغ بیشتری وارد کنید.
+errors_swap_minimum_amount = حداقل مبلغ معامله %@ است. لطفاً مبلغ بیشتری وارد کنید.
 errors_perpetual_trigger_price_lower = قیمت فعالسازی باید کمتر از قیمت بازار باشد
 errors_perpetual_trigger_price_higher = قیمت فعالسازی باید بیشتر از قیمت بازار باشد
 errors_token_unable_fetch_token_information = خطا در واکشی اطلاعات توکن: %@
@@ -291,7 +280,6 @@ asset_balances_available = در دسترس
 asset_price = قيمت
 asset_market_cap = ارزش بازار
 asset_trading_volume = حجم معاملات (24 ساعت)
-asset_market_cap_rank = رتبه ارزش بازار
 asset_total_supply = عرضه کل
 asset_circulating_supply = عرضه در گردش
 asset_balances_reserved = رزرو شده.
@@ -302,7 +290,7 @@ asset_symbol = نماد
 asset_decimals = اعشار ها
 asset_token_id = شناسه توکن
 asset_contract = قرارداد
-asset_state_empty_title = تراکنش‌های شما اینجا نمایش داده می‌شوند✅
+asset_state_empty_title = تراکنش‌های شما اینجا نمایش داده می‌شوند️
 asset_state_empty_description = دریافت، مبادله یا خرید %@
 asset_verification_unverified = تایید نشده
 asset_verification_suspicious = مشکوک
@@ -321,7 +309,7 @@ asset_all_time_low = پایین‌ترین سطح تمام دوران
 charts_day = 1 روز
 charts_hour = 1 ساعت
 charts_week = یک هفته
-charts_month = 1 میلیون
+charts_month = ۱ ماه
 charts_year = 1 سال
 charts_all = همه
 charts_entry = ورود
@@ -343,11 +331,9 @@ wallet_connect_connection_title = اتصال
 wallet_connect_disconnect = قطع اتصال
 wallet_connect_connect_title = متصل شدن
 wallet_connect_app = برنامه
-wallet_connect_website = وب سایت
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = اتصال فعالی یافت نشد.
 wallet_connect_state_empty_description = برای اتصال به DApp، کد را اسکن یا جای‌گذاری کنید
-wallet_connect_domain = دامنه
 wallet_connect_permissions_title = مجوزها
 wallet_connect_permissions_view_balance = مشاهده موجودی و فعالیت خود
 wallet_connect_permissions_approval_requests = ارسال درخواست‌های تأیید
@@ -378,12 +364,10 @@ stake_lock_time = زمان قفل
 stake_activating = فعال کردن
 stake_deactivating = غیر فعال کردن
 stake_awaiting_withdrawal = در انتظار برداشت
-stake_active_in = فعال
+stake_active_in = فعال در
 stake_minimum_amount = حداقل مبلغ
-stake_viagem = از طریق Gem Wallet به اشتراک بگذارید
-stake_no_active_staking = استیک فعالی پیدا نشد.
-stake_state_empty_title = شرط‌های شما اینجا نمایش داده می‌شوند
-stake_state_empty_description = اولین %@ خود را شرط بندی کنید
+stake_state_empty_title = استیک‌های شما اینجا نمایش داده می‌شوند
+stake_state_empty_description = اولین %@ خود را استیک کنید
 stake_resource = منبع
 stake_resource_energy = انرژی
 stake_resource_bandwidth = پهنای باند
@@ -393,7 +377,7 @@ stake_delegations = واگذاری‌ها
 
 assets_no_assets_found = دارایی یافت نشد.
 assets_add_custom_token = افزودن توکن دلخواه/سفارشی.
-assets_select_asset = Asset را انتخاب کنید
+assets_select_asset = یک دارایی را انتخاب کنید
 assets_popular = دارایی‌های محبوب
 assets_tags_trending = پرطرفدار
 assets_tags_gainers = سودآوران
@@ -405,7 +389,6 @@ assets_title = دارایی‌ها
 
 # Sign Message
 
-sign_message_title = پیام را امضا کنید
 sign_message_message = پیام
 sign_message_view_full_message = مشاهده کامل پیام
 
@@ -444,7 +427,7 @@ nodes_import_node_chain_id = شناسه زنجیره
 nodes_import_node_in_sync = درحال همگام سازی
 nodes_import_node_latest_block = آخرین بلاک
 nodes_import_node_latency = تاخیر
-nodes_gem_wallet_node = گره کیف پول الماس
+nodes_gem_wallet_node = گره Gem Wallet
 nodes_import_node_warning_message = گره‌های سفارشی می‌توانند مخرب باشند و ممکن است داده‌های تراکنش شما را افشا کنند یا اطلاعات نادرست ارائه دهند.
 
 # Library
@@ -485,19 +468,19 @@ banner_perpetuals_description = با Hyperliquid perpetuals سپرده گذار�
 filter_clear = پاک کردن
 filter_title = فیلترها
 filter_types = انواع
-filter_has_balance = تعادل دارد
+filter_has_balance = موجودی دارد
 
 # Price Alerts
 
 price_alerts_enabled_for = هشدار قیمت برای %@ فعال شد
 price_alerts_disabled_for = هشدار قیمت برای %@ غیرفعال شد
 price_alerts_get_notified_explain_message = هنگامی که تغییر قیمت قابل توجهی در دارایی های رمزنگاری مورد علاقه شما ایجاد می شود مطلع شوید.
-price_alerts_direction_over = تمام شد
+price_alerts_direction_over = بالاتر از
 price_alerts_direction_under = زیر
-price_alerts_direction_increases_by = افزایش می‌یابد توسط
+price_alerts_direction_increases_by = افزایش به میزان
 price_alerts_direction_decreases_by = کاهش توسط
-price_alerts_set_alert_price_over = وقتی قیمت تمام شد
-price_alerts_set_alert_price_under = وقتی قیمت زیر
+price_alerts_set_alert_price_over = وقتی قیمت بالاتر از
+price_alerts_set_alert_price_under = وقتی قیمت زیر است
 price_alerts_set_alert_price_increases_by = وقتی قیمت به میزان مشخصی افزایش می‌یابد
 price_alerts_set_alert_price_decreases_by = وقتی قیمت به میزان کاهش می‌یابد
 price_alerts_set_alert_set_target_price = تعیین قیمت هدف
@@ -536,7 +519,7 @@ sell_title = فروش %@
 # Info
 
 info_network_fee_title = کارمزد شبکه
-info_watch_wallet_title = Watch Wallet
+info_watch_wallet_title = کیف پول مشاهده‌ای
 info_watch_wallet_description = کیف پولی که به آن دسترسی ندارید اما می توانید تراکنش ها و حرکات آن را تماشا کنید.
 info_network_fee_description = هر تراکنش در شبکه %@ نیاز به کارمزدی در %@ دارد که برای پردازش تراکنش شما به استخراج کنندگان پرداخت می شود، نه Gem Wallet. هزینه های شبکه بر اساس استفاده از شبکه متفاوت است.
 info_transaction_error_description = تراکنش به دلیل خطایی مانند موجودی ناکافی، ورودی نامعتبر یا رد شدن توسط شبکه، انجام نشد. لطفاً جزئیات را بررسی کرده و دوباره امتحان کنید.
@@ -548,21 +531,19 @@ info_slippage_description = لغزش به تفاوت بین قیمت مورد ا
 info_asset_status_unverified_description = توکن‌های تایید نشده به اندازه کافی توسط سرویس‌های شخص ثالث مورد اعتماد تایید نشده‌اند. آنها ممکن است به دلیل ایردراپ، انتقال یا وارد کردن دستی در کیف پول شما ظاهر شوند.
 info_asset_status_suspicious_description = توکن‌های مشکوک یا اسپم به عنوان کلاهبرداری‌های بالقوه یا دارایی‌های مضر شناسایی می‌شوند. آنها ممکن است به دلیل ایردراپ‌ها، انتقال‌ها یا واردات دستی در کیف پول شما ظاهر شوند.
 info_insufficient_network_fee_balance_title = %@ مورد نیاز
-info_insufficient_network_fee_balance_description = این تراکنش مستلزم %@ برای پوشش هزینه شبکه پرداخت شده به %@ معدنچیان، نه Gem Walletمطمئن شوید که به اندازه کافی دارید. %@.
+info_insufficient_network_fee_balance_description = این تراکنش به %@ برای پوشش کارمزد شبکه که به ماینرهای %@ پرداخت می‌شود نیاز دارد، نه به Gem Wallet. مطمئن شوید که %@ کافی دارید.
 info_insufficient_balance_title = موجودی ناکافی
 info_insufficient_balance_description = شما %@ کافی برای تکمیل این تراکنش ندارید. لطفاً کیف پول خود را شارژ، دریافت یا مبادله کنید و دوباره امتحان کنید.
 info_account_minimum_balance_title = حداقل موجودی
 info_perpetual_funding_payments_title = پرداخت های مالی
-info_perpetual_funding_payments_description = پرداخت های تامین مالی، پرداخت های دوره ای بین معامله گران است تا قیمت قرارداد دائمی را نزدیک به قیمت لحظه ای دارایی پایه نگه دارند. تامین مالی مثبت به این معنی است که موقعیت‌های خرید به موقعیت‌های فروش کوتاه پرداخت می‌کنند، در حالی که تامین مالی منفی به معنای پرداخت موقعیت‌های خرید به موقعیت‌های لانگ است.
-info_perpetual_funding_rate_title = تامین مالی
-info_perpetual_funding_rate_description = نرخ تامین مالی هزینه های حفظ یک موقعیت دائمی را تعیین می کند. به صورت ساعتی محاسبه می شود و به حفظ تعادل قیمت بین قرارداد دائمی و قیمت لحظه ای دارایی اساسی کمک می کند.
+info_perpetual_funding_payments_description = پرداخت های تامین مالی، پرداخت های دوره ای بین معامله گران است تا قیمت قرارداد دائمی را نزدیک به قیمت لحظه ای دارایی پایه نگه دارند. تامین مالی مثبت به این معنی است که موقعیت‌های لانگ به موقعیت‌های شورت پرداخت می‌کنند، در حالی که تامین مالی منفی به معنای پرداخت موقعیت‌های شورت به موقعیت‌های لانگ است.
 info_perpetual_liquidation_price_title = قیمت انحلال
 info_perpetual_liquidation_price_description = قیمت انحلال سطح قیمتی است که در آن موقعیت شما به طور خودکار بسته می شود تا از زیان بیشتر جلوگیری شود. هنگامی که قیمت بازار به این سطح می رسد، موقعیت شما منحل می شود و حاشیه خود را از دست می دهید.
-info_perpetual_open_interest_title = علاقه باز
+info_perpetual_open_interest_title = بهره باز
 info_perpetual_open_interest_description = بهره باز نشان دهنده ارزش کل تمام قراردادهای دائمی معوق است که تسویه نشده است. بینشی در مورد فعالیت بازار و نقدینگی ارائه می دهد.
 info_no_quote_description = امکان ارائه قیمت برای جفت توکن انتخاب شده وجود ندارد، احتمالاً به دلیل مبلغ کم، کمبود نقدینگی یا محدودیت‌های فنی.
 info_stake_reserved_title = برای هزینه شبکه رزرو شده است
-info_stake_reserved_description = مقدار کمی در کیف پول شما باقی می‌ماند تا هزینه‌های عملیاتی مانند برداشت از حساب یا دریافت پاداش را پوشش دهد.
+info_stake_reserved_description = مقدار کمی در کیف پول شما باقی می‌ماند تا هزینه‌های عملیاتی مانند لغو استیک یا دریافت پاداش را پوشش دهد.
 info_stake_apr_description = نرخ درصد سالانه (APR) نرخ پاداش سالانه برای سپرده‌گذاری ارز دیجیتال شما است.
 info_perpetual_auto_close_description = موقعیت خود را به طور خودکار در سطوح قیمت تعیین شده ببندید. برداشت سود، سود را قفل می‌کند، و توقف ضرر، ضرر را محدود می‌کند.
 info_fully_diluted_valuation_title = ارزش‌گذاری کاملاً رقیق‌شده
@@ -571,7 +552,7 @@ info_circulating_supply_description = تعداد کوین‌های موجود و
 info_total_supply_description = تعداد کل سکه‌های موجود، شامل سکه‌های قفل‌شده یا رزرو شده.
 info_max_supply_title = حداکثر عرضه
 info_max_supply_description = حداکثر تعداد سکه‌هایی که تا به حال وجود خواهد داشت.
-info_perpetual_funding_apr_title = تامین مالی در آوریل
+info_perpetual_funding_apr_title = نرخ سالانه تأمین مالی (APR)
 info_perpetual_funding_apr_description = نرخ سالانه ای که در آن لانگ ها به شورت پرداخت می کنند (اگر منفی باشد، شورت ها به لانگ پرداخت می کنند). هیچ کارمزدی در ارتباط با تامین مالی وجود ندارد، که انتقالی همتا به همتا بین کاربران است تا قیمت ها را به سمت قیمت لحظه ای سوق دهد.
 info_minimum_amount_title = حداقل مقدار
 info_minimum_amount_description = در شبکه %@، حداقل مبلغ برای این تراکنش %@ است.
@@ -633,7 +614,6 @@ onboarding_accept_terms_continue = موافقت کنید و ادامه دهید
 
 # Brand
 
-brand_name = Gem Wallet
 
 # Perpetual
 
@@ -643,8 +623,8 @@ perpetual_margin = حاشیه
 perpetual_position = موقعیت
 perpetual_close_position = بستن موقعیت
 perpetual_pnl = PnL
-perpetual_long = طولانی
-perpetual_short = کوتاه
+perpetual_long = لانگ
+perpetual_short = شورت
 perpetual_entry_price = قیمت ورودی
 perpetual_modify = اصلاح
 perpetual_reduce_position = کاهش موقعیت
@@ -652,7 +632,6 @@ perpetual_increase_position = افزایش موقعیت
 perpetual_open_direction = باز کردن %@
 perpetual_close_direction = بستن %@
 perpetual_leverage = اهرم مالی
-perpetual_direction = جهت
 perpetual_auto_close = بستن خودکار
 perpetual_auto_close_take_profit = سود ببرید
 perpetual_market_price = قیمت بازار
@@ -671,7 +650,7 @@ perpetual_volume = حجم
 perpetual_all_time_pnl = سود و زیان تمام وقت
 perpetual_margin_usage = استفاده از مارجین
 perpetual_account_leverage = اهرم حساب
-perpetual_margin_cross = صلیب
+perpetual_margin_cross = کراس
 perpetual_margin_isolated = جدا شده
 
 # Perpetuals
@@ -720,7 +699,6 @@ recent_activity_state_empty_description = دارایی هایی که اخیرا�
 
 notifications_inapp_state_empty_title = هنوز هیچ اعلانی وجود ندارد
 notifications_inapp_state_empty_description = به‌روزرسانی‌های مربوط به اعلان‌هایتان را اینجا خواهید دید
-notifications_inapp_rewards_invite_subtitle = دوستان را دعوت کنید و با هم پاداش کسب کنید
 
 # Earn
 
@@ -758,7 +736,7 @@ notifications_permission_request_notification = برای دریافت اعلان
 
 # Confirm
 
-confirm_fee_error = خطار در محاسبه کارمزد.
+confirm_fee_error = خطا در محاسبه کارمزد.
 
 # Rootcheck
 

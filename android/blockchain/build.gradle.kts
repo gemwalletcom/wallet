@@ -54,7 +54,7 @@ dependencies {
     api(libs.retrofit)
     api(libs.retrofit.converter.kotlin.serializer)
     api(libs.kotlinx.serialization.json)
-    api(libs.okhttp.logging.interceptor)
+    api(libs.okhttp)
     implementation(libs.kotlinx.coroutines.android)
 
     // Tests

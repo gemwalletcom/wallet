@@ -10,6 +10,7 @@ import com.gemwallet.android.application.add_asset.coordinators.GetAvailableToke
 import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
 import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
+import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.filter
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
@@ -17,7 +18,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.Explorer
-import uniffi.gemstone.checksumAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -75,32 +75,30 @@ class AddAssetViewModel @Inject constructor(
     val addressState = mutableStateOf("")
     val addressQuery = snapshotFlow { addressState.value }
 
-    val searchState = addressQuery.combine(selectedChain) { address, chain ->
-        Pair(normalizedAddress(chain, address), chain)
-    }.flatMapLatest {
-        val (address, chain) = it
+    private val customAssetId = addressQuery.combine(selectedChain) { address, chain ->
+        AssetId(chain, chain.checksumAddress(address))
+    }
+
+    val searchState = customAssetId.flatMapLatest { assetId ->
         flow {
-            if (address.isEmpty()) {
+            if (assetId.tokenId.isNullOrEmpty()) {
                 emit(TokenSearchState.Idle)
                 return@flow
             }
 
             emit(TokenSearchState.Loading)
-            emit(searchToken(searchCustomToken, observeToken, chain, address))
+            emit(searchToken(searchCustomToken, observeToken, assetId))
         }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, TokenSearchState.Idle)
 
-    val token = combine(addressQuery, selectedChain) { address, chain ->
-        Pair(normalizedAddress(chain, address), chain)
-    }
-    .flatMapLatest {
-        val (address, chain) = it
-        if (address.isEmpty()) {
+    val token = customAssetId
+    .flatMapLatest { assetId ->
+        if (assetId.tokenId.isNullOrEmpty()) {
             return@flatMapLatest flowOf(null)
         }
-        observeToken(AssetId(chain, address))
+        observeToken(assetId)
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -172,16 +170,11 @@ class AddAssetViewModel @Inject constructor(
     }
 }
 
-private fun normalizedAddress(chain: Chain, address: String): String =
-    checksumAddress(address = address.trim(), chain = chain.string)
-
 suspend fun searchToken(
     searchCustomToken: SearchCustomToken,
     observeToken: ObserveToken,
-    chain: Chain,
-    address: String,
+    assetId: AssetId,
 ): TokenSearchState {
-    val assetId = AssetId(chain, address)
     return try {
         searchCustomToken(assetId)
         val found = observeToken(assetId).firstOrNull() != null

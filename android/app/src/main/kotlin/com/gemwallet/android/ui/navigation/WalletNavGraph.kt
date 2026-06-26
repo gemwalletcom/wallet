@@ -21,6 +21,7 @@ import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
+import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
 import com.gemwallet.android.features.assets.views.WalletSearchAction
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
@@ -103,17 +104,21 @@ fun WalletNavGraph(
             )
 
             assetScreen(
-                onCancel = onCancel,
-                onTransfer = navigator::openRecipient,
-                onReceive = navigator::openReceive,
-                onBuy = navigator::openBuy,
-                onSwap = navigator::openSwap,
-                onTransaction = navigator::openTransaction,
-                onChart = navigator::openAssetChart,
-                openNetwork = navigator::openAsset,
-                onStake = navigator::openStake,
-                onConfirm = navigator::openConfirm,
-                onPriceAlerts = navigator::openPriceAlerts,
+                onAction = { action ->
+                    when (action) {
+                        AssetDetailsAction.Close -> onCancel()
+                        is AssetDetailsAction.Transfer -> navigator.openRecipient(action.assetId)
+                        is AssetDetailsAction.Receive -> navigator.openReceive(action.assetId)
+                        is AssetDetailsAction.Buy -> navigator.openBuy(action.assetId)
+                        is AssetDetailsAction.Swap -> navigator.openSwap(action.fromAssetId, action.toAssetId)
+                        is AssetDetailsAction.OpenTransaction -> navigator.openTransaction(action.transactionId)
+                        is AssetDetailsAction.OpenChart -> navigator.openAssetChart(action.assetId)
+                        is AssetDetailsAction.OpenNetwork -> navigator.openAsset(action.assetId)
+                        is AssetDetailsAction.Stake -> navigator.openStake(action.assetId)
+                        is AssetDetailsAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
+                        is AssetDetailsAction.Confirm -> navigator.openConfirm(action.params)
+                    }
+                },
             )
 
             assetChartScreen(

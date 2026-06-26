@@ -56,7 +56,7 @@ impl FiatProvider for TransakClient {
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let network = request_map.asset_symbol.network.unwrap_or_default();
         let quote = self
-            .get_buy_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network, request.ip_address)
+            .get_buy_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network)
             .await?;
 
         Ok(FiatQuoteResponse::new(quote.quote_id, request.amount, quote.crypto_amount))
@@ -65,7 +65,7 @@ impl FiatProvider for TransakClient {
     async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let network = request_map.asset_symbol.network.unwrap_or_default();
         let quote = self
-            .get_sell_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network, request.ip_address)
+            .get_sell_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network)
             .await?;
 
         Ok(FiatQuoteResponse::new(quote.quote_id, request.amount, quote.crypto_amount))
@@ -86,18 +86,14 @@ impl FiatProvider for TransakClient {
                 total_fee: 0.0,
             },
             FiatQuoteType::Sell => {
-                self.get_sell_quote(
-                    data.asset_symbol.symbol.clone(),
-                    data.quote.fiat_currency.clone(),
-                    data.quote.fiat_amount,
-                    network,
-                    data.ip_address.clone(),
-                )
-                .await?
+                self.get_sell_quote(data.asset_symbol.symbol.clone(), data.quote.fiat_currency.clone(), data.quote.fiat_amount, network)
+                    .await?
             }
         };
 
-        let redirect_url = self.redirect_url(transak_quote, data.wallet_address, data.quote.quote_type, data.quote.fiat_amount).await?;
+        let redirect_url = self
+            .redirect_url(transak_quote, data.wallet_address, data.quote.quote_type, data.quote.fiat_amount, &data.ip_address)
+            .await?;
 
         Ok(FiatQuoteUrl {
             redirect_url,

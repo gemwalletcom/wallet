@@ -131,10 +131,12 @@ extension RecipientSceneViewModel {
         guard addressInputModel.validate() else { return }
 
         handle(
-            recipientData: makeRecipientData(
-                name: addressInputModel.nameResolveState.result,
-                address: addressInputModel.text,
-                memo: memo,
+            recipientData: RecipientData(
+                recipient: Recipient(
+                    name: addressInputModel.nameResolveState.result?.name,
+                    address: addressInputModel.resolvedAddress,
+                    memo: memo,
+                ),
                 amount: amount.isEmpty ? .none : amount,
             ),
         )
@@ -166,7 +168,14 @@ extension RecipientSceneViewModel {
 
     func onSelectRecipient(_ recipient: RecipientAddress) {
         handle(
-            recipientData: makeRecipientData(recipient: recipient),
+            recipientData: RecipientData(
+                recipient: Recipient(
+                    name: recipient.name,
+                    address: asset.chain.checksumAddress(recipient.address),
+                    memo: recipient.memo,
+                ),
+                amount: .none,
+            ),
         )
     }
 }
@@ -174,31 +183,6 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    private func makeRecipientData(name: NameRecord?, address: String, memo: String?, amount: String?) -> RecipientData {
-        let recipient: Recipient = {
-            if let result = name {
-                return Recipient(name: result.name, address: result.address, memo: memo)
-            }
-            return Recipient(name: .none, address: address, memo: memo)
-        }()
-
-        return RecipientData(
-            recipient: recipient,
-            amount: amount,
-        )
-    }
-
-    private func makeRecipientData(recipient: RecipientAddress) -> RecipientData {
-        RecipientData(
-            recipient: Recipient(
-                name: recipient.name,
-                address: recipient.address,
-                memo: recipient.memo,
-            ),
-            amount: .none,
-        )
-    }
-
     // TODO: Add unit tests, will be added once moved to package
     private func paymentScan(string: String) throws -> PaymentScanResult {
         let payment = try PaymentURLDecoder.decode(string)
@@ -211,8 +195,9 @@ extension RecipientSceneViewModel {
     }
 
     func getRecipientScanResult(payment: PaymentScanResult) throws -> RecipientScanResult {
+        let address = asset.chain.checksumAddress(payment.address)
         if let amount = payment.amount, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
-           asset.chain.isValidAddress(payment.address)
+           asset.chain.isValidAddress(address)
         {
             let transferType: TransferDataType = switch type {
             case let .asset(asset): .transfer(asset)
@@ -223,7 +208,7 @@ extension RecipientSceneViewModel {
             let recipientData = RecipientData(
                 recipient: Recipient(
                     name: .none,
-                    address: payment.address,
+                    address: address,
                     memo: payment.memo,
                 ),
                 amount: .none,
@@ -233,7 +218,7 @@ extension RecipientSceneViewModel {
             )
         }
 
-        return .recipient(address: payment.address, memo: payment.memo, amount: payment.amount)
+        return .recipient(address: address, memo: payment.memo, amount: payment.amount)
     }
 
     private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<RecipientAddress>] {

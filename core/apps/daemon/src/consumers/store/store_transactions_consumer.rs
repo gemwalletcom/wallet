@@ -2,8 +2,8 @@ use std::collections::HashSet;
 use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
-use primitives::{AssetAddress, DeviceSubscription, NFTAssetId, Transaction, TransactionId, TransactionState, TransactionType};
-use storage::{AssetsAddressesRepository, AssetsRepository, Database, NftAssetFilter, NftRepository, TransactionsRepository, WalletsRepository};
+use primitives::{AssetAddress, AssetIdVecExt, DeviceSubscription, NFTAssetId, Transaction, TransactionId, TransactionState, TransactionType};
+use storage::{AssetFilter, AssetsAddressesRepository, AssetsRepository, Database, NftAssetFilter, NftRepository, TransactionsRepository, WalletsRepository};
 use streamer::{
     AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload,
     consumer::MessageConsumer,
@@ -124,8 +124,8 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
 
                 transactions_map.entry(transaction.id.clone()).or_insert_with(|| transaction.clone());
 
-                let (txn_ids, asset_ids) = wallet_events_map.entry(subscription.wallet_row_id).or_default();
-                txn_ids.insert(transaction.id.clone());
+                let (transaction_ids, asset_ids) = wallet_events_map.entry(subscription.wallet_row_id).or_default();
+                transaction_ids.insert(transaction.id.clone());
                 asset_ids.extend(transaction_asset_ids.iter().cloned());
             }
         }
@@ -239,7 +239,10 @@ impl StoreTransactionsConsumer {
     }
 
     async fn get_existing_and_missing_assets(&self, assets_ids: Vec<AssetId>) -> Result<(Vec<primitives::AssetPriceMetadata>, Vec<AssetId>), Box<dyn Error + Send + Sync>> {
-        let assets_with_prices = self.database.assets()?.get_assets_with_prices(assets_ids.clone(), self.config.primary_price_max_age)?;
+        let assets_with_prices = self
+            .database
+            .assets()?
+            .get_assets_with_prices(vec![AssetFilter::Ids(assets_ids.clone().ids())], self.config.primary_price_max_age)?;
 
         let missing_assets_ids = assets_ids
             .into_iter()

@@ -3,24 +3,34 @@ package com.gemwallet.android.data.coordinators.device
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.math.hex
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import uniffi.gemstone.generateDeviceKeyPair
 
 class GetDeviceIdImpl(
     private val store: SecurityStore<Any>
 ) : GetDeviceId {
 
-    private val deviceId: String
+    private val mutex = Mutex()
+    @Volatile
+    private var deviceKeys: DeviceKeys? = null
 
-    init {
-        val (_, deviceId) = runBlocking { initDeviceId() }
-        this.deviceId = deviceId
+    override suspend fun getDeviceId(): String = getDeviceKeys().publicKey
+
+    override suspend fun getDeviceKey(): String = getDeviceKeys().privateKey
+
+    private suspend fun getDeviceKeys(): DeviceKeys {
+        return deviceKeys ?: mutex.withLock {
+            deviceKeys ?: initDeviceKeys().also { deviceKeys = it }
+        }
     }
 
-    private suspend fun initDeviceId(): Pair<String, String> {
+    private suspend fun initDeviceKeys(): DeviceKeys {
         try {
-            val data = Pair(store.getValue(Keys.PrivateKey), store.getValue(Keys.PublicKey))
-            return data
+            return DeviceKeys(
+                privateKey = store.getValue(Keys.PrivateKey),
+                publicKey = store.getValue(Keys.PublicKey),
+            )
         } catch (_: Throwable) {}
 
         val deviceKey = generateDeviceKeyPair()
@@ -30,14 +40,13 @@ class GetDeviceIdImpl(
         store.putValue(Keys.PrivateKey, privateKey)
         store.putValue(Keys.PublicKey, publicKey)
 
-        return Pair(privateKey, publicKey)
+        return DeviceKeys(privateKey, publicKey)
     }
 
-    override fun getDeviceId(): String = deviceId
-
-    override fun getDeviceKey(): String {
-        return runBlocking { store.getValue(Keys.PrivateKey) }
-    }
+    private data class DeviceKeys(
+        val privateKey: String,
+        val publicKey: String,
+    )
 
     enum class Keys(private val keyValue: String) {
         PrivateKey("private_key"),

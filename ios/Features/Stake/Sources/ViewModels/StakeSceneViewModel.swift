@@ -254,8 +254,8 @@ extension StakeSceneViewModel {
     func fetch() async {
         delegationsState = .loading
         do {
-            let acccount = try wallet.account(for: chain.chain)
-            try await stakeService.update(walletId: wallet.id, chain: chain.chain, address: acccount.address)
+            let account = try wallet.account(for: chain.chain)
+            try await stakeService.update(walletId: wallet.id, chain: chain.chain, address: account.address)
             delegationsState = .data(true)
         } catch {
             debugLog("Stake scene fetch error: \(error)")

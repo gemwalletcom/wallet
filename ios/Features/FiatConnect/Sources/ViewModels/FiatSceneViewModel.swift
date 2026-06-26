@@ -224,8 +224,8 @@ extension FiatSceneViewModel {
     }
 
     func onAssetDataChange(_: AssetData, _ newValue: AssetData) {
-        buyViewModel.availableBalance = newValue.balance.available
-        sellViewModel.availableBalance = newValue.balance.available
+        buyViewModel.onAssetDataChange(newValue)
+        sellViewModel.onAssetDataChange(newValue)
     }
 
     func onSelectContinue() {

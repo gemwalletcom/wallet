@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use gem_client::{Client, ClientError, ContentType, Response, X_CACHE_TTL, decode_json_byte_array, deserialize_response};
+use gem_client::{Client, ClientError, ContentType, Response, decode_json_byte_array, deserialize_response};
 use primitives::Chain;
 use serde::{Serialize, de::DeserializeOwned};
 use std::{

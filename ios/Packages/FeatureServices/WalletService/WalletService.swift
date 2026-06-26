@@ -144,10 +144,6 @@ public struct WalletService: Sendable {
         try walletStore.pinWallet(wallet.id, value: false)
     }
 
-    public func swapOrder(from: WalletId, to: WalletId) throws {
-        try walletStore.swapOrder(from: from, to: to)
-    }
-
     public func rename(walletId: WalletId, newName: String) throws {
         try walletStore.renameWallet(walletId, name: newName)
     }

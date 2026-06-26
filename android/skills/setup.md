@@ -12,8 +12,11 @@ Use this skill for Android environment setup, bootstrap work, and local credenti
 ## Initial Setup
 
 ```bash
+just install-java
 just bootstrap
 ```
+
+`just install-java` installs Temurin JDK 17 with Homebrew. It is separate from `just bootstrap` because the macOS package installer can require a password prompt.
 
 Add GitHub Packages credentials to `local.properties` when dependency resolution or verification workflows need them:
 

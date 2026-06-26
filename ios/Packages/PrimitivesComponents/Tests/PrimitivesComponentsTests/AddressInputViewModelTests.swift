@@ -42,6 +42,19 @@ struct AddressInputViewModelTests {
         #expect(model.nameResolveState == .none)
         #expect(model.text == "sometext")
     }
+
+    @Test
+    func resolvedAddressUsesChecksumAddress() {
+        let model = AddressInputViewModel.mock()
+        let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
+        let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
+
+        model.inputModel.text = " \n\(address)\r "
+        #expect(model.resolvedAddress == checksummed)
+
+        model.nameRecordViewModel.state = .complete(.mock(address: address))
+        #expect(model.resolvedAddress == checksummed)
+    }
 }
 
 private struct NameServiceMock: NameServiceable {

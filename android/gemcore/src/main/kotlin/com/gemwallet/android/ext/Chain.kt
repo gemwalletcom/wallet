@@ -11,6 +11,7 @@ import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemAssetType
 import uniffi.gemstone.validateAddress
+import uniffi.gemstone.checksumAddress as gemstoneChecksumAddress
 import java.math.BigInteger
 
 fun Chain.assetType(): AssetType? {
@@ -224,7 +225,9 @@ fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 
-fun Chain.isValidAddress(address: String): Boolean = validateAddress(address, string)
+fun Chain.isValidAddress(address: String): Boolean = validateAddress(checksumAddress(address), string)
+
+fun Chain.checksumAddress(address: String): String = gemstoneChecksumAddress(address = address, chain = string)
 
 fun uniffi.gemstone.Chain.toChain(): Chain? {
     return Chain.entries.firstOrNull { it.string == this }

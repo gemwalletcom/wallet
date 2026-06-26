@@ -17,15 +17,15 @@ use std::{collections::HashMap, sync::Arc};
 const CONFIG_CACHE_TTL: u64 = 60 * 60 * 24;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RateModel {
+pub(super) struct RateModel {
     #[serde(rename = "UBar")]
-    pub ubar: String,
+    ubar: String,
     #[serde(rename = "R0")]
-    pub r0: String,
+    r0: String,
     #[serde(rename = "R1")]
-    pub r1: String,
+    r1: String,
     #[serde(rename = "R2")]
-    pub r2: String,
+    r2: String,
 }
 
 impl From<RateModel> for fees::RateModel {
@@ -41,25 +41,25 @@ impl From<RateModel> for fees::RateModel {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct TokenConfig {
-    pub rate_model: RateModel,
-    pub route_rate_model: HashMap<String, RateModel>,
+pub(super) struct TokenConfig {
+    pub(super) rate_model: RateModel,
+    pub(super) route_rate_model: HashMap<String, RateModel>,
 }
 
-pub struct ConfigStoreClient {
-    pub contract: String,
-    pub client: JsonRpcClient<RpcClient>,
+pub(super) struct ConfigStoreClient {
+    contract: String,
+    client: JsonRpcClient<RpcClient>,
 }
 
 impl ConfigStoreClient {
-    pub fn new(provider: Arc<dyn RpcProvider>, chain: Chain) -> ConfigStoreClient {
+    pub(super) fn new(provider: Arc<dyn RpcProvider>) -> ConfigStoreClient {
         ConfigStoreClient {
             contract: ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT.into(),
-            client: create_client_with_chain(provider.clone(), chain),
+            client: create_client_with_chain(provider, Chain::Ethereum),
         }
     }
 
-    pub async fn fetch_config(&self, l1token: &Address) -> Result<TokenConfig, SwapperError> {
+    pub(super) async fn fetch_config(&self, l1token: &Address) -> Result<TokenConfig, SwapperError> {
         let data = AcrossConfigStore::l1TokenConfigCall { l1Token: *l1token }.abi_encode();
         let call = EthereumRpc::Call(TransactionObject::new_call(&self.contract, data), BlockParameter::Latest);
         let response: JsonRpcResult<String> = self.client.call_with_cache(&call, Some(CONFIG_CACHE_TTL)).await?;

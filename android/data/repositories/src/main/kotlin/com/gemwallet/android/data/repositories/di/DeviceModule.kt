@@ -5,6 +5,7 @@ import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
+import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDeviceInfo
@@ -69,4 +70,7 @@ object DeviceModule {
 
     @Provides
     fun provideSyncSubscriptionCase(repository: DeviceRepository): SyncSubscription = repository
+
+    @Provides
+    fun provideIsDeviceRegisteredCase(repository: DeviceRepository): IsDeviceRegistered = repository
 }

@@ -18,8 +18,12 @@ pub struct AssetMapping {
 }
 
 impl AcrossDeployment {
+    fn chain_id(chain: &Chain) -> Option<u32> {
+        chain.network_id_value().and_then(|network_id| u32::try_from(network_id).ok())
+    }
+
     pub fn deployment_by_chain(chain: &Chain) -> Option<Self> {
-        let chain_id: u32 = chain.network_id().parse().ok()?;
+        let chain_id = Self::chain_id(chain)?;
         let spoke_pool = match chain {
             Chain::Ethereum => ETHEREUM_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Arbitrum => ARBITRUM_ACROSS_SPOKE_POOL_CONTRACT,
@@ -36,6 +40,7 @@ impl AcrossDeployment {
             Chain::SmartChain => SMARTCHAIN_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Hyperliquid => HYPEREVM_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Plasma => PLASMA_ACROSS_SPOKE_POOL_CONTRACT,
+            Chain::Tron => TRON_ACROSS_SPOKE_POOL_CONTRACT,
             _ => return None,
         };
         Some(Self { chain_id, spoke_pool })
@@ -87,6 +92,7 @@ impl AcrossDeployment {
             (Chain::Monad, vec![MONAD_USDC_ASSET_ID.clone(), MONAD_USDT_ASSET_ID.clone()]),
             (Chain::SmartChain, vec![SMARTCHAIN_ETH_ASSET_ID.clone()]),
             (Chain::Plasma, vec![PLASMA_USDT_ASSET_ID.clone()]),
+            (Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
         ])
     }
 
@@ -181,6 +187,7 @@ impl AcrossDeployment {
                     HYPEREVM_USDT_ASSET_ID.clone(),
                     PLASMA_USDT_ASSET_ID.clone(),
                     MONAD_USDT_ASSET_ID.clone(),
+                    TRON_USDT_ASSET_ID.clone(),
                 ]),
             },
             // USDT on BSC decimals are 18

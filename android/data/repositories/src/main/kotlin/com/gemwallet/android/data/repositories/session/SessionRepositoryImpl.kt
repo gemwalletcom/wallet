@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
@@ -48,7 +47,7 @@ class SessionRepositoryImpl(
     }
 
     override suspend fun setWallet(wallet: Wallet) {
-        val oldSession = runBlocking(Dispatchers.IO) { sessionDao.getSession() }
+        val oldSession = withContext(Dispatchers.IO) { sessionDao.getSession() }
         val session = if (oldSession == null) {
             DbSession( // Create session
                 walletId = wallet.id.id,

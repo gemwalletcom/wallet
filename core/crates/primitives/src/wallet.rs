@@ -24,7 +24,6 @@ pub struct Wallet {
     #[serde(rename = "type")]
     pub wallet_type: WalletType,
     pub accounts: Vec<Account>,
-    pub order: i32,
     pub is_pinned: bool,
     pub image_url: Option<String>,
     pub source: WalletSource,

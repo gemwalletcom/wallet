@@ -51,6 +51,7 @@ class SwapSelectViewModel @Inject constructor(
     toggleAssetPin = toggleAssetPin,
     searchTokensCase = searchTokensCase,
     search = SwapSelectSearch(searchSwapAssets),
+    remoteSearch = savedStateHandle.requireSwapItemType() == SwapItemType.Receive,
 ) {
 
     val payAssetId = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
@@ -76,8 +77,6 @@ class SwapSelectViewModel @Inject constructor(
     }
 
     override fun assetFilters() = setOf(AssetFilter.Swappable)
-
-    override fun isNetworkSearchEnabled(): Boolean = select.value == SwapItemType.Receive
 
     override val recentTypes: List<RecentType> get() = listOf(RecentType.SwapSelect, RecentType.Swap)
 }
