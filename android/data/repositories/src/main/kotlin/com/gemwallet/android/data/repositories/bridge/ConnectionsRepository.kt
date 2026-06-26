@@ -48,7 +48,8 @@ class ConnectionsRepository(
         }
     }
 
-    suspend fun sync(sessions: List<WalletConnectSession>) {
+    suspend fun sync(sessions: List<WalletConnectSession>?) {
+        if (sessions == null) return
         val local = getConnections().firstOrNull() ?: emptyList()
         val unknownSessions = local.filter { local -> !sessions.any { local.session.sessionId == it.topic } }
         if (unknownSessions.isNotEmpty()) {
