@@ -91,7 +91,7 @@ extension ConfirmTransferScene {
         case let .balanceChange(model):
             let row = ListItemView(
                 title: TextValue(text: model.assetTitle, style: .body, lineLimit: 1, truncationMode: .tail),
-                subtitle: TextValue(text: model.amount, style: TextStyle(font: .body, color: model.color, fontWeight: .medium), lineLimit: 1, truncationMode: .tail),
+                subtitle: model.amount,
                 imageStyle: .list(assetImage: model.assetImage),
             )
             if model.isUnknown, let url = model.explorerTokenURL {

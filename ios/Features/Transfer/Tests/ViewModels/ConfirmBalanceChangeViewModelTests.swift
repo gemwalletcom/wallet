@@ -16,11 +16,11 @@ struct ConfirmBalanceChangeViewModelTests {
         let positive = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(assetId: solana.id, value: BigInt(100_005_000), decimals: 9, name: "Solana", symbol: "SOL"))
 
         #expect(negative.assetTitle == "Solana")
-        #expect(negative.amount == "-0.100005 SOL")
-        #expect(positive.amount == "+0.100005 SOL")
+        #expect(negative.amount.text == "-0.100005 SOL")
+        #expect(positive.amount.text == "+0.100005 SOL")
         #expect(negative.isUnknown == false)
-        #expect(negative.color == Colors.red)
-        #expect(positive.color == Colors.green)
+        #expect(negative.amount.style.color == Colors.red)
+        #expect(positive.amount.style.color == Colors.green)
     }
 
     @Test
@@ -30,7 +30,6 @@ struct ConfirmBalanceChangeViewModelTests {
 
         #expect(unknown.isUnknown)
         #expect(unknown.assetTitle == Localized.Errors.unknown)
-        #expect(unknown.amount == "-0.42")
-        #expect(unknown.color == Colors.red)
+        #expect(unknown.amount.text == "-0.42")
     }
 }

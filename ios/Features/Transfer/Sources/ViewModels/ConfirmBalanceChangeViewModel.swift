@@ -3,7 +3,6 @@
 import BigInt
 import Components
 import ExplorerService
-import Formatters
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -11,8 +10,6 @@ import Style
 import SwiftUI
 
 public struct ConfirmBalanceChangeViewModel {
-    private static let formatter = ValueFormatter(style: .full)
-
     private let balanceChange: SimulationAssetChange
 
     init(balanceChange: SimulationAssetChange) {
@@ -31,20 +28,15 @@ public struct ConfirmBalanceChangeViewModel {
         AssetIdViewModel(assetId: balanceChange.assetId).assetImage
     }
 
-    public var amount: String {
-        let value = balanceChange.value < BigInt.zero ? -balanceChange.value : balanceChange.value
-        let formatted = Self.formatter.string(value, decimals: Int(balanceChange.decimals), currency: balanceChange.symbol ?? "")
-        if balanceChange.value > BigInt.zero {
-            return "+\(formatted)"
-        }
-        if balanceChange.value < BigInt.zero {
-            return "-\(formatted)"
-        }
-        return formatted
-    }
-
-    public var color: Color {
-        PriceChangeColor.color(for: Double(balanceChange.value.signum()))
+    public var amount: TextValue {
+        NumericViewModel(
+            data: AssetValuePrice(asset: asset, value: abs(balanceChange.value), price: nil),
+            style: AmountDisplayStyle(
+                sign: amountSign,
+                currencyCode: "",
+                textStyle: TextStyle(font: .body, color: amountColor, fontWeight: .medium),
+            ),
+        ).amount
     }
 
     var explorerTokenURL: URL? {
@@ -52,5 +44,29 @@ public struct ConfirmBalanceChangeViewModel {
             return nil
         }
         return ExplorerService.standard.tokenUrl(chain: balanceChange.assetId.chain, address: tokenId)?.url
+    }
+
+    private var asset: Asset {
+        Asset(
+            id: balanceChange.assetId,
+            name: balanceChange.name ?? "",
+            symbol: balanceChange.symbol ?? "",
+            decimals: balanceChange.decimals,
+            type: balanceChange.assetId.tokenId == nil ? .native : .token,
+        )
+    }
+
+    private var amountSign: AmountDisplaySign {
+        if balanceChange.value > BigInt.zero {
+            .incoming
+        } else if balanceChange.value < BigInt.zero {
+            .outgoing
+        } else {
+            .none
+        }
+    }
+
+    private var amountColor: Color {
+        PriceChangeColor.color(for: Double(balanceChange.value.signum()))
     }
 }
