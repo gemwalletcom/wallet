@@ -148,17 +148,15 @@ class BridgesRepository(
             properties = proposal.properties ?: emptyMap(),
             caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() },
         )
-        val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
-
-        walletConnectClient.approveSession(
-            proposal = proposal,
-            namespaces = sessionNamespaces,
-            properties = sessionProperties,
-            onSuccess = {
-                persistNewSessions(wallet, activeBefore, "Connection failed", onSuccess, onError)
-            },
-            onError = onError,
-        )
+        approveAndStoreSession(wallet, "Connection failed", onSuccess, onError) { onApproved, onFailure ->
+            walletConnectClient.approveSession(
+                proposal = proposal,
+                namespaces = sessionNamespaces,
+                properties = sessionProperties,
+                onSuccess = onApproved,
+                onError = onFailure,
+            )
+        }
     }
 
     fun rejectConnection(
@@ -176,15 +174,14 @@ class BridgesRepository(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
-        walletConnectClient.approveAuthentication(
-            request = request,
-            auths = auths,
-            onSuccess = {
-                persistNewSessions(wallet, activeBefore, "Authentication failed", onSuccess, onError)
-            },
-            onError = onError,
-        )
+        approveAndStoreSession(wallet, "Authentication failed", onSuccess, onError) { onApproved, onFailure ->
+            walletConnectClient.approveAuthentication(
+                request = request,
+                auths = auths,
+                onSuccess = onApproved,
+                onError = onFailure,
+            )
+        }
     }
 
     fun rejectAuthentication(
@@ -223,6 +220,20 @@ class BridgesRepository(
         signature: String,
     ): WalletConnectAuthObject {
         return walletConnectClient.generateAuthObject(payloadParams, issuer, signature)
+    }
+
+    private fun approveAndStoreSession(
+        wallet: GemWallet,
+        failureMessage: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+        approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit,
+    ) {
+        val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
+        approve(
+            { persistNewSessions(wallet, activeBefore, failureMessage, onSuccess, onError) },
+            onError,
+        )
     }
 
     private fun persistNewSessions(
