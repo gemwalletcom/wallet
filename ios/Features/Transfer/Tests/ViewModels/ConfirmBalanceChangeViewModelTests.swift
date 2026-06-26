@@ -14,8 +14,8 @@ struct ConfirmBalanceChangeViewModelTests {
         let negative = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(asset: solana, value: BigInt(-100_005_000)))
         let positive = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(asset: solana, value: BigInt(100_005_000)))
 
-        #expect(negative.title == "-0.100005 SOL")
-        #expect(positive.title == "+0.100005 SOL")
+        #expect(negative.amount == "-0.100005 SOL")
+        #expect(positive.amount == "+0.100005 SOL")
         #expect(negative.color == Colors.red)
         #expect(positive.color == Colors.green)
     }

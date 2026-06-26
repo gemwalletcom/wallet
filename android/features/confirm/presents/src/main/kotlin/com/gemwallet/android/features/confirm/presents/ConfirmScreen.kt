@@ -73,10 +73,7 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
-import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.Alignment
-import com.gemwallet.android.features.confirm.presents.components.ConfirmBalanceChanges
-import com.gemwallet.android.ui.theme.Spacer8
+import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.TransactionType
 
@@ -130,24 +127,18 @@ fun ConfirmScreen(
         closeIcon = isWalletConnect,
         onClose = { cancelAction() },
         mainAction = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                simulation.balanceChanges.takeIf { it.isNotEmpty() }?.let {
-                    ConfirmBalanceChanges(it)
-                    Spacer8()
-                }
-                MainActionButton(
-                    title = state.buttonLabel(),
-                    enabled = state !is ConfirmState.Prepare
-                        && state !is ConfirmState.Sending
-                        && !simulation.warnings.hasCriticalWarning(),
-                    loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
-                    onClick = {
-                        context.requestAuth(AuthRequest.Confirmation) {
-                            viewModel.send(finishAction)
-                        }
-                    },
-                )
-            }
+            MainActionButton(
+                title = state.buttonLabel(),
+                enabled = state !is ConfirmState.Prepare
+                    && state !is ConfirmState.Sending
+                    && !simulation.warnings.hasCriticalWarning(),
+                loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
+                onClick = {
+                    context.requestAuth(AuthRequest.Confirmation) {
+                        viewModel.send(finishAction)
+                    }
+                },
+            )
         }
     ) { paddingValues ->
         LazyColumn(
@@ -236,6 +227,7 @@ fun ConfirmScreen(
                     .takeIf { it.isNotEmpty() }
                     ?.let { { showWalletConnectDetails = true } },
             )
+            confirmBalanceChangesContent(simulation.balanceChanges)
             item {
                 feeModel?.let {
                     val feeAsset = feeAssetInfo?.asset

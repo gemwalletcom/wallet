@@ -219,6 +219,10 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             result.append(ListSection(type: .payload, [.payload]))
         }
 
+        if !balanceChangeModels.isEmpty {
+            result.append(ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)))
+        }
+
         result.append(ListSection(type: .fee, [.networkFee]))
         result.append(ListSection(type: .error, [.error]))
         return result
@@ -249,6 +253,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             detailsViewModel
         case .payload:
             ConfirmTransferItemModel.payload(primaryPayloadFields)
+        case let .balanceChange(index):
+            ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 state: state,

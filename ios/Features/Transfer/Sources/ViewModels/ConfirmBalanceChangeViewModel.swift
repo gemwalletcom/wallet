@@ -7,7 +7,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-struct ConfirmBalanceChangeViewModel {
+public struct ConfirmBalanceChangeViewModel {
     private static let formatter = ValueFormatter(style: .full)
 
     private let balanceChange: SimulationAssetChange
@@ -20,31 +20,27 @@ struct ConfirmBalanceChangeViewModel {
         AssetViewModel(asset: balanceChange.asset)
     }
 
-    var name: String {
-        assetViewModel.name
+    public var assetTitle: String {
+        assetViewModel.title
     }
 
-    var assetImage: AssetImage {
+    public var assetImage: AssetImage {
         assetViewModel.assetImage
     }
 
-    var title: String {
-        let amount = balanceChange.value < BigInt.zero ? -balanceChange.value : balanceChange.value
-        let value = Self.formatter.string(amount, asset: balanceChange.asset)
+    public var amount: String {
+        let value = balanceChange.value < BigInt.zero ? -balanceChange.value : balanceChange.value
+        let formatted = Self.formatter.string(value, asset: balanceChange.asset)
         if balanceChange.value > BigInt.zero {
-            return "+\(value)"
+            return "+\(formatted)"
         }
         if balanceChange.value < BigInt.zero {
-            return "-\(value)"
+            return "-\(formatted)"
         }
-        return value
+        return formatted
     }
 
-    var color: Color {
+    public var color: Color {
         PriceChangeColor.color(for: Double(balanceChange.value.signum()))
-    }
-
-    var amountTextValue: TextValue {
-        TextValue(text: title, style: TextStyle(font: .callout, color: color, fontWeight: .medium))
     }
 }

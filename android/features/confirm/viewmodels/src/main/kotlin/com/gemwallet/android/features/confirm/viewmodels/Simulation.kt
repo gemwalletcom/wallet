@@ -53,6 +53,9 @@ fun SimulationResult.toSimulation(
     )
 }
 
+val SimulationAssetChange.assetTitle: String
+    get() = if (asset.name == asset.symbol) asset.name else "${asset.name} (${asset.symbol})"
+
 fun SimulationAssetChange.formattedValue(): String {
     val formatted = ValueFormatter(style = ValueFormatter.Style.Full).string(value, asset)
     return if (value > BigInteger.ZERO) "+$formatted" else formatted

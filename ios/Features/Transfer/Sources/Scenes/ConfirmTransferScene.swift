@@ -23,15 +23,8 @@ public struct ConfirmTransferScene: View {
         )
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .safeAreaView(edge: .bottom) {
-            VStack(spacing: .medium) {
-                if !model.balanceChangeModels.isEmpty {
-                    ConfirmBalanceChangesView(models: model.balanceChangeModels)
-                }
-                StateButton(model.confirmButtonModel)
-            }
-            .frame(maxWidth: .scene.button.maxWidth)
-            .padding(.bottom, .scene.bottom)
+        .safeAreaButton {
+            StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
         .onChange(of: model.feeModel.priority) { _, _ in
@@ -95,6 +88,12 @@ extension ConfirmTransferScene {
             }
         case let .warnings(warnings):
             SimulationWarningsContent(warnings: warnings)
+        case let .balanceChange(model):
+            ListItemView(
+                title: TextValue(text: model.assetTitle, style: .body),
+                subtitle: TextValue(text: model.amount, style: TextStyle(font: .body, color: model.color, fontWeight: .medium)),
+                imageStyle: .list(assetImage: model.assetImage),
+            )
         case let .payload(fields):
             Group {
                 SimulationPayloadFieldsContent(
