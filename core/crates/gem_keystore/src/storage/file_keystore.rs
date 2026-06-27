@@ -35,7 +35,7 @@ impl FileKeystore {
 
     fn import_mnemonic_unlocked(&self, phrase: &str, password: &[u8], keystore_id: Option<String>) -> Result<StoredSecretMeta, KeystoreError> {
         validate_v4_password(password)?;
-        let phrase = Mnemonic::sanitize(phrase)?;
+        let phrase = Mnemonic::canonicalize(phrase)?;
         let payload = SecretPayload::Mnemonic { phrase: phrase.to_string() };
         self.import_payload_unlocked(SecretKind::Mnemonic, payload, password, keystore_id)
     }
