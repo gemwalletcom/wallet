@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::{ChainSimulation, ChainToken};
+use chain_traits::ChainSimulation;
 use futures::future::join_all;
 use gem_client::Client;
 use gem_encoding::decode_base64;
@@ -10,7 +10,7 @@ use primitives::{Asset, SimulationBalanceChange, SimulationInput, SimulationResu
 use solana_primitives::VersionedTransaction;
 
 use crate::provider::simulation_mapper::map_simulation_result;
-use crate::rpc::client::SolanaClient;
+use crate::rpc::client::{SolanaClient, TOKEN_DATA_CACHE_TTL_SECONDS};
 
 #[async_trait]
 impl<C: Client + Clone> ChainSimulation for SolanaClient<C> {
@@ -45,7 +45,7 @@ impl<C: Client + Clone> SolanaClient<C> {
                     let asset = Asset::from_chain(self.get_chain());
                     (Some(asset.name), Some(asset.symbol))
                 }
-                Some(mint) => match self.get_token_data(mint.clone()).await {
+                Some(mint) => match self.token_data(mint.clone(), Some(TOKEN_DATA_CACHE_TTL_SECONDS)).await {
                     Ok(asset) => (Some(asset.name), Some(asset.symbol)),
                     Err(_) => (None, None),
                 },

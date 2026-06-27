@@ -12,12 +12,12 @@ struct ConfirmBalanceChangeViewModelTests {
     @Test
     func balanceChange() {
         let solana = Asset.mock(id: .mockSolana(), name: "Solana", symbol: "SOL", decimals: 9, type: .native)
-        let negative = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(assetId: solana.id, value: BigInt(-100_005_000), decimals: 9, name: "Solana", symbol: "SOL"))
-        let positive = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(assetId: solana.id, value: BigInt(100_005_000), decimals: 9, name: "Solana", symbol: "SOL"))
+        let negative = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(assetId: solana.id, value: BigInt(-1_500_000_000), decimals: 9, name: "Solana", symbol: "SOL"))
+        let positive = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(assetId: solana.id, value: BigInt(1_500_000_000), decimals: 9, name: "Solana", symbol: "SOL"))
 
         #expect(negative.assetTitle == "Solana")
-        #expect(negative.amount.text == "-0.100005 SOL")
-        #expect(positive.amount.text == "+0.100005 SOL")
+        #expect(negative.amount.text == "-1.5 SOL")
+        #expect(positive.amount.text == "+1.5 SOL")
         #expect(negative.isUnknown == false)
         #expect(negative.amount.style.color == Colors.red)
         #expect(positive.amount.style.color == Colors.green)

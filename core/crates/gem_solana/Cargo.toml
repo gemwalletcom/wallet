@@ -45,3 +45,4 @@ num-traits = { workspace = true, optional = true }
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt"] }
 primitives = { path = "../primitives", features = ["testkit"], default-features = false }
+gem_client = { path = "../gem_client", features = ["testkit"] }

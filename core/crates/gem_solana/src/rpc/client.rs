@@ -28,6 +28,8 @@ pub struct SolanaClient<C: Client + Clone> {
     pub chain: Chain,
 }
 
+pub(crate) const TOKEN_DATA_CACHE_TTL_SECONDS: u64 = 86_400;
+
 pub fn confirmed_config(mut extras: serde_json::Value) -> serde_json::Value {
     if let Some(obj) = extras.as_object_mut() {
         obj.insert("commitment".to_string(), COMMITMENT_CONFIRMED.into());
@@ -77,6 +79,13 @@ impl<C: Client + Clone> SolanaClient<C> {
         T: serde::de::DeserializeOwned + Send,
     {
         self.client.call(method, params).await
+    }
+
+    pub async fn rpc_call_cached<T>(&self, method: &str, params: serde_json::Value, ttl_seconds: u64) -> Result<T, JsonRpcError>
+    where
+        T: serde::de::DeserializeOwned + Send,
+    {
+        self.client.call_method_with_param(method, params, Some(ttl_seconds)).await?.take()
     }
 
     pub async fn get_balance(&self, address: &str) -> Result<SolanaBalance, JsonRpcError> {
@@ -183,17 +192,20 @@ impl<C: Client + Clone> SolanaClient<C> {
         self.rpc_call("getRecentPrioritizationFees", serde_json::json!([])).await
     }
 
-    pub async fn get_token_mint_info(&self, token_mint: &str) -> Result<ResultTokenInfo, JsonRpcError> {
+    pub async fn get_token_mint_info(&self, token_mint: &str, ttl_seconds: Option<u64>) -> Result<ResultTokenInfo, JsonRpcError> {
         let params = serde_json::json!([token_mint, confirmed_config(serde_json::json!({ "encoding": "jsonParsed" }))]);
-        self.rpc_call("getAccountInfo", params).await
+        match ttl_seconds {
+            Some(ttl) => self.rpc_call_cached("getAccountInfo", params, ttl).await,
+            None => self.rpc_call("getAccountInfo", params).await,
+        }
     }
 
-    pub(crate) async fn get_account_info_base64(&self, address: &str) -> Result<ValueResult<Option<AccountData>>, JsonRpcError> {
-        self.rpc_call(
-            "getAccountInfo",
-            serde_json::json!([address, confirmed_config(serde_json::json!({ "encoding": "base64" }))]),
-        )
-        .await
+    pub(crate) async fn get_account_info_base64(&self, address: &str, ttl_seconds: Option<u64>) -> Result<ValueResult<Option<AccountData>>, JsonRpcError> {
+        let params = serde_json::json!([address, confirmed_config(serde_json::json!({ "encoding": "base64" }))]);
+        match ttl_seconds {
+            Some(ttl) => self.rpc_call_cached("getAccountInfo", params, ttl).await,
+            None => self.rpc_call("getAccountInfo", params).await,
+        }
     }
 
     pub(crate) async fn find_token_account(&self, owner: &str, mint: &str) -> Result<Option<String>, JsonRpcError> {
@@ -201,13 +213,13 @@ impl<C: Client + Clone> SolanaClient<C> {
         Ok(accounts.value.first().map(|account| account.pubkey.clone()))
     }
 
-    pub async fn get_metaplex_metadata(&self, token_mint: &str) -> Result<Metadata, Box<dyn Error + Send + Sync>> {
+    pub async fn get_metaplex_metadata(&self, token_mint: &str, ttl_seconds: Option<u64>) -> Result<Metadata, Box<dyn Error + Send + Sync>> {
         let pubkey = Pubkey::from_str(token_mint)?;
         let metadata_key = Metadata::find_pda(pubkey)
             .ok_or::<Box<dyn Error + Send + Sync>>("metadata program account not found".into())?
             .0
             .to_string();
-        let value = self.get_account_info_base64(&metadata_key).await?.value.ok_or("Failed to get metadata")?;
+        let value = self.get_account_info_base64(&metadata_key, ttl_seconds).await?.value.ok_or("Failed to get metadata")?;
         let data = value.data.first().ok_or("Missing metadata account data")?;
         decode_metadata(data).map_err(|_| "Failed to decode metadata".into())
     }
