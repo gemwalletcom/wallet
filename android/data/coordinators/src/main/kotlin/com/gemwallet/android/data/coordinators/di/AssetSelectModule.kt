@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
@@ -11,6 +12,7 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoImpl
+import com.gemwallet.android.data.coordinators.asset_select.SearchListAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
 import com.gemwallet.android.data.coordinators.asset_select.ToggleAssetPinImpl
@@ -32,6 +34,12 @@ object AssetSelectModule {
     fun provideSearchSelectAssets(
         assetsRepository: AssetsRepository,
     ): SearchSelectAssets = SearchSelectAssetsImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideSearchListAssets(
+        assetsRepository: AssetsRepository,
+    ): SearchListAssets = SearchListAssetsImpl(assetsRepository)
 
     @Provides
     @Singleton

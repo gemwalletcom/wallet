@@ -113,3 +113,5 @@ private fun List<AssetTag>.toGemQuery() = if (isEmpty()) {
 }
 
 fun List<AssetTag>.toPriorityQuery(query: String) = if (isEmpty()) query.trim() else "${query.trim()}::${toGemQuery()}"
+
+fun listPriorityQuery(listId: String) = "::list:$listId"

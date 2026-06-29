@@ -38,6 +38,7 @@ import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
+import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
@@ -240,6 +241,11 @@ class AssetsRepository @Inject constructor(
 
     fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> =
         searchService.search(query, tags, byAllWallets, limit)
+
+    fun searchLists(query: String): Flow<List<AssetList>> = searchService.searchLists(query)
+
+    fun searchByList(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> =
+        searchService.searchByList(listId, limit)
 
     fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>, tags: List<AssetTag>): Flow<List<AssetInfo>> =
         searchService.swapSearch(wallet, query, byChains, byAssets, tags)

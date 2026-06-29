@@ -1,14 +1,18 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.tokens.listPriorityQuery
 import com.gemwallet.android.data.repositories.tokens.toPriorityQuery
+import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -16,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,6 +30,7 @@ import javax.inject.Singleton
 class AssetsSearchService @Inject constructor(
     private val assetsDao: AssetsDao,
     private val searchDao: SearchDao,
+    private val assetListDao: AssetListDao,
     private val sessionRepository: SessionRepository,
 ) {
 
@@ -41,6 +47,24 @@ class AssetsSearchService @Inject constructor(
             }
         }
         .toAssetInfoModel()
+    }
+
+    fun searchLists(query: String): Flow<List<AssetList>> {
+        val key = emptyList<AssetTag>().toPriorityQuery(query)
+        return assetListDao.searchWithPriority(key).map { lists -> lists.map { it.toDTO() } }
+    }
+
+    fun searchByList(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
+        val query = listPriorityQuery(listId)
+        return sessionRepository.currentWalletId().flatMapLatest { walletId ->
+            searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
+                if (hasPriority) {
+                    assetsDao.searchWithPriority(walletId, query, limit).toAssetInfoModel()
+                } else {
+                    flowOf(emptyList<AssetInfo>())
+                }
+            }
+        }
     }
 
     fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>, tags: List<AssetTag>): Flow<List<AssetInfo>> {
