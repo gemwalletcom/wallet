@@ -29,12 +29,12 @@ fun ValidatorsScene(
         onClose = onCancel,
     ) {
         LazyColumn {
-            if (uiState.recomended.isNotEmpty()) {
+            if (uiState.recommended.isNotEmpty()) {
                 item {
                     SubheaderItem(R.string.common_recommended)
                 }
-                val recommendedSize = uiState.recomended.size
-                itemsPositioned(uiState.recomended, key = { index, item -> "recomended-${item.id}" }) { position, item ->
+                val recommendedSize = uiState.recommended.size
+                itemsPositioned(uiState.recommended, key = { index, item -> "recommended-${item.id}" }) { position, item ->
                     ValidatorItem(
                         data = item,
                         listPosition = position,
@@ -66,7 +66,7 @@ fun PreviewValidatorsScene() {
     WalletTheme {
         ValidatorsScene(
             uiState = ValidatorsUIState.Loaded(
-                recomended = emptyList(),
+                recommended = emptyList(),
                 validators = listOf(
                     DelegationValidator(
                         chain = Chain.Sei,
