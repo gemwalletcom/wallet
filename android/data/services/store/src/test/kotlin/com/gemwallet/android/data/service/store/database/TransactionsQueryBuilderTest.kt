@@ -20,8 +20,8 @@ class TransactionsQueryBuilderTest {
         val query = buildExtendedTransactionsSql(walletId, filters = emptyList())
         assertTrue(query.sql.trimStart().startsWith("SELECT"))
         assertTrue(query.sql.contains("FROM transactions as tx"))
-        assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC LIMIT ?"))
-        assertEquals(List(baseArgCount) { walletId.id } + DEFAULT_TRANSACTIONS_LIMIT, query.args)
+        assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC"))
+        assertEquals(List(baseArgCount) { walletId.id }, query.args)
     }
 
     @Test
@@ -114,7 +114,6 @@ class TransactionsQueryBuilderTest {
         assertEquals(Chain.Ethereum.string, query.args[baseArgCount])
         assertEquals("Transfer", query.args[baseArgCount + 1])
         assertEquals(15, query.args[baseArgCount + 2])
-        assertEquals(DEFAULT_TRANSACTIONS_LIMIT, query.args[baseArgCount + 3])
     }
 
     @Test

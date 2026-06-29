@@ -7,7 +7,6 @@ import Primitives
 public struct TransactionsRequest: DatabaseQueryable {
     private let walletId: WalletId
     private let type: TransactionsRequestType
-    private let limit: Int
 
     public var filters: [TransactionsRequestFilter] = []
 
@@ -15,16 +14,14 @@ public struct TransactionsRequest: DatabaseQueryable {
         walletId: WalletId,
         type: TransactionsRequestType,
         filters: [TransactionsRequestFilter] = [],
-        limit: Int = 50,
     ) {
         self.walletId = walletId
         self.type = type
         self.filters = filters
-        self.limit = limit
     }
 
     public func fetch(_ db: Database) throws -> [TransactionExtended] {
-        try Self.fetch(db, type: type, filters: filters, walletId: walletId, limit: limit)
+        try Self.fetch(db, type: type, filters: filters, walletId: walletId)
     }
 
     public static func fetch(
@@ -32,7 +29,6 @@ public struct TransactionsRequest: DatabaseQueryable {
         type: TransactionsRequestType,
         filters: [TransactionsRequestFilter],
         walletId: WalletId,
-        limit: Int,
     ) throws -> [TransactionExtended] {
         let states = states(type: type)
         let types = types(type: type)
@@ -50,7 +46,6 @@ public struct TransactionsRequest: DatabaseQueryable {
             .including(optional: TransactionRecord.toAddress)
             .order(TransactionRecord.Columns.date.desc)
             .distinct()
-            .limit(limit)
 
         switch type {
         case let .asset(assetId):

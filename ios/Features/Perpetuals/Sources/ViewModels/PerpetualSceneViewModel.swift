@@ -94,7 +94,6 @@ public final class PerpetualSceneViewModel {
             TransactionsRequest.perpetualScene(
                 walletId: wallet.id,
                 assetId: asset.id,
-                limit: 50,
             ),
             initialValue: [],
         )

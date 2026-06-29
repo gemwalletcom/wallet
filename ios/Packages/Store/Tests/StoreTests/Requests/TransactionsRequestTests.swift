@@ -15,7 +15,6 @@ struct TransactionsRequestTests {
                 TransactionsRequest(
                     walletId: walletId,
                     type: .asset(assetId: assetId),
-                    limit: 25,
                 ),
         )
     }
@@ -29,7 +28,6 @@ struct TransactionsRequestTests {
             TransactionsRequest.perpetualScene(
                 walletId: walletId,
                 assetId: assetId,
-                limit: 50,
             ) ==
                 TransactionsRequest(
                     walletId: walletId,
@@ -38,7 +36,6 @@ struct TransactionsRequestTests {
                         TransactionType.perpetualOpenPosition.rawValue,
                         TransactionType.perpetualClosePosition.rawValue,
                     ])],
-                    limit: 50,
                 ),
         )
     }
