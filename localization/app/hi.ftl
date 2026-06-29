@@ -711,7 +711,8 @@ contacts_contact = संपर्क
 contacts_addresses = पतों
 contacts_state_empty_title = कोई संपर्क नहीं
 contacts_state_empty_description = अपने अक्सर इस्तेमाल होने वाले पतों को सेव करें
-contacts_add_to_contacts = संपर्क के खाते में जोड़ दे
+contacts_create_new_contact = संपर्क बनाएं
+contacts_add_to_existing_contact = संपर्क में जोड़ें
 
 # Simulation
 

@@ -549,7 +549,8 @@
 "contacts.addresses" = "پتے";
 "contacts.state.empty.title" = "کوئی رابطے نہیں";
 "contacts.state.empty.description" = "اپنے اکثر استعمال ہونے والے پتے محفوظ کریں۔";
-"contacts.add_to_contacts" = "رابطوں میں شامل کریں۔";
+"contacts.create_new_contact" = "رابطہ بنائیں";
+"contacts.add_to_existing_contact" = "رابطے میں شامل کریں";
 "simulation.header.unlimited_asset" = "لا محدود %@";
 "simulation.warning.unlimited_token_approval.description" = "یہ خرچ کرنے والے کو اس ٹوکن کو استعمال کرنے تک رسائی دیتا ہے جب تک کہ آپ منظوری منسوخ نہیں کرتے یا اس کی میعاد ختم نہیں ہوجاتی۔";
 "simulation.warning_externally_owned_spender_description" = "یہ منظوری ایک عام والیٹ ایڈریس (EOA) کو آپ کے اثاثے استعمال کرنے دیتی ہے۔ صرف اس صورت میں تصدیق کریں جب آپ اس ایڈریس پر اعتماد کرتے ہیں۔";

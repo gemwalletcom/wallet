@@ -331,12 +331,14 @@ public enum Localized {
     public static let warning = Localized.tr("Localizable", "common.warning", fallback: "Warning")
   }
   public enum Contacts {
-    /// Add to Contacts
-    public static let addToContacts = Localized.tr("Localizable", "contacts.add_to_contacts", fallback: "Add to Contacts")
+    /// Add to Contact
+    public static let addToExistingContact = Localized.tr("Localizable", "contacts.add_to_existing_contact", fallback: "Add to Contact")
     /// Addresses
     public static let addresses = Localized.tr("Localizable", "contacts.addresses", fallback: "Addresses")
     /// Contact
     public static let contact = Localized.tr("Localizable", "contacts.contact", fallback: "Contact")
+    /// Create Contact
+    public static let createNewContact = Localized.tr("Localizable", "contacts.create_new_contact", fallback: "Create Contact")
     /// Contacts
     public static let title = Localized.tr("Localizable", "contacts.title", fallback: "Contacts")
     public enum State {

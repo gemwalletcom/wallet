@@ -19,6 +19,21 @@ public extension Contact {
     }
 }
 
+public extension ContactData {
+    func addAddress(from recipient: ChainRecipient) -> ContactData {
+        let address = ContactAddress.new(
+            contactId: contact.id,
+            chain: recipient.chain,
+            address: recipient.recipient.address,
+            memo: recipient.recipient.memo,
+        )
+        guard !addresses.contains(where: { $0.id == address.id }) else {
+            return self
+        }
+        return ContactData(contact: contact, addresses: addresses + [address])
+    }
+}
+
 public extension ContactAddress {
     static func new(
         contactId: String,

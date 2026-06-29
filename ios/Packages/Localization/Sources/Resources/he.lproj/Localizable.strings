@@ -549,7 +549,8 @@
 "contacts.addresses" = "כתובות";
 "contacts.state.empty.title" = "אין אנשי קשר";
 "contacts.state.empty.description" = "שמור את הכתובות שאתה משתמש בהן לעתים קרובות";
-"contacts.add_to_contacts" = "הוסף לאנשי קשר";
+"contacts.create_new_contact" = "צור איש קשר";
+"contacts.add_to_existing_contact" = "הוסף לאיש קשר";
 "simulation.header.unlimited_asset" = "בִּלתִי מוּגבָּל %@";
 "simulation.warning.unlimited_token_approval.description" = "זה נותן למוציא גישה להשתמש באסימון זה עד שתבטל את האישור או שהוא יפוג תוקפו.";
 "simulation.warning_externally_owned_spender_description" = "אישור זה מאפשר לכתובת ארנק רגילה (EOA) להשתמש בנכסים שלך. אשר רק אם אתה סומך על כתובת זו.";

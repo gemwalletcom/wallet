@@ -549,7 +549,8 @@
 "contacts.addresses" = "पतों";
 "contacts.state.empty.title" = "कोई संपर्क नहीं";
 "contacts.state.empty.description" = "अपने अक्सर इस्तेमाल होने वाले पतों को सेव करें";
-"contacts.add_to_contacts" = "संपर्क के खाते में जोड़ दे";
+"contacts.create_new_contact" = "संपर्क बनाएं";
+"contacts.add_to_existing_contact" = "संपर्क में जोड़ें";
 "simulation.header.unlimited_asset" = "असीमित %@";
 "simulation.warning.unlimited_token_approval.description" = "इससे खर्च करने वाले को इस टोकन का उपयोग तब तक करने की अनुमति मिलती है जब तक आप अनुमोदन रद्द नहीं कर देते या यह समाप्त नहीं हो जाता।";
 "simulation.warning_externally_owned_spender_description" = "यह स्वीकृति एक सामान्य वॉलेट पते (EOA) को आपकी संपत्तियों का उपयोग करने देती है। केवल तभी पुष्टि करें जब आप इस पते पर भरोसा करते हों।";

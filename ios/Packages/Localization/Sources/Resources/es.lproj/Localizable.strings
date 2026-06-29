@@ -549,7 +549,8 @@
 "contacts.addresses" = "Direcciones";
 "contacts.state.empty.title" = "Sin contactos";
 "contacts.state.empty.description" = "Guarde sus direcciones de uso frecuente";
-"contacts.add_to_contacts" = "Añadir a contactos";
+"contacts.create_new_contact" = "Crear contacto";
+"contacts.add_to_existing_contact" = "Añadir a un contacto";
 "simulation.header.unlimited_asset" = "Ilimitado %@";
 "simulation.warning.unlimited_token_approval.description" = "Esto le da al gastador acceso para usar este token hasta que revoque la aprobación o expire.";
 "simulation.warning_externally_owned_spender_description" = "Esta aprobación permite que una dirección de billetera normal (EOA) use tus activos. Confirma solo si confías en esta dirección.";

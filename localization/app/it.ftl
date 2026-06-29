@@ -711,7 +711,8 @@ contacts_contact = Contatto
 contacts_addresses = Indirizzi
 contacts_state_empty_title = Nessun contatto
 contacts_state_empty_description = Salva gli indirizzi che usi più frequentemente
-contacts_add_to_contacts = Aggiungi ai contatti
+contacts_create_new_contact = Crea contatto
+contacts_add_to_existing_contact = Aggiungi a un contatto
 
 # Simulation
 

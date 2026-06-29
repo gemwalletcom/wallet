@@ -8,20 +8,16 @@ import SwiftUI
 
 public struct ContactsNavigationView: View {
     @State private var model: ContactsViewModel
-    @Binding private var navigationPath: NavigationPath
 
-    public init(
-        model: ContactsViewModel,
-        navigationPath: Binding<NavigationPath>,
-    ) {
+    public init(model: ContactsViewModel) {
         _model = State(initialValue: model)
-        _navigationPath = navigationPath
     }
 
     public var body: some View {
         ContactsScene(model: model)
             .bindQuery(model.query)
             .navigationTitle(model.title)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("", systemImage: SystemImage.plus, action: {

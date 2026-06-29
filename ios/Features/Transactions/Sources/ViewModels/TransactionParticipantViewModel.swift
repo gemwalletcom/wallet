@@ -8,9 +8,14 @@ import PrimitivesComponents
 
 struct TransactionParticipantViewModel {
     private let transactionViewModel: TransactionViewModel
+    private let onAddContact: ((AddContactType) -> Void)?
 
-    init(transactionViewModel: TransactionViewModel) {
+    init(
+        transactionViewModel: TransactionViewModel,
+        onAddContact: ((AddContactType) -> Void)? = nil,
+    ) {
         self.transactionViewModel = transactionViewModel
+        self.onAddContact = onAddContact
     }
 }
 
@@ -43,6 +48,7 @@ extension TransactionParticipantViewModel {
             name: addressName?.name,
             chain: chain,
             address: address,
+            memo: transactionViewModel.transaction.transaction.memo,
             assetImage: nil,
             addressType: addressName?.type,
         )
@@ -52,8 +58,15 @@ extension TransactionParticipantViewModel {
                 title: participantTitle,
                 account: account,
                 addressLink: transactionViewModel.addressLink(account: account),
+                onAddContact: canAddContact(addressName: addressName) ? onAddContact : nil,
             ),
         )
+    }
+
+    private func canAddContact(addressName: AddressName?) -> Bool {
+        guard addressName == nil else { return false }
+        let type = transactionViewModel.transaction.transaction.type
+        return type == .transfer || type == .transferNFT
     }
 
     private var resourceItemModel: TransactionItemModel {

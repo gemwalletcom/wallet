@@ -358,8 +358,8 @@ extension ConfirmTransferSceneViewModel {
         isPresentingSheet = .perpetualDetails(model)
     }
 
-    func onSelectAddRecipientToContacts() {
-        isPresentingSheet = .addContact(ChainRecipient(recipient: dataModel.recipient, chain: dataModel.chain))
+    func onSelectAddRecipientToContacts(_ action: AddContactType) {
+        isPresentingSheet = .addContact(action)
     }
 
     func onChangeFeePriority() {

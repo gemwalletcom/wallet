@@ -711,7 +711,8 @@ contacts_contact = Liên hệ
 contacts_addresses = Địa chỉ
 contacts_state_empty_title = Không có liên hệ
 contacts_state_empty_description = Lưu lại những địa chỉ bạn thường dùng.
-contacts_add_to_contacts = Thêm vào danh bạ
+contacts_create_new_contact = Tạo liên hệ
+contacts_add_to_existing_contact = Thêm vào liên hệ
 
 # Simulation
 

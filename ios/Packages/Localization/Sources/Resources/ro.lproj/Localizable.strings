@@ -549,7 +549,8 @@
 "contacts.addresses" = "Adrese";
 "contacts.state.empty.title" = "Niciun contact";
 "contacts.state.empty.description" = "Salvați adresele utilizate frecvent";
-"contacts.add_to_contacts" = "Adăugați la Contacte";
+"contacts.create_new_contact" = "Creează un contact";
+"contacts.add_to_existing_contact" = "Adaugă la un contact";
 "simulation.header.unlimited_asset" = "Nelimitat %@";
 "simulation.warning.unlimited_token_approval.description" = "Aceasta îi oferă cheltuitorului acces la utilizarea acestui token până când îi revocați aprobarea sau expiră.";
 "simulation.warning_externally_owned_spender_description" = "Această aprobare permite unei adrese obișnuite de portofel (EOA) să folosească activele tale. Confirmă doar dacă ai încredere în această adresă.";

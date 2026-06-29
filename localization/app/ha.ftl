@@ -711,7 +711,8 @@ contacts_contact = Tuntuɓi
 contacts_addresses = Adiresoshi
 contacts_state_empty_title = Babu Lambobin Sadarwa
 contacts_state_empty_description = Ajiye adiresoshin da ake yawan amfani da su
-contacts_add_to_contacts = Ƙara zuwa Lambobin Sadarwa
+contacts_create_new_contact = Ƙirƙiri lamba
+contacts_add_to_existing_contact = Ƙara zuwa lamba
 
 # Simulation
 

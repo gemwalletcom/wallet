@@ -711,7 +711,8 @@ contacts_contact = رابطہ کریں۔
 contacts_addresses = پتے
 contacts_state_empty_title = کوئی رابطے نہیں
 contacts_state_empty_description = اپنے اکثر استعمال ہونے والے پتے محفوظ کریں۔
-contacts_add_to_contacts = رابطوں میں شامل کریں۔
+contacts_create_new_contact = رابطہ بنائیں
+contacts_add_to_existing_contact = رابطے میں شامل کریں
 
 # Simulation
 

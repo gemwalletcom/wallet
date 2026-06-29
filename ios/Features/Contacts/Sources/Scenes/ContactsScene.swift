@@ -7,6 +7,8 @@ import Style
 import SwiftUI
 
 public struct ContactsScene: View {
+    @Environment(\.dismiss) private var dismiss
+
     let model: ContactsViewModel
 
     public init(model: ContactsViewModel) {
@@ -16,8 +18,16 @@ public struct ContactsScene: View {
     public var body: some View {
         List {
             ForEach(model.contacts) { contact in
-                NavigationLink(value: Scenes.Contact(contact: contact)) {
-                    ListItemView(model: model.listItemModel(for: contact))
+                let item = ListItemView(model: model.listItemModel(for: contact))
+                switch model.mode {
+                case .list:
+                    NavigationLink(value: Scenes.Contact(contact: contact)) { item }
+                case .addAddress:
+                    Button {
+                        model.add(to: contact)
+                        dismiss()
+                    } label: { item }
+                        .buttonStyle(.plain)
                 }
             }
             .onDelete(perform: model.deleteContacts)

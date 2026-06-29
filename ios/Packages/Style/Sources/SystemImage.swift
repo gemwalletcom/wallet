@@ -57,6 +57,7 @@ public enum SystemImage {
     public static let arrowTriangleUp = "arrowtriangle.up.fill"
     public static let arrowTriangleDown = "arrowtriangle.down.fill"
     public static let person = "person"
+    public static let personCircle = "person.crop.circle"
     public static let personCircleFill = "person.crop.circle.fill"
     public static let personBadgePlus = "person.crop.circle.badge.plus"
     public static let chartLineUptrendXyaxis = "chart.line.uptrend.xyaxis"

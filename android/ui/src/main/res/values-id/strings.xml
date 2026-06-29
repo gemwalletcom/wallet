@@ -564,7 +564,8 @@
   <string name="contacts_addresses">Alamat</string>
   <string name="contacts_state_empty_title">Tidak ada kontak</string>
   <string name="contacts_state_empty_description">Simpan alamat yang sering Anda gunakan.</string>
-  <string name="contacts_add_to_contacts">Tambahkan ke Kontak</string>
+  <string name="contacts_create_new_contact">Buat Kontak</string>
+  <string name="contacts_add_to_existing_contact">Tambahkan ke Kontak</string>
   <string name="simulation_header_unlimited_asset">Tak terbatas %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau token tersebut kedaluwarsa.</string>
   <string name="simulation_warning_externally_owned_spender_description">Persetujuan ini memungkinkan alamat dompet biasa (EOA) menggunakan aset Anda. Konfirmasikan hanya jika Anda mempercayai alamat ini.</string>

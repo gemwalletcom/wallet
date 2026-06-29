@@ -1299,8 +1299,10 @@ contacts_addresses = Addresses
 contacts_state_empty_title = No Contacts
 # Used in contacts UI for the state empty description.
 contacts_state_empty_description = Save your frequently used addresses
-# Used in contacts UI for the add to contacts label.
-contacts_add_to_contacts = Add to Contacts
+# Used in the address context menu to create a new contact from an address.
+contacts_create_new_contact = Create Contact
+# Used in the address context menu to add an address to an existing contact.
+contacts_add_to_existing_contact = Add to Contact
 
 # Simulation
 

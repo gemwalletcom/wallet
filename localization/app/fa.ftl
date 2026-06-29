@@ -711,7 +711,8 @@ contacts_contact = تماس
 contacts_addresses = آدرس‌ها
 contacts_state_empty_title = بدون مخاطب
 contacts_state_empty_description = آدرس‌های پرکاربرد خود را ذخیره کنید
-contacts_add_to_contacts = اضافه کردن به مخاطبین
+contacts_create_new_contact = ایجاد مخاطب
+contacts_add_to_existing_contact = افزودن به مخاطب
 
 # Simulation
 

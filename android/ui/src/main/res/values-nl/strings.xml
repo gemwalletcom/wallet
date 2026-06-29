@@ -564,7 +564,8 @@
   <string name="contacts_addresses">Adressen</string>
   <string name="contacts_state_empty_title">Geen contacten</string>
   <string name="contacts_state_empty_description">Bewaar uw veelgebruikte adressen.</string>
-  <string name="contacts_add_to_contacts">Toevoegen aan contacten</string>
+  <string name="contacts_create_new_contact">Contact maken</string>
+  <string name="contacts_add_to_existing_contact">Aan contact toevoegen</string>
   <string name="simulation_header_unlimited_asset">Onbeperkt %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Dit geeft de gebruiker toegang tot het gebruik van dit token totdat u de goedkeuring intrekt of het token verloopt.</string>
   <string name="simulation_warning_externally_owned_spender_description">Met deze goedkeuring kan een gewoon walletadres (EOA) uw assets gebruiken. Bevestig alleen als u dit adres vertrouwt.</string>

@@ -549,7 +549,8 @@
 "contacts.addresses" = "Adresler";
 "contacts.state.empty.title" = "İletişim yok";
 "contacts.state.empty.description" = "Sık kullandığınız adresleri kaydedin.";
-"contacts.add_to_contacts" = "Kişilere Ekle";
+"contacts.create_new_contact" = "Kişi Oluştur";
+"contacts.add_to_existing_contact" = "Kişiye Ekle";
 "simulation.header.unlimited_asset" = "Sınırsız %@";
 "simulation.warning.unlimited_token_approval.description" = "Bu, harcayan tarafa, siz onayı iptal edene veya süresi dolana kadar bu jetonu kullanma erişimi sağlar.";
 "simulation.warning_externally_owned_spender_description" = "Bu onay, normal bir cüzdan adresinin (EOA) varlıklarınızı kullanmasına izin verir. Yalnızca bu adrese güveniyorsanız onaylayın.";

@@ -196,7 +196,6 @@ struct SettingsNavigationStack: View {
             .navigationDestination(for: Scenes.Contacts.self) { _ in
                 ContactsNavigationView(
                     model: ContactsViewModel(service: contactService, nameService: nameService),
-                    navigationPath: navigationPath,
                 )
             }
             .sheet(isPresented: $isPresentingWallets) {

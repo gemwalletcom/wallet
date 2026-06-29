@@ -711,7 +711,8 @@ contacts_contact = Contacter
 contacts_addresses = Adresses
 contacts_state_empty_title = Aucun contact
 contacts_state_empty_description = Enregistrez vos adresses fréquemment utilisées
-contacts_add_to_contacts = Ajouter aux contacts
+contacts_create_new_contact = Créer un contact
+contacts_add_to_existing_contact = Ajouter à un contact
 
 # Simulation
 

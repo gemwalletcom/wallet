@@ -711,7 +711,8 @@ contacts_contact = اتصال
 contacts_addresses = العناوين
 contacts_state_empty_title = لا توجد جهات اتصال
 contacts_state_empty_description = احفظ عناوينك التي تستخدمها بشكل متكرر
-contacts_add_to_contacts = أضف إلى جهات الاتصال
+contacts_create_new_contact = إنشاء جهة اتصال
+contacts_add_to_existing_contact = إضافة إلى جهة اتصال
 
 # Simulation
 

@@ -31,7 +31,7 @@ public struct AddressListItemViewModel {
     public let title: String
     public let account: SimpleAccount
     public let mode: Mode
-    public let onAddContact: VoidAction
+    public let onAddContact: ((AddContactType) -> Void)?
     private let addressLink: BlockExplorerLink
 
     public init(
@@ -39,7 +39,7 @@ public struct AddressListItemViewModel {
         account: SimpleAccount,
         mode: Mode,
         addressLink: BlockExplorerLink,
-        onAddContact: VoidAction = nil,
+        onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.title = title
         self.account = account
@@ -82,12 +82,27 @@ public struct AddressListItemViewModel {
         addressLink.url
     }
 
-    public var addToContactsTitle: String {
-        Localized.Contacts.addToContacts
+    public var createContactTitle: String {
+        Localized.Contacts.createNewContact
     }
 
-    public var addToContactsImage: String {
+    public var createContactImage: String {
         SystemImage.personBadgePlus
+    }
+
+    public var addToExistingContactTitle: String {
+        Localized.Contacts.addToExistingContact
+    }
+
+    public var addToExistingContactImage: String {
+        SystemImage.personCircle
+    }
+
+    public var addContactRecipient: ChainRecipient {
+        ChainRecipient(
+            recipient: Recipient(name: nil, address: account.address, memo: account.memo),
+            chain: account.chain,
+        )
     }
 
     public var canToggleAddress: Bool {

@@ -711,7 +711,8 @@ contacts_contact = Makipag-ugnayan
 contacts_addresses = Mga Address
 contacts_state_empty_title = Walang Mga Kontak
 contacts_state_empty_description = I-save ang iyong mga madalas gamiting address
-contacts_add_to_contacts = Idagdag sa Mga Kontak
+contacts_create_new_contact = Gumawa ng Contact
+contacts_add_to_existing_contact = Idagdag sa Contact
 
 # Simulation
 

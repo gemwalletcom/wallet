@@ -549,7 +549,8 @@
 "contacts.addresses" = "Endereços";
 "contacts.state.empty.title" = "Sem contatos";
 "contacts.state.empty.description" = "Salve seus endereços usados ​​com frequência.";
-"contacts.add_to_contacts" = "Adicionar aos contatos";
+"contacts.create_new_contact" = "Criar contato";
+"contacts.add_to_existing_contact" = "Adicionar a contato";
 "simulation.header.unlimited_asset" = "Ilimitado %@";
 "simulation.warning.unlimited_token_approval.description" = "Isso dá ao gastador acesso ao uso desse token até que você revogue a aprovação ou ele expire.";
 "simulation.warning_externally_owned_spender_description" = "Esta aprovação permite que um endereço de carteira comum (EOA) use seus ativos. Confirme somente se você confia neste endereço.";

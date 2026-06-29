@@ -564,7 +564,8 @@
   <string name="contacts_addresses">Địa chỉ</string>
   <string name="contacts_state_empty_title">Không có liên hệ</string>
   <string name="contacts_state_empty_description">Lưu lại những địa chỉ bạn thường dùng.</string>
-  <string name="contacts_add_to_contacts">Thêm vào danh bạ</string>
+  <string name="contacts_create_new_contact">Tạo liên hệ</string>
+  <string name="contacts_add_to_existing_contact">Thêm vào liên hệ</string>
   <string name="simulation_header_unlimited_asset">Không giới hạn %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Điều này cho phép người chi tiêu có quyền sử dụng mã thông báo này cho đến khi bạn thu hồi sự chấp thuận hoặc mã thông báo hết hạn.</string>
   <string name="simulation_warning_externally_owned_spender_description">Phê duyệt này cho phép một địa chỉ ví thông thường (EOA) sử dụng tài sản của bạn. Chỉ xác nhận nếu bạn tin tưởng địa chỉ này.</string>

@@ -549,7 +549,8 @@
 "contacts.addresses" = "آدرس‌ها";
 "contacts.state.empty.title" = "بدون مخاطب";
 "contacts.state.empty.description" = "آدرس‌های پرکاربرد خود را ذخیره کنید";
-"contacts.add_to_contacts" = "اضافه کردن به مخاطبین";
+"contacts.create_new_contact" = "ایجاد مخاطب";
+"contacts.add_to_existing_contact" = "افزودن به مخاطب";
 "simulation.header.unlimited_asset" = "نامحدود %@";
 "simulation.warning.unlimited_token_approval.description" = "این به خرج‌کننده دسترسی می‌دهد تا زمانی که تأییدیه را لغو کنید یا منقضی شود، از این توکن استفاده کند.";
 "simulation.warning_externally_owned_spender_description" = "این تأییدیه به یک آدرس کیف پول معمولی (EOA) اجازه می‌دهد از دارایی‌های شما استفاده کند. فقط اگر به این آدرس اعتماد دارید تأیید کنید.";

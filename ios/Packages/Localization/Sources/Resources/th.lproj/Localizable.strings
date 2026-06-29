@@ -549,7 +549,8 @@
 "contacts.addresses" = "ที่อยู่";
 "contacts.state.empty.title" = "ไม่มีข้อมูลติดต่อ";
 "contacts.state.empty.description" = "บันทึกที่อยู่ที่คุณใช้งานบ่อย";
-"contacts.add_to_contacts" = "เพิ่มลงในรายชื่อติดต่อ";
+"contacts.create_new_contact" = "สร้างรายชื่อ";
+"contacts.add_to_existing_contact" = "เพิ่มในรายชื่อ";
 "simulation.header.unlimited_asset" = "ไม่จำกัด %@";
 "simulation.warning.unlimited_token_approval.description" = "สิ่งนี้ให้สิทธิ์ผู้ใช้จ่าย (spender) ในการใช้โทเค็นนี้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ";
 "simulation.warning_externally_owned_spender_description" = "การอนุมัตินี้ทำให้ที่อยู่กระเป๋าเงินทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้";

@@ -10,13 +10,13 @@ struct ConfirmRecipientViewModel {
     private let model: TransferDataViewModel
     private let addressName: AddressName?
     private let addressLink: BlockExplorerLink
-    private let onAddContact: VoidAction
+    private let onAddContact: ((AddContactType) -> Void)?
 
     init(
         model: TransferDataViewModel,
         addressName: AddressName?,
         addressLink: BlockExplorerLink,
-        onAddContact: VoidAction = nil,
+        onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.model = model
         self.addressName = addressName
@@ -37,6 +37,7 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
                     name: addressName?.name ?? model.recipient.name,
                     chain: model.chain,
                     address: model.recipient.address,
+                    memo: model.recipient.memo,
                     assetImage: addressNameImage,
                     addressType: addressName?.type,
                 ),

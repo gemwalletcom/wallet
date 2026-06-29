@@ -564,7 +564,8 @@
   <string name="contacts_addresses">Adresser</string>
   <string name="contacts_state_empty_title">Ingen kontakter</string>
   <string name="contacts_state_empty_description">Gem dine ofte brugte adresser</string>
-  <string name="contacts_add_to_contacts">Føj til Kontakter</string>
+  <string name="contacts_create_new_contact">Opret kontakt</string>
+  <string name="contacts_add_to_existing_contact">Føj til kontakt</string>
   <string name="simulation_header_unlimited_asset">Ubegrænset %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Dette giver brugeren adgang til at bruge denne token, indtil du tilbagekalder godkendelsen, eller den udløber.</string>
   <string name="simulation_warning_externally_owned_spender_description">Denne godkendelse lader en almindelig walletadresse (EOA) bruge dine aktiver. Bekræft kun, hvis du har tillid til denne adresse.</string>

@@ -711,7 +711,8 @@ contacts_contact = Temas etmek
 contacts_addresses = Adresler
 contacts_state_empty_title = İletişim yok
 contacts_state_empty_description = Sık kullandığınız adresleri kaydedin.
-contacts_add_to_contacts = Kişilere Ekle
+contacts_create_new_contact = Kişi Oluştur
+contacts_add_to_existing_contact = Kişiye Ekle
 
 # Simulation
 

@@ -53,7 +53,6 @@ extension ManageContactViewModel {
             service: ContactService(store: .mock(), addressStore: .mock()),
             nameService: nameService,
             mode: mode,
-            onComplete: nil,
         )
     }
 }

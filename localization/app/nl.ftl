@@ -711,7 +711,8 @@ contacts_contact = Contacteer
 contacts_addresses = Adressen
 contacts_state_empty_title = Geen contacten
 contacts_state_empty_description = Bewaar uw veelgebruikte adressen.
-contacts_add_to_contacts = Toevoegen aan contacten
+contacts_create_new_contact = Contact maken
+contacts_add_to_existing_contact = Aan contact toevoegen
 
 # Simulation
 

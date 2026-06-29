@@ -117,6 +117,7 @@ struct WalletNavigationStack: View {
                         transaction: $0.transaction,
                         walletId: model.wallet.id,
                         onHeaderAction: onSelectTransactionHeaderAction,
+                        onAddContact: { model.isPresentingSheet = .addContact($0) },
                     ),
                 )
             }
@@ -242,6 +243,8 @@ struct WalletNavigationStack: View {
                                 defaultType: defaultType,
                             ),
                         )
+                    case let .addContact(action):
+                        AddContactNavigationView(action: action)
                     }
                 }
                 .id(sheet.id)

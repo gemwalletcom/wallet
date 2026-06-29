@@ -549,7 +549,8 @@
 "contacts.addresses" = "Adresses";
 "contacts.state.empty.title" = "Aucun contact";
 "contacts.state.empty.description" = "Enregistrez vos adresses fréquemment utilisées";
-"contacts.add_to_contacts" = "Ajouter aux contacts";
+"contacts.create_new_contact" = "Créer un contact";
+"contacts.add_to_existing_contact" = "Ajouter à un contact";
 "simulation.header.unlimited_asset" = "Illimité %@";
 "simulation.warning.unlimited_token_approval.description" = "Cela donne au détenteur du jeton l'accès à utiliser jusqu'à ce que vous révoquiez l'autorisation ou que celle-ci expire.";
 "simulation.warning_externally_owned_spender_description" = "Cette approbation permet à une adresse de portefeuille classique (EOA) d’utiliser vos actifs. Confirmez uniquement si vous faites confiance à cette adresse.";

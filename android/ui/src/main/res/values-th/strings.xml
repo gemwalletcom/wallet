@@ -564,7 +564,8 @@
   <string name="contacts_addresses">ที่อยู่</string>
   <string name="contacts_state_empty_title">ไม่มีข้อมูลติดต่อ</string>
   <string name="contacts_state_empty_description">บันทึกที่อยู่ที่คุณใช้งานบ่อย</string>
-  <string name="contacts_add_to_contacts">เพิ่มลงในรายชื่อติดต่อ</string>
+  <string name="contacts_create_new_contact">สร้างรายชื่อ</string>
+  <string name="contacts_add_to_existing_contact">เพิ่มในรายชื่อ</string>
   <string name="simulation_header_unlimited_asset">ไม่จำกัด %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">สิ่งนี้ให้สิทธิ์ผู้ใช้จ่าย (spender) ในการใช้โทเค็นนี้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ</string>
   <string name="simulation_warning_externally_owned_spender_description">การอนุมัตินี้ทำให้ที่อยู่กระเป๋าเงินทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้</string>

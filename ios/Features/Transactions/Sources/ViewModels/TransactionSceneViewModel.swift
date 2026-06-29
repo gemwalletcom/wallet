@@ -18,6 +18,7 @@ public final class TransactionSceneViewModel {
     private let preferences: Preferences
     private let explorerService: ExplorerService
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
+    private let onAddContact: ((AddContactType) -> Void)?
 
     public let query: ObservableQuery<TransactionRequest>
     var transactionExtended: TransactionExtended {
@@ -33,10 +34,12 @@ public final class TransactionSceneViewModel {
         preferences: Preferences = Preferences.standard,
         explorerService: ExplorerService = ExplorerService.standard,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
+        onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.preferences = preferences
         self.explorerService = explorerService
         self.onHeaderAction = onHeaderAction
+        self.onAddContact = onAddContact
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.transaction.id), initialValue: transaction)
     }
 
@@ -75,7 +78,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .swapButton: TransactionSwapButtonViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), state: model.transaction.transaction.state)
         case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
-        case .participant: TransactionParticipantViewModel(transactionViewModel: model)
+        case .participant: TransactionParticipantViewModel(transactionViewModel: model, onAddContact: onAddContact)
         case .memo: TransactionMemoViewModel(transaction: model.transaction.transaction)
         case .rate: TransactionRateViewModel(transaction: model.transaction, direction: rateDirection)
         case .network: TransactionNetworkViewModel(chain: model.transaction.asset.chain)

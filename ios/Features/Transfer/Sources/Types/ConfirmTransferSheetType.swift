@@ -14,7 +14,7 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
     case fiatConnect(assetAddress: AssetAddress, wallet: Wallet)
     case swapDetails
     case perpetualDetails(PerpetualDetailsViewModel)
-    case addContact(ChainRecipient)
+    case addContact(AddContactType)
 
     public var id: String {
         switch self {
@@ -25,7 +25,7 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
         case .fiatConnect: "fiat-connect"
         case .swapDetails: "swap-details"
         case let .perpetualDetails(model): "perpetual-details-\(model.id)"
-        case let .addContact(input): "add-contact-\(input.chain.rawValue)-\(input.recipient.address)"
+        case let .addContact(type): "add-contact-\(type.id)"
         }
     }
 }

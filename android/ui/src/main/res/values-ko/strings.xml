@@ -564,7 +564,8 @@
   <string name="contacts_addresses">구애</string>
   <string name="contacts_state_empty_title">연락처 없음</string>
   <string name="contacts_state_empty_description">자주 사용하는 주소를 저장하세요</string>
-  <string name="contacts_add_to_contacts">연락처에 추가</string>
+  <string name="contacts_create_new_contact">연락처 만들기</string>
+  <string name="contacts_add_to_existing_contact">연락처에 추가</string>
   <string name="simulation_header_unlimited_asset">제한 없는 %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">이렇게 하면 사용자가 승인을 취소하거나 만료될 때까지 해당 토큰을 사용할 수 있습니다.</string>
   <string name="simulation_warning_externally_owned_spender_description">이 승인은 일반 지갑 주소(EOA)가 내 자산을 사용할 수 있게 합니다. 이 주소를 신뢰하는 경우에만 확인하세요.</string>

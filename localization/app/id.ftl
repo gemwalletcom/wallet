@@ -711,7 +711,8 @@ contacts_contact = Kontak
 contacts_addresses = Alamat
 contacts_state_empty_title = Tidak ada kontak
 contacts_state_empty_description = Simpan alamat yang sering Anda gunakan.
-contacts_add_to_contacts = Tambahkan ke Kontak
+contacts_create_new_contact = Buat Kontak
+contacts_add_to_existing_contact = Tambahkan ke Kontak
 
 # Simulation
 

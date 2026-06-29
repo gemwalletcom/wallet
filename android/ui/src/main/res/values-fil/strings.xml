@@ -564,7 +564,8 @@
   <string name="contacts_addresses">Mga Address</string>
   <string name="contacts_state_empty_title">Walang Mga Kontak</string>
   <string name="contacts_state_empty_description">I-save ang iyong mga madalas gamiting address</string>
-  <string name="contacts_add_to_contacts">Idagdag sa Mga Kontak</string>
+  <string name="contacts_create_new_contact">Gumawa ng Contact</string>
+  <string name="contacts_add_to_existing_contact">Idagdag sa Contact</string>
   <string name="simulation_header_unlimited_asset">Walang limitasyon %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Nagbibigay ito sa gumagastos ng access na gamitin ang token na ito hanggang sa bawiin mo ang pag-apruba o hanggang sa mag-expire ito.</string>
   <string name="simulation_warning_externally_owned_spender_description">Hinahayaan ng pag-aprubang ito ang isang karaniwang wallet address (EOA) na gamitin ang iyong mga asset. Kumpirmahin lang kung pinagkakatiwalaan mo ang address na ito.</string>

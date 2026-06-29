@@ -14,6 +14,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case setPriceAlert(Asset)
     case addAsset
     case portfolio(PortfolioType)
+    case addContact(AddContactType)
 
     public var id: String {
         switch self {
@@ -25,6 +26,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
         case let .setPriceAlert(asset): "setPriceAlert-\(asset.id.identifier)"
         case .addAsset: "addAsset"
         case let .portfolio(type): "portfolio-\(type.id)"
+        case let .addContact(type): "addContact-\(type.id)"
         }
     }
 }

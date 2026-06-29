@@ -35,10 +35,16 @@ public struct AddressListItemView: View {
             .url(title: model.addressExplorerText, onOpen: { isPresentingUrl = model.addressExplorerUrl }),
         ]
         if let onAddContact = model.onAddContact {
+            let recipient = model.addContactRecipient
             items.append(.custom(
-                title: model.addToContactsTitle,
-                systemImage: model.addToContactsImage,
-                action: onAddContact,
+                title: model.createContactTitle,
+                systemImage: model.createContactImage,
+                action: { onAddContact(.new(recipient)) },
+            ))
+            items.append(.custom(
+                title: model.addToExistingContactTitle,
+                systemImage: model.addToExistingContactImage,
+                action: { onAddContact(.existing(recipient)) },
             ))
         }
         return items

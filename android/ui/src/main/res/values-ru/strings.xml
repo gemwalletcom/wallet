@@ -564,7 +564,8 @@
   <string name="contacts_addresses">Адреса</string>
   <string name="contacts_state_empty_title">Нет контактов</string>
   <string name="contacts_state_empty_description">Сохраните часто используемые адреса.</string>
-  <string name="contacts_add_to_contacts">Добавить в контакты</string>
+  <string name="contacts_create_new_contact">Создать контакт</string>
+  <string name="contacts_add_to_existing_contact">Добавить в контакт</string>
   <string name="simulation_header_unlimited_asset">Без ограничений %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Это даёт получателю одобрения доступ к использованию этого токена до тех пор, пока вы не отзовёте разрешение или оно не истечёт.</string>
   <string name="simulation_warning_externally_owned_spender_description">Это разрешение позволяет обычному адресу кошелька (EOA) использовать ваши активы. Подтверждайте только если доверяете этому адресу.</string>

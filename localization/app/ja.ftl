@@ -711,7 +711,8 @@ contacts_contact = 接触
 contacts_addresses = 住所
 contacts_state_empty_title = 連絡先なし
 contacts_state_empty_description = よく使うアドレスを保存する
-contacts_add_to_contacts = 連絡先に追加
+contacts_create_new_contact = 連絡先を作成
+contacts_add_to_existing_contact = 連絡先に追加
 
 # Simulation
 

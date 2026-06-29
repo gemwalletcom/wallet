@@ -549,7 +549,8 @@
 "contacts.addresses" = "العناوين";
 "contacts.state.empty.title" = "لا توجد جهات اتصال";
 "contacts.state.empty.description" = "احفظ عناوينك التي تستخدمها بشكل متكرر";
-"contacts.add_to_contacts" = "أضف إلى جهات الاتصال";
+"contacts.create_new_contact" = "إنشاء جهة اتصال";
+"contacts.add_to_existing_contact" = "إضافة إلى جهة اتصال";
 "simulation.header.unlimited_asset" = "غير محدود %@";
 "simulation.warning.unlimited_token_approval.description" = "يمنح هذا المُنفِق إمكانية استخدام هذا الرمز المميز حتى تقوم بإلغاء الموافقة أو تنتهي صلاحيته.";
 "simulation.warning_externally_owned_spender_description" = "تسمح هذه الموافقة لعنوان محفظة عادي (EOA) باستخدام أصولك. أكّد فقط إذا كنت تثق بهذا العنوان.";

@@ -549,7 +549,8 @@
 "contacts.addresses" = "Địa chỉ";
 "contacts.state.empty.title" = "Không có liên hệ";
 "contacts.state.empty.description" = "Lưu lại những địa chỉ bạn thường dùng.";
-"contacts.add_to_contacts" = "Thêm vào danh bạ";
+"contacts.create_new_contact" = "Tạo liên hệ";
+"contacts.add_to_existing_contact" = "Thêm vào liên hệ";
 "simulation.header.unlimited_asset" = "Không giới hạn %@";
 "simulation.warning.unlimited_token_approval.description" = "Điều này cho phép người chi tiêu có quyền sử dụng mã thông báo này cho đến khi bạn thu hồi sự chấp thuận hoặc mã thông báo hết hạn.";
 "simulation.warning_externally_owned_spender_description" = "Phê duyệt này cho phép một địa chỉ ví thông thường (EOA) sử dụng tài sản của bạn. Chỉ xác nhận nếu bạn tin tưởng địa chỉ này.";

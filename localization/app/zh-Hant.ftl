@@ -711,7 +711,8 @@ contacts_contact = 接觸
 contacts_addresses = 地址
 contacts_state_empty_title = 無聯絡方式
 contacts_state_empty_description = 儲存您常用的地址
-contacts_add_to_contacts = 加入聯絡人
+contacts_create_new_contact = 建立聯絡人
+contacts_add_to_existing_contact = 加入聯絡人
 
 # Simulation
 

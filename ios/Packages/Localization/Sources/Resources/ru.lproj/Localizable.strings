@@ -549,7 +549,8 @@
 "contacts.addresses" = "Адреса";
 "contacts.state.empty.title" = "Нет контактов";
 "contacts.state.empty.description" = "Сохраните часто используемые адреса.";
-"contacts.add_to_contacts" = "Добавить в контакты";
+"contacts.create_new_contact" = "Создать контакт";
+"contacts.add_to_existing_contact" = "Добавить в контакт";
 "simulation.header.unlimited_asset" = "Без ограничений %@";
 "simulation.warning.unlimited_token_approval.description" = "Это даёт получателю одобрения доступ к использованию этого токена до тех пор, пока вы не отзовёте разрешение или оно не истечёт.";
 "simulation.warning_externally_owned_spender_description" = "Это разрешение позволяет обычному адресу кошелька (EOA) использовать ваши активы. Подтверждайте только если доверяете этому адресу.";
