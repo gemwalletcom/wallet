@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockSearchResponse
 import com.wallet.core.primitives.AssetTag
@@ -21,22 +22,29 @@ class SearchAssetsImplTest {
     )
 
     @Test
-    fun search_formatsChainsAndTagsForGemApi() = runTest {
-        val asset = mockAssetBasic()
-        val response = mockSearchResponse(assets = listOf(asset))
+    fun search_mapsFilterScopeToWireTag() = runTest {
+        val response = mockSearchResponse(assets = listOf(mockAssetBasic()))
         coEvery {
-            gemApiClient.search(
-                query = "usd",
-                chains = "bitcoin,ethereum",
-                tags = "trending,stablecoins",
-            )
+            gemApiClient.search(query = "usd", chains = "bitcoin,ethereum", tags = "trending")
         } returns response
 
         val result = subject.search(
             query = "usd",
             chains = listOf(Chain.Bitcoin, Chain.Ethereum),
-            tags = listOf(AssetTag.Trending, AssetTag.Stablecoins),
+            scope = WalletSearchTag.Filter(AssetTag.Trending),
         )
+
+        assertEquals(response, result)
+    }
+
+    @Test
+    fun search_mapsListScopeToWireTag() = runTest {
+        val response = mockSearchResponse(assets = listOf(mockAssetBasic()))
+        coEvery {
+            gemApiClient.search(query = "", chains = "", tags = "stocks")
+        } returns response
+
+        val result = subject.search(query = "", chains = emptyList(), scope = WalletSearchTag.List("stocks"))
 
         assertEquals(response, result)
     }
