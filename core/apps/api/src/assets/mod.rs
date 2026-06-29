@@ -1,10 +1,10 @@
-pub mod cilent;
+pub mod client;
 mod filter;
 mod model;
 
 use crate::params::{AssetIdParam, SearchQueryParam};
 use crate::responders::{ApiError, ApiResponse};
-pub use cilent::{AssetsClient, SearchClient};
+pub use client::{AssetsClient, SearchClient};
 pub use model::SearchRequest;
 use pricer::PriceClient;
 use primitives::{AssetBasic, AssetFull, AssetId, DEFAULT_FIAT_CURRENCY, SearchResponse};
