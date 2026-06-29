@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetBasic
+import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.PerpetualSearchData
 
 @Entity(
@@ -13,11 +14,13 @@ import com.wallet.core.primitives.PerpetualSearchData
     foreignKeys = [
         ForeignKey(entity = DbAsset::class, parentColumns = ["id"], childColumns = ["assetId"], onDelete = ForeignKey.CASCADE),
         ForeignKey(entity = DbPerpetual::class, parentColumns = ["id"], childColumns = ["perpetualId"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = DbAssetList::class, parentColumns = ["id"], childColumns = ["listId"], onDelete = ForeignKey.CASCADE),
     ],
     indices = [
         Index(value = ["query"]),
         Index(value = ["assetId", "query"], unique = true),
         Index(value = ["perpetualId", "query"], unique = true),
+        Index(value = ["listId", "query"], unique = true),
     ],
 )
 data class DbSearch(
@@ -25,6 +28,7 @@ data class DbSearch(
     val query: String,
     val assetId: String? = null,
     val perpetualId: String? = null,
+    val listId: String? = null,
     val priority: Int,
 )
 
@@ -36,4 +40,9 @@ fun List<AssetBasic>.toSearchRecord(query: String): List<DbSearch> = mapIndexed 
 @JvmName("perpetualsToSearchRecord")
 fun List<PerpetualSearchData>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, data ->
     DbSearch(query = query, perpetualId = data.perpetual.id.toIdentifier(), priority = index)
+}
+
+@JvmName("listsToSearchRecord")
+fun List<AssetList>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, list ->
+    DbSearch(query = query, listId = list.id, priority = index)
 }

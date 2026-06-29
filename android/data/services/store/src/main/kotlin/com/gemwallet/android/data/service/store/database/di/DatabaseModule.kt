@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AddressesDao
+import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.BannersDao
@@ -84,6 +85,7 @@ object DatabaseModule {
         .addMigrations(Migration_78_79)
         .addMigrations(Migration_79_80)
         .addMigrations(Migration_80_81)
+        .addMigrations(Migration_81_82)
         .build()
 
     @Singleton
@@ -153,6 +155,10 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideSearchDao(db: GemDatabase): SearchDao = db.searchDao()
+
+    @Singleton
+    @Provides
+    fun provideAssetListDao(db: GemDatabase): AssetListDao = db.assetListDao()
 
     @Singleton
     @Provides

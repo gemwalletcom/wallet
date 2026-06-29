@@ -20,10 +20,18 @@ interface SearchDao {
     @Query("DELETE FROM search WHERE `query` = :query AND perpetualId IS NOT NULL")
     suspend fun deletePerpetuals(query: String)
 
+    @Query("DELETE FROM search WHERE `query` = :query AND listId IS NOT NULL")
+    suspend fun deleteLists(query: String)
+
     @Transaction
     suspend fun put(records: List<DbSearch>) {
         val first = records.firstOrNull() ?: return
-        if (first.assetId != null) deleteAssets(first.query) else deletePerpetuals(first.query)
+        when {
+            first.assetId != null -> deleteAssets(first.query)
+            first.perpetualId != null -> deletePerpetuals(first.query)
+            first.listId != null -> deleteLists(first.query)
+            else -> return
+        }
         insert(records)
     }
 
