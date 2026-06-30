@@ -64,7 +64,7 @@ pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {
 
 pub fn mock_transfer_swap_input(chain: BitcoinChain, memo: &str) -> SignerInput {
     mock_swap_input(chain, SwapProvider::Thorchain, Some(false), |destination_address, value| {
-        SwapQuoteData::new_tranfer(destination_address, value, Some(memo.to_string()))
+        SwapQuoteData::new_transfer(destination_address, value, Some(memo.to_string()))
     })
 }
 

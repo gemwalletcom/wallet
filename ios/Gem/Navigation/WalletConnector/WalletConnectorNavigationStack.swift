@@ -31,7 +31,7 @@ struct WalletConnectorNavigationStack: View {
                     ConfirmTransferNavigationView(
                         model: viewModelFactory.confirmTransferScene(
                             wallet: data.payload.wallet,
-                            data: data.payload.tranferData,
+                            data: data.payload.transferData,
                             confirmTransferDelegate: data.delegate,
                             simulation: data.payload.simulation,
                             onComplete: { presenter.complete(type: type) },

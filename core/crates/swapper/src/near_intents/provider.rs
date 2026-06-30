@@ -349,7 +349,7 @@ where
 
         Ok(SwapperQuoteData {
             data: payload,
-            ..SwapperQuoteData::new_tranfer(to, value, memo)
+            ..SwapperQuoteData::new_transfer(to, value, memo)
         })
     }
 

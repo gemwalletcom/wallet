@@ -51,7 +51,7 @@ impl SwapQuoteData {
         }
     }
 
-    pub fn new_tranfer(to: String, value: String, memo: Option<String>) -> Self {
+    pub fn new_transfer(to: String, value: String, memo: Option<String>) -> Self {
         Self {
             to,
             data_type: SwapQuoteDataType::Transfer,

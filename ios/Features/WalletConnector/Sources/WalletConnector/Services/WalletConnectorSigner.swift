@@ -158,7 +158,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 outputType: outputType,
                 outputAction: .sign,
             )
-            return try await walletConnectorInteractor.signTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
+            return try await walletConnectorInteractor.signTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
         }
     }
 
@@ -211,7 +211,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 value: value,
             )
 
-            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
+            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
         case let .solana(transaction, outputType),
              let .sui(transaction, outputType),
              let .ton(transaction, outputType),
@@ -223,7 +223,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 outputType: outputType,
                 outputAction: .send,
             )
-            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
+            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
         }
     }
 
@@ -246,7 +246,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         )
         return try await walletConnectorInteractor.sendRawTransaction(
             transferData: WCTransferData(
-                tranferData: transferData,
+                transferData: transferData,
                 wallet: wallet,
                 simulation: simulation,
             ),

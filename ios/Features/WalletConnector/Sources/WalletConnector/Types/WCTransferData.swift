@@ -4,12 +4,12 @@ import Foundation
 import Primitives
 
 public struct WCTransferData: Identifiable, Sendable {
-    public let tranferData: TransferData
+    public let transferData: TransferData
     public let wallet: Wallet
     public let simulation: SimulationResult
 
-    public init(tranferData: TransferData, wallet: Wallet, simulation: SimulationResult) {
-        self.tranferData = tranferData
+    public init(transferData: TransferData, wallet: Wallet, simulation: SimulationResult) {
+        self.transferData = transferData
         self.wallet = wallet
         self.simulation = simulation
     }

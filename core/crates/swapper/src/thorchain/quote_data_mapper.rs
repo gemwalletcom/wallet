@@ -43,7 +43,7 @@ pub fn map_quote_data(
     } else if from_asset.chain.is_evm_chain() {
         SwapperQuoteData::new_contract(route_data.inbound_address.clone(), value, HexEncode(memo.as_bytes()), approval, gas_limit)
     } else {
-        SwapperQuoteData::new_tranfer(route_data.inbound_address.clone(), value, Some(memo))
+        SwapperQuoteData::new_transfer(route_data.inbound_address.clone(), value, Some(memo))
     }
 }
 
