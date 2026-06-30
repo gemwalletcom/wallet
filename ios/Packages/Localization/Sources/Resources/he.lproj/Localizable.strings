@@ -549,7 +549,7 @@
 "contacts.addresses" = "כתובות";
 "contacts.state.empty.title" = "אין אנשי קשר";
 "contacts.state.empty.description" = "שמור את הכתובות שאתה משתמש בהן לעתים קרובות";
-"contacts.create_new_contact" = "צור איש קשר";
+"contacts.create_new_contact" = "צור איש קשר חדש";
 "contacts.add_to_existing_contact" = "הוסף לאיש קשר";
 "simulation.header.unlimited_asset" = "בִּלתִי מוּגבָּל %@";
 "simulation.warning.unlimited_token_approval.description" = "זה נותן למוציא גישה להשתמש באסימון זה עד שתבטל את האישור או שהוא יפוג תוקפו.";

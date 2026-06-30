@@ -549,7 +549,7 @@
 "contacts.addresses" = "Endereços";
 "contacts.state.empty.title" = "Sem contatos";
 "contacts.state.empty.description" = "Salve seus endereços usados ​​com frequência.";
-"contacts.create_new_contact" = "Criar contato";
+"contacts.create_new_contact" = "Criar novo contato";
 "contacts.add_to_existing_contact" = "Adicionar a contato";
 "simulation.header.unlimited_asset" = "Ilimitado %@";
 "simulation.warning.unlimited_token_approval.description" = "Isso dá ao gastador acesso ao uso desse token até que você revogue a aprovação ou ele expire.";

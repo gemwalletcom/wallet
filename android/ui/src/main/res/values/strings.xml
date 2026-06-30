@@ -564,7 +564,7 @@
   <string name="contacts_addresses">Addresses</string>
   <string name="contacts_state_empty_title">No Contacts</string>
   <string name="contacts_state_empty_description">Save your frequently used addresses</string>
-  <string name="contacts_create_new_contact">Create Contact</string>
+  <string name="contacts_create_new_contact">Create New Contact</string>
   <string name="contacts_add_to_existing_contact">Add to Contact</string>
   <string name="simulation_header_unlimited_asset">Unlimited %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">This gives the spender access to use this token until you revoke the approval or it expires.</string>

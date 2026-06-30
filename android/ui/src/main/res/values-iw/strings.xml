@@ -564,7 +564,7 @@
   <string name="contacts_addresses">כתובות</string>
   <string name="contacts_state_empty_title">אין אנשי קשר</string>
   <string name="contacts_state_empty_description">שמור את הכתובות שאתה משתמש בהן לעתים קרובות</string>
-  <string name="contacts_create_new_contact">צור איש קשר</string>
+  <string name="contacts_create_new_contact">צור איש קשר חדש</string>
   <string name="contacts_add_to_existing_contact">הוסף לאיש קשר</string>
   <string name="simulation_header_unlimited_asset">בִּלתִי מוּגבָּל %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">זה נותן למוציא גישה להשתמש באסימון זה עד שתבטל את האישור או שהוא יפוג תוקפו.</string>

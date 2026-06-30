@@ -549,7 +549,7 @@
 "contacts.addresses" = "Adressen";
 "contacts.state.empty.title" = "Geen contacten";
 "contacts.state.empty.description" = "Bewaar uw veelgebruikte adressen.";
-"contacts.create_new_contact" = "Contact maken";
+"contacts.create_new_contact" = "Nieuw contact maken";
 "contacts.add_to_existing_contact" = "Aan contact toevoegen";
 "simulation.header.unlimited_asset" = "Onbeperkt %@";
 "simulation.warning.unlimited_token_approval.description" = "Dit geeft de gebruiker toegang tot het gebruik van dit token totdat u de goedkeuring intrekt of het token verloopt.";

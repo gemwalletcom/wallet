@@ -549,7 +549,7 @@
 "contacts.addresses" = "Adresser";
 "contacts.state.empty.title" = "Ingen kontakter";
 "contacts.state.empty.description" = "Gem dine ofte brugte adresser";
-"contacts.create_new_contact" = "Opret kontakt";
+"contacts.create_new_contact" = "Opret ny kontakt";
 "contacts.add_to_existing_contact" = "Føj til kontakt";
 "simulation.header.unlimited_asset" = "Ubegrænset %@";
 "simulation.warning.unlimited_token_approval.description" = "Dette giver brugeren adgang til at bruge denne token, indtil du tilbagekalder godkendelsen, eller den udløber.";

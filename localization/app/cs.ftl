@@ -711,7 +711,7 @@ contacts_contact = Kontakt
 contacts_addresses = Adresy
 contacts_state_empty_title = Žádné kontakty
 contacts_state_empty_description = Uložte si často používané adresy
-contacts_create_new_contact = Vytvořit kontakt
+contacts_create_new_contact = Vytvořit nový kontakt
 contacts_add_to_existing_contact = Přidat ke kontaktu
 
 # Simulation

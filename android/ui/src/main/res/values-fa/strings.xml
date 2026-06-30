@@ -564,7 +564,7 @@
   <string name="contacts_addresses">آدرس‌ها</string>
   <string name="contacts_state_empty_title">بدون مخاطب</string>
   <string name="contacts_state_empty_description">آدرس‌های پرکاربرد خود را ذخیره کنید</string>
-  <string name="contacts_create_new_contact">ایجاد مخاطب</string>
+  <string name="contacts_create_new_contact">ایجاد مخاطب جدید</string>
   <string name="contacts_add_to_existing_contact">افزودن به مخاطب</string>
   <string name="simulation_header_unlimited_asset">نامحدود %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">این به خرج‌کننده دسترسی می‌دهد تا زمانی که تأییدیه را لغو کنید یا منقضی شود، از این توکن استفاده کند.</string>

@@ -711,7 +711,7 @@ contacts_contact = Hubungi
 contacts_addresses = Alamat
 contacts_state_empty_title = Tiada Kenalan
 contacts_state_empty_description = Simpan alamat yang kerap anda gunakan
-contacts_create_new_contact = Cipta Kenalan
+contacts_create_new_contact = Cipta Kenalan Baharu
 contacts_add_to_existing_contact = Tambah ke Kenalan
 
 # Simulation

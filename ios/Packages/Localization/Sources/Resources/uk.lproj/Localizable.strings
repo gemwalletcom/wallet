@@ -549,7 +549,7 @@
 "contacts.addresses" = "Адреси";
 "contacts.state.empty.title" = "Немає контактів";
 "contacts.state.empty.description" = "Збережіть часто використовувані адреси";
-"contacts.create_new_contact" = "Створити контакт";
+"contacts.create_new_contact" = "Створити новий контакт";
 "contacts.add_to_existing_contact" = "Додати до контакту";
 "simulation.header.unlimited_asset" = "Безлімітний %@";
 "simulation.warning.unlimited_token_approval.description" = "Це надає отримувачу доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться.";

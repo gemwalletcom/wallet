@@ -549,7 +549,7 @@
 "contacts.addresses" = "ที่อยู่";
 "contacts.state.empty.title" = "ไม่มีข้อมูลติดต่อ";
 "contacts.state.empty.description" = "บันทึกที่อยู่ที่คุณใช้งานบ่อย";
-"contacts.create_new_contact" = "สร้างรายชื่อ";
+"contacts.create_new_contact" = "สร้างรายชื่อใหม่";
 "contacts.add_to_existing_contact" = "เพิ่มในรายชื่อ";
 "simulation.header.unlimited_asset" = "ไม่จำกัด %@";
 "simulation.warning.unlimited_token_approval.description" = "สิ่งนี้ให้สิทธิ์ผู้ใช้จ่าย (spender) ในการใช้โทเค็นนี้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ";

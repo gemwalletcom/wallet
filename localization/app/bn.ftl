@@ -711,7 +711,7 @@ contacts_contact = যোগাযোগ
 contacts_addresses = ঠিকানা
 contacts_state_empty_title = কোনও পরিচিতি নেই
 contacts_state_empty_description = আপনার ঘন ঘন ব্যবহৃত ঠিকানাগুলি সংরক্ষণ করুন
-contacts_create_new_contact = পরিচিতি তৈরি করুন
+contacts_create_new_contact = নতুন পরিচিতি তৈরি করুন
 contacts_add_to_existing_contact = পরিচিতিতে যোগ করুন
 
 # Simulation

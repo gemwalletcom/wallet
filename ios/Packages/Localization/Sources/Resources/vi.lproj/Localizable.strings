@@ -549,7 +549,7 @@
 "contacts.addresses" = "Địa chỉ";
 "contacts.state.empty.title" = "Không có liên hệ";
 "contacts.state.empty.description" = "Lưu lại những địa chỉ bạn thường dùng.";
-"contacts.create_new_contact" = "Tạo liên hệ";
+"contacts.create_new_contact" = "Tạo liên hệ mới";
 "contacts.add_to_existing_contact" = "Thêm vào liên hệ";
 "simulation.header.unlimited_asset" = "Không giới hạn %@";
 "simulation.warning.unlimited_token_approval.description" = "Điều này cho phép người chi tiêu có quyền sử dụng mã thông báo này cho đến khi bạn thu hồi sự chấp thuận hoặc mã thông báo hết hạn.";

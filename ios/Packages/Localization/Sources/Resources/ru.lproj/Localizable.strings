@@ -549,7 +549,7 @@
 "contacts.addresses" = "Адреса";
 "contacts.state.empty.title" = "Нет контактов";
 "contacts.state.empty.description" = "Сохраните часто используемые адреса.";
-"contacts.create_new_contact" = "Создать контакт";
+"contacts.create_new_contact" = "Создать новый контакт";
 "contacts.add_to_existing_contact" = "Добавить в контакт";
 "simulation.header.unlimited_asset" = "Без ограничений %@";
 "simulation.warning.unlimited_token_approval.description" = "Это даёт получателю одобрения доступ к использованию этого токена до тех пор, пока вы не отзовёте разрешение или оно не истечёт.";

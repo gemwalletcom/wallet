@@ -564,7 +564,7 @@
   <string name="contacts_addresses">Адреси</string>
   <string name="contacts_state_empty_title">Немає контактів</string>
   <string name="contacts_state_empty_description">Збережіть часто використовувані адреси</string>
-  <string name="contacts_create_new_contact">Створити контакт</string>
+  <string name="contacts_create_new_contact">Створити новий контакт</string>
   <string name="contacts_add_to_existing_contact">Додати до контакту</string>
   <string name="simulation_header_unlimited_asset">Безлімітний %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Це надає отримувачу доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться.</string>

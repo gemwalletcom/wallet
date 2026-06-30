@@ -337,8 +337,8 @@ public enum Localized {
     public static let addresses = Localized.tr("Localizable", "contacts.addresses", fallback: "Addresses")
     /// Contact
     public static let contact = Localized.tr("Localizable", "contacts.contact", fallback: "Contact")
-    /// Create Contact
-    public static let createNewContact = Localized.tr("Localizable", "contacts.create_new_contact", fallback: "Create Contact")
+    /// Create New Contact
+    public static let createNewContact = Localized.tr("Localizable", "contacts.create_new_contact", fallback: "Create New Contact")
     /// Contacts
     public static let title = Localized.tr("Localizable", "contacts.title", fallback: "Contacts")
     public enum State {

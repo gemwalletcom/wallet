@@ -549,7 +549,7 @@
 "contacts.addresses" = "पतों";
 "contacts.state.empty.title" = "कोई संपर्क नहीं";
 "contacts.state.empty.description" = "अपने अक्सर इस्तेमाल होने वाले पतों को सेव करें";
-"contacts.create_new_contact" = "संपर्क बनाएं";
+"contacts.create_new_contact" = "नया संपर्क बनाएं";
 "contacts.add_to_existing_contact" = "संपर्क में जोड़ें";
 "simulation.header.unlimited_asset" = "असीमित %@";
 "simulation.warning.unlimited_token_approval.description" = "इससे खर्च करने वाले को इस टोकन का उपयोग तब तक करने की अनुमति मिलती है जब तक आप अनुमोदन रद्द नहीं कर देते या यह समाप्त नहीं हो जाता।";

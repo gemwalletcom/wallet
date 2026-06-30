@@ -711,7 +711,7 @@ contacts_contact = Контакт
 contacts_addresses = Адреса
 contacts_state_empty_title = Нет контактов
 contacts_state_empty_description = Сохраните часто используемые адреса.
-contacts_create_new_contact = Создать контакт
+contacts_create_new_contact = Создать новый контакт
 contacts_add_to_existing_contact = Добавить в контакт
 
 # Simulation

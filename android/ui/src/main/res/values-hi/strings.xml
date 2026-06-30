@@ -564,7 +564,7 @@
   <string name="contacts_addresses">पतों</string>
   <string name="contacts_state_empty_title">कोई संपर्क नहीं</string>
   <string name="contacts_state_empty_description">अपने अक्सर इस्तेमाल होने वाले पतों को सेव करें</string>
-  <string name="contacts_create_new_contact">संपर्क बनाएं</string>
+  <string name="contacts_create_new_contact">नया संपर्क बनाएं</string>
   <string name="contacts_add_to_existing_contact">संपर्क में जोड़ें</string>
   <string name="simulation_header_unlimited_asset">असीमित %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">इससे खर्च करने वाले को इस टोकन का उपयोग तब तक करने की अनुमति मिलती है जब तक आप अनुमोदन रद्द नहीं कर देते या यह समाप्त नहीं हो जाता।</string>

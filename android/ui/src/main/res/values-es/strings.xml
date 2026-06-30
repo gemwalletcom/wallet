@@ -564,7 +564,7 @@
   <string name="contacts_addresses">Direcciones</string>
   <string name="contacts_state_empty_title">Sin contactos</string>
   <string name="contacts_state_empty_description">Guarde sus direcciones de uso frecuente</string>
-  <string name="contacts_create_new_contact">Crear contacto</string>
+  <string name="contacts_create_new_contact">Crear nuevo contacto</string>
   <string name="contacts_add_to_existing_contact">Añadir a un contacto</string>
   <string name="simulation_header_unlimited_asset">Ilimitado %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Esto le da al gastador acceso para usar este token hasta que revoque la aprobación o expire.</string>

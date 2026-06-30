@@ -564,7 +564,7 @@
   <string name="contacts_addresses">Adrese</string>
   <string name="contacts_state_empty_title">Niciun contact</string>
   <string name="contacts_state_empty_description">Salvați adresele utilizate frecvent</string>
-  <string name="contacts_create_new_contact">Creează un contact</string>
+  <string name="contacts_create_new_contact">Creează un contact nou</string>
   <string name="contacts_add_to_existing_contact">Adaugă la un contact</string>
   <string name="simulation_header_unlimited_asset">Nelimitat %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Aceasta îi oferă cheltuitorului acces la utilizarea acestui token până când îi revocați aprobarea sau expiră.</string>

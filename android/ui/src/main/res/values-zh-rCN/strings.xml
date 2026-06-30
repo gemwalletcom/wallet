@@ -564,7 +564,7 @@
   <string name="contacts_addresses">地址</string>
   <string name="contacts_state_empty_title">无联系方式</string>
   <string name="contacts_state_empty_description">保存您常用的地址</string>
-  <string name="contacts_create_new_contact">创建联系人</string>
+  <string name="contacts_create_new_contact">新建联系人</string>
   <string name="contacts_add_to_existing_contact">添加到联系人</string>
   <string name="simulation_header_unlimited_asset">无限 %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">这样，消费者就可以一直使用该代币，直到你撤销授权或代币过期为止。</string>

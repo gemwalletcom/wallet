@@ -549,7 +549,7 @@
 "contacts.addresses" = "Adresy";
 "contacts.state.empty.title" = "Žádné kontakty";
 "contacts.state.empty.description" = "Uložte si často používané adresy";
-"contacts.create_new_contact" = "Vytvořit kontakt";
+"contacts.create_new_contact" = "Vytvořit nový kontakt";
 "contacts.add_to_existing_contact" = "Přidat ke kontaktu";
 "simulation.header.unlimited_asset" = "Neomezený %@";
 "simulation.warning.unlimited_token_approval.description" = "To dává utrácející adrese přístup k používání tohoto tokenu, dokud schválení nezrušíte nebo dokud nevyprší jeho platnost.";

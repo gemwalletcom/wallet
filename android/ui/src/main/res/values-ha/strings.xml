@@ -564,7 +564,7 @@
   <string name="contacts_addresses">Adiresoshi</string>
   <string name="contacts_state_empty_title">Babu Lambobin Sadarwa</string>
   <string name="contacts_state_empty_description">Ajiye adiresoshin da ake yawan amfani da su</string>
-  <string name="contacts_create_new_contact">Ƙirƙiri lamba</string>
+  <string name="contacts_create_new_contact">Ƙirƙiri sabon lamba</string>
   <string name="contacts_add_to_existing_contact">Ƙara zuwa lamba</string>
   <string name="simulation_header_unlimited_asset">Unlimited %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Wannan yana ba mai kashewa damar amfani da wannan alamar har sai kun soke amincewa ko kuma ta ƙare.</string>

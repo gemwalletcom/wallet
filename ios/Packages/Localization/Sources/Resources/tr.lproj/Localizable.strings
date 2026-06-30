@@ -549,7 +549,7 @@
 "contacts.addresses" = "Adresler";
 "contacts.state.empty.title" = "İletişim yok";
 "contacts.state.empty.description" = "Sık kullandığınız adresleri kaydedin.";
-"contacts.create_new_contact" = "Kişi Oluştur";
+"contacts.create_new_contact" = "Yeni Kişi Oluştur";
 "contacts.add_to_existing_contact" = "Kişiye Ekle";
 "simulation.header.unlimited_asset" = "Sınırsız %@";
 "simulation.warning.unlimited_token_approval.description" = "Bu, harcayan tarafa, siz onayı iptal edene veya süresi dolana kadar bu jetonu kullanma erişimi sağlar.";

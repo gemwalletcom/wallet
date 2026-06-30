@@ -711,7 +711,7 @@ contacts_contact = Mawasiliano
 contacts_addresses = Anwani
 contacts_state_empty_title = Hakuna Anwani
 contacts_state_empty_description = Hifadhi anwani zako zinazotumiwa mara kwa mara
-contacts_create_new_contact = Unda anwani
+contacts_create_new_contact = Unda anwani mpya
 contacts_add_to_existing_contact = Ongeza kwa anwani
 
 # Simulation

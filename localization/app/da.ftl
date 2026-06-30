@@ -711,7 +711,7 @@ contacts_contact = Kontakte
 contacts_addresses = Adresser
 contacts_state_empty_title = Ingen kontakter
 contacts_state_empty_description = Gem dine ofte brugte adresser
-contacts_create_new_contact = Opret kontakt
+contacts_create_new_contact = Opret ny kontakt
 contacts_add_to_existing_contact = Føj til kontakt
 
 # Simulation

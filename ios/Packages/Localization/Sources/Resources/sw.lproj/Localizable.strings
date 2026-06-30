@@ -549,7 +549,7 @@
 "contacts.addresses" = "Anwani";
 "contacts.state.empty.title" = "Hakuna Anwani";
 "contacts.state.empty.description" = "Hifadhi anwani zako zinazotumiwa mara kwa mara";
-"contacts.create_new_contact" = "Unda anwani";
+"contacts.create_new_contact" = "Unda anwani mpya";
 "contacts.add_to_existing_contact" = "Ongeza kwa anwani";
 "simulation.header.unlimited_asset" = "Isiyo na kikomo %@";
 "simulation.warning.unlimited_token_approval.description" = "Hii inampa mtumiaji uwezo wa kutumia tokeni hii hadi utakapobatilisha idhini au itakapoisha muda wake.";

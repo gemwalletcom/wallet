@@ -549,7 +549,7 @@
 "contacts.addresses" = "Alamat";
 "contacts.state.empty.title" = "Tidak ada kontak";
 "contacts.state.empty.description" = "Simpan alamat yang sering Anda gunakan.";
-"contacts.create_new_contact" = "Buat Kontak";
+"contacts.create_new_contact" = "Buat Kontak Baru";
 "contacts.add_to_existing_contact" = "Tambahkan ke Kontak";
 "simulation.header.unlimited_asset" = "Tak terbatas %@";
 "simulation.warning.unlimited_token_approval.description" = "Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau token tersebut kedaluwarsa.";

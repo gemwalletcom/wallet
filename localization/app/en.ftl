@@ -1300,7 +1300,7 @@ contacts_state_empty_title = No Contacts
 # Used in contacts UI for the state empty description.
 contacts_state_empty_description = Save your frequently used addresses
 # Used in the address context menu to create a new contact from an address.
-contacts_create_new_contact = Create Contact
+contacts_create_new_contact = Create New Contact
 # Used in the address context menu to add an address to an existing contact.
 contacts_add_to_existing_contact = Add to Contact
 

@@ -711,7 +711,7 @@ contacts_contact = 연락하다
 contacts_addresses = 구애
 contacts_state_empty_title = 연락처 없음
 contacts_state_empty_description = 자주 사용하는 주소를 저장하세요
-contacts_create_new_contact = 연락처 만들기
+contacts_create_new_contact = 새 연락처 만들기
 contacts_add_to_existing_contact = 연락처에 추가
 
 # Simulation

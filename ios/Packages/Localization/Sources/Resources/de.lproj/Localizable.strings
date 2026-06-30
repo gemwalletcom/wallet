@@ -549,7 +549,7 @@
 "contacts.addresses" = "Adressen";
 "contacts.state.empty.title" = "Keine Kontakte";
 "contacts.state.empty.description" = "Speichern Sie Ihre häufig verwendeten Adressen";
-"contacts.create_new_contact" = "Kontakt erstellen";
+"contacts.create_new_contact" = "Neuen Kontakt erstellen";
 "contacts.add_to_existing_contact" = "Zu Kontakt hinzufügen";
 "simulation.header.unlimited_asset" = "Unbegrenzt %@";
 "simulation.warning.unlimited_token_approval.description" = "Dadurch erhält der Ausgeber Zugriff auf dieses Token, bis Sie die Genehmigung widerrufen oder es abläuft.";

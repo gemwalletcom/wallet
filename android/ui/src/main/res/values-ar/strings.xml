@@ -564,7 +564,7 @@
   <string name="contacts_addresses">العناوين</string>
   <string name="contacts_state_empty_title">لا توجد جهات اتصال</string>
   <string name="contacts_state_empty_description">احفظ عناوينك التي تستخدمها بشكل متكرر</string>
-  <string name="contacts_create_new_contact">إنشاء جهة اتصال</string>
+  <string name="contacts_create_new_contact">إنشاء جهة اتصال جديدة</string>
   <string name="contacts_add_to_existing_contact">إضافة إلى جهة اتصال</string>
   <string name="simulation_header_unlimited_asset">غير محدود %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">يمنح هذا المُنفِق إمكانية استخدام هذا الرمز المميز حتى تقوم بإلغاء الموافقة أو تنتهي صلاحيته.</string>

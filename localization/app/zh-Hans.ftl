@@ -711,7 +711,7 @@ contacts_contact = 接触
 contacts_addresses = 地址
 contacts_state_empty_title = 无联系方式
 contacts_state_empty_description = 保存您常用的地址
-contacts_create_new_contact = 创建联系人
+contacts_create_new_contact = 新建联系人
 contacts_add_to_existing_contact = 添加到联系人
 
 # Simulation

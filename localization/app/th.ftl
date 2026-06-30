@@ -711,7 +711,7 @@ contacts_contact = ติดต่อ
 contacts_addresses = ที่อยู่
 contacts_state_empty_title = ไม่มีข้อมูลติดต่อ
 contacts_state_empty_description = บันทึกที่อยู่ที่คุณใช้งานบ่อย
-contacts_create_new_contact = สร้างรายชื่อ
+contacts_create_new_contact = สร้างรายชื่อใหม่
 contacts_add_to_existing_contact = เพิ่มในรายชื่อ
 
 # Simulation

@@ -564,7 +564,7 @@
   <string name="contacts_addresses">Adresler</string>
   <string name="contacts_state_empty_title">İletişim yok</string>
   <string name="contacts_state_empty_description">Sık kullandığınız adresleri kaydedin.</string>
-  <string name="contacts_create_new_contact">Kişi Oluştur</string>
+  <string name="contacts_create_new_contact">Yeni Kişi Oluştur</string>
   <string name="contacts_add_to_existing_contact">Kişiye Ekle</string>
   <string name="simulation_header_unlimited_asset">Sınırsız %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Bu, harcayan tarafa, siz onayı iptal edene veya süresi dolana kadar bu jetonu kullanma erişimi sağlar.</string>

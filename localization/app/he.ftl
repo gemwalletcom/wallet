@@ -711,7 +711,7 @@ contacts_contact = מַגָע
 contacts_addresses = כתובות
 contacts_state_empty_title = אין אנשי קשר
 contacts_state_empty_description = שמור את הכתובות שאתה משתמש בהן לעתים קרובות
-contacts_create_new_contact = צור איש קשר
+contacts_create_new_contact = צור איש קשר חדש
 contacts_add_to_existing_contact = הוסף לאיש קשר
 
 # Simulation

@@ -549,7 +549,7 @@
 "contacts.addresses" = "Adiresoshi";
 "contacts.state.empty.title" = "Babu Lambobin Sadarwa";
 "contacts.state.empty.description" = "Ajiye adiresoshin da ake yawan amfani da su";
-"contacts.create_new_contact" = "Ƙirƙiri lamba";
+"contacts.create_new_contact" = "Ƙirƙiri sabon lamba";
 "contacts.add_to_existing_contact" = "Ƙara zuwa lamba";
 "simulation.header.unlimited_asset" = "Unlimited %@";
 "simulation.warning.unlimited_token_approval.description" = "Wannan yana ba mai kashewa damar amfani da wannan alamar har sai kun soke amincewa ko kuma ta ƙare.";

@@ -549,7 +549,7 @@
 "contacts.addresses" = "Adrese";
 "contacts.state.empty.title" = "Niciun contact";
 "contacts.state.empty.description" = "Salvați adresele utilizate frecvent";
-"contacts.create_new_contact" = "Creează un contact";
+"contacts.create_new_contact" = "Creează un contact nou";
 "contacts.add_to_existing_contact" = "Adaugă la un contact";
 "simulation.header.unlimited_asset" = "Nelimitat %@";
 "simulation.warning.unlimited_token_approval.description" = "Aceasta îi oferă cheltuitorului acces la utilizarea acestui token până când îi revocați aprobarea sau expiră.";

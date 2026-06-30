@@ -549,7 +549,7 @@
 "contacts.addresses" = "پتے";
 "contacts.state.empty.title" = "کوئی رابطے نہیں";
 "contacts.state.empty.description" = "اپنے اکثر استعمال ہونے والے پتے محفوظ کریں۔";
-"contacts.create_new_contact" = "رابطہ بنائیں";
+"contacts.create_new_contact" = "نیا رابطہ بنائیں";
 "contacts.add_to_existing_contact" = "رابطے میں شامل کریں";
 "simulation.header.unlimited_asset" = "لا محدود %@";
 "simulation.warning.unlimited_token_approval.description" = "یہ خرچ کرنے والے کو اس ٹوکن کو استعمال کرنے تک رسائی دیتا ہے جب تک کہ آپ منظوری منسوخ نہیں کرتے یا اس کی میعاد ختم نہیں ہوجاتی۔";
