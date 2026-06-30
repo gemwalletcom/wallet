@@ -14,6 +14,7 @@ import EventPresenterService
 import EventPresenterServiceTestKit
 import FiatServiceTestKit
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import KeystoreTestKit
 import Localization
@@ -441,6 +442,25 @@ struct ConfirmTransferSceneViewModelTests {
             return
         }
         #expect(sheetRequired == required)
+    }
+
+    @Test
+    func insufficientNetworkFeeBuyActionUsesSmallDefaultAmount() {
+        let model = ConfirmTransferSceneViewModel.mock()
+        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockEthereum(), required: nil))
+
+        guard case let .info(.insufficientNetworkFee(_, _, _, _, _, action)) = model.isPresentingSheet else {
+            Issue.record("Expected insufficientNetworkFee sheet")
+            return
+        }
+
+        action()
+
+        guard case let .fiatConnect(_, _, amount) = model.isPresentingSheet else {
+            Issue.record("Expected fiatConnect sheet")
+            return
+        }
+        #expect(amount == FiatConfig.insufficientNetworkFeeBuyAmount)
     }
 
     @Test

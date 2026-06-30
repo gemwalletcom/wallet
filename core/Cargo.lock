@@ -3531,7 +3531,6 @@ dependencies = [
  "async-trait",
  "bs58",
  "chain_traits",
- "chrono",
  "futures",
  "gem_client",
  "gem_encoding",

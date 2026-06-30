@@ -4,6 +4,13 @@ use typeshare::typeshare;
 
 use crate::AssetId;
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct SimulationInput {
+    pub encoded_transaction: String,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
@@ -85,6 +92,9 @@ impl SimulationWarning {
 pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
     pub value: String,
+    pub decimals: i32,
+    pub name: Option<String>,
+    pub symbol: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

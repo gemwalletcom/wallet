@@ -1,4 +1,3 @@
-use reqwest::StatusCode;
 use reqwest::header::{self, HeaderMap, HeaderName, HeaderValue};
 use std::time::Duration;
 
@@ -63,11 +62,6 @@ impl ResponseBuilder {
         headers.extend(additional_headers);
 
         ProxyResponse::new(cached.status, headers, cached.body)
-    }
-
-    pub fn build_json_response_with_headers<T: serde::Serialize>(data: &T, headers: HeaderMap) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let response_body = serde_json::to_vec(data)?;
-        Self::build_with_headers(response_body, StatusCode::OK.as_u16(), JSON_CONTENT_TYPE, headers)
     }
 }
 

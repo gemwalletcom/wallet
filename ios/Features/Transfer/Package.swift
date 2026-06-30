@@ -100,6 +100,7 @@ let package = Package(
             dependencies: [
                 "Transfer",
                 "TransferTestKit",
+                "GemstonePrimitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "BlockchainTestKit", package: "Blockchain"),
                 .product(name: "ScanServiceTestKit", package: "ChainServices"),

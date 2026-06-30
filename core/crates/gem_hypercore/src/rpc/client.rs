@@ -10,7 +10,7 @@ use crate::models::{
     spot::{OrderbookResponse, SpotMeta},
     user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee},
 };
-use chain_traits::ChainTraits;
+use chain_traits::{ChainSimulation, ChainTraits};
 use gem_client::{CONTENT_TYPE, Client, ClientExt, ContentType};
 use primitives::InMemoryPreferences;
 use serde::de::DeserializeOwned;
@@ -255,6 +255,8 @@ impl<C: Client> HyperCoreClient<C> {
 }
 
 impl<C: Client> ChainTraits for HyperCoreClient<C> {}
+
+impl<C: Client> ChainSimulation for HyperCoreClient<C> {}
 
 impl<C: Client> chain_traits::ChainProvider for HyperCoreClient<C> {
     fn get_chain(&self) -> primitives::Chain {

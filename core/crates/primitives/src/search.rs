@@ -8,6 +8,7 @@ use typeshare::typeshare;
 pub struct AssetList {
     pub id: String,
     pub name: String,
+    pub count: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

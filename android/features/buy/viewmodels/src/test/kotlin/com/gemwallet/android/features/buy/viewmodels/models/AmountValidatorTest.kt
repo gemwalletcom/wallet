@@ -1,12 +1,29 @@
 package com.gemwallet.android.features.buy.viewmodels.models
 
+import com.gemwallet.android.domains.fiat.FiatConfig
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class AmountValidatorTest {
+
+    @Before
+    fun setUp() {
+        mockkObject(FiatConfig)
+        every { FiatConfig.maximumAmount } returns 10000
+    }
+
+    @After
+    fun tearDown() {
+        unmockkObject(FiatConfig)
+    }
 
     @Test
     fun `valid amount above minimum returns true`() {
@@ -70,14 +87,14 @@ class AmountValidatorTest {
     @Test
     fun `amount at maximum validates successfully`() {
         val validator = AmountValidator(20.0)
-        assertTrue(validator.validate("10000"))
+        assertTrue(validator.validate(FiatConfig.maximumAmount.toString()))
         assertNull(validator.error)
     }
 
     @Test
     fun `amount above maximum returns MaximumAmount error`() {
         val validator = AmountValidator(20.0)
-        assertFalse(validator.validate("10001"))
+        assertFalse(validator.validate((FiatConfig.maximumAmount + 1).toString()))
         assertEquals(BuyError.MaximumAmount, validator.error)
     }
 

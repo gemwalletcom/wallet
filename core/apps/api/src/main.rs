@@ -59,7 +59,7 @@ use swapper::swapper::GemSwapper;
 use webhooks::WebhooksClient;
 use websocket_prices::PriceObserverConfig;
 
-use crate::support::SupportApiClient;
+use crate::support::{SupportApiClient, SupportImageUploadConfig};
 
 fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
     let rocket = rocket
@@ -248,6 +248,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
     let redemption_client = RewardsRedemptionClient::new(database.clone(), stream_producer.clone());
     let notifications_client = NotificationsClient::new(database.clone());
     let support_client = SupportApiClient::new(settings.support.url.clone(), settings.support.widget_public_token.clone(), database.clone());
+    let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
     let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
     let okx_provider = OkxProvider::new(
         OkxClientConfig {
@@ -291,6 +292,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
         .manage(Mutex::new(wallets_client))
         .manage(Mutex::new(notifications_client))
         .manage(Mutex::new(support_client))
+        .manage(support_image_upload_config)
         .manage(Mutex::new(near_intents_client))
         .manage(okx_provider)
         .manage(Mutex::new(portfolio_client))

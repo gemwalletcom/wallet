@@ -76,10 +76,6 @@ impl PricesChangeset {
 }
 
 impl NewPriceRow {
-    pub fn new(provider: PriceProvider, provider_price_id: String) -> Self {
-        Self::with_market_data(provider, provider_price_id, None, None, None)
-    }
-
     pub fn with_market_data(
         provider: PriceProvider,
         provider_price_id: String,
@@ -147,10 +143,6 @@ impl Hash for PriceRow {
 }
 
 impl PriceRow {
-    pub fn with_price(provider: PriceProvider, provider_price_id: String, price: f64) -> Self {
-        Self::new(provider, provider_price_id, price, None, 0.0, None, 0.0, None, None, None, chrono::Utc::now().naive_utc())
-    }
-
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         provider: PriceProvider,

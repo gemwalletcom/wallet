@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
+import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
@@ -22,7 +23,10 @@ import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -86,11 +90,19 @@ class FiatViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        mockkObject(FiatConfig)
+        every { FiatConfig.defaultBuyAmount } returns 50
+        every { FiatConfig.defaultSellAmount } returns 100
+        every { FiatConfig.minimumAmount } returns 5
+        every { FiatConfig.maximumAmount } returns 10000
+        every { FiatConfig.randomMaxAmount } returns 1000
+        every { FiatConfig.suggestedAmounts } returns listOf(100, 250)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkObject(FiatConfig)
     }
 
     @Test
@@ -136,6 +148,28 @@ class FiatViewModelTest {
                     type = FiatQuoteType.Buy,
                     fiatCurrency = Currency.USD.string,
                     amount = 50.0,
+                )
+            }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `initial route amount overrides buy default`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(initialAmount = 10.0)
+
+        try {
+            runCurrent()
+
+            assertEquals("10", viewModel.amount.value)
+            coVerify(exactly = 1) {
+                getBuyQuotes(
+                    walletId = walletId,
+                    asset = asset,
+                    type = FiatQuoteType.Buy,
+                    fiatCurrency = Currency.USD.string,
+                    amount = 10.0,
                 )
             }
         } finally {
@@ -197,20 +231,24 @@ class FiatViewModelTest {
             viewModel.updateAmount(FiatSuggestion.RandomAmount)
 
             val randomAmount = viewModel.amount.value.toInt()
-            assertTrue(randomAmount in FiatViewModel.MIN_FIAT_AMOUNT.toInt()..FiatViewModel.MAX_RANDOM_FIAT_AMOUNT)
+            assertTrue(randomAmount in FiatConfig.minimumAmount..FiatConfig.randomMaxAmount)
         } finally {
             viewModel.viewModelScope.cancel()
         }
     }
 
-    private fun createViewModel() = FiatViewModel(
-        getBuyQuotes = getBuyQuotes,
-        getBuyQuoteUrl = getBuyQuoteUrl,
-        getBuyAssetInfo = getBuyAssetInfo,
-        savedStateHandle = SavedStateHandle(
-            mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())
-        ),
-    )
+    private fun createViewModel(initialAmount: Double? = null): FiatViewModel {
+        val arguments = mutableMapOf<String, Any>(
+            RouteArgument.AssetId.key to asset.id.toIdentifier(),
+        )
+        initialAmount?.let { arguments[RouteArgument.FiatAmount.key] = it }
+        return FiatViewModel(
+            getBuyQuotes = getBuyQuotes,
+            getBuyQuoteUrl = getBuyQuoteUrl,
+            getBuyAssetInfo = getBuyAssetInfo,
+            savedStateHandle = SavedStateHandle(arguments),
+        )
+    }
 
     private fun assetData(
         price: Double,

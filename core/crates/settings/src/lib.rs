@@ -337,6 +337,12 @@ pub struct Scan {
 pub struct Support {
     pub url: String,
     pub widget_public_token: String,
+    pub types: SupportTypes,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct SupportTypes {
+    pub images: Vec<String>,
 }
 
 impl Settings {

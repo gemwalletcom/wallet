@@ -26,26 +26,6 @@ pub struct Target {
     pub body: Option<Vec<u8>>,
 }
 
-impl Target {
-    pub fn get(url: &str) -> Self {
-        Self {
-            url: url.into(),
-            method: HttpMethod::Get,
-            headers: None,
-            body: None,
-        }
-    }
-
-    pub fn post_json<T: Serialize>(url: &str, body: &T) -> Self {
-        Self {
-            url: url.into(),
-            method: HttpMethod::Post,
-            headers: Some(HashMap::from([("Content-Type".into(), "application/json".into())])),
-            body: Some(serde_json::to_vec(body).expect("Failed to serialize JSON body")),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum HttpMethod {
     Get,

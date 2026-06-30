@@ -1,6 +1,9 @@
 mod client;
+mod image_upload;
 
 pub use client::SupportApiClient;
+pub use image_upload::SupportImageUploadConfig;
+use image_upload::{MAX_SUPPORT_IMAGE_BYTES, validate_support_image_upload};
 use primitives::{SupportAction, SupportMessage, SupportMessageInput};
 use rocket::{State, get, http::ContentType, post, tokio::sync::Mutex};
 
@@ -11,8 +14,6 @@ use crate::{
     },
     responders::{ApiError, ApiResponse},
 };
-
-const MAX_SUPPORT_IMAGE_BYTES: u64 = 10 * 1024 * 1024;
 
 #[get("/devices/support/messages?<from_timestamp>")]
 pub async fn get_support_messages(
@@ -38,17 +39,14 @@ pub async fn post_support_image(
     file_name: Option<String>,
     content_type: &ContentType,
     data: DeviceBody<{ MAX_SUPPORT_IMAGE_BYTES }>,
+    upload_config: &State<SupportImageUploadConfig>,
     client: &State<Mutex<SupportApiClient>>,
 ) -> Result<ApiResponse<SupportMessage>, ApiError> {
-    if content_type.top() != "image" {
-        return Err(ApiError::BadRequest("Only image uploads are supported".to_string()));
-    }
-
-    let file_name = file_name.unwrap_or_else(|| format!("support.{}", content_type.sub()));
+    let image = validate_support_image_upload(upload_config, file_name, content_type, data.into_inner())?;
     Ok(client
         .lock()
         .await
-        .send_image(&device.device_row, data.into_inner(), file_name, content_type.to_string())
+        .send_image(&device.device_row, image.data, image.file_name, image.content_type)
         .await?
         .into())
 }

@@ -9,8 +9,8 @@ use crate::model::NameQuery;
 use primitives::{Chain, NameProvider};
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Data<T> {
-    pub data: T,
+struct Data<T> {
+    data: T,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

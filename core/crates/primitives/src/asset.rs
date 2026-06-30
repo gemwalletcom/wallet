@@ -114,7 +114,7 @@ impl Asset {
             Chain::HyperCore => chain.new_asset("Hyperliquid".to_string(), "HYPE".to_string(), 8, AssetType::NATIVE),
             Chain::Monad => chain.new_asset("Monad".to_string(), "MON".to_string(), 18, AssetType::NATIVE),
             Chain::XLayer => chain.new_asset("X Layer".to_string(), "OKB".to_string(), 18, AssetType::NATIVE),
-            Chain::Stable => chain.new_asset("Stable".to_string(), "gUSDT".to_string(), 18, AssetType::NATIVE),
+            Chain::Stable => chain.new_asset("Stable".to_string(), "USDT0".to_string(), 18, AssetType::NATIVE),
         }
     }
 }

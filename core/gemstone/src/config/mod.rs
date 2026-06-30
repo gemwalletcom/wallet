@@ -1,5 +1,6 @@
 pub mod chain;
 pub mod docs;
+pub mod fiat_config;
 pub mod node;
 pub mod perpetual_config;
 pub mod public;
@@ -20,6 +21,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use {
     docs::{DocsUrl, get_docs_url},
+    fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, select_leverage},
     public::{ASSETS_URL, PublicUrl, get_public_url},
     rewards::{RewardsUrl, get_rewards_url},
@@ -56,6 +58,10 @@ impl Config {
 
     fn get_perpetual_config(&self) -> PerpetualConfig {
         get_perpetual_config()
+    }
+
+    fn get_fiat_config(&self) -> FiatConfig {
+        get_fiat_config()
     }
 
     fn get_wallet_search_config(&self) -> WalletSearchConfig {

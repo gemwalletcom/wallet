@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-
 public actor JobRunner {
     private var tasks: [String: Task<Void, Never>] = [:]
     private let clock: ContinuousClock
@@ -26,10 +24,6 @@ public actor JobRunner {
     public func stopAll() {
         tasks.keys.forEach(cancelJob)
     }
-
-    static func getNextInterval(after current: Duration, config: JobConfiguration) -> Duration {
-        max(config.initialInterval, min(current * Double(config.stepFactor), config.maxInterval))
-    }
 }
 
 // MARK: - Private
@@ -40,7 +34,7 @@ extension JobRunner {
     }
 
     private func runJob(_ job: Job) async {
-        var interval = job.configuration.initialInterval
+        var intervalMs = job.configuration.initialIntervalMs
 
         while !Task.isCancelled {
             let attemptStart = clock.now
@@ -49,16 +43,22 @@ extension JobRunner {
             case .complete:
                 do {
                     try await job.onComplete()
+                    debugLog("transaction status complete: id=\(job.id), status=complete")
                 } catch {
-                    debugLog("job \(job.id) completed with error: \(error)")
+                    debugLog("transaction status complete: id=\(job.id), status=complete, error=\(error)")
                 }
                 return
-            case .retry:
-                let sleepUntil = attemptStart.advanced(by: interval)
+            case let .retry(error):
+                let sleepUntil = attemptStart.advanced(by: .milliseconds(Int(intervalMs)))
                 if clock.now < sleepUntil {
                     try? await clock.sleep(until: sleepUntil)
                 }
-                interval = Self.getNextInterval(after: interval, config: job.configuration)
+                intervalMs = job.nextInterval(after: intervalMs)
+                if let error {
+                    debugLog("transaction status pending: id=\(job.id), next check = \(intervalMs)ms, error=\(error)")
+                } else {
+                    debugLog("transaction status pending: id=\(job.id), next check = \(intervalMs)ms")
+                }
             }
         }
     }

@@ -1,10 +1,11 @@
 package com.gemwallet.android.features.buy.viewmodels.models
 
+import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.math.parseNumber
 
 class AmountValidator(
     private val minValue: Double,
-    private val maxValue: Double = MAX_FIAT_AMOUNT,
+    private val maxValue: Double = FiatConfig.maximumAmount.toDouble(),
 ) {
     var error: BuyError? = null
         private set
@@ -32,7 +33,4 @@ class AmountValidator(
         return true
     }
 
-    companion object {
-        const val MAX_FIAT_AMOUNT = 10000.0
-    }
 }

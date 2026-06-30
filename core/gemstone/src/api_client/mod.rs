@@ -1,6 +1,7 @@
-use crate::alien::{AlienProvider, AlienTarget};
+use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
+use gem_client::{CONTENT_TYPE, ContentType};
 use primitives::{ScanTransaction, ScanTransactionPayload};
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub struct GemApiClient {
@@ -15,7 +16,12 @@ impl GemApiClient {
 
     pub async fn scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, String> {
         let url = format!("{}/v1/scan/transaction", self.api_url);
-        let target = AlienTarget::post_json(&url, &payload);
+        let target = AlienTarget {
+            url,
+            method: AlienHttpMethod::Post,
+            headers: Some(HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string())])),
+            body: Some(serde_json::to_vec(&payload).map_err(|e| e.to_string())?),
+        };
         let response = self.provider.request(target).await.map_err(|e| e.to_string())?;
         serde_json::from_slice(&response.data).map_err(|e| format!("Failed to parse response: {}", e))
     }

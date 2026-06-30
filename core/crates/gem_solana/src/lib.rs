@@ -1,6 +1,5 @@
 pub mod address;
 pub mod constants;
-pub mod hash;
 pub mod jsonrpc;
 pub mod metaplex;
 pub mod metaplex_core;

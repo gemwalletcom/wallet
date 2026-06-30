@@ -11,7 +11,7 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
     case networkFeeSelector
     case payloadDetails
     case url(URL)
-    case fiatConnect(assetAddress: AssetAddress, wallet: Wallet)
+    case fiatConnect(assetAddress: AssetAddress, wallet: Wallet, amount: Int?)
     case swapDetails
     case perpetualDetails(PerpetualDetailsViewModel)
     case addContact(ChainRecipient)

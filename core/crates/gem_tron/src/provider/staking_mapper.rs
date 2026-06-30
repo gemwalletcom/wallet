@@ -1,10 +1,6 @@
 use crate::address::TronAddress;
 use crate::models::WitnessesList;
-use primitives::{Address as _, Chain, DelegationValidator, StakeValidator};
-
-pub fn map_validators(witnesses: WitnessesList) -> Vec<StakeValidator> {
-    witnesses.witnesses.into_iter().map(|x| StakeValidator::new(x.address, x.url)).collect()
-}
+use primitives::{Address as _, Chain, DelegationValidator};
 
 pub fn map_staking_validators(witnesses: WitnessesList, apy: Option<f64>) -> Vec<DelegationValidator> {
     let default_apy = apy.unwrap_or(0.0);

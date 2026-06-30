@@ -1,69 +1,9 @@
-use primitives::Chain;
 use std::str::FromStr;
-use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
-#[derive(Debug, Clone, PartialEq, AsRefStr, EnumString, EnumIter)]
-#[strum(serialize_all = "snake_case")]
-pub enum ConsumerService {
-    Store,
-    Indexer,
-    Notifications,
-    Rewards,
-    Support,
-    Fiat,
-}
+use primitives::Chain;
+use strum::AsRefStr;
 
-impl ConsumerService {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr, EnumString)]
-#[strum(serialize_all = "snake_case")]
-#[allow(clippy::enum_variant_names)]
-pub enum IndexerConsumer {
-    FetchAssets,
-    FetchPrices,
-    FetchBlocks,
-    FetchTokenAssociations,
-    FetchCoinAssociations,
-    FetchNftAssociations,
-    FetchNftAssets,
-    FetchAddressTransactions,
-}
-
-#[derive(Debug, Clone)]
-pub struct ConsumerOptions {
-    pub service: Option<ConsumerService>,
-    pub indexer: Option<IndexerConsumer>,
-}
-
-#[derive(Debug, Clone, Copy, AsRefStr, EnumString, EnumIter, PartialEq, Eq)]
-#[strum(serialize_all = "snake_case")]
-pub enum WorkerService {
-    Alerter,
-    Prices,
-    Fiat,
-    Assets,
-    System,
-    Search,
-    Rewards,
-    Transactions,
-    Perpetuals,
-}
-
-impl WorkerService {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect()
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct WorkerOptions {
-    pub service: Option<WorkerService>,
-    pub job: Option<String>,
-}
+use super::{ConsumerOptions, ConsumerService, IndexerConsumer, WorkerOptions, WorkerService};
 
 #[derive(Debug, Clone, AsRefStr)]
 #[strum(serialize_all = "snake_case")]
@@ -81,8 +21,7 @@ pub enum DaemonService {
 impl DaemonService {
     pub fn name(&self) -> String {
         match self {
-            DaemonService::Setup => "setup".to_owned(),
-            DaemonService::SetupDev => "setup_dev".to_owned(),
+            DaemonService::Setup | DaemonService::SetupDev => self.as_ref().to_owned(),
             DaemonService::Worker(opts) => match (opts.service, opts.job.as_deref()) {
                 (Some(service), Some(job)) => format!("worker {} {}", service.as_ref(), job),
                 (Some(service), None) => format!("worker {}", service.as_ref()),
@@ -109,8 +48,8 @@ impl FromStr for DaemonService {
         let name = parts.first().copied().ok_or_else(|| "Empty service name".to_string())?;
 
         match name {
-            "setup" => Ok(DaemonService::Setup),
-            "setup_dev" => Ok(DaemonService::SetupDev),
+            name if name == DaemonService::Setup.as_ref() => Ok(DaemonService::Setup),
+            name if name == DaemonService::SetupDev.as_ref() => Ok(DaemonService::SetupDev),
             "worker" => {
                 let service = parts.get(1).map(|s| WorkerService::from_str(s).map_err(|_| format!("Invalid worker: {s}"))).transpose()?;
                 let job = parts.get(2).map(|s| (*s).to_owned());

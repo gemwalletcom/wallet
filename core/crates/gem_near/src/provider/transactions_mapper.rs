@@ -1,7 +1,5 @@
 use crate::constants::{TRANSACTION_STATUS_EXECUTED, TRANSACTION_STATUS_EXECUTED_OPTIMISTIC, TRANSACTION_STATUS_FINAL};
-use crate::models::{rpc, transaction::BroadcastResult};
-use chrono::DateTime;
-use primitives::{Transaction, TransactionState, TransactionType, chain::Chain};
+use crate::models::transaction::BroadcastResult;
 use std::error::Error;
 
 pub fn map_transaction_broadcast(response: &BroadcastResult) -> Result<String, Box<dyn Error + Sync + Send>> {
@@ -9,35 +7,6 @@ pub fn map_transaction_broadcast(response: &BroadcastResult) -> Result<String, B
         TRANSACTION_STATUS_FINAL | TRANSACTION_STATUS_EXECUTED | TRANSACTION_STATUS_EXECUTED_OPTIMISTIC => Ok(response.transaction.hash.clone()),
         _ => Err(format!("Broadcast failed with status: {}", response.final_execution_status).into()),
     }
-}
-
-pub fn map_transaction(chain: Chain, header: rpc::BlockHeader, transaction: rpc::Transaction) -> Option<Transaction> {
-    if transaction.actions.len() == 1 || transaction.actions.len() == 2 {
-        let created_at = DateTime::from_timestamp_nanos(header.timestamp as i64);
-
-        match &transaction.actions.last()? {
-            rpc::Action::Transfer { deposit } => {
-                let asset_id = chain.as_asset_id();
-                return Some(Transaction::new(
-                    transaction.hash,
-                    asset_id.clone(),
-                    transaction.signer_id,
-                    transaction.receiver_id,
-                    None,
-                    TransactionType::Transfer,
-                    TransactionState::Confirmed,
-                    "830000000000000000000".to_string(),
-                    asset_id,
-                    deposit.clone(),
-                    None,
-                    None,
-                    created_at,
-                ));
-            }
-            rpc::Action::CreateAccount | rpc::Action::Other(_) => return None,
-        }
-    }
-    None
 }
 
 #[cfg(test)]

@@ -50,36 +50,6 @@ pub struct Reward {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Validators {
-    pub validators: Vec<ValidatorLegacy>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidatorLegacy {
-    pub operator_address: String,
-    pub jailed: bool,
-    pub status: String,
-    pub description: ValidatorMoniker,
-    pub commission: ValidatorCommissionLegacy,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidatorMoniker {
-    pub moniker: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidatorCommissionLegacy {
-    pub commission_rates: ValidatorCommissionRatesLegacy,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidatorCommissionRatesLegacy {
-    #[serde(deserialize_with = "deserialize_f64_from_str")]
-    pub rate: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidatorsResponse {
     pub validators: Vec<Validator>,
 }

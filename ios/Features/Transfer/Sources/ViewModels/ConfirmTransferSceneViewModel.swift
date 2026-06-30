@@ -5,6 +5,7 @@ import Blockchain
 import Components
 import FiatService
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import Preferences
@@ -165,6 +166,10 @@ public final class ConfirmTransferSceneViewModel {
         ConfirmDetailsViewModel(type: transferData.type, metadata: metadata)
     }
 
+    var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
+        simulationState.balanceChanges.map(ConfirmBalanceChangeViewModel.init)
+    }
+
     private var headerType: TransactionHeaderType {
         if let headerData = simulationState.headerData {
             return .assetValue(headerData)
@@ -215,6 +220,10 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             result.append(ListSection(type: .payload, [.payload]))
         }
 
+        if !balanceChangeModels.isEmpty {
+            result.append(ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)))
+        }
+
         result.append(ListSection(type: .fee, [.networkFee]))
         result.append(ListSection(type: .error, [.error]))
         return result
@@ -245,6 +254,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             detailsViewModel
         case .payload:
             ConfirmTransferItemModel.payload(primaryPayloadFields)
+        case let .balanceChange(index):
+            ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 state: state,
@@ -330,6 +341,10 @@ extension ConfirmTransferSceneViewModel {
         if let websiteURL {
             isPresentingSheet = .url(websiteURL)
         }
+    }
+
+    func onSelectUnknownBalanceChange(_ url: URL) {
+        isPresentingSheet = .url(url)
     }
 
     func onSelectFeePicker() {
@@ -433,6 +448,7 @@ extension ConfirmTransferSceneViewModel {
         isPresentingSheet = .fiatConnect(
             assetAddress: feeAssetAddress,
             wallet: wallet,
+            amount: FiatConfig.insufficientNetworkFeeBuyAmount,
         )
     }
 

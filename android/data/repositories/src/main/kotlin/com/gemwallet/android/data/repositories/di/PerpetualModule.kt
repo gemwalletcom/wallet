@@ -2,9 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
-import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
-import com.gemwallet.android.cases.nodes.GetNodesCase
-import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
+import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidEventHandler
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidSubscriptionService
@@ -15,14 +13,12 @@ import com.gemwallet.android.data.repositories.perpetual.toWebSocketUrl
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketRequest
-import com.gemwallet.android.data.services.gemapi.http.getNodeUrl
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.wallet.core.primitives.Chain
-
 import com.gemwallet.android.data.service.store.database.SearchDao
+import com.wallet.core.primitives.Chain
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -80,9 +76,7 @@ object PerpetualModule {
         syncPerpetualPositions: SyncPerpetualPositions,
         eventHandler: HyperliquidEventHandler,
         subscriptionService: HyperliquidSubscriptionService,
-        getNodesCase: GetNodesCase,
-        getCurrentNodeCase: GetCurrentNodeCase,
-        setCurrentNodeCase: SetCurrentNodeCase,
+        getNodeUrlCase: GetNodeUrlCase,
     ): HyperliquidObserverService = HyperliquidObserverService(
         observePerpetualWallet = observePerpetualWallet,
         syncPerpetualPositions = syncPerpetualPositions,
@@ -90,8 +84,7 @@ object PerpetualModule {
         subscriptionService = subscriptionService,
         connection = WebSocketConnection(
             requestProvider = {
-                val url = Chain.HyperCore.getNodeUrl(getNodesCase, getCurrentNodeCase, setCurrentNodeCase)
-                    ?: error("No node url for ${Chain.HyperCore.string}")
+                val url = getNodeUrlCase.getNodeUrl(Chain.HyperCore)
                 WebSocketRequest(url = url.toWebSocketUrl())
             },
             reconnection = ExponentialReconnection(maxDelay = 30.0),

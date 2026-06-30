@@ -78,7 +78,7 @@ impl NodeMonitor {
             }
         };
 
-        let current_observation = Self::fetch_status(chain_config.chain, current_node.url.clone()).await;
+        let current_observation = Self::get_status(chain_config.chain, current_node.url.clone()).await;
         NodeTelemetry::log_status_debug(chain_config, std::slice::from_ref(&current_observation));
 
         if NodeSyncAnalyzer::is_node_healthy(&current_observation) {
@@ -95,7 +95,7 @@ impl NodeMonitor {
             return Ok(());
         }
 
-        let fallback_statuses = Self::fetch_statuses(chain_config.chain, fallback_urls).await;
+        let fallback_statuses = Self::get_statuses(chain_config.chain, fallback_urls).await;
         NodeTelemetry::log_status_debug(chain_config, &fallback_statuses);
 
         let mut all_observations = vec![current_observation];
@@ -119,14 +119,14 @@ impl NodeMonitor {
         }
     }
 
-    async fn fetch_statuses(chain: Chain, urls: Vec<Url>) -> Vec<NodeStatusObservation> {
-        let futures = urls.into_iter().map(move |url| Self::fetch_status(chain, url));
+    async fn get_statuses(chain: Chain, urls: Vec<Url>) -> Vec<NodeStatusObservation> {
+        let futures = urls.into_iter().map(move |url| Self::get_status(chain, url));
 
         future::join_all(futures).await
     }
 
-    async fn fetch_status(chain: Chain, url: Url) -> NodeStatusObservation {
+    async fn get_status(chain: Chain, url: Url) -> NodeStatusObservation {
         let client = ChainClient::new(chain, url);
-        client.fetch_status().await
+        client.get_status().await
     }
 }

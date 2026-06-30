@@ -6,6 +6,7 @@ import com.gemwallet.android.cases.nodes.DeleteNodeCase
 import com.gemwallet.android.cases.nodes.GetBlockExplorers
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
+import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
@@ -50,6 +51,9 @@ object NodesModule {
 
     @Provides
     fun provideGetCurrentNodeCase(repository: NodesRepository): GetCurrentNodeCase = repository
+
+    @Provides
+    fun provideGetNodeUrlCase(repository: NodesRepository): GetNodeUrlCase = repository
 
     @Provides
     fun provideSetBlockExplorerCase(repository: NodesRepository): SetBlockExplorerCase = repository

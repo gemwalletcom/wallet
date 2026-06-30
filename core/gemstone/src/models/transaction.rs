@@ -673,11 +673,6 @@ impl From<GemGasPriceType> for GasPriceType {
 }
 
 impl GemFeeOptions {
-    pub fn with_option(mut self, option: GemFeeOption, value: String) -> Self {
-        self.options.insert(option, value);
-        self
-    }
-
     pub fn get(&self, option: &GemFeeOption) -> Option<&String> {
         self.options.get(option)
     }

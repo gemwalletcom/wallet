@@ -10,7 +10,8 @@ import kotlinx.serialization.SerialName
 @Serializable
 data class AssetList (
 	val id: String,
-	val name: String
+	val name: String,
+	val count: UInt
 )
 
 @Serializable

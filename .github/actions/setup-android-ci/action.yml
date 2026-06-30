@@ -7,8 +7,8 @@ runs:
     - name: Setup Rust
       uses: ./.github/actions/setup-rust-ci
 
-    - name: Select Java 17
-      shell: bash
-      run: |
-        echo "JAVA_HOME=$JAVA_HOME_17_arm64" >> "$GITHUB_ENV"
-        echo "$JAVA_HOME_17_arm64/bin" >> "$GITHUB_PATH"
+    - name: Setup Java
+      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+      with:
+        distribution: temurin
+        java-version: "17"

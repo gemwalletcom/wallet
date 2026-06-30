@@ -6,6 +6,7 @@ import Components
 import FiatService
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -17,12 +18,6 @@ import Validators
 @MainActor
 @Observable
 public final class FiatSceneViewModel {
-    private enum Constants {
-        static let randomMaxAmount: Int = 1000
-        static let defaultAmount: Int = 50
-        static let suggestedAmounts: [Int] = [100, 250]
-    }
-
     let fiatService: FiatService
     private let wallet: Wallet
     private let assetsEnabler: any AssetsEnabler
@@ -177,7 +172,7 @@ public final class FiatSceneViewModel {
     }
 
     var suggestedAmounts: [Int] {
-        Constants.suggestedAmounts
+        FiatConfig.suggestedAmounts
     }
 
     var showFiatTypePicker: Bool {
@@ -260,7 +255,7 @@ extension FiatSceneViewModel {
     }
 
     func onSelectRandomAmount() {
-        let amount = Int.random(in: Constants.defaultAmount ..< Constants.randomMaxAmount)
+        let amount = Int.random(in: FiatConfig.defaultBuyAmount ..< FiatConfig.randomMaxAmount)
         selectAmount(amount)
     }
 

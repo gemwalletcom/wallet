@@ -37,9 +37,9 @@ impl ReaderV3 {
                     return Err(KeystoreError::corrupt_file("v3 mnemonic plaintext too large"));
                 }
                 let phrase = std::str::from_utf8(&plaintext).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?;
-                let sanitized = Mnemonic::sanitize(phrase).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?;
+                let cleaned = Mnemonic::clean(phrase).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?;
                 plaintext.zeroize();
-                SecretV3::Mnemonic(sanitized)
+                SecretV3::Mnemonic(cleaned.to_string())
             }
             KindV3::PrivateKey => {
                 if plaintext.len() != 32 {

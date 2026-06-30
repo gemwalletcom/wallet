@@ -8,7 +8,7 @@ use crate::models::{
     BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, StakingPoolResponse, SupplyResponse, TransactionResponse, TransactionsResponse,
     ValidatorsResponse,
 };
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainTraits};
+use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
 use primitives::chain_cosmos::CosmosChain;
 
@@ -24,18 +24,6 @@ impl<C: Client> CosmosClient<C> {
 
     pub fn get_chain(&self) -> CosmosChain {
         self.chain
-    }
-
-    pub fn get_amount(&self, coins: Vec<crate::models::Coin>) -> Option<String> {
-        Some(
-            coins
-                .into_iter()
-                .filter(|x| x.denom == self.chain.as_chain().as_denom().unwrap_or_default())
-                .collect::<Vec<_>>()
-                .first()?
-                .amount
-                .clone(),
-        )
     }
 
     pub async fn get_transaction(&self, hash: String) -> Result<TransactionResponse, Box<dyn Error + Send + Sync>> {
@@ -160,6 +148,8 @@ impl<C: Client> ChainAccount for CosmosClient<C> {}
 impl<C: Client> ChainPerpetual for CosmosClient<C> {}
 
 impl<C: Client> ChainAddressStatus for CosmosClient<C> {}
+
+impl<C: Client> ChainSimulation for CosmosClient<C> {}
 
 impl<C: Client> ChainTraits for CosmosClient<C> {}
 

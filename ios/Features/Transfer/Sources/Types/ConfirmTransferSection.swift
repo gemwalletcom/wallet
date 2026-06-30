@@ -11,6 +11,7 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case header
     case warnings
     case details
+    case balanceChanges
     case payload
     case fee
     case error
@@ -20,7 +21,7 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     }
 }
 
-public enum ConfirmTransferItem: Identifiable, Equatable, Sendable {
+public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case header
     case warnings
     case app
@@ -29,6 +30,7 @@ public enum ConfirmTransferItem: Identifiable, Equatable, Sendable {
     case recipient
     case memo
     case details
+    case balanceChange(Int)
     case payload
     case networkFee
     case error
@@ -51,6 +53,7 @@ public enum ConfirmTransferItemModel {
     case perpetualModifyPosition(PerpetualModifyViewModel)
     case warnings([SimulationWarning])
     case payload([SimulationPayloadField])
+    case balanceChange(ConfirmBalanceChangeViewModel)
     case error(title: String, error: Error, onInfoAction: VoidAction)
     case empty
 }

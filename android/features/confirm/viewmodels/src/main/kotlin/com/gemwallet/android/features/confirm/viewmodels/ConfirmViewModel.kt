@@ -42,9 +42,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -74,7 +76,7 @@ class ConfirmViewModel @Inject constructor(
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
     val feePriority = MutableStateFlow(FeePriority.Normal)
-    private val walletConnectSimulationState = MutableStateFlow<SimulationResult?>(null)
+    private val simulationResult = MutableStateFlow<SimulationResult?>(null)
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
         .combine(restart) { request, _ -> request }
@@ -88,31 +90,27 @@ class ConfirmViewModel @Inject constructor(
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val walletConnectHeaderAssetInfo = walletConnectSimulationState
+    private val headerAssetInfo = simulationResult
         .map { it?.header?.assetId }
         .distinctUntilChanged()
         .flatMapLatest { assetId ->
             if (assetId == null) return@flatMapLatest flowOf(null)
-            assetsRepository.getTokenInfo(assetId).also {
-                if (assetId.tokenId != null && it.firstOrNull() == null) {
-                    assetsRepository.searchToken(assetId, sessionRepository.getCurrentCurrency())
-                }
-            }
+            assetInfo(assetId)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val walletConnectReview = combine(walletConnectSimulationState, walletConnectHeaderAssetInfo, request) { simulation, headerAssetInfo, params ->
+    val simulation = combine(simulationResult, headerAssetInfo, request) { simulationResult, headerAssetInfo, params ->
         val chain = params?.assetId?.chain
         val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
-        val review = simulation?.toWalletConnectReview(chain, explorerName) ?: WalletConnectReview()
-        val headerAssetId = simulation?.header?.assetId
+        val simulation = simulationResult?.toSimulation(chain, explorerName) ?: Simulation()
+        val headerAssetId = simulationResult?.header?.assetId
         val asset = when {
             headerAssetId == null || params == null -> null
             headerAssetId == params.assetId -> params.asset
             else -> headerAssetInfo?.asset
         }
-        review.copy(headerAsset = asset)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, WalletConnectReview())
+        simulation.copy(headerAsset = asset)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
 
     private val assetsInfo = request.filterNotNull().mapNotNull {
         if (it is ConfirmParams.SwapParams) {
@@ -254,9 +252,9 @@ class ConfirmViewModel @Inject constructor(
     val feeRates = preloadData.map { it?.feeRates.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun init(params: ConfirmParams, walletConnectSimulation: SimulationResult? = null) {
+    fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
         viewModelScope.launch(Dispatchers.IO) {
-            walletConnectSimulationState.value = walletConnectSimulation
+            this@ConfirmViewModel.simulationResult.value = simulationResult
             val pack = params.pack()
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
@@ -314,6 +312,14 @@ class ConfirmViewModel @Inject constructor(
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
         val str = assetId.toIdentifier()
         return firstOrNull { it.id().toIdentifier() == str }
+    }
+
+    private fun assetInfo(assetId: AssetId) = flow {
+        val current = assetsRepository.getTokenInfo(assetId).firstOrNull()
+        if (current == null && assetId.tokenId != null) {
+            assetsRepository.searchToken(assetId, sessionRepository.getCurrentCurrency())
+        }
+        emitAll(assetsRepository.getTokenInfo(assetId))
     }
 
     private fun buildDetailElements(

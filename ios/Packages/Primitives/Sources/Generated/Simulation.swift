@@ -7,10 +7,16 @@ import Foundation
 public struct SimulationBalanceChange: Codable, Equatable, Hashable, Sendable {
 	public let assetId: AssetId
 	public let value: String
+	public let decimals: Int32
+	public let name: String?
+	public let symbol: String?
 
-	public init(assetId: AssetId, value: String) {
+	public init(assetId: AssetId, value: String, decimals: Int32, name: String?, symbol: String?) {
 		self.assetId = assetId
 		self.value = value
+		self.decimals = decimals
+		self.name = name
+		self.symbol = symbol
 	}
 }
 
@@ -23,6 +29,14 @@ public struct SimulationHeader: Codable, Equatable, Hashable, Sendable {
 		self.assetId = assetId
 		self.value = value
 		self.isUnlimited = isUnlimited
+	}
+}
+
+public struct SimulationInput: Codable, Equatable, Hashable, Sendable {
+	public let encodedTransaction: String
+
+	public init(encodedTransaction: String) {
+		self.encodedTransaction = encodedTransaction
 	}
 }
 

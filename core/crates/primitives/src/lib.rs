@@ -169,6 +169,8 @@ pub mod wallet_type;
 pub use self::wallet_type::WalletType;
 pub mod webhook_kind;
 pub use self::webhook_kind::WebhookKind;
+pub mod image_type;
+pub use self::image_type::{ImageType, MIME_TYPE_PNG};
 pub mod wallet_id;
 pub use self::wallet_id::WalletId;
 pub mod wallet_import;
@@ -179,7 +181,7 @@ pub use self::wallet_connector::{
     WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus,
 };
 pub mod nft;
-pub use self::nft::{MIME_TYPE_PNG, NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};
+pub use self::nft::{NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};
 pub mod price_alert;
 pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertDirection, PriceAlertType, PriceAlerts};
 pub mod rewards;
@@ -322,8 +324,8 @@ pub mod notification;
 pub use self::notification::InAppNotification;
 pub mod simulation;
 pub use self::simulation::{
-    SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
-    SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
+    SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
 };
 pub mod ip_usage_type;
 pub use self::ip_usage_type::IpUsageType;

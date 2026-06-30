@@ -56,6 +56,13 @@ pub(super) fn decode_ethereum_calldata(data: &str) -> Option<(WcEthereumTransact
     Some((transaction, bytes))
 }
 
+pub(super) fn decode_solana_transaction(transaction_type: &WcWalletConnectTransactionType, data: &str) -> Option<String> {
+    match WalletConnectRequestHandler::decode_send_transaction(transaction_type.clone(), data.to_string()).ok()? {
+        WcWalletConnectTransaction::Solana { data, .. } => Some(data.transaction),
+        _ => None,
+    }
+}
+
 pub(super) fn validation_warning(error: &str) -> SimulationWarning {
     SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some(error.to_string()))
 }

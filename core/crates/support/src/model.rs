@@ -166,15 +166,19 @@ impl ChatwootWebhookPayload {
         if self.is_private == Some(true) {
             return None;
         }
-        let user = self.user.as_ref()?;
-        if user.user_type.as_deref() != Some("user") {
-            return None;
+        let agent = self.user.as_ref()?.support_agent()?;
+        Some(SupportTyping { status, agent })
+    }
+}
+
+impl WebhookUser {
+    fn support_agent(&self) -> Option<SupportAgent> {
+        match self.user_type.as_deref() {
+            Some("user") | Some("agent_bot") => {}
+            _ => return None,
         }
-        let name = user.name.clone()?;
-        Some(SupportTyping {
-            status,
-            agent: SupportAgent { name },
-        })
+        let name = self.name.clone()?;
+        Some(SupportAgent { name })
     }
 }
 
@@ -269,10 +273,9 @@ impl ChatwootContactUpdate {
             identifier: device.id.clone(),
             custom_attributes: HashMap::from([
                 ("device_id".to_string(), device.id.clone()),
-                ("platform".to_string(), format!("{}: {}", device.platform_store.as_ref(), device.os)),
+                ("app".to_string(), format!("Version {}, {}, {}", device.version, device.os, device.platform_store.name())),
                 ("device".to_string(), device.model.clone()),
-                ("version".to_string(), device.version.clone()),
-                ("locale".to_string(), format!("{}: {}", device.locale, device.currency)),
+                ("locale".to_string(), format!("{}, {}", device.locale, device.currency)),
             ]),
         }
     }
@@ -369,7 +372,29 @@ fn datetime_from_unix_timestamp(value: i64) -> Option<DateTime<Utc>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{SupportAgent, SupportMessageSender, SupportMessageStatus};
+    use primitives::{Device, PlatformStore, SupportAgent, SupportMessageSender, SupportMessageStatus};
+
+    #[test]
+    fn test_chatwoot_contact_update_attributes() {
+        let device = Device {
+            platform_store: PlatformStore::ApkUniversal,
+            os: "Android 11".to_string(),
+            model: "Xiaomi Redmi Note 8 Pro".to_string(),
+            locale: "fa".to_string(),
+            version: "2.93".to_string(),
+            currency: "USD".to_string(),
+            ..Device::mock()
+        };
+
+        let update = ChatwootContactUpdate::new(&device);
+
+        assert_eq!(update.identifier, "test-device-id");
+        assert_eq!(update.custom_attributes.get("device_id").map(String::as_str), Some("test-device-id"));
+        assert_eq!(update.custom_attributes.get("app").map(String::as_str), Some("Version 2.93, Android 11, APK Universal"));
+        assert_eq!(update.custom_attributes.get("device").map(String::as_str), Some("Xiaomi Redmi Note 8 Pro"));
+        assert_eq!(update.custom_attributes.get("locale").map(String::as_str), Some("fa, USD"));
+        assert_eq!(update.custom_attributes.len(), 4);
+    }
 
     #[test]
     fn test_support_public_messages_maps_widget_messages_without_private() {
@@ -406,6 +431,10 @@ mod tests {
         assert_eq!(typing.status, SupportTypingStatus::On);
         assert_eq!(typing.agent, SupportAgent { name: "Test Agent".to_string() });
         assert_eq!(agent_on.get_device_id(), Some("test-device-id".to_string()));
+
+        let agent_bot: ChatwootWebhookPayload =
+            serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":false,"user":{"name":"Gemmy","type":"agent_bot"}}"#).unwrap();
+        assert_eq!(agent_bot.support_typing(SupportTypingStatus::On).unwrap().agent, SupportAgent { name: "Gemmy".to_string() });
 
         let private: ChatwootWebhookPayload = serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":true,"user":{"name":"Test Agent","type":"user"}}"#).unwrap();
         assert_eq!(private.support_typing(SupportTypingStatus::On), None);

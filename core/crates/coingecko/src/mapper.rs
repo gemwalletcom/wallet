@@ -108,7 +108,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
         Chain::Monad => "monad",
         Chain::Plasma => "plasma",
         Chain::XLayer => "okb",
-        Chain::Stable => "tether", // gUSDT is the native gas token
+        Chain::Stable => "tether", // USDT0 is the native gas token
     }
 }
 

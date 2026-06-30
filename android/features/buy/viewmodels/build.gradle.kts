@@ -48,6 +48,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":gemcore"))
     api(project(":ui-models"))
     implementation(project(":ui"))
 

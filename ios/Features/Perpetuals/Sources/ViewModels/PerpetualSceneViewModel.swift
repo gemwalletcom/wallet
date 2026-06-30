@@ -94,7 +94,6 @@ public final class PerpetualSceneViewModel {
             TransactionsRequest.perpetualScene(
                 walletId: wallet.id,
                 assetId: asset.id,
-                limit: 50,
             ),
             initialValue: [],
         )
@@ -463,15 +462,6 @@ private extension PerpetualSceneViewModel {
         } catch {
             debugLog("perpetual scene: fetchTransactions error \(error)")
         }
-    }
-}
-
-public extension RecipientData {
-    static func hyperliquid() -> RecipientData {
-        RecipientData(
-            recipient: Recipient(name: "Hyperliquid", address: "", memo: .none),
-            amount: .none,
-        )
     }
 }
 

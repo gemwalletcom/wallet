@@ -74,7 +74,7 @@ impl NodeService {
         metrics.set_node_host_current(chain.as_ref(), &url.host());
     }
 
-    pub async fn switch_node_if_current(
+    pub(crate) async fn switch_node_if_current(
         nodes: &Arc<RwLock<HashMap<Chain, NodeDomain>>>,
         metrics: &Arc<Metrics>,
         chain_config: &ChainConfig,
@@ -96,7 +96,7 @@ impl NodeService {
         };
 
         metrics.move_node_host_current(chain_config.chain.as_ref(), &old_host, &new_host);
-        metrics.add_node_switch(chain_config.chain.as_ref(), &old_host, &new_host, reason.as_str());
+        metrics.add_node_switch(chain_config.chain.as_ref(), &old_host, &new_host, &reason.metric_reason());
         Some((old_host, new_host))
     }
 

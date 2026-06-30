@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import GemstonePrimitives
 import Primitives
 
@@ -27,6 +26,10 @@ struct TransactionStateJob: Job {
             await context.update(currentTransactionWallet)
         }
         return result.status
+    }
+
+    func nextInterval(after currentIntervalMs: UInt32) -> UInt32 {
+        configuration.nextInterval(after: currentIntervalMs)
     }
 
     func onComplete() async throws {

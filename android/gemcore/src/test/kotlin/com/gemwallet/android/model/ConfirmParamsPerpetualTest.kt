@@ -66,7 +66,7 @@ class ConfirmParamsPerpetualTest {
     }
 
     @Test
-    fun destination_isHyperliquidForAllPerpetualVariants() {
+    fun destination_isHyperliquidProviderForAllPerpetualVariants() {
         val variants = listOf(
             PerpetualType.Open(mockPerpetualConfirmData()),
             PerpetualType.Close(mockPerpetualConfirmData()),
@@ -74,7 +74,9 @@ class ConfirmParamsPerpetualTest {
             PerpetualType.Reduce(mockPerpetualReduceData()),
         )
         variants.forEach { perpetualType ->
-            assertEquals(DestinationAddress.Hyperliquid, perpetualParams(perpetualType).destination())
+            val destination = perpetualParams(perpetualType).destination()
+            assertEquals("", destination.address)
+            assertEquals("Hyperliquid", destination.name)
         }
     }
 

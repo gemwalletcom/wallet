@@ -552,6 +552,7 @@ mod tests {
         let weth_eth: AssetId = ETHEREUM_WETH_ASSET_ID.clone();
         let weth_op: AssetId = OPTIMISM_WETH_ASSET_ID.clone();
         let weth_arb: AssetId = ARBITRUM_WETH_ASSET_ID.clone();
+        let weth_blast: AssetId = BLAST_WETH_ASSET_ID.clone();
         let weth_bsc: AssetId = SMARTCHAIN_ETH_ASSET_ID.clone();
 
         let usdc_eth: AssetId = ETHEREUM_USDC_ASSET_ID.clone();
@@ -563,6 +564,8 @@ mod tests {
 
         assert!(Across::is_supported_route(&weth_eth, &weth_op));
         assert!(Across::is_supported_route(&weth_op, &weth_arb));
+        assert!(!Across::is_supported_route(&weth_eth, &weth_blast));
+        assert!(!Across::is_supported_route(&weth_blast, &weth_eth));
         assert!(Across::is_supported_route(&usdc_eth, &usdc_arb));
         assert!(Across::is_supported_route(&usdc_monad, &usdc_eth));
         assert!(Across::is_supported_route(&usdt_monad, &usdt_eth));

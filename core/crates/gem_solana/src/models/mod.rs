@@ -4,6 +4,7 @@ pub mod blockhash;
 pub mod jito;
 pub mod prioritization_fee;
 pub mod rpc;
+pub mod simulation;
 pub mod token;
 pub mod transaction;
 
@@ -13,5 +14,6 @@ type Int = i64;
 // Re-export commonly used types for backward compatibility
 pub use block::*;
 pub use rpc::*;
+pub use simulation::*;
 pub use token::*;
 pub use transaction::*;

@@ -6,7 +6,7 @@ use cacher::CacherClient;
 use in_transit_updater::{InTransitConfig, InTransitUpdater};
 use job_runner::{JobHandle, ShutdownReceiver};
 use pending_transactions_updater::PendingTransactionsUpdater;
-use primitives::{ConfigKey, ConfigParamKey, SwapProvider};
+use primitives::{ConfigKey, ConfigParamKey, JobConfiguration, SwapProvider};
 use settings::service_user_agent;
 use settings_chain::{ChainProviders, ProviderFactory};
 use std::error::Error;
@@ -30,6 +30,11 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let in_transit_config = InTransitConfig {
         timeout: config.get_duration(ConfigKey::TransactionInTransitTimeout)?,
         query_limit: config.get_i64(ConfigKey::TransactionInTransitQueryLimit)?,
+        check_interval: JobConfiguration {
+            initial_interval_ms: config.get_duration(ConfigKey::TransactionTimerInTransitUpdate)?.as_millis() as u32,
+            max_interval_ms: config.get_duration(ConfigKey::TransactionInTransitMaxCheckInterval)?.as_millis() as u32,
+            step_factor: config.get_f64(ConfigKey::TransactionInTransitCheckIntervalFactor)? as f32,
+        },
     };
 
     let endpoints = ProviderFactory::get_chain_endpoints(&settings);
@@ -40,6 +45,13 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);
     let stream_producer = StreamProducer::new(&rabbitmq_config, "transactions_worker", shutdown_rx.clone()).await?;
     let cacher = CacherClient::new(&settings.redis.url).await;
+    let in_transit_updater = Arc::new(InTransitUpdater::new(
+        database.clone(),
+        in_transit_config,
+        swapper.clone(),
+        stream_producer.clone(),
+        SwapVaultAddressClient::new(cacher.clone()),
+    ));
     let pending_updater = Arc::new(PendingTransactionsUpdater::new(
         providers.clone(),
         cacher.clone(),
@@ -49,12 +61,9 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
 
     ctx.plan_builder(WorkerService::Transactions, &config, shutdown_rx)
         .job(WorkerJob::UpdateInTransitTransactions, {
-            let database = database.clone();
-            let swapper = swapper.clone();
-            let stream_producer = stream_producer.clone();
-            let vault_client = SwapVaultAddressClient::new(cacher.clone());
+            let updater = in_transit_updater.clone();
             move |_| {
-                let updater = InTransitUpdater::new(database.clone(), in_transit_config, swapper.clone(), stream_producer.clone(), vault_client.clone());
+                let updater = updater.clone();
                 async move { updater.update().await }
             }
         })

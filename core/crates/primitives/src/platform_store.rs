@@ -22,4 +22,18 @@ impl PlatformStore {
     pub fn all() -> Vec<Self> {
         Self::iter().collect()
     }
+
+    pub fn name(&self) -> &'static str {
+        match self {
+            Self::AppStore => "App Store",
+            Self::GooglePlay => "Google Play",
+            Self::Fdroid => "F-Droid",
+            Self::Huawei => "Huawei",
+            Self::SolanaStore => "Solana Store",
+            Self::SamsungStore => "Samsung Store",
+            Self::ApkUniversal => "APK Universal",
+            Self::Emerald => "Emerald",
+            Self::Local => "Local",
+        }
+    }
 }

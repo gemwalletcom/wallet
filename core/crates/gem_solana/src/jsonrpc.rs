@@ -4,9 +4,6 @@ use crate::models::{Configuration, Filter};
 use gem_jsonrpc::types::{JsonRpcRequest, JsonRpcRequestConvert};
 use serde_json::Value;
 
-pub const ENCODING_BASE64: &str = "base64";
-pub const ENCODING_BASE58: &str = "base58";
-
 pub enum SolanaRpc {
     GetProgramAccounts(String, Vec<Filter>),
     GetAccountInfo(String),

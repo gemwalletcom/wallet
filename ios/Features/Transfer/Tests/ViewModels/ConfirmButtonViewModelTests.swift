@@ -2,7 +2,6 @@
 
 import Localization
 @testable import Primitives
-import PrimitivesTestKit
 import Testing
 @testable import Transfer
 import TransferTestKit

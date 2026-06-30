@@ -5,10 +5,12 @@ import com.gemwallet.android.cases.nodes.DeleteNodeCase
 import com.gemwallet.android.cases.nodes.GetBlockExplorers
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
+import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.getGemNode
+import com.gemwallet.android.cases.nodes.getGemNodeUrl
 import com.gemwallet.android.cases.nodes.getGemNodeUrls
 import com.gemwallet.android.cases.nodes.getGemNodes
 import com.gemwallet.android.cases.nodes.toNode
@@ -39,6 +41,7 @@ class NodesRepository(
     SetBlockExplorerCase,
     GetBlockExplorers,
     GetCurrentBlockExplorer,
+    GetNodeUrlCase,
     GetNodesCase,
     AddNodeCase,
     DeleteNodeCase
@@ -92,6 +95,10 @@ class NodesRepository(
             return null
         }
         return node
+    }
+
+    override fun getNodeUrl(chain: Chain): String {
+        return getCurrentNode(chain)?.url ?: getGemNodeUrl(chain)
     }
 
     override fun getBlockExplorers(chain: Chain): List<String> {

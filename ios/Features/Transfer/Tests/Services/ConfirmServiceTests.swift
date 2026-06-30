@@ -4,6 +4,8 @@ import ActivityServiceTestKit
 import AddressNameServiceTestKit
 import AssetsServiceTestKit
 import BalanceServiceTestKit
+import BigInt
+import BlockchainTestKit
 import ChainServiceTestKit
 import EventPresenterServiceTestKit
 import Foundation
@@ -83,6 +85,33 @@ struct ConfirmServiceTests {
         #expect(state.primaryFields.count == 1)
         #expect(state.primaryFields.first?.kind == .contract)
         #expect(state.secondaryFields.isEmpty)
+    }
+
+    @Test
+    func simulationStateMapsBalanceChangesFromSimulation() {
+        let solana = Asset.mock(id: .mockSolana(), name: "Solana", symbol: "SOL", decimals: 9, type: .native)
+        let usdc = Asset.mock(id: .mockSolanaUSDC(), name: "USD Coin", symbol: "USDC", decimals: 6, type: .spl)
+        let unknownAssetId = AssetId(chain: .solana, tokenId: "MissingMint111111111111111111111111111111111")
+
+        let service = ConfirmSimulationServiceFactory.create(
+            addressNameService: .mock(addressStore: .mock()),
+            assetsService: .mock(),
+        )
+
+        let state = service.makeState(
+            data: TransferData.mock(type: .transfer(solana)),
+            simulation: SimulationResult.mock(balanceChanges: [
+                SimulationBalanceChange(assetId: solana.id, value: "-100005000", decimals: 9, name: "Solana", symbol: "SOL"),
+                SimulationBalanceChange(assetId: usdc.id, value: "750000", decimals: 6, name: "USD Coin", symbol: "USDC"),
+                SimulationBalanceChange(assetId: unknownAssetId, value: "-42", decimals: 2, name: nil, symbol: nil),
+            ]),
+        )
+
+        #expect(state.balanceChanges == [
+            SimulationAssetChange(assetId: solana.id, value: -100_005_000, decimals: 9, name: "Solana", symbol: "SOL"),
+            SimulationAssetChange(assetId: usdc.id, value: 750_000, decimals: 6, name: "USD Coin", symbol: "USDC"),
+            SimulationAssetChange(assetId: unknownAssetId, value: -42, decimals: 2, name: nil, symbol: nil),
+        ])
     }
 
     @Test

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use super::switch_reason::NodeSwitchReason;
+use super::switch_reason::{CurrentNodeErrorKind, NodeSwitchReason};
 use crate::config::{NodeMonitoringConfig, Url};
 use primitives::{Chain, NodeStatusState, NodeSyncStatus};
 
@@ -9,18 +9,29 @@ pub struct NodeStatusObservation {
     pub url: Url,
     pub state: NodeStatusState,
     pub latency: Duration,
+    error_kind: CurrentNodeErrorKind,
 }
 
 impl NodeStatusObservation {
     pub fn new(url: Url, state: NodeStatusState, latency: Duration) -> Self {
-        Self { url, state, latency }
+        Self {
+            url,
+            state,
+            latency,
+            error_kind: CurrentNodeErrorKind::Unknown,
+        }
+    }
+
+    pub(crate) fn with_error_kind(mut self, error_kind: CurrentNodeErrorKind) -> Self {
+        self.error_kind = error_kind;
+        self
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct NodeSwitchResult {
-    pub observation: NodeStatusObservation,
-    pub reason: NodeSwitchReason,
+pub(crate) struct NodeSwitchResult {
+    pub(crate) observation: NodeStatusObservation,
+    pub(crate) reason: NodeSwitchReason,
 }
 
 pub struct NodeSyncAnalyzer;
@@ -30,11 +41,14 @@ impl NodeSyncAnalyzer {
         observation.state.is_healthy()
     }
 
-    pub fn select_best_node(current: &Url, observations: &[NodeStatusObservation], monitoring_config: &NodeMonitoringConfig, chain: Chain) -> Option<NodeSwitchResult> {
+    pub(crate) fn select_best_node(current: &Url, observations: &[NodeStatusObservation], monitoring_config: &NodeMonitoringConfig, chain: Chain) -> Option<NodeSwitchResult> {
         let current_observation = observations.iter().find(|o| o.url == *current)?;
 
         let error_reason = match &current_observation.state {
-            NodeStatusState::Error { message } => Some(NodeSwitchReason::CurrentNodeError { message: message.clone() }),
+            NodeStatusState::Error { message } => Some(NodeSwitchReason::CurrentNodeError {
+                kind: current_observation.error_kind.clone(),
+                message: message.clone(),
+            }),
             NodeStatusState::Healthy(_) => None,
         };
 
@@ -227,6 +241,7 @@ mod tests {
         assert_eq!(
             result.reason,
             NodeSwitchReason::CurrentNodeError {
+                kind: CurrentNodeErrorKind::Unknown,
                 message: "connection failed".to_string()
             }
         );

@@ -1,13 +1,8 @@
 package com.gemwallet.android.data.services.gemapi
 
-import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
-import com.gemwallet.android.cases.nodes.GetNodesCase
-import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
+import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Node
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -149,19 +144,20 @@ class NativeProviderTest {
         throw AssertionError("Expected cancellation exception")
     }
 
+    @Test
+    fun getEndpointUsesNodeUrlCase() {
+        val provider = nativeProvider()
+
+        assertEquals("https://gemnodes.com/bitcoin", provider.getEndpoint("bitcoin"))
+    }
+
     private fun nativeProvider(
         httpClient: OkHttpClient = OkHttpClient(),
         config: NativeProviderConfig = NativeProviderConfig(networkOfflineMessage = "offline"),
     ): NativeProvider {
         return NativeProvider(
-            getNodesCase = object : GetNodesCase {
-                override suspend fun getNodes(chain: Chain): Flow<List<Node>> = emptyFlow()
-            },
-            getCurrentNodeCase = object : GetCurrentNodeCase {
-                override fun getCurrentNode(chain: Chain): Node? = null
-            },
-            setCurrentNodeCase = object : SetCurrentNodeCase {
-                override fun setCurrentNode(chain: Chain, node: Node) = Unit
+            getNodeUrlCase = object : GetNodeUrlCase {
+                override fun getNodeUrl(chain: Chain): String = "https://gemnodes.com/${chain.string}"
             },
             httpClient = httpClient,
             config = config,

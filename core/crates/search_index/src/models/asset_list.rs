@@ -12,11 +12,16 @@ pub const ASSET_LISTS_SORTS: &[&str] = &[];
 pub struct AssetListDocument {
     pub id: String,
     pub name: String,
+    pub count: u32,
 }
 
 impl AssetListDocument {
     pub fn new(list: AssetList) -> Self {
-        Self { id: list.id, name: list.name }
+        Self {
+            id: list.id,
+            name: list.name,
+            count: list.count,
+        }
     }
 }
 
@@ -31,6 +36,7 @@ impl From<AssetListDocument> for AssetList {
         Self {
             id: document.id,
             name: document.name,
+            count: document.count,
         }
     }
 }

@@ -126,7 +126,7 @@ test TARGET="": (_test "test" TARGET)
 
 test-all: test
 
-_test-integration action: generate-stone
+_test-integration action:
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme GemUITests \
     -configuration "{{XCODE_CONFIGURATION}}" \

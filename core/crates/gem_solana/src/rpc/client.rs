@@ -3,6 +3,7 @@ use crate::models::{
     balances::SolanaBalance,
     blockhash::SolanaBlockhashResult,
     prioritization_fee::SolanaPrioritizationFee,
+    simulation::SimulateTransactionResult,
     transaction::{BlockTransactions, SolanaTransaction},
 };
 use crate::{
@@ -164,6 +165,20 @@ impl<C: Client + Clone> SolanaClient<C> {
         self.rpc_call("sendTransaction", send_transaction_params(data, skip_preflight)).await
     }
 
+    pub async fn simulate_encoded_transaction(&self, encoded_transaction: &str) -> Result<SimulateTransactionResult, JsonRpcError> {
+        let params = serde_json::json!([
+            encoded_transaction,
+            {
+                "commitment": COMMITMENT_CONFIRMED,
+                "encoding": "base64",
+                "sigVerify": false,
+                "replaceRecentBlockhash": true
+            }
+        ]);
+        let response: ValueResult<SimulateTransactionResult> = self.rpc_call("simulateTransaction", params).await?;
+        Ok(response.value)
+    }
+
     pub async fn get_recent_prioritization_fees(&self) -> Result<Vec<SolanaPrioritizationFee>, JsonRpcError> {
         self.rpc_call("getRecentPrioritizationFees", serde_json::json!([])).await
     }
@@ -174,11 +189,8 @@ impl<C: Client + Clone> SolanaClient<C> {
     }
 
     pub(crate) async fn get_account_info_base64(&self, address: &str) -> Result<ValueResult<Option<AccountData>>, JsonRpcError> {
-        self.rpc_call(
-            "getAccountInfo",
-            serde_json::json!([address, confirmed_config(serde_json::json!({ "encoding": "base64" }))]),
-        )
-        .await
+        let params = serde_json::json!([address, confirmed_config(serde_json::json!({ "encoding": "base64" }))]);
+        self.rpc_call("getAccountInfo", params).await
     }
 
     pub(crate) async fn find_token_account(&self, owner: &str, mint: &str) -> Result<Option<String>, JsonRpcError> {

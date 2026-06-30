@@ -623,7 +623,7 @@ sealed class ConfirmParams() {
         override val shouldIgnoreValueCheck: Boolean
             get() = true
 
-        override fun destination(): DestinationAddress = DestinationAddress.Hyperliquid
+        override fun destination(): DestinationAddress = DestinationAddress.hyperliquidProvider
 
         override fun toDto(): GemTransactionInputType = GemTransactionInputType.Perpetual(
             asset = asset.toGem(),

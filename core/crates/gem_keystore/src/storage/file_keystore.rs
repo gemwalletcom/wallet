@@ -35,8 +35,8 @@ impl FileKeystore {
 
     fn import_mnemonic_unlocked(&self, phrase: &str, password: &[u8], keystore_id: Option<String>) -> Result<StoredSecretMeta, KeystoreError> {
         validate_v4_password(password)?;
-        let phrase = Mnemonic::sanitize(phrase)?;
-        let payload = SecretPayload::Mnemonic { phrase };
+        let phrase = Mnemonic::clean(phrase)?;
+        let payload = SecretPayload::Mnemonic { phrase: phrase.to_string() };
         self.import_payload_unlocked(SecretKind::Mnemonic, payload, password, keystore_id)
     }
 
@@ -94,7 +94,10 @@ impl FileKeystore {
         let id = KeystoreId::parse(keystore_id)?;
         let path = self.path_for_id(&id);
         match fs::remove_file(path) {
-            Ok(()) => Ok(true),
+            Ok(()) => {
+                sync_directory(&self.base_dir)?;
+                Ok(true)
+            }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
             Err(error) => Err(error.into()),
         }

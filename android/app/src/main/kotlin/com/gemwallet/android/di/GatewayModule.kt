@@ -2,9 +2,7 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import com.gemwallet.android.Constants
-import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
-import com.gemwallet.android.cases.nodes.GetNodesCase
-import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
+import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.repositories.config.SharedGemPreferences
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemapi.NativeProvider
@@ -29,16 +27,12 @@ object GatewayModule {
     @Singleton
     @Provides
     fun provideAlienProvider(
-        getNodesCase: GetNodesCase,
-        getCurrentNodeCase: GetCurrentNodeCase,
-        setCurrentNodeCase: SetCurrentNodeCase,
+        getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
         @ApplicationContext context: Context,
     ): AlienProvider {
         return NativeProvider(
-            getNodesCase = getNodesCase,
-            getCurrentNodeCase = getCurrentNodeCase,
-            setCurrentNodeCase = setCurrentNodeCase,
+            getNodeUrlCase = getNodeUrlCase,
             httpClient = okHttpClient,
             config = NativeProviderConfig(
                 networkOfflineMessage = context.getString(UiR.string.errors_network_offline),

@@ -63,9 +63,11 @@ impl TronAccount {
 }
 
 #[cfg(test)]
-pub fn mock_tron_client(get_handler: impl Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static) -> TronClient<MockClient> {
-    let mock = MockClient::new().with_get(get_handler);
-    TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()))
+impl TronClient<MockClient> {
+    pub fn mock(get_handler: impl Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static) -> Self {
+        let mock = MockClient::new().with_get(get_handler);
+        Self::new(mock.clone(), TronGridClient::new(mock, String::new()))
+    }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]

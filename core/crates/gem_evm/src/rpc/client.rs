@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 use super::{
     ankr::AnkrClient,
-    model::{Block, BlockTransactionsIds, EthSyncingStatus, Transaction, TransactionReciept, TransactionReplayTrace},
+    model::{Block, BlockTransactionsIds, Transaction, TransactionReciept, TransactionReplayTrace},
 };
 use crate::jsonrpc::BlockParameter;
 use crate::models::fee::EthereumFeeHistory;
@@ -189,10 +189,6 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub async fn get_block_number(&self) -> Result<String, JsonRpcError> {
         self.client.call("eth_blockNumber", json!([])).await
-    }
-
-    pub async fn get_sync_status(&self) -> Result<EthSyncingStatus, JsonRpcError> {
-        self.client.call("eth_syncing", json!([])).await
     }
 
     pub async fn get_transaction_count(&self, address: &str) -> Result<String, JsonRpcError> {

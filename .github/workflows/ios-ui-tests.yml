@@ -7,6 +7,7 @@ on:
     paths:
       - "ios/**"
       - "core/**"
+      - "localization/**"
       - ".gitmodules"
       - ".github/actions/**"
       - ".github/workflows/ios-ui-tests.yml"
@@ -15,6 +16,7 @@ on:
     paths:
       - "ios/**"
       - "core/**"
+      - "localization/**"
       - ".gitmodules"
       - ".github/actions/**"
       - ".github/workflows/ios-ui-tests.yml"
@@ -46,7 +48,7 @@ jobs:
         with:
           path: |
             ~/.swiftpm
-            ios/.build
+            ios/build/SourcePackages
           key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
@@ -58,6 +60,8 @@ jobs:
       - name: Build Core
         working-directory: ios
         run: just generate-stone
+        env:
+          GEMSTONE_IOS_TARGETS: "aarch64-apple-ios-sim"
 
       - name: Resolve SPM Dependencies
         working-directory: ios

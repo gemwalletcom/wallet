@@ -40,10 +40,10 @@ struct ConfirmTransferNavigationView: View {
                         .presentationDetents([.large])
                         .presentationBackground(Colors.grayBackground)
                     }
-                case let .fiatConnect(assetAddress, wallet):
+                case let .fiatConnect(assetAddress, wallet, amount):
                     NavigationStack {
                         FiatConnectNavigationView(
-                            model: viewModelFactory.fiatScene(assetAddress: assetAddress, wallet: wallet),
+                            model: viewModelFactory.fiatScene(assetAddress: assetAddress, wallet: wallet, amount: amount),
                         )
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)

@@ -8,6 +8,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -78,5 +79,33 @@ class NodesRepositoryTest {
 
         assertEquals(true, nodes.any { it.url == "https://config.example" })
         coVerify(exactly = 0) { nodesDao.addNodes(any()) }
+    }
+
+    @Test
+    fun getNodeUrl_returnsSelectedNodeUrl() {
+        every { configStore.getString("usage_node", Chain.Ethereum.string) } returns """
+            {"url":"https://custom.example","status":"active","priority":0}
+        """.trimIndent()
+        val subject = NodesRepository(
+            nodesDao = nodesDao,
+            configStore = configStore,
+            config = config,
+        )
+
+        assertEquals("https://custom.example", subject.getNodeUrl(Chain.Ethereum))
+    }
+
+    @Test
+    fun getNodeUrl_fallsBackToDefaultNodeWithoutPersistingSelection() {
+        every { configStore.getString("usage_node", Chain.Ethereum.string) } returns ""
+        val subject = NodesRepository(
+            nodesDao = nodesDao,
+            configStore = configStore,
+            config = config,
+        )
+
+        assertEquals("https://gemnodes.com/ethereum", subject.getNodeUrl(Chain.Ethereum))
+        coVerify(exactly = 0) { nodesDao.addNodes(any()) }
+        verify(exactly = 0) { configStore.putString(any(), any(), any()) }
     }
 }

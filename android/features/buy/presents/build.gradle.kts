@@ -53,6 +53,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":gemcore"))
     implementation(project(":ui"))
     implementation(project(":features:buy:viewmodels"))
 

@@ -86,7 +86,6 @@ impl AcrossDeployment {
             (Chain::Linea, vec![LINEA_USDT_ASSET_ID.clone(), LINEA_WETH_ASSET_ID.clone()]),
             (Chain::ZkSync, vec![ZKSYNC_WETH_ASSET_ID.clone(), ZKSYNC_USDT_ASSET_ID.clone()]),
             (Chain::World, vec![WORLD_WETH_ASSET_ID.clone()]),
-            (Chain::Blast, vec![BLAST_WETH_ASSET_ID.clone()]),
             (Chain::Ink, vec![INK_WETH_ASSET_ID.clone(), INK_USDT_ASSET_ID.clone()]),
             (Chain::Unichain, vec![UNICHAIN_WETH_ASSET_ID.clone(), UNICHAIN_USDC_ASSET_ID.clone()]),
             (Chain::Monad, vec![MONAD_USDC_ASSET_ID.clone(), MONAD_USDT_ASSET_ID.clone()]),
@@ -129,7 +128,6 @@ impl AcrossDeployment {
                 set: HashSet::from_iter([
                     ARBITRUM_WETH_ASSET_ID.clone(),
                     BASE_WETH_ASSET_ID.clone(),
-                    BLAST_WETH_ASSET_ID.clone(),
                     ETHEREUM_WETH_ASSET_ID.clone(),
                     LINEA_WETH_ASSET_ID.clone(),
                     OPTIMISM_WETH_ASSET_ID.clone(),
@@ -244,7 +242,6 @@ impl AcrossDeployment {
                 },
                 set: HashSet::from_iter([
                     ARBITRUM_WBTC_ASSET_ID.clone(),
-                    BLAST_WBTC_ASSET_ID.clone(),
                     ETHEREUM_WBTC_ASSET_ID.clone(),
                     LINEA_WBTC_ASSET_ID.clone(),
                     OPTIMISM_WBTC_ASSET_ID.clone(),

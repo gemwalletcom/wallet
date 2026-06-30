@@ -248,7 +248,8 @@ class WalletNavigator(
     }
     private fun clearSwapSelections() = swapSelections.clear()
     fun openBuy() = push(FiatSelectRoute)
-    fun openBuy(assetId: AssetId) = push(FiatInputRoute(assetId))
+    fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
+    fun openBuy(assetId: AssetId, amount: Double?) = push(FiatInputRoute(assetId, amount))
     fun openFiatTransactions() = push(FiatTransactionsRoute)
     fun openConfirm(params: ConfirmParams) {
         val pack = params.pack() ?: return

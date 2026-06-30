@@ -1,8 +1,9 @@
 use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_IOS_BUNDLE_ID, PlatformStore, config::Release};
+use serde_json::json;
 use std::error::Error;
 use storage::{Database, ReleasesRepository, models::ReleaseRow};
 
-use super::model::{GitHubRepository, ITunesLookupResponse, SamsungStoreDetail, SolanaStoreRelease};
+use super::model::{FdroidPackageResponse, GitHubRepository, HuaweiStoreResponse, ITunesLookupResponse, SamsungStoreDetail, SolanaStoreRelease};
 
 pub struct VersionUpdater {
     database: Database,
@@ -17,6 +18,8 @@ impl VersionUpdater {
         &[
             PlatformStore::AppStore,
             PlatformStore::ApkUniversal,
+            PlatformStore::Fdroid,
+            PlatformStore::Huawei,
             PlatformStore::SamsungStore,
             PlatformStore::SolanaStore,
         ]
@@ -47,6 +50,8 @@ impl VersionUpdater {
         match store {
             PlatformStore::AppStore => self.get_app_store_version().await,
             PlatformStore::ApkUniversal => self.get_github_version().await,
+            PlatformStore::Fdroid => self.get_fdroid_version().await,
+            PlatformStore::Huawei => self.get_huawei_version().await,
             PlatformStore::SamsungStore => self.get_samsung_version().await,
             PlatformStore::SolanaStore => self.get_solana_store_version().await,
             _ => Err(format!("unsupported store: {:?}", store).into()),
@@ -80,6 +85,25 @@ impl VersionUpdater {
             .find(|x| !x.draft && !x.prerelease && x.assets.iter().any(|a| a.name.contains("gem_wallet_universal_")))
             .map(|r| r.name)
             .ok_or_else(|| "no releases".into())
+    }
+
+    async fn get_fdroid_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
+        let url = format!("https://f-droid.org/api/v1/packages/{GEM_ANDROID_PACKAGE_ID}");
+        let response = reqwest::get(url).await?.error_for_status()?.json::<FdroidPackageResponse>().await?;
+        response.latest_version().ok_or_else(|| "f-droid version not found".into())
+    }
+
+    async fn get_huawei_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
+        let url = "https://web-dre.hispace.dbankcloud.com/edge/single/filtered";
+        let response = reqwest::Client::new()
+            .post(url)
+            .json(&json!({ "pkgName": GEM_ANDROID_PACKAGE_ID }))
+            .send()
+            .await?
+            .error_for_status()?
+            .json::<HuaweiStoreResponse>()
+            .await?;
+        response.app_info.map(|app| app.version).ok_or_else(|| "huawei version not found".into())
     }
 
     async fn get_samsung_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {

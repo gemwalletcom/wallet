@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use crate::COMMITMENT_CONFIRMED;
 
 pub const ENCODING_BASE64: &str = "base64";
-pub const ENCODING_BASE58: &str = "base58";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Configuration {

@@ -1,11 +1,12 @@
+use std::collections::HashMap;
 use std::error::Error;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use chrono::{NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::swap::{SwapResult, SwapStatus};
-use primitives::{Chain, TransactionSwapMetadata, TransactionType};
+use primitives::{Chain, JobConfiguration, TransactionSwapMetadata, TransactionType};
 use storage::models::TransactionRow;
 use storage::{Database, TransactionFilter, TransactionState, TransactionUpdate, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
@@ -18,6 +19,22 @@ use crate::client::SwapVaultAddressClient;
 pub struct InTransitConfig {
     pub timeout: Duration,
     pub query_limit: i64,
+    pub check_interval: JobConfiguration,
+}
+
+impl InTransitConfig {
+    fn query_limit(&self) -> usize {
+        self.query_limit.max(0) as usize
+    }
+
+    fn scan_limit(&self) -> i64 {
+        self.query_limit.max(0).saturating_mul(i64::from(self.check_interval.max_interval_steps()))
+    }
+}
+
+struct CheckSchedule {
+    next_check_at: DateTime<Utc>,
+    interval_ms: u32,
 }
 
 pub struct InTransitUpdater {
@@ -26,6 +43,7 @@ pub struct InTransitUpdater {
     swapper: Arc<GemSwapper>,
     stream_producer: StreamProducer,
     vault_client: SwapVaultAddressClient,
+    check_schedules: Mutex<HashMap<i64, CheckSchedule>>,
 }
 
 impl InTransitUpdater {
@@ -36,6 +54,7 @@ impl InTransitUpdater {
             swapper,
             stream_producer,
             vault_client,
+            check_schedules: Mutex::new(HashMap::new()),
         }
     }
 
@@ -43,18 +62,30 @@ impl InTransitUpdater {
         let transactions = self
             .database
             .transactions()?
-            .get_transactions_by_filter(vec![TransactionFilter::States(vec![TransactionState::InTransit])], self.config.query_limit)?;
+            .get_transactions_by_filter(vec![TransactionFilter::States(vec![TransactionState::InTransit])], self.config.scan_limit())?;
+        let now = Utc::now();
+        let transactions_to_check = {
+            let schedules = self.check_schedules();
+            transactions
+                .iter()
+                .filter(|row| match schedules.get(&row.id) {
+                    Some(schedule) => schedule.next_check_at <= now,
+                    None => true,
+                })
+                .take(self.config.query_limit())
+                .collect::<Vec<_>>()
+        };
 
-        if transactions.is_empty() {
+        if transactions_to_check.is_empty() {
             return Ok(0);
         }
 
         let vault_addresses = self.vault_client.get_deposit_address_map().await?;
-        let cutoff = (Utc::now() - self.config.timeout).naive_utc();
+        let cutoff = (now - self.config.timeout).naive_utc();
         let mut updated = 0;
 
-        for transaction in &transactions {
-            if self.process_transaction(transaction, cutoff, &vault_addresses).await? {
+        for transaction in transactions_to_check {
+            if self.process_transaction(transaction, now, cutoff, &vault_addresses).await? {
                 updated += 1;
             }
         }
@@ -62,13 +93,22 @@ impl InTransitUpdater {
         Ok(updated)
     }
 
-    async fn process_transaction(&self, row: &TransactionRow, cutoff: NaiveDateTime, vault_addresses: &DepositAddressMap) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn process_transaction(
+        &self,
+        row: &TransactionRow,
+        now: DateTime<Utc>,
+        cutoff: NaiveDateTime,
+        vault_addresses: &DepositAddressMap,
+    ) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let chain = row.chain();
         let transaction = row.as_primitive(row.get_addresses());
-        let elapsed = DurationMs((Utc::now().naive_utc() - row.created_at).to_std().unwrap_or_default());
+        let elapsed = match (now.naive_utc() - row.created_at).to_std() {
+            Ok(duration) => DurationMs(duration),
+            Err(_) => DurationMs(Duration::default()),
+        };
 
         let provider = cross_chain::swap_provider_with_vault_addresses(&transaction, vault_addresses);
-        let provider_name = provider.map(|p| p.as_ref().to_string()).unwrap_or_default();
+        let provider_name = provider.as_ref().map(|provider| provider.as_ref().to_string()).unwrap_or_default();
         let result = match provider {
             Some(provider) => match self.swapper.get_swap_result(chain, provider, &row.hash).await {
                 Ok(r) => r,
@@ -83,9 +123,11 @@ impl InTransitUpdater {
                     );
                     if row.created_at < cutoff {
                         info_with_fields!("in_transit timed out", chain = chain.as_ref(), hash = row.hash, provider = provider_name, elapsed = elapsed);
+                        self.check_schedules().remove(&row.id);
                         self.save_and_publish(chain, row, &TransactionState::Failed, None).await?;
                         return Ok(true);
                     }
+                    self.schedule_next_check(row, now);
                     return Ok(false);
                 }
             },
@@ -96,14 +138,38 @@ impl InTransitUpdater {
         };
         let Some((state, metadata)) = resolve_status(&result, row.created_at, cutoff) else {
             info_with_fields!("in_transit pending", chain = chain.as_ref(), hash = row.hash, provider = provider_name, elapsed = elapsed);
+            self.schedule_next_check(row, now);
             return Ok(false);
         };
 
         info_with_fields!("in_transit confirmed", chain = chain.as_ref(), hash = row.hash, state = state.as_ref(), elapsed = elapsed);
 
+        self.check_schedules().remove(&row.id);
         let metadata = metadata.and_then(|m| serde_json::to_value(m).ok());
         self.save_and_publish(chain, row, &state, metadata).await?;
         Ok(true)
+    }
+
+    fn schedule_next_check(&self, row: &TransactionRow, now: DateTime<Utc>) {
+        let mut schedules = self.check_schedules();
+        let current_interval_ms = match schedules.get(&row.id) {
+            Some(schedule) => schedule.interval_ms,
+            None => self.config.check_interval.initial_interval_ms,
+        };
+        schedules.insert(
+            row.id,
+            CheckSchedule {
+                next_check_at: now + chrono::Duration::milliseconds(i64::from(current_interval_ms)),
+                interval_ms: self.config.check_interval.next_interval_ms(current_interval_ms),
+            },
+        );
+    }
+
+    fn check_schedules(&self) -> std::sync::MutexGuard<'_, HashMap<i64, CheckSchedule>> {
+        match self.check_schedules.lock() {
+            Ok(schedules) => schedules,
+            Err(error) => error.into_inner(),
+        }
     }
 
     async fn save_and_publish(
@@ -113,10 +179,14 @@ impl InTransitUpdater {
         state: &TransactionState,
         metadata: Option<serde_json::Value>,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let mut updates = vec![TransactionUpdate::State(state.clone()), TransactionUpdate::Kind(TransactionType::Swap.into())];
-        if let Some(ref json) = metadata {
-            updates.push(TransactionUpdate::Metadata(json.clone()));
-        }
+        let updates = match metadata {
+            Some(ref json) => vec![
+                TransactionUpdate::State(state.clone()),
+                TransactionUpdate::Kind(TransactionType::Swap.into()),
+                TransactionUpdate::Metadata(json.clone()),
+            ],
+            None => vec![TransactionUpdate::State(state.clone()), TransactionUpdate::Kind(TransactionType::Swap.into())],
+        };
         self.database.transactions()?.update_transaction(chain.as_ref(), &row.hash, updates)?;
 
         let transaction = row.as_primitive(row.get_addresses()).with_swap_state(state.clone().into(), metadata.clone());
@@ -156,16 +226,36 @@ mod tests {
     }
 
     #[test]
+    fn test_scan_limit_covers_check_interval_window() {
+        let config = InTransitConfig {
+            timeout: Duration::from_secs(60),
+            query_limit: 100,
+            check_interval: JobConfiguration {
+                initial_interval_ms: 60_000,
+                max_interval_ms: 300_000,
+                step_factor: 2.0,
+            },
+        };
+
+        assert_eq!(config.query_limit(), 100);
+        assert_eq!(config.scan_limit(), 500);
+    }
+
+    #[test]
     fn test_resolve_status_completed() {
         let now = Utc::now().naive_utc();
-        let (state, _) = resolve_status(&swap_result(SwapStatus::Completed, None), now, now).unwrap();
+        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Completed, None), now, now) else {
+            panic!("completed status should resolve");
+        };
         assert_eq!(*state, PrimitiveTransactionState::Confirmed);
     }
 
     #[test]
     fn test_resolve_status_failed() {
         let now = Utc::now().naive_utc();
-        let (state, _) = resolve_status(&swap_result(SwapStatus::Failed, None), now, now).unwrap();
+        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Failed, None), now, now) else {
+            panic!("failed status should resolve");
+        };
         assert_eq!(*state, PrimitiveTransactionState::Failed);
     }
 
@@ -180,7 +270,9 @@ mod tests {
     fn test_resolve_status_pending_past_timeout() {
         let cutoff = Utc::now().naive_utc();
         let created_at = (Utc::now() - Duration::from_secs(7200)).naive_utc();
-        let (state, _) = resolve_status(&swap_result(SwapStatus::Pending, None), created_at, cutoff).unwrap();
+        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Pending, None), created_at, cutoff) else {
+            panic!("timed out pending status should resolve");
+        };
         assert_eq!(*state, PrimitiveTransactionState::Failed);
     }
 
@@ -188,7 +280,9 @@ mod tests {
     fn test_resolve_status_metadata_from_result() {
         let now = Utc::now().naive_utc();
         let metadata = swap_metadata("thorchain", "50000", "2500");
-        let (_, resolved) = resolve_status(&swap_result(SwapStatus::Completed, Some(metadata)), now, now).unwrap();
-        assert_eq!(resolved.unwrap().from_value, "50000");
+        let Some((_, Some(resolved))) = resolve_status(&swap_result(SwapStatus::Completed, Some(metadata)), now, now) else {
+            panic!("completed status should include metadata");
+        };
+        assert_eq!(resolved.from_value, "50000");
     }
 }

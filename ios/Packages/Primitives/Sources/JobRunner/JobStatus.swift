@@ -4,5 +4,5 @@ import Foundation
 
 public enum JobStatus: Sendable {
     case complete
-    case retry
+    case retry(error: String? = nil)
 }

@@ -4,15 +4,11 @@ use std::{
     str::FromStr,
 };
 
-pub const MIME_TYPE_PNG: &str = "image/png";
-pub const MIME_TYPE_JPG: &str = "image/jpeg";
-pub const MIME_TYPE_SVG: &str = "image/svg+xml";
-
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use typeshare::typeshare;
 
-use crate::{AssetLink, CHAIN_SEPARATOR, Chain, TOKEN_ID_SEPARATOR, VerificationStatus};
+use crate::{AssetLink, CHAIN_SEPARATOR, Chain, ImageType, TOKEN_ID_SEPARATOR, VerificationStatus};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -272,13 +268,7 @@ impl NFTType {
 }
 
 fn mime_type_for_image_url(url: &str) -> String {
-    if url.ends_with(".jpeg") || url.ends_with(".jpg") {
-        MIME_TYPE_JPG.to_string()
-    } else if url.ends_with(".svg") {
-        MIME_TYPE_SVG.to_string()
-    } else {
-        MIME_TYPE_PNG.to_string()
-    }
+    ImageType::from_extension(url).unwrap_or(ImageType::Png).mime_type().to_string()
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, EnumIter, AsRefStr, EnumString)]

@@ -24,7 +24,6 @@ public struct TransactionRequest: DatabaseQueryable {
             type: .transaction(id: transactionId.identifier),
             filters: filters,
             walletId: walletId,
-            limit: 1,
         ).first ?? .empty
     }
 }

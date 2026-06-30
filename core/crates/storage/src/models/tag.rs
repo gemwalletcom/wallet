@@ -37,10 +37,11 @@ impl TagRow {
         Self { id, name }
     }
 
-    pub fn as_primitive(&self) -> AssetList {
+    pub fn as_primitive(&self, count: u32) -> AssetList {
         AssetList {
             id: self.id.clone(),
             name: self.name.clone(),
+            count,
         }
     }
 }

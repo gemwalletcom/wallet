@@ -58,6 +58,26 @@ class ConnectionsRepositoryTest {
         coVerify { connectionsDao.delete("connection-1") }
     }
 
+    @Test
+    fun sync_withNullSessions_doesNotDeleteConnections() = runTest {
+        every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
+        every { connectionsDao.getAll() } returns flowOf(listOf(connection(id = "connection-1", walletId = "wallet-1")))
+
+        repository.sync(null)
+
+        coVerify(exactly = 0) { connectionsDao.deleteAll(any()) }
+    }
+
+    @Test
+    fun sync_withEmptySessions_deletesUnknownConnections() = runTest {
+        every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
+        every { connectionsDao.getAll() } returns flowOf(listOf(connection(id = "connection-1", walletId = "wallet-1")))
+
+        repository.sync(emptyList())
+
+        coVerify { connectionsDao.deleteAll(any()) }
+    }
+
     private fun connection(
         id: String,
         walletId: String,

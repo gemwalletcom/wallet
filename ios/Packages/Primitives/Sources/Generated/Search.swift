@@ -7,10 +7,12 @@ import Foundation
 public struct AssetList: Codable, Equatable, Hashable, Identifiable, Sendable {
 	public let id: String
 	public let name: String
+	public let count: UInt32
 
-	public init(id: String, name: String) {
+	public init(id: String, name: String, count: UInt32) {
 		self.id = id
 		self.name = name
+		self.count = count
 	}
 }
 

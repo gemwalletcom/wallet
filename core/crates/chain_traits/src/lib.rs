@@ -6,8 +6,8 @@ use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeSyncStatus, Transaction, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
-    TransactionStateRequest, TransactionUpdate, UTXO,
+    NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
+    TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
 
 pub struct TransactionsRequest {
@@ -25,11 +25,6 @@ impl TransactionsRequest {
             limit: None,
             from_timestamp: None,
         }
-    }
-
-    pub fn with_asset_id(mut self, asset_id: AssetId) -> Self {
-        self.asset_id = Some(asset_id);
-        self
     }
 
     pub fn with_limit(mut self, limit: usize) -> Self {
@@ -56,6 +51,7 @@ pub trait ChainTraits:
     + ChainToken
     + ChainTransactionLoad
     + ChainAddressStatus
+    + ChainSimulation
 {
 }
 
@@ -221,5 +217,12 @@ pub trait ChainTransactionLoad: Send + Sync {
 pub trait ChainAddressStatus: Send + Sync {
     async fn get_address_status(&self, _address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
+    }
+}
+
+#[async_trait]
+pub trait ChainSimulation: Send + Sync {
+    async fn simulate_transaction(&self, _input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
+        Err("Chain does not support transaction simulation".into())
     }
 }

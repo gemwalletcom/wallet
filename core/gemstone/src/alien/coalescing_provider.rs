@@ -112,6 +112,8 @@ impl AlienProvider for CoalescingAlienProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::alien::AlienHttpMethod;
+    use gem_client::{CONTENT_TYPE, ContentType};
     use std::{
         future::Future,
         sync::{
@@ -169,7 +171,12 @@ mod tests {
     }
 
     fn target(request_type: &str) -> AlienTarget {
-        AlienTarget::post_json("https://example.com/info", &serde_json::json!({ "type": request_type }))
+        AlienTarget {
+            url: "https://example.com/info".to_string(),
+            method: AlienHttpMethod::Post,
+            headers: Some(HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string())])),
+            body: Some(serde_json::to_vec(&serde_json::json!({ "type": request_type })).unwrap()),
+        }
     }
 
     fn spawn_request(provider: Arc<CoalescingAlienProvider>, barrier: Arc<Barrier>, request_type: &'static str) -> thread::JoinHandle<AlienResponse> {

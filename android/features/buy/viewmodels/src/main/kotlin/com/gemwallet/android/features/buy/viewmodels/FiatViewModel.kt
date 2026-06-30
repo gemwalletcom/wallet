@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
+import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
@@ -69,14 +70,17 @@ class FiatViewModel @Inject constructor(
 
     val type = MutableStateFlow(FiatQuoteType.Buy)
     val assetId = MutableStateFlow(savedStateHandle.requireAssetId(RouteArgument.AssetId))
+    private val initialBuyAmount = savedStateHandle.get<Double>(RouteArgument.FiatAmount.key)
+        ?.toAmountText()
+        ?: FiatConfig.defaultBuyAmount.toString()
 
     val buyOperation = FiatOperationState(
-        defaultAmount = DEFAULT_BUY_AMOUNT,
-        minFiatAmount = MIN_FIAT_AMOUNT,
+        defaultAmount = initialBuyAmount,
+        minFiatAmount = FiatConfig.minimumAmount.toDouble(),
     )
     val sellOperation = FiatOperationState(
-        defaultAmount = DEFAULT_SELL_AMOUNT,
-        minFiatAmount = 0.0,
+        defaultAmount = FiatConfig.defaultSellAmount.toString(),
+        minFiatAmount = FiatConfig.minimumAmount.toDouble(),
     )
 
     private fun currentOperation() = when (type.value) {
@@ -89,7 +93,7 @@ class FiatViewModel @Inject constructor(
             FiatQuoteType.Buy -> buyOperation.amount
             FiatQuoteType.Sell -> sellOperation.amount
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, DEFAULT_BUY_AMOUNT)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, initialBuyAmount)
 
     private val assetData: StateFlow<AssetData?> = assetId
         .flatMapLatest { getBuyAssetInfo(it) }
@@ -119,11 +123,9 @@ class FiatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val suggestedAmounts = type.mapLatest {
-        listOf(
-            FiatSuggestion.SuggestionAmount("${currencySymbol}100", 100.0),
-            FiatSuggestion.SuggestionAmount("${currencySymbol}250", 250.0),
-            FiatSuggestion.RandomAmount,
-        )
+        FiatConfig.suggestedAmounts.map {
+            FiatSuggestion.SuggestionAmount("$currencySymbol$it", it.toDouble())
+        } + FiatSuggestion.RandomAmount
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val state: StateFlow<FiatSceneState> = type.flatMapLatest {
@@ -242,7 +244,7 @@ class FiatViewModel @Inject constructor(
         }
     }
 
-    private fun randomAmount(): Int = Random.nextInt(MIN_FIAT_AMOUNT.toInt(), MAX_RANDOM_FIAT_AMOUNT + 1)
+    private fun randomAmount(): Int = Random.nextInt(FiatConfig.minimumAmount, FiatConfig.randomMaxAmount + 1)
 
     fun getUrl(callback: (String?) -> Unit) {
         viewModelScope.launch {
@@ -262,13 +264,10 @@ class FiatViewModel @Inject constructor(
         val refreshTrigger: QuoteRefreshTrigger,
     )
 
-    companion object {
-        const val MIN_FIAT_AMOUNT = 5.0
-        const val DEFAULT_BUY_AMOUNT = "50"
-        const val DEFAULT_SELL_AMOUNT = "100"
-        internal const val MAX_RANDOM_FIAT_AMOUNT = 1000
-    }
 }
+
+private fun Double.toAmountText(): String =
+    BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()
 
 private fun AssetData.showFiatTypePicker() =
     metadata?.isSellEnabled == true && balance.balance.hasAvailable()

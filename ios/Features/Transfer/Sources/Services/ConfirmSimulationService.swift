@@ -2,6 +2,7 @@
 
 import AddressNameService
 import AssetsService
+import BigInt
 import Primitives
 import PrimitivesComponents
 
@@ -23,6 +24,7 @@ public struct ConfirmSimulationService: Sendable {
             payload: payloadFields(for: data.type, simulation: simulation),
             payloadAddressNames: [:],
             headerData: cachedHeaderData(data: data, simulation: simulation),
+            balanceChanges: balanceChanges(simulation: simulation),
         )
     }
 
@@ -36,6 +38,7 @@ public struct ConfirmSimulationService: Sendable {
             payload: payload,
             payloadAddressNames: names,
             headerData: headerData,
+            balanceChanges: balanceChanges(simulation: simulation),
         )
     }
 }
@@ -46,6 +49,7 @@ private extension ConfirmSimulationService {
         payload: [SimulationPayloadField],
         payloadAddressNames: [ChainAddress: AddressName],
         headerData: AssetValueHeaderData?,
+        balanceChanges: [SimulationAssetChange],
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(
             warnings: simulation?.warnings ?? [],
@@ -53,6 +57,7 @@ private extension ConfirmSimulationService {
             secondaryFields: payload.filter { $0.display == .secondary },
             payloadAddressNames: payloadAddressNames,
             headerData: headerData,
+            balanceChanges: balanceChanges,
         )
     }
 
@@ -123,6 +128,21 @@ private extension ConfirmSimulationService {
                 debugLog("simulation header asset error: \(error)")
             }
             return nil
+        }
+    }
+
+    func balanceChanges(simulation: SimulationResult?) -> [SimulationAssetChange] {
+        (simulation?.balanceChanges ?? []).compactMap { change in
+            guard let value = BigInt(change.value, radix: 10), value != .zero else {
+                return nil
+            }
+            return SimulationAssetChange(
+                assetId: change.assetId,
+                value: value,
+                decimals: change.decimals,
+                name: change.name,
+                symbol: change.symbol,
+            )
         }
     }
 

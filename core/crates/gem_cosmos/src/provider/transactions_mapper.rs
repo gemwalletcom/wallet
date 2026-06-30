@@ -2,12 +2,12 @@ use chrono::DateTime;
 use gem_encoding::decode_base64;
 use gem_hash::sha2::sha256;
 use primitives::chain_cosmos::CosmosChain;
-use primitives::{AssetId, StakeValidator, Transaction, TransactionState, TransactionType};
+use primitives::{AssetId, Transaction, TransactionState, TransactionType};
 use std::error::Error;
 
 use crate::constants::get_base_fee;
 use crate::models::BroadcastResponse;
-use crate::models::{AuthInfo, Message, TransactionBody, TransactionResponse, Validator};
+use crate::models::{AuthInfo, Message, TransactionBody, TransactionResponse};
 
 pub fn map_transaction_broadcast(response: &BroadcastResponse) -> Result<String, Box<dyn Error + Sync + Send>> {
     if let Some(tx_response) = &response.tx_response {
@@ -136,10 +136,6 @@ pub fn map_transaction(cosmos_chain: CosmosChain, body: TransactionBody, auth_in
         None,
         created_at,
     ))
-}
-
-pub fn map_validators(validators: Vec<Validator>) -> Vec<StakeValidator> {
-    validators.into_iter().map(|v| StakeValidator::new(v.operator_address, v.description.moniker)).collect()
 }
 
 #[cfg(test)]

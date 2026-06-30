@@ -39,6 +39,9 @@ pub struct SimulationWarning {
 pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
     pub value: String,
+    pub decimals: i32,
+    pub name: Option<String>,
+    pub symbol: Option<String>,
 }
 
 #[uniffi::remote(Enum)]

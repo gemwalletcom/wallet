@@ -32,7 +32,6 @@ use async_trait::async_trait;
 use serde::{Serialize, de::DeserializeOwned};
 use std::{collections::HashMap, fmt::Debug};
 
-pub type Data = Vec<u8>;
 pub const X_CACHE_TTL: &str = "x-gem-cache-ttl";
 
 #[async_trait]

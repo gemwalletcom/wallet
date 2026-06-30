@@ -22,17 +22,23 @@ pub struct TokenBalanceChange {
 }
 
 impl TokenBalance {
-    pub fn new(account_index: i64, mint: String, owner: String, ui_token_amount: TokenAmount) -> Self {
-        Self {
-            account_index,
-            mint,
-            owner,
-            ui_token_amount,
-        }
-    }
-
     pub fn get_amount(&self) -> BigUint {
         self.ui_token_amount.amount.clone()
+    }
+}
+
+#[cfg(test)]
+impl TokenBalance {
+    pub fn mock(mint: &str, owner: &str, amount: u64) -> Self {
+        Self {
+            account_index: 0,
+            mint: mint.to_string(),
+            owner: owner.to_string(),
+            ui_token_amount: TokenAmount {
+                amount: BigUint::from(amount),
+                decimals: 6,
+            },
+        }
     }
 }
 

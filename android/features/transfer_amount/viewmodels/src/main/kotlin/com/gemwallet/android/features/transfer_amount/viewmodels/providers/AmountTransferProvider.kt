@@ -80,7 +80,7 @@ class AmountTransferProvider(
         val owner = current.owner ?: error("owner missing")
         val builder = ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
         return when (params) {
-            is AmountParams.Deposit -> builder.deposit(DestinationAddress(PerpetualConfig.depositAddress))
+            is AmountParams.Deposit -> builder.deposit(DestinationAddress.hyperliquidDeposit)
             is AmountParams.Withdraw -> builder.withdrawal(DestinationAddress(owner.address))
             is AmountParams.Transfer -> builder.transfer(params.destination, params.memo)
             else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")

@@ -4,6 +4,7 @@ import BigInt
 import Formatters
 import Foundation
 import GemAPI
+import GemstonePrimitives
 import Localization
 import Primitives
 import Validators
@@ -15,9 +16,9 @@ struct BuyOperation: FiatOperation {
     private let walletId: WalletId
 
     private let config = FiatOperationConfig(
-        defaultAmount: 50,
-        minimumAmount: 5,
-        maximumAmount: 10000,
+        defaultAmount: FiatConfig.defaultBuyAmount,
+        minimumAmount: FiatConfig.minimumAmount,
+        maximumAmount: FiatConfig.maximumAmount,
     )
 
     var defaultAmount: Int {

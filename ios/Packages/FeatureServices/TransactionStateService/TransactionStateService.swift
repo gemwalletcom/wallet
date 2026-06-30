@@ -54,10 +54,9 @@ public struct TransactionStateService: Sendable {
             let stateChanges = try await fetchStateChanges(for: transaction)
             return try saveStateChanges(stateChanges, for: transaction)
         } catch {
-            debugLog("TransactionStateService: \(error)")
             return TransactionStateUpdateResult(
                 transactionId: transaction.id,
-                status: .retry,
+                status: .retry(error: String(describing: error)),
             )
         }
     }
@@ -125,7 +124,7 @@ extension TransactionStateService {
         guard stateChanges.state != transaction.state || !stateChanges.changes.isEmpty else {
             return TransactionStateUpdateResult(
                 transactionId: transaction.id,
-                status: transaction.state.isCompleted ? .complete : .retry,
+                status: transaction.state.isCompleted ? .complete : .retry(),
             )
         }
 
@@ -139,7 +138,7 @@ extension TransactionStateService {
 
         return TransactionStateUpdateResult(
             transactionId: localTransaction.transactionId,
-            status: nextState.isCompleted ? .complete : .retry,
+            status: nextState.isCompleted ? .complete : .retry(),
         )
     }
 

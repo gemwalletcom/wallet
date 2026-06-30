@@ -1,7 +1,6 @@
-use num_bigint::BigUint;
-use primitives::AssetAddress;
 use std::error::Error;
 
+use crate::model::AssetAddressChanges;
 use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use settings_chain::ChainProviders;
@@ -33,15 +32,10 @@ impl MessageConsumer<ChainAddressPayload, String> for FetchCoinAddressesConsumer
         let chain_address = payload.value;
         let balance = self.provider.get_balance_coin(chain_address.chain, chain_address.address.clone()).await?;
         let balance_value = balance.balance.available.to_string();
-        let asset_id = balance.asset_id;
-        let asset_address = AssetAddress::new(asset_id.clone(), chain_address.address.clone(), Some(balance_value.clone()));
-        let mut assets_addresses = self.database.assets_addresses()?;
+        let changes = AssetAddressChanges::from_coin_balance(&chain_address, balance);
 
-        if balance.balance.available == BigUint::ZERO && assets_addresses.get_asset_address(chain_address, asset_id)?.is_some() {
-            assets_addresses.delete_assets_addresses(vec![asset_address])?;
-        } else {
-            assets_addresses.add_assets_addresses(vec![asset_address])?;
-        }
+        self.database.assets_addresses()?.delete_assets_addresses(changes.addresses_to_delete)?;
+        self.database.assets_addresses()?.add_assets_addresses(changes.addresses_to_add)?;
 
         Ok(balance_value)
     }

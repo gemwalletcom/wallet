@@ -31,7 +31,7 @@ env:
 jobs:
   unit_test:
     name: Unit Tests
-    runs-on: macos-26
+    runs-on: ubuntu-latest
     env:
       UNIT_TESTS: "true"
     defaults:
@@ -50,11 +50,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
 
-      - name: Bootstrap
-        run: just bootstrap
+      - name: Install Android toolchains
+        run: |
+          just install-toolchains
+          just install-ndk
 
-      - name: Build and run unit tests
-        run: just ci-test
-        env:
-          GPR_USERNAME: ${{ github.actor }}
-          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build app
+        run: just build
+
+      - name: Run unit tests
+        run: just test
