@@ -9,6 +9,7 @@ object Migration_81_82 : Migration(81, 82) {
             "CREATE TABLE IF NOT EXISTS `asset_lists` (" +
                 "`id` TEXT NOT NULL, " +
                 "`name` TEXT NOT NULL, " +
+                "`count` INTEGER NOT NULL, " +
                 "PRIMARY KEY(`id`))"
         )
         db.execSQL("DROP TABLE IF EXISTS `search`")

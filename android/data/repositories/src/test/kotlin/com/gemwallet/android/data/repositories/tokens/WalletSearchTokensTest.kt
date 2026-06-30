@@ -66,7 +66,7 @@ class WalletSearchTokensTest {
             gemSearch.search(query = "stocks", chains = emptyList(), scope = WalletSearchTag.All)
         } returns mockSearchResponse(
             assets = listOf(mockAssetBasic()),
-            lists = listOf(AssetList(id = "stocks", name = "Stocks")),
+            lists = listOf(AssetList(id = "stocks", name = "Stocks", count = 0u)),
         )
 
         subject.search(query = "stocks", currency = Currency.USD, chains = emptyList(), tags = emptyList())

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 82,
-    "identityHash": "550dff880c784b8bf5e06ab939ab9e66",
+    "identityHash": "d5fd936d0fb8cd017d4c88a9fa6a9731",
     "entities": [
       {
         "tableName": "wallets",
@@ -1843,7 +1843,7 @@
       },
       {
         "tableName": "asset_lists",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `count` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1855,6 +1855,12 @@
             "fieldPath": "name",
             "columnName": "name",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "count",
+            "columnName": "count",
+            "affinity": "INTEGER",
             "notNull": true
           }
         ],
@@ -2654,7 +2660,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '550dff880c784b8bf5e06ab939ab9e66')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd5fd936d0fb8cd017d4c88a9fa6a9731')"
     ]
   }
 }
