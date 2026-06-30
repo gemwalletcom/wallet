@@ -9,5 +9,5 @@ class SearchListAssetsImpl(
     private val assetsRepository: AssetsRepository,
 ) : SearchListAssets {
     override fun invoke(listId: String, limit: Int): Flow<List<AssetInfo>> =
-        assetsRepository.searchByList(listId, limit)
+        assetsRepository.searchListAssets(listId, limit)
 }

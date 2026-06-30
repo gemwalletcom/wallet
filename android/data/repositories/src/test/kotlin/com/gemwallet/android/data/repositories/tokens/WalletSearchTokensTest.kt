@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.tokens
 
 import com.gemwallet.android.application.assets.coordinators.GemSearch
+import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.SearchDao
@@ -27,6 +28,7 @@ class WalletSearchTokensTest {
     private val perpetualRepository = mockk<PerpetualRepository>(relaxed = true)
     private val searchDao = mockk<SearchDao>(relaxed = true)
     private val assetListDao = mockk<AssetListDao>(relaxed = true)
+    private val tokenService = mockk<TokenService>(relaxed = true)
 
     private val subject = WalletSearchTokens(
         tokensRepository = tokensRepository,
@@ -34,6 +36,7 @@ class WalletSearchTokensTest {
         perpetualRepository = perpetualRepository,
         searchDao = searchDao,
         assetListDao = assetListDao,
+        tokenService = tokenService,
     )
 
     @Test
@@ -73,12 +76,25 @@ class WalletSearchTokensTest {
     }
 
     @Test
+    fun search_combinesOnChainNodeAssets() = runTest {
+        coEvery {
+            gemSearch.search(query = "0xabc", chains = emptyList(), scope = WalletSearchTag.All)
+        } returns mockSearchResponse(assets = emptyList())
+        coEvery { tokenService.search("0xabc", any()) } returns listOf(mockAssetBasic())
+
+        val result = subject.search(query = "0xabc", currency = Currency.USD, chains = emptyList(), tags = emptyList())
+
+        assertTrue(result)
+        coVerify { searchDao.put(match { records -> records.any { it.assetId != null } }) }
+    }
+
+    @Test
     fun searchList_storesAssetsUnderListKey() = runTest {
         coEvery {
             gemSearch.search(query = "", chains = emptyList(), scope = WalletSearchTag.List("stocks"))
         } returns mockSearchResponse(assets = listOf(mockAssetBasic()))
 
-        val result = subject.searchList(listId = "stocks", currency = Currency.USD, chains = emptyList())
+        val result = subject.search(query = "", currency = Currency.USD, chains = emptyList(), scope = WalletSearchTag.List("stocks"))
 
         assertTrue(result)
         coVerify { searchDao.put(match { records -> records.all { it.assetId != null } }) }
@@ -93,11 +109,22 @@ class WalletSearchTokensTest {
             perpetuals = listOf(PerpetualSearchData(perpetual = mockPerpetual(), asset = mockAsset())),
         )
 
-        val result = subject.searchList(listId = "stocks", currency = Currency.USD, chains = emptyList())
+        val result = subject.search(query = "", currency = Currency.USD, chains = emptyList(), scope = WalletSearchTag.List("stocks"))
 
         assertTrue(result)
         coVerify { perpetualRepository.putPerpetuals(any()) }
         coVerify { searchDao.put(match { records -> records.any { it.perpetualId != null } }) }
+    }
+
+    @Test
+    fun searchList_clearsStalePerpetualsWhenEmpty() = runTest {
+        coEvery {
+            gemSearch.search(query = "", chains = emptyList(), scope = WalletSearchTag.List("stocks"))
+        } returns mockSearchResponse(assets = listOf(mockAssetBasic()))
+
+        subject.search(query = "", currency = Currency.USD, chains = emptyList(), scope = WalletSearchTag.List("stocks"))
+
+        coVerify { searchDao.deletePerpetuals(any()) }
     }
 
     @Test

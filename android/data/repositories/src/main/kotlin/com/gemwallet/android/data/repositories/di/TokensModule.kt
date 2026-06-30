@@ -3,9 +3,9 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.application.assets.coordinators.GemSearch
 import com.gemwallet.android.application.assets.coordinators.SearchAssets
 import com.gemwallet.android.blockchain.services.TokenService
-import com.gemwallet.android.cases.tokens.SearchListTokens
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
+import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.tokens.TokensRepository
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
@@ -54,7 +54,8 @@ object TokensModule {
         perpetualRepository: PerpetualRepository,
         searchDao: SearchDao,
         assetListDao: AssetListDao,
-    ): WalletSearchTokens = WalletSearchTokens(tokensRepository, gemSearch, perpetualRepository, searchDao, assetListDao)
+        gateway: GemGateway,
+    ): WalletSearchTokens = WalletSearchTokens(tokensRepository, gemSearch, perpetualRepository, searchDao, assetListDao, TokenService(gateway))
 
     @Provides
     @Singleton
@@ -63,7 +64,7 @@ object TokensModule {
 
     @Provides
     @Singleton
-    fun provideSearchListTokens(walletSearchTokens: WalletSearchTokens): SearchListTokens = walletSearchTokens
+    fun provideWalletSearchScopeCase(walletSearchTokens: WalletSearchTokens): WalletSearchScopeCase = walletSearchTokens
 
     @Provides
     @Singleton

@@ -15,8 +15,8 @@ import uniffi.gemstone.GemGateway
 class TokenService(
     private val gateway: GemGateway,
 ) {
-    suspend fun search(query: String) = withContext(Dispatchers.IO) {
-        Chain.entries.map {
+    suspend fun search(query: String, chains: List<Chain>) = withContext(Dispatchers.IO) {
+        chains.map {
             async {
                 try {
                     if (gateway.getIsTokenAddress(it.string, query)) {

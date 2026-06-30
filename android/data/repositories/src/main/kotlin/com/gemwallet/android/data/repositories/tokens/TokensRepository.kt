@@ -37,7 +37,7 @@ class TokensRepository (
         if (query.isEmpty() && tags.isEmpty()) {
             return@withContext false
         }
-        val nodeAssets = async { tokenService.search(query) }
+        val networkAssets = async { tokenService.search(query, chains.ifEmpty { Chain.entries.toList() }) }
         val tokens = runCatchingCancellable {
             searchAssets.searchAssets(
                 query = query,
@@ -45,11 +45,11 @@ class TokensRepository (
                 tags = tags,
             )
         }.getOrElse {
-            nodeAssets.cancel()
+            networkAssets.cancel()
             return@withContext false
         }
         val priorityQuery = tags.toPriorityQuery(query)
-        val assets = (tokens + nodeAssets.await()).distinctBy { it.asset.id }
+        val assets = (tokens + networkAssets.await()).distinctBy { it.asset.id }
         if (assets.isEmpty()) {
             searchDao.deleteAssets(priorityQuery)
             return@withContext false

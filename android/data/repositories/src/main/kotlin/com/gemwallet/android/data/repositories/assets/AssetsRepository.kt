@@ -244,8 +244,8 @@ class AssetsRepository @Inject constructor(
 
     fun searchLists(query: String): Flow<List<AssetList>> = searchService.searchLists(query)
 
-    fun searchByList(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> =
-        searchService.searchByList(listId, limit)
+    fun searchListAssets(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> =
+        searchService.searchListAssets(listId, limit)
 
     fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>, tags: List<AssetTag>): Flow<List<AssetInfo>> =
         searchService.swapSearch(wallet, query, byChains, byAssets, tags)

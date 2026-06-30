@@ -54,7 +54,7 @@ class AssetsSearchService @Inject constructor(
         return assetListDao.searchWithPriority(key).map { lists -> lists.map { it.toDTO() } }
     }
 
-    fun searchByList(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
+    fun searchListAssets(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
         val query = listPriorityQuery(listId)
         return sessionRepository.currentWalletId().flatMapLatest { walletId ->
             searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
