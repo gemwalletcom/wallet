@@ -6,6 +6,7 @@ import com.gemwallet.android.application.asset_select.coordinators.SearchSelectA
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.application.assets.coordinators.GetSearchLists
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
 import com.gemwallet.android.application.session.coordinators.GetSession
@@ -23,6 +24,7 @@ import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +33,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -47,6 +50,7 @@ class WalletSearchViewModel @Inject constructor(
     toggleAssetPin: ToggleAssetPin,
     @WalletSearch searchTokensCase: SearchTokensCase,
     getPerpetuals: GetPerpetuals,
+    getSearchLists: GetSearchLists,
     userConfig: UserConfig,
     private val togglePerpetualPin: TogglePerpetualPin,
 ) : BaseAssetSelectViewModel(
@@ -92,6 +96,11 @@ class WalletSearchViewModel @Inject constructor(
             .map { items -> items.mapTo(HashSet()) { it.asset.id.toIdentifier() } }
             .flowOn(Dispatchers.IO)
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    val lists: StateFlow<List<AssetList>> = currentQuery
+        .flatMapLatest { query -> getSearchLists.getSearchLists(query) }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewAssets: StateFlow<List<AssetItemUIModel>> = combine(
         unpinned, currentQuery, selectedTag,

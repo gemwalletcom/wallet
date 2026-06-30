@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.assets.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -9,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.asset.getListIconUrl
+import com.gemwallet.android.domains.search.toWalletSearchTag
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
@@ -20,14 +23,19 @@ import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.listItemIconSize
+import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
 
@@ -48,6 +56,7 @@ fun WalletSearchScreen(
     val hasMorePerpetuals by viewModel.hasMorePerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
     val perpetualRecentIds by viewModel.perpetualRecentIds.collectAsStateWithLifecycle()
+    val lists by viewModel.lists.collectAsStateWithLifecycle()
 
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
 
@@ -76,6 +85,7 @@ fun WalletSearchScreen(
             WalletSearchAction.AddAsset,
             WalletSearchAction.Cancel,
             WalletSearchAction.OpenPerpetuals,
+            is WalletSearchAction.OpenList,
             is WalletSearchAction.ShowAllAssets -> onAction(action)
         }
     }
@@ -111,6 +121,23 @@ fun WalletSearchScreen(
         null
     }
 
+    val listsContent: (LazyListScope.() -> Unit)? = if (lists.isNotEmpty()) {
+        {
+            item {
+                SubheaderItem(R.string.common_lists)
+            }
+            itemsPositioned(lists) { position, item ->
+                SearchListItem(
+                    list = item,
+                    listPosition = position,
+                    onClick = { handleAction(WalletSearchAction.OpenList(item.id, item.name)) },
+                )
+            }
+        }
+    } else {
+        null
+    }
+
     AssetSelectScene(
         title = {
             SearchBar(
@@ -136,7 +163,7 @@ fun WalletSearchScreen(
                 AssetSelectAction.AddAsset -> handleAction(WalletSearchAction.AddAsset)
                 AssetSelectAction.OpenRecentsSheet -> handleAction(WalletSearchAction.OpenRecentsSheet)
                 AssetSelectAction.ShowAllAssets -> handleAction(
-                    WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString(), selectedTag)
+                    WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString(), selectedTag.toWalletSearchTag())
                 )
                 is AssetSelectAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.assetId))
                 is AssetSelectAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.assetId))
@@ -154,9 +181,30 @@ fun WalletSearchScreen(
         ),
         pinnedPerpetualRows = pinnedPerpetualRows,
         perpetualsContent = perpetualsContent,
+        listsContent = listsContent,
         assetsHeaderRes = R.string.assets_title,
         assetsHeaderClickable = hasMoreAssets,
     )
 
     RecentsSheetHost(viewModel = recentsViewModel, onSelect = { handleAction(WalletSearchAction.OpenRecent(it)) })
+}
+
+@Composable
+private fun SearchListItem(
+    list: AssetList,
+    listPosition: ListPosition,
+    onClick: () -> Unit,
+) {
+    ListItem(
+        modifier = Modifier.clickable(onClick = onClick),
+        listPosition = listPosition,
+        leading = {
+            AsyncImage(
+                model = getListIconUrl(list.id),
+                size = listItemIconSize,
+                placeholderText = list.name,
+            )
+        },
+        title = { ListItemTitleText(list.name) },
+    )
 }

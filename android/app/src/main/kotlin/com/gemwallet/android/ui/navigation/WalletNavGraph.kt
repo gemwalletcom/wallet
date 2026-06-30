@@ -97,7 +97,8 @@ fun WalletNavGraph(
                         WalletSearchAction.OpenPerpetuals -> navigator.openPerpetuals()
                         is WalletSearchAction.OpenAsset -> navigator.openAsset(action.assetId)
                         is WalletSearchAction.OpenPerpetual -> navigator.openPerpetualDetails(action.assetId)
-                        is WalletSearchAction.ShowAllAssets -> navigator.openAssetsResults(action.query, action.tag)
+                        is WalletSearchAction.ShowAllAssets -> navigator.openAssetsResults(action.query, action.scope)
+                        is WalletSearchAction.OpenList -> navigator.openAssetsResultsList(action.listId, action.title)
                         else -> Unit
                     }
                 },

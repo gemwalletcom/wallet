@@ -118,6 +118,8 @@ fun SwapperProvider.getSwapProviderIcon(): String {
     return "file:///android_asset/swap/${iconName.lowercase()}.svg"
 }
 
+fun getListIconUrl(listId: String): String = "${Constants.ASSETS_URL}/lists/$listId.png"
+
 fun NFTAsset.getImageUrl(): String = nftImageUrl(id.toIdentifier())
 
 fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId.toIdentifier())

@@ -20,6 +20,7 @@ import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.features.wallet.presents.WalletImageSource
+import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
@@ -75,7 +76,6 @@ import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
@@ -173,7 +173,8 @@ class WalletNavigator(
     fun openAcceptTerms(destination: AcceptTermsDestination) = push(AcceptTermsRoute(destination))
     fun openAssetsManage() = push(AssetsManageRoute)
     fun openAssetsSearch() = push(WalletSearchRoute)
-    fun openAssetsResults(query: String, tag: AssetTag?) = push(AssetsResultsRoute(query, tag))
+    fun openAssetsResults(query: String, scope: WalletSearchTag) = push(AssetsResultsRoute(query, scope))
+    fun openAssetsResultsList(listId: String, title: String) = push(AssetsResultsRoute(query = "", scope = WalletSearchTag.List(listId), title = title))
     fun openCreateWalletRules() = push(CreateWalletAlertRoute)
     fun openCreateWallet() = push(CreateWalletRoute)
     fun openImportWallet() = push(ImportSelectTypeRoute)
