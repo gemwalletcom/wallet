@@ -3,7 +3,7 @@ package com.gemwallet.android.blockchain.gemstone
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.HashChanges
 import com.gemwallet.android.model.TransactionChanges
-import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import uniffi.gemstone.SwapperTransactionSwapMetadata
@@ -44,7 +44,7 @@ internal fun TransactionUpdate.toPrimitives(): TransactionChanges {
 
 private fun TransactionChange.swapMetadataJson(): String? {
     val metadata = ((this as? TransactionChange.Metadata)?.v1 as? TransactionMetadata.Swap) ?: return null
-    return metadata.v1.toTransactionSwapMetadata()?.let { jsonEncoder.encodeToString(it) }
+    return metadata.v1.toTransactionSwapMetadata()?.toJson()
 }
 
 private fun SwapperTransactionSwapMetadata.toTransactionSwapMetadata(): TransactionSwapMetadata? {

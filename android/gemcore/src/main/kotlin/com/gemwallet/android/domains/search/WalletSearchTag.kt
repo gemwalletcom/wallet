@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.search
 
-import com.gemwallet.android.serializer.decodeArg
-import com.gemwallet.android.serializer.encodeArg
+import com.gemwallet.android.serializer.fromJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetTag
 import kotlinx.serialization.Serializable
 
@@ -36,6 +36,6 @@ val WalletSearchTag.isAll: Boolean
 fun AssetTag?.toWalletSearchTag(): WalletSearchTag =
     this?.let { WalletSearchTag.Filter(it) } ?: WalletSearchTag.All
 
-fun WalletSearchTag.encode(): String = encodeArg()
+fun WalletSearchTag.encode(): String = toJson()
 
-fun walletSearchTagOf(encoded: String?): WalletSearchTag = encoded.decodeArg() ?: WalletSearchTag.All
+fun walletSearchTagOf(encoded: String?): WalletSearchTag = encoded.fromJson() ?: WalletSearchTag.All

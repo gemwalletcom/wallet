@@ -11,6 +11,7 @@ import com.gemwallet.android.ext.hasPerpetualsSupport
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.StreamEventSerializer
 import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.StreamMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +66,7 @@ class StreamObserverService(
             }
             launch {
                 for (message in subscriptionService.messages) {
-                    connection.send(jsonEncoder.encodeToString<StreamMessage>(message))
+                    connection.send(message.toJson())
                 }
             }
             connection.connect().collect { event ->

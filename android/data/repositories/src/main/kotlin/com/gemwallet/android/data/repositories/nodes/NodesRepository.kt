@@ -20,7 +20,8 @@ import com.gemwallet.android.data.service.store.database.entities.DbNode
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.hash
 import com.wallet.core.primitives.Transaction
-import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.serializer.fromJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import com.wallet.core.primitives.NodeState
@@ -79,7 +80,7 @@ class NodesRepository(
     override fun setCurrentNode(chain: Chain, node: Node) {
         configStore.putString(
             ConfigKey.UsageNode.string,
-            jsonEncoder.encodeToString(node),
+            node.toJson(),
             chain.string
         )
     }
@@ -89,12 +90,7 @@ class NodesRepository(
             ConfigKey.UsageNode.string,
             postfix = chain.string
         )
-        val node = try {
-            jsonEncoder.decodeFromString<Node>(data)
-        } catch (_: Throwable) {
-            return null
-        }
-        return node
+        return data.fromJson<Node>()
     }
 
     override fun getNodeUrl(chain: Chain): String {
