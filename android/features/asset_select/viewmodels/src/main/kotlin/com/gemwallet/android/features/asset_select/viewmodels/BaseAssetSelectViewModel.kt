@@ -33,12 +33,13 @@ import com.wallet.core.primitives.WalletType
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -48,7 +49,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
     getSession: GetSession,
     private val getRecentAssets: GetRecentAssets,
@@ -77,7 +78,7 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val searchRequests = combine(currentQuery, selectedTag, session) { query, tag, session ->
+    private val searchRequests = combine(currentQuery.debounce(SEARCH_DEBOUNCE_MS), selectedTag, session) { query, tag, session ->
         SearchRequest(query, tag, session?.currency ?: Currency.USD, walletSearchChains(session?.wallet))
     }.distinctUntilChanged()
 
@@ -216,7 +217,6 @@ open class BaseAssetSelectViewModel(
                     isSearching.value = query.isNotEmpty()
                     try {
                         runCatchingCancellable {
-                            delay(SEARCH_DEBOUNCE_MS)
                             searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
                         }
                     } finally {
@@ -227,7 +227,7 @@ open class BaseAssetSelectViewModel(
         }
     }
 
-    private fun walletSearchChains(wallet: Wallet?): List<Chain> = when (wallet?.type) {
+    protected fun walletSearchChains(wallet: Wallet?): List<Chain> = when (wallet?.type) {
         WalletType.Multicoin -> emptyList()
         WalletType.Single, WalletType.PrivateKey, WalletType.View -> listOfNotNull(wallet.accounts.firstOrNull()?.chain)
         null -> emptyList()

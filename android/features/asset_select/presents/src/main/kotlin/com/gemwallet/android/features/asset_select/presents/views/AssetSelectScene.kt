@@ -158,6 +158,7 @@ fun AssetSelectScene(
     recentsSheetEnabled: Boolean = false,
     pinnedPerpetualRows: List<@Composable (ListPosition) -> Unit> = emptyList(),
     perpetualsContent: (LazyListScope.() -> Unit)? = null,
+    listsContent: (LazyListScope.() -> Unit)? = null,
     assetsHeaderRes: Int? = null,
     assetsHeaderClickable: Boolean = false,
 ) {
@@ -254,6 +255,7 @@ fun AssetSelectScene(
                     totalCount = pinnedTotal,
                 )
             }
+            listsContent?.invoke(this)
             perpetualsContent?.invoke(this)
             if (assetsHeaderRes != null && unpinned.isNotEmpty()) {
                 item {
@@ -261,8 +263,12 @@ fun AssetSelectScene(
                 }
             }
             assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
-            loading(state)
-            notFound(state = state, onAddAsset = { onAction(AssetSelectAction.AddAsset) }, isAddAvailable = isAddAvailable, topOffset = if (showTags) tagsHeightPx else 0)
+            searchState(
+                state = state,
+                isAddAvailable = isAddAvailable,
+                topOffset = if (showTags) tagsHeightPx else 0,
+                onAddAsset = { onAction(AssetSelectAction.AddAsset) },
+            )
         }
     }
 
@@ -352,41 +358,37 @@ fun AssetSelectRow(
     }
 }
 
-private fun LazyListScope.notFound(
+fun LazyListScope.searchState(
     state: UIState,
     isAddAvailable: Boolean = false,
     topOffset: Int = 0,
     onAddAsset: (() -> Unit)? = null,
 ) {
-    if (state !is UIState.Empty) {
-        return
-    }
-    item {
-        EmptyContentView(
-            type = EmptyContentType.SearchAssets(
-                onAddCustomToken = if (isAddAvailable) onAddAsset else null,
-            ),
-            modifier = Modifier
-                .animateItem()
-                .fillParentMaxSize()
-                .offset { IntOffset(0, -topOffset) },
-        )
-    }
-}
-
-private fun LazyListScope.loading(state: UIState) {
-    if (state !is UIState.Loading) {
-        return
-    }
-    item {
-        Box(
-            modifier = Modifier
-                .animateItem()
-                .fillMaxWidth()
-                .defaultPadding(),
-        ) {
-            CircularProgressIndicator16(Modifier.align(Alignment.Center))
+    when (state) {
+        UIState.Loading -> item {
+            Box(
+                modifier = Modifier
+                    .animateItem()
+                    .fillMaxWidth()
+                    .defaultPadding(),
+            ) {
+                CircularProgressIndicator16(Modifier.align(Alignment.Center))
+            }
         }
+
+        UIState.Empty -> item {
+            EmptyContentView(
+                type = EmptyContentType.SearchAssets(
+                    onAddCustomToken = if (isAddAvailable) onAddAsset else null,
+                ),
+                modifier = Modifier
+                    .animateItem()
+                    .fillParentMaxSize()
+                    .offset { IntOffset(0, -topOffset) },
+            )
+        }
+
+        UIState.Idle -> Unit
     }
 }
 
