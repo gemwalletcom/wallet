@@ -146,10 +146,11 @@ extension AssetsResultsSceneViewModel {
         }
     }
 
-    func onSelectPinPerpetual(_ perpetualData: PerpetualData, value: Bool) {
+    func onSelectPinPerpetual(_ perpetualData: PerpetualData) {
+        let pinned = !perpetualData.metadata.isPinned
         do {
-            try perpetualService.setPinned(value, perpetualId: perpetualData.perpetual.id)
-            isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: value)
+            try perpetualService.setPinned(pinned, perpetualId: perpetualData.perpetual.id)
+            isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: pinned)
         } catch {
             debugLog("AssetsResultsSceneViewModel pin perpetual error: \(error)")
         }

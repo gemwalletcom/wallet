@@ -185,9 +185,9 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onPinPerpetual(_ perpetualData: PerpetualData, value: Bool) {
+    func onPinPerpetual(_ perpetualData: PerpetualData) {
         do {
-            try perpetualService.setPinned(value, perpetualId: perpetualData.perpetual.id)
+            try perpetualService.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
         } catch {
             debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
         }
