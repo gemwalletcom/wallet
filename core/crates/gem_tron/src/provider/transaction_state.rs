@@ -10,7 +10,7 @@ use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::cli
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionState for TronClient<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
-        let receipt = self.get_transaction_reciept(request.id).await?;
+        let receipt = self.get_transaction_receipt(request.id).await?;
         Ok(map_transaction_status(receipt.as_ref()))
     }
 }

@@ -1,8 +1,8 @@
-use crate::rpc::model::TransactionReciept;
+use crate::rpc::model::TransactionReceipt;
 use num_bigint::BigInt;
 use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 
-pub fn map_transaction_status(receipt: &TransactionReciept) -> TransactionUpdate {
+pub fn map_transaction_status(receipt: &TransactionReceipt) -> TransactionUpdate {
     let state = match receipt.get_state() {
         TransactionState::Confirmed => TransactionState::Confirmed,
         TransactionState::Reverted => TransactionState::Reverted,
@@ -22,8 +22,8 @@ mod tests {
 
     const BLOCK_HASH: &str = "0x1111111111111111111111111111111111111111111111111111111111111111";
 
-    fn receipt(status: &str, block_number: u32, block_hash: &str, l1_fee: Option<BigUint>) -> TransactionReciept {
-        TransactionReciept {
+    fn receipt(status: &str, block_number: u32, block_hash: &str, l1_fee: Option<BigUint>) -> TransactionReceipt {
+        TransactionReceipt {
             gas_used: BigUint::from(21000u32),
             effective_gas_price: BigUint::from(20000000000u64),
             l1_fee,

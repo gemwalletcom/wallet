@@ -101,19 +101,19 @@ impl PancakeSwapParser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rpc::model::{Transaction, TransactionReciept, TransactionReplayTrace};
+    use crate::rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace};
     use crate::rpc::parsers::ProtocolParsers;
     use chrono::DateTime;
     use primitives::{Chain, SwapProvider, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
-    fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReciept, trace: Option<&TransactionReplayTrace>) -> PrimitivesTransaction {
+    fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, trace: Option<&TransactionReplayTrace>) -> PrimitivesTransaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, trace, None, DateTime::from_timestamp(1744602456, 0).unwrap()).unwrap()
     }
 
     #[test]
     fn test_map_pancakeswap_token_to_token_swap() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/pancakeswap_bsc_swap_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/pancakeswap_bsc_swap_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/pancakeswap_bsc_swap_tx_receipt.json"));
 
         let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt, None);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn test_map_pancakeswap_swap_with_trace_fallback() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/pancakeswap_bsc_native_swap_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/pancakeswap_bsc_native_swap_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/pancakeswap_bsc_native_swap_tx_receipt.json"));
         let trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../testdata/pancakeswap_bsc_native_swap_tx_trace.json"));
 
         let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt, Some(&trace));
@@ -152,7 +152,7 @@ mod tests {
     #[test]
     fn test_map_pancakeswap_native_to_token_swap() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/pancakeswap_bsc_bnb_cake_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/pancakeswap_bsc_bnb_cake_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/pancakeswap_bsc_bnb_cake_tx_receipt.json"));
 
         let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt, None);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();

@@ -33,7 +33,7 @@ impl<C: Client> TronClient<C> {
         Ok(self.client.get(&format!("/wallet/getblockbynum?num={}", block)).await?)
     }
 
-    pub async fn get_block_tranactions_reciepts(&self, block: u64) -> Result<BlockTransactionsInfo, Box<dyn Error + Send + Sync>> {
+    pub async fn get_block_tranactions_receipts(&self, block: u64) -> Result<BlockTransactionsInfo, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(&format!("/wallet/gettransactioninfobyblocknum?num={}", block)).await?)
     }
 
@@ -41,7 +41,7 @@ impl<C: Client> TronClient<C> {
         Ok(self.client.get(&format!("/wallet/gettransactionbyid?value={}", id)).await?)
     }
 
-    pub async fn get_transaction_reciept(&self, id: String) -> Result<Option<TransactionReceiptData>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_transaction_receipt(&self, id: String) -> Result<Option<TransactionReceiptData>, Box<dyn Error + Send + Sync>> {
         let response: serde_json::Value = self.client.get(&format!("/wallet/gettransactioninfobyid?value={}", id)).await?;
         if response.as_object().is_some_and(|object| object.is_empty()) {
             return Ok(None);

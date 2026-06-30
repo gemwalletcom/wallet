@@ -69,7 +69,7 @@ async fn source_deposit(rpc_provider: Arc<dyn RpcProvider>, chain: Chain, transa
 
     if chain == Chain::Tron {
         let Some(receipt) = create_tron_client(rpc_provider)?
-            .get_transaction_reciept(transaction_hash.to_string())
+            .get_transaction_receipt(transaction_hash.to_string())
             .await
             .map_err(SwapperError::transaction_error)?
         else {

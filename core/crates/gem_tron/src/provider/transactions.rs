@@ -16,12 +16,12 @@ impl<C: Client + Clone> ChainTransactions for TronClient<C> {
             return Ok(vec![]);
         }
 
-        let receipts = self.get_block_tranactions_reciepts(block).await?;
+        let receipts = self.get_block_tranactions_receipts(block).await?;
         Ok(map_transactions_by_block(self.get_chain(), block_data, receipts))
     }
 
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let Some(receipt) = self.get_transaction_reciept(hash.clone()).await? else {
+        let Some(receipt) = self.get_transaction_receipt(hash.clone()).await? else {
             return Ok(None);
         };
         Ok(map_transaction(self.get_chain(), self.get_transaction(hash).await?, receipt))
@@ -36,7 +36,7 @@ impl<C: Client + Clone> ChainTransactions for TronClient<C> {
             return Ok(vec![]);
         }
 
-        let futures = transactions.iter().map(|transaction| self.get_transaction_reciept(transaction.transaction_id.clone()));
+        let futures = transactions.iter().map(|transaction| self.get_transaction_receipt(transaction.transaction_id.clone()));
         let receipts = futures::future::try_join_all(futures).await?;
         let (transactions, receipts) = transactions
             .into_iter()

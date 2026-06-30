@@ -38,7 +38,7 @@ pub struct Transaction {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TransactionReciept {
+pub struct TransactionReceipt {
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
     pub gas_used: BigUint,
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
@@ -52,7 +52,7 @@ pub struct TransactionReciept {
     pub block_number: BigUint,
 }
 
-impl TransactionReciept {
+impl TransactionReceipt {
     pub fn get_fee(&self) -> BigUint {
         let fee = self.gas_used.clone() * self.effective_gas_price.clone();
         if let Some(l1_fee) = self.l1_fee.clone() {

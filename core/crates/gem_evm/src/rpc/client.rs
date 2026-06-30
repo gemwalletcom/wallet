@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 use super::{
     ankr::AnkrClient,
-    model::{Block, BlockTransactionsIds, Transaction, TransactionReciept, TransactionReplayTrace},
+    model::{Block, BlockTransactionsIds, Transaction, TransactionReceipt, TransactionReplayTrace},
 };
 use crate::jsonrpc::BlockParameter;
 use crate::models::fee::EthereumFeeHistory;
@@ -101,7 +101,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         self.client.call("eth_getBlockByNumber", params).await
     }
 
-    pub async fn get_block_receipts(&self, block_number: u64) -> Result<Vec<TransactionReciept>, JsonRpcError> {
+    pub async fn get_block_receipts(&self, block_number: u64) -> Result<Vec<TransactionReceipt>, JsonRpcError> {
         let params = json!([format!("0x{:x}", block_number)]);
         self.client.call("eth_getBlockReceipts", params).await
     }
@@ -120,17 +120,17 @@ impl<C: Client + Clone> EthereumClient<C> {
         self.client.batch_call::<BlockTransactionsIds>(calls).await?.take_all()
     }
 
-    pub async fn get_transactions(&self, hashes: &[String]) -> Result<Vec<(BlockTransactionsIds, Transaction, TransactionReciept, TransactionReplayTrace)>, JsonRpcError> {
+    pub async fn get_transactions(&self, hashes: &[String]) -> Result<Vec<(BlockTransactionsIds, Transaction, TransactionReceipt, TransactionReplayTrace)>, JsonRpcError> {
         let transactions = self.get_transactions_by_hash(hashes).await?;
-        let reciepts = self.get_transactions_receipts(hashes).await?;
+        let receipts = self.get_transactions_receipts(hashes).await?;
         let traces = self.trace_replay_transactions(hashes).await?;
-        let block_ids = reciepts.iter().map(|x| x.block_number.to_string()).collect::<Vec<String>>();
+        let block_ids = receipts.iter().map(|x| x.block_number.to_string()).collect::<Vec<String>>();
         let blocks = self.get_blocks(&block_ids, false).await?;
 
         Ok(blocks
             .into_iter()
             .zip(transactions)
-            .zip(reciepts)
+            .zip(receipts)
             .zip(traces)
             .map(|(((block, tx), receipt), trace)| (block, tx, receipt, trace))
             .collect())
@@ -141,12 +141,12 @@ impl<C: Client + Clone> EthereumClient<C> {
         self.client.batch_call::<Transaction>(calls).await?.take_all()
     }
 
-    pub async fn get_transactions_receipts(&self, hashes: &[String]) -> Result<Vec<TransactionReciept>, JsonRpcError> {
+    pub async fn get_transactions_receipts(&self, hashes: &[String]) -> Result<Vec<TransactionReceipt>, JsonRpcError> {
         let calls: Vec<(String, serde_json::Value)> = hashes.iter().map(|hash| ("eth_getTransactionReceipt".to_string(), json!([hash]))).collect();
-        self.client.batch_call::<TransactionReciept>(calls).await?.take_all()
+        self.client.batch_call::<TransactionReceipt>(calls).await?.take_all()
     }
 
-    pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReciept>, JsonRpcError> {
+    pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReceipt>, JsonRpcError> {
         let params = json!([hash]);
         self.client.call("eth_getTransactionReceipt", params).await
     }

@@ -168,7 +168,7 @@ impl OkxSwapEvent {
 mod tests {
     use super::*;
     use crate::ethereum_address_checksum;
-    use crate::rpc::model::{Log, Transaction, TransactionReciept, TransactionReplayTrace};
+    use crate::rpc::model::{Log, Transaction, TransactionReceipt, TransactionReplayTrace};
     use crate::rpc::parsers::ProtocolParsers;
     use chrono::DateTime;
     use num_bigint::BigUint;
@@ -193,14 +193,14 @@ mod tests {
         }
     }
 
-    fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReciept, trace: Option<&TransactionReplayTrace>) -> PrimitivesTransaction {
+    fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, trace: Option<&TransactionReplayTrace>) -> PrimitivesTransaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, trace, None, DateTime::from_timestamp(1743373403, 0).unwrap()).unwrap()
     }
 
     #[test]
     fn test_map_okx_transactions() {
         let receipt_tx = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/okx_base_swap_tx.json"));
-        let receipt_only = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/okx_base_swap_tx_receipt.json"));
+        let receipt_only = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/okx_base_swap_tx_receipt.json"));
         let swap_tx = map_transaction(&Chain::Base, &receipt_tx, &receipt_only, None);
         let swap_metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.clone().unwrap()).unwrap();
         assert_eq!(swap_tx.transaction_type, primitives::TransactionType::Swap);
@@ -224,7 +224,7 @@ mod tests {
         assert_eq!(swap_metadata.to_value, "928345");
 
         let balance_tx = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/okx_bsc_swap_tx.json"));
-        let balance_receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/okx_bsc_swap_tx_receipt.json"));
+        let balance_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/okx_bsc_swap_tx_receipt.json"));
         let balance_trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../testdata/okx_bsc_swap_tx_trace.json"));
         let balance_swap_tx = map_transaction(&Chain::SmartChain, &balance_tx, &balance_receipt, Some(&balance_trace));
         let balance_metadata: TransactionSwapMetadata = serde_json::from_value(balance_swap_tx.metadata.clone().unwrap()).unwrap();
@@ -250,7 +250,7 @@ mod tests {
             block_number: BigUint::from(1u32),
             value: BigUint::from(0u8),
         };
-        let transfer_receipt = TransactionReciept {
+        let transfer_receipt = TransactionReceipt {
             gas_used: BigUint::from(318420u32),
             effective_gas_price: BigUint::from(10_000_000u64),
             l1_fee: None,
@@ -302,7 +302,7 @@ mod tests {
             block_number: BigUint::from(24717134u32),
             value: BigUint::from(0u8),
         };
-        let uniswap_v3_swap_to_receipt = TransactionReciept {
+        let uniswap_v3_swap_to_receipt = TransactionReceipt {
             gas_used: BigUint::from(203405u32),
             effective_gas_price: BigUint::from(230068341u32),
             l1_fee: None,
@@ -343,7 +343,7 @@ mod tests {
             block_number: BigUint::from(24717121u32),
             value: BigUint::from(0u8),
         };
-        let unxswap_by_order_id_receipt = TransactionReciept {
+        let unxswap_by_order_id_receipt = TransactionReceipt {
             gas_used: BigUint::from(176410u32),
             effective_gas_price: BigUint::from(221977999u32),
             l1_fee: None,
@@ -375,7 +375,7 @@ mod tests {
         assert_eq!(unxswap_by_order_id_metadata.from_value, "547031207820868594841299458");
         assert_eq!(unxswap_by_order_id_metadata.to_value, "9105467203253212");
 
-        let mut reverted_receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/okx_base_swap_tx_receipt.json"));
+        let mut reverted_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/okx_base_swap_tx_receipt.json"));
         reverted_receipt.status = "0x0".to_string();
         let reverted_tx = map_transaction(&Chain::Base, &receipt_tx, &reverted_receipt, None);
         assert_eq!(reverted_tx.transaction_type, primitives::TransactionType::Swap);

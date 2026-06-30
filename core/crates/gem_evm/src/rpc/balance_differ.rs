@@ -2,7 +2,7 @@ use crate::{
     ethereum_address_checksum,
     rpc::{
         mapper::TRANSFER_TOPIC,
-        model::{Diff, Log, TransactionReciept, TransactionReplayTrace},
+        model::{Diff, Log, TransactionReceipt, TransactionReplayTrace},
     },
 };
 use alloy_primitives::{Address, hex};
@@ -28,7 +28,7 @@ impl BalanceDiffer {
         Self { chain }
     }
 
-    pub fn calculate(&self, trace: &TransactionReplayTrace, receipt: &TransactionReciept) -> BalanceDiffMap {
+    pub fn calculate(&self, trace: &TransactionReplayTrace, receipt: &TransactionReceipt) -> BalanceDiffMap {
         let mut map: BalanceDiffMap = HashMap::new();
 
         // Native balance diff
@@ -93,7 +93,7 @@ impl BalanceDiffer {
         map
     }
 
-    pub fn get_native_balance_change(&self, trace: &TransactionReplayTrace, receipt: &TransactionReciept, address: &str) -> Option<BigUint> {
+    pub fn get_native_balance_change(&self, trace: &TransactionReplayTrace, receipt: &TransactionReceipt, address: &str) -> Option<BigUint> {
         let balance_diffs = self.calculate(trace, receipt);
         let checksum_address = ethereum_address_checksum(address).ok()?;
         let diffs = balance_diffs.get(&checksum_address)?;
@@ -144,7 +144,7 @@ mod tests {
         let trace_replay_transaction = serde_json::from_str::<JsonRpcResponse<TransactionReplayTrace>>(include_str!("../../testdata/trace_replay_tx_trace.json"))
             .unwrap()
             .result;
-        let receipt = serde_json::from_str::<JsonRpcResponse<TransactionReciept>>(include_str!("../../testdata/trace_replay_tx_receipt.json"))
+        let receipt = serde_json::from_str::<JsonRpcResponse<TransactionReceipt>>(include_str!("../../testdata/trace_replay_tx_receipt.json"))
             .unwrap()
             .result;
 

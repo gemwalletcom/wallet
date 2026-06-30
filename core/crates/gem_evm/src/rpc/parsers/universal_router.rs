@@ -4,7 +4,7 @@ use alloy_sol_types::SolCall;
 use crate::{
     address::ethereum_address_from_topic,
     ethereum_address_checksum,
-    rpc::{mapper::TRANSFER_TOPIC, model::TransactionReciept},
+    rpc::{mapper::TRANSFER_TOPIC, model::TransactionReceipt},
     uniswap::{
         actions::{V4Action, decode_action_data},
         command::{SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V4_SWAP_COMMAND, WRAP_ETH_COMMAND},
@@ -42,7 +42,7 @@ impl ProtocolParser for UniversalRouterParser {
     }
 }
 
-pub fn decode_execute_swap(chain: &Chain, provider: &str, from: &str, input_bytes: &[u8], receipt: &TransactionReciept) -> Option<TransactionSwapMetadata> {
+pub fn decode_execute_swap(chain: &Chain, provider: &str, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let execute_call = IUniversalRouter::executeCall::abi_decode(input_bytes).ok()?;
     let commands_vec = execute_call.commands;
     let inputs_vec = execute_call.inputs;
@@ -148,7 +148,7 @@ pub fn decode_execute_swap(chain: &Chain, provider: &str, from: &str, input_byte
     None
 }
 
-fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReciept) -> Option<String> {
+fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReceipt) -> Option<String> {
     let token = ethereum_address_checksum(token).ok()?;
 
     receipt.logs.iter().find_map(|log| {
@@ -159,7 +159,7 @@ fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReciept) -> Opt
     })
 }
 
-fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionReciept) -> Option<String> {
+fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionReceipt) -> Option<String> {
     let to = ethereum_address_checksum(to).ok()?;
     let token = ethereum_address_checksum(token).ok()?;
 
@@ -178,7 +178,7 @@ fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionRecie
 mod tests {
     use crate::provider::testkit::TOKEN_USDC_ADDRESS;
     use crate::registry::ContractRegistry;
-    use crate::rpc::model::{Transaction, TransactionReciept, TransactionReplayTrace};
+    use crate::rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace};
     use crate::rpc::parsers::ProtocolParsers;
     use chrono::DateTime;
     use primitives::{
@@ -188,14 +188,14 @@ mod tests {
         testkit::json_rpc::load_json_rpc_result,
     };
 
-    fn map_swap(chain: &Chain, transaction: &Transaction, receipt: &TransactionReciept) -> primitives::Transaction {
+    fn map_swap(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> primitives::Transaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, None, None, DateTime::default()).unwrap()
     }
 
     fn map_swap_with_trace(
         chain: &Chain,
         transaction: &Transaction,
-        receipt: &TransactionReciept,
+        receipt: &TransactionReceipt,
         trace: &TransactionReplayTrace,
         registry: &ContractRegistry,
     ) -> primitives::Transaction {
@@ -205,7 +205,7 @@ mod tests {
     #[test]
     fn test_map_v4_swap_eth_dai() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v4_eth_dai_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/v4_eth_dai_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v4_eth_dai_tx_receipt.json"));
 
         let swap_tx = map_swap(&Chain::Unichain, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
@@ -238,7 +238,7 @@ mod tests {
     #[test]
     fn test_map_v4_swap_usdc_eth() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v4_usdc_eth_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/v4_usdc_eth_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v4_usdc_eth_tx_receipt.json"));
 
         let swap_tx = map_swap(&Chain::Unichain, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
@@ -271,7 +271,7 @@ mod tests {
     #[test]
     fn test_map_v3_swap_eth_token() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v3_eth_token_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/v3_eth_token_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v3_eth_token_tx_receipt.json"));
 
         let swap_tx = map_swap(&Chain::Ethereum, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
@@ -304,7 +304,7 @@ mod tests {
     #[test]
     fn test_map_v3_swap_token_eth() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v3_token_eth_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/v3_token_eth_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v3_token_eth_tx_receipt.json"));
 
         let swap_tx = map_swap(&Chain::Base, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
@@ -337,7 +337,7 @@ mod tests {
     #[test]
     fn test_map_v3_swap_pol_usdt() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v3_pol_usdt_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/v3_pol_usdt_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v3_pol_usdt_tx_receipt.json"));
 
         let swap_tx = map_swap(&Chain::Polygon, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
@@ -370,7 +370,7 @@ mod tests {
     #[test]
     fn test_map_v3_swap_usdc_paxg() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v3_usdc_paxg_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/v3_usdc_paxg_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v3_usdc_paxg_receipt.json"));
 
         let swap_tx = map_swap(&Chain::Ethereum, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
@@ -403,7 +403,7 @@ mod tests {
     #[test]
     fn test_swap_from_balance_diff() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/trace_replay_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/trace_replay_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/trace_replay_tx_receipt.json"));
         let trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../testdata/trace_replay_tx_trace.json"));
 
         let contract_registry = ContractRegistry::default();
@@ -438,7 +438,7 @@ mod tests {
     #[test]
     fn test_map_transaction_v2_token_eth() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v2_token_eth_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../../testdata/v2_token_eth_tx_receipt.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v2_token_eth_tx_receipt.json"));
         let trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../testdata/v2_token_eth_tx_trace.json"));
 
         let contract_registry = ContractRegistry::default();

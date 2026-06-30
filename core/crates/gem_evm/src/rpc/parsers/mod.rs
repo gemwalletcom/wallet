@@ -11,7 +11,7 @@ use num_traits::Num;
 
 use super::{
     balance_differ::BalanceDiffer,
-    model::{Transaction, TransactionReciept, TransactionReplayTrace},
+    model::{Transaction, TransactionReceipt, TransactionReplayTrace},
 };
 use crate::{ethereum_address_checksum, registry::ContractRegistry};
 use chain_primitives::SwapMapper as BalanceSwapMapper;
@@ -29,7 +29,7 @@ use self::{
 pub struct ParseContext<'a> {
     pub chain: &'a Chain,
     pub transaction: &'a Transaction,
-    pub receipt: &'a TransactionReciept,
+    pub receipt: &'a TransactionReceipt,
     pub trace: Option<&'a TransactionReplayTrace>,
     pub contract_registry: Option<&'a ContractRegistry>,
     pub created_at: DateTime<Utc>,
@@ -63,7 +63,7 @@ impl ProtocolParsers {
     pub fn map_transaction(
         chain: &Chain,
         transaction: &Transaction,
-        receipt: &TransactionReciept,
+        receipt: &TransactionReceipt,
         trace: Option<&TransactionReplayTrace>,
         contract_registry: Option<&ContractRegistry>,
         created_at: DateTime<Utc>,
@@ -87,7 +87,7 @@ impl ProtocolParsers {
 pub fn make_swap_transaction(
     chain: &Chain,
     transaction: &Transaction,
-    receipt: &TransactionReciept,
+    receipt: &TransactionReceipt,
     metadata: &TransactionSwapMetadata,
     created_at: DateTime<Utc>,
 ) -> Option<PrimitivesTransaction> {
@@ -115,7 +115,7 @@ pub fn try_map_balance_diff_swap(
     chain: &Chain,
     from: &str,
     trace: Option<&TransactionReplayTrace>,
-    receipt: &TransactionReciept,
+    receipt: &TransactionReceipt,
     provider: Option<String>,
 ) -> Option<TransactionSwapMetadata> {
     let trace = trace?;
