@@ -324,9 +324,11 @@ public extension AssetSceneViewModel {
     }
 
     internal func fetch() async {
-        await updateWallet()
-        if assetData.priceAlerts.isNotEmpty {
-            await updatePriceAlerts()
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.updateWallet() }
+            if assetData.priceAlerts.isNotEmpty {
+                group.addTask { await self.updatePriceAlerts() }
+            }
         }
     }
 
@@ -422,12 +424,12 @@ public extension AssetSceneViewModel {
 
     func onTogglePriceAlert() {
         Task {
-            let enabled = !assetData.isPriceAlertsEnabled
-            isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: enabled)
-            if enabled {
-                await enablePriceAlert()
-            } else {
-                await disablePriceAlert()
+            let isPriceAlertsEnabled = assetData.isPriceAlertsEnabled
+            do {
+                try await isPriceAlertsEnabled ? disablePriceAlert() : enablePriceAlert()
+                isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: !isPriceAlertsEnabled)
+            } catch {
+                debugLog("onTogglePriceAlert error \(error)")
             }
         }
     }
@@ -443,8 +445,8 @@ public extension AssetSceneViewModel {
     func onSelectPin() {
         do {
             let pinned = !assetData.metadata.isPinned
-            isPresentingToastMessage = .pin(asset.name, pinned: pinned)
             try balanceService.setPinned(pinned, walletId: wallet.id, assetId: asset.id)
+            isPresentingToastMessage = .pin(asset.name, pinned: pinned)
             if !assetData.metadata.isBalanceEnabled {
                 onSelectEnable()
             }
@@ -523,38 +525,36 @@ extension AssetSceneViewModel {
         }
     }
 
-    private func enablePriceAlert() async {
-        do {
-            try await priceAlertService.add(priceAlert: .default(for: assetModel.asset.id, currency: Preferences.standard.currency))
-            try await priceAlertService.requestPermissions()
-            try await priceAlertService.enablePriceAlerts()
-        } catch {
-            debugLog("enablePriceAlert error \(error)")
-        }
+    private func enablePriceAlert() async throws {
+        try await priceAlertService.add(priceAlert: .default(for: assetModel.asset.id, currency: preferences.preferences.currency))
+        try await priceAlertService.requestPermissions()
+        try await priceAlertService.enablePriceAlerts()
     }
 
-    private func disablePriceAlert() async {
-        do {
-            try await priceAlertService.delete(priceAlerts: [.default(for: assetModel.asset.id, currency: Preferences.standard.currency)])
-        } catch {
-            debugLog("disablePriceAlert error \(error)")
-        }
+    private func disablePriceAlert() async throws {
+        try await priceAlertService.delete(priceAlerts: [.default(for: assetModel.asset.id, currency: preferences.preferences.currency)])
     }
 
     private func updateAsset() async {
+        async let asset: Void = updateAssetData()
+        async let prices: Void = updatePrices()
+        _ = await (asset, prices)
+    }
+
+    private func updateAssetData() async {
         do {
             try await assetsService.updateAsset(assetId: assetModel.asset.id, currency: preferences.preferences.currency)
         } catch {
             // TODO: - handle updateAsset error
             debugLog("asset scene: updateAsset error \(error)")
         }
+    }
 
-        Task {
-            do {
-                try await priceUpdater.addPrices(assetIds: [assetModel.asset.id])
-            } catch {
-                debugLog("asset scene: addPrices error \(error)")
-            }
+    private func updatePrices() async {
+        do {
+            try await priceUpdater.addPrices(assetIds: [assetModel.asset.id])
+        } catch {
+            debugLog("asset scene: addPrices error \(error)")
         }
     }
 
