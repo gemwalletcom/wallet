@@ -5,7 +5,7 @@ import SwiftUI
 
 struct PerpetualSectionView: View {
     let perpetuals: [PerpetualData]
-    let onPin: (PerpetualId, Bool) -> Void
+    let onPin: (PerpetualData, Bool) -> Void
     let onSelect: (Asset) -> Void
 
     var body: some View {

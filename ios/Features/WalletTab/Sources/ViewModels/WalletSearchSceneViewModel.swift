@@ -276,12 +276,10 @@ extension WalletSearchSceneViewModel {
         }
     }
 
-    func onSelectPinPerpetual(_ perpetualId: PerpetualId, value: Bool) {
+    func onSelectPinPerpetual(_ perpetualData: PerpetualData, value: Bool) {
         do {
-            try perpetualService.setPinned(value, perpetualId: perpetualId)
-            if let name = searchResult.perpetuals.first(where: { $0.perpetual.id == perpetualId })?.perpetual.name {
-                isPresentingToastMessage = .pin(name, pinned: value)
-            }
+            try perpetualService.setPinned(value, perpetualId: perpetualData.perpetual.id)
+            isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: value)
         } catch {
             debugLog("WalletSearchSceneViewModel pin perpetual error: \(error)")
         }
