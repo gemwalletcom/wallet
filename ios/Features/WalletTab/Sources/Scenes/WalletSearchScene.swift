@@ -150,10 +150,7 @@ public struct WalletSearchScene: View {
     private func listItems(for lists: [AssetList]) -> some View {
         ForEach(lists) { list in
             NavigationLink(value: model.listDestination(for: list)) {
-                ListItemView(
-                    title: list.name,
-                    imageStyle: .asset(assetImage: model.listImage(for: list)),
-                )
+                AssetListItemView(model: AssetListItemViewModel(list: list))
             }
         }
     }

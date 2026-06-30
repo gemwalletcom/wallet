@@ -74,7 +74,7 @@ struct WalletSearchSceneViewModelTests {
 
         #expect(model.showLists == false)
 
-        let list = AssetList(id: "stocks", name: "Stocks")
+        let list = AssetList(id: "stocks", name: "Stocks", count: 2)
         model.searchQuery.value = .mock(lists: [list])
 
         #expect(model.showLists == true)

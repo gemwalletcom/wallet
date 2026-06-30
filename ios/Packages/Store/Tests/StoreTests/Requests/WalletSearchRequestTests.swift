@@ -77,7 +77,7 @@ struct WalletSearchRequestTests {
 
         let assetListStore = AssetListStore(db: db)
         let query = "stocks"
-        let lists = [AssetList(id: "stocks", name: "Stocks"), AssetList(id: "ai", name: "AI")]
+        let lists = [AssetList(id: "stocks", name: "Stocks", count: 2), AssetList(id: "ai", name: "AI", count: 1)]
         try assetListStore.upsert(lists)
         try searchStore.add(type: .list, query: query, ids: lists.map(\.id))
         try assetListStore.upsert(lists)

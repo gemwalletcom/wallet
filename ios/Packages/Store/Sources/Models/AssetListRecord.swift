@@ -10,10 +10,12 @@ struct AssetListRecord: Codable, PersistableRecord, FetchableRecord, TableRecord
     enum Columns {
         static let id = Column("id")
         static let name = Column("name")
+        static let count = Column("count")
     }
 
     var id: String
     var name: String
+    var count: UInt32
 }
 
 extension AssetListRecord: CreateTable {
@@ -22,6 +24,9 @@ extension AssetListRecord: CreateTable {
             $0.primaryKey(Columns.id.name, .text)
             $0.column(Columns.name.name, .text)
                 .notNull()
+            $0.column(Columns.count.name, .integer)
+                .notNull()
+                .defaults(to: 0)
         }
     }
 }
@@ -30,12 +35,12 @@ extension AssetListRecord {
     static let search = hasOne(SearchRecord.self, using: ForeignKey(["listId"], to: ["id"]))
 
     var assetList: AssetList {
-        AssetList(id: id, name: name)
+        AssetList(id: id, name: name, count: count)
     }
 }
 
 extension AssetList {
     var record: AssetListRecord {
-        AssetListRecord(id: id, name: name)
+        AssetListRecord(id: id, name: name, count: count)
     }
 }

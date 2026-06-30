@@ -24,7 +24,6 @@ public final class WalletSearchSceneViewModel: Sendable {
     private let balanceService: BalanceService
     private let perpetualService: PerpetualService
     private let preferences: ObservablePreferences
-    private let assetImageFormatter = AssetImageFormatter()
 
     private let wallet: Wallet
     private let onDismissSearch: VoidAction
@@ -198,10 +197,6 @@ public final class WalletSearchSceneViewModel: Sendable {
             scope: .list(list.id),
             title: list.name,
         )
-    }
-
-    func listImage(for list: AssetList) -> AssetImage {
-        AssetImage(type: list.name, imageURL: assetImageFormatter.getListUrl(for: list.id))
     }
 
     func contextMenuItems(for assetData: AssetData) -> [ContextMenuItemType] {
