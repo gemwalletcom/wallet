@@ -20,12 +20,12 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: .zero) {
-                    LazyVGrid(columns: model.columns) {
-                        collectionsView
-                    }
-                    .padding(.horizontal, Spacing.medium + Spacing.tiny)
-
                     if model.content.items.isNotEmpty {
+                        LazyVGrid(columns: model.columns) {
+                            collectionsView
+                        }
+                        .padding(.horizontal, Spacing.medium + Spacing.tiny)
+
                         Spacer(minLength: .medium)
                     }
 
@@ -38,6 +38,7 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                                 )
                             }
                         }
+                        .contentMargins(.top, .zero, for: .scrollContent)
                         .scrollDisabled(true)
                         .frame(height: .list.minHeight)
                     }

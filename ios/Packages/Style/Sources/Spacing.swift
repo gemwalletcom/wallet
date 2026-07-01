@@ -110,7 +110,7 @@ public extension Sizing {
 
     enum list {
         /// 100
-        public static let minHeight: CGFloat = 100
+        public static let minHeight: CGFloat = 84
         /// 16
         public static let accessory: CGFloat = 16
         /// 22
