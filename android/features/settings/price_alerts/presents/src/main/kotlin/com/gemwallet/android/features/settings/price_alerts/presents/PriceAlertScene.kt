@@ -115,7 +115,7 @@ internal fun PriceAlertScene(
                         SwitchProperty(
                             text = stringResource(R.string.settings_enable_value, ""),
                             checked = enabled,
-                            onCheckedChange = { onAction(PriceAlertAction.EnablePriceAlerts(it)) }
+                            onCheckedChange = { onAction(PriceAlertAction.TogglePriceAlerts(it)) }
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = paddingLarge),

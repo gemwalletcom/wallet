@@ -6,7 +6,7 @@ internal sealed interface PriceAlertAction {
     data object Refresh : PriceAlertAction
     data object Close : PriceAlertAction
     data object Add : PriceAlertAction
-    data class EnablePriceAlerts(val enabled: Boolean) : PriceAlertAction
+    data class TogglePriceAlerts(val enabled: Boolean) : PriceAlertAction
     data class ToggleAutoAlert(val enabled: Boolean) : PriceAlertAction
     data class Exclude(val id: Int) : PriceAlertAction
     data class OpenChart(val assetId: AssetId) : PriceAlertAction

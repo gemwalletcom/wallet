@@ -61,7 +61,7 @@ fun PriceAlertsNavScreen(
                 snackbar = snackbar,
                 onAction = { action ->
                     when (action) {
-                        is PriceAlertAction.EnablePriceAlerts -> viewModel.togglePriceAlerts(action.enabled)
+                        is PriceAlertAction.TogglePriceAlerts -> viewModel.togglePriceAlerts(action.enabled)
                         is PriceAlertAction.ToggleAutoAlert -> viewModel.toggleAutoAlert(action.enabled)
                         is PriceAlertAction.Exclude -> viewModel.excludeAsset(action.id)
                         PriceAlertAction.Refresh -> viewModel.refresh()
