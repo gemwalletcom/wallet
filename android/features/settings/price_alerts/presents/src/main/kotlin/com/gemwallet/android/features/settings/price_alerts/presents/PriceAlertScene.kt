@@ -67,7 +67,7 @@ internal fun PriceAlertScene(
     snackbar: SnackbarHostState? = null,
     onAction: (PriceAlertAction) -> Unit,
 ) {
-    val reveable = remember { mutableStateOf<Int?>(null) }
+    val revealable = remember { mutableStateOf<Int?>(null) }
     val pullToRefreshState = rememberPullToRefreshState()
     Scene(
         title = stringResource(R.string.settings_price_alerts_title),
@@ -104,7 +104,7 @@ internal fun PriceAlertScene(
                     val manualData = data.filterKeys { it != null }
                     emptyAlertingAssets(data.values.flatten().isEmpty())
                     assets(
-                        reveable = reveable,
+                        revealable = revealable,
                         data = manualData,
                         isAssetView = isAssetView,
                         onChart = { onAction(PriceAlertAction.OpenChart(it)) },
@@ -126,7 +126,7 @@ internal fun PriceAlertScene(
                     }
                     emptyAlertingAssets(data.values.flatten().isEmpty())
                     assets(
-                        reveable = reveable,
+                        revealable = revealable,
                         data = data,
                         isAssetView = isAssetView,
                         onChart = { onAction(PriceAlertAction.OpenChart(it)) },
@@ -175,7 +175,7 @@ private fun LazyListScope.emptyAlertingAssets(empty: Boolean) {
 }
 
 private fun LazyListScope.assets(
-    reveable: MutableState<Int?>,
+    revealable: MutableState<Int?>,
     data: Map<AssetId?, List<PriceAlertDataAggregate>>,
     isAssetView: Boolean,
     onChart: (AssetId) -> Unit,
@@ -187,12 +187,12 @@ private fun LazyListScope.assets(
         item.key?.let {
             item { SubheaderItem(if (isAssetView) stringResource(R.string.stake_active) else item.value.firstOrNull()?.title ?: "") }
         }
-        assets(reveable, item.value, onChart.takeIf { !isAssetView }, onExclude)
+        assets(revealable, item.value, onChart.takeIf { !isAssetView }, onExclude)
     }
 }
 
 private fun LazyListScope.assets(
-    reveable: MutableState<Int?>,
+    revealable: MutableState<Int?>,
     data: List<PriceAlertDataAggregate>,
     onChart: ((AssetId) -> Unit)?,
     onExclude: (Int) -> Unit,
@@ -202,7 +202,7 @@ private fun LazyListScope.assets(
         val density = LocalDensity.current
 
         SwipeableItemWithActions(
-            isRevealed = reveable.value == item.id,
+            isRevealed = revealable.value == item.id,
             actions = @Composable {
                 ActionIcon(
                     modifier = Modifier
@@ -213,8 +213,8 @@ private fun LazyListScope.assets(
                     icon = AppIcons.Delete,
                 )
             },
-            onExpanded = { reveable.value = item.id },
-            onCollapsed = { reveable.value = null },
+            onExpanded = { revealable.value = item.id },
+            onCollapsed = { revealable.value = null },
             listPosition = position,
         ) { position ->
             PriceAlertAssetItem(
