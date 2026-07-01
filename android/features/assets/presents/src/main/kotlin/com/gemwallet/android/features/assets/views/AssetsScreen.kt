@@ -210,7 +210,7 @@ fun AssetsScreen(
                 assets(
                     items = pinnedAssets,
                     longPressState = longPressedAsset,
-                    group = AssetsGroupType.Pined,
+                    group = AssetsGroupType.Pinned,
                     onAssetClick = onAssetClick,
                     actions = assetActions,
                 )

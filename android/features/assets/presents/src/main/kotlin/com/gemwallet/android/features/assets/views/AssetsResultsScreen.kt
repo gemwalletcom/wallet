@@ -81,7 +81,7 @@ fun AssetsResultsScreen(
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 if (pinned.isNotEmpty()) {
-                    item { PinnedAssetsHeaderItem(AssetsGroupType.Pined) }
+                    item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
                     assetRows(
                         items = pinned,
                         onSelect = onAssetClick,

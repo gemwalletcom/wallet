@@ -32,7 +32,7 @@ fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
             modifier = Modifier.size(paddingDefault),
             imageVector = when (type)  {
                 AssetsGroupType.Popular -> AppIcons.StarOutlined
-                AssetsGroupType.Pined -> AppIcons.PushPin
+                AssetsGroupType.Pinned -> AppIcons.PushPin
                 AssetsGroupType.None -> return
             },
             tint = MaterialTheme.colorScheme.secondary,
@@ -44,7 +44,7 @@ fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
             text = stringResource(
                 when (type)  {
                     AssetsGroupType.Popular -> R.string.assets_popular
-                    AssetsGroupType.Pined -> R.string.common_pinned
+                    AssetsGroupType.Pinned -> R.string.common_pinned
                     AssetsGroupType.None -> return
                 }
             ),

@@ -26,7 +26,7 @@ internal fun AssetItem(
     AssetContextMenuRow(
         assetId = item.id,
         address = item.accountAddress,
-        isPinned = group == AssetsGroupType.Pined,
+        isPinned = group == AssetsGroupType.Pinned,
         isBalanceEnabled = true,
         longPressed = longPressState,
         actions = actions,
