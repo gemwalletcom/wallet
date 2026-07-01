@@ -284,6 +284,7 @@ dependencies {
 
     implementation(libs.widgets)
     implementation(libs.widgets.material3)
+    implementation(libs.work.runtime)
 
     // Legacy encrypted preferences migration
     implementation(libs.androidx.security.crypto)

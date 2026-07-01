@@ -1,14 +1,10 @@
 package com.gemwallet.android.features.widgets
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,8 +13,9 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
-import androidx.glance.LocalContext
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -37,11 +34,10 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextDefaults.defaultTextStyle
 import androidx.glance.unit.ColorProvider
 import coil3.imageLoader
-import coil3.request.CachePolicy
-import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
+import com.gemwallet.android.MainActivity
 import com.gemwallet.android.data.repositories.di.WidgetEntryPoint
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -54,8 +50,13 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+
+private data class WidgetAsset(val info: AssetInfo, val icon: Bitmap?)
 
 class PricesWidget : GlanceAppWidget() {
 
@@ -66,21 +67,25 @@ class PricesWidget : GlanceAppWidget() {
         val assetsRepository = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).assetsRepository()
         val sessionRepository = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).sessionRepository()
         val noData = context.getString(R.string.errors_no_data_available)
-        val assets = try {
+        val items = try {
             val currency = sessionRepository.session().firstOrNull()?.currency ?: Currency.USD
-            assetsRepository.getWidgetTokens(currency)
+            loadItems(context, assetsRepository.getWidgetTokens(currency))
         } catch (_: Throwable) {
             emptyList()
         }
 
         provideContent {
+            val launchAppIntent = Intent(context, MainActivity::class.java)
             GlanceTheme {
-                if (assets.isNotEmpty()) {
-                    Assets(assets)
-                } else {
-                    Box(
-                        modifier = GlanceModifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-                    ) {
+                Box(
+                    modifier = GlanceModifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .clickable(actionStartActivity(launchAppIntent)),
+                ) {
+                    if (items.isNotEmpty()) {
+                        Assets(items)
+                    } else {
                         Text(
                             modifier = GlanceModifier.fillMaxSize().padding(paddingDefault),
                             text = noData,
@@ -92,16 +97,27 @@ class PricesWidget : GlanceAppWidget() {
         }
     }
 
+    private suspend fun loadItems(context: Context, assets: List<AssetInfo>): List<WidgetAsset> = coroutineScope {
+        assets.map { asset ->
+            async { WidgetAsset(asset, loadIcon(context, asset.id().getIconUrl())) }
+        }.awaitAll()
+    }
+
+    private suspend fun loadIcon(context: Context, url: String): Bitmap? = withContext(Dispatchers.IO) {
+        runCatching {
+            val request = ImageRequest.Builder(context).data(url).build()
+            (context.imageLoader.execute(request) as? SuccessResult)?.image?.toBitmap()
+        }.getOrNull()
+    }
+
     @Composable
-    private fun Assets(assets: List<AssetInfo>) {
+    private fun Assets(items: List<WidgetAsset>) {
         Column(
-            modifier = GlanceModifier
-                .background(MaterialTheme.colorScheme.background)
-                .fillMaxSize(),
-            verticalAlignment = Alignment.Top,
+            modifier = GlanceModifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            assets.forEach {
+            items.forEach {
                 AssetItem(it)
             }
         }
@@ -115,25 +131,8 @@ class PricesWidget : GlanceAppWidget() {
 }
 
 @Composable
-private fun AssetItem(asset: AssetInfo) {
-    val context = LocalContext.current
-    val imageUrl = asset.id().getIconUrl()
-    var loadedBitmap by remember() { mutableStateOf<Bitmap?>(null) }
-
-    LaunchedEffect(imageUrl) {
-        withContext(Dispatchers.IO) {
-            val request = ImageRequest.Builder(context).data(imageUrl).apply {
-                memoryCachePolicy(CachePolicy.DISABLED)
-                diskCachePolicy(CachePolicy.DISABLED)
-            }.build()
-
-            // Request the image to be loaded and return null if an error has occurred
-            loadedBitmap = when (val result = context.imageLoader.execute(request)) {
-                is ErrorResult -> null
-                is SuccessResult -> result.image.toBitmap()
-            }
-        }
-    }
+private fun AssetItem(item: WidgetAsset) {
+    val asset = item.info
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
@@ -143,7 +142,7 @@ private fun AssetItem(asset: AssetInfo) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box() {
-            loadedBitmap?.let {
+            item.icon?.let {
                 Image(
                     ImageProvider(it),
                     contentDescription = ""

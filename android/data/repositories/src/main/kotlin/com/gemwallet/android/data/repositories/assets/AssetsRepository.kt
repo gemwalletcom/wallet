@@ -231,7 +231,7 @@ class AssetsRepository @Inject constructor(
     suspend fun getWidgetTokens(currency: Currency): List<AssetInfo> = withContext(Dispatchers.IO) {
         val widgetAssetIds = listOf(AssetId(Chain.Bitcoin), AssetId(Chain.Ethereum), AssetId(Chain.Solana))
 
-        searchTokensCase.search(widgetAssetIds, currency)
+        runCatching { searchTokensCase.search(widgetAssetIds, currency) }
         getTokensInfo(widgetAssetIds.map { it.toIdentifier() }).firstOrNull() ?: emptyList()
     }
 
