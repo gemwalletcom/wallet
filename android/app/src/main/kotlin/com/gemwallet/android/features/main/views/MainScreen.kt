@@ -37,6 +37,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.presents.list.TransactionsNavScreen
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
+import com.gemwallet.android.features.assets.views.AssetsAction
 import com.gemwallet.android.features.assets.views.AssetsScreen
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
@@ -191,16 +192,20 @@ fun MainScreen(
                 tabStateHolder.SaveableStateProvider(tab) {
                     when (tab) {
                         assetsRoute -> AssetsScreen(
-                            onShowWallets = navigator::openWallets,
-                            onManage = navigator::openAssetsManage,
-                            onSearch = navigator::openAssetsSearch,
-                            onSendClick = navigator::openRecipient,
-                            onReceiveClick = navigator::openReceive,
-                            onBuyClick = navigator::openBuy,
-                            onSwapClick = navigator::openSwap,
-                            onPerpetuals = navigator::openPerpetuals,
-                            onPerpetualDetails = navigator::openPerpetualDetails,
-                            onAssetClick = navigator::openAsset,
+                            onAction = { action ->
+                                when (action) {
+                                    AssetsAction.ShowWallets -> navigator.openWallets()
+                                    AssetsAction.Manage -> navigator.openAssetsManage()
+                                    AssetsAction.Search -> navigator.openAssetsSearch()
+                                    AssetsAction.Send -> navigator.openRecipient()
+                                    AssetsAction.Receive -> navigator.openReceive()
+                                    AssetsAction.Buy -> navigator.openBuy()
+                                    AssetsAction.Swap -> navigator.openSwap()
+                                    AssetsAction.Perpetuals -> navigator.openPerpetuals()
+                                    is AssetsAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
+                                    is AssetsAction.OpenAsset -> navigator.openAsset(action.assetId)
+                                }
+                            },
                             onContentReady = onWalletContentReady,
                             listState = assetsListState,
                             viewModel = assetsViewModel,

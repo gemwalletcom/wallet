@@ -70,16 +70,7 @@ private const val PerpetualsSectionItemKey = "perpetuals_section"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssetsScreen(
-    onShowWallets: () -> Unit,
-    onManage: () -> Unit,
-    onSearch: () -> Unit,
-    onSendClick: () -> Unit,
-    onReceiveClick: () -> Unit,
-    onBuyClick: () -> Unit,
-    onSwapClick: () -> Unit,
-    onPerpetuals: () -> Unit,
-    onPerpetualDetails: (AssetId) -> Unit,
-    onAssetClick: (AssetId) -> Unit,
+    onAction: (AssetsAction) -> Unit,
     onContentReady: () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     viewModel: AssetsViewModel = hiltViewModel(),
@@ -111,7 +102,7 @@ fun AssetsScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { AssetsTopBar(walletSummary, onShowWallets, onSearch) },
+        topBar = { AssetsTopBar(walletSummary, { onAction(AssetsAction.ShowWallets) }, { onAction(AssetsAction.Search) }) },
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
@@ -145,18 +136,18 @@ fun AssetsScreen(
                 item(key = AssetsHeadItemKey) {
                     AssetsHead(
                         walletSummary = walletSummary,
-                        onSendClick = onSendClick,
-                        onReceiveClick = onReceiveClick,
-                        onBuyClick = onBuyClick,
-                        onSwapClick = onSwapClick,
+                        onSendClick = { onAction(AssetsAction.Send) },
+                        onReceiveClick = { onAction(AssetsAction.Receive) },
+                        onBuyClick = { onAction(AssetsAction.Buy) },
+                        onSwapClick = { onAction(AssetsAction.Swap) },
                         onHideBalances = viewModel::hideBalances
                     )
                 }
                 if (showWelcomeBanner) {
                     item(key = WelcomeBannerItemKey) {
                         WelcomeBanner(
-                            onBuy = onBuyClick,
-                            onReceive = onReceiveClick,
+                            onBuy = { onAction(AssetsAction.Buy) },
+                            onReceive = { onAction(AssetsAction.Receive) },
                             onClose = viewModel::onHideWelcomeBanner
                         )
                     }
@@ -203,25 +194,25 @@ fun AssetsScreen(
                 }
                 item(key = PerpetualsSectionItemKey) {
                     PerpetualsPreviewSection(
-                        onOpenPerpetuals = onPerpetuals,
-                        onOpenPerpetualDetails = onPerpetualDetails,
+                        onOpenPerpetuals = { onAction(AssetsAction.Perpetuals) },
+                        onOpenPerpetualDetails = { onAction(AssetsAction.OpenPerpetualDetails(it)) },
                     )
                 }
                 assets(
                     items = pinnedAssets,
                     longPressState = longPressedAsset,
                     group = AssetsGroupType.Pined,
-                    onAssetClick = onAssetClick,
+                    onAssetClick = { onAction(AssetsAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
                 assets(
                     items = unpinnedAssets,
                     longPressState = longPressedAsset,
                     group = AssetsGroupType.None,
-                    onAssetClick = onAssetClick,
+                    onAssetClick = { onAction(AssetsAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
-                item(key = FooterItemKey) { AssetsListFooter(onManage) }
+                item(key = FooterItemKey) { AssetsListFooter { onAction(AssetsAction.Manage) } }
             }
         }
     }
