@@ -182,7 +182,9 @@ internal fun NftListScene(
 
             Column(modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    modifier = Modifier
+                        .then(if (items.isEmpty()) Modifier else Modifier.weight(1f))
+                        .fillMaxWidth(),
                     columns = GridCells.Adaptive(minSize = 150.dp),
                     state = listState,
                     contentPadding = PaddingValues(paddingSmall, paddingDefault)

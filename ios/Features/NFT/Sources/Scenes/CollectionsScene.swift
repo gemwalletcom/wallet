@@ -25,7 +25,9 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                     }
                     .padding(.horizontal, Spacing.medium + Spacing.tiny)
 
-                    Spacer(minLength: .medium)
+                    if model.content.items.isNotEmpty {
+                        Spacer(minLength: .medium)
+                    }
 
                     if let unverifiedCount = model.content.unverifiedCount {
                         List {
@@ -40,13 +42,13 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                         .frame(height: .list.minHeight)
                     }
                 }
-                .frame(minHeight: geometry.size.height)
+                .frame(minHeight: geometry.size.height, alignment: .top)
             }
         }
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if model.content.items.isEmpty {
+            if model.content.items.isEmpty, model.content.unverifiedCount == nil {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }
