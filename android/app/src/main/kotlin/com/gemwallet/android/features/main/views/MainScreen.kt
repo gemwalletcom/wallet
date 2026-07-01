@@ -43,6 +43,7 @@ import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.nft.presents.NftListNavScreen
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
+import com.gemwallet.android.features.settings.settings.presents.views.SettingsSceneAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
@@ -226,16 +227,20 @@ fun MainScreen(
                         )
                         else -> SettingsScene(
                             scrollState = settingsScrollState,
-                            onSecurity = navigator::openSecurity,
-                            onBridges = navigator::openBridgeConnections,
                             walletConnectEnabled = viewModel.isWalletConnectEnabled,
-                            onDevelop = navigator::openDevelop,
-                            onWallets = navigator::openWallets,
-                            onNotifications = navigator::openNotifications,
-                            onSupport = navigator::openSupport,
-                            onAboutUs = navigator::openAboutUs,
-                            onReferral = { navigator.openReferral() },
-                            onPreferences = navigator::openPreferences,
+                            onAction = { action ->
+                                when (action) {
+                                    SettingsSceneAction.Wallets -> navigator.openWallets()
+                                    SettingsSceneAction.Security -> navigator.openSecurity()
+                                    SettingsSceneAction.Notifications -> navigator.openNotifications()
+                                    SettingsSceneAction.Preferences -> navigator.openPreferences()
+                                    SettingsSceneAction.Bridges -> navigator.openBridgeConnections()
+                                    SettingsSceneAction.Support -> navigator.openSupport()
+                                    SettingsSceneAction.Referral -> navigator.openReferral()
+                                    SettingsSceneAction.AboutUs -> navigator.openAboutUs()
+                                    SettingsSceneAction.Develop -> navigator.openDevelop()
+                                }
+                            },
                         )
                     }
                 }
