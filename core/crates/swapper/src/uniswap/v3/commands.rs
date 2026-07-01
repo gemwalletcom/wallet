@@ -1,9 +1,4 @@
-use crate::{
-    SwapperError, eth_address,
-    fees::{apply_slippage_in_bp, default_referral_fees},
-    models::*,
-    uniswap::requires_native_wrapping,
-};
+use crate::{SwapperError, eth_address, fees::default_referral_fees, models::*, uniswap::requires_native_wrapping};
 use gem_evm::uniswap::command::{ADDRESS_THIS, PayPortion, Permit2Permit, Sweep, Transfer, UniversalRouterCommand, UnwrapWeth, V3SwapExactIn, WrapEth};
 
 use alloy_primitives::{Address, Bytes, U256};
@@ -19,7 +14,6 @@ pub fn build_commands(
     permit: Option<Permit2Permit>,
     fee_token_is_input: bool,
 ) -> Result<Vec<UniversalRouterCommand>, SwapperError> {
-    let options = request.options.clone();
     let fee_options = default_referral_fees().evm;
     let recipient = eth_address::parse_str(&request.wallet_address)?;
 
@@ -29,7 +23,7 @@ pub fn build_commands(
 
     let mut commands: Vec<UniversalRouterCommand> = vec![];
 
-    let amount_out = apply_slippage_in_bp(&quote_amount, options.slippage.bps + fee_options.bps);
+    let amount_out = quote_amount;
     if wrap_input_eth {
         // Wrap ETH, recipient is this_address
         commands.push(UniversalRouterCommand::WRAP_ETH(WrapEth {
@@ -195,7 +189,11 @@ mod tests {
         assert!(matches!(commands[0], UniversalRouterCommand::PERMIT2_PERMIT(_)));
         assert!(matches!(commands[1], UniversalRouterCommand::V3_SWAP_EXACT_IN(_)));
         assert!(matches!(commands[2], UniversalRouterCommand::PAY_PORTION(_)));
-        assert!(matches!(commands[3], UniversalRouterCommand::SWEEP(_)));
+
+        let UniversalRouterCommand::SWEEP(sweep) = &commands[3] else {
+            panic!("expected SWEEP command");
+        };
+        assert_eq!(sweep.amount_min, U256::from(6507936u64));
     }
 
     #[test]

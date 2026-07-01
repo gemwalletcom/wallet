@@ -1,10 +1,6 @@
 use std::str::FromStr;
 
-use crate::{
-    QuoteRequest, Route, SwapperError, eth_address,
-    fees::{apply_slippage_in_bp, default_referral_fees},
-    uniswap::requires_native_wrapping,
-};
+use crate::{QuoteRequest, Route, SwapperError, eth_address, fees::default_referral_fees, uniswap::requires_native_wrapping};
 use alloy_primitives::{Address, U256};
 use gem_evm::uniswap::{
     actions::V4Action::{SETTLE, SWAP_EXACT_IN, TAKE},
@@ -22,7 +18,6 @@ pub fn build_commands(
     permit: Option<Permit2Permit>,
     fee_token_is_input: bool,
 ) -> Result<Vec<UniversalRouterCommand>, SwapperError> {
-    let options = request.options.clone();
     let fee_options = default_referral_fees().evm;
     let recipient = eth_address::parse_str(&request.wallet_address)?;
 
@@ -31,7 +26,7 @@ pub fn build_commands(
 
     let mut commands: Vec<UniversalRouterCommand> = vec![];
 
-    let amount_out = apply_slippage_in_bp(&quote_amount, options.slippage.bps + fee_options.bps);
+    let amount_out = quote_amount;
     // Insert permit2 if needed
     if let Some(permit) = permit {
         commands.push(UniversalRouterCommand::PERMIT2_PERMIT(permit));
@@ -160,7 +155,11 @@ mod tests {
         assert_eq!(commands.len(), 3);
         assert!(matches!(commands[0], UniversalRouterCommand::V4_SWAP { .. }));
         assert!(matches!(commands[1], UniversalRouterCommand::PAY_PORTION(_)));
-        assert!(matches!(commands[2], UniversalRouterCommand::SWEEP(_)));
+
+        let UniversalRouterCommand::SWEEP(sweep) = &commands[2] else {
+            panic!("expected SWEEP command");
+        };
+        assert_eq!(sweep.amount_min, U256::from(14_804_757u64));
 
         // USDT -> CELO with fees: sweep instead of unwrap
         let request = QuoteRequest {
