@@ -59,14 +59,18 @@ fun PriceAlertsNavScreen(
                 syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),
                 snackbar = snackbar,
-                onEnablePriceAlerts = viewModel::togglePriceAlerts,
-                onToggleAutoAlert = viewModel::toggleAutoAlert,
-                onChart = onChart,
-                onExclude = viewModel::excludeAsset,
-                onRefresh = viewModel::refresh,
-                onCancel = onCancel,
-                onAdd = { selectingAsset = true },
-                onAddTarget = onAddPriceAlertTarget,
+                onAction = { action ->
+                    when (action) {
+                        is PriceAlertAction.EnablePriceAlerts -> viewModel.togglePriceAlerts(action.enabled)
+                        is PriceAlertAction.ToggleAutoAlert -> viewModel.toggleAutoAlert(action.enabled)
+                        is PriceAlertAction.Exclude -> viewModel.excludeAsset(action.id)
+                        PriceAlertAction.Refresh -> viewModel.refresh()
+                        PriceAlertAction.Add -> selectingAsset = true
+                        PriceAlertAction.Close -> onCancel()
+                        is PriceAlertAction.OpenChart -> onChart(action.assetId)
+                        is PriceAlertAction.AddTarget -> onAddPriceAlertTarget(action.assetId)
+                    }
+                },
             )
         }
     }
