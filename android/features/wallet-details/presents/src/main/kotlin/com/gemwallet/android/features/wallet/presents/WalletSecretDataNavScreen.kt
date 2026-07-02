@@ -20,7 +20,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.wallet.viewmodels.WalletSecretDataViewModel
+import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.CopyButton
@@ -35,6 +37,7 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.DocsUrl
 
 internal data class WalletSecretDataContent(
     val titleRes: Int,
@@ -65,6 +68,7 @@ fun WalletSecretDataNavScreen(
     viewModel: WalletSecretDataViewModel = hiltViewModel()
 ) {
     DisableScreenShooting()
+    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
 
     val value by viewModel.data.collectAsStateWithLifecycle()
     val walletType by viewModel.walletType.collectAsStateWithLifecycle()

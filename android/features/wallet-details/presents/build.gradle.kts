@@ -42,6 +42,7 @@ android {
 dependencies {
 
     implementation(project(":ui"))
+    implementation(project(":gemcore"))
     implementation(project(":features:wallet-details:viewmodels"))
 
     implementation(libs.hilt.android)
