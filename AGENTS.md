@@ -14,6 +14,7 @@ Read this file first, then load only the skills relevant to your current task �
 - [Code Review](skills/code-review.md) — Review checklist for correctness, conventions, parity, and adversarial security hardening
 - [Security](skills/security.md) — Wallet-critical security rules for key material, signing, auth, and transaction handling
 - [Quality Checks](skills/quality-checks.md) — Lint, format, and static-analysis commands for each platform
+- [Maestro UI Testing](skills/testing-maestro.md) — When to use Maestro flows vs unit or native UI tests, and cross-platform authoring rules
 - [Release Process](skills/release-process.md) — Branching, versioning, and commit expectations
 - [Localization](skills/localization.md) — Shared localization flow and generated output locations
 - [New Feature Workflow](skills/new-feature-workflow.md) — End-to-end sequence for cross-stack features (Core → bindings → iOS/Android)
