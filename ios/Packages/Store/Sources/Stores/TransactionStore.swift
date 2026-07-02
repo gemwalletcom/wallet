@@ -16,7 +16,7 @@ public struct TransactionStore: Sendable {
     ) throws -> [TransactionWallet] {
         try db.read { db in
             try TransactionRecord
-                .including(required: TransactionRecord.wallet)
+                .including(required: TransactionRecord.wallet.including(all: WalletRecord.accounts))
                 .filter(states.map(\.rawValue).contains(TransactionRecord.Columns.state))
                 .asRequest(of: WalletTransactionInfo.self)
                 .fetchAll(db)
@@ -30,7 +30,7 @@ public struct TransactionStore: Sendable {
     ) throws -> TransactionWallet? {
         try db.read { db in
             try TransactionRecord
-                .including(required: TransactionRecord.wallet)
+                .including(required: TransactionRecord.wallet.including(all: WalletRecord.accounts))
                 .filter(TransactionRecord.Columns.walletId == walletId.id)
                 .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
                 .asRequest(of: WalletTransactionInfo.self)

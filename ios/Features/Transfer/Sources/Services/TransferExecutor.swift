@@ -19,20 +19,17 @@ public struct TransferExecutor: TransferExecutable {
     private let signer: any TransactionSigneable
     private let chainService: any ChainServiceable
     private let assetsEnabler: any AssetsEnabler
-    private let balanceService: BalanceService
     private let transactionStateScheduler: TransactionStateScheduler
 
     public init(
         signer: any TransactionSigneable,
         chainService: any ChainServiceable,
         assetsEnabler: any AssetsEnabler,
-        balanceService: BalanceService,
         transactionStateScheduler: TransactionStateScheduler,
     ) {
         self.signer = signer
         self.chainService = chainService
         self.assetsEnabler = assetsEnabler
-        self.balanceService = balanceService
         self.transactionStateScheduler = transactionStateScheduler
     }
 
@@ -91,7 +88,6 @@ extension TransferExecutor {
         try transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: transactions)
         Task {
             do {
-                try balanceService.addAssetsBalancesIfMissing(assetIds: assetIds, wallet: input.wallet, isEnabled: true)
                 try await assetsEnabler.enableAssets(wallet: input.wallet, assetIds: assetIds, enabled: true)
             } catch {
                 debugLog("TransferExecutor post-transfer asset update error: \(error)")

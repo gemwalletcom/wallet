@@ -112,6 +112,7 @@ pub fn get_base_pair(chain: &EVMChain, weth_as_native: bool) -> Option<BasePair>
         EVMChain::Monad => MONAD_USDC_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDC_TOKEN_ID,
         EVMChain::XLayer => XLAYER_USDC_TOKEN_ID,
+        EVMChain::Robinhood => ROBINHOOD_USDG_TOKEN_ID,
         EVMChain::OpBNB | EVMChain::Plasma => "",
         EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b", // USDC.e (Stargate)
         _ => panic!("USDC is not configured for this chain"),
@@ -141,7 +142,7 @@ pub fn get_base_pair(chain: &EVMChain, weth_as_native: bool) -> Option<BasePair>
         EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID, // USDT0
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
         EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", // USDT0
-        EVMChain::Blast | EVMChain::World => "",                          // None
+        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood => "",    // None
         _ => panic!("USDT is not configured for this chain"),
     };
 
@@ -272,5 +273,14 @@ mod tests {
                 fee_tier: FeeTier::ThreeThousand
             }
         );
+    }
+
+    #[test]
+    fn test_robinhood_base_pair() {
+        let base_pair = get_base_pair(&EVMChain::Robinhood, true).unwrap();
+
+        assert_eq!(base_pair.native, ROBINHOOD_WETH_TOKEN_ID.parse::<Address>().unwrap());
+        assert_eq!(base_pair.stables, vec![ROBINHOOD_USDG_TOKEN_ID.parse::<Address>().unwrap()]);
+        assert!(base_pair.alternatives.is_empty());
     }
 }

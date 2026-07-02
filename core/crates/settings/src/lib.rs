@@ -37,6 +37,7 @@ pub struct Settings {
     pub pusher: Pusher,
     pub scan: Scan,
     pub support: Support,
+    pub defi: Defi,
     pub nft: NFT,
     pub ankr: Ankr,
     pub trongrid: Trongrid,
@@ -374,6 +375,11 @@ pub type Trongrid = SecretKeySettings;
 pub type NFTScan = SecretKeySettings;
 pub type OpenSea = SecretKeySettings;
 pub type MagicEden = SecretKeySettings;
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Defi {
+    pub zerion: UrlSecretKeySettings,
+}
 
 pub type Assets = URL;
 

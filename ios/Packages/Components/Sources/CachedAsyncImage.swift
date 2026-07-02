@@ -76,6 +76,8 @@ public struct CachedAsyncImage<Content: View>: View {
 
     private let content: (AsyncImagePhase) -> Content
 
+    private var shouldLoadRemoteImage = true
+
     public var body: some View {
         content(phase)
             .task(id: urlRequest) { await load() }
@@ -305,6 +307,7 @@ public struct CachedAsyncImage<Content: View>: View {
         do {
             if let urlRequest, let image = try cachedImage(from: urlRequest, cache: urlCache) {
                 _phase = State(wrappedValue: .success(image))
+                shouldLoadRemoteImage = false
             }
         } catch {
             _phase = State(wrappedValue: .failure(error))
@@ -312,6 +315,8 @@ public struct CachedAsyncImage<Content: View>: View {
     }
 
     private func load() async {
+        guard shouldLoadRemoteImage else { return }
+
         do {
             if let urlRequest {
                 let (image, metrics) = try await remoteImage(from: urlRequest, session: urlSession)

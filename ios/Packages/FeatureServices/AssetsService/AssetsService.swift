@@ -79,6 +79,14 @@ public final class AssetsService: Sendable {
         }
     }
 
+    public func getBalanceAssetIds(
+        walletId: WalletId,
+        assetIds: [AssetId],
+        filters: [BalanceRequestFilter] = []
+    ) throws -> [AssetId] {
+        try balanceStore.getBalanceAssetIds(walletId: walletId, assetIds: assetIds, filters: filters)
+    }
+
     @discardableResult
     public func prefetchAssets(assetIds: [AssetId]) async throws -> [AssetId] {
         let assets = try getAssets(for: assetIds).map(\.id).asSet()

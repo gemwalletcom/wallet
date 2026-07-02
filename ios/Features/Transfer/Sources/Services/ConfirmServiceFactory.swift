@@ -46,7 +46,6 @@ public enum ConfirmServiceFactory {
                 signer: TransactionSigner(keystore: keystore),
                 chainService: chainService,
                 assetsEnabler: assetsEnabler,
-                balanceService: balanceService,
                 transactionStateScheduler: transactionStateScheduler,
             ),
             keystore: keystore,

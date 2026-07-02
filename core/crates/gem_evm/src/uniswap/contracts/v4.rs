@@ -105,9 +105,28 @@ sol! {
         }
 
         #[derive(PartialEq)]
+        struct ExactInputSingleParamsV2_1 {
+            PoolKey poolKey;
+            bool zeroForOne;
+            uint128 amountIn;
+            uint128 amountOutMinimum;
+            uint256 minHopPriceX36;
+            bytes hookData;
+        }
+
+        #[derive(PartialEq)]
         struct ExactInputParams {
             Currency currencyIn;
             PathKey[] path;
+            uint128 amountIn;
+            uint128 amountOutMinimum;
+        }
+
+        #[derive(PartialEq)]
+        struct ExactInputParamsV2_1 {
+            Currency currencyIn;
+            PathKey[] path;
+            uint256[] minHopPriceX36;
             uint128 amountIn;
             uint128 amountOutMinimum;
         }
@@ -122,9 +141,28 @@ sol! {
         }
 
         #[derive(PartialEq)]
+        struct ExactOutputSingleParamsV2_1 {
+            PoolKey poolKey;
+            bool zeroForOne;
+            uint128 amountOut;
+            uint128 amountInMaximum;
+            uint256 minHopPriceX36;
+            bytes hookData;
+        }
+
+        #[derive(PartialEq)]
         struct ExactOutputParams {
             Currency currencyOut;
             PathKey[] path;
+            uint128 amountOut;
+            uint128 amountInMaximum;
+        }
+
+        #[derive(PartialEq)]
+        struct ExactOutputParamsV2_1 {
+            Currency currencyOut;
+            PathKey[] path;
+            uint256[] minHopPriceX36;
             uint128 amountOut;
             uint128 amountInMaximum;
         }

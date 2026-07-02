@@ -1,0 +1,16 @@
+[package]
+name = "defi"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+async-trait = { workspace = true }
+base64 = { workspace = true }
+futures = { workspace = true }
+primitives = { path = "../primitives" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+storage = { path = "../storage" }
+
+[dev-dependencies]
+serde_json = { workspace = true }

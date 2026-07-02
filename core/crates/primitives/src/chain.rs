@@ -149,6 +149,10 @@ impl Chain {
         self.config().is_nft_supported
     }
 
+    pub fn is_defi_supported(&self) -> bool {
+        self.config().is_defi_supported
+    }
+
     // milliseconds
     pub fn block_time(&self) -> u32 {
         self.config().block_time
@@ -183,6 +187,14 @@ mod tests {
     #[test]
     fn test_robinhood_swap_supported() {
         assert!(Chain::Robinhood.is_swap_supported());
+    }
+
+    #[test]
+    fn test_defi_supported() {
+        assert!(Chain::Ethereum.is_defi_supported());
+        assert!(Chain::Base.is_defi_supported());
+        assert!(!Chain::Solana.is_defi_supported());
+        assert!(!Chain::Bitcoin.is_defi_supported());
     }
 
     #[test]

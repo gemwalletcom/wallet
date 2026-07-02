@@ -1,4 +1,4 @@
-use super::contracts::v4::IV4Router;
+use super::{contracts::v4::IV4Router, deployment::UniversalRouterAbi};
 use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::SolValue;
 
@@ -17,9 +17,13 @@ pub const TAKE_PORTION_ACTION: u8 = 0x10;
 #[derive(Debug, PartialEq)]
 pub enum V4Action {
     SWAP_EXACT_IN_SINGLE(IV4Router::ExactInputSingleParams),
+    SWAP_EXACT_IN_SINGLE_V2_1(IV4Router::ExactInputSingleParamsV2_1),
     SWAP_EXACT_IN(IV4Router::ExactInputParams),
+    SWAP_EXACT_IN_V2_1(IV4Router::ExactInputParamsV2_1),
     SWAP_EXACT_OUT_SINGLE(IV4Router::ExactOutputSingleParams),
+    SWAP_EXACT_OUT_SINGLE_V2_1(IV4Router::ExactOutputSingleParamsV2_1),
     SWAP_EXACT_OUT(IV4Router::ExactOutputParams),
+    SWAP_EXACT_OUT_V2_1(IV4Router::ExactOutputParamsV2_1),
 
     SETTLE { currency: Address, amount: U256, payer_is_user: bool },
     SETTLE_ALL { currency: Address, max_amount: U256 },
@@ -37,9 +41,13 @@ pub fn encode_actions(actions: &[V4Action]) -> Vec<u8> {
 pub fn encode_action_data(action: &V4Action) -> Vec<u8> {
     match action {
         V4Action::SWAP_EXACT_IN_SINGLE(params) => params.abi_encode(),
+        V4Action::SWAP_EXACT_IN_SINGLE_V2_1(params) => params.abi_encode(),
         V4Action::SWAP_EXACT_IN(params) => params.abi_encode(),
+        V4Action::SWAP_EXACT_IN_V2_1(params) => params.abi_encode(),
         V4Action::SWAP_EXACT_OUT_SINGLE(params) => params.abi_encode(),
+        V4Action::SWAP_EXACT_OUT_SINGLE_V2_1(params) => params.abi_encode(),
         V4Action::SWAP_EXACT_OUT(params) => params.abi_encode(),
+        V4Action::SWAP_EXACT_OUT_V2_1(params) => params.abi_encode(),
         V4Action::SETTLE { currency, amount, payer_is_user } => (currency.to_owned(), amount.to_owned(), payer_is_user.to_owned()).abi_encode(),
         V4Action::SETTLE_ALL { currency, max_amount } => (currency.to_owned(), max_amount.to_owned()).abi_encode(),
         V4Action::TAKE { currency, recipient, amount } => (currency.to_owned(), recipient.to_owned(), amount.to_owned()).abi_encode(),
@@ -48,7 +56,7 @@ pub fn encode_action_data(action: &V4Action) -> Vec<u8> {
     }
 }
 
-pub fn decode_action_data(data: &[u8]) -> Result<Vec<V4Action>, alloy_sol_types::Error> {
+pub fn decode_action_data(data: &[u8], universal_router_abi: UniversalRouterAbi) -> Result<Vec<V4Action>, alloy_sol_types::Error> {
     // The ABI encoding for a sequence of actions is (bytes opcodes, bytes[] action_data)
     let (action_opcodes_bytes, action_data_bytes) = <(Bytes, Vec<Bytes>) as SolValue>::abi_decode_sequence(data)?;
 
@@ -65,10 +73,22 @@ pub fn decode_action_data(data: &[u8]) -> Result<Vec<V4Action>, alloy_sol_types:
         let action_data = &action_data_list[i];
         let action_data_slice = action_data.as_slice();
         let action = match *opcode {
-            SWAP_EXACT_IN_SINGLE_ACTION => V4Action::SWAP_EXACT_IN_SINGLE(<IV4Router::ExactInputSingleParams as SolValue>::abi_decode(action_data_slice)?),
-            SWAP_EXACT_IN_ACTION => V4Action::SWAP_EXACT_IN(<IV4Router::ExactInputParams as SolValue>::abi_decode(action_data_slice)?),
-            SWAP_EXACT_OUT_SINGLE_ACTION => V4Action::SWAP_EXACT_OUT_SINGLE(<IV4Router::ExactOutputSingleParams as SolValue>::abi_decode(action_data_slice)?),
-            SWAP_EXACT_OUT_ACTION => V4Action::SWAP_EXACT_OUT(<IV4Router::ExactOutputParams as SolValue>::abi_decode(action_data_slice)?),
+            SWAP_EXACT_IN_SINGLE_ACTION => match universal_router_abi {
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_IN_SINGLE(<IV4Router::ExactInputSingleParams as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_IN_SINGLE_V2_1(<IV4Router::ExactInputSingleParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+            },
+            SWAP_EXACT_IN_ACTION => match universal_router_abi {
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_IN(<IV4Router::ExactInputParams as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_IN_V2_1(<IV4Router::ExactInputParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+            },
+            SWAP_EXACT_OUT_SINGLE_ACTION => match universal_router_abi {
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_OUT_SINGLE(<IV4Router::ExactOutputSingleParams as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_OUT_SINGLE_V2_1(<IV4Router::ExactOutputSingleParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+            },
+            SWAP_EXACT_OUT_ACTION => match universal_router_abi {
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_OUT(<IV4Router::ExactOutputParams as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_OUT_V2_1(<IV4Router::ExactOutputParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+            },
             SETTLE_ACTION => {
                 let (currency, amount, payer_is_user) = <(Address, U256, bool) as SolValue>::abi_decode(action_data_slice)?;
                 V4Action::SETTLE { currency, amount, payer_is_user }
@@ -101,10 +121,10 @@ pub fn decode_action_data(data: &[u8]) -> Result<Vec<V4Action>, alloy_sol_types:
 impl V4Action {
     pub fn byte(&self) -> u8 {
         match self {
-            Self::SWAP_EXACT_IN_SINGLE(_) =>    SWAP_EXACT_IN_SINGLE_ACTION,
-            Self::SWAP_EXACT_IN(_) =>           SWAP_EXACT_IN_ACTION,
-            Self::SWAP_EXACT_OUT_SINGLE(_) =>   SWAP_EXACT_OUT_SINGLE_ACTION,
-            Self::SWAP_EXACT_OUT(_) =>          SWAP_EXACT_OUT_ACTION,
+            Self::SWAP_EXACT_IN_SINGLE(_) | Self::SWAP_EXACT_IN_SINGLE_V2_1(_) =>    SWAP_EXACT_IN_SINGLE_ACTION,
+            Self::SWAP_EXACT_IN(_) | Self::SWAP_EXACT_IN_V2_1(_) =>                  SWAP_EXACT_IN_ACTION,
+            Self::SWAP_EXACT_OUT_SINGLE(_) | Self::SWAP_EXACT_OUT_SINGLE_V2_1(_) =>  SWAP_EXACT_OUT_SINGLE_ACTION,
+            Self::SWAP_EXACT_OUT(_) | Self::SWAP_EXACT_OUT_V2_1(_) =>                SWAP_EXACT_OUT_ACTION,
 
             Self::SETTLE { .. }   => SETTLE_ACTION,
             Self::SETTLE_ALL { .. }             => SETTLE_ALL_ACTION,
@@ -177,8 +197,50 @@ mod tests {
         assert_eq!(HexEncode(&params), expected);
 
         // Test decode_action_data
-        let decoded_actions = decode_action_data(&params).unwrap();
+        let decoded_actions = decode_action_data(&params, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(actions, decoded_actions, "Decoded actions do not match original actions");
+    }
+
+    #[test]
+    fn test_encode_action_v2_1_exact_input_layout() {
+        let _1inch_token = Address::from_str("0x111111111117dC0aa78b770fA6A738034120C302").unwrap();
+        let action = V4Action::SWAP_EXACT_IN_V2_1(IV4Router::ExactInputParamsV2_1 {
+            currencyIn: Address::ZERO,
+            path: vec![PathKey {
+                intermediateCurrency: _1inch_token,
+                fee: U24::from(10000),
+                tickSpacing: I24::from_str("200").unwrap(),
+                hooks: Address::ZERO,
+                hookData: Bytes::new(),
+            }],
+            minHopPriceX36: vec![],
+            amountIn: 2000000000000000_u128,
+            amountOutMinimum: 0,
+        });
+
+        let encoded_data = encode_action_data(&action);
+        let expected = "0000000000000000000000000000000000000000000000000000000000000020\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            00000000000000000000000000000000000000000000000000000000000000a0\
+            00000000000000000000000000000000000000000000000000000000000001a0\
+            00000000000000000000000000000000000000000000000000071afd498d0000\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000001\
+            0000000000000000000000000000000000000000000000000000000000000020\
+            000000000000000000000000111111111117dc0aa78b770fa6a738034120c302\
+            0000000000000000000000000000000000000000000000000000000000002710\
+            00000000000000000000000000000000000000000000000000000000000000c8\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            00000000000000000000000000000000000000000000000000000000000000a0\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000"
+            .replace(char::is_whitespace, "");
+
+        assert_eq!(HexEncode(&encoded_data), expected);
+
+        let encoded_actions = encode_actions(&[action]);
+        let decoded_actions = decode_action_data(&encoded_actions, UniversalRouterAbi::V2_1).unwrap();
+        assert!(matches!(decoded_actions.first(), Some(V4Action::SWAP_EXACT_IN_V2_1(_))));
     }
 }

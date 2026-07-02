@@ -1,6 +1,7 @@
 pub mod address;
 pub mod block;
 pub mod client;
+pub mod defi;
 pub mod nft;
 pub mod staking;
 pub mod swap;

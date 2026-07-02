@@ -27,6 +27,7 @@ pub const V4_SWAP_COMMAND: u8 = 0x10;
 #[allow(non_camel_case_types)]
 pub enum UniversalRouterCommand {
     V3_SWAP_EXACT_IN(V3SwapExactIn),
+    V3_SWAP_EXACT_IN_V2_1(V3SwapExactInV2_1),
     V3_SWAP_EXACT_OUT(V3SwapExactOut),
     PERMIT2_TRANSFER_FROM(Transfer),
     PERMIT2_PERMIT_BATCH,
@@ -47,7 +48,7 @@ pub enum UniversalRouterCommand {
 impl UniversalRouterCommand {
     pub fn raw_value(&self) -> u8 {
         match self {
-            Self::V3_SWAP_EXACT_IN(_) => V3_SWAP_EXACT_IN_COMMAND,
+            Self::V3_SWAP_EXACT_IN(_) | Self::V3_SWAP_EXACT_IN_V2_1(_) => V3_SWAP_EXACT_IN_COMMAND,
             Self::V3_SWAP_EXACT_OUT(_) => V3_SWAP_EXACT_OUT_COMMAND,
             Self::PERMIT2_TRANSFER_FROM(_) => PERMIT2_TRANSFER_FROM_COMMAND,
             Self::PERMIT2_PERMIT_BATCH => PERMIT2_PERMIT_BATCH_COMMAND,
@@ -69,6 +70,7 @@ impl UniversalRouterCommand {
     pub fn encode(&self) -> Vec<u8> {
         match self {
             Self::V3_SWAP_EXACT_IN(payload) => payload.abi_encode(),
+            Self::V3_SWAP_EXACT_IN_V2_1(payload) => payload.abi_encode(),
             Self::V3_SWAP_EXACT_OUT(payload) => payload.abi_encode(),
             Self::SWEEP(payload) => payload.abi_encode(),
             Self::TRANSFER(payload) => payload.abi_encode(),
@@ -84,6 +86,14 @@ impl UniversalRouterCommand {
 }
 
 type V3SwapExactType = (sol_data::Address, sol_data::Uint<256>, sol_data::Uint<256>, sol_data::Bytes, sol_data::Bool);
+type V3SwapExactV2_1Type = (
+    sol_data::Address,
+    sol_data::Uint<256>,
+    sol_data::Uint<256>,
+    sol_data::Bytes,
+    sol_data::Bool,
+    sol_data::Array<sol_data::Uint<256>>,
+);
 type SweepType = (sol_data::Address, sol_data::Address, sol_data::Uint<256>);
 type PayPortionType = (sol_data::Address, sol_data::Address, sol_data::Uint<256>);
 type TransferType = PayPortionType;
@@ -114,6 +124,42 @@ impl V3SwapExactIn {
             amount_out_min,
             path,
             payer_is_user,
+        })
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct V3SwapExactInV2_1 {
+    pub recipient: Address,
+    pub amount_in: U256,
+    pub amount_out_min: U256,
+    pub path: Bytes,
+    pub payer_is_user: bool,
+    pub min_hop_price_x36: Vec<U256>,
+}
+
+impl V3SwapExactInV2_1 {
+    pub fn abi_encode(&self) -> Vec<u8> {
+        let data = (
+            self.recipient,
+            self.amount_in,
+            self.amount_out_min,
+            self.path.clone(),
+            self.payer_is_user,
+            self.min_hop_price_x36.clone(),
+        );
+        V3SwapExactV2_1Type::abi_encode_sequence(&data)
+    }
+
+    pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
+        let (recipient, amount_in, amount_out_min, path, payer_is_user, min_hop_price_x36) = V3SwapExactV2_1Type::abi_decode_sequence(data)?;
+        Ok(Self {
+            recipient,
+            amount_in,
+            amount_out_min,
+            path,
+            payer_is_user,
+            min_hop_price_x36,
         })
     }
 }
@@ -294,6 +340,44 @@ mod tests {
         let encoded = encode_commands(&commands, deadline);
 
         assert_eq!(HexEncode(encoded), expected);
+    }
+
+    #[test]
+    fn test_encode_v3_exact_in_v2_1_payload_layout() {
+        let amount_in = U256::from(1000000000000000u64);
+        let path = HexDecode("0x42000000000000000000000000000000000000060001f40b2c639c533813f4aa9d7837caf62653d097ff85").unwrap();
+        let payload = V3SwapExactInV2_1 {
+            recipient: Address::from_str(ADDRESS_THIS).unwrap(),
+            amount_in,
+            amount_out_min: U256::from(0),
+            path: Bytes::from(path),
+            payer_is_user: false,
+            min_hop_price_x36: vec![],
+        };
+        let expected = "0x0000000000000000000000000000000000000000000000000000000000000002\
+            00000000000000000000000000000000000000000000000000038d7ea4c68000\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            00000000000000000000000000000000000000000000000000000000000000c0\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000120\
+            000000000000000000000000000000000000000000000000000000000000002b\
+            42000000000000000000000000000000000000060001f40b2c639c533813f4aa\
+            9d7837caf62653d097ff85000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000"
+            .replace(char::is_whitespace, "");
+
+        assert_eq!(HexEncode(payload.abi_encode()), expected);
+
+        let decoded = V3SwapExactInV2_1::abi_decode(&payload.abi_encode()).unwrap();
+        assert_eq!(decoded, payload);
+
+        // Round-trip with a populated min_hop_price_x36 array (parser must read it back).
+        let payload_with_limits = V3SwapExactInV2_1 {
+            min_hop_price_x36: vec![U256::from(1u64), U256::from(2u64)],
+            ..payload
+        };
+        let decoded_with_limits = V3SwapExactInV2_1::abi_decode(&payload_with_limits.abi_encode()).unwrap();
+        assert_eq!(decoded_with_limits, payload_with_limits);
     }
 
     #[test]

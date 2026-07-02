@@ -111,6 +111,8 @@ pub mod device;
 pub use self::device::Device;
 pub mod device_token;
 pub use self::device_token::DeviceToken;
+pub mod defi;
+pub use self::defi::{DefiPosition, DefiPositionAsset, DefiPositionType, DefiProtocol, DefiProvider};
 pub mod transaction;
 pub use self::transaction::{Transaction, TransactionsResponse};
 pub mod transaction_type;

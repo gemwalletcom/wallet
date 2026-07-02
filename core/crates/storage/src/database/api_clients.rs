@@ -9,6 +9,7 @@ use crate::schema::{api_client_scopes, api_clients};
 
 pub trait ApiClientsStore {
     fn add_api_client_grants(&mut self, values: Vec<ApiClientGrant>) -> Result<usize, diesel::result::Error>;
+    fn set_api_client_secret(&mut self, name: &str, secret: &str) -> Result<usize, diesel::result::Error>;
     fn get_enabled_api_client(&mut self, secret: &str, scope: ApiClientScope, resource: ApiClientResource) -> Result<Option<ApiClientRow>, diesel::result::Error>;
 }
 
@@ -67,6 +68,12 @@ impl ApiClientsStore for DatabaseClient {
             .values(scopes)
             .on_conflict((api_client_scopes::client_id, api_client_scopes::scope, api_client_scopes::resource))
             .do_nothing()
+            .execute(&mut self.connection)
+    }
+
+    fn set_api_client_secret(&mut self, name: &str, secret: &str) -> Result<usize, diesel::result::Error> {
+        diesel::update(api_clients::table.filter(api_clients::name.eq(name)))
+            .set(api_clients::secret.eq(secret))
             .execute(&mut self.connection)
     }
 

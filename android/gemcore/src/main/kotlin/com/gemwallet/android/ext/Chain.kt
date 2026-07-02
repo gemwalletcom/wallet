@@ -104,6 +104,8 @@ fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isS
 
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
+fun Chain.isDefiSupported(): Boolean = Config().getChainConfig(this.string).isDefiSupported
+
 fun Chain.asset(): Asset {
     val wrapper = uniffi.gemstone.assetWrapper(string)
     return Asset(

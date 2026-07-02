@@ -2,7 +2,12 @@ use std::collections::HashMap;
 
 use num_bigint::{BigInt, BigUint};
 
-use crate::{address::ethereum_address_from_topic, ethereum_address_checksum, rpc::mapper::TRANSFER_TOPIC, uniswap::deployment::v3::get_pancakeswap_router_deployment_by_chain};
+use crate::{
+    address::ethereum_address_from_topic,
+    ethereum_address_checksum,
+    rpc::mapper::TRANSFER_TOPIC,
+    uniswap::deployment::{UniversalRouterAbi, v3::get_pancakeswap_router_deployment_by_chain},
+};
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
 use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data, make_swap_transaction, try_map_balance_diff_swap, universal_router::decode_execute_swap};
@@ -35,7 +40,14 @@ impl PancakeSwapParser {
 
     fn try_map_command_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
-        decode_execute_swap(context.chain, &Self::provider(), &context.transaction.from, &input_bytes, context.receipt)
+        decode_execute_swap(
+            context.chain,
+            UniversalRouterAbi::V2,
+            &Self::provider(),
+            &context.transaction.from,
+            &input_bytes,
+            context.receipt,
+        )
     }
 
     fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {

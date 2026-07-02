@@ -233,6 +233,12 @@ support:
       - jpg
       - png
 
+defi:
+  zerion:
+    url: "https://api.zerion.io"
+    key:
+      secret: ""
+
 parser:
   timeout: 1s
   shutdown:

@@ -27,6 +27,7 @@ use gem_tracing::info_with_fields;
 use std::{str::FromStr, sync::Arc};
 use strum::IntoEnumIterator;
 
+use ::defi::{DefiClient, DefiProviderClient, DefiProviderConfig};
 use ::fiat::FiatClient;
 use ::fiat::FiatProviderFactory;
 use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig};
@@ -113,6 +114,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 devices::get_device_nft_assets_v2,
                 devices::get_device_nft_asset_v2,
                 devices::refresh_device_nft_asset_v2,
+                devices::get_device_defi_positions_v2,
                 devices::get_device_rewards_v2,
                 devices::get_device_rewards_events_v2,
                 devices::get_device_rewards_redemption_v2,
@@ -164,6 +166,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 chain::address::get_balances,
                 chain::address::get_assets,
                 chain::address::get_transactions,
+                chain::defi::get_defi_positions,
                 chain::nft::get_nfts,
                 chain::nft::get_nft_asset,
                 chain::nft::get_nft_collection,
@@ -237,6 +240,9 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
     );
     let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());
     let nft_provider_client = NFTProviderClient::new(nft_config);
+    let defi_config = DefiProviderConfig::new(settings.defi.zerion.url.clone(), settings.defi.zerion.key.secret.clone());
+    let defi_client = DefiClient::from_config(database.clone(), defi_config.clone());
+    let defi_provider_client = DefiProviderClient::new(defi_config);
     let auth_client = Arc::new(AuthClient::new(cacher_client.clone()));
     let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
     let webhooks_client = WebhooksClient::new(stream_producer.clone());
@@ -283,6 +289,8 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
         .manage(Mutex::new(swap_client))
         .manage(nft_client)
         .manage(nft_provider_client)
+        .manage(defi_client)
+        .manage(defi_provider_client)
         .manage(Mutex::new(price_alert_client))
         .manage(Mutex::new(chain_client))
         .manage(swapper)

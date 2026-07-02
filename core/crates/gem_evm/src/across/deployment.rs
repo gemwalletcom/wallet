@@ -278,7 +278,7 @@ mod tests {
     use primitives::Chain;
 
     #[test]
-    fn test_robinhood_is_not_supported_without_multicall_handler() {
+    fn test_robinhood_is_not_supported() {
         assert!(AcrossDeployment::deployment_by_chain(&Chain::Robinhood).is_none());
         assert!(AcrossDeployment::supported_assets().get(&Chain::Robinhood).is_none());
     }

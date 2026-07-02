@@ -7,19 +7,45 @@ use crate::{
     rpc::{mapper::TRANSFER_TOPIC, model::TransactionReceipt},
     uniswap::{
         actions::{V4Action, decode_action_data},
-        command::{SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V4_SWAP_COMMAND, WRAP_ETH_COMMAND},
+        command::{SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V3SwapExactInV2_1, V4_SWAP_COMMAND, WRAP_ETH_COMMAND},
         contracts::IUniversalRouter,
-        deployment::get_provider_by_chain_contract,
+        deployment::{UniversalRouterAbi, get_provider_by_chain_contract, v3, v4},
         path::decode_path,
     },
 };
-use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
+use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
 use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data, make_swap_transaction, try_map_balance_diff_swap};
 
 const WITHDRAWAL_TOPIC: &str = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65";
 
 pub struct UniversalRouterParser;
+
+#[derive(Clone, Copy)]
+struct RouterAbi {
+    v3: UniversalRouterAbi,
+    v4: Option<UniversalRouterAbi>,
+}
+
+impl RouterAbi {
+    fn from_chain_contract(chain: &Chain, contract: &str) -> Self {
+        let v3_abi = v3::get_universal_router_abi_by_chain_contract(chain, contract);
+        let v4_abi = v4::get_universal_router_abi_by_chain_contract(chain, contract);
+
+        Self {
+            v3: v3_abi.or(v4_abi).unwrap_or(UniversalRouterAbi::V2),
+            v4: v4_abi,
+        }
+    }
+
+    fn fallback_provider(self, provider: &str, commands: &[u8]) -> String {
+        if self.v4.is_some() && commands.contains(&V4_SWAP_COMMAND) {
+            SwapProvider::UniswapV4.id().to_string()
+        } else {
+            provider.to_string()
+        }
+    }
+}
 
 impl ProtocolParser for UniversalRouterParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
@@ -34,23 +60,54 @@ impl ProtocolParser for UniversalRouterParser {
         let to = context.transaction.to.as_ref()?;
         let provider = get_provider_by_chain_contract(context.chain, to)?;
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
+        let execute_call = IUniversalRouter::executeCall::abi_decode(&input_bytes).ok()?;
+        let router_abi = RouterAbi::from_chain_contract(context.chain, to);
+        let fallback_provider = router_abi.fallback_provider(&provider, &execute_call.commands);
 
-        let metadata = decode_execute_swap(context.chain, &provider, &context.transaction.from, &input_bytes, context.receipt)
-            .or_else(|| try_map_balance_diff_swap(context.chain, &context.transaction.from, context.trace, context.receipt, Some(provider.clone())))?;
+        let metadata = decode_execute_swap_call(context.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.receipt)
+            .or_else(|| try_map_balance_diff_swap(context.chain, &context.transaction.from, context.trace, context.receipt, Some(fallback_provider)))?;
 
         make_swap_transaction(context.chain, context.transaction, context.receipt, &metadata, context.created_at)
     }
 }
 
-pub fn decode_execute_swap(chain: &Chain, provider: &str, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
+pub(crate) fn decode_execute_swap(
+    chain: &Chain,
+    universal_router_abi: UniversalRouterAbi,
+    provider: &str,
+    from: &str,
+    input_bytes: &[u8],
+    receipt: &TransactionReceipt,
+) -> Option<TransactionSwapMetadata> {
     let execute_call = IUniversalRouter::executeCall::abi_decode(input_bytes).ok()?;
-    let commands_vec = execute_call.commands;
-    let inputs_vec = execute_call.inputs;
+    decode_execute_swap_call(
+        chain,
+        RouterAbi {
+            v3: universal_router_abi,
+            v4: None,
+        },
+        provider,
+        from,
+        &execute_call,
+        receipt,
+    )
+}
 
+fn decode_execute_swap_call(
+    chain: &Chain,
+    router_abi: RouterAbi,
+    provider: &str,
+    from: &str,
+    execute_call: &IUniversalRouter::executeCall,
+    receipt: &TransactionReceipt,
+) -> Option<TransactionSwapMetadata> {
+    let commands_vec = &execute_call.commands;
+    let inputs_vec = &execute_call.inputs;
     let mut from_asset = None;
     let mut to_asset = None;
     let mut from_value = "".to_string();
     let mut to_value = "".to_string();
+    let mut swap_provider = provider;
 
     let mut has_wrap = false;
     let mut has_unwrap = false;
@@ -76,8 +133,17 @@ pub fn decode_execute_swap(chain: &Chain, provider: &str, from: &str, input_byte
 
     for (command, input) in commands_vec.iter().zip(inputs_vec.iter()) {
         if command == &V3_SWAP_EXACT_IN_COMMAND {
-            let swap_exact_in = V3SwapExactIn::abi_decode(input).ok()?;
-            let token_pair = decode_path(&swap_exact_in.path)?;
+            let (amount_in, amount_out_min, path) = match router_abi.v3 {
+                UniversalRouterAbi::V2 => {
+                    let swap_exact_in = V3SwapExactIn::abi_decode(input).ok()?;
+                    (swap_exact_in.amount_in, swap_exact_in.amount_out_min, swap_exact_in.path)
+                }
+                UniversalRouterAbi::V2_1 => {
+                    let swap_exact_in = V3SwapExactInV2_1::abi_decode(input).ok()?;
+                    (swap_exact_in.amount_in, swap_exact_in.amount_out_min, swap_exact_in.path)
+                }
+            };
+            let token_pair = decode_path(&path)?;
             let from_token = token_pair.token_in.to_checksum(None);
             let to_token = token_pair.token_out.to_checksum(None);
 
@@ -89,45 +155,43 @@ pub fn decode_execute_swap(chain: &Chain, provider: &str, from: &str, input_byte
                 chain: *chain,
                 token_id: if has_unwrap { None } else { Some(to_token.clone()) },
             });
-            from_value = swap_exact_in.amount_in.to_string();
+            from_value = amount_in.to_string();
             to_value = if has_unwrap {
                 withdraw_value_from_receipt(&to_token, receipt).unwrap_or(unwrap_value.clone())
             } else if has_sweep {
                 transfer_value_from_receipt(from, &to_token, receipt).unwrap_or(sweep_value.clone())
             } else {
-                transfer_value_from_receipt(from, &to_token, receipt).unwrap_or(swap_exact_in.amount_out_min.to_string())
+                transfer_value_from_receipt(from, &to_token, receipt).unwrap_or(amount_out_min.to_string())
             }
         }
         if command == &V4_SWAP_COMMAND
-            && let Ok(decoded_actions_vec) = decode_action_data(input)
+            && let Some(universal_router_abi) = router_abi.v4
+            && let Ok(decoded_actions_vec) = decode_action_data(input, universal_router_abi)
         {
             for action in decoded_actions_vec {
-                match action {
-                    V4Action::SWAP_EXACT_IN(params) => {
-                        let path_keys = params.path;
-                        let from_token = params.currencyIn;
-                        let to_token = if path_keys.is_empty() {
-                            continue;
-                        } else {
-                            path_keys[path_keys.len() - 1].intermediateCurrency
-                        };
-                        from_asset = Some(AssetId {
-                            chain: *chain,
-                            token_id: if from_token == Address::ZERO { None } else { Some(from_token.to_checksum(None)) },
-                        });
-                        to_asset = Some(AssetId {
-                            chain: *chain,
-                            token_id: if to_token == Address::ZERO { None } else { Some(to_token.to_checksum(None)) },
-                        });
-                        from_value = params.amountIn.to_string();
-                        to_value = if to_token == Address::ZERO {
-                            sweep_value.clone()
-                        } else {
-                            transfer_value_from_receipt(from, &to_token.to_checksum(None), receipt)?
-                        };
-                    }
+                let (from_token, to_token, amount_in) = match action {
+                    V4Action::SWAP_EXACT_IN(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn),
+                    V4Action::SWAP_EXACT_IN_V2_1(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn),
                     _ => continue,
-                }
+                };
+                let Some(to_token) = to_token else {
+                    continue;
+                };
+                from_asset = Some(AssetId {
+                    chain: *chain,
+                    token_id: if from_token == Address::ZERO { None } else { Some(from_token.to_checksum(None)) },
+                });
+                to_asset = Some(AssetId {
+                    chain: *chain,
+                    token_id: if to_token == Address::ZERO { None } else { Some(to_token.to_checksum(None)) },
+                });
+                from_value = amount_in.to_string();
+                to_value = if to_token == Address::ZERO {
+                    sweep_value.clone()
+                } else {
+                    transfer_value_from_receipt(from, &to_token.to_checksum(None), receipt)?
+                };
+                swap_provider = SwapProvider::UniswapV4.id();
             }
         }
     }
@@ -142,7 +206,7 @@ pub fn decode_execute_swap(chain: &Chain, provider: &str, from: &str, input_byte
             to_asset,
             from_value,
             to_value,
-            provider: Some(provider.to_string()),
+            provider: Some(swap_provider.to_string()),
         });
     }
     None
@@ -180,6 +244,8 @@ mod tests {
     use crate::registry::ContractRegistry;
     use crate::rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace};
     use crate::rpc::parsers::ProtocolParsers;
+    use crate::uniswap::{actions::V4Action, contracts::v4::IV4Router, deployment::UniversalRouterAbi};
+    use alloy_primitives::Address;
     use chrono::DateTime;
     use primitives::{
         AssetId, Chain, TransactionSwapMetadata, TransactionType,
@@ -448,9 +514,6 @@ mod tests {
 
     #[test]
     fn test_v4_swap_empty_path_no_panic() {
-        use crate::uniswap::{actions::V4Action, contracts::v4::IV4Router};
-        use alloy_primitives::Address;
-
         let action = V4Action::SWAP_EXACT_IN(IV4Router::ExactInputParams {
             currencyIn: Address::ZERO,
             path: vec![],
@@ -459,7 +522,7 @@ mod tests {
         });
 
         let encoded_actions = crate::uniswap::actions::encode_actions(&[action]);
-        let decoded_actions = crate::uniswap::actions::decode_action_data(&encoded_actions);
+        let decoded_actions = crate::uniswap::actions::decode_action_data(&encoded_actions, UniversalRouterAbi::V2);
         assert!(decoded_actions.is_ok());
 
         let actions = decoded_actions.unwrap();

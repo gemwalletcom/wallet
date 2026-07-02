@@ -240,7 +240,17 @@ impl Swapper for UniswapV3 {
         let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, token_in, token_out);
 
         let path: Bytes = build_paths_with_routes(&quote.data.routes)?;
-        let commands = build_commands(request, &token_in, &token_out, amount_in, to_amount, &path, permit, fee_token_is_input)?;
+        let commands = build_commands(
+            request,
+            &token_in,
+            &token_out,
+            amount_in,
+            to_amount,
+            &path,
+            permit,
+            fee_token_is_input,
+            deployment.universal_router_abi,
+        )?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
         let value = if wrap_input_eth { request.value.clone() } else { String::from("0") };
@@ -252,5 +262,60 @@ impl Swapper for UniswapV3 {
             approval,
             gas_limit,
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{alien::mock::ProviderMock, uniswap};
+
+    #[test]
+    fn test_robinhood_supported() {
+        let provider = Arc::new(ProviderMock::new("{}".to_string()));
+        let swapper = uniswap::default::new_uniswap_v3(provider);
+
+        assert!(swapper.support_chain(&Chain::Robinhood));
+        assert!(swapper.supported_assets().contains(&SwapperChainAsset::All(Chain::Robinhood)));
+    }
+}
+
+#[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
+mod swap_integration_tests {
+    use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
+    use primitives::{AssetId, Chain, asset_constants::ROBINHOOD_USDG_TOKEN_ID};
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_robinhood_eth_to_usdg_quote() -> Result<(), SwapperError> {
+        let network_provider = Arc::new(NativeProvider::default());
+        let swap_provider = uniswap::default::boxed_uniswap_v3(network_provider.clone());
+        let options = Options {
+            slippage: 100.into(),
+            use_max_amount: false,
+        };
+
+        let request = QuoteRequest {
+            from_asset: AssetId::from_chain(Chain::Robinhood).into(),
+            to_asset: AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())).into(),
+            wallet_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
+            destination_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
+            value: "100000000000000".into(),
+            options,
+        };
+
+        let quote = swap_provider.get_quote(&request).await?;
+        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+
+        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
+
+        let estimate_value = format!("0x{:x}", quote_data.value.parse::<u128>().map_err(SwapperError::from)?);
+        let gas = create_eth_client(network_provider.clone(), Chain::Robinhood)?
+            .estimate_gas(Some(&request.wallet_address), &quote_data.to, Some(&estimate_value), Some(&quote_data.data))
+            .await
+            .map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
+        assert!(!gas.is_empty());
+
+        Ok(())
     }
 }

@@ -9,6 +9,25 @@ import StoreTestKit
 import Testing
 
 struct TransactionStoreTests {
+    @Test func transactionWalletIncludesAccounts() throws {
+        let asset = AssetBasic.mock(asset: .mock(id: Chain.robinhood.assetId))
+        let db = DB.mockAssets(assets: [asset])
+        let walletStore = WalletStore(db: db)
+        let walletId = WalletId.single(chain: .robinhood, address: "0xsender")
+        let account = Account.mock(chain: .robinhood, address: "0xsender")
+        try walletStore.addWallet(.mock(id: walletId, type: .single, accounts: [account]))
+
+        let store = TransactionStore(db: db)
+        let transactionId = TransactionId(chain: .robinhood, hash: "hash")
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, assetId: Chain.robinhood.assetId),
+        ])
+
+        let transactionWallet = try #require(try store.getTransactionWallet(walletId: walletId, transactionId: transactionId))
+
+        #expect(transactionWallet.wallet.accounts == [account])
+    }
+
     @Test func assetAssociationsReplaced() throws {
         let btc = AssetId(chain: .bitcoin, tokenId: nil)
         let eth = AssetId(chain: .ethereum, tokenId: nil)

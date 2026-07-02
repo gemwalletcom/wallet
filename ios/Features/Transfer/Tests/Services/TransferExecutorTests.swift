@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
 import Blockchain
 import BlockchainTestKit
 import ChainServiceTestKit
@@ -27,7 +26,6 @@ struct TransferExecutorTests {
             ]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["action:1", "order:413978262893", "action:2"]),
             assetsEnabler: .mock(),
-            balanceService: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -53,7 +51,6 @@ struct TransferExecutorTests {
             signer: TransactionSignerMock(signedData: ["approval_tx", "swap_tx"]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1"]),
             assetsEnabler: .mock(),
-            balanceService: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -89,7 +86,6 @@ struct TransferExecutorTests {
                 "order:413978262893",
             ]),
             assetsEnabler: .mock(),
-            balanceService: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
         let swapData = SwapData.mock(
@@ -134,7 +130,6 @@ struct TransferExecutorTests {
                 "action:cWithdraw:3001423:1780078264489",
             ]),
             assetsEnabler: .mock(),
-            balanceService: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -160,7 +155,6 @@ struct TransferExecutorTests {
             signer: TransactionSignerMock(signedData: ["tx"]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
-            balanceService: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -187,7 +181,6 @@ struct TransferExecutorTests {
             signer: TransactionSignerMock(signedData: ["modify_tx"]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
-            balanceService: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
