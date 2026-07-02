@@ -36,7 +36,7 @@ use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
 use super::{
     DEFAULT_SWAP_GAS_LIMIT,
     commands::build_commands,
-    path::{build_pool_keys, build_quote_exact_params},
+    path::{build_pool_keys, build_quote_exact_params, get_intermediary_token},
     quoter::{build_quote_exact_requests, build_quote_exact_single_request},
 };
 
@@ -167,13 +167,7 @@ impl Swapper for UniswapV4 {
         let fee_tier: u32 = fee_tiers[fee_tier_idx % fee_tiers.len()] as u32;
         let asset_id_in = AssetId::from(from_chain, Some(token_in.to_checksum(None)));
         let asset_id_out = AssetId::from(to_chain, Some(token_out.to_checksum(None)));
-        let asset_id_intermediary: Option<AssetId> = match batch_idx {
-            0 => None,
-            _ => {
-                let first_token_out = &quote_exact_params[batch_idx][0].0[0].token_out;
-                Some(AssetId::from(to_chain, Some(first_token_out.to_checksum(None))))
-            }
-        };
+        let asset_id_intermediary: Option<AssetId> = get_intermediary_token(&quote_exact_params, batch_idx).map(|token| AssetId::from(to_chain, Some(token.to_checksum(None))));
         let route_data = RouteData {
             fee_tier: fee_tier.to_string(),
             min_amount_out: to_min_value.to_string(),

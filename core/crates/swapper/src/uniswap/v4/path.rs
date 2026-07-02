@@ -83,6 +83,16 @@ pub fn build_quote_exact_params(
         .collect()
 }
 
+pub fn get_intermediary_token(quote_exact_params: &[Vec<(Vec<TokenPair>, QuoteExactParams)>], batch_idx: usize) -> Option<Address> {
+    if batch_idx == 0 {
+        return None;
+    }
+    let batch = quote_exact_params.get(batch_idx - 1)?;
+    let (token_pairs, _) = batch.first()?;
+    let first_hop = token_pairs.first()?;
+    Some(first_hop.token_out)
+}
+
 impl TryFrom<&Route> for PathKey {
     type Error = SwapperError;
 
@@ -103,5 +113,34 @@ impl TryFrom<&Route> for PathKey {
             hooks: Address::ZERO,
             hookData: Bytes::new(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::uniswap::swap_route::get_intermediaries;
+    use gem_evm::uniswap::path::get_base_pair;
+    use primitives::EVMChain;
+    use primitives::asset_constants::{ETHEREUM_UNI_TOKEN_ID, ETHEREUM_USDS_TOKEN_ID};
+    use std::str::FromStr;
+
+    #[test]
+    fn test_get_intermediary_token() {
+        let token_in = Address::from_str(ETHEREUM_UNI_TOKEN_ID).unwrap();
+        let token_out = Address::from_str(ETHEREUM_USDS_TOKEN_ID).unwrap();
+        let base_pair = get_base_pair(&EVMChain::Ethereum, true).unwrap();
+        let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
+        let fee_tiers = vec![FeeTier::FiveHundred, FeeTier::ThreeThousand];
+        let quote_exact_params = build_quote_exact_params(1_000_000, &token_in, &token_out, &fee_tiers, &intermediaries);
+
+        assert_eq!(quote_exact_params.len(), intermediaries.len());
+        assert_eq!(get_intermediary_token(&quote_exact_params, 0), None);
+        assert_eq!(get_intermediary_token(&quote_exact_params, 1), Some(intermediaries[0]));
+        assert_eq!(
+            get_intermediary_token(&quote_exact_params, intermediaries.len()),
+            Some(intermediaries[intermediaries.len() - 1])
+        );
+        assert_eq!(get_intermediary_token(&quote_exact_params, intermediaries.len() + 1), None);
     }
 }
