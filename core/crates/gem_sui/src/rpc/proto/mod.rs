@@ -7,6 +7,8 @@ pub(crate) mod move_package;
 pub(crate) mod objects;
 pub(crate) mod service;
 pub(crate) mod status;
+#[cfg(test)]
+pub(crate) mod testkit;
 pub(crate) mod timestamp;
 pub(crate) mod transaction_data;
 pub(crate) mod transactions;

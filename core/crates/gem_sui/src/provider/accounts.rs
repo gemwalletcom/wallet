@@ -1,5 +1,5 @@
 #[cfg(feature = "rpc")]
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainTraits};
+use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainTraits};
 use primitives::Chain;
 
 use crate::rpc::client::SuiClient;
@@ -22,6 +22,3 @@ impl ChainPerpetual for SuiClient {}
 
 #[cfg(feature = "rpc")]
 impl ChainAddressStatus for SuiClient {}
-
-#[cfg(feature = "rpc")]
-impl ChainSimulation for SuiClient {}

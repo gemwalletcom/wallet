@@ -1,11 +1,11 @@
 use primitives::{TransactionState, TransactionUpdate};
 
-use crate::models::Digest;
+use crate::models::{Digest, STATUS_FAILURE, STATUS_SUCCESS};
 
 pub fn map_transaction_status(transaction: Digest) -> TransactionUpdate {
     let state = match transaction.effects.status.status.as_str() {
-        "success" => TransactionState::Confirmed,
-        "failure" => TransactionState::Reverted,
+        STATUS_SUCCESS => TransactionState::Confirmed,
+        STATUS_FAILURE => TransactionState::Reverted,
         _ => TransactionState::Pending,
     };
     TransactionUpdate::new_state(state)
@@ -28,7 +28,9 @@ mod tests {
                     storage_rebate: BigUint::from(100u32),
                     non_refundable_storage_fee: BigUint::from(0u32),
                 },
-                status: Status { status: "success".to_string() },
+                status: Status {
+                    status: STATUS_SUCCESS.to_string(),
+                },
                 gas_object: GasObject {
                     owner: Owner::String("0x123".to_string()),
                 },

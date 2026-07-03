@@ -144,7 +144,7 @@ mod chain_integration_tests {
     async fn test_sui_get_transaction_preload_unstake() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
 
-        let user_address = "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6";
+        let user_address = TEST_ADDRESS;
         let delegation_id = client
             .get_stake_delegations(user_address.to_string())
             .await?

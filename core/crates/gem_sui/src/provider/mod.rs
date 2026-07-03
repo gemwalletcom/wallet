@@ -4,6 +4,8 @@ pub mod balances_mapper;
 pub mod preload;
 pub mod preload_mapper;
 pub mod request_classifier;
+pub mod simulation;
+pub mod simulation_mapper;
 pub mod staking;
 pub mod staking_mapper;
 pub mod state;

@@ -1,4 +1,4 @@
-use crate::models::{BalanceChange, Digest, Event, EventStake, EventUnstake, GasUsed, TransactionBlocks};
+use crate::models::{BalanceChange, Digest, Event, EventStake, EventUnstake, GasUsed, STATUS_SUCCESS, TransactionBlocks};
 use crate::{SUI_COIN_TYPE, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT, full_coin_type, sui_framework_package_address};
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{TimeZone, Utc};
@@ -26,7 +26,7 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
     let hash = transaction.digest.clone();
     let fee = get_fee(effects.gas_used.clone());
     let created_at = Utc.timestamp_millis_opt(transaction.timestamp_ms as i64).unwrap();
-    let state = if effects.status.status == "success" {
+    let state = if effects.status.status == STATUS_SUCCESS {
         TransactionState::Confirmed
     } else {
         TransactionState::Failed
@@ -292,7 +292,9 @@ mod tests {
                     storage_rebate: BigUint::from(0u32),
                     non_refundable_storage_fee: BigUint::from(0u32),
                 },
-                status: Status { status: "success".to_string() },
+                status: Status {
+                    status: STATUS_SUCCESS.to_string(),
+                },
                 gas_object: GasObject { owner: owner(OWNER_ADDRESS) },
             },
             move_call_packages: Vec::new(),
