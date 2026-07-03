@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.confirm.presents.components
 
 import com.gemwallet.android.domains.confirm.ConfirmProperty
+import com.wallet.core.primitives.Chain
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -24,6 +25,7 @@ class PropertyDestinationTest {
         val model = ConfirmProperty.Destination.Transfer(
             domain = "vitalik.eth",
             address = "0x1234567890abcdef1234567890abcdef12345678",
+            chain = Chain.Ethereum,
         )
 
         assertEquals("vitalik.eth", model.displayData())

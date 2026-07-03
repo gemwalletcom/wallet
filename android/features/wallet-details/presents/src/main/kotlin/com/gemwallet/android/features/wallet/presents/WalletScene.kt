@@ -79,7 +79,7 @@ internal fun WalletScene(
                 walletType = wallet.type,
                 onClick = { walletId, walletType -> onAction(WalletAction.ShowPhrase(walletId, walletType)) },
             )
-            WalletAddress(wallet.addresses)
+            WalletAddress(wallet.accounts)
 
             Spacer16()
 

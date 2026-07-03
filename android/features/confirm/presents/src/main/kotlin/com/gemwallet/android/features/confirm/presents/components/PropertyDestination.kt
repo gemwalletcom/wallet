@@ -25,7 +25,7 @@ fun PropertyDestination(
         is ConfirmProperty.Destination.Transfer -> {
             AddressPropertyItem(
                 title = R.string.transaction_recipient,
-                displayText = model.domain ?: AddressFormatter(model.address).value(),
+                displayText = model.domain ?: AddressFormatter(model.address, chain = model.chain).value(),
                 copyValue = model.address,
                 explorerLink = model.explorerLink,
                 listPosition = listPosition,

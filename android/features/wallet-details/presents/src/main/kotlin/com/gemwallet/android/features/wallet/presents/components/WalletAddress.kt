@@ -5,18 +5,18 @@ import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.ChainAddress
 
 @Composable
 internal fun WalletAddress(
-    addresses: List<String>,
+    accounts: List<ChainAddress>,
 ) {
-    // Show if single account wallet
-    val address = addresses.takeIf { it.size == 1 }?.firstOrNull() ?: return
+    val account = accounts.takeIf { it.size == 1 }?.firstOrNull() ?: return
 
     AddressPropertyItem(
         title = R.string.common_address,
-        displayText = AddressFormatter(address).value(),
-        copyValue = address,
+        displayText = AddressFormatter(address = account.address, chain = account.chain).value(),
+        copyValue = account.address,
         listPosition = ListPosition.Single,
     )
 }

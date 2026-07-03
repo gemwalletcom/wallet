@@ -31,19 +31,19 @@ fun LazyListScope.simulationPayloadFieldsContent(
         when {
             titleRes != null && field.fieldType == SimulationPayloadFieldType.Address -> AddressPropertyItem(
                 title = titleRes,
-                displayText = AddressFormatter(field.value).value(),
+                displayText = AddressFormatter(field.value, chain = payload.chain).value(),
                 copyValue = field.value,
                 explorerLink = payload.explorerLink,
                 listPosition = listPosition,
             )
             titleRes != null -> PropertyItem(
                 title = titleRes,
-                data = fieldValue(field),
+                data = fieldValue(payload),
                 listPosition = listPosition,
             )
             else -> PropertyItem(
                 title = field.label.orEmpty(),
-                data = fieldValue(field),
+                data = fieldValue(payload),
                 listPosition = listPosition,
             )
         }
@@ -79,10 +79,10 @@ private fun fieldTitleRes(field: SimulationPayloadField): Int? = when (field.kin
     else -> null
 }
 
-private fun fieldValue(field: SimulationPayloadField): String = when (field.fieldType) {
-    SimulationPayloadFieldType.Address -> AddressFormatter(field.value).value()
-    SimulationPayloadFieldType.Timestamp -> field.value.toTimestampText()
-    else -> field.value
+private fun fieldValue(payload: PayloadField): String = when (payload.field.fieldType) {
+    SimulationPayloadFieldType.Address -> AddressFormatter(payload.field.value, chain = payload.chain).value()
+    SimulationPayloadFieldType.Timestamp -> payload.field.value.toTimestampText()
+    else -> payload.field.value
 }
 
 private fun String.toTimestampText(): String {
