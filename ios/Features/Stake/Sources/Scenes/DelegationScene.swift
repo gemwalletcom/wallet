@@ -14,10 +14,10 @@ public struct DelegationScene: View {
     public var body: some View {
         List {
             Section {} header: {
-                WalletHeaderView(
+                ValueHeaderView(
                     model: model.model,
                     isPrivacyEnabled: .constant(false),
-                    balanceActionType: .none,
+                    titleActionType: .none,
                     onHeaderAction: nil,
                     onInfoAction: nil,
                 )

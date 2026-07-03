@@ -26,9 +26,9 @@ public struct WalletHeaderViewModel {
     }
 }
 
-// MARK: - HeaderViewModel
+// MARK: - ValueHeaderViewModel
 
-extension WalletHeaderViewModel: HeaderViewModel {
+extension WalletHeaderViewModel: ValueHeaderViewModel {
     public var isWatchWallet: Bool {
         walletType == .view
     }

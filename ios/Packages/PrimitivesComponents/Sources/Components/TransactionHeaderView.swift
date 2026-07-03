@@ -29,10 +29,11 @@ public struct TransactionHeaderView: View {
         VStack(alignment: .center) {
             switch type {
             case let .amount(display):
-                WalletHeaderView(
+                ValueHeaderView(
                     model: TransactionAmountHeaderViewModel(display: display),
                     isPrivacyEnabled: .constant(false),
-                    balanceActionType: .none,
+                    titleActionType: .none,
+                    spacing: .transactionAmount,
                     onHeaderAction: nil,
                     onInfoAction: nil,
                 )
@@ -44,10 +45,10 @@ public struct TransactionHeaderView: View {
                 AssetImageView(assetImage: image, size: .image.large)
                     .padding(.bottom, .space12)
             case let .assetValue(data):
-                WalletHeaderView(
+                ValueHeaderView(
                     model: AssetValueHeaderViewModel(data: data),
                     isPrivacyEnabled: .constant(false),
-                    balanceActionType: .none,
+                    titleActionType: .none,
                     onHeaderAction: nil,
                     onInfoAction: nil,
                 )

@@ -2,7 +2,7 @@
 
 import Foundation
 
-public enum BalanceActionType: Sendable {
+public enum HeaderTitleActionType: Sendable {
     case privacyToggle
     case action(@MainActor @Sendable () -> Void)
     case none

@@ -21,10 +21,10 @@ public struct WalletScene: View {
 
         List {
             Section {} header: {
-                WalletHeaderView(
+                ValueHeaderView(
                     model: model.walletHeaderModel,
                     isPrivacyEnabled: $preferences.isHideBalanceEnabled,
-                    balanceActionType: .privacyToggle,
+                    titleActionType: .privacyToggle,
                     onHeaderAction: model.onHeaderAction,
                     onSubtitleAction: model.onSelectPortfolio,
                     onInfoAction: model.onSelectWatchWalletInfo,
