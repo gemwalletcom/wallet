@@ -5,8 +5,7 @@ use primitives::{Chain, DefiPosition};
 
 use crate::provider::DefiProvider as DefiProviderTrait;
 
-use super::client::JupiterClient;
-use super::mapper::map_positions;
+use super::{JupiterClient, mapper::map_positions};
 
 #[async_trait]
 impl DefiProviderTrait for JupiterClient {
@@ -29,7 +28,7 @@ mod tests {
 
     #[test]
     fn test_chains() {
-        let client = JupiterClient::new("https://api.jup.ag".to_string(), String::new());
+        let client = JupiterClient::new_with_api_key("https://api.jup.ag".to_string(), String::new());
 
         assert_eq!(client.chains(), &[Chain::Solana]);
     }

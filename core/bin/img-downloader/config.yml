@@ -16,3 +16,6 @@ coingecko:
 jupiter:
   top:
     count: 250
+  trending:
+    count: 10
+    interval: 24h

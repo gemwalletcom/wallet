@@ -6,9 +6,7 @@ use primitives::ImageType;
 use std::error::Error;
 use tokio::time::{Duration, sleep};
 
-type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync>>;
-
-pub async fn download_image(client: &reqwest::Client, url: &str, image_size: u32, retries: usize, supported_types: &[ImageType]) -> Result<Vec<u8>> {
+pub async fn download_image(client: &reqwest::Client, url: &str, image_size: u32, retries: usize, supported_types: &[ImageType]) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     decoder::ensure_url_supported(url, supported_types)?;
 
     let mut last_error = None;
@@ -28,7 +26,7 @@ pub async fn download_image(client: &reqwest::Client, url: &str, image_size: u32
     Err(last_error.unwrap_or_else(|| "image download failed".to_string()).into())
 }
 
-async fn download_and_convert(client: &reqwest::Client, url: &str, image_size: u32, supported_types: &[ImageType]) -> Result<Vec<u8>> {
+async fn download_and_convert(client: &reqwest::Client, url: &str, image_size: u32, supported_types: &[ImageType]) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     let response = client.get(url).send().await?;
     let status = response.status();
     if !status.is_success() {

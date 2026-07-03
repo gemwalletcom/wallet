@@ -2,8 +2,9 @@ use crate::{
     cli_args::{Args, ImageMode, ImageSource},
     config::ImgDownloaderConfig,
     image::download_image,
-    providers::{CoingeckoProvider, JupiterProvider, model::AssetImage},
+    providers::{CoingeckoProvider, CoingeckoProviderConfig, JupiterProvider, JupiterProviderConfig, model::AssetImage},
 };
+use ::jupiter::JupiterClient;
 use gem_tracing::{error_with_fields, info_with_fields, warn_with_fields};
 use primitives::ImageType;
 use reqwest::{
@@ -29,7 +30,6 @@ pub struct Downloader {
     image_size: u32,
     supported_image_types: Vec<ImageType>,
     image_request_retries: usize,
-    coingecko_top_count: usize,
     delay: Duration,
 }
 
@@ -47,13 +47,12 @@ impl Downloader {
         Ok(Self {
             args,
             folder,
-            coingecko_provider: CoingeckoProvider::new(coingecko_api_key),
-            jupiter_provider: JupiterProvider::new(http_client.clone(), config.jupiter.top.count),
+            coingecko_provider: CoingeckoProvider::new(coingecko_api_key, CoingeckoProviderConfig::new(config.coingecko)),
+            jupiter_provider: JupiterProvider::new(JupiterClient::new_with_reqwest_client(http_client.clone()), JupiterProviderConfig::new(config.jupiter)),
             http_client,
             image_size: config.image.size,
             supported_image_types: config.image.types,
             image_request_retries: config.image.request.retries,
-            coingecko_top_count: config.coingecko.top.count,
             delay: config.delay,
         })
     }
@@ -85,7 +84,7 @@ impl Downloader {
         }
 
         let images = match self.args.mode {
-            ImageMode::Top => self.coingecko_provider.get_top_asset_images(self.coingecko_top_count).await?,
+            ImageMode::Top => self.coingecko_provider.get_top_asset_images().await?,
             ImageMode::Trending => self.coingecko_provider.get_trending_asset_images().await?,
         };
         self.download_asset_images(images, folder).await
@@ -95,7 +94,10 @@ impl Downloader {
         let images = if let Some(id) = self.id() {
             self.jupiter_provider.get_verified_asset_images_by_id(id).await?
         } else {
-            self.jupiter_provider.get_verified_asset_images().await?
+            match self.args.mode {
+                ImageMode::Top => self.jupiter_provider.get_verified_asset_images().await?,
+                ImageMode::Trending => self.jupiter_provider.get_trending_asset_images().await?,
+            }
         };
         self.download_asset_images(images, folder).await
     }

@@ -1,20 +1,22 @@
-use super::model::AssetImage;
+use super::{config::CoingeckoProviderConfig, model::AssetImage};
 use coingecko::{Coin, CoinGeckoClient, CoinMarket, get_chain_for_coingecko_platform_id, model::SearchTrending};
 use std::{collections::HashMap, error::Error};
 
 pub struct CoingeckoProvider {
     client: CoinGeckoClient,
+    config: CoingeckoProviderConfig,
 }
 
 impl CoingeckoProvider {
-    pub fn new(api_key: String) -> Self {
+    pub fn new(api_key: String, config: CoingeckoProviderConfig) -> Self {
         Self {
             client: CoinGeckoClient::new(api_key.as_str()),
+            config,
         }
     }
 
-    pub async fn get_top_asset_images(&self, count: usize) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let markets = self.client.get_coin_markets(1, count).await?;
+    pub async fn get_top_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        let markets = self.client.get_coin_markets(1, self.config.top_count).await?;
         let coins = self.client.get_coin_list().await?;
         Ok(Self::map_market_images(markets, Self::coins_by_id(coins)))
     }

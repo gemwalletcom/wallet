@@ -1,8 +1,8 @@
-use super::Result;
 use crate::error::ImageDownloadError;
 use image::{DynamicImage, RgbaImage};
 use primitives::ImageType;
 use resvg::{tiny_skia, usvg};
+use std::error::Error;
 
 pub fn ensure_url_supported(url: &str, supported_types: &[ImageType]) -> std::result::Result<(), ImageDownloadError> {
     if let Some(image_type) = url.split('?').next().and_then(ImageType::from_extension) {
@@ -11,10 +11,10 @@ pub fn ensure_url_supported(url: &str, supported_types: &[ImageType]) -> std::re
     Ok(())
 }
 
-pub fn decode(url: &str, content_type: Option<&str>, bytes: &[u8], supported_types: &[ImageType]) -> Result<DynamicImage> {
+pub fn decode(url: &str, content_type: Option<&str>, bytes: &[u8], supported_types: &[ImageType]) -> Result<DynamicImage, Box<dyn Error + Send + Sync>> {
     let image_type = image_type(url, content_type, bytes).ok_or(ImageDownloadError::UnsupportedType(None))?;
     ensure_supported_type(image_type, supported_types)?;
-    if matches!(image_type, ImageType::Svg) {
+    if image_type == ImageType::Svg {
         decode_svg(bytes).map_err(|_| ImageDownloadError::InvalidImage(image_type).into())
     } else {
         image::load_from_memory(bytes).map_err(|_| ImageDownloadError::InvalidImage(image_type).into())
@@ -50,7 +50,7 @@ fn svg_prefix_image_type(bytes: &[u8]) -> Option<ImageType> {
     std::str::from_utf8(bytes).ok().is_some_and(|prefix| prefix.contains("<svg")).then_some(ImageType::Svg)
 }
 
-fn decode_svg(bytes: &[u8]) -> Result<DynamicImage> {
+fn decode_svg(bytes: &[u8]) -> Result<DynamicImage, Box<dyn Error + Send + Sync>> {
     let tree = usvg::Tree::from_data(bytes, &usvg::Options::default())?;
     let size = tree.size().to_int_size();
     let mut pixmap = tiny_skia::Pixmap::new(size.width(), size.height()).ok_or("invalid svg size")?;

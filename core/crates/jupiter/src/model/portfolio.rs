@@ -1,67 +1,66 @@
-use std::collections::HashMap;
-
 use serde::Deserialize;
 use serde_json::Number;
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterPositionsResponse {
-    pub elements: Vec<JupiterPortfolioElement>,
-    pub token_info: Option<HashMap<String, HashMap<String, JupiterTokenInfo>>>,
+pub struct PositionsResponse {
+    pub elements: Vec<PortfolioElement>,
+    pub token_info: Option<HashMap<String, HashMap<String, TokenInfo>>>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
-pub enum JupiterPortfolioElement {
+pub enum PortfolioElement {
     #[serde(rename = "multiple")]
-    Multiple(JupiterMultipleElement),
+    Multiple(MultipleElement),
     #[serde(rename = "liquidity")]
-    Liquidity(JupiterLiquidityElement),
+    Liquidity(LiquidityElement),
     #[serde(rename = "borrowlend")]
-    BorrowLend(JupiterBorrowLendElement),
+    BorrowLend(BorrowLendElement),
     #[serde(rename = "trade")]
-    Trade(JupiterTradeElement),
+    Trade(TradeElement),
     #[serde(rename = "leverage")]
-    Leverage(JupiterLeverageElement),
+    Leverage(LeverageElement),
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterMultipleElement {
+pub struct MultipleElement {
     pub platform_id: String,
     pub label: String,
     pub name: Option<String>,
-    pub data: JupiterMultipleData,
+    pub data: MultipleData,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterMultipleData {
-    pub assets: Vec<JupiterPortfolioAsset>,
+pub struct MultipleData {
+    pub assets: Vec<PortfolioAsset>,
     #[serde(rename = "ref")]
     pub reference: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterLiquidityElement {
+pub struct LiquidityElement {
     pub platform_id: String,
     pub label: String,
     pub name: Option<String>,
-    pub data: JupiterLiquidityData,
+    pub data: LiquidityData,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterLiquidityData {
-    pub liquidities: Vec<JupiterLiquidity>,
+pub struct LiquidityData {
+    pub liquidities: Vec<Liquidity>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterLiquidity {
-    pub assets: Vec<JupiterPortfolioAsset>,
-    pub reward_assets: Vec<JupiterPortfolioAsset>,
+pub struct Liquidity {
+    pub assets: Vec<PortfolioAsset>,
+    pub reward_assets: Vec<PortfolioAsset>,
     pub name: Option<String>,
     #[serde(rename = "ref")]
     pub reference: Option<String>,
@@ -69,88 +68,88 @@ pub struct JupiterLiquidity {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterBorrowLendElement {
+pub struct BorrowLendElement {
     pub platform_id: String,
     pub label: String,
     pub name: Option<String>,
-    pub data: JupiterBorrowLendData,
+    pub data: BorrowLendData,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterBorrowLendData {
-    pub supplied_assets: Vec<JupiterPortfolioAsset>,
-    pub borrowed_assets: Vec<JupiterPortfolioAsset>,
-    pub reward_assets: Vec<JupiterPortfolioAsset>,
-    pub unsettled: Option<JupiterUnsettledAssets>,
+pub struct BorrowLendData {
+    pub supplied_assets: Vec<PortfolioAsset>,
+    pub borrowed_assets: Vec<PortfolioAsset>,
+    pub reward_assets: Vec<PortfolioAsset>,
+    pub unsettled: Option<UnsettledAssets>,
     #[serde(rename = "ref")]
     pub reference: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct JupiterUnsettledAssets {
-    pub assets: Vec<JupiterPortfolioAsset>,
+pub struct UnsettledAssets {
+    pub assets: Vec<PortfolioAsset>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterTradeElement {
+pub struct TradeElement {
     pub platform_id: String,
     pub label: String,
     pub name: Option<String>,
-    pub data: JupiterTradeData,
+    pub data: TradeData,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterTradeData {
-    pub assets: JupiterTradeAssets,
+pub struct TradeData {
+    pub assets: TradeAssets,
     #[serde(rename = "ref")]
     pub reference: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct JupiterTradeAssets {
-    pub input: Option<JupiterPortfolioAsset>,
-    pub output: Option<JupiterPortfolioAsset>,
+pub struct TradeAssets {
+    pub input: Option<PortfolioAsset>,
+    pub output: Option<PortfolioAsset>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterLeverageElement {
+pub struct LeverageElement {
     pub platform_id: String,
     pub label: String,
     pub name: Option<String>,
-    pub data: JupiterLeverageData,
+    pub data: LeverageData,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterLeverageData {
-    pub cross: Option<JupiterCrossLeverage>,
+pub struct LeverageData {
+    pub cross: Option<CrossLeverage>,
     #[serde(rename = "ref")]
     pub reference: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterCrossLeverage {
-    pub collateral_assets: Option<Vec<JupiterPortfolioAsset>>,
+pub struct CrossLeverage {
+    pub collateral_assets: Option<Vec<PortfolioAsset>>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct JupiterPortfolioAsset {
-    pub data: JupiterPortfolioAssetData,
+pub struct PortfolioAsset {
+    pub data: PortfolioAssetData,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct JupiterPortfolioAssetData {
+pub struct PortfolioAssetData {
     pub address: Option<String>,
     pub amount: Option<Number>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct JupiterTokenInfo {
+pub struct TokenInfo {
     pub decimals: u32,
 }

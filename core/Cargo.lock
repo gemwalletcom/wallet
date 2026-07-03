@@ -2375,6 +2375,7 @@ dependencies = [
  "async-trait",
  "base64",
  "futures",
+ "jupiter",
  "number_formatter",
  "primitives",
  "reqwest 0.13.4",
@@ -4589,6 +4590,7 @@ dependencies = [
  "config",
  "gem_tracing",
  "image",
+ "jupiter",
  "oxipng",
  "primitives",
  "reqwest 0.13.4",
@@ -4910,6 +4912,17 @@ dependencies = [
  "signature",
  "simple_asn1",
  "zeroize",
+]
+
+[[package]]
+name = "jupiter"
+version = "1.0.0"
+dependencies = [
+ "gem_client",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -5932,6 +5945,7 @@ dependencies = [
  "chrono",
  "coingecko",
  "gem_client",
+ "jupiter",
  "primitives",
  "reqwest 0.13.4",
  "serde",

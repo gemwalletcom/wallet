@@ -1,6 +1,4 @@
-mod client;
 mod mapper;
-mod model;
 mod provider;
 
-pub use client::JupiterClient;
+pub use ::jupiter::JupiterClient;

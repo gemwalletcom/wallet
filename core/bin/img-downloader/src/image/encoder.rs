@@ -1,12 +1,11 @@
-use super::Result;
 use image::{
     ColorType, DynamicImage, GenericImage, GenericImageView, ImageBuffer, ImageEncoder, RgbaImage,
     codecs::png::{CompressionType, FilterType, PngEncoder},
     imageops,
 };
-use std::io::Cursor;
+use std::{error::Error, io::Cursor};
 
-pub fn encode_png(image: DynamicImage, image_size: u32) -> Result<Vec<u8>> {
+pub fn encode_png(image: DynamicImage, image_size: u32) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     let image = resize_image(image, image_size)?;
     let mut output = Cursor::new(Vec::new());
     let encoder = PngEncoder::new_with_quality(&mut output, CompressionType::Best, FilterType::Adaptive);
@@ -14,7 +13,7 @@ pub fn encode_png(image: DynamicImage, image_size: u32) -> Result<Vec<u8>> {
     compress_png(output.into_inner())
 }
 
-fn resize_image(image: DynamicImage, image_size: u32) -> Result<RgbaImage> {
+fn resize_image(image: DynamicImage, image_size: u32) -> Result<RgbaImage, Box<dyn Error + Send + Sync>> {
     let (width, height) = image.dimensions();
     if image_size == 0 || width == 0 || height == 0 {
         return Err("invalid image size".into());
@@ -29,7 +28,7 @@ fn resize_image(image: DynamicImage, image_size: u32) -> Result<RgbaImage> {
     Ok(output)
 }
 
-fn compress_png(bytes: Vec<u8>) -> Result<Vec<u8>> {
+fn compress_png(bytes: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     let options = oxipng::Options::from_preset(4);
     Ok(oxipng::optimize_from_memory(&bytes, &options)?)
 }

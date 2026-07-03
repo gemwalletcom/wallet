@@ -1,16 +1,15 @@
 use std::collections::HashMap;
 use std::error::Error;
 
+use ::jupiter::{PortfolioAsset, PortfolioElement, PositionsResponse, TokenInfo};
 use number_formatter::BigNumberFormatter;
 use primitives::{
     AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider, contract_constants::SOLANA_WRAPPED_SOL_TOKEN_ADDRESS,
 };
 
-use super::model::{JupiterPortfolioAsset, JupiterPortfolioElement, JupiterPositionsResponse, JupiterTokenInfo};
+type TokenInfoByAddress = HashMap<String, TokenInfo>;
 
-type JupiterTokenInfoByAddress = HashMap<String, JupiterTokenInfo>;
-
-pub fn map_positions(response: JupiterPositionsResponse) -> Result<Vec<DefiPosition>, Box<dyn Error + Send + Sync>> {
+pub fn map_positions(response: PositionsResponse) -> Result<Vec<DefiPosition>, Box<dyn Error + Send + Sync>> {
     if response.elements.is_empty() {
         return Ok(Vec::new());
     }
@@ -27,11 +26,11 @@ pub fn map_positions(response: JupiterPositionsResponse) -> Result<Vec<DefiPosit
     })
 }
 
-fn map_element_positions(element: JupiterPortfolioElement, token_info: &JupiterTokenInfoByAddress, index: usize) -> Result<Vec<DefiPosition>, Box<dyn Error + Send + Sync>> {
+fn map_element_positions(element: PortfolioElement, token_info: &TokenInfoByAddress, index: usize) -> Result<Vec<DefiPosition>, Box<dyn Error + Send + Sync>> {
     let mut positions = Vec::new();
 
     match element {
-        JupiterPortfolioElement::Multiple(element) => {
+        PortfolioElement::Multiple(element) => {
             let assets = map_assets(element.data.assets.iter(), token_info)?;
             let position_type = map_position_type(&element.label);
             push_position(
@@ -43,7 +42,7 @@ fn map_element_positions(element: JupiterPortfolioElement, token_info: &JupiterT
                 assets,
             );
         }
-        JupiterPortfolioElement::Liquidity(element) => {
+        PortfolioElement::Liquidity(element) => {
             for (liquidity_index, liquidity) in element.data.liquidities.iter().enumerate() {
                 let assets = map_assets(liquidity.assets.iter().chain(liquidity.reward_assets.iter()), token_info)?;
                 let name = liquidity.name.clone().or_else(|| element.name.clone()).unwrap_or_else(|| element.label.clone());
@@ -57,7 +56,7 @@ fn map_element_positions(element: JupiterPortfolioElement, token_info: &JupiterT
                 );
             }
         }
-        JupiterPortfolioElement::BorrowLend(element) => {
+        PortfolioElement::BorrowLend(element) => {
             let unsettled_assets = element.data.unsettled.as_ref().map(|unsettled| unsettled.assets.as_slice()).unwrap_or_default();
             let assets = map_assets(
                 element
@@ -78,7 +77,7 @@ fn map_element_positions(element: JupiterPortfolioElement, token_info: &JupiterT
                 assets,
             );
         }
-        JupiterPortfolioElement::Trade(element) => {
+        PortfolioElement::Trade(element) => {
             let assets = [element.data.assets.input.as_ref(), element.data.assets.output.as_ref()]
                 .into_iter()
                 .flatten()
@@ -93,7 +92,7 @@ fn map_element_positions(element: JupiterPortfolioElement, token_info: &JupiterT
                 assets,
             );
         }
-        JupiterPortfolioElement::Leverage(element) => {
+        PortfolioElement::Leverage(element) => {
             let assets = match element.data.cross.as_ref().and_then(|cross| cross.collateral_assets.as_ref()) {
                 Some(collateral_assets) => map_assets(collateral_assets.iter(), token_info)?,
                 None => Vec::new(),
@@ -112,11 +111,11 @@ fn map_element_positions(element: JupiterPortfolioElement, token_info: &JupiterT
     Ok(positions)
 }
 
-fn map_assets<'a>(assets: impl Iterator<Item = &'a JupiterPortfolioAsset>, token_info: &JupiterTokenInfoByAddress) -> Result<Vec<DefiPositionAsset>, Box<dyn Error + Send + Sync>> {
+fn map_assets<'a>(assets: impl Iterator<Item = &'a PortfolioAsset>, token_info: &TokenInfoByAddress) -> Result<Vec<DefiPositionAsset>, Box<dyn Error + Send + Sync>> {
     assets.map(|asset| map_asset(asset, token_info)).collect()
 }
 
-fn map_asset(asset: &JupiterPortfolioAsset, token_info: &JupiterTokenInfoByAddress) -> Result<DefiPositionAsset, Box<dyn Error + Send + Sync>> {
+fn map_asset(asset: &PortfolioAsset, token_info: &TokenInfoByAddress) -> Result<DefiPositionAsset, Box<dyn Error + Send + Sync>> {
     let address = asset.data.address.as_ref().ok_or("Missing Jupiter asset address")?;
     let amount = asset.data.amount.as_ref().ok_or("Missing Jupiter asset amount")?;
     let decimals = token_info
@@ -179,11 +178,11 @@ fn map_position_type(label: &str) -> DefiPositionType {
 mod tests {
     use primitives::{AssetId, Chain, DefiPositionType, DefiProvider, asset_constants::SOLANA_USDC_TOKEN_ID};
 
-    use super::{JupiterPositionsResponse, map_positions};
+    use super::{PositionsResponse, map_positions};
 
     #[test]
     fn test_map_positions() {
-        let response: JupiterPositionsResponse = serde_json::from_str(include_str!("../../../testdata/jupiter/positions.json")).unwrap();
+        let response: PositionsResponse = serde_json::from_str(include_str!("../../../testdata/jupiter/positions.json")).unwrap();
 
         let positions = map_positions(response).unwrap();
 
@@ -219,7 +218,7 @@ mod tests {
 
     #[test]
     fn test_map_positions_empty() {
-        let response: JupiterPositionsResponse = serde_json::from_str(r#"{"elements":[],"tokenInfo":{}}"#).unwrap();
+        let response: PositionsResponse = serde_json::from_str(r#"{"elements":[],"tokenInfo":{}}"#).unwrap();
 
         assert!(map_positions(response).unwrap().is_empty());
     }

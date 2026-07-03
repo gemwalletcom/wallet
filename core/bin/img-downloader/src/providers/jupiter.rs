@@ -1,49 +1,37 @@
-use super::model::AssetImage;
+use super::{config::JupiterProviderConfig, model::AssetImage};
+use ::jupiter::{JupiterClient, Token};
 use primitives::Chain;
-use serde::Deserialize;
 use std::error::Error;
 
-const JUPITER_API_BASE_URL: &str = "https://api.jup.ag/tokens/v2";
-
 pub struct JupiterProvider {
-    client: reqwest::Client,
-    top_count: usize,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-struct JupiterToken {
-    id: String,
-    icon: Option<String>,
+    client: JupiterClient,
+    config: JupiterProviderConfig,
 }
 
 impl JupiterProvider {
-    pub fn new(client: reqwest::Client, top_count: usize) -> Self {
-        Self { client, top_count }
+    pub fn new(client: JupiterClient, config: JupiterProviderConfig) -> Self {
+        Self { client, config }
     }
 
     pub async fn get_verified_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let tokens = self.get_tokens().await?;
-        Ok(Self::map_tokens(tokens.into_iter().take(self.top_count).collect()))
+        let tokens = self.client.get_verified_tokens().await?;
+        Ok(Self::map_tokens(tokens.into_iter().take(self.config.top_count).collect()))
+    }
+
+    pub async fn get_trending_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        let tokens = self.client.get_top_trending_tokens(&self.config.trending_interval, self.config.trending_count).await?;
+        Ok(Self::map_tokens(tokens))
     }
 
     pub async fn get_verified_asset_images_by_id(&self, token_id: &str) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let tokens = self.get_tokens().await?;
+        let tokens = self.client.get_verified_tokens().await?;
         Ok(Self::map_tokens(tokens).into_iter().filter(|image| image.token_id == token_id).collect())
     }
 
-    async fn get_tokens(&self) -> Result<Vec<JupiterToken>, Box<dyn Error + Send + Sync>> {
-        let request = self.client.get(format!("{JUPITER_API_BASE_URL}/tag")).query(&[("query", "verified")]);
-        let response = request.send().await?;
-        let status = response.status();
-        if !status.is_success() {
-            return Err(format!("jupiter request failed: {status}").into());
-        }
-        Ok(response.json::<Vec<JupiterToken>>().await?)
-    }
-
-    fn map_tokens(tokens: Vec<JupiterToken>) -> Vec<AssetImage> {
+    fn map_tokens(tokens: Vec<Token>) -> Vec<AssetImage> {
         tokens
             .into_iter()
+            .filter(Token::is_verified)
             .filter_map(|token| {
                 let image_url = token.icon?;
                 Some(AssetImage {

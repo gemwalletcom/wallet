@@ -16,6 +16,7 @@ clap = { version = "4.6.1", features = ["derive"] }
 
 chain_primitives = { path = "../../crates/chain_primitives" }
 coingecko = { path = "../../crates/coingecko" }
+jupiter = { path = "../../crates/jupiter" }
 primitives = { path = "../../crates/primitives" }
 settings = { path = "../../crates/settings" }
 gem_tracing = { path = "../../crates/tracing" }

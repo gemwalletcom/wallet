@@ -2,8 +2,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct VerifiedToken {
+pub struct Token {
     pub id: String,
+    pub icon: Option<String>,
+    #[serde(rename = "isVerified")]
+    pub is_verified: Option<bool>,
     #[serde(default)]
     pub usd_price: f64,
     pub mcap: Option<f64>,
@@ -14,6 +17,12 @@ pub struct VerifiedToken {
     pub stats24h: TokenStats,
 }
 
+impl Token {
+    pub fn is_verified(&self) -> bool {
+        self.is_verified.unwrap_or(false)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenStats {
@@ -22,5 +31,3 @@ pub struct TokenStats {
     pub buy_volume: Option<f64>,
     pub sell_volume: Option<f64>,
 }
-
-pub type VerifiedTokensResponse = Vec<VerifiedToken>;

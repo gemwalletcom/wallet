@@ -37,11 +37,18 @@ pub struct CoingeckoConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct JupiterConfig {
     pub top: TopConfig,
+    pub trending: TrendingConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct TopConfig {
     pub count: usize,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct TrendingConfig {
+    pub count: usize,
+    pub interval: String,
 }
 
 impl ImgDownloaderConfig {

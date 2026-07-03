@@ -39,6 +39,7 @@ members = [
     "crates/simulation",
 
     "crates/localizer",
+    "crates/jupiter",
     "crates/job_runner",
     "crates/metrics",
     "crates/search_index",
