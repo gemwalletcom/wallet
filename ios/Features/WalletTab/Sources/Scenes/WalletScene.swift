@@ -1,19 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import InfoSheet
-import Localization
+import NFT
 import Primitives
 import PrimitivesComponents
-import Store
 import Style
 import SwiftUI
 
 public struct WalletScene: View {
-    private var model: WalletSceneViewModel
+    @State private var model: WalletSceneViewModel
 
     public init(model: WalletSceneViewModel) {
-        self.model = model
+        _model = State(initialValue: model)
     }
 
     public var body: some View {
@@ -21,83 +19,62 @@ public struct WalletScene: View {
 
         List {
             Section {} header: {
-                ValueHeaderView(
-                    model: model.walletHeaderModel,
-                    isPrivacyEnabled: $preferences.isHideBalanceEnabled,
-                    titleActionType: .privacyToggle,
-                    onHeaderAction: model.onHeaderAction,
-                    onSubtitleAction: model.onSelectPortfolio,
-                    onInfoAction: model.onSelectWatchWalletInfo,
-                )
+                VStack(spacing: .medium) {
+                    ValueHeaderView(
+                        model: model.walletHeaderModel,
+                        isPrivacyEnabled: $preferences.isHideBalanceEnabled,
+                        titleActionType: .privacyToggle,
+                        onHeaderAction: model.onHeaderAction,
+                        onSubtitleAction: model.onSelectPortfolio,
+                        onInfoAction: model.onSelectWatchWalletInfo,
+                    )
+
+                    if model.showContentTypePicker {
+                        Picker("", selection: $model.selectedContentType) {
+                            ForEach(model.availableContentTypes) { type in
+                                Text(type.title).tag(type)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                }
                 .padding(.top, .space6)
             }
             .cleanListRow()
 
-            if model.showPerpetuals {
-                Section {
-                    PerpetualsPreviewView(wallet: model.wallet)
-                } header: {
-                    HeaderNavigationLinkView(title: model.perpetualsTitle, destination: Scenes.Perpetuals())
+            switch model.selectedContentType {
+            case .assets:
+                if model.showPerpetuals {
+                    Section {
+                        PerpetualsPreviewView(wallet: model.wallet)
+                    } header: {
+                        HeaderNavigationLinkView(title: model.perpetualsTitle, destination: Scenes.Perpetuals())
+                    }
+                    .listRowInsets(.assetListRowInsets)
+                    .listSectionSpacing(.custom(.medium))
                 }
-                .listRowInsets(.assetListRowInsets)
-            }
 
-            if let banner = model.walletBannersModel.allBanners.first {
-                Section {
-                    BannerView(
-                        banner: banner,
-                        action: model.onBanner,
-                    )
+                if let banner = model.walletBannersModel.allBanners.first {
+                    Section {
+                        BannerView(
+                            banner: banner,
+                            action: model.onBanner,
+                        )
+                    }
+                    .listRowInsets(.zero)
+                    .listSectionSpacing(.custom(.medium))
                 }
-                .listRowInsets(.zero)
-            }
 
-            if model.showPinnedSection {
-                Section {
-                    WalletAssetsList(
-                        assets: model.sections.pinned,
-                        currencyCode: model.currencyCode,
-                        onHideAsset: model.onHideAsset,
-                        onPinAsset: model.onPinAsset,
-                        onCopyAddress: model.onCopyAddress,
-                        showBalancePrivacy: $preferences.isHideBalanceEnabled,
-                    )
-                } header: {
-                    PinnedSectionHeader()
-                }
-                .listRowInsets(.assetListRowInsets)
+                WalletAssetsSection(model: model.assetsModel)
+            case .collections:
+                NFTCollectionsSection(model: model.collectionsModel)
+            case .defi:
+                WalletDefiSection()
             }
-
-            Section {
-                WalletAssetsList(
-                    assets: model.sections.assets,
-                    currencyCode: model.currencyCode,
-                    onHideAsset: model.onHideAsset,
-                    onPinAsset: model.onPinAsset,
-                    onCopyAddress: model.onCopyAddress,
-                    showBalancePrivacy: $preferences.isHideBalanceEnabled,
-                )
-            } header: {
-                if model.isLoadingAssets {
-                    LoadingTextView(isAnimating: .constant(true))
-                        .listRowInsets(.assetListRowInsets)
-                        .textCase(nil)
-                }
-            } footer: {
-                ListButton(
-                    title: model.manageTokenTitle,
-                    image: model.manageImage,
-                    action: model.onSelectManage,
-                )
-                .accessibilityIdentifier("manage")
-                .padding(.medium)
-                .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .listRowInsets(.assetListRowInsets)
         }
         .id(model.wallet.id)
         .refreshable {
-            await model.fetch()
+            await model.refreshSelectedContent()
         }
         .taskOnce {
             Task { await model.fetchOnce() }

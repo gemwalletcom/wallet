@@ -4,6 +4,7 @@ import BalanceServiceTestKit
 import BannerServiceTestKit
 import DiscoverAssetsServiceTestKit
 import Foundation
+import NFTServiceTestKit
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -17,6 +18,7 @@ public extension WalletSceneViewModel {
             balanceService: .mock(),
             bannerService: .mock(),
             walletService: .mock(),
+            nftService: .mock(),
             observablePreferences: .mock(),
             wallet: wallet,
             isPresentingSelectedAssetInput: .constant(.none),

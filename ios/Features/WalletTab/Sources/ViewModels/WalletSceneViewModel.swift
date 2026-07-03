@@ -4,10 +4,12 @@ import BalanceService
 import BannerService
 import Components
 import DiscoverAssetsService
-import Formatters
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import Localization
+import NFT
+import NFTService
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -19,32 +21,20 @@ import WalletService
 @Observable
 @MainActor
 public final class WalletSceneViewModel: Sendable {
-    private let assetDiscoveryService: any AssetDiscoverable
-    private let balanceService: BalanceService
     private let bannerService: BannerService
     private let walletService: WalletService
 
     let observablePreferences: ObservablePreferences
 
-    public var wallet: Wallet
+    public let assetsModel: WalletAssetsSectionViewModel
+    public let collectionsModel: CollectionsViewModel
 
-    // db queries
+    var selectedContentType: WalletContentType = .assets
+
+    public private(set) var wallet: Wallet
+
     public let totalFiatQuery: ObservableQuery<TotalValueRequest>
-    public let assetsQuery: ObservableQuery<AssetsRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
-
-    /// db observed values
-    public var totalFiatValue: TotalFiatValue {
-        totalFiatQuery.value
-    }
-
-    public var assets: [AssetData] {
-        assetsQuery.value
-    }
-
-    public var banners: [Banner] {
-        bannersQuery.value
-    }
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingSheet: WalletSheetType?
@@ -52,26 +42,33 @@ public final class WalletSceneViewModel: Sendable {
     public var isPresentingUrl: URL?
     public var isPresentingToastMessage: ToastMessage?
 
-    public var isLoadingAssets = false
-
     public init(
         assetDiscoveryService: any AssetDiscoverable,
         balanceService: BalanceService,
         bannerService: BannerService,
         walletService: WalletService,
+        nftService: NFTService,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
-        self.assetDiscoveryService = assetDiscoveryService
-        self.balanceService = balanceService
         self.bannerService = bannerService
         self.walletService = walletService
         self.observablePreferences = observablePreferences
+        assetsModel = WalletAssetsSectionViewModel(
+            assetDiscoveryService: assetDiscoveryService,
+            balanceService: balanceService,
+            observablePreferences: observablePreferences,
+            wallet: wallet,
+        )
+        collectionsModel = CollectionsViewModel(
+            nftService: nftService,
+            walletService: walletService,
+            wallet: wallet,
+        )
 
         totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.id, type: .wallet), initialValue: .zero)
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
@@ -80,24 +77,28 @@ public final class WalletSceneViewModel: Sendable {
         walletService.currentWallet
     }
 
-    var manageTokenTitle: String {
-        Localized.Wallet.manageTokenList
+    public var searchImage: Image {
+        Images.System.search
     }
 
     var perpetualsTitle: String {
         Localized.Perpetuals.title
     }
 
-    public var searchImage: Image {
-        Images.System.search
+    public var walletBarModel: WalletBarViewViewModel {
+        let walletModel = WalletViewModel(wallet: wallet)
+        return WalletBarViewViewModel(
+            name: walletModel.name,
+            image: walletModel.avatarImage,
+        )
     }
 
-    public var manageImage: Image {
-        Images.Actions.manage
+    var totalFiatValue: TotalFiatValue {
+        totalFiatQuery.value
     }
 
-    var showPinnedSection: Bool {
-        !sections.pinned.isEmpty
+    var banners: [Banner] {
+        bannersQuery.value
     }
 
     var showPerpetuals: Bool {
@@ -108,16 +109,12 @@ public final class WalletSceneViewModel: Sendable {
         observablePreferences.preferences.currency
     }
 
-    var sections: AssetsSections {
-        AssetsSections.from(assets)
+    var availableContentTypes: [WalletContentType] {
+        WalletContentType.allCases.filter(isAvailable)
     }
 
-    public var walletBarModel: WalletBarViewViewModel {
-        let walletModel = WalletViewModel(wallet: wallet)
-        return WalletBarViewViewModel(
-            name: walletModel.name,
-            image: walletModel.avatarImage,
-        )
+    var showContentTypePicker: Bool {
+        availableContentTypes.count > 1
     }
 
     var walletHeaderModel: WalletHeaderViewModel {
@@ -135,25 +132,29 @@ public final class WalletSceneViewModel: Sendable {
             totalFiatValue: totalFiatValue.value,
         )
     }
+
+    private func isAvailable(_ type: WalletContentType) -> Bool {
+        switch type {
+        case .assets: true
+        case .collections: isSupported(\.isNFTSupported)
+        case .defi: isSupported(\.isDefiSupported)
+        }
+    }
+
+    private func isSupported(_ chainFlag: KeyPath<Chain, Bool>) -> Bool {
+        switch wallet.type {
+        case .multicoin: true
+        case .single, .privateKey, .view:
+            wallet.accounts.first?.chain[keyPath: chainFlag] ?? false
+        }
+    }
 }
 
 // MARK: - Business Logic
 
 public extension WalletSceneViewModel {
-    internal func fetch() async {
-        await updateWallet(for: wallet)
-    }
-
-    internal func fetchOnce() async {
-        await fetchOnce(wallet: wallet)
-    }
-
     func onSelectWalletBar() {
         isPresentingSheet = .wallets
-    }
-
-    func onSelectManage() {
-        isPresentingSheet = .selectAsset(.manage)
     }
 
     func onToggleSearch() {
@@ -164,63 +165,6 @@ public extension WalletSceneViewModel {
         isPresentingSheet = .addAsset
     }
 
-    internal func onSelectPortfolio() {
-        isPresentingSheet = .portfolio(.wallet)
-    }
-
-    internal func onHeaderAction(type: HeaderButtonType) {
-        switch type {
-        case .buy: isPresentingSheet = .selectAsset(.buy)
-        case .send: isPresentingSheet = .selectAsset(.send)
-        case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
-        case .sell, .swap, .more, .stake, .deposit, .withdraw: break
-        }
-    }
-
-    internal func onCloseBanner(banner: Banner) {
-        bannerService.onClose(banner)
-    }
-
-    internal func onSelectWatchWalletInfo() {
-        isPresentingSheet = .infoSheet(.watchWallet)
-    }
-
-    internal func onBanner(action: BannerAction) {
-        switch action.type {
-        case .event, .closeBanner:
-            Task {
-                try await handleBanner(action: action)
-            }
-        case let .button(bannerButton):
-            switch bannerButton {
-            case .buy: isPresentingSheet = .selectAsset(.buy)
-            case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
-            }
-        }
-        isPresentingUrl = action.url
-    }
-
-    internal func onHideAsset(_ assetId: AssetId) {
-        do {
-            try balanceService.hideAsset(walletId: wallet.id, assetId: assetId)
-        } catch {
-            debugLog("WalletSceneViewModel hide Asset error: \(error)")
-        }
-    }
-
-    internal func onPinAsset(_ asset: Asset, value: Bool) {
-        do {
-            try balanceService.setPinned(value, walletId: wallet.id, assetId: asset.id)
-            isPresentingToastMessage = .pin(asset.name, pinned: value)
-        } catch {
-            debugLog("WalletSceneViewModel pin asset error: \(error)")
-        }
-    }
-
-    internal func onCopyAddress(_ message: String) {
-        isPresentingToastMessage = .copy(message)
-    }
-
     func onChangeWallet(_: Wallet?, _ newWallet: Wallet?) {
         guard let newWallet else { return }
 
@@ -228,6 +172,8 @@ public extension WalletSceneViewModel {
             refresh(for: newWallet)
         } else if wallet != newWallet {
             wallet = newWallet
+            assetsModel.wallet = newWallet
+            collectionsModel.wallet = newWallet
         }
     }
 
@@ -244,64 +190,79 @@ public extension WalletSceneViewModel {
         isPresentingToastMessage = .priceAlert(message: message)
     }
 
-    func presentTransferData(_ data: TransferData) {
-        isPresentingSheet = .transferData(data)
-    }
-
-    func presentPerpetualRecipientData(_ data: PerpetualRecipientData) {
-        isPresentingSheet = .perpetualRecipientData(data)
-    }
-
     func presentPriceAlert(_ asset: Asset) {
         isPresentingSheet = .setPriceAlert(asset)
+    }
+}
+
+// MARK: - Internal
+
+extension WalletSceneViewModel {
+    func fetchOnce() async {
+        async let assets: () = assetsModel.fetchOnce()
+        async let collections: () = isAvailable(.collections) ? collectionsModel.fetch() : ()
+        _ = await (assets, collections)
+    }
+
+    func refreshSelectedContent() async {
+        switch selectedContentType {
+        case .assets: await assetsModel.fetch()
+        case .collections: await collectionsModel.fetch()
+        case .defi: break
+        }
+    }
+
+    func onSelectPortfolio() {
+        isPresentingSheet = .portfolio(.wallet)
+    }
+
+    func onHeaderAction(type: HeaderButtonType) {
+        switch type {
+        case .buy: isPresentingSheet = .selectAsset(.buy)
+        case .send: isPresentingSheet = .selectAsset(.send)
+        case .receive: isPresentingSheet = .selectAsset(.receive(receiveType))
+        case .sell, .swap, .more, .stake, .deposit, .withdraw: break
+        }
+    }
+
+    func onSelectWatchWalletInfo() {
+        isPresentingSheet = .infoSheet(.watchWallet)
+    }
+
+    func onBanner(action: BannerAction) {
+        switch action.type {
+        case .event, .closeBanner:
+            Task {
+                try await handleBanner(action: action)
+            }
+        case let .button(bannerButton):
+            switch bannerButton {
+            case .buy: isPresentingSheet = .selectAsset(.buy)
+            case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
+            }
+        }
+        isPresentingUrl = action.url
     }
 }
 
 // MARK: - Private
 
 extension WalletSceneViewModel {
-    private func fetchOnce(wallet: Wallet) async {
-        let shouldShowLoadingAssets = shouldShowInitialLoadingAssets(for: wallet)
-
-        if shouldShowLoadingAssets {
-            isLoadingAssets = true
+    private var receiveType: ReceiveAssetType {
+        switch selectedContentType {
+        case .assets, .defi: .asset
+        case .collections: .collection
         }
-
-        await updateWallet(for: wallet)
-
-        if shouldShowLoadingAssets, self.wallet.id == wallet.id {
-            isLoadingAssets = false
-        }
-    }
-
-    private func updateWallet(for wallet: Wallet) async {
-        let assetIds = assets.map(\.asset.id)
-        async let balance: () = balanceService.updateBalance(for: wallet, assetIds: assetIds)
-        async let discovery: () = discoverAssets(wallet: wallet)
-        _ = await (balance, discovery)
-    }
-
-    private func discoverAssets(wallet: Wallet) async {
-        do {
-            try await assetDiscoveryService.discoverAssets(wallet: wallet)
-        } catch {
-            debugLog("WalletSceneViewModel discoverAssets error: \(error)")
-        }
-    }
-
-    private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
-        let preferences = WalletPreferences(walletId: wallet.id)
-        return !preferences.completeInitialLoadAssets && preferences.assetsTimestamp == .zero
     }
 
     private func refresh(for newWallet: Wallet) {
-        isLoadingAssets = false
         wallet = newWallet
         totalFiatQuery.request.walletId = newWallet.id
-        assetsQuery.request.walletId = newWallet.id
         bannersQuery.request.walletId = newWallet.id
 
-        Task { await fetchOnce(wallet: newWallet) }
+        assetsModel.refresh(for: newWallet)
+        collectionsModel.onChangeWallet(collectionsModel.wallet, newWallet)
+        selectedContentType = .assets
     }
 
     private func handleBanner(action: BannerAction) async throws {

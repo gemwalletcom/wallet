@@ -1,15 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Assets
 import Components
 import Localization
-import NFT
 import PriceAlerts
 import Primitives
 import Style
 import SwiftUI
 import Transactions
-import TransactionsService
 import WalletTab
 
 struct MainTabView: View {
@@ -47,6 +44,7 @@ struct MainTabView: View {
                     balanceService: balanceService,
                     bannerService: bannerService,
                     walletService: walletService,
+                    nftService: nftService,
                     observablePreferences: observablePreferences,
                     wallet: model.wallet,
                     isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
@@ -63,21 +61,6 @@ struct MainTabView: View {
                         tabItem("Markets", Images.Tabs.markets)
                     }
                     .tag(TabItem.markets)
-            }
-
-            if model.isCollectionsEnabled {
-                CollectionsNavigationStack(
-                    model: CollectionsViewModel(
-                        nftService: nftService,
-                        walletService: walletService,
-                        wallet: model.wallet,
-                    ),
-                    isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
-                )
-                .tabItem {
-                    tabItem(Localized.Nft.collections, Images.Tabs.collections)
-                }
-                .tag(TabItem.collections)
             }
 
             TransactionsNavigationStack(
@@ -158,8 +141,8 @@ extension MainTabView {
         case let .send(type):
             switch type {
             case .nft:
-                if navigationState.selectedTab == .collections {
-                    navigationState.collections.reset()
+                if navigationState.selectedTab == .wallet {
+                    navigationState.wallet.reset()
                     navigationState.activity.reset()
                     navigationState.selectedTab = .activity
                 }
@@ -177,7 +160,7 @@ extension MainTabView {
                 case .activity:
                     navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
                     navigationState.selectedTab = .wallet
-                case .markets, .settings, .collections:
+                case .markets, .settings:
                     break
                 }
                 presenter.isPresentingAssetInput.wrappedValue = nil

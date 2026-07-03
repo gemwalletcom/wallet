@@ -51,6 +51,9 @@ struct WalletNavigationStack: View {
     }
 
     var body: some View {
+        @Bindable var assetsModel = model.assetsModel
+        @Bindable var collectionsModel = model.collectionsModel
+
         NavigationStack(path: navigationPath) {
             ZStack {
                 WalletScene(model: model)
@@ -75,7 +78,7 @@ struct WalletNavigationStack: View {
             }
             .onChange(of: model.currentWallet, model.onChangeWallet)
             .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
-            .bindQuery(model.assetsQuery, model.bannersQuery, model.totalFiatQuery)
+            .bindQuery(model.assetsModel.query, model.collectionsModel.query, model.bannersQuery, model.totalFiatQuery)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !model.isPresentingSearch {
@@ -130,6 +133,20 @@ struct WalletNavigationStack: View {
                         nftService: nftService,
                         isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                     ),
+                )
+            }
+            .navigationDestination(for: Scenes.Collection.self) { scene in
+                CollectionsScene(
+                    model: CollectionViewModel(
+                        wallet: model.wallet,
+                        collectionId: scene.id,
+                        collectionName: scene.name,
+                    ),
+                )
+            }
+            .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
+                CollectionsScene(
+                    model: UnverifiedCollectionsViewModel(wallet: model.wallet),
                 )
             }
             .navigationDestination(for: Scenes.Price.self) {
@@ -200,16 +217,7 @@ struct WalletNavigationStack: View {
                     case .wallets:
                         WalletsNavigationStack()
                     case let .selectAsset(type):
-                        SelectAssetSceneNavigationStack(
-                            model: SelectAssetViewModel(
-                                wallet: model.wallet,
-                                selectType: type,
-                                searchService: assetSearchService,
-                                assetsEnabler: assetsEnabler,
-                                priceAlertService: priceAlertService,
-                                activityService: activityService,
-                            ),
-                        )
+                        selectAssetSheet(for: type)
                     case let .infoSheet(type):
                         InfoSheetScene(type: type)
                     case let .transferData(data):
@@ -253,9 +261,33 @@ struct WalletNavigationStack: View {
                 }
                 .id(sheet.id)
             }
+            .sheet(item: $assetsModel.isPresentingSelectAssetType) {
+                selectAssetSheet(for: $0)
+            }
+            .sheet(item: $collectionsModel.isPresentingReceiveSelectAssetType) {
+                selectAssetSheet(for: $0)
+            }
             .safariSheet(url: $model.isPresentingUrl)
         }
         .toast(message: $model.isPresentingToastMessage)
+        .toast(message: $assetsModel.isPresentingToastMessage)
+    }
+}
+
+// MARK: - UI Components
+
+extension WalletNavigationStack {
+    private func selectAssetSheet(for type: SelectAssetType) -> some View {
+        SelectAssetSceneNavigationStack(
+            model: SelectAssetViewModel(
+                wallet: model.wallet,
+                selectType: type,
+                searchService: assetSearchService,
+                assetsEnabler: assetsEnabler,
+                priceAlertService: priceAlertService,
+                activityService: activityService,
+            ),
+        )
     }
 }
 
