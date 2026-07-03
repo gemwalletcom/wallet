@@ -29,7 +29,7 @@ fn simulation_error_warning(error: Value) -> SimulationWarning {
         Value::String(message) => message,
         error => error.to_string(),
     };
-    SimulationWarning::validation_error(message)
+    SimulationWarning::execution_error(message)
 }
 
 fn map_balance_changes(
@@ -241,7 +241,7 @@ mod tests {
         assert_eq!(
             result.warnings,
             vec![SimulationWarning::new(
-                SimulationSeverity::Critical,
+                SimulationSeverity::Warning,
                 SimulationWarningType::ValidationError,
                 Some("{\"InstructionError\":[1,\"InvalidArgument\"]}".to_string()),
             )]

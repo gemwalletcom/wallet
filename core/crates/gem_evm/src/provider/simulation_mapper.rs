@@ -10,7 +10,7 @@ use crate::rpc::model::TraceCallResult;
 
 pub fn map_simulation_result(chain: Chain, signer: &str, trace: &TraceCallResult) -> SimulationResult {
     if let Some(error) = trace.root_call_error() {
-        return SimulationResult::new(vec![SimulationWarning::validation_error(error)], vec![]);
+        return SimulationResult::new(vec![SimulationWarning::execution_error(error)], vec![]);
     }
 
     SimulationResult {
@@ -111,7 +111,7 @@ mod tests {
         let reverted_root: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_reverted_root.json"));
         let result = map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &reverted_root);
 
-        assert_eq!(result.warnings.len(), 1);
+        assert_eq!(result.warnings, vec![SimulationWarning::execution_error("Reverted")]);
         assert!(result.balance_changes.is_empty());
 
         let reverted_subcall_only: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_subcall_reverted.json"));

@@ -85,6 +85,10 @@ impl SimulationWarning {
         Self::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some(message.into()))
     }
 
+    pub fn execution_error(message: impl Into<String>) -> Self {
+        Self::new(SimulationSeverity::Warning, SimulationWarningType::ValidationError, Some(message.into()))
+    }
+
     fn collapse_priority(&self) -> u8 {
         self.warning.collapse_priority(self.severity)
     }
