@@ -31,7 +31,7 @@ internal fun ConfirmErrorInfo(state: ConfirmState, feeValue: String, isShowBotto
     val infoSheetEntity = message.toInfoSheetEntity(feeValue, onBuy)
 
     WarningItem(
-        title = stringResource(R.string.errors_error_occured),
+        title = stringResource(R.string.errors_error_occurred),
         message = message.toLabel(),
         color = MaterialTheme.colorScheme.error,
         position = ListPosition.Single,

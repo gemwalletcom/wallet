@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Frasa Rahsia Tidak Sah</string>
   <string name="errors_import_invalid_secret_phrase_word">Perkataan Frasa Rahsia tidak sah: %1$s</string>
   <string name="errors_invalid_url">URL tidak sah</string>
-  <string name="errors_error_occured">Ralat berlaku!</string>
+  <string name="errors_error_occurred">Ralat berlaku!</string>
   <string name="errors_invalid_network_id">ID Rangkaian tidak sah</string>
   <string name="errors_error">Ralat</string>
   <string name="errors_connections_user_cancelled">Dibatalkan oleh pengguna</string>

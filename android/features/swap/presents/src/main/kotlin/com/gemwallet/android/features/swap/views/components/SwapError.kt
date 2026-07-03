@@ -56,7 +56,7 @@ internal fun SwapError(state: SwapUiState, pay: AssetInfo?) {
             )
             Spacer8()
             Text(
-                text = stringResource(R.string.errors_error_occured),
+                text = stringResource(R.string.errors_error_occurred),
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.W400),
             )
         }

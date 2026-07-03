@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Ungültige geheime Phrase</string>
   <string name="errors_import_invalid_secret_phrase_word">Ungültiges geheimes Phrasenwort: %1$s</string>
   <string name="errors_invalid_url">Ungültige URL</string>
-  <string name="errors_error_occured">Es ist ein Fehler aufgetreten!</string>
+  <string name="errors_error_occurred">Es ist ein Fehler aufgetreten!</string>
   <string name="errors_invalid_network_id">Ungültige Netzwerk-ID</string>
   <string name="errors_error">Fehler</string>
   <string name="errors_connections_user_cancelled">Benutzer hat abgebrochen</string>

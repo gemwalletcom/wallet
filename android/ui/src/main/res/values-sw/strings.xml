@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Maneno ya Siri Batili</string>
   <string name="errors_import_invalid_secret_phrase_word">Neno batili la Neno la Siri: %1$s</string>
   <string name="errors_invalid_url">URL batili</string>
-  <string name="errors_error_occured">Hitilafu imetokea!</string>
+  <string name="errors_error_occurred">Hitilafu imetokea!</string>
   <string name="errors_invalid_network_id">Kitambulisho batili cha Mtandao</string>
   <string name="errors_error">Hitilafu</string>
   <string name="errors_connections_user_cancelled">Mtumiaji ameghairi</string>

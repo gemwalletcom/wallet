@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Neplatná tajná fráze</string>
   <string name="errors_import_invalid_secret_phrase_word">Neplatné slovo tajné fráze: %1$s</string>
   <string name="errors_invalid_url">Neplatná adresa URL</string>
-  <string name="errors_error_occured">Došlo k chybě!</string>
+  <string name="errors_error_occurred">Došlo k chybě!</string>
   <string name="errors_invalid_network_id">Neplatné ID sítě</string>
   <string name="errors_error">Chyba</string>
   <string name="errors_connections_user_cancelled">Uživatel zrušen</string>

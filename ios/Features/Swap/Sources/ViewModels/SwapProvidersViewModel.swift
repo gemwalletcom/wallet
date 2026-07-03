@@ -27,7 +27,7 @@ struct SwapProvidersViewModel: SelectableListAdoptable {
     }
 
     var errorTitle: String? {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 }
 

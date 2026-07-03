@@ -274,7 +274,7 @@ extension WalletNavigationStack {
                     nftDestination: navigationState.wallet,
                 )
             } catch {
-                model.isPresentingToastMessage = .error(Localized.Errors.errorOccured)
+                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
             }
         }
     }

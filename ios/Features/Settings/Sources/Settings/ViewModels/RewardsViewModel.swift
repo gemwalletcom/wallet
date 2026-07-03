@@ -63,7 +63,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var errorTitle: String {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 
     var invitedByTitle: String {
@@ -313,7 +313,7 @@ public final class RewardsViewModel: Sendable {
 
     func showError(_ message: String) {
         isPresentingAlert = AlertMessage(
-            title: Localized.Errors.errorOccured,
+            title: Localized.Errors.errorOccurred,
             message: message,
             actions: [.cancel(title: Localized.Common.done)],
         )

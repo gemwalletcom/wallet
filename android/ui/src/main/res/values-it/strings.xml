@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Frase segreta non valida</string>
   <string name="errors_import_invalid_secret_phrase_word">Parola frase segreta non valida: %1$s</string>
   <string name="errors_invalid_url">URL non valido</string>
-  <string name="errors_error_occured">Si è verificato un errore!</string>
+  <string name="errors_error_occurred">Si è verificato un errore!</string>
   <string name="errors_invalid_network_id">ID di rete non valido</string>
   <string name="errors_error">Errore</string>
   <string name="errors_connections_user_cancelled">Utente cancellato</string>

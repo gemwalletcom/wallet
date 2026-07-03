@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">عبارات خصوصی نامعتبر.</string>
   <string name="errors_import_invalid_secret_phrase_word">عبارت خصوصی نامعتبر: %1$s</string>
   <string name="errors_invalid_url">URL نامعتبر</string>
-  <string name="errors_error_occured">خطایی رخ داد!</string>
+  <string name="errors_error_occurred">خطایی رخ داد!</string>
   <string name="errors_invalid_network_id">شناسه شبکه نامعتبر است.</string>
   <string name="errors_error">خطا</string>
   <string name="errors_connections_user_cancelled">توسط کاربر لغو شد.</string>

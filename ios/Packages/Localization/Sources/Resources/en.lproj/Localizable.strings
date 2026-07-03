@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Invalid Secret Phrase";
 "errors.import.invalid_secret_phrase_word" = "Invalid Secret Phrase word: %@";
 "errors.invalid_url" = "Invalid URL";
-"errors.error_occured" = "An error occurred!";
+"errors.error_occurred" = "An error occurred!";
 "errors.invalid_network_id" = "Invalid Network ID";
 "errors.error" = "Error";
 "errors.connections.user_cancelled" = "User cancelled";

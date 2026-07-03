@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Cụm từ bí mật không hợp lệ";
 "errors.import.invalid_secret_phrase_word" = "Từ cụm từ bí mật không hợp lệ: %@";
 "errors.invalid_url" = "URL không hợp lệ";
-"errors.error_occured" = "Đã xảy ra lỗi!";
+"errors.error_occurred" = "Đã xảy ra lỗi!";
 "errors.invalid_network_id" = "ID mạng không hợp lệ";
 "errors.error" = "Lỗi";
 "errors.connections.user_cancelled" = "Người dùng đã hủy";

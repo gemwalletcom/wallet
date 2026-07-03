@@ -52,7 +52,7 @@ public final class SecurityViewModel {
     }
 
     var errorTitle: String {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 
     var privacyLockTitle: String {

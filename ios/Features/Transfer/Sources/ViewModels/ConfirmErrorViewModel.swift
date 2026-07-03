@@ -24,7 +24,7 @@ extension ConfirmErrorViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
         guard let error = listError else { return .empty }
         return .error(
-            title: Localized.Errors.errorOccured,
+            title: Localized.Errors.errorOccurred,
             error: ChainCoreError.fromError(error) ?? error,
             onInfoAction: { onSelectListError(error) },
         )

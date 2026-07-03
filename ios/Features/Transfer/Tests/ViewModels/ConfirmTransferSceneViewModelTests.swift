@@ -296,7 +296,7 @@ struct ConfirmTransferSceneViewModelTests {
         let errorItem = model.itemModel(for: .error) as? ConfirmErrorViewModel
 
         if case let .error(title, _, _) = errorItem?.itemModel {
-            #expect(title == Localized.Errors.errorOccured)
+            #expect(title == Localized.Errors.errorOccurred)
         } else if case .empty = errorItem?.itemModel {
             // Can be empty when no error
         } else {

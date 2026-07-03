@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "العبارة السرية غير صالحة";
 "errors.import.invalid_secret_phrase_word" = "كلمة عبارة سرية غير صالحة: %@";
 "errors.invalid_url" = "URL غير صالح";
-"errors.error_occured" = "حدث خطأ!";
+"errors.error_occurred" = "حدث خطأ!";
 "errors.invalid_network_id" = "معرف الشبكة غير صالح";
 "errors.error" = "خطأ";
 "errors.connections.user_cancelled" = "تم إلغاء المستخدم";

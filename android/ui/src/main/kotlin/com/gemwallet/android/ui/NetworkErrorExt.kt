@@ -14,7 +14,7 @@ fun GemNetworkError.localizedDescription(): String {
         is GemNetworkError.Display -> message
         is GemNetworkError.Generic -> {
             if (message.isEmpty()) {
-                stringResource(R.string.errors_error_occured)
+                stringResource(R.string.errors_error_occurred)
             } else {
                 stringResource(R.string.errors_network_error, message)
             }

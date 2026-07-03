@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Geçersiz Gizli İfade";
 "errors.import.invalid_secret_phrase_word" = "Geçersiz Gizli İfade kelimesi: %@";
 "errors.invalid_url" = "Geçersiz URL";
-"errors.error_occured" = "Bir hata oluştu!";
+"errors.error_occurred" = "Bir hata oluştu!";
 "errors.invalid_network_id" = "Geçersiz Ağ Kimliği";
 "errors.error" = "Hata";
 "errors.connections.user_cancelled" = "Kullanıcı iptal etti";

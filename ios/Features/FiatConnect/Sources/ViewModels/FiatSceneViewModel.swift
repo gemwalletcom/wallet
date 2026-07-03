@@ -148,7 +148,7 @@ public final class FiatSceneViewModel {
     }
 
     var errorTitle: String {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 
     var emptyTitle: String {
@@ -241,7 +241,7 @@ extension FiatSceneViewModel {
             } catch {
                 urlState = .error(error)
                 isPresentingAlertMessage = AlertMessage(
-                    title: Localized.Errors.errorOccured,
+                    title: Localized.Errors.errorOccurred,
                     message: error.localizedDescription,
                 )
                 debugLog("FiatSceneViewModel get quote URL error: \(error)")

@@ -33,7 +33,7 @@ public struct EarnScene: View {
                     )
                 }
             case let .error(error):
-                ListItemErrorView(errorTitle: Localized.Errors.errorOccured, error: error)
+                ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
             }
 
             if model.showDeposit {

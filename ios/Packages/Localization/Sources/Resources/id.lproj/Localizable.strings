@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Frasa Rahasia Tidak Valid";
 "errors.import.invalid_secret_phrase_word" = "Kata Frasa Rahasia Tidak Valid: %@";
 "errors.invalid_url" = "URL Tidak Valid";
-"errors.error_occured" = "Terjadi kesalahan!";
+"errors.error_occurred" = "Terjadi kesalahan!";
 "errors.invalid_network_id" = "ID Jaringan Tidak Valid";
 "errors.error" = "Kesalahan";
 "errors.connections.user_cancelled" = "Pengguna dibatalkan";

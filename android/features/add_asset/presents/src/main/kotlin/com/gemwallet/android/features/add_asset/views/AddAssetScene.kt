@@ -124,7 +124,7 @@ fun AddAssetScene(
                     Spacer16()
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.errors_error_occured),
+                            text = stringResource(R.string.errors_error_occurred),
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(

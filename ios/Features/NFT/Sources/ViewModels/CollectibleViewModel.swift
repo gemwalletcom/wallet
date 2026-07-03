@@ -243,7 +243,7 @@ extension CollectibleViewModel {
             } catch let error as ImageGalleryServiceError {
                 switch error {
                 case .wrongURL, .invalidData, .invalidResponse, .unexpectedStatusCode, .urlSessionError:
-                    isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccured)
+                    isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
                 case .permissionDenied:
                     isPresentingAlertMessage = AlertMessage(
                         title: Localized.Permissions.accessDenied,
@@ -288,7 +288,7 @@ extension CollectibleViewModel {
                 isPresentingToast = .success(Localized.Common.refresh)
             } catch {
                 debugLog("Refresh nft asset error: \(error)")
-                isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccured)
+                isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
             }
         }
     }

@@ -29,13 +29,13 @@ fun SimulationWarning.isVisible(): Boolean = when (val warningType = warning) {
 
 @StringRes
 fun SimulationWarning.titleRes(): Int? = when (warning) {
-    SimulationWarningType.ValidationError -> if (severity != SimulationSeverity.Critical) R.string.common_warning else R.string.errors_error_occured
+    SimulationWarningType.ValidationError -> if (severity != SimulationSeverity.Critical) R.string.common_warning else R.string.errors_error_occurred
     is SimulationWarningType.NftCollectionApproval -> R.string.simulation_warning_nft_collection_approval_title
     is SimulationWarningType.TokenApproval,
     is SimulationWarningType.PermitApproval,
     is SimulationWarningType.PermitBatchApproval -> if (isVisible()) R.string.simulation_warning_unlimited_token_approval_title else null
     SimulationWarningType.ExternallyOwnedSpender -> R.string.common_warning
-    SimulationWarningType.SuspiciousSpender -> R.string.errors_error_occured
+    SimulationWarningType.SuspiciousSpender -> R.string.errors_error_occurred
 }
 
 @StringRes
@@ -45,12 +45,12 @@ fun SimulationWarning.descriptionRes(): Int? = when (warning) {
     is SimulationWarningType.PermitBatchApproval -> if (isVisible()) R.string.simulation_warning_unlimited_token_approval_description else null
     SimulationWarningType.ExternallyOwnedSpender -> R.string.simulation_warning_externally_owned_spender_description
     SimulationWarningType.SuspiciousSpender -> R.string.common_suspicious_address
-    SimulationWarningType.ValidationError -> if (severity == SimulationSeverity.Critical) R.string.errors_error_occured else null
+    SimulationWarningType.ValidationError -> if (severity == SimulationSeverity.Critical) R.string.errors_error_occurred else null
     is SimulationWarningType.NftCollectionApproval -> null
 }
 
 @Composable
 fun SimulationWarning.descriptionText(): String? = when (warning) {
-    SimulationWarningType.ValidationError -> if (severity != SimulationSeverity.Critical) message.orEmpty() else message ?: stringResource(R.string.errors_error_occured)
+    SimulationWarningType.ValidationError -> if (severity != SimulationSeverity.Critical) message.orEmpty() else message ?: stringResource(R.string.errors_error_occurred)
     else -> message ?: descriptionRes()?.let { stringResource(it) }
 }

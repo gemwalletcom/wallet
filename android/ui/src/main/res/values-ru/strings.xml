@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Неверная секретная фраза</string>
   <string name="errors_import_invalid_secret_phrase_word">Неверное слово секретной фразы: %1$s</string>
   <string name="errors_invalid_url">Неверная ссылка</string>
-  <string name="errors_error_occured">Произошла ошибка!</string>
+  <string name="errors_error_occurred">Произошла ошибка!</string>
   <string name="errors_invalid_network_id">Неверный идентификатор сети</string>
   <string name="errors_error">Ошибка</string>
   <string name="errors_connections_user_cancelled">Отменено пользователем</string>

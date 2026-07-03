@@ -35,7 +35,7 @@ internal fun LazyListScope.referralError(rewards: Rewards) {
             verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
         ) {
             PropertyTitleText(
-                text = R.string.errors_error_occured,
+                text = R.string.errors_error_occurred,
                 trailing = {
                     Icon(
                         modifier = Modifier.size(tinyIconSize),

@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Ungültige geheime Phrase";
 "errors.import.invalid_secret_phrase_word" = "Ungültiges geheimes Phrasenwort: %@";
 "errors.invalid_url" = "Ungültige URL";
-"errors.error_occured" = "Es ist ein Fehler aufgetreten!";
+"errors.error_occurred" = "Es ist ein Fehler aufgetreten!";
 "errors.invalid_network_id" = "Ungültige Netzwerk-ID";
 "errors.error" = "Fehler";
 "errors.connections.user_cancelled" = "Benutzer hat abgebrochen";

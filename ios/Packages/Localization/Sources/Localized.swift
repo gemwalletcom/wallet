@@ -390,7 +390,7 @@ public enum Localized {
     /// Error
     public static let error = Localized.tr("Localizable", "errors.error", fallback: "Error")
     /// An error occurred!
-    public static let errorOccured = Localized.tr("Localizable", "errors.error_occured", fallback: "An error occurred!")
+    public static let errorOccurred = Localized.tr("Localizable", "errors.error_occurred", fallback: "An error occurred!")
     /// Invalid address or name
     public static let invalidAddressName = Localized.tr("Localizable", "errors.invalid_address_name", fallback: "Invalid address or name")
     /// Invalid amount

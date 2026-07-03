@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "助记词无效";
 "errors.import.invalid_secret_phrase_word" = "助记词无效：%@";
 "errors.invalid_url" = "无效的网址";
-"errors.error_occured" = "出错了！";
+"errors.error_occurred" = "出错了！";
 "errors.invalid_network_id" = "网络 ID 无效";
 "errors.error" = "错误";
 "errors.connections.user_cancelled" = "用户已取消";
