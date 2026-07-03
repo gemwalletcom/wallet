@@ -53,10 +53,11 @@ impl WalletConnectSimulationClient {
         let validation_warnings = simulation::send_transaction_validation_warnings(&transaction_type, &data);
 
         let simulation = match &transaction_type {
-            WcWalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await?,
-            WcWalletConnectTransactionType::Solana { .. } => self.simulate_solana_transaction(&transaction_type, &data).await?,
-            _ => SimulationResult::default(),
-        };
+            WcWalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
+            WcWalletConnectTransactionType::Solana { .. } => self.simulate_solana_transaction(&transaction_type, &data).await,
+            _ => Ok(SimulationResult::default()),
+        }
+        .unwrap_or_default();
 
         Ok(simulation.prepend_warnings(validation_warnings))
     }

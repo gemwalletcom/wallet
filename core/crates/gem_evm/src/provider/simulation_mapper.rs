@@ -19,11 +19,13 @@ pub fn map_simulation_result(chain: Chain, signer: &str, trace: &TraceCallResult
     }
 }
 
-pub fn map_balance_change_asset(mut change: SimulationBalanceChange, asset: Asset) -> SimulationBalanceChange {
-    change.name = Some(asset.name);
-    change.symbol = Some(asset.symbol);
-    change.decimals = asset.decimals;
-    change
+pub fn map_balance_change_asset(change: SimulationBalanceChange, asset: Asset) -> SimulationBalanceChange {
+    SimulationBalanceChange {
+        name: Some(asset.name),
+        symbol: Some(asset.symbol),
+        decimals: asset.decimals,
+        ..change
+    }
 }
 
 fn map_balance_changes(chain: Chain, signer: &str, trace: &TraceCallResult) -> Vec<SimulationBalanceChange> {

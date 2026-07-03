@@ -16,14 +16,18 @@ use crate::rpc::client::EthereumClient;
 impl<C: Client + Clone> ChainSimulation for EthereumClient<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let transaction: TransactionObject = serde_json::from_str(&input.encoded_transaction)?;
-        let signer = transaction.from.as_deref().unwrap_or_default();
+        let signer = transaction.from.as_deref().filter(|from| !from.is_empty()).ok_or("missing sender address")?;
 
         let trace = self.trace_call(&transaction).await?;
-        let mut result = map_simulation_result(self.get_chain(), signer, &trace);
+        let SimulationResult {
+            warnings,
+            balance_changes,
+            payload,
+            header,
+        } = map_simulation_result(self.get_chain(), signer, &trace);
 
-        let changes = std::mem::take(&mut result.balance_changes);
-        let assets = self.get_balance_change_assets(&changes).await;
-        result.balance_changes = changes
+        let assets = self.get_balance_change_assets(&balance_changes).await;
+        let balance_changes = balance_changes
             .into_iter()
             .zip(assets)
             .map(|(change, asset)| match asset {
@@ -32,7 +36,12 @@ impl<C: Client + Clone> ChainSimulation for EthereumClient<C> {
             })
             .collect();
 
-        Ok(result)
+        Ok(SimulationResult {
+            warnings,
+            balance_changes,
+            payload,
+            header,
+        })
     }
 }
 
