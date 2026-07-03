@@ -32,17 +32,11 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
 
 @Composable
 internal fun WalletScene(
     wallet: WalletDetailsAggregate?,
-    onWalletName: (String) -> Unit,
-    onSelectImage: () -> Unit,
-    onPhraseShow: (WalletId, WalletType) -> Unit,
-    onDelete: () -> Unit,
-    onCancel: () -> Unit,
+    onAction: (WalletAction) -> Unit,
 ) {
     wallet ?: return
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -54,14 +48,14 @@ internal fun WalletScene(
         title = stringResource(id = R.string.common_wallet),
         actions = {
             TextButton(
-                onClick = onCancel,
+                onClick = { onAction(WalletAction.Cancel) },
                 colors = ButtonDefaults.textButtonColors()
                     .copy(contentColor = MaterialTheme.colorScheme.onBackground)
             ) {
                 Text(stringResource(R.string.common_done).uppercase())
             }
         },
-        onClose = onCancel
+        onClose = { onAction(WalletAction.Cancel) }
     ) {
         Column(
             modifier = Modifier
@@ -69,13 +63,13 @@ internal fun WalletScene(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            WalletAvatarHeader(wallet = wallet, onClick = onSelectImage)
+            WalletAvatarHeader(wallet = wallet, onClick = { onAction(WalletAction.SelectImage) })
             GemTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = stringResource(id = R.string.wallet_name),
                 value = walletName,
                 onValueChange = {
-                    onWalletName(it)
+                    onAction(WalletAction.SetName(it))
                     walletName = it
                 },
                 singleLine = true,
@@ -83,7 +77,7 @@ internal fun WalletScene(
             ShowSecretDataProperty(
                 walletId = wallet.id,
                 walletType = wallet.type,
-                onClick = onPhraseShow,
+                onClick = { walletId, walletType -> onAction(WalletAction.ShowPhrase(walletId, walletType)) },
             )
             WalletAddress(wallet.addresses)
 
@@ -107,7 +101,7 @@ internal fun WalletScene(
             walletName = walletName,
             onConfirm = {
                 showDeleteDialog = false
-                onDelete()
+                onAction(WalletAction.Delete)
             }
         ) { showDeleteDialog = false }
     }

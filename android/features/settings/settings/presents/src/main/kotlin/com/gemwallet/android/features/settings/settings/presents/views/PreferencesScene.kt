@@ -43,10 +43,7 @@ import java.util.Locale
 
 @Composable
 fun PreferencesScene(
-    onCurrencies: () -> Unit,
-    onNetworks: () -> Unit,
-    onContacts: () -> Unit,
-    onCancel: () -> Unit,
+    onAction: (PreferencesAction) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,7 +57,7 @@ fun PreferencesScene(
 
     Scene(
         title = stringResource(id = (R.string.settings_preferences_title)),
-        onClose = onCancel,
+        onClose = { onAction(PreferencesAction.Cancel) },
     ) {
         LazyColumn {
             item {
@@ -74,7 +71,7 @@ fun PreferencesScene(
                             badge = { DataBadgeChevron() },
                         )
                     },
-                    onClick = onCurrencies,
+                    onClick = { onAction(PreferencesAction.Currencies) },
                 )
             }
 
@@ -108,7 +105,7 @@ fun PreferencesScene(
                     icon = R.drawable.settings_networks,
                     listPosition = ListPosition.Middle
                 ) {
-                    onNetworks()
+                    onAction(PreferencesAction.Networks)
                 }
             }
 
@@ -117,7 +114,7 @@ fun PreferencesScene(
                     title = stringResource(id = R.string.contacts_title),
                     icon = R.drawable.settings_contacts,
                     listPosition = ListPosition.Last,
-                    onClick = onContacts,
+                    onClick = { onAction(PreferencesAction.Contacts) },
                 )
             }
 

@@ -39,11 +39,15 @@ fun StakeScreen(
             actions = actions,
             isStakeEnabled = isStakeEnabled,
             stakeInfoUrl = stakeInfoUrl,
-            onRefresh = viewModel::onRefresh,
             amountAction = amountAction,
-            onRewards = { viewModel.onRewards(amountAction, onConfirm) },
-            onDelegation = { delegation -> viewModel.onDelegation(delegation, onDelegation, onConfirm) },
-            onCancel = onCancel
+            onAction = { action ->
+                when (action) {
+                    StakeSceneAction.Refresh -> viewModel.onRefresh()
+                    StakeSceneAction.ClaimRewards -> viewModel.onRewards(amountAction, onConfirm)
+                    is StakeSceneAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, onConfirm)
+                    StakeSceneAction.Cancel -> onCancel()
+                }
+            },
         )
     }
 }

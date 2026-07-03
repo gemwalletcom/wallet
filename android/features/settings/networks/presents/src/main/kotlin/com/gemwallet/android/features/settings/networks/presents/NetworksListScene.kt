@@ -28,20 +28,18 @@ internal fun NetworksListScene(
     chains: List<Chain>,
     chainFilter: TextFieldState,
     listState: LazyListState = rememberLazyListState(),
-    onStatus: () -> Unit,
-    onSelect: (Chain) -> Unit,
-    onCancel: () -> Unit,
+    onAction: (NetworksListAction) -> Unit,
 ) {
     SelectChain(
         chains = chains,
         chainFilter = chainFilter,
         listState = listState,
-        onSelect = onSelect,
-        onCancel = onCancel,
+        onSelect = { onAction(NetworksListAction.Select(it)) },
+        onCancel = { onAction(NetworksListAction.Cancel) },
         trailing = { DataBadgeChevron() },
         listHeader = {
             item {
-                StatusItem(onClick = onStatus)
+                StatusItem(onClick = { onAction(NetworksListAction.ShowStatus) })
             }
         },
     )

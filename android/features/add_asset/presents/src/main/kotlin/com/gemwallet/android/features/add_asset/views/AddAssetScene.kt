@@ -54,17 +54,15 @@ import com.wallet.core.primitives.BlockExplorerLink
 import uniffi.gemstone.DocsUrl
 
 @Composable
-fun AddAssetScene(
+internal fun AddAssetScene(
     searchState: TokenSearchState,
     addressState: MutableState<String>,
     network: Asset,
     token: Asset?,
     explorerLink: BlockExplorerLink?,
     isLoading: Boolean,
-    onScan: () -> Unit,
-    onAddAsset: () -> Unit,
-    onChainSelect: (() -> Unit)?,
-    onCancel: () -> Unit,
+    canSelectChain: Boolean,
+    onAction: (AddAssetAction) -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
@@ -81,19 +79,21 @@ fun AddAssetScene(
                 title = stringResource(id = R.string.wallet_import_action),
                 enabled = searchState is TokenSearchState.Idle && token != null,
                 loading = isLoading,
-                onClick = onAddAsset,
+                onClick = { onAction(AddAssetAction.Add) },
             )
         },
-        onClose = onCancel,
+        onClose = { onAction(AddAssetAction.Cancel) },
     ) {
         SubheaderItem(R.string.transfer_network)
         ChainItem(
             modifier = Modifier.height(64.dp),
             title = network.name,
             icon = network.chain,
-            onClick = onChainSelect,
+            onClick = if (canSelectChain) {
+                { onAction(AddAssetAction.SelectChain) }
+            } else null,
             listPosition = ListPosition.Single,
-            trailing = if (onChainSelect != null) {
+            trailing = if (canSelectChain) {
                 { DataBadgeChevron() }
             } else null
         )
@@ -106,7 +106,7 @@ fun AddAssetScene(
                 onValueChange = { input, _ ->
                     addressState.value = input
                 },
-                onQrScanner = onScan,
+                onQrScanner = { onAction(AddAssetAction.Scan) },
             )
         }
         if (searchState is TokenSearchState.Loading) {

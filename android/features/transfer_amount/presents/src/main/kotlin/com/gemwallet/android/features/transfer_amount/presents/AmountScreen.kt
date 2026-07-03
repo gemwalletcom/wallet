@@ -74,11 +74,15 @@ fun AmountScreen(
                 equivalent = equivalent,
                 availableBalance = available,
                 reserveForFee = reserve,
-                onNext = { viewModel.onNext(onConfirm) },
-                onInputAmount = viewModel::updateAmount,
-                onInputTypeClick = viewModel::switchInputType,
-                onMaxAmount = viewModel::onMaxAmount,
-                onCancel = onCancel,
+                onAction = { action ->
+                    when (action) {
+                        AmountAction.Next -> viewModel.onNext(onConfirm)
+                        is AmountAction.SetAmount -> viewModel.updateAmount(action.amount)
+                        AmountAction.SwitchInputType -> viewModel.switchInputType()
+                        AmountAction.SetMaxAmount -> viewModel.onMaxAmount()
+                        AmountAction.Cancel -> onCancel()
+                    }
+                },
                 additionParams = {
                     ProviderExtras(
                         provider = provider,

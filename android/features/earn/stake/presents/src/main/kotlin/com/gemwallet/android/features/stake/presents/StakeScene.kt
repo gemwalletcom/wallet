@@ -54,7 +54,7 @@ import com.wallet.core.primitives.Delegation
 import uniffi.gemstone.Config
 
 @Composable
-fun StakeScene(
+internal fun StakeScene(
     inSync: Boolean,
     assetInfo: AssetInfo,
     actions: List<StakeAction>,
@@ -62,10 +62,7 @@ fun StakeScene(
     delegations: List<Delegation>,
     stakeInfoUrl: String?,
     amountAction: AmountTransactionAction,
-    onRefresh: () -> Unit,
-    onRewards: () -> Unit,
-    onDelegation: (Delegation) -> Unit,
-    onCancel: () -> Unit,
+    onAction: (StakeSceneAction) -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     val context = LocalContext.current
@@ -73,7 +70,7 @@ fun StakeScene(
 
     Scene(
         title = stringResource(id = R.string.transfer_stake_title),
-        onClose = onCancel,
+        onClose = { onAction(StakeSceneAction.Cancel) },
         actions = {
             stakeInfoUrl?.let { url ->
                 IconButton(onClick = { uriHandler.open(context, url) }) {
@@ -85,7 +82,7 @@ fun StakeScene(
         PullToRefreshBox(
             modifier = Modifier,
             isRefreshing = inSync,
-            onRefresh = onRefresh,
+            onRefresh = { onAction(StakeSceneAction.Refresh) },
             state = pullToRefreshState,
             indicator = {
                 Indicator(
@@ -112,7 +109,7 @@ fun StakeScene(
                     isStakeEnabled = isStakeEnabled,
                     assetId = assetInfo.id(),
                     amountAction = amountAction,
-                    onRewards = onRewards,
+                    onRewards = { onAction(StakeSceneAction.ClaimRewards) },
                 )
 
                 energyItem(assetInfo.balance.metadata)
@@ -129,7 +126,7 @@ fun StakeScene(
                             assetInfo = assetInfo,
                             delegation = item,
                             listPosition = ListPosition.getPosition(index, delegations.size),
-                            onClick = { onDelegation(item) }
+                            onClick = { onAction(StakeSceneAction.OpenDelegation(item)) }
                         )
                     }
                 }

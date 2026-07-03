@@ -42,16 +42,11 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Node
 
 @Composable
-fun NetworkScene(
+internal fun NetworkScene(
     state: NetworksUIState,
-    onRefresh: () -> Unit,
-    onSelectNode: (Node) -> Unit,
-    onDeleteNode: (Node) -> Unit,
-    onSelectBlockExplorer: (String) -> Unit,
-    onCancel: () -> Unit,
+    onAction: (NetworkAction) -> Unit,
 ) {
     val chain = state.chain ?: return
     var isShowAddSource by remember { mutableStateOf(false) }
@@ -67,12 +62,12 @@ fun NetworkScene(
                 }
             }
         },
-        onClose = onCancel,
+        onClose = { onAction(NetworkAction.Cancel) },
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
             isRefreshing = false,
-            onRefresh = onRefresh,
+            onRefresh = { onAction(NetworkAction.Refresh) },
             state = pullToRefreshState,
             enabled = true,
             indicator = {
@@ -103,7 +98,7 @@ fun NetworkScene(
                                 revealedNodeId = null
                             }
                         },
-                        onSelect = onSelectNode,
+                        onSelect = { onAction(NetworkAction.SelectNode(it)) },
                         onDelete = if (node.canDelete) {
                             {
                                 revealedNodeId = null
@@ -119,7 +114,7 @@ fun NetworkScene(
                     SubheaderItem(R.string.settings_networks_explorer)
                 }
                 itemsPositioned(state.blockExplorers) { position, item ->
-                    BlockExplorerItem(state.currentExplorer, item, position, onSelectBlockExplorer)
+                    BlockExplorerItem(state.currentExplorer, item, position) { onAction(NetworkAction.SelectBlockExplorer(it)) }
                 }
             }
         }
@@ -135,7 +130,7 @@ fun NetworkScene(
             chain = chain,
             onCancel = {
                 isShowAddSource = false
-                onRefresh()
+                onAction(NetworkAction.Refresh)
             },
         )
     }
@@ -144,7 +139,7 @@ fun NetworkScene(
         ConfirmNodeDeleteDialog(
             nodeName = pendingNode.host,
             onConfirm = {
-                onDeleteNode(pendingNode.node)
+                onAction(NetworkAction.DeleteNode(pendingNode.node))
                 nodeDelete = null
             },
             onDismiss = { nodeDelete = null },

@@ -19,6 +19,7 @@ import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertT
 import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertsNavScreen
 import com.gemwallet.android.features.settings.security.presents.SecurityScene
 import com.gemwallet.android.features.settings.settings.presents.views.NotificationsScene
+import com.gemwallet.android.features.settings.settings.presents.views.PreferencesAction
 import com.gemwallet.android.features.settings.settings.presents.views.PreferencesScene
 import com.gemwallet.android.features.settings.settings.presents.views.SupportChatNavScreen
 import com.gemwallet.android.ui.navigation.assetIdArgument
@@ -143,10 +144,14 @@ fun EntryProviderScope<NavKey>.settingsScreen(
 
     entry<PreferencesRoute> {
         PreferencesScene(
-            onNetworks = { onAction(SettingsAction.Networks) },
-            onCurrencies = { onAction(SettingsAction.Currencies) },
-            onContacts = { onAction(SettingsAction.Contacts) },
-            onCancel = onCancel,
+            onAction = { action ->
+                when (action) {
+                    PreferencesAction.Currencies -> onAction(SettingsAction.Currencies)
+                    PreferencesAction.Networks -> onAction(SettingsAction.Networks)
+                    PreferencesAction.Contacts -> onAction(SettingsAction.Contacts)
+                    PreferencesAction.Cancel -> onCancel()
+                }
+            },
         )
     }
 

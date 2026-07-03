@@ -48,7 +48,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 
 @Composable
-fun AmountScene(
+internal fun AmountScene(
     title: String,
     amount: String,
     amountInputType: AmountInputType,
@@ -61,11 +61,7 @@ fun AmountScene(
     equivalent: String,
     availableBalance: String,
     reserveForFee: String? = null,
-    onNext: () -> Unit,
-    onInputAmount: (String) -> Unit,
-    onInputTypeClick: () -> Unit,
-    onMaxAmount: () -> Unit,
-    onCancel: () -> Unit,
+    onAction: (AmountAction) -> Unit,
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -77,18 +73,18 @@ fun AmountScene(
 
     Scene(
         title = title,
-        onClose = onCancel,
+        onClose = { onAction(AmountAction.Cancel) },
         mainAction = {
             if (!isKeyBoardOpen || !isSmallScreen) {
                 MainActionButton(
                     title = stringResource(id = R.string.common_continue),
-                    onClick = onNext,
+                    onClick = { onAction(AmountAction.Next) },
                 )
             }
         },
         actions = {
             TextButton(
-                onClick = onNext,
+                onClick = { onAction(AmountAction.Next) },
                 colors = ButtonDefaults.textButtonColors().copy(contentColor = MaterialTheme.colorScheme.primary),
             ) { Text(stringResource(R.string.common_continue).uppercase()) }
         },
@@ -102,12 +98,14 @@ fun AmountScene(
                     assetSymbol = asset.symbol,
                     currency = currency,
                     inputType = amountInputType,
-                    onInputTypeClick = if (canSwitchInputType) onInputTypeClick else null,
+                    onInputTypeClick = if (canSwitchInputType) {
+                        { onAction(AmountAction.SwitchInputType) }
+                    } else null,
                     equivalent = equivalent,
                     readOnly = readOnly,
                     error = amountErrorString(error = error),
-                    onValueChange = onInputAmount,
-                    onNext = onNext,
+                    onValueChange = { onAction(AmountAction.SetAmount(it)) },
+                    onNext = { onAction(AmountAction.Next) },
                 )
             }
             if (showsAssetBalance) {
@@ -115,7 +113,7 @@ fun AmountScene(
                     PropertyAssetInfoItem(
                         asset = asset,
                         availableAmount = availableBalance,
-                        onMaxAmount = onMaxAmount,
+                        onMaxAmount = { onAction(AmountAction.SetMaxAmount) },
                     )
                 }
             }
