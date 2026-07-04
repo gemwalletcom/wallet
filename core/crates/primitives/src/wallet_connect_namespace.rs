@@ -132,6 +132,7 @@ mod tests {
     fn test_get_chain() {
         assert_eq!(WalletConnectCAIP2::get_chain("eip155".to_string(), "1".to_string()), Some(Chain::Ethereum));
         assert_eq!(WalletConnectCAIP2::get_chain("eip155".to_string(), "56".to_string()), Some(Chain::SmartChain));
+        assert_eq!(WalletConnectCAIP2::get_chain("eip155".to_string(), "4663".to_string()), Some(Chain::Robinhood));
         assert_eq!(WalletConnectCAIP2::get_chain("solana".to_string(), "ignored".to_string()), Some(Chain::Solana));
         assert_eq!(WalletConnectCAIP2::get_chain("sui".to_string(), "mainnet".to_string()), Some(Chain::Sui));
         assert_eq!(WalletConnectCAIP2::get_chain("ton".to_string(), "-239".to_string()), Some(Chain::Ton));
@@ -142,6 +143,7 @@ mod tests {
     #[test]
     fn test_resolve_chain() {
         assert_eq!(WalletConnectCAIP2::resolve_chain(Some("eip155:1".to_string())), Ok(Chain::Ethereum));
+        assert_eq!(WalletConnectCAIP2::resolve_chain(Some("eip155:4663".to_string())), Ok(Chain::Robinhood));
         assert_eq!(
             WalletConnectCAIP2::resolve_chain(Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string())),
             Ok(Chain::Solana)

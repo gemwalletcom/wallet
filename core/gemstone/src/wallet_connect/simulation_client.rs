@@ -72,7 +72,7 @@ impl WalletConnectSimulationClient {
     }
 
     async fn simulate_ethereum_transaction(&self, chain: Chain, data: &str) -> Result<SimulationResult, GemstoneError> {
-        let transaction = simulation::decode_ethereum_transaction(data).ok_or("Failed to decode transaction")?;
+        let transaction = simulation::decode_ethereum_transaction(data)?;
         let calldata = simulation::decode_ethereum_calldata(&transaction);
         let client = self.ethereum_client(chain).ok_or("No RPC client available")?;
 

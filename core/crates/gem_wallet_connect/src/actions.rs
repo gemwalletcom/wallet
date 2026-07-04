@@ -58,7 +58,7 @@ pub enum WalletConnectChainOperation {
 
 #[derive(Debug, Clone)]
 pub struct WCEthereumTransactionData {
-    pub chain_id: Option<String>,
+    pub chain_id: Option<u64>,
     pub from: String,
     pub to: String,
     pub value: Option<String>,

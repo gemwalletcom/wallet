@@ -13,6 +13,7 @@ public struct WalletConnectorSignableMock: WalletConnectorSignable {
 
     public func addConnection(connection _: WalletConnection) throws {}
     public func updateSessions(sessions _: [WalletConnectionSession]) throws {}
+    public func sessionReject(error _: any Error) async {}
     public func sessionReject(id _: String, error _: any Error) async throws {}
     public func getCurrentWallet() throws -> Wallet {
         throw AnyError("not implemented")

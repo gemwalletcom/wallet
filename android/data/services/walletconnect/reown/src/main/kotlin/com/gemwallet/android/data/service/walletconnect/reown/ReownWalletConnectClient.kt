@@ -2,6 +2,7 @@ package com.gemwallet.android.data.service.walletconnect.reown
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthObject
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
@@ -246,7 +247,9 @@ class ReownWalletConnectClient @Inject constructor(
     }
 
     override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) = Unit
-    override fun onError(error: Wallet.Model.Error) = Unit
+    override fun onError(error: Wallet.Model.Error) {
+        Log.e(TAG, "Reown wallet error", error.throwable)
+    }
     override fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal) = Unit
     override fun onRequestExpired(request: Wallet.Model.ExpiredRequest) = Unit
 
@@ -263,6 +266,7 @@ class ReownWalletConnectClient @Inject constructor(
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext) {
+        Log.d(TAG, "Session request received method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
         walletEvents.tryEmit(WalletConnectEvent.SessionRequest(sessionRequest.toWalletConnectSessionRequest(), verifyContext.toWalletConnectVerifyContext()))
     }
 
@@ -281,6 +285,7 @@ class ReownWalletConnectClient @Inject constructor(
     private data class ReownAuthObject(val value: Wallet.Model.Cacao) : WalletConnectAuthObject
 
     private companion object {
+        const val TAG = "WalletConnect"
         const val PROJECT_ID = "3bc07cd7179d11ea65335fb9377702b6"
     }
 }

@@ -10,6 +10,7 @@ public protocol WalletConnectorSignable: Sendable {
 
     func addConnection(connection: WalletConnection) throws
     func updateSessions(sessions: [WalletConnectionSession]) throws
+    func sessionReject(error: any Error) async
     func sessionReject(id: String, error: any Error) async throws
     func getCurrentWallet() throws -> Primitives.Wallet
     func getWallet(id: WalletId) throws -> Primitives.Wallet

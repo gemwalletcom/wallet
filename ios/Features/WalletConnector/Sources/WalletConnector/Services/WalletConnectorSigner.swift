@@ -79,6 +79,10 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         try await walletConnectorInteractor.sessionApproval(payload: payload)
     }
 
+    public func sessionReject(error: any Error) async {
+        await walletConnectorInteractor.sessionReject(error: error)
+    }
+
     public func signMessage(sessionId: String, chain: Chain, message: SignMessage, simulation: SimulationResult) async throws -> String {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)

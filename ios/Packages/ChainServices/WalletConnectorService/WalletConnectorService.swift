@@ -212,9 +212,14 @@ extension WalletConnectorService {
 
             debugLog("handle method result: \(request.method) \(response)")
             try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: response)
-        } catch {
-            debugLog("handle method error: \(error)")
-            try await rejectRequest(request)
+        } catch let requestError {
+            debugLog("handle method error: \(requestError)")
+            do {
+                try await rejectRequest(request)
+            } catch {
+                debugLog("Error rejecting request: \(error)")
+            }
+            await signer.sessionReject(error: requestError)
         }
     }
 

@@ -41,10 +41,11 @@ pub(super) fn send_transaction_validation_warnings(transaction_type: &WcWalletCo
         .collect()
 }
 
-pub(super) fn decode_ethereum_transaction(data: &str) -> Option<WcEthereumTransactionData> {
-    match WalletConnectRequestHandler::decode_send_transaction(WcWalletConnectTransactionType::Ethereum, data.to_string()).ok()? {
-        WcWalletConnectTransaction::Ethereum { data } => Some(data),
-        _ => None,
+pub(super) fn decode_ethereum_transaction(data: &str) -> Result<WcEthereumTransactionData, String> {
+    let transaction = WalletConnectRequestHandler::decode_send_transaction(WcWalletConnectTransactionType::Ethereum, data.to_string())?;
+    match transaction {
+        WcWalletConnectTransaction::Ethereum { data } => Ok(data),
+        _ => Err("Invalid Ethereum transaction".to_string()),
     }
 }
 
@@ -63,8 +64,6 @@ pub(super) fn decode_encoded_transaction(transaction_type: &WcWalletConnectTrans
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::TransferDataOutputType;
-
     #[test]
     fn decode_ethereum_transaction_with_calldata_decodes_bytes() {
         let data = serde_json::json!({
@@ -77,5 +76,19 @@ mod tests {
         let transaction = decode_ethereum_transaction(&data).unwrap();
 
         assert_eq!(decode_ethereum_calldata(&transaction), vec![0xa9, 0x05, 0x9c, 0xbb]);
+    }
+
+    #[test]
+    fn decode_ethereum_transaction_without_calldata_decodes_empty_bytes() {
+        let data = serde_json::json!({
+            "from": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+            "to": "0x1111111111111111111111111111111111111111",
+            "value": "0x0",
+        })
+        .to_string();
+
+        let transaction = decode_ethereum_transaction(&data).unwrap();
+
+        assert!(decode_ethereum_calldata(&transaction).is_empty());
     }
 }
