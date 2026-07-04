@@ -38,7 +38,7 @@ public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     }
 
     public var networkName: String {
-        asset.chain.asset.name
+        asset.chain.networkName
     }
 
     public var networkFullName: String {

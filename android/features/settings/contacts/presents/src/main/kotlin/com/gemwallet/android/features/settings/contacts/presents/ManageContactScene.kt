@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.AddressFormatter
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
@@ -115,7 +115,7 @@ private fun ContactAddressItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
         leading = { IconWithBadge(icon = address.chain.getIconUrl()) },
-        title = { ListItemTitleText(text = address.chain.asset().name) },
+        title = { ListItemTitleText(text = address.chain.networkName()) },
         subtitle = {
             Text(
                 text = AddressFormatter(address = address.address, chain = address.chain).value(),

@@ -57,7 +57,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var networkText: String {
-        payload.chain.asset.name
+        payload.chain.networkName
     }
 
     public var title: String {

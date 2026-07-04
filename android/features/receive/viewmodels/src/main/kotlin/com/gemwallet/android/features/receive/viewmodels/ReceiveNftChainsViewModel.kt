@@ -5,7 +5,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.filter
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isNftSupported
 import com.wallet.core.primitives.Chain
@@ -32,8 +32,7 @@ class ReceiveNftChainsViewModel @Inject constructor(
 
     val chains = snapshotFlow { chainFilter.text.toString() }
         .map { query ->
-            if (query.isBlank()) allChains
-            else allChains.filter { it.asset().name.contains(query, ignoreCase = true) }
+            allChains.filter(query)
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, allChains)

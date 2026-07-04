@@ -35,7 +35,7 @@ struct ImportWalletTypeScene: View {
                     ForEach(model.items(for: searchQuery)) { chain in
                         NavigationLink(value: ImportWalletType.chain(chain)) {
                             ListItemView(
-                                title: Asset(chain).name,
+                                title: chain.networkName,
                                 imageStyle: .asset(assetImage: AssetImage.image(ChainImage(chain: chain).placeholder)),
                             )
                         }

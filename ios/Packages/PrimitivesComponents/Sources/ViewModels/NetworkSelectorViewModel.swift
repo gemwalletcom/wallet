@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -62,8 +63,6 @@ extension NetworkSelectorViewModel: ItemFilterable {
     }
 
     public func filter(_ chain: Chain, query: String) -> Bool {
-        chain.asset.name.localizedCaseInsensitiveContains(query) ||
-            chain.asset.symbol.localizedCaseInsensitiveContains(query) ||
-            chain.rawValue.localizedCaseInsensitiveContains(query)
+        chain.matches(query: query)
     }
 }

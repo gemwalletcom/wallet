@@ -76,7 +76,7 @@ public final class CollectibleViewModel {
     }
 
     var networkField: ListItemField {
-        ListItemField(title: Localized.Transfer.network, value: assetData.asset.chain.asset.name)
+        ListItemField(title: Localized.Transfer.network, value: assetData.asset.chain.networkName)
     }
 
     var contractField: ListItemField? {

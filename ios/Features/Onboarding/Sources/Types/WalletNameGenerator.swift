@@ -24,7 +24,7 @@ struct WalletNameGenerator {
     private func name(type: ImportWalletType, index: Int) -> String {
         switch type {
         case .multicoin: Localized.Wallet.defaultName(index)
-        case let .chain(chain): Localized.Wallet.defaultNameChain(Asset(chain).name, index)
+        case let .chain(chain): Localized.Wallet.defaultNameChain(chain.networkName, index)
         }
     }
 }

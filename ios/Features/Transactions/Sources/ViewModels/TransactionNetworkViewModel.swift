@@ -20,7 +20,7 @@ extension TransactionNetworkViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
         .network(
             title: Localized.Transfer.network,
-            subtitle: chain.asset.name,
+            subtitle: chain.networkName,
             image: AssetIdViewModel(assetId: chain.assetId).networkAssetImage,
         )
     }

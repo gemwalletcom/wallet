@@ -21,14 +21,94 @@ pub struct Asset {
     pub asset_type: AssetType,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct ChainAsset {
+    pub asset: Asset,
+    pub network_name: String,
+}
+
+impl ChainAsset {
+    pub fn from_chain(chain: Chain) -> Self {
+        match chain {
+            Chain::Ethereum => ChainAsset::new(chain, "Ethereum", "ETH", 18),
+            Chain::Bitcoin => ChainAsset::new(chain, "Bitcoin", "BTC", 8),
+            Chain::BitcoinCash => ChainAsset::new(chain, "Bitcoin Cash", "BCH", 8),
+            Chain::Litecoin => ChainAsset::new(chain, "Litecoin", "LTC", 8),
+            Chain::SmartChain => ChainAsset::new(chain, "BNB Chain", "BNB", 18),
+            Chain::Polygon => ChainAsset::new(chain, "Polygon", "POL", 18),
+            Chain::AvalancheC => ChainAsset::new(chain, "Avalanche", "AVAX", 18),
+            Chain::Solana => ChainAsset::new(chain, "Solana", "SOL", 9),
+            Chain::Thorchain => ChainAsset::new(chain, "Thorchain", "RUNE", 8),
+            Chain::Mayachain => ChainAsset::new(chain, "Maya", "CACAO", 10),
+            Chain::Cosmos => ChainAsset::new(chain, "Cosmos", "ATOM", 6),
+            Chain::Osmosis => ChainAsset::new(chain, "Osmosis", "OSMO", 6),
+            Chain::Celestia => ChainAsset::new(chain, "Celestia", "TIA", 6),
+            Chain::Arbitrum => ChainAsset::with_network_name(chain, "Arbitrum", "Arbitrum ETH", "ETH", 18),
+            Chain::Ton => ChainAsset::with_network_name(chain, "TON", "Gram", "GRAM", 9),
+            Chain::Tron => ChainAsset::new(chain, "TRON", "TRX", 6),
+            Chain::Doge => ChainAsset::new(chain, "Dogecoin", "DOGE", 8),
+            Chain::Zcash => ChainAsset::new(chain, "Zcash", "ZEC", 8),
+            Chain::Optimism => ChainAsset::with_network_name(chain, "Optimism", "Optimism ETH", "ETH", 18),
+            Chain::Aptos => ChainAsset::new(chain, "Aptos", "APT", 8),
+            Chain::Base => ChainAsset::with_network_name(chain, "Base", "Base ETH", "ETH", 18),
+            Chain::Sui => ChainAsset::new(chain, "Sui", "SUI", 9),
+            Chain::Xrp => ChainAsset::new(chain, "XRP", "XRP", 6),
+            Chain::OpBNB => ChainAsset::new(chain, "opBNB", "BNB", 18),
+            Chain::Fantom => ChainAsset::new(chain, "Fantom", "FTM", 18),
+            Chain::Gnosis => ChainAsset::new(chain, "Gnosis Chain", "xDai", 18),
+            Chain::Injective => ChainAsset::new(chain, "Injective", "INJ", 18),
+            Chain::Sei => ChainAsset::new(chain, "Sei", "SEI", 6),
+            Chain::SeiEvm => ChainAsset::new(chain, "Sei EVM", "SEI", 18),
+            Chain::Manta => ChainAsset::with_network_name(chain, "Manta", "Manta ETH", "ETH", 18),
+            Chain::Blast => ChainAsset::with_network_name(chain, "Blast", "Blast ETH", "ETH", 18),
+            Chain::Noble => ChainAsset::new(chain, "Noble", "USDC", 6),
+            Chain::ZkSync => ChainAsset::with_network_name(chain, "zkSync", "zkSync ETH", "ETH", 18),
+            Chain::Linea => ChainAsset::with_network_name(chain, "Linea", "Linea ETH", "ETH", 18),
+            Chain::Mantle => ChainAsset::new(chain, "Mantle", "MNT", 18),
+            Chain::Celo => ChainAsset::new(chain, "Celo", "CELO", 18),
+            Chain::Near => ChainAsset::new(chain, "Near", "NEAR", 24),
+            Chain::World => ChainAsset::with_network_name(chain, "World", "World ETH", "ETH", 18),
+            Chain::Stellar => ChainAsset::new(chain, "Stellar", "XLM", 7),
+            Chain::Sonic => ChainAsset::new(chain, "Sonic", "S", 18),
+            Chain::Algorand => ChainAsset::new(chain, "Algorand", "ALGO", 6),
+            Chain::Polkadot => ChainAsset::new(chain, "Polkadot", "DOT", 10),
+            Chain::Plasma => ChainAsset::new(chain, "Plasma", "XPL", 18),
+            Chain::Cardano => ChainAsset::new(chain, "Cardano", "ADA", 6),
+            Chain::Abstract => ChainAsset::new(chain, "Abstract", "ETH", 18),
+            Chain::Berachain => ChainAsset::new(chain, "Berachain", "BERA", 18),
+            Chain::Ink => ChainAsset::with_network_name(chain, "Ink", "Ink ETH", "ETH", 18),
+            Chain::Unichain => ChainAsset::with_network_name(chain, "Unichain", "Unichain ETH", "ETH", 18),
+            Chain::Hyperliquid => ChainAsset::new(chain, "HyperEVM", "HYPE", 18),
+            Chain::HyperCore => ChainAsset::new(chain, "Hyperliquid", "HYPE", 8),
+            Chain::Monad => ChainAsset::new(chain, "Monad", "MON", 18),
+            Chain::XLayer => ChainAsset::new(chain, "X Layer", "OKB", 18),
+            Chain::Robinhood => ChainAsset::with_network_name(chain, "Robinhood", "Robinhood ETH", "ETH", 18),
+            Chain::Stable => ChainAsset::new(chain, "Stable", "USDT0", 18),
+        }
+    }
+
+    fn new(chain: Chain, name: &str, symbol: &str, decimals: i32) -> Self {
+        Self::with_network_name(chain, name, name, symbol, decimals)
+    }
+
+    fn with_network_name(chain: Chain, network_name: &str, name: &str, symbol: &str, decimals: i32) -> Self {
+        Self {
+            asset: chain.new_asset(name, symbol, decimals, AssetType::NATIVE),
+            network_name: network_name.to_string(),
+        }
+    }
+}
+
 impl Chain {
-    pub fn new_asset(&self, name: String, symbol: String, decimals: i32, asset_type: AssetType) -> Asset {
+    pub fn new_asset(&self, name: impl Into<String>, symbol: impl Into<String>, decimals: i32, asset_type: AssetType) -> Asset {
         Asset {
             id: self.as_asset_id(),
             chain: *self,
             token_id: None,
-            name,
-            symbol,
+            name: name.into(),
+            symbol: symbol.into(),
             decimals,
             asset_type,
         }
@@ -68,62 +148,7 @@ impl Asset {
     }
 
     pub fn from_chain(chain: Chain) -> Asset {
-        match chain {
-            Chain::Ethereum => chain.new_asset("Ethereum".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Bitcoin => chain.new_asset("Bitcoin".to_string(), "BTC".to_string(), 8, AssetType::NATIVE),
-            Chain::BitcoinCash => chain.new_asset("Bitcoin Cash".to_string(), "BCH".to_string(), 8, AssetType::NATIVE),
-            Chain::Litecoin => chain.new_asset("Litecoin".to_string(), "LTC".to_string(), 8, AssetType::NATIVE),
-            Chain::SmartChain => chain.new_asset("BNB Chain".to_string(), "BNB".to_string(), 18, AssetType::NATIVE),
-            Chain::Polygon => chain.new_asset("Polygon".to_string(), "POL".to_string(), 18, AssetType::NATIVE),
-            Chain::AvalancheC => chain.new_asset("Avalanche".to_string(), "AVAX".to_string(), 18, AssetType::NATIVE),
-            Chain::Solana => chain.new_asset("Solana".to_string(), "SOL".to_string(), 9, AssetType::NATIVE),
-            Chain::Thorchain => chain.new_asset("Thorchain".to_string(), "RUNE".to_string(), 8, AssetType::NATIVE),
-            Chain::Mayachain => chain.new_asset("Maya".to_string(), "CACAO".to_string(), 10, AssetType::NATIVE),
-            Chain::Cosmos => chain.new_asset("Cosmos".to_string(), "ATOM".to_string(), 6, AssetType::NATIVE),
-            Chain::Osmosis => chain.new_asset("Osmosis".to_string(), "OSMO".to_string(), 6, AssetType::NATIVE),
-            Chain::Celestia => chain.new_asset("Celestia".to_string(), "TIA".to_string(), 6, AssetType::NATIVE),
-            Chain::Arbitrum => chain.new_asset("Arbitrum ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Ton => chain.new_asset("TON".to_string(), "GRAM".to_string(), 9, AssetType::NATIVE),
-            Chain::Tron => chain.new_asset("TRON".to_string(), "TRX".to_string(), 6, AssetType::NATIVE),
-            Chain::Doge => chain.new_asset("Dogecoin".to_string(), "DOGE".to_string(), 8, AssetType::NATIVE),
-            Chain::Zcash => chain.new_asset("Zcash".to_string(), "ZEC".to_string(), 8, AssetType::NATIVE),
-            Chain::Optimism => chain.new_asset("Optimism ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Aptos => chain.new_asset("Aptos".to_string(), "APT".to_string(), 8, AssetType::NATIVE),
-            Chain::Base => chain.new_asset("Base ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Sui => chain.new_asset("Sui".to_string(), "SUI".to_string(), 9, AssetType::NATIVE),
-            Chain::Xrp => chain.new_asset("XRP".to_string(), "XRP".to_string(), 6, AssetType::NATIVE),
-            Chain::OpBNB => chain.new_asset("opBNB".to_string(), "BNB".to_string(), 18, AssetType::NATIVE),
-            Chain::Fantom => chain.new_asset("Fantom".to_string(), "FTM".to_string(), 18, AssetType::NATIVE),
-            Chain::Gnosis => chain.new_asset("Gnosis Chain".to_string(), "xDai".to_string(), 18, AssetType::NATIVE),
-            Chain::Injective => chain.new_asset("Injective".to_string(), "INJ".to_string(), 18, AssetType::NATIVE),
-            Chain::Sei => chain.new_asset("Sei".to_string(), "SEI".to_string(), 6, AssetType::NATIVE),
-            Chain::SeiEvm => chain.new_asset("Sei EVM".to_string(), "SEI".to_string(), 18, AssetType::NATIVE),
-            Chain::Manta => chain.new_asset("Manta ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Blast => chain.new_asset("Blast ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Noble => chain.new_asset("Noble".to_string(), "USDC".to_string(), 6, AssetType::NATIVE),
-            Chain::ZkSync => chain.new_asset("zkSync ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Linea => chain.new_asset("Linea ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Mantle => chain.new_asset("Mantle".to_string(), "MNT".to_string(), 18, AssetType::NATIVE),
-            Chain::Celo => chain.new_asset("Celo".to_string(), "CELO".to_string(), 18, AssetType::NATIVE),
-            Chain::Near => chain.new_asset("Near".to_string(), "NEAR".to_string(), 24, AssetType::NATIVE),
-            Chain::World => chain.new_asset("World ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Stellar => chain.new_asset("Stellar".to_string(), "XLM".to_string(), 7, AssetType::NATIVE),
-            Chain::Sonic => chain.new_asset("Sonic".to_string(), "S".to_string(), 18, AssetType::NATIVE),
-            Chain::Algorand => chain.new_asset("Algorand".to_string(), "ALGO".to_string(), 6, AssetType::NATIVE),
-            Chain::Polkadot => chain.new_asset("Polkadot".to_string(), "DOT".to_string(), 10, AssetType::NATIVE),
-            Chain::Plasma => chain.new_asset("Plasma".to_string(), "XPL".to_string(), 18, AssetType::NATIVE),
-            Chain::Cardano => chain.new_asset("Cardano".to_string(), "ADA".to_string(), 6, AssetType::NATIVE),
-            Chain::Abstract => chain.new_asset("Abstract".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Berachain => chain.new_asset("Berachain".to_string(), "BERA".to_string(), 18, AssetType::NATIVE),
-            Chain::Ink => chain.new_asset("Ink ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Unichain => chain.new_asset("Unichain ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Hyperliquid => chain.new_asset("HyperEVM".to_string(), "HYPE".to_string(), 18, AssetType::NATIVE),
-            Chain::HyperCore => chain.new_asset("Hyperliquid".to_string(), "HYPE".to_string(), 8, AssetType::NATIVE),
-            Chain::Monad => chain.new_asset("Monad".to_string(), "MON".to_string(), 18, AssetType::NATIVE),
-            Chain::XLayer => chain.new_asset("X Layer".to_string(), "OKB".to_string(), 18, AssetType::NATIVE),
-            Chain::Robinhood => chain.new_asset("Robinhood ETH".to_string(), "ETH".to_string(), 18, AssetType::NATIVE),
-            Chain::Stable => chain.new_asset("Stable".to_string(), "USDT0".to_string(), 18, AssetType::NATIVE),
-        }
+        ChainAsset::from_chain(chain).asset
     }
 }
 
@@ -149,6 +174,29 @@ impl AssetVecExt for Vec<Asset> {
 
     fn asset_result(&self, asset_id: AssetId) -> Result<&Asset, Box<dyn Error + Send + Sync>> {
         self.iter().find(|x| x.id == asset_id).ok_or("Asset not found".into())
+    }
+}
+
+#[cfg(test)]
+mod chain_asset_tests {
+    use super::*;
+
+    #[test]
+    fn chain_asset_separates_network_and_native_asset_names() {
+        let ton = ChainAsset::from_chain(Chain::Ton);
+        assert_eq!(ton.network_name, "TON");
+        assert_eq!(ton.asset.name, "Gram");
+        assert_eq!(ton.asset.symbol, "GRAM");
+
+        let base = ChainAsset::from_chain(Chain::Base);
+        assert_eq!(base.network_name, "Base");
+        assert_eq!(base.asset.name, "Base ETH");
+        assert_eq!(base.asset.symbol, "ETH");
+    }
+
+    #[test]
+    fn asset_from_chain_preserves_existing_native_asset_accessor() {
+        assert_eq!(Asset::from_chain(Chain::Ton), ChainAsset::from_chain(Chain::Ton).asset);
     }
 }
 

@@ -29,7 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
 import com.gemwallet.android.ui.R
@@ -54,7 +54,7 @@ internal fun NetworkScene(
     var nodeDelete by remember { mutableStateOf<NodeRowUiModel?>(null) }
 
     Scene(
-        title = chain.asset().name,
+        title = chain.networkName(),
         actions = {
             if (state.availableAddNode) {
                 IconButton(onClick = { isShowAddSource = true }) {

@@ -47,7 +47,7 @@ extension TransactionSwapProgressViewModel {
         }
 
         let transferTitle = Localized.Transfer.title
-        let chainName = Asset(fromAsset.id.chain).name
+        let chainName = fromAsset.id.chain.networkName
         let amount = ValueFormatter.auto.string(BigInt.fromString(metadata.fromValue), asset: fromAsset)
         let transferSubtitle = "\(amount) (\(chainName))"
         let swapTitle = Localized.Wallet.swap

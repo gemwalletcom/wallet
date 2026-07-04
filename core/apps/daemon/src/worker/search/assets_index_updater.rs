@@ -54,10 +54,12 @@ impl AssetsIndexUpdater {
             .into_iter()
             .map(|x| {
                 let asset_id = x.asset.id.as_str();
+                let asset = x.asset.as_primitive();
                 let usage_rank = usage_ranks_map.get(asset_id).copied().unwrap_or(0);
                 AssetDocument {
                     id: sanitize_index_primary_id(asset_id),
-                    asset: x.asset.as_primitive(),
+                    aliases: AssetDocument::aliases(&asset),
+                    asset,
                     properties: x.asset.clone().as_property_primitive(),
                     score: x.asset.clone().as_score_primitive(),
                     usage_rank,

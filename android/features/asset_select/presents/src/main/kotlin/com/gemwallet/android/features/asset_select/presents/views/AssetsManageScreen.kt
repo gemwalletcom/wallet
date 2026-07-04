@@ -10,7 +10,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
@@ -51,7 +51,7 @@ fun AssetsManageScreen(
         titleBadge = ::getAssetBadge,
         support = {
             if (it.asset.id.type() == AssetSubtype.NATIVE) null else {
-                { ListItemSupportText(it.asset.id.chain.asset().name) }
+                { ListItemSupportText(it.asset.id.chain.networkName()) }
             }
         },
         query = viewModel.queryState,
