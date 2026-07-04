@@ -3,7 +3,7 @@ use std::{error::Error, str::FromStr};
 use num_bigint::{BigInt, BigUint};
 
 use super::proto::{self, Command, OwnerKind, Timestamp};
-use crate::models::transaction::SuiStatus;
+use crate::models::transaction::{STATUS_FAILURE, STATUS_SUCCESS, SuiStatus};
 use crate::models::{
     BalanceChange, Checkpoint, Digest, Effect, Event, GasObject, GasUsed, InspectCommandResult, InspectEffects, InspectGasUsed, InspectResult, Owner, OwnerObject, Status,
     SuiEffects,
@@ -76,9 +76,7 @@ fn map_effect(effects: Option<&proto::TransactionEffects>) -> Effect {
 
     Effect {
         gas_used: map_gas_used(effects.and_then(|effects| effects.gas_used.as_ref())),
-        status: Status {
-            status: if transaction_success(effects) { "success" } else { "failure" }.to_string(),
-        },
+        status: Status { status: map_status(effects) },
         gas_object: GasObject { owner: gas_object_owner },
     }
 }
@@ -87,21 +85,19 @@ pub(super) fn map_sui_effects(effects: Option<&proto::TransactionEffects>) -> Su
     SuiEffects {
         gas_used: map_gas_used(effects.and_then(|effects| effects.gas_used.as_ref())),
         status: SuiStatus {
-            status: if transaction_success(effects) { "success" } else { "failure" }.to_string(),
-            error: transaction_error(effects),
+            status: map_status(effects),
+            error: effects.and_then(proto::TransactionEffects::execution_error),
         },
     }
 }
 
-fn transaction_success(effects: Option<&proto::TransactionEffects>) -> bool {
-    effects.and_then(|effects| effects.status.as_ref()).and_then(|status| status.success).unwrap_or(false)
-}
-
-fn transaction_error(effects: Option<&proto::TransactionEffects>) -> Option<String> {
-    effects
-        .and_then(|effects| effects.status.as_ref())
-        .and_then(|status| status.error.as_ref())
-        .and_then(|error| error.description.clone())
+fn map_status(effects: Option<&proto::TransactionEffects>) -> String {
+    if effects.is_some_and(proto::TransactionEffects::execution_success) {
+        STATUS_SUCCESS
+    } else {
+        STATUS_FAILURE
+    }
+    .to_string()
 }
 
 fn map_gas_used(gas: Option<&proto::GasCostSummary>) -> GasUsed {
@@ -155,7 +151,7 @@ pub(super) fn map_inspect_result(response: proto::SimulateTransactionResponse) -
             },
         },
         events: serde_json::Value::Null,
-        error: transaction_error(effects),
+        error: effects.and_then(proto::TransactionEffects::execution_error),
         results: response
             .command_outputs
             .into_iter()

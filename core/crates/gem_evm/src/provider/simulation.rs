@@ -9,7 +9,7 @@ use gem_client::Client;
 use primitives::{Asset, SimulationBalanceChange, SimulationInput, SimulationResult};
 
 use crate::jsonrpc::TransactionObject;
-use crate::provider::simulation_mapper::{map_balance_change_asset, map_simulation_result};
+use crate::provider::simulation_mapper::map_simulation_result;
 use crate::rpc::client::EthereumClient;
 
 #[async_trait]
@@ -31,7 +31,7 @@ impl<C: Client + Clone> ChainSimulation for EthereumClient<C> {
             .into_iter()
             .zip(assets)
             .map(|(change, asset)| match asset {
-                Some(asset) => map_balance_change_asset(change, asset),
+                Some(asset) => change.with_asset(asset),
                 None => change,
             })
             .collect();

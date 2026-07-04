@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use num_bigint::BigInt;
 use num_traits::Zero;
-use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationWarning};
+use primitives::{AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationWarning};
 
 use crate::ethereum_address_checksum;
 use crate::provider::transfer_decoder::decode_transfer_action;
@@ -16,15 +16,6 @@ pub fn map_simulation_result(chain: Chain, signer: &str, trace: &TraceCallResult
     SimulationResult {
         balance_changes: map_balance_changes(chain, signer, trace),
         ..Default::default()
-    }
-}
-
-pub fn map_balance_change_asset(change: SimulationBalanceChange, asset: Asset) -> SimulationBalanceChange {
-    SimulationBalanceChange {
-        name: Some(asset.name),
-        symbol: Some(asset.symbol),
-        decimals: asset.decimals,
-        ..change
     }
 }
 
@@ -76,7 +67,7 @@ mod tests {
     use super::*;
     use alloy_primitives::{Address, U160, U256, address};
     use alloy_sol_types::SolCall;
-    use primitives::asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID};
+    use primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID;
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
     use primitives::testkit::json_rpc::load_json_rpc_result;
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
@@ -185,17 +176,5 @@ mod tests {
         let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_reverted_transfer.json"));
 
         assert_eq!(map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes, vec![]);
-    }
-
-    #[test]
-    fn test_map_balance_change_asset_sets_metadata_and_decimals() {
-        let change = SimulationBalanceChange::new(ETHEREUM_USDC_ASSET_ID.clone(), BigInt::from(-1_000_000));
-        let asset = Asset::mock_ethereum_usdc();
-
-        let mapped = map_balance_change_asset(change, asset);
-
-        assert_eq!(mapped.name, Some("USD Coin".to_string()));
-        assert_eq!(mapped.symbol, Some("USDC".to_string()));
-        assert_eq!(mapped.decimals, 6);
     }
 }
