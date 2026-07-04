@@ -13,6 +13,7 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.domains.asset.isStackable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.model.getStackedAmount
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
@@ -34,6 +35,7 @@ class BannersRepository(
     private val assetRepository: AssetsRepository,
     private val bannersDao: BannersDao,
     private val userConfig: UserConfig,
+    private val notificationsAvailable: NotificationsAvailable,
 ) : GetBannersCase, CancelBannerCase, HasMultiSign, AddBanner {
 
     override suspend fun getActiveBanners(wallet: Wallet?, asset: Asset?): List<Banner> = withContext(Dispatchers.IO) {
@@ -98,6 +100,9 @@ class BannersRepository(
     }
 
     private suspend fun isBannerAvailable(wallet: Wallet?, asset: Asset?, event: BannerEvent): Boolean {
+        if (event == BannerEvent.EnableNotifications && !notificationsAvailable) {
+            return false
+        }
         if (event == BannerEvent.EnableNotifications && userConfig.getLaunchNumber() < 3) {
             return false
         }

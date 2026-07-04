@@ -55,7 +55,8 @@ fun SettingsScene(
     var isShowDevelopEnable by remember { mutableStateOf(false) }
 
     var requestPushGrant by remember { mutableStateOf<(() -> Unit)?>(null) }
-    val notificationsAvailable = viewModel.isNotificationsAvailable()
+    val notificationsAvailable = viewModel.notificationsAvailable
+    val preferencesListPosition = if (notificationsAvailable) ListPosition.Last else ListPosition.Single
     Scene(
         title = stringResource(id = R.string.settings_title),
         mainActionPadding = PaddingValues(0.dp),
@@ -91,20 +92,13 @@ fun SettingsScene(
                     listPosition = ListPosition.First,
                     onClick = { onAction(SettingsSceneAction.Notifications) },
                 )
-                LinkItem(
-                    title = stringResource(id = R.string.settings_preferences_title),
-                    icon = R.drawable.settings_preferences,
-                    listPosition = ListPosition.Last,
-                    onClick = { onAction(SettingsSceneAction.Preferences) },
-                )
-            } else {
-                LinkItem(
-                    title = stringResource(id = R.string.settings_preferences_title),
-                    icon = R.drawable.settings_preferences,
-                    listPosition = ListPosition.Single,
-                    onClick = { onAction(SettingsSceneAction.Preferences) },
-                )
             }
+            LinkItem(
+                title = stringResource(id = R.string.settings_preferences_title),
+                icon = R.drawable.settings_preferences,
+                listPosition = preferencesListPosition,
+                onClick = { onAction(SettingsSceneAction.Preferences) },
+            )
             if (walletConnectEnabled) {
                 LinkItem(
                     title = stringResource(id = R.string.wallet_connect_title),
@@ -120,7 +114,7 @@ fun SettingsScene(
                 icon = R.drawable.settings_support,
                 listPosition = ListPosition.First,
             ) {
-                if (!pushEnabled) {
+                if (notificationsAvailable && !pushEnabled) {
                     requestPushGrant = {
                         viewModel.enableNotifications()
                         onAction(SettingsSceneAction.Support)

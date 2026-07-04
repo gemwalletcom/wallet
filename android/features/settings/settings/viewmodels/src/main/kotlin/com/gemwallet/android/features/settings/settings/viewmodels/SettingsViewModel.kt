@@ -30,7 +30,7 @@ class SettingsViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
-    private val notificationsAvailable: NotificationsAvailable,
+    val notificationsAvailable: NotificationsAvailable,
 ) : ViewModel() {
 
     private val session = sessionRepository.session()
@@ -126,9 +126,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun isNotificationsAvailable(): Boolean {
-        return notificationsAvailable
-    }
 }
 
 data class SettingsViewModelState(

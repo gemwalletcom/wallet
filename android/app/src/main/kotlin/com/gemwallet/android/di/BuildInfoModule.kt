@@ -47,7 +47,7 @@ object BuildInfoModule {
 
     @Provides
     @Singleton
-    fun provideNotificationEnabled(@ApplicationContext context: Context): NotificationsAvailable {
+    fun provideNotificationEnabled(): NotificationsAvailable {
         return isNotificationsAvailable()
     }
 

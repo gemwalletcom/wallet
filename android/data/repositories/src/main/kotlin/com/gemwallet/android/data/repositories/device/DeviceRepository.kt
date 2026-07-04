@@ -22,6 +22,7 @@ import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
+import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.AddressChains
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Device
@@ -47,6 +48,7 @@ class DeviceRepository(
     private val configStore: ConfigStore,
     private val requestPushToken: RequestPushToken,
     private val platformStore: PlatformStore,
+    private val notificationsAvailable: NotificationsAvailable,
     private val versionName: String,
     private val getDeviceId: GetDeviceId,
     private val priceAlertRepository: PriceAlertRepository,
@@ -71,7 +73,7 @@ class DeviceRepository(
 
     override suspend fun switchPushEnabled(enabled: Boolean, wallets: List<Wallet>) {
         context.dataStore.edit { preferences ->
-            preferences[Key.PushEnabled] = enabled
+            preferences[Key.PushEnabled] = enabled && notificationsAvailable
         }
         try {
             syncDeviceInfo()
@@ -79,10 +81,10 @@ class DeviceRepository(
     }
 
     override fun getPushEnabled(): Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[Key.PushEnabled] == true }
+        .map { preferences -> notificationsAvailable && preferences[Key.PushEnabled] == true }
 
     override fun setPushToken(token: String) {
-        configStore.putString(ConfigKey.PushToken.string, token)
+        configStore.putString(ConfigKey.PushToken.string, if (notificationsAvailable) token else "")
     }
 
     override suspend fun getPushToken(): String {
@@ -202,7 +204,7 @@ class DeviceRepository(
         pushTokenOverride: String?,
     ): PushState? {
         val pushEnabled = getPushEnabled().firstOrNull() ?: false
-        val pushToken = pushTokenOverride ?: getPushToken()
+        val pushToken = if (pushEnabled) pushTokenOverride ?: getPushToken() else ""
 
         if (pushEnabled && pushToken.isEmpty() && pushTokenOverride == null) {
             requestPushToken.requestToken { token ->
