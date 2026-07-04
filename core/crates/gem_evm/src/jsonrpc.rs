@@ -1,6 +1,6 @@
 use alloy_primitives::hex;
 use gem_jsonrpc::types::{JsonRpcRequest, JsonRpcRequestConvert};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use serde_json::{Value, json};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,9 +12,18 @@ pub struct TransactionObject {
     pub gas: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "gasPrice")]
     pub gas_price: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "maxFeePerGas")]
+    pub max_fee_per_gas: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "maxPriorityFeePerGas")]
+    pub max_priority_fee_per_gas: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
+    #[serde(serialize_with = "serialize_calldata")]
     pub data: String,
+}
+
+fn serialize_calldata<S: Serializer>(value: &str, serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(if value.is_empty() { "0x" } else { value })
 }
 
 impl TransactionObject {
@@ -24,6 +33,8 @@ impl TransactionObject {
             to: to.to_string(),
             gas: None,
             gas_price: None,
+            max_fee_per_gas: None,
+            max_priority_fee_per_gas: None,
             value: None,
             data: hex::encode_prefixed(data),
         }
@@ -31,23 +42,15 @@ impl TransactionObject {
 
     pub fn new_call_to_value(to: &str, value: &str, data: Vec<u8>) -> Self {
         Self {
-            from: None,
-            to: to.to_string(),
-            gas: None,
-            gas_price: None,
             value: Some(value.to_string()),
-            data: hex::encode_prefixed(data),
+            ..Self::new_call(to, data)
         }
     }
 
     pub fn new_call_with_from(from: &str, to: &str, data: Vec<u8>) -> Self {
         Self {
             from: Some(from.to_string()),
-            to: to.to_string(),
-            gas: None,
-            gas_price: None,
-            value: None,
-            data: hex::encode_prefixed(data),
+            ..Self::new_call(to, data)
         }
     }
 }
@@ -161,6 +164,19 @@ mod tests {
         assert_eq!(
             encoded,
             r#"{"from":"0x46340b20830761efd32832a74d7169b29feb9758","to":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","data":"0x"}"#
+        );
+    }
+
+    #[test]
+    fn test_serialize_empty_calldata_as_0x() {
+        let transaction = TransactionObject {
+            data: String::new(),
+            ..TransactionObject::new_call("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", vec![])
+        };
+
+        assert_eq!(
+            serde_json::to_string(&transaction).unwrap(),
+            r#"{"to":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","data":"0x"}"#
         );
     }
 }

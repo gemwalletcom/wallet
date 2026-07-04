@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use num_bigint::BigInt;
-use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType};
+use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationWarning};
 use serde_json::Value;
 
 use crate::models::{SimulateTransactionResult, TokenBalance};
@@ -29,7 +29,7 @@ fn simulation_error_warning(error: Value) -> SimulationWarning {
         Value::String(message) => message,
         error => error.to_string(),
     };
-    SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some(message))
+    SimulationWarning::execution_error(message)
 }
 
 fn map_balance_changes(
@@ -95,6 +95,7 @@ fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<Strin
 mod tests {
     use super::*;
     use primitives::asset_constants::{SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID};
+    use primitives::{SimulationSeverity, SimulationWarningType};
 
     fn signers(addresses: &[&str]) -> HashSet<String> {
         addresses.iter().map(|address| address.to_string()).collect()
@@ -240,7 +241,7 @@ mod tests {
         assert_eq!(
             result.warnings,
             vec![SimulationWarning::new(
-                SimulationSeverity::Critical,
+                SimulationSeverity::Warning,
                 SimulationWarningType::ValidationError,
                 Some("{\"InstructionError\":[1,\"InvalidArgument\"]}".to_string()),
             )]

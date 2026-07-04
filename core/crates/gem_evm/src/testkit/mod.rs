@@ -2,6 +2,8 @@ use primitives::asset_constants::{ETHEREUM_DAI_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID}
 
 pub mod eip712_mock;
 pub mod siwe_mock;
+pub mod trace_call_action_mock;
+pub mod transaction_object_mock;
 
 pub const TEST_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
 pub const TEST_TRANSACTION_ID: &str = "0x98dd4d9a586620f84e8066f1b015d663f9c0c94c4e0e02377840c3e6d43e2ad3";

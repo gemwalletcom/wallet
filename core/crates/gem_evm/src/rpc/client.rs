@@ -12,9 +12,9 @@ use std::str::FromStr;
 
 use super::{
     ankr::AnkrClient,
-    model::{Block, BlockTransactionsIds, Transaction, TransactionReceipt, TransactionReplayTrace},
+    model::{Block, BlockTransactionsIds, TraceCallResult, Transaction, TransactionReceipt, TransactionReplayTrace},
 };
-use crate::jsonrpc::BlockParameter;
+use crate::jsonrpc::{BlockParameter, TransactionObject};
 use crate::models::fee::EthereumFeeHistory;
 #[cfg(feature = "rpc")]
 use crate::multicall3::{
@@ -162,6 +162,11 @@ impl<C: Client + Clone> EthereumClient<C> {
             .map(|hash| ("trace_replayTransaction".to_string(), json!([hash, json!(["stateDiff"])])))
             .collect();
         self.client.batch_call::<TransactionReplayTrace>(calls).await?.take_all()
+    }
+
+    pub async fn trace_call(&self, transaction: &TransactionObject) -> Result<TraceCallResult, JsonRpcError> {
+        let params = json!([transaction, json!(["trace", "stateDiff"]), Self::latest_block_parameter()]);
+        self.client.call("trace_call", params).await
     }
 
     pub async fn get_eth_balance(&self, address: &str) -> Result<String, JsonRpcError> {

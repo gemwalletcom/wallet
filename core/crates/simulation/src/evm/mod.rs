@@ -6,7 +6,7 @@ mod decode;
 #[cfg(feature = "rpc")]
 mod client;
 
-pub use decode::{simulate_eip712_message, simulate_evm_calldata};
+pub use decode::{is_approval, simulate_eip712_message, simulate_evm_calldata};
 
 #[cfg(feature = "rpc")]
 pub use client::SimulationClient;

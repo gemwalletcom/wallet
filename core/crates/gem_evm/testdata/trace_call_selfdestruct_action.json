@@ -1,0 +1,19 @@
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "stateDiff": {},
+        "trace": [
+            {
+                "action": {
+                    "address": "0x1111111111111111111111111111111111111111",
+                    "refundAddress": "0x2222222222222222222222222222222222222222",
+                    "balance": "0x0"
+                },
+                "subtraces": 0,
+                "traceAddress": [0],
+                "type": "suicide"
+            }
+        ]
+    }
+}

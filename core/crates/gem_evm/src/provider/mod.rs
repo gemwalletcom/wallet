@@ -6,6 +6,8 @@ pub mod preload;
 pub mod preload_mapper;
 pub mod preload_optimism;
 pub mod request_classifier;
+pub mod simulation;
+pub mod simulation_mapper;
 pub mod staking;
 pub mod staking_ethereum;
 pub mod staking_monad;
@@ -20,5 +22,6 @@ pub mod transaction_broadcast_mapper;
 pub mod transaction_state;
 pub mod transaction_state_mapper;
 pub mod transactions;
+pub mod transfer_decoder;
 
 pub struct BroadcastProvider;
