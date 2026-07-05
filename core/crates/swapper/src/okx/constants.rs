@@ -19,18 +19,14 @@ pub fn chain_index(chain: Chain) -> Option<&'static str> {
         | Chain::Optimism
         | Chain::Base
         | Chain::AvalancheC
-        | Chain::OpBNB
         | Chain::Fantom
-        | Chain::Gnosis
         | Chain::Manta
         | Chain::Blast
         | Chain::ZkSync
         | Chain::Linea
         | Chain::Mantle
-        | Chain::Celo
+        | Chain::Hyperliquid
         | Chain::Sonic
-        | Chain::Abstract
-        | Chain::Berachain
         | Chain::Unichain
         | Chain::Monad
         | Chain::XLayer => Some(chain.config().network_id),
