@@ -117,6 +117,8 @@ pub mod transaction;
 pub use self::transaction::{Transaction, TransactionsResponse};
 pub mod transaction_type;
 pub use self::transaction_type::TransactionType;
+pub mod tag_visibility;
+pub use self::tag_visibility::TagVisibility;
 pub mod time;
 pub use self::time::unix_timestamp;
 pub mod transaction_state;

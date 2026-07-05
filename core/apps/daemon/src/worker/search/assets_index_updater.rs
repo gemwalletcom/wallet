@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use super::sync::{SearchSyncClient, SearchSyncResult};
@@ -31,13 +31,23 @@ impl AssetsIndexUpdater {
             return sync.write(ASSETS_INDEX_NAME, Vec::<AssetDocument>::new()).await;
         }
 
+        let public_tag_ids = self
+            .database
+            .tag()?
+            .get_asset_list_tags()?
+            .into_iter()
+            .filter_map(|tag| tag.visibility.is_public().then_some(tag.id))
+            .collect::<HashSet<_>>();
         let assets_tags = self.database.tag()?.get_assets_tags()?;
         let usage_ranks = self.database.assets_usage_ranks()?.get_all_usage_ranks()?;
 
-        let assets_tags_map: HashMap<String, Vec<String>> = assets_tags.into_iter().fold(HashMap::new(), |mut acc, tag| {
-            acc.entry(tag.asset_id.to_string()).or_default().push(tag.tag_id);
-            acc
-        });
+        let assets_tags_map: HashMap<String, Vec<String>> = assets_tags
+            .into_iter()
+            .filter(|tag| public_tag_ids.contains(&tag.tag_id))
+            .fold(HashMap::new(), |mut acc, tag| {
+                acc.entry(tag.asset_id.to_string()).or_default().push(tag.tag_id);
+                acc
+            });
         let usage_ranks_map: HashMap<String, i32> = usage_ranks.into_iter().map(|r| (r.asset_id.to_string(), r.usage_rank)).collect();
 
         let documents = Self::build_documents(prices.iter(), &assets_tags_map, &usage_ranks_map);

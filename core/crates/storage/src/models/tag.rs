@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use primitives::{AssetList, AssetTag};
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{AssetId, PerpetualIdRow};
+use crate::sql_types::{AssetId, PerpetualIdRow, TagVisibility};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = crate::schema::tags)]
@@ -10,6 +10,7 @@ use crate::sql_types::{AssetId, PerpetualIdRow};
 pub struct TagRow {
     pub id: String,
     pub name: String,
+    pub visibility: TagVisibility,
 }
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
@@ -34,7 +35,11 @@ impl TagRow {
     pub fn from_primitive(primitive: AssetTag) -> Self {
         let id = primitive.as_ref().to_lowercase();
         let name = id.clone();
-        Self { id, name }
+        Self {
+            id,
+            name,
+            visibility: TagVisibility::Public,
+        }
     }
 
     pub fn as_primitive(&self, count: u32) -> AssetList {
