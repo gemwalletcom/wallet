@@ -1,19 +1,21 @@
 use primitives::{TransactionSwapMetadata, swap::ApprovalData};
 
 use super::{
-    DEFAULT_SWAP_GAS_LIMIT,
     asset::map_currency_to_asset_id,
     chain::RelayChain,
     model::{RelayQuoteResponse, RelayRequest, StepData},
 };
-use crate::{SwapResult, SwapperError, SwapperProvider, SwapperQuoteData, approval::get_swap_gas_limit_with_approval};
+use crate::{
+    SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
+    approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, get_swap_gas_limit_with_approval},
+};
 
 pub fn map_quote_data(quote_response: &RelayQuoteResponse, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
     let step_data = quote_response.step_data().ok_or(SwapperError::InvalidRoute)?;
 
     match step_data {
         StepData::Evm(evm) => {
-            let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_SWAP_GAS_LIMIT);
+            let gas_limit = get_swap_gas_limit_with_approval(&approval, evm.gas_limit_with_buffer(), DEFAULT_EVM_SWAP_GAS_LIMIT);
             let call_data = evm.data.clone().unwrap_or_default();
             Ok(SwapperQuoteData::new_contract(evm.to.clone(), evm.value.clone(), call_data, approval, gas_limit))
         }
@@ -44,20 +46,12 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::relay::model::{CurrencyAmount, QuoteDetails, RelayCurrencyDetail, RelayQuoteResponse, RelayRequest, RelayRequestMetadata, RelayStatus, Step};
+    use crate::relay::model::{RelayCurrencyDetail, RelayQuoteResponse, RelayRequest, RelayRequestMetadata, RelayStatus, Step};
     use primitives::{AssetId, Chain, swap::SwapStatus};
 
     #[test]
     fn test_map_evm_quote_data() {
-        let quote_response = RelayQuoteResponse {
-            steps: vec![Step::mock_transaction("swap", "0xrouter", "1000000000000000000", "0xabcdef")],
-            details: QuoteDetails {
-                currency_out: CurrencyAmount { amount: "0".to_string() },
-                time_estimate: None,
-                swap_impact: None,
-            },
-            fees: None,
-        };
+        let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("swap", "0xrouter", "1000000000000000000", "0xabcdef")]);
 
         let result = map_quote_data(&quote_response, None).unwrap();
 
@@ -70,22 +64,19 @@ mod tests {
 
     #[test]
     fn test_map_evm_quote_data_with_approval() {
-        let quote_response = RelayQuoteResponse {
-            steps: vec![Step::mock_transaction("swap", "0xrouter", "0", "0xabcdef")],
-            details: QuoteDetails {
-                currency_out: CurrencyAmount { amount: "0".to_string() },
-                time_estimate: None,
-                swap_impact: None,
-            },
-            fees: None,
-        };
         let approval = ApprovalData::make("0xtoken", "0xrouter", "1000", false);
 
+        let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction_with_gas("swap", "0xrouter", "0", "0xabcdef", Some(482935))]);
         let result = map_quote_data(&quote_response, Some(approval.clone())).unwrap();
 
         assert_eq!(result.to, "0xrouter");
-        assert_eq!(result.approval, Some(approval));
-        assert_eq!(result.gas_limit, Some(DEFAULT_SWAP_GAS_LIMIT.to_string()));
+        assert_eq!(result.approval, Some(approval.clone()));
+        assert_eq!(result.gas_limit, Some("724402".to_string()));
+
+        let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("swap", "0xrouter", "0", "0xabcdef")]);
+        let result = map_quote_data(&quote_response, Some(approval)).unwrap();
+
+        assert_eq!(result.gas_limit, Some(DEFAULT_EVM_SWAP_GAS_LIMIT.to_string()));
     }
 
     #[test]
@@ -122,15 +113,7 @@ mod tests {
 
     #[test]
     fn test_map_quote_data_without_step_data() {
-        let quote_response = RelayQuoteResponse {
-            steps: vec![Step::mock_empty("approve", "transaction")],
-            details: QuoteDetails {
-                currency_out: CurrencyAmount { amount: "0".to_string() },
-                time_estimate: None,
-                swap_impact: None,
-            },
-            fees: None,
-        };
+        let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_empty("approve", "transaction")]);
 
         assert!(map_quote_data(&quote_response, None).is_err());
     }
