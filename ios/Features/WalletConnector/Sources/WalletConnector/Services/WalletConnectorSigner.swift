@@ -44,8 +44,10 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         wallet.accounts.map(\.chain).asSet().intersection(allChains).asArray()
     }
 
-    public func getAccounts(wallet: Wallet, chains: [Primitives.Chain]) -> [Primitives.Account] {
-        wallet.accounts.filter { chains.contains($0.chain) }
+    public func getAccounts(sessionId: String, chain: Primitives.Chain) throws -> [Primitives.Account] {
+        let connection = try connectionsStore.getConnection(id: sessionId)
+        try validate(chain: chain, session: connection.session)
+        return connection.wallet.accounts.filter { $0.chain == chain }
     }
 
     public func getWallets(for proposal: Session.Proposal) throws -> [Wallet] {

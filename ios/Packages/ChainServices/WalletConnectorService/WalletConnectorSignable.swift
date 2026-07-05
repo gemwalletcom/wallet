@@ -15,7 +15,7 @@ public protocol WalletConnectorSignable: Sendable {
     func getCurrentWallet() throws -> Primitives.Wallet
     func getWallet(id: WalletId) throws -> Primitives.Wallet
     func getChains(wallet: Wallet) -> [Primitives.Chain]
-    func getAccounts(wallet: Wallet, chains: [Primitives.Chain]) -> [Primitives.Account]
+    func getAccounts(sessionId: String, chain: Primitives.Chain) throws -> [Primitives.Account]
     func getWallets(for proposal: Session.Proposal) throws -> [Wallet]
     func getMethods() -> [WalletConnectionMethods]
     func getEvents() -> [WalletConnectionEvents]

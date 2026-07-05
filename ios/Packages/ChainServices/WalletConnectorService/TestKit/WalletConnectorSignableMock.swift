@@ -27,7 +27,7 @@ public struct WalletConnectorSignableMock: WalletConnectorSignable {
         []
     }
 
-    public func getAccounts(wallet _: Wallet, chains _: [Chain]) -> [Primitives.Account] {
+    public func getAccounts(sessionId _: String, chain _: Chain) throws -> [Primitives.Account] {
         []
     }
 

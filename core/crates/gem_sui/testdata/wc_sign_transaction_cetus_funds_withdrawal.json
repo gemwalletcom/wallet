@@ -1,0 +1,360 @@
+{
+  "version": 2,
+  "sender": "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1",
+  "expiration": null,
+  "gasData": {
+    "budget": "50000000",
+    "price": null,
+    "owner": null,
+    "payment": null
+  },
+  "inputs": [
+    {
+      "Pure": {
+        "bytes": "IGQ4YmY2NDIwZWM2ZDUzOTU2YTM0NmM0YjQyNzE3OTI1"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "A48WJAIAAAA="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "fwFZIQIAAAA="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AAAAAA=="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x2cd8382c19e6994f16df204e9b8cddd04bdc486c251de75ac66ac4e48e3e7081"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x150df55277f700daa9577d833426cb0d36ba9ee7ddef16ebd7e429c859015f0d"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AQ=="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "//////////8="
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x0000000000000000000000000000000000000000000000000000000000000006"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0xdaa46292632c3c4d8f31f23ea0f9b36a28ff3677e9684980e4438403a67a3d8f"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0xaa020ad81e1621d98d4fb82c4acb80dc064722f24ef828ab633bef50fc28268b"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0xeb863165a109f7791a3182be08aff1438ab2a429314fc135ae19d953afe1edd6"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AQ=="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "//////////8="
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x77ec5b840d9a465dfaae8bb415682c0faeaa707247af4eec8c5ce8ee6e1314e6"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AQ=="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "//////////8="
+      }
+    },
+    {
+      "Object": {
+        "ImmOrOwnedObject": {
+          "objectId": "0x8f6dadd965ad36d25ff1a4b3aabe9f8e53c8a37b68f2b4519aeeb89c0668cb70",
+          "version": "658419224",
+          "digest": "92KHVRKECNWCb45uySUkvcFJeu7urKr3vHbb9pTtinQk"
+        }
+      }
+    },
+    {
+      "FundsWithdrawal": {
+        "reservation": {
+          "MaxAmountU64": "14999840000",
+          "$kind": "MaxAmountU64"
+        },
+        "typeArg": {
+          "Balance": "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE",
+          "$kind": "Balance"
+        },
+        "withdrawFrom": {
+          "Sender": true,
+          "$kind": "Sender"
+        }
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "ANYRfgMAAAA="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "qb0Ek/m9H3kqSu3B+Z1UU1p1pGw4/Vao8sa3yNdYF6E="
+      }
+    }
+  ],
+  "commands": [
+    {
+      "MoveCall": {
+        "package": "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "module": "coin",
+        "function": "redeem_funds",
+        "typeArguments": [
+          "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE"
+        ],
+        "arguments": [
+          {
+            "Input": 19
+          }
+        ]
+      }
+    },
+    {
+      "MergeCoins": {
+        "destination": {
+          "Input": 18
+        },
+        "sources": [
+          {
+            "Result": 0
+          }
+        ]
+      }
+    },
+    {
+      "SplitCoins": {
+        "coin": {
+          "Input": 18
+        },
+        "amounts": [
+          {
+            "Input": 20
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0xde5d696a79714ca5cb910b9aed99d41f67353abb00715ceaeb0663d57ee39640",
+        "module": "router",
+        "function": "new_swap_context",
+        "typeArguments": [
+          "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE",
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Input": 0
+          },
+          {
+            "Input": 1
+          },
+          {
+            "Input": 2
+          },
+          {
+            "NestedResult": [
+              2,
+              0
+            ]
+          },
+          {
+            "Input": 3
+          },
+          {
+            "Input": 4
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0x3aeee81b8b88da7e9b4b22ceca217fc198dac1e5be61e417a8cb7733acb1b8a8",
+        "module": "ferra_clmm",
+        "function": "swap",
+        "typeArguments": [
+          "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE",
+          "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC"
+        ],
+        "arguments": [
+          {
+            "Result": 3
+          },
+          {
+            "Input": 5
+          },
+          {
+            "Input": 6
+          },
+          {
+            "Input": 7
+          },
+          {
+            "Input": 8
+          },
+          {
+            "Input": 9
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0x721d950e57259cd97d41010887ab502ee7753b0a3deb4b6a80099aad0c833928",
+        "module": "cetus",
+        "function": "swap",
+        "typeArguments": [
+          "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+          "0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d::hasui::HASUI"
+        ],
+        "arguments": [
+          {
+            "Result": 3
+          },
+          {
+            "Input": 10
+          },
+          {
+            "Input": 11
+          },
+          {
+            "Input": 12
+          },
+          {
+            "Input": 13
+          },
+          {
+            "Input": 14
+          },
+          {
+            "Input": 9
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0x721d950e57259cd97d41010887ab502ee7753b0a3deb4b6a80099aad0c833928",
+        "module": "cetus",
+        "function": "swap",
+        "typeArguments": [
+          "0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d::hasui::HASUI",
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Result": 3
+          },
+          {
+            "Input": 10
+          },
+          {
+            "Input": 15
+          },
+          {
+            "Input": 12
+          },
+          {
+            "Input": 16
+          },
+          {
+            "Input": 17
+          },
+          {
+            "Input": 9
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0xde5d696a79714ca5cb910b9aed99d41f67353abb00715ceaeb0663d57ee39640",
+        "module": "router",
+        "function": "confirm_swap",
+        "typeArguments": [
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Result": 3
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0xde5d696a79714ca5cb910b9aed99d41f67353abb00715ceaeb0663d57ee39640",
+        "module": "router",
+        "function": "transfer_or_destroy_coin",
+        "typeArguments": [
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Result": 7
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "module": "coin",
+        "function": "send_funds",
+        "typeArguments": [
+          "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE"
+        ],
+        "arguments": [
+          {
+            "Input": 18
+          },
+          {
+            "Input": 21
+          }
+        ]
+      }
+    }
+  ]
+}

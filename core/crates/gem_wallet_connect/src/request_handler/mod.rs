@@ -63,6 +63,7 @@ impl WalletConnectRequestHandler {
             WalletConnectionMethods::SolanaSignTransaction => SolanaRequestHandler::parse_sign_transaction(Chain::Solana, params),
             WalletConnectionMethods::SolanaSignAndSendTransaction => SolanaRequestHandler::parse_send_transaction(Chain::Solana, params),
             WalletConnectionMethods::SolanaSignAllTransactions => SolanaRequestHandler::parse_sign_all_transactions(params),
+            WalletConnectionMethods::SuiGetAccounts => Ok(WalletConnectAction::GetAccounts { chain: Chain::Sui }),
             WalletConnectionMethods::SuiSignPersonalMessage => SuiRequestHandler::parse_sign_message(Chain::Sui, params, domain),
             WalletConnectionMethods::SuiSignTransaction => SuiRequestHandler::parse_sign_transaction(Chain::Sui, params),
             WalletConnectionMethods::SuiSignAndExecuteTransaction => SuiRequestHandler::parse_send_transaction(Chain::Sui, params),
@@ -160,6 +161,15 @@ mod tests {
             WalletConnectAction::Unsupported {
                 method: "sendTransfer".to_string()
             }
+        );
+    }
+
+    #[test]
+    fn test_sui_get_accounts() {
+        let request = WalletConnectRequest::mock("sui_getAccounts", "{}", Some("sui:mainnet"));
+        assert_eq!(
+            WalletConnectRequestHandler::parse_request(request).unwrap(),
+            WalletConnectAction::GetAccounts { chain: Chain::Sui }
         );
     }
 

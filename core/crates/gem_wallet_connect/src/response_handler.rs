@@ -1,5 +1,8 @@
+use crate::accounts::map_sui_get_accounts;
 use crate::actions::WalletConnectResponseType;
+use primitives::Account;
 use primitives::ChainType;
+use serde_json::Value;
 
 pub struct WalletConnectResponseHandler;
 
@@ -44,6 +47,16 @@ impl WalletConnectResponseHandler {
         }
     }
 
+    pub fn encode_get_accounts(chain_type: ChainType, accounts: &[Account]) -> WalletConnectResponseType {
+        let result = match chain_type {
+            ChainType::Sui => map_sui_get_accounts(accounts),
+            _ => vec![],
+        };
+        WalletConnectResponseType::Object {
+            json: Value::Array(result).to_string(),
+        }
+    }
+
     pub fn encode_sign_all_transactions(signed_transactions: Vec<String>) -> WalletConnectResponseType {
         WalletConnectResponseType::Object {
             json: serde_json::json!({ "transactions": signed_transactions }).to_string(),
@@ -66,6 +79,7 @@ impl WalletConnectResponseHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::{TEST_SUI_ADDRESS, TEST_SUI_PUBLIC_KEY_BASE64, mock_sui_account};
 
     fn object(json: &str) -> WalletConnectResponseType {
         WalletConnectResponseType::Object { json: json.to_string() }
@@ -118,6 +132,15 @@ mod tests {
             WalletConnectResponseHandler::encode_send_transaction(ChainType::Tron, "txid123".to_string()),
             object(r#"{"result":true,"txid":"txid123"}"#)
         );
+    }
+
+    #[test]
+    fn test_encode_get_accounts() {
+        assert_eq!(
+            WalletConnectResponseHandler::encode_get_accounts(ChainType::Sui, &[mock_sui_account()]),
+            object(&format!(r#"[{{"pubkey":"{TEST_SUI_PUBLIC_KEY_BASE64}","address":"{TEST_SUI_ADDRESS}"}}]"#))
+        );
+        assert_eq!(WalletConnectResponseHandler::encode_get_accounts(ChainType::Ethereum, &[mock_sui_account()]), object("[]"));
     }
 
     #[test]

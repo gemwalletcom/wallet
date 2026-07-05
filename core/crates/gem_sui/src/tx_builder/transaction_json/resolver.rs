@@ -69,7 +69,7 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
         .iter()
         .filter_map(|input| match input {
             TransactionInput::UnresolvedObject { object } => Some(object.object_id.clone()),
-            TransactionInput::Pure { .. } | TransactionInput::Object { .. } | TransactionInput::UnresolvedPure { .. } => None,
+            TransactionInput::Pure { .. } | TransactionInput::Object { .. } | TransactionInput::FundsWithdrawal { .. } | TransactionInput::UnresolvedPure { .. } => None,
         })
         .collect::<HashSet<_>>()
         .into_iter()
@@ -93,7 +93,7 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
         .enumerate()
         .filter_map(|(index, input)| match input {
             TransactionInput::UnresolvedObject { object } => Some(object_input_from_fetched(index, &object.object_id, &fetched, input_mutability)),
-            TransactionInput::Pure { .. } | TransactionInput::Object { .. } | TransactionInput::UnresolvedPure { .. } => None,
+            TransactionInput::Pure { .. } | TransactionInput::Object { .. } | TransactionInput::FundsWithdrawal { .. } | TransactionInput::UnresolvedPure { .. } => None,
         })
         .collect()
 }

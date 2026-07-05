@@ -264,6 +264,10 @@ extension WalletConnectorService {
             return .response(response.map())
         case let .chainOperation(operation):
             return handleChainOperation(operation: operation)
+        case let .getAccounts(chain):
+            let accounts = try signer.getAccounts(sessionId: sessionId, chain: chain.map())
+            let response = walletConnect.encodeGetAccounts(chain: chain, accounts: accounts.map { $0.mapToGem() })
+            return .response(response.map())
         case let .unsupported(method):
             throw WalletConnectorServiceError.unresolvedMethod(method)
         }
@@ -326,7 +330,7 @@ extension WalletConnectorService {
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Wallet) async throws -> Session {
         let chains = signer.getChains(wallet: wallet)
-        let accounts = signer.getAccounts(wallet: wallet, chains: chains)
+        let accounts = wallet.accounts.filter { chains.contains($0.chain) }
         let events = signer.getEvents()
         let methods = signer.getMethods()
         let supportedAccounts = accounts.compactMap(\.blockchain)
@@ -343,6 +347,7 @@ extension WalletConnectorService {
         let sessionProperties = walletConnect.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
             caip2Chains: caip2Chains,
+            accounts: accounts.map { $0.mapToGem() },
         )
 
         return try await WalletKit.instance.approve(

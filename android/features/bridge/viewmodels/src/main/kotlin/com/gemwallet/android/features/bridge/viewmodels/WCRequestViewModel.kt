@@ -13,11 +13,15 @@ import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
+import com.gemwallet.android.features.bridge.viewmodels.model.payload
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionSession
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -87,6 +91,10 @@ class WCRequestViewModel @Inject constructor(
                     handleChainOperation(action, sessionRequest, onError)
                     return@launch
                 }
+                if (action is WalletConnectAction.GetAccounts) {
+                    handleGetAccounts(action, sessionRequest, connection, onError)
+                    return@launch
+                }
 
                 val wallet = walletsRepository.getWallet(connection.wallet.id).firstOrNull()
                 if (wallet == null) {
@@ -153,6 +161,21 @@ class WCRequestViewModel @Inject constructor(
         }
     }
 
+    private fun handleGetAccounts(
+        action: WalletConnectAction.GetAccounts,
+        sessionRequest: WalletConnectSessionRequest,
+        connection: WalletConnection,
+        onError: (String) -> Unit,
+    ) {
+        val chain = action.chain.toChain() ?: throw BridgeRequestError.ChainUnsupported
+        validateChain(chain, connection.session)
+
+        val accounts = connection.wallet.accounts
+            .filter { it.chain == chain }
+            .map { it.toGem() }
+        response(sessionRequest.topic, sessionRequest.request.id, walletConnect.encodeGetAccounts(action.chain, accounts).payload(), onError)
+    }
+
     private suspend fun buildRequest(
         action: WalletConnectAction,
         sessionRequest: WalletConnectSessionRequest,
@@ -198,7 +221,8 @@ class WCRequestViewModel @Inject constructor(
             )
         }
 
-        is WalletConnectAction.ChainOperation -> error("Immediate WalletConnect responses must be handled before request resolution")
+        is WalletConnectAction.ChainOperation,
+        is WalletConnectAction.GetAccounts -> error("Immediate WalletConnect responses must be handled before request resolution")
         is WalletConnectAction.Unsupported -> throw BridgeRequestError.MethodUnsupported
     }
 

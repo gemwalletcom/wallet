@@ -1,4 +1,6 @@
-use super::model::{TransactionArgument, TransactionCommand, TransactionInput, TransactionObject};
+use super::model::{
+    FundsWithdrawalInput, TransactionArgument, TransactionCommand, TransactionInput, TransactionObject, WithdrawalReservation, WithdrawalSource, WithdrawalTypeArg,
+};
 use crate::{SuiError, address::SuiAddress, tx_builder::move_call as sui_move_call};
 use gem_encoding::decode_base64;
 use std::{collections::HashMap, str::FromStr};
@@ -23,8 +25,21 @@ pub(super) fn replay_input(txb: &mut TransactionBuilder, index: usize, input: &T
                 .cloned()
                 .ok_or_else(|| SuiError::invalid_input("Missing resolved Sui object input"))?,
         )),
+        TransactionInput::FundsWithdrawal { funds_withdrawal } => funds_withdrawal_input(txb, funds_withdrawal),
         TransactionInput::UnresolvedPure { pure } => Err(SuiError::invalid_input(format!("Sui transaction contains unresolved pure input: {pure}"))),
     }
+}
+
+fn funds_withdrawal_input(txb: &mut TransactionBuilder, funds_withdrawal: &FundsWithdrawalInput) -> Result<Argument, SuiError> {
+    let WithdrawalSource::Sender { .. } = funds_withdrawal.withdraw_from else {
+        return Err(SuiError::invalid_input("Unsupported Sui funds withdrawal source"));
+    };
+    let WithdrawalReservation::MaxAmountU64 { max_amount } = funds_withdrawal.reservation;
+    let WithdrawalTypeArg::Balance { balance } = &funds_withdrawal.type_arg;
+    let coin_type: TypeTag = balance
+        .parse()
+        .map_err(|err| SuiError::invalid_input(format!("Invalid Sui withdrawal balance type {balance}: {err}")))?;
+    Ok(txb.funds_withdrawal(coin_type, max_amount))
 }
 
 pub(super) fn replay_command(txb: &mut TransactionBuilder, command: TransactionCommand, inputs: &[Argument], outputs: &[CommandOutput]) -> Result<CommandOutput, SuiError> {
@@ -149,6 +164,24 @@ fn input_or_output_argument(txb: &mut TransactionBuilder, argument: &Transaction
     }
 }
 
-fn digest(value: &str) -> Result<Digest, SuiError> {
+pub(super) fn digest(value: &str) -> Result<Digest, SuiError> {
     Digest::from_str(value).map_err(|err| SuiError::invalid_input(format!("Invalid Sui object digest {value}: {err}")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_replay_funds_withdrawal_input() {
+        let input: TransactionInput = serde_json::from_str(include_str!("../../../testdata/funds_withdrawal_sender.json")).unwrap();
+
+        let mut txb = TransactionBuilder::new();
+        assert!(replay_input(&mut txb, 0, &input, &HashMap::new()).is_ok());
+
+        let sponsored: TransactionInput = serde_json::from_str(include_str!("../../../testdata/funds_withdrawal_sponsor.json")).unwrap();
+
+        let mut txb = TransactionBuilder::new();
+        assert!(replay_input(&mut txb, 0, &sponsored, &HashMap::new()).is_err());
+    }
 }

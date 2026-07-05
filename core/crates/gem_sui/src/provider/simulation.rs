@@ -8,14 +8,21 @@ use primitives::{Asset, Chain, SimulationBalanceChange, SimulationInput, Simulat
 use crate::decode_transaction;
 use crate::provider::simulation_mapper::map_simulation_result;
 use crate::rpc::client::SuiClient;
+use crate::tx_builder::{finish_transaction_json_from_sender, is_transaction_json};
+use gem_encoding::encode_base64;
 
 #[async_trait]
 impl ChainSimulation for SuiClient {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
-        let transaction: sui_types::Transaction = decode_transaction(&input.encoded_transaction).map_err(|err| format!("parse transaction: {err}"))?;
+        let encoded_transaction = if is_transaction_json(input.encoded_transaction.as_bytes()) {
+            encode_base64(&finish_transaction_json_from_sender(self, &input.encoded_transaction).await?.tx_data)
+        } else {
+            input.encoded_transaction
+        };
+        let transaction: sui_types::Transaction = decode_transaction(&encoded_transaction).map_err(|err| format!("parse transaction: {err}"))?;
         let sender = transaction.sender.to_string();
 
-        let simulated = self.simulate_encoded_transaction(&input.encoded_transaction).await?;
+        let simulated = self.simulate_encoded_transaction(&encoded_transaction).await?;
         let mut result = map_simulation_result(&sender, &simulated);
 
         let changes = std::mem::take(&mut result.balance_changes);

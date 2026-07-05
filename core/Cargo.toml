@@ -73,6 +73,7 @@ reqwest = { version = "0.13.4", features = [
 ] }
 
 url = { version = "2.5.8" }
+percent-encoding = { version = "2.3.2" }
 config = { version = "0.15.23", features = ["yaml"] }
 rocket = { version = "0.5.1", features = ["json"] }
 rocket_ws = { version = "0.1.1" }

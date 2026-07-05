@@ -1,13 +1,27 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use serde_serializers::deserialize_u64_from_str_or_int;
+use serde_serializers::{deserialize_option_u64_from_str_or_int, deserialize_u64_from_str_or_int};
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionBuilderJson {
     pub version: u8,
+    pub sender: Option<String>,
+    pub expiration: Option<Value>,
+    pub gas_data: Option<GasData>,
     pub inputs: Vec<TransactionInput>,
     pub commands: Vec<TransactionCommand>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GasData {
+    #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]
+    pub budget: Option<u64>,
+    #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]
+    pub price: Option<u64>,
+    pub owner: Option<String>,
+    pub payment: Option<Vec<ObjectRef>>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -25,9 +39,52 @@ pub enum TransactionInput {
         #[serde(rename = "UnresolvedObject")]
         object: UnresolvedObject,
     },
+    FundsWithdrawal {
+        #[serde(rename = "FundsWithdrawal")]
+        funds_withdrawal: FundsWithdrawalInput,
+    },
     UnresolvedPure {
         #[serde(rename = "UnresolvedPure")]
         pure: Value,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FundsWithdrawalInput {
+    pub reservation: WithdrawalReservation,
+    pub type_arg: WithdrawalTypeArg,
+    pub withdraw_from: WithdrawalSource,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum WithdrawalReservation {
+    MaxAmountU64 {
+        #[serde(rename = "MaxAmountU64", deserialize_with = "deserialize_u64_from_str_or_int")]
+        max_amount: u64,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum WithdrawalTypeArg {
+    Balance {
+        #[serde(rename = "Balance")]
+        balance: String,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum WithdrawalSource {
+    Sender {
+        #[serde(rename = "Sender")]
+        sender: bool,
+    },
+    Sponsor {
+        #[serde(rename = "Sponsor")]
+        sponsor: bool,
     },
 }
 
@@ -57,6 +114,15 @@ pub enum TransactionObject {
         #[serde(rename = "Receiving")]
         object: ObjectRef,
     },
+}
+
+impl TransactionObject {
+    pub fn object_id(&self) -> &str {
+        match self {
+            Self::ImmOrOwnedObject { object } | Self::Receiving { object } => &object.object_id,
+            Self::SharedObject { object } => &object.object_id,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -178,5 +244,29 @@ mod tests {
         assert_eq!(transaction.version, 2);
         assert_eq!(transaction.inputs.len(), 2);
         assert_eq!(transaction.commands.len(), 2);
+        assert_eq!(transaction.sender, None);
+        assert!(transaction.gas_data.is_none());
+    }
+
+    #[test]
+    fn test_decode_wallet_connect_sign_transaction_json() {
+        let transaction: TransactionBuilderJson = serde_json::from_str(include_str!("../../../testdata/wc_sign_transaction_cetus.json")).unwrap();
+
+        assert_eq!(transaction.inputs.len(), 23);
+        assert_eq!(transaction.commands.len(), 8);
+        assert_eq!(transaction.gas_data.unwrap().budget, Some(50_000_000));
+
+        match &transaction.inputs[20] {
+            TransactionInput::Object {
+                object: TransactionObject::ImmOrOwnedObject { object },
+            } => assert_eq!(object.version, 936480130),
+            other => panic!("expected owned object input, got {other:?}"),
+        }
+        match &transaction.commands[2] {
+            TransactionCommand::MoveCall { move_call } => {
+                assert_eq!(move_call.arguments[3], TransactionArgument::NestedResult { nested_result: [1, 0] });
+            }
+            other => panic!("expected move call command, got {other:?}"),
+        }
     }
 }

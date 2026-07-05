@@ -5,7 +5,7 @@ use gem_wallet_connect::{
     WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
 };
 use primitives::{
-    Chain, ChainAddress, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionVerificationStatus,
+    Account, Chain, ChainAddress, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionVerificationStatus,
 };
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -50,6 +50,14 @@ pub struct WCEthereumTransactionData {
     pub data: Option<String>,
 }
 
+#[uniffi::remote(Record)]
+pub struct Account {
+    pub chain: Chain,
+    pub address: String,
+    pub derivation_path: String,
+    pub extended_public_key: Option<String>,
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct WCSolanaTransactionData {
     pub transaction: String,
@@ -85,6 +93,9 @@ pub enum WalletConnectAction {
     },
     ChainOperation {
         operation: WalletConnectChainOperation,
+    },
+    GetAccounts {
+        chain: Chain,
     },
     Unsupported {
         method: String,
@@ -249,6 +260,7 @@ impl From<WcWalletConnectAction> for WalletConnectAction {
                 data,
             },
             WcWalletConnectAction::ChainOperation { operation } => Self::ChainOperation { operation: operation.into() },
+            WcWalletConnectAction::GetAccounts { chain } => Self::GetAccounts { chain },
             WcWalletConnectAction::Unsupported { method } => Self::Unsupported { method },
         }
     }
@@ -366,6 +378,10 @@ impl WalletConnect {
         WalletConnectResponseHandler::encode_sign_all_transactions(signed_transactions).into()
     }
 
+    pub fn encode_get_accounts(&self, chain: Chain, accounts: Vec<Account>) -> WalletConnectResponseType {
+        WalletConnectResponseHandler::encode_get_accounts(chain.chain_type(), &accounts).into()
+    }
+
     pub fn encode_send_transaction(&self, chain: Chain, transaction_id: String) -> WalletConnectResponseType {
         WalletConnectResponseHandler::encode_send_transaction(chain.chain_type(), transaction_id).into()
     }
@@ -374,9 +390,9 @@ impl WalletConnect {
         simulation::decode_message(chain, sign_type, data)
     }
 
-    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>) -> HashMap<String, String> {
+    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
         let chains: Vec<Chain> = caip2_chains.into_iter().filter_map(|caip2| WalletConnectCAIP2::resolve_chain(Some(caip2)).ok()).collect();
-        config_session_properties(properties, &chains)
+        config_session_properties(properties, &chains, &accounts)
     }
 
     pub fn decode_send_transaction(&self, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {

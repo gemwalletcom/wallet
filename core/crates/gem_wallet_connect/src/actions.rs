@@ -26,6 +26,9 @@ pub enum WalletConnectAction {
     ChainOperation {
         operation: WalletConnectChainOperation,
     },
+    GetAccounts {
+        chain: Chain,
+    },
     Unsupported {
         method: String,
     },

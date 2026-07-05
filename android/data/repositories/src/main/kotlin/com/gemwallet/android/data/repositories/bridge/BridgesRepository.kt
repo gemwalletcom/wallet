@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.bridge
 
 import android.util.Log
 import androidx.core.net.toUri
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.Wallet as GemWallet
 import kotlinx.coroutines.CoroutineScope
@@ -147,6 +148,7 @@ class BridgesRepository(
         val sessionProperties = WalletConnect().configSessionProperties(
             properties = proposal.properties ?: emptyMap(),
             caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() },
+            accounts = wallet.accounts.map { it.toGem() },
         )
         approveAndStoreSession(wallet, "Connection failed", onSuccess, onError) { onApproved, onFailure ->
             walletConnectClient.approveSession(

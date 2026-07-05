@@ -1,0 +1,325 @@
+{
+  "version": 2,
+  "sender": "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1",
+  "expiration": null,
+  "gasData": {
+    "budget": "50000000",
+    "price": null,
+    "owner": null,
+    "payment": null
+  },
+  "inputs": [
+    {
+      "Pure": {
+        "bytes": "IDU3NGM0OWUzNDYyZGE2ODQxZmIzYmM1NmE3YTQ4MThj"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "qQ9ZJQIAAAA="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "WOWZIgIAAAA="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AAAAAA=="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x2cd8382c19e6994f16df204e9b8cddd04bdc486c251de75ac66ac4e48e3e7081"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x150df55277f700daa9577d833426cb0d36ba9ee7ddef16ebd7e429c859015f0d"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AQ=="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "//////////8="
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x0000000000000000000000000000000000000000000000000000000000000006"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x27565d24a4cd51127ac90e4074a841bbe356cca7bf5759ddc14a975be1632abc"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x67624a1533b5aff5d0dfcf5e598684350efd38134d2d245f475524c03a64e656"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "CgAAAAAAAAA="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "//////////8="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AA=="
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0xdaa46292632c3c4d8f31f23ea0f9b36a28ff3677e9684980e4438403a67a3d8f"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0x238f7e4648e62751de29c982cbf639b4225547c31db7bd866982d7d56fc2c7a8"
+      }
+    },
+    {
+      "UnresolvedObject": {
+        "objectId": "0xeb863165a109f7791a3182be08aff1438ab2a429314fc135ae19d953afe1edd6"
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "AQ=="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "//////////8="
+      }
+    },
+    {
+      "Object": {
+        "ImmOrOwnedObject": {
+          "objectId": "0xee23d0cd34718145602307f4dccb3228334afbefb2a89919b98e97c420361d5a",
+          "version": "936480130",
+          "digest": "2VNLwUneAbpQGaV78VNwT1krujmKm8yknmEUeTWzgTnA"
+        }
+      }
+    },
+    {
+      "Object": {
+        "ImmOrOwnedObject": {
+          "objectId": "0x8f6dadd965ad36d25ff1a4b3aabe9f8e53c8a37b68f2b4519aeeb89c0668cb70",
+          "version": "658419224",
+          "digest": "92KHVRKECNWCb45uySUkvcFJeu7urKr3vHbb9pTtinQk"
+        }
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "ANYRfgMAAAA="
+      }
+    }
+  ],
+  "commands": [
+    {
+      "MergeCoins": {
+        "destination": {
+          "Input": 20
+        },
+        "sources": [
+          {
+            "Input": 21
+          }
+        ]
+      }
+    },
+    {
+      "SplitCoins": {
+        "coin": {
+          "Input": 20
+        },
+        "amounts": [
+          {
+            "Input": 22
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0xde5d696a79714ca5cb910b9aed99d41f67353abb00715ceaeb0663d57ee39640",
+        "module": "router",
+        "function": "new_swap_context",
+        "typeArguments": [
+          "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE",
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Input": 0
+          },
+          {
+            "Input": 1
+          },
+          {
+            "Input": 2
+          },
+          {
+            "NestedResult": [
+              1,
+              0
+            ]
+          },
+          {
+            "Input": 3
+          },
+          {
+            "Input": 4
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0x3aeee81b8b88da7e9b4b22ceca217fc198dac1e5be61e417a8cb7733acb1b8a8",
+        "module": "ferra_clmm",
+        "function": "swap",
+        "typeArguments": [
+          "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE",
+          "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC"
+        ],
+        "arguments": [
+          {
+            "Result": 2
+          },
+          {
+            "Input": 5
+          },
+          {
+            "Input": 6
+          },
+          {
+            "Input": 7
+          },
+          {
+            "Input": 8
+          },
+          {
+            "Input": 9
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0x66d7bfb7ca9002c4e0a2a8bfb763ca224011be912f24025a52a4e19be0cb0ac0",
+        "module": "flowx_clmm",
+        "function": "swap",
+        "typeArguments": [
+          "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN",
+          "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC"
+        ],
+        "arguments": [
+          {
+            "Result": 2
+          },
+          {
+            "Input": 10
+          },
+          {
+            "Input": 11
+          },
+          {
+            "Input": 12
+          },
+          {
+            "Input": 13
+          },
+          {
+            "Input": 14
+          },
+          {
+            "Input": 9
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0x721d950e57259cd97d41010887ab502ee7753b0a3deb4b6a80099aad0c833928",
+        "module": "cetus",
+        "function": "swap",
+        "typeArguments": [
+          "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN",
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Result": 2
+          },
+          {
+            "Input": 15
+          },
+          {
+            "Input": 16
+          },
+          {
+            "Input": 17
+          },
+          {
+            "Input": 18
+          },
+          {
+            "Input": 19
+          },
+          {
+            "Input": 9
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0xde5d696a79714ca5cb910b9aed99d41f67353abb00715ceaeb0663d57ee39640",
+        "module": "router",
+        "function": "confirm_swap",
+        "typeArguments": [
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Result": 2
+          }
+        ]
+      }
+    },
+    {
+      "MoveCall": {
+        "package": "0xde5d696a79714ca5cb910b9aed99d41f67353abb00715ceaeb0663d57ee39640",
+        "module": "router",
+        "function": "transfer_or_destroy_coin",
+        "typeArguments": [
+          "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS"
+        ],
+        "arguments": [
+          {
+            "Result": 6
+          }
+        ]
+      }
+    }
+  ]
+}
