@@ -3,7 +3,7 @@ use std::sync::Arc;
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{AssetId, Chain, ChainType, swap::ApprovalData};
+use primitives::{AssetId, Chain, ChainType, EVMChain, swap::ApprovalData};
 
 use super::{
     asset::{SUPPORTED_CHAINS, asset_to_currency},
@@ -15,7 +15,7 @@ use super::{
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
     SwapperProvider, SwapperQuoteData, approval::check_approval_erc20, config::get_swap_proxy_url, cross_chain::VaultAddresses, fees::DEFAULT_REFERRER,
-    fees::default_referral_fees,
+    fees::default_referral_fees, native_asset::is_native_erc20,
 };
 
 #[derive(Debug)]
@@ -149,26 +149,91 @@ where
     C: Client + Clone + Send + Sync + std::fmt::Debug + 'static,
 {
     async fn check_evm_approval(&self, quote: &Quote, quote_response: &RelayQuoteResponse, from_asset_id: &AssetId) -> Result<Option<ApprovalData>, SwapperError> {
-        match from_asset_id.chain.chain_type() {
-            ChainType::Ethereum if !from_asset_id.is_native() => {
-                let spender = quote_response.router_address().ok_or(SwapperError::InvalidRoute)?;
-
-                let token = from_asset_id.token_id.clone().ok_or(SwapperError::NotSupportedAsset)?;
-                let amount: U256 = quote.from_value.parse().map_err(SwapperError::from)?;
-
-                Ok(check_approval_erc20(
-                    quote.request.wallet_address.clone(),
-                    token,
-                    spender,
-                    amount,
-                    self.rpc_provider.clone(),
-                    &from_asset_id.chain,
-                )
-                .await?
-                .approval_data())
-            }
-            _ => Ok(None),
+        if from_asset_id.chain.chain_type() != ChainType::Ethereum {
+            return Ok(None);
         }
+        let token = if let Some(token_id) = from_asset_id.token_id.clone() {
+            token_id
+        } else if is_native_erc20(from_asset_id.chain) {
+            // On Celo the native asset is itself an ERC-20; Relay pulls it via transferFrom instead of msg.value
+            let evm_chain = EVMChain::from_chain(from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
+            evm_chain.weth_contract().ok_or(SwapperError::NotSupportedChain)?.to_string()
+        } else {
+            return Ok(None);
+        };
+
+        let spender = quote_response.router_address().ok_or(SwapperError::InvalidRoute)?;
+        let amount: U256 = quote.from_value.parse().map_err(SwapperError::from)?;
+
+        Ok(check_approval_erc20(
+            quote.request.wallet_address.clone(),
+            token,
+            spender,
+            amount,
+            self.rpc_provider.clone(),
+            &from_asset_id.chain,
+        )
+        .await?
+        .approval_data())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{alien::mock::ProviderMock, relay::model::Step};
+    use gem_client::testkit::MockClient;
+    use primitives::asset_constants::CELO_WETH_TOKEN_ID;
+
+    const ROUTER_ADDRESS: &str = "0xCcC88a9d1B4ED6b0EABA998850414b24f1c315bE";
+    const QUOTE_VALUE: &str = "40000000000000000000";
+    const ZERO_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    const SUFFICIENT_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000022b1c8c1227a00000";
+
+    fn mock_relay_with_allowance(allowance_result: &str) -> Relay<MockClient> {
+        Relay {
+            provider: ProviderType::new(SwapperProvider::Relay),
+            rpc_provider: Arc::new(ProviderMock::new(format!(r#"{{"id":1,"jsonrpc":"2.0","result":"{allowance_result}"}}"#))),
+            client: RelayClient::new(MockClient::new()),
+        }
+    }
+
+    fn mock_quote(chain: Chain) -> Quote {
+        let mut quote = Quote::mock(chain, None);
+        quote.from_value = QUOTE_VALUE.to_string();
+        quote.request.wallet_address = "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string();
+        quote
+    }
+
+    fn mock_quote_response() -> RelayQuoteResponse {
+        RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", ROUTER_ADDRESS, "0", "0xf9e4bab4")])
+    }
+
+    #[tokio::test]
+    async fn test_check_evm_approval_native_erc20() -> Result<(), SwapperError> {
+        let relay = mock_relay_with_allowance(ZERO_ALLOWANCE);
+        let approval = relay
+            .check_evm_approval(&mock_quote(Chain::Celo), &mock_quote_response(), &AssetId::from_chain(Chain::Celo))
+            .await?
+            .unwrap();
+
+        assert_eq!(approval.token, CELO_WETH_TOKEN_ID);
+        assert_eq!(approval.spender, ROUTER_ADDRESS);
+        assert_eq!(approval.value, QUOTE_VALUE);
+
+        let relay = mock_relay_with_allowance(SUFFICIENT_ALLOWANCE);
+        let approval = relay
+            .check_evm_approval(&mock_quote(Chain::Celo), &mock_quote_response(), &AssetId::from_chain(Chain::Celo))
+            .await?;
+        assert!(approval.is_none());
+
+        let relay = mock_relay_with_allowance(ZERO_ALLOWANCE);
+        let approval = relay
+            .check_evm_approval(&mock_quote(Chain::Ethereum), &mock_quote_response(), &AssetId::from_chain(Chain::Ethereum))
+            .await?;
+        assert!(approval.is_none());
+
+        Ok(())
     }
 }
 
@@ -235,6 +300,38 @@ mod swap_integration_tests {
         assert!(!quote_data.data.is_empty());
         assert!(!quote_data.to.is_empty());
         assert!(quote_data.approval.is_some());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_relay_celo_to_bsc_usdt() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        use primitives::asset_constants::{CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
+        use std::collections::HashMap;
+
+        let provider = Arc::new(NativeProvider::new_with_endpoints(HashMap::from([(Chain::Celo, "https://forno.celo.org".to_string())])));
+        let relay = Relay::new(provider);
+
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Celo)),
+            to_asset: SwapperQuoteAsset::from(SMARTCHAIN_USDT_ASSET_ID.clone()),
+            wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: "40000000000000000000".to_string(),
+            options: Options::new_with_slippage(100.into()),
+        };
+
+        let quote = relay.get_quote(&request).await?;
+        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+
+        println!("quote: from_value={}, to_value={}", quote.from_value, quote.to_value);
+        println!("quote_data: to={}, value={}, gas_limit={:?}", quote_data.to, quote_data.value, quote_data.gas_limit);
+
+        let approval = quote_data.approval.expect("native CELO swap requires an approval");
+        assert_eq!(approval.token, CELO_WETH_TOKEN_ID);
+        assert_eq!(quote_data.value, "0");
+        assert!(quote_data.gas_limit.is_some());
+        assert!(!quote_data.data.is_empty());
 
         Ok(())
     }

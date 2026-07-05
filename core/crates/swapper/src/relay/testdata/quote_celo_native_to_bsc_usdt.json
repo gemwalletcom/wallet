@@ -1,0 +1,58 @@
+{
+    "steps": [
+        {
+            "id": "approve",
+            "action": "Approve",
+            "kind": "transaction",
+            "items": [
+                {
+                    "status": "incomplete",
+                    "data": {
+                        "from": "0x1085c5f70f7f7591d97da281a64688385455c2bd",
+                        "to": "0x471ece3750da237f93b8e339c536989b8978a438",
+                        "data": "0x095ea7b3",
+                        "value": "0",
+                        "chainId": 42220,
+                        "gas": "67593",
+                        "maxFeePerGas": "220001000000"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "deposit",
+            "kind": "transaction",
+            "items": [
+                {
+                    "data": {
+                        "from": "0x1085c5f70f7f7591d97da281a64688385455c2bd",
+                        "to": "0xccc88a9d1b4ed6b0eaba998850414b24f1c315be",
+                        "data": "0xf9e4bab4",
+                        "value": "0",
+                        "chainId": 42220,
+                        "gas": "482935",
+                        "maxFeePerGas": "220001000000"
+                    }
+                }
+            ]
+        }
+    ],
+    "details": {
+        "currencyOut": {
+            "amount": "2593892836664359467"
+        },
+        "timeEstimate": 2,
+        "swapImpact": {
+            "usd": "0.001385",
+            "percent": "0.05"
+        }
+    },
+    "fees": {
+        "gas": {
+            "amount": "106245891439125"
+        },
+        "relayer": {
+            "amount": "36096561651000"
+        }
+    }
+}

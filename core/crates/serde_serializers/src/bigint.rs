@@ -31,6 +31,16 @@ where
     parse_bigint_str(&s).map_err(de::Error::custom)
 }
 
+pub fn serialize_option_bigint<S>(value: &Option<BigInt>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    match value {
+        Some(value) => serializer.serialize_some(&value.to_string()),
+        None => serializer.serialize_none(),
+    }
+}
+
 pub fn deserialize_option_bigint_from_str<'de, D>(deserializer: D) -> Result<Option<BigInt>, D::Error>
 where
     D: de::Deserializer<'de>,
