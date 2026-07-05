@@ -19,6 +19,10 @@ impl JupiterClient<ReqwestClient> {
     pub fn new_with_reqwest_client(client: reqwest::Client) -> Self {
         Self::new_with_client(ReqwestClient::new(JUPITER_API_URL.to_string(), client))
     }
+
+    pub fn new_with_reqwest_client_and_api_key(client: reqwest::Client, api_key: String) -> Self {
+        Self::new_with_client_and_api_key(ReqwestClient::new(JUPITER_API_URL.to_string(), client), api_key)
+    }
 }
 
 impl<C: Client> JupiterClient<C> {
@@ -81,7 +85,7 @@ mod tests {
         let trending = client.get_top_trending_tokens("24h", 10).await.unwrap();
 
         assert_eq!(verified[0].id, "So11111111111111111111111111111111111111112");
-        assert_eq!(verified[0].is_verified(), true);
+        assert!(verified[0].is_verified());
         assert_eq!(trending[0].id, "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN");
         assert_eq!(trending[0].icon.as_deref(), Some("https://example.com/jup.png"));
     }

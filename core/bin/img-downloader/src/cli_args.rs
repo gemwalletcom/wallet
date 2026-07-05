@@ -3,6 +3,7 @@ use clap::{Parser, ValueEnum};
 #[derive(Clone, Copy, Debug, ValueEnum)]
 pub enum ImageSource {
     Coingecko,
+    Coinmarketcap,
     Jupiter,
 }
 
@@ -27,7 +28,7 @@ pub struct Args {
     #[arg(short, long)]
     pub folder: Option<String>,
 
-    /// Provider ID. CoinGecko uses coin ID, Jupiter uses token mint
+    /// Provider ID. CoinGecko uses coin ID, CoinMarketCap uses coin ID or symbol, Jupiter uses token mint
     #[arg(long, default_value = "")]
     pub id: String,
 }

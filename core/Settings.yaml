@@ -15,6 +15,9 @@ rabbitmq:
 coingecko:
   key:
     secret: ""
+coinmarketcap:
+  key:
+    secret: ""
 fiat:
   timeout: 3s
 moonpay:

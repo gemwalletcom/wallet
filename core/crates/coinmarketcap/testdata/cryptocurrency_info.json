@@ -1,0 +1,71 @@
+{
+  "status": {
+    "timestamp": "2026-07-05T00:00:00.000Z",
+    "error_code": 0,
+    "error_message": null
+  },
+  "data": {
+    "1027": {
+      "id": 1027,
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "platform": null,
+      "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+      "contract_address": [
+        {
+          "contract_address": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+          "platform": {
+            "name": "Ethereum",
+            "coin": {
+              "slug": "ethereum"
+            }
+          }
+        },
+        {
+          "contract_address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+          "platform": {
+            "name": "BNB Smart Chain (BEP20)",
+            "coin": {
+              "slug": "bnb"
+            }
+          }
+        },
+        {
+          "contract_address": "0x9E5AAC1A27B588C27E8fFfF23d23Ebc2bcE4b37F",
+          "platform": {
+            "name": "opBNB",
+            "coin": {
+              "slug": "bnb"
+            }
+          }
+        }
+      ]
+    },
+    "USDT": [
+      {
+        "id": 825,
+        "name": "Tether USDt",
+        "symbol": "USDT",
+        "platform": {
+          "id": 1027,
+          "name": "Ethereum",
+          "symbol": "ETH",
+          "slug": "ethereum",
+          "token_address": "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+        },
+        "logo": "https://s2.coinmarketcap.com/static/img/coins/128x128/825.png",
+        "contract_address": [
+          {
+            "contract_address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "platform": {
+              "name": "Ethereum",
+              "coin": {
+                "slug": "ethereum"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

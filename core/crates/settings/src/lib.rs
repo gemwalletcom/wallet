@@ -31,6 +31,7 @@ pub struct Settings {
 
     pub prices: Prices,
     pub coingecko: CoinGecko,
+    pub coinmarketcap: CoinMarketCap,
     pub charter: Charter,
     pub name: Name,
     pub chains: Chains,
@@ -124,6 +125,7 @@ pub struct SecretKeySettings {
     pub key: KeySecret,
 }
 pub type CoinGecko = SecretKeySettings;
+pub type CoinMarketCap = SecretKeySettings;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UrlSecretKeySettings {

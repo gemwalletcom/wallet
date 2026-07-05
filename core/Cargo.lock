@@ -1866,6 +1866,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "coinmarketcap"
+version = "1.0.0"
+dependencies = [
+ "gem_client",
+ "primitives",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4590,6 +4602,7 @@ dependencies = [
  "chain_primitives",
  "clap",
  "coingecko",
+ "coinmarketcap",
  "config",
  "gem_tracing",
  "image",

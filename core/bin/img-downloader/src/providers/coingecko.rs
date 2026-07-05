@@ -1,6 +1,8 @@
-use super::{config::CoingeckoProviderConfig, model::AssetImage};
+use super::{config::CoingeckoProviderConfig, mapper::is_native_token, model::AssetImage};
 use coingecko::{Coin, CoinGeckoClient, CoinMarket, get_chain_for_coingecko_platform_id, model::SearchTrending};
 use std::{collections::HashMap, error::Error};
+
+const MAX_MARKETS_PER_PAGE: usize = 250;
 
 pub struct CoingeckoProvider {
     client: CoinGeckoClient,
@@ -16,7 +18,18 @@ impl CoingeckoProvider {
     }
 
     pub async fn get_top_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let markets = self.client.get_coin_markets(1, self.config.top_count).await?;
+        if self.config.top_count == 0 {
+            return Ok(vec![]);
+        }
+
+        let pages = self.config.top_count.div_ceil(MAX_MARKETS_PER_PAGE);
+        let markets = self
+            .client
+            .get_all_coin_markets(None, MAX_MARKETS_PER_PAGE, pages)
+            .await?
+            .into_iter()
+            .take(self.config.top_count)
+            .collect();
         let coins = self.client.get_coin_list().await?;
         Ok(Self::map_market_images(markets, Self::coins_by_id(coins)))
     }
@@ -77,16 +90,12 @@ impl CoingeckoProvider {
                 if address.is_empty() {
                     return None;
                 }
-                if let Some(denom) = chain.as_denom()
-                    && denom == address
-                {
-                    return None;
-                }
-                Some(AssetImage {
+                let image = AssetImage {
                     chain,
                     token_id: address,
                     image_url: image_url.clone(),
-                })
+                };
+                (!is_native_token(&image)).then_some(image)
             })
             .collect()
     }

@@ -13,6 +13,11 @@ image:
 coingecko:
   top:
     count: 250
+coinmarketcap:
+  top:
+    count: 250
+  trending:
+    count: 10
 jupiter:
   top:
     count: 250

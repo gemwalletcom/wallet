@@ -39,6 +39,7 @@ members = [
     "crates/simulation",
 
     "crates/localizer",
+    "crates/coinmarketcap",
     "crates/jupiter",
     "crates/job_runner",
     "crates/metrics",

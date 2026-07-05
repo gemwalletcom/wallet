@@ -12,6 +12,7 @@ pub struct ImgDownloaderConfig {
     pub delay: Duration,
     pub image: ImageConfig,
     pub coingecko: CoingeckoConfig,
+    pub coinmarketcap: CoinMarketCapConfig,
     pub jupiter: JupiterConfig,
 }
 
@@ -32,6 +33,12 @@ pub struct ImageRequestConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct CoingeckoConfig {
     pub top: TopConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct CoinMarketCapConfig {
+    pub top: TopConfig,
+    pub trending: TopConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]

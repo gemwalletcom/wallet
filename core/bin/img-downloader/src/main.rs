@@ -7,16 +7,22 @@ mod providers;
 
 use clap::Parser;
 use config::ImgDownloaderConfig;
-use downloader::Downloader;
+use downloader::{Downloader, DownloaderConfig};
 use settings::Settings;
 use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let args = cli_args::Args::parse();
-    let config = ImgDownloaderConfig::load()?;
+    let img_config = ImgDownloaderConfig::load()?;
     let settings = Settings::new()?;
-    let downloader = Downloader::new(args, settings.coingecko.key.secret, config)?;
+    let downloader = Downloader::new(DownloaderConfig {
+        args,
+        img_config,
+        coingecko_api_key: settings.coingecko.key.secret,
+        coinmarketcap_api_key: settings.coinmarketcap.key.secret,
+        jupiter_api_key: settings.defi.jupiter.key.secret,
+    })?;
 
     downloader.start().await
 }

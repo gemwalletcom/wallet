@@ -2,8 +2,9 @@ use crate::{
     cli_args::{Args, ImageMode, ImageSource},
     config::ImgDownloaderConfig,
     image::download_image,
-    providers::{CoingeckoProvider, CoingeckoProviderConfig, JupiterProvider, JupiterProviderConfig, model::AssetImage},
+    providers::{CoinMarketCapProvider, CoinMarketCapProviderConfig, CoingeckoProvider, CoingeckoProviderConfig, JupiterProvider, JupiterProviderConfig, model::AssetImage},
 };
+use ::coinmarketcap::CoinMarketCapClient;
 use ::jupiter::JupiterClient;
 use gem_tracing::{error_with_fields, info_with_fields, warn_with_fields};
 use primitives::ImageType;
@@ -25,6 +26,7 @@ pub struct Downloader {
     args: Args,
     folder: String,
     coingecko_provider: CoingeckoProvider,
+    coinmarketcap_provider: CoinMarketCapProvider,
     jupiter_provider: JupiterProvider,
     http_client: Client,
     image_size: u32,
@@ -35,25 +37,47 @@ pub struct Downloader {
 
 const USER_AGENT_VALUE: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
+pub struct DownloaderConfig {
+    pub args: Args,
+    pub img_config: ImgDownloaderConfig,
+    pub coingecko_api_key: String,
+    pub coinmarketcap_api_key: String,
+    pub jupiter_api_key: String,
+}
+
 struct PendingAssetImage {
     image: AssetImage,
     path: PathBuf,
 }
 
 impl Downloader {
-    pub fn new(args: Args, coingecko_api_key: String, config: ImgDownloaderConfig) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let folder = args.folder.clone().unwrap_or(config.folder);
-        let http_client = Self::build_http_client(config.image.request.timeout)?;
+    pub fn new(config: DownloaderConfig) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let DownloaderConfig {
+            args,
+            img_config,
+            coingecko_api_key,
+            coinmarketcap_api_key,
+            jupiter_api_key,
+        } = config;
+        let folder = args.folder.clone().unwrap_or(img_config.folder);
+        let http_client = Self::build_http_client(img_config.image.request.timeout)?;
         Ok(Self {
             args,
             folder,
-            coingecko_provider: CoingeckoProvider::new(coingecko_api_key, CoingeckoProviderConfig::new(config.coingecko)),
-            jupiter_provider: JupiterProvider::new(JupiterClient::new_with_reqwest_client(http_client.clone()), JupiterProviderConfig::new(config.jupiter)),
+            coingecko_provider: CoingeckoProvider::new(coingecko_api_key, CoingeckoProviderConfig::new(img_config.coingecko)),
+            coinmarketcap_provider: CoinMarketCapProvider::new(
+                CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), &coinmarketcap_api_key),
+                CoinMarketCapProviderConfig::new(img_config.coinmarketcap),
+            ),
+            jupiter_provider: JupiterProvider::new(
+                JupiterClient::new_with_reqwest_client_and_api_key(http_client.clone(), jupiter_api_key),
+                JupiterProviderConfig::new(img_config.jupiter),
+            ),
             http_client,
-            image_size: config.image.size,
-            supported_image_types: config.image.types,
-            image_request_retries: config.image.request.retries,
-            delay: config.delay,
+            image_size: img_config.image.size,
+            supported_image_types: img_config.image.types,
+            image_request_retries: img_config.image.request.retries,
+            delay: img_config.delay,
         })
     }
 
@@ -74,6 +98,7 @@ impl Downloader {
 
         match self.args.source {
             ImageSource::Coingecko => self.start_coingecko(folder).await,
+            ImageSource::Coinmarketcap => self.start_coinmarketcap(folder).await,
             ImageSource::Jupiter => self.start_jupiter(folder).await,
         }
     }
@@ -102,6 +127,18 @@ impl Downloader {
         self.download_asset_images(images, folder).await
     }
 
+    async fn start_coinmarketcap(&self, folder: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let images = if let Some(id) = self.id() {
+            self.coinmarketcap_provider.get_asset_images(id).await?
+        } else {
+            match self.args.mode {
+                ImageMode::Top => self.coinmarketcap_provider.get_top_asset_images().await?,
+                ImageMode::Trending => self.coinmarketcap_provider.get_trending_asset_images().await?,
+            }
+        };
+        self.download_asset_images(images, folder).await
+    }
+
     fn id(&self) -> Option<&str> {
         if !self.args.id.is_empty() { Some(self.args.id.as_str()) } else { None }
     }
@@ -119,14 +156,14 @@ impl Downloader {
         let mut pending: Vec<PendingAssetImage> = Vec::new();
 
         for image in images {
-            let Some(path) = self.asset_image_path(&image, folder) else {
+            let Some(pending_image) = Self::pending_asset_image(image, folder) else {
                 unsupported += 1;
                 continue;
             };
-            if path.exists() {
+            if pending_image.path.exists() {
                 existing += 1;
             } else {
-                pending.push(PendingAssetImage { image, path });
+                pending.push(pending_image);
             }
         }
 
@@ -202,12 +239,35 @@ impl Downloader {
         Ok(image_downloaded)
     }
 
-    fn asset_image_path(&self, image: &AssetImage, folder: &Path) -> Option<PathBuf> {
-        let token_id = chain_primitives::format_token_id(image.chain, image.token_id.clone())?;
-        Some(folder.join(image.chain.to_string()).join("assets").join(token_id).join("logo.png"))
+    fn pending_asset_image(mut image: AssetImage, folder: &Path) -> Option<PendingAssetImage> {
+        image.token_id = chain_primitives::format_token_id(image.chain, image.token_id)?;
+        let path = folder.join(image.chain.to_string()).join("assets").join(&image.token_id).join("logo.png");
+        Some(PendingAssetImage { image, path })
     }
 }
 
 fn is_unsupported_image_error(error: &(dyn Error + Send + Sync + 'static)) -> bool {
     error.downcast_ref::<crate::error::ImageDownloadError>().is_some()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::Chain;
+
+    #[test]
+    fn test_pending_asset_image_uses_checksum_token_id() {
+        let pending = Downloader::pending_asset_image(
+            AssetImage {
+                chain: Chain::Base,
+                token_id: "0xdf1cf211d38e7762c9691be4d779a441a17a6cfc".to_string(),
+                image_url: String::new(),
+            },
+            Path::new("/tmp/assets"),
+        )
+        .unwrap();
+
+        assert_eq!(pending.image.token_id, "0xDF1Cf211D38E7762c9691Be4D779A441a17A6cFC");
+        assert_eq!(pending.path, Path::new("/tmp/assets/base/assets/0xDF1Cf211D38E7762c9691Be4D779A441a17A6cFC/logo.png"));
+    }
 }
