@@ -45,6 +45,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.TabsBar
+import com.gemwallet.android.ui.components.TabsWidth
 import com.gemwallet.android.ui.components.labelRes
 import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
@@ -223,7 +224,7 @@ fun AssetSelectScene(
                             selected = selectedTag,
                             onSelect = { onAction(AssetSelectAction.SelectTag(it)) },
                             scrollable = true,
-                            equalWidth = false,
+                            width = TabsWidth.WrapContent,
                         ) { item ->
                             Text(
                                 stringResource(item.labelRes()),

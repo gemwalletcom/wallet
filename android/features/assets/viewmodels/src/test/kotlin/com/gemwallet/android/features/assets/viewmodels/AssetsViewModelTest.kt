@@ -4,12 +4,10 @@ import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
-import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
-import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
@@ -49,16 +47,12 @@ class AssetsViewModelTest {
     private val syncAssets = mockk<SyncAssets>(relaxed = true)
     private val hideAsset = mockk<HideAsset>(relaxed = true)
     private val toggleAssetPin = mockk<ToggleAssetPin>(relaxed = true)
-    private val toggleHideBalances = mockk<ToggleHideBalances>(relaxed = true)
     private val hideWelcomeBanner = mockk<HideWelcomeBanner>(relaxed = true)
     private val getImportInProgress = object : GetImportInProgress {
         override fun invoke(): Flow<Boolean> = flowOf(false)
     }
     private val getActiveAssetsInfo = object : GetActiveAssetsInfo {
         override fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> = activeAssetsFlow
-    }
-    private val getWalletSummary = mockk<GetWalletSummary>(relaxed = true) {
-        every { getWalletSummary() } returns flowOf(null)
     }
     private val getHideBalancesState = object : GetHideBalancesState {
         override fun invoke(): Flow<Boolean> = flowOf(false)
@@ -106,11 +100,9 @@ class AssetsViewModelTest {
         syncAssets = syncAssets,
         hideAsset = hideAsset,
         toggleAssetPin = toggleAssetPin,
-        toggleHideBalances = toggleHideBalances,
         hideWelcomeBanner = hideWelcomeBanner,
         getImportInProgress = getImportInProgress,
         getActiveAssetsInfo = getActiveAssetsInfo,
-        getWalletSummary = getWalletSummary,
         getHideBalancesState = getHideBalancesState,
         getShowWelcomeBanner = getShowWelcomeBanner,
         getSession = getSession,

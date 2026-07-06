@@ -6,12 +6,10 @@ import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
-import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
-import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.wallet.core.primitives.AssetId
@@ -30,11 +28,9 @@ class AssetsViewModel @Inject constructor(
     private val syncAssets: SyncAssets,
     private val hideAsset: HideAsset,
     private val toggleAssetPin: ToggleAssetPin,
-    private val toggleHideBalances: ToggleHideBalances,
     private val hideWelcomeBanner: HideWelcomeBanner,
     getImportInProgress: GetImportInProgress,
     getActiveAssetsInfo: GetActiveAssetsInfo,
-    getWalletSummary: GetWalletSummary,
     getHideBalancesState: GetHideBalancesState,
     getShowWelcomeBanner: GetShowWelcomeBanner,
     getSession: GetSession,
@@ -73,9 +69,6 @@ class AssetsViewModel @Inject constructor(
         .map { it.unpinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val walletSummary = getWalletSummary.getWalletSummary()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     val showWelcomeBanner = getShowWelcomeBanner()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -94,10 +87,6 @@ class AssetsViewModel @Inject constructor(
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch {
         toggleAssetPin(assetId)
-    }
-
-    fun hideBalances() = viewModelScope.launch {
-        toggleHideBalances()
     }
 
     fun onHideWelcomeBanner() = viewModelScope.launch {

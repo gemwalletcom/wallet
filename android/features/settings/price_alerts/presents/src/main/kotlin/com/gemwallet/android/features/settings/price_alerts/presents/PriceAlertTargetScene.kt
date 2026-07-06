@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
+import com.gemwallet.android.ui.components.TabsWidth
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.image.AssetIcon
@@ -127,7 +128,7 @@ fun PriceAlertTargetScene(
                         onSelect = { pair ->
                             value.edit { this.replace(0, this.length, pair.second) }
                         },
-                        equalWidth = false,
+                        width = TabsWidth.WrapContent,
                     ) { pair ->
                         Text(pair.first)
                     }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -108,8 +109,6 @@ internal fun NftListScene(
     listState: LazyGridState = rememberLazyGridState(),
     onAction: (NftListAction) -> Unit,
 ) {
-    val pullToRefreshState = rememberPullToRefreshState()
-
     Scene(
         title = title,
         navigationBarPadding = false,
@@ -129,81 +128,110 @@ internal fun NftListScene(
             null
         }
     ) {
-        PullToRefreshBox(
-            modifier = Modifier.fillMaxSize(),
+        NftListContent(
+            items = items,
             isRefreshing = isRefreshing,
-            onRefresh = { onAction(NftListAction.Refresh) },
-            state = pullToRefreshState,
-            indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = isRefreshing,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background,
-                )
-            },
-        ) {
-            val currentError = error
-            if (currentError != null) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = when (currentError) {
-                                NftError.LoadError -> stringResource(R.string.errors_error_occurred)
-                                NftError.NotFoundAsset -> currentError.message.orEmpty()
-                                NftError.NotFoundCollection -> currentError.message.orEmpty()
-                            }
-                        )
-                        TextButton(onClick = { onAction(NftListAction.Refresh) }) {
-                            Text(stringResource(R.string.common_try_again))
+            error = error,
+            unverifiedCount = unverifiedCount,
+            showReceiveAction = showReceiveAction,
+            showUnverifiedAction = showUnverifiedAction,
+            listState = listState,
+            onAction = onAction,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun NftListContent(
+    items: List<NftItemUIModel>,
+    isRefreshing: Boolean,
+    error: NftError?,
+    unverifiedCount: Int,
+    showReceiveAction: Boolean,
+    showUnverifiedAction: Boolean,
+    listState: LazyGridState = rememberLazyGridState(),
+    onAction: (NftListAction) -> Unit,
+) {
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    PullToRefreshBox(
+        modifier = Modifier.fillMaxSize(),
+        isRefreshing = isRefreshing,
+        onRefresh = { onAction(NftListAction.Refresh) },
+        state = pullToRefreshState,
+        indicator = {
+            Indicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                isRefreshing = isRefreshing,
+                state = pullToRefreshState,
+                containerColor = MaterialTheme.colorScheme.background,
+            )
+        },
+    ) {
+        val currentError = error
+        if (currentError != null) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = when (currentError) {
+                            NftError.LoadError -> stringResource(R.string.errors_error_occurred)
+                            NftError.NotFoundAsset -> currentError.message.orEmpty()
+                            NftError.NotFoundCollection -> currentError.message.orEmpty()
                         }
+                    )
+                    TextButton(onClick = { onAction(NftListAction.Refresh) }) {
+                        Text(stringResource(R.string.common_try_again))
                     }
                 }
-                return@PullToRefreshBox
             }
+            return@PullToRefreshBox
+        }
 
-            val showUnverifiedRow = showUnverifiedAction && unverifiedCount > 0
+        val showUnverifiedRow = showUnverifiedAction && unverifiedCount > 0
 
-            if (items.isEmpty() && !showUnverifiedRow) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item {
-                        EmptyContentView(
-                            type = nftEmptyContentType(
-                                showReceiveAction = showReceiveAction,
-                                onAction = onAction,
-                            ),
-                            modifier = Modifier.fillParentMaxSize(),
-                        )
-                    }
+        if (items.isEmpty() && !showUnverifiedRow) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                item {
+                    EmptyContentView(
+                        type = nftEmptyContentType(
+                            showReceiveAction = showReceiveAction,
+                            onAction = onAction,
+                        ),
+                        modifier = Modifier.fillParentMaxSize(),
+                    )
                 }
-                return@PullToRefreshBox
             }
+            return@PullToRefreshBox
+        }
 
-            Column(modifier = Modifier.fillMaxSize()) {
-                LazyVerticalGrid(
-                    modifier = Modifier
-                        .then(if (items.isEmpty()) Modifier else Modifier.weight(1f))
-                        .fillMaxWidth(),
-                    columns = GridCells.Adaptive(minSize = 150.dp),
-                    state = listState,
-                    contentPadding = PaddingValues(paddingSmall, paddingDefault)
-                ) {
-                    items(items) { item ->
-                        NFTItem(
-                            model = item,
-                            onClick = {
-                                val asset = item.asset
-                                if (asset == null) {
-                                    onAction(NftListAction.OpenCollection(item.collection.id.toIdentifier()))
-                                } else {
-                                    onAction(NftListAction.OpenAsset(asset.id))
-                                }
-                            },
-                        )
-                    }
-                }
-                if (showUnverifiedRow) {
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Adaptive(minSize = 150.dp),
+            state = listState,
+            contentPadding = PaddingValues(
+                start = paddingSmall,
+                end = paddingSmall,
+                top = paddingDefault,
+                bottom = paddingDefault,
+            )
+        ) {
+            items(items) { item ->
+                NFTItem(
+                    model = item,
+                    onClick = {
+                        val asset = item.asset
+                        if (asset == null) {
+                            onAction(NftListAction.OpenCollection(item.collection.id.toIdentifier()))
+                        } else {
+                            onAction(NftListAction.OpenAsset(asset.id))
+                        }
+                    },
+                )
+            }
+            if (showUnverifiedRow) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     LinkItem(
                         title = stringResource(R.string.asset_verification_unverified),
                         listPosition = ListPosition.Single,

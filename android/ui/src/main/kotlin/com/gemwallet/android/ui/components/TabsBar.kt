@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +27,12 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
+enum class TabsWidth {
+    Equal,
+    WrapContent,
+    Fill,
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun <T> TabsBar(
@@ -33,7 +40,7 @@ fun <T> TabsBar(
     selected: T,
     onSelect: (T) -> Unit,
     scrollable: Boolean = false,
-    equalWidth: Boolean = true,
+    width: TabsWidth = TabsWidth.Equal,
     itemContent: @Composable RowScope.(T) -> Unit
 ) {
     if (tabs.isEmpty()) {
@@ -46,6 +53,7 @@ fun <T> TabsBar(
     Row(
         modifier = Modifier
             .padding(horizontal = paddingDefault)
+            .then(if (width == TabsWidth.Fill) Modifier.fillMaxWidth() else Modifier)
             .then(
                 if (scrollable) {
                     Modifier.horizontalScroll(scrollState)
@@ -57,13 +65,14 @@ fun <T> TabsBar(
     ) {
         tabs.forEachIndexed { index, item ->
             ToggleButton(
-                modifier = if (equalWidth && itemsWidth.size == tabs.size) {
-                        Modifier.width(itemsWidth.values.max())
-                    } else {
-                        Modifier
+                modifier = when (width) {
+                        TabsWidth.Fill -> Modifier.weight(1f)
+                        TabsWidth.Equal ->
+                            if (itemsWidth.size == tabs.size) Modifier.width(itemsWidth.values.max()) else Modifier
+                        TabsWidth.WrapContent -> Modifier
                     }.semantics { role = Role.RadioButton }
                     .then(
-                        if (equalWidth) {
+                        if (width == TabsWidth.Equal) {
                             Modifier.onGloballyPositioned { coordinates ->
                                 val itemWidthDp: Dp = with(density) { coordinates.size.width.toDp() }
                                 itemsWidth[index] = itemWidthDp

@@ -2,7 +2,7 @@ package com.gemwallet.android.features.nft.presents
 
 import com.wallet.core.primitives.NFTAssetId
 
-internal sealed interface NftListAction {
+sealed interface NftListAction {
     data object Refresh : NftListAction
     data object Close : NftListAction
     data object Receive : NftListAction
