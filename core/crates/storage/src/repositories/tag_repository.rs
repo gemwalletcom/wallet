@@ -3,11 +3,13 @@ use crate::DatabaseError;
 use crate::DatabaseClient;
 use crate::database::tag::TagStore;
 use crate::models::{AssetTagRow, PerpetualTagRow, TagRow};
-use primitives::AssetId;
+use primitives::{AssetId, ListId};
 
 pub trait TagRepository {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, DatabaseError>;
-    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: &str) -> Result<usize, DatabaseError>;
+    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: ListId) -> Result<usize, DatabaseError>;
+    fn get_tag(&mut self, _tag_id: &str) -> Result<Option<TagRow>, DatabaseError>;
+    fn get_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, DatabaseError>;
     fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
     fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
@@ -23,8 +25,16 @@ impl TagRepository for DatabaseClient {
         Ok(TagStore::add_tags(self, values)?)
     }
 
-    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: &str) -> Result<usize, DatabaseError> {
+    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: ListId) -> Result<usize, DatabaseError> {
         Ok(TagStore::add_list_tag(self, _tag_id, _name, _list_id)?)
+    }
+
+    fn get_tag(&mut self, _tag_id: &str) -> Result<Option<TagRow>, DatabaseError> {
+        Ok(TagStore::get_tag(self, _tag_id)?)
+    }
+
+    fn get_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError> {
+        Ok(TagStore::get_list_tags(self)?)
     }
 
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, DatabaseError> {

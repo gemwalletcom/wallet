@@ -1,9 +1,9 @@
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumString};
+use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString, EnumIter)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum ListProviderName {
@@ -11,6 +11,10 @@ pub enum ListProviderName {
 }
 
 impl ListProviderName {
+    pub fn all() -> Vec<Self> {
+        Self::iter().collect()
+    }
+
     pub fn id(&self) -> &str {
         self.as_ref()
     }

@@ -11,10 +11,11 @@ use primitives::rewards::{
 use primitives::scan::AddressType as PrimitiveAddressType;
 use primitives::{
     AssetType as PrimitiveAssetType, Chain, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
-    FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, NotificationType as PrimitiveNotificationType,
-    PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection,
-    PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState,
-    TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
+    FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId,
+    NotificationType as PrimitiveNotificationType, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore,
+    PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, TagVisibility as PrimitiveTagVisibility,
+    TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource,
+    WalletType as PrimitiveWalletType,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -345,6 +346,7 @@ macro_rules! diesel_varchar_display {
 }
 
 diesel_varchar_display!(PriceId, PrimitivePriceId);
+diesel_varchar_display!(ListIdRow, PrimitiveListId);
 diesel_varchar_display!(WalletIdRow, primitives::WalletId);
 diesel_varchar_display!(NftAssetIdRow, primitives::NFTAssetId);
 diesel_varchar_display!(NftCollectionIdRow, primitives::NFTCollectionId);
