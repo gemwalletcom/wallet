@@ -25,6 +25,7 @@ import com.gemwallet.android.features.wallet.viewmodels.WalletSecretDataViewMode
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.screen.LoadingScene
@@ -91,6 +92,9 @@ fun WalletSecretDataNavScreen(
     Scene(
         title = stringResource(id = content.titleRes),
         padding = sceneContentPaddingValues(),
+        actions = {
+            DocsInfoButton(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
+        },
         onClose = onCancel,
     ) {
         val warningHorizontalPadding = adaptivePadding(default = paddingDefault, compact = paddingMiddle)

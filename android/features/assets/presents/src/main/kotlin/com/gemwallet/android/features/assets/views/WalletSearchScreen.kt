@@ -146,6 +146,7 @@ fun WalletSearchScreen(
             SearchBar(
                 query = viewModel.queryState,
                 modifier = Modifier.listItem(ListPosition.Single, paddingHorizontal = 0.dp),
+                autoFocus = true,
             )
         },
         titleBadge = ::getAssetBadge,
