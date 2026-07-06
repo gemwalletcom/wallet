@@ -30,6 +30,7 @@ public struct WalletScene: View {
                     onInfoAction: model.onSelectWatchWalletInfo,
                 )
                 .padding(.top, .space6)
+                .padding(.bottom, .medium)
             }
             .cleanListRow()
 
@@ -102,5 +103,6 @@ public struct WalletScene: View {
         .taskOnce {
             Task { await model.fetchOnce() }
         }
+        .listSectionSpacing(.compact)
     }
 }
