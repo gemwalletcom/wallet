@@ -46,7 +46,6 @@ public enum GemDeviceAPI: TargetType {
     case getNotifications(fromTimestamp: Int)
     case markNotificationsRead
 
-    case getFiatAssets(FiatQuoteType)
     case getFiatQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest)
     case getFiatQuoteUrl(walletId: WalletId, quoteId: String)
     case getFiatTransactions(walletId: WalletId)
@@ -76,7 +75,6 @@ public enum GemDeviceAPI: TargetType {
              .getDeviceRewardsEvents,
              .getNotifications,
              .isDeviceRegistered,
-             .getFiatAssets,
              .getFiatQuotes,
              .getFiatQuoteUrl,
              .getFiatTransactions,
@@ -173,8 +171,6 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/notifications?from_timestamp=\(fromTimestamp)"
         case .markNotificationsRead:
             return "/v2/devices/notifications/read"
-        case let .getFiatAssets(type):
-            return "/v2/devices/fiat/assets/\(type.rawValue)"
         case let .getFiatQuotes(_, type, assetId, _):
             return "/v2/devices/fiat/quotes/\(type.rawValue)/\(assetId.identifier)"
         case let .getFiatQuoteUrl(_, quoteId):
@@ -229,7 +225,6 @@ public enum GemDeviceAPI: TargetType {
              .getTransaction,
              .getWalletConfiguration,
              .isDeviceRegistered,
-             .getFiatAssets,
              .getFiatQuoteUrl,
              .getFiatTransactions,
              .getNameRecord,
