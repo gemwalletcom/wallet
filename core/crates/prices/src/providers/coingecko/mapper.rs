@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
-use chain_primitives::format_token_id;
 use chrono::{DateTime, Utc};
-use coingecko::{Coin, CoinInfo, CoinMarket, get_chain_for_coingecko_platform_id, get_chains_for_coingecko_market_id, model::MarketChart};
+use coingecko::{Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin, model::MarketChart};
 use primitives::{AssetId, AssetLink, AssetMarket, ChartValue, ChartValuePercentage, LinkType, Price, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
@@ -24,16 +23,10 @@ pub fn map_market_chart(chart: MarketChart) -> Vec<ChartValue> {
 }
 
 pub fn map_coin_mappings(id: &str, platforms: &HashMap<String, Option<String>>) -> Vec<AssetPriceMapping> {
-    let chains = get_chains_for_coingecko_market_id(id)
+    get_asset_ids_for_coin(id, platforms)
         .into_iter()
-        .map(|chain| AssetPriceMapping::new(chain.as_asset_id(), id.to_string()));
-    let tokens = platforms.iter().filter_map(|(platform_id, contract)| {
-        let chain = get_chain_for_coingecko_platform_id(platform_id)?;
-        let contract_address = contract.as_ref().filter(|a| !a.is_empty())?;
-        let token_id = format_token_id(chain, contract_address.clone())?;
-        Some(AssetPriceMapping::new(AssetId::from(chain, Some(token_id)), id.to_string()))
-    });
-    chains.chain(tokens).collect()
+        .map(|asset_id| AssetPriceMapping::new(asset_id, id.to_string()))
+        .collect()
 }
 
 pub fn map_coins_to_mappings(coins: Vec<Coin>) -> Vec<AssetPriceMapping> {

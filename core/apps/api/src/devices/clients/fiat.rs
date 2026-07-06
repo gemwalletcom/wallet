@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use fiat::FiatClient;
-use primitives::{FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData};
+use primitives::{FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData};
 use storage::{Database, FiatRepository};
 
 pub struct FiatQuotesClient {
@@ -22,11 +22,18 @@ impl FiatQuotesClient {
         self.fiat_client.get_quote_url(quote_id, wallet_id, device_id, ip_address, locale).await
     }
 
-    pub async fn get_on_ramp_assets(&self) -> Result<primitives::FiatAssets, Box<dyn Error + Send + Sync>> {
+    pub async fn get_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
+        match quote_type {
+            FiatQuoteType::Buy => self.get_on_ramp_assets().await,
+            FiatQuoteType::Sell => self.get_off_ramp_assets().await,
+        }
+    }
+
+    pub async fn get_on_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
         self.fiat_client.get_on_ramp_assets().await
     }
 
-    pub async fn get_off_ramp_assets(&self) -> Result<primitives::FiatAssets, Box<dyn Error + Send + Sync>> {
+    pub async fn get_off_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
         self.fiat_client.get_off_ramp_assets().await
     }
 

@@ -27,6 +27,7 @@ members = [
     "crates/cacher",
     "crates/name_resolver",
     "crates/api_connector",
+    "crates/lists",
     "crates/settings",
     "crates/settings_chain",
     "crates/pricer",

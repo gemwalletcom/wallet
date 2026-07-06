@@ -3,7 +3,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use coingecko::{client::CoinGeckoClient, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain};
+use coingecko::{MAX_MARKETS_PER_PAGE, client::CoinGeckoClient, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain};
 use gem_client::ReqwestClient;
 use primitives::{AssetId, Chain, ChartValue, DurationExt};
 
@@ -11,7 +11,6 @@ use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvide
 
 use super::mapper::{map_coin_info_metadata, map_coin_mappings, map_coin_markets, map_coins_to_assets, map_coins_to_mappings, map_market_chart};
 
-const MAX_MARKETS_PER_PAGE: usize = 250;
 const MAX_RANKED_PAGES: usize = 20;
 
 pub struct CoinGeckoPricesProvider {

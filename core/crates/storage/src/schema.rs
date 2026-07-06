@@ -847,6 +847,8 @@ diesel::table! {
         #[max_length = 64]
         name -> Varchar,
         visibility -> TagVisibility,
+        #[max_length = 256]
+        list_id -> Nullable<Varchar>,
         created_at -> Timestamp,
     }
 }

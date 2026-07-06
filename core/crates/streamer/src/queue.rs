@@ -21,6 +21,8 @@ pub enum QueueName {
     FetchAssets,
     // fetch prices for an asset or provider price id and store to db
     FetchPrices,
+    // fetch provider list and store tag memberships
+    FetchLists,
     // fetch new blocks and store to db
     FetchBlocks,
     // Fetch and store nft collection
@@ -77,6 +79,7 @@ impl fmt::Display for QueueName {
             QueueName::NotificationsObservers => write!(f, "notifications_observers"),
             QueueName::FetchAssets => write!(f, "fetch_assets"),
             QueueName::FetchPrices => write!(f, "fetch_prices"),
+            QueueName::FetchLists => write!(f, "fetch_lists"),
             QueueName::FetchBlocks => write!(f, "fetch_blocks"),
             QueueName::FetchNFTCollection => write!(f, "fetch_nft_collection"),
             QueueName::FetchNFTCollectionAssets => write!(f, "fetch_nft_collection_assets"),

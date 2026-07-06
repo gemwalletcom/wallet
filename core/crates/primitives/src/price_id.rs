@@ -1,7 +1,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use crate::{CHAIN_SEPARATOR, PriceProvider};
+use crate::{PriceProvider, provider_scoped_id::ProviderScopedId};
 
 /// The resolved (provider, provider_price_id) pair used to key prices, charts and any other
 /// provider-scoped data. `id()` produces the synthetic `prices.id` used across the schema.
@@ -21,7 +21,7 @@ impl PriceId {
     }
 
     pub fn id_for(provider: PriceProvider, provider_price_id: &str) -> String {
-        format!("{provider}{CHAIN_SEPARATOR}{provider_price_id}")
+        ProviderScopedId::id_for(provider, provider_price_id)
     }
 }
 
@@ -35,14 +35,11 @@ impl FromStr for PriceId {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (provider, provider_price_id) = s.split_once(CHAIN_SEPARATOR).ok_or_else(|| format!("Invalid price_id: {s}"))?;
-        if provider_price_id.is_empty() {
-            return Err(format!("Invalid price_id: {s}"));
-        }
-        let provider = provider.parse().map_err(|_| format!("Unknown provider: {provider}"))?;
+        let id = ProviderScopedId::parse(s)?;
+        let provider = id.provider_id.parse().map_err(|_| format!("Unknown provider: {}", id.provider_id))?;
         Ok(Self {
             provider,
-            provider_price_id: provider_price_id.to_string(),
+            provider_price_id: id.resource_id,
         })
     }
 }

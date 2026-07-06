@@ -29,6 +29,12 @@ pub struct Coin {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CoinCategory {
+    pub category_id: String,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CoinInfo {
     pub id: String,
     pub symbol: String,
@@ -115,6 +121,8 @@ pub struct CoinMarketsQuery {
     pub locale: &'static str,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ids: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
     pub include_rehypothecated: bool,
 }
 

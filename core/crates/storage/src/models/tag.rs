@@ -11,6 +11,7 @@ pub struct TagRow {
     pub id: String,
     pub name: String,
     pub visibility: TagVisibility,
+    pub list_id: Option<String>,
 }
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
@@ -39,6 +40,7 @@ impl TagRow {
             id,
             name,
             visibility: TagVisibility::Public,
+            list_id: None,
         }
     }
 

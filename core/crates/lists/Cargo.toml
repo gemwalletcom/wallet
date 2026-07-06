@@ -1,0 +1,10 @@
+[package]
+name = "lists"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+async-trait = { workspace = true }
+coingecko = { path = "../coingecko" }
+primitives = { path = "../primitives" }
+storage = { path = "../storage" }

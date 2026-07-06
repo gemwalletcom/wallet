@@ -27,9 +27,9 @@ use primitives::name::NameRecord;
 use primitives::nft::NFTAssetData;
 use primitives::rewards::{RedemptionRequest, RedemptionResult, RewardRedemptionOption};
 use primitives::{
-    AddressName, AssetId, AuthNonce, ChainAddress, DefiPosition, FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, InAppNotification, NFTData,
-    PortfolioAssets, PortfolioAssetsRequest, PriceAlerts, ReportNft, RewardEvent, Rewards, ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse,
-    WalletConfigurationResult, WalletId, WalletSubscription, WalletSubscriptionChains,
+    AddressName, AssetId, AuthNonce, ChainAddress, DefiPosition, FiatAssets, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, InAppNotification, NFTData, PortfolioAssets,
+    PortfolioAssetsRequest, PriceAlerts, ReportNft, RewardEvent, Rewards, ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse, WalletConfigurationResult,
+    WalletId, WalletSubscription, WalletSubscriptionChains,
 };
 use rocket::{State, delete, get, post, put, tokio::sync::Mutex};
 use std::sync::Arc;
@@ -368,17 +368,18 @@ pub async fn get_device_fiat_transactions_v2(
     Ok(client.lock().await.get_transactions_by_device_wallet_id(device.device_row.id, device.wallet_id)?.into())
 }
 
+#[get("/fiat/assets/<quote_type>")]
+pub async fn get_fiat_assets(quote_type: FiatQuoteTypeParam, client: &State<Mutex<FiatQuotesClient>>) -> Result<ApiResponse<FiatAssets>, ApiError> {
+    Ok(client.lock().await.get_assets(quote_type.0).await?.into())
+}
+
 #[get("/devices/fiat/assets/<quote_type>")]
 pub async fn get_device_fiat_assets_v2(
     _device: AuthenticatedDevice,
     quote_type: FiatQuoteTypeParam,
     client: &State<Mutex<FiatQuotesClient>>,
 ) -> Result<ApiResponse<FiatAssets>, ApiError> {
-    let assets = match quote_type.0 {
-        FiatQuoteType::Buy => client.lock().await.get_on_ramp_assets().await?,
-        FiatQuoteType::Sell => client.lock().await.get_off_ramp_assets().await?,
-    };
-    Ok(assets.into())
+    Ok(client.lock().await.get_assets(quote_type.0).await?.into())
 }
 
 #[get("/devices/fiat/quotes/<quote_type>/<asset_id>?<amount>&<currency>&<provider>")]

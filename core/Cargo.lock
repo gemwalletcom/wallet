@@ -1859,11 +1859,13 @@ dependencies = [
 name = "coingecko"
 version = "1.0.0"
 dependencies = [
+ "chain_primitives",
  "chrono",
  "gem_client",
  "primitives",
  "reqwest 0.13.4",
  "serde",
+ "tokio",
 ]
 
 [[package]]
@@ -2275,6 +2277,7 @@ dependencies = [
  "gem_rewards",
  "gem_tracing",
  "job_runner",
+ "lists",
  "localizer",
  "metrics",
  "nft",
@@ -5081,6 +5084,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
+name = "lists"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "coingecko",
+ "primitives",
+ "storage",
+]
+
+[[package]]
 name = "litemap"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5961,7 +5974,6 @@ name = "prices"
 version = "1.0.0"
 dependencies = [
  "async-trait",
- "chain_primitives",
  "chrono",
  "coingecko",
  "gem_client",

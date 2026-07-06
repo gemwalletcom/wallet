@@ -4,13 +4,13 @@ use primitives::AssetId;
 
 pub(crate) trait TagStore {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, diesel::result::Error>;
+    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: &str) -> Result<usize, diesel::result::Error>;
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, diesel::result::Error>;
     fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, diesel::result::Error>;
     fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, diesel::result::Error>;
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, diesel::result::Error>;
     fn get_perpetuals_tags(&mut self) -> Result<Vec<PerpetualTagRow>, diesel::result::Error>;
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, diesel::result::Error>;
-    fn delete_assets_tags(&mut self, _tag_id: &str) -> Result<usize, diesel::result::Error>;
     fn set_assets_tags_for_tag(&mut self, _tag_id: &str, asset_ids: Vec<AssetId>) -> Result<usize, diesel::result::Error>;
     fn get_assets_tags_for_asset(&mut self, _asset_id: &str) -> Result<Vec<AssetTagRow>, diesel::result::Error>;
 }
@@ -19,6 +19,14 @@ impl TagStore for DatabaseClient {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, diesel::result::Error> {
         use crate::schema::tags::dsl::*;
         diesel::insert_into(tags).values(values).on_conflict_do_nothing().execute(&mut self.connection)
+    }
+
+    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: &str) -> Result<usize, diesel::result::Error> {
+        use crate::schema::tags::dsl::*;
+        diesel::insert_into(tags)
+            .values((id.eq(_tag_id), name.eq(_name), list_id.eq(Some(_list_id))))
+            .on_conflict_do_nothing()
+            .execute(&mut self.connection)
     }
 
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, diesel::result::Error> {
@@ -65,11 +73,6 @@ impl TagStore for DatabaseClient {
             .load(&mut self.connection)
     }
 
-    fn delete_assets_tags(&mut self, _tag_id: &str) -> Result<usize, diesel::result::Error> {
-        use crate::schema::assets_tags::dsl::*;
-        diesel::delete(assets_tags.filter(tag_id.eq(_tag_id))).execute(&mut self.connection)
-    }
-
     fn set_assets_tags_for_tag(&mut self, _tag_id: &str, asset_ids: Vec<AssetId>) -> Result<usize, diesel::result::Error> {
         use crate::schema::assets_tags::dsl::*;
         let values = asset_ids
@@ -83,8 +86,12 @@ impl TagStore for DatabaseClient {
             .collect::<Vec<_>>();
 
         self.connection.transaction::<_, diesel::result::Error, _>(|conn| {
-            diesel::delete(assets_tags.filter(tag_id.eq(_tag_id))).execute(conn)?;
-            diesel::insert_into(assets_tags).values(values).execute(conn)
+            let deleted_count = diesel::delete(assets_tags.filter(tag_id.eq(_tag_id))).execute(conn)?;
+            if values.is_empty() {
+                Ok(deleted_count)
+            } else {
+                diesel::insert_into(assets_tags).values(values).execute(conn)
+            }
         })
     }
 

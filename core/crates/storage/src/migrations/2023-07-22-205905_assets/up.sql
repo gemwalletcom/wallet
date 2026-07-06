@@ -38,6 +38,7 @@ CREATE TABLE tags (
     id VARCHAR(64) PRIMARY KEY,
     name VARCHAR(64) NOT NULL,
     visibility tag_visibility NOT NULL default 'public',
+    list_id VARCHAR(256),
     created_at timestamp NOT NULL default current_timestamp
 );
 

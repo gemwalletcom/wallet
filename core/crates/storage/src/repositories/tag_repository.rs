@@ -7,13 +7,13 @@ use primitives::AssetId;
 
 pub trait TagRepository {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, DatabaseError>;
+    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: &str) -> Result<usize, DatabaseError>;
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, DatabaseError>;
     fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
     fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, DatabaseError>;
     fn get_perpetuals_tags(&mut self) -> Result<Vec<PerpetualTagRow>, DatabaseError>;
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, DatabaseError>;
-    fn delete_assets_tags(&mut self, _tag_id: &str) -> Result<usize, DatabaseError>;
     fn set_assets_tags_for_tag(&mut self, _tag_id: &str, asset_ids: Vec<AssetId>) -> Result<usize, DatabaseError>;
     fn get_assets_tags_for_asset(&mut self, _asset_id: &AssetId) -> Result<Vec<AssetTagRow>, DatabaseError>;
 }
@@ -21,6 +21,10 @@ pub trait TagRepository {
 impl TagRepository for DatabaseClient {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, DatabaseError> {
         Ok(TagStore::add_tags(self, values)?)
+    }
+
+    fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: &str) -> Result<usize, DatabaseError> {
+        Ok(TagStore::add_list_tag(self, _tag_id, _name, _list_id)?)
     }
 
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, DatabaseError> {
@@ -45,10 +49,6 @@ impl TagRepository for DatabaseClient {
 
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, DatabaseError> {
         Ok(TagStore::get_assets_tags_for_tag(self, _tag_id)?)
-    }
-
-    fn delete_assets_tags(&mut self, _tag_id: &str) -> Result<usize, DatabaseError> {
-        Ok(TagStore::delete_assets_tags(self, _tag_id)?)
     }
 
     fn set_assets_tags_for_tag(&mut self, _tag_id: &str, asset_ids: Vec<AssetId>) -> Result<usize, DatabaseError> {
