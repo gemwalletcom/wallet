@@ -16,7 +16,7 @@ mod tests {
     }
 
     fn build_client(base_url: String, timeout: Duration) -> ReqwestClient {
-        let http = reqwest::Client::builder().timeout(timeout).build().expect("failed to build reqwest client");
+        let http = gem_client::builder().timeout(timeout).build().unwrap();
         ReqwestClient::new(base_url, http)
     }
 

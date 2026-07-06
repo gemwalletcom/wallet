@@ -10,7 +10,9 @@ pub struct ReqwestGrpcTransport {
 
 impl ReqwestGrpcTransport {
     pub fn new() -> Self {
-        Self { client: reqwest::Client::new() }
+        Self {
+            client: gem_client::reqwest_client(),
+        }
     }
 
     pub fn new_with_client(client: reqwest::Client) -> Self {

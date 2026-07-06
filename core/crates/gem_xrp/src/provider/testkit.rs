@@ -18,7 +18,7 @@ pub const TEST_TRANSACTION_ID: &str = "474F58E6C78F1DE8542036AB3C16E2B5A4089241D
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_xrp_test_client() -> XRPClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.xrp.url, reqwest::Client::new());
+    let reqwest_client = ReqwestClient::new(settings.chains.xrp.url, gem_client::reqwest_client());
     let rpc_client = JsonRpcClient::new(reqwest_client);
     XRPClient::new(rpc_client)
 }

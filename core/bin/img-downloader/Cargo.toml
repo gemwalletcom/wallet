@@ -20,5 +20,6 @@ coinmarketcap = { path = "../../crates/coinmarketcap" }
 jupiter = { path = "../../crates/jupiter" }
 primitives = { path = "../../crates/primitives" }
 settings = { path = "../../crates/settings" }
+gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
 gem_tracing = { path = "../../crates/tracing" }
 serde_serializers = { path = "../../crates/serde_serializers" }

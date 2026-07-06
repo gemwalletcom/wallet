@@ -684,6 +684,7 @@ name = "api_connector"
 version = "1.0.0"
 dependencies = [
  "chrono",
+ "gem_client",
  "primitives",
  "reqwest 0.13.4",
  "serde",
@@ -2387,6 +2388,7 @@ dependencies = [
  "async-trait",
  "base64",
  "futures",
+ "gem_client",
  "jupiter",
  "number_formatter",
  "primitives",
@@ -3277,6 +3279,7 @@ name = "gas-bench"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "gem_client",
  "gem_evm",
  "gem_jsonrpc",
  "gem_solana",
@@ -4604,6 +4607,7 @@ dependencies = [
  "coingecko",
  "coinmarketcap",
  "config",
+ "gem_client",
  "gem_tracing",
  "image",
  "jupiter",

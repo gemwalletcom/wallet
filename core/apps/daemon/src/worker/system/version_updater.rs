@@ -7,11 +7,15 @@ use super::model::{FdroidPackageResponse, GitHubRepository, HuaweiStoreResponse,
 
 pub struct VersionUpdater {
     database: Database,
+    client: reqwest::Client,
 }
 
 impl VersionUpdater {
     pub fn new(database: Database) -> Self {
-        Self { database }
+        Self {
+            database,
+            client: gem_client::reqwest_client(),
+        }
     }
 
     pub fn stores() -> &'static [PlatformStore] {
@@ -66,20 +70,13 @@ impl VersionUpdater {
 
     async fn get_app_store_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
         let url = format!("https://itunes.apple.com/lookup?bundleId={GEM_IOS_BUNDLE_ID}");
-        let response = reqwest::get(url).await?.json::<ITunesLookupResponse>().await?;
+        let response = self.client.get(url).send().await?.json::<ITunesLookupResponse>().await?;
         response.results.first().map(|r| r.version.clone()).ok_or_else(|| "no results".into())
     }
 
     async fn get_github_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
         let url = "https://api.github.com/repos/gemwalletcom/wallet/releases";
-        let response = reqwest::Client::builder()
-            .user_agent("gem-daemon")
-            .build()?
-            .get(url)
-            .send()
-            .await?
-            .json::<Vec<GitHubRepository>>()
-            .await?;
+        let response = self.client.get(url).send().await?.json::<Vec<GitHubRepository>>().await?;
         response
             .into_iter()
             .find(|x| !x.draft && !x.prerelease && x.assets.iter().any(|a| a.name.contains("gem_wallet_universal_")))
@@ -89,13 +86,14 @@ impl VersionUpdater {
 
     async fn get_fdroid_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
         let url = format!("https://f-droid.org/api/v1/packages/{GEM_ANDROID_PACKAGE_ID}");
-        let response = reqwest::get(url).await?.error_for_status()?.json::<FdroidPackageResponse>().await?;
+        let response = self.client.get(url).send().await?.error_for_status()?.json::<FdroidPackageResponse>().await?;
         response.latest_version().ok_or_else(|| "f-droid version not found".into())
     }
 
     async fn get_huawei_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
         let url = "https://web-dre.hispace.dbankcloud.com/edge/single/filtered";
-        let response = reqwest::Client::new()
+        let response = self
+            .client
             .post(url)
             .json(&json!({ "pkgName": GEM_ANDROID_PACKAGE_ID }))
             .send()
@@ -108,7 +106,7 @@ impl VersionUpdater {
 
     async fn get_samsung_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
         let url = format!("https://galaxystore.samsung.com/api/detail/{GEM_ANDROID_PACKAGE_ID}");
-        let response = reqwest::get(url).await?.json::<SamsungStoreDetail>().await?;
+        let response = self.client.get(url).send().await?.json::<SamsungStoreDetail>().await?;
         match response.details {
             Some(details) => Ok(details.version),
             None => Err(response.error_message.unwrap_or_else(|| "no version found".to_string()).into()),
@@ -117,7 +115,7 @@ impl VersionUpdater {
 
     async fn get_solana_store_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
         let url = format!("https://publish.solanamobile.com/api/{GEM_ANDROID_PACKAGE_ID}/release");
-        let response = reqwest::get(url).await?.json::<SolanaStoreRelease>().await?;
+        let response = self.client.get(url).send().await?.json::<SolanaStoreRelease>().await?;
         Ok(response.version_name)
     }
 }

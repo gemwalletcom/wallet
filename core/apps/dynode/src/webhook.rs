@@ -20,7 +20,7 @@ impl DynodeBroadcastWebhookClient {
             enabled: config.enabled,
             url: config.url,
             token: config.token,
-            client: reqwest::Client::new(),
+            client: gem_client::reqwest_client(),
         }
     }
 
@@ -30,7 +30,7 @@ impl DynodeBroadcastWebhookClient {
             enabled: false,
             url: String::new(),
             token: String::new(),
-            client: reqwest::Client::new(),
+            client: gem_client::reqwest_client(),
         }
     }
 

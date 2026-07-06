@@ -15,7 +15,7 @@ impl NFTProviderFactory {
     pub fn new_providers(config: NFTProviderConfig) -> Vec<Arc<dyn NFTProvider>> {
         let opensea_client = opensea::create_client(&config.opensea_key);
         let magiceden_client = magiceden::create_client(&config.magiceden_key);
-        let ton_client = ReqwestClient::new(config.ton_url, reqwest::Client::new());
+        let ton_client = ReqwestClient::new(config.ton_url, gem_client::reqwest_client());
 
         vec![
             Arc::new(OpenSeaClient::new(opensea_client)),

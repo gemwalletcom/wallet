@@ -29,13 +29,13 @@ impl TransactionResponse {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_osmosis_test_client() -> CosmosClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.osmosis.url, reqwest::Client::new());
+    let reqwest_client = ReqwestClient::new(settings.chains.osmosis.url, gem_client::reqwest_client());
     CosmosClient::new(CosmosChain::Osmosis, reqwest_client)
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_cosmos_test_client() -> CosmosClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.cosmos.url, reqwest::Client::new());
+    let reqwest_client = ReqwestClient::new(settings.chains.cosmos.url, gem_client::reqwest_client());
     CosmosClient::new(CosmosChain::Cosmos, reqwest_client)
 }

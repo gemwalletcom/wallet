@@ -86,7 +86,7 @@ impl Downloader {
         headers.insert(USER_AGENT, HeaderValue::from_static(USER_AGENT_VALUE));
         headers.insert(ACCEPT, HeaderValue::from_static("image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"));
         headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("en-US,en;q=0.9"));
-        Client::builder().default_headers(headers).timeout(timeout).build()
+        gem_client::builder().default_headers(headers).timeout(timeout).build()
     }
 
     pub async fn start(&self) -> Result<(), Box<dyn Error + Send + Sync>> {

@@ -20,14 +20,14 @@ use gem_client::ReqwestClient;
 
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 pub async fn get_everstake_validator_queue() -> Result<super::models::QueueStatsResponse, Box<dyn Error + Send + Sync>> {
-    let client = ReqwestClient::new(EVERSTAKE_API_BASE_URL.to_string(), reqwest::Client::new());
+    let client = ReqwestClient::new(EVERSTAKE_API_BASE_URL.to_string(), gem_client::reqwest_client());
     let response = client.get(EVERSTAKE_VALIDATORS_QUEUE_PATH).await?;
     Ok(response)
 }
 
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 pub async fn get_everstake_staking_apy() -> Result<Option<f64>, Box<dyn Error + Send + Sync>> {
-    let client = ReqwestClient::new(EVERSTAKE_API_BASE_URL.to_string(), reqwest::Client::new());
+    let client = ReqwestClient::new(EVERSTAKE_API_BASE_URL.to_string(), gem_client::reqwest_client());
     let response: super::models::StatsResponse = client.get(EVERSTAKE_STATS_PATH).await?;
 
     Ok(Some(response.apr * 100.0))

@@ -70,6 +70,6 @@ impl TraceResponse {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_ton_test_client() -> TonClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.ton.url, reqwest::Client::new());
+    let reqwest_client = ReqwestClient::new(settings.chains.ton.url, gem_client::reqwest_client());
     TonClient::new(reqwest_client)
 }

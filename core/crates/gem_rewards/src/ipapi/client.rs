@@ -16,7 +16,7 @@ pub struct IpApiClient {
 impl IpApiClient {
     pub fn new(url: String, api_key: String) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: gem_client::reqwest_client(),
             url,
             api_key,
         }

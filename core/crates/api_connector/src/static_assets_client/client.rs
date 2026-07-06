@@ -11,7 +11,7 @@ impl StaticAssetsClient {
     pub fn new(url: &str) -> Self {
         Self {
             url: url.to_string(),
-            client: reqwest::Client::new(),
+            client: gem_client::reqwest_client(),
         }
     }
 

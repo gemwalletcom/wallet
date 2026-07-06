@@ -27,6 +27,6 @@ pub fn create_hypercore_test_client() -> HyperCoreClient<ReqwestClient> {
     let secure_preferences = Arc::new(InMemoryPreferences::new());
 
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.hypercore.url, reqwest::Client::new());
+    let reqwest_client = ReqwestClient::new(settings.chains.hypercore.url, gem_client::reqwest_client());
     HyperCoreClient::new_with_preferences(reqwest_client, preferences, secure_preferences)
 }
