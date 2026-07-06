@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Cụm từ bí mật không hợp lệ</string>
   <string name="errors_import_invalid_secret_phrase_word">Từ cụm từ bí mật không hợp lệ: %1$s</string>
   <string name="errors_invalid_url">URL không hợp lệ</string>
-  <string name="errors_error_occured">Đã xảy ra lỗi!</string>
+  <string name="errors_error_occurred">Đã xảy ra lỗi!</string>
   <string name="errors_invalid_network_id">ID mạng không hợp lệ</string>
   <string name="errors_error">Lỗi</string>
   <string name="errors_connections_user_cancelled">Người dùng đã hủy</string>

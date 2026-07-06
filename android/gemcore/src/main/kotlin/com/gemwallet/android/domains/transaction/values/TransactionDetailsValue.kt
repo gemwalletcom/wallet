@@ -6,6 +6,7 @@ import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
@@ -43,37 +44,43 @@ sealed interface TransactionDetailsValue {
 
     sealed class Destination(
         val data: String,
+        val chain: Chain? = null,
         val name: String? = null,
         val addressType: AddressType? = null,
         val explorerLink: BlockExplorerLink? = null,
     ) : TransactionDetailsValue {
         class Sender(
             data: String,
+            chain: Chain,
             name: String? = null,
             addressType: AddressType? = null,
             explorerLink: BlockExplorerLink? = null,
-        ) : Destination(data, name, addressType, explorerLink)
+        ) : Destination(data, chain, name, addressType, explorerLink)
         class Recipient(
             data: String,
+            chain: Chain,
             name: String? = null,
             addressType: AddressType? = null,
             explorerLink: BlockExplorerLink? = null,
-        ) : Destination(data, name, addressType, explorerLink)
+        ) : Destination(data, chain, name, addressType, explorerLink)
         class Contract(
             data: String,
+            chain: Chain,
             name: String? = null,
             explorerLink: BlockExplorerLink? = null,
-        ) : Destination(data, name = name, explorerLink = explorerLink)
+        ) : Destination(data, chain = chain, name = name, explorerLink = explorerLink)
         class Validator(
             data: String,
+            chain: Chain,
             name: String? = null,
             explorerLink: BlockExplorerLink? = null,
-        ) : Destination(data, name = name, explorerLink = explorerLink)
+        ) : Destination(data, chain = chain, name = name, explorerLink = explorerLink)
         class ProviderAddress(
             data: String,
+            chain: Chain,
             name: String? = null,
             explorerLink: BlockExplorerLink? = null,
-        ) : Destination(data, name = name, explorerLink = explorerLink)
+        ) : Destination(data, chain = chain, name = name, explorerLink = explorerLink)
         class Provider(name: String) : Destination(name)
     }
 

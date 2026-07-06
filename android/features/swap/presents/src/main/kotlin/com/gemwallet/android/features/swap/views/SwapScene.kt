@@ -40,14 +40,9 @@ internal fun SwapScene(
     payEquivalent: String,
     receiveEquivalent: String,
     swapDetails: SwapDetailsUIModel?,
-    onSelectAsset: (SwapItemType) -> Unit,
     payValue: TextFieldState,
     receiveValue: TextFieldState,
-    switchSwap: () -> Unit,
-    onDetails: () -> Unit,
-    onSlippage: () -> Unit,
-    onCancel: () -> Unit,
-    onPrimaryAction: () -> Unit,
+    onAction: (SwapSceneAction) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     fun clearAmountFocus() {
@@ -57,7 +52,7 @@ internal fun SwapScene(
     Scene(
         title = stringResource(id = R.string.wallet_swap),
         actions = {
-            IconButton(onClick = onSlippage) {
+            IconButton(onClick = { onAction(SwapSceneAction.Slippage) }) {
                 Icon(
                     imageVector = AppIcons.Tune,
                     tint = MaterialTheme.colorScheme.onSurface,
@@ -70,11 +65,11 @@ internal fun SwapScene(
                 swapState = swapState,
                 onSwap = {
                     clearAmountFocus()
-                    onPrimaryAction()
+                    onAction(SwapSceneAction.Swap)
                 },
             )
         },
-        onClose = onCancel,
+        onClose = { onAction(SwapSceneAction.Cancel) },
     ) {
         LazyColumn {
             item {
@@ -88,7 +83,7 @@ internal fun SwapScene(
                     interaction = swapState.payItemInteraction,
                     onAssetSelect = {
                         clearAmountFocus()
-                        onSelectAsset(SwapItemType.Pay)
+                        onAction(SwapSceneAction.SelectAsset(SwapItemType.Pay))
                     }
                 )
             }
@@ -100,7 +95,7 @@ internal fun SwapScene(
                             .clip(MaterialTheme.shapes.medium)
                             .clickable(
                                 enabled = swapState.isQuoteInteractionEnabled,
-                                onClick = switchSwap,
+                                onClick = { onAction(SwapSceneAction.SwitchAssets) },
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -123,14 +118,14 @@ internal fun SwapScene(
                     interaction = swapState.receiveItemInteraction,
                     onAssetSelect = {
                         clearAmountFocus()
-                        onSelectAsset(SwapItemType.Receive)
+                        onAction(SwapSceneAction.SelectAsset(SwapItemType.Receive))
                     }
 
                 )
             }
             item {
                 swapDetails?.let {
-                    SwapDetailsSummaryItem(model = it, onClick = onDetails)
+                    SwapDetailsSummaryItem(model = it, onClick = { onAction(SwapSceneAction.ShowDetails) })
                 }
             }
 

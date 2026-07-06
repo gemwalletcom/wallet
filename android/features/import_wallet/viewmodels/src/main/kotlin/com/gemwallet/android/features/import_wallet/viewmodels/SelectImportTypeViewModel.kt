@@ -2,12 +2,10 @@ package com.gemwallet.android.features.import_wallet.viewmodels
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.chains.ChainInfoRepository
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.filter
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,10 +49,7 @@ data class SelectChainViewModelState(
         chains = chains.map {
             ChainUIState(
                 chain = it,
-                title = when (it) {
-                    Chain.Tron -> it.asset().name.toUpperCase(Locale.current)
-                    else -> it.asset().name
-                },
+                title = it.networkName(),
             )
         }
     )

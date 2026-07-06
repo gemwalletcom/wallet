@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Di-wastong Lihim na Parirala</string>
   <string name="errors_import_invalid_secret_phrase_word">Di-wastong Lihim na Parirala na salita: %1$s</string>
   <string name="errors_invalid_url">Di-wastong URL</string>
-  <string name="errors_error_occured">May naganap na error!</string>
+  <string name="errors_error_occurred">May naganap na error!</string>
   <string name="errors_invalid_network_id">Di-wastong Network ID</string>
   <string name="errors_error">Error</string>
   <string name="errors_connections_user_cancelled">Kinansela ang user</string>

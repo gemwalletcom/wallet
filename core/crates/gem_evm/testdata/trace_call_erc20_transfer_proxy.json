@@ -1,0 +1,35 @@
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "output": "0x1",
+        "stateDiff": {},
+        "trace": [
+            {
+                "action": {
+                    "from": "0xba4d1d35bce0e8f28e5a3403e7a0b996c5d50ac4",
+                    "callType": "call",
+                    "input": "0xa9059cbb000000000000000000000000222222222222222222222222222222222222222200000000000000000000000000000000000000000000000000000000000f4240",
+                    "to": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "value": "0x0"
+                },
+                "subtraces": 1,
+                "traceAddress": [],
+                "type": "call"
+            },
+            {
+                "action": {
+                    "from": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "callType": "delegatecall",
+                    "input": "0xa9059cbb000000000000000000000000222222222222222222222222222222222222222200000000000000000000000000000000000000000000000000000000000f4240",
+                    "to": "0x43506849d7c04f9138d1a2050bbf3a0c054402dd",
+                    "value": "0x0"
+                },
+                "subtraces": 0,
+                "traceAddress": [0],
+                "type": "call"
+            }
+        ],
+        "vmTrace": null
+    }
+}

@@ -31,12 +31,14 @@ pub struct Settings {
 
     pub prices: Prices,
     pub coingecko: CoinGecko,
+    pub coinmarketcap: CoinMarketCap,
     pub charter: Charter,
     pub name: Name,
     pub chains: Chains,
     pub pusher: Pusher,
     pub scan: Scan,
     pub support: Support,
+    pub defi: Defi,
     pub nft: NFT,
     pub ankr: Ankr,
     pub trongrid: Trongrid,
@@ -123,6 +125,7 @@ pub struct SecretKeySettings {
     pub key: KeySecret,
 }
 pub type CoinGecko = SecretKeySettings;
+pub type CoinMarketCap = SecretKeySettings;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UrlSecretKeySettings {
@@ -374,6 +377,12 @@ pub type Trongrid = SecretKeySettings;
 pub type NFTScan = SecretKeySettings;
 pub type OpenSea = SecretKeySettings;
 pub type MagicEden = SecretKeySettings;
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Defi {
+    pub zerion: UrlSecretKeySettings,
+    pub jupiter: UrlSecretKeySettings,
+}
 
 pub type Assets = URL;
 

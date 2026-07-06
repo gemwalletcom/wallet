@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Invalid Secret Phrase</string>
   <string name="errors_import_invalid_secret_phrase_word">Invalid Secret Phrase word: %1$s</string>
   <string name="errors_invalid_url">Invalid URL</string>
-  <string name="errors_error_occured">An error occurred!</string>
+  <string name="errors_error_occurred">An error occurred!</string>
   <string name="errors_invalid_network_id">Invalid Network ID</string>
   <string name="errors_error">Error</string>
   <string name="errors_connections_user_cancelled">User cancelled</string>

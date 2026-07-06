@@ -20,10 +20,14 @@ fun WalletNavScreen(
 
     WalletScene(
         wallet = wallet,
-        onWalletName = viewModel::setWalletName,
-        onSelectImage = { wallet?.id?.let(onSelectImage) },
-        onPhraseShow = onPhraseShow,
-        onDelete = { viewModel.delete(onBoard, onCancel) },
-        onCancel = onCancel,
+        onAction = { action ->
+            when (action) {
+                is WalletAction.SetName -> viewModel.setWalletName(action.name)
+                WalletAction.SelectImage -> wallet?.id?.let(onSelectImage)
+                is WalletAction.ShowPhrase -> onPhraseShow(action.walletId, action.walletType)
+                WalletAction.Delete -> viewModel.delete(onBoard, onCancel)
+                WalletAction.Cancel -> onCancel()
+            }
+        },
     )
 }

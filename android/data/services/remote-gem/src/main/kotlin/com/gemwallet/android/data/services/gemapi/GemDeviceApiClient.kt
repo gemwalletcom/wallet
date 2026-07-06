@@ -4,7 +4,6 @@ import com.wallet.core.primitives.TransactionsResponse
 import com.wallet.core.primitives.AuthNonce
 import com.wallet.core.primitives.AuthenticatedRequest
 import com.wallet.core.primitives.Device
-import com.wallet.core.primitives.FiatAssets
 import com.wallet.core.primitives.FiatQuoteUrl
 import com.wallet.core.primitives.FiatQuotes
 import com.wallet.core.primitives.FiatTransactionData
@@ -154,13 +153,6 @@ interface GemDeviceApiClient {
     // AUTH
     @GET("/v2/devices/auth/nonce")
     suspend fun getAuthNonce(): AuthNonce?
-
-    // BUY
-    @GET("/v2/devices/fiat/assets/buy")
-    suspend fun getBuyableFiatAssets(): FiatAssets
-
-    @GET("/v2/devices/fiat/assets/sell")
-    suspend fun getSellableFiatAssets(): FiatAssets
 
     @GET("/v2/devices/fiat/quotes/{type}/{asset_id}")
     suspend fun getFiatQuotes(

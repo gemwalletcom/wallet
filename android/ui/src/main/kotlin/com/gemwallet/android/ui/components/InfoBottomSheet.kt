@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -71,7 +72,7 @@ sealed class InfoSheetEntity(
         action = action,
         actionLabel = actionLabel,
         titleArgs = listOf(chain.asset().symbol),
-        descriptionArgs = listOf("**$value**", "**${chain.asset().name}**", "**${chain.asset().symbol}**"),
+        descriptionArgs = listOf("**$value**", "**${chain.networkName()}**", "**${chain.asset().symbol}**"),
     )
 
     class MinimumAccountBalanceInfo(asset: Asset, value: String) : InfoSheetEntity(
@@ -88,7 +89,7 @@ sealed class InfoSheetEntity(
         title = R.string.errors_transfer_error,
         description = R.string.errors_dust_threshold,
         infoUrl = { AppUrl.docs(DocsUrl.Dust) },
-        descriptionArgs = listOf("**${chain.asset().name}**"),
+        descriptionArgs = listOf("**${chain.networkName()}**"),
     )
 
     class ReserveForFee(icon: Any) : InfoSheetEntity(

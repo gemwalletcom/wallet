@@ -2,7 +2,7 @@ use crate::{
     ethereum_address_checksum,
     rpc::{
         mapper::TRANSFER_TOPIC,
-        model::{Diff, Log, TransactionReceipt, TransactionReplayTrace},
+        model::{Log, TransactionReceipt, TransactionReplayTrace},
     },
 };
 use alloy_primitives::{Address, hex};
@@ -33,24 +33,18 @@ impl BalanceDiffer {
 
         // Native balance diff
         for (address, state) in &trace.state_diff {
-            if let Diff::Change(change) = &state.balance {
+            if let Some((from_value, to_value)) = state.balance_change() {
                 let checksum_address = ethereum_address_checksum(address).unwrap_or_default();
-                let from_value = BigInt::from_str_radix(&change.from_to.from[2..], 16).ok();
-                let to_value = BigInt::from_str_radix(&change.from_to.to[2..], 16).ok();
-
-                if let (Some(from_bigint), Some(to_bigint)) = (from_value.clone(), to_value.clone()) {
-                    let diff_value = to_bigint - from_bigint;
-                    let diff = BalanceDiff {
-                        asset_id: AssetId {
-                            chain: self.chain,
-                            token_id: None,
-                        },
-                        from_value,
-                        to_value,
-                        diff: diff_value,
-                    };
-                    map.entry(checksum_address).or_default().push(diff);
-                }
+                let diff = BalanceDiff {
+                    asset_id: AssetId {
+                        chain: self.chain,
+                        token_id: None,
+                    },
+                    diff: &to_value - &from_value,
+                    from_value: Some(from_value),
+                    to_value: Some(to_value),
+                };
+                map.entry(checksum_address).or_default().push(diff);
             }
         }
 

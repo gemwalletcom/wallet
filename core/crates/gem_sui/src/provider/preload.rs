@@ -7,6 +7,7 @@ use chain_traits::ChainTransactionLoad;
 use num_bigint::BigInt;
 use primitives::{
     FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    TransferDataExtra,
 };
 
 use crate::{
@@ -17,6 +18,7 @@ use crate::{
 use crate::{
     provider::preload_mapper::{map_transaction_data, map_transaction_rate_rates},
     rpc::client::SuiClient,
+    tx_builder::{finish_transaction_json, is_transaction_json},
 };
 
 #[cfg(feature = "rpc")]
@@ -27,6 +29,7 @@ impl ChainTransactionLoad for SuiClient {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
+        let input = self.finish_transaction_json_input(input).await?;
         let (sui_coins, token_coins, objects) = self.get_coins_for_input_type(input.sender_address.as_str(), input.input_type.clone()).await?;
 
         let estimate_bytes = map_transaction_data(input.clone(), sui_coins.clone(), token_coins.clone(), objects.clone(), ESTIMATION_GAS_BUDGET)?;
@@ -57,6 +60,46 @@ fn estimated_gas_budget(input_type: &TransactionInputType, fee: &TransactionFee)
 }
 
 impl SuiClient {
+    async fn finish_transaction_json_input(&self, input: TransactionLoadInput) -> Result<TransactionLoadInput, Box<dyn Error + Send + Sync>> {
+        let TransactionLoadInput {
+            sender_address,
+            destination_address,
+            value,
+            input_type,
+            gas_price,
+            memo,
+            is_max_value,
+            metadata,
+        } = input;
+
+        let input_type = match input_type {
+            TransactionInputType::Generic(asset, app_metadata, extra) if extra.data.as_deref().is_some_and(is_transaction_json) => {
+                TransactionInputType::Generic(asset, app_metadata, self.finish_transaction_json_extra(&sender_address, extra).await?)
+            }
+            other => other,
+        };
+
+        Ok(TransactionLoadInput {
+            sender_address,
+            destination_address,
+            value,
+            input_type,
+            gas_price,
+            memo,
+            is_max_value,
+            metadata,
+        })
+    }
+
+    async fn finish_transaction_json_extra(&self, sender_address: &str, extra: TransferDataExtra) -> Result<TransferDataExtra, Box<dyn Error + Send + Sync>> {
+        let transaction_json = String::from_utf8(extra.data.clone().unwrap_or_default()).map_err(|_| "Invalid UTF-8 data for Sui generic input")?;
+        let output = finish_transaction_json(self, &transaction_json, sender_address).await?;
+        Ok(TransferDataExtra {
+            data: Some(output.base64_encoded().into_bytes()),
+            ..extra
+        })
+    }
+
     async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType, is_max_value: bool) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let tx_data_only = tx_data.split('_').next().unwrap_or(tx_data);
         let result = self.dry_run(tx_data_only.to_string()).await?;
@@ -144,7 +187,7 @@ mod chain_integration_tests {
     async fn test_sui_get_transaction_preload_unstake() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
 
-        let user_address = "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6";
+        let user_address = TEST_ADDRESS;
         let delegation_id = client
             .get_stake_delegations(user_address.to_string())
             .await?

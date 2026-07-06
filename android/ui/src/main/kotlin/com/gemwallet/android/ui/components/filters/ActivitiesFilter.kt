@@ -18,7 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -74,7 +74,7 @@ fun TransactionsFilter(
                         PropertyDataText(
                             text = when {
                                 chainsFilter.isEmpty() -> stringResource(R.string.common_all)
-                                chainsFilter.size == 1 -> chainsFilter.firstOrNull()?.asset()?.name ?: ""
+                                chainsFilter.size == 1 -> chainsFilter.firstOrNull()?.networkName() ?: ""
                                 else -> "${chainsFilter.size}"
                             },
                             badge = { IconWithBadge(null) }

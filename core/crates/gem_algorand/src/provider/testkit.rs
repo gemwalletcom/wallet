@@ -16,7 +16,7 @@ pub fn create_algorand_test_client() -> AlgorandClient<ReqwestClient> {
     use crate::rpc::{AlgorandClientIndexer, client_indexer::ALGORAND_INDEXER_URL};
 
     let settings = get_test_settings();
-    let client = reqwest::Client::new();
+    let client = gem_client::reqwest_client();
     let reqwest_client = ReqwestClient::new(settings.chains.algorand.url, client.clone());
     AlgorandClient::new(
         reqwest_client.clone(),

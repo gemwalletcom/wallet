@@ -16,6 +16,10 @@ pub fn simulate_eip712_message(chain: Chain, message: &EIP712Message) -> Simulat
     }
 }
 
+pub fn is_approval(chain: Chain, calldata: &[u8], contract_address: &str) -> bool {
+    decode_evm_approval(chain, calldata, contract_address).is_some()
+}
+
 pub fn simulate_evm_calldata(chain: Chain, calldata: &[u8], contract_address: &str) -> SimulationResult {
     match decode_evm_approval(chain, calldata, contract_address) {
         Some(approval) => approval.simulate(),

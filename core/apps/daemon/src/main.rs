@@ -41,10 +41,10 @@ pub async fn main() {
 
     match service {
         DaemonService::Setup => {
-            let _ = setup::run_setup(settings).await;
+            setup::run_setup(settings).await.expect("Setup failed");
         }
         DaemonService::SetupDev => {
-            let _ = setup::run_setup_dev(settings).await;
+            setup::run_setup_dev(settings).await.expect("Setup dev failed");
         }
         DaemonService::Worker(opts) => {
             let services = match opts.service {

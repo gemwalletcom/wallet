@@ -63,6 +63,7 @@ impl WalletConnectRequestHandler {
             WalletConnectionMethods::SolanaSignTransaction => SolanaRequestHandler::parse_sign_transaction(Chain::Solana, params),
             WalletConnectionMethods::SolanaSignAndSendTransaction => SolanaRequestHandler::parse_send_transaction(Chain::Solana, params),
             WalletConnectionMethods::SolanaSignAllTransactions => SolanaRequestHandler::parse_sign_all_transactions(params),
+            WalletConnectionMethods::SuiGetAccounts => Ok(WalletConnectAction::GetAccounts { chain: Chain::Sui }),
             WalletConnectionMethods::SuiSignPersonalMessage => SuiRequestHandler::parse_sign_message(Chain::Sui, params, domain),
             WalletConnectionMethods::SuiSignTransaction => SuiRequestHandler::parse_sign_transaction(Chain::Sui, params),
             WalletConnectionMethods::SuiSignAndExecuteTransaction => SuiRequestHandler::parse_send_transaction(Chain::Sui, params),
@@ -164,6 +165,15 @@ mod tests {
     }
 
     #[test]
+    fn test_sui_get_accounts() {
+        let request = WalletConnectRequest::mock("sui_getAccounts", "{}", Some("sui:mainnet"));
+        assert_eq!(
+            WalletConnectRequestHandler::parse_request(request).unwrap(),
+            WalletConnectAction::GetAccounts { chain: Chain::Sui }
+        );
+    }
+
+    #[test]
     fn test_chain_operation_add_chain() {
         let request = WalletConnectRequest::mock("wallet_addEthereumChain", "{}", None);
         assert_eq!(
@@ -255,6 +265,25 @@ mod tests {
                 }
             }
             _ => panic!("Expected SignAllTransactions action"),
+        }
+    }
+
+    #[test]
+    fn test_decode_ethereum_transaction_accepts_numeric_and_hex_string_chain_id() {
+        for (chain_id, expected) in [(r#"4663"#, 4663), (r#""0x1237""#, 4663)] {
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(
+                WalletConnectTransactionType::Ethereum,
+                format!(r#"{{"chainId":{chain_id},"from":"0xsender","to":"0xrouter","data":"0x1234","value":"0x0"}}"#),
+            )
+            .unwrap();
+
+            match decoded {
+                WalletConnectTransaction::Ethereum { data } => {
+                    assert_eq!(data.chain_id, Some(expected));
+                    assert_eq!(data.data, Some("0x1234".to_string()));
+                }
+                _ => panic!("Expected Ethereum transaction"),
+            }
         }
     }
 

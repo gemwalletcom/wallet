@@ -1,7 +1,11 @@
 use std::time::Duration;
 
+const GEM_WALLET_USER_AGENT: &str = concat!("Gem/Rust/", env!("CARGO_PKG_VERSION"));
+const FAILED_TO_BUILD_REQWEST_CLIENT: &str = "Failed to build reqwest client";
+
 pub fn builder() -> reqwest::ClientBuilder {
     reqwest::Client::builder()
+        .user_agent(GEM_WALLET_USER_AGENT)
         .timeout(Duration::from_secs(30))
         .connect_timeout(Duration::from_secs(15))
         .pool_idle_timeout(Duration::from_secs(90))
@@ -10,4 +14,8 @@ pub fn builder() -> reqwest::ClientBuilder {
         .gzip(true)
         .brotli(true)
         .deflate(true)
+}
+
+pub fn reqwest_client() -> reqwest::Client {
+    builder().build().expect(FAILED_TO_BUILD_REQWEST_CLIENT)
 }

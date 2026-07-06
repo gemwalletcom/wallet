@@ -9,10 +9,8 @@ pub struct NearIntentsProxyClient {
 
 impl NearIntentsProxyClient {
     pub fn new(cacher: CacherClient) -> Self {
-        Self {
-            client: reqwest::Client::new(),
-            cacher,
-        }
+        let client = gem_client::reqwest_client();
+        Self { client, cacher }
     }
 
     pub async fn quote(&self, body: serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {

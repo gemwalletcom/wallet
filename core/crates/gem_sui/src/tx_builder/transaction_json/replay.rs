@@ -19,7 +19,7 @@ impl ReplayedTransaction {
 }
 
 pub struct TransactionJsonReplay {
-    transaction: TransactionBuilderJson,
+    pub(super) transaction: TransactionBuilderJson,
     object_inputs: HashMap<usize, ObjectInput>,
 }
 
@@ -49,11 +49,18 @@ pub async fn replay_transaction_json(client: &SuiClient, transaction_json: &str)
 }
 
 pub async fn prepare_transaction_json_replay(client: &SuiClient, transaction_json: &str) -> Result<TransactionJsonReplay, SuiError> {
+    prepare_replay(client, parse_transaction_json(transaction_json)?).await
+}
+
+pub(super) fn parse_transaction_json(transaction_json: &str) -> Result<TransactionBuilderJson, SuiError> {
     let transaction: TransactionBuilderJson = serde_json::from_str(transaction_json).map_err(|err| SuiError::invalid_input(format!("Invalid Sui transaction JSON: {err}")))?;
     if transaction.version != 2 {
         return Err(SuiError::invalid_input(format!("Unsupported Sui transaction JSON version {}", transaction.version)));
     }
+    Ok(transaction)
+}
 
+pub(super) async fn prepare_replay(client: &SuiClient, transaction: TransactionBuilderJson) -> Result<TransactionJsonReplay, SuiError> {
     let input_mutability = input_mutability(client, &transaction.commands).await?;
     let object_inputs = object_inputs(client, &transaction.inputs, &input_mutability).await?;
     Ok(TransactionJsonReplay { transaction, object_inputs })

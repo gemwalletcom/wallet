@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">ביטוי סודי לא חוקי</string>
   <string name="errors_import_invalid_secret_phrase_word">מילת ביטוי סודי לא חוקי: %1$s</string>
   <string name="errors_invalid_url">כתובת אתר לא חוקית</string>
-  <string name="errors_error_occured">אירעה שגיאה!</string>
+  <string name="errors_error_occurred">אירעה שגיאה!</string>
   <string name="errors_invalid_network_id">מזהה רשת לא חוקי</string>
   <string name="errors_error">שגיאה</string>
   <string name="errors_connections_user_cancelled">המשתמש ביטל</string>

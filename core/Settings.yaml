@@ -15,6 +15,9 @@ rabbitmq:
 coingecko:
   key:
     secret: ""
+coinmarketcap:
+  key:
+    secret: ""
 fiat:
   timeout: 3s
 moonpay:
@@ -232,6 +235,16 @@ support:
       - jpeg
       - jpg
       - png
+
+defi:
+  zerion:
+    url: "https://api.zerion.io"
+    key:
+      secret: ""
+  jupiter:
+    url: "https://api.jup.ag"
+    key:
+      secret: ""
 
 parser:
   timeout: 1s

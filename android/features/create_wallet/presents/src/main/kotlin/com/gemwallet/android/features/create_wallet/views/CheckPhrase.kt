@@ -18,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.create_wallet.components.WordChip
+import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.CenteredDescriptionText
@@ -32,6 +34,7 @@ import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
+import uniffi.gemstone.DocsUrl
 import kotlin.math.min
 
 private const val wordsPerGroup = 4
@@ -45,6 +48,7 @@ internal fun CheckPhrase(
     onCancel: () -> Unit,
 ) {
     DisableScreenShooting()
+    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
 
     val random = remember {
         val shuffled = mutableListOf<Pair<Int, String>>()

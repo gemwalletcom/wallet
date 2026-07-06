@@ -51,7 +51,7 @@ class AddNodeViewModel @Inject constructor(
             status == null -> state.update {
                 it.copy(
                     checking = false,
-                    errorResId = R.string.errors_error_occured,
+                    errorResId = R.string.errors_error_occurred,
                 )
             }
 
@@ -78,7 +78,7 @@ class AddNodeViewModel @Inject constructor(
         viewModelScope.launch {
             val addResult = runCatching { addNodeCase.addNode(chain = chain, status.url) }
             if (addResult.isFailure) {
-                state.update { it.copy(errorResId = R.string.errors_error_occured) }
+                state.update { it.copy(errorResId = R.string.errors_error_occurred) }
                 return@launch
             }
 

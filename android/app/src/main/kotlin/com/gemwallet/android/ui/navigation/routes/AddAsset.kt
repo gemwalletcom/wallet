@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.add_asset.views.AddAssetScree
+import com.gemwallet.android.features.add_asset.views.AddAssetScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,6 +13,6 @@ fun EntryProviderScope<NavKey>.addAssetScreen(
     onFinish: () -> Unit,
 ) {
     entry<AddAssetRoute> {
-        AddAssetScree(onCancel = onCancel, onFinish = onFinish)
+        AddAssetScreen(onCancel = onCancel, onFinish = onFinish)
     }
 }

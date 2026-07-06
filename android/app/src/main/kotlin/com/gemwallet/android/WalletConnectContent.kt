@@ -56,7 +56,7 @@ internal fun WalletConnectErrorDialog(
             containerColor = MaterialTheme.colorScheme.background,
             confirmButton = {
                 TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(id = R.string.common_cancel))
+                    Text(text = stringResource(id = R.string.common_done))
                 }
             },
             text = {
@@ -130,6 +130,7 @@ private fun WalletConnectOverlay(
                         verifyContext = verifyContext,
                         onBuy = onBuy,
                         onCancel = viewModel::onCancel,
+                        onError = onError,
                     )
                 }
             }

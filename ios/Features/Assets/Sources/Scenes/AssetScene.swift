@@ -17,10 +17,10 @@ public struct AssetScene: View {
     public var body: some View {
         List {
             Section {} header: {
-                WalletHeaderView(
+                ValueHeaderView(
                     model: model.assetHeaderModel,
                     isPrivacyEnabled: .constant(false),
-                    balanceActionType: .none,
+                    titleActionType: .none,
                     onHeaderAction: model.onSelectHeader,
                     onInfoAction: model.onSelectWalletHeaderInfo,
                 )

@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Neplatná tajná fráze";
 "errors.import.invalid_secret_phrase_word" = "Neplatné slovo tajné fráze: %@";
 "errors.invalid_url" = "Neplatná adresa URL";
-"errors.error_occured" = "Došlo k chybě!";
+"errors.error_occurred" = "Došlo k chybě!";
 "errors.invalid_network_id" = "Neplatné ID sítě";
 "errors.error" = "Chyba";
 "errors.connections.user_cancelled" = "Uživatel zrušen";

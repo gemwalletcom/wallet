@@ -3,8 +3,16 @@
 import BigInt
 import Foundation
 import Gemstone
-import func Gemstone.assetWrapper
+import func Gemstone.chainAssetWrapper
 import Primitives
+
+private let chainAssets: [Primitives.Chain: ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
+    let wrapper = chainAssetWrapper(chain: chain.rawValue)
+    result[chain] = ChainAsset(
+        asset: try! wrapper.asset.map(),
+        networkName: wrapper.networkName,
+    )
+}
 
 public extension Gemstone.Chain {
     func map() throws -> Primitives.Chain {
@@ -14,14 +22,11 @@ public extension Gemstone.Chain {
 
 public extension Primitives.Chain {
     var asset: Asset {
-        let assetWrapper = try! assetWrapper(chain: rawValue).map()
-        return Asset(
-            id: assetId,
-            name: assetWrapper.name,
-            symbol: assetWrapper.symbol,
-            decimals: assetWrapper.decimals,
-            type: .native,
-        )
+        chainAsset.asset
+    }
+
+    var networkName: String {
+        chainAsset.networkName
     }
 
     var accountActivationFee: Int32? {
@@ -57,6 +62,10 @@ public extension Primitives.Chain {
 
     var isNFTSupported: Bool {
         ChainConfig.config(chain: self).isNftSupported
+    }
+
+    var isDefiSupported: Bool {
+        ChainConfig.config(chain: self).isDefiSupported
     }
 
     var type: ChainType {
@@ -101,10 +110,28 @@ public extension Primitives.Chain {
     func checksumAddress(_ address: String) -> String {
         Gemstone.checksumAddress(address: address, chain: rawValue)
     }
+
+    func matches(query: String) -> Bool {
+        networkName.localizedCaseInsensitiveContains(query) ||
+            rawValue.localizedCaseInsensitiveContains(query) ||
+            asset.name.localizedCaseInsensitiveContains(query) ||
+            asset.symbol.localizedCaseInsensitiveContains(query)
+    }
+}
+
+private extension Primitives.Chain {
+    var chainAsset: ChainAsset {
+        chainAssets[self]!
+    }
 }
 
 public extension [Primitives.Chain] {
     func sortByRank() -> [Primitives.Chain] {
         sorted { AssetScore.defaultRank(chain: $0) > AssetScore.defaultRank(chain: $1) }
+    }
+
+    func filter(query: String) -> [Primitives.Chain] {
+        guard !query.isEmpty else { return self }
+        return filter { $0.matches(query: query) }
     }
 }

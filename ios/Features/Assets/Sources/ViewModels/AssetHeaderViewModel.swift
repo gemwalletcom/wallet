@@ -13,7 +13,7 @@ struct AssetHeaderViewModel {
     let bannerEventsViewModel: HeaderBannerEventViewModel
 }
 
-extension AssetHeaderViewModel: HeaderViewModel {
+extension AssetHeaderViewModel: ValueHeaderViewModel {
     var isWatchWallet: Bool {
         walletModel.wallet.type == .view
     }

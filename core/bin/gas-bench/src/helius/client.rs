@@ -9,7 +9,7 @@ pub struct HeliusClient {
 impl HeliusClient {
     pub fn new(api_key: &str) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: gem_client::reqwest_client(),
             endpoint: format!("https://mainnet.helius-rpc.com/?api-key={}", api_key),
         }
     }

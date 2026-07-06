@@ -1,15 +1,14 @@
 use std::collections::HashMap;
 use std::error::Error;
 
+use ::jupiter::{JupiterClient, Token};
 use async_trait::async_trait;
 use gem_client::ReqwestClient;
 use primitives::AssetId;
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvider, PriceProviderAsset};
 
-use super::client::JupiterClient;
 use super::mapper::{map_token_asset, map_token_price, to_asset_price_mapping, to_jupiter_token_id};
-use super::model::VerifiedToken;
 
 pub struct JupiterProvider {
     jupiter_client: JupiterClient,
@@ -18,11 +17,11 @@ pub struct JupiterProvider {
 impl JupiterProvider {
     pub fn new(client: ReqwestClient) -> Self {
         Self {
-            jupiter_client: JupiterClient::new(client),
+            jupiter_client: JupiterClient::new_with_client(client),
         }
     }
 
-    async fn verified_tokens(&self) -> Result<Vec<VerifiedToken>, Box<dyn Error + Send + Sync>> {
+    async fn verified_tokens(&self) -> Result<Vec<Token>, Box<dyn Error + Send + Sync>> {
         self.jupiter_client.get_verified_tokens().await
     }
 }
@@ -54,7 +53,7 @@ impl PriceAssetsProvider for JupiterProvider {
         if mappings.is_empty() {
             return Ok(vec![]);
         }
-        let tokens: HashMap<String, VerifiedToken> = self.verified_tokens().await?.into_iter().map(|t| (t.id.clone(), t)).collect();
+        let tokens: HashMap<String, Token> = self.verified_tokens().await?.into_iter().map(|t| (t.id.clone(), t)).collect();
         Ok(mappings
             .into_iter()
             .filter_map(|mapping| tokens.get(&to_jupiter_token_id(&mapping.provider_price_id)).map(|token| map_token_price(mapping, token)))

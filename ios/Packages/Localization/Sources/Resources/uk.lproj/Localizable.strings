@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Недійсна секретна фраза";
 "errors.import.invalid_secret_phrase_word" = "Невірне слово секретної фрази: %@";
 "errors.invalid_url" = "Недійсний URL";
-"errors.error_occured" = "Виникла помилка!";
+"errors.error_occurred" = "Виникла помилка!";
 "errors.invalid_network_id" = "Неправильний ідентифікатор мережі";
 "errors.error" = "Помилка";
 "errors.connections.user_cancelled" = "Скасовано користувачем";

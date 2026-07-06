@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "अमान्य गुप्त वाक्यांश";
 "errors.import.invalid_secret_phrase_word" = "अमान्य गुप्त वाक्यांश शब्द: %@";
 "errors.invalid_url" = "अमान्य यूआरएल";
-"errors.error_occured" = "एक त्रुटि पाई गई!";
+"errors.error_occurred" = "एक त्रुटि पाई गई!";
 "errors.invalid_network_id" = "अमान्य नेटवर्क आईडी";
 "errors.error" = "त्रुटि";
 "errors.connections.user_cancelled" = "उपयोगकर्ता ने रद्द किया";

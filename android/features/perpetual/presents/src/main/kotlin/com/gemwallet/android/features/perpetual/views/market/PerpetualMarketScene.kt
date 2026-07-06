@@ -165,7 +165,7 @@ internal fun PerpetualMarketScene(
                 if (pinnedPerpetuals.isNotEmpty()) {
                     item {
                         Spacer16()
-                        PinnedAssetsHeaderItem(AssetsGroupType.Pined)
+                        PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
                     }
                     itemsPositioned(pinnedPerpetuals) { position, item ->
                         PerpetualItem(

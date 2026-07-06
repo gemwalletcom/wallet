@@ -28,7 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -50,7 +50,7 @@ import com.wallet.core.primitives.TransactionState
 
 @Composable
 internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
-    val chainName = progress.fromAsset.chain.asset().name
+    val chainName = progress.fromAsset.chain.networkName()
     val transferValue = ValueFormatter(style = ValueFormatter.Style.Auto)
         .string(progress.fromValue.toBigInteger(), progress.fromAsset)
 

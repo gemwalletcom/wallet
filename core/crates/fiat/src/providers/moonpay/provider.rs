@@ -137,7 +137,7 @@ mod tests {
     use streamer::FiatWebhook;
 
     fn client() -> MoonPayClient {
-        MoonPayClient::new(reqwest::Client::new(), String::new(), String::new())
+        MoonPayClient::new(gem_client::reqwest_client(), String::new(), String::new())
     }
 
     fn assert_transaction(webhook: FiatWebhook, expected: FiatTransactionUpdate) {

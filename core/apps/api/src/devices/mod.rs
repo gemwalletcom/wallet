@@ -16,6 +16,7 @@ pub use clients::{
     AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, ScanProviderFactory, TransactionsClient,
     WalletConfigurationClient, WalletsClient,
 };
+use defi::DefiClient;
 use gem_auth::AuthClient;
 use guard::{AuthenticatedDevice, AuthenticatedDeviceWallet, VerifiedDeviceId};
 use name_resolver::client::Client as NameClient;
@@ -26,9 +27,9 @@ use primitives::name::NameRecord;
 use primitives::nft::NFTAssetData;
 use primitives::rewards::{RedemptionRequest, RedemptionResult, RewardRedemptionOption};
 use primitives::{
-    AddressName, AssetId, AuthNonce, ChainAddress, FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, InAppNotification, NFTData, PortfolioAssets,
-    PortfolioAssetsRequest, PriceAlerts, ReportNft, RewardEvent, Rewards, ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse, WalletConfigurationResult,
-    WalletId, WalletSubscription, WalletSubscriptionChains,
+    AddressName, AssetId, AuthNonce, ChainAddress, DefiPosition, FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, InAppNotification, NFTData,
+    PortfolioAssets, PortfolioAssetsRequest, PriceAlerts, ReportNft, RewardEvent, Rewards, ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse,
+    WalletConfigurationResult, WalletId, WalletSubscription, WalletSubscriptionChains,
 };
 use rocket::{State, delete, get, post, put, tokio::sync::Mutex};
 use std::sync::Arc;
@@ -127,6 +128,11 @@ pub async fn refresh_device_nft_asset_v2(
     stream_producer: &State<StreamProducer>,
 ) -> Result<ApiResponse<bool>, ApiError> {
     Ok(stream_producer.publish_fetch_nft_asset(asset_id.0).await?.into())
+}
+
+#[get("/devices/defi/positions")]
+pub async fn get_device_defi_positions_v2(device: AuthenticatedDeviceWallet, client: &State<DefiClient>) -> Result<ApiResponse<Vec<DefiPosition>>, ApiError> {
+    Ok(client.get_positions_by_wallet_id(device.device_row.id, device.wallet_id).await?.into())
 }
 
 #[get("/devices/rewards")]

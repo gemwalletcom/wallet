@@ -1,0 +1,199 @@
+{
+  "date": 1710000000000,
+  "owner": "BQ72nSv9f3PRyRKCBnHLVrerrv37CYTHm5h3s9VSGQDV",
+  "fetcherReports": [],
+  "elements": [
+    {
+      "type": "multiple",
+      "networkId": "solana",
+      "platformId": "jupiter-governance",
+      "value": 1125,
+      "label": "Staked",
+      "name": "JUP Staked",
+      "data": {
+        "assets": [
+          {
+            "type": "token",
+            "networkId": "solana",
+            "value": 1125,
+            "attributes": {},
+            "data": {
+              "address": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+              "amount": 12.5,
+              "price": 90
+            }
+          }
+        ],
+        "ref": "stake-account"
+      }
+    },
+    {
+      "type": "liquidity",
+      "networkId": "solana",
+      "platformId": "jupiter-exchange",
+      "value": 175,
+      "label": "LiquidityPool",
+      "name": "SOL / USDC",
+      "data": {
+        "liquidities": [
+          {
+            "assets": [
+              {
+                "type": "token",
+                "networkId": "solana",
+                "value": 170,
+                "attributes": {},
+                "data": {
+                  "address": "So11111111111111111111111111111111111111112",
+                  "amount": 2.5,
+                  "price": 68
+                }
+              }
+            ],
+            "assetsValue": 170,
+            "rewardAssets": [
+              {
+                "type": "token",
+                "networkId": "solana",
+                "value": 5,
+                "attributes": {},
+                "data": {
+                  "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                  "amount": 1.50075,
+                  "price": 1
+                }
+              }
+            ],
+            "rewardAssetsValue": 5,
+            "value": 175,
+            "yields": [],
+            "name": "SOL / USDC",
+            "ref": "liquidity-position"
+          }
+        ]
+      }
+    },
+    {
+      "type": "borrowlend",
+      "networkId": "solana",
+      "platformId": "jupiter-exchange",
+      "value": 75,
+      "label": "Lending",
+      "name": "Jupiter Lend",
+      "data": {
+        "value": 75,
+        "suppliedAssets": [
+          {
+            "type": "token",
+            "networkId": "solana",
+            "value": 100,
+            "attributes": {},
+            "data": {
+              "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "amount": 100,
+              "price": 1
+            }
+          }
+        ],
+        "borrowedAssets": [
+          {
+            "type": "token",
+            "networkId": "solana",
+            "value": 25,
+            "attributes": {},
+            "data": {
+              "address": "So11111111111111111111111111111111111111112",
+              "amount": 0.25,
+              "price": 100
+            }
+          }
+        ],
+        "rewardAssets": [
+          {
+            "type": "token",
+            "networkId": "solana",
+            "value": 1,
+            "attributes": {},
+            "data": {
+              "address": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+              "amount": 1,
+              "price": 1
+            }
+          }
+        ],
+        "suppliedValue": 100,
+        "borrowedValue": 25,
+        "rewardValue": 1,
+        "suppliedYields": [],
+        "borrowedYields": [],
+        "healthRatio": 1.5,
+        "ref": "lending-position"
+      }
+    },
+    {
+      "type": "trade",
+      "networkId": "solana",
+      "platformId": "jupiter-exchange",
+      "value": 10,
+      "label": "LimitOrder",
+      "name": "Limit Order",
+      "data": {
+        "assets": {
+          "input": {
+            "type": "token",
+            "networkId": "solana",
+            "value": 10,
+            "attributes": {},
+            "data": {
+              "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "amount": 10,
+              "price": 1
+            }
+          },
+          "output": {
+            "type": "token",
+            "networkId": "solana",
+            "value": 10,
+            "attributes": {},
+            "data": {
+              "address": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+              "amount": 10,
+              "price": 1
+            }
+          }
+        },
+        "inputAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "outputAddress": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        "initialInputAmount": 10,
+        "withdrawnOutputAmount": 0,
+        "inputPrice": 1,
+        "outputPrice": 1,
+        "filledPercentage": 0,
+        "ref": "order-account"
+      }
+    }
+  ],
+  "duration": 450,
+  "tokenInfo": {
+    "solana": {
+      "So11111111111111111111111111111111111111112": {
+        "address": "So11111111111111111111111111111111111111112",
+        "name": "Wrapped SOL",
+        "decimals": 9,
+        "symbol": "SOL"
+      },
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
+        "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "name": "USD Coin",
+        "decimals": 6,
+        "symbol": "USDC"
+      },
+      "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN": {
+        "address": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        "name": "Jupiter",
+        "decimals": 8,
+        "symbol": "JUP"
+      }
+    }
+  }
+}

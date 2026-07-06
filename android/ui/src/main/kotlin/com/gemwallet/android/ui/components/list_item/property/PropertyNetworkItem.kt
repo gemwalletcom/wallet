@@ -7,6 +7,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AssetIdAction
@@ -17,7 +18,7 @@ import com.wallet.core.primitives.Chain
 @Composable
 fun PropertyNetworkItem(
     chain: Chain,
-    value: String = chain.asset().name,
+    value: String = chain.networkName(),
     listPosition: ListPosition = ListPosition.Single,
     onOpenNetwork: AssetIdAction? = null
 ) {

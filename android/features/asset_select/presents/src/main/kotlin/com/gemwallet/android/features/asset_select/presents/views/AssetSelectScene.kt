@@ -238,7 +238,7 @@ fun AssetSelectScene(
             recent(recent, onSelectRecent, onOpenRecentsSheet)
             assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
-                item { PinnedAssetsHeaderItem(AssetsGroupType.Pined) }
+                item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
                 val pinnedTotal = pinnedPerpetualRows.size + pinned.size
                 itemsPositioned(pinnedPerpetualRows, totalCount = pinnedTotal) { position, row ->
                     row(position)

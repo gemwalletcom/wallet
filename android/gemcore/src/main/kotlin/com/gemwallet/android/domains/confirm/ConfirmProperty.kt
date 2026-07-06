@@ -19,6 +19,7 @@ sealed interface ConfirmProperty {
         class Transfer(
             val domain: String?,
             val address: String,
+            val chain: Chain,
             val explorerLink: BlockExplorerLink? = null,
         ) : Destination(address)
         class Generic(val appName: String) : Destination(appName)
@@ -48,7 +49,7 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.TransferParams.Deposit,
                 is ConfirmParams.TransferParams.Withdrawal,
                 is ConfirmParams.TransferParams.Native -> params.destination()?.let {
-                    Transfer(domain = it.name ?: addressName?.name, address = it.address)
+                    Transfer(domain = it.name ?: addressName?.name, address = it.address, chain = params.assetId.chain)
                 } ?: throw ConfirmError.RecipientEmpty
                 is ConfirmParams.TransferParams.Generic -> Generic(params.name)
             }

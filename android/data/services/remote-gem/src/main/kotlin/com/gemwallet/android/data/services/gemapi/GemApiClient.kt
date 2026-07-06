@@ -5,6 +5,7 @@ import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Charts
 import com.wallet.core.primitives.ConfigResponse
+import com.wallet.core.primitives.FiatAssets
 import com.wallet.core.primitives.SearchResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -26,6 +27,9 @@ interface GemApiClient {
     suspend fun getAssets(
         @Body ids: List<AssetId>,
     ): List<AssetBasic>
+
+    @GET("/v1/fiat/assets/{type}")
+    suspend fun getFiatAssets(@Path("type") type: String): FiatAssets
 
     @GET("/v1/assets/search")
     suspend fun searchAssets(

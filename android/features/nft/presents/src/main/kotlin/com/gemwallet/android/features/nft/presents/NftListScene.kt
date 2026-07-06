@@ -150,7 +150,7 @@ internal fun NftListScene(
                         Text(
                             textAlign = TextAlign.Center,
                             text = when (currentError) {
-                                NftError.LoadError -> stringResource(R.string.errors_error_occured)
+                                NftError.LoadError -> stringResource(R.string.errors_error_occurred)
                                 NftError.NotFoundAsset -> currentError.message.orEmpty()
                                 NftError.NotFoundCollection -> currentError.message.orEmpty()
                             }

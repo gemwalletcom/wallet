@@ -68,7 +68,9 @@ pub struct GasflowClient {
 
 impl GasflowClient {
     pub fn new() -> Self {
-        Self { client: reqwest::Client::new() }
+        Self {
+            client: gem_client::reqwest_client(),
+        }
     }
 
     pub async fn fetch_prediction(&self) -> Result<GasflowResponse, reqwest::Error> {

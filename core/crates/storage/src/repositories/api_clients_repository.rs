@@ -4,12 +4,17 @@ use crate::{DatabaseClient, DatabaseError};
 
 pub trait ApiClientsRepository {
     fn add_api_client_grants(&mut self, values: Vec<ApiClientGrant>) -> Result<usize, DatabaseError>;
+    fn set_api_client_secret(&mut self, name: &str, secret: &str) -> Result<usize, DatabaseError>;
     fn get_enabled_api_client(&mut self, secret: &str, scope: ApiClientScope, resource: ApiClientResource) -> Result<Option<ApiClientRow>, DatabaseError>;
 }
 
 impl ApiClientsRepository for DatabaseClient {
     fn add_api_client_grants(&mut self, values: Vec<ApiClientGrant>) -> Result<usize, DatabaseError> {
         Ok(ApiClientsStore::add_api_client_grants(self, values)?)
+    }
+
+    fn set_api_client_secret(&mut self, name: &str, secret: &str) -> Result<usize, DatabaseError> {
+        Ok(ApiClientsStore::set_api_client_secret(self, name, secret)?)
     }
 
     fn get_enabled_api_client(&mut self, secret: &str, scope: ApiClientScope, resource: ApiClientResource) -> Result<Option<ApiClientRow>, DatabaseError> {

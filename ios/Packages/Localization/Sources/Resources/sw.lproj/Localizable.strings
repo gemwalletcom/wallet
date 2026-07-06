@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Maneno ya Siri Batili";
 "errors.import.invalid_secret_phrase_word" = "Neno batili la Neno la Siri: %@";
 "errors.invalid_url" = "URL batili";
-"errors.error_occured" = "Hitilafu imetokea!";
+"errors.error_occurred" = "Hitilafu imetokea!";
 "errors.invalid_network_id" = "Kitambulisho batili cha Mtandao";
 "errors.error" = "Hitilafu";
 "errors.connections.user_cancelled" = "Mtumiaji ameghairi";

@@ -17,7 +17,7 @@ public enum InfoSheetModelFactory {
         case let .networkFee(chain):
             return InfoSheetModel(
                 title: Localized.Info.NetworkFee.title,
-                description: Localized.Info.NetworkFee.description(chain.asset.name.boldMarkdown(), chain.asset.feeAsset.symbol.boldMarkdown()),
+                description: Localized.Info.NetworkFee.description(chain.networkName.boldMarkdown(), chain.asset.feeAsset.symbol.boldMarkdown()),
                 image: .image(Images.Info.networkFee),
                 button: .url(AppUrl.docs(.networkFees)),
             )
@@ -115,7 +115,7 @@ public enum InfoSheetModelFactory {
             )
         case let .minimumAmount(asset, required, action):
             let formatter = ValueFormatter(style: .full)
-            let chain = asset.chain.asset.name.boldMarkdown()
+            let chain = asset.chain.networkName.boldMarkdown()
             let amount = formatter.string(required, asset: asset).boldMarkdown()
             return InfoSheetModel(
                 title: Localized.Info.MinimumAmount.title,
@@ -186,7 +186,7 @@ public enum InfoSheetModelFactory {
         case let .dustThreshold(chain, image):
             return InfoSheetModel(
                 title: Localized.Errors.transferError,
-                description: Localized.Errors.dustThreshold(chain.asset.name.boldMarkdown()),
+                description: Localized.Errors.dustThreshold(chain.networkName.boldMarkdown()),
                 image: .assetImage(image),
                 button: .url(AppUrl.docs(.dust)),
             )

@@ -316,7 +316,7 @@ mod tests {
         ProxyRequestService::new(
             metrics.clone(),
             RequestCache::new(CacheConfig::default(), &ChainTypesConfig::default(), std::iter::empty()),
-            reqwest::Client::new(),
+            gem_client::reqwest_client(),
             headers_config,
             DynodeBroadcastWebhookClient::disabled(),
             Arc::new(BroadcastProviders::from_chains([Chain::Ethereum])),

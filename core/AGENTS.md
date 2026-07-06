@@ -20,7 +20,7 @@ Read this file first, then load the relevant skills for your current task. `proj
 
 Subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
-- [Gem Keystore v4](docs/KEYSTORE_V4.md) — keystore file format, v3 migration, and the keystore-internal signing / device-auth contract (key never crosses the FFI boundary)
+- [Gem Keystore v4](docs/KEYSTORE_V4.md) — keystore file format, v3 migration, account public keys, and the keystore-internal signing / device-auth contract (key never crosses the FFI boundary)
 - [Device Authentication](docs/DEVICE_AUTHENTICATION.md) — Ed25519 request signing and the `Gem` Authorization header
 - [Wallet Authentication](docs/WALLET_AUTHENTICATION.md)
 - [Device WebSockets](docs/DEVICE_WEBSOCKETS.md)

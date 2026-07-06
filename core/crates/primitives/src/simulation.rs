@@ -2,7 +2,7 @@ use num_bigint::BigInt;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::AssetId;
+use crate::{Asset, AssetId};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
@@ -81,6 +81,14 @@ impl SimulationWarning {
         Self { severity, warning, message }
     }
 
+    pub fn validation_error(message: impl Into<String>) -> Self {
+        Self::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some(message.into()))
+    }
+
+    pub fn execution_error(message: impl Into<String>) -> Self {
+        Self::new(SimulationSeverity::Warning, SimulationWarningType::ValidationError, Some(message.into()))
+    }
+
     fn collapse_priority(&self) -> u8 {
         self.warning.collapse_priority(self.severity)
     }
@@ -95,6 +103,27 @@ pub struct SimulationBalanceChange {
     pub decimals: i32,
     pub name: Option<String>,
     pub symbol: Option<String>,
+}
+
+impl SimulationBalanceChange {
+    pub fn new(asset_id: AssetId, value: BigInt) -> Self {
+        Self {
+            asset_id,
+            value: value.to_string(),
+            decimals: 0,
+            name: None,
+            symbol: None,
+        }
+    }
+
+    pub fn with_asset(self, asset: Asset) -> Self {
+        Self {
+            name: Some(asset.name),
+            symbol: Some(asset.symbol),
+            decimals: asset.decimals,
+            ..self
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

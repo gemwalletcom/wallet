@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Emoji
@@ -60,7 +60,7 @@ internal fun bannerItemUIModel(
             stringResource(
                 R.string.banner_activate_asset_description,
                 assetName,
-                asset?.id?.chain?.asset()?.name ?: "",
+                asset?.id?.chain?.networkName() ?: "",
             ),
         )
         BannerEvent.SuspiciousAsset,

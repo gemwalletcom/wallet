@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Di-wastong Lihim na Parirala";
 "errors.import.invalid_secret_phrase_word" = "Di-wastong Lihim na Parirala na salita: %@";
 "errors.invalid_url" = "Di-wastong URL";
-"errors.error_occured" = "May naganap na error!";
+"errors.error_occurred" = "May naganap na error!";
 "errors.invalid_network_id" = "Di-wastong Network ID";
 "errors.error" = "Error";
 "errors.connections.user_cancelled" = "Kinansela ang user";

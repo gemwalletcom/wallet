@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "عبارات خصوصی نامعتبر.";
 "errors.import.invalid_secret_phrase_word" = "عبارت خصوصی نامعتبر: %@";
 "errors.invalid_url" = "URL نامعتبر";
-"errors.error_occured" = "خطایی رخ داد!";
+"errors.error_occurred" = "خطایی رخ داد!";
 "errors.invalid_network_id" = "شناسه شبکه نامعتبر است.";
 "errors.error" = "خطا";
 "errors.connections.user_cancelled" = "توسط کاربر لغو شد.";

@@ -29,7 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
 import com.gemwallet.android.ui.R
@@ -42,16 +42,11 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Node
 
 @Composable
-fun NetworkScene(
+internal fun NetworkScene(
     state: NetworksUIState,
-    onRefresh: () -> Unit,
-    onSelectNode: (Node) -> Unit,
-    onDeleteNode: (Node) -> Unit,
-    onSelectBlockExplorer: (String) -> Unit,
-    onCancel: () -> Unit,
+    onAction: (NetworkAction) -> Unit,
 ) {
     val chain = state.chain ?: return
     var isShowAddSource by remember { mutableStateOf(false) }
@@ -59,7 +54,7 @@ fun NetworkScene(
     var nodeDelete by remember { mutableStateOf<NodeRowUiModel?>(null) }
 
     Scene(
-        title = chain.asset().name,
+        title = chain.networkName(),
         actions = {
             if (state.availableAddNode) {
                 IconButton(onClick = { isShowAddSource = true }) {
@@ -67,12 +62,12 @@ fun NetworkScene(
                 }
             }
         },
-        onClose = onCancel,
+        onClose = { onAction(NetworkAction.Cancel) },
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
             isRefreshing = false,
-            onRefresh = onRefresh,
+            onRefresh = { onAction(NetworkAction.Refresh) },
             state = pullToRefreshState,
             enabled = true,
             indicator = {
@@ -103,7 +98,7 @@ fun NetworkScene(
                                 revealedNodeId = null
                             }
                         },
-                        onSelect = onSelectNode,
+                        onSelect = { onAction(NetworkAction.SelectNode(it)) },
                         onDelete = if (node.canDelete) {
                             {
                                 revealedNodeId = null
@@ -119,7 +114,7 @@ fun NetworkScene(
                     SubheaderItem(R.string.settings_networks_explorer)
                 }
                 itemsPositioned(state.blockExplorers) { position, item ->
-                    BlockExplorerItem(state.currentExplorer, item, position, onSelectBlockExplorer)
+                    BlockExplorerItem(state.currentExplorer, item, position) { onAction(NetworkAction.SelectBlockExplorer(it)) }
                 }
             }
         }
@@ -135,7 +130,7 @@ fun NetworkScene(
             chain = chain,
             onCancel = {
                 isShowAddSource = false
-                onRefresh()
+                onAction(NetworkAction.Refresh)
             },
         )
     }
@@ -144,7 +139,7 @@ fun NetworkScene(
         ConfirmNodeDeleteDialog(
             nodeName = pendingNode.host,
             onConfirm = {
-                onDeleteNode(pendingNode.node)
+                onAction(NetworkAction.DeleteNode(pendingNode.node))
                 nodeDelete = null
             },
             onDismiss = { nodeDelete = null },

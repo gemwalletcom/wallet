@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">助記詞無效</string>
   <string name="errors_import_invalid_secret_phrase_word">助記詞無效： %1$s</string>
   <string name="errors_invalid_url">無效的網址</string>
-  <string name="errors_error_occured">出錯了！</string>
+  <string name="errors_error_occurred">出錯了！</string>
   <string name="errors_invalid_network_id">無效的網路ID</string>
   <string name="errors_error">錯誤</string>
   <string name="errors_connections_user_cancelled">用戶已取消</string>

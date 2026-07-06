@@ -71,7 +71,7 @@ struct SimulationWarningViewModelTests {
             warning: SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil),
         )
 
-        #expect(model.title == Localized.Errors.errorOccured)
+        #expect(model.title == Localized.Errors.errorOccurred)
         #expect(model.message == Localized.Common.suspiciousAddress)
     }
 

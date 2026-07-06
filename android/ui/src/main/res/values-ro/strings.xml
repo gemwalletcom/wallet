@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Expresie secretă nevalidă</string>
   <string name="errors_import_invalid_secret_phrase_word">Cuvânt expresie secretă nevalid: %1$s</string>
   <string name="errors_invalid_url">Adresă URL nevalidă</string>
-  <string name="errors_error_occured">A apărut o eroare!</string>
+  <string name="errors_error_occurred">A apărut o eroare!</string>
   <string name="errors_invalid_network_id">ID de rețea nevalid</string>
   <string name="errors_error">Eroare</string>
   <string name="errors_connections_user_cancelled">Anulat de utilizator</string>

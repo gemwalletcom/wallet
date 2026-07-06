@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "助記詞無效";
 "errors.import.invalid_secret_phrase_word" = "助記詞無效： %@";
 "errors.invalid_url" = "無效的網址";
-"errors.error_occured" = "出錯了！";
+"errors.error_occurred" = "出錯了！";
 "errors.invalid_network_id" = "無效的網路ID";
 "errors.error" = "錯誤";
 "errors.connections.user_cancelled" = "用戶已取消";

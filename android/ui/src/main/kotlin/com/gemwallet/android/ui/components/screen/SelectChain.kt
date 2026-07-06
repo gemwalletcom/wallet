@@ -9,7 +9,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -49,7 +49,7 @@ fun SelectChain(
                 val size = chains.size
                 itemsIndexed(chains) { index, item ->
                     ChainItem(
-                        title = item.asset().name,
+                        title = item.networkName(),
                         icon = item,
                         listPosition = ListPosition.getPosition(index, size),
                         trailing = trailing?.let { t -> @Composable { t(item) } },

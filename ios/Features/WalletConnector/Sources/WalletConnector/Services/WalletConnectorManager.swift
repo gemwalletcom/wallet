@@ -16,10 +16,7 @@ public final class WalletConnectorManager {
 
 extension WalletConnectorManager: WalletConnectorInteractable {
     public func sessionReject(error: any Error) async {
-        let ignoreErrors = [
-            "User cancelled", // User cancelled throw by WalletConnect if session proposal is rejected
-        ]
-        guard !ignoreErrors.contains(error.localizedDescription) else {
+        if let error = error as? ConnectionsError, case .userCancelled = error {
             return
         }
         await MainActor.run { [weak self] in

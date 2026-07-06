@@ -51,7 +51,7 @@ mod tests {
     fn test_proxy_builder_creation() {
         let metrics = Metrics::new(MetricsConfig::default());
         let cache = RequestCache::new(CacheConfig::default(), &ChainTypesConfig::default(), std::iter::empty());
-        let client = reqwest::Client::new();
+        let client = gem_client::reqwest_client();
         let headers_config = create_test_headers_config();
         let broadcast_webhook = DynodeBroadcastWebhookClient::disabled();
         let broadcast_providers = Arc::new(BroadcastProviders::from_chains([Chain::Ethereum]));

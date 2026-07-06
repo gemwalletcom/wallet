@@ -56,13 +56,6 @@ fun SwapScreen(
         onSelectionConsumed()
     }
 
-    val onPrimaryAction: () -> Unit = {
-        viewModel.onPrimaryAction(
-            onConfirm = onConfirm,
-            onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
-        )
-    }
-
     SwapScene(
         swapState = swapState,
         pay = pay,
@@ -70,21 +63,24 @@ fun SwapScreen(
         swapDetails = swapDetails,
         payEquivalent = fromEquivalent,
         receiveEquivalent = toEquivalent,
-        onSelectAsset = { type ->
-            onSelect(type, pay?.id(), receive?.id())
-        },
-        switchSwap = viewModel::switchSwap,
         payValue = viewModel.payValue,
         receiveValue = viewModel.receiveValue,
-        onCancel = onCancel,
-        onDetails = { isShowDetails = true },
-        onSlippage = {
-            if (swapState.isQuoteInteractionEnabled) {
-                slippageSeedBps = swapDetails?.selectedSlippage
-                isShowSlippage = true
+        onAction = { action ->
+            when (action) {
+                is SwapSceneAction.SelectAsset -> onSelect(action.type, pay?.id(), receive?.id())
+                SwapSceneAction.SwitchAssets -> viewModel.switchSwap()
+                SwapSceneAction.ShowDetails -> isShowDetails = true
+                SwapSceneAction.Slippage -> if (swapState.isQuoteInteractionEnabled) {
+                    slippageSeedBps = swapDetails?.selectedSlippage
+                    isShowSlippage = true
+                }
+                SwapSceneAction.Swap -> viewModel.onPrimaryAction(
+                    onConfirm = onConfirm,
+                    onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
+                )
+                SwapSceneAction.Cancel -> onCancel()
             }
         },
-        onPrimaryAction = onPrimaryAction,
     )
 
     PriceImpactWarningDialog(

@@ -15,6 +15,7 @@ import com.gemwallet.android.ext.VersionCheck
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +42,7 @@ class AppViewModel @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val getRemoteConfig: GetRemoteConfig,
     private val platformStore: PlatformStore,
+    private val notificationsAvailable: NotificationsAvailable,
     getWalletSummary: GetWalletSummary,
 ) : ViewModel() {
 
@@ -71,9 +73,8 @@ class AppViewModel @Inject constructor(
         sessionRepository.session(),
         getPushEnabled.getPushEnabled(),
     ) { isAsk, session, pushEnabled ->
-        isAsk && session != null && !pushEnabled
+        notificationsAvailable && isAsk && session != null && !pushEnabled
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

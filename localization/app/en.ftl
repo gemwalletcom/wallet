@@ -378,8 +378,8 @@ errors_import_invalid_secret_phrase = Invalid Secret Phrase
 errors_import_invalid_secret_phrase_word = Invalid Secret Phrase word: %@
 # Used in error cards and validation UI for the invalid url label.
 errors_invalid_url = Invalid URL
-# Used in error cards and validation UI for the error occured label.
-errors_error_occured = An error occurred!
+# Used in error cards and validation UI for the error occurred label.
+errors_error_occurred = An error occurred!
 # Used in error cards and validation UI for the invalid network id label.
 errors_invalid_network_id = Invalid Network ID
 # Used in error cards and validation UI for the error label.

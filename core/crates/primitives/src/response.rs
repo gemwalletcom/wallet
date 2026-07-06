@@ -31,14 +31,3 @@ pub struct ErrorDetail {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub data: Option<Value>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResponseResultNew<T> {
-    pub data: T,
-}
-
-impl<T> ResponseResultNew<T> {
-    pub fn new(data: T) -> Self {
-        Self { data }
-    }
-}

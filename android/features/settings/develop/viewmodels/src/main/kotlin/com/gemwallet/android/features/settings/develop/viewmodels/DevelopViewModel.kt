@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
+import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,8 @@ class DevelopViewModel @Inject constructor(
     private val getDeviceId: GetDeviceId,
     private val getPushTokenCase: GetPushToken,
     private val clearPendingTransactions: ClearPendingTransactions,
-    val platformStore: PlatformStore
+    val platformStore: PlatformStore,
+    val notificationsAvailable: NotificationsAvailable,
 ) : ViewModel() {
 
     private val _deviceId = MutableStateFlow("")
@@ -29,7 +31,9 @@ class DevelopViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             _deviceId.value = getDeviceId.getDeviceId()
-            _pushToken.value = getPushTokenCase.getPushToken()
+            if (notificationsAvailable) {
+                _pushToken.value = getPushTokenCase.getPushToken()
+            }
         }
     }
 

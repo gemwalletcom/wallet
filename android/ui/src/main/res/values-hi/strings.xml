@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">अमान्य गुप्त वाक्यांश</string>
   <string name="errors_import_invalid_secret_phrase_word">अमान्य गुप्त वाक्यांश शब्द: %1$s</string>
   <string name="errors_invalid_url">अमान्य यूआरएल</string>
-  <string name="errors_error_occured">एक त्रुटि पाई गई!</string>
+  <string name="errors_error_occurred">एक त्रुटि पाई गई!</string>
   <string name="errors_invalid_network_id">अमान्य नेटवर्क आईडी</string>
   <string name="errors_error">त्रुटि</string>
   <string name="errors_connections_user_cancelled">उपयोगकर्ता ने रद्द किया</string>

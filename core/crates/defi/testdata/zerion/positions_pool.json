@@ -1,0 +1,66 @@
+{
+  "data": [
+    {
+      "id": "0x55d398326f99059ff775485246999027b3197955-binance-smart-chain-uniswap v3 usdt/wbnb pool (#2419399)-deposit",
+      "attributes": {
+        "name": "Uniswap V3 USDT/WBNB Pool (#2419399)",
+        "quantity": {
+          "int": "4216866319592440000"
+        },
+        "protocol": "uniswap-v3",
+        "protocol_module": "liquidity_pool",
+        "position_type": "deposit",
+        "fungible_info": {
+          "implementations": [
+            {
+              "chain_id": "binance-smart-chain",
+              "address": "0x55d398326f99059ff775485246999027b3197955"
+            }
+          ]
+        },
+        "application_metadata": {
+          "name": "Uniswap V3",
+          "url": "https://app.uniswap.org/pools"
+        }
+      },
+      "relationships": {
+        "dapp": {
+          "data": {
+            "id": "uniswap-v3"
+          }
+        }
+      }
+    },
+    {
+      "id": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c-binance-smart-chain-uniswap v3 usdt/wbnb pool (#2419399)-deposit",
+      "attributes": {
+        "name": "Uniswap V3 USDT/WBNB Pool (#2419399)",
+        "quantity": {
+          "int": "7614403622039635"
+        },
+        "protocol": "uniswap-v3",
+        "protocol_module": "liquidity_pool",
+        "position_type": "deposit",
+        "fungible_info": {
+          "implementations": [
+            {
+              "chain_id": "binance-smart-chain",
+              "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+            }
+          ]
+        },
+        "application_metadata": {
+          "name": "Uniswap V3",
+          "url": "https://app.uniswap.org/pools"
+        }
+      },
+      "relationships": {
+        "dapp": {
+          "data": {
+            "id": "uniswap-v3"
+          }
+        }
+      }
+    }
+  ]
+}

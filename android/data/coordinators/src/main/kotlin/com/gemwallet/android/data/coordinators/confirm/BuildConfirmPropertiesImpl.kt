@@ -39,6 +39,7 @@ class BuildConfirmPropertiesImpl(
                     is ConfirmProperty.Destination.Transfer -> ConfirmProperty.Destination.Transfer(
                         domain = destination.domain,
                         address = destination.address,
+                        chain = destination.chain,
                         explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, destination.address)),
                     )
                     is ConfirmProperty.Destination.Stake -> destination.address?.let { address ->

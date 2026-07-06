@@ -1,27 +1,18 @@
 use chrono::DateTime;
 use num_bigint::BigUint;
-use num_traits::Num;
 use std::sync::LazyLock;
 
 use super::parsers::ProtocolParsers;
+pub(crate) use super::transaction_payload::TRANSFER_TOPIC;
+use super::transaction_payload::{Erc20ApprovalPayload, Erc20TransferPayload, NftTransferPayload, TransactionPayload};
 use crate::{
-    address::{ethereum_address_checksum, ethereum_address_from_topic},
+    address::ethereum_address_checksum,
     registry::ContractRegistry,
     rpc::model::{Block, Transaction, TransactionReceipt, TransactionReplayTrace},
 };
 use primitives::{
     AssetId, NFTAssetId, Transaction as PrimitivesTransaction, TransactionType, chain::Chain, hex::decode_hex_utf8, transaction_metadata_types::TransactionNFTTransferMetadata,
 };
-
-pub const INPUT_0X: &str = "0x";
-pub const FUNCTION_ERC20_TRANSFER: &str = "0xa9059cbb";
-pub const FUNCTION_ERC20_APPROVE: &str = "0x095ea7b3";
-pub const FUNCTION_EIP721_TRANSFER: &str = "0x23b872dd"; // transferFrom(address from, address to, uint256 tokenId)
-pub const FUNCTION_EIP1155_TRANSFER: &str = "0xf242432a"; // safeTransferFrom(address from, address to, uint256 tokenId, uint256 amount, bytes data)
-pub const TRANSFER_TOPIC: &str = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
-pub const APPROVAL_TOPIC: &str = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925";
-pub const TRANSFER_SINGLE: &str = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62";
-pub const TRANSFER_GAS_LIMIT: u64 = 21000;
 
 pub static CONTRACT_REGISTRY: LazyLock<ContractRegistry> = LazyLock::new(ContractRegistry::default);
 pub struct EthereumMapper;
@@ -64,14 +55,7 @@ impl EthereumMapper {
         let to = ethereum_address_checksum(&transaction.to.clone().unwrap_or_default()).ok()?;
         let created_at = DateTime::from_timestamp(timestamp.clone().try_into().ok()?, 0)?;
 
-        let is_smart_contract_call = transaction.to.is_some() && transaction.input.len() > 2;
-        let is_erc20_approve = transaction.input.starts_with(FUNCTION_ERC20_APPROVE);
-        let is_erc20_transfer = transaction.input.starts_with(FUNCTION_ERC20_TRANSFER);
-        let has_native_transfer_value = transaction.value > BigUint::from(0u8) || from == to;
-        let is_native_transfer = transaction.to.is_some() && transaction.input == INPUT_0X && transaction_receipt.logs.is_empty() && has_native_transfer_value;
-        let is_native_transfer_with_data = transaction.input.len() > 2
-            && transaction.gas > TRANSFER_GAS_LIMIT
-            && Self::get_data_cost(&transaction.input).is_some_and(|data_cost| transaction_receipt.gas_used <= BigUint::from(TRANSFER_GAS_LIMIT + data_cost));
+        let payload = TransactionPayload::from_transaction(transaction, transaction_receipt, &from, &to);
 
         if transaction.to.is_some()
             && transaction.input.len() >= 8
@@ -80,169 +64,93 @@ impl EthereumMapper {
             return Some(tx);
         }
 
-        // nft eip 721
+        let build_nft_transfer = |transfer: NftTransferPayload| {
+            let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, &transfer.contract_address, &transfer.token_id.to_string()));
 
-        if transaction.input.starts_with(FUNCTION_EIP721_TRANSFER)
-            && transaction_receipt
-                .logs
-                .last()
-                .is_some_and(|log| log.topics.len() == 4 && log.topics.first().is_some_and(|x| x == TRANSFER_TOPIC))
-            && let Some(log) = transaction_receipt.logs.last()
-        {
-            let address = ethereum_address_from_topic(&log.topics[2])?;
-            let token_id = BigUint::from_str_radix(&log.topics[3].replace("0x", ""), 16).ok()?;
-            let contract_address = ethereum_address_checksum(&log.address).ok()?;
-            let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, &contract_address, &token_id.to_string()));
-
-            let transaction = PrimitivesTransaction::new(
-                hash,
+            PrimitivesTransaction::new(
+                hash.clone(),
                 AssetId::from_chain(chain),
                 from.clone(),
-                address,
+                transfer.to,
                 None,
                 TransactionType::TransferNFT,
                 state,
                 fee.to_string(),
-                fee_asset_id,
+                fee_asset_id.clone(),
                 "0".to_string(),
                 None,
                 serde_json::to_value(metadata).ok(),
                 created_at,
-            );
-            return Some(transaction);
-        }
+            )
+        };
 
-        // nft eip 1155
-
-        if transaction.input.starts_with(FUNCTION_EIP1155_TRANSFER)
-            && transaction_receipt
-                .logs
-                .last()
-                .is_some_and(|log| log.topics.len() == 4 && log.topics.first().is_some_and(|x| x == TRANSFER_SINGLE))
-            && let Some(log) = transaction_receipt.logs.last()
-        {
-            let to_address = ethereum_address_from_topic(&log.topics[3])?;
-            let token_id = BigUint::from_str_radix(&log.data.replace("0x", "")[0..64], 16).ok()?;
-            let contract_address = ethereum_address_checksum(&log.address).ok()?;
-            let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, &contract_address, &token_id.to_string()));
-
-            let transaction = PrimitivesTransaction::new(
-                hash,
-                AssetId::from_chain(chain),
-                from.clone(),
-                to_address,
+        let build_erc20_transfer = |transfer: Erc20TransferPayload| {
+            PrimitivesTransaction::new(
+                hash.clone(),
+                AssetId::from_token(chain, &transfer.contract_address),
+                transfer.from,
+                transfer.to,
                 None,
-                TransactionType::TransferNFT,
+                TransactionType::Transfer,
                 state,
                 fee.to_string(),
-                fee_asset_id,
-                "0".to_string(),
+                fee_asset_id.clone(),
+                transfer.value.to_string(),
                 None,
-                serde_json::to_value(metadata).ok(),
+                None,
                 created_at,
-            );
-            return Some(transaction);
-        }
+            )
+        };
 
-        // erc20 approve
-        if is_erc20_approve
-            && let Some(log) = transaction_receipt
-                .logs
-                .iter()
-                .find(|log| log.topics.len() == 3 && log.topics.first().is_some_and(|x| x == APPROVAL_TOPIC))
-        {
-            let to_address = ethereum_address_from_topic(&log.topics[2])?;
-            let value = BigUint::from_str_radix(&log.data.replace("0x", ""), 16).ok()?;
-            let token_id = ethereum_address_checksum(&log.address).ok()?;
-
-            return Some(PrimitivesTransaction::new(
-                hash,
-                AssetId::from_token(chain, &token_id),
+        let build_erc20_approval = |approval: Erc20ApprovalPayload| {
+            PrimitivesTransaction::new(
+                hash.clone(),
+                AssetId::from_token(chain, &approval.contract_address),
                 from.clone(),
-                to_address,
+                approval.spender,
                 None,
                 TransactionType::TokenApproval,
                 state,
                 fee.to_string(),
-                fee_asset_id,
-                value.to_string(),
+                fee_asset_id.clone(),
+                approval.value.to_string(),
                 None,
                 None,
                 created_at,
-            ));
-        }
-
-        // erc20 transfer - check both direct transfer calls and smart contract calls that emit transfer events
-        let transfer_log = transaction_receipt.logs.iter().find(|log| {
-            // ERC20 transfers have exactly 3 topics (event signature, from, to)
-            log.topics.len() == 3 && log.topics.first().is_some_and(|x| x == TRANSFER_TOPIC)
-        });
-
-        if let Some(log) = transfer_log {
-            let from_address_in_log = ethereum_address_from_topic(log.topics.get(1)?)?;
-            let to_address_in_log = ethereum_address_from_topic(log.topics.get(2)?)?;
-            let value = BigUint::from_str_radix(&log.data.replace("0x", ""), 16).ok()?;
-            let token_id = ethereum_address_checksum(&log.address).ok()?;
-
-            // Check if this is a relevant ERC20 transfer
-            let is_contract_transfer =
-                !is_erc20_approve && is_smart_contract_call && (from_address_in_log == from || from_address_in_log == to) && transaction_receipt.logs.len() <= 2;
-
-            if is_erc20_transfer || is_contract_transfer {
-                return Some(PrimitivesTransaction::new(
-                    hash,
-                    AssetId::from_token(chain, &token_id),
-                    from_address_in_log,
-                    to_address_in_log,
-                    None,
-                    TransactionType::Transfer,
-                    state,
-                    fee.to_string(),
-                    fee_asset_id,
-                    value.to_string(),
-                    None,
-                    None,
-                    created_at,
-                ));
-            }
-        }
-
-        let (transaction_type, memo, data) = if is_native_transfer {
-            (TransactionType::Transfer, None, None)
-        } else if is_native_transfer_with_data {
-            let memo = decode_hex_utf8(&transaction.input).filter(|m| !m.is_empty());
-            (TransactionType::Transfer, memo, Some(transaction.input.clone()))
-        } else if is_smart_contract_call {
-            (TransactionType::SmartContractCall, None, None)
-        } else {
-            return None;
+            )
         };
 
-        Some(
+        let build_native_asset_transaction = |transaction_type: TransactionType, memo: Option<String>, data: Option<String>| {
             PrimitivesTransaction::new(
-                hash,
+                hash.clone(),
                 chain.as_asset_id(),
-                from,
-                to,
+                from.clone(),
+                to.clone(),
                 None,
                 transaction_type,
                 state,
-                fee,
-                fee_asset_id,
-                value,
+                fee.clone(),
+                fee_asset_id.clone(),
+                value.clone(),
                 memo,
                 None,
                 created_at,
             )
-            .with_data(data),
-        )
-    }
+            .with_data(data)
+        };
 
-    fn get_data_cost(input: &str) -> Option<u64> {
-        let bytes = hex::decode(input.trim_start_matches("0x")).ok()?;
-        let data_cost = bytes.iter().map(|byte| if *byte == 0 { 4 } else { 68 }).sum();
-
-        Some(data_cost)
+        match payload {
+            TransactionPayload::NativeTransfer => Some(build_native_asset_transaction(TransactionType::Transfer, None, None)),
+            TransactionPayload::NativeTransferWithCallData => {
+                let memo = decode_hex_utf8(&transaction.input).filter(|value| !value.is_empty());
+                Some(build_native_asset_transaction(TransactionType::Transfer, memo, Some(transaction.input.clone())))
+            }
+            TransactionPayload::Erc20Approve(approval) => Some(build_erc20_approval(approval)),
+            TransactionPayload::Erc20Transfer(transfer) => Some(build_erc20_transfer(transfer)),
+            TransactionPayload::Erc721Transfer(transfer) | TransactionPayload::Erc1155Transfer(transfer) => Some(build_nft_transfer(transfer)),
+            TransactionPayload::SmartContractCall => Some(build_native_asset_transaction(TransactionType::SmartContractCall, None, None)),
+            TransactionPayload::Unknown => None,
+        }
     }
 }
 
@@ -251,6 +159,7 @@ mod tests {
     use super::*;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use crate::rpc::model::{Log, Transaction, TransactionReceipt};
+    use crate::rpc::transaction_payload::INPUT_0X;
     use num_bigint::BigUint;
     use primitives::{
         Chain, JsonRpcResult,
@@ -312,6 +221,26 @@ mod tests {
             transaction.metadata,
             Some(serde_json::json!({
                 "assetId": "ethereum_0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee::9143"
+            }))
+        );
+    }
+
+    #[test]
+    fn test_nft_eip721_safe_transfer() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/transfer_nft_eip721_safe_transfer.json"));
+        let transaction_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/transfer_nft_eip721_safe_transfer_receipt.json"));
+
+        let transaction = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &transaction_receipt, None, &BigUint::from(1782990479u64), None).unwrap();
+        assert_eq!(transaction.hash, "0x13bac6f98a228d71e9e31641629c0c0d8b2c46f93cfe4eafee5371548ab374ca");
+        assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
+        assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(transaction.from, "0x3835e41EA342975eEEF8AaCf0c3809A38F6c04f1");
+        assert_eq!(transaction.to, "0x951454CaD517FcB54a5A60f20C934Df90966b2a7");
+        assert_eq!(transaction.value, "0");
+        assert_eq!(
+            transaction.metadata,
+            Some(serde_json::json!({
+                "assetId": "ethereum_0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee::3757"
             }))
         );
     }

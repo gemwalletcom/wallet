@@ -6,7 +6,7 @@ import Primitives
 import Style
 import SwiftUI
 
-struct TransactionAmountHeaderViewModel: HeaderViewModel {
+struct TransactionAmountHeaderViewModel: ValueHeaderViewModel {
     let display: AmountDisplay
 
     let isWatchWallet: Bool = false

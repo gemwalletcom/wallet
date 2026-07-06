@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "無効な秘密フレーズ";
 "errors.import.invalid_secret_phrase_word" = "無効なシークレットフレーズの単語: %@";
 "errors.invalid_url" = "無効なURL";
-"errors.error_occured" = "エラーが発生しました！";
+"errors.error_occurred" = "エラーが発生しました！";
 "errors.invalid_network_id" = "無効なネットワークID";
 "errors.error" = "エラー";
 "errors.connections.user_cancelled" = "ユーザーがキャンセルしました";

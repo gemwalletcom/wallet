@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Kalmomin sirri mara inganci";
 "errors.import.invalid_secret_phrase_word" = "Kalmar Sirri mara inganci: %@";
 "errors.invalid_url" = "URL mara inganci";
-"errors.error_occured" = "An sami kuskure!";
+"errors.error_occurred" = "An sami kuskure!";
 "errors.invalid_network_id" = "ID na hanyar sadarwa mara inganci";
 "errors.error" = "Kuskure";
 "errors.connections.user_cancelled" = "Mai amfani ya soke";

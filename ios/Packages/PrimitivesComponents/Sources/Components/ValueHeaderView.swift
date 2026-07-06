@@ -6,27 +6,75 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct WalletHeaderView: View {
-    private let model: any HeaderViewModel
+public struct ValueHeaderViewSpacing: Sendable {
+    public static let standard = ValueHeaderViewSpacing(
+        assetImageBottom: .space12,
+        titleBottom: .space10,
+        subtitleTop: .zero,
+        subtitleBottom: .space10,
+    )
+    public static let transactionAmount = ValueHeaderViewSpacing(
+        assetImageBottom: .space8,
+        titleBottom: .space6,
+        subtitleTop: .space2,
+        subtitleBottom: .zero,
+    )
+
+    let assetImageBottom: CGFloat
+    let titleBottom: CGFloat
+    let subtitleTop: CGFloat
+    let subtitleBottom: CGFloat
+
+    public init(
+        assetImageBottom: CGFloat,
+        titleBottom: CGFloat,
+        subtitleTop: CGFloat = .zero,
+        subtitleBottom: CGFloat,
+    ) {
+        self.assetImageBottom = assetImageBottom
+        self.titleBottom = titleBottom
+        self.subtitleTop = subtitleTop
+        self.subtitleBottom = subtitleBottom
+    }
+
+    public init(
+        contentBottom: CGFloat,
+        subtitleTop: CGFloat = .zero,
+        subtitleBottom: CGFloat,
+    ) {
+        self.init(
+            assetImageBottom: contentBottom,
+            titleBottom: contentBottom,
+            subtitleTop: subtitleTop,
+            subtitleBottom: subtitleBottom,
+        )
+    }
+}
+
+public struct ValueHeaderView: View {
+    private let model: any ValueHeaderViewModel
 
     @Binding var isPrivacyEnabled: Bool
 
-    private let balanceActionType: BalanceActionType
+    private let titleActionType: HeaderTitleActionType
+    private let spacing: ValueHeaderViewSpacing
     private let onHeaderAction: HeaderButtonAction?
     private let onSubtitleAction: VoidAction
     private let onInfoAction: VoidAction
 
     public init(
-        model: any HeaderViewModel,
+        model: any ValueHeaderViewModel,
         isPrivacyEnabled: Binding<Bool>,
-        balanceActionType: BalanceActionType,
+        titleActionType: HeaderTitleActionType,
+        spacing: ValueHeaderViewSpacing = .standard,
         onHeaderAction: HeaderButtonAction?,
         onSubtitleAction: VoidAction = nil,
         onInfoAction: VoidAction,
     ) {
         self.model = model
         _isPrivacyEnabled = isPrivacyEnabled
-        self.balanceActionType = balanceActionType
+        self.titleActionType = titleActionType
+        self.spacing = spacing
         self.onHeaderAction = onHeaderAction
         self.onSubtitleAction = onSubtitleAction
         self.onInfoAction = onInfoAction
@@ -39,20 +87,21 @@ public struct WalletHeaderView: View {
                     assetImage: assetImage,
                     size: .image.semiLarge,
                 )
-                .padding(.bottom, .space12)
+                .padding(.bottom, spacing.assetImageBottom)
             }
-            balanceView
+            titleView
                 .numericTransition(for: model.title)
                 .minimumScaleFactor(0.5)
                 .font(.app.largeTitle)
                 .foregroundStyle(Colors.black)
                 .lineLimit(1)
-                .padding(.bottom, .space10)
+                .padding(.bottom, spacing.titleBottom)
 
             if let subtitle = model.subtitle {
                 subtitleView(subtitle)
                     .numericTransition(for: model.subtitle)
-                    .padding(.bottom, .space10)
+                    .padding(.top, spacing.subtitleTop)
+                    .padding(.bottom, spacing.subtitleBottom)
             }
 
             switch model.isWatchWallet {
@@ -110,8 +159,8 @@ public struct WalletHeaderView: View {
     }
 
     @ViewBuilder
-    private var balanceView: some View {
-        switch balanceActionType {
+    private var titleView: some View {
+        switch titleActionType {
         case .privacyToggle:
             PrivacyToggleView(model.title, isEnabled: $isPrivacyEnabled)
         case let .action(action):
@@ -134,10 +183,10 @@ public struct WalletHeaderView: View {
         bannerEventsViewModel: HeaderBannerEventViewModel(events: []),
     )
 
-    WalletHeaderView(
+    ValueHeaderView(
         model: model,
         isPrivacyEnabled: .constant(false),
-        balanceActionType: .privacyToggle,
+        titleActionType: .privacyToggle,
         onHeaderAction: .none,
         onInfoAction: .none,
     )

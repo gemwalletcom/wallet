@@ -4,6 +4,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.byChain
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.isStaked
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
@@ -39,7 +40,7 @@ internal fun formatNetworkFullName(
 
 val Asset.networkFullName: String
     get() = formatNetworkFullName(
-        networkName = chain.asset().name,
+        networkName = chain.networkName(),
         subtype = subtype,
         type = type,
     )

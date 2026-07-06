@@ -73,7 +73,7 @@ impl TronClient<MockClient> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_test_client() -> TronClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.tron.url, reqwest::Client::new());
+    let reqwest_client = ReqwestClient::new(settings.chains.tron.url, gem_client::reqwest_client());
     let trongrid_client = TronGridClient::new(reqwest_client.clone(), settings.trongrid.key.secret);
     TronClient::new(reqwest_client, trongrid_client)
 }

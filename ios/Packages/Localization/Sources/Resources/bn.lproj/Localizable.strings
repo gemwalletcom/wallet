@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "অবৈধ গোপন বাক্যাংশ";
 "errors.import.invalid_secret_phrase_word" = "অবৈধ গোপন বাক্যাংশ শব্দ: %@";
 "errors.invalid_url" = "অবৈধ URL";
-"errors.error_occured" = "একটি ত্রুটি ঘটেছে!";
+"errors.error_occurred" = "একটি ত্রুটি ঘটেছে!";
 "errors.invalid_network_id" = "অবৈধ নেটওয়ার্ক আইডি";
 "errors.error" = "ত্রুটি";
 "errors.connections.user_cancelled" = "ব্যবহারকারী বাতিল করা হয়েছে";

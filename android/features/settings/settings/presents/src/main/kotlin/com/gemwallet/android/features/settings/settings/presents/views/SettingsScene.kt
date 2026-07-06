@@ -42,16 +42,8 @@ import com.gemwallet.android.ui.models.ListPosition
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsScene(
-    onSecurity: () -> Unit,
-    onBridges: () -> Unit,
+    onAction: (SettingsSceneAction) -> Unit,
     walletConnectEnabled: Boolean = true,
-    onDevelop: () -> Unit,
-    onWallets: () -> Unit,
-    onAboutUs: () -> Unit,
-    onNotifications: () -> Unit,
-    onSupport: () -> Unit,
-    onPreferences: () -> Unit,
-    onReferral: () -> Unit,
     scrollState: ScrollState = rememberScrollState()
 ) {
     val viewModel: SettingsViewModel = hiltViewModel()
@@ -63,7 +55,8 @@ fun SettingsScene(
     var isShowDevelopEnable by remember { mutableStateOf(false) }
 
     var requestPushGrant by remember { mutableStateOf<(() -> Unit)?>(null) }
-    val notificationsAvailable = viewModel.isNotificationsAvailable()
+    val notificationsAvailable = viewModel.notificationsAvailable
+    val preferencesListPosition = if (notificationsAvailable) ListPosition.Last else ListPosition.Single
     Scene(
         title = stringResource(id = R.string.settings_title),
         mainActionPadding = PaddingValues(0.dp),
@@ -84,42 +77,35 @@ fun SettingsScene(
                         badge = { DataBadgeChevron() },
                     )
                 },
-                onClick = onWallets
+                onClick = { onAction(SettingsSceneAction.Wallets) }
             )
             LinkItem(
                 title = stringResource(id = R.string.settings_security),
                 icon = R.drawable.settings_security,
                 listPosition = ListPosition.Last,
-                onClick = onSecurity
+                onClick = { onAction(SettingsSceneAction.Security) }
             )
             if (notificationsAvailable) {
                 LinkItem(
                     title = stringResource(id = R.string.settings_notifications_title),
                     icon = R.drawable.settings_notifications,
                     listPosition = ListPosition.First,
-                    onClick = onNotifications,
-                )
-                LinkItem(
-                    title = stringResource(id = R.string.settings_preferences_title),
-                    icon = R.drawable.settings_preferences,
-                    listPosition = ListPosition.Last,
-                    onClick = onPreferences,
-                )
-            } else {
-                LinkItem(
-                    title = stringResource(id = R.string.settings_preferences_title),
-                    icon = R.drawable.settings_preferences,
-                    listPosition = ListPosition.Single,
-                    onClick = onPreferences,
+                    onClick = { onAction(SettingsSceneAction.Notifications) },
                 )
             }
+            LinkItem(
+                title = stringResource(id = R.string.settings_preferences_title),
+                icon = R.drawable.settings_preferences,
+                listPosition = preferencesListPosition,
+                onClick = { onAction(SettingsSceneAction.Preferences) },
+            )
             if (walletConnectEnabled) {
                 LinkItem(
                     title = stringResource(id = R.string.wallet_connect_title),
                     icon = R.drawable.settings_wc,
                     listPosition = ListPosition.Single,
                 ) {
-                    onBridges()
+                    onAction(SettingsSceneAction.Bridges)
                 }
             }
 
@@ -128,13 +114,13 @@ fun SettingsScene(
                 icon = R.drawable.settings_support,
                 listPosition = ListPosition.First,
             ) {
-                if (!pushEnabled) {
+                if (notificationsAvailable && !pushEnabled) {
                     requestPushGrant = {
                         viewModel.enableNotifications()
-                        onSupport()
+                        onAction(SettingsSceneAction.Support)
                     }
                 } else {
-                    onSupport()
+                    onAction(SettingsSceneAction.Support)
                 }
             }
             if (isRewardsAvailable) {
@@ -143,7 +129,7 @@ fun SettingsScene(
                     icon = R.drawable.settings_wallets,
                     listPosition = ListPosition.Middle
                 ) {
-                    onReferral()
+                    onAction(SettingsSceneAction.Referral)
                 }
             }
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -151,7 +137,7 @@ fun SettingsScene(
                     title = stringResource(id = R.string.settings_aboutus),
                     icon = R.drawable.settings_about_us,
                     listPosition = if (uiState.developEnabled) ListPosition.Middle else ListPosition.Last,
-                    onClick = onAboutUs,
+                    onClick = { onAction(SettingsSceneAction.AboutUs) },
                     onLongClick = { isShowDevelopEnable = true }
                 )
                 DropdownMenu(
@@ -173,7 +159,7 @@ fun SettingsScene(
                     icon = R.drawable.settings_developer,
                     listPosition = ListPosition.Last,
                 ) {
-                    onDevelop()
+                    onAction(SettingsSceneAction.Develop)
                 }
             }
             Spacer(modifier = Modifier.size(it.calculateBottomPadding()))

@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Frase segreta non valida";
 "errors.import.invalid_secret_phrase_word" = "Parola frase segreta non valida: %@";
 "errors.invalid_url" = "URL non valido";
-"errors.error_occured" = "Si è verificato un errore!";
+"errors.error_occurred" = "Si è verificato un errore!";
 "errors.invalid_network_id" = "ID di rete non valido";
 "errors.error" = "Errore";
 "errors.connections.user_cancelled" = "Utente cancellato";

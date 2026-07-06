@@ -7,7 +7,7 @@ import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.WalletType
@@ -44,7 +44,7 @@ class ImportViewModel @Inject constructor(
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
         val generatedNameIndex = walletsRepository.getNextWalletNumber()
-        val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.asset()?.name.orEmpty()
+        val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
         state.update {
             it.copy(
                 importType = importType,

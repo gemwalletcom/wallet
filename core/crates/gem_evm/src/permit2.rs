@@ -35,6 +35,10 @@ sol! {
         /// @notice The mapping is indexed in the above order see: allowance[ownerAddress][tokenAddress][spenderAddress]
         /// @dev The packed slot holds the allowed amount, expiration at which the allowed amount is no longer valid, and current nonce thats updated on any signature based approvals.
         function allowance(address, address, address) external view returns (uint160, uint48, uint48);
+
+        /// @notice Transfer approved tokens from one address to another
+        /// @dev Requires the from address to have approved at least the desired amount of tokens to msg.sender
+        function transferFrom(address from, address to, uint160 amount, address token) external;
     }
 }
 

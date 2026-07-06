@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Nieprawidłowe tajne zdanie";
 "errors.import.invalid_secret_phrase_word" = "Nieprawidłowe tajne słowo: %@";
 "errors.invalid_url" = "nieprawidłowy URL";
-"errors.error_occured" = "Wystąpił błąd!";
+"errors.error_occurred" = "Wystąpił błąd!";
 "errors.invalid_network_id" = "Nieprawidłowy identyfikator sieci";
 "errors.error" = "Błąd";
 "errors.connections.user_cancelled" = "Anulowane przez użytkownika";

@@ -1,0 +1,27 @@
+{
+  "status": {
+    "timestamp": "2026-07-05T00:00:00.000Z",
+    "error_code": 0,
+    "error_message": null
+  },
+  "data": [
+    {
+      "id": 1027,
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "platform": null
+    },
+    {
+      "id": 825,
+      "name": "Tether USDt",
+      "symbol": "USDT",
+      "platform": {
+        "id": 1027,
+        "name": "Ethereum",
+        "symbol": "ETH",
+        "slug": "ethereum",
+        "token_address": "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+      }
+    }
+  ]
+}

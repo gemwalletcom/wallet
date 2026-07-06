@@ -14,6 +14,9 @@ use super::account::GasObject;
 #[cfg(feature = "rpc")]
 use super::coin::BalanceChange;
 
+pub const STATUS_SUCCESS: &str = "success";
+pub const STATUS_FAILURE: &str = "failure";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SuiTransaction {

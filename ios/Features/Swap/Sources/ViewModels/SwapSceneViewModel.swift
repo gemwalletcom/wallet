@@ -95,7 +95,7 @@ public final class SwapSceneViewModel {
     }
 
     var errorTitle: String {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {

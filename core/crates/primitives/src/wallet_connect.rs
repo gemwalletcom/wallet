@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
+use serde_serializers::deserialize_option_u64_from_str_or_int;
 use typeshare::typeshare;
 use url::Url;
 
+use crate::UInt64;
 use crate::url_query::query_value;
 
 const WALLET_CONNECT_SCHEME: &str = "wc";
@@ -16,7 +18,8 @@ const QUERY_REQUEST_ID: &str = "requestId";
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WCEthereumTransaction {
-    pub chain_id: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]
+    pub chain_id: Option<UInt64>,
     pub from: String,
     pub to: String,
     pub value: Option<String>,

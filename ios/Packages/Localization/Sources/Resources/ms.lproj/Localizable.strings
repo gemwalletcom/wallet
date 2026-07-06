@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Frasa Rahsia Tidak Sah";
 "errors.import.invalid_secret_phrase_word" = "Perkataan Frasa Rahsia tidak sah: %@";
 "errors.invalid_url" = "URL tidak sah";
-"errors.error_occured" = "Ralat berlaku!";
+"errors.error_occurred" = "Ralat berlaku!";
 "errors.invalid_network_id" = "ID Rangkaian tidak sah";
 "errors.error" = "Ralat";
 "errors.connections.user_cancelled" = "Dibatalkan oleh pengguna";

@@ -3,7 +3,7 @@
 import Components
 import SwiftUI
 
-public protocol HeaderViewModel {
+public protocol ValueHeaderViewModel {
     var isWatchWallet: Bool { get }
     var assetImage: AssetImage? { get }
     var title: String { get }
@@ -13,7 +13,7 @@ public protocol HeaderViewModel {
     var buttons: [HeaderButton] { get }
 }
 
-public extension HeaderViewModel {
+public extension ValueHeaderViewModel {
     var subtitleImage: Image? {
         nil
     }

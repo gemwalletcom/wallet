@@ -1,0 +1,16 @@
+{
+  "FundsWithdrawal": {
+    "reservation": {
+      "MaxAmountU64": 1000,
+      "$kind": "MaxAmountU64"
+    },
+    "typeArg": {
+      "Balance": "0x2::sui::SUI",
+      "$kind": "Balance"
+    },
+    "withdrawFrom": {
+      "Sponsor": true,
+      "$kind": "Sponsor"
+    }
+  }
+}

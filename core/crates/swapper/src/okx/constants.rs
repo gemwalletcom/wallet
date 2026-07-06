@@ -7,7 +7,7 @@ pub const SOLANA_NATIVE_TOKEN_ADDRESS: &str = "11111111111111111111111111111111"
 
 const DEFAULT_EVM_GAS_LIMIT: u64 = 920_000;
 
-const SOLANA_DEX_IDS: &str = "277,278,279,343,72,103,284,338,372,403,444,483,357,345";
+const SOLANA_DEX_IDS: &str = "277,278,279,343,72,103,284,338,372,403,444,483,357,345,459,457,475,342";
 
 pub fn chain_index(chain: Chain) -> Option<&'static str> {
     match chain {
@@ -19,18 +19,14 @@ pub fn chain_index(chain: Chain) -> Option<&'static str> {
         | Chain::Optimism
         | Chain::Base
         | Chain::AvalancheC
-        | Chain::OpBNB
         | Chain::Fantom
-        | Chain::Gnosis
         | Chain::Manta
         | Chain::Blast
         | Chain::ZkSync
         | Chain::Linea
         | Chain::Mantle
-        | Chain::Celo
+        | Chain::Hyperliquid
         | Chain::Sonic
-        | Chain::Abstract
-        | Chain::Berachain
         | Chain::Unichain
         | Chain::Monad
         | Chain::XLayer => Some(chain.config().network_id),

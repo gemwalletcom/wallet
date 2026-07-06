@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
@@ -53,7 +53,7 @@ fun AssetSelectScreen(
         support = if (itemSupport == null) {
             {
                 if (it.asset.id.type() == AssetSubtype.NATIVE) null else {
-                    @Composable { ListItemSupportText(it.asset.id.chain.asset().name) }
+                    @Composable { ListItemSupportText(it.asset.id.chain.networkName()) }
                 }
             }
         } else {

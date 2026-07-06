@@ -72,6 +72,7 @@ pub struct CoinMarket {
     pub id: String,
     pub symbol: String,
     pub name: String,
+    pub image: String,
     pub current_price: Option<f64>,
     pub price_change_percentage_24h: Option<f64>,
     pub market_cap: Option<f64>,
@@ -178,6 +179,7 @@ pub struct SearchTrendingItem {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CoinId {
     pub id: String,
+    pub large: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

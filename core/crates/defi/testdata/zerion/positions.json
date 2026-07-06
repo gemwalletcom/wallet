@@ -1,0 +1,45 @@
+{
+  "data": [
+    {
+      "id": "0x111c47865ade3b172a928df8f990bc7f2a3b9aaa-polygon-asset-none-",
+      "attributes": {
+        "name": "Asset",
+        "quantity": {
+          "int": "123456780000000000000",
+          "float": 123.45678
+        },
+        "protocol": "aave-v3",
+        "protocol_module": "lending",
+        "position_type": "deposit",
+        "value": 5.384656557642683,
+        "fungible_info": {
+          "name": "Bankless BED Index",
+          "symbol": "BED",
+          "implementations": [
+            {
+              "chain_id": "ethereum",
+              "decimals": 18,
+              "address": "0x2af1df3ab0ab157e1e2ad8f88a7d04fbea0c7dc6"
+            },
+            {
+              "chain_id": "polygon",
+              "decimals": 18,
+              "address": "0x0391d2021f89dc339f60fff84546ea23e337750f"
+            }
+          ]
+        },
+        "application_metadata": {
+          "name": "AAVE",
+          "url": "https://app.aave.com/"
+        }
+      },
+      "relationships": {
+        "dapp": {
+          "data": {
+            "id": "aave-v3"
+          }
+        }
+      }
+    }
+  ]
+}

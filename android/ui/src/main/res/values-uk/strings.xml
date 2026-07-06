@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Недійсна секретна фраза</string>
   <string name="errors_import_invalid_secret_phrase_word">Невірне слово секретної фрази: %1$s</string>
   <string name="errors_invalid_url">Недійсний URL</string>
-  <string name="errors_error_occured">Виникла помилка!</string>
+  <string name="errors_error_occurred">Виникла помилка!</string>
   <string name="errors_invalid_network_id">Неправильний ідентифікатор мережі</string>
   <string name="errors_error">Помилка</string>
   <string name="errors_connections_user_cancelled">Скасовано користувачем</string>

@@ -1,18 +1,33 @@
 package com.gemwallet.android.ext
 
+import com.gemwallet.android.domains.asset.toDTO
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BitcoinChain
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.EVMChain
 import com.wallet.core.primitives.EncodingType
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
-import uniffi.gemstone.GemAssetType
 import uniffi.gemstone.validateAddress
 import uniffi.gemstone.checksumAddress as gemstoneChecksumAddress
 import java.math.BigInteger
+
+private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
+    Chain.entries.associateWith { chain ->
+        val wrapper = uniffi.gemstone.chainAssetWrapper(chain.string)
+        ChainAsset(
+            asset = wrapper.asset.toDTO(),
+            networkName = wrapper.networkName,
+        )
+    }
+}
+
+private fun Chain.chainAsset(): ChainAsset {
+    return chainAssetCache[this] ?: throw IllegalArgumentException("Unsupported chain: $string")
+}
 
 fun Chain.assetType(): AssetType? {
     return when (this) {
@@ -75,8 +90,7 @@ fun Chain.assetType(): AssetType? {
         Chain.Cardano,
         Chain.Zcash,
         Chain.Near,
-        Chain.Mayachain
-             -> null
+        Chain.Mayachain -> null
     }
 }
 
@@ -104,43 +118,29 @@ fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isS
 
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
+fun Chain.isDefiSupported(): Boolean = Config().getChainConfig(this.string).isDefiSupported
+
 fun Chain.asset(): Asset {
-    val wrapper = uniffi.gemstone.assetWrapper(string)
-    return Asset(
-        id = wrapper.id.toAssetId() ?: throw IllegalArgumentException(),
-        name = wrapper.name,
-        symbol = wrapper.symbol,
-        decimals = wrapper.decimals,
-        type = when (wrapper.assetType) {
-            GemAssetType.NATIVE -> AssetType.NATIVE
-            GemAssetType.ERC20 -> AssetType.ERC20
-            GemAssetType.BEP20 -> AssetType.BEP20
-            GemAssetType.SPL -> AssetType.SPL
-            GemAssetType.SPL2022 -> AssetType.SPL2022
-            GemAssetType.TRC20 -> AssetType.TRC20
-            GemAssetType.TOKEN -> AssetType.TOKEN
-            GemAssetType.IBC -> AssetType.IBC
-            GemAssetType.JETTON -> AssetType.JETTON
-            GemAssetType.SYNTH -> AssetType.SYNTH
-            GemAssetType.ASA -> AssetType.ASA
-            GemAssetType.PERPETUAL -> AssetType.PERPETUAL
-            GemAssetType.SPOT -> AssetType.SPOT
-        }
-    )
+    return chainAsset().asset
+}
+
+fun Chain.networkName(): String {
+    return chainAsset().networkName
 }
 
 fun Chain.Companion.findByString(value: String): Chain? {
-    return Chain.entries.firstOrNull{ it.string == value}
+    return Chain.entries.firstOrNull { it.string == value }
 }
 
 fun Chain.Companion.available() = Chain.entries.toSet()
 
 fun List<Chain>.filter(query: String): List<Chain> {
-    return filter {
-        val asset =  it.asset()
-        asset.symbol.lowercase().startsWith(query) ||
-        asset.name.lowercase().startsWith(query) ||
-        it.string.lowercase().startsWith(query)
+    return if (query.isBlank()) this else filter { chain ->
+        val chainAsset = chain.chainAsset()
+        chainAsset.networkName.contains(query, ignoreCase = true) ||
+            chain.string.contains(query, ignoreCase = true) ||
+            chainAsset.asset.name.contains(query, ignoreCase = true) ||
+            chainAsset.asset.symbol.contains(query, ignoreCase = true)
     }
 }
 

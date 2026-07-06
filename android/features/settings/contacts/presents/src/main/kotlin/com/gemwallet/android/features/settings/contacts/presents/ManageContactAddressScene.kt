@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.recipient.presents.components.AddressChainField
 import com.gemwallet.android.features.recipient.presents.components.MemoTextField
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
@@ -44,7 +44,7 @@ fun ManageContactAddressScene(
     ) {
         SubheaderItem(title = stringResource(R.string.transfer_network))
         ChainItem(
-            title = input.chain.asset().name,
+            title = input.chain.networkName(),
             icon = input.chain,
             listPosition = ListPosition.Single,
             trailing = { DataBadgeChevron() },
@@ -57,7 +57,7 @@ fun ManageContactAddressScene(
             state = input.nameResolveState,
             onValueChange = onAddressChange,
             error = if (input.showAddressError) {
-                stringResource(R.string.errors_invalid_asset_address, input.chain.asset().name)
+                stringResource(R.string.errors_invalid_asset_address, input.chain.networkName())
             } else {
                 ""
             },

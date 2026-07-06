@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Nieprawidłowe tajne zdanie</string>
   <string name="errors_import_invalid_secret_phrase_word">Nieprawidłowe tajne słowo: %1$s</string>
   <string name="errors_invalid_url">nieprawidłowy URL</string>
-  <string name="errors_error_occured">Wystąpił błąd!</string>
+  <string name="errors_error_occurred">Wystąpił błąd!</string>
   <string name="errors_invalid_network_id">Nieprawidłowy identyfikator sieci</string>
   <string name="errors_error">Błąd</string>
   <string name="errors_connections_user_cancelled">Anulowane przez użytkownika</string>

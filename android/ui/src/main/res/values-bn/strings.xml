@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">অবৈধ গোপন বাক্যাংশ</string>
   <string name="errors_import_invalid_secret_phrase_word">অবৈধ গোপন বাক্যাংশ শব্দ: %1$s</string>
   <string name="errors_invalid_url">অবৈধ URL</string>
-  <string name="errors_error_occured">একটি ত্রুটি ঘটেছে!</string>
+  <string name="errors_error_occurred">একটি ত্রুটি ঘটেছে!</string>
   <string name="errors_invalid_network_id">অবৈধ নেটওয়ার্ক আইডি</string>
   <string name="errors_error">ত্রুটি</string>
   <string name="errors_connections_user_cancelled">ব্যবহারকারী বাতিল করা হয়েছে</string>

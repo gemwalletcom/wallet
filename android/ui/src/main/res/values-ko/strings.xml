@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">잘못된 비밀번호 문구</string>
   <string name="errors_import_invalid_secret_phrase_word">잘못된 비밀 문구 단어: %1$s</string>
   <string name="errors_invalid_url">잘못된 URL</string>
-  <string name="errors_error_occured">오류가 발생했습니다!</string>
+  <string name="errors_error_occurred">오류가 발생했습니다!</string>
   <string name="errors_invalid_network_id">잘못된 네트워크 ID</string>
   <string name="errors_error">오류</string>
   <string name="errors_connections_user_cancelled">사용자가 취소했습니다.</string>
