@@ -51,10 +51,6 @@ impl SearchRequest {
     pub fn has_tag_filter(&self) -> bool {
         !self.tags.is_empty()
     }
-
-    pub fn is_tag_list(&self) -> bool {
-        self.has_tag_filter() && self.query.is_empty()
-    }
 }
 
 #[cfg(test)]
@@ -81,14 +77,6 @@ mod tests {
     fn has_tag_filter() {
         assert!(!SearchRequest::new("BTC", None, None, None, None).has_tag_filter());
         assert!(SearchRequest::new("BTC", None, Some("stocks"), None, None).has_tag_filter());
-    }
-
-    #[test]
-    fn is_tag_list() {
-        assert!(SearchRequest::new("", None, Some("trending"), None, None).is_tag_list());
-        assert!(SearchRequest::new("   ", None, Some("trending"), None, None).is_tag_list());
-        assert!(!SearchRequest::new("BTC", None, Some("trending"), None, None).is_tag_list());
-        assert!(!SearchRequest::new("", None, None, None, None).is_tag_list());
     }
 
     #[test]
