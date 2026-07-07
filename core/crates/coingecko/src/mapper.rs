@@ -1,4 +1,7 @@
-use primitives::chain::Chain;
+use std::collections::HashMap;
+
+use chain_primitives::format_token_id;
+use primitives::{AssetId, chain::Chain};
 
 const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Ethereum, "ethereum"),
@@ -55,6 +58,18 @@ pub fn get_coingecko_platform_id_for_chain(chain: Chain) -> Option<&'static str>
     COINGECKO_CHAIN_PLATFORMS
         .iter()
         .find_map(|(candidate, platform_id)| (*candidate == chain).then_some(*platform_id))
+}
+
+pub fn get_asset_ids_for_coin(id: &str, platforms: &HashMap<String, Option<String>>) -> Vec<AssetId> {
+    let chains = get_chains_for_coingecko_market_id(id).into_iter().map(AssetId::from_chain);
+    let tokens = platforms.iter().filter_map(|(platform_id, contract)| {
+        let chain = get_chain_for_coingecko_platform_id(platform_id)?;
+        let contract = contract.as_ref().filter(|contract| !contract.is_empty())?;
+        let token_id = format_token_id(chain, contract.clone())?;
+        Some(AssetId::from(chain, Some(token_id)))
+    });
+
+    chains.chain(tokens).collect()
 }
 
 pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
@@ -134,5 +149,19 @@ mod tests {
             assert_eq!(get_chain_for_coingecko_platform_id(platform_id), Some(*chain));
             assert_eq!(get_coingecko_platform_id_for_chain(*chain), Some(*platform_id));
         }
+    }
+
+    #[test]
+    fn test_get_asset_ids_for_coin() {
+        let platforms = HashMap::from([
+            ("robinhood".to_string(), Some("0x1234567890abcdef1234567890abcdef12345678".to_string())),
+            ("unknown".to_string(), Some("0x1234567890abcdef1234567890abcdef12345678".to_string())),
+            ("ethereum".to_string(), Some("0x123".to_string())),
+        ]);
+
+        assert_eq!(
+            get_asset_ids_for_coin("tesla-xstock", &platforms),
+            vec![AssetId::from(Chain::Robinhood, Some("0x1234567890AbcdEF1234567890aBcdef12345678".to_string()))]
+        );
     }
 }

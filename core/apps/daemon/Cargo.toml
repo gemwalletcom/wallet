@@ -22,6 +22,7 @@ settings = { path = "../../crates/settings" }
 storage = { path = "../../crates/storage" }
 api_connector = { path = "../../crates/api_connector" }
 coingecko = { path = "../../crates/coingecko" }
+lists = { path = "../../crates/lists" }
 pricer = { path = "../../crates/pricer" }
 prices = { path = "../../crates/prices" }
 primitives = { path = "../../crates/primitives" }
@@ -44,3 +45,4 @@ swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
 
 [dev-dependencies]
 primitives = { path = "../../crates/primitives", features = ["testkit"] }
+storage = { path = "../../crates/storage", features = ["testkit"] }

@@ -714,15 +714,14 @@ mod tests {
     }
 
     #[test]
-    fn sign_raw_json_rejects_missing_raw_data_and_transaction_id() {
+    fn sign_raw_json_rejects_missing_raw_data() {
         let mut transaction = raw_transfer_transaction();
         transaction.as_object_mut().unwrap().remove("raw_data");
-        transaction.as_object_mut().unwrap().remove("txID");
         let input = generic_input(transaction, TransferDataOutputType::EncodedTransaction);
 
         assert_eq!(
             TronChainSigner.sign_data(&input, &private_key()).unwrap_err().to_string(),
-            "Invalid input: Missing raw_data or transaction ID"
+            "Invalid input: Missing raw_data"
         );
     }
 

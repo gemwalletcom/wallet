@@ -1,4 +1,4 @@
-use crate::{PriceProvider, SwapProvider};
+use crate::{ListProviderName, PriceProvider, SwapProvider};
 use strum::AsRefStr;
 
 #[derive(Debug, AsRefStr)]
@@ -12,6 +12,7 @@ pub enum ConfigParamKey {
     PriceProviderChartsHourlyDuration(PriceProvider),
     PriceProviderMetricsDuration(PriceProvider),
     PriceProviderCleanOutdatedDuration(PriceProvider),
+    ListProviderUpdateDuration(ListProviderName),
 }
 
 impl ConfigParamKey {
@@ -24,6 +25,7 @@ impl ConfigParamKey {
         let charts_hourly = PriceProvider::all().into_iter().map(Self::PriceProviderChartsHourlyDuration);
         let metrics = PriceProvider::all().into_iter().map(Self::PriceProviderMetricsDuration);
         let clean_outdated = PriceProvider::all().into_iter().map(Self::PriceProviderCleanOutdatedDuration);
+        let lists = ListProviderName::all().into_iter().map(Self::ListProviderUpdateDuration);
         swapper
             .chain(assets)
             .chain(assets_new)
@@ -32,6 +34,7 @@ impl ConfigParamKey {
             .chain(charts_hourly)
             .chain(metrics)
             .chain(clean_outdated)
+            .chain(lists)
             .collect()
     }
 
@@ -45,6 +48,7 @@ impl ConfigParamKey {
             Self::PriceProviderChartsHourlyDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderMetricsDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderCleanOutdatedDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
+            Self::ListProviderUpdateDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
         }
     }
 
@@ -58,6 +62,7 @@ impl ConfigParamKey {
             Self::PriceProviderChartsHourlyDuration(_) => "7d",
             Self::PriceProviderMetricsDuration(_) => "5m",
             Self::PriceProviderCleanOutdatedDuration(_) => "1d",
+            Self::ListProviderUpdateDuration(_) => "1d",
         }
     }
 }

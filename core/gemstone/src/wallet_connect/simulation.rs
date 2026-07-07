@@ -53,14 +53,6 @@ pub(super) fn decode_ethereum_calldata(transaction: &WcEthereumTransactionData) 
     transaction.data.as_deref().and_then(|calldata| hex::decode_hex(calldata).ok()).unwrap_or_default()
 }
 
-pub(super) fn decode_encoded_transaction(transaction_type: &WcWalletConnectTransactionType, data: &str) -> Option<String> {
-    match WalletConnectRequestHandler::decode_send_transaction(transaction_type.clone(), data.to_string()).ok()? {
-        WcWalletConnectTransaction::Solana { data, .. } => Some(data.transaction),
-        WcWalletConnectTransaction::Sui { data, .. } => Some(data.transaction),
-        _ => None,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

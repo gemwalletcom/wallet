@@ -1,5 +1,5 @@
 use crate::model::WorkerService;
-use primitives::{Chain, ConfigKey, ConfigParamKey, FiatProviderName, PlatformStore, PriceProvider};
+use primitives::{Chain, ConfigKey, ConfigParamKey, FiatProviderName, ListProviderName, PlatformStore, PriceProvider};
 use std::error::Error;
 use std::time::Duration;
 use storage::ConfigCacher;
@@ -88,6 +88,12 @@ impl JobLabel for PriceProvider {
     }
 }
 
+impl JobLabel for ListProviderName {
+    fn job_label(&self) -> String {
+        self.id().to_string()
+    }
+}
+
 fn compose_job_name(base: &str, label: Option<&str>) -> String {
     match label.map(str::trim).filter(|value| !value.is_empty()) {
         Some(suffix) => format!("{base}.{suffix}"),
@@ -148,6 +154,7 @@ pub enum WorkerJob {
     ObservePerpetualActiveAddresses,
     ObservePerpetualPriorityAddresses,
     RefreshPerpetualTrackedAddresses,
+    UpdateLists,
 }
 
 impl WorkerJob {
@@ -204,6 +211,7 @@ impl WorkerJob {
             ObservePerpetualActiveAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualObserverInterval)),
             ObservePerpetualPriorityAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualPriorityObserverInterval)),
             RefreshPerpetualTrackedAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualAddressRefreshInterval)),
+            UpdateLists => JobSpec::new(WorkerService::Lists, JobInterval::Config(ConfigKey::ListsTimerUpdateLists)),
         }
     }
 

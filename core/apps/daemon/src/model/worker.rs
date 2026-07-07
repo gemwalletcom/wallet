@@ -12,6 +12,7 @@ pub enum WorkerService {
     Rewards,
     Transactions,
     Perpetuals,
+    Lists,
 }
 
 impl WorkerService {

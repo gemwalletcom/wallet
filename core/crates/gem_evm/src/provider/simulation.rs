@@ -76,7 +76,7 @@ mod tests {
         let ethereum_client = EthereumClient::new(ethereum_client, EVMChain::Ethereum);
 
         let encoded_transaction = serde_json::to_string(&TransactionObject::mock(TEST_EVM_RECIPIENT, Some("0x2386f26fc10000"))).unwrap();
-        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput { encoded_transaction })
+        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction))
             .await
             .unwrap();
 
@@ -103,7 +103,7 @@ mod tests {
         let ethereum_client = EthereumClient::new(ethereum_client, EVMChain::Ethereum);
 
         let encoded_transaction = serde_json::to_string(&TransactionObject::mock(TEST_EVM_RECIPIENT, None)).unwrap();
-        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput { encoded_transaction })
+        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction))
             .await
             .unwrap();
 
@@ -120,7 +120,7 @@ mod tests {
         let ethereum_client = EthereumClient::new(ethereum_client, EVMChain::Ethereum);
 
         let encoded_transaction = serde_json::to_string(&TransactionObject::mock(ETHEREUM_USDC_TOKEN_ID, None)).unwrap();
-        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput { encoded_transaction })
+        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction))
             .await
             .unwrap();
 

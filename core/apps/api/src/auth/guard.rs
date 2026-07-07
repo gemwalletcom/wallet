@@ -1,4 +1,5 @@
 use crate::devices::body::read_verified_body;
+use crate::devices::signature::verify_request_auth;
 use crate::responders::cache_error;
 use gem_auth::{AuthClient, verify_auth_signature};
 use primitives::{AuthMessage, AuthenticatedRequest};
@@ -33,7 +34,15 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
         return Err(error_outcome(req, Status::BadRequest, "Invalid JSON"));
     };
 
-    let Ok(auth_nonce) = auth_client.get_auth_nonce(&body.auth.device_id, &body.auth.nonce).await else {
+    let device_auth = match verify_request_auth(req).await {
+        Ok(auth) => auth,
+        Err((status, message)) => return Err(error_outcome(req, status, &message)),
+    };
+    if body.auth.device_id.as_str() != device_auth.device_id.as_str() {
+        return Err(error_outcome(req, Status::BadRequest, "Wallet signature device mismatch"));
+    }
+
+    let Ok(auth_nonce) = auth_client.consume_auth_nonce(&body.auth.device_id, &body.auth.nonce).await else {
         return Err(error_outcome(req, Status::Unauthorized, "Invalid nonce"));
     };
 
@@ -44,10 +53,6 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
     };
     if !verify_auth_signature(&auth_message, &body.auth.signature) {
         return Err(error_outcome(req, Status::Unauthorized, "Invalid signature"));
-    }
-
-    if auth_client.invalidate_nonce(&body.auth.device_id, &body.auth.nonce).await.is_err() {
-        return Err(error_outcome(req, Status::InternalServerError, "Failed to invalidate nonce"));
     }
 
     Ok(VerifiedBody {

@@ -1,6 +1,6 @@
 use primitives::{
-    AssetAddress, AssetId, Chain, ChainAddress, FailedNotification, FiatProviderName, FiatTransactionUpdate, GorushNotification, NFTAssetId, NotificationType, PriceData, PriceId,
-    Transaction, TransactionId,
+    AssetAddress, AssetId, Chain, ChainAddress, FailedNotification, FiatProviderName, FiatTransactionUpdate, GorushNotification, ListId, NFTAssetId, NotificationType, PriceData,
+    PriceId, Transaction, TransactionId,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -127,6 +127,19 @@ impl fmt::Display for FetchPricesPayload {
             Self::AssetId(v) => v.fmt(f),
             Self::PriceId(v) => v.fmt(f),
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FetchListPayload {
+    pub id: String,
+    pub list_id: ListId,
+}
+
+impl fmt::Display for FetchListPayload {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "id={}, list_id={}", self.id, self.list_id)
     }
 }
 

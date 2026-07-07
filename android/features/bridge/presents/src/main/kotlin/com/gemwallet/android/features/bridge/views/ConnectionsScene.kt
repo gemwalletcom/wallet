@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -18,14 +17,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -37,7 +35,6 @@ import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
 import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.launch
@@ -52,8 +49,6 @@ fun ConnectionsScene(
 ) {
     val clipboardManager = LocalClipboard.current.nativeClipboard
     var scannerShowed by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
 
     val connections by viewModel.connections.collectAsStateWithLifecycle()
 
@@ -67,9 +62,7 @@ fun ConnectionsScene(
         title = stringResource(id = R.string.wallet_connect_title),
         snackbar = snackbar,
         actions = {
-            IconButton(onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.WalletConnect)) }) {
-                Icon(imageVector = AppIcons.InfoOutlined, contentDescription = "WC_INFO")
-            }
+            DocsInfoButton(AppUrl.docs(DocsUrl.WalletConnect))
         },
         onClose = onCancel,
     ) {

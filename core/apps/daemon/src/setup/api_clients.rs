@@ -24,6 +24,7 @@ pub fn api_client_access_grants(client_name: &str) -> Vec<ApiClientGrant> {
         ApiClientScope::DevicesSubscriptionsRead,
         ApiClientScope::DevicesTransactionsRead,
         ApiClientScope::FiatQuotesRead,
+        ApiClientScope::FiatTransactionsRead,
     ]
     .into_iter()
     .map(|scope| ApiClientGrant {

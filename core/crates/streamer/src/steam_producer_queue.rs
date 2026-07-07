@@ -3,8 +3,9 @@ use std::error::Error;
 use primitives::{AssetId, Chain, NFTAssetId};
 
 use crate::{
-    ChainAddressPayload, ExchangeName, FetchAssetsPayload, FetchBlocksPayload, FetchNFTAssetPayload, FetchPricesPayload, InAppNotificationPayload, NotificationsFailedPayload,
-    NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, TransactionsPayload, WalletStreamPayload,
+    ChainAddressPayload, ExchangeName, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, InAppNotificationPayload,
+    NotificationsFailedPayload, NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, TransactionsPayload,
+    WalletStreamPayload,
 };
 
 #[async_trait::async_trait]
@@ -13,6 +14,7 @@ pub trait StreamProducerQueue {
     async fn publish_fetch_nft_asset(&self, asset_id: NFTAssetId) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_nft_assets(&self, asset_ids: Vec<NFTAssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_prices(&self, payload: FetchPricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_fetch_list(&self, payload: FetchListPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_prices_assets(&self, asset_ids: Vec<AssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_transactions(&self, payload: TransactionsPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_notifications_transactions(&self, payload: Vec<NotificationsPayload>) -> Result<bool, Box<dyn Error + Send + Sync>>;
@@ -54,6 +56,10 @@ impl StreamProducerQueue for StreamProducer {
 
     async fn publish_fetch_prices(&self, payload: FetchPricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.publish(QueueName::FetchPrices, &payload).await
+    }
+
+    async fn publish_fetch_list(&self, payload: FetchListPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(QueueName::FetchLists, &payload).await
     }
 
     async fn publish_fetch_prices_assets(&self, asset_ids: Vec<AssetId>) -> Result<bool, Box<dyn Error + Send + Sync>> {

@@ -8,7 +8,12 @@ testkit = []
 
 [dependencies]
 serde = { workspace = true }
+chain_primitives = { path = "../chain_primitives" }
 primitives = { path = "../primitives" }
 chrono = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 reqwest = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+gem_client = { path = "../gem_client", features = ["testkit"] }

@@ -154,6 +154,9 @@ pub enum ConfigKey {
     AssetsTimerUpdateImages,
     AssetsTimerUpdateHasPrice,
 
+    // Lists
+    ListsTimerUpdateLists,
+
     // Fiat
     FiatTimerUpdateAssets,
     FiatTimerUpdateProviderCountries,
@@ -353,6 +356,7 @@ impl ConfigKey {
             Self::AssetsTimerUpdateUsageRank => "1h",
             Self::AssetsTimerUpdateImages => "8h",
             Self::AssetsTimerUpdateHasPrice => "1h",
+            Self::ListsTimerUpdateLists => "1d",
             Self::FiatTimerUpdateAssets => "1h",
             Self::FiatTimerUpdateProviderCountries => "1h",
             Self::FiatTimerUpdateBuyableAssets => "1h",

@@ -25,7 +25,8 @@ data class SimulationHeader (
 
 @Serializable
 data class SimulationInput (
-	val encodedTransaction: String
+	val encodedTransaction: String,
+	val signerAddress: String? = null
 )
 
 @Serializable

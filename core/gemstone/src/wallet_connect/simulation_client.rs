@@ -114,17 +114,17 @@ impl WalletConnectSimulationClient {
     async fn simulate_ethereum_balance_changes(&self, client: &EthereumClient<AlienClient>, transaction: &WcEthereumTransactionData) -> Result<SimulationResult, GemstoneError> {
         let encoded_transaction = serde_json::to_string(&map_transaction_object(transaction)).map_err(|error| error.to_string())?;
 
-        Ok(client.simulate_transaction(SimulationInput { encoded_transaction }).await?)
+        Ok(client.simulate_transaction(SimulationInput::new(encoded_transaction)).await?)
     }
 
     async fn simulate_encoded_transaction(&self, transaction_type: &WcWalletConnectTransactionType, data: &str) -> Result<SimulationResult, GemstoneError> {
-        let encoded_transaction = simulation::decode_encoded_transaction(transaction_type, data).ok_or("Failed to decode transaction")?;
+        let input: SimulationInput = serde_json::from_str(data).map_err(|error| error.to_string())?;
         let client: Box<dyn ChainSimulation> = match transaction_type {
             WcWalletConnectTransactionType::Solana { .. } => Box::new(self.solana_client().ok_or("No RPC client available")?),
             WcWalletConnectTransactionType::Sui { .. } => Box::new(self.sui_client().ok_or("No RPC client available")?),
             _ => return Err("Chain does not use encoded transaction simulation".into()),
         };
-        Ok(client.simulate_transaction(SimulationInput { encoded_transaction }).await?)
+        Ok(client.simulate_transaction(input).await?)
     }
 
     fn ethereum_client(&self, chain: Chain) -> Option<EthereumClient<AlienClient>> {

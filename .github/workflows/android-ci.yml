@@ -1,4 +1,4 @@
-name: Android Tests
+name: Android CI
 
 on:
   push:
@@ -30,7 +30,6 @@ env:
 
 jobs:
   unit_test:
-    name: Unit Tests
     runs-on: ubuntu-latest
     env:
       UNIT_TESTS: "true"

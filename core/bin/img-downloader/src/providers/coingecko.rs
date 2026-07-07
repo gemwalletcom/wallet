@@ -1,8 +1,6 @@
 use super::{config::CoingeckoProviderConfig, mapper::is_native_token, model::AssetImage};
-use coingecko::{Coin, CoinGeckoClient, CoinMarket, get_chain_for_coingecko_platform_id, model::SearchTrending};
+use coingecko::{Coin, CoinGeckoClient, CoinMarket, MAX_MARKETS_PER_PAGE, get_chain_for_coingecko_platform_id, model::SearchTrending};
 use std::{collections::HashMap, error::Error};
-
-const MAX_MARKETS_PER_PAGE: usize = 250;
 
 pub struct CoingeckoProvider {
     client: CoinGeckoClient,

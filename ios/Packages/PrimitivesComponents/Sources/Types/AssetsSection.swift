@@ -12,11 +12,13 @@ public struct AssetsSections: Hashable, Sendable {
 }
 
 public extension AssetsSections {
-    static func from(_ assets: [AssetData]) -> AssetsSections {
-        AssetsSections(
+    static func from(_ assets: [AssetData], enablePopular: Bool = false) -> AssetsSections {
+        let popular = enablePopular ? assets.filter { Self.popularChains.contains($0.asset.id) } : []
+        let popularIds = Set(popular.map(\.asset.id))
+        return AssetsSections(
             pinned: assets.filter(\.metadata.isPinned),
-            assets: assets.filter { !$0.metadata.isPinned },
-            popular: assets.filter { Self.popularChains.contains($0.asset.id) },
+            assets: assets.filter { !$0.metadata.isPinned && !popularIds.contains($0.asset.id) },
+            popular: popular,
         )
     }
 }

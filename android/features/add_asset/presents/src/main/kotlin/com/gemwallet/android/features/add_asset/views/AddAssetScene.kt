@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +29,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -70,9 +70,7 @@ internal fun AddAssetScene(
     Scene(
         title = stringResource(id = R.string.wallet_add_token_title),
         actions = {
-            IconButton(onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.AddCustomToken)) }) {
-                Icon(AppIcons.InfoOutlined, "")
-            }
+            DocsInfoButton(AppUrl.docs(DocsUrl.AddCustomToken))
         },
         mainAction = {
             MainActionButton(

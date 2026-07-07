@@ -18,12 +18,15 @@ impl<C: Client + Clone> ChainSimulation for SolanaClient<C> {
         let bytes = decode_base64(&input.encoded_transaction)?;
         let transaction = VersionedTransaction::deserialize_with_version(&bytes).map_err(|err| format!("parse transaction: {err}"))?;
         let account_keys: Vec<String> = transaction.account_keys().iter().map(|key| key.to_string()).collect();
-        let signer_addresses: HashSet<String> = transaction
-            .account_keys()
-            .iter()
-            .take(transaction.num_required_signatures() as usize)
-            .map(|key| key.to_string())
-            .collect();
+        let signer_addresses = match input.signer_address.as_deref().filter(|signer_address| !signer_address.is_empty()) {
+            Some(signer_address) => HashSet::from([signer_address.to_string()]),
+            None => transaction
+                .account_keys()
+                .iter()
+                .take(transaction.num_required_signatures() as usize)
+                .map(|key| key.to_string())
+                .collect(),
+        };
 
         let simulation = self.simulate_encoded_transaction(&input.encoded_transaction).await?;
         let mut result = map_simulation_result(&account_keys, &signer_addresses, simulation);

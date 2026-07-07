@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,8 +35,17 @@ import com.gemwallet.android.ui.models.ListPosition
 fun SearchBar(
     query: TextFieldState,
     modifier: Modifier = Modifier.listItem(ListPosition.Single),
+    autoFocus: Boolean = false,
 ) {
     val focusRequester = remember { FocusRequester() }
+
+    if (autoFocus) {
+        LaunchedEffect(Unit) {
+            try {
+                focusRequester.requestFocus()
+            } catch (_: Throwable) {}
+        }
+    }
 
     Row(modifier = modifier.fillMaxWidth().height(42.dp)) {
         Box(modifier = Modifier.fillMaxWidth()) {

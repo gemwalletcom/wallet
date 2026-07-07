@@ -180,8 +180,10 @@ public final class FiatSceneViewModel {
     }
 
     var assetBalance: String? {
-        let text = balanceModel.availableBalanceText
-        return text == .zero ? nil : text
+        guard !assetData.balance.available.isZero else {
+            return nil
+        }
+        return balanceModel.availableBalanceTextWithSymbol
     }
 
     var fiatProviderViewModel: FiatProvidersViewModel {

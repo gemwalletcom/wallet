@@ -6,8 +6,11 @@ import Components
 import DiscoverAssetsService
 import Formatters
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import Localization
+import NFT
+import NFTService
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -25,6 +28,8 @@ public final class WalletSceneViewModel: Sendable {
     private let walletService: WalletService
 
     let observablePreferences: ObservablePreferences
+
+    public let collectionsModel: CollectionsViewModel
 
     public var wallet: Wallet
 
@@ -59,6 +64,7 @@ public final class WalletSceneViewModel: Sendable {
         balanceService: BalanceService,
         bannerService: BannerService,
         walletService: WalletService,
+        nftService: NFTService,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
@@ -69,6 +75,11 @@ public final class WalletSceneViewModel: Sendable {
         self.bannerService = bannerService
         self.walletService = walletService
         self.observablePreferences = observablePreferences
+        self.collectionsModel = CollectionsViewModel(
+            nftService: nftService,
+            walletService: walletService,
+            wallet: wallet,
+        )
 
         totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.id, type: .wallet), initialValue: .zero)
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
@@ -88,6 +99,14 @@ public final class WalletSceneViewModel: Sendable {
         Localized.Perpetuals.title
     }
 
+    var collectionsTitle: String {
+        Localized.Nft.collections
+    }
+
+    var collectionsContent: CollectionsContent {
+        collectionsModel.content
+    }
+
     public var searchImage: Image {
         Images.System.search
     }
@@ -102,6 +121,14 @@ public final class WalletSceneViewModel: Sendable {
 
     var showPerpetuals: Bool {
         observablePreferences.showPerpetuals(for: wallet)
+    }
+
+    var showCollections: Bool {
+        switch wallet.type {
+        case .multicoin: true
+        case .single, .privateKey, .view:
+            wallet.accounts.first?.chain.isNFTSupported ?? false
+        }
     }
 
     var currencyCode: String {
@@ -300,6 +327,8 @@ extension WalletSceneViewModel {
         totalFiatQuery.request.walletId = newWallet.id
         assetsQuery.request.walletId = newWallet.id
         bannersQuery.request.walletId = newWallet.id
+        collectionsModel.wallet = newWallet
+        collectionsModel.query.request = NFTRequest(walletId: newWallet.id, filter: .all)
 
         Task { await fetchOnce(wallet: newWallet) }
     }

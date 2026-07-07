@@ -10,7 +10,6 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-chain_primitives = { path = "../chain_primitives" }
 coingecko = { path = "../coingecko" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 jupiter = { path = "../jupiter" }
