@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,15 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
-import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapSlippage
 import com.gemwallet.android.ui.theme.adaptivePadding
+import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,21 +60,28 @@ fun SwapSlippageBottomSheet(
             )
 
             if (!isAuto) {
-                PropertyItem(
-                    title = R.string.swap_slippage,
-                    data = SwapSlippage.label(selectedBps),
-                    listPosition = ListPosition.Single,
-                )
-                Slider(
+                SingleChoiceSegmentedButtonRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = paddingDefault, vertical = paddingSmall),
-                    value = selectedBps.toFloat(),
-                    onValueChange = { selectedBps = it.roundToInt().toUInt() },
-                    onValueChangeFinished = { onSelect(selectedBps) },
-                    valueRange = SwapSlippage.minBps.toFloat()..SwapSlippage.maxBps.toFloat(),
-                    steps = ((SwapSlippage.maxBps - SwapSlippage.minBps) / SwapSlippage.stepBps).toInt() - 1,
-                )
+                ) {
+                    SwapSlippage.options.forEachIndexed { index, bps ->
+                        SegmentedButton(
+                            selected = selectedBps == bps,
+                            onClick = {
+                                selectedBps = bps
+                                onSelect(bps)
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = SwapSlippage.options.size),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = alpha10),
+                                activeContentColor = MaterialTheme.colorScheme.primary,
+                            ),
+                        ) {
+                            Text(SwapSlippage.label(bps))
+                        }
+                    }
+                }
                 if (selectedBps >= warningThresholdBps) {
                     FooterText(
                         text = stringResource(R.string.swap_slippage_warning),

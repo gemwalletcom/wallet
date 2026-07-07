@@ -25,19 +25,15 @@ public struct SwapSlippageScene: View {
 
                 if !model.isAuto {
                     Section {
+                        Picker("", selection: $model.selectedBps) {
+                            ForEach(SwapSlippageViewModel.options, id: \.self) { bps in
+                                Text(SwapSlippageSuggestion(bps: bps).title)
+                                    .tag(bps)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .onChange(of: model.selectedBps) { model.apply() }
                         ListItemView(field: model.selectedField)
-                        Slider(
-                            value: Binding(
-                                get: { Double(model.selectedBps) },
-                                set: { model.selectedBps = UInt32($0.rounded()) },
-                            ),
-                            in: Double(SwapSlippageViewModel.minBps)...Double(SwapSlippageViewModel.maxBps),
-                            step: Double(SwapSlippageViewModel.stepBps),
-                            onEditingChanged: { isEditing in
-                                if !isEditing { model.apply() }
-                            },
-                        )
-                        .tint(Colors.blue)
                     } footer: {
                         if let warning = model.warningText {
                             Text(warning)

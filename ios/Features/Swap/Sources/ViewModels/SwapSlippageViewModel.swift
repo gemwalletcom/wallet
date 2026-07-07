@@ -8,9 +8,7 @@ import Primitives
 
 @Observable
 public final class SwapSlippageViewModel {
-    static let minBps: UInt32 = 10
-    static let maxBps: UInt32 = 500
-    static let stepBps: UInt32 = 10
+    static let options: [UInt32] = [30, 50, 100, 300, 500]
     private static let defaultBps: UInt32 = 100
 
     private let onSelect: (SwapSlippage) -> Void
@@ -28,7 +26,7 @@ public final class SwapSlippageViewModel {
             selectedBps = Self.defaultBps
         case let .manual(bps):
             isAuto = false
-            selectedBps = min(max(bps, Self.minBps), Self.maxBps)
+            selectedBps = bps
         }
     }
 
