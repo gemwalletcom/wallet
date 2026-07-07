@@ -64,7 +64,7 @@ mod chain_integration_tests {
         let client = create_sui_test_client();
         let encoded_transaction = build_transfer_message_bytes(&client, TEST_ADDRESS, TEST_ADDRESS_EMPTY, 100, None).await?;
 
-        let result = client.simulate_transaction(SimulationInput { encoded_transaction }).await?;
+        let result = client.simulate_transaction(SimulationInput::new(encoded_transaction)).await?;
 
         assert!(result.warnings.is_empty());
         let change = result
