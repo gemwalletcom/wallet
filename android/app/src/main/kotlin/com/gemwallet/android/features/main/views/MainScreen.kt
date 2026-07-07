@@ -190,7 +190,6 @@ fun MainScreen(
                                     AssetsAction.OpenCollections -> navigator.openNftList()
                                     is AssetsAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
                                     is AssetsAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
-                                    AssetsAction.OpenNftUnverified -> navigator.openNftUnverifiedCollections()
                                 }
                             },
                             onContentReady = onWalletContentReady,

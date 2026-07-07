@@ -17,5 +17,4 @@ sealed interface AssetsAction {
     data object OpenCollections : AssetsAction
     data class OpenNftCollection(val collectionId: String) : AssetsAction
     data class OpenNftAsset(val assetId: NFTAssetId) : AssetsAction
-    data object OpenNftUnverified : AssetsAction
 }

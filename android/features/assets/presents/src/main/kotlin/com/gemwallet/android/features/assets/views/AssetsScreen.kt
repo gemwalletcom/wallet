@@ -47,6 +47,7 @@ import com.gemwallet.android.features.assets.views.components.AssetsListFooter
 import com.gemwallet.android.features.assets.views.components.assets
 import com.gemwallet.android.features.banner.views.BannersScene
 import com.gemwallet.android.features.banner.views.WelcomeBanner
+import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
@@ -218,10 +219,13 @@ fun AssetsScreen(
                 if (collectionsAvailable) {
                     item(key = CollectionsSectionItemKey) {
                         CollectionsPreviewSection(
-                            onOpenCollections = { onAction(AssetsAction.OpenCollections) },
-                            onOpenCollection = { onAction(AssetsAction.OpenNftCollection(it)) },
-                            onOpenAsset = { onAction(AssetsAction.OpenNftAsset(it)) },
-                            onOpenUnverified = { onAction(AssetsAction.OpenNftUnverified) },
+                            onAction = { action ->
+                                when (action) {
+                                    CollectionsPreviewAction.OpenCollections -> onAction(AssetsAction.OpenCollections)
+                                    is CollectionsPreviewAction.OpenCollection -> onAction(AssetsAction.OpenNftCollection(action.collectionId))
+                                    is CollectionsPreviewAction.OpenAsset -> onAction(AssetsAction.OpenNftAsset(action.assetId))
+                                }
+                            },
                         )
                     }
                 }

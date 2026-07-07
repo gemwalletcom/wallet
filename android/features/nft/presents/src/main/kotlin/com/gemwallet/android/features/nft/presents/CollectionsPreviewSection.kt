@@ -27,45 +27,31 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.NFTAssetId
 
 @Composable
 fun CollectionsPreviewSection(
-    onOpenCollections: () -> Unit,
-    onOpenCollection: (String) -> Unit,
-    onOpenAsset: (NFTAssetId) -> Unit,
-    onOpenUnverified: () -> Unit,
+    onAction: (CollectionsPreviewAction) -> Unit,
     viewModel: NftListViewModels = hiltViewModel(),
 ) {
     val collections by viewModel.collections.collectAsStateWithLifecycle()
-    val unverifiedCount by viewModel.unverifiedCount.collectAsStateWithLifecycle()
-
-    val showUnverified = unverifiedCount > 0
-    val total = collections.size + if (showUnverified) 1 else 0
 
     Column {
-        SubheaderItem(stringResource(R.string.nft_collections), onClick = onOpenCollections)
+        SubheaderItem(
+            stringResource(R.string.nft_collections),
+            onClick = { onAction(CollectionsPreviewAction.OpenCollections) },
+        )
         collections.forEachIndexed { index, nft ->
             CollectionRow(
                 model = nft,
-                listPosition = ListPosition.getPosition(index, total),
+                listPosition = ListPosition.getPosition(index, collections.size),
                 onClick = {
                     val asset = nft.asset
                     if (asset == null) {
-                        onOpenCollection(nft.collection.id.toIdentifier())
+                        onAction(CollectionsPreviewAction.OpenCollection(nft.collection.id.toIdentifier()))
                     } else {
-                        onOpenAsset(asset.id)
+                        onAction(CollectionsPreviewAction.OpenAsset(asset.id))
                     }
                 },
-            )
-        }
-        if (showUnverified) {
-            ListItem(
-                modifier = Modifier.clickable(onClick = onOpenUnverified),
-                listPosition = ListPosition.getPosition(collections.size, total),
-                minHeight = ListItemDefaults.iconMinHeight,
-                title = { Text(stringResource(R.string.asset_verification_unverified)) },
-                trailing = { CountChevron(unverifiedCount) },
             )
         }
     }

@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
-import Primitives
 import Style
 import SwiftUI
 
@@ -24,15 +22,6 @@ public struct CollectionsPreviewView: View {
                         imageSize: .image.asset,
                         cornerRadiusType: .custom(.small),
                     ),
-                )
-            }
-        }
-
-        if let unverifiedCount = content.unverifiedCount {
-            NavigationLink(value: Scenes.UnverifiedCollections()) {
-                ListItemView(
-                    title: Localized.Asset.Verification.unverified,
-                    subtitle: unverifiedCount,
                 )
             }
         }
