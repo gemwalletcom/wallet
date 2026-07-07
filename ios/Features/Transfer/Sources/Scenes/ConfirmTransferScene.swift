@@ -92,7 +92,7 @@ extension ConfirmTransferScene {
             let row = ListItemView(
                 title: TextValue(text: model.assetTitle, style: .body, lineLimit: 1, truncationMode: .tail),
                 subtitle: model.amount,
-                imageStyle: .list(assetImage: model.assetImage),
+                imageStyle: .list(assetImage: model.assetImage, cornerRadiusType: .rounded),
             )
             if model.isUnknown, let url = model.explorerTokenURL {
                 NavigationCustomLink(

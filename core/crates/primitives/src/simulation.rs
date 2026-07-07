@@ -8,7 +8,24 @@ use crate::{Asset, AssetId};
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationInput {
+    #[serde(alias = "transaction")]
     pub encoded_transaction: String,
+    #[serde(default, skip_serializing_if = "Option::is_none", alias = "pubkey", alias = "account", alias = "address")]
+    pub signer_address: Option<String>,
+}
+
+impl SimulationInput {
+    pub fn new(encoded_transaction: impl Into<String>) -> Self {
+        Self {
+            encoded_transaction: encoded_transaction.into(),
+            signer_address: None,
+        }
+    }
+
+    pub fn with_signer_address(mut self, signer_address: impl Into<String>) -> Self {
+        self.signer_address = Some(signer_address.into());
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -274,10 +291,40 @@ pub fn promote_single_secondary_payload_field(payload: Vec<SimulationPayloadFiel
 #[cfg(test)]
 mod tests {
     use super::{
-        SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
-        SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
+        SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
+        SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
     };
+    use crate::testkit::signer_mock::TEST_SOLANA_SENDER;
     use num_bigint::BigInt;
+
+    #[test]
+    fn simulation_input_decodes_wallet_connect_transaction_field() {
+        let input: SimulationInput = serde_json::from_value(serde_json::json!({
+            "transaction": "AAACAAhkAAA",
+        }))
+        .unwrap();
+
+        assert_eq!(input, SimulationInput::new("AAACAAhkAAA"));
+    }
+
+    #[test]
+    fn simulation_input_decodes_optional_signer_aliases() {
+        let input: SimulationInput = serde_json::from_value(serde_json::json!({
+            "pubkey": TEST_SOLANA_SENDER,
+            "transaction": "AAACAAhkAAA",
+        }))
+        .unwrap();
+
+        assert_eq!(input, SimulationInput::new("AAACAAhkAAA").with_signer_address(TEST_SOLANA_SENDER));
+
+        let input: SimulationInput = serde_json::from_value(serde_json::json!({
+            "address": TEST_SOLANA_SENDER,
+            "transaction": "AAACAAhkAAA",
+        }))
+        .unwrap();
+
+        assert_eq!(input, SimulationInput::new("AAACAAhkAAA").with_signer_address(TEST_SOLANA_SENDER));
+    }
 
     #[test]
     fn externally_owned_spender_warning_suppresses_secondary_approval_warning() {
