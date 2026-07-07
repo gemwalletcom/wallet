@@ -50,6 +50,7 @@ import com.gemwallet.android.ui.navigation.routes.InAppNotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.NetworksRoute
 import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
 import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
+import com.gemwallet.android.ui.navigation.routes.NftListRoute
 import com.gemwallet.android.ui.navigation.routes.NftUnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
@@ -255,6 +256,7 @@ class WalletNavigator(
         val pack = params.pack() ?: return
         push(ConfirmRoute(pack))
     }
+    fun openNftList() = push(NftListRoute)
     fun openNftCollection(nftCollectionId: String) = push(NftCollectionRoute(nftCollectionId))
     fun openNftUnverifiedCollections() = push(NftUnverifiedCollectionsRoute)
     fun openNftAsset(nftAssetId: NFTAssetId) = push(NftAssetRoute(nftAssetId.toIdentifier()))

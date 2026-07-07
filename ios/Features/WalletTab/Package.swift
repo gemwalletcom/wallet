@@ -34,6 +34,7 @@ let package = Package(
         .package(name: "GemAPI", path: "../../Packages/GemAPI"),
         .package(name: "Perpetuals", path: "../Perpetuals"),
         .package(name: "Recents", path: "../Recents"),
+        .package(name: "NFT", path: "../NFT"),
     ],
     targets: [
         .target(
@@ -56,8 +57,10 @@ let package = Package(
                 .product(name: "PerpetualService", package: "FeatureServices"),
                 .product(name: "DiscoverAssetsService", package: "FeatureServices"),
                 .product(name: "PriceService", package: "FeatureServices"),
+                .product(name: "NFTService", package: "FeatureServices"),
                 "Perpetuals",
                 "Recents",
+                "NFT",
             ],
             path: "Sources",
         ),
@@ -73,6 +76,7 @@ let package = Package(
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
                 .product(name: "PerpetualServiceTestKit", package: "FeatureServices"),
                 .product(name: "DiscoverAssetsServiceTestKit", package: "FeatureServices"),
+                .product(name: "NFTServiceTestKit", package: "FeatureServices"),
                 "WalletTab",
             ],
             path: "TestKit",
