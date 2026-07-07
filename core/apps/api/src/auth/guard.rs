@@ -46,8 +46,10 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
         return Err(error_outcome(req, Status::Unauthorized, "Invalid signature"));
     }
 
-    if auth_client.invalidate_nonce(&body.auth.device_id, &body.auth.nonce).await.is_err() {
-        return Err(error_outcome(req, Status::InternalServerError, "Failed to invalidate nonce"));
+    match auth_client.invalidate_nonce(&body.auth.device_id, &body.auth.nonce).await {
+        Ok(true) => {}
+        Ok(false) => return Err(error_outcome(req, Status::Unauthorized, "Invalid nonce")),
+        Err(_) => return Err(error_outcome(req, Status::InternalServerError, "Failed to invalidate nonce")),
     }
 
     Ok(VerifiedBody {

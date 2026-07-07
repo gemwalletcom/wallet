@@ -37,8 +37,7 @@ impl AuthClient {
         self.cacher.get_value::<AuthNonce>(&CacheKey::AuthNonce(device_id, nonce).key()).await
     }
 
-    pub async fn invalidate_nonce(&self, device_id: &str, nonce: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.delete(&CacheKey::AuthNonce(device_id, nonce).key()).await?;
-        Ok(())
+    pub async fn invalidate_nonce(&self, device_id: &str, nonce: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.cacher.delete(&CacheKey::AuthNonce(device_id, nonce).key()).await
     }
 }
