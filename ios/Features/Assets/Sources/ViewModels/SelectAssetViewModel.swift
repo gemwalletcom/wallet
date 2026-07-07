@@ -114,7 +114,7 @@ public final class SelectAssetViewModel {
     }
 
     var sections: AssetsSections {
-        AssetsSections.from(assets)
+        AssetsSections.from(assets, enablePopular: enablePopularSection)
     }
 
     var enablePopularSection: Bool {
@@ -122,7 +122,7 @@ public final class SelectAssetViewModel {
     }
 
     var showPopularSection: Bool {
-        enablePopularSection && sections.popular.isNotEmpty
+        sections.popular.isNotEmpty
     }
 
     var showPinnedSection: Bool {
