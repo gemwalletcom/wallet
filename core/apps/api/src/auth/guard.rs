@@ -15,6 +15,7 @@ fn error_outcome<'r, T>(req: &'r Request<'_>, status: Status, message: &str) -> 
 }
 
 struct VerifiedBody<T> {
+    device_id: String,
     address: String,
     data: T,
 }
@@ -33,7 +34,7 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
         return Err(error_outcome(req, Status::BadRequest, "Invalid JSON"));
     };
 
-    let Ok(auth_nonce) = auth_client.get_auth_nonce(&body.auth.device_id, &body.auth.nonce).await else {
+    let Ok(auth_nonce) = auth_client.consume_auth_nonce(&body.auth.device_id, &body.auth.nonce).await else {
         return Err(error_outcome(req, Status::Unauthorized, "Invalid nonce"));
     };
 
@@ -46,13 +47,8 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
         return Err(error_outcome(req, Status::Unauthorized, "Invalid signature"));
     }
 
-    match auth_client.invalidate_nonce(&body.auth.device_id, &body.auth.nonce).await {
-        Ok(true) => {}
-        Ok(false) => return Err(error_outcome(req, Status::Unauthorized, "Invalid nonce")),
-        Err(_) => return Err(error_outcome(req, Status::InternalServerError, "Failed to invalidate nonce")),
-    }
-
     Ok(VerifiedBody {
+        device_id: body.auth.device_id,
         address: body.auth.address,
         data: body.data,
     })
@@ -63,6 +59,7 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
 // WalletSigned verifies wallet ownership of the signed JSON body using an auth nonce.
 // Routes that mutate wallet-owned reward state should require both and bind the signed wallet to the resolved wallet.
 pub struct WalletSigned<T> {
+    pub device_id: String,
     pub address: String,
     pub data: T,
 }
@@ -78,6 +75,7 @@ impl<'r, T: DeserializeOwned + Send> FromData<'r> for WalletSigned<T> {
         };
 
         Success(WalletSigned {
+            device_id: verified.device_id,
             address: verified.address,
             data: verified.data,
         })
