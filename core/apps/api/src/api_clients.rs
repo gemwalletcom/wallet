@@ -50,7 +50,7 @@ async fn authorize_api_client(req: &Request<'_>, scope: ApiClientScope) -> Outco
     };
 
     if client.is_none() {
-        return error_outcome(req, Status::Unauthorized, "Invalid API client");
+        return error_outcome(req, Status::Unauthorized, &format!("Invalid API client for scope {}", scope.as_ref()));
     }
 
     Success(())
