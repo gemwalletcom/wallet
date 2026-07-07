@@ -44,6 +44,30 @@ mod tests {
     }
 
     #[test]
+    fn hash_rejects_missing_field_value() {
+        let mut value: serde_json::Value = serde_json::from_str(include_str!("../../testdata/eip712_reference_vector.json")).unwrap();
+        value.get_mut("message").and_then(serde_json::Value::as_object_mut).unwrap().remove("contents");
+
+        let err = hash_typed_data(&value.to_string()).expect_err("missing field returns error");
+        assert!(err.to_string().contains("Missing value for type 'string'"));
+    }
+
+    #[test]
+    fn hash_rejects_null_field_value_and_malformed_array_type() {
+        let mut value: serde_json::Value = serde_json::from_str(include_str!("../../testdata/eip712_arrays_nested.json")).unwrap();
+        value["message"]["nested"] = serde_json::Value::Null;
+
+        let err = hash_typed_data(&value.to_string()).expect_err("null field returns error");
+        assert!(err.to_string().contains("Missing value for type 'Inner'"));
+
+        let mut value: serde_json::Value = serde_json::from_str(include_str!("../../testdata/eip712_arrays_nested.json")).unwrap();
+        value["types"]["Group"][0]["type"] = serde_json::Value::String("address[abc]".to_string());
+
+        let err = hash_typed_data(&value.to_string()).expect_err("malformed array type returns error");
+        assert!(err.to_string().contains("Invalid array length"));
+    }
+
+    #[test]
     fn hash_supports_signed_integers() {
         let json = include_str!("../../testdata/eip712_signed_integers.json");
 
