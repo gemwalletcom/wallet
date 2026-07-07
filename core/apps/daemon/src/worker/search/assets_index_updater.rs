@@ -1,10 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::time::Duration;
 
 use super::sync::{SearchSyncClient, SearchSyncResult};
 use primitives::ConfigKey;
 use search_index::{ASSETS_INDEX_NAME, AssetDocument, SearchIndexClient, sanitize_index_primary_id};
-use storage::models::PriceAssetDataRow;
+use storage::models::{AssetTagRow, PriceAssetDataRow};
 use storage::{AssetsUsageRanksRepository, AssetsWithPricesFilter, Database, PricesRepository, TagRepository};
 
 pub struct AssetsIndexUpdater {
@@ -31,23 +31,9 @@ impl AssetsIndexUpdater {
             return sync.write(ASSETS_INDEX_NAME, Vec::<AssetDocument>::new()).await;
         }
 
-        let public_tag_ids = self
-            .database
-            .tag()?
-            .get_asset_list_tags()?
-            .into_iter()
-            .filter_map(|tag| tag.visibility.is_public().then_some(tag.id))
-            .collect::<HashSet<_>>();
-        let assets_tags = self.database.tag()?.get_assets_tags()?;
         let usage_ranks = self.database.assets_usage_ranks()?.get_all_usage_ranks()?;
 
-        let assets_tags_map: HashMap<String, Vec<String>> = assets_tags
-            .into_iter()
-            .filter(|tag| public_tag_ids.contains(&tag.tag_id))
-            .fold(HashMap::new(), |mut acc, tag| {
-                acc.entry(tag.asset_id.to_string()).or_default().push(tag.tag_id);
-                acc
-            });
+        let assets_tags_map = Self::asset_tags_by_asset(self.database.tag()?.get_assets_tags()?);
         let usage_ranks_map: HashMap<String, i32> = usage_ranks.into_iter().map(|r| (r.asset_id.to_string(), r.usage_rank)).collect();
 
         let documents = Self::build_documents(prices.iter(), &assets_tags_map, &usage_ranks_map);
@@ -78,5 +64,31 @@ impl AssetsIndexUpdater {
                 }
             })
             .collect()
+    }
+
+    fn asset_tags_by_asset(tags: impl IntoIterator<Item = AssetTagRow>) -> HashMap<String, Vec<String>> {
+        tags.into_iter().fold(HashMap::new(), |mut acc, tag| {
+            acc.entry(tag.asset_id.to_string()).or_default().push(tag.tag_id);
+            acc
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::{AssetId, Chain};
+
+    #[test]
+    fn asset_tags_by_asset_includes_internal_tags() {
+        let asset_id = AssetId::from_chain(Chain::Bitcoin);
+        let tags = vec![
+            AssetTagRow::mock_with_tag(asset_id.clone(), "trending"),
+            AssetTagRow::mock_with_tag(asset_id.clone(), "stablecoins"),
+        ];
+
+        let tags_by_asset = AssetsIndexUpdater::asset_tags_by_asset(tags);
+
+        assert_eq!(tags_by_asset.get(&asset_id.to_string()), Some(&vec!["trending".to_string(), "stablecoins".to_string()]));
     }
 }

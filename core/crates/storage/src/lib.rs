@@ -7,7 +7,7 @@ pub mod models;
 pub mod repositories;
 pub mod schema;
 pub mod sql_types;
-#[cfg(test)]
+#[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
 pub use config_cacher::ConfigCacher;

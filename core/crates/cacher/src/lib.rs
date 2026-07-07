@@ -57,6 +57,14 @@ impl CacherClient {
         }
     }
 
+    pub async fn get_and_delete_value<T: serde::de::DeserializeOwned>(&self, key: &str) -> Result<T, Box<dyn Error + Send + Sync>> {
+        let value: Option<String> = self.connection.clone().get_del(key).await?;
+        match value {
+            Some(serialized) => Ok(serde_json::from_str(&serialized)?),
+            None => Err(Box::new(CacheError::KeyNotFound(key.to_string()))),
+        }
+    }
+
     pub async fn get_value_optional<T: serde::de::DeserializeOwned>(&self, key: &str) -> Result<Option<T>, Box<dyn Error + Send + Sync>> {
         let value: Option<String> = self.connection.clone().get(key).await?;
         match value {
@@ -317,5 +325,47 @@ impl CacherClient {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+    struct TestValue {
+        nonce: String,
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    #[ignore = "requires REDIS_URL pointing at a disposable Redis instance"]
+    async fn get_and_delete_value_is_atomic_under_concurrency() {
+        let redis_url = std::env::var("REDIS_URL").expect("set REDIS_URL to run Redis-backed cache tests");
+        let client = CacherClient::new(&redis_url).await;
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        let key = format!("test:get-and-delete:{}:{timestamp}", std::process::id());
+        let value = TestValue { nonce: "single-use".to_string() };
+
+        let _ = client.delete(&key).await;
+        client.set_value(&key, &value).await.unwrap();
+
+        let handles = (0..32)
+            .map(|_| {
+                let client = client.clone();
+                let key = key.clone();
+                tokio::spawn(async move { client.get_and_delete_value::<TestValue>(&key).await.ok() })
+            })
+            .collect::<Vec<_>>();
+
+        let mut consumed_values = Vec::new();
+        for handle in handles {
+            if let Some(consumed_value) = handle.await.unwrap() {
+                consumed_values.push(consumed_value);
+            }
+        }
+
+        assert_eq!(consumed_values, vec![value]);
+        assert!(client.get_value_optional::<TestValue>(&key).await.unwrap().is_none());
     }
 }

@@ -2,8 +2,11 @@ use super::SearchRequest;
 
 pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
     let mut filters = vec![];
-    filters.push("properties.isEnabled = true".to_string());
-    filters.push(format!("score.rank > {}", request.rank_threshold()));
+
+    if !request.is_tag_list() {
+        filters.push("properties.isEnabled = true".to_string());
+        filters.push(format!("score.rank > {}", request.rank_threshold()));
+    }
 
     if request.has_tag_filter() {
         filters.push(filter_array("tags", request.tags.clone()));
@@ -54,6 +57,14 @@ mod tests {
 
     #[test]
     fn build_assets_filters_with_tags() {
+        let request = SearchRequest::new("", None, Some("defi"), None, None);
+        let filters = build_assets_filters(&request);
+
+        assert_eq!(filters, vec!["tags IN [\"defi\"]"]);
+    }
+
+    #[test]
+    fn build_assets_filters_with_tags_and_search_query() {
         let request = SearchRequest::new("ethereum contract", None, Some("defi"), None, None);
         let filters = build_assets_filters(&request);
 
