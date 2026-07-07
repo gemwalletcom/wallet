@@ -59,6 +59,8 @@ dependencies {
     implementation(project(":features:update_app:presents"))
     implementation(project(":features:banner:presents"))
     implementation(project(":features:perpetual:presents"))
+    implementation(project(":features:nft:presents"))
+    implementation(project(":features:nft:viewmodels"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

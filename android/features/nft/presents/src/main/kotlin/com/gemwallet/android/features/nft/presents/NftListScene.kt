@@ -163,7 +163,7 @@ internal fun NftListScene(
                 return@PullToRefreshBox
             }
 
-            val showUnverifiedRow = showUnverifiedAction && unverifiedCount > 0
+            val showUnverifiedRow = showUnverifiedAction && unverifiedCount > 0 && items.isEmpty()
 
             if (items.isEmpty() && !showUnverifiedRow) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {

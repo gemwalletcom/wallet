@@ -47,6 +47,7 @@ import com.gemwallet.android.features.assets.views.components.AssetsListFooter
 import com.gemwallet.android.features.assets.views.components.assets
 import com.gemwallet.android.features.banner.views.BannersScene
 import com.gemwallet.android.features.banner.views.WelcomeBanner
+import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
@@ -66,6 +67,7 @@ private const val BannersItemKey = "banners"
 private const val ImportingItemKey = "importing"
 private const val FooterItemKey = "footer"
 private const val PerpetualsSectionItemKey = "perpetuals_section"
+private const val CollectionsSectionItemKey = "collections_section"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +83,7 @@ fun AssetsScreen(
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val showWelcomeBanner by viewModel.showWelcomeBanner.collectAsStateWithLifecycle()
+    val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -212,6 +215,16 @@ fun AssetsScreen(
                     onAssetClick = { onAction(AssetsAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
+                if (collectionsAvailable) {
+                    item(key = CollectionsSectionItemKey) {
+                        CollectionsPreviewSection(
+                            onOpenCollections = { onAction(AssetsAction.OpenCollections) },
+                            onOpenCollection = { onAction(AssetsAction.OpenNftCollection(it)) },
+                            onOpenAsset = { onAction(AssetsAction.OpenNftAsset(it)) },
+                            onOpenUnverified = { onAction(AssetsAction.OpenNftUnverified) },
+                        )
+                    }
+                }
                 item(key = FooterItemKey) { AssetsListFooter { onAction(AssetsAction.Manage) } }
             }
         }

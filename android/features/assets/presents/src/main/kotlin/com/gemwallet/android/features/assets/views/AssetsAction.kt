@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.assets.views
 
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.NFTAssetId
 
 sealed interface AssetsAction {
     data object ShowWallets : AssetsAction
@@ -13,4 +14,8 @@ sealed interface AssetsAction {
     data object Perpetuals : AssetsAction
     data class OpenPerpetualDetails(val assetId: AssetId) : AssetsAction
     data class OpenAsset(val assetId: AssetId) : AssetsAction
+    data object OpenCollections : AssetsAction
+    data class OpenNftCollection(val collectionId: String) : AssetsAction
+    data class OpenNftAsset(val assetId: NFTAssetId) : AssetsAction
+    data object OpenNftUnverified : AssetsAction
 }
