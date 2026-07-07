@@ -51,7 +51,11 @@ import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
+import com.gemwallet.android.ui.components.list_item.LinkItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.models.AssetsGroupType
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -66,6 +70,7 @@ private const val BannersItemKey = "banners"
 private const val ImportingItemKey = "importing"
 private const val FooterItemKey = "footer"
 private const val PerpetualsSectionItemKey = "perpetuals_section"
+private const val UnverifiedAssetsItemKey = "unverified_assets"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +86,7 @@ fun AssetsScreen(
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val showWelcomeBanner by viewModel.showWelcomeBanner.collectAsStateWithLifecycle()
+    val hiddenAssetsCount by viewModel.hiddenAssetsCount.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -212,6 +218,21 @@ fun AssetsScreen(
                     onAssetClick = { onAction(AssetsAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
+                if (hiddenAssetsCount > 0) {
+                    item(key = UnverifiedAssetsItemKey) {
+                        LinkItem(
+                            title = stringResource(R.string.asset_verification_unverified),
+                            listPosition = ListPosition.Single,
+                            trailingContent = {
+                                PropertyDataText(
+                                    text = hiddenAssetsCount.toString(),
+                                    badge = { DataBadgeChevron() },
+                                )
+                            },
+                            onClick = { onAction(AssetsAction.ShowHiddenAssets) },
+                        )
+                    }
+                }
                 item(key = FooterItemKey) { AssetsListFooter { onAction(AssetsAction.Manage) } }
             }
         }

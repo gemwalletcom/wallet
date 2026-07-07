@@ -84,7 +84,22 @@ public struct WalletScene: View {
                         .listRowInsets(.assetListRowInsets)
                         .textCase(nil)
                 }
-            } footer: {
+            }
+            .listRowInsets(.assetListRowInsets)
+
+            if let hiddenAssetsCount = model.hiddenAssetsCount {
+                Section {
+                    NavigationLink(value: Scenes.HiddenAssets()) {
+                        ListItemView(
+                            title: Localized.Asset.Verification.unverified,
+                            subtitle: hiddenAssetsCount,
+                        )
+                    }
+                }
+                .listRowInsets(.assetListRowInsets)
+            }
+
+            Section {} footer: {
                 ListButton(
                     title: model.manageTokenTitle,
                     image: model.manageImage,

@@ -7,6 +7,8 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.features.asset.presents.chart.AssetChartScene
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsScreen
+import com.gemwallet.android.features.assets.views.HiddenAssetsAction
+import com.gemwallet.android.features.assets.views.HiddenAssetsScreen
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
@@ -18,6 +20,9 @@ data class AssetRoute(val assetId: AssetId) : NavKey
 @Serializable
 data class AssetChartRoute(val assetId: AssetId) : NavKey
 
+@Serializable
+data object HiddenAssetsRoute : NavKey
+
 fun EntryProviderScope<NavKey>.assetScreen(
     onAction: (AssetDetailsAction.Navigation) -> Unit,
 ) {
@@ -25,6 +30,22 @@ fun EntryProviderScope<NavKey>.assetScreen(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
         AssetDetailsScreen(onAction = onAction)
+    }
+}
+
+fun EntryProviderScope<NavKey>.hiddenAssetsScreen(
+    onOpenAsset: (AssetId) -> Unit,
+    onCancel: () -> Unit,
+) {
+    entry<HiddenAssetsRoute> {
+        HiddenAssetsScreen(
+            onAction = { action ->
+                when (action) {
+                    HiddenAssetsAction.Close -> onCancel()
+                    is HiddenAssetsAction.OpenAsset -> onOpenAsset(action.assetId)
+                }
+            },
+        )
     }
 }
 

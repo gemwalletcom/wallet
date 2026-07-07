@@ -6,6 +6,7 @@ import Components
 import DiscoverAssetsService
 import Formatters
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import Preferences
@@ -31,6 +32,7 @@ public final class WalletSceneViewModel: Sendable {
     // db queries
     public let totalFiatQuery: ObservableQuery<TotalValueRequest>
     public let assetsQuery: ObservableQuery<AssetsRequest>
+    public let hiddenAssetsQuery: ObservableQuery<AssetsRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
 
     /// db observed values
@@ -40,6 +42,14 @@ public final class WalletSceneViewModel: Sendable {
 
     public var assets: [AssetData] {
         assetsQuery.value
+    }
+
+    public var hiddenAssets: [AssetData] {
+        hiddenAssetsQuery.value
+    }
+
+    var hiddenAssetsCount: String? {
+        hiddenAssets.isEmpty ? nil : hiddenAssets.count.asString
     }
 
     public var banners: [Banner] {
@@ -72,6 +82,7 @@ public final class WalletSceneViewModel: Sendable {
 
         totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.id, type: .wallet), initialValue: .zero)
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
+        hiddenAssetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.hiddenBalance, .hasBalance, .assetRank(lessThanOrEqualTo: AssetScore.defaultScore)]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
@@ -299,6 +310,7 @@ extension WalletSceneViewModel {
         wallet = newWallet
         totalFiatQuery.request.walletId = newWallet.id
         assetsQuery.request.walletId = newWallet.id
+        hiddenAssetsQuery.request.walletId = newWallet.id
         bannersQuery.request.walletId = newWallet.id
 
         Task { await fetchOnce(wallet: newWallet) }

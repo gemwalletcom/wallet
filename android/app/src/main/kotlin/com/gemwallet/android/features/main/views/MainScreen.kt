@@ -203,6 +203,7 @@ fun MainScreen(
                                     AssetsAction.Buy -> navigator.openBuy()
                                     AssetsAction.Swap -> navigator.openSwap()
                                     AssetsAction.Perpetuals -> navigator.openPerpetuals()
+                                    AssetsAction.ShowHiddenAssets -> navigator.openHiddenAssets()
                                     is AssetsAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
                                     is AssetsAction.OpenAsset -> navigator.openAsset(action.assetId)
                                 }

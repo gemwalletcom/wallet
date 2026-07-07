@@ -20,6 +20,11 @@ class GetActiveAssetsInfoImpl(
         assetsRepository.getAssetsInfo()
             .map { items -> items.map { it.toAssetInfoDataAggregate(hideBalance) } }
             .distinctUntilChanged()
+
+    override fun getHiddenAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> =
+        assetsRepository.getHiddenAssetsInfo()
+            .map { items -> items.map { it.toAssetInfoDataAggregate(hideBalance) } }
+            .distinctUntilChanged()
 }
 
 internal fun AssetInfo.toAssetInfoDataAggregate(

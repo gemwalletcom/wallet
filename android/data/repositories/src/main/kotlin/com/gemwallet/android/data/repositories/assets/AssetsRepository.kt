@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.defaultTokenRank
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -187,6 +188,11 @@ class AssetsRepository @Inject constructor(
 
     fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = currentWalletId()
         .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId, assetsId.map { it.toIdentifier() }) }
+        .toAssetInfoModel()
+        .flowOn(Dispatchers.IO)
+
+    fun getHiddenAssetsInfo(): Flow<List<AssetInfo>> = currentWalletId()
+        .flatMapLatest { walletId -> assetsDao.getHiddenAssetsInfo(walletId, defaultTokenRank()) }
         .toAssetInfoModel()
         .flowOn(Dispatchers.IO)
 

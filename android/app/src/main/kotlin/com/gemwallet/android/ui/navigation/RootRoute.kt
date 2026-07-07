@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetChartRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
+import com.gemwallet.android.ui.navigation.routes.HiddenAssetsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
@@ -172,6 +173,7 @@ class WalletNavigator(
     fun openWallets() = push(WalletsRoute)
     fun openAcceptTerms(destination: AcceptTermsDestination) = push(AcceptTermsRoute(destination))
     fun openAssetsManage() = push(AssetsManageRoute)
+    fun openHiddenAssets() = push(HiddenAssetsRoute)
     fun openAssetsSearch() = push(WalletSearchRoute)
     fun openAssetsResults(query: String, scope: WalletSearchTag) = push(AssetsResultsRoute(query, scope))
     fun openAssetsResultsList(listId: String, title: String) = push(AssetsResultsRoute(query = "", scope = WalletSearchTag.List(listId), title = title))

@@ -50,7 +50,9 @@ public struct AssetsRequest: DatabaseQueryable {
                  .chainsOrAssets,
                  .search,
                  .enabledBalance,
+                 .hiddenBalance,
                  .hasBalance,
+                 .assetRank,
                  .priceAlerts:
                 request = Self.applyFilter(request: request, filter)
             }
@@ -122,6 +124,16 @@ extension AssetsRequest {
             return request
                 .filter(
                     TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.isEnabled] == true,
+                )
+        case .hiddenBalance:
+            return request
+                .filter(
+                    TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.isEnabled] == false,
+                )
+        case let .assetRank(lessThanOrEqualTo: rank):
+            return request
+                .filter(
+                    AssetRecord.Columns.rank <= rank,
                 )
         case let .chains(chains):
             if chains.isEmpty {

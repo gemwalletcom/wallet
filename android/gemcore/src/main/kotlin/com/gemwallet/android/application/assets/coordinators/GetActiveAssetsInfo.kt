@@ -11,4 +11,6 @@ interface GetActiveAssetsInfo {
 
     fun getAssetsInfo(hideBalance: Flow<Boolean>): Flow<List<AssetInfoDataAggregate>>
        = hideBalance.flatMapLatest { getAssetsInfo(it) }
+
+    fun getHiddenAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>>
 }

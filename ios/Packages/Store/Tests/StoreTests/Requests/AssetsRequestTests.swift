@@ -58,6 +58,35 @@ struct AssetsRequestTests {
         }
     }
 
+    @Test func hiddenUnverifiedAssets() throws {
+        let unverifiedHidden = AssetId(chain: .smartChain)
+        let verifiedHidden = AssetId(chain: .ethereum)
+        let unverifiedEnabled = AssetId(chain: .solana)
+        let unverifiedNoBalance = AssetId(chain: .base)
+
+        let db = DB.mockAssets(assets: [
+            .mock(asset: .mock(id: unverifiedHidden), score: .mock(rank: 15)),
+            .mock(asset: .mock(id: verifiedHidden), score: .mock(rank: 16)),
+            .mock(asset: .mock(id: unverifiedEnabled), score: .mock(rank: 10)),
+            .mock(asset: .mock(id: unverifiedNoBalance), score: .mock(rank: 10)),
+        ])
+        let balanceStore = BalanceStore(db: db)
+
+        try balanceStore.updateBalances([
+            .mockCoin(assetId: unverifiedHidden, available: 1),
+            .mockCoin(assetId: verifiedHidden, available: 1),
+            .mockCoin(assetId: unverifiedEnabled, available: 1),
+            .mockCoin(assetId: unverifiedNoBalance, available: 0),
+        ], for: .mock())
+        _ = try balanceStore.setIsEnabled(walletId: .mock(), assetIds: [unverifiedHidden, verifiedHidden, unverifiedNoBalance], value: false)
+
+        try db.dbQueue.read { db in
+            let assets = try AssetsRequest.mock(filters: [.hiddenBalance, .hasBalance, .assetRank(lessThanOrEqualTo: 15)]).fetch(db)
+
+            #expect(assets.map(\.asset.id) == [unverifiedHidden])
+        }
+    }
+
     @Test func assetProperties() throws {
         let db = DB.mockAssets()
         let assetStore = AssetStore(db: db)

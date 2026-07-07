@@ -73,6 +73,10 @@ class AssetsViewModel @Inject constructor(
         .map { it.unpinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val hiddenAssetsCount = getActiveAssetsInfo.getHiddenAssetsInfo(false)
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

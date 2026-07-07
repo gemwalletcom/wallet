@@ -75,7 +75,7 @@ struct WalletNavigationStack: View {
             }
             .onChange(of: model.currentWallet, model.onChangeWallet)
             .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
-            .bindQuery(model.assetsQuery, model.bannersQuery, model.totalFiatQuery)
+            .bindQuery(model.assetsQuery, model.hiddenAssetsQuery, model.bannersQuery, model.totalFiatQuery)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !model.isPresentingSearch {
@@ -108,6 +108,15 @@ struct WalletNavigationStack: View {
                             asset: $0.asset,
                         ),
                         isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
+                    ),
+                )
+            }
+            .navigationDestination(for: Scenes.HiddenAssets.self) { _ in
+                HiddenAssetsScene(
+                    model: HiddenAssetsSceneViewModel(
+                        balanceService: balanceService,
+                        observablePreferences: preferences,
+                        wallet: model.wallet,
                     ),
                 )
             }

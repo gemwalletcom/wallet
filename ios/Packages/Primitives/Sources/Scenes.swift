@@ -119,6 +119,10 @@ public enum Scenes {
         }
     }
 
+    public struct HiddenAssets: Hashable, Codable, Sendable {
+        public init() {}
+    }
+
     public struct ChainSettings: Hashable, Codable {
         public let chain: Primitives.Chain
 
