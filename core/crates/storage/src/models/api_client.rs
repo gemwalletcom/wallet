@@ -21,6 +21,7 @@ pub enum ApiClientScope {
     DevicesSubscriptionsRead,
     DevicesTransactionsRead,
     FiatQuotesRead,
+    FiatTransactionsRead,
     WebhooksTransactions,
     WebhooksSupport,
     WebhooksFiat,

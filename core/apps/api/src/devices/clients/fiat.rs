@@ -2,7 +2,7 @@ use std::error::Error;
 
 use fiat::FiatClient;
 use primitives::{FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData};
-use storage::{Database, FiatRepository};
+use storage::{Database, DevicesRepository, FiatRepository};
 
 pub struct FiatQuotesClient {
     database: Database,
@@ -43,6 +43,13 @@ impl FiatQuotesClient {
 
     pub fn get_transactions_by_device_wallet_id(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {
         let transactions = FiatRepository::get_fiat_transactions_by_device_and_wallet_id(&mut self.database.fiat()?, device_row_id, wallet_id)?;
+
+        Ok(transactions.into_iter().map(fiat::fiat_transaction_info).collect())
+    }
+
+    pub fn get_transactions_by_device_id(&self, device_id: &str) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {
+        let device_row_id = self.database.devices()?.get_device_row_id(device_id)?;
+        let transactions = FiatRepository::get_fiat_transactions_by_device_id(&mut self.database.fiat()?, device_row_id)?;
 
         Ok(transactions.into_iter().map(fiat::fiat_transaction_info).collect())
     }
