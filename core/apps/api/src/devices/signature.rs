@@ -23,23 +23,15 @@ fn verify_request_signature(req: &Request<'_>, components: &DeviceAuthPayload, t
     }
 
     let method = req.method().as_str();
-    let path = request_path_and_query(req);
+    let path = req.uri().path().as_str();
     let wallet_id = components.wallet_id.as_deref().unwrap_or("");
-    let message = device_auth_message(&components.timestamp, method, &path, wallet_id, &components.body_hash);
+    let message = device_auth_message(&components.timestamp, method, path, wallet_id, &components.body_hash);
 
     if !verify_device_signature(&components.device_id, &message, &components.signature) {
         return Err((Status::Unauthorized, DeviceError::InvalidSignature.to_string()));
     }
 
     Ok(())
-}
-
-fn request_path_and_query(req: &Request<'_>) -> String {
-    let path = req.uri().path().as_str();
-    match req.uri().query() {
-        Some(query) => format!("{path}?{}", query.as_str()),
-        None => path.to_string(),
-    }
 }
 
 pub(crate) async fn verify_request_auth<'r>(req: &'r Request<'_>) -> Result<&'r DeviceAuthPayload, (Status, String)> {

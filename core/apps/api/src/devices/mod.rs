@@ -161,9 +161,6 @@ pub async fn create_device_referral_v2(
     ip: std::net::IpAddr,
     client: &State<Mutex<RewardsClient>>,
 ) -> Result<ApiResponse<Rewards>, ApiError> {
-    if request.device_id != device.device_row.device_id {
-        return Err(ApiError::BadRequest("Wallet signature device mismatch".to_string()));
-    }
     let wallet_identifier = primitives::WalletId::Multicoin(request.address.clone()).id();
     Ok(client
         .lock()
@@ -187,9 +184,6 @@ pub async fn use_device_referral_code_v2(
     user_agent: UserAgent,
     client: &State<Mutex<RewardsClient>>,
 ) -> Result<ApiResponse<bool>, ApiError> {
-    if request.device_id != device.device_row.device_id {
-        return Err(ApiError::BadRequest("Wallet signature device mismatch".to_string()));
-    }
     client
         .lock()
         .await
@@ -204,9 +198,6 @@ pub async fn redeem_device_rewards_v2(
     request: WalletSigned<RedemptionRequest>,
     client: &State<Mutex<RewardsRedemptionClient>>,
 ) -> Result<ApiResponse<RedemptionResult>, ApiError> {
-    if request.device_id != device.device_row.device_id {
-        return Err(ApiError::BadRequest("Wallet signature device mismatch".to_string()));
-    }
     if WalletId::Multicoin(request.address.clone()) != device.wallet_identifier {
         return Err(ApiError::BadRequest("Wallet signature mismatch".to_string()));
     }

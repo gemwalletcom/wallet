@@ -58,11 +58,7 @@ impl CacherClient {
     }
 
     pub async fn get_and_delete_value<T: serde::de::DeserializeOwned>(&self, key: &str) -> Result<T, Box<dyn Error + Send + Sync>> {
-        let mut pipe = redis::pipe();
-        pipe.atomic();
-        pipe.cmd("GET").arg(key);
-        pipe.cmd("DEL").arg(key).ignore();
-        let (value,): (Option<String>,) = pipe.query_async(&mut self.connection.clone()).await?;
+        let value: Option<String> = self.connection.clone().get_del(key).await?;
         match value {
             Some(serialized) => Ok(serde_json::from_str(&serialized)?),
             None => Err(Box::new(CacheError::KeyNotFound(key.to_string()))),
