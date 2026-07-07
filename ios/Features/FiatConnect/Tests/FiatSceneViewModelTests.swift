@@ -9,6 +9,7 @@ import Formatters
 import Foundation
 import Primitives
 import PrimitivesTestKit
+@testable import Store
 import Testing
 
 @MainActor
@@ -91,6 +92,19 @@ final class FiatSceneViewModelTests {
         model.onChangeType(oldType: .buy, newType: .sell)
 
         #expect(model.buttonTitle(amount: 100) == "$100")
+    }
+
+    @Test
+    func assetBalanceIncludesSymbol() {
+        let asset = Asset.mockTron()
+        let model = FiatSceneViewModelTests.mock(assetAddress: .mock(asset: asset))
+
+        model.assetQuery.value = .mock(
+            asset: asset,
+            balance: .mock(available: BigInt(66_670_000)),
+        )
+
+        #expect(model.assetBalance == "66.67 TRX")
     }
 
     @Test
