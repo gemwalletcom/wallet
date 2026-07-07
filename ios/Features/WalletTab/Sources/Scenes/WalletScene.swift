@@ -3,6 +3,7 @@
 import Components
 import InfoSheet
 import Localization
+import NFT
 import Primitives
 import PrimitivesComponents
 import Store
@@ -30,6 +31,7 @@ public struct WalletScene: View {
                     onInfoAction: model.onSelectWatchWalletInfo,
                 )
                 .padding(.top, .space6)
+                .padding(.bottom, .medium)
             }
             .cleanListRow()
 
@@ -84,17 +86,24 @@ public struct WalletScene: View {
                         .textCase(nil)
                 }
             } footer: {
-                ListButton(
-                    title: model.manageTokenTitle,
-                    image: model.manageImage,
-                    action: model.onSelectManage,
-                )
-                .accessibilityIdentifier("manage")
-                .padding(.medium)
-                .frame(maxWidth: .infinity, alignment: .center)
+                if !model.showCollections {
+                    manageTokensButton
+                }
             }
             .listRowInsets(.assetListRowInsets)
+
+            if model.showCollections {
+                Section {
+                    CollectionsPreviewView(content: model.collectionsContent)
+                } header: {
+                    HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
+                } footer: {
+                    manageTokensButton
+                }
+                .listRowInsets(.assetListRowInsets)
+            }
         }
+        .listSectionSpacing(.compact)
         .id(model.wallet.id)
         .refreshable {
             await model.fetch()
@@ -102,5 +111,21 @@ public struct WalletScene: View {
         .taskOnce {
             Task { await model.fetchOnce() }
         }
+    }
+}
+
+// MARK: - UI
+
+extension WalletScene {
+    @ViewBuilder
+    private var manageTokensButton: some View {
+        ListButton(
+            title: model.manageTokenTitle,
+            image: model.manageImage,
+            action: model.onSelectManage,
+        )
+        .accessibilityIdentifier("manage")
+        .padding(.medium)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }

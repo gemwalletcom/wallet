@@ -25,11 +25,7 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                             collectionsView
                         }
                         .padding(.horizontal, Spacing.medium + Spacing.tiny)
-
-                        Spacer(minLength: .medium)
-                    }
-
-                    if let unverifiedCount = model.content.unverifiedCount {
+                    } else if let unverifiedCount = model.content.unverifiedCount {
                         List {
                             NavigationLink(value: Scenes.UnverifiedCollections()) {
                                 ListItemView(
