@@ -4,6 +4,7 @@ import android.text.format.DateUtils
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
@@ -62,6 +63,7 @@ class FiatViewModel @Inject constructor(
     private val getBuyQuotes: GetBuyQuotes,
     private val getBuyQuoteUrl: GetBuyQuoteUrl,
     getBuyAssetInfo: GetBuyAssetInfo,
+    getAssetPriceUsd: GetAssetPriceUsd,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -97,6 +99,10 @@ class FiatViewModel @Inject constructor(
 
     private val assetData: StateFlow<AssetData?> = assetId
         .flatMapLatest { getBuyAssetInfo(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val assetPriceUsd: StateFlow<Double?> = assetId
+        .flatMapLatest { getAssetPriceUsd(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val assetInfoUIModel = assetData
@@ -202,9 +208,9 @@ class FiatViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val providers = combine(assetInfoUIModel.filterNotNull(), quotes) { asset, quotes ->
+    val providers = combine(assetInfoUIModel.filterNotNull(), quotes, assetPriceUsd) { asset, quotes, priceUsd ->
         quotes.map { quote ->
-            quote.toProviderUIModel(asset.asset, currency, asset.assetInfo.price?.price?.price)
+            quote.toProviderUIModel(asset.asset, currency, priceUsd)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

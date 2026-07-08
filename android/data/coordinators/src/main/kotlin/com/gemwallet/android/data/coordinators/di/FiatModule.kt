@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.di
 import android.content.Context
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
@@ -12,6 +13,7 @@ import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
+import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
@@ -25,6 +27,7 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
+import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
@@ -138,6 +141,14 @@ object FiatModule {
         assetsRepository: AssetsRepository,
     ): GetBuyAssetInfo {
         return GetBuyAssetInfoImpl(sessionRepository, assetsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAssetPriceUsd(
+        pricesDao: PricesDao,
+    ): GetAssetPriceUsd {
+        return GetAssetPriceUsdImpl(pricesDao)
     }
 
     @Provides

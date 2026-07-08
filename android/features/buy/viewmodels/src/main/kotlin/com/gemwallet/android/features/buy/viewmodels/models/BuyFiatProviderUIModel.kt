@@ -2,12 +2,14 @@ package com.gemwallet.android.features.buy.viewmodels.models
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuote
 import com.wallet.core.primitives.FiatQuoteType
+import java.math.BigDecimal
 
 @Stable
 data class BuyFiatProviderUIModel(
@@ -19,10 +21,11 @@ data class BuyFiatProviderUIModel(
 ) : CryptoFormattedUIModel {
 
     override val cryptoFormatted: String
-        get() = "≈ ${super.cryptoFormatted}"
+        get() = "≈ $cryptoText"
 
     val cryptoText: String
-        get() = super.cryptoFormatted
+        get() = ValueFormatter(style = ValueFormatter.Style.Auto)
+            .string(BigDecimal.valueOf(cryptoAmount), asset.symbol)
 }
 
 fun FiatQuote.toProviderUIModel(

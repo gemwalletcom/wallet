@@ -6,6 +6,7 @@ import com.gemwallet.android.testkit.mockFiatQuote
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuoteType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class BuyFiatProviderUIModelTest {
@@ -37,5 +38,13 @@ class BuyFiatProviderUIModelTest {
         val model = quote.toProviderUIModel(testAsset, Currency.USD, assetPrice = 100000.0)
 
         assertEquals(formatter.string(48.0), model.fiatFormatted)
+    }
+
+    @Test
+    fun `cryptoText keeps significant digits for amounts sharing four decimals`() {
+        val first = mockFiatQuote(cryptoAmount = 0.00077).toProviderUIModel(testAsset, Currency.USD)
+        val second = mockFiatQuote(cryptoAmount = 0.0007578).toProviderUIModel(testAsset, Currency.USD)
+
+        assertNotEquals(first.cryptoText, second.cryptoText)
     }
 }
