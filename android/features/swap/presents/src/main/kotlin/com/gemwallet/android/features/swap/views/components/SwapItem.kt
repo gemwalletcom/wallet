@@ -11,9 +11,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.domains.asset.availableBalance
 import com.gemwallet.android.domains.asset.availableBalanceAmount
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
@@ -55,6 +52,7 @@ internal fun SwapItem(
     calculating: Boolean = false,
     interaction: SwapItemInteraction,
     state: TextFieldState = rememberTextFieldState(),
+    onBalanceClick: () -> Unit,
     onAssetSelect: () -> Unit,
 ) {
     Row(
@@ -90,10 +88,8 @@ internal fun SwapItem(
             SwapBalance(
                 balance = item?.availableBalanceAmount,
                 interaction = interaction,
-            ) {
-                state.clearText()
-                state.setTextAndPlaceCursorAtEnd(item?.availableBalance.orEmpty())
-            }
+                onBalanceClick = onBalanceClick,
+            )
         }
     }
 }
