@@ -94,4 +94,10 @@ mod tests {
         assert!(ASSETS_SEARCH_ATTRIBUTES.contains(&"asset.chain"));
         assert!(ASSETS_SEARCH_ATTRIBUTES.contains(&"aliases"));
     }
+
+    #[test]
+    fn asset_tags_are_filterable_not_searchable() {
+        assert!(ASSETS_FILTERS.contains(&"tags"));
+        assert!(!ASSETS_SEARCH_ATTRIBUTES.contains(&"tags"));
+    }
 }

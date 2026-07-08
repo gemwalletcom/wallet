@@ -9,19 +9,24 @@
 
 Gem Wallet is an open-source mobile wallet for iOS and Android. This repository is the monorepo for both apps and the shared Rust core they build against.
 
-- `ios/`: SwiftUI application, packages, tests, and iOS-only submodules
-- `android/`: Kotlin/Compose application and Android build tooling
-- `core/`: shared Rust source used by both mobile apps
+## Install
 
-📲 [iOS on the App Store](https://apps.apple.com/app/apple-store/id6448712670?ct=github&mt=8)
-
-🤖 [Android on Google Play](https://play.google.com/store/apps/details?id=com.gemwallet.android&utm_campaign=github&utm_source=referral&utm_medium=github)
+- [App Store](https://apps.apple.com/app/apple-store/id6448712670?ct=github&mt=8)
+- [Google Play](https://play.google.com/store/apps/details?id=com.gemwallet.android&utm_campaign=github&utm_source=referral&utm_medium=github)
+- [F-Droid](https://f-droid.org/en/packages/com.gemwallet.android/)
+- [Android APK releases](https://github.com/gemwalletcom/wallet/releases/latest)
 
 ## Features
 
 - Open source, self-custodial wallet with multi-chain support
 - Native iOS and Android apps with shared Rust-based blockchain functionality
 - Swaps, staking, WalletConnect, fiat on/off ramp, alerts, and market data
+
+## Repository
+
+- `ios/`: SwiftUI application, packages, tests, and iOS-only submodules
+- `android/`: Kotlin/Compose application and Android build tooling
+- `core/`: shared Rust source used by both mobile apps
 
 ## Getting Started
 
@@ -98,14 +103,15 @@ Gem Wallet is self-custodial, and keeping user funds safe is our highest priorit
 ## Contributing
 
 - Browse [GitHub Issues](https://github.com/gemwalletcom/wallet/issues)
-- Track work on the [GitHub Project Board](https://github.com/orgs/gemwalletcom/projects/2)
-- See the public [Roadmap](https://github.com/orgs/gemwalletcom/projects/4)
+- Follow the public [Roadmap](https://github.com/orgs/gemwalletcom/projects/4)
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 ## Community
 
-- Install the app at [gemwallet.com](https://gemwallet.com) or Join [Discord](https://discord.gg/aWkq5sj7SY), [X](https://twitter.com/GemWallet), [Telegram](https://t.me/GemWallet)
+- Website: [gemwallet.com](https://gemwallet.com)
+- Chat: [Discord](https://discord.gg/aWkq5sj7SY), [Telegram](https://t.me/GemWallet)
+- Updates: [X](https://x.com/GemWallet)
 
 ## License
 

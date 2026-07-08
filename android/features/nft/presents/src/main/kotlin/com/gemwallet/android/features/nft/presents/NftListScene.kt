@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -204,17 +205,19 @@ internal fun NftListScene(
                     }
                 }
                 if (showUnverifiedRow) {
-                    LinkItem(
-                        title = stringResource(R.string.asset_verification_unverified),
-                        listPosition = ListPosition.Single,
-                        trailingContent = {
-                            PropertyDataText(
-                                text = unverifiedCount.toString(),
-                                badge = { DataBadgeChevron() },
-                            )
-                        },
-                        onClick = { onAction(NftListAction.OpenUnverified) },
-                    )
+                    Box(modifier = Modifier.navigationBarsPadding()) {
+                        LinkItem(
+                            title = stringResource(R.string.asset_verification_unverified),
+                            listPosition = ListPosition.Single,
+                            trailingContent = {
+                                PropertyDataText(
+                                    text = unverifiedCount.toString(),
+                                    badge = { DataBadgeChevron() },
+                                )
+                            },
+                            onClick = { onAction(NftListAction.OpenUnverified) },
+                        )
+                    }
                 }
             }
         }

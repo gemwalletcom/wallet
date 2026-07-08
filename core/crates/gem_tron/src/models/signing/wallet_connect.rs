@@ -61,20 +61,17 @@ impl WalletConnectTransaction {
         let transaction_hash = sha256(raw_data);
         let transaction_id = hex::encode(transaction_hash);
 
-        match &self.transaction_id {
-            Some(provided_transaction_id) if !provided_transaction_id.eq_ignore_ascii_case(&transaction_id) => {
-                return SignerError::invalid_input_err("transaction ID does not match hash of raw_data_hex");
-            }
-            None if self.raw_data.is_none() => SignerError::invalid_input_err("Missing raw_data or transaction ID"),
-            _ => Ok(()),
-        }?;
+        let raw_data_json = self.raw_data.as_ref().ok_or_else(|| SignerError::invalid_input("Missing raw_data"))?;
 
-        if let Some(raw_data_json) = &self.raw_data {
-            // The transaction ID validates signed bytes and keeps rendered raw_data and raw_data_hex in sync.
-            let encoded = serde_json::from_value::<RawDataJson>(raw_data_json.clone())?.encode()?;
-            if encoded != raw_data {
-                return SignerError::invalid_input_err("raw_data does not match raw_data_hex");
-            }
+        if let Some(provided_transaction_id) = &self.transaction_id
+            && !provided_transaction_id.eq_ignore_ascii_case(&transaction_id)
+        {
+            return SignerError::invalid_input_err("transaction ID does not match hash of raw_data_hex");
+        }
+
+        let encoded = serde_json::from_value::<RawDataJson>(raw_data_json.clone())?.encode()?;
+        if encoded != raw_data {
+            return SignerError::invalid_input_err("raw_data does not match raw_data_hex");
         }
 
         Ok(transaction_hash)

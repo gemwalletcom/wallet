@@ -101,6 +101,7 @@ public struct WalletSearchScene: View {
                     content: { listItems(for: model.sections.lists) },
                     header: { SectionHeaderView(title: model.listsTitle) },
                 )
+                .listRowInsets(.assetListRowInsets)
             }
 
             if model.showPerpetuals {

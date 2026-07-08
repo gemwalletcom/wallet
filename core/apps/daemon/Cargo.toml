@@ -45,3 +45,4 @@ swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
 
 [dev-dependencies]
 primitives = { path = "../../crates/primitives", features = ["testkit"] }
+storage = { path = "../../crates/storage", features = ["testkit"] }

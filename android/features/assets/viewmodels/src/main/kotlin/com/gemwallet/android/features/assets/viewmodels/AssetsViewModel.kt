@@ -14,7 +14,10 @@ import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.ext.isNftSupported
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +47,11 @@ class AssetsViewModel @Inject constructor(
         .map { it?.wallet?.id }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val collectionsAvailable = getSession()
+        .map { it?.wallet?.isCollectionsAvailable() ?: false }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private data class AssetGroups(
         val pinned: List<AssetInfoDataAggregate> = emptyList(),
@@ -103,4 +111,11 @@ class AssetsViewModel @Inject constructor(
     fun onHideWelcomeBanner() = viewModelScope.launch {
         hideWelcomeBanner()
     }
+}
+
+private fun Wallet.isCollectionsAvailable(): Boolean = when (type) {
+    WalletType.Multicoin -> true
+    WalletType.Single,
+    WalletType.PrivateKey,
+    WalletType.View -> accounts.firstOrNull()?.chain?.isNftSupported() ?: false
 }

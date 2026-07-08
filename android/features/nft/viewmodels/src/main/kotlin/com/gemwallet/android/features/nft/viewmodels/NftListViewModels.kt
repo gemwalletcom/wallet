@@ -73,7 +73,10 @@ class NftListViewModels @Inject constructor(
                 listOf(NftItemUIModel(nftData.collection, null, nftData.assets.size))
             }
         }
-        .sortedBy { it.name }
+        .sortedWith(
+            compareByDescending<NftItemUIModel> { it.collectionSize ?: 1 }
+                .thenBy { it.collection.name }
+        )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

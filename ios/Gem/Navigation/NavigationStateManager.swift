@@ -9,8 +9,6 @@ final class NavigationStateManager: Sendable {
     @MainActor
     var wallet = NavigationPathState()
     @MainActor
-    var collections = NavigationPathState()
-    @MainActor
     var activity = NavigationPathState()
     @MainActor
     var settings = NavigationPathState()
@@ -49,7 +47,6 @@ extension NavigationStateManager {
 
         switch tab {
         case .wallet: wallet.reset()
-        case .collections: collections.reset()
         case .activity: activity.reset()
         case .settings: settings.reset()
         case .markets: markets.reset()

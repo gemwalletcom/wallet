@@ -31,7 +31,7 @@ impl ChainSigner for XrpChainSigner {
     }
 
     fn sign_account_action(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let amount = token_amount(input, TRUST_LINE_LIMIT)?;
+        let amount = trust_line_limit_amount(input)?;
         XrpTransaction::new_trust_set(params(input, private_key)?, amount).sign(private_key)
     }
 }
@@ -60,6 +60,11 @@ fn token_amount(input: &SignerInput, value: &str) -> Result<XrpAmount, SignerErr
     let asset = input.input_type.get_asset();
     let value = BigNumberFormatter::value(value, asset.decimals).map_err(SignerError::from_display)?;
     XrpAmount::issued(&value, &asset.symbol, asset.id.get_token_id()?)
+}
+
+fn trust_line_limit_amount(input: &SignerInput) -> Result<XrpAmount, SignerError> {
+    let asset = input.input_type.get_asset();
+    XrpAmount::issued(TRUST_LINE_LIMIT, &asset.symbol, asset.id.get_token_id()?)
 }
 
 fn payment_memo(memo: Option<&str>) -> Result<XrpPaymentMemo, SignerError> {
@@ -145,6 +150,19 @@ mod tests {
 
     fn token(symbol: &str, issuer: &str) -> Asset {
         Asset::new(AssetId::from_token(Chain::Xrp, issuer), symbol.to_string(), symbol.to_string(), 15, AssetType::TOKEN)
+    }
+
+    fn mock_trust_set_input() -> SignerInput {
+        input_with_type(
+            TransactionInputType::Account(token("RLUSD", "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"), AccountDataType::Activate),
+            "rDgEGKXWkHHr1HYq2ETnNAs9MdV4R8Gyt",
+            "",
+            "0",
+            500,
+            93_674_950,
+            187_349_938,
+            None,
+        )
     }
 
     // Source vector:
@@ -273,21 +291,20 @@ mod tests {
     #[test]
     fn test_account_action_signs_trust_set() {
         let private_key = hex::decode("574e99f7946cfa2a6ca9368ca72fd37e42583cddb9ecc746aa4cb194ef4b2480").unwrap();
-        let input = input_with_type(
-            TransactionInputType::Account(token("RLUSD", "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"), AccountDataType::Activate),
-            "rDgEGKXWkHHr1HYq2ETnNAs9MdV4R8Gyt",
-            "",
-            "0",
-            500,
-            93_674_950,
-            187_349_938,
-            None,
-        );
+        let input = mock_trust_set_input();
 
         let signed = XrpChainSigner.sign_account_action(&input, &private_key).unwrap();
         assert_eq!(
             signed,
-            "12001422000000002405955dc6201b0b2abbbe63d398838370f34000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e6840000000000001f47321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d74473045022100d807b19bc7636d2a4b92f3b1c27897f6076a0f808abf4a403188b50c6e4205fc02202c50debc5aed8c8e193dd68122502b75333557378e9537a88c19233e52870a7781140265c09d122fab2a261a80ee59f1f4cd8fba8cf8"
+            "12001422000000002405955dc6201b0b2abbbe63d758838370f34000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e6840000000000001f47321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d74473045022100833630562a6946f42f0471b6ce6193f51d761c4b98775104ed5df1fe3ce320680220382dafe6bf27b1f2be2dffdda3c139bcf2c7f8e04872af14f197b5228734800181140265c09d122fab2a261a80ee59f1f4cd8fba8cf8"
         );
+    }
+
+    #[test]
+    fn test_trust_line_limit_is_not_scaled_by_token_decimals() {
+        let input = mock_trust_set_input();
+        let amount = trust_line_limit_amount(&input).unwrap();
+
+        assert_eq!(amount, XrpAmount::issued(TRUST_LINE_LIMIT, "RLUSD", "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De").unwrap());
     }
 }

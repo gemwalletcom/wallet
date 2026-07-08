@@ -29,7 +29,7 @@ import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
@@ -37,7 +37,7 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
@@ -202,19 +202,20 @@ private fun SearchListItem(
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
+        minHeight = ListItemDefaults.plainMinHeight,
         leading = {
             AsyncImage(
                 model = getListIconUrl(list.id),
-                size = listItemIconSize,
+                size = iconSize,
                 placeholderText = list.name,
             )
         },
-        title = { ListItemTitleText(list.name) },
+        title = { Text(text = list.name) },
         trailing = {
             DataBadgeChevron {
                 Text(
                     text = list.count.toString(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.secondary,
                 )
             }

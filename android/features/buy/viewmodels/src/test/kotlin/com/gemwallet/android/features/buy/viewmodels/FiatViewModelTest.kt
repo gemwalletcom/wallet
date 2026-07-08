@@ -199,6 +199,20 @@ class FiatViewModelTest {
     }
 
     @Test
+    fun `asset info balance includes symbol`() = runTest(testDispatcher) {
+        assetDataFlow.value = assetData(price = 100.0, available = OneBitcoin)
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+
+            assertEquals("1 BTC", viewModel.assetInfoUIModel.value?.cryptoFormatted)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
     fun `sell type is only selected when sell is available`() = runTest(testDispatcher) {
         assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = "1")
         val viewModel = createViewModel()
