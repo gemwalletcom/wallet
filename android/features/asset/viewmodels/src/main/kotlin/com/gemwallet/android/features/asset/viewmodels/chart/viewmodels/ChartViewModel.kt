@@ -90,7 +90,7 @@ class ChartViewModel internal constructor(
                 StateViewType.Data(ChartUIModel.from(it, priceInfo, state.period, state.currency))
             },
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIModel.State())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
     private suspend fun request(period: ChartPeriod, currency: Currency): List<ChartValue> {
         return getAssetChartData.getAssetChartData(assetId, period, currency)
