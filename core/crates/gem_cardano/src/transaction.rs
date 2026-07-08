@@ -30,11 +30,7 @@ pub(crate) struct Transaction {
 impl Transaction {
     fn auxiliary_data_bytes(&self) -> Option<Vec<u8>> {
         self.memo.as_deref().filter(|memo| !memo.is_empty()).map(|memo| {
-            let segments = memo
-                .as_bytes()
-                .chunks(MEMO_SEGMENT_SIZE)
-                .map(|chunk| String::from_utf8_lossy(chunk).to_string())
-                .collect::<Vec<_>>();
+            let segments = chunk_memo_segments(memo);
             let mut encoder = CborEncoder::new();
             encoder.tag(AUXILIARY_DATA_TAG);
             encoder.map(1);
@@ -47,7 +43,7 @@ impl Transaction {
             encoder.text("memo");
             encoder.array(segments.len());
             for segment in segments {
-                encoder.text(&segment);
+                encoder.text(segment);
             }
             encoder.into_bytes()
         })
@@ -118,39 +114,42 @@ impl Transaction {
     }
 }
 
+fn chunk_memo_segments(memo: &str) -> Vec<&str> {
+    let mut segments = Vec::new();
+    let mut start = 0usize;
+
+    for (index, character) in memo.char_indices() {
+        let end = index + character.len_utf8();
+        if start < index && end - start > MEMO_SEGMENT_SIZE {
+            segments.push(&memo[start..index]);
+            start = index;
+        }
+    }
+
+    if start < memo.len() {
+        segments.push(&memo[start..]);
+    }
+
+    segments
+}
+
 #[cfg(all(test, feature = "signer"))]
 mod tests {
     use super::*;
-    use crate::address::ShelleyAddress;
 
     #[test]
     fn test_transaction_encode_and_id() {
         let transaction = Transaction {
             inputs: vec![
-                TransactionInput {
-                    transaction_hash: hex::decode("f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767").unwrap().try_into().unwrap(),
-                    output_index: 1,
-                },
-                TransactionInput {
-                    transaction_hash: hex::decode("554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af0").unwrap().try_into().unwrap(),
-                    output_index: 0,
-                },
+                TransactionInput::mock(),
+                TransactionInput::mock_with("554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af0", 0),
             ],
             outputs: vec![
-                TransactionOutput {
-                    address: ShelleyAddress::parse("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23")
-                        .unwrap()
-                        .as_bytes()
-                        .to_vec(),
-                    amount: 2_000_000,
-                },
-                TransactionOutput {
-                    address: ShelleyAddress::parse("addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5")
-                        .unwrap()
-                        .as_bytes()
-                        .to_vec(),
-                    amount: 16_749_189,
-                },
+                TransactionOutput::mock(),
+                TransactionOutput::mock_with(
+                    "addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5",
+                    16_749_189,
+                ),
             ],
             fee: 165_555,
             expiration_block_number: 53_333_345,
@@ -170,17 +169,8 @@ mod tests {
     #[test]
     fn test_transaction_auxiliary_data_memo() {
         let transaction = Transaction {
-            inputs: vec![TransactionInput {
-                transaction_hash: hex::decode("f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767").unwrap().try_into().unwrap(),
-                output_index: 1,
-            }],
-            outputs: vec![TransactionOutput {
-                address: ShelleyAddress::parse("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23")
-                    .unwrap()
-                    .as_bytes()
-                    .to_vec(),
-                amount: 2_000_000,
-            }],
+            inputs: vec![TransactionInput::mock()],
+            outputs: vec![TransactionOutput::mock()],
             fee: 165_555,
             expiration_block_number: 53_333_345,
             memo: Some("=:b:bc1qdestination:0/1/0:g1:50".to_string()),
@@ -193,6 +183,22 @@ mod tests {
         assert_eq!(
             hex::encode(transaction.body_bytes()),
             "a50081825820f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e76701018182583901df58ee97ce7a46cd8bdeec4e5f3a03297eb197825ed5681191110804df22424b6880b39e4bac8c58de9fe6d23d79aaf44756389d827aa09b1a001e8480021a000286b3031a032dcd61075820ae2a7d445496dc92925a85781cc1351123f6b09afe9b0f632f9668b26e9c9227"
+        );
+    }
+
+    #[test]
+    fn test_transaction_auxiliary_data_memo_preserves_utf8_boundaries() {
+        let transaction = Transaction {
+            inputs: vec![TransactionInput::mock()],
+            outputs: vec![TransactionOutput::mock()],
+            fee: 165_555,
+            expiration_block_number: 53_333_345,
+            memo: Some(format!("{}{}{}", "a".repeat(63), "💎", "b".repeat(63))),
+        };
+
+        assert_eq!(
+            hex::encode(transaction.auxiliary_data_bytes().unwrap()),
+            format!("d90103a100a100a1191a14a1646d656d6f83783f{}7840f09f928e{}63626262", "61".repeat(63), "62".repeat(60))
         );
     }
 }
