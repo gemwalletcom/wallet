@@ -25,6 +25,7 @@ public final class FiatSceneViewModel {
     private let currencyFormatter: CurrencyFormatter
     private let valueFormatter = ValueFormatter(locale: .US, style: .auto)
 
+    public let priceUsdQuery: ObservableQuery<PriceUsdRequest>
     public let assetQuery: ObservableQuery<AssetRequest>
     var assetData: AssetData {
         assetQuery.value
@@ -55,6 +56,7 @@ public final class FiatSceneViewModel {
         self.assetsEnabler = assetsEnabler
         self.type = type
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
+        priceUsdQuery = ObservableQuery(PriceUsdRequest(assetId: assetAddress.asset.id), initialValue: nil)
 
         let buyOperation = BuyOperation(
             service: fiatService,
@@ -192,7 +194,7 @@ public final class FiatSceneViewModel {
                 FiatQuoteViewModel(
                     asset: asset,
                     quote: $0,
-                    assetPrice: assetData.price?.price,
+                    assetPrice: priceUsdQuery.value,
                     isSelected: $0.provider == selectedQuote?.provider,
                     formatter: currencyFormatter,
                 )
