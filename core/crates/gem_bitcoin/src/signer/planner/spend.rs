@@ -27,7 +27,7 @@ impl UtxoPlanner {
         }
 
         let payment_script = script_for_address(request.chain, &request.destination_address)?.script_pubkey;
-        if !request.is_max && request.amount < dust_threshold(&payment_script) {
+        if !request.is_max && request.amount < dust_threshold(request.chain, &payment_script) {
             return Err(SignerError::DustThreshold);
         }
 
@@ -92,7 +92,7 @@ impl UtxoPlanner {
         let mut outputs = spend_outputs(0, payment_script.clone(), memo_output.clone());
         let fee = estimate_fee(chain, selected, &outputs, fee_rate);
         let value = selected_amount.checked_sub(fee).ok_or(SignerError::InsufficientFunds)?;
-        if value == 0 || value < dust_threshold(payment_script) {
+        if value == 0 || value < dust_threshold(chain, payment_script) {
             return Err(SignerError::InsufficientFunds);
         }
         outputs[0].value = bitcoin::Amount::from_sat(value);
@@ -123,7 +123,7 @@ impl UtxoPlanner {
             return Ok(None);
         };
 
-        if remainder >= dust_threshold(change_script) {
+        if remainder >= dust_threshold(chain, change_script) {
             outputs.push(PlanOutput::new(remainder, change_script.clone()));
             return Ok(Some(SpendPlan {
                 inputs: selected.to_vec(),
@@ -147,9 +147,9 @@ impl UtxoPlanner {
 mod tests {
     use super::*;
     use crate::testkit::{
-        address_mock::TEST_BITCOIN_P2WPKH_ADDRESS,
+        address_mock::{TEST_BITCOIN_P2WPKH_ADDRESS, mock_destination_address, mock_sender_address},
         planner_mock::{mock_signer_input, mock_signer_input_with, mock_spend_utxos, sum_inputs},
-        signer_mock::{TEST_UTXO_TXID, mock_utxo_with},
+        signer_mock::{TEST_UTXO_TXID, mock_transfer_input_with_utxos, mock_utxo_with},
     };
 
     #[test]
@@ -218,7 +218,7 @@ mod tests {
         let fee_with_change = estimate_fee(BitcoinChain::Bitcoin, &plan.inputs, &outputs_with_change, 2);
         let dust_remainder = selected_amount - plan.outputs[0].value.to_sat() - fee_with_change;
         assert!(dust_remainder > 0);
-        assert!(dust_remainder < dust_threshold(&change_script));
+        assert!(dust_remainder < dust_threshold(BitcoinChain::Bitcoin, &change_script));
 
         let absorbed_remainder = selected_amount - plan.outputs[0].value.to_sat() - fee_without_change;
         assert_eq!(plan.fee, fee_without_change + absorbed_remainder);
@@ -226,10 +226,36 @@ mod tests {
     }
 
     #[test]
+    fn test_doge_plan_absorbs_change_below_doge_dust() {
+        let sender_address = mock_sender_address(BitcoinChain::Doge);
+        let destination_address = mock_destination_address(BitcoinChain::Doge);
+        let input = mock_transfer_input_with_utxos(
+            BitcoinChain::Doge,
+            &sender_address,
+            &destination_address,
+            "1500000",
+            vec![mock_utxo_with(TEST_UTXO_TXID, 0, "2000000", &sender_address)],
+        );
+        let request = SpendRequest::transfer(BitcoinChain::Doge, &input).unwrap();
+        let plan = UtxoPlanner::plan(request).unwrap();
+
+        assert_eq!(plan.inputs.len(), 1);
+        assert_eq!(plan.outputs.len(), 1);
+        assert_eq!(plan.outputs[0].value.to_sat(), 1_500_000);
+        assert_eq!(
+            sum_inputs(&plan.inputs).unwrap(),
+            plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee
+        );
+    }
+
+    #[test]
     fn test_dust_threshold_is_script_aware() {
         let p2wpkh = script_for_address(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS).unwrap().script_pubkey;
         let p2pkh = script_for_address(BitcoinChain::Bitcoin, "1BoatSLRHtKNngkdXEeobR76b53LETtpyT").unwrap().script_pubkey;
-        assert_eq!(dust_threshold(&p2pkh), 546);
-        assert!(dust_threshold(&p2wpkh) > 0 && dust_threshold(&p2wpkh) < dust_threshold(&p2pkh));
+        let doge_p2pkh = script_for_address(BitcoinChain::Doge, &mock_destination_address(BitcoinChain::Doge)).unwrap().script_pubkey;
+
+        assert_eq!(dust_threshold(BitcoinChain::Bitcoin, &p2pkh), 546);
+        assert_eq!(dust_threshold(BitcoinChain::Doge, &doge_p2pkh), 546_000);
+        assert!(dust_threshold(BitcoinChain::Bitcoin, &p2wpkh) > 0 && dust_threshold(BitcoinChain::Bitcoin, &p2wpkh) < dust_threshold(BitcoinChain::Bitcoin, &p2pkh));
     }
 }

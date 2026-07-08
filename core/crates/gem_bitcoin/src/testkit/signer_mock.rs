@@ -53,6 +53,10 @@ pub fn mock_p2wpkh_transfer_input() -> SignerInput {
 
 pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {
     let mut input = mock_transfer_input(chain);
+    match chain {
+        BitcoinChain::Doge => input.input.value = "1000000".to_string(),
+        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Zcash => {}
+    }
     match &mut input.input.metadata {
         TransactionLoadMetadata::Bitcoin { utxos } | TransactionLoadMetadata::Zcash { utxos, .. } => {
             utxos[0].value = "100000000".to_string();
