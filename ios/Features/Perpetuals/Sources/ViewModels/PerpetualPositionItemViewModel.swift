@@ -9,12 +9,15 @@ import SwiftUI
 
 struct PerpetualPositionItemViewModel: ListAssetItemViewable {
     let model: PerpetualPositionViewModel
+    let showBalancePrivacy: Binding<Bool>
     var action: ((ListAssetItemAction) -> Void)?
 
     init(
         model: PerpetualPositionViewModel,
+        showBalancePrivacy: Binding<Bool> = .constant(false),
     ) {
         self.model = model
+        self.showBalancePrivacy = showBalancePrivacy
     }
 
     var name: String {
