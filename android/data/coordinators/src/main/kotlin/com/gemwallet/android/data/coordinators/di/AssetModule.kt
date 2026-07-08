@@ -14,6 +14,7 @@ import com.gemwallet.android.application.assets.coordinators.GetChartPeriod
 import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetSearchLists
+import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
@@ -27,6 +28,7 @@ import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
+import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
@@ -42,6 +44,7 @@ import com.gemwallet.android.data.coordinators.asset.GetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
+import com.gemwallet.android.data.coordinators.asset.GetPortfolioDataImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.coordinators.asset.DeviceAssetsSyncService
@@ -62,6 +65,7 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -153,6 +157,20 @@ object AssetModule {
     ): GetAssetChartData = GetAssetChartDataImpl(
         gemApiClient = gemApiClient,
         assetsRepository = assetsRepository,
+    )
+
+    @Provides
+    @Singleton
+    fun provideGetPortfolioData(
+        gemDeviceApiClient: GemDeviceApiClient,
+        assetsRepository: AssetsRepository,
+        perpetualService: PerpetualService,
+        sessionRepository: SessionRepository,
+    ): GetPortfolioData = GetPortfolioDataImpl(
+        gemDeviceApiClient = gemDeviceApiClient,
+        assetsRepository = assetsRepository,
+        perpetualService = perpetualService,
+        sessionRepository = sessionRepository,
     )
 
     @Provides

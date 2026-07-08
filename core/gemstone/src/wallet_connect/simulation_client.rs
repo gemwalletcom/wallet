@@ -7,6 +7,7 @@ use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_solana::rpc::client::SolanaClient;
 use gem_sui::rpc::client::SuiClient;
+use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
@@ -57,6 +58,7 @@ impl WalletConnectSimulationClient {
         let simulation = match &transaction_type {
             WcWalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
             WcWalletConnectTransactionType::Solana { .. } | WcWalletConnectTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
+            WcWalletConnectTransactionType::Tron { .. } => self.simulate_tron_transaction(&data).await,
             _ => Ok(SimulationResult::default()),
         }
         .unwrap_or_default();
@@ -127,6 +129,11 @@ impl WalletConnectSimulationClient {
         Ok(client.simulate_transaction(input).await?)
     }
 
+    async fn simulate_tron_transaction(&self, data: &str) -> Result<SimulationResult, GemstoneError> {
+        let client = self.tron_client().ok_or("No RPC client available")?;
+        Ok(client.simulate_transaction(SimulationInput::new(data)).await?)
+    }
+
     fn ethereum_client(&self, chain: Chain) -> Option<EthereumClient<AlienClient>> {
         let chain = EVMChain::from_chain(chain)?;
         let url = self.provider.get_endpoint(chain.to_chain()).ok()?;
@@ -144,6 +151,12 @@ impl WalletConnectSimulationClient {
         let url = self.provider.get_endpoint(Chain::Sui).ok()?;
         let transport = AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.provider.clone())));
         Some(SuiClient::new_with_transport(url, Arc::new(transport)))
+    }
+
+    fn tron_client(&self) -> Option<TronClient<AlienClient>> {
+        let url = self.provider.get_endpoint(Chain::Tron).ok()?;
+        let client = new_alien_client(url, self.provider.clone());
+        Some(TronClient::new(client.clone(), TronGridClient::new(client, String::new())))
     }
 }
 

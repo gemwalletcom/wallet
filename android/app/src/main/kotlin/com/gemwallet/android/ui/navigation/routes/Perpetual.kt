@@ -22,6 +22,7 @@ data class PerpetualPositionRoute(val assetId: AssetId) : NavKey
 fun EntryProviderScope<NavKey>.perpetualScreen(
     onCancel: () -> Unit,
     onOpenPerpetualDetails: AssetIdAction,
+    onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
     confirmAction: ConfirmTransactionAction,
     onTransaction: (TransactionId) -> Unit,
@@ -29,6 +30,7 @@ fun EntryProviderScope<NavKey>.perpetualScreen(
     entry<PerpetualRoute> {
         PerpetualMarketNavScreen(
             onOpenPerpetualDetails = onOpenPerpetualDetails,
+            onOpenPortfolio = onOpenPortfolio,
             amountAction = amountAction,
             onCancel = onCancel,
         )

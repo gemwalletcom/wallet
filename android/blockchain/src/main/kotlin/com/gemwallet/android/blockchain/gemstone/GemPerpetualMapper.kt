@@ -1,11 +1,14 @@
 package com.gemwallet.android.blockchain.gemstone
 
 import com.gemwallet.android.domains.asset.toDTO
+import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPerpetualId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartCandleUpdate
+import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.Perpetual
+import com.wallet.core.primitives.PerpetualAccountSummary
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
@@ -13,17 +16,23 @@ import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualMarketData
 import com.wallet.core.primitives.PerpetualMetadata
 import com.wallet.core.primitives.PerpetualOrderType
+import com.wallet.core.primitives.PerpetualPortfolio
+import com.wallet.core.primitives.PerpetualPortfolioTimeframeData
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionsSummary
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
 import uniffi.gemstone.GemChartCandleStick
 import uniffi.gemstone.GemChartCandleUpdate
+import uniffi.gemstone.GemChartDateValue
+import uniffi.gemstone.GemPerpetualAccountSummary
 import uniffi.gemstone.GemPerpetualBalance
 import uniffi.gemstone.GemPerpetualData
 import uniffi.gemstone.GemPerpetualMarginType
 import uniffi.gemstone.GemPerpetualMarketData
 import uniffi.gemstone.GemPerpetualOrderType
+import uniffi.gemstone.GemPerpetualPortfolio
+import uniffi.gemstone.GemPerpetualPortfolioTimeframeData
 import uniffi.gemstone.GemPerpetualPosition
 import uniffi.gemstone.GemPerpetualPositionsSummary
 import uniffi.gemstone.GemPerpetualTriggerOrder
@@ -123,6 +132,40 @@ fun GemChartCandleStick.toDTO(): ChartCandleStick {
         low = low,
         close = close,
         volume = volume,
+    )
+}
+
+private fun GemChartDateValue.toDTO(): ChartDateValue {
+    return ChartDateValue(
+        date = date.secondsToMillis(),
+        value = value,
+    )
+}
+
+private fun GemPerpetualAccountSummary.toDTO(): PerpetualAccountSummary {
+    return PerpetualAccountSummary(
+        accountValue = accountValue,
+        accountLeverage = accountLeverage,
+        marginUsage = marginUsage,
+        unrealizedPnl = unrealizedPnl,
+    )
+}
+
+private fun GemPerpetualPortfolioTimeframeData.toDTO(): PerpetualPortfolioTimeframeData {
+    return PerpetualPortfolioTimeframeData(
+        accountValueHistory = accountValueHistory.map { it.toDTO() },
+        pnlHistory = pnlHistory.map { it.toDTO() },
+        volume = volume,
+    )
+}
+
+fun GemPerpetualPortfolio.toDTO(): PerpetualPortfolio {
+    return PerpetualPortfolio(
+        day = day?.toDTO(),
+        week = week?.toDTO(),
+        month = month?.toDTO(),
+        allTime = allTime?.toDTO(),
+        accountSummary = accountSummary?.toDTO(),
     )
 }
 

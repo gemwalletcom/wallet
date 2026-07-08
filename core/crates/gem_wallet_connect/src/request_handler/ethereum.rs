@@ -1,11 +1,21 @@
 use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
-use primitives::{Chain, ValueAccess};
+use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct EthereumRequestHandler;
 
 impl EthereumRequestHandler {
+    pub fn parse_request(method: WalletConnectionMethods, chain: Chain, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
+        match method {
+            WalletConnectionMethods::PersonalSign => Self::parse_sign_message(chain, params, domain),
+            WalletConnectionMethods::EthSignTypedData | WalletConnectionMethods::EthSignTypedDataV4 => Self::parse_sign_typed_data(chain, params),
+            WalletConnectionMethods::EthSignTransaction => Self::parse_sign_transaction(chain, params),
+            WalletConnectionMethods::EthSendTransaction => Self::parse_send_transaction(chain, params),
+            _ => Err("Method not supported".to_string()),
+        }
+    }
+
     pub fn parse_sign_message(chain: Chain, params: Value, _domain: &str) -> Result<WalletConnectAction, String> {
         let data = params.at(0)?.string()?.to_string();
 
@@ -24,10 +34,7 @@ impl EthereumRequestHandler {
             serde_json::to_string(typed_data).map_err(|e| format!("Failed to serialize typed data: {}", e))?
         };
 
-        let expected_chain_id = chain
-            .network_id()
-            .parse::<u64>()
-            .map_err(|_| format!("Chain {} does not have a numeric network ID", chain))?;
+        let expected_chain_id = Self::expected_chain_id(chain)?;
         gem_evm::eip712::validate_eip712_chain_id(&data, expected_chain_id)?;
 
         Ok(WalletConnectAction::SignMessage {
@@ -38,8 +45,7 @@ impl EthereumRequestHandler {
     }
 
     pub fn parse_sign_transaction(chain: Chain, params: Value) -> Result<WalletConnectAction, String> {
-        let transaction = params.at(0)?;
-        let data = serde_json::to_string(transaction).map_err(|e| format!("Failed to serialize transaction: {}", e))?;
+        let data = Self::parse_transaction_data(chain, params)?;
 
         Ok(WalletConnectAction::SignTransaction {
             chain,
@@ -49,14 +55,36 @@ impl EthereumRequestHandler {
     }
 
     pub fn parse_send_transaction(chain: Chain, params: Value) -> Result<WalletConnectAction, String> {
-        let transaction = params.at(0)?;
-        let data = serde_json::to_string(transaction).map_err(|e| format!("Failed to serialize transaction: {}", e))?;
+        let data = Self::parse_transaction_data(chain, params)?;
 
         Ok(WalletConnectAction::SendTransaction {
             chain,
             transaction_type: WalletConnectTransactionType::Ethereum,
             data,
         })
+    }
+
+    fn parse_transaction_data(chain: Chain, params: Value) -> Result<String, String> {
+        let transaction = params.at(0)?.clone();
+        transaction.as_object().ok_or_else(|| "Expected Ethereum transaction object".to_string())?;
+        let parsed: WCEthereumTransaction = serde_json::from_value(transaction.clone()).map_err(|error| error.to_string())?;
+        Self::validate_transaction_chain_id(chain, parsed.chain_id)?;
+        serde_json::to_string(&transaction).map_err(|e| format!("Failed to serialize transaction: {}", e))
+    }
+
+    fn validate_transaction_chain_id(chain: Chain, chain_id: Option<u64>) -> Result<(), String> {
+        let Some(actual) = chain_id else {
+            return Ok(());
+        };
+        let expected = Self::expected_chain_id(chain)?;
+        if actual != expected {
+            return Err(format!("Transaction chainId mismatch: expected {expected}, got {actual}"));
+        }
+        Ok(())
+    }
+
+    fn expected_chain_id(chain: Chain) -> Result<u64, String> {
+        chain.network_id_value().ok_or_else(|| format!("Chain {} does not have a numeric network ID", chain))
     }
 }
 
@@ -156,14 +184,24 @@ mod tests {
 
     #[test]
     fn test_parse_send_transaction() {
-        let params = serde_json::from_str(r#"[{"to":"0x123","value":"0x0"}]"#).unwrap();
-        assert_eq!(
-            EthereumRequestHandler::parse_send_transaction(Chain::Ethereum, params).unwrap(),
-            WalletConnectAction::SendTransaction {
-                chain: Chain::Ethereum,
-                transaction_type: WalletConnectTransactionType::Ethereum,
-                data: r#"{"to":"0x123","value":"0x0"}"#.to_string(),
+        let params = serde_json::from_str(r#"[{"from":"0xsender","to":"0x123","value":"0x0","chainId":"0x1"}]"#).unwrap();
+        let action = EthereumRequestHandler::parse_send_transaction(Chain::Ethereum, params).unwrap();
+        match action {
+            WalletConnectAction::SendTransaction { chain, transaction_type, data } => {
+                let transaction: Value = serde_json::from_str(&data).unwrap();
+                assert_eq!(chain, Chain::Ethereum);
+                assert_eq!(transaction_type, WalletConnectTransactionType::Ethereum);
+                assert_eq!(transaction["from"], "0xsender");
+                assert_eq!(transaction["chainId"], "0x1");
             }
-        );
+            _ => panic!("Expected SendTransaction action"),
+        }
+    }
+
+    #[test]
+    fn test_parse_send_transaction_chain_id_mismatch_rejects() {
+        let params = serde_json::from_str(r#"[{"from":"0xabc","to":"0x123","value":"0x0","chainId":"0x89"}]"#).unwrap();
+        let result = EthereumRequestHandler::parse_send_transaction(Chain::Ethereum, params);
+        assert_eq!(result.unwrap_err(), "Transaction chainId mismatch: expected 1, got 137");
     }
 }

@@ -15,7 +15,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Crypto
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
@@ -75,14 +74,6 @@ class PerpetualRepositoryImpl(
 
     override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> {
         return perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
-    }
-
-    override suspend fun putPerpetualChartData(data: List<ChartCandleStick>) {
-        TODO("Not yet implemented")
-    }
-
-    override fun getPerpetualChartData(perpetualId: PerpetualId): Flow<List<ChartCandleStick>> {
-        TODO("Not yet implemented")
     }
 
     override suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>) {

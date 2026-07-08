@@ -28,7 +28,8 @@ import com.gemwallet.android.ui.models.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineRole
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
-import com.gemwallet.android.ui.models.chart.ChartViewState
+import com.gemwallet.android.ui.models.StateViewType
+import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
@@ -38,8 +39,7 @@ private val TooltipRightSafeArea = 96.dp
 
 @Composable
 internal fun PerpetualChartSection(
-    data: List<ChartCandleStick>,
-    chartState: ChartViewState,
+    state: StateViewType<List<ChartCandleStick>>,
     period: ChartPeriod,
     entry: Double? = null,
     liquidation: Double? = null,
@@ -48,6 +48,7 @@ internal fun PerpetualChartSection(
     onPeriodSelect: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val data = state.dataOrNull.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
     val safeSelectedIndex = selectedIndex?.takeIf { it in data.indices }
     val selectedCandle = safeSelectedIndex?.let { data[it] }
@@ -99,12 +100,12 @@ internal fun PerpetualChartSection(
     }
 
     ChartStateView(
-        state = chartState,
+        state = state,
         header = headerUIModel,
         period = period,
         onPeriodSelect = onPeriodSelect,
         modifier = modifier,
-    ) {
+    ) { _ ->
         if (chartUIModel != null) {
             GemCandlestickChart(
                 model = chartUIModel,

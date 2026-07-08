@@ -18,21 +18,22 @@ import com.gemwallet.android.ui.components.PeriodsPanel
 import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
-import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.theme.chartFrameHeight
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.ChartPeriod
 
 @Composable
-fun ChartStateView(
-    state: ChartViewState,
+fun <T> ChartStateView(
+    state: StateViewType<T>,
     header: ChartHeaderUIModel?,
     period: ChartPeriod,
     onPeriodSelect: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier,
-    chartBody: @Composable BoxScope.() -> Unit,
+    periods: List<ChartPeriod> = ChartPeriod.entries,
+    chartBody: @Composable BoxScope.(T) -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -41,7 +42,7 @@ fun ChartStateView(
         Column(
             modifier = Modifier.fillMaxWidth().height(chartFrameHeight),
         ) {
-            header?.takeIf { state == ChartViewState.Ready }?.let {
+            header?.takeIf { state is StateViewType.Data }?.let {
                 ChartHeader(
                     model = it,
                     modifier = Modifier.padding(top = paddingSmall, bottom = space4),
@@ -49,25 +50,24 @@ fun ChartStateView(
             }
             Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 when (state) {
-                    ChartViewState.Loading -> CircularProgressIndicator20(
+                    StateViewType.Loading -> CircularProgressIndicator20(
                         modifier = Modifier.align(Alignment.Center),
                         color = MaterialTheme.colorScheme.primary,
                     )
-                    ChartViewState.Empty -> EmptyStateView(
+                    StateViewType.NoData -> EmptyStateView(
                         modifier = Modifier.fillMaxSize(),
                         title = stringResource(R.string.common_not_available),
                         icon = painterResource(R.drawable.empty_activity),
                     )
-                    ChartViewState.Error -> EmptyStateView(
+                    StateViewType.Error -> EmptyStateView(
                         modifier = Modifier.fillMaxSize(),
                         title = stringResource(R.string.errors_no_data_available),
                         iconVector = AppIcons.Warning,
                     )
-                    ChartViewState.Ready -> chartBody()
+                    is StateViewType.Data -> chartBody(state.data)
                 }
             }
         }
-        PeriodsPanel(period, onPeriodSelect)
+        PeriodsPanel(period, onPeriodSelect, periods)
     }
 }
-

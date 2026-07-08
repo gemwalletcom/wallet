@@ -39,7 +39,6 @@ fun PerpetualPositionNavScreen(
     val position by viewModel.position.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
-    val chartState by viewModel.chartState.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     var showAutoclose by remember { mutableStateOf(false) }
@@ -48,8 +47,7 @@ fun PerpetualPositionNavScreen(
         perpetual = perpetual,
         position = position,
         transactions = transactions,
-        chartData = chart,
-        chartState = chartState,
+        chart = chart,
         period = period,
         isRefreshing = isRefreshing,
         onAction = { action ->

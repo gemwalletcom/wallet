@@ -1,11 +1,20 @@
 use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
-use primitives::{Chain, TransferDataOutputType, ValueAccess};
+use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct TronRequestHandler;
 
 impl TronRequestHandler {
+    pub fn parse_request(method: WalletConnectionMethods, chain: Chain, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
+        match method {
+            WalletConnectionMethods::TronSignMessage => Self::parse_sign_message(chain, params, domain),
+            WalletConnectionMethods::TronSignTransaction => Self::parse_sign_transaction(chain, params),
+            WalletConnectionMethods::TronSendTransaction => Self::parse_send_transaction(chain, params),
+            _ => Err("Method not supported".to_string()),
+        }
+    }
+
     pub fn parse_sign_message(_chain: Chain, params: Value, _domain: &str) -> Result<WalletConnectAction, String> {
         let message = params.get_value("message")?.string()?.to_string();
 

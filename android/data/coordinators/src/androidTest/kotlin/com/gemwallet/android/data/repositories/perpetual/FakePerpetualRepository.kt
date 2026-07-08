@@ -5,7 +5,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
@@ -26,7 +25,6 @@ import javax.inject.Singleton
 class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
 
     private val perpetualsFlow = MutableStateFlow<List<PerpetualData>>(getSamplePerpetuals())
-    private val chartDataFlow = MutableStateFlow<Map<String, List<ChartCandleStick>>>(getSampleChartData())
     private val positionsFlow = MutableStateFlow<Map<String, List<PerpetualPositionData>>>(emptyMap())
     private val balancesFlow = MutableStateFlow<Map<String, PerpetualBalance>>(emptyMap())
 
@@ -56,21 +54,6 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
     override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> {
         return perpetualsFlow.map { perpetuals ->
             perpetuals.firstOrNull { it.asset.id == assetId }
-        }
-    }
-
-    override suspend fun putPerpetualChartData(data: List<ChartCandleStick>) {
-        if (data.isEmpty()) return
-
-        val perpetualId = perpetualsFlow.value.firstOrNull()?.perpetual?.id ?: return
-        val currentData = chartDataFlow.value.toMutableMap()
-        currentData[perpetualId.toIdentifier()] = data
-        chartDataFlow.value = currentData
-    }
-
-    override fun getPerpetualChartData(perpetualId: PerpetualId): Flow<List<ChartCandleStick>> {
-        return chartDataFlow.map { chartMap ->
-            chartMap[perpetualId.toIdentifier()] ?: emptyList()
         }
     }
 
@@ -556,53 +539,4 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         )
     }
 
-    private fun getSampleChartData(): Map<String, List<ChartCandleStick>> {
-        val now = System.currentTimeMillis()
-        val hourInMillis = 60 * 60 * 1000L
-
-        val btcChartData = List(24) { index ->
-            val basePrice = 95000.0
-            val variance = (index % 3 - 1) * 500.0
-            ChartCandleStick(
-                date = now - (23 - index) * hourInMillis,
-                open = basePrice + variance,
-                high = basePrice + variance + 300.0,
-                low = basePrice + variance - 200.0,
-                close = basePrice + variance + 100.0,
-                volume = 500000000.0 + (index * 10000000.0),
-            )
-        }
-
-        val ethChartData = List(24) { index ->
-            val basePrice = 3600.0
-            val variance = (index % 3 - 1) * 25.0
-            ChartCandleStick(
-                date = now - (23 - index) * hourInMillis,
-                open = basePrice + variance,
-                high = basePrice + variance + 15.0,
-                low = basePrice + variance - 10.0,
-                close = basePrice + variance + 5.0,
-                volume = 300000000.0 + (index * 5000000.0),
-            )
-        }
-
-        val solChartData = List(24) { index ->
-            val basePrice = 235.0
-            val variance = (index % 3 - 1) * 2.0
-            ChartCandleStick(
-                date = now - (23 - index) * hourInMillis,
-                open = basePrice + variance,
-                high = basePrice + variance + 1.5,
-                low = basePrice + variance - 1.0,
-                close = basePrice + variance + 0.5,
-                volume = 100000000.0 + (index * 2000000.0),
-            )
-        }
-
-        return mapOf(
-            hypercorePerpetualId("BTC-PERP").toIdentifier() to btcChartData,
-            hypercorePerpetualId("ETH-PERP").toIdentifier() to ethChartData,
-            hypercorePerpetualId("SOL-PERP").toIdentifier() to solChartData
-        )
-    }
 }

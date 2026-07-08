@@ -11,6 +11,7 @@ sealed interface AssetsAction {
     data object Receive : AssetsAction
     data object Buy : AssetsAction
     data object Swap : AssetsAction
+    data object Portfolio : AssetsAction
     data object Perpetuals : AssetsAction
     data class OpenPerpetualDetails(val assetId: AssetId) : AssetsAction
     data class OpenAsset(val assetId: AssetId) : AssetsAction

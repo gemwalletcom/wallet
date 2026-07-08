@@ -391,7 +391,10 @@ impl WalletConnect {
     }
 
     pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
-        let chains: Vec<Chain> = caip2_chains.into_iter().filter_map(|caip2| WalletConnectCAIP2::resolve_chain(Some(caip2)).ok()).collect();
+        let chains: Vec<Chain> = caip2_chains
+            .into_iter()
+            .filter_map(|caip2| WalletConnectCAIP2::get_chain_from_id(Some(caip2)).ok())
+            .collect();
         config_session_properties(properties, &chains, &accounts)
     }
 
