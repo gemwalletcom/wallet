@@ -23,7 +23,7 @@ impl<C: Client> ChainTransactionLoad for CosmosClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let account = self.get_account_info(&input.sender_address).await?;
-        let fee = calculate_transaction_fee(&input.input_type, self.get_chain(), &input.gas_price);
+        let fee = calculate_transaction_fee(&input.input_type, self.get_chain(), &input.gas_price)?;
 
         Ok(TransactionLoadData {
             fee,
