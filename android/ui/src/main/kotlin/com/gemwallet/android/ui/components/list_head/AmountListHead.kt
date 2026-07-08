@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
@@ -78,6 +79,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.WalletType
 import kotlin.math.floor
@@ -94,6 +96,7 @@ fun AmountListHead(
     changedPercentages: String? = null,
     changeState: ValueDirection = ValueDirection.None,
     onClick: (() -> Unit)? = null,
+    onSubtitleClick: (() -> Unit)? = null,
     actions: (@Composable () -> Unit)? = null,
 ) {
     val hidden = hideToggle.isHidden
@@ -145,7 +148,18 @@ fun AmountListHead(
                         fontWeight = FontWeight.Medium,
                     )
                     Row(
-                        modifier = Modifier.height(headerChangeTextHeight),
+                        modifier = Modifier
+                            .then(
+                                if (onSubtitleClick != null) {
+                                    Modifier
+                                        .clip(CircleShape)
+                                        .clickable(role = Role.Button, onClick = onSubtitleClick)
+                                        .padding(horizontal = paddingSmall)
+                                } else {
+                                    Modifier
+                                }
+                            )
+                            .height(headerChangeTextHeight),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(space2),
                     ) {
@@ -159,6 +173,14 @@ fun AmountListHead(
                                 text = "($changedPercentages)",
                                 color = highlightColor,
                                 style = changeTextStyle,
+                            )
+                        }
+                        if (onSubtitleClick != null) {
+                            Icon(
+                                imageVector = AppIcons.ShowChart,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                contentDescription = null,
+                                modifier = Modifier.size(tinyIconSize),
                             )
                         }
                     }

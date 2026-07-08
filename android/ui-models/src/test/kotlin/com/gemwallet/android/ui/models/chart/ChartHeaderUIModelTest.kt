@@ -1,8 +1,12 @@
 package com.gemwallet.android.ui.models.chart
 
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.PriceChangeFormatter
+import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.Locale
@@ -15,6 +19,8 @@ class ChartHeaderUIModelTest {
     }
 
     private val formatter: (Double) -> String = { "$%.2f".format(it) }
+    private val changeFormatter: (Double) -> String =
+        PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD, locale = Locale.US))::string
 
     @Test
     fun buildPopulatesFromRawValues() {
@@ -53,5 +59,38 @@ class ChartHeaderUIModelTest {
         )
         assertEquals("$1500.00", model.headerValueText)
         assertEquals(ValueDirection.None, model.direction)
+    }
+
+    @Test
+    fun buildPriceChangeShowsSignedAmountValueAndParenthesizedPercent() {
+        val model = ChartHeaderUIModel.build(
+            price = 90.0,
+            priceChangePercentage = 12.0,
+            type = ChartValueType.PriceChange,
+            headerValue = 190.0,
+            priceFormatter = formatter,
+            priceChangeFormatter = changeFormatter,
+        )
+        assertEquals("+$90.00", model.priceText)
+        assertEquals("$190.00", model.headerValueText)
+        assertEquals(ChartValueType.PriceChange, model.type)
+        assertEquals(ValueDirection.Up, model.direction)
+        assertTrue(model.changeText!!.startsWith("(") && model.changeText!!.endsWith(")"))
+    }
+
+    @Test
+    fun buildPriceChangeOmitsPercentWhenNoHeaderValue() {
+        val model = ChartHeaderUIModel.build(
+            price = -40.0,
+            priceChangePercentage = -8.0,
+            type = ChartValueType.PriceChange,
+            priceFormatter = formatter,
+            priceChangeFormatter = changeFormatter,
+        )
+        assertEquals("-$40.00", model.priceText)
+        assertNull(model.changeText)
+        assertNull(model.headerValueText)
+        assertEquals(ChartValueType.PriceChange, model.type)
+        assertEquals(ValueDirection.Down, model.direction)
     }
 }

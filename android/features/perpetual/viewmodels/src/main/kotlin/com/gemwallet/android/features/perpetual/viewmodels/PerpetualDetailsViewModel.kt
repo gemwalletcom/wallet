@@ -17,8 +17,9 @@ import com.gemwallet.android.application.transactions.coordinators.SyncAssetTran
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
-import com.gemwallet.android.ui.models.chart.ChartViewState
+import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionType
@@ -41,7 +42,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -108,39 +108,33 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     val period = MutableStateFlow(getPerpetualChartPeriod())
 
-    private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
-    val chartState: StateFlow<ChartViewState> = viewState.asStateFlow()
-
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = refreshState.asStateFlow()
 
-    val chart = combine(period, refreshTrigger) { period, _ -> period }
-        .onEach { viewState.value = ChartViewState.Loading }
+    val chart: StateFlow<StateViewType<List<ChartCandleStick>>> = combine(period, refreshTrigger) { period, _ -> period }
         .flatMapLatest { period ->
             flow {
+                emit(StateViewType.Loading)
                 try {
                     var candles = getPerpetualChartData.getPerpetualChartData(assetId, period)
                     refreshState.value = false
-                    emit(candles)
+                    emit(candles.toChartState())
                     perpetualObserver.chartUpdates
                         .filter { it.coin == perpetual.value?.coin && it.interval == period.hyperliquidInterval }
                         .collect { update ->
                             candles = candles.mergeCandle(update.candle)
-                            emit(candles)
+                            emit(candles.toChartState())
                         }
                 } catch (e: Exception) {
                     currentCoroutineContext().ensureActive()
-                    viewState.value = ChartViewState.Error
                     refreshState.value = false
+                    emit(StateViewType.Error)
                 }
             }
         }
-        .onEach { candles ->
-            viewState.value = if (candles.isEmpty()) ChartViewState.Empty else ChartViewState.Ready
-        }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
     private val screenVisible = MutableStateFlow(false)
 
@@ -223,3 +217,6 @@ class PerpetualDetailsViewModel @Inject constructor(
         }
     }
 }
+
+private fun List<ChartCandleStick>.toChartState(): StateViewType<List<ChartCandleStick>> =
+    if (isEmpty()) StateViewType.NoData else StateViewType.Data(this)

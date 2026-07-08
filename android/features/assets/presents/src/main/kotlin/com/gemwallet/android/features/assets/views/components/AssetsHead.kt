@@ -15,6 +15,7 @@ internal fun AssetsHead(
     onBuyClick: () -> Unit,
     onSwapClick: () -> Unit,
     onHideBalances: () -> Unit,
+    onPortfolio: () -> Unit,
 ) {
     walletSummary ?: return
 
@@ -27,6 +28,7 @@ internal fun AssetsHead(
         changedValue = walletSummary.changedValue?.valueFormatted,
         changedPercentages = walletSummary.changedValue?.changePercentageFormatted,
         changeState = walletSummary.changedValue?.state ?: ValueDirection.None,
+        onSubtitleClick = onPortfolio,
         actions = {
             AssetHeadActions(
                 walletType = walletSummary.walletType,
