@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use num_bigint::BigInt;
 use primitives::{GasPriceType, StakeType, SwapProvider, TransactionFee, TransactionInputType, chain_cosmos::CosmosChain};
 
@@ -70,8 +72,8 @@ fn get_fee(chain: CosmosChain, input_type: &TransactionInputType) -> BigInt {
     }
 }
 
-fn get_gas_limit(input_type: &TransactionInputType, _chain: CosmosChain) -> u64 {
-    match input_type {
+fn get_gas_limit(input_type: &TransactionInputType, _chain: CosmosChain) -> Result<u64, Box<dyn Error + Send + Sync>> {
+    Ok(match input_type {
         TransactionInputType::Transfer(_)
         | TransactionInputType::Deposit(_)
         | TransactionInputType::TransferNft(_, _)
@@ -89,19 +91,37 @@ fn get_gas_limit(input_type: &TransactionInputType, _chain: CosmosChain) -> u64 
             StakeType::Redelegate(_) => 1_250_000,
             StakeType::Rewards(_) => 750_000,
             StakeType::Withdraw(_) => 750_000,
-            StakeType::Freeze(_) | StakeType::Unfreeze(_) => panic!("Freeze operations not supported on Cosmos chains"),
+            StakeType::Freeze(_) | StakeType::Unfreeze(_) => return Err("Cosmos freeze operations are not supported".into()),
         },
-    }
+    })
 }
 
-pub fn calculate_transaction_fee(input_type: &TransactionInputType, chain: CosmosChain, gas_price_type: &GasPriceType) -> TransactionFee {
-    let gas_limit = get_gas_limit(input_type, chain);
+pub fn calculate_transaction_fee(input_type: &TransactionInputType, chain: CosmosChain, gas_price_type: &GasPriceType) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+    let gas_limit = get_gas_limit(input_type, chain)?;
     let fee = get_fee(chain, input_type);
 
-    TransactionFee {
+    Ok(TransactionFee {
         fee,
         gas_price_type: gas_price_type.clone(),
         gas_limit: BigInt::from(gas_limit),
         options: std::collections::HashMap::new(),
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::{Asset, Chain, Resource};
+
+    #[test]
+    fn calculate_transaction_fee_rejects_freeze_without_panicking() {
+        let input_type = TransactionInputType::Stake(Asset::from_chain(Chain::Cosmos), StakeType::Freeze(Resource::Bandwidth));
+
+        assert_eq!(
+            calculate_transaction_fee(&input_type, CosmosChain::Cosmos, &GasPriceType::regular(1u64))
+                .unwrap_err()
+                .to_string(),
+            "Cosmos freeze operations are not supported"
+        );
     }
 }
