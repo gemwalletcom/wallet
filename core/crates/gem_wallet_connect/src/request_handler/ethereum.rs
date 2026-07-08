@@ -1,11 +1,21 @@
 use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
-use primitives::{Chain, ValueAccess, WCEthereumTransaction};
+use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct EthereumRequestHandler;
 
 impl EthereumRequestHandler {
+    pub fn parse_request(method: WalletConnectionMethods, chain: Chain, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
+        match method {
+            WalletConnectionMethods::PersonalSign => Self::parse_sign_message(chain, params, domain),
+            WalletConnectionMethods::EthSignTypedData | WalletConnectionMethods::EthSignTypedDataV4 => Self::parse_sign_typed_data(chain, params),
+            WalletConnectionMethods::EthSignTransaction => Self::parse_sign_transaction(chain, params),
+            WalletConnectionMethods::EthSendTransaction => Self::parse_send_transaction(chain, params),
+            _ => Err("Method not supported".to_string()),
+        }
+    }
+
     pub fn parse_sign_message(chain: Chain, params: Value, _domain: &str) -> Result<WalletConnectAction, String> {
         let data = params.at(0)?.string()?.to_string();
 

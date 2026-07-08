@@ -35,7 +35,9 @@ impl WalletConnectRequestHandler {
             | WalletConnectionMethods::EthSignTypedData
             | WalletConnectionMethods::EthSignTypedDataV4
             | WalletConnectionMethods::EthSignTransaction
-            | WalletConnectionMethods::EthSendTransaction) => Self::parse_evm_request(method, chain_id, params, &domain),
+            | WalletConnectionMethods::EthSendTransaction) => {
+                EthereumRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ethereum)?, params, &domain)
+            }
             WalletConnectionMethods::EthSendRawTransaction => Err("Method not supported".to_string()),
             WalletConnectionMethods::EthChainId => Ok(WalletConnectAction::ChainOperation {
                 operation: WalletConnectChainOperation::GetChainId,
@@ -52,67 +54,21 @@ impl WalletConnectRequestHandler {
             method @ (WalletConnectionMethods::SolanaSignMessage
             | WalletConnectionMethods::SolanaSignTransaction
             | WalletConnectionMethods::SolanaSignAndSendTransaction
-            | WalletConnectionMethods::SolanaSignAllTransactions) => Self::parse_solana_request(method, chain_id, params, &domain),
+            | WalletConnectionMethods::SolanaSignAllTransactions) => {
+                SolanaRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Solana)?, params, &domain)
+            }
             method @ (WalletConnectionMethods::SuiGetAccounts
             | WalletConnectionMethods::SuiSignPersonalMessage
             | WalletConnectionMethods::SuiSignTransaction
-            | WalletConnectionMethods::SuiSignAndExecuteTransaction) => Self::parse_sui_request(method, chain_id, params, &domain),
-            method @ (WalletConnectionMethods::TonSignData | WalletConnectionMethods::TonSendMessage) => Self::parse_ton_request(method, chain_id, params, &domain),
-            method @ (WalletConnectionMethods::TronSignMessage | WalletConnectionMethods::TronSignTransaction | WalletConnectionMethods::TronSendTransaction) => {
-                Self::parse_tron_request(method, chain_id, params, &domain)
+            | WalletConnectionMethods::SuiSignAndExecuteTransaction) => {
+                SuiRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Sui)?, params, &domain)
             }
-        }
-    }
-
-    fn parse_evm_request(method: WalletConnectionMethods, chain_id: Option<String>, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
-        let chain = Self::resolve_required_chain(chain_id, ChainType::Ethereum)?;
-        match method {
-            WalletConnectionMethods::PersonalSign => EthereumRequestHandler::parse_sign_message(chain, params, domain),
-            WalletConnectionMethods::EthSignTypedData | WalletConnectionMethods::EthSignTypedDataV4 => EthereumRequestHandler::parse_sign_typed_data(chain, params),
-            WalletConnectionMethods::EthSignTransaction => EthereumRequestHandler::parse_sign_transaction(chain, params),
-            WalletConnectionMethods::EthSendTransaction => EthereumRequestHandler::parse_send_transaction(chain, params),
-            _ => Err("Method not supported".to_string()),
-        }
-    }
-
-    fn parse_solana_request(method: WalletConnectionMethods, chain_id: Option<String>, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
-        let chain = Self::resolve_required_chain(chain_id, ChainType::Solana)?;
-        match method {
-            WalletConnectionMethods::SolanaSignMessage => SolanaRequestHandler::parse_sign_message(chain, params, domain),
-            WalletConnectionMethods::SolanaSignTransaction => SolanaRequestHandler::parse_sign_transaction(chain, params),
-            WalletConnectionMethods::SolanaSignAndSendTransaction => SolanaRequestHandler::parse_send_transaction(chain, params),
-            WalletConnectionMethods::SolanaSignAllTransactions => SolanaRequestHandler::parse_sign_all_transactions(params),
-            _ => Err("Method not supported".to_string()),
-        }
-    }
-
-    fn parse_sui_request(method: WalletConnectionMethods, chain_id: Option<String>, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
-        let chain = Self::resolve_required_chain(chain_id, ChainType::Sui)?;
-        match method {
-            WalletConnectionMethods::SuiGetAccounts => Ok(WalletConnectAction::GetAccounts { chain }),
-            WalletConnectionMethods::SuiSignPersonalMessage => SuiRequestHandler::parse_sign_message(chain, params, domain),
-            WalletConnectionMethods::SuiSignTransaction => SuiRequestHandler::parse_sign_transaction(chain, params),
-            WalletConnectionMethods::SuiSignAndExecuteTransaction => SuiRequestHandler::parse_send_transaction(chain, params),
-            _ => Err("Method not supported".to_string()),
-        }
-    }
-
-    fn parse_ton_request(method: WalletConnectionMethods, chain_id: Option<String>, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
-        let chain = Self::resolve_required_chain(chain_id, ChainType::Ton)?;
-        match method {
-            WalletConnectionMethods::TonSignData => TonRequestHandler::parse_sign_message(chain, params, domain),
-            WalletConnectionMethods::TonSendMessage => TonRequestHandler::parse_send_transaction(chain, params),
-            _ => Err("Method not supported".to_string()),
-        }
-    }
-
-    fn parse_tron_request(method: WalletConnectionMethods, chain_id: Option<String>, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
-        let chain = Self::resolve_required_chain(chain_id, ChainType::Tron)?;
-        match method {
-            WalletConnectionMethods::TronSignMessage => TronRequestHandler::parse_sign_message(chain, params, domain),
-            WalletConnectionMethods::TronSignTransaction => TronRequestHandler::parse_sign_transaction(chain, params),
-            WalletConnectionMethods::TronSendTransaction => TronRequestHandler::parse_send_transaction(chain, params),
-            _ => Err("Method not supported".to_string()),
+            method @ (WalletConnectionMethods::TonSignData | WalletConnectionMethods::TonSendMessage) => {
+                TonRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ton)?, params, &domain)
+            }
+            method @ (WalletConnectionMethods::TronSignMessage | WalletConnectionMethods::TronSignTransaction | WalletConnectionMethods::TronSendTransaction) => {
+                TronRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Tron)?, params, &domain)
+            }
         }
     }
 
@@ -156,12 +112,8 @@ impl WalletConnectRequestHandler {
         }
     }
 
-    fn resolve_chain(chain_id: Option<String>) -> Result<Chain, String> {
-        WalletConnectCAIP2::resolve_chain(chain_id)
-    }
-
-    fn resolve_required_chain(chain_id: Option<String>, required: ChainType) -> Result<Chain, String> {
-        let chain = Self::resolve_chain(chain_id)?;
+    fn parse_required_chain(chain_id: Option<String>, required: ChainType) -> Result<Chain, String> {
+        let chain = WalletConnectCAIP2::get_chain_from_id(chain_id)?;
         if chain.chain_type() != required {
             if required == ChainType::Ethereum {
                 return Err(format!("WalletConnect method requires an EVM chain, got {chain}"));
