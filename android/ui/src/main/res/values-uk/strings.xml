@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Вплив ціни</string>
   <string name="swap_slippage">Прослизання</string>
   <string name="swap_slippage_warning">Високе прослизання. Обмін може відбутися за гіршою ціною, ніж очікувалося.</string>
+  <string name="swap_slippage_max">Максимальне прослизання — %1$s</string>
   <string name="swap_slippage_auto">Авто</string>
   <string name="swap_slippage_auto_description">Автоматично встановлює найкраще прослизання для успішного обміну.</string>
   <string name="swap_price_impact_warning_description">Ви втратите %1$s із своїх %2$s у цій торгівлі. Ви впевнені, що бажаєте продовжити?</string>

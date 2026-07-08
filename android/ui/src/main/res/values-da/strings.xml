@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Prispåvirkning</string>
   <string name="swap_slippage">Slippage</string>
   <string name="swap_slippage_warning">Høj slippage. Din swap kan blive udført til en dårligere pris end forventet.</string>
+  <string name="swap_slippage_max">Maksimal slippage er %1$s</string>
   <string name="swap_slippage_auto">Auto</string>
   <string name="swap_slippage_auto_description">Angiver automatisk den bedste slippage for en vellykket swap.</string>
   <string name="swap_price_impact_warning_description">Du vil miste %1$s af dine %2$s i denne handel. Er du sikker på, at du vil fortsætte?</string>

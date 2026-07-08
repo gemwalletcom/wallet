@@ -345,6 +345,7 @@ swap_you_receive = Du modtager
 swap_price_impact = Prispåvirkning
 swap_slippage = Slippage
 swap_slippage_warning = Høj slippage. Din swap kan blive udført til en dårligere pris end forventet.
+swap_slippage_max = Maksimal slippage er %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Angiver automatisk den bedste slippage for en vellykket swap.
 swap_price_impact_warning_description = Du vil miste %@ af dine %@ i denne handel. Er du sikker på, at du vil fortsætte?

@@ -294,6 +294,7 @@
   <string name="swap_price_impact">ผลกระทบต่อราคา</string>
   <string name="swap_slippage">สลิปเพจ</string>
   <string name="swap_slippage_warning">สลิปเพจสูง การสว็อปของคุณอาจดำเนินการที่ราคาที่แย่กว่าที่คาดไว้</string>
+  <string name="swap_slippage_max">ค่าสลิปเพจสูงสุดคือ %1$s</string>
   <string name="swap_slippage_auto">อัตโนมัติ</string>
   <string name="swap_slippage_auto_description">ตั้งค่าสลิปเพจที่ดีที่สุดโดยอัตโนมัติเพื่อการสว็อปที่สำเร็จ</string>
   <string name="swap_price_impact_warning_description">คุณจะสูญเสีย %1$s จาก %2$s ของคุณในการซื้อขายครั้งนี้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?</string>

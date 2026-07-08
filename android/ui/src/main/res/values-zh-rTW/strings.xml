@@ -294,6 +294,7 @@
   <string name="swap_price_impact">價格影響</string>
   <string name="swap_slippage">滑點</string>
   <string name="swap_slippage_warning">滑點過高。您的兌換可能以比預期更差的價格成交。</string>
+  <string name="swap_slippage_max">最大滑點為 %1$s</string>
   <string name="swap_slippage_auto">自動</string>
   <string name="swap_slippage_auto_description">自動設定最佳滑點以確保兌換成功。</string>
   <string name="swap_price_impact_warning_description">您將在本次交易中損失 %1$s，這是您 %2$s 的一部分。您確定要繼續嗎？</string>

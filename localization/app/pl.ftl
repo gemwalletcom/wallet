@@ -345,6 +345,7 @@ swap_you_receive = Otrzymujesz
 swap_price_impact = Wpływ na cenę
 swap_slippage = Poślizg
 swap_slippage_warning = Wysoki poślizg. Twoja zamiana może zostać wykonana po gorszej cenie niż oczekiwano.
+swap_slippage_max = Maksymalny poślizg to %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Automatycznie ustawia najlepszy poślizg dla udanej wymiany.
 swap_price_impact_warning_description = Stracisz %@ swojego %@ w tej transakcji. Czy na pewno chcesz kontynuować?

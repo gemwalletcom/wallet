@@ -294,6 +294,7 @@
   <string name="swap_price_impact">가격 영향</string>
   <string name="swap_slippage">슬리피지</string>
   <string name="swap_slippage_warning">슬리피지가 높습니다. 스왑이 예상보다 나쁜 가격에 체결될 수 있습니다.</string>
+  <string name="swap_slippage_max">최대 슬리피지는 %1$s입니다</string>
   <string name="swap_slippage_auto">자동</string>
   <string name="swap_slippage_auto_description">성공적인 스왑을 위해 최적의 슬리피지를 자동으로 설정합니다.</string>
   <string name="swap_price_impact_warning_description">이 거래에서 %1$s을(를) 잃게 되며, 이는 보유하신 %2$s의 일부입니다. 계속하시겠습니까?</string>

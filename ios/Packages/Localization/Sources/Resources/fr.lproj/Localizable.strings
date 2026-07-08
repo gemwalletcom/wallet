@@ -279,6 +279,7 @@
 "swap.price_impact" = "Impact sur les prix";
 "swap.slippage" = "Glissement";
 "swap.slippage_warning" = "Glissement élevé. Votre échange pourrait s'exécuter à un prix pire que prévu.";
+"swap.slippage_max" = "Le slippage maximum est de %@";
 "swap.slippage_auto" = "Automatique";
 "swap.slippage_auto_description" = "Définit automatiquement le meilleur glissement pour un échange réussi.";
 "swap.price_impact_warning.description" = "Vous perdrez %@ de vos %@ lors de cette transaction. Voulez-vous vraiment continuer ?";

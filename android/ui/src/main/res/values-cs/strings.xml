@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Vliv ceny</string>
   <string name="swap_slippage">Skluz</string>
   <string name="swap_slippage_warning">Vysoký skluz. Vaše směna může proběhnout za horší cenu, než se očekávalo.</string>
+  <string name="swap_slippage_max">Maximální skluz je %1$s</string>
   <string name="swap_slippage_auto">Auto</string>
   <string name="swap_slippage_auto_description">Automaticky nastaví nejlepší skluz pro úspěšný swap.</string>
   <string name="swap_price_impact_warning_description">V tomto obchodu ztratíte %1$s z vašich %2$s. Jste si jisti, že chcete pokračovat?</string>

@@ -279,6 +279,7 @@
 "swap.price_impact" = "Preisauswirkungen";
 "swap.slippage" = "Slippage";
 "swap.slippage_warning" = "Hohe Slippage. Dein Swap wird möglicherweise zu einem schlechteren Preis als erwartet ausgeführt.";
+"swap.slippage_max" = "Maximale Slippage beträgt %@";
 "swap.slippage_auto" = "Auto";
 "swap.slippage_auto_description" = "Legt automatisch die beste Slippage für einen erfolgreichen Swap fest.";
 "swap.price_impact_warning.description" = "Sie verlieren bei diesem Handel %@ Ihrer %@. Möchten Sie wirklich fortfahren?";

@@ -345,6 +345,7 @@ swap_you_receive = Bạn nhận được
 swap_price_impact = Tác động giá
 swap_slippage = Trượt giá
 swap_slippage_warning = Trượt giá cao. Giao dịch hoán đổi của bạn có thể được thực hiện ở mức giá tệ hơn dự kiến.
+swap_slippage_max = Trượt giá tối đa là %@
 swap_slippage_auto = Tự động
 swap_slippage_auto_description = Tự động đặt mức trượt giá tốt nhất để hoán đổi thành công.
 swap_price_impact_warning_description = Bạn sẽ mất %@ trong số %@ của mình trong giao dịch này. Bạn có chắc chắn muốn tiếp tục không?

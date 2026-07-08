@@ -279,6 +279,7 @@
 "swap.price_impact" = "मूल्य प्रभाव";
 "swap.slippage" = "स्लिपेज";
 "swap.slippage_warning" = "उच्च स्लिपेज। आपका स्वैप अपेक्षा से खराब मूल्य पर निष्पादित हो सकता है।";
+"swap.slippage_max" = "अधिकतम स्लिपेज %@ है";
 "swap.slippage_auto" = "ऑटो";
 "swap.slippage_auto_description" = "सफल स्वैप के लिए स्वचालित रूप से सर्वोत्तम स्लिपेज सेट करता है।";
 "swap.price_impact_warning.description" = "इस व्यापार में आप अपना %@ %@ देंगे। क्या आप वाकई आगे बढ़ना चाहते हैं?";

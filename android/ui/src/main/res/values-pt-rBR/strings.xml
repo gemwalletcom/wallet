@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Impacto no preço</string>
   <string name="swap_slippage">Deslizamento</string>
   <string name="swap_slippage_warning">Deslizamento alto. Sua troca pode ser executada a um preço pior do que o esperado.</string>
+  <string name="swap_slippage_max">O slippage máximo é %1$s</string>
   <string name="swap_slippage_auto">Automático</string>
   <string name="swap_slippage_auto_description">Define automaticamente o melhor deslizamento para uma troca bem-sucedida.</string>
   <string name="swap_price_impact_warning_description">Você perderá %1$s dos seus %2$s nesta negociação. Tem certeza de que deseja prosseguir?</string>

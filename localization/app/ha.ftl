@@ -345,6 +345,7 @@ swap_you_receive = Kuna karba
 swap_price_impact = Tasirin Farashin
 swap_slippage = Zamewa
 swap_slippage_warning = Zamewa mai yawa. Wataƙila a aiwatar da musayar ku a farashi mafi muni fiye da yadda ake tsammani.
+swap_slippage_max = Mafi girman zamewa shine %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Yana saita mafi kyawun zamewa ta atomatik don samun nasarar musaya.
 swap_price_impact_warning_description = Za ku rasa %@ na %@ naku a cikin wannan cinikin. Kun tabbata kuna son ci gaba?

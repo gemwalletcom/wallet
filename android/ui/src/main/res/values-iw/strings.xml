@@ -294,6 +294,7 @@
   <string name="swap_price_impact">השפעת המחיר</string>
   <string name="swap_slippage">החלקה</string>
   <string name="swap_slippage_warning">החלקה גבוהה. ההמרה שלך עלולה להתבצע במחיר גרוע מהצפוי.</string>
+  <string name="swap_slippage_max">הסליפג\' המקסימלי הוא %1$s</string>
   <string name="swap_slippage_auto">אוטומטי</string>
   <string name="swap_slippage_auto_description">מגדיר אוטומטית את ההחלקה הטובה ביותר להחלפה מוצלחת.</string>
   <string name="swap_price_impact_warning_description">אתה תפסיד %1$s מה- %2$s שלך במסחר הזה. האם אתה בטוח שאתה רוצה להמשיך?</string>

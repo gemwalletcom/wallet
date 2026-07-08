@@ -345,6 +345,7 @@ swap_you_receive = Vous recevez
 swap_price_impact = Impact sur les prix
 swap_slippage = Glissement
 swap_slippage_warning = Glissement élevé. Votre échange pourrait s'exécuter à un prix pire que prévu.
+swap_slippage_max = Le slippage maximum est de %@
 swap_slippage_auto = Automatique
 swap_slippage_auto_description = Définit automatiquement le meilleur glissement pour un échange réussi.
 swap_price_impact_warning_description = Vous perdrez %@ de vos %@ lors de cette transaction. Voulez-vous vraiment continuer ?

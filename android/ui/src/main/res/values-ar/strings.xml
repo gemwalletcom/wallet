@@ -294,6 +294,7 @@
   <string name="swap_price_impact">تأثير السعر</string>
   <string name="swap_slippage">الانزلاق</string>
   <string name="swap_slippage_warning">انزلاق مرتفع. قد يُنفَّذ التبادل بسعر أسوأ من المتوقع.</string>
+  <string name="swap_slippage_max">الحد الأقصى للانزلاق هو %1$s</string>
   <string name="swap_slippage_auto">تلقائي</string>
   <string name="swap_slippage_auto_description">يحدد تلقائيًا أفضل انزلاق لإتمام المبادلة بنجاح.</string>
   <string name="swap_price_impact_warning_description">ستخسر %1$s من رصيدك %2$s في هذه الصفقة. هل أنت متأكد من رغبتك في المتابعة؟</string>

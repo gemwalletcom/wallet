@@ -345,6 +345,7 @@ swap_you_receive = شما دریافت میکنید
 swap_price_impact = تاثیر قیمت
 swap_slippage = لغزش
 swap_slippage_warning = لغزش بالا. ممکن است سواپ شما با قیمتی بدتر از حد انتظار انجام شود.
+swap_slippage_max = حداکثر لغزش %@ است
 swap_slippage_auto = خودکار
 swap_slippage_auto_description = به‌طور خودکار بهترین لغزش را برای مبادله موفق تنظیم می‌کند.
 swap_price_impact_warning_description = شما %@ از %@ خود را در این معامله از دست خواهید داد. آیا مطمئن هستید که می خواهید ادامه دهید؟

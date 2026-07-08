@@ -279,6 +279,7 @@
 "swap.price_impact" = "Вплив ціни";
 "swap.slippage" = "Прослизання";
 "swap.slippage_warning" = "Високе прослизання. Обмін може відбутися за гіршою ціною, ніж очікувалося.";
+"swap.slippage_max" = "Максимальне прослизання — %@";
 "swap.slippage_auto" = "Авто";
 "swap.slippage_auto_description" = "Автоматично встановлює найкраще прослизання для успішного обміну.";
 "swap.price_impact_warning.description" = "Ви втратите %@ із своїх %@ у цій торгівлі. Ви впевнені, що бажаєте продовжити?";

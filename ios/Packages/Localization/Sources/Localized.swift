@@ -1356,6 +1356,10 @@ public enum Localized {
     public static let slippageAuto = Localized.tr("Localizable", "swap.slippage_auto", fallback: "Auto")
     /// Automatically set the best slippage for a successful swap.
     public static let slippageAutoDescription = Localized.tr("Localizable", "swap.slippage_auto_description", fallback: "Automatically set the best slippage for a successful swap.")
+    /// Maximum slippage is %@
+    public static func slippageMax(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "swap.slippage_max", String(describing: p1), fallback: "Maximum slippage is %@")
+    }
     /// High slippage. Your swap may be executed at a worse price than expected.
     public static let slippageWarning = Localized.tr("Localizable", "swap.slippage_warning", fallback: "High slippage. Your swap may be executed at a worse price than expected.")
     /// Use Minimum Amount

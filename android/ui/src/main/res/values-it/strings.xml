@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Impatto sul prezzo</string>
   <string name="swap_slippage">Slippage</string>
   <string name="swap_slippage_warning">Slippage elevato. Il tuo swap potrebbe essere eseguito a un prezzo peggiore del previsto.</string>
+  <string name="swap_slippage_max">Lo slippage massimo è %1$s</string>
   <string name="swap_slippage_auto">Auto</string>
   <string name="swap_slippage_auto_description">Imposta automaticamente lo slippage migliore per uno swap riuscito.</string>
   <string name="swap_price_impact_warning_description">Perderai %1$s dei tuoi %2$s in questa operazione. Vuoi procedere?</string>

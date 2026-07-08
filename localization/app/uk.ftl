@@ -345,6 +345,7 @@ swap_you_receive = Ви отримуєте
 swap_price_impact = Вплив ціни
 swap_slippage = Прослизання
 swap_slippage_warning = Високе прослизання. Обмін може відбутися за гіршою ціною, ніж очікувалося.
+swap_slippage_max = Максимальне прослизання — %@
 swap_slippage_auto = Авто
 swap_slippage_auto_description = Автоматично встановлює найкраще прослизання для успішного обміну.
 swap_price_impact_warning_description = Ви втратите %@ із своїх %@ у цій торгівлі. Ви впевнені, що бажаєте продовжити?

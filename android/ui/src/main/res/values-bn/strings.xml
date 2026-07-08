@@ -294,6 +294,7 @@
   <string name="swap_price_impact">দামের প্রভাব</string>
   <string name="swap_slippage">স্লিপেজ</string>
   <string name="swap_slippage_warning">উচ্চ স্লিপেজ। আপনার সোয়াপ প্রত্যাশার চেয়ে খারাপ দামে সম্পন্ন হতে পারে।</string>
+  <string name="swap_slippage_max">সর্বোচ্চ স্লিপেজ হলো %1$s</string>
   <string name="swap_slippage_auto">অটো</string>
   <string name="swap_slippage_auto_description">সফল সোয়াপের জন্য স্বয়ংক্রিয়ভাবে সেরা স্লিপেজ নির্ধারণ করে।</string>
   <string name="swap_price_impact_warning_description">এই ট্রেডে আপনি %1$s হারাবেন, যা আপনার %2$s এর একটি অংশ। আপনি কি নিশ্চিত যে এগিয়ে যেতে চান?</string>

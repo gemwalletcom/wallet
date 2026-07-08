@@ -279,6 +279,7 @@
 "swap.price_impact" = "השפעת המחיר";
 "swap.slippage" = "החלקה";
 "swap.slippage_warning" = "החלקה גבוהה. ההמרה שלך עלולה להתבצע במחיר גרוע מהצפוי.";
+"swap.slippage_max" = "הסליפג' המקסימלי הוא %@";
 "swap.slippage_auto" = "אוטומטי";
 "swap.slippage_auto_description" = "מגדיר אוטומטית את ההחלקה הטובה ביותר להחלפה מוצלחת.";
 "swap.price_impact_warning.description" = "אתה תפסיד %@ מה- %@ שלך במסחר הזה. האם אתה בטוח שאתה רוצה להמשיך?";

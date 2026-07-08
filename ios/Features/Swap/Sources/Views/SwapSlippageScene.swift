@@ -1,13 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct SwapSlippageScene: View {
+    private enum Field: Hashable {
+        case slippage
+    }
+
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: SwapSlippageViewModel
+    @FocusState private var focusedField: Field?
 
     public init(model: SwapSlippageViewModel) {
         _model = State(initialValue: model)
@@ -25,17 +31,23 @@ public struct SwapSlippageScene: View {
 
                 if !model.isAuto {
                     Section {
-                        Picker("", selection: $model.selectedBps) {
-                            ForEach(SwapSlippageViewModel.options, id: \.self) { bps in
-                                Text(SwapSlippageSuggestion(bps: bps).title)
-                                    .tag(bps)
-                            }
+                        HStack(spacing: .small) {
+                            Text(model.title)
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                            SuffixTextField(
+                                suffix: "%",
+                                sanitizer: model.sanitize,
+                                text: $model.inputModel.text,
+                                field: Field.slippage,
+                                focusedField: $focusedField,
+                            )
                         }
-                        .pickerStyle(.segmented)
-                        .onChange(of: model.selectedBps) { model.apply() }
-                        ListItemView(field: model.selectedField)
                     } footer: {
-                        if let warning = model.warningText {
+                        if let error = model.errorText {
+                            Text(.init(error))
+                                .foregroundStyle(Colors.red)
+                        } else if let warning = model.warningText {
                             Text(warning)
                                 .foregroundStyle(Colors.red)
                         }
@@ -48,10 +60,21 @@ public struct SwapSlippageScene: View {
             .contentMargins([.top], .small, for: .scrollContent)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("", systemImage: SystemImage.checkmark) { dismiss() }
+                    Button("", systemImage: SystemImage.checkmark) {
+                        model.confirm()
+                        dismiss()
+                    }
+                    .disabled(model.isConfirmEnabled == false)
                 }
             }
-            .onChange(of: model.isAuto) { model.apply() }
+            .onChange(of: model.isAuto) { _, isAuto in
+                focusedField = isAuto ? nil : .slippage
+            }
+            .onAppear {
+                if !model.isAuto {
+                    focusedField = .slippage
+                }
+            }
         }
     }
 }

@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Tasirin Farashin</string>
   <string name="swap_slippage">Zamewa</string>
   <string name="swap_slippage_warning">Zamewa mai yawa. Wataƙila a aiwatar da musayar ku a farashi mafi muni fiye da yadda ake tsammani.</string>
+  <string name="swap_slippage_max">Mafi girman zamewa shine %1$s</string>
   <string name="swap_slippage_auto">Auto</string>
   <string name="swap_slippage_auto_description">Yana saita mafi kyawun zamewa ta atomatik don samun nasarar musaya.</string>
   <string name="swap_price_impact_warning_description">Za ku rasa %1$s na %2$s naku a cikin wannan cinikin. Kun tabbata kuna son ci gaba?</string>

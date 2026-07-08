@@ -345,6 +345,7 @@ swap_you_receive = 受け取るもの
 swap_price_impact = 価格の影響
 swap_slippage = スリッページ
 swap_slippage_warning = スリッページが大きいです。スワップが予想より悪い価格で実行される可能性があります。
+swap_slippage_max = 最大スリッページは%@です
 swap_slippage_auto = 自動
 swap_slippage_auto_description = スワップを成功させるための最適なスリッページを自動的に設定します。
 swap_price_impact_warning_description = この取引で%@（保有する%@の一部）を失います。続行してもよろしいですか?

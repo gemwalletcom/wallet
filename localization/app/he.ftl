@@ -345,6 +345,7 @@ swap_you_receive = אתה מקבל
 swap_price_impact = השפעת המחיר
 swap_slippage = החלקה
 swap_slippage_warning = החלקה גבוהה. ההמרה שלך עלולה להתבצע במחיר גרוע מהצפוי.
+swap_slippage_max = הסליפג' המקסימלי הוא %@
 swap_slippage_auto = אוטומטי
 swap_slippage_auto_description = מגדיר אוטומטית את ההחלקה הטובה ביותר להחלפה מוצלחת.
 swap_price_impact_warning_description = אתה תפסיד %@ מה- %@ שלך במסחר הזה. האם אתה בטוח שאתה רוצה להמשיך?

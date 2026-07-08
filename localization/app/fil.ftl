@@ -345,6 +345,7 @@ swap_you_receive = Matatanggap Mo
 swap_price_impact = Epekto sa Presyo
 swap_slippage = Pagkadulas
 swap_slippage_warning = Mataas na slippage. Maaaring maisagawa ang iyong swap sa mas masamang presyo kaysa inaasahan.
+swap_slippage_max = Ang pinakamataas na slippage ay %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Awtomatikong itinatakda ang pinakamahusay na pagkadulas para sa matagumpay na swap.
 swap_price_impact_warning_description = Mawawalan ka ng %@ ng iyong %@ sa trade na ito. Sigurado ka bang gusto mong magpatuloy?

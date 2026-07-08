@@ -345,6 +345,7 @@ swap_you_receive = คุณได้รับ
 swap_price_impact = ผลกระทบต่อราคา
 swap_slippage = สลิปเพจ
 swap_slippage_warning = สลิปเพจสูง การสว็อปของคุณอาจดำเนินการที่ราคาที่แย่กว่าที่คาดไว้
+swap_slippage_max = ค่าสลิปเพจสูงสุดคือ %@
 swap_slippage_auto = อัตโนมัติ
 swap_slippage_auto_description = ตั้งค่าสลิปเพจที่ดีที่สุดโดยอัตโนมัติเพื่อการสว็อปที่สำเร็จ
 swap_price_impact_warning_description = คุณจะสูญเสีย %@ จาก %@ ของคุณในการซื้อขายครั้งนี้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?

@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Dampak Harga</string>
   <string name="swap_slippage">Slippage</string>
   <string name="swap_slippage_warning">Slippage tinggi. Swap Anda mungkin dieksekusi pada harga yang lebih buruk dari yang diharapkan.</string>
+  <string name="swap_slippage_max">Slippage maksimum adalah %1$s</string>
   <string name="swap_slippage_auto">Otomatis</string>
   <string name="swap_slippage_auto_description">Secara otomatis menetapkan slippage terbaik untuk swap yang berhasil.</string>
   <string name="swap_price_impact_warning_description">Anda akan kehilangan %1$s dari %2$s Anda dalam perdagangan ini. Apakah Anda yakin ingin melanjutkan?</string>

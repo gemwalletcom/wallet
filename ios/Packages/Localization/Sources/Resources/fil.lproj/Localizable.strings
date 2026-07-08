@@ -279,6 +279,7 @@
 "swap.price_impact" = "Epekto sa Presyo";
 "swap.slippage" = "Pagkadulas";
 "swap.slippage_warning" = "Mataas na slippage. Maaaring maisagawa ang iyong swap sa mas masamang presyo kaysa inaasahan.";
+"swap.slippage_max" = "Ang pinakamataas na slippage ay %@";
 "swap.slippage_auto" = "Auto";
 "swap.slippage_auto_description" = "Awtomatikong itinatakda ang pinakamahusay na pagkadulas para sa matagumpay na swap.";
 "swap.price_impact_warning.description" = "Mawawalan ka ng %@ ng iyong %@ sa trade na ito. Sigurado ka bang gusto mong magpatuloy?";

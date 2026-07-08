@@ -294,6 +294,7 @@
   <string name="swap_price_impact">Fiyat Etkisi</string>
   <string name="swap_slippage">Kayma</string>
   <string name="swap_slippage_warning">Yüksek kayma. Takasınız beklenenden daha kötü bir fiyattan gerçekleşebilir.</string>
+  <string name="swap_slippage_max">Maksimum kayma %1$s</string>
   <string name="swap_slippage_auto">Otomatik</string>
   <string name="swap_slippage_auto_description">Başarılı bir takas için en iyi kaymayı otomatik olarak ayarlar.</string>
   <string name="swap_price_impact_warning_description">Bu işlemde %1$s kaybedeceksiniz; bu, %2$s varlığınızın bir kısmıdır. Devam etmek istediğinizden emin misiniz?</string>

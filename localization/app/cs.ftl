@@ -345,6 +345,7 @@ swap_you_receive = Přijímáte
 swap_price_impact = Vliv ceny
 swap_slippage = Skluz
 swap_slippage_warning = Vysoký skluz. Vaše směna může proběhnout za horší cenu, než se očekávalo.
+swap_slippage_max = Maximální skluz je %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Automaticky nastaví nejlepší skluz pro úspěšný swap.
 swap_price_impact_warning_description = V tomto obchodu ztratíte %@ z vašich %@. Jste si jisti, že chcete pokračovat?

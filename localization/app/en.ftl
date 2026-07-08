@@ -654,6 +654,8 @@ swap_price_impact = Price Impact
 # Used in Swap flow and swap details screen for the slippage label.
 swap_slippage = Slippage
 swap_slippage_warning = High slippage. Your swap may be executed at a worse price than expected.
+# Swap slippage validation error shown when the entered value exceeds the maximum. Contains 1 string placeholder.
+swap_slippage_max = Maximum slippage is %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Automatically set the best slippage for a successful swap.
 # Used in Swap flow and swap details screen for the price impact warning description. Contains 2 string placeholders.

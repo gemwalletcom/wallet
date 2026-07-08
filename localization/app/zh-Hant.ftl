@@ -345,6 +345,7 @@ swap_you_receive = 將收到
 swap_price_impact = 價格影響
 swap_slippage = 滑點
 swap_slippage_warning = 滑點過高。您的兌換可能以比預期更差的價格成交。
+swap_slippage_max = 最大滑點為 %@
 swap_slippage_auto = 自動
 swap_slippage_auto_description = 自動設定最佳滑點以確保兌換成功。
 swap_price_impact_warning_description = 您將在本次交易中損失 %@，這是您 %@ 的一部分。您確定要繼續嗎？

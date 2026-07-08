@@ -279,6 +279,7 @@
 "swap.price_impact" = "Tác động giá";
 "swap.slippage" = "Trượt giá";
 "swap.slippage_warning" = "Trượt giá cao. Giao dịch hoán đổi của bạn có thể được thực hiện ở mức giá tệ hơn dự kiến.";
+"swap.slippage_max" = "Trượt giá tối đa là %@";
 "swap.slippage_auto" = "Tự động";
 "swap.slippage_auto_description" = "Tự động đặt mức trượt giá tốt nhất để hoán đổi thành công.";
 "swap.price_impact_warning.description" = "Bạn sẽ mất %@ trong số %@ của mình trong giao dịch này. Bạn có chắc chắn muốn tiếp tục không?";

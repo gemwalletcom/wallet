@@ -345,6 +345,7 @@ swap_you_receive = انت تستقبل
 swap_price_impact = تأثير السعر
 swap_slippage = الانزلاق
 swap_slippage_warning = انزلاق مرتفع. قد يُنفَّذ التبادل بسعر أسوأ من المتوقع.
+swap_slippage_max = الحد الأقصى للانزلاق هو %@
 swap_slippage_auto = تلقائي
 swap_slippage_auto_description = يحدد تلقائيًا أفضل انزلاق لإتمام المبادلة بنجاح.
 swap_price_impact_warning_description = ستخسر %@ من رصيدك %@ في هذه الصفقة. هل أنت متأكد من رغبتك في المتابعة؟
