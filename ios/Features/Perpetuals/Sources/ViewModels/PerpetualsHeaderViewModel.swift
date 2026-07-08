@@ -25,7 +25,7 @@ struct PerpetualsHeaderViewModel {
     }
 }
 
-extension PerpetualsHeaderViewModel: HeaderViewModel {
+extension PerpetualsHeaderViewModel: ValueHeaderViewModel {
     var isWatchWallet: Bool {
         walletType == .view
     }

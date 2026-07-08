@@ -1,0 +1,34 @@
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "stateDiff": {},
+        "trace": [
+            {
+                "action": {
+                    "from": "0xba4d1d35bce0e8f28e5a3403e7a0b996c5d50ac4",
+                    "callType": "call",
+                    "input": "0x",
+                    "to": "0x1111111111111111111111111111111111111111",
+                    "value": "0x0"
+                },
+                "subtraces": 1,
+                "traceAddress": [],
+                "type": "call"
+            },
+            {
+                "action": {
+                    "from": "0x1111111111111111111111111111111111111111",
+                    "callType": "call",
+                    "input": "0x",
+                    "to": "0x2222222222222222222222222222222222222222",
+                    "value": "0x0"
+                },
+                "error": "Reverted",
+                "subtraces": 0,
+                "traceAddress": [0],
+                "type": "call"
+            }
+        ]
+    }
+}

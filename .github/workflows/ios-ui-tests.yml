@@ -1,4 +1,4 @@
-name: iOS UI Tests
+name: iOS UI CI
 
 on:
   workflow_dispatch:
@@ -31,7 +31,6 @@ env:
 
 jobs:
   ui_test:
-    name: Build and UI Test iPhone simulator
     runs-on: macos-26
 
     steps:

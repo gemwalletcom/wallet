@@ -1,3 +1,4 @@
+pub mod accounts;
 pub mod actions;
 pub mod decode;
 pub mod request_handler;
@@ -6,6 +7,9 @@ pub mod session;
 pub mod sign_type;
 pub mod validator;
 pub mod verifier;
+
+#[cfg(test)]
+mod testkit;
 
 pub use actions::*;
 pub use decode::decode_sign_message;

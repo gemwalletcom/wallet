@@ -14,7 +14,7 @@ impl AppStoreClient {
     pub fn new() -> Self {
         AppStoreClient {
             base_url: "https://itunes.apple.com".to_string(),
-            client: reqwest::Client::new(),
+            client: gem_client::reqwest_client(),
         }
     }
 

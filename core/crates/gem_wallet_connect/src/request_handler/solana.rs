@@ -1,11 +1,21 @@
 use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
-use primitives::{Chain, TransferDataOutputType, ValueAccess};
+use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct SolanaRequestHandler;
 
 impl SolanaRequestHandler {
+    pub fn parse_request(method: WalletConnectionMethods, chain: Chain, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
+        match method {
+            WalletConnectionMethods::SolanaSignMessage => Self::parse_sign_message(chain, params, domain),
+            WalletConnectionMethods::SolanaSignTransaction => Self::parse_sign_transaction(chain, params),
+            WalletConnectionMethods::SolanaSignAndSendTransaction => Self::parse_send_transaction(chain, params),
+            WalletConnectionMethods::SolanaSignAllTransactions => Self::parse_sign_all_transactions(params),
+            _ => Err("Method not supported".to_string()),
+        }
+    }
+
     pub fn parse_sign_message(_chain: Chain, params: Value, _domain: &str) -> Result<WalletConnectAction, String> {
         let message = params.get_value("message")?.string()?.to_string();
 

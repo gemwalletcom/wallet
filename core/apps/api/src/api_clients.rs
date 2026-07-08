@@ -18,6 +18,7 @@ pub struct PermissionDeviceRead;
 pub struct PermissionDeviceSubscriptionsRead;
 pub struct PermissionDeviceTransactionsRead;
 pub struct PermissionFiatQuotesRead;
+pub struct PermissionFiatTransactionsRead;
 
 fn api_client_secret<'r>(req: &'r Request<'_>) -> Result<&'r str, Outcome<(), String>> {
     let Some(auth_value) = req.headers().get_one(AUTHORIZATION_HEADER) else {
@@ -49,7 +50,7 @@ async fn authorize_api_client(req: &Request<'_>, scope: ApiClientScope) -> Outco
     };
 
     if client.is_none() {
-        return error_outcome(req, Status::Unauthorized, "Invalid API client");
+        return error_outcome(req, Status::Unauthorized, &format!("Invalid API client for scope {}", scope.as_ref()));
     }
 
     Success(())
@@ -78,6 +79,7 @@ api_client_guard!(PermissionDeviceRead, ApiClientScope::DevicesRead);
 api_client_guard!(PermissionDeviceSubscriptionsRead, ApiClientScope::DevicesSubscriptionsRead);
 api_client_guard!(PermissionDeviceTransactionsRead, ApiClientScope::DevicesTransactionsRead);
 api_client_guard!(PermissionFiatQuotesRead, ApiClientScope::FiatQuotesRead);
+api_client_guard!(PermissionFiatTransactionsRead, ApiClientScope::FiatTransactionsRead);
 
 #[cfg(test)]
 mod tests {

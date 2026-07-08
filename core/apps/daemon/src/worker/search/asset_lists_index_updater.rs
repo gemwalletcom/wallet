@@ -28,6 +28,7 @@ impl AssetListsIndexUpdater {
 
     fn build_documents(tags: Vec<TagRow>, assets_tags: &[AssetTagRow], perpetuals_tags: &[PerpetualTagRow]) -> Vec<AssetListDocument> {
         tags.into_iter()
+            .filter(|tag| tag.visibility.is_public())
             .map(|tag| {
                 let count = Self::count_items(&tag.id, assets_tags, perpetuals_tags);
                 AssetListDocument::from(tag.as_primitive(count))

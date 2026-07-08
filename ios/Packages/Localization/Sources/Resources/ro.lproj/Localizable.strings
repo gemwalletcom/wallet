@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Expresie secretă nevalidă";
 "errors.import.invalid_secret_phrase_word" = "Cuvânt expresie secretă nevalid: %@";
 "errors.invalid_url" = "Adresă URL nevalidă";
-"errors.error_occured" = "A apărut o eroare!";
+"errors.error_occurred" = "A apărut o eroare!";
 "errors.invalid_network_id" = "ID de rețea nevalid";
 "errors.error" = "Eroare";
 "errors.connections.user_cancelled" = "Anulat de utilizator";

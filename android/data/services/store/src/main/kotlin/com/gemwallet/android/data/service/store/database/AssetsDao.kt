@@ -264,7 +264,7 @@ interface AssetsDao {
             AND assetRank > 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR SUBSTR(id, INSTR(id, '_') + 1) LIKE '%' || :query || '%' COLLATE NOCASE)
+            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
             LIMIT :limit
         """)
@@ -292,7 +292,7 @@ interface AssetsDao {
             AND
             (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR SUBSTR(id, INSTR(id, '_') + 1) LIKE '%' || :query || '%' COLLATE NOCASE)
+            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
             LIMIT :limit
         """)
@@ -317,7 +317,8 @@ interface AssetsDao {
             (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
             AND assetRank > 0
             AND (symbol LIKE '%' || :query || '%'
-            OR name LIKE '%' || :query || '%' COLLATE NOCASE)
+            OR name LIKE '%' || :query || '%' COLLATE NOCASE
+            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
             ORDER BY assetRank DESC
         """)
     fun swapSearch(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>

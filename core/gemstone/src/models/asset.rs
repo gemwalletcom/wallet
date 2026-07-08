@@ -1,8 +1,15 @@
-use primitives::{Asset, AssetId, AssetScore, AssetType, Chain};
+use primitives::{Asset, AssetId, AssetScore, AssetType, Chain, ChainAsset};
 
 pub type GemAsset = Asset;
 pub type GemAssetId = AssetId;
 pub type GemAssetType = AssetType;
+pub type GemChainAsset = ChainAsset;
+
+#[uniffi::remote(Record)]
+pub struct GemChainAsset {
+    pub asset: GemAsset,
+    pub network_name: String,
+}
 
 #[allow(non_camel_case_types)]
 #[uniffi::remote(Enum)]
@@ -33,17 +40,9 @@ pub struct GemAsset {
     pub asset_type: GemAssetType,
 }
 
-pub fn get_default_rank(chain: Chain) -> i32 {
-    chain.rank()
-}
-
-pub fn get_asset(chain: Chain) -> GemAsset {
-    Asset::from_chain(chain)
-}
-
 #[uniffi::export]
 pub fn asset_default_rank(chain: Chain) -> i32 {
-    get_default_rank(chain)
+    chain.rank()
 }
 
 #[uniffi::export]
@@ -52,6 +51,6 @@ pub fn default_token_rank() -> i32 {
 }
 
 #[uniffi::export]
-pub fn asset_wrapper(chain: Chain) -> GemAsset {
-    get_asset(chain)
+pub fn chain_asset_wrapper(chain: Chain) -> GemChainAsset {
+    ChainAsset::from_chain(chain)
 }

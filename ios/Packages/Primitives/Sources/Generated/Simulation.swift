@@ -34,9 +34,11 @@ public struct SimulationHeader: Codable, Equatable, Hashable, Sendable {
 
 public struct SimulationInput: Codable, Equatable, Hashable, Sendable {
 	public let encodedTransaction: String
+	public let signerAddress: String?
 
-	public init(encodedTransaction: String) {
+	public init(encodedTransaction: String, signerAddress: String?) {
 		self.encodedTransaction = encodedTransaction
+		self.signerAddress = signerAddress
 	}
 }
 

@@ -16,3 +16,9 @@ data class Asset (
 	val type: AssetType
 )
 
+@Serializable
+data class ChainAsset (
+	val asset: Asset,
+	val networkName: String
+)
+

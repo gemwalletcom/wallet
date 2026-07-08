@@ -26,7 +26,7 @@ pub use reqwest_client::{ReqwestClient, json_response};
 pub use retry::{default_should_retry, retry, retry_policy};
 
 #[cfg(feature = "reqwest")]
-pub use client_config::builder;
+pub use client_config::{builder, reqwest_client};
 
 use async_trait::async_trait;
 use serde::{Serialize, de::DeserializeOwned};

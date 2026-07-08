@@ -139,9 +139,9 @@ extension DelegationViewModel: Identifiable {
     }
 }
 
-// MARK: - HeaderViewModel
+// MARK: - ValueHeaderViewModel
 
-extension DelegationViewModel: HeaderViewModel {
+extension DelegationViewModel: ValueHeaderViewModel {
     public var isWatchWallet: Bool {
         false
     }

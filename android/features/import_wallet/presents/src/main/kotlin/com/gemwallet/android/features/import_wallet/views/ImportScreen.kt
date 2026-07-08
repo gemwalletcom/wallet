@@ -48,7 +48,9 @@ import com.gemwallet.android.features.import_wallet.components.importTypeTabInde
 import com.gemwallet.android.features.import_wallet.components.importWalletTabs
 import com.gemwallet.android.features.import_wallet.components.supportsPhraseSuggestions
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -66,6 +68,7 @@ import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.WalletType
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import uniffi.gemstone.DocsUrl
 
 internal sealed interface ImportSceneTitle {
     data class Resource(val resId: Int) : ImportSceneTitle
@@ -89,6 +92,7 @@ fun ImportScreen(
     onCancel: () -> Unit
 ) {
     DisableScreenShooting()
+    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
 
     val viewModel: ImportViewModel = hiltViewModel()
 

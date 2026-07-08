@@ -40,7 +40,6 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.Wallet
 
 @Composable
@@ -73,12 +72,16 @@ fun RecipientScreen(
                 memoError = memoError,
                 wallets = wallets,
                 contacts = contacts,
-                onAddress = viewModel::onAddress,
-                onMemo = viewModel::onMemo,
-                onQrScan = { scan = it },
-                onNext = { viewModel.onNext(currentState.type, amountAction, confirmAction) },
-                onDestination = { viewModel.onDestination(currentState.type, it, amountAction, confirmAction) },
-                onCancel = cancelAction,
+                onAction = { action ->
+                    when (action) {
+                        is RecipientAction.SetAddress -> viewModel.onAddress(action.address, action.nameRecord)
+                        is RecipientAction.SetMemo -> viewModel.onMemo(action.memo)
+                        is RecipientAction.Scan -> scan = action.field
+                        RecipientAction.Next -> viewModel.onNext(currentState.type, amountAction, confirmAction)
+                        is RecipientAction.Select -> viewModel.onDestination(currentState.type, action.destination, amountAction, confirmAction)
+                        RecipientAction.Cancel -> cancelAction()
+                    }
+                },
             )
 
             QrCodeScannerModal(
@@ -94,7 +97,7 @@ fun RecipientScreen(
 }
 
 @Composable
-fun RecipientScreen(
+internal fun RecipientScreen(
     type: RecipientType,
     hasMemo: Boolean,
     address: String,
@@ -103,12 +106,7 @@ fun RecipientScreen(
     memoError: RecipientError,
     wallets: List<Wallet>,
     contacts: List<ContactRecipient>,
-    onAddress: (String, NameRecord?) -> Unit,
-    onMemo: (String) -> Unit,
-    onQrScan: (QrScanField) -> Unit,
-    onNext: () -> Unit,
-    onDestination: (DestinationAddress) -> Unit,
-    onCancel: CancelAction,
+    onAction: (RecipientAction) -> Unit,
 ) {
     val isKeyBoardOpen by keyboardAsState()
     val density = LocalDensity.current
@@ -118,17 +116,17 @@ fun RecipientScreen(
 
     Scene(
         title = stringResource(id = R.string.transfer_recipient_title),
-        onClose = { onCancel() },
+        onClose = { onAction(RecipientAction.Cancel) },
         mainAction = {
             if (!isKeyBoardOpen || !isSmallScreen) {
                 MainActionButton(
                     title = stringResource(id = R.string.common_continue),
-                    onClick = onNext,
+                    onClick = { onAction(RecipientAction.Next) },
                 )
             }
         },
         actions = {
-            TextButton(onClick = onNext,
+            TextButton(onClick = { onAction(RecipientAction.Next) },
                 colors = ButtonDefaults.textButtonColors()
                     .copy(contentColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -148,24 +146,28 @@ fun RecipientScreen(
                 addressError = addressError,
                 memo = memo,
                 memoError = memoError,
-                onAddress = onAddress,
-                onMemo = onMemo,
-                onQrScan = onQrScan,
+                onAddress = { input, nameRecord -> onAction(RecipientAction.SetAddress(input, nameRecord)) },
+                onMemo = { onAction(RecipientAction.SetMemo(it)) },
+                onQrScan = { onAction(RecipientAction.Scan(it)) },
             )
             contactsDestination(contacts = contacts) { contact ->
-                onMemo(contact.memo ?: "")
-                onDestination(
-                    DestinationAddress(
-                        address = contact.address,
-                        name = contact.name,
+                onAction(RecipientAction.SetMemo(contact.memo ?: ""))
+                onAction(
+                    RecipientAction.Select(
+                        DestinationAddress(
+                            address = contact.address,
+                            name = contact.name,
+                        )
                     )
                 )
             }
             walletsDestination(toChain = type.assetInfo.asset.chain, items = wallets) { wallet, account ->
-                onDestination(
-                    DestinationAddress(
-                        address = account.address,
-                        name = wallet.name,
+                onAction(
+                    RecipientAction.Select(
+                        DestinationAddress(
+                            address = account.address,
+                            name = wallet.name,
+                        )
                     )
                 )
             }

@@ -55,7 +55,7 @@ impl FiatClient {
     }
 
     pub fn request_client(timeout: Duration) -> RequestClient {
-        RequestClient::builder().timeout(timeout).build().unwrap()
+        gem_client::builder().timeout(timeout).build().unwrap()
     }
 
     pub async fn get_on_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {

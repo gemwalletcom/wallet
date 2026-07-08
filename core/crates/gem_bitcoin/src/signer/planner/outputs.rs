@@ -3,7 +3,7 @@ use bitcoin::{
     blockdata::{opcodes::all::OP_RETURN, script::Builder},
     script::PushBytesBuf,
 };
-use primitives::SignerError;
+use primitives::{BitcoinChain, SignerError};
 
 use super::PlanOutput;
 
@@ -27,9 +27,13 @@ pub(super) fn op_return_output(data: &[u8]) -> Result<PlanOutput, SignerError> {
     Ok(PlanOutput::new(0, Builder::new().push_opcode(OP_RETURN).push_slice(push).into_script()))
 }
 
-pub(super) fn dust_threshold(script_pubkey: &ScriptBuf) -> u64 {
+pub(super) fn dust_threshold(chain: BitcoinChain, script_pubkey: &ScriptBuf) -> u64 {
     if script_pubkey.is_op_return() {
         return 0;
     }
-    script_pubkey.minimal_non_dust().to_sat()
+    let threshold = script_pubkey.minimal_non_dust().to_sat();
+    match chain {
+        BitcoinChain::Doge => threshold.saturating_mul(chain.minimum_byte_fee() as u64),
+        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Zcash => threshold,
+    }
 }

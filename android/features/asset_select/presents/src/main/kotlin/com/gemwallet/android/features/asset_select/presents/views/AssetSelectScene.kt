@@ -41,7 +41,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.TabsBar
@@ -174,6 +173,15 @@ fun AssetSelectScene(
     val showTags = query.text.isEmpty()
     var tagsHeightPx by remember { mutableStateOf(0) }
 
+    val commonAssets = remember(popular, unpinned) {
+        if (popular.isEmpty()) {
+            unpinned
+        } else {
+            val popularIds = popular.mapTo(HashSet()) { it.asset.id }
+            unpinned.filter { it.asset.id !in popularIds }
+        }
+    }
+
     LaunchedEffect(Unit) {
         snapshotFlow { query.text.toString() }
             .drop(1)
@@ -238,7 +246,7 @@ fun AssetSelectScene(
             recent(recent, onSelectRecent, onOpenRecentsSheet)
             assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
-                item { PinnedAssetsHeaderItem(AssetsGroupType.Pined) }
+                item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
                 val pinnedTotal = pinnedPerpetualRows.size + pinned.size
                 itemsPositioned(pinnedPerpetualRows, totalCount = pinnedTotal) { position, row ->
                     row(position)
@@ -257,12 +265,12 @@ fun AssetSelectScene(
             }
             listsContent?.invoke(this)
             perpetualsContent?.invoke(this)
-            if (assetsHeaderRes != null && unpinned.isNotEmpty()) {
+            if (assetsHeaderRes != null && commonAssets.isNotEmpty()) {
                 item {
                     SubheaderItem(assetsHeaderRes, onAssetsHeaderClick)
                 }
             }
-            assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            assets(commonAssets, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             searchState(
                 state = state,
                 isAddAvailable = isAddAvailable,

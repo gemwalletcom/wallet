@@ -37,18 +37,20 @@ fun WalletsScreen(
     WalletsScene(
         pinnedWallets = walletSections.pinnedWallets,
         unpinnedWallets = walletSections.unpinnedWallets,
-        onCreate = onCreateWallet,
-        onImport = onImportWallet,
-        onEdit = onEditWallet,
-        onSelectWallet = {
-            viewModel.selectWallet(it)
-            onSelectWallet()
+        onAction = { action ->
+            when (action) {
+                WalletsAction.Create -> onCreateWallet()
+                WalletsAction.Import -> onImportWallet()
+                is WalletsAction.Edit -> onEditWallet(action.walletId)
+                is WalletsAction.Select -> {
+                    viewModel.selectWallet(action.walletId)
+                    onSelectWallet()
+                }
+                is WalletsAction.Delete -> deleteWalletId = action.walletId
+                is WalletsAction.TogglePin -> viewModel.togglePin(action.walletId)
+                WalletsAction.Cancel -> onCancel()
+            }
         },
-        onDeleteWallet = {
-            deleteWalletId = it
-        },
-        onTogglePin = viewModel::togglePin,
-        onCancel = onCancel,
     )
 
     deleteWalletId?.let { pendingDeleteWalletId ->
@@ -131,13 +133,7 @@ fun PreviewWalletScreen() {
                         override val imageUrl: String? = null
                     },
                 ),
-                onEdit = {},
-                onCreate = {},
-                onImport = {},
-                onSelectWallet = {},
-                onDeleteWallet = {},
-                onTogglePin = {},
-                onCancel = {},
+                onAction = {},
             )
         }
     }

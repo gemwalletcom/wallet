@@ -190,7 +190,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             rank: 80,
             is_swap_supported: true,
             is_nft_supported: true,
-            is_defi_supported: false,
+            is_defi_supported: true,
             is_utxo: false,
             evm: None,
             stake: Some(StakeChainConfig {

@@ -11,10 +11,10 @@ use sui_types::Address;
 use super::mapper::{map_checkpoint, map_executed_transaction, map_inspect_result, map_sui_effects};
 use super::proto::{
     self as proto, BatchGetObjectsRequest, BatchGetObjectsResponse, BatchGetTransactionsRequest, BatchGetTransactionsResponse, ExecuteTransactionRequest,
-    ExecuteTransactionResponse, FieldMask, GetBalanceRequest, GetBalanceResponse, GetCheckpointRequest, GetCheckpointResponse, GetCoinInfoRequest, GetCoinInfoResponse,
-    GetEpochRequest, GetEpochResponse, GetFunctionRequest, GetFunctionResponse, GetObjectRequest, GetObjectResponse, GetServiceInfoRequest, GetServiceInfoResponse,
-    GetTransactionRequest, GetTransactionResponse, ListBalancesRequest, ListBalancesResponse, ListOwnedObjectsRequest, ListOwnedObjectsResponse, SimulateTransactionRequest,
-    SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, UserSignature as GrpcUserSignature, WithMut,
+    ExecuteTransactionResponse, ExecutedTransaction, FieldMask, GetBalanceRequest, GetBalanceResponse, GetCheckpointRequest, GetCheckpointResponse, GetCoinInfoRequest,
+    GetCoinInfoResponse, GetEpochRequest, GetEpochResponse, GetFunctionRequest, GetFunctionResponse, GetObjectRequest, GetObjectResponse, GetServiceInfoRequest,
+    GetServiceInfoResponse, GetTransactionRequest, GetTransactionResponse, ListBalancesRequest, ListBalancesResponse, ListOwnedObjectsRequest, ListOwnedObjectsResponse,
+    SimulateTransactionRequest, SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, UserSignature as GrpcUserSignature, WithMut,
 };
 use super::transport::default_transport;
 use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
@@ -268,6 +268,16 @@ impl SuiClient {
         Ok(SuiTransaction {
             effects: map_sui_effects(executed.effects.as_ref()),
         })
+    }
+
+    pub async fn simulate_encoded_transaction(&self, encoded_transaction: &str) -> Result<ExecutedTransaction, Box<dyn Error + Send + Sync>> {
+        let transaction = decode_transaction_base64(encoded_transaction)?;
+        let request = SimulateTransactionRequest::new(transaction).with(|request| {
+            request.read_mask = Some(FieldMask::from_paths(["transaction.balance_changes", "transaction.effects.status"]));
+            request.checks = Some(TransactionChecks::Enabled);
+        });
+        let response: SimulateTransactionResponse = self.grpc_unary(PATH_SIMULATE_TRANSACTION, request).await?;
+        response.transaction.ok_or_else(|| "missing simulated transaction".into())
     }
 
     pub async fn get_transaction(&self, transaction_id: String) -> Result<Digest, Box<dyn Error + Send + Sync>> {

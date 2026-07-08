@@ -389,7 +389,7 @@ mod tests {
         NodeService::new(
             chains,
             metrics,
-            reqwest::Client::new(),
+            gem_client::reqwest_client(),
             chain_types,
             CacheConfig::default(),
             retry_config,

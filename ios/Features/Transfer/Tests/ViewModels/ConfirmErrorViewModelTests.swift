@@ -15,7 +15,7 @@ struct ConfirmErrorViewModelTests {
         let model = ConfirmErrorViewModel(state: .error(error), onSelectListError: { _ in })
 
         guard case let .error(title, errorValue, _) = model.itemModel else { return }
-        #expect(title == Localized.Errors.errorOccured)
+        #expect(title == Localized.Errors.errorOccurred)
         #expect(errorValue.localizedDescription == error.localizedDescription)
     }
 

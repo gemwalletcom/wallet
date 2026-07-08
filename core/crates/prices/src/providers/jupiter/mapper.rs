@@ -1,8 +1,7 @@
+use ::jupiter::Token;
 use primitives::{AssetId, AssetMarket, Chain, Price, PriceProvider, contract_constants::SOLANA_WRAPPED_SOL_TOKEN_ADDRESS};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset};
-
-use super::model::VerifiedToken;
 
 pub fn to_asset_price_mapping(jupiter_token_id: &str) -> AssetPriceMapping {
     if jupiter_token_id == SOLANA_WRAPPED_SOL_TOKEN_ADDRESS {
@@ -20,7 +19,7 @@ pub fn to_jupiter_token_id(provider_price_id: &str) -> String {
     }
 }
 
-pub fn map_token_asset(token: VerifiedToken) -> PriceProviderAsset {
+pub fn map_token_asset(token: Token) -> PriceProviderAsset {
     PriceProviderAsset::with_price(
         to_asset_price_mapping(&token.id),
         Some(map_token_market(&token)),
@@ -29,7 +28,7 @@ pub fn map_token_asset(token: VerifiedToken) -> PriceProviderAsset {
     )
 }
 
-pub fn map_token_price(mapping: AssetPriceMapping, token: &VerifiedToken) -> AssetPriceFull {
+pub fn map_token_price(mapping: AssetPriceMapping, token: &Token) -> AssetPriceFull {
     AssetPriceFull::new(
         mapping,
         Price::new(token.usd_price, token.stats24h.price_change, chrono::Utc::now(), PriceProvider::Jupiter),
@@ -37,7 +36,7 @@ pub fn map_token_price(mapping: AssetPriceMapping, token: &VerifiedToken) -> Ass
     )
 }
 
-fn map_token_market(token: &VerifiedToken) -> AssetMarket {
+fn map_token_market(token: &Token) -> AssetMarket {
     AssetMarket {
         market_cap: token.mcap,
         market_cap_fdv: token.fdv,
@@ -54,7 +53,8 @@ fn map_token_market(token: &VerifiedToken) -> AssetMarket {
 
 #[cfg(test)]
 mod tests {
-    use super::super::model::TokenStats;
+    use ::jupiter::TokenStats;
+
     use super::*;
 
     #[test]
@@ -73,8 +73,10 @@ mod tests {
 
     #[test]
     fn test_map_token_price_maps_market_data() {
-        let token = VerifiedToken {
+        let token = Token {
             id: "token".to_string(),
+            icon: None,
+            is_verified: Some(true),
             usd_price: 2.0,
             mcap: Some(10.0),
             fdv: Some(20.0),

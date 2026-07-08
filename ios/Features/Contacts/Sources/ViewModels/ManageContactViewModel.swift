@@ -118,7 +118,7 @@ public final class ManageContactViewModel {
 
     func listItemModel(for address: ContactAddress) -> ListItemModel {
         ListItemModel(
-            title: address.chain.asset.name,
+            title: address.chain.networkName,
             titleExtra: AddressFormatter(style: .short, address: address.address, chain: address.chain).value(),
             imageStyle: .asset(assetImage: AssetIdViewModel(assetId: address.chain.assetId).assetImage),
         )

@@ -81,7 +81,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
             case .token:
                 .type(
                     TextValue(
-                        text: assetDataModel.asset.chain.asset.name,
+                        text: assetDataModel.asset.chain.networkName,
                         style: .calloutSecondary,
                     ),
                 )

@@ -4,20 +4,35 @@ use serde_json::Value;
 use std::str::FromStr;
 
 pub const MAX_WORD_BYTES: usize = 32;
-pub const ADDR_LENGTH: usize = 20;
 
-pub fn parse_array_type(type_name: &str) -> Option<(String, Option<usize>)> {
+pub fn parse_array_type(type_name: &str) -> Result<Option<(String, Option<usize>)>, SignerError> {
     if !type_name.ends_with(']') {
-        return None;
+        if type_name.contains('[') {
+            return SignerError::invalid_input_err(format!("Malformed array type '{type_name}'"));
+        }
+        return Ok(None);
     }
 
-    let start = type_name.rfind('[')?;
+    let start = type_name
+        .rfind('[')
+        .ok_or_else(|| SignerError::invalid_input(format!("Malformed array type '{type_name}'")))?;
     let length_str = &type_name[start + 1..type_name.len() - 1];
     let element_type = type_name[..start].to_string();
+    if element_type.is_empty() {
+        return SignerError::invalid_input_err(format!("Malformed array type '{type_name}'"));
+    }
 
-    let length = if length_str.is_empty() { None } else { Some(length_str.parse().ok()?) };
+    let length = if length_str.is_empty() {
+        None
+    } else {
+        Some(
+            length_str
+                .parse()
+                .map_err(|_| SignerError::invalid_input(format!("Invalid array length for type '{type_name}'")))?,
+        )
+    };
 
-    Some((element_type, length))
+    Ok(Some((element_type, length)))
 }
 
 pub fn base_type_name(type_name: &str) -> &str {
@@ -71,7 +86,7 @@ pub fn parse_uint_value(value: Option<&Value>) -> Result<U256, SignerError> {
 
             Err(SignerError::invalid_input("Unsupported numeric value for unsigned integer"))
         }
-        Some(Value::Null) | None => Ok(U256::ZERO),
+        Some(Value::Null) | None => SignerError::invalid_input_err("Missing unsigned integer value"),
         Some(other) => Err(SignerError::invalid_input(format!("Expected integer value, got {}", other))),
     }
 }
@@ -90,7 +105,7 @@ pub fn parse_int_value(value: Option<&Value>) -> Result<I256, SignerError> {
 
             Err(SignerError::invalid_input("Unsupported numeric value for signed integer"))
         }
-        Some(Value::Null) | None => Ok(I256::ZERO),
+        Some(Value::Null) | None => SignerError::invalid_input_err("Missing signed integer value"),
         Some(other) => Err(SignerError::invalid_input(format!("Expected integer value, got {}", other))),
     }
 }

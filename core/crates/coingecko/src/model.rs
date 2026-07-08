@@ -29,6 +29,12 @@ pub struct Coin {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CoinCategory {
+    pub category_id: String,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CoinInfo {
     pub id: String,
     pub symbol: String,
@@ -72,6 +78,7 @@ pub struct CoinMarket {
     pub id: String,
     pub symbol: String,
     pub name: String,
+    pub image: String,
     pub current_price: Option<f64>,
     pub price_change_percentage_24h: Option<f64>,
     pub market_cap: Option<f64>,
@@ -114,6 +121,8 @@ pub struct CoinMarketsQuery {
     pub locale: &'static str,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ids: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
     pub include_rehypothecated: bool,
 }
 
@@ -178,6 +187,7 @@ pub struct SearchTrendingItem {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CoinId {
     pub id: String,
+    pub large: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

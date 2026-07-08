@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "วลีลับไม่ถูกต้อง";
 "errors.import.invalid_secret_phrase_word" = "คำวลีลับไม่ถูกต้อง: %@";
 "errors.invalid_url" = "URL ไม่ถูกต้อง";
-"errors.error_occured" = "เกิดข้อผิดพลาด!";
+"errors.error_occurred" = "เกิดข้อผิดพลาด!";
 "errors.invalid_network_id" = "รหัสเครือข่ายไม่ถูกต้อง";
 "errors.error" = "เกิดข้อผิดพลาด";
 "errors.connections.user_cancelled" = "ผู้ใช้ยกเลิก";

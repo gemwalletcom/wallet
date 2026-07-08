@@ -5,7 +5,7 @@
 import Foundation
 
 public struct WCEthereumTransaction: Codable, Equatable, Hashable, Sendable {
-	public let chainId: String?
+	public let chainId: UInt64?
 	public let from: String
 	public let to: String
 	public let value: String?
@@ -17,7 +17,7 @@ public struct WCEthereumTransaction: Codable, Equatable, Hashable, Sendable {
 	public let nonce: String?
 	public let data: String?
 
-	public init(chainId: String?, from: String, to: String, value: String?, gas: String?, gasLimit: String?, gasPrice: String?, maxFeePerGas: String?, maxPriorityFeePerGas: String?, nonce: String?, data: String?) {
+	public init(chainId: UInt64?, from: String, to: String, value: String?, gas: String?, gasLimit: String?, gasPrice: String?, maxFeePerGas: String?, maxPriorityFeePerGas: String?, nonce: String?, data: String?) {
 		self.chainId = chainId
 		self.from = from
 		self.to = to

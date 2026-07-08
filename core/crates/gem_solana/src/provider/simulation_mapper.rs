@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use num_bigint::BigInt;
-use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType};
+use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationWarning};
 use serde_json::Value;
 
 use crate::models::{SimulateTransactionResult, TokenBalance};
@@ -29,7 +29,7 @@ fn simulation_error_warning(error: Value) -> SimulationWarning {
         Value::String(message) => message,
         error => error.to_string(),
     };
-    SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some(message))
+    SimulationWarning::execution_error(message)
 }
 
 fn map_balance_changes(
@@ -95,6 +95,7 @@ fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<Strin
 mod tests {
     use super::*;
     use primitives::asset_constants::{SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID};
+    use primitives::{SimulationSeverity, SimulationWarningType};
 
     fn signers(addresses: &[&str]) -> HashSet<String> {
         addresses.iter().map(|address| address.to_string()).collect()
@@ -113,20 +114,8 @@ mod tests {
         assert_eq!(
             changes,
             vec![
-                SimulationBalanceChange {
-                    asset_id: AssetId::from_chain(Chain::Solana),
-                    value: "-100005000".to_string(),
-                    decimals: 9,
-                    name: None,
-                    symbol: None,
-                },
-                SimulationBalanceChange {
-                    asset_id: SOLANA_USDC_ASSET_ID.clone(),
-                    value: "-750000".to_string(),
-                    decimals: 6,
-                    name: None,
-                    symbol: None,
-                },
+                SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "-100005000", 9),
+                SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-750000", 6),
             ]
         );
     }
@@ -141,16 +130,7 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &pre_balances, &post_balances, &pre_tokens, &post_tokens);
 
-        assert_eq!(
-            changes,
-            vec![SimulationBalanceChange {
-                asset_id: AssetId::from_chain(Chain::Solana),
-                value: "-5000".to_string(),
-                decimals: 9,
-                name: None,
-                symbol: None,
-            }]
-        );
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "-5000", 9)]);
     }
 
     #[test]
@@ -160,16 +140,7 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &[1_000_000_000], &[1_000_000_000], &pre_tokens, &[]);
 
-        assert_eq!(
-            changes,
-            vec![SimulationBalanceChange {
-                asset_id: SOLANA_USDC_ASSET_ID.clone(),
-                value: "-1000000".to_string(),
-                decimals: 6,
-                name: None,
-                symbol: None,
-            }]
-        );
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-1000000", 6)]);
     }
 
     #[test]
@@ -193,15 +164,39 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet", "cosigner"]), &[1_000_000_000, 50_000], &[999_995_000, 65_000], &[], &[]);
 
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "10000", 9)]);
+    }
+
+    #[test]
+    fn test_map_balance_changes_uses_selected_signer_without_netting_cosigner_tokens() {
+        let account_keys = vec!["cosigner".to_string(), "wallet".to_string()];
+        let wrapped_sol_mint = "So11111111111111111111111111111111111111112";
+        let pre_tokens = vec![
+            TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 1_000_000),
+            TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "cosigner", 0),
+            TokenBalance::mock(wrapped_sol_mint, "cosigner", 12_510_000),
+        ];
+        let post_tokens = vec![
+            TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 0),
+            TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "cosigner", 1_000_000),
+            TokenBalance::mock(wrapped_sol_mint, "cosigner", 0),
+        ];
+
+        let changes = map_balance_changes(
+            &account_keys,
+            &signers(&["wallet"]),
+            &[500_000, 10_000_000],
+            &[500_000, 22_500_000],
+            &pre_tokens,
+            &post_tokens,
+        );
+
         assert_eq!(
             changes,
-            vec![SimulationBalanceChange {
-                asset_id: AssetId::from_chain(Chain::Solana),
-                value: "10000".to_string(),
-                decimals: 9,
-                name: None,
-                symbol: None,
-            }]
+            vec![
+                SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "12500000", 9),
+                SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-1000000", 6),
+            ]
         );
     }
 
@@ -211,16 +206,7 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &[1_000_000_000, 10, 20], &[999_995_000, 1_000, 2_000], &[], &[]);
 
-        assert_eq!(
-            changes,
-            vec![SimulationBalanceChange {
-                asset_id: AssetId::from_chain(Chain::Solana),
-                value: "-5000".to_string(),
-                decimals: 9,
-                name: None,
-                symbol: None,
-            }]
-        );
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "-5000", 9)]);
     }
 
     #[test]
@@ -240,7 +226,7 @@ mod tests {
         assert_eq!(
             result.warnings,
             vec![SimulationWarning::new(
-                SimulationSeverity::Critical,
+                SimulationSeverity::Warning,
                 SimulationWarningType::ValidationError,
                 Some("{\"InstructionError\":[1,\"InvalidArgument\"]}".to_string()),
             )]

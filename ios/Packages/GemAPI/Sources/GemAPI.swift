@@ -6,6 +6,7 @@ import SwiftHTTPClient
 
 public enum GemAPI: TargetType {
     case getSwapAssets
+    case getFiatAssets(FiatQuoteType)
     case getConfig
     case getPrices(AssetPricesRequest)
     case getCharts(AssetId, period: String)
@@ -22,6 +23,7 @@ public enum GemAPI: TargetType {
     public var method: HTTPMethod {
         switch self {
         case .getSwapAssets,
+             .getFiatAssets,
              .getConfig,
              .getCharts,
              .getAsset,
@@ -39,6 +41,8 @@ public enum GemAPI: TargetType {
         switch self {
         case .getSwapAssets:
             return "/v1/swap/assets"
+        case let .getFiatAssets(type):
+            return "/v1/fiat/assets/\(type.rawValue)"
         case .getConfig:
             return "/v1/config"
         case let .getCharts(assetId, _):
@@ -65,6 +69,7 @@ public enum GemAPI: TargetType {
     public var data: RequestData {
         switch self {
         case .getSwapAssets,
+             .getFiatAssets,
              .getConfig,
              .getAsset,
              .markets:

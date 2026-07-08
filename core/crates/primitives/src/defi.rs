@@ -10,6 +10,7 @@ use crate::{AssetId, Chain};
 pub enum DefiProvider {
     Zerion,
     DeBank,
+    Jupiter,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, AsRefStr, EnumString)]
@@ -35,7 +36,16 @@ pub struct DefiPosition {
     pub protocol_info: DefiProtocol,
     pub name: String,
     pub position_type: DefiPositionType,
+    pub metadata: DefiPositionMetadata,
     pub assets: Vec<DefiPositionAsset>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+pub struct DefiPositionMetadata {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub apy: Option<f64>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]

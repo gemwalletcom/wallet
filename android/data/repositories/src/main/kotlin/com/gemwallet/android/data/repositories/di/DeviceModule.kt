@@ -16,6 +16,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.model.BuildInfo
+import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,6 +39,7 @@ object DeviceModule {
         priceAlertRepository: PriceAlertRepository,
         getCurrentCurrency: GetCurrentCurrency,
         walletsRepository: WalletsRepository,
+        notificationsAvailable: NotificationsAvailable,
     ): DeviceRepository {
         return DeviceRepository(
             context = context,
@@ -46,6 +48,7 @@ object DeviceModule {
             configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
             requestPushToken = buildInfo.requestPushToken,
             platformStore = buildInfo.platformStore,
+            notificationsAvailable = notificationsAvailable,
             versionName = buildInfo.versionName,
             priceAlertRepository = priceAlertRepository,
             getCurrentCurrency = getCurrentCurrency,

@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionType, DefiProtocol, DefiProvider};
+use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 
 use super::client::ZerionClient;
 use super::model::{ZerionFungibleInfo, ZerionPosition, ZerionPositionAttributes, ZerionPositionsResponse};
@@ -25,6 +25,7 @@ pub fn map_positions(response: ZerionPositionsResponse, chain: Chain) -> Result<
             protocol_info,
             name: x.attributes.name,
             position_type,
+            metadata: DefiPositionMetadata { apy: None },
             assets: vec![asset],
         });
 

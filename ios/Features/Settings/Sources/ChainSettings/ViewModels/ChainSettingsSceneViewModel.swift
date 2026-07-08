@@ -48,7 +48,7 @@ public final class ChainSettingsSceneViewModel {
     }
 
     var title: String {
-        Asset(chain).name
+        chain.networkName
     }
 
     var nodesTitle: String {

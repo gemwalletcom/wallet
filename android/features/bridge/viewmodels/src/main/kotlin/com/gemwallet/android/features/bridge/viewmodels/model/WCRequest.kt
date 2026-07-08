@@ -192,7 +192,7 @@ sealed class WCRequest(
     }
 }
 
-private fun WalletConnectResponseType.payload(): String = when (this) {
+internal fun WalletConnectResponseType.payload(): String = when (this) {
     is WalletConnectResponseType.Object -> json
     is WalletConnectResponseType.String -> value
 }

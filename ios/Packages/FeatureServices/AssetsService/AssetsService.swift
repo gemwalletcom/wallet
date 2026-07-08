@@ -29,13 +29,6 @@ public final class AssetsService: Sendable {
         self.assetsProvider = assetsProvider
     }
 
-    /// Used to add new custom assets
-    public func addNewAsset(walletId: WalletId, asset: Asset) throws {
-        try addAssets(assets: [asset.defaultBasic])
-        try addBalanceIfMissing(walletId: walletId, assetId: asset.id)
-        try updateEnabled(walletId: walletId, assetIds: [asset.id], enabled: true)
-    }
-
     public func addAssets(assets: [AssetBasic]) throws {
         try assetStore.add(assets: assets)
     }

@@ -38,6 +38,7 @@ struct WalletNavigationStack: View {
     @Environment(\.assetSearchService) private var assetSearchService
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
+    @Environment(\.walletService) private var walletService
     @Environment(\.observablePreferences) private var preferences
 
     @State private var model: WalletSceneViewModel
@@ -75,7 +76,7 @@ struct WalletNavigationStack: View {
             }
             .onChange(of: model.currentWallet, model.onChangeWallet)
             .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
-            .bindQuery(model.assetsQuery, model.bannersQuery, model.totalFiatQuery)
+            .bindQuery(model.assetsQuery, model.bannersQuery, model.totalFiatQuery, model.collectionsModel.query)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !model.isPresentingSearch {
@@ -130,6 +131,29 @@ struct WalletNavigationStack: View {
                         nftService: nftService,
                         isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                     ),
+                )
+            }
+            .navigationDestination(for: Scenes.Collections.self) { _ in
+                CollectionsSceneNavigationView(
+                    model: CollectionsViewModel(
+                        nftService: nftService,
+                        walletService: walletService,
+                        wallet: model.wallet,
+                    ),
+                )
+            }
+            .navigationDestination(for: Scenes.Collection.self) { scene in
+                CollectionsScene(
+                    model: CollectionViewModel(
+                        wallet: model.wallet,
+                        collectionId: scene.id,
+                        collectionName: scene.name,
+                    ),
+                )
+            }
+            .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
+                CollectionsScene(
+                    model: UnverifiedCollectionsViewModel(wallet: model.wallet),
                 )
             }
             .navigationDestination(for: Scenes.Price.self) {
@@ -274,7 +298,7 @@ extension WalletNavigationStack {
                     nftDestination: navigationState.wallet,
                 )
             } catch {
-                model.isPresentingToastMessage = .error(Localized.Errors.errorOccured)
+                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
             }
         }
     }

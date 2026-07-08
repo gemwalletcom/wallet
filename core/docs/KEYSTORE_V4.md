@@ -1,6 +1,6 @@
 # Gem Keystore v4 Implementation Source of Truth
 
-Last checked against implementation: 2026-06-10.
+Last checked against implementation: 2026-07-04.
 
 This is the short as-built reference for Gem Keystore v4. The long design doc keeps history and rationale; this file records the current implementation contract. The code remains canonical.
 
@@ -11,7 +11,7 @@ Gem Keystore v4 stores one encrypted secret file per controlled wallet. Wallet/a
 ## Core Ownership
 
 - `gem_keystore`: BIP-39 helpers, v4 encrypted file format, v3 WalletCore reader, raw secret storage.
-- `gem_derivation`: wallet id derivation, account derivation, private-key import validation, chain address creation.
+- `gem_derivation`: wallet id derivation, account derivation, private-key import validation, chain address creation, account public keys (`Account.extended_public_key`).
 - `gem_auth`: shared device-auth header format (Ed25519 build + verify), used by both the client and the backend.
 - `gemstone`: UniFFI boundary over `gem_keystore` and `gem_derivation`, plus keystore-internal signing (`GemKeystore.sign`/`sign_auth`, `MessageSigner.sign_with_keystore`) routed over the per-chain `gem_*` signer crates, and the client device-auth wrappers.
 - Mobile apps own wallet name, order, current wallet, account rows, duplicate checks, subscriptions, UI, and secure password storage.
@@ -87,6 +87,18 @@ The encrypted payload is exactly one of:
 - raw private-key bytes
 
 v4 does not store wallet names, app wallet ids, account lists, addresses, public keys, derivation paths, xpubs, or WalletCore `activeAccounts`.
+
+## Account Public Keys
+
+Public keys live in the mobile DB account rows (`Account.extended_public_key`), not in the keystore file. `gem_derivation` populates the field whenever it creates an account (import, create, and chain backfill via `add_accounts`):
+
+- Bitcoin-family chains store the extended public key (xpub/zpub).
+- Cardano stores nothing (no single reusable public key).
+- Every other chain stores the hex-encoded raw public key (secp256k1 or ed25519 per chain).
+
+Consumers read the field from the app DB — e.g. WalletConnect serializes the Sui account public key into `sessionProperties.sui_getAccounts`.
+
+Caveat: account rows created by the pre-v4 WalletCore import only carry Bitcoin-family xpubs (empty otherwise). v3 migration moves the secret file only and never rewrites DB account rows, and chain backfill only adds accounts for missing chains. Rows from old imports therefore keep an empty public key until the user re-imports the wallet — that re-import is the supported remedy when a flow needs the public key (e.g. Sui WalletConnect).
 
 ## Recovery Phrase Generation
 

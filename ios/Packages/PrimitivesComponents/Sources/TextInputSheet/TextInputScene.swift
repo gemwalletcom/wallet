@@ -56,7 +56,7 @@ public struct TextInputScene<ViewModel: TextInputViewModelProtocol>: View {
                 isFocused = true
             }
             .alert(
-                Localized.Errors.errorOccured,
+                Localized.Errors.errorOccurred,
                 isPresented: Binding(
                     get: { model.errorMessage != nil },
                     set: { if !$0 { model.errorMessage = nil } },

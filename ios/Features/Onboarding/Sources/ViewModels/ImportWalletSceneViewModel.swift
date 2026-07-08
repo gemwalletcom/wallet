@@ -49,7 +49,7 @@ final class ImportWalletSceneViewModel {
     var title: String {
         switch type {
         case .multicoin: Localized.Wallet.multicoin
-        case let .chain(chain): Asset(chain).name
+        case let .chain(chain): chain.networkName
         }
     }
 

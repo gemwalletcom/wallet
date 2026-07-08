@@ -1,7 +1,7 @@
 use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use gem_ton::signer::TonSignMessageData;
-use primitives::{Chain, TransferDataOutputType, ValueAccess};
+use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct TonRequestHandler;
@@ -11,6 +11,14 @@ fn extract_host(url: &str) -> String {
 }
 
 impl TonRequestHandler {
+    pub fn parse_request(method: WalletConnectionMethods, chain: Chain, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
+        match method {
+            WalletConnectionMethods::TonSignData => Self::parse_sign_message(chain, params, domain),
+            WalletConnectionMethods::TonSendMessage => Self::parse_send_transaction(chain, params),
+            _ => Err("Method not supported".to_string()),
+        }
+    }
+
     pub fn parse_sign_message(_chain: Chain, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
         let payload = params.at(0)?.clone();
         let from = payload.get_value("from")?.string()?.to_string();

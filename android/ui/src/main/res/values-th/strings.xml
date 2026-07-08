@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">วลีลับไม่ถูกต้อง</string>
   <string name="errors_import_invalid_secret_phrase_word">คำวลีลับไม่ถูกต้อง: %1$s</string>
   <string name="errors_invalid_url">URL ไม่ถูกต้อง</string>
-  <string name="errors_error_occured">เกิดข้อผิดพลาด!</string>
+  <string name="errors_error_occurred">เกิดข้อผิดพลาด!</string>
   <string name="errors_invalid_network_id">รหัสเครือข่ายไม่ถูกต้อง</string>
   <string name="errors_error">เกิดข้อผิดพลาด</string>
   <string name="errors_connections_user_cancelled">ผู้ใช้ยกเลิก</string>

@@ -19,7 +19,7 @@ impl ZerionClient {
 
         Self {
             url,
-            client: reqwest::Client::builder().default_headers(headers).build().unwrap(),
+            client: gem_client::builder().default_headers(headers).build().unwrap(),
         }
     }
 

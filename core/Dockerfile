@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM lukemathwalker/cargo-chef:latest-rust-1.95.0-trixie AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.96.1-trixie AS chef
 WORKDIR /app
 ENV CARGO_INCREMENTAL=0 \
     CARGO_TERM_COLOR=always

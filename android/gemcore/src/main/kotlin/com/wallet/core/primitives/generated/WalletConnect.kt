@@ -9,7 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class WCEthereumTransaction (
-	val chainId: String? = null,
+	val chainId: Long? = null,
 	val from: String,
 	val to: String,
 	val value: String? = null,

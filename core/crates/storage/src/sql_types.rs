@@ -11,10 +11,11 @@ use primitives::rewards::{
 use primitives::scan::AddressType as PrimitiveAddressType;
 use primitives::{
     AssetType as PrimitiveAssetType, Chain, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
-    FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, NotificationType as PrimitiveNotificationType,
-    PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection,
-    PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType,
-    UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
+    FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId,
+    NotificationType as PrimitiveNotificationType, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore,
+    PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, TagVisibility as PrimitiveTagVisibility,
+    TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource,
+    WalletType as PrimitiveWalletType,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -26,8 +27,8 @@ use crate::schema::sql_types::{
     AddressType as AddressTypeSql, AssetType as AssetTypeSql, FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql,
     IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql, Platform as PlatformSql,
     PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql,
-    RewardStatus as RewardStatusSql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql,
-    WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
+    RewardStatus as RewardStatusSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql,
+    UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
@@ -186,6 +187,17 @@ diesel_enum!(
     [DataCenter, Hosting, Isp, Mobile, Business, Education, Government, Unknown]
 );
 
+diesel_enum!(TagVisibility, PrimitiveTagVisibility, TagVisibilitySql, [Public, Internal]);
+
+impl TagVisibility {
+    pub fn is_public(&self) -> bool {
+        match self.0 {
+            PrimitiveTagVisibility::Public => true,
+            PrimitiveTagVisibility::Internal => false,
+        }
+    }
+}
+
 macro_rules! diesel_varchar {
     ($wrapper:ident, $inner:ty) => {
         #[derive(Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow)]
@@ -334,6 +346,7 @@ macro_rules! diesel_varchar_display {
 }
 
 diesel_varchar_display!(PriceId, PrimitivePriceId);
+diesel_varchar_display!(ListIdRow, PrimitiveListId);
 diesel_varchar_display!(WalletIdRow, primitives::WalletId);
 diesel_varchar_display!(NftAssetIdRow, primitives::NFTAssetId);
 diesel_varchar_display!(NftCollectionIdRow, primitives::NFTCollectionId);

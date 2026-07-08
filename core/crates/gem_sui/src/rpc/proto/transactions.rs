@@ -170,6 +170,16 @@ proto_decode!(ExecutedTransaction {
     8 => balance_changes: repeated_message,
 });
 
+impl ExecutedTransaction {
+    pub fn execution_success(&self) -> bool {
+        self.effects.as_ref().is_some_and(TransactionEffects::execution_success)
+    }
+
+    pub fn execution_error(&self) -> Option<String> {
+        self.effects.as_ref()?.execution_error()
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct TransactionEffects {
     pub status: Option<ExecutionStatus>,
@@ -182,6 +192,16 @@ proto_decode!(TransactionEffects {
     6 => gas_used: optional_message,
     8 => gas_object: optional_message,
 });
+
+impl TransactionEffects {
+    pub fn execution_success(&self) -> bool {
+        self.status.as_ref().and_then(|status| status.success).unwrap_or(false)
+    }
+
+    pub fn execution_error(&self) -> Option<String> {
+        self.status.as_ref()?.error.as_ref()?.description.clone()
+    }
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct ExecutionStatus {

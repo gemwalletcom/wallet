@@ -92,7 +92,7 @@ impl WalletConnectCAIP2 {
         Some(ChainAddress::new(Self::get_chain(namespace.to_string(), reference.to_string())?, address.to_string()))
     }
 
-    pub fn resolve_chain(chain_id: Option<String>) -> Result<Chain, String> {
+    pub fn get_chain_from_id(chain_id: Option<String>) -> Result<Chain, String> {
         let chain_id = chain_id.ok_or("Chain ID is required")?;
         if Self::parse_chain_id_parts(&chain_id).is_none() {
             return Err("Invalid chain ID format".to_string());
@@ -132,6 +132,7 @@ mod tests {
     fn test_get_chain() {
         assert_eq!(WalletConnectCAIP2::get_chain("eip155".to_string(), "1".to_string()), Some(Chain::Ethereum));
         assert_eq!(WalletConnectCAIP2::get_chain("eip155".to_string(), "56".to_string()), Some(Chain::SmartChain));
+        assert_eq!(WalletConnectCAIP2::get_chain("eip155".to_string(), "4663".to_string()), Some(Chain::Robinhood));
         assert_eq!(WalletConnectCAIP2::get_chain("solana".to_string(), "ignored".to_string()), Some(Chain::Solana));
         assert_eq!(WalletConnectCAIP2::get_chain("sui".to_string(), "mainnet".to_string()), Some(Chain::Sui));
         assert_eq!(WalletConnectCAIP2::get_chain("ton".to_string(), "-239".to_string()), Some(Chain::Ton));
@@ -140,20 +141,21 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_chain() {
-        assert_eq!(WalletConnectCAIP2::resolve_chain(Some("eip155:1".to_string())), Ok(Chain::Ethereum));
+    fn test_get_chain_from_id() {
+        assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("eip155:1".to_string())), Ok(Chain::Ethereum));
+        assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("eip155:4663".to_string())), Ok(Chain::Robinhood));
         assert_eq!(
-            WalletConnectCAIP2::resolve_chain(Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string())),
+            WalletConnectCAIP2::get_chain_from_id(Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string())),
             Ok(Chain::Solana)
         );
-        assert_eq!(WalletConnectCAIP2::resolve_chain(Some("sui:mainnet".to_string())), Ok(Chain::Sui));
-        assert_eq!(WalletConnectCAIP2::resolve_chain(Some("ton:-239".to_string())), Ok(Chain::Ton));
-        assert_eq!(WalletConnectCAIP2::resolve_chain(Some("tron:0x2b6653dc".to_string())), Ok(Chain::Tron));
-        assert!(WalletConnectCAIP2::resolve_chain(Some("bip122:000000000019d6689c085ae165831e93".to_string())).is_err());
-        assert!(WalletConnectCAIP2::resolve_chain(Some("invalid".to_string())).is_err());
-        assert!(WalletConnectCAIP2::resolve_chain(Some("eip155:1:extra".to_string())).is_err());
-        assert!(WalletConnectCAIP2::resolve_chain(None).is_err());
-        assert!(WalletConnectCAIP2::resolve_chain(Some("unknown:chain".to_string())).is_err());
+        assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("sui:mainnet".to_string())), Ok(Chain::Sui));
+        assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("ton:-239".to_string())), Ok(Chain::Ton));
+        assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("tron:0x2b6653dc".to_string())), Ok(Chain::Tron));
+        assert!(WalletConnectCAIP2::get_chain_from_id(Some("bip122:000000000019d6689c085ae165831e93".to_string())).is_err());
+        assert!(WalletConnectCAIP2::get_chain_from_id(Some("invalid".to_string())).is_err());
+        assert!(WalletConnectCAIP2::get_chain_from_id(Some("eip155:1:extra".to_string())).is_err());
+        assert!(WalletConnectCAIP2::get_chain_from_id(None).is_err());
+        assert!(WalletConnectCAIP2::get_chain_from_id(Some("unknown:chain".to_string())).is_err());
     }
 
     #[test]

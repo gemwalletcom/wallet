@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Frasa Rahasia Tidak Valid</string>
   <string name="errors_import_invalid_secret_phrase_word">Kata Frasa Rahasia Tidak Valid: %1$s</string>
   <string name="errors_invalid_url">URL Tidak Valid</string>
-  <string name="errors_error_occured">Terjadi kesalahan!</string>
+  <string name="errors_error_occurred">Terjadi kesalahan!</string>
   <string name="errors_invalid_network_id">ID Jaringan Tidak Valid</string>
   <string name="errors_error">Kesalahan</string>
   <string name="errors_connections_user_cancelled">Pengguna dibatalkan</string>

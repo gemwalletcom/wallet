@@ -1,4 +1,4 @@
-name: iOS Unit Tests
+name: iOS CI
 
 on:
   push:
@@ -30,7 +30,6 @@ env:
 
 jobs:
   unit_test:
-    name: Build and Test iPhone simulator
     runs-on: macos-26
 
     steps:

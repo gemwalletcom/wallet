@@ -3,7 +3,7 @@ use gem_wallet_connect::{
     WalletConnectTransaction as WcWalletConnectTransaction, WalletConnectTransactionType as WcWalletConnectTransactionType, decode_sign_message, validate_send_transaction,
     validate_sign_message,
 };
-use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType, hex};
+use primitives::{Chain, SimulationWarning, hex};
 
 use crate::message::sign_type::{SignDigestType, SignMessage};
 
@@ -30,18 +30,18 @@ pub(super) fn sign_message_validation_warnings(chain: Chain, sign_type: &WcSignD
         session_domain,
     };
 
-    validate_sign_message(&input).err().into_iter().map(|error| validation_warning(&error)).collect()
+    validate_sign_message(&input).err().into_iter().map(SimulationWarning::validation_error).collect()
 }
 
 pub(super) fn send_transaction_validation_warnings(transaction_type: &WcWalletConnectTransactionType, data: &str) -> Vec<SimulationWarning> {
     validate_send_transaction(transaction_type, data)
         .err()
         .into_iter()
-        .map(|error| validation_warning(&error))
+        .map(SimulationWarning::validation_error)
         .collect()
 }
 
-fn decode_ethereum_transaction_data(data: &str) -> Result<WcEthereumTransactionData, String> {
+pub(super) fn decode_ethereum_transaction(data: &str) -> Result<WcEthereumTransactionData, String> {
     let transaction = WalletConnectRequestHandler::decode_send_transaction(WcWalletConnectTransactionType::Ethereum, data.to_string())?;
     match transaction {
         WcWalletConnectTransaction::Ethereum { data } => Ok(data),
@@ -49,20 +49,38 @@ fn decode_ethereum_transaction_data(data: &str) -> Result<WcEthereumTransactionD
     }
 }
 
-pub(super) fn decode_ethereum_calldata(data: &str) -> Option<(WcEthereumTransactionData, Vec<u8>)> {
-    let transaction = decode_ethereum_transaction_data(data).ok()?;
-    let calldata = transaction.data.as_deref()?;
-    let bytes = hex::decode_hex(calldata).ok()?;
-    Some((transaction, bytes))
+pub(super) fn decode_ethereum_calldata(transaction: &WcEthereumTransactionData) -> Vec<u8> {
+    transaction.data.as_deref().and_then(|calldata| hex::decode_hex(calldata).ok()).unwrap_or_default()
 }
 
-pub(super) fn decode_solana_transaction(transaction_type: &WcWalletConnectTransactionType, data: &str) -> Option<String> {
-    match WalletConnectRequestHandler::decode_send_transaction(transaction_type.clone(), data.to_string()).ok()? {
-        WcWalletConnectTransaction::Solana { data, .. } => Some(data.transaction),
-        _ => None,
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn decode_ethereum_transaction_with_calldata_decodes_bytes() {
+        let data = serde_json::json!({
+            "from": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+            "to": "0x1111111111111111111111111111111111111111",
+            "data": "0xa9059cbb",
+        })
+        .to_string();
+
+        let transaction = decode_ethereum_transaction(&data).unwrap();
+
+        assert_eq!(decode_ethereum_calldata(&transaction), vec![0xa9, 0x05, 0x9c, 0xbb]);
     }
-}
 
-pub(super) fn validation_warning(error: &str) -> SimulationWarning {
-    SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some(error.to_string()))
+    #[test]
+    fn decode_ethereum_transaction_without_calldata_decodes_empty_bytes() {
+        let data = serde_json::json!({
+            "from": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+            "to": "0x1111111111111111111111111111111111111111",
+            "value": "0x0",
+        })
+        .to_string();
+
+        let transaction = decode_ethereum_transaction(&data).unwrap();
+
+        assert!(decode_ethereum_calldata(&transaction).is_empty());
+    }
 }

@@ -28,6 +28,11 @@ enum class DefiPositionType(val string: String) {
 }
 
 @Serializable
+data class DefiPositionMetadata (
+	val apy: Double? = null
+)
+
+@Serializable
 data class DefiPositionAsset (
 	val assetId: AssetId,
 	val value: String
@@ -40,5 +45,7 @@ data class DefiPosition (
 	val protocolInfo: DefiProtocol,
 	val name: String,
 	val positionType: DefiPositionType,
+	val metadata: DefiPositionMetadata,
 	val assets: List<DefiPositionAsset>
 )
+

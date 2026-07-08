@@ -12,19 +12,12 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.features.wallets.presents.views.components.WalletsActions
 import com.gemwallet.android.features.wallets.presents.views.components.wallets
-import com.wallet.core.primitives.WalletId
 
 @Composable
 internal fun WalletsScene(
     pinnedWallets: List<WalletDataAggregate>,
     unpinnedWallets: List<WalletDataAggregate>,
-    onCreate: () -> Unit,
-    onImport: () -> Unit,
-    onEdit: (WalletId) -> Unit,
-    onSelectWallet: (WalletId) -> Unit,
-    onDeleteWallet: (WalletId) -> Unit,
-    onTogglePin: (WalletId) -> Unit,
-    onCancel: () -> Unit,
+    onAction: (WalletsAction) -> Unit,
 ) {
     val longPressedWallet = remember {
         mutableStateOf("")
@@ -32,28 +25,31 @@ internal fun WalletsScene(
 
     Scene(
         title = stringResource(id = R.string.wallets_title),
-        onClose = onCancel,
+        onClose = { onAction(WalletsAction.Cancel) },
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                WalletsActions(onCreate = onCreate, onImport = onImport)
+                WalletsActions(
+                    onCreate = { onAction(WalletsAction.Create) },
+                    onImport = { onAction(WalletsAction.Import) },
+                )
             }
             wallets(
                 wallets = pinnedWallets,
                 longPressedWallet = longPressedWallet,
-                onEdit = onEdit,
-                onSelectWallet = onSelectWallet,
-                onDeleteWallet = onDeleteWallet,
-                onTogglePin = onTogglePin,
+                onEdit = { onAction(WalletsAction.Edit(it)) },
+                onSelectWallet = { onAction(WalletsAction.Select(it)) },
+                onDeleteWallet = { onAction(WalletsAction.Delete(it)) },
+                onTogglePin = { onAction(WalletsAction.TogglePin(it)) },
                 isPinned = true,
             )
             wallets(
                 wallets = unpinnedWallets,
                 longPressedWallet = longPressedWallet,
-                onEdit = onEdit,
-                onSelectWallet = onSelectWallet,
-                onDeleteWallet = onDeleteWallet,
-                onTogglePin = onTogglePin,
+                onEdit = { onAction(WalletsAction.Edit(it)) },
+                onSelectWallet = { onAction(WalletsAction.Select(it)) },
+                onDeleteWallet = { onAction(WalletsAction.Delete(it)) },
+                onTogglePin = { onAction(WalletsAction.TogglePin(it)) },
             )
         }
     }

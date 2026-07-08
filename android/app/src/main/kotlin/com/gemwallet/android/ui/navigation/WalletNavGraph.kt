@@ -169,6 +169,7 @@ fun WalletNavGraph(
                 assetIdAction = navigator::openNftAsset,
                 onRecipient = navigator::openNftRecipient,
                 onReceive = navigator::openReceiveNftChains,
+                onUnverified = navigator::openNftUnverifiedCollections,
             )
 
             fiatScreen(

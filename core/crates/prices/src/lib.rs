@@ -28,9 +28,9 @@ impl PriceProviderEndpoints {
     pub fn provider(&self, provider: PriceProvider) -> Arc<dyn PriceAssetsProvider> {
         match provider {
             PriceProvider::Coingecko => Arc::new(CoinGeckoPricesProvider::new(&self.coingecko_api_key)),
-            PriceProvider::Pyth => Arc::new(PythProvider::new(ReqwestClient::new(self.pyth_url.clone(), reqwest::Client::new()))),
-            PriceProvider::Jupiter => Arc::new(JupiterProvider::new(ReqwestClient::new(self.jupiter_url.clone(), reqwest::Client::new()))),
-            PriceProvider::DefiLlama => Arc::new(DefiLlamaProvider::new(ReqwestClient::new(self.defillama_url.clone(), reqwest::Client::new()))),
+            PriceProvider::Pyth => Arc::new(PythProvider::new(ReqwestClient::new(self.pyth_url.clone(), gem_client::reqwest_client()))),
+            PriceProvider::Jupiter => Arc::new(JupiterProvider::new(ReqwestClient::new(self.jupiter_url.clone(), gem_client::reqwest_client()))),
+            PriceProvider::DefiLlama => Arc::new(DefiLlamaProvider::new(ReqwestClient::new(self.defillama_url.clone(), gem_client::reqwest_client()))),
         }
     }
 }

@@ -35,6 +35,7 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
     Sui(
         Chain.Sui.string,
         listOf(
+            WalletConnectionMethods.SuiGetAccounts,
             WalletConnectionMethods.SuiSignPersonalMessage,
             WalletConnectionMethods.SuiSignTransaction,
             WalletConnectionMethods.SuiSignAndExecuteTransaction,

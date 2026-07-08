@@ -24,17 +24,19 @@ fun DevelopScene(
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
     val deviceId by viewModel.deviceId.collectAsState()
-    val pushToken by viewModel.pushToken.collectAsState()
+    val notificationsAvailable = viewModel.notificationsAvailable
     Scene(
         title = stringResource(id = R.string.settings_developer),
         onClose = onCancel,
     ) {
         LazyColumn {
-            item {
-                LinkItem(
-                    title = "In-App Notifications",
-                    onClick = onInAppNotifications,
-                )
+            if (notificationsAvailable) {
+                item {
+                    LinkItem(
+                        title = "In-App Notifications",
+                        onClick = onInAppNotifications,
+                    )
+                }
             }
             item {
                 PropertyItem(
@@ -48,8 +50,11 @@ fun DevelopScene(
                 PropertyItem("Device Id", data = deviceId.ifEmpty { "-" }) {
                     clipboardManager.setPlainText(context, deviceId)
                 }
-                PropertyItem("Push token", data = pushToken.ifEmpty { "-" }) {
-                    clipboardManager.setPlainText(context, pushToken)
+                if (notificationsAvailable) {
+                    val pushToken by viewModel.pushToken.collectAsState()
+                    PropertyItem("Push token", data = pushToken.ifEmpty { "-" }) {
+                        clipboardManager.setPlainText(context, pushToken)
+                    }
                 }
                 PropertyItem("Store", data = viewModel.platformStore.string) {
                     clipboardManager.setPlainText(context, viewModel.platformStore.string)

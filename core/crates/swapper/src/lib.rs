@@ -6,6 +6,7 @@ pub mod cross_chain;
 mod eth_address;
 mod fee_token;
 pub mod fees;
+mod native_asset;
 mod swapper_trait;
 
 #[cfg(test)]

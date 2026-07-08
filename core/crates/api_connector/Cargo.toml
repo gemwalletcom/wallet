@@ -8,6 +8,7 @@ serde = { workspace = true }
 reqwest = { workspace = true }
 chrono = { workspace = true }
 primitives = { path = "../primitives" }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
 
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }

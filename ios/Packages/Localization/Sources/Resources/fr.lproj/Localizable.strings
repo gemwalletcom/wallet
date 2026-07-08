@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "Phrase secrète invalide";
 "errors.import.invalid_secret_phrase_word" = "Mot de phrase secrète non valide : %@";
 "errors.invalid_url" = "URL invalide";
-"errors.error_occured" = "Une erreur s'est produite !";
+"errors.error_occurred" = "Une erreur s'est produite !";
 "errors.invalid_network_id" = "ID de réseau invalide";
 "errors.error" = "Erreur";
 "errors.connections.user_cancelled" = "Utilisateur annulé";

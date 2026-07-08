@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["dep:async-trait", "dep:chain_traits"]
+rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures"]
 reqwest = ["gem_jsonrpc/reqwest", "gem_client/reqwest", "dep:reqwest"]
 signer = ["dep:alloy-signer-local", "dep:alloy-network", "dep:alloy-consensus"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
@@ -22,6 +22,7 @@ gem_bsc = { path = "../gem_bsc" }
 signer = { path = "../signer" }
 
 hex = { workspace = true }
+futures = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true, features = ["eip712-serde"] }
 alloy-dyn-abi = { workspace = true, features = ["eip712"] }

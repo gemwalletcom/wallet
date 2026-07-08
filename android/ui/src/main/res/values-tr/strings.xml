@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Geçersiz Gizli İfade</string>
   <string name="errors_import_invalid_secret_phrase_word">Geçersiz Gizli İfade kelimesi: %1$s</string>
   <string name="errors_invalid_url">Geçersiz URL</string>
-  <string name="errors_error_occured">Bir hata oluştu!</string>
+  <string name="errors_error_occurred">Bir hata oluştu!</string>
   <string name="errors_invalid_network_id">Geçersiz Ağ Kimliği</string>
   <string name="errors_error">Hata</string>
   <string name="errors_connections_user_cancelled">Kullanıcı iptal etti</string>

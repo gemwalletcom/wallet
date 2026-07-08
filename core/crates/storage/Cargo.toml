@@ -15,5 +15,8 @@ diesel_migrations = { version = "2.3.2" }
 
 primitives = { path = "../primitives" }
 
+[features]
+testkit = ["primitives/testkit"]
+
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }

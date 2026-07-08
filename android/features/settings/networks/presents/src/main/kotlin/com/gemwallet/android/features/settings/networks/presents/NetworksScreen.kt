@@ -48,17 +48,25 @@ fun NetworksScreen(
                 chains = state.chains,
                 listState = selectListState,
                 chainFilter = viewModel.chainFilter,
-                onStatus = { showStatus = true },
-                onSelect = viewModel::onSelectedChain,
-                onCancel = onCancel
+                onAction = { action ->
+                    when (action) {
+                        NetworksListAction.ShowStatus -> showStatus = true
+                        is NetworksListAction.Select -> viewModel.onSelectedChain(action.chain)
+                        NetworksListAction.Cancel -> onCancel()
+                    }
+                },
             )
             NetworksScreenState.Network -> NetworkScene(
                 state = state,
-                onRefresh = { viewModel.refresh() },
-                onSelectNode = viewModel::onSelectNode,
-                onDeleteNode = viewModel::onDeleteNode,
-                onSelectBlockExplorer = viewModel::onSelectBlockExplorer,
-                onCancel = viewModel::onSelectChain
+                onAction = { action ->
+                    when (action) {
+                        NetworkAction.Refresh -> viewModel.refresh()
+                        NetworkAction.Cancel -> viewModel.onSelectChain()
+                        is NetworkAction.SelectNode -> viewModel.onSelectNode(action.node)
+                        is NetworkAction.DeleteNode -> viewModel.onDeleteNode(action.node)
+                        is NetworkAction.SelectBlockExplorer -> viewModel.onSelectBlockExplorer(action.name)
+                    }
+                },
             )
             NetworksScreenState.Status -> ServiceStatusScene(
                 onCancel = { showStatus = false },

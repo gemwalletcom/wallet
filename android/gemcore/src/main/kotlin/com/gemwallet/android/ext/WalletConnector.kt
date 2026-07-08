@@ -1,5 +1,6 @@
 package com.gemwallet.android.ext
 
+import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
 import uniffi.gemstone.walletConnectAppShortName
@@ -9,6 +10,13 @@ fun WalletConnectionSessionAppMetadata.toGem() = GemWalletConnectionSessionAppMe
     description = description,
     url = url,
     icon = icon,
+)
+
+fun Account.toGem() = uniffi.gemstone.Account(
+    chain = chain.string,
+    address = address,
+    derivationPath = derivationPath,
+    extendedPublicKey = extendedPublicKey,
 )
 
 val WalletConnectionSessionAppMetadata.shortName: String

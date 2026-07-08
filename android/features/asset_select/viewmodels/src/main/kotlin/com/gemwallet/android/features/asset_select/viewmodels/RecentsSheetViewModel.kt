@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
+import com.gemwallet.android.ext.filter
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
@@ -71,9 +72,13 @@ class RecentsSheetViewModel @Inject constructor(
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {
         val filtered = if (searchText.isBlank()) items
-        else items.filter {
-            it.asset.name.contains(searchText, ignoreCase = true) ||
-                it.asset.symbol.contains(searchText, ignoreCase = true)
+        else {
+            val chains = items.map { it.asset.id.chain }.filter(searchText).toSet()
+            items.filter {
+                it.asset.name.contains(searchText, ignoreCase = true) ||
+                    it.asset.symbol.contains(searchText, ignoreCase = true) ||
+                    chains.contains(it.asset.id.chain)
+            }
         }
         return RecentsSheetUIModel(
             items = filtered.toImmutableList(),

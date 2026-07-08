@@ -7,6 +7,7 @@ CREATE TYPE api_client_scope AS ENUM (
     'devices_subscriptions_read',
     'devices_transactions_read',
     'fiat_quotes_read',
+    'fiat_transactions_read',
     'webhooks_transactions',
     'webhooks_support',
     'webhooks_fiat'

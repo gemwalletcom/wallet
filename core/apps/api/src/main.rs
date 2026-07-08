@@ -72,6 +72,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 prices::get_assets_prices,
                 prices::get_charts,
                 prices::get_fiat_rates,
+                devices::get_fiat_assets,
                 webhooks::create_webhook,
                 webhooks::create_webhook_with_header,
                 config::get_config,
@@ -147,10 +148,12 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::devices::get_device,
                 admin::devices::get_device_subscriptions,
                 admin::devices::get_device_transactions,
+                admin::devices::get_device_fiat_transactions,
                 admin::assets::add_asset,
                 admin::transactions::get_transactions_by_hash,
                 admin::transactions::add_transaction,
                 admin::prices::add_price,
+                admin::lists::add_list,
                 admin::nft::update_nft_asset,
                 admin::nft::update_nft_collection,
                 admin::fiat::get_fiat_quotes,
@@ -240,7 +243,12 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
     );
     let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());
     let nft_provider_client = NFTProviderClient::new(nft_config);
-    let defi_config = DefiProviderConfig::new(settings.defi.zerion.url.clone(), settings.defi.zerion.key.secret.clone());
+    let defi_config = DefiProviderConfig::new(
+        settings.defi.zerion.url.clone(),
+        settings.defi.zerion.key.secret.clone(),
+        settings.defi.jupiter.url.clone(),
+        settings.defi.jupiter.key.secret.clone(),
+    );
     let defi_client = DefiClient::from_config(database.clone(), defi_config.clone());
     let defi_provider_client = DefiProviderClient::new(defi_config);
     let auth_client = Arc::new(AuthClient::new(cacher_client.clone()));

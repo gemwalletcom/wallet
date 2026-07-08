@@ -141,6 +141,23 @@ struct AssetsRequestTests {
         }
     }
 
+    @Test func searchNativeAssetByChainDoesNotMatchChainTokens() throws {
+        let db = DB.mockAssets(assets: [
+            .mock(asset: .mock(id: AssetId(chain: .ton), name: "Gram", symbol: "GRAM", decimals: 9, type: .native)),
+            .mock(asset: .mock(id: AssetId(chain: .ton, tokenId: "abc"), name: "Tether", symbol: "USDT", decimals: 6, type: .jetton)),
+            .mock(asset: .mock(id: AssetId(chain: .base), name: "Base ETH", symbol: "ETH", decimals: 18, type: .native)),
+            .mock(asset: .mock(id: AssetId(chain: .base, tokenId: "0xtoken"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)),
+        ])
+
+        try db.dbQueue.read { db in
+            let ton = try AssetsRequest.mock(searchBy: "Ton").fetch(db)
+            let base = try AssetsRequest.mock(searchBy: "Base").fetch(db)
+
+            #expect(ton.map(\.asset.id) == [AssetId(chain: .ton)])
+            #expect(base.map(\.asset.id) == [AssetId(chain: .base)])
+        }
+    }
+
     @Test func order() throws {
         let db = DB.mockAssets()
         let priceStore = PriceStore(db: db)

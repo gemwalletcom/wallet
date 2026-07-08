@@ -29,7 +29,6 @@ import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
-import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
@@ -46,21 +45,27 @@ fun RequestScene(
     verifyContext: WalletConnectVerifyContext,
     onBuy: AssetIdAction,
     onCancel: () -> Unit,
+    onError: (String) -> Unit,
 ) {
     val viewModel: WCRequestViewModel = hiltViewModel()
     val context = LocalContext.current
 
     DisposableEffect(request.topic, request.request.id) {
-        viewModel.onRequest(request, verifyContext) { error ->
-            when (error) {
-                BridgeRequestError.MaliciousSession -> Toast.makeText(
-                    context,
-                    R.string.errors_connections_malicious_origin,
-                    Toast.LENGTH_LONG
-                ).show()
-                else -> Unit
-            }
-        }
+        viewModel.onRequest(
+            sessionRequest = request,
+            verifyContext = verifyContext,
+            onNotify = { error ->
+                when (error) {
+                    BridgeRequestError.MaliciousSession -> Toast.makeText(
+                        context,
+                        R.string.errors_connections_malicious_origin,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    else -> Unit
+                }
+            },
+            onError = onError,
+        )
 
         onDispose { viewModel.reset() }
     }
@@ -73,26 +78,19 @@ fun RequestScene(
             onCancel = viewModel::onReject,
             closeIcon = true,
         )
-        is RequestSceneState.Error -> FatalStateScene(
-            title = stringResource(id = R.string.wallet_connect_title),
-            message = (sceneState as RequestSceneState.Error).message.ifBlank {
-                stringResource(id = R.string.errors_unknown_try_again)
-            },
-            onCancel = viewModel::onReject
-        )
         is RequestSceneState.Content -> (sceneState as RequestSceneState.Content).let { sceneState ->
             val request = sceneState.request
             when (request) {
                 is WCRequest.SignMessage -> SignMessageScene(
                     state = sceneState,
                     request = request,
-                    onApprove = viewModel::onSign,
+                    onApprove = { viewModel.onSign(onError) },
                     onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
                     params = request.confirmParams,
                     simulationResult = request.simulation,
-                    finishAction = { hash -> viewModel.onTransactionResult(hash) },
+                    finishAction = { hash -> viewModel.onTransactionResult(hash, onError) },
                     onBuy = onBuy,
                     cancelAction = viewModel::onReject,
                     handleSystemBack = true,

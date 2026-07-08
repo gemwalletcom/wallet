@@ -117,7 +117,7 @@ extension TransactionsNavigationStack {
                     nftDestination: navigationState.activity,
                 )
             } catch {
-                model.isPresentingToastMessage = .error(Localized.Errors.errorOccured)
+                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
             }
         }
     }

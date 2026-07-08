@@ -170,7 +170,7 @@
   <string name="errors_import_invalid_secret_phrase">Ugyldig hemmelig sætning</string>
   <string name="errors_import_invalid_secret_phrase_word">Ugyldigt ord i hemmelig sætning: %1$s</string>
   <string name="errors_invalid_url">Ugyldig URL</string>
-  <string name="errors_error_occured">Der opstod en fejl!</string>
+  <string name="errors_error_occurred">Der opstod en fejl!</string>
   <string name="errors_invalid_network_id">Ugyldigt netværks-id</string>
   <string name="errors_error">Fejl</string>
   <string name="errors_connections_user_cancelled">Bruger annulleret</string>

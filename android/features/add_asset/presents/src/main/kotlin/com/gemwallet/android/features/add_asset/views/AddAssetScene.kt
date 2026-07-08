@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +29,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -54,17 +54,15 @@ import com.wallet.core.primitives.BlockExplorerLink
 import uniffi.gemstone.DocsUrl
 
 @Composable
-fun AddAssetScene(
+internal fun AddAssetScene(
     searchState: TokenSearchState,
     addressState: MutableState<String>,
     network: Asset,
     token: Asset?,
     explorerLink: BlockExplorerLink?,
     isLoading: Boolean,
-    onScan: () -> Unit,
-    onAddAsset: () -> Unit,
-    onChainSelect: (() -> Unit)?,
-    onCancel: () -> Unit,
+    canSelectChain: Boolean,
+    onAction: (AddAssetAction) -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
@@ -72,28 +70,28 @@ fun AddAssetScene(
     Scene(
         title = stringResource(id = R.string.wallet_add_token_title),
         actions = {
-            IconButton(onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.AddCustomToken)) }) {
-                Icon(AppIcons.InfoOutlined, "")
-            }
+            DocsInfoButton(AppUrl.docs(DocsUrl.AddCustomToken))
         },
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
                 enabled = searchState is TokenSearchState.Idle && token != null,
                 loading = isLoading,
-                onClick = onAddAsset,
+                onClick = { onAction(AddAssetAction.Add) },
             )
         },
-        onClose = onCancel,
+        onClose = { onAction(AddAssetAction.Cancel) },
     ) {
         SubheaderItem(R.string.transfer_network)
         ChainItem(
             modifier = Modifier.height(64.dp),
             title = network.name,
             icon = network.chain,
-            onClick = onChainSelect,
+            onClick = if (canSelectChain) {
+                { onAction(AddAssetAction.SelectChain) }
+            } else null,
             listPosition = ListPosition.Single,
-            trailing = if (onChainSelect != null) {
+            trailing = if (canSelectChain) {
                 { DataBadgeChevron() }
             } else null
         )
@@ -106,7 +104,7 @@ fun AddAssetScene(
                 onValueChange = { input, _ ->
                     addressState.value = input
                 },
-                onQrScanner = onScan,
+                onQrScanner = { onAction(AddAssetAction.Scan) },
             )
         }
         if (searchState is TokenSearchState.Loading) {
@@ -124,7 +122,7 @@ fun AddAssetScene(
                     Spacer16()
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.errors_error_occured),
+                            text = stringResource(R.string.errors_error_occurred),
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(

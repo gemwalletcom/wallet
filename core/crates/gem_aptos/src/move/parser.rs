@@ -10,6 +10,7 @@ use super::values::MoveValue;
 
 const OPTION_MODULE: &str = "option";
 const OPTION_STRUCT: &str = "Option";
+const MAX_TYPE_TAG_DEPTH: usize = 64;
 
 #[derive(Deserialize)]
 #[serde(untagged)]
@@ -40,6 +41,14 @@ pub(crate) fn parse_function_id(function_id: &str) -> Result<(ModuleId, String),
 }
 
 pub(crate) fn parse_type_tag(value: &str) -> Result<TypeTag, SignerError> {
+    parse_type_tag_at_depth(value, 0)
+}
+
+fn parse_type_tag_at_depth(value: &str, depth: usize) -> Result<TypeTag, SignerError> {
+    if depth > MAX_TYPE_TAG_DEPTH {
+        return Err(SignerError::InvalidInput("Aptos type tag nesting too deep".to_string()));
+    }
+
     let trimmed = value.trim();
     match trimmed {
         "bool" => Ok(TypeTag::Bool),
@@ -53,9 +62,9 @@ pub(crate) fn parse_type_tag(value: &str) -> Result<TypeTag, SignerError> {
         "signer" | "&signer" => Ok(TypeTag::Signer),
         _ if trimmed.starts_with("vector<") && trimmed.ends_with('>') => {
             let inner = &trimmed["vector<".len()..trimmed.len() - 1];
-            Ok(TypeTag::Vector(Box::new(parse_type_tag(inner)?)))
+            Ok(TypeTag::Vector(Box::new(parse_type_tag_at_depth(inner, depth + 1)?)))
         }
-        _ => parse_struct_tag(trimmed).map(|tag| TypeTag::Struct(Box::new(tag))),
+        _ => parse_struct_tag_at_depth(trimmed, depth).map(|tag| TypeTag::Struct(Box::new(tag))),
     }
 }
 
@@ -68,7 +77,7 @@ pub(crate) fn encode_argument(value: &Value, arg_type: &TypeTag) -> Result<Vec<u
     bcs::to_bytes(&move_value).map_err(|err| SignerError::InvalidInput(format!("Failed to encode Aptos argument: {err}")))
 }
 
-fn parse_struct_tag(value: &str) -> Result<StructTag, SignerError> {
+fn parse_struct_tag_at_depth(value: &str, depth: usize) -> Result<StructTag, SignerError> {
     let (base, args) = if let Some(index) = find_top_level_char(value, '<') {
         if !value.ends_with('>') {
             return Err(SignerError::InvalidInput("Invalid Aptos struct tag".to_string()));
@@ -87,7 +96,10 @@ fn parse_struct_tag(value: &str) -> Result<StructTag, SignerError> {
     let module = parts[1].to_string();
     let name = parts[2].to_string();
     let type_args = if let Some(args) = args {
-        split_type_args(args)?.into_iter().map(|arg| parse_type_tag(&arg)).collect::<Result<Vec<_>, _>>()?
+        split_type_args(args)?
+            .into_iter()
+            .map(|arg| parse_type_tag_at_depth(&arg, depth + 1))
+            .collect::<Result<Vec<_>, _>>()?
     } else {
         Vec::new()
     };
@@ -356,5 +368,14 @@ mod tests {
             }
             _ => panic!("Expected vector"),
         }
+    }
+
+    #[test]
+    fn parse_type_tag_rejects_excessive_nesting() {
+        let supported = format!("{}u8{}", "vector<".repeat(MAX_TYPE_TAG_DEPTH), ">".repeat(MAX_TYPE_TAG_DEPTH));
+        let nested = format!("{}u8{}", "vector<".repeat(MAX_TYPE_TAG_DEPTH + 1), ">".repeat(MAX_TYPE_TAG_DEPTH + 1));
+
+        assert!(parse_type_tag(&supported).is_ok());
+        assert_eq!(parse_type_tag(&nested).unwrap_err().to_string(), "Invalid input: Aptos type tag nesting too deep");
     }
 }

@@ -35,7 +35,7 @@ public final class AddAssetSceneViewModel {
     }
 
     var errorTitle: String {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 
     var actionButtonTitle: String {

@@ -12,7 +12,7 @@ public extension StateEmptyView where Content == EmptyView {
 
     static func error(_ error: Error) -> StateEmptyView<EmptyView> {
         StateEmptyView(
-            title: Localized.Errors.errorOccured,
+            title: Localized.Errors.errorOccurred,
             description: error.localizedDescription,
             image: Images.ErrorConent.error,
         )

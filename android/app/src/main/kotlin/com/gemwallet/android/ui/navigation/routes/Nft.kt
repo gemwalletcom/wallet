@@ -18,6 +18,9 @@ import kotlinx.serialization.Serializable
 const val nftRoute = "nft"
 
 @Serializable
+data object NftListRoute : NavKey
+
+@Serializable
 data class NftCollectionRoute(val nftCollectionId: String) : NavKey
 
 @Serializable
@@ -30,9 +33,20 @@ fun EntryProviderScope<NavKey>.nftCollection(
     cancelAction: CancelAction,
     onRecipient: (AssetId, NFTAssetId) -> Unit,
     onReceive: () -> Unit,
+    onUnverified: () -> Unit,
     collectionIdAction: NftCollectionIdAction,
     assetIdAction: NftAssetIdAction,
 ) {
+    entry<NftListRoute> {
+        NftListNavScreen(
+            cancelAction = cancelAction,
+            collectionAction = collectionIdAction,
+            assetAction = assetIdAction,
+            onReceive = onReceive,
+            onUnverifiedClick = onUnverified,
+        )
+    }
+
     entry<NftCollectionRoute>(
         metadata = { key -> routeArguments(RouteArgument.NftCollectionId to key.nftCollectionId) },
     ) {

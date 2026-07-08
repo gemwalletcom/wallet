@@ -29,9 +29,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.create_wallet.viewmodels.CreateWalletViewModel
+import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
+import uniffi.gemstone.DocsUrl
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.setPlainText
@@ -50,6 +53,7 @@ fun CreateWalletScreen(
     onCreated: (walletId: WalletId?) -> Unit,
 ) {
     DisableScreenShooting()
+    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
 
     val viewModel: CreateWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

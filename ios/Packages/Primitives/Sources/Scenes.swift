@@ -127,6 +127,10 @@ public enum Scenes {
         }
     }
 
+    public struct Collections: Hashable, Codable, Sendable {
+        public init() {}
+    }
+
     public struct Collection: Hashable, Codable, Sendable {
         public let id: String
         public let name: String

@@ -193,7 +193,7 @@ mod tests {
     fn test_defi_supported() {
         assert!(Chain::Ethereum.is_defi_supported());
         assert!(Chain::Base.is_defi_supported());
-        assert!(!Chain::Solana.is_defi_supported());
+        assert!(Chain::Solana.is_defi_supported());
         assert!(!Chain::Bitcoin.is_defi_supported());
     }
 

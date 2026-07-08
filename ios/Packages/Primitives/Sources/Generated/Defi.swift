@@ -22,6 +22,14 @@ public enum DefiPositionType: String, Codable, CaseIterable, Equatable, Hashable
 	case other
 }
 
+public struct DefiPositionMetadata: Codable, Equatable, Hashable, Sendable {
+	public let apy: Double?
+
+	public init(apy: Double?) {
+		self.apy = apy
+	}
+}
+
 public struct DefiPositionAsset: Codable, Equatable, Hashable, Sendable {
 	public let assetId: AssetId
 	public let value: String
@@ -38,14 +46,16 @@ public struct DefiPosition: Codable, Equatable, Hashable, Identifiable, Sendable
 	public let protocolInfo: DefiProtocol
 	public let name: String
 	public let positionType: DefiPositionType
+	public let metadata: DefiPositionMetadata
 	public let assets: [DefiPositionAsset]
 
-	public init(id: String, chain: Chain, protocolInfo: DefiProtocol, name: String, positionType: DefiPositionType, assets: [DefiPositionAsset]) {
+	public init(id: String, chain: Chain, protocolInfo: DefiProtocol, name: String, positionType: DefiPositionType, metadata: DefiPositionMetadata, assets: [DefiPositionAsset]) {
 		self.id = id
 		self.chain = chain
 		self.protocolInfo = protocolInfo
 		self.name = name
 		self.positionType = positionType
+		self.metadata = metadata
 		self.assets = assets
 	}
 }

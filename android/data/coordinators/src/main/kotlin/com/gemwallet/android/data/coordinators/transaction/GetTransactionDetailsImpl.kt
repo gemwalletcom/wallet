@@ -229,21 +229,21 @@ class TransactionDetailsAggregateImpl(
         TransactionType.PerpetualModifyPosition,
         TransactionType.StakeWithdraw -> null
         TransactionType.TokenApproval -> destinationAddress { address, name, explorerLink ->
-            TransactionDetailsValue.Destination.Contract(address, name, explorerLink)
+            TransactionDetailsValue.Destination.Contract(address, data.asset.chain, name, explorerLink)
         }
         TransactionType.StakeDelegate -> destinationAddress { address, name, explorerLink ->
-            TransactionDetailsValue.Destination.Validator(address, name, explorerLink)
+            TransactionDetailsValue.Destination.Validator(address, data.asset.chain, name, explorerLink)
         }
         TransactionType.SmartContractCall -> destinationAddress { address, name, explorerLink ->
             when (data.transaction.getWalletConnectOutputAction()) {
-                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(data = address, name = name, explorerLink = explorerLink)
+                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(data = address, chain = data.asset.chain, name = name, explorerLink = explorerLink)
                 TransferDataOutputAction.Sign,
-                null -> TransactionDetailsValue.Destination.Contract(address, name, explorerLink)
+                null -> TransactionDetailsValue.Destination.Contract(address, data.asset.chain, name, explorerLink)
             }
         }
         TransactionType.EarnWithdraw,
         TransactionType.EarnDeposit -> destinationAddress { address, name, explorerLink ->
-            TransactionDetailsValue.Destination.ProviderAddress(address, name, explorerLink)
+            TransactionDetailsValue.Destination.ProviderAddress(address, data.asset.chain, name, explorerLink)
         }
         TransactionType.Swap -> this@TransactionDetailsAggregateImpl.swapProvider?.name?.let { TransactionDetailsValue.Destination.Provider(it) }
         TransactionType.Transfer,
@@ -251,12 +251,14 @@ class TransactionDetailsAggregateImpl(
             TransactionDirection.SelfTransfer,
             TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(
                 data = data.transaction.to,
+                chain = data.asset.chain,
                 name = data.toAddress?.name,
                 addressType = data.toAddress?.type,
                 explorerLink = recipientExplorerLink,
             )
             TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(
                 data = data.transaction.from,
+                chain = data.asset.chain,
                 name = data.fromAddress?.name,
                 addressType = data.fromAddress?.type,
                 explorerLink = senderExplorerLink,

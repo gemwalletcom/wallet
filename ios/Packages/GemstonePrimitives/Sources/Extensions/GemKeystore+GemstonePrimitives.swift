@@ -4,8 +4,8 @@ import Gemstone
 import Primitives
 
 public extension GemKeystoreAccount {
-    func mapToAccount() throws -> Account {
-        try Account(
+    func mapToAccount() throws -> Primitives.Account {
+        try Primitives.Account(
             chain: chain.map(),
             address: address,
             derivationPath: derivationPath,
@@ -53,7 +53,7 @@ public extension GemStoredWallet {
 }
 
 public extension Wallet {
-    func adding(accounts newAccounts: [Account]) -> Wallet {
+    func adding(accounts newAccounts: [Primitives.Account]) -> Wallet {
         Wallet(
             id: id,
             externalId: externalId,

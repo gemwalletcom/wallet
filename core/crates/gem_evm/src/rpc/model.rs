@@ -1,8 +1,8 @@
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint};
 use num_traits::Zero;
 use primitives::{TransactionState, contract_constants::EVM_ZERO_BLOCK_HASH};
 use serde::{Deserialize, Serialize};
-use serde_serializers::{deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_u64_from_str_or_int};
+use serde_serializers::{bigint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_u64_from_str_or_int};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -95,11 +95,58 @@ pub struct TransactionReplayTrace {
     pub state_diff: HashMap<String, StateChange>,
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceCallResult {
+    #[serde(default)]
+    pub state_diff: HashMap<String, StateChange>,
+    #[serde(default)]
+    pub trace: Vec<TraceCallEntry>,
+}
+
+impl TraceCallResult {
+    pub fn root_call_error(&self) -> Option<&str> {
+        self.trace.iter().find(|entry| entry.trace_address.is_empty())?.error.as_deref()
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceCallEntry {
+    pub action: TraceCallAction,
+    #[serde(default)]
+    pub error: Option<String>,
+    #[serde(default)]
+    pub trace_address: Vec<usize>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceCallAction {
+    #[serde(default)]
+    pub from: String,
+    #[serde(default)]
+    pub to: Option<String>,
+    #[serde(default)]
+    pub input: String,
+    #[serde(default)]
+    pub call_type: Option<String>,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StateChange {
     pub balance: Diff<String>,
     pub storage: HashMap<String, Diff<String>>,
+}
+
+impl StateChange {
+    pub fn balance_change(&self) -> Option<(BigInt, BigInt)> {
+        let Diff::Change(change) = &self.balance else { return None };
+        let from = bigint_from_hex_str(&change.from_to.from).ok()?;
+        let to = bigint_from_hex_str(&change.from_to.to).ok()?;
+        Some((from, to))
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -146,5 +193,23 @@ mod tests {
         let trace_replay_transaction = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../testdata/trace_replay_tx_trace.json"));
 
         assert!(trace_replay_transaction.state_diff.len() > 1);
+    }
+
+    #[test]
+    fn test_root_call_error_detects_top_level_revert_only() {
+        let reverted_root: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_reverted_root.json"));
+        assert_eq!(reverted_root.root_call_error(), Some("Reverted"));
+
+        let reverted_subcall_only: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_subcall_reverted.json"));
+        assert_eq!(reverted_subcall_only.root_call_error(), None);
+    }
+
+    #[test]
+    fn test_trace_call_result_tolerates_selfdestruct_action() {
+        let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_selfdestruct_action.json"));
+
+        let entry = &trace.trace[0];
+        assert_eq!(entry.action.from, "");
+        assert_eq!(entry.action.call_type, None);
     }
 }

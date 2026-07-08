@@ -75,7 +75,7 @@ pub struct EtherscanClient {
 impl EtherscanClient {
     pub fn new(api_key: String) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: gem_client::reqwest_client(),
             api_key,
         }
     }

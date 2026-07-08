@@ -148,7 +148,7 @@ public final class FiatSceneViewModel {
     }
 
     var errorTitle: String {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 
     var emptyTitle: String {
@@ -180,8 +180,10 @@ public final class FiatSceneViewModel {
     }
 
     var assetBalance: String? {
-        let text = balanceModel.availableBalanceText
-        return text == .zero ? nil : text
+        guard !assetData.balance.available.isZero else {
+            return nil
+        }
+        return balanceModel.availableBalanceTextWithSymbol
     }
 
     var fiatProviderViewModel: FiatProvidersViewModel {
@@ -241,7 +243,7 @@ extension FiatSceneViewModel {
             } catch {
                 urlState = .error(error)
                 isPresentingAlertMessage = AlertMessage(
-                    title: Localized.Errors.errorOccured,
+                    title: Localized.Errors.errorOccurred,
                     message: error.localizedDescription,
                 )
                 debugLog("FiatSceneViewModel get quote URL error: \(error)")

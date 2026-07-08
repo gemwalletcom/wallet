@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.models
 
 import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.wallet.core.primitives.Chain
 
 interface NetworkUIModel {
@@ -11,7 +11,7 @@ interface NetworkUIModel {
 
 class ChainNetworkUIModel(val chain: Chain) : NetworkUIModel {
     override val name: String
-        get() = chain.asset().name
+        get() = chain.networkName()
 
     override val icon: String
         get() = chain.getIconUrl()

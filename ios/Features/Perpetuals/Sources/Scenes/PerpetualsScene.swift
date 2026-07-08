@@ -71,10 +71,10 @@ struct PerpetualsScene: View {
         List {
             if !model.isSearching {
                 Section {} header: {
-                    WalletHeaderView(
+                    ValueHeaderView(
                         model: model.headerViewModel,
                         isPrivacyEnabled: .constant(false),
-                        balanceActionType: .action(model.onSelectBalance),
+                        titleActionType: .action(model.onSelectBalance),
                         onHeaderAction: model.onSelectHeaderAction,
                         onInfoAction: .none,
                     )

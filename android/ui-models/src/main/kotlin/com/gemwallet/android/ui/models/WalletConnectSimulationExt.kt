@@ -11,6 +11,7 @@ import uniffi.gemstone.Explorer
 data class PayloadField(
     val field: SimulationPayloadField,
     val explorerLink: BlockExplorerLink? = null,
+    val chain: Chain? = null,
 )
 
 fun List<SimulationWarning>.hasCriticalWarning(): Boolean =
@@ -20,12 +21,12 @@ fun List<SimulationPayloadField>.withExplorerLinks(
     chain: Chain?,
     explorerName: String?,
 ): List<PayloadField> {
-    if (chain == null || explorerName == null) return map { PayloadField(it) }
+    if (chain == null || explorerName == null) return map { PayloadField(field = it, chain = chain) }
     val explorer = Explorer(chain.string)
     return map { field ->
         val link = if (field.fieldType == SimulationPayloadFieldType.Address) {
             BlockExplorerLink(explorerName, explorer.getAddressUrl(explorerName, field.value))
         } else null
-        PayloadField(field, link)
+        PayloadField(field = field, explorerLink = link, chain = chain)
     }
 }

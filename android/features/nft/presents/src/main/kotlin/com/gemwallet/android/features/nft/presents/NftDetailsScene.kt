@@ -69,7 +69,7 @@ fun NFTDetailsScene(
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val refresh = stringResource(R.string.common_refresh)
-    val refreshFailed = stringResource(R.string.errors_error_occured)
+    val refreshFailed = stringResource(R.string.errors_error_occurred)
 
     if (assetData == null) {
         return

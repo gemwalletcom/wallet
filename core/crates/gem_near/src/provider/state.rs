@@ -33,7 +33,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_near_client_generic_interface() {
-        let reqwest_client = ReqwestClient::new("https://example.com".to_string(), reqwest::Client::new());
+        let reqwest_client = ReqwestClient::new("https://example.com".to_string(), gem_client::reqwest_client());
         let jsonrpc_client = JsonRpcClient::new(reqwest_client);
         let near_client: NearClient<ReqwestClient> = NearClient::new(jsonrpc_client);
 

@@ -87,7 +87,7 @@ struct BannerViewModel {
             guard let asset else {
                 return .none
             }
-            return Localized.Banner.ActivateAsset.description(asset.symbol, asset.chain.asset.name)
+            return Localized.Banner.ActivateAsset.description(asset.symbol, asset.chain.networkName)
         case .suspiciousAsset:
             return Localized.Banner.AssetStatus.description
         case .onboarding: return Localized.Banner.Onboarding.description

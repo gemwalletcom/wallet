@@ -8,6 +8,7 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.banners.BannersRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.service.store.database.BannersDao
+import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,11 +24,13 @@ object BannersModule {
         assetsRepository: AssetsRepository,
         bannersDao: BannersDao,
         configRepository: UserConfig,
+        notificationsAvailable: NotificationsAvailable,
     ): BannersRepository {
         return BannersRepository(
             assetsRepository,
             bannersDao,
             configRepository,
+            notificationsAvailable,
         )
     }
 
@@ -47,4 +50,3 @@ object BannersModule {
     @Provides
     fun provideGetWalletOperationsEnabled(bannersRepository: BannersRepository): HasMultiSign = bannersRepository
 }
-

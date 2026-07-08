@@ -163,7 +163,7 @@
 "errors.import.invalid_secret_phrase" = "ביטוי סודי לא חוקי";
 "errors.import.invalid_secret_phrase_word" = "מילת ביטוי סודי לא חוקי: %@";
 "errors.invalid_url" = "כתובת אתר לא חוקית";
-"errors.error_occured" = "אירעה שגיאה!";
+"errors.error_occurred" = "אירעה שגיאה!";
 "errors.invalid_network_id" = "מזהה רשת לא חוקי";
 "errors.error" = "שגיאה";
 "errors.connections.user_cancelled" = "המשתמש ביטל";

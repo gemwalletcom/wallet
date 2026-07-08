@@ -19,3 +19,13 @@ public struct Asset: Codable, Equatable, Hashable, Sendable {
 		self.type = type
 	}
 }
+
+public struct ChainAsset: Codable, Equatable, Hashable, Sendable {
+	public let asset: Asset
+	public let networkName: String
+
+	public init(asset: Asset, networkName: String) {
+		self.asset = asset
+		self.networkName = networkName
+	}
+}

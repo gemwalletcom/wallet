@@ -1,5 +1,6 @@
 CREATE TYPE asset_type AS ENUM ('NATIVE', 'ERC20', 'BEP20', 'BEP2', 'SPL', 'SPL2022', 'TRC20', 'TOKEN', 'IBC', 'JETTON', 'SYNTH', 'ASA', 'PERPETUAL', 'SPOT');
 CREATE TYPE link_type AS ENUM ('x', 'discord', 'reddit', 'telegram', 'github', 'youtube', 'facebook', 'website', 'coingecko', 'opensea', 'instagram', 'magiceden', 'coinmarketcap', 'tiktok');
+CREATE TYPE tag_visibility AS ENUM ('public', 'internal');
 
 CREATE TABLE assets (
     id VARCHAR(128) PRIMARY KEY,
@@ -36,6 +37,8 @@ CREATE INDEX assets_updated_at_idx ON assets (updated_at);
 CREATE TABLE tags (
     id VARCHAR(64) PRIMARY KEY,
     name VARCHAR(64) NOT NULL,
+    visibility tag_visibility NOT NULL default 'public',
+    list_id VARCHAR(256),
     created_at timestamp NOT NULL default current_timestamp
 );
 

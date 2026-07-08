@@ -12,7 +12,7 @@ public struct ChainViewModel: Sendable {
     }
 
     public var title: String {
-        Asset(chain).name
+        chain.networkName
     }
 
     public var image: Image {

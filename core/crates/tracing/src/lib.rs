@@ -69,6 +69,18 @@ pub fn error_fields_impl(message: &str, fields: &[(&str, &dyn std::fmt::Display)
     });
 }
 
+pub fn warn_fields_impl(message: &str, fields: &[(&str, &dyn std::fmt::Display)]) {
+    let subscriber = get_subscriber();
+    tracing::subscriber::with_default(subscriber, || {
+        let pairs = format_fields(fields);
+        if pairs.is_empty() {
+            tracing::warn!("{}", message);
+        } else {
+            tracing::warn!("{} {}", message, pairs);
+        }
+    });
+}
+
 pub fn error_with_fields_impl<E: std::error::Error + ?Sized>(message: &str, error: &E, fields: &[(&str, &dyn std::fmt::Display)]) {
     let subscriber = get_subscriber();
     tracing::subscriber::with_default(subscriber, || {
@@ -89,6 +101,18 @@ macro_rules! info_with_fields {
                 $((stringify!($field), &$value),)*
             ];
             $crate::info_with_fields_impl($message, fields);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! warn_with_fields {
+    ($message:expr $(, $field:ident = $value:expr)* $(,)?) => {
+        {
+            let fields: &[(&str, &dyn std::fmt::Display)] = &[
+                $((stringify!($field), &$value),)*
+            ];
+            $crate::warn_fields_impl($message, fields);
         }
     };
 }

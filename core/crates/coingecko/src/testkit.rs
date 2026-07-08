@@ -12,6 +12,7 @@ impl CoinMarket {
             id: id.to_string(),
             symbol: "btc".to_string(),
             name: "Bitcoin".to_string(),
+            image: "https://example.com/bitcoin.png".to_string(),
             current_price: Some(0.12),
             price_change_percentage_24h: Some(1.5),
             market_cap: Some(1000.0),

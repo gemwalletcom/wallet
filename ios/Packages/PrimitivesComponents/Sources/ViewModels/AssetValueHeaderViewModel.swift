@@ -8,7 +8,7 @@ import Primitives
 import Style
 import SwiftUI
 
-struct AssetValueHeaderViewModel: HeaderViewModel {
+struct AssetValueHeaderViewModel: ValueHeaderViewModel {
     private static let formatter = ValueFormatter(style: .full)
 
     let data: AssetValueHeaderData

@@ -46,7 +46,7 @@ final class AddNodeSceneViewModel {
     }
 
     var errorTitle: String {
-        Localized.Errors.errorOccured
+        Localized.Errors.errorOccurred
     }
 
     var chainModel: ChainViewModel {

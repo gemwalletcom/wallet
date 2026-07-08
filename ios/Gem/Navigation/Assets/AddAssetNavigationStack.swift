@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
+import BalanceService
 import ChainService
 import Localization
 import Primitives
@@ -11,6 +12,7 @@ struct AddAssetNavigationStack: View {
     let wallet: Wallet
     @Environment(\.chainServiceFactory) private var chainServiceFactory
     @Environment(\.assetsService) private var assetsService
+    @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -38,7 +40,12 @@ struct AddAssetNavigationStack: View {
 extension AddAssetNavigationStack {
     private func addAsset(_ asset: Asset) {
         Task {
-            try assetsService.addNewAsset(walletId: wallet.id, asset: asset)
+            do {
+                try assetsService.addAssets(assets: [asset.defaultBasic])
+                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
+            } catch {
+                debugLog("AddAssetNavigationStack add asset error: \(error)")
+            }
         }
         dismiss()
     }
