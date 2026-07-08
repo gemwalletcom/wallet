@@ -12,6 +12,9 @@ pub mod rpc;
 #[cfg(any(feature = "rpc", feature = "signer"))]
 mod transaction;
 
+#[cfg(all(test, any(feature = "rpc", feature = "signer")))]
+mod testkit;
+
 #[cfg(feature = "rpc")]
 pub use provider::map_transaction;
 #[cfg(feature = "rpc")]
