@@ -1,0 +1,20 @@
+{
+  "address": "TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb",
+  "transaction": {
+    "raw_data": {
+      "contract": [
+        {
+          "parameter": {
+            "type_url": "type.googleapis.com/protocol.TriggerSmartContract",
+            "value": {
+              "contract_address": "41c60a6f5c81431c97ed01b61698b6853557f3afd4",
+              "call_value": 27334102,
+              "data": "fd8527a1"
+            }
+          },
+          "type": "TriggerSmartContract"
+        }
+      ]
+    }
+  }
+}
