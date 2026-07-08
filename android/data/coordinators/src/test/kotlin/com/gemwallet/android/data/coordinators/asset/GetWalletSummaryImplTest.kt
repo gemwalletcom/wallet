@@ -14,13 +14,17 @@ import java.math.BigDecimal
 class GetWalletSummaryImplTest {
 
     @Test
-    fun calculateWalletChangedPercentage_returnsPercentOfTotal() {
-        val percentage = calculateWalletChangedPercentage(
-            totalValue = BigDecimal("1000.0"),
-            changedValue = BigDecimal("-25.0"),
+    fun calculateWalletChangedPercentage_isRelativeToBaseNotTotal() {
+        assertEquals(
+            10.0,
+            calculateWalletChangedPercentage(totalValue = BigDecimal("110.0"), changedValue = BigDecimal("10.0")),
+            0.0001,
         )
-
-        assertEquals(-2.5, percentage, 0.0)
+        assertEquals(
+            -50.0,
+            calculateWalletChangedPercentage(totalValue = BigDecimal("50.0"), changedValue = BigDecimal("-50.0")),
+            0.0001,
+        )
     }
 
     @Test
