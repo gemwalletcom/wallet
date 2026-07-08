@@ -104,7 +104,7 @@ fun SwapScreen(
         isVisible = isShowSlippage,
         currentBps = slippageSeedBps,
         warningThresholdBps = viewModel.slippageWarningThresholdBps,
-        onSelect = viewModel::setSlippage,
+        onConfirm = viewModel::setSlippage,
         onDismiss = { isShowSlippage = false },
     )
 }
