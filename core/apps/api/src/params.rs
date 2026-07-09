@@ -53,13 +53,9 @@ pub struct CurrencyParam(pub Currency);
 
 impl<'r> FromFormField<'r> for CurrencyParam {
     fn from_value(field: ValueField<'r>) -> form::Result<'r, Self> {
-        Currency::from_str(field.value).map(CurrencyParam).or_else(|_| Ok(CurrencyParam(Currency::USD)))
-    }
-}
-
-impl CurrencyParam {
-    pub fn as_string(&self) -> String {
-        self.0.as_ref().to_string()
+        Currency::from_str(field.value)
+            .map(CurrencyParam)
+            .map_err(|_| form::Error::validation(format!("Invalid currency: {}", field.value)).into())
     }
 }
 

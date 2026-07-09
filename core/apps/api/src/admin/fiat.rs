@@ -22,7 +22,7 @@ pub async fn get_fiat_quotes(
         asset_id: asset_id.0,
         quote_type: quote_type.0,
         amount,
-        currency: currency.as_string(),
+        currency: currency.0.as_ref().to_string(),
         provider_id: provider_id.map(|p| p.0.id().to_string()),
         ip_address: ip_address.map(str::to_string).unwrap_or_else(|| ip.to_string()),
     };

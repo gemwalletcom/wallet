@@ -397,7 +397,7 @@ pub async fn get_fiat_quotes_v2(
         asset_id: asset_id.0,
         quote_type: quote_type.0,
         amount,
-        currency: currency.as_string(),
+        currency: currency.0.as_ref().to_string(),
         provider_id: provider.map(|p| p.0.id().to_string()),
         ip_address: ip.to_string(),
     };

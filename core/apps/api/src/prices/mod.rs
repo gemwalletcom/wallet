@@ -2,19 +2,19 @@ use pricer::{ChartClient, PriceClient};
 use primitives::{AssetMarketPrice, AssetPrices, AssetPricesRequest, ChartPeriod, Charts, DEFAULT_FIAT_CURRENCY, FiatRate};
 use rocket::{State, get, post, serde::json::Json, tokio::sync::Mutex};
 
-use crate::params::{AssetIdParam, ChartPeriodParam};
+use crate::params::{AssetIdParam, ChartPeriodParam, CurrencyParam};
 use crate::responders::{ApiError, ApiResponse};
 
 #[get("/prices/<asset_id>?<currency>")]
-pub async fn get_price(asset_id: AssetIdParam, currency: Option<&str>, price_client: &State<Mutex<PriceClient>>) -> Result<ApiResponse<AssetMarketPrice>, ApiError> {
-    let currency = currency.unwrap_or(DEFAULT_FIAT_CURRENCY);
-    Ok(price_client.lock().await.get_asset_price(&asset_id.0, currency).await?.into())
+pub async fn get_price(asset_id: AssetIdParam, currency: CurrencyParam, price_client: &State<Mutex<PriceClient>>) -> Result<ApiResponse<AssetMarketPrice>, ApiError> {
+    Ok(price_client.lock().await.get_asset_price(&asset_id.0, currency.0.as_ref()).await?.into())
 }
 
 #[post("/prices", format = "json", data = "<request>")]
 pub async fn get_assets_prices(request: Json<AssetPricesRequest>, price_client: &State<Mutex<PriceClient>>) -> Result<ApiResponse<AssetPrices>, ApiError> {
-    let currency: String = request.currency.clone().unwrap_or(DEFAULT_FIAT_CURRENCY.to_string());
-    Ok(price_client.lock().await.get_asset_prices(currency.as_str(), request.0.asset_ids).await?.into())
+    let AssetPricesRequest { currency, asset_ids } = request.into_inner();
+    let currency = currency.as_deref().unwrap_or(DEFAULT_FIAT_CURRENCY);
+    Ok(price_client.lock().await.get_asset_prices(currency, asset_ids).await?.into())
 }
 
 #[get("/fiat_rates")]
@@ -26,16 +26,16 @@ pub async fn get_fiat_rates(price_client: &State<Mutex<PriceClient>>) -> Result<
 pub async fn get_charts(
     asset_id: AssetIdParam,
     period: Option<ChartPeriodParam>,
-    currency: Option<&str>,
+    currency: CurrencyParam,
     charts_client: &State<Mutex<ChartClient>>,
     price_client: &State<Mutex<PriceClient>>,
 ) -> Result<ApiResponse<Charts>, ApiError> {
     let period = period.map(|p| p.0).unwrap_or(ChartPeriod::Day);
-    let currency_value = currency.unwrap_or(DEFAULT_FIAT_CURRENCY);
 
     let asset_id = asset_id.0;
-    let prices = charts_client.lock().await.get_charts_prices(&asset_id, period, currency_value).await?;
-    let asset_price = price_client.lock().await.get_asset_price(&asset_id, currency_value).await?;
+    let currency = currency.0;
+    let prices = charts_client.lock().await.get_charts_prices(&asset_id, period, currency.as_ref()).await?;
+    let asset_price = price_client.lock().await.get_asset_price(&asset_id, currency.as_ref()).await?;
 
     let response = Charts {
         price: asset_price.price,
