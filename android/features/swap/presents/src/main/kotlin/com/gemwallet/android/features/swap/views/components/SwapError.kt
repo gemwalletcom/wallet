@@ -1,30 +1,24 @@
 package com.gemwallet.android.features.swap.views.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.theme.Spacer2
-import com.gemwallet.android.ui.theme.Spacer8
-import com.gemwallet.android.ui.theme.defaultPadding
-import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.list_item.WarningItem
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 
 @Composable
 internal fun SwapError(state: SwapUiState, pay: AssetInfo?) {
+    var isShowInfoSheet by remember { mutableStateOf(false) }
     val error = state.error ?: return
 
     val errorText = when (error) {
@@ -35,35 +29,21 @@ internal fun SwapError(state: SwapUiState, pay: AssetInfo?) {
         is SwapError.InputAmountTooSmall -> "${stringResource(R.string.errors_swap_amount_too_small)} ${pay?.asset?.let { error.getFormattedValue(it) } ?: ""}"
         SwapError.NoQuote -> stringResource(R.string.errors_swap_no_quote_available)
     }
-    Column(
-        modifier = Modifier
-            .defaultPadding()
-            .background(
-                MaterialTheme.colorScheme.errorContainer.copy(0.2f),
-                shape = MaterialTheme.shapes.medium
-            )
-            .fillMaxWidth()
-            .defaultPadding(),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                modifier = Modifier.size(smallIconSize),
-                imageVector = AppIcons.Warning,
-                tint = MaterialTheme.colorScheme.error,
-                contentDescription = null,
-            )
-            Spacer8()
-            Text(
-                text = stringResource(R.string.errors_error_occurred),
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.W400),
-            )
-        }
-        Spacer2()
-        Text(
-            text = errorText,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+
+    val infoSheetEntity = when (error) {
+        SwapError.NoQuote -> InfoSheetEntity.NoQuoteInfo
+        else -> null
+    }
+
+    WarningItem(
+        title = stringResource(R.string.errors_error_occurred),
+        message = errorText,
+        color = MaterialTheme.colorScheme.error,
+        position = ListPosition.Single,
+        onClick = infoSheetEntity?.let { { isShowInfoSheet = true } },
+    )
+
+    if (isShowInfoSheet && infoSheetEntity != null) {
+        InfoBottomSheet(item = infoSheetEntity) { isShowInfoSheet = false }
     }
 }
