@@ -45,6 +45,10 @@ impl TronAddress {
         format!("{:0>width$}", hex::encode(self.account_id()), width = ABI_ADDRESS_PARAMETER_HEX_LEN)
     }
 
+    pub fn from_topic(topic: &str) -> Option<Self> {
+        Self::from_hex(topic.get(topic.len().checked_sub(ADDRESS_LEN * 2)?..)?)
+    }
+
     pub fn parse(address: &str) -> Result<Self, AddressError> {
         Self::try_parse(address).ok_or_else(|| AddressError::new(format!("invalid Tron address: {address}")))
     }
@@ -148,6 +152,14 @@ mod tests {
             "0000000000000000000000002e1d447fa4169390cf5f5b3d12d380decfbfe20f"
         );
         assert!(TronAddress::parse("invalid").is_err());
+    }
+
+    #[test]
+    fn test_from_topic() {
+        let address = TronAddress::parse("TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb").unwrap();
+
+        assert_eq!(TronAddress::from_topic(&address.abi_address_parameter()).unwrap(), address);
+        assert_eq!(TronAddress::from_topic("too-short"), None);
     }
 
     #[test]

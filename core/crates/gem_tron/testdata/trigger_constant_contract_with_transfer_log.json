@@ -1,0 +1,15 @@
+{
+  "result": {
+    "result": true
+  },
+  "constant_result": ["00"],
+  "energy_used": 173171,
+  "energy_penalty": 59016,
+  "logs": [
+    {
+      "address": "88zffnwSJQ1BGNdvoHNCr24pGHX9ZHmWw",
+      "topics": ["ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+      "data": "01"
+    }
+  ]
+}

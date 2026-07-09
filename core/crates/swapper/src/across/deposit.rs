@@ -211,6 +211,7 @@ mod tests {
             block_time_stamp: 1_782_320_547_000,
             receipt: TransactionReceipt { result: Some("SUCCESS".into()) },
             log: Some(vec![TronLog {
+                address: None,
                 topics: Some(vec![
                     "32ed1a409ef04c7b0227189c3a103dc5ac10e775a15b785dcc510201f7c25ad3".into(),
                     "000000000000000000000000000000000000000000000000000000000000a4b1".into(),

@@ -1,0 +1,53 @@
+{
+  "result": {
+    "result": true
+  },
+  "energy_used": 206222,
+  "energy_penalty": 59016,
+  "constant_result": ["000000000000000000000000000000000000000000000000000000000005059a"],
+  "logs": [
+    {
+      "address": "JHH2WKsdnrWQ72tKFfsGwvW9JPwfZc6c",
+      "topics": ["7724394874fdd8ad13292ec739b441f85c6559f10dc4141b8d4c0fa4cbf55bdb"],
+      "data": "000000000000000000000000000000000000000000000000000000003bbc841a"
+    },
+    {
+      "address": "DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss",
+      "topics": ["e1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c"],
+      "data": "00"
+    },
+    {
+      "address": "DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss",
+      "topics": [
+        "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+        "0000000000000000000000000344a87b2c5bc1cd9407fb9bd0c325a4403af30b",
+        "0000000000000000000000004e4bee11cea0070f957b98fd8cf4138ef3295e0e"
+      ],
+      "data": "00000000000000000000000000000000000000000000000000000000000f4240"
+    },
+    {
+      "address": "88zffnwSJQ1BGNdvoHNCr24pGHX9ZHmWw",
+      "topics": [
+        "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+        "0000000000000000000000004e4bee11cea0070f957b98fd8cf4138ef3295e0e",
+        "00000000000000000000000060e00625a95cbc180f290e2611c826f90eeba56f"
+      ],
+      "data": "000000000000000000000000000000000000000000000000000000000005059a"
+    },
+    {
+      "address": "88zffnwSJQ1BGNdvoHNCr24pGHX9ZHmWw",
+      "topics": ["1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"],
+      "data": "00"
+    },
+    {
+      "address": "88zffnwSJQ1BGNdvoHNCr24pGHX9ZHmWw",
+      "topics": ["d78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"],
+      "data": "00"
+    },
+    {
+      "address": "JHH2WKsdnrWQ72tKFfsGwvW9JPwfZc6c",
+      "topics": ["1bb43f2da90e35f7b0cf38521ca95a49e68eb42fac49924930a5bd73cdf7576c"],
+      "data": "00"
+    }
+  ]
+}
