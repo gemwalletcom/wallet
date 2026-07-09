@@ -12,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
@@ -47,9 +49,9 @@ fun WarningItem(
                 )
                 Spacer8()
                 Text(
-                    text = title,
-                    color = color,
-                    style = MaterialTheme.typography.titleMedium,
+                    text = parseMarkdownToAnnotatedString(title),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -57,7 +59,7 @@ fun WarningItem(
             message?.takeIf { it.isNotBlank() }?.let {
                 Spacer4()
                 Text(
-                    text = it,
+                    text = parseMarkdownToAnnotatedString(it),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                 )
