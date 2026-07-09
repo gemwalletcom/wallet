@@ -22,6 +22,10 @@ public struct WalletSearchConfig {
         Int(Config.shared.getWalletSearchConfig().perpetualsPreviewLimit)
     }
 
+    public static var nftsPreviewLimit: Int {
+        Int(Config.shared.getWalletSearchConfig().nftsPreviewLimit)
+    }
+
     public static var resultsLimit: Int {
         Int(Config.shared.getWalletSearchConfig().resultsLimit)
     }

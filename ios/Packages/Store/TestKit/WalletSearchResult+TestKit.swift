@@ -8,8 +8,9 @@ public extension WalletSearchResult {
     static func mock(
         assets: [AssetData] = [],
         perpetuals: [PerpetualData] = [],
+        nfts: [NFTSearchItem] = [],
         lists: [AssetList] = [],
     ) -> WalletSearchResult {
-        WalletSearchResult(assets: assets, perpetuals: perpetuals, lists: lists)
+        WalletSearchResult(assets: assets, perpetuals: perpetuals, nfts: nfts, lists: lists)
     }
 }

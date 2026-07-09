@@ -40,7 +40,7 @@ struct WalletSearchModelTests {
     @Test
     func staticMembers() {
         #expect(WalletSearchModel.initialFetchLimit == 13)
-        #expect(WalletSearchModel.searchItemTypes == [.asset, .perpetual, .list])
+        #expect(WalletSearchModel.searchItemTypes == [.asset, .perpetual, .list, .nft])
         #expect(WalletSearchModel.recentActivityTypes == RecentActivityType.allCases)
     }
 }

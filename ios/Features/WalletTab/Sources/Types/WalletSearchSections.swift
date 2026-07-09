@@ -11,6 +11,8 @@ struct WalletSearchSections: Equatable {
     let pinnedPerpetuals: [PerpetualData]
     let perpetuals: [PerpetualData]
 
+    let nfts: [NFTSearchItem]
+
     let lists: [AssetList]
 
     static func from(_ result: WalletSearchResult) -> WalletSearchSections {
@@ -33,6 +35,7 @@ struct WalletSearchSections: Equatable {
             assets: assets,
             pinnedPerpetuals: pinnedPerpetuals,
             perpetuals: perpetuals,
+            nfts: result.nfts,
             lists: result.lists,
         )
     }

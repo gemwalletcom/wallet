@@ -41,12 +41,16 @@ extension WalletSearchModel {
         WalletSearchConfig.perpetualsPreviewLimit
     }
 
+    var nftsLimit: Int {
+        WalletSearchConfig.nftsPreviewLimit
+    }
+
     static var initialFetchLimit: Int {
         WalletSearchConfig.assetsInitialLimit + 1
     }
 
     static var searchItemTypes: [SearchItemType] {
-        [.asset, .perpetual, .list]
+        [.asset, .perpetual, .list, .nft]
     }
 
     static var recentActivityTypes: [RecentActivityType] {

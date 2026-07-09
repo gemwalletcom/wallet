@@ -6,6 +6,7 @@ import BalanceService
 import Components
 import Foundation
 import Localization
+import NFT
 import PerpetualService
 import Preferences
 import Primitives
@@ -106,6 +107,19 @@ public final class WalletSearchSceneViewModel: Sendable {
         Localized.Common.lists
     }
 
+    var collectionsTitle: String {
+        Localized.Nft.collections
+    }
+
+    var collectionsContent: CollectionsContent {
+        CollectionsContent(items: previewNFTs.map { item in
+            switch item {
+            case let .collection(data): NFTGridPosterBuilder.item(from: data)
+            case let .asset(assetData): NFTGridPosterBuilder.item(collection: assetData.collection, asset: assetData.asset)
+            }
+        })
+    }
+
     var sections: WalletSearchSections {
         .from(searchResult)
     }
@@ -135,7 +149,7 @@ public final class WalletSearchSceneViewModel: Sendable {
     }
 
     var showEmpty: Bool {
-        !showRecents && !showPinned && !showAssets && !showPerpetuals && !showLists
+        !showRecents && !showPinned && !showAssets && !showPerpetuals && !showLists && !showNFTs
     }
 
     var showPinned: Bool {
@@ -154,16 +168,24 @@ public final class WalletSearchSceneViewModel: Sendable {
         sections.lists.isNotEmpty
     }
 
+    var showNFTs: Bool {
+        sections.nfts.isNotEmpty
+    }
+
     var showAddToken: Bool {
         wallet.hasTokenSupport
     }
 
     var previewAssets: [AssetData] {
-        Array(sections.assets.prefix(assetsPreviewLimit))
+        sections.assets.prefix(assetsPreviewLimit).asArray()
     }
 
     var previewPerpetuals: [PerpetualData] {
-        Array(sections.perpetuals.prefix(searchModel.perpetualsLimit))
+        sections.perpetuals.prefix(searchModel.perpetualsLimit).asArray()
+    }
+
+    var previewNFTs: [NFTSearchItem] {
+        sections.nfts.prefix(searchModel.nftsLimit).asArray()
     }
 
     var hasMoreAssets: Bool {
@@ -172,6 +194,10 @@ public final class WalletSearchSceneViewModel: Sendable {
 
     var hasMorePerpetuals: Bool {
         searchResult.perpetuals.count > searchModel.perpetualsLimit
+    }
+
+    var hasMoreNFTs: Bool {
+        searchResult.nfts.count > searchModel.nftsLimit
     }
 
     var recentsModel: RecentsSceneViewModel {
