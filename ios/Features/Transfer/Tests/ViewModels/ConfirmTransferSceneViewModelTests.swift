@@ -216,9 +216,10 @@ struct ConfirmTransferSceneViewModelTests {
         model.state = .error(AnyError("test"))
         let errorFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
-        if case let .networkFee(listItem, _) = errorFeeItem?.itemModel {
+        if case let .networkFee(listItem, selectable) = errorFeeItem?.itemModel {
             #expect(listItem.subtitle == "-")
             #expect(listItem.subtitleExtra == nil)
+            #expect(selectable == false)
         } else {
             Issue.record("Expected network fee item model for error state")
         }
@@ -227,8 +228,9 @@ struct ConfirmTransferSceneViewModelTests {
         model.state = .data(TransactionInputViewModel.mock())
         let loadedFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
-        if case let .networkFee(listItem, _) = loadedFeeItem?.itemModel {
+        if case let .networkFee(listItem, selectable) = loadedFeeItem?.itemModel {
             #expect(listItem.subtitle != nil)
+            #expect(selectable)
         } else {
             Issue.record("Expected network fee item model with loaded fee")
         }

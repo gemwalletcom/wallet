@@ -262,7 +262,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 title: feeModel.title,
                 value: feeModel.value,
                 fiatValue: feeModel.fiatValue,
-                selectable: feeModel.showFeeRates,
+                selectable: feeModel.showFeeDetails,
                 infoAction: onSelectNetworkFeeInfo,
             )
         case .error:
