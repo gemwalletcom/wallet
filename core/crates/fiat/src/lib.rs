@@ -35,7 +35,12 @@ impl FiatProviderFactory {
             settings.moonpay.key.secret.clone(),
             settings.moonpay.webhook.key.secret.clone(),
         );
-        let mercuryo = MercuryoClient::new(request_client.clone(), settings.mercuryo.key.public.clone(), settings.mercuryo.key.secret.clone());
+        let mercuryo = MercuryoClient::new(
+            request_client.clone(),
+            settings.mercuryo.key.public.clone(),
+            settings.mercuryo.key.secret.clone(),
+            settings.mercuryo.webhook.key.secret.clone(),
+        );
         let transak = TransakClient::new(
             request_client.clone(),
             settings.transak.key.public,

@@ -57,6 +57,7 @@ impl FiatProvider for MercuryoClient {
 
     // full transaction: https://github.com/mercuryoio/api-migration-docs/blob/master/Widget_API_Mercuryo_v1.6.md#22-callbacks-response-body
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        self.verify_webhook(&request)?;
         let webhook_data = serde_json::from_value::<Webhook>(request.data)?.data;
         Ok(FiatWebhook::Transaction(map_order_from_webhook(webhook_data)))
     }
@@ -164,5 +165,65 @@ mod fiat_integration_tests {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use hmac::{Hmac, KeyInit, Mac};
+    use sha2::Sha256;
+    use std::collections::HashMap;
+
+    use crate::{FiatProvider, FiatWebhookRequest, providers::mercuryo::client::MercuryoClient};
+    use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
+    use streamer::FiatWebhook;
+
+    const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
+
+    fn client() -> MercuryoClient {
+        MercuryoClient::new(gem_client::reqwest_client(), String::new(), String::new(), TEST_WEBHOOK_SIGNING_KEY.to_string())
+    }
+
+    fn signed_request(raw_body: &str) -> FiatWebhookRequest {
+        type HmacSha256 = Hmac<Sha256>;
+        let mut mac = HmacSha256::new_from_slice(TEST_WEBHOOK_SIGNING_KEY.as_bytes()).unwrap();
+        mac.update(raw_body.as_bytes());
+        let signature = hex::encode(mac.finalize().into_bytes());
+
+        FiatWebhookRequest::new(raw_body.to_string(), HashMap::from([("x-signature".to_string(), signature)])).unwrap()
+    }
+
+    fn assert_transaction(webhook: FiatWebhook, expected: FiatTransactionUpdate) {
+        match webhook {
+            FiatWebhook::Transaction(transaction) => assert_eq!(transaction, expected),
+            webhook => panic!("unexpected webhook: {webhook:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_process_webhook_accepts_signed_transaction() {
+        let raw_body = include_str!("../../../testdata/mercuryo/webhook_buy_complete.json");
+
+        let result = client().process_webhook(signed_request(raw_body)).await.unwrap();
+
+        assert_transaction(
+            result,
+            FiatTransactionUpdate {
+                transaction_id: "11111111-2222-4333-8444-555555555555".to_string(),
+                provider_transaction_id: None,
+                status: FiatTransactionStatus::Failed,
+                transaction_hash: None,
+                fiat_amount: Some(270.0),
+                fiat_currency: Some("USD".to_string()),
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn test_process_webhook_rejects_missing_signature() {
+        let raw_body = include_str!("../../../testdata/mercuryo/webhook_buy_complete.json");
+        let request = FiatWebhookRequest::new(raw_body.to_string(), HashMap::new()).unwrap();
+
+        assert!(client().process_webhook(request).await.is_err());
     }
 }

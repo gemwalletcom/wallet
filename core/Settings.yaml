@@ -37,6 +37,9 @@ mercuryo:
     public: ""
     secret: ""
     token: ""
+  webhook:
+    key:
+      secret: ""
 banxa:
   url: "https://gemwallet.banxa.com"
   key:

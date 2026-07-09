@@ -117,6 +117,7 @@ pub struct Transak {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Mercuryo {
     pub key: MercuryoKey,
+    pub webhook: SecretKeySettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -11,13 +11,19 @@ pub struct MercuryoClient {
     // widget
     pub widget_id: String,
     pub secret_key: String,
+    pub(super) webhook_secret_key: String,
 }
 
 impl MercuryoClient {
     pub const NAME: FiatProviderName = FiatProviderName::Mercuryo;
 
-    pub fn new(client: Client, widget_id: String, secret_key: String) -> Self {
-        MercuryoClient { client, widget_id, secret_key }
+    pub fn new(client: Client, widget_id: String, secret_key: String, webhook_secret_key: String) -> Self {
+        MercuryoClient {
+            client,
+            widget_id,
+            secret_key,
+            webhook_secret_key,
+        }
     }
 
     pub async fn get_quote_buy(&self, fiat_currency: String, symbol: String, fiat_amount: f64, network: String) -> Result<Quote, Box<dyn std::error::Error + Send + Sync>> {
