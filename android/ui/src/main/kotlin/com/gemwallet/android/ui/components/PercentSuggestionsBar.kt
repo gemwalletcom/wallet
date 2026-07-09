@@ -1,4 +1,4 @@
-package com.gemwallet.android.ui.components.perpetual
+package com.gemwallet.android.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -9,16 +9,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-fun AutocloseSuggestionsBar(
+fun PercentSuggestionsBar(
     suggestions: List<Int>,
+    modifier: Modifier = Modifier,
     onPercentSelected: (Int) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         suggestions.forEach { percent ->
