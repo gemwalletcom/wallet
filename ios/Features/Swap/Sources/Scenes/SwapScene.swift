@@ -15,24 +15,25 @@ public struct SwapScene: View {
     }
 
     public var body: some View {
-        List {
-            swapFromSectionView
-            swapToSectionView
-            if model.shouldShowAdditionalInfo {
-                additionalInfoSectionView
-            }
+        ScrollView {
+            VStack(spacing: .medium) {
+                swapInputView
 
-            if let error = model.swapState.error {
-                Section {
+                if model.shouldShowAdditionalInfo {
+                    additionalInfoSectionView
+                }
+
+                if let error = model.swapState.error {
                     ListItemErrorView(
                         errorTitle: model.errorTitle,
                         error: error.asAnyError(asset: model.fromAsset?.asset),
                         infoAction: model.errorInfoAction,
                     )
+                    .insetGroupedRow()
                 }
             }
+            .padding(.medium)
         }
-        .listSectionSpacing(.compact)
         .safeAreaView {
             bottomActionView
                 .confirmationDialog(
@@ -51,6 +52,7 @@ public struct SwapScene: View {
                     },
                 )
         }
+        .background(Colors.grayBackground.ignoresSafeArea())
         .navigationTitle(model.title)
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)
         .onChangeBindQuery(model.toAssetQuery, action: model.onChangeToAsset)
@@ -78,57 +80,58 @@ public struct SwapScene: View {
 // MARK: - UI Components
 
 extension SwapScene {
-    private var swapFromSectionView: some View {
-        Section {
-            SwapTokenView(
-                model: model.swapTokenModel(type: .pay),
-                text: $model.amountInputModel.text,
-                onBalanceAction: model.onSelectFromMaxBalance,
-                onSelectAssetAction: model.onSelectAssetPay,
-            )
-            .buttonStyle(.borderless)
-            .focused($focusedField)
-        } header: {
-            Text(model.swapFromTitle)
-                .listRowInsets(.horizontalMediumInsets)
-        } footer: {
+    private var swapInputView: some View {
+        ZStack {
+            VStack(spacing: .tiny) {
+                swapFromView
+                swapToView
+            }
+
             SwapChangeView(
                 fromId: $model.pairSelectorModel.fromAssetId,
                 toId: $model.pairSelectorModel.toAssetId,
             )
-            .padding(.top, .small)
-            .frame(maxWidth: .infinity)
             .disabled(model.isTransferDataLoading)
-            .textCase(nil)
-            .listRowSeparator(.hidden)
-            .listRowInsets(.horizontalMediumInsets)
         }
     }
 
-    private var swapToSectionView: some View {
-        Section {
-            SwapTokenView(
-                model: model.swapTokenModel(type: .receive(chains: [], assetIds: [])),
-                text: $model.toValue,
-                showLoading: model.isReceiveFieldLoading,
-                onBalanceAction: {},
-                onSelectAssetAction: model.onSelectAssetReceive,
-            )
-            .buttonStyle(.borderless)
-        } header: {
-            Text(model.swapToTitle)
-                .listRowInsets(.horizontalMediumInsets)
-        }
+    private var swapFromView: some View {
+        SwapTokenView(
+            model: model.swapTokenModel(type: .pay),
+            text: $model.amountInputModel.text,
+            onBalanceAction: model.onSelectFromMaxBalance,
+            onSelectAssetAction: model.onSelectAssetPay,
+        )
+        .buttonStyle(.borderless)
+        .focused($focusedField)
+        .insetGroupedRow()
     }
 
+    private var swapToView: some View {
+        SwapTokenView(
+            model: model.swapTokenModel(type: .receive(chains: [], assetIds: [])),
+            text: $model.toValue,
+            showLoading: model.isReceiveFieldLoading,
+            onBalanceAction: {},
+            onSelectAssetAction: model.onSelectAssetReceive,
+        )
+        .buttonStyle(.borderless)
+        .insetGroupedRow()
+    }
+
+    @ViewBuilder
     private var additionalInfoSectionView: some View {
-        Section {
-            if let swapDetailsViewModel = model.swapDetailsViewModel {
-                NavigationCustomLink(
-                    with: SwapDetailsListView(model: swapDetailsViewModel),
-                    action: model.onSelectSwapDetails,
-                )
+        if let swapDetailsViewModel = model.swapDetailsViewModel {
+            Button(action: model.onSelectSwapDetails) {
+                HStack(spacing: .small) {
+                    SwapDetailsListView(model: swapDetailsViewModel)
+                    Images.System.chevronRight
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Colors.grayLight)
+                }
             }
+            .tint(Colors.black)
+            .insetGroupedRow()
         }
     }
 

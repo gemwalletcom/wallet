@@ -25,8 +25,13 @@ struct SwapChangeView: View {
                 .resizable()
                 .renderingMode(.template)
                 .scaledToFit()
-                .frame(size: .large)
+                .frame(size: .medium)
                 .foregroundStyle(Colors.gray)
+                .padding(.small)
+                .background(Colors.listStyleColor, in: Circle())
+                .overlay(
+                    Circle().strokeBorder(Colors.grayBackground, lineWidth: .space4),
+                )
         }
     }
 }

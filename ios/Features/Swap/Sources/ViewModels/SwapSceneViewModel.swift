@@ -84,14 +84,6 @@ public final class SwapSceneViewModel {
         Localized.Wallet.swap
     }
 
-    var swapFromTitle: String {
-        Localized.Swap.youPay
-    }
-
-    var swapToTitle: String {
-        Localized.Swap.youReceive
-    }
-
     var errorTitle: String {
         Localized.Errors.errorOccurred
     }
