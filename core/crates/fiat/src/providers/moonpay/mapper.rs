@@ -18,6 +18,7 @@ pub fn map_asset_chain(asset: Asset) -> Option<Chain> {
         "bitcoin" => Some(Chain::Bitcoin),
         "bitcoin_cash" => Some(Chain::BitcoinCash),
         "dogecoin" => Some(Chain::Doge),
+        "zcash" => Some(Chain::Zcash),
         "litecoin" => Some(Chain::Litecoin),
         "ripple" => Some(Chain::Xrp),
         "sui" => Some(Chain::Sui),
@@ -37,6 +38,7 @@ pub fn map_asset_chain(asset: Asset) -> Option<Chain> {
         "worldchain" => Some(Chain::World),
         "injective" => Some(Chain::Injective),
         "cardano" => Some(Chain::Cardano),
+        "fantom" => Some(Chain::Fantom),
         "monad" => Some(Chain::Monad),
         _ => None,
     }

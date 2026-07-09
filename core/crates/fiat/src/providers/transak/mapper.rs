@@ -36,6 +36,8 @@ pub fn map_asset_chain(network: &str, coin_id: Option<&str>) -> Option<Chain> {
         "hyperliquid" => Some(Chain::HyperCore),
         "monad" => Some(Chain::Monad),
         "plasma" => Some(Chain::Plasma),
+        "near" => Some(Chain::Near),
+        "xrpl" => Some(Chain::Xrp),
         "mainnet" => match coin_id? {
             "bitcoin" => Some(Chain::Bitcoin),
             "litecoin" => Some(Chain::Litecoin),

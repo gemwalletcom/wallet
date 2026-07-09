@@ -116,9 +116,17 @@ fn map_status(status: &str) -> FiatTransactionStatus {
     }
 }
 
+fn map_token_id(asset: &Asset, chain: Option<Chain>) -> Option<String> {
+    let contract = (!asset.contract.is_empty()).then_some(asset.contract.clone())?;
+    if chain == Some(Chain::Stellar) {
+        return Some(format!("{}::{}", contract, asset.currency));
+    }
+    Some(contract)
+}
+
 fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: Vec<FiatAssetLimits>) -> Option<FiatProviderAsset> {
     let chain = map_asset_chain(asset.network.clone());
-    let token_id = if asset.contract.is_empty() { None } else { Some(asset.contract.clone()) };
+    let token_id = map_token_id(&asset, chain);
     let is_buy_enabled = !buy_limits.is_empty();
     let is_sell_enabled = !sell_limits.is_empty();
     Some(FiatProviderAsset {
@@ -160,8 +168,8 @@ pub fn map_asset_limits(currency_limits: Option<&CurrencyLimits>, currency: Curr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::providers::mercuryo::models::{Currencies, Response, Webhook};
-    use primitives::FiatTransactionStatus;
+    use crate::providers::mercuryo::models::{Asset, Currencies, Response, Webhook};
+    use primitives::{AssetId, FiatTransactionStatus};
 
     #[test]
     fn test_map_order_from_webhook_payloads() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -241,6 +249,23 @@ mod tests {
         assert_eq!(result.id, "TRUMP_SOLANA");
 
         Ok(())
+    }
+
+    #[test]
+    fn test_map_stellar_asset_id() {
+        let result = map_asset(Asset {
+            currency: "USDC".to_string(),
+            network: "STELLAR".to_string(),
+            contract: "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string(),
+        })
+        .unwrap();
+
+        assert_eq!(result.chain, Some(Chain::Stellar));
+        assert_eq!(result.token_id, Some("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC".to_string()));
+        assert_eq!(
+            result.asset_id(),
+            Some(AssetId::from_token(Chain::Stellar, "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC"))
+        );
     }
 
     #[test]
