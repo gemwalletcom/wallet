@@ -110,6 +110,10 @@ pub struct VoteInfo {
 
 pub type BlockTransactionsInfo = Vec<TransactionReceiptData>;
 
+pub const RECEIPT_OUT_OF_ENERGY: &str = "OUT_OF_ENERGY";
+pub const RECEIPT_FAILED: &str = "FAILED";
+pub const RECEIPT_REVERT: &str = "REVERT";
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TransactionReceiptData {
     pub id: String,
@@ -118,8 +122,15 @@ pub struct TransactionReceiptData {
     pub block_number: i64,
     #[serde(rename = "blockTimeStamp")]
     pub block_time_stamp: i64,
+    pub result: Option<String>,
     pub receipt: TransactionReceipt,
     pub log: Option<Vec<TronLog>>,
+}
+
+impl TransactionReceiptData {
+    pub fn is_failed(&self) -> bool {
+        self.result.as_deref() == Some(RECEIPT_FAILED) || matches!(self.receipt.result.as_deref(), Some(RECEIPT_FAILED | RECEIPT_OUT_OF_ENERGY | RECEIPT_REVERT))
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

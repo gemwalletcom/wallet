@@ -104,31 +104,7 @@ impl ProxyProvider<RpcClient> {
     }
 
     pub fn new_okx(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self::new_with_provider(
-            SwapperProvider::Okx,
-            vec![
-                SwapperChainAsset::All(Chain::Solana),
-                SwapperChainAsset::All(Chain::Ethereum),
-                SwapperChainAsset::All(Chain::SmartChain),
-                SwapperChainAsset::All(Chain::Polygon),
-                SwapperChainAsset::All(Chain::Arbitrum),
-                SwapperChainAsset::All(Chain::Optimism),
-                SwapperChainAsset::All(Chain::Base),
-                SwapperChainAsset::All(Chain::AvalancheC),
-                SwapperChainAsset::All(Chain::Fantom),
-                SwapperChainAsset::All(Chain::Manta),
-                SwapperChainAsset::All(Chain::Blast),
-                SwapperChainAsset::All(Chain::ZkSync),
-                SwapperChainAsset::All(Chain::Linea),
-                SwapperChainAsset::All(Chain::Mantle),
-                SwapperChainAsset::All(Chain::Hyperliquid),
-                SwapperChainAsset::All(Chain::Sonic),
-                SwapperChainAsset::All(Chain::Unichain),
-                SwapperChainAsset::All(Chain::Monad),
-                SwapperChainAsset::All(Chain::XLayer),
-            ],
-            rpc_provider,
-        )
+        Self::new_with_provider(SwapperProvider::Okx, crate::okx::support_assets(), rpc_provider)
     }
 }
 

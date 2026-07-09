@@ -83,6 +83,7 @@ impl TransactionReceiptData {
             fee: Some(1000),
             block_number: 79874795,
             block_time_stamp: 1770288900000,
+            result: None,
             receipt: TransactionReceipt { result: Some(result.to_string()) },
             log: None,
         }

@@ -209,6 +209,7 @@ mod tests {
             fee: Some(13_340_800),
             block_number: 83_883_661,
             block_time_stamp: 1_782_320_547_000,
+            result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".into()) },
             log: Some(vec![TronLog {
                 address: None,

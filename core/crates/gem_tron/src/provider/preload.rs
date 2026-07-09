@@ -109,6 +109,11 @@ fn swap_contract_memo_data_bytes(input_memo: Option<&str>, data: &SwapQuoteData)
     Ok(input_memo.map(|memo| memo.len() as u64))
 }
 
+fn needs_approval_energy_estimate(data: &SwapQuoteData) -> Option<u64> {
+    data.approval.as_ref()?;
+    data.gas_limit.as_deref()?.parse::<u64>().ok().filter(|energy| *energy > 0)
+}
+
 impl<C: Client> TronClient<C> {
     async fn estimate_swap_fee(
         &self,
@@ -132,7 +137,16 @@ impl<C: Client> TronClient<C> {
         fee_context: &FeeEstimateContext<'_>,
         input_memo: Option<&str>,
     ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let swap_fee = if !swap_data.data.data.is_empty() {
+        let swap_fee = if let Some(estimated_energy) = needs_approval_energy_estimate(&swap_data.data) {
+            let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
+            transaction_fee_from_energy_estimate(
+                fee_context.chain_parameters,
+                fee_context.account_usage,
+                estimated_energy,
+                memo_data_bytes,
+                SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT,
+            )?
+        } else if !swap_data.data.data.is_empty() {
             let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
             self.estimate_contract_call_fee(sender_address, &swap_data.data, fee_context.chain_parameters, fee_context.account_usage, memo_data_bytes)
                 .await?

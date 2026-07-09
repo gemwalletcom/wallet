@@ -15,9 +15,5 @@ pub const GET_MEMO_FEE: &str = "getMemoFee";
 pub const GET_WITNESS_PAY_PER_BLOCK: &str = "getWitnessPayPerBlock";
 pub const GET_WITNESS_127_PAY_PER_BLOCK: &str = "getWitness127PayPerBlock";
 
-// Transaction receipt result constants
-pub const RECEIPT_OUT_OF_ENERGY: &str = "OUT_OF_ENERGY";
-pub const RECEIPT_FAILED: &str = "FAILED";
-
 // Event signature constants
 pub const ERC20_TRANSFER_EVENT_SIGNATURE: &str = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";

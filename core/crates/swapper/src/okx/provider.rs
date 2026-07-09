@@ -1,13 +1,13 @@
 use super::{
     client::OkxDexClient,
-    constants::{BASE_URL, EVM_NATIVE_TOKEN_ADDRESS, SOLANA_NATIVE_TOKEN_ADDRESS, chain_index, dex_ids, evm_gas_limit},
+    constants::{BASE_URL, EVM_NATIVE_TOKEN_ADDRESS, SOLANA_NATIVE_TOKEN_ADDRESS, TRON_DEX_TOKEN_APPROVE_ADDRESS, TRON_NATIVE_TOKEN_ADDRESS, chain_index, dex_ids, evm_gas_limit},
     model::{OkxApiResponse, OkxClientConfig, QuoteData, QuoteParams, SwapParams, TransactionData},
     referral::referrer_wallet_addresses,
 };
 use crate::{
     SwapperError,
     alien::{RpcClient, RpcProvider},
-    approval::check_approval_erc20,
+    approval::{check_approval_erc20, check_approval_trc20},
     fees::bps_to_percent_string,
     models::ApprovalType,
 };
@@ -113,6 +113,7 @@ where
         match chain.chain_type() {
             ChainType::Ethereum => self.build_evm_quote_data(&tx, &request.from_asset, &request.from_value, chain, &request.from_address).await,
             ChainType::Solana => build_solana_quote_data(&tx),
+            ChainType::Tron => self.build_tron_quote_data(&tx, &request.from_asset, &request.from_value, &request.from_address).await,
             _ => Err(SwapperError::NotSupportedChain),
         }
     }
@@ -122,6 +123,25 @@ where
         let gas_limit = approval.is_some().then(|| apply_gas_multiplier_or_default(&tx.gas, chain));
         let value = if tx.value.is_empty() { "0".to_string() } else { tx.value.clone() };
         Ok(SwapQuoteData::new_contract(tx.to.clone(), value, tx.data.clone(), approval, gas_limit))
+    }
+
+    async fn build_tron_quote_data(&self, tx: &TransactionData, from_asset: &QuoteAsset, from_value: &str, owner: &str) -> Result<SwapQuoteData, SwapperError> {
+        let approval = self.build_tron_approval(from_asset, from_value, owner).await?;
+        let gas_limit = approval.is_some().then(|| tx.gas.clone()).filter(|gas| gas.parse::<u64>().is_ok_and(|energy| energy > 0));
+        let value = if tx.value.is_empty() { "0".to_string() } else { tx.value.clone() };
+        let call_data = tx.data.strip_prefix("0x").unwrap_or(&tx.data).to_string();
+        Ok(SwapQuoteData::new_contract(tx.to.clone(), value, call_data, approval, gas_limit))
+    }
+
+    async fn build_tron_approval(&self, from_asset: &QuoteAsset, from_value: &str, owner: &str) -> Result<Option<ApprovalData>, SwapperError> {
+        let Some(token) = from_asset.asset_id().token_id else {
+            return Ok(None);
+        };
+        let amount = U256::from_str(from_value)?;
+        match check_approval_trc20(owner.to_string(), token, TRON_DEX_TOKEN_APPROVE_ADDRESS.to_string(), amount, self.rpc_provider.clone()).await? {
+            ApprovalType::Approve(data) => Ok(Some(data)),
+            _ => Ok(None),
+        }
     }
 
     async fn build_evm_approval(
@@ -158,6 +178,9 @@ fn asset_to_token_address(asset: &QuoteAsset) -> Result<String, SwapperError> {
     let asset_id = asset.asset_id();
     if asset_id.chain == Chain::Solana {
         return Ok(asset_id.token_id.unwrap_or_else(|| SOLANA_NATIVE_TOKEN_ADDRESS.to_string()));
+    }
+    if asset_id.chain == Chain::Tron {
+        return Ok(asset_id.token_id.unwrap_or_else(|| TRON_NATIVE_TOKEN_ADDRESS.to_string()));
     }
     if asset_id.chain.chain_type() == ChainType::Ethereum {
         return Ok(asset_id.token_id.unwrap_or_else(|| EVM_NATIVE_TOKEN_ADDRESS.to_string()));
@@ -234,10 +257,10 @@ fn build_solana_quote_data(tx: &TransactionData) -> Result<SwapQuoteData, Swappe
 mod tests {
     use super::super::model::TokenInfo;
     use super::*;
-    use crate::fees::default_referral_address;
+    use crate::{fees::default_referral_address, testkit::mock_proxy_quote_request};
     use primitives::{
         AssetId,
-        asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID, SMARTCHAIN_CAKE_TOKEN_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID},
+        asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID, SMARTCHAIN_CAKE_TOKEN_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID},
     };
 
     fn quote_asset(id: &str) -> QuoteAsset {
@@ -250,24 +273,6 @@ mod tests {
             symbol: symbol.to_string(),
             decimals: 18,
         }
-    }
-
-    fn proxy_request_with_assets(from_asset: QuoteAsset, to_asset: QuoteAsset, slippage_bps: u32, referral_bps: u32) -> ProxyQuoteRequest {
-        ProxyQuoteRequest {
-            from_address: "0xabc".to_string(),
-            to_address: "0xabc".to_string(),
-            from_asset,
-            to_asset,
-            from_value: "1000000000000000000".to_string(),
-            referral_bps,
-            slippage_bps,
-            slippage_mode: SlippageMode::Auto,
-            use_max_amount: false,
-        }
-    }
-
-    fn proxy_request(from_id: &str, to_id: &str, slippage_bps: u32, referral_bps: u32) -> ProxyQuoteRequest {
-        proxy_request_with_assets(quote_asset(from_id), quote_asset(to_id), slippage_bps, referral_bps)
     }
 
     fn quote_data(from_token: &str, to_token: &str) -> QuoteData {
@@ -307,9 +312,46 @@ mod tests {
     fn test_asset_to_token_address() {
         let sol = AssetId::from_chain(Chain::Solana).to_string();
         let eth = AssetId::from_chain(Chain::Ethereum).to_string();
+        let trx = AssetId::from_chain(Chain::Tron).to_string();
         assert_eq!(asset_to_token_address(&quote_asset(&sol)).unwrap(), SOLANA_NATIVE_TOKEN_ADDRESS);
         assert_eq!(asset_to_token_address(&quote_asset(&eth)).unwrap(), EVM_NATIVE_TOKEN_ADDRESS);
         assert_eq!(asset_to_token_address(&quote_asset(&ETHEREUM_USDC_ASSET_ID.to_string())).unwrap(), ETHEREUM_USDC_TOKEN_ID);
+        assert_eq!(asset_to_token_address(&quote_asset(&trx)).unwrap(), TRON_NATIVE_TOKEN_ADDRESS);
+        assert_eq!(
+            asset_to_token_address(&quote_asset(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID).to_string())).unwrap(),
+            TRON_USDT_TOKEN_ID
+        );
+    }
+
+    #[tokio::test]
+    async fn test_build_tron_quote_data() {
+        let zero_allowance = r#"{"result":{"result":true},"constant_result":["0000000000000000000000000000000000000000000000000000000000000000"],"energy_used":1000}"#;
+        let provider = OkxProvider::mock(zero_allowance);
+
+        let tx = TransactionData::mock("TAGVH5t42MuofaAfUauPPRe4Qw3i8Z3QHM", "0", "0xf2c42696abcd", "230400");
+        let usdt = quote_asset(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID).to_string());
+        let owner = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z";
+
+        let data = provider.build_tron_quote_data(&tx, &usdt, "50000000", owner).await.unwrap();
+
+        assert_eq!(data.to, "TAGVH5t42MuofaAfUauPPRe4Qw3i8Z3QHM");
+        assert_eq!(data.data, "f2c42696abcd");
+        assert_eq!(data.gas_limit.as_deref(), Some("230400"));
+        let approval = data.approval.unwrap();
+        assert_eq!(approval.token, TRON_USDT_TOKEN_ID);
+        assert_eq!(approval.spender, TRON_DEX_TOKEN_APPROVE_ADDRESS);
+        assert_eq!(approval.value, "50000000");
+
+        let native_tx = TransactionData {
+            value: "100000000".to_string(),
+            ..tx
+        };
+        let trx = quote_asset(&AssetId::from_chain(Chain::Tron).to_string());
+        let data = provider.build_tron_quote_data(&native_tx, &trx, "100000000", owner).await.unwrap();
+
+        assert_eq!(data.value, "100000000");
+        assert!(data.approval.is_none());
+        assert!(data.gas_limit.is_none());
     }
 
     #[test]
@@ -357,13 +399,7 @@ mod tests {
 
     #[test]
     fn test_build_solana_quote_data() {
-        let tx = TransactionData {
-            data: "Cn8eVZg".to_string(),
-            to: "ToAddr".to_string(),
-            value: String::new(),
-            gas: String::new(),
-            signature_data: None,
-        };
+        let tx = TransactionData::mock("ToAddr", "", "Cn8eVZg", "");
         let data = build_solana_quote_data(&tx).unwrap();
         assert_eq!(data.data, "aGVsbG8=");
         assert_eq!(data.value, "0");
@@ -371,20 +407,14 @@ mod tests {
         assert!(data.gas_limit.is_none());
         assert!(data.approval.is_none());
 
-        let invalid = TransactionData {
-            data: "0OIl".to_string(),
-            to: String::new(),
-            value: String::new(),
-            gas: String::new(),
-            signature_data: None,
-        };
+        let invalid = TransactionData::mock("", "", "0OIl", "");
         assert!(matches!(build_solana_quote_data(&invalid), Err(SwapperError::TransactionError(_))));
     }
 
     #[test]
     fn test_build_swap_params() {
         let eth = AssetId::from_chain(Chain::Ethereum).to_string();
-        let evm_request = proxy_request(&ETHEREUM_USDC_ASSET_ID.to_string(), &eth, 100, 50);
+        let evm_request = mock_proxy_quote_request(quote_asset(&ETHEREUM_USDC_ASSET_ID.to_string()), quote_asset(&eth), 100, 50);
         let evm_route = quote_data(ETHEREUM_USDC_TOKEN_ID, EVM_NATIVE_TOKEN_ADDRESS);
         let evm_params = build_swap_params(&evm_request, &evm_route, Chain::Ethereum, true).unwrap();
         assert_eq!(evm_params.chain_index, "1");
@@ -399,7 +429,7 @@ mod tests {
 
         let bnb = AssetId::from_chain(Chain::SmartChain).to_string();
         let cake = AssetId::from_token(Chain::SmartChain, SMARTCHAIN_CAKE_TOKEN_ID).to_string();
-        let bsc_request = proxy_request_with_assets(quote_asset_with_symbol(&bnb, "BNB"), quote_asset_with_symbol(&cake, "CAKE"), 100, 70);
+        let bsc_request = mock_proxy_quote_request(quote_asset_with_symbol(&bnb, "BNB"), quote_asset_with_symbol(&cake, "CAKE"), 100, 70);
         let bsc_route = quote_data(EVM_NATIVE_TOKEN_ADDRESS, SMARTCHAIN_CAKE_TOKEN_ID);
         let bsc_params = build_swap_params(&bsc_request, &bsc_route, Chain::SmartChain, false).unwrap();
         let evm_referrer = default_referral_address(Chain::SmartChain);
@@ -407,7 +437,7 @@ mod tests {
         assert_eq!(bsc_params.to_token_referrer_wallet_address, None);
 
         let sol = AssetId::from_chain(Chain::Solana).to_string();
-        let sol_request = proxy_request(&sol, &SOLANA_USDC_ASSET_ID.to_string(), 300, 50);
+        let sol_request = mock_proxy_quote_request(quote_asset(&sol), quote_asset(&SOLANA_USDC_ASSET_ID.to_string()), 300, 50);
         let sol_route = quote_data(SOLANA_NATIVE_TOKEN_ADDRESS, SOLANA_USDC_TOKEN_ID);
         let sol_params = build_swap_params(&sol_request, &sol_route, Chain::Solana, false).unwrap();
         assert_eq!(sol_params.chain_index, "501");
@@ -417,12 +447,22 @@ mod tests {
         assert_eq!(sol_params.fee_percent, "0.5");
         assert!(sol_params.from_token_referrer_wallet_address.is_some());
         assert!(sol_params.to_token_referrer_wallet_address.is_none());
+
+        let trx = AssetId::from_chain(Chain::Tron).to_string();
+        let tron_request = mock_proxy_quote_request(quote_asset(&trx), quote_asset(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID).to_string()), 100, 70);
+        let tron_route = quote_data(TRON_NATIVE_TOKEN_ADDRESS, TRON_USDT_TOKEN_ID);
+        let tron_params = build_swap_params(&tron_request, &tron_route, Chain::Tron, false).unwrap();
+        assert_eq!(tron_params.chain_index, "195");
+        assert_eq!(tron_params.fee_percent, "0.7");
+        assert_eq!(tron_params.dex_ids, Some("64,98,596"));
+        assert!(tron_params.from_token_referrer_wallet_address.is_some());
+        assert!(tron_params.to_token_referrer_wallet_address.is_none());
     }
 
     #[test]
     fn test_build_swap_params_exact_slippage_disables_auto() {
         let eth = AssetId::from_chain(Chain::Ethereum).to_string();
-        let mut evm_request = proxy_request(&ETHEREUM_USDC_ASSET_ID.to_string(), &eth, 100, 50);
+        let mut evm_request = mock_proxy_quote_request(quote_asset(&ETHEREUM_USDC_ASSET_ID.to_string()), quote_asset(&eth), 100, 50);
         evm_request.slippage_mode = SlippageMode::Exact;
         let evm_route = quote_data(ETHEREUM_USDC_TOKEN_ID, EVM_NATIVE_TOKEN_ADDRESS);
         let evm_params = build_swap_params(&evm_request, &evm_route, Chain::Ethereum, true).unwrap();
@@ -436,13 +476,16 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::alien::reqwest_provider::NativeProvider;
+    use crate::{alien::reqwest_provider::NativeProvider, testkit::mock_proxy_quote_request_from_assets};
     use primitives::{
         AssetId,
-        asset_constants::SOLANA_USDC_ASSET_ID,
+        asset_constants::{HYPEREVM_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, TRON_USDT_ASSET_ID},
         swap::{QuoteAsset, SlippageMode},
         testkit::signer_mock::TEST_SOLANA_SENDER,
     };
+
+    const EVM_WALLET: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";
+    const TRON_WALLET: &str = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z";
 
     fn okx_provider() -> OkxProvider<RpcClient> {
         let settings = settings::testkit::get_test_settings();
@@ -456,19 +499,48 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
+    async fn test_okx_fetch_quote_and_quote_data_hyperevm_hype_to_usdt() -> Result<(), SwapperError> {
+        let provider = okx_provider();
+        let request = mock_proxy_quote_request_from_assets(
+            AssetId::from_chain(Chain::Hyperliquid),
+            HYPEREVM_USDT_ASSET_ID.clone(),
+            EVM_WALLET,
+            "100000000000000000",
+            100,
+        );
+
+        let quote = provider.get_quote(request).await?;
+        assert!(quote.output_value.parse::<u64>().unwrap() > 0);
+
+        let quote_data = provider.get_quote_data(quote).await?;
+        assert!(!quote_data.to.is_empty());
+        assert_eq!(quote_data.value, "100000000000000000");
+        assert!(!quote_data.data.is_empty());
+        assert!(quote_data.approval.is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_okx_fetch_quote_and_quote_data_tron_trx_to_usdt() -> Result<(), SwapperError> {
+        let provider = okx_provider();
+        let request = mock_proxy_quote_request_from_assets(AssetId::from_chain(Chain::Tron), TRON_USDT_ASSET_ID.clone(), TRON_WALLET, "100000000", 100);
+
+        let quote = provider.get_quote(request).await?;
+        assert!(quote.output_value.parse::<u64>().unwrap() > 0);
+
+        let quote_data = provider.get_quote_data(quote).await?;
+        assert!(!quote_data.to.is_empty());
+        assert_eq!(quote_data.value, "100000000");
+        assert!(!quote_data.data.is_empty());
+        assert!(!quote_data.data.starts_with("0x"));
+        assert!(quote_data.approval.is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_okx_fetch_quote_and_quote_data_sol_to_usdc() -> Result<(), SwapperError> {
         let provider = okx_provider();
-        let request = ProxyQuoteRequest {
-            from_address: TEST_SOLANA_SENDER.to_string(),
-            to_address: TEST_SOLANA_SENDER.to_string(),
-            from_asset: QuoteAsset::from(AssetId::from_chain(Chain::Solana)),
-            to_asset: QuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
-            from_value: "100000000".to_string(),
-            referral_bps: 50,
-            slippage_bps: 300,
-            slippage_mode: SlippageMode::Auto,
-            use_max_amount: false,
-        };
+        let request = mock_proxy_quote_request_from_assets(AssetId::from_chain(Chain::Solana), SOLANA_USDC_ASSET_ID.clone(), TEST_SOLANA_SENDER, "100000000", 300);
 
         let quote = provider.get_quote(request).await?;
         assert!(quote.output_value.parse::<u64>().unwrap() > 0);

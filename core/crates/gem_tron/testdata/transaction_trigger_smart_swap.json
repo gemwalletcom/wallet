@@ -1,0 +1,26 @@
+{
+    "ret": [
+        {
+            "contractRet": "SUCCESS"
+        }
+    ],
+    "txID": "9a5d8f0e6b8f7c0d4f6a8e5c9b2a1d3e5f7a9c1b3d5e7f9a1c3e5f7a9c1b3d5e",
+    "raw_data": {
+        "contract": [
+            {
+                "parameter": {
+                    "value": {
+                        "data": "9871efa4",
+                        "owner_address": "4160e00625a95cbc180f290e2611c826f90eeba56f",
+                        "contract_address": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+                        "call_value": 1000000
+                    },
+                    "type_url": "type.googleapis.com/protocol.TriggerSmartContract"
+                },
+                "type": "TriggerSmartContract"
+            }
+        ],
+        "fee_limit": 32831820,
+        "timestamp": 1758589896000
+    }
+}
