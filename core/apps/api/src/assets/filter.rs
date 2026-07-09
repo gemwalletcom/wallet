@@ -1,4 +1,5 @@
 use super::SearchRequest;
+use serde_json::Value;
 
 pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
     let mut filters = vec![];
@@ -29,7 +30,12 @@ pub fn build_filter(filters: Vec<String>) -> String {
 }
 
 fn filter_array(field: &str, values: Vec<String>) -> String {
-    format!("{} IN [\"{}\"]", field, values.join("\",\""))
+    let values = values.into_iter().map(filter_string).collect::<Vec<_>>().join(",");
+    format!("{field} IN [{values}]")
+}
+
+fn filter_string(value: String) -> String {
+    Value::String(value).to_string()
 }
 
 #[cfg(test)]
@@ -84,5 +90,12 @@ mod tests {
     #[test]
     fn filter_array_formats_correctly() {
         assert_eq!(filter_array("tags", vec!["defi".to_string(), "nft".to_string()]), "tags IN [\"defi\",\"nft\"]");
+    }
+
+    #[test]
+    fn filter_array_escapes_filter_literals() {
+        let filter = filter_array("tags", vec!["x\"] OR properties.isEnabled = false OR tags IN [\"y".to_string()]);
+
+        assert_eq!(filter, r#"tags IN ["x\"] OR properties.isEnabled = false OR tags IN [\"y"]"#);
     }
 }
