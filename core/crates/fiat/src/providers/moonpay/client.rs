@@ -1,13 +1,12 @@
-use crate::hmac_signature::generate_hmac_signature;
 use crate::model::{FiatProviderAsset, filter_token_id};
 
 use super::mapper::map_asset_chain;
 use super::models::{Asset, Country, MoonPayBuyQuote, MoonPayIpAddress, MoonPayResponse, MoonPaySellQuote};
+use super::widget::MoonPayWidget;
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{FiatProviderName, FiatQuoteType, PaymentType};
 use reqwest::Client;
-use url::Url;
 
 #[derive(Clone)]
 pub struct MoonPayClient {
@@ -17,8 +16,6 @@ pub struct MoonPayClient {
 }
 
 const MOONPAY_API_BASE_URL: &str = "https://api.moonpay.com";
-const MOONPAY_BUY_REDIRECT_URL: &str = "https://buy.moonpay.com";
-const MOONPAY_SELL_REDIRECT_URL: &str = "https://sell.moonpay.com";
 impl MoonPayClient {
     pub const NAME: FiatProviderName = FiatProviderName::MoonPay;
 
@@ -143,50 +140,7 @@ impl MoonPayClient {
         })
     }
 
-    fn generate_quote_url(&self, quote_type: FiatQuoteType, amount: f64, symbol: &str, wallet_address: &str, external_transaction_id: &str) -> String {
-        let url = match quote_type {
-            FiatQuoteType::Buy => MOONPAY_BUY_REDIRECT_URL,
-            FiatQuoteType::Sell => MOONPAY_SELL_REDIRECT_URL,
-        };
-        let mut components = Url::parse(url).unwrap();
-        components
-            .query_pairs_mut()
-            .append_pair("apiKey", &self.api_key)
-            .append_pair("externalTransactionId", external_transaction_id);
-
-        match quote_type {
-            FiatQuoteType::Buy => {
-                // For buy: amount is fiat, symbol is crypto
-                components
-                    .query_pairs_mut()
-                    .append_pair("baseCurrencyAmount", &amount.to_string())
-                    .append_pair("currencyCode", symbol)
-                    .append_pair("walletAddress", wallet_address);
-            }
-            FiatQuoteType::Sell => {
-                // For sell: amount is crypto, symbol is crypto
-                components
-                    .query_pairs_mut()
-                    .append_pair("baseCurrencyCode", symbol)
-                    .append_pair("baseCurrencyAmount", &amount.to_string())
-                    .append_pair("refundWalletAddress", wallet_address);
-            }
-        };
-        self.sign(components)
-    }
-
-    fn sign(&self, mut components: Url) -> String {
-        let query = components.query().unwrap();
-        let signature = self.generate_signature(format!("?{}", &query).as_str());
-        components.query_pairs_mut().append_pair("signature", &signature);
-        components.as_str().to_string()
-    }
-
-    fn generate_signature(&self, query: &str) -> String {
-        generate_hmac_signature(&self.secret_key, query)
-    }
-
-    pub fn quote_redirect_url(&self, quote_type: FiatQuoteType, amount: f64, symbol: &str, wallet_address: &str, external_transaction_id: &str) -> String {
-        self.generate_quote_url(quote_type, amount, symbol, wallet_address, external_transaction_id)
+    pub fn quote_redirect_url(&self, quote_type: FiatQuoteType, amount: f64, symbol: &str, wallet_address: &str, external_transaction_id: &str, ip_address: &str) -> String {
+        MoonPayWidget::new(self.api_key.clone(), self.secret_key.clone()).redirect_url(quote_type, amount, symbol, wallet_address, external_transaction_id, ip_address)
     }
 }

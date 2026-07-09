@@ -62,7 +62,14 @@ impl FiatProvider for MoonPayClient {
             FiatQuoteType::Sell => data.quote.crypto_amount,
         };
 
-        let redirect_url = self.quote_redirect_url(data.quote.quote_type, amount, &data.asset_symbol.symbol, &data.wallet_address, &data.quote.id);
+        let redirect_url = self.quote_redirect_url(
+            data.quote.quote_type,
+            amount,
+            &data.asset_symbol.symbol,
+            &data.wallet_address,
+            &data.quote.id,
+            &data.ip_address,
+        );
 
         Ok(FiatQuoteUrl {
             redirect_url,
