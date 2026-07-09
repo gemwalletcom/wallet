@@ -92,6 +92,12 @@ wallet_import_address_warning = 이 주소에 대한 잔액과 거래 내역은 
 wallet_deposit = 입금
 wallet_withdraw = 철회하다
 wallet_available_balance = 사용 가능: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = 카드 또는 은행으로 결제
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = 지갑 자산에서
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = 다른 지갑에서 전송
 wallet_portfolio_title = 포트폴리오
 wallet_import_already_imported_message = 이 지갑은 이미 가져왔습니다.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = 의심스러운
 asset_verification_warning_title = 무엇을 추가하고 있는지 알아보세요
 asset_verification_warning_message = 가짜 또는 악성 토큰을 포함하여 누구나 토큰을 만들 수 있습니다.
 asset_buy_asset = %@ 구매
+asset_get_asset = %@ 받기
 asset_add_to_wallet = 지갑에 추가
 asset_hide_from_wallet = 지갑에서 숨기기
 asset_resources = 자원

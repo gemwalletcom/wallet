@@ -24,8 +24,8 @@ public struct SupportChatScene: View {
                             groupView(group)
                         }
                     }
-                    if let name = model.typingAgentName {
-                        SupportTypingIndicator(name: name)
+                    if model.typingAgentName != nil {
+                        SupportTypingIndicator()
                             .transition(.opacity)
                     }
                 }
@@ -73,8 +73,8 @@ public struct SupportChatScene: View {
     @ViewBuilder
     private func groupView(_ group: SupportChatGroup) -> some View {
         switch group.kind {
-        case let .agent(name, messages):
-            SupportAgentMessageGroup(name: name, messages: messages)
+        case let .agent(_, messages):
+            SupportAgentMessageGroup(messages: messages)
         case let .user(messages):
             SupportUserMessageGroup(messages: messages)
         }

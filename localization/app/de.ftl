@@ -92,6 +92,12 @@ wallet_import_address_warning = Sie können Guthaben und Transaktionen für dies
 wallet_deposit = Einzahlen
 wallet_withdraw = Zurückziehen
 wallet_available_balance = Verfügbar: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Mit Karte oder Bank bezahlen
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Aus deinen Wallet-Assets
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Von einer anderen Wallet übertragen
 wallet_portfolio_title = Portfolio
 wallet_import_already_imported_message = Diese Wallet wurde bereits importiert.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = Verdächtig
 asset_verification_warning_title = Wissen Sie, was Sie hinzufügen
 asset_verification_warning_message = Jeder kann einen erstellen – auch gefälschte oder böswillige Token.
 asset_buy_asset = Kaufen %@
+asset_get_asset = %@ erhalten
 asset_add_to_wallet = Zum Wallet hinzufügen
 asset_hide_from_wallet = Vor der Wallet verstecken
 asset_resources = Ressourcen

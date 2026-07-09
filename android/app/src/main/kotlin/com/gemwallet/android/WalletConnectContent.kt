@@ -19,15 +19,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.bridge.views.AuthRequestScene
 import com.gemwallet.android.features.bridge.views.ProposalScene
 import com.gemwallet.android.features.bridge.views.RequestScene
+import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.actions.AssetIdAction
+import com.wallet.core.primitives.AssetId
 
 @Composable
 internal fun rememberWalletConnectOverlay(
     viewModel: WalletConnectViewModel,
     onError: (String) -> Unit,
-): @Composable (AssetIdAction) -> Unit = remember(viewModel, onError) {
-    { onBuy -> WalletConnectOverlay(viewModel = viewModel, onBuy = onBuy, onError = onError) }
+): @Composable ((GetNetworkFeeAssetAction, AssetId) -> Unit) -> Unit = remember(viewModel, onError) {
+    { onGetNetworkFeeAssetAction ->
+        WalletConnectOverlay(
+            viewModel = viewModel,
+            onGetNetworkFeeAssetAction = onGetNetworkFeeAssetAction,
+            onError = onError,
+        )
+    }
 }
 
 @Composable
@@ -69,7 +76,7 @@ internal fun WalletConnectErrorDialog(
 @Composable
 private fun WalletConnectOverlay(
     viewModel: WalletConnectViewModel,
-    onBuy: AssetIdAction,
+    onGetNetworkFeeAssetAction: (GetNetworkFeeAssetAction, AssetId) -> Unit,
     onError: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -128,7 +135,7 @@ private fun WalletConnectOverlay(
                     RequestScene(
                         request = event.request,
                         verifyContext = verifyContext,
-                        onBuy = onBuy,
+                        onGetNetworkFeeAssetAction = onGetNetworkFeeAssetAction,
                         onCancel = viewModel::onCancel,
                         onError = onError,
                     )

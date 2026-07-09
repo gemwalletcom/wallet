@@ -41,6 +41,13 @@ struct AutocloseInput {
         }
     }
 
+    func text(for field: AutocloseScene.Field) -> String {
+        switch field {
+        case .takeProfit: takeProfit.text
+        case .stopLoss: stopLoss.text
+        }
+    }
+
     func field(
         type: TpslType,
         price: Double?,

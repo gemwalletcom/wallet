@@ -1,4 +1,6 @@
+use crate::address::TronAddress;
 use crate::address::serializer::deserialize as tron_address_deserialize;
+use crate::address::serializer::optional as tron_address_optional;
 use primitives::hex::decode_hex_utf8;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{error::Error, fmt};
@@ -127,6 +129,8 @@ pub struct TransactionReceipt {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TronLog {
+    #[serde(default, with = "tron_address_optional")]
+    pub address: Option<TronAddress>,
     pub topics: Option<Vec<String>>,
     pub data: Option<String>,
 }
@@ -151,6 +155,8 @@ pub struct TriggerConstantContractResponse {
     pub result: Option<TriggerContractResult>,
     pub energy_used: Option<u64>,
     pub energy_penalty: Option<u64>,
+    #[serde(default)]
+    pub logs: Option<Vec<TronLog>>,
 }
 
 impl TriggerConstantContractResponse {
@@ -158,6 +164,13 @@ impl TriggerConstantContractResponse {
     pub fn get_energy(&self) -> Result<u64, TronRpcError> {
         if let Some(error) = self.result.as_ref().and_then(|r| r.check_error()) {
             return Err(error);
+        }
+        // Some reverts still report result=true; the failure only shows up in the message
+        if let Some(message) = self.result.as_ref().and_then(|r| r.message.as_deref()) {
+            return Err(TronRpcError {
+                code: None,
+                message: Some(decode_hex_utf8(message).unwrap_or_else(|| message.to_string())),
+            });
         }
         self.energy_used.ok_or_else(|| TronRpcError {
             code: None,
@@ -234,4 +247,27 @@ pub struct TronTransactionBroadcast {
     pub txid: Option<String>,
     pub code: Option<String>,
     pub message: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_energy_reverted_with_success_flag_and_message() {
+        let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
+
+        let error = response.get_energy().unwrap_err();
+        assert_eq!(error.message.as_deref(), Some("REVERT opcode executed"));
+    }
+
+    #[test]
+    fn test_get_energy_success_with_logs() {
+        let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_with_transfer_log.json")).unwrap();
+
+        assert_eq!(response.get_energy().unwrap(), 173171);
+        let logs = response.logs.as_ref().unwrap();
+        assert_eq!(logs.len(), 1);
+        assert_eq!(logs[0].address, TronAddress::from_hex_or_base58("88zffnwSJQ1BGNdvoHNCr24pGHX9ZHmWw"));
+    }
 }

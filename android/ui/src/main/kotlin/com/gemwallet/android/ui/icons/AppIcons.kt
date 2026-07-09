@@ -54,6 +54,7 @@ object AppIcons {
     val Settings: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_settings)
     val SettingsOutlined: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_settings_outlined)
     val Share: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_share)
+    val ShowChart: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_show_chart)
     val StarOutlined: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_star_outlined)
     val SwapVert: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_swap_vert)
     val Tune: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_tune)

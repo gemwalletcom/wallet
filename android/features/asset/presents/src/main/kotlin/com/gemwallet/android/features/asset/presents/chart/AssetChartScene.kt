@@ -115,7 +115,7 @@ fun AssetChartScene(
                     assetMarket(it.currency, it.asset, it.marketInfo)
                     assetContract(it.asset, it.explorerName)
                     assetSupply(it.asset, it.marketInfo)
-                    assetAllTime(it.currency, it.asset, it.marketInfo)
+                    assetAllTime(it.currency, it.marketInfo)
                     links(it.assetLinks, uriHandler, context)
                 }
             }
@@ -200,14 +200,14 @@ private fun LazyListScope.assetSupply(asset: Asset, marketInfo: AssetMarket?) {
     marketProperties(asset, supplyItems)
 }
 
-private fun LazyListScope.assetAllTime(currency: Currency, asset: Asset, marketInfo: AssetMarket?) {
+private fun LazyListScope.assetAllTime(currency: Currency, marketInfo: AssetMarket?) {
     marketInfo ?: return
     val allTime = listOfNotNull(
         marketInfo.allTimeHighValue?.let { AllTimeUIModel.High(it.date, it.value.toDouble(), it.percentage.toDouble()) },
         marketInfo.allTimeLowValue?.let { AllTimeUIModel.Low(it.date, it.value.toDouble(), it.percentage.toDouble()) },
     )
 
-    allTimeProperties(asset, currency, allTime)
+    allTimeProperties(currency, allTime)
 }
 
 internal fun buildMarketItems(
@@ -313,7 +313,7 @@ private fun LazyListScope.marketProperties(asset: Asset, items: List<MarketInfoU
     }
 }
 
-private fun LazyListScope.allTimeProperties(asset: Asset, currency: Currency, items: List<AllTimeUIModel>) {
+internal fun LazyListScope.allTimeProperties(currency: Currency, items: List<AllTimeUIModel>) {
     val dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM)
 
     itemsPositioned(items) { position, item ->

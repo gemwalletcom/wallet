@@ -29,14 +29,15 @@ import com.wallet.core.primitives.ChartPeriod
 @Composable
 fun PeriodsPanel(
     period: ChartPeriod,
-    onSelect: (ChartPeriod) -> Unit
+    onSelect: (ChartPeriod) -> Unit,
+    periods: List<ChartPeriod> = ChartPeriod.entries,
 ) {
     Row(
         modifier = Modifier.padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ChartPeriod.entries.forEach {
+        periods.forEach {
             PeriodButton(it.title(), it == period) { onSelect(it) }
         }
     }

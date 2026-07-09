@@ -11,7 +11,8 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockChartPrices
-import com.gemwallet.android.ui.models.chart.ChartViewState
+import com.gemwallet.android.ui.models.StateViewType
+import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
@@ -77,11 +78,11 @@ class ChartViewModelTest {
         coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
 
         val viewModel = createViewModel(tokenInfoFlow)
-        val uiModel = viewModel.chartUIModel.first { it.chartPoints.size == prices.size }
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
 
         assertEquals(prices.size, uiModel.chartPoints.size)
         assertNull(uiModel.currentPoint)
-        assertEquals(ChartViewState.Ready, viewModel.chartUIState.value.viewState)
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
     }
 
     @Test
@@ -92,7 +93,7 @@ class ChartViewModelTest {
         coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
 
         val viewModel = createViewModel(tokenInfoFlow)
-        val uiModel = viewModel.chartUIModel.first { it.chartPoints.size == prices.size }
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
 
         assertEquals(prices.size, uiModel.chartPoints.size)
         assertNull(uiModel.currentPoint)
@@ -106,13 +107,13 @@ class ChartViewModelTest {
         coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
 
         val viewModel = createViewModel(tokenInfoFlow)
-        val uiModel = viewModel.chartUIModel.first { it.chartPoints.size == prices.size }
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
 
         coVerify(exactly = 1) {
             getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD)
         }
         assertEquals(prices.size, uiModel.chartPoints.size)
-        assertEquals(ChartViewState.Ready, viewModel.chartUIState.value.viewState)
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
     }
 
     @Test
@@ -124,7 +125,7 @@ class ChartViewModelTest {
         coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Month, Currency.USD) } returns prices
 
         val viewModel = createViewModel(tokenInfoFlow)
-        viewModel.chartUIModel.first { it.chartPoints.size == prices.size }
+        viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }
 
         assertEquals(ChartPeriod.Month, viewModel.chartUIState.value.period)
         coVerify(exactly = 1) {
@@ -138,9 +139,9 @@ class ChartViewModelTest {
         val viewModel = createViewModel(tokenInfoFlow)
 
         viewModel.setPeriod(ChartPeriod.Month)
-        testScheduler.runCurrent()
+        val state = viewModel.chartUIState.first { it.period == ChartPeriod.Month }
 
-        assertEquals(ChartPeriod.Month, viewModel.chartUIState.value.period)
+        assertEquals(ChartPeriod.Month, state.period)
         verify(exactly = 1) { setChartPeriod(ChartPeriod.Month) }
     }
 

@@ -143,7 +143,8 @@ internal fun PerpetualMarketScene(
                             equivalent = stringResource(
                                 R.string.wallet_available_balance,
                                 balance.available
-                            )
+                            ),
+                            onClick = { onAction(PerpetualMarketAction.OpenPortfolio) },
                         ) {
                             MarketHeadActions(
                                 onWithdraw = { onAction(PerpetualMarketAction.Withdraw) },

@@ -163,20 +163,20 @@ internal fun AmountAutocloseSheet(
                         }
                     },
                 )
-                Spacer16()
+            } else {
+                MainActionButton(
+                    title = stringResource(R.string.common_done),
+                    enabled = confirmEnabled,
+                    onClick = {
+                        submitAttempted = true
+                        if (isTakeProfitValid && isStopLossValid) {
+                            provider.setTakeProfit(takeProfitText.takeIf { it.isNotEmpty() })
+                            provider.setStopLoss(stopLossText.takeIf { it.isNotEmpty() })
+                            onDismiss()
+                        }
+                    },
+                )
             }
-            MainActionButton(
-                title = stringResource(R.string.common_done),
-                enabled = confirmEnabled,
-                onClick = {
-                    submitAttempted = true
-                    if (isTakeProfitValid && isStopLossValid) {
-                        provider.setTakeProfit(takeProfitText.takeIf { it.isNotEmpty() })
-                        provider.setStopLoss(stopLossText.takeIf { it.isNotEmpty() })
-                        onDismiss()
-                    }
-                },
-            )
             Spacer16()
         }
     }

@@ -92,6 +92,12 @@ wallet_import_address_warning = आप इस पते के लिए शे�
 wallet_deposit = जमा
 wallet_withdraw = निकालना
 wallet_available_balance = उपलब्ध: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = कार्ड या बैंक से भुगतान करें
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = आपके वॉलेट एसेट्स से
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = दूसरे वॉलेट से ट्रांसफर करें
 wallet_portfolio_title = पोर्टफोलियो
 wallet_import_already_imported_message = यह बटुआ पहले ही आयात किया जा चुका है।
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = संदिग्ध
 asset_verification_warning_title = जानें कि आप क्या जोड़ रहे हैं
 asset_verification_warning_message = कोई भी इसे बना सकता है - नकली या दुर्भावनापूर्ण टोकन सहित।
 asset_buy_asset = %@ खरीदें
+asset_get_asset = %@ प्राप्त करें
 asset_add_to_wallet = वॉलेट में जोड़ें
 asset_hide_from_wallet = बटुए से छिपाएँ
 asset_resources = संसाधन

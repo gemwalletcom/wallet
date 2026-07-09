@@ -86,6 +86,9 @@
   <string name="wallet_deposit">جمع</string>
   <string name="wallet_withdraw">واپس لینا</string>
   <string name="wallet_available_balance">دستیاب: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">کارڈ یا بینک سے ادائیگی کریں</string>
+  <string name="wallet_from_your_wallet_assets">اپنے والیٹ اثاثوں سے</string>
+  <string name="wallet_transfer_from_another_wallet">دوسرے والیٹ سے منتقل کریں</string>
   <string name="wallet_portfolio_title">پورٹ فولیو</string>
   <string name="wallet_import_already_imported_message">یہ والیٹ پہلے ہی درآمد کیا جا چکا ہے۔</string>
   <string name="wallets_title">والیٹس</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">جانیں کہ آپ کیا شامل کر رہے ہیں۔</string>
   <string name="asset_verification_warning_message">کوئی بھی ایک بنا سکتا ہے - بشمول جعلی یا نقصان دہ ٹوکن۔</string>
   <string name="asset_buy_asset">خریدیں %1$s</string>
+  <string name="asset_get_asset">%1$s حاصل کریں</string>
   <string name="asset_add_to_wallet">بٹوے میں شامل کریں۔</string>
   <string name="asset_hide_from_wallet">بٹوے سے چھپائیں۔</string>
   <string name="asset_resources">وسائل</string>

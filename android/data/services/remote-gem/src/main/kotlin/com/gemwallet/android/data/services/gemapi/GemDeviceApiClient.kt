@@ -11,6 +11,8 @@ import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NameRecord
+import com.wallet.core.primitives.PortfolioAssets
+import com.wallet.core.primitives.PortfolioAssetsRequest
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.RedemptionRequest
 import com.wallet.core.primitives.RedemptionResult
@@ -139,6 +141,13 @@ interface GemDeviceApiClient {
     // Assets
     @GET("/v2/devices/assets")
     suspend fun getAssets(@Tag walletId: WalletId, @Query("from_timestamp") fromTimestamp: Long): List<String>
+
+    // Portfolio
+    @POST("/v2/devices/portfolio/assets")
+    suspend fun getPortfolioAssets(
+        @Query("period") period: String,
+        @Body request: PortfolioAssetsRequest,
+    ): PortfolioAssets
 
     // NFT
     @GET("/v2/devices/nft_assets")

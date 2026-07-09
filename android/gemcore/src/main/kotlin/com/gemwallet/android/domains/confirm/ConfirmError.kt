@@ -17,4 +17,6 @@ sealed class ConfirmError : Exception() {
     class BroadcastError(val details: String) : ConfirmError()
     class NetworkError(val error: GemNetworkError) : ConfirmError()
     class DustThreshold(val chain: Chain) : ConfirmError()
+    data object ScanTransactionMalicious : ConfirmError()
+    class ScanTransactionMemoRequired(val symbol: String) : ConfirmError()
 }

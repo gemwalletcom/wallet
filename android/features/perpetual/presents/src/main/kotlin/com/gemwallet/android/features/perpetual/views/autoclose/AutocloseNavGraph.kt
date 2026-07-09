@@ -104,7 +104,7 @@ private fun AutocloseNavGraphContent(
                         finishAction(hash)
                         onDismiss()
                     },
-                    onBuy = {},
+                    onGetNetworkFeeAssetAction = { _, _ -> },
                     handleSystemBack = true,
                 )
             }

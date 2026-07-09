@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.PerpetualType
+import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
@@ -68,7 +69,6 @@ import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.ui.localizedDescription
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.hasCriticalWarning
@@ -85,7 +85,7 @@ fun ConfirmScreen(
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
-    onBuy: AssetIdAction,
+    onGetNetworkFeeAssetAction: (GetNetworkFeeAssetAction, AssetId) -> Unit,
     handleSystemBack: Boolean = false,
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
@@ -260,7 +260,12 @@ fun ConfirmScreen(
                 }
             }
             item {
-                ConfirmErrorInfo(state, feeValue = feeValue, isShowBottomSheetInfo, onBuy)
+                ConfirmErrorInfo(
+                    state = state,
+                    feeValue = feeValue,
+                    isShowBottomSheetInfo = isShowBottomSheetInfo,
+                    onGetNetworkFeeAssetAction = onGetNetworkFeeAssetAction,
+                )
             }
         }
 
@@ -390,6 +395,8 @@ fun ConfirmError.toLabel() = when (this) {
     is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold_short)
     is ConfirmError.None -> stringResource(id = R.string.transfer_confirm)
     is ConfirmError.MinimumAccountBalanceTooLow -> stringResource(R.string.transfer_minimum_account_balance, asset.symbol)
+    is ConfirmError.ScanTransactionMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
+    is ConfirmError.ScanTransactionMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
 }
 
 @Composable

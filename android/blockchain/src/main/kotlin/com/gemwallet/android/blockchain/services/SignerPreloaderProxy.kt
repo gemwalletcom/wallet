@@ -2,12 +2,15 @@ package com.gemwallet.android.blockchain.services
 
 import com.gemwallet.android.blockchain.gemstone.selectFeeRate
 import com.gemwallet.android.blockchain.gemstone.toFee
+import com.gemwallet.android.blockchain.gemstone.toScanTransactionPayload
+import com.gemwallet.android.blockchain.gemstone.validate
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.SignerParams
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.ScanTransaction
+import com.wallet.core.primitives.ScanTransactionPayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -18,6 +21,7 @@ import uniffi.gemstone.GemTransactionPreloadInput
 
 class SignerPreloaderProxy(
     private val gateway: GemGatewayInterface,
+    private val scanTransaction: suspend (ScanTransactionPayload) -> ScanTransaction? = { null },
 ) {
 
     suspend fun preload(params: ConfirmParams, feePriority: FeePriority): SignerParams = withContext(Dispatchers.IO) {
@@ -25,10 +29,11 @@ class SignerPreloaderProxy(
         val chain = assetId.chain
         val feeAssetId = AssetId(chain)
         val gemChain = assetId.chain.string
-        val destination = params.destination()?.address ?: throw java.lang.IllegalArgumentException()
+        val destination = requireNotNull(params.destination()?.address)
 
         val inputType = params.toDto()
-        val (metadata, feeRates) = coroutineScope {
+        val scanPayload = params.toScanTransactionPayload(destination)
+        coroutineScope {
             val metadataDeferred = async {
                 gateway.getTransactionPreload(
                     chain = gemChain,
@@ -45,31 +50,41 @@ class SignerPreloaderProxy(
                     input = inputType
                 )
             }
-            Pair(metadataDeferred.await(), feeRatesDeferred.await())
+            val scanDeferred = async {
+                runCatching {
+                    scanTransaction(scanPayload)
+                }.getOrNull()
+            }
+            val metadata = metadataDeferred.await()
+            val feeRates = feeRatesDeferred.await()
+            val validFeeRates = feeRates.filter { it.priority.toFeePriority() != null }
+            val selectedRate = validFeeRates.selectFeeRate(feePriority)
+            val selectedPriority = requireNotNull(selectedRate.priority.toFeePriority())
+
+            val transactionLoadDeferred = async {
+                gateway.getTransactionLoad(
+                    chain = gemChain,
+                    input = GemTransactionLoadInput(
+                        inputType = inputType,
+                        senderAddress = params.from.address,
+                        destinationAddress = destination,
+                        value = params.amount.toString(),
+                        gasPrice = selectedRate.gasPriceType,
+                        memo = params.memo(),
+                        isMaxValue = params.useMaxAmount,
+                        metadata = metadata,
+                    ),
+                )
+            }
+            scanDeferred.await()?.validate(params)
+            val result = transactionLoadDeferred.await()
+            val fee = chain.toFee(feeAssetId, selectedPriority, result.fee)
+
+            SignerParams(
+                input = params,
+                selectedData = SignerParams.Data(metadata = result.metadata, fee = fee),
+                feeRates = validFeeRates,
+            )
         }
-        val validFeeRates = feeRates.filter { it.priority.toFeePriority() != null }
-        val selectedRate = validFeeRates.selectFeeRate(feePriority)
-        val selectedPriority = requireNotNull(selectedRate.priority.toFeePriority())
-
-        val result = gateway.getTransactionLoad(
-            chain = gemChain,
-            input = GemTransactionLoadInput(
-                inputType = inputType,
-                senderAddress = params.from.address,
-                destinationAddress = destination,
-                value = params.amount.toString(),
-                gasPrice = selectedRate.gasPriceType,
-                memo = params.memo(),
-                isMaxValue = params.useMaxAmount,
-                metadata = metadata,
-            ),
-        )
-        val fee = chain.toFee(feeAssetId, selectedPriority, result.fee)
-
-        SignerParams(
-            input = params,
-            selectedData = SignerParams.Data(metadata = result.metadata, fee = fee),
-            feeRates = validFeeRates,
-        )
     }
 }

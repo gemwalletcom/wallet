@@ -341,4 +341,17 @@ final class FiatSceneViewModelTests {
 
         #expect(model.buyViewModel.shouldSkipFetch(for: 200.0) == false)
     }
+
+    @Test
+    func fiatProviderRowsUseUsdPriceSource() {
+        let model = FiatSceneViewModelTests.mock()
+        let quote = FiatQuote.mock(fiatAmount: 50, cryptoAmount: 0.000488, type: .buy)
+        model.buyViewModel.quotesState = .data(FiatQuotes(amount: 50, quotes: [quote]))
+        model.priceUsdQuery.value = 100_000
+
+        let row = model.fiatProviderViewModel.state.value?.items.first
+
+        #expect(row?.assetPrice == 100_000)
+        #expect(row?.subtitleExtra == "$48.80")
+    }
 }

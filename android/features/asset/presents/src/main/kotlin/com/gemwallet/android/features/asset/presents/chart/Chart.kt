@@ -9,45 +9,55 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PricePoint
 import com.gemwallet.android.features.asset.viewmodels.chart.models.chartHeader
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemLineChart
-import com.gemwallet.android.ui.models.chart.ChartViewState
+import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
+import com.gemwallet.android.ui.models.dataOrNull
+import com.wallet.core.primitives.ChartPeriod
 
 @Composable
 fun Chart(viewModel: ChartViewModel = hiltViewModel()) {
-    val uiModel by viewModel.chartUIModel.collectAsStateWithLifecycle()
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
 
+    ChartSection(
+        state = state,
+        onPeriodSelect = viewModel::setPeriod,
+    ) { uiModel, selectedPoint -> chartHeader(uiModel, selectedPoint) }
+}
+
+@Composable
+internal fun ChartSection(
+    state: ChartUIModel.State,
+    onPeriodSelect: (ChartPeriod) -> Unit,
+    periods: List<ChartPeriod> = ChartPeriod.entries,
+    header: (ChartUIModel, PricePoint?) -> ChartHeaderUIModel?,
+) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
-        val displayState = when {
-            state.period != uiModel.period -> ChartViewState.Loading
-            else -> state.viewState
-        }
-        val chartPoints = uiModel.chartPoints
-        val selectedPoint: PricePoint? = if (displayState == ChartViewState.Ready) {
-            selectedIndex?.let { chartPoints.getOrNull(it) }
-        } else {
-            null
+        val uiModel = state.chart.dataOrNull
+        val selectedPoint = uiModel?.let { model ->
+            selectedIndex?.let { model.chartPoints.getOrNull(it) }
         }
 
         ChartStateView(
-            state = displayState,
-            header = chartHeader(uiModel, selectedPoint),
+            state = state.chart,
+            header = uiModel?.let { header(it, selectedPoint) },
             period = state.period,
-            onPeriodSelect = viewModel::setPeriod,
-        ) {
+            onPeriodSelect = onPeriodSelect,
+            periods = periods,
+        ) { model ->
             GemLineChart(
-                points = uiModel.renderPoints,
+                points = model.renderPoints,
                 lineColor = MaterialTheme.colorScheme.primary,
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },
-                minLabel = uiModel.minLabel,
-                maxLabel = uiModel.maxLabel,
+                minLabel = model.minLabel,
+                maxLabel = model.maxLabel,
             )
         }
     }

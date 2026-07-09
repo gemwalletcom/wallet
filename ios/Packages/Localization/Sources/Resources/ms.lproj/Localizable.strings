@@ -81,6 +81,9 @@
 "wallet.deposit" = "Deposit";
 "wallet.withdraw" = "Tarik balik";
 "wallet.available_balance" = "Tersedia: %@";
+"wallet.pay_with_card_or_bank" = "Bayar dengan kad atau bank";
+"wallet.from_your_wallet_assets" = "Daripada aset dompet anda";
+"wallet.transfer_from_another_wallet" = "Pindahkan daripada dompet lain";
 "wallet.portfolio.title" = "Portfolio";
 "wallet.import.already_imported_message" = "Dompet ini telah pun diimport.";
 "wallets.title" = "Dompet";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "Ketahui Perkara yang Anda Tambah";
 "asset.verification.warning_message" = "Sesiapa sahaja boleh mencipta satu - termasuk token palsu atau berniat jahat.";
 "asset.buy_asset" = "Beli %@";
+"asset.get_asset" = "Dapatkan %@";
 "asset.add_to_wallet" = "Tambah pada dompet";
 "asset.hide_from_wallet" = "Sembunyi dari dompet";
 "asset.resources" = "Sumber";

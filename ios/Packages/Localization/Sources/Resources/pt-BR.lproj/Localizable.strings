@@ -81,6 +81,9 @@
 "wallet.deposit" = "Depósito";
 "wallet.withdraw" = "Retirar";
 "wallet.available_balance" = "Disponível: %@";
+"wallet.pay_with_card_or_bank" = "Pague com cartão ou banco";
+"wallet.from_your_wallet_assets" = "Dos ativos da sua carteira";
+"wallet.transfer_from_another_wallet" = "Transfira de outra carteira";
 "wallet.portfolio.title" = "Portfólio";
 "wallet.import.already_imported_message" = "Esta carteira já foi importada.";
 "wallets.title" = "Carteiras";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "Saiba o que você está adicionando";
 "asset.verification.warning_message" = "Qualquer um pode criar um – incluindo tokens falsos ou maliciosos.";
 "asset.buy_asset" = "Comprar %@";
+"asset.get_asset" = "Obter %@";
 "asset.add_to_wallet" = "Adicionar à carteira";
 "asset.hide_from_wallet" = "Ocultar da carteira";
 "asset.resources" = "Recursos";

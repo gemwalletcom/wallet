@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainAccount, ChainPerpetual, ChainSimulation, ChainTraits};
+use chain_traits::{ChainAccount, ChainPerpetual, ChainTraits};
 use num_bigint::BigUint;
 use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain};
 use std::{error::Error, str::FromStr};
@@ -85,6 +85,10 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn estimate_energy_with_data(&self, contract_data: &TriggerSmartContractData) -> Result<u64, Box<dyn Error + Send + Sync>> {
+        Ok(self.trigger_smart_contract_call(contract_data).await?.get_energy()?)
+    }
+
+    pub(crate) async fn trigger_smart_contract_call(&self, contract_data: &TriggerSmartContractData) -> Result<TriggerConstantContractResponse, Box<dyn Error + Send + Sync>> {
         let request_payload = serde_json::json!({
             "owner_address": contract_data.owner_address,
             "contract_address": contract_data.contract_address,
@@ -94,8 +98,7 @@ impl<C: Client> TronClient<C> {
             "visible": true,
         });
 
-        let response = self.trigger_constant_contract_request(&request_payload).await?;
-        Ok(response.get_energy()?)
+        self.trigger_constant_contract_request(&request_payload).await
     }
 }
 
@@ -209,8 +212,6 @@ impl<C: Client + Clone> ChainAccount for TronClient<C> {}
 
 #[async_trait]
 impl<C: Client + Clone> ChainPerpetual for TronClient<C> {}
-
-impl<C: Client + Clone> ChainSimulation for TronClient<C> {}
 
 impl<C: Client + Clone> chain_traits::ChainProvider for TronClient<C> {
     fn get_chain(&self) -> primitives::Chain {

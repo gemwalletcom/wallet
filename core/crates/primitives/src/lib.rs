@@ -326,6 +326,8 @@ pub mod deeplink;
 pub use self::deeplink::Deeplink;
 pub mod url_action;
 pub use self::url_action::UrlAction;
+pub mod url_scheme;
+pub use self::url_scheme::{GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME};
 pub mod list_item;
 mod url_query;
 pub use self::list_item::{CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon};

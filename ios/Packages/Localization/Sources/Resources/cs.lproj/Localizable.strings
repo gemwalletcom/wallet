@@ -81,6 +81,9 @@
 "wallet.deposit" = "Vklad";
 "wallet.withdraw" = "Výběr";
 "wallet.available_balance" = "Dostupné: %@";
+"wallet.pay_with_card_or_bank" = "Zaplaťte kartou nebo bankou";
+"wallet.from_your_wallet_assets" = "Z aktiv ve vaší peněžence";
+"wallet.transfer_from_another_wallet" = "Převod z jiné peněženky";
 "wallet.portfolio.title" = "Portfolio";
 "wallet.import.already_imported_message" = "Tato peněženka již byla importována.";
 "wallets.title" = "Peněženky";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "Vědět, co přidáváte";
 "asset.verification.warning_message" = "Každý si jej může vytvořit – včetně falešných nebo škodlivých tokenů.";
 "asset.buy_asset" = "Koupit %@";
+"asset.get_asset" = "Získat %@";
 "asset.add_to_wallet" = "Přidat do peněženky";
 "asset.hide_from_wallet" = "Skrýt z peněženky";
 "asset.resources" = "Zdroje";

@@ -37,7 +37,7 @@ import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.listItemIconSize
-import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
@@ -58,7 +58,7 @@ internal fun SwapItem(
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
-            .padding(horizontal = paddingDefault, vertical = paddingMiddle)
+            .padding(horizontal = paddingMiddle, vertical = paddingMiddle)
             .fillMaxWidth()
             .heightIn(min = listItemIconSize),
         verticalAlignment = Alignment.CenterVertically,
@@ -159,7 +159,7 @@ private fun AssetPickerChevron() {
 @Composable
 private fun SwapEquivalent(calculating: Boolean, equivalent: String) {
     Text(
-        modifier = Modifier.smallPadding(),
+        modifier = Modifier.padding(vertical = paddingHalfSmall),
         text = if (calculating) "" else equivalent,
         minLines = 1,
         maxLines = 1,
@@ -212,7 +212,7 @@ private fun SwapItemInput(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .smallPadding()
+            .padding(vertical = paddingHalfSmall)
             .heightIn(min = listItemIconSize),
         contentAlignment = Alignment.CenterStart,
     ) {

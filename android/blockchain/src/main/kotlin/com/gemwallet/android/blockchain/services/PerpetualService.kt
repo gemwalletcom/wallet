@@ -5,6 +5,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualPortfolio
 import com.wallet.core.primitives.PerpetualPositionsSummary
 import uniffi.gemstone.GemGateway
 
@@ -32,4 +33,7 @@ class PerpetualService(
     suspend fun getCandleSticks(chain: Chain = Chain.HyperCore, symbol: String, period: ChartPeriod): List<ChartCandleStick> {
         return gateway.getPerpetualCandlesticks(chain.string, symbol, period.string).map { it.toDTO() }
     }
+
+    suspend fun getPortfolio(chain: Chain = Chain.HyperCore, address: String): PerpetualPortfolio =
+        gateway.getPerpetualPortfolio(chain.string, address).toDTO()
 }

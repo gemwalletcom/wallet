@@ -187,6 +187,12 @@ wallet_deposit = Deposit
 wallet_withdraw = Withdraw
 # Used in wallet creation, import, receive, and wallet detail screens for the available balance label. Contains 1 string placeholder.
 wallet_available_balance = Available: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Pay with card or bank
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = From your wallet assets
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Transfer from another wallet
 # Used in wallet creation, import, receive, and wallet detail screens for the portfolio title.
 wallet_portfolio_title = Portfolio
 # Used in wallet creation, import, receive, and wallet detail screens for the import already imported message.
@@ -569,6 +575,8 @@ asset_verification_warning_title = Know What You're Adding
 asset_verification_warning_message = Anyone can create one - including fake or malicious tokens.
 # Used in asset detail and asset verification screens for the buy asset label. Contains 1 string placeholder.
 asset_buy_asset = Buy %@
+# Used in asset detail and transaction fee screens for the get asset label. Contains 1 string placeholder.
+asset_get_asset = Get %@
 # Used in asset detail and asset verification screens for the add to wallet label.
 asset_add_to_wallet = Add to wallet
 # Used in asset detail and asset verification screens for the hide from wallet label.

@@ -81,6 +81,9 @@
 "wallet.deposit" = "入金";
 "wallet.withdraw" = "出金";
 "wallet.available_balance" = "利用可能: %@";
+"wallet.pay_with_card_or_bank" = "カードまたは銀行で支払う";
+"wallet.from_your_wallet_assets" = "ウォレットの資産から";
+"wallet.transfer_from_another_wallet" = "別のウォレットから送金";
 "wallet.portfolio.title" = "ポートフォリオ";
 "wallet.import.already_imported_message" = "このウォレットは既にインポート済みです。";
 "wallets.title" = "ウォレット";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "追加内容を確認";
 "asset.verification.warning_message" = "誰でも作成可能で、偽トークンや悪意のあるトークンも含まれます。";
 "asset.buy_asset" = "%@を購入";
+"asset.get_asset" = "%@を入手";
 "asset.add_to_wallet" = "ウォレットに追加";
 "asset.hide_from_wallet" = "ウォレットから隠す";
 "asset.resources" = "リソース";

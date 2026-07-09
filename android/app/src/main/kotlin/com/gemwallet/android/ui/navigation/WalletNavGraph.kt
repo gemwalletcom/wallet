@@ -18,7 +18,6 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
@@ -42,6 +41,7 @@ import com.gemwallet.android.ui.navigation.routes.confirm
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.nftCollection
 import com.gemwallet.android.ui.navigation.routes.perpetualScreen
+import com.gemwallet.android.ui.navigation.routes.portfolioChartScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipientInput
 import com.gemwallet.android.ui.navigation.routes.referral
@@ -56,6 +56,7 @@ import com.gemwallet.android.ui.navigation.routes.transactionDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.walletScreen
 import com.gemwallet.android.ui.navigation.routes.walletSearchScreen
 import com.gemwallet.android.ui.navigation.routes.walletsScreen
+import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.WalletId
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -131,6 +132,10 @@ fun WalletNavGraph(
                 onCancel = onCancel,
             )
 
+            portfolioChartScreen(
+                onCancel = onCancel,
+            )
+
             swap(
                 navigator = navigator,
                 onConfirm = navigator::openConfirm,
@@ -153,7 +158,7 @@ fun WalletNavGraph(
 
             confirm(
                 finishAction = { _ -> navigator.popConfirmFlow() },
-                onBuy = { navigator.openBuy(it, amount = FiatConfig.insufficientNetworkFeeBuyAmount.toDouble()) },
+                onGetNetworkFeeAssetAction = navigator::openGetNetworkFeeAsset,
                 cancelAction = onCancel,
             )
 
@@ -291,6 +296,7 @@ fun WalletNavGraph(
 
             perpetualScreen(
                 onOpenPerpetualDetails = navigator::openPerpetualDetails,
+                onOpenPortfolio = { navigator.openPortfolioChart(PortfolioType.Perpetuals) },
                 amountAction = AmountTransactionAction(navigator::openAmount),
                 confirmAction = ConfirmTransactionAction(navigator::openConfirm),
                 onCancel = onCancel,
