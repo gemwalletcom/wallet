@@ -638,6 +638,7 @@ sealed class ConfirmParams() {
 
     fun getTransactionType() : TransactionType {
         return when (this) {
+            is TransferParams.Generic -> TransactionType.SmartContractCall
             is TransferParams -> TransactionType.Transfer
             is TokenApprovalParams -> TransactionType.TokenApproval
             is SwapParams -> TransactionType.Swap

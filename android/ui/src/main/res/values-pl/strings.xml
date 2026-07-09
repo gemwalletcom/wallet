@@ -86,6 +86,9 @@
   <string name="wallet_deposit">Depozyt</string>
   <string name="wallet_withdraw">Wypłać</string>
   <string name="wallet_available_balance">Dostępne: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Zapłać kartą lub bankiem</string>
+  <string name="wallet_from_your_wallet_assets">Z aktywów w portfelu</string>
+  <string name="wallet_transfer_from_another_wallet">Przenieś z innego portfela</string>
   <string name="wallet_portfolio_title">Portfel inwestycyjny</string>
   <string name="wallet_import_already_imported_message">Ten portfel został już zaimportowany.</string>
   <string name="wallets_title">Portfele</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">Wiedz, co dodajesz</string>
   <string name="asset_verification_warning_message">Każdy może go utworzyć – łącznie z fałszywymi lub złośliwymi tokenami.</string>
   <string name="asset_buy_asset">Kup %1$s</string>
+  <string name="asset_get_asset">Zdobądź %1$s</string>
   <string name="asset_add_to_wallet">Dodaj do portfela</string>
   <string name="asset_hide_from_wallet">Ukryj w portfelu</string>
   <string name="asset_resources">Zasoby</string>

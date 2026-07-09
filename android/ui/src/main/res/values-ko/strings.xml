@@ -86,6 +86,9 @@
   <string name="wallet_deposit">입금</string>
   <string name="wallet_withdraw">철회하다</string>
   <string name="wallet_available_balance">사용 가능: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">카드 또는 은행으로 결제</string>
+  <string name="wallet_from_your_wallet_assets">지갑 자산에서</string>
+  <string name="wallet_transfer_from_another_wallet">다른 지갑에서 전송</string>
   <string name="wallet_portfolio_title">포트폴리오</string>
   <string name="wallet_import_already_imported_message">이 지갑은 이미 가져왔습니다.</string>
   <string name="wallets_title">지갑</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">무엇을 추가하고 있는지 알아보세요</string>
   <string name="asset_verification_warning_message">가짜 또는 악성 토큰을 포함하여 누구나 토큰을 만들 수 있습니다.</string>
   <string name="asset_buy_asset">%1$s 구매</string>
+  <string name="asset_get_asset">%1$s 받기</string>
   <string name="asset_add_to_wallet">지갑에 추가</string>
   <string name="asset_hide_from_wallet">지갑에서 숨기기</string>
   <string name="asset_resources">자원</string>

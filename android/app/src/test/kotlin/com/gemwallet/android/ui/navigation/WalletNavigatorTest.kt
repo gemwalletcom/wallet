@@ -323,6 +323,24 @@ class WalletNavigatorTest {
     }
 
     @Test
+    fun openSwapTo_opensSwapWithReceiveAssetSelection() {
+        val navigator = navigatorWith(WalletRootRoute)
+        val receiveAssetId = mockAssetId(Chain.Tron)
+
+        navigator.openSwapTo(receiveAssetId)
+
+        assertEquals(listOf(WalletRootRoute, SwapRoute), navigator.backStack.toList())
+        assertEquals(
+            SwapSelection(
+                itemType = SwapItemType.Receive,
+                payAssetId = null,
+                receiveAssetId = receiveAssetId,
+            ),
+            navigator.swapSelection(SwapRoute),
+        )
+    }
+
+    @Test
     fun finishSwapSelect_popsSelectorAndStoresSelectionForTargetRoute() {
         val route = SwapPairRoute(mockAssetId(Chain.Bitcoin), to = null)
         val selectedPayAssetId = mockAssetId(Chain.Solana)

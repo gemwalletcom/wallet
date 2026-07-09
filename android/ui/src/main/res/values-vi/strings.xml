@@ -86,6 +86,9 @@
   <string name="wallet_deposit">Nạp tiền</string>
   <string name="wallet_withdraw">Rút</string>
   <string name="wallet_available_balance">Có sẵn: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Thanh toán bằng thẻ hoặc ngân hàng</string>
+  <string name="wallet_from_your_wallet_assets">Từ tài sản trong ví của bạn</string>
+  <string name="wallet_transfer_from_another_wallet">Chuyển từ ví khác</string>
   <string name="wallet_portfolio_title">Danh mục đầu tư</string>
   <string name="wallet_import_already_imported_message">Ví này đã được nhập khẩu.</string>
   <string name="wallets_title">Ví</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">Biết những gì bạn đang thêm</string>
   <string name="asset_verification_warning_message">Bất cứ ai cũng có thể tạo một cái - bao gồm cả mã thông báo giả mạo hoặc độc hại.</string>
   <string name="asset_buy_asset">Mua %1$s</string>
+  <string name="asset_get_asset">Nhận %1$s</string>
   <string name="asset_add_to_wallet">Thêm vào ví</string>
   <string name="asset_hide_from_wallet">Ẩn khỏi ví</string>
   <string name="asset_resources">Tài nguyên</string>

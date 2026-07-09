@@ -45,6 +45,10 @@ public enum Localized {
     public static let contract = Localized.tr("Localizable", "asset.contract", fallback: "Contract")
     /// Decimals
     public static let decimals = Localized.tr("Localizable", "asset.decimals", fallback: "Decimals")
+    /// Get %@
+    public static func getAsset(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "asset.get_asset", String(describing: p1), fallback: "Get %@")
+    }
     /// Hide from wallet
     public static let hideFromWallet = Localized.tr("Localizable", "asset.hide_from_wallet", fallback: "Hide from wallet")
     /// Market Cap
@@ -1554,6 +1558,8 @@ public enum Localized {
     }
     /// Deposit
     public static let deposit = Localized.tr("Localizable", "wallet.deposit", fallback: "Deposit")
+    /// From your wallet assets
+    public static let fromYourWalletAssets = Localized.tr("Localizable", "wallet.from_your_wallet_assets", fallback: "From your wallet assets")
     /// You can view balances and transactions for this address, but **cannot send or sell funds**.
     public static let importAddressWarning = Localized.tr("Localizable", "wallet.import_address_warning", fallback: "You can view balances and transactions for this address, but **cannot send or sell funds**.")
     /// Import an Existing Wallet
@@ -1566,6 +1572,8 @@ public enum Localized {
     public static let multicoin = Localized.tr("Localizable", "wallet.multicoin", fallback: "Multi-Coin")
     /// Name
     public static let name = Localized.tr("Localizable", "wallet.name", fallback: "Name")
+    /// Pay with card or bank
+    public static let payWithCardOrBank = Localized.tr("Localizable", "wallet.pay_with_card_or_bank", fallback: "Pay with card or bank")
     /// Receive
     public static let receive = Localized.tr("Localizable", "wallet.receive", fallback: "Receive")
     /// Receive Collection
@@ -1584,6 +1592,8 @@ public enum Localized {
     public static let swap = Localized.tr("Localizable", "wallet.swap", fallback: "Swap")
     /// Wallet
     public static let title = Localized.tr("Localizable", "wallet.title", fallback: "Wallet")
+    /// Transfer from another wallet
+    public static let transferFromAnotherWallet = Localized.tr("Localizable", "wallet.transfer_from_another_wallet", fallback: "Transfer from another wallet")
     /// Withdraw
     public static let withdraw = Localized.tr("Localizable", "wallet.withdraw", fallback: "Withdraw")
     public enum AddToken {

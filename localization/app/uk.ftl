@@ -92,6 +92,12 @@ wallet_import_address_warning = Ви можете переглядати бал�
 wallet_deposit = Депозит
 wallet_withdraw = Зняти
 wallet_available_balance = Доступно: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Оплатіть карткою або через банк
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = З активів вашого гаманця
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Переказати з іншого гаманця
 wallet_portfolio_title = Портфоліо
 wallet_import_already_imported_message = Цей гаманець вже імпортовано.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = Підозрілий
 asset_verification_warning_title = Знайте, що ви додаєте
 asset_verification_warning_message = Будь-хто може створити його, включно з підробленими чи шкідливими маркерами.
 asset_buy_asset = Купити %@
+asset_get_asset = Отримати %@
 asset_add_to_wallet = Додати до гаманця
 asset_hide_from_wallet = Приховати від гаманця
 asset_resources = Ресурси

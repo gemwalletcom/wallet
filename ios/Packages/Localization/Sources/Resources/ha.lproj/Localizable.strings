@@ -81,6 +81,9 @@
 "wallet.deposit" = "Ajiya";
 "wallet.withdraw" = "Janyewa";
 "wallet.available_balance" = "Akwai: %@";
+"wallet.pay_with_card_or_bank" = "Biya da kati ko banki";
+"wallet.from_your_wallet_assets" = "Daga kadarorin walat ɗinka";
+"wallet.transfer_from_another_wallet" = "Canja daga wani walat";
 "wallet.portfolio.title" = "Fayil ɗin Kadari";
 "wallet.import.already_imported_message" = "An riga an shigo da wannan walat ɗin.";
 "wallets.title" = "Wallets";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "Sanin Abinda kuke Karawa";
 "asset.verification.warning_message" = "Kowa na iya ƙirƙirar ɗaya - gami da alamun karya ko na mugunta.";
 "asset.buy_asset" = "Sayi %@";
+"asset.get_asset" = "Sami %@";
 "asset.add_to_wallet" = "Ƙara zuwa walat";
 "asset.hide_from_wallet" = "Boye daga walat";
 "asset.resources" = "Albarkatu";

@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BalanceService
 import Components
 import FiatConnect
+import GemstonePrimitives
 import InfoSheet
 import Perpetuals
 import Primitives
@@ -13,6 +15,7 @@ import Transfer
 
 struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
+    @Environment(\.assetsEnabler) private var assetsEnabler
 
     @State var model: ConfirmTransferSceneViewModel
 
@@ -45,6 +48,19 @@ struct ConfirmTransferNavigationView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
+                case let .getNetworkFeeAsset(asset):
+                    GetNetworkFeeAssetNavigationStack(
+                        asset: asset,
+                        model: model,
+                        viewModelFactory: viewModelFactory,
+                        assetsEnabler: assetsEnabler,
+                    )
+                case let .selectedAsset(input, wallet):
+                    SelectedAssetNavigationStack(
+                        input: input,
+                        wallet: wallet,
+                        onComplete: { model.isPresentingSheet = nil },
+                    )
                 case .swapDetails:
                     if case let .swapDetails(model) = model.detailsViewModel.itemModel {
                         NavigationStack {
@@ -63,5 +79,86 @@ struct ConfirmTransferNavigationView: View {
                     AddContactNavigationView(action: action)
                 }
             }
+    }
+}
+
+private struct GetNetworkFeeAssetNavigationStack: View {
+    private static let optionsDetent = PresentationDetent.height(360)
+
+    let asset: Asset
+    let model: ConfirmTransferSceneViewModel
+    let viewModelFactory: ViewModelFactory
+    let assetsEnabler: any AssetsEnabler
+
+    @State private var selectedAction: GetNetworkFeeAssetAction?
+    @State private var actionNavigationPath = NavigationPath()
+
+    var body: some View {
+        NavigationStack {
+            GetNetworkFeeAssetScene(
+                asset: asset,
+                onSelect: {
+                    actionNavigationPath = NavigationPath()
+                    selectedAction = $0
+                },
+            )
+            .toolbarDismissItem(type: .close, placement: .topBarLeading)
+            .presentationDetents([Self.optionsDetent])
+            .presentationBackground(Colors.grayBackground)
+            .sheet(item: $selectedAction) { action in
+                NavigationStack(path: $actionNavigationPath) {
+                    destination(for: action)
+                        .toolbarDismissItem(type: .close, placement: .topBarLeading)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .navigationDestination(for: TransferData.self) { data in
+                            ConfirmTransferNavigationView(
+                                model: viewModelFactory.confirmTransferScene(
+                                    wallet: model.networkFeeWallet,
+                                    data: data,
+                                    onComplete: { model.isPresentingSheet = nil },
+                                ),
+                            )
+                        }
+                }
+                .presentationDetents([.large])
+                .presentationBackground(Colors.grayBackground)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func destination(for type: GetNetworkFeeAssetAction) -> some View {
+        switch type {
+        case .buy:
+            FiatConnectNavigationView(
+                model: viewModelFactory.fiatScene(
+                    assetAddress: model.networkFeeAssetAddress,
+                    wallet: model.networkFeeWallet,
+                    amount: FiatConfig.insufficientNetworkFeeBuyAmount,
+                ),
+            )
+        case .swap:
+            SwapNavigationView(
+                model: viewModelFactory.swapScene(
+                    input: SwapInput(
+                        wallet: model.networkFeeWallet,
+                        pairSelector: SwapPairSelectorViewModel(
+                            fromAssetId: model.networkFeeSwapFromAsset.id,
+                            toAssetId: asset.id,
+                        ),
+                    ),
+                    onSwap: { actionNavigationPath.append($0) },
+                ),
+            )
+        case .receive:
+            ReceiveScene(
+                model: ReceiveViewModel(
+                    assetModel: AssetViewModel(asset: asset),
+                    wallet: model.networkFeeWallet,
+                    address: model.networkFeeAssetAddress.address,
+                    assetsEnabler: assetsEnabler,
+                ),
+            )
+        }
     }
 }

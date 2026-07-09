@@ -128,7 +128,7 @@ let package = Package(
             name: "ScanService",
             dependencies: [
                 "Primitives",
-                "Blockchain",
+                "GemAPI",
             ],
             path: "ScanService",
             exclude: ["TestKit"],
@@ -138,8 +138,7 @@ let package = Package(
             dependencies: [
                 "ScanService",
                 "Primitives",
-                "Blockchain",
-                "NativeProviderService",
+                "GemAPI",
             ],
             path: "ScanService/TestKit",
         ),

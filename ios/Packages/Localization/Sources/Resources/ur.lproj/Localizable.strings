@@ -81,6 +81,9 @@
 "wallet.deposit" = "جمع";
 "wallet.withdraw" = "واپس لینا";
 "wallet.available_balance" = "دستیاب: %@";
+"wallet.pay_with_card_or_bank" = "کارڈ یا بینک سے ادائیگی کریں";
+"wallet.from_your_wallet_assets" = "اپنے والیٹ اثاثوں سے";
+"wallet.transfer_from_another_wallet" = "دوسرے والیٹ سے منتقل کریں";
 "wallet.portfolio.title" = "پورٹ فولیو";
 "wallet.import.already_imported_message" = "یہ والیٹ پہلے ہی درآمد کیا جا چکا ہے۔";
 "wallets.title" = "والیٹس";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "جانیں کہ آپ کیا شامل کر رہے ہیں۔";
 "asset.verification.warning_message" = "کوئی بھی ایک بنا سکتا ہے - بشمول جعلی یا نقصان دہ ٹوکن۔";
 "asset.buy_asset" = "خریدیں %@";
+"asset.get_asset" = "%@ حاصل کریں";
 "asset.add_to_wallet" = "بٹوے میں شامل کریں۔";
 "asset.hide_from_wallet" = "بٹوے سے چھپائیں۔";
 "asset.resources" = "وسائل";

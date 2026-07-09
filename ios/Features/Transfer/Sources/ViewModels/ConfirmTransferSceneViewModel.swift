@@ -284,7 +284,7 @@ extension ConfirmTransferSceneViewModel {
             case let .insufficientBalance(asset):
                 isPresentingSheet = .info(.insufficientBalance(asset, image: AssetViewModel(asset: asset).assetImage))
             case let .insufficientNetworkFee(asset, required):
-                isPresentingSheet = .info(.insufficientNetworkFee(asset, image: AssetViewModel(asset: asset).assetImage, required: required, price: metadata?.feePrice, currency: Preferences.standard.currency, action: onSelectBuy))
+                isPresentingSheet = .info(.insufficientNetworkFee(asset, image: AssetViewModel(asset: asset).assetImage, required: required, price: metadata?.feePrice, currency: Preferences.standard.currency, action: onSelectGetNetworkFeeAsset))
             case let .minimumAccountBalanceTooLow(asset, required):
                 isPresentingSheet = .info(.accountMinimalBalance(asset, required: required))
             }
@@ -444,6 +444,14 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
+    private func onSelectGetNetworkFeeAsset() {
+        guard dataModel.chain == .tron else {
+            onSelectBuy()
+            return
+        }
+        isPresentingSheet = .getNetworkFeeAsset(feeAsset)
+    }
+
     private func onSelectBuy() {
         isPresentingSheet = .fiatConnect(
             assetAddress: feeAssetAddress,
@@ -540,8 +548,28 @@ extension ConfirmTransferSceneViewModel {
         confirmService.getExplorerLink(chain: dataModel.chain, address: senderAddress)
     }
 
+    public var networkFeeAssetAddress: AssetAddress {
+        feeAssetAddress
+    }
+
+    public var networkFeeSwapFromAsset: Asset {
+        swapFromAsset
+    }
+
+    public var networkFeeWallet: Wallet {
+        wallet
+    }
+
     private var feeAssetAddress: AssetAddress {
-        AssetAddress(asset: dataModel.asset.feeAsset, address: senderAddress)
+        AssetAddress(asset: feeAsset, address: senderAddress)
+    }
+
+    private var feeAsset: Asset {
+        dataModel.asset.feeAsset
+    }
+
+    private var swapFromAsset: Asset {
+        dataModel.asset.id == feeAsset.id ? feeAsset : dataModel.asset
     }
 
     private var confirmButtonIcon: Image? {

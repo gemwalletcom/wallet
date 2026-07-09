@@ -34,16 +34,17 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
+import com.wallet.core.primitives.AssetId
 
 @Composable
 fun RequestScene(
     request: WalletConnectSessionRequest,
     verifyContext: WalletConnectVerifyContext,
-    onBuy: AssetIdAction,
+    onGetNetworkFeeAssetAction: (GetNetworkFeeAssetAction, AssetId) -> Unit,
     onCancel: () -> Unit,
     onError: (String) -> Unit,
 ) {
@@ -91,7 +92,7 @@ fun RequestScene(
                     params = request.confirmParams,
                     simulationResult = request.simulation,
                     finishAction = { hash -> viewModel.onTransactionResult(hash, onError) },
-                    onBuy = onBuy,
+                    onGetNetworkFeeAssetAction = onGetNetworkFeeAssetAction,
                     cancelAction = viewModel::onReject,
                     handleSystemBack = true,
                 )
