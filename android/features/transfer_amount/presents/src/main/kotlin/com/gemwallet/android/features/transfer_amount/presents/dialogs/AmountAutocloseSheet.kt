@@ -26,8 +26,8 @@ import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
-import com.gemwallet.android.ui.components.perpetual.AutocloseSuggestionsBar
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
@@ -147,7 +147,7 @@ internal fun AmountAutocloseSheet(
             )
             Spacer(Modifier.weight(1f))
             if (activeField != null && activeText.isEmpty()) {
-                AutocloseSuggestionsBar(
+                PercentSuggestionsBar(
                     suggestions = activeField.percentSuggestions,
                     onPercentSelected = { percent ->
                         val target = estimator.targetPriceFromRoe(percent, activeField.type)
@@ -163,20 +163,20 @@ internal fun AmountAutocloseSheet(
                         }
                     },
                 )
-                Spacer16()
+            } else {
+                MainActionButton(
+                    title = stringResource(R.string.common_done),
+                    enabled = confirmEnabled,
+                    onClick = {
+                        submitAttempted = true
+                        if (isTakeProfitValid && isStopLossValid) {
+                            provider.setTakeProfit(takeProfitText.takeIf { it.isNotEmpty() })
+                            provider.setStopLoss(stopLossText.takeIf { it.isNotEmpty() })
+                            onDismiss()
+                        }
+                    },
+                )
             }
-            MainActionButton(
-                title = stringResource(R.string.common_done),
-                enabled = confirmEnabled,
-                onClick = {
-                    submitAttempted = true
-                    if (isTakeProfitValid && isStopLossValid) {
-                        provider.setTakeProfit(takeProfitText.takeIf { it.isNotEmpty() })
-                        provider.setStopLoss(stopLossText.takeIf { it.isNotEmpty() })
-                        onDismiss()
-                    }
-                },
-            )
             Spacer16()
         }
     }

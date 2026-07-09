@@ -38,6 +38,11 @@ import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
 
+enum class MainActionWidth {
+    Constrained,
+    FillWidth,
+}
+
 @Composable
 fun Scene(
     title: String,
@@ -57,6 +62,7 @@ fun Scene(
             bottom = paddingDefault
         )
     },
+    mainActionWidth: MainActionWidth = MainActionWidth.Constrained,
     snackbar: SnackbarHostState? = null,
     navigationBarPadding: Boolean = true,
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
@@ -77,6 +83,7 @@ fun Scene(
         actions = actions,
         mainAction = mainAction,
         mainActionPadding = mainActionPadding,
+        mainActionWidth = mainActionWidth,
         snackbar = snackbar,
         navigationBarPadding = navigationBarPadding,
         content = content,
@@ -94,6 +101,7 @@ fun Scene(
     actions: @Composable RowScope.() -> Unit = {},
     mainAction: (@Composable () -> Unit)? = null,
     mainActionPadding: PaddingValues = PaddingValues(horizontal = sceneContentPadding(), vertical = paddingDefault),
+    mainActionWidth: MainActionWidth = MainActionWidth.Constrained,
     snackbar: SnackbarHostState? = null,
     navigationBarPadding: Boolean = true,
     progress: (() -> Float)? = null,
@@ -143,7 +151,12 @@ fun Scene(
                 ) {
                     Box(
                         modifier = Modifier
-                            .widthIn(max = SceneSizing.buttonMaxWidth)
+                            .then(
+                                when (mainActionWidth) {
+                                    MainActionWidth.FillWidth -> Modifier.fillMaxWidth()
+                                    MainActionWidth.Constrained -> Modifier.widthIn(max = SceneSizing.buttonMaxWidth)
+                                }
+                            )
                             .padding(mainActionPadding)
                     ) {
                         mainAction()
