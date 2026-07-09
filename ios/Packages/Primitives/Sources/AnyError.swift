@@ -14,10 +14,8 @@ public enum AnyError: Equatable {
 extension AnyError: LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case let .message(message):
-            message
-        case .notImplemented:
-            "Not implemented"
+        case let .message(message): message
+        case .notImplemented: "Not implemented"
         }
     }
 }

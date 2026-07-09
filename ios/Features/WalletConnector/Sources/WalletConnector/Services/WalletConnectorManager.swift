@@ -43,7 +43,7 @@ extension WalletConnectorManager: WalletConnectorInteractable {
     }
 
     public func sendRawTransaction(transferData _: WCTransferData) async throws -> String {
-        fatalError("")
+        throw AnyError.notImplemented
     }
 
     // MARK: - Private
