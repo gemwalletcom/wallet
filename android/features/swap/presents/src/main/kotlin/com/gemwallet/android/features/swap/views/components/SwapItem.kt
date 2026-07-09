@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.availableBalanceAmount
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
@@ -53,11 +54,12 @@ internal fun SwapItem(
     interaction: SwapItemInteraction,
     state: TextFieldState = rememberTextFieldState(),
     onBalanceClick: () -> Unit,
+    paddingVertical: Dp? = null,
     onAssetSelect: () -> Unit,
 ) {
     Row(
         modifier = Modifier
-            .listItem(ListPosition.Single)
+            .listItem(ListPosition.Single, paddingVertical = paddingVertical)
             .padding(horizontal = paddingMiddle, vertical = paddingMiddle)
             .fillMaxWidth()
             .heightIn(min = listItemIconSize),

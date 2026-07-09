@@ -23,14 +23,7 @@ public struct SwapScene: View {
                     additionalInfoSectionView
                 }
 
-                if let error = model.swapState.error {
-                    ListItemErrorView(
-                        errorTitle: model.errorTitle,
-                        error: error.asAnyError(asset: model.fromAsset?.asset),
-                        infoAction: model.errorInfoAction,
-                    )
-                    .insetGroupedRow()
-                }
+                errorSectionView
             }
             .padding(.medium)
         }
@@ -125,14 +118,40 @@ extension SwapScene {
             Button(action: model.onSelectSwapDetails) {
                 HStack(spacing: .small) {
                     SwapDetailsListView(model: swapDetailsViewModel)
-                    Images.System.chevronRight
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(Colors.grayLight)
+                    disclosureChevron
                 }
             }
             .tint(Colors.black)
             .insetGroupedRow()
         }
+    }
+
+    @ViewBuilder
+    private var errorSectionView: some View {
+        if let error = model.swapState.error {
+            let errorView = ListItemErrorView(
+                errorTitle: model.errorTitle,
+                error: error.asAnyError(asset: model.fromAsset?.asset),
+            )
+            if let infoAction = model.errorInfoAction {
+                Button(action: infoAction) {
+                    HStack(spacing: .small) {
+                        errorView
+                        disclosureChevron
+                    }
+                }
+                .tint(Colors.black)
+                .insetGroupedRow()
+            } else {
+                errorView.insetGroupedRow()
+            }
+        }
+    }
+
+    private var disclosureChevron: some View {
+        Images.System.chevronRight
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Colors.grayLight)
     }
 
     private var swapButton: StateButton {
