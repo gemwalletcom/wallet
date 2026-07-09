@@ -441,6 +441,6 @@ class SwapViewModel @Inject constructor(
     }
 
     companion object {
-        val percentSuggestions = listOf(25, 50, 75, 100)
+        val percentSuggestions = listOf(25, 50, 100)
     }
 }
