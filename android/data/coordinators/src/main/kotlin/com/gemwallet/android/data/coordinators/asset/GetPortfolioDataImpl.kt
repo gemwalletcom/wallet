@@ -59,8 +59,8 @@ class GetPortfolioDataImpl(
             .sortedBy { it.timestamp }
             .map { ChartDateValue(date = it.timestamp.toLong().secondsToMillis(), value = it.value * rate) }
         val statistics = listOfNotNull(
-            portfolio.allTimeHigh?.let { PortfolioStatistic.AllTimeHigh(it) },
-            portfolio.allTimeLow?.let { PortfolioStatistic.AllTimeLow(it) },
+            portfolio.allTimeHigh?.let { PortfolioStatistic.AllTimeHigh(it.copy(value = (it.value * rate).toFloat())) },
+            portfolio.allTimeLow?.let { PortfolioStatistic.AllTimeLow(it.copy(value = (it.value * rate).toFloat())) },
         )
         return PortfolioData(
             charts = listOf(PortfolioChartData(chartType = PortfolioChartType.Value, values = values)),

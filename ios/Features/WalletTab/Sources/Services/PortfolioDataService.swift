@@ -52,11 +52,19 @@ extension PortfolioDataService {
         let charts = [PortfolioChartData(chartType: .value, values: values)]
 
         let statistics: [PortfolioStatistic] = [
-            portfolio.allTimeHigh.map { .allTimeHigh($0) },
-            portfolio.allTimeLow.map { .allTimeLow($0) },
+            portfolio.allTimeHigh.map { .allTimeHigh(convert($0, rate: rate)) },
+            portfolio.allTimeLow.map { .allTimeLow(convert($0, rate: rate)) },
         ].compactMap(\.self)
 
         return PortfolioData(charts: charts, statistics: statistics, availablePeriods: [.day, .week, .month, .year, .all])
+    }
+
+    private func convert(_ chartValue: ChartValuePercentage, rate: Double) -> ChartValuePercentage {
+        ChartValuePercentage(
+            date: chartValue.date,
+            value: chartValue.value * Float(rate),
+            percentage: chartValue.percentage,
+        )
     }
 
     private func getPerpetualData(address: String, period: ChartPeriod) async throws -> PortfolioData {
