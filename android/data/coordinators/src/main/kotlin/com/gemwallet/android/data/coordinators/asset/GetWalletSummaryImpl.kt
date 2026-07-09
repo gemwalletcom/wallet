@@ -11,6 +11,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.domains.price.PriceChange
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
-import java.math.MathContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
@@ -59,7 +59,8 @@ class GetWalletSummaryImpl(
         ) { assets, perpetualBalance, hasMultiSign, hideBalances ->
             val (assetsValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
                 val currentValue = asset.balance.fiatTotalAmount.toBigDecimal()
-                val currentChangedValue = currentValue * ((asset.price?.price?.priceChangePercentage24h ?: 0.0) / 100).toBigDecimal()
+                val changePercentage = asset.price?.price?.priceChangePercentage24h ?: 0.0
+                val currentChangedValue = PriceChange.amount(percentage = changePercentage, value = currentValue.toDouble()).toBigDecimal()
 
                 (total + currentValue) to (changed + currentChangedValue)
             }
@@ -116,9 +117,10 @@ internal fun calculateWalletChangedPercentage(
     if (totalValue.compareTo(BigDecimal.ZERO) == 0) {
         return 0.0
     }
-    return changedValue.multiply(BigDecimal.valueOf(100.0))
-        .divide(totalValue, MathContext.DECIMAL128)
-        .toDouble()
+    return PriceChange.percentage(
+        from = (totalValue - changedValue).toDouble(),
+        to = totalValue.toDouble(),
+    )
 }
 
 internal class WalletSummaryEquivalentValue(
