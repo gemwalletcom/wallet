@@ -52,7 +52,7 @@ class ValidatorsViewModel @Inject constructor(
                 }
                 ValidatorsUIState.Loaded(
                     loading = false,
-                    recomended = validators.filter { recommended.contains(it.id) },
+                    recommended = validators.filter { recommended.contains(it.id) },
                     validators = validators,
                 )
             }

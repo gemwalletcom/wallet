@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components.list_item
 
-import android.text.format.DateUtils
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
@@ -11,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.domains.duration.formatAvailableIn
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.currentTimestamp
@@ -81,19 +81,8 @@ private val DelegationValidator.placeholder: String
     get() = name.firstOrNull()?.toString() ?: id.firstOrNull()?.toString() ?: "V"
 
 fun availableIn(delegation: Delegation?): String {
-    val completionDate = ((delegation?.base?.completionDate ?: return "") - currentTimestamp()).secondsToMillis()
-    if (completionDate < 0) {
-        return ""
-    }
-    val days = completionDate / DateUtils.DAY_IN_MILLIS
-    val hours = (completionDate % DateUtils.DAY_IN_MILLIS) / DateUtils.HOUR_IN_MILLIS
-    val minutes = (completionDate % DateUtils.DAY_IN_MILLIS % DateUtils.HOUR_IN_MILLIS) / DateUtils.MINUTE_IN_MILLIS
-    val seconds = (completionDate % DateUtils.DAY_IN_MILLIS % DateUtils.HOUR_IN_MILLIS % DateUtils.MINUTE_IN_MILLIS) / DateUtils.SECOND_IN_MILLIS
-    return when {
-        days > 0 -> "$days days $hours hours"
-        hours > 0 -> "$hours hours $minutes minutes"
-        else -> "$minutes minutes $seconds seconds"
-    }
+    val remaining = ((delegation?.base?.completionDate ?: return "") - currentTimestamp()).secondsToMillis()
+    return formatAvailableIn(remaining)
 }
 
 @Composable

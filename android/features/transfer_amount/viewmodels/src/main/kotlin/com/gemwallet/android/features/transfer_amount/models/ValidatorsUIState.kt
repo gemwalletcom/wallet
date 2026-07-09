@@ -8,7 +8,7 @@ sealed interface ValidatorsUIState {
     data object Empty : ValidatorsUIState
 
     class Loaded(
-        val recomended: List<DelegationValidator>,
+        val recommended: List<DelegationValidator>,
         val validators: List<DelegationValidator>,
         val loading: Boolean = false,
     ) : ValidatorsUIState
