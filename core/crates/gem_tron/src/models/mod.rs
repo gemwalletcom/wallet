@@ -1,3 +1,4 @@
+use crate::address::TronAddress;
 use crate::address::serializer::deserialize as tron_address_deserialize;
 use primitives::hex::decode_hex_utf8;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -127,7 +128,8 @@ pub struct TransactionReceipt {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TronLog {
-    pub address: Option<String>,
+    #[serde(default, with = "crate::address::serializer::optional")]
+    pub address: Option<TronAddress>,
     pub topics: Option<Vec<String>>,
     pub data: Option<String>,
 }
@@ -252,8 +254,7 @@ mod tests {
 
     #[test]
     fn test_get_energy_reverted_with_success_flag_and_message() {
-        let response: TriggerConstantContractResponse =
-            serde_json::from_str(r#"{"result":{"result":true,"message":"REVERT opcode executed"},"constant_result":[""],"energy_used":8503}"#).unwrap();
+        let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
 
         let error = response.get_energy().unwrap_err();
         assert_eq!(error.message.as_deref(), Some("REVERT opcode executed"));
@@ -266,6 +267,6 @@ mod tests {
         assert_eq!(response.get_energy().unwrap(), 173171);
         let logs = response.logs.as_ref().unwrap();
         assert_eq!(logs.len(), 1);
-        assert_eq!(logs[0].address.as_deref(), Some("88zffnwSJQ1BGNdvoHNCr24pGHX9ZHmWw"));
+        assert_eq!(logs[0].address, TronAddress::from_hex_or_base58("88zffnwSJQ1BGNdvoHNCr24pGHX9ZHmWw"));
     }
 }

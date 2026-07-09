@@ -67,23 +67,6 @@ mod tests {
     use num_bigint::BigInt;
     use primitives::{Address as _, SimulationBalanceChange};
 
-    fn mock_wc_transaction(contract_type: &str, value: serde_json::Value) -> String {
-        serde_json::json!({
-            "transaction": {
-                "raw_data": {
-                    "contract": [{
-                        "type": contract_type,
-                        "parameter": {
-                            "type_url": format!("type.googleapis.com/protocol.{contract_type}"),
-                            "value": value,
-                        },
-                    }],
-                },
-            },
-        })
-        .to_string()
-    }
-
     #[tokio::test]
     async fn test_simulate_transaction_surfaces_call_value_as_header() {
         let mock = MockClient::new().with_post(|_, _| Ok(br#"{"result":{"result":true},"constant_result":[],"energy_used":100}"#.to_vec()));
@@ -111,14 +94,7 @@ mod tests {
         let fixture = include_str!("../../testdata/trigger_constant_contract_swap_with_logs.json");
         let mock = MockClient::new().with_post(move |_, _| Ok(fixture.as_bytes().to_vec()));
         let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
-
-        let value = serde_json::json!({
-            "owner_address": "4160e00625a95cbc180f290e2611c826f90eeba56f",
-            "contract_address": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
-            "data": "9871efa4",
-            "call_value": 1_000_000,
-        });
-        let encoded_transaction = mock_wc_transaction("TriggerSmartContract", value);
+        let encoded_transaction = include_str!("../../testdata/wallet_connect_swap_trigger_smart_contract.json");
 
         let result = ChainSimulation::simulate_transaction(&client, SimulationInput::new(encoded_transaction)).await.unwrap();
 
@@ -141,16 +117,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_simulate_transaction_reverted_contract_call_returns_warning() {
-        let mock = MockClient::new().with_post(|_, _| Ok(br#"{"result":{"result":true,"message":"REVERT opcode executed"},"constant_result":[""],"energy_used":8503}"#.to_vec()));
+        let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_reverted.json").as_bytes().to_vec()));
         let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
-
-        let value = serde_json::json!({
-            "owner_address": "4160e00625a95cbc180f290e2611c826f90eeba56f",
-            "contract_address": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
-            "data": "9871efa4",
-            "call_value": 3_000_000,
-        });
-        let encoded_transaction = mock_wc_transaction("TriggerSmartContract", value);
+        let encoded_transaction = include_str!("../../testdata/wallet_connect_swap_trigger_smart_contract.json");
 
         let result = ChainSimulation::simulate_transaction(&client, SimulationInput::new(encoded_transaction)).await.unwrap();
 
@@ -162,9 +131,7 @@ mod tests {
     async fn test_simulate_transaction_non_trigger_smart_contract_returns_default() {
         let mock = MockClient::new().with_post(|_, _| Ok(Vec::new()));
         let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
-
-        let value = serde_json::json!({ "owner_address": "4160e00625a95cbc180f290e2611c826f90eeba56f", "votes": [] });
-        let encoded_transaction = mock_wc_transaction("VoteWitnessContract", value);
+        let encoded_transaction = include_str!("../../testdata/wallet_connect_vote_witness_contract.json");
 
         let result = ChainSimulation::simulate_transaction(&client, SimulationInput::new(encoded_transaction)).await.unwrap();
 

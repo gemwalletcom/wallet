@@ -60,8 +60,7 @@ fn decode_transfer_delta(log: &TronLog, owner: &TronAddress) -> Option<(String, 
         (true, true) => BigInt::default(),
     };
 
-    let token = TronAddress::from_hex_or_base58(log.address.as_deref()?)?.encode();
-    Some((token, delta))
+    Some((log.address?.encode(), delta))
 }
 
 #[cfg(test)]
@@ -91,8 +90,7 @@ mod tests {
 
     #[test]
     fn test_map_simulation_result_reverted_returns_validation_warning() {
-        let response: TriggerConstantContractResponse =
-            serde_json::from_str(r#"{"result":{"result":true,"message":"REVERT opcode executed"},"constant_result":[""],"energy_used":8503}"#).unwrap();
+        let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
 
         let result = map_simulation_result(&owner(), &response, Some(1_000_000));
 
@@ -103,7 +101,7 @@ mod tests {
     #[test]
     fn test_decode_transfer_delta_ignores_uninvolved_transfer() {
         let log = TronLog {
-            address: Some("DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss".to_string()),
+            address: TronAddress::from_hex_or_base58("DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss"),
             topics: Some(vec![
                 ERC20_TRANSFER_EVENT_SIGNATURE.to_string(),
                 "0000000000000000000000000344a87b2c5bc1cd9407fb9bd0c325a4403af30b".to_string(),
@@ -118,7 +116,7 @@ mod tests {
     #[test]
     fn test_decode_transfer_delta_ignores_non_transfer_topic() {
         let log = TronLog {
-            address: Some("DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss".to_string()),
+            address: TronAddress::from_hex_or_base58("DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss"),
             topics: Some(vec!["e1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c".to_string()]),
             data: Some("00".to_string()),
         };
