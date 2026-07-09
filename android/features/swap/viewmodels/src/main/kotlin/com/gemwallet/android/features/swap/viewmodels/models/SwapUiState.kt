@@ -38,6 +38,7 @@ data class SwapUiState(
     val action: SwapActionState = SwapActionState.None,
     val isQuoteLoading: Boolean = false,
     val isTransferLoading: Boolean = false,
+    val isInputEmpty: Boolean = true,
 ) {
     val error: SwapError?
         get() = when (val currentAction = action) {
@@ -107,5 +108,6 @@ internal fun createSwapUiState(
         action = action,
         isQuoteLoading = quoteState is QuoteUiState.Loading,
         isTransferLoading = transferState is TransferDataUiState.Loading,
+        isInputEmpty = quoteState is QuoteUiState.NoInput,
     )
 }
