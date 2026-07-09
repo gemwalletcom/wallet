@@ -46,7 +46,12 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     }
 
     public var name: String {
-        assetDataModel.name
+        switch type {
+        case .copy(.collection):
+            assetDataModel.asset.chain.networkName
+        case .wallet, .manage, .view, .copy(.asset), .price:
+            assetDataModel.name
+        }
     }
 
     public var symbol: String? {
