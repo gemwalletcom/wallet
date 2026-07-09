@@ -1,5 +1,7 @@
 "common.cancel" = "Ophæve";
 "common.done" = "Færdig";
+"common.maximum_value" = "Maksimal værdi er %@";
+"common.minimum_value" = "Minimumsværdi er %@";
 "common.secret_phrase" = "Hemmelig sætning";
 "common.copy" = "Kopiér";
 "common.share" = "Del";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Prispåvirkning";
 "swap.slippage" = "Slippage";
 "swap.slippage_warning" = "Høj slippage. Din swap kan blive udført til en dårligere pris end forventet.";
-"swap.slippage_max" = "Maksimal slippage er %@";
 "swap.slippage_auto" = "Auto";
 "swap.slippage_auto_description" = "Angiver automatisk den bedste slippage for en vellykket swap.";
 "swap.price_impact_warning.description" = "Du vil miste %@ af dine %@ i denne handel. Er du sikker på, at du vil fortsætte?";

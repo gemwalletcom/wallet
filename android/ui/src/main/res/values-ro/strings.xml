@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Anula</string>
   <string name="common_done">Gata</string>
+  <string name="common_maximum_value">Valoarea maximă este %1$s</string>
+  <string name="common_minimum_value">Valoarea minimă este %1$s</string>
   <string name="common_secret_phrase">Frază secretă</string>
   <string name="common_copy">Copiere</string>
   <string name="common_share">Distribuie</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">Impactul prețului</string>
   <string name="swap_slippage">Alunecare</string>
   <string name="swap_slippage_warning">Alunecare mare. Schimbul tău ar putea fi executat la un preț mai prost decât cel așteptat.</string>
-  <string name="swap_slippage_max">Alunecarea maximă este %1$s</string>
   <string name="swap_slippage_auto">Auto</string>
   <string name="swap_slippage_auto_description">Setează automat cea mai bună alunecare pentru un swap reușit.</string>
   <string name="swap_price_impact_warning_description">Vei pierde %1$s din %2$s în această tranzacție. Ești sigur că vrei să continui?</string>

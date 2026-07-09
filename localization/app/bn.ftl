@@ -2,6 +2,8 @@
 
 common_cancel = বাতিল করুন
 common_done = সম্পন্ন
+common_maximum_value = সর্বোচ্চ মান %@
+common_minimum_value = সর্বনিম্ন মান %@
 common_secret_phrase = গোপন বাক্যাংশ
 common_copy = কপি
 common_share = শেয়ার করুন
@@ -345,7 +347,6 @@ swap_you_receive = আপনি পাবেন
 swap_price_impact = দামের প্রভাব
 swap_slippage = স্লিপেজ
 swap_slippage_warning = উচ্চ স্লিপেজ। আপনার সোয়াপ প্রত্যাশার চেয়ে খারাপ দামে সম্পন্ন হতে পারে।
-swap_slippage_max = সর্বোচ্চ স্লিপেজ হলো %@
 swap_slippage_auto = অটো
 swap_slippage_auto_description = সফল সোয়াপের জন্য স্বয়ংক্রিয়ভাবে সেরা স্লিপেজ নির্ধারণ করে।
 swap_price_impact_warning_description = এই ট্রেডে আপনি %@ হারাবেন, যা আপনার %@ এর একটি অংশ। আপনি কি নিশ্চিত যে এগিয়ে যেতে চান?

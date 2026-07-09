@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Kanselahin</string>
   <string name="common_done">Tapos na</string>
+  <string name="common_maximum_value">Ang maximum na halaga ay %1$s</string>
+  <string name="common_minimum_value">Ang minimum na halaga ay %1$s</string>
   <string name="common_secret_phrase">Lihim na Parirala</string>
   <string name="common_copy">Kopyahin</string>
   <string name="common_share">Ibahagi</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">Epekto sa Presyo</string>
   <string name="swap_slippage">Pagkadulas</string>
   <string name="swap_slippage_warning">Mataas na slippage. Maaaring maisagawa ang iyong swap sa mas masamang presyo kaysa inaasahan.</string>
-  <string name="swap_slippage_max">Ang pinakamataas na slippage ay %1$s</string>
   <string name="swap_slippage_auto">Auto</string>
   <string name="swap_slippage_auto_description">Awtomatikong itinatakda ang pinakamahusay na pagkadulas para sa matagumpay na swap.</string>
   <string name="swap_price_impact_warning_description">Mawawalan ka ng %1$s ng iyong %2$s sa trade na ito. Sigurado ka bang gusto mong magpatuloy?</string>

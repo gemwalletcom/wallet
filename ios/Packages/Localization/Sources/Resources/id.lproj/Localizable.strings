@@ -1,5 +1,7 @@
 "common.cancel" = "Batalkan";
 "common.done" = "Selesai";
+"common.maximum_value" = "Nilai maksimum adalah %@";
+"common.minimum_value" = "Nilai minimum adalah %@";
 "common.secret_phrase" = "Frasa Rahasia";
 "common.copy" = "Salin";
 "common.share" = "Bagikan";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Dampak Harga";
 "swap.slippage" = "Slippage";
 "swap.slippage_warning" = "Slippage tinggi. Swap Anda mungkin dieksekusi pada harga yang lebih buruk dari yang diharapkan.";
-"swap.slippage_max" = "Slippage maksimum adalah %@";
 "swap.slippage_auto" = "Otomatis";
 "swap.slippage_auto_description" = "Secara otomatis menetapkan slippage terbaik untuk swap yang berhasil.";
 "swap.price_impact_warning.description" = "Anda akan kehilangan %@ dari %@ Anda dalam perdagangan ini. Apakah Anda yakin ingin melanjutkan?";

@@ -1,5 +1,7 @@
 "common.cancel" = "Скасувати";
 "common.done" = "Готово";
+"common.maximum_value" = "Максимальне значення %@";
+"common.minimum_value" = "Мінімальне значення %@";
 "common.secret_phrase" = "Секретна фраза";
 "common.copy" = "Скопіювати";
 "common.share" = "Поділитися";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Вплив ціни";
 "swap.slippage" = "Прослизання";
 "swap.slippage_warning" = "Високе прослизання. Обмін може відбутися за гіршою ціною, ніж очікувалося.";
-"swap.slippage_max" = "Максимальне прослизання — %@";
 "swap.slippage_auto" = "Авто";
 "swap.slippage_auto_description" = "Автоматично встановлює найкраще прослизання для успішного обміну.";
 "swap.price_impact_warning.description" = "Ви втратите %@ із своїх %@ у цій торгівлі. Ви впевнені, що бажаєте продовжити?";

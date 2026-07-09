@@ -1,5 +1,7 @@
 "common.cancel" = "Zrušit";
 "common.done" = "Hotovo";
+"common.maximum_value" = "Maximální hodnota je %@";
+"common.minimum_value" = "Minimální hodnota je %@";
 "common.secret_phrase" = "Tajná fráze";
 "common.copy" = "Kopírovat";
 "common.share" = "Sdílet";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Vliv ceny";
 "swap.slippage" = "Skluz";
 "swap.slippage_warning" = "Vysoký skluz. Vaše směna může proběhnout za horší cenu, než se očekávalo.";
-"swap.slippage_max" = "Maximální skluz je %@";
 "swap.slippage_auto" = "Auto";
 "swap.slippage_auto_description" = "Automaticky nastaví nejlepší skluz pro úspěšný swap.";
 "swap.price_impact_warning.description" = "V tomto obchodu ztratíte %@ z vašich %@. Jste si jisti, že chcete pokračovat?";

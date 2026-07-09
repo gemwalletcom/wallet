@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Hủy bỏ</string>
   <string name="common_done">Xong</string>
+  <string name="common_maximum_value">Giá trị tối đa là %1$s</string>
+  <string name="common_minimum_value">Giá trị tối thiểu là %1$s</string>
   <string name="common_secret_phrase">Cụm từ bí mật</string>
   <string name="common_copy">Sao chép</string>
   <string name="common_share">Chia sẻ</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">Tác động giá</string>
   <string name="swap_slippage">Trượt giá</string>
   <string name="swap_slippage_warning">Trượt giá cao. Giao dịch hoán đổi của bạn có thể được thực hiện ở mức giá tệ hơn dự kiến.</string>
-  <string name="swap_slippage_max">Trượt giá tối đa là %1$s</string>
   <string name="swap_slippage_auto">Tự động</string>
   <string name="swap_slippage_auto_description">Tự động đặt mức trượt giá tốt nhất để hoán đổi thành công.</string>
   <string name="swap_price_impact_warning_description">Bạn sẽ mất %1$s trong số %2$s của mình trong giao dịch này. Bạn có chắc chắn muốn tiếp tục không?</string>

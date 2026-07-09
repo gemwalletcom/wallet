@@ -2,6 +2,8 @@
 
 common_cancel = Batal
 common_done = Selesai
+common_maximum_value = Nilai maksimum ialah %@
+common_minimum_value = Nilai minimum ialah %@
 common_secret_phrase = Frasa Rahsia
 common_copy = Salin
 common_share = Kongsi
@@ -345,7 +347,6 @@ swap_you_receive = Anda Terima
 swap_price_impact = Kesan Harga
 swap_slippage = Gelinciran
 swap_slippage_warning = Gelinciran tinggi. Pertukaran anda mungkin dilaksanakan pada harga yang lebih buruk daripada dijangka.
-swap_slippage_max = Slippage maksimum ialah %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Menetapkan gelinciran terbaik secara automatik untuk pertukaran yang berjaya.
 swap_price_impact_warning_description = Anda akan kehilangan %@ daripada %@ anda dalam perdagangan ini. Adakah anda pasti mahu meneruskan?

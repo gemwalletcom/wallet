@@ -1,5 +1,7 @@
 "common.cancel" = "Anuluj";
 "common.done" = "Gotowe";
+"common.maximum_value" = "Maksymalna wartość to %@";
+"common.minimum_value" = "Minimalna wartość to %@";
 "common.secret_phrase" = "Tajne zdanie";
 "common.copy" = "Kopiuj";
 "common.share" = "Udostępnij";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Wpływ na cenę";
 "swap.slippage" = "Poślizg";
 "swap.slippage_warning" = "Wysoki poślizg. Twoja zamiana może zostać wykonana po gorszej cenie niż oczekiwano.";
-"swap.slippage_max" = "Maksymalny poślizg to %@";
 "swap.slippage_auto" = "Auto";
 "swap.slippage_auto_description" = "Automatycznie ustawia najlepszy poślizg dla udanej wymiany.";
 "swap.price_impact_warning.description" = "Stracisz %@ swojego %@ w tej transakcji. Czy na pewno chcesz kontynuować?";

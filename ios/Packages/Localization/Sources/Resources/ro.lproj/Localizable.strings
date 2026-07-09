@@ -1,5 +1,7 @@
 "common.cancel" = "Anula";
 "common.done" = "Gata";
+"common.maximum_value" = "Valoarea maximă este %@";
+"common.minimum_value" = "Valoarea minimă este %@";
 "common.secret_phrase" = "Frază secretă";
 "common.copy" = "Copiere";
 "common.share" = "Distribuie";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Impactul prețului";
 "swap.slippage" = "Alunecare";
 "swap.slippage_warning" = "Alunecare mare. Schimbul tău ar putea fi executat la un preț mai prost decât cel așteptat.";
-"swap.slippage_max" = "Alunecarea maximă este %@";
 "swap.slippage_auto" = "Auto";
 "swap.slippage_auto_description" = "Setează automat cea mai bună alunecare pentru un swap reușit.";
 "swap.price_impact_warning.description" = "Vei pierde %@ din %@ în această tranzacție. Ești sigur că vrei să continui?";

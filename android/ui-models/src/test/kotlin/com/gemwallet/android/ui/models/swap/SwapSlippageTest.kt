@@ -41,6 +41,15 @@ class SwapSlippageTest {
     }
 
     @Test
+    fun isBelowMin_detectsBelowMinimum() {
+        assertTrue(SwapSlippage.isBelowMin("0.05"))
+        assertFalse(SwapSlippage.isBelowMin("0.1"))
+        assertFalse(SwapSlippage.isBelowMin("5"))
+        assertFalse(SwapSlippage.isBelowMin("0"))
+        assertFalse(SwapSlippage.isBelowMin(""))
+    }
+
+    @Test
     fun sanitize_limitsFractionAndIntegerDigits() {
         assertEquals("0.11", SwapSlippage.sanitize("0.111111"))
         assertEquals("33", SwapSlippage.sanitize("33333312312"))

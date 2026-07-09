@@ -1,5 +1,7 @@
 "common.cancel" = "منسوخ کریں۔";
 "common.done" = "ہو گیا";
+"common.maximum_value" = "زیادہ سے زیادہ قدر %@ ہے";
+"common.minimum_value" = "کم از کم قدر %@ ہے";
 "common.secret_phrase" = "خفیہ جملہ";
 "common.copy" = "کاپی";
 "common.share" = "شیئر کریں۔";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "قیمت کا اثر";
 "swap.slippage" = "سلیپج";
 "swap.slippage_warning" = "زیادہ سلیپج۔ آپ کا سویپ متوقع سے خراب قیمت پر انجام پا سکتا ہے۔";
-"swap.slippage_max" = "زیادہ سے زیادہ سلیپیج %@ ہے";
 "swap.slippage_auto" = "خودکار";
 "swap.slippage_auto_description" = "کامیاب سویپ کے لیے بہترین سلیپج خودکار طور پر مقرر کرتا ہے۔";
 "swap.price_impact_warning.description" = "آپ اس تجارت میں %@ اپنے %@ کا کھو دیں گے۔ کیا آپ واقعی آگے بڑھنا چاہتے ہیں؟";

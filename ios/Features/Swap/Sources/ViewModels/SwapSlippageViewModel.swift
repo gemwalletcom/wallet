@@ -12,6 +12,7 @@ import Validators
 @Observable
 public final class SwapSlippageViewModel {
     private static let defaultBps: UInt32 = 100
+    static let minPercent: Double = 0.1
     static let maxPercent: Double = 20
     private static let maxFractionDigits: Int = 2
     private static let maxIntegerDigits: Int = String(Int(maxPercent)).count
@@ -37,7 +38,7 @@ public final class SwapSlippageViewModel {
         }
         inputModel = InputValidationViewModel(
             mode: .onDemand,
-            validators: [PercentTextValidator(maximum: Self.maxPercent)],
+            validators: [PercentTextValidator(minimum: Self.minPercent, maximum: Self.maxPercent)],
         )
         inputModel.text = Self.format(bps: bps)
     }

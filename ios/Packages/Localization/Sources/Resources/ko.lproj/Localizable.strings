@@ -1,5 +1,7 @@
 "common.cancel" = "취소";
 "common.done" = "완료";
+"common.maximum_value" = "최대값은 %@입니다";
+"common.minimum_value" = "최소값은 %@입니다";
 "common.secret_phrase" = "비밀 문구";
 "common.copy" = "복사";
 "common.share" = "공유";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "가격 영향";
 "swap.slippage" = "슬리피지";
 "swap.slippage_warning" = "슬리피지가 높습니다. 스왑이 예상보다 나쁜 가격에 체결될 수 있습니다.";
-"swap.slippage_max" = "최대 슬리피지는 %@입니다";
 "swap.slippage_auto" = "자동";
 "swap.slippage_auto_description" = "성공적인 스왑을 위해 최적의 슬리피지를 자동으로 설정합니다.";
 "swap.price_impact_warning.description" = "이 거래에서 %@을(를) 잃게 되며, 이는 보유하신 %@의 일부입니다. 계속하시겠습니까?";

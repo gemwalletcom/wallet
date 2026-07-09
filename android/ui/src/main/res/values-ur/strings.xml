@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">منسوخ کریں۔</string>
   <string name="common_done">ہو گیا</string>
+  <string name="common_maximum_value">زیادہ سے زیادہ قدر %1$s ہے</string>
+  <string name="common_minimum_value">کم از کم قدر %1$s ہے</string>
   <string name="common_secret_phrase">خفیہ جملہ</string>
   <string name="common_copy">کاپی</string>
   <string name="common_share">شیئر کریں۔</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">قیمت کا اثر</string>
   <string name="swap_slippage">سلیپج</string>
   <string name="swap_slippage_warning">زیادہ سلیپج۔ آپ کا سویپ متوقع سے خراب قیمت پر انجام پا سکتا ہے۔</string>
-  <string name="swap_slippage_max">زیادہ سے زیادہ سلیپیج %1$s ہے</string>
   <string name="swap_slippage_auto">خودکار</string>
   <string name="swap_slippage_auto_description">کامیاب سویپ کے لیے بہترین سلیپج خودکار طور پر مقرر کرتا ہے۔</string>
   <string name="swap_price_impact_warning_description">آپ اس تجارت میں %1$s اپنے %2$s کا کھو دیں گے۔ کیا آپ واقعی آگے بڑھنا چاہتے ہیں؟</string>

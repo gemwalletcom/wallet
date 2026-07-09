@@ -6,6 +6,10 @@
 common_cancel = Cancel
 # Used in shared app UI for the done label.
 common_done = Done
+# Generic validation error for a value above the allowed maximum. Contains 1 string placeholder.
+common_maximum_value = Maximum value is %@
+# Generic validation error for a value below the allowed minimum. Contains 1 string placeholder.
+common_minimum_value = Minimum value is %@
 # Used in shared app UI for the secret phrase label.
 common_secret_phrase = Secret Phrase
 # Used in shared app UI for the next label.
@@ -654,8 +658,6 @@ swap_price_impact = Price Impact
 # Used in Swap flow and swap details screen for the slippage label.
 swap_slippage = Slippage
 swap_slippage_warning = High slippage. Your swap may be executed at a worse price than expected.
-# Swap slippage validation error shown when the entered value exceeds the maximum. Contains 1 string placeholder.
-swap_slippage_max = Maximum slippage is %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Automatically set the best slippage for a successful swap.
 # Used in Swap flow and swap details screen for the price impact warning description. Contains 2 string placeholders.

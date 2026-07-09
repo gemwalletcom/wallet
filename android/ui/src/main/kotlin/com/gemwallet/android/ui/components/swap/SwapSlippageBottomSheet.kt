@@ -59,8 +59,9 @@ fun SwapSlippageBottomSheet(
         val focusRequester = remember { FocusRequester() }
 
         val isOverMax = !isAuto && SwapSlippage.isOverMax(input)
+        val isBelowMin = !isAuto && SwapSlippage.isBelowMin(input)
         val bps = SwapSlippage.parseBps(input)
-        val isConfirmEnabled = isAuto || (bps != null && !isOverMax)
+        val isConfirmEnabled = isAuto || (bps != null && !isOverMax && !isBelowMin)
         val showWarning = !isAuto && !isOverMax && bps != null && bps >= warningThresholdBps
 
         val commit by rememberUpdatedState {
@@ -103,7 +104,11 @@ fun SwapSlippageBottomSheet(
                 }
                 when {
                     isOverMax -> FooterText(
-                        text = stringResource(R.string.swap_slippage_max, "${SwapSlippage.maxPercent}%"),
+                        text = stringResource(R.string.common_maximum_value, SwapSlippage.maxPercentLabel),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    isBelowMin -> FooterText(
+                        text = stringResource(R.string.common_minimum_value, SwapSlippage.minPercentLabel),
                         color = MaterialTheme.colorScheme.error,
                     )
                     showWarning -> FooterText(

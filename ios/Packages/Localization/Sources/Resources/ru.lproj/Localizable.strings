@@ -1,5 +1,7 @@
 "common.cancel" = "Отмена";
 "common.done" = "Готово";
+"common.maximum_value" = "Максимальное значение %@";
+"common.minimum_value" = "Минимальное значение %@";
 "common.secret_phrase" = "Секретная фраза";
 "common.copy" = "Копировать";
 "common.share" = "Поделиться";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Влияние цены";
 "swap.slippage" = "Проскальзывание";
 "swap.slippage_warning" = "Высокое проскальзывание. Обмен может пройти по цене хуже ожидаемой.";
-"swap.slippage_max" = "Максимальное проскальзывание — %@";
 "swap.slippage_auto" = "Авто";
 "swap.slippage_auto_description" = "Автоматически устанавливает оптимальное проскальзывание для успешного обмена.";
 "swap.price_impact_warning.description" = "Вы потеряете %@ из ваших %@ в этой сделке. Вы уверены, что хотите продолжить?";

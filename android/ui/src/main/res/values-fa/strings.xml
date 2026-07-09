@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">لغو کردن</string>
   <string name="common_done">انجام شد</string>
+  <string name="common_maximum_value">حداکثر مقدار %1$s است</string>
+  <string name="common_minimum_value">حداقل مقدار %1$s است</string>
   <string name="common_secret_phrase">عبارت مخفی</string>
   <string name="common_copy">کپی کردن</string>
   <string name="common_share">اشتراک گذاری</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">تاثیر قیمت</string>
   <string name="swap_slippage">لغزش</string>
   <string name="swap_slippage_warning">لغزش بالا. ممکن است سواپ شما با قیمتی بدتر از حد انتظار انجام شود.</string>
-  <string name="swap_slippage_max">حداکثر لغزش %1$s است</string>
   <string name="swap_slippage_auto">خودکار</string>
   <string name="swap_slippage_auto_description">به‌طور خودکار بهترین لغزش را برای مبادله موفق تنظیم می‌کند.</string>
   <string name="swap_price_impact_warning_description">شما %1$s از %2$s خود را در این معامله از دست خواهید داد. آیا مطمئن هستید که می خواهید ادامه دهید؟</string>

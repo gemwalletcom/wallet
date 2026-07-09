@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Cancelar</string>
   <string name="common_done">Hecho</string>
+  <string name="common_maximum_value">El valor máximo es %1$s</string>
+  <string name="common_minimum_value">El valor mínimo es %1$s</string>
   <string name="common_secret_phrase">Frase secreta</string>
   <string name="common_copy">Copiar</string>
   <string name="common_share">Compartir</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">Impacto en el precio</string>
   <string name="swap_slippage">Deslizamiento</string>
   <string name="swap_slippage_warning">Deslizamiento alto. Tu swap podría ejecutarse a un precio peor de lo esperado.</string>
-  <string name="swap_slippage_max">El deslizamiento máximo es %1$s</string>
   <string name="swap_slippage_auto">Automático</string>
   <string name="swap_slippage_auto_description">Establece automáticamente el mejor deslizamiento para un swap exitoso.</string>
   <string name="swap_price_impact_warning_description">Perderás %1$s de tus %2$s en esta operación. ¿Estás seguro de que deseas continuar?</string>

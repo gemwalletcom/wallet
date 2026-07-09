@@ -2,6 +2,8 @@
 
 common_cancel = 取消
 common_done = 完畢
+common_maximum_value = 最大值為 %@
+common_minimum_value = 最小值為 %@
 common_secret_phrase = 秘密短語
 common_copy = 複製
 common_share = 共享
@@ -345,7 +347,6 @@ swap_you_receive = 將收到
 swap_price_impact = 價格影響
 swap_slippage = 滑點
 swap_slippage_warning = 滑點過高。您的兌換可能以比預期更差的價格成交。
-swap_slippage_max = 最大滑點為 %@
 swap_slippage_auto = 自動
 swap_slippage_auto_description = 自動設定最佳滑點以確保兌換成功。
 swap_price_impact_warning_description = 您將在本次交易中損失 %@，這是您 %@ 的一部分。您確定要繼續嗎？

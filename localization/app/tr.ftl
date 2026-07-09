@@ -2,6 +2,8 @@
 
 common_cancel = İptal
 common_done = Tamam
+common_maximum_value = Maksimum değer %@
+common_minimum_value = Minimum değer %@
 common_secret_phrase = Gizli İfade
 common_copy = Kopyala
 common_share = Paylaş
@@ -345,7 +347,6 @@ swap_you_receive = Alacağın
 swap_price_impact = Fiyat Etkisi
 swap_slippage = Kayma
 swap_slippage_warning = Yüksek kayma. Takasınız beklenenden daha kötü bir fiyattan gerçekleşebilir.
-swap_slippage_max = Maksimum kayma %@
 swap_slippage_auto = Otomatik
 swap_slippage_auto_description = Başarılı bir takas için en iyi kaymayı otomatik olarak ayarlar.
 swap_price_impact_warning_description = Bu işlemde %@ kaybedeceksiniz; bu, %@ varlığınızın bir kısmıdır. Devam etmek istediğinizden emin misiniz?

@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Ghairi</string>
   <string name="common_done">Imekamilika</string>
+  <string name="common_maximum_value">Thamani ya juu ni %1$s</string>
+  <string name="common_minimum_value">Thamani ya chini ni %1$s</string>
   <string name="common_secret_phrase">Kifungu cha Siri</string>
   <string name="common_copy">Nakili</string>
   <string name="common_share">Shiriki</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">Athari ya Bei</string>
   <string name="swap_slippage">Kuteleza</string>
   <string name="swap_slippage_warning">Kuteleza kwa juu. Ubadilishaji wako unaweza kutekelezwa kwa bei mbaya zaidi kuliko ilivyotarajiwa.</string>
-  <string name="swap_slippage_max">Kiwango cha juu cha utelezi ni %1$s</string>
   <string name="swap_slippage_auto">Otomatiki</string>
   <string name="swap_slippage_auto_description">Huweka kuteleza bora kiotomatiki kwa ubadilishaji uliofaulu.</string>
   <string name="swap_price_impact_warning_description">Utapoteza %1$s ya %2$s yako katika biashara hii. Je, una uhakika unataka kuendelea?</string>

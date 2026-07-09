@@ -2,6 +2,8 @@
 
 common_cancel = منسوخ کریں۔
 common_done = ہو گیا
+common_maximum_value = زیادہ سے زیادہ قدر %@ ہے
+common_minimum_value = کم از کم قدر %@ ہے
 common_secret_phrase = خفیہ جملہ
 common_copy = کاپی
 common_share = شیئر کریں۔
@@ -345,7 +347,6 @@ swap_you_receive = آپ وصول کرتے ہیں
 swap_price_impact = قیمت کا اثر
 swap_slippage = سلیپج
 swap_slippage_warning = زیادہ سلیپج۔ آپ کا سویپ متوقع سے خراب قیمت پر انجام پا سکتا ہے۔
-swap_slippage_max = زیادہ سے زیادہ سلیپیج %@ ہے
 swap_slippage_auto = خودکار
 swap_slippage_auto_description = کامیاب سویپ کے لیے بہترین سلیپج خودکار طور پر مقرر کرتا ہے۔
 swap_price_impact_warning_description = آپ اس تجارت میں %@ اپنے %@ کا کھو دیں گے۔ کیا آپ واقعی آگے بڑھنا چاہتے ہیں؟

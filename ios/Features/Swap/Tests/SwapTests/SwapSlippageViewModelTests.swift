@@ -61,6 +61,16 @@ struct SwapSlippageViewModelTests {
         #expect(model.isConfirmEnabled == false)
     }
 
+    @Test
+    func belowMinimumShowsErrorAndDisablesConfirm() {
+        let model = SwapSlippageViewModel(slippage: .manual(bps: 100)) { _ in }
+        model.isAuto = false
+        model.inputModel.text = "0.05"
+
+        #expect(model.errorText != nil)
+        #expect(model.isConfirmEnabled == false)
+    }
+
     @Test(arguments: ["", "0", "0.", "abc"])
     func incompleteInputDisablesConfirmWithoutError(input: String) {
         let model = SwapSlippageViewModel(slippage: .manual(bps: 100)) { _ in }
@@ -96,6 +106,16 @@ struct SwapSlippageViewModelTests {
 
         #expect(model.inputModel.isValid)
         #expect(model.selectedBps == 2000)
+    }
+
+    @Test
+    func minimumBoundaryIsValid() {
+        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+        model.isAuto = false
+        model.inputModel.text = "0.1"
+
+        #expect(model.inputModel.isValid)
+        #expect(model.selectedBps == 10)
     }
 
     @Test(arguments: [

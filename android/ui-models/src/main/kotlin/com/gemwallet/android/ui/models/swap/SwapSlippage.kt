@@ -7,6 +7,10 @@ import java.math.BigDecimal
 object SwapSlippage {
     val defaultBps: UInt = 100u
     const val maxPercent: Int = 20
+    private val minPercent: BigDecimal = BigDecimal("0.1")
+
+    val maxPercentLabel: String = "$maxPercent%"
+    val minPercentLabel: String = "${minPercent.toPlainString()}%"
 
     fun format(bps: UInt): String =
         bps.toLong().toBigDecimal().movePointLeft(2).stripTrailingZeros().toPlainString()
@@ -21,4 +25,9 @@ object SwapSlippage {
 
     fun isOverMax(input: String): Boolean =
         (input.parseNumberOrNull() ?: BigDecimal.ZERO) > BigDecimal(maxPercent)
+
+    fun isBelowMin(input: String): Boolean {
+        val percent = input.parseNumberOrNull() ?: return false
+        return percent > BigDecimal.ZERO && percent < minPercent
+    }
 }

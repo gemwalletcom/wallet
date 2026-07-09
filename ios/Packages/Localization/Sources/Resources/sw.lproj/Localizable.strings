@@ -1,5 +1,7 @@
 "common.cancel" = "Ghairi";
 "common.done" = "Imekamilika";
+"common.maximum_value" = "Thamani ya juu ni %@";
+"common.minimum_value" = "Thamani ya chini ni %@";
 "common.secret_phrase" = "Kifungu cha Siri";
 "common.copy" = "Nakili";
 "common.share" = "Shiriki";
@@ -279,7 +281,6 @@
 "swap.price_impact" = "Athari ya Bei";
 "swap.slippage" = "Kuteleza";
 "swap.slippage_warning" = "Kuteleza kwa juu. Ubadilishaji wako unaweza kutekelezwa kwa bei mbaya zaidi kuliko ilivyotarajiwa.";
-"swap.slippage_max" = "Kiwango cha juu cha utelezi ni %@";
 "swap.slippage_auto" = "Otomatiki";
 "swap.slippage_auto_description" = "Huweka kuteleza bora kiotomatiki kwa ubadilishaji uliofaulu.";
 "swap.price_impact_warning.description" = "Utapoteza %@ ya %@ yako katika biashara hii. Je, una uhakika unataka kuendelea?";

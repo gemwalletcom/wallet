@@ -2,6 +2,8 @@
 
 common_cancel = Anula
 common_done = Gata
+common_maximum_value = Valoarea maximă este %@
+common_minimum_value = Valoarea minimă este %@
 common_secret_phrase = Frază secretă
 common_copy = Copiere
 common_share = Distribuie
@@ -345,7 +347,6 @@ swap_you_receive = Tu Primești
 swap_price_impact = Impactul prețului
 swap_slippage = Alunecare
 swap_slippage_warning = Alunecare mare. Schimbul tău ar putea fi executat la un preț mai prost decât cel așteptat.
-swap_slippage_max = Alunecarea maximă este %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Setează automat cea mai bună alunecare pentru un swap reușit.
 swap_price_impact_warning_description = Vei pierde %@ din %@ în această tranzacție. Ești sigur că vrei să continui?

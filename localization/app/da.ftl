@@ -2,6 +2,8 @@
 
 common_cancel = Ophæve
 common_done = Færdig
+common_maximum_value = Maksimal værdi er %@
+common_minimum_value = Minimumsværdi er %@
 common_secret_phrase = Hemmelig sætning
 common_copy = Kopiér
 common_share = Del
@@ -345,7 +347,6 @@ swap_you_receive = Du modtager
 swap_price_impact = Prispåvirkning
 swap_slippage = Slippage
 swap_slippage_warning = Høj slippage. Din swap kan blive udført til en dårligere pris end forventet.
-swap_slippage_max = Maksimal slippage er %@
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Angiver automatisk den bedste slippage for en vellykket swap.
 swap_price_impact_warning_description = Du vil miste %@ af dine %@ i denne handel. Er du sikker på, at du vil fortsætte?

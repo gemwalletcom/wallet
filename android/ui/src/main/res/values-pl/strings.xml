@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Anuluj</string>
   <string name="common_done">Gotowe</string>
+  <string name="common_maximum_value">Maksymalna wartość to %1$s</string>
+  <string name="common_minimum_value">Minimalna wartość to %1$s</string>
   <string name="common_secret_phrase">Tajne zdanie</string>
   <string name="common_copy">Kopiuj</string>
   <string name="common_share">Udostępnij</string>
@@ -294,7 +296,6 @@
   <string name="swap_price_impact">Wpływ na cenę</string>
   <string name="swap_slippage">Poślizg</string>
   <string name="swap_slippage_warning">Wysoki poślizg. Twoja zamiana może zostać wykonana po gorszej cenie niż oczekiwano.</string>
-  <string name="swap_slippage_max">Maksymalny poślizg to %1$s</string>
   <string name="swap_slippage_auto">Auto</string>
   <string name="swap_slippage_auto_description">Automatycznie ustawia najlepszy poślizg dla udanej wymiany.</string>
   <string name="swap_price_impact_warning_description">Stracisz %1$s swojego %2$s w tej transakcji. Czy na pewno chcesz kontynuować?</string>
