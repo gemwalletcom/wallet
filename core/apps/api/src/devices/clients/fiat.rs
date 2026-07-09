@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use fiat::FiatClient;
+use fiat::{FiatClient, FiatWebhookRequest};
 use primitives::{FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData};
 use storage::{Database, DevicesRepository, FiatRepository};
 
@@ -37,8 +37,8 @@ impl FiatQuotesClient {
         self.fiat_client.get_off_ramp_assets().await
     }
 
-    pub async fn process_and_publish_webhook(&self, provider: &str, webhook_data: serde_json::Value) -> Result<streamer::FiatWebhookPayload, Box<dyn Error + Send + Sync>> {
-        self.fiat_client.process_and_publish_webhook(provider, webhook_data).await
+    pub async fn process_and_publish_webhook(&self, request: FiatWebhookRequest, provider: &str) -> Result<streamer::FiatWebhookPayload, Box<dyn Error + Send + Sync>> {
+        self.fiat_client.process_and_publish_webhook(request, provider).await
     }
 
     pub fn get_transactions_by_device_wallet_id(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {

@@ -3,7 +3,7 @@ use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQu
 use streamer::FiatWebhook;
 
 use crate::{
-    FiatProvider,
+    FiatProvider, FiatWebhookRequest,
     model::{FiatMapping, FiatProviderAsset},
     provider::generate_quote_id,
     providers::banxa::mapper::map_asset_with_limits,
@@ -40,8 +40,8 @@ impl FiatProvider for BanxaClient {
         map_order(order)
     }
 
-    async fn process_webhook(&self, data: serde_json::Value) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
-        let order_id = serde_json::from_value::<Webhook>(data)?.order_id;
+    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        let order_id = serde_json::from_value::<Webhook>(request.data)?.order_id;
         Ok(FiatWebhook::OrderId(order_id))
     }
 

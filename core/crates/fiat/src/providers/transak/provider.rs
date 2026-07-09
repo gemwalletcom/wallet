@@ -4,7 +4,7 @@ use super::{
     models::{Data, TransakOrderResponse, TransakQuote},
 };
 use crate::{
-    FiatProvider,
+    FiatProvider, FiatWebhookRequest,
     model::{FiatMapping, FiatProviderAsset},
     providers::transak::mapper::map_asset_with_limits,
 };
@@ -42,8 +42,8 @@ impl FiatProvider for TransakClient {
             .collect())
     }
 
-    async fn process_webhook(&self, data: serde_json::Value) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
-        let encrypted_data = serde_json::from_value::<Data<String>>(data)?;
+    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        let encrypted_data = serde_json::from_value::<Data<String>>(request.data)?;
         let decoded_payload = self.decode_jwt_content(&encrypted_data.data).map_err(|e| format!("Failed to decode Transak JWT: {}", e))?;
         let order = match serde_json::from_str::<Data<TransakOrderResponse>>(&decoded_payload) {
             Ok(payload) => payload.data,

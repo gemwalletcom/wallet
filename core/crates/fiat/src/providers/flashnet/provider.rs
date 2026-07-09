@@ -4,9 +4,9 @@ use async_trait::async_trait;
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, PaymentType};
 use streamer::FiatWebhook;
 
-use crate::FiatProvider;
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::provider::generate_quote_id;
+use crate::{FiatProvider, FiatWebhookRequest};
 
 use super::{
     client::FlashnetClient,
@@ -43,8 +43,8 @@ impl FiatProvider for FlashnetClient {
         }])
     }
 
-    async fn process_webhook(&self, data: serde_json::Value) -> Result<FiatWebhook, Box<dyn Error + Send + Sync>> {
-        let payload = serde_json::from_value::<FlashnetWebhookPayload>(data)?;
+    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn Error + Send + Sync>> {
+        let payload = serde_json::from_value::<FlashnetWebhookPayload>(request.data)?;
         Ok(map_webhook(payload)?)
     }
 

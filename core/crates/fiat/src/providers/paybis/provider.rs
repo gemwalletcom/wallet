@@ -1,5 +1,5 @@
 use crate::{
-    FiatProvider,
+    FiatProvider, FiatWebhookRequest,
     error::FiatQuoteError,
     model::{FiatMapping, FiatProviderAsset},
 };
@@ -45,8 +45,8 @@ impl FiatProvider for PaybisClient {
         Ok(countries)
     }
 
-    async fn process_webhook(&self, data: serde_json::Value) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
-        Ok(map_process_webhook(data)?)
+    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        Ok(map_process_webhook(request.data)?)
     }
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
@@ -102,7 +102,7 @@ impl FiatProvider for PaybisClient {
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
     use crate::testkit::*;
-    use crate::{FiatProvider, model::FiatMapping};
+    use crate::{FiatProvider, FiatWebhookRequest, model::FiatMapping};
     use primitives::asset_constants::{
         BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, POLYGON_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID,
         TRON_USDT_TOKEN_ID,
@@ -216,7 +216,7 @@ mod fiat_integration_tests {
         let client = create_paybis_test_client();
         let verification_webhook: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_no_changes.json"))?;
 
-        let result = client.process_webhook(verification_webhook).await?;
+        let result = client.process_webhook(FiatWebhookRequest::from_value(verification_webhook)).await?;
         match result {
             FiatWebhook::None => {}
             _ => panic!("Verification webhooks should map to FiatWebhook::None"),
@@ -230,7 +230,7 @@ mod fiat_integration_tests {
         let client = create_paybis_test_client();
         let transaction_webhook: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_started.json"))?;
 
-        let result = client.process_webhook(transaction_webhook).await?;
+        let result = client.process_webhook(FiatWebhookRequest::from_value(transaction_webhook)).await?;
         let FiatWebhook::Transaction(transaction) = result else {
             panic!("Expected FiatWebhook::Transaction variant");
         };

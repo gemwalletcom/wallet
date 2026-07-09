@@ -1,5 +1,5 @@
 use crate::{
-    FiatProvider,
+    FiatProvider, FiatWebhookRequest,
     model::{FiatMapping, FiatProviderAsset},
     provider::generate_quote_id,
     providers::moonpay::models::{Data, Transaction},
@@ -35,8 +35,8 @@ impl FiatProvider for MoonPayClient {
             .collect())
     }
 
-    async fn process_webhook(&self, data: serde_json::Value) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
-        let payload = serde_json::from_value::<Data<Transaction>>(data)?.data;
+    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        let payload = serde_json::from_value::<Data<Transaction>>(request.data)?.data;
         Ok(FiatWebhook::Transaction(map_order(payload)))
     }
 
@@ -139,7 +139,7 @@ mod fiat_integration_tests {
 
 #[cfg(test)]
 mod tests {
-    use crate::{FiatProvider, providers::moonpay::client::MoonPayClient};
+    use crate::{FiatProvider, FiatWebhookRequest, providers::moonpay::client::MoonPayClient};
     use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
     use streamer::FiatWebhook;
 
@@ -158,7 +158,7 @@ mod tests {
     async fn test_process_webhook_accepts_wrapped_transaction() {
         let webhook_data = serde_json::from_str(include_str!("../../../testdata/moonpay/webhook_buy_complete.json")).unwrap();
 
-        let result = client().process_webhook(webhook_data).await.unwrap();
+        let result = client().process_webhook(FiatWebhookRequest::from_value(webhook_data)).await.unwrap();
 
         assert_transaction(
             result,

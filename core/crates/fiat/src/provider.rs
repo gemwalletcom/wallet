@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::model::{FiatMapping, FiatProviderAsset};
+use crate::webhook::FiatWebhookRequest;
 use async_trait::async_trait;
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, PaymentType};
 use streamer::FiatWebhook;
@@ -19,7 +20,7 @@ pub trait FiatProvider: Send + Sync {
         Err(format!("provider {} does not support order status fetch", self.name().id()).into())
     }
 
-    async fn process_webhook(&self, data: serde_json::Value) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>>;
+    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>>;
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn std::error::Error + Send + Sync>>;
     async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn std::error::Error + Send + Sync>>;
@@ -50,8 +51,8 @@ where
         (**self).get_order_status(order_id).await
     }
 
-    async fn process_webhook(&self, data: serde_json::Value) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).process_webhook(data).await
+    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        (**self).process_webhook(request).await
     }
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn std::error::Error + Send + Sync>> {

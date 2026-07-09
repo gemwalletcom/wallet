@@ -8,8 +8,10 @@ pub mod provider;
 pub mod providers;
 pub mod rsa_signature;
 pub mod transaction_info_mapper;
+pub mod webhook;
 
 pub use provider::FiatProvider;
+pub use webhook::FiatWebhookRequest;
 
 use crate::providers::{BanxaClient, FlashnetClient, MercuryoClient, MoonPayClient, PaybisClient, TransakClient};
 use settings::Settings;

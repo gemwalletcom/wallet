@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use crate::ip_check_client::{IPAddressInfo, IPCheckClient};
 use crate::{
-    CachedFiatQuoteData, FiatCacherClient, FiatProvider,
+    CachedFiatQuoteData, FiatCacherClient, FiatProvider, FiatWebhookRequest,
     model::{FiatMapping, FiatMappingMap},
 };
 use futures::future::join_all;
@@ -91,13 +91,14 @@ impl FiatClient {
         Ok(transaction.as_primitive()?)
     }
 
-    pub async fn process_and_publish_webhook(&self, provider_name: &str, webhook_data: serde_json::Value) -> Result<FiatWebhookPayload, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn process_and_publish_webhook(&self, request: FiatWebhookRequest, provider_name: &str) -> Result<FiatWebhookPayload, Box<dyn std::error::Error + Send + Sync>> {
         let provider = self.provider(provider_name)?;
         let provider_id = provider.name().id().to_string();
-        let webhook = match provider.process_webhook(webhook_data.clone()).await {
+        let webhook_data = request.data.clone();
+        let webhook = match provider.process_webhook(request).await {
             Ok(webhook) => webhook,
             Err(e) => {
-                error_with_fields!("failed to decode fiat webhook", &*e, provider = provider_id, payload = webhook_data.to_string());
+                error_with_fields!("failed to decode fiat webhook", &*e, provider = provider_id);
                 return Err(e);
             }
         };
