@@ -83,6 +83,9 @@
 "wallet.deposit" = "Indbetal";
 "wallet.withdraw" = "Hæv";
 "wallet.available_balance" = "Tilgængelig: %@";
+"wallet.pay_with_card_or_bank" = "Betal med kort eller bank";
+"wallet.from_your_wallet_assets" = "Fra dine wallet-aktiver";
+"wallet.transfer_from_another_wallet" = "Overfør fra en anden wallet";
 "wallet.portfolio.title" = "Portefølje";
 "wallet.import.already_imported_message" = "Denne tegnebog er allerede blevet importeret.";
 "wallets.title" = "Tegnebøger";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "Ved, hvad du tilføjer";
 "asset.verification.warning_message" = "Alle kan oprette en - inklusive falske eller ondsindede tokens.";
 "asset.buy_asset" = "Køb %@";
+"asset.get_asset" = "Få %@";
 "asset.add_to_wallet" = "Tilføj til tegnebog";
 "asset.hide_from_wallet" = "Skjul fra tegnebogen";
 "asset.resources" = "Ressourcer";

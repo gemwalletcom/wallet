@@ -18,7 +18,6 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
@@ -159,7 +158,7 @@ fun WalletNavGraph(
 
             confirm(
                 finishAction = { _ -> navigator.popConfirmFlow() },
-                onBuy = { navigator.openBuy(it, amount = FiatConfig.insufficientNetworkFeeBuyAmount.toDouble()) },
+                onGetNetworkFeeAssetAction = navigator::openGetNetworkFeeAsset,
                 cancelAction = onCancel,
             )
 

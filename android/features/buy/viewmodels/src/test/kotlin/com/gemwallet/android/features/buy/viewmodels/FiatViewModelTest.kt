@@ -2,6 +2,7 @@ package com.gemwallet.android.features.buy.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
@@ -10,6 +11,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetMetaData
@@ -56,6 +58,11 @@ class FiatViewModelTest {
     private val getBuyAssetInfo = object : GetBuyAssetInfo {
         override fun invoke(assetId: AssetId): Flow<AssetData?> = assetDataFlow
     }
+    private val assetPriceUsdFlow = MutableStateFlow<Double?>(100.0)
+    private val getAssetPriceUsd = object : GetAssetPriceUsd {
+        override fun invoke(assetId: AssetId): Flow<Double?> = assetPriceUsdFlow
+    }
+    private val fiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
     private val getBuyQuotes = mockk<GetBuyQuotes>(relaxed = true) {
         coEvery {
             invoke(
@@ -251,6 +258,22 @@ class FiatViewModelTest {
         }
     }
 
+    @Test
+    fun `provider fiat uses usd price source not session price`() = runTest(testDispatcher) {
+        assetDataFlow.value = assetData(price = 100.0)
+        assetPriceUsdFlow.value = 200.0
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+
+            val provider = viewModel.providers.value.first()
+            assertEquals(fiatFormatter.string(200.0 * provider.cryptoAmount), provider.fiatFormatted)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
     private fun createViewModel(initialAmount: Double? = null): FiatViewModel {
         val arguments = mutableMapOf<String, Any>(
             RouteArgument.AssetId.key to asset.id.toIdentifier(),
@@ -260,6 +283,7 @@ class FiatViewModelTest {
             getBuyQuotes = getBuyQuotes,
             getBuyQuoteUrl = getBuyQuoteUrl,
             getBuyAssetInfo = getBuyAssetInfo,
+            getAssetPriceUsd = getAssetPriceUsd,
             savedStateHandle = SavedStateHandle(arguments),
         )
     }

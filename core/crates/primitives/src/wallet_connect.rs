@@ -3,12 +3,10 @@ use serde_serializers::deserialize_option_u64_from_str_or_int;
 use typeshare::typeshare;
 use url::Url;
 
-use crate::UInt64;
 use crate::url_query::query_value;
+use crate::{GEM_URL_SCHEME, UInt64, WALLET_CONNECT_URL_SCHEME};
 
-const WALLET_CONNECT_SCHEME: &str = "wc";
 const WALLET_CONNECT_HOST: &str = "wc";
-const GEM_SCHEME: &str = "gem";
 
 const QUERY_URI: &str = "uri";
 const QUERY_SESSION_TOPIC: &str = "sessionTopic";
@@ -63,8 +61,8 @@ impl WalletConnectLink {
     pub fn from_url(url: &str) -> Option<Self> {
         let parsed = Url::parse(url).ok()?;
         match parsed.scheme() {
-            WALLET_CONNECT_SCHEME => Some(Self::session_or_request(&parsed).unwrap_or_else(|| WalletConnectLink::Connect { uri: url.to_string() })),
-            GEM_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => match query_value(&parsed, QUERY_URI).filter(|uri| !uri.is_empty()) {
+            WALLET_CONNECT_URL_SCHEME => Some(Self::session_or_request(&parsed).unwrap_or_else(|| WalletConnectLink::Connect { uri: url.to_string() })),
+            GEM_URL_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => match query_value(&parsed, QUERY_URI).filter(|uri| !uri.is_empty()) {
                 Some(uri) => Some(WalletConnectLink::Connect { uri }),
                 None => Self::session_or_request(&parsed),
             },

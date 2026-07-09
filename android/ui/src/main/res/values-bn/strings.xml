@@ -88,6 +88,9 @@
   <string name="wallet_deposit">জমা</string>
   <string name="wallet_withdraw">প্রত্যাহার করুন</string>
   <string name="wallet_available_balance">উপলব্ধ: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">কার্ড বা ব্যাংক দিয়ে পেমেন্ট করুন</string>
+  <string name="wallet_from_your_wallet_assets">আপনার ওয়ালেটের সম্পদ থেকে</string>
+  <string name="wallet_transfer_from_another_wallet">অন্য ওয়ালেট থেকে ট্রান্সফার করুন</string>
   <string name="wallet_portfolio_title">পোর্টফোলিও</string>
   <string name="wallet_import_already_imported_message">এই ওয়ালেটটি ইতিমধ্যেই আমদানি করা হয়েছে।</string>
   <string name="wallets_title">ওয়ালেট</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">আপনি কি যোগ করছেন তা জানুন</string>
   <string name="asset_verification_warning_message">যে কেউ একটি তৈরি করতে পারে - জাল বা দূষিত টোকেন সহ।</string>
   <string name="asset_buy_asset">%1$s কিনুন</string>
+  <string name="asset_get_asset">%1$s পান</string>
   <string name="asset_add_to_wallet">ওয়ালেটে যোগ করুন</string>
   <string name="asset_hide_from_wallet">মানিব্যাগ থেকে লুকান</string>
   <string name="asset_resources">রিসোর্স</string>

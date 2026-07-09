@@ -83,6 +83,9 @@
 "wallet.deposit" = "Внести";
 "wallet.withdraw" = "Вывести";
 "wallet.available_balance" = "Доступно: %@";
+"wallet.pay_with_card_or_bank" = "Оплатите картой или через банк";
+"wallet.from_your_wallet_assets" = "Из активов вашего кошелька";
+"wallet.transfer_from_another_wallet" = "Переведите из другого кошелька";
 "wallet.portfolio.title" = "Портфель";
 "wallet.import.already_imported_message" = "Этот кошелек уже импортирован.";
 "wallets.title" = "Кошельки";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "Знайте, что вы добавляете";
 "asset.verification.warning_message" = "Любой может создать его, включая поддельные или вредоносные токены.";
 "asset.buy_asset" = "Купить %@";
+"asset.get_asset" = "Получить %@";
 "asset.add_to_wallet" = "Добавить в кошелек";
 "asset.hide_from_wallet" = "Скрыть из кошелька";
 "asset.resources" = "Ресурсы";

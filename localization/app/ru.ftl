@@ -94,6 +94,12 @@ wallet_import_address_warning = Вы можете просматривать б�
 wallet_deposit = Внести
 wallet_withdraw = Вывести
 wallet_available_balance = Доступно: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Оплатите картой или через банк
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Из активов вашего кошелька
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Переведите из другого кошелька
 wallet_portfolio_title = Портфель
 wallet_import_already_imported_message = Этот кошелек уже импортирован.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = Подозрительный
 asset_verification_warning_title = Знайте, что вы добавляете
 asset_verification_warning_message = Любой может создать его, включая поддельные или вредоносные токены.
 asset_buy_asset = Купить %@
+asset_get_asset = Получить %@
 asset_add_to_wallet = Добавить в кошелек
 asset_hide_from_wallet = Скрыть из кошелька
 asset_resources = Ресурсы

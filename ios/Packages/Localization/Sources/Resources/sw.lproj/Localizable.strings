@@ -83,6 +83,9 @@
 "wallet.deposit" = "Amana";
 "wallet.withdraw" = "Ondoa";
 "wallet.available_balance" = "Inapatikana: %@";
+"wallet.pay_with_card_or_bank" = "Lipa kwa kadi au benki";
+"wallet.from_your_wallet_assets" = "Kutoka kwenye mali za pochi yako";
+"wallet.transfer_from_another_wallet" = "Hamisha kutoka pochi nyingine";
 "wallet.portfolio.title" = "Kwingineko";
 "wallet.import.already_imported_message" = "Pochi hii tayari imeingizwa.";
 "wallets.title" = "Pochi";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "Jua Unachoongeza";
 "asset.verification.warning_message" = "Mtu yeyote anaweza kuunda moja - ikiwa ni pamoja na ishara bandia au hasidi.";
 "asset.buy_asset" = "Nunua %@";
+"asset.get_asset" = "Pata %@";
 "asset.add_to_wallet" = "Ongeza kwenye mkoba";
 "asset.hide_from_wallet" = "Ficha kutoka kwa mkoba";
 "asset.resources" = "Rasilimali";

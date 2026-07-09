@@ -88,6 +88,9 @@
   <string name="wallet_deposit">Para Yatır</string>
   <string name="wallet_withdraw">Para Çek</string>
   <string name="wallet_available_balance">Mevcut: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Kart veya banka ile öde</string>
+  <string name="wallet_from_your_wallet_assets">Cüzdan varlıklarından</string>
+  <string name="wallet_transfer_from_another_wallet">Başka bir cüzdandan aktar</string>
   <string name="wallet_portfolio_title">Portföy</string>
   <string name="wallet_import_already_imported_message">Bu cüzdan zaten içe aktarıldı.</string>
   <string name="wallets_title">Cüzdanlar</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">Ne Eklediğinizi Bilin</string>
   <string name="asset_verification_warning_message">Sahte veya kötü amaçlı belirteçler de dahil olmak üzere herkes bir tane oluşturabilir.</string>
   <string name="asset_buy_asset">%1$s satın al</string>
+  <string name="asset_get_asset">%1$s al</string>
   <string name="asset_add_to_wallet">Cüzdana ekle</string>
   <string name="asset_hide_from_wallet">Cüzdandan gizle</string>
   <string name="asset_resources">Kaynaklar</string>

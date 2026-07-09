@@ -94,6 +94,12 @@ wallet_import_address_warning = ניתן לצפות ביתרות ועסקאות 
 wallet_deposit = לְהַפְקִיד
 wallet_withdraw = משיכה
 wallet_available_balance = זמין: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = שלם בכרטיס או בבנק
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = מנכסי הארנק שלך
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = העבר מארנק אחר
 wallet_portfolio_title = תִיק
 wallet_import_already_imported_message = ארנק זה כבר יובא.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = חָשׁוּד
 asset_verification_warning_title = דע מה אתה מוסיף
 asset_verification_warning_message = כל אחד יכול ליצור אחד - כולל אסימונים מזויפים או זדוניים.
 asset_buy_asset = קנה %@
+asset_get_asset = קבל %@
 asset_add_to_wallet = הוסף לארנק
 asset_hide_from_wallet = הסתר מהארנק
 asset_resources = משאבים

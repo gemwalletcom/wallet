@@ -85,10 +85,9 @@ internal fun SupportMessagesList(
         contentPadding = PaddingValues(horizontal = paddingDefault, vertical = paddingSmall),
         verticalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.Bottom),
     ) {
-        val typingName = typingAgentName
-        if (typingName != null) {
+        if (typingAgentName != null) {
             item(key = "typing") {
-                SupportTypingIndicator(name = typingName)
+                SupportTypingIndicator()
             }
         }
         items(rows, key = { it.key }, contentType = { it::class }) { row ->

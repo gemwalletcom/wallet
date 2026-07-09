@@ -88,6 +88,9 @@
   <string name="wallet_deposit">เงินฝาก</string>
   <string name="wallet_withdraw">ถอน</string>
   <string name="wallet_available_balance">พร้อมใช้งาน: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">ชำระด้วยบัตรหรือธนาคาร</string>
+  <string name="wallet_from_your_wallet_assets">จากสินทรัพย์ในกระเป๋าของคุณ</string>
+  <string name="wallet_transfer_from_another_wallet">โอนจากกระเป๋าอื่น</string>
   <string name="wallet_portfolio_title">พอร์ตโฟลิโอ</string>
   <string name="wallet_import_already_imported_message">กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว</string>
   <string name="wallets_title">กระเป๋าสตางค์</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">รู้ว่าคุณกำลังเพิ่มอะไร</string>
   <string name="asset_verification_warning_message">ใครๆ ก็สามารถสร้างโทเค็นขึ้นมาได้ รวมถึงโทเค็นปลอมหรือโทเค็นที่เป็นอันตราย</string>
   <string name="asset_buy_asset">ซื้อ %1$s</string>
+  <string name="asset_get_asset">รับ %1$s</string>
   <string name="asset_add_to_wallet">เพิ่มลงในกระเป๋าสตางค์</string>
   <string name="asset_hide_from_wallet">ซ่อนจากกระเป๋าสตางค์</string>
   <string name="asset_resources">ทรัพยากร</string>

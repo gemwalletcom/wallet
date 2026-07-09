@@ -83,6 +83,9 @@
 "wallet.deposit" = "إيداع";
 "wallet.withdraw" = "ينسحب";
 "wallet.available_balance" = "متاح: %@";
+"wallet.pay_with_card_or_bank" = "ادفع بالبطاقة أو البنك";
+"wallet.from_your_wallet_assets" = "من أصول محفظتك";
+"wallet.transfer_from_another_wallet" = "حوّل من محفظة أخرى";
 "wallet.portfolio.title" = "المحفظة الاستثمارية";
 "wallet.import.already_imported_message" = "تم استيراد هذه المحفظة بالفعل.";
 "wallets.title" = "المحافظ";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "تعرف على ما تضيفه";
 "asset.verification.warning_message" = "يمكن لأي شخص إنشاء واحدة - بما في ذلك الرموز المميزة أو الخبيثة.";
 "asset.buy_asset" = "شراء %@";
+"asset.get_asset" = "احصل على %@";
 "asset.add_to_wallet" = "أضف إلى المحفظة";
 "asset.hide_from_wallet" = "إخفاء من المحفظة";
 "asset.resources" = "موارد";

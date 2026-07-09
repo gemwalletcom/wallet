@@ -88,6 +88,9 @@
   <string name="wallet_deposit">واریز</string>
   <string name="wallet_withdraw">برداشت</string>
   <string name="wallet_available_balance">موجود: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">پرداخت با کارت یا بانک</string>
+  <string name="wallet_from_your_wallet_assets">از دارایی‌های کیف پول شما</string>
+  <string name="wallet_transfer_from_another_wallet">انتقال از کیف پول دیگر</string>
   <string name="wallet_portfolio_title">سبد دارایی</string>
   <string name="wallet_import_already_imported_message">این کیف پول قبلاً وارد شده است.</string>
   <string name="wallets_title">کیف پول ها</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">بدانید چه چیزی اضافه می کنید</string>
   <string name="asset_verification_warning_message">هر کسی می تواند یکی را ایجاد کند - از جمله توکن های جعلی یا مخرب.</string>
   <string name="asset_buy_asset">خرید %1$s</string>
+  <string name="asset_get_asset">دریافت %1$s</string>
   <string name="asset_add_to_wallet">اضافه کردن به کیف پول</string>
   <string name="asset_hide_from_wallet">پنهان شدن از کیف پول</string>
   <string name="asset_resources">منابع</string>

@@ -94,6 +94,12 @@ wallet_import_address_warning = คุณสามารถดูยอดคง
 wallet_deposit = เงินฝาก
 wallet_withdraw = ถอน
 wallet_available_balance = พร้อมใช้งาน: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = ชำระด้วยบัตรหรือธนาคาร
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = จากสินทรัพย์ในกระเป๋าของคุณ
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = โอนจากกระเป๋าอื่น
 wallet_portfolio_title = พอร์ตโฟลิโอ
 wallet_import_already_imported_message = กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = สงสัย
 asset_verification_warning_title = รู้ว่าคุณกำลังเพิ่มอะไร
 asset_verification_warning_message = ใครๆ ก็สามารถสร้างโทเค็นขึ้นมาได้ รวมถึงโทเค็นปลอมหรือโทเค็นที่เป็นอันตราย
 asset_buy_asset = ซื้อ %@
+asset_get_asset = รับ %@
 asset_add_to_wallet = เพิ่มลงในกระเป๋าสตางค์
 asset_hide_from_wallet = ซ่อนจากกระเป๋าสตางค์
 asset_resources = ทรัพยากร

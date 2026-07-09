@@ -83,6 +83,9 @@
 "wallet.deposit" = "Storten";
 "wallet.withdraw" = "Opnemen";
 "wallet.available_balance" = "Beschikbaar: %@";
+"wallet.pay_with_card_or_bank" = "Betaal met kaart of bank";
+"wallet.from_your_wallet_assets" = "Vanuit je wallet-assets";
+"wallet.transfer_from_another_wallet" = "Overzetten vanuit een andere wallet";
 "wallet.portfolio.title" = "Portefeuille";
 "wallet.import.already_imported_message" = "Deze portemonnee is al geïmporteerd.";
 "wallets.title" = "Portemonnees";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "Weet wat u toevoegt";
 "asset.verification.warning_message" = "Iedereen kan er een maken, inclusief valse of kwaadaardige tokens.";
 "asset.buy_asset" = "Koop %@";
+"asset.get_asset" = "%@ krijgen";
 "asset.add_to_wallet" = "Toevoegen aan portemonnee";
 "asset.hide_from_wallet" = "Verbergen voor portemonnee";
 "asset.resources" = "Bronnen";

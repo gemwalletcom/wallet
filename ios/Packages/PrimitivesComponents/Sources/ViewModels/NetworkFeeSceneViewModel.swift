@@ -67,6 +67,10 @@ public final class NetworkFeeSceneViewModel {
         rates.count > 1
     }
 
+    public var showFeeDetails: Bool {
+        showFeeRates || feeAmount != nil
+    }
+
     public func valueForRate(_ rate: FeeRateViewModel) -> String {
         switch chain.feeUnitType {
         case .native: feeAmount(for: rate.feeRate).map { display(for: $0).amount.text } ?? rate.valueText

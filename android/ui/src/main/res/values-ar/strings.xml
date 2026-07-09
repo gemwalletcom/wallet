@@ -88,6 +88,9 @@
   <string name="wallet_deposit">إيداع</string>
   <string name="wallet_withdraw">ينسحب</string>
   <string name="wallet_available_balance">متاح: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">ادفع بالبطاقة أو البنك</string>
+  <string name="wallet_from_your_wallet_assets">من أصول محفظتك</string>
+  <string name="wallet_transfer_from_another_wallet">حوّل من محفظة أخرى</string>
   <string name="wallet_portfolio_title">المحفظة الاستثمارية</string>
   <string name="wallet_import_already_imported_message">تم استيراد هذه المحفظة بالفعل.</string>
   <string name="wallets_title">المحافظ</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">تعرف على ما تضيفه</string>
   <string name="asset_verification_warning_message">يمكن لأي شخص إنشاء واحدة - بما في ذلك الرموز المميزة أو الخبيثة.</string>
   <string name="asset_buy_asset">شراء %1$s</string>
+  <string name="asset_get_asset">احصل على %1$s</string>
   <string name="asset_add_to_wallet">أضف إلى المحفظة</string>
   <string name="asset_hide_from_wallet">إخفاء من المحفظة</string>
   <string name="asset_resources">موارد</string>

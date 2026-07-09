@@ -83,6 +83,9 @@
 "wallet.deposit" = "לְהַפְקִיד";
 "wallet.withdraw" = "משיכה";
 "wallet.available_balance" = "זמין: %@";
+"wallet.pay_with_card_or_bank" = "שלם בכרטיס או בבנק";
+"wallet.from_your_wallet_assets" = "מנכסי הארנק שלך";
+"wallet.transfer_from_another_wallet" = "העבר מארנק אחר";
 "wallet.portfolio.title" = "תִיק";
 "wallet.import.already_imported_message" = "ארנק זה כבר יובא.";
 "wallets.title" = "ארנקים";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "דע מה אתה מוסיף";
 "asset.verification.warning_message" = "כל אחד יכול ליצור אחד - כולל אסימונים מזויפים או זדוניים.";
 "asset.buy_asset" = "קנה %@";
+"asset.get_asset" = "קבל %@";
 "asset.add_to_wallet" = "הוסף לארנק";
 "asset.hide_from_wallet" = "הסתר מהארנק";
 "asset.resources" = "משאבים";

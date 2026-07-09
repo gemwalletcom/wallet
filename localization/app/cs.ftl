@@ -94,6 +94,12 @@ wallet_import_address_warning = Pro tuto adresu si můžete prohlížet zůstatk
 wallet_deposit = Vklad
 wallet_withdraw = Výběr
 wallet_available_balance = Dostupné: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Zaplaťte kartou nebo bankou
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Z aktiv ve vaší peněžence
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Převod z jiné peněženky
 wallet_portfolio_title = Portfolio
 wallet_import_already_imported_message = Tato peněženka již byla importována.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = Podezřelý
 asset_verification_warning_title = Vědět, co přidáváte
 asset_verification_warning_message = Každý si jej může vytvořit – včetně falešných nebo škodlivých tokenů.
 asset_buy_asset = Koupit %@
+asset_get_asset = Získat %@
 asset_add_to_wallet = Přidat do peněženky
 asset_hide_from_wallet = Skrýt z peněženky
 asset_resources = Zdroje

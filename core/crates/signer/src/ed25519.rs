@@ -1,4 +1,5 @@
 use ed25519_dalek::{Signer as DalekSigner, SigningKey};
+use zeroize::Zeroizing;
 
 use primitives::SignerError;
 
@@ -13,7 +14,8 @@ pub struct Ed25519KeyPair {
 
 impl Ed25519KeyPair {
     pub fn from_private_key(private_key: &[u8]) -> Result<Self, SignerError> {
-        let key_bytes: [u8; ed25519_dalek::SECRET_KEY_LENGTH] = private_key.try_into().map_err(|_| SignerError::invalid_input("Invalid Ed25519 private key length"))?;
+        let key_bytes: Zeroizing<[u8; ed25519_dalek::SECRET_KEY_LENGTH]> =
+            Zeroizing::new(private_key.try_into().map_err(|_| SignerError::invalid_input("Invalid Ed25519 private key length"))?);
         let signing_key = SigningKey::from_bytes(&key_bytes);
         Ok(Self {
             public_key_bytes: signing_key.verifying_key().to_bytes(),

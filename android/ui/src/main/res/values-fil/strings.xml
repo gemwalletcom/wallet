@@ -88,6 +88,9 @@
   <string name="wallet_deposit">Deposito</string>
   <string name="wallet_withdraw">Mag-withdraw</string>
   <string name="wallet_available_balance">Available: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Magbayad gamit ang card o bangko</string>
+  <string name="wallet_from_your_wallet_assets">Mula sa iyong mga asset sa wallet</string>
+  <string name="wallet_transfer_from_another_wallet">Maglipat mula sa ibang wallet</string>
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">Na-import na ang wallet na ito.</string>
   <string name="wallets_title">Mga Wallet</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">Alamin Kung Ano ang Iyong Idinaragdag</string>
   <string name="asset_verification_warning_message">Kahit sino ay maaaring gumawa ng isa - kabilang ang mga peke o nakakahamak na token.</string>
   <string name="asset_buy_asset">Bumili ng %1$s</string>
+  <string name="asset_get_asset">Kumuha ng %1$s</string>
   <string name="asset_add_to_wallet">Idagdag sa wallet</string>
   <string name="asset_hide_from_wallet">Itago sa wallet</string>
   <string name="asset_resources">Mga mapagkukunan</string>

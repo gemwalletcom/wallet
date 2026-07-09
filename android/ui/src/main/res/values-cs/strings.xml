@@ -88,6 +88,9 @@
   <string name="wallet_deposit">Vklad</string>
   <string name="wallet_withdraw">Výběr</string>
   <string name="wallet_available_balance">Dostupné: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Zaplaťte kartou nebo bankou</string>
+  <string name="wallet_from_your_wallet_assets">Z aktiv ve vaší peněžence</string>
+  <string name="wallet_transfer_from_another_wallet">Převod z jiné peněženky</string>
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">Tato peněženka již byla importována.</string>
   <string name="wallets_title">Peněženky</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">Vědět, co přidáváte</string>
   <string name="asset_verification_warning_message">Každý si jej může vytvořit – včetně falešných nebo škodlivých tokenů.</string>
   <string name="asset_buy_asset">Koupit %1$s</string>
+  <string name="asset_get_asset">Získat %1$s</string>
   <string name="asset_add_to_wallet">Přidat do peněženky</string>
   <string name="asset_hide_from_wallet">Skrýt z peněženky</string>
   <string name="asset_resources">Zdroje</string>

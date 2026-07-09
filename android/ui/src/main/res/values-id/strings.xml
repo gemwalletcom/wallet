@@ -88,6 +88,9 @@
   <string name="wallet_deposit">Setor</string>
   <string name="wallet_withdraw">Tarik</string>
   <string name="wallet_available_balance">Tersedia: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Bayar dengan kartu atau bank</string>
+  <string name="wallet_from_your_wallet_assets">Dari aset dompet Anda</string>
+  <string name="wallet_transfer_from_another_wallet">Transfer dari dompet lain</string>
   <string name="wallet_portfolio_title">Portofolio</string>
   <string name="wallet_import_already_imported_message">Dompet ini sudah diimpor.</string>
   <string name="wallets_title">Dompet</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">Ketahui Apa yang Anda Tambahkan</string>
   <string name="asset_verification_warning_message">Siapa pun dapat membuatnya - termasuk token palsu atau berbahaya.</string>
   <string name="asset_buy_asset">Beli %1$s</string>
+  <string name="asset_get_asset">Dapatkan %1$s</string>
   <string name="asset_add_to_wallet">Tambahkan ke dompet</string>
   <string name="asset_hide_from_wallet">Sembunyikan dari dompet</string>
   <string name="asset_resources">Sumber daya</string>

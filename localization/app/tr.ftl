@@ -94,6 +94,12 @@ wallet_import_address_warning = Bu adrese ait bakiyeleri ve işlemleri görünt�
 wallet_deposit = Para Yatır
 wallet_withdraw = Para Çek
 wallet_available_balance = Mevcut: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Kart veya banka ile öde
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Cüzdan varlıklarından
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Başka bir cüzdandan aktar
 wallet_portfolio_title = Portföy
 wallet_import_already_imported_message = Bu cüzdan zaten içe aktarıldı.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = Şüpheli
 asset_verification_warning_title = Ne Eklediğinizi Bilin
 asset_verification_warning_message = Sahte veya kötü amaçlı belirteçler de dahil olmak üzere herkes bir tane oluşturabilir.
 asset_buy_asset = %@ satın al
+asset_get_asset = %@ al
 asset_add_to_wallet = Cüzdana ekle
 asset_hide_from_wallet = Cüzdandan gizle
 asset_resources = Kaynaklar

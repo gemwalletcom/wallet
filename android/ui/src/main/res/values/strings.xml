@@ -88,6 +88,9 @@
   <string name="wallet_deposit">Deposit</string>
   <string name="wallet_withdraw">Withdraw</string>
   <string name="wallet_available_balance">Available: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Pay with card or bank</string>
+  <string name="wallet_from_your_wallet_assets">From your wallet assets</string>
+  <string name="wallet_transfer_from_another_wallet">Transfer from another wallet</string>
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">This wallet has already been imported.</string>
   <string name="wallets_title">Wallets</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">Know What You\'re Adding</string>
   <string name="asset_verification_warning_message">Anyone can create one - including fake or malicious tokens.</string>
   <string name="asset_buy_asset">Buy %1$s</string>
+  <string name="asset_get_asset">Get %1$s</string>
   <string name="asset_add_to_wallet">Add to wallet</string>
   <string name="asset_hide_from_wallet">Hide from wallet</string>
   <string name="asset_resources">Resources</string>

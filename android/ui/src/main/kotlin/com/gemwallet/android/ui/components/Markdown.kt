@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -11,10 +10,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
+import androidx.core.util.PatternsCompat
 
-@Composable
 fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Blue): AnnotatedString {
-    // Define regex patterns
     val linkRegex = """\[(.*?)\]\((.*?)\)""".toRegex()
     val autolinkRegex = """<(https?://[^>\s]+)>""".toRegex()
     val boldRegex = """\*\*(.*?)\*\*""".toRegex()
@@ -23,7 +21,7 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
     val inlineCodeRegex = """`(.*?)`""".toRegex()
     val headingRegex = """^(#{1,2})\s*(.*)""".toRegex(RegexOption.MULTILINE)
     val listRegex = """^- (.*)""".toRegex(RegexOption.MULTILINE)
-    val blockquoteRegex = """^>\s+(.*)""".toRegex(RegexOption.MULTILINE)  // NEW
+    val blockquoteRegex = """^>\s+(.*)""".toRegex(RegexOption.MULTILINE)
 
     val tokens = mutableListOf<MarkdownToken>()
     fun addMatches(pattern: Regex, type: TokenType, groupCount: Int) {
@@ -38,11 +36,22 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
         }
     }
 
-    // Collect tokens for each pattern
     addMatches(codeBlockRegex, TokenType.CODE_BLOCK, 1)
     addMatches(inlineCodeRegex, TokenType.INLINE_CODE, 1)
     addMatches(linkRegex, TokenType.LINK, 2)
     addMatches(autolinkRegex, TokenType.AUTOLINK, 1)
+    val webLinkMatcher = PatternsCompat.WEB_URL.matcher(markdown)
+    while (webLinkMatcher.find()) {
+        val url = webLinkMatcher.group()
+        if (url.startsWith("http://", ignoreCase = true) || url.startsWith("https://", ignoreCase = true)) {
+            tokens += MarkdownToken(
+                type = TokenType.BARE_LINK,
+                start = webLinkMatcher.start(),
+                end = webLinkMatcher.end(),
+                groups = listOf(url),
+            )
+        }
+    }
     addMatches(boldRegex, TokenType.BOLD, 1)
     addMatches(italicRegex, TokenType.ITALIC, 1)
     addMatches(headingRegex, TokenType.HEADING, 2)
@@ -108,6 +117,12 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                 builder.append(url)
                 builder.addLink(LinkAnnotation.Url(url, TextLinkStyles(linkStyle)), styleStart, builder.length)
             }
+            TokenType.BARE_LINK -> {
+                val url = token.groups[0]
+                val styleStart = builder.length
+                builder.append(url)
+                builder.addLink(LinkAnnotation.Url(url, TextLinkStyles(linkStyle)), styleStart, builder.length)
+            }
             TokenType.BOLD -> {
                 val boldContent = token.groups[0]
                 val styleStart = builder.length
@@ -129,7 +144,7 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                 )
             }
             TokenType.HEADING -> {
-                val headingLevel = token.groups[0].length // # or ##
+                val headingLevel = token.groups[0].length
                 val headingText = token.groups[1]
                 val styleStart = builder.length
                 builder.append(headingText)
@@ -183,6 +198,7 @@ private enum class TokenType {
     INLINE_CODE,
     LINK,
     AUTOLINK,
+    BARE_LINK,
     BOLD,
     ITALIC,
     HEADING,

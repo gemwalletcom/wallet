@@ -88,6 +88,9 @@
   <string name="wallet_deposit">充值</string>
   <string name="wallet_withdraw">提现</string>
   <string name="wallet_available_balance">可用： %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">使用银行卡或银行付款</string>
+  <string name="wallet_from_your_wallet_assets">来自你的钱包资产</string>
+  <string name="wallet_transfer_from_another_wallet">从另一个钱包转入</string>
   <string name="wallet_portfolio_title">投资组合</string>
   <string name="wallet_import_already_imported_message">此钱包已导入。</string>
   <string name="wallets_title">钱包</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">了解您正在添加的内容</string>
   <string name="asset_verification_warning_message">任何人都可以创建，包括假冒或恶意代币。</string>
   <string name="asset_buy_asset">购买%1$s</string>
+  <string name="asset_get_asset">获取 %1$s</string>
   <string name="asset_add_to_wallet">添加到钱包</string>
   <string name="asset_hide_from_wallet">从钱包隐藏</string>
   <string name="asset_resources">资源</string>

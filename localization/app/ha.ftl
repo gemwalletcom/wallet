@@ -94,6 +94,12 @@ wallet_import_address_warning = Kuna iya duba ma'auni da ma'amaloli don wannan a
 wallet_deposit = Ajiya
 wallet_withdraw = Janyewa
 wallet_available_balance = Akwai: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Biya da kati ko banki
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Daga kadarorin walat ɗinka
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Canja daga wani walat
 wallet_portfolio_title = Fayil ɗin Kadari
 wallet_import_already_imported_message = An riga an shigo da wannan walat ɗin.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = Abin tuhuma
 asset_verification_warning_title = Sanin Abinda kuke Karawa
 asset_verification_warning_message = Kowa na iya ƙirƙirar ɗaya - gami da alamun karya ko na mugunta.
 asset_buy_asset = Sayi %@
+asset_get_asset = Sami %@
 asset_add_to_wallet = Ƙara zuwa walat
 asset_hide_from_wallet = Boye daga walat
 asset_resources = Albarkatu

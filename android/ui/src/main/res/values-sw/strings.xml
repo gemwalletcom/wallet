@@ -88,6 +88,9 @@
   <string name="wallet_deposit">Amana</string>
   <string name="wallet_withdraw">Ondoa</string>
   <string name="wallet_available_balance">Inapatikana: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Lipa kwa kadi au benki</string>
+  <string name="wallet_from_your_wallet_assets">Kutoka kwenye mali za pochi yako</string>
+  <string name="wallet_transfer_from_another_wallet">Hamisha kutoka pochi nyingine</string>
   <string name="wallet_portfolio_title">Kwingineko</string>
   <string name="wallet_import_already_imported_message">Pochi hii tayari imeingizwa.</string>
   <string name="wallets_title">Pochi</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">Jua Unachoongeza</string>
   <string name="asset_verification_warning_message">Mtu yeyote anaweza kuunda moja - ikiwa ni pamoja na ishara bandia au hasidi.</string>
   <string name="asset_buy_asset">Nunua %1$s</string>
+  <string name="asset_get_asset">Pata %1$s</string>
   <string name="asset_add_to_wallet">Ongeza kwenye mkoba</string>
   <string name="asset_hide_from_wallet">Ficha kutoka kwa mkoba</string>
   <string name="asset_resources">Rasilimali</string>

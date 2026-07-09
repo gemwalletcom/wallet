@@ -94,6 +94,12 @@ wallet_import_address_warning = Du kan se saldi og transaktioner for denne adres
 wallet_deposit = Indbetal
 wallet_withdraw = Hæv
 wallet_available_balance = Tilgængelig: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Betal med kort eller bank
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Fra dine wallet-aktiver
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Overfør fra en anden wallet
 wallet_portfolio_title = Portefølje
 wallet_import_already_imported_message = Denne tegnebog er allerede blevet importeret.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = Mistænksom
 asset_verification_warning_title = Ved, hvad du tilføjer
 asset_verification_warning_message = Alle kan oprette en - inklusive falske eller ondsindede tokens.
 asset_buy_asset = Køb %@
+asset_get_asset = Få %@
 asset_add_to_wallet = Tilføj til tegnebog
 asset_hide_from_wallet = Skjul fra tegnebogen
 asset_resources = Ressourcer

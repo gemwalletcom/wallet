@@ -83,6 +83,9 @@
 "wallet.deposit" = "Para Yatır";
 "wallet.withdraw" = "Para Çek";
 "wallet.available_balance" = "Mevcut: %@";
+"wallet.pay_with_card_or_bank" = "Kart veya banka ile öde";
+"wallet.from_your_wallet_assets" = "Cüzdan varlıklarından";
+"wallet.transfer_from_another_wallet" = "Başka bir cüzdandan aktar";
 "wallet.portfolio.title" = "Portföy";
 "wallet.import.already_imported_message" = "Bu cüzdan zaten içe aktarıldı.";
 "wallets.title" = "Cüzdanlar";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "Ne Eklediğinizi Bilin";
 "asset.verification.warning_message" = "Sahte veya kötü amaçlı belirteçler de dahil olmak üzere herkes bir tane oluşturabilir.";
 "asset.buy_asset" = "%@ satın al";
+"asset.get_asset" = "%@ al";
 "asset.add_to_wallet" = "Cüzdana ekle";
 "asset.hide_from_wallet" = "Cüzdandan gizle";
 "asset.resources" = "Kaynaklar";

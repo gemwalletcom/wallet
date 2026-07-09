@@ -94,6 +94,12 @@ wallet_import_address_warning = شما می‌توانید موجودی و تر�
 wallet_deposit = واریز
 wallet_withdraw = برداشت
 wallet_available_balance = موجود: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = پرداخت با کارت یا بانک
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = از دارایی‌های کیف پول شما
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = انتقال از کیف پول دیگر
 wallet_portfolio_title = سبد دارایی
 wallet_import_already_imported_message = این کیف پول قبلاً وارد شده است.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = مشکوک
 asset_verification_warning_title = بدانید چه چیزی اضافه می کنید
 asset_verification_warning_message = هر کسی می تواند یکی را ایجاد کند - از جمله توکن های جعلی یا مخرب.
 asset_buy_asset = خرید %@
+asset_get_asset = دریافت %@
 asset_add_to_wallet = اضافه کردن به کیف پول
 asset_hide_from_wallet = پنهان شدن از کیف پول
 asset_resources = منابع

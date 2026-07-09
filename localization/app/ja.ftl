@@ -94,6 +94,12 @@ wallet_import_address_warning = このアドレスの残高と取引は表示で
 wallet_deposit = 入金
 wallet_withdraw = 出金
 wallet_available_balance = 利用可能: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = カードまたは銀行で支払う
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = ウォレットの資産から
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = 別のウォレットから送金
 wallet_portfolio_title = ポートフォリオ
 wallet_import_already_imported_message = このウォレットは既にインポート済みです。
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = 疑わしい
 asset_verification_warning_title = 追加内容を確認
 asset_verification_warning_message = 誰でも作成可能で、偽トークンや悪意のあるトークンも含まれます。
 asset_buy_asset = %@を購入
+asset_get_asset = %@を入手
 asset_add_to_wallet = ウォレットに追加
 asset_hide_from_wallet = ウォレットから隠す
 asset_resources = リソース

@@ -94,6 +94,12 @@ wallet_import_address_warning = U kunt het saldo en de transacties voor dit adre
 wallet_deposit = Storten
 wallet_withdraw = Opnemen
 wallet_available_balance = Beschikbaar: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Betaal met kaart of bank
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Vanuit je wallet-assets
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Overzetten vanuit een andere wallet
 wallet_portfolio_title = Portefeuille
 wallet_import_already_imported_message = Deze portemonnee is al geïmporteerd.
 
@@ -299,6 +305,7 @@ asset_verification_suspicious = Verdacht
 asset_verification_warning_title = Weet wat u toevoegt
 asset_verification_warning_message = Iedereen kan er een maken, inclusief valse of kwaadaardige tokens.
 asset_buy_asset = Koop %@
+asset_get_asset = %@ krijgen
 asset_add_to_wallet = Toevoegen aan portemonnee
 asset_hide_from_wallet = Verbergen voor portemonnee
 asset_resources = Bronnen

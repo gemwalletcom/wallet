@@ -282,7 +282,7 @@ struct ServicesFactory {
         )
 
         let nameService = NameService(provider: apiService)
-        let scanService = ScanService(gatewayService: gatewayService)
+        let scanService = ScanService(apiService: apiService)
         let addressNameService = AddressNameService(addressStore: storeManager.addressStore, apiService: apiService)
         let activityService = ActivityService(store: storeManager.recentActivityStore)
         let authService = AuthService(apiService: apiService, keystore: storages.keystore)

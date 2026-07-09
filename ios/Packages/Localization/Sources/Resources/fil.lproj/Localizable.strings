@@ -83,6 +83,9 @@
 "wallet.deposit" = "Deposito";
 "wallet.withdraw" = "Mag-withdraw";
 "wallet.available_balance" = "Available: %@";
+"wallet.pay_with_card_or_bank" = "Magbayad gamit ang card o bangko";
+"wallet.from_your_wallet_assets" = "Mula sa iyong mga asset sa wallet";
+"wallet.transfer_from_another_wallet" = "Maglipat mula sa ibang wallet";
 "wallet.portfolio.title" = "Portfolio";
 "wallet.import.already_imported_message" = "Na-import na ang wallet na ito.";
 "wallets.title" = "Mga Wallet";
@@ -245,6 +248,7 @@
 "asset.verification.warning_title" = "Alamin Kung Ano ang Iyong Idinaragdag";
 "asset.verification.warning_message" = "Kahit sino ay maaaring gumawa ng isa - kabilang ang mga peke o nakakahamak na token.";
 "asset.buy_asset" = "Bumili ng %@";
+"asset.get_asset" = "Kumuha ng %@";
 "asset.add_to_wallet" = "Idagdag sa wallet";
 "asset.hide_from_wallet" = "Itago sa wallet";
 "asset.resources" = "Mga mapagkukunan";

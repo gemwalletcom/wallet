@@ -88,6 +88,9 @@
   <string name="wallet_deposit">Ajiya</string>
   <string name="wallet_withdraw">Janyewa</string>
   <string name="wallet_available_balance">Akwai: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Biya da kati ko banki</string>
+  <string name="wallet_from_your_wallet_assets">Daga kadarorin walat ɗinka</string>
+  <string name="wallet_transfer_from_another_wallet">Canja daga wani walat</string>
   <string name="wallet_portfolio_title">Fayil ɗin Kadari</string>
   <string name="wallet_import_already_imported_message">An riga an shigo da wannan walat ɗin.</string>
   <string name="wallets_title">Wallets</string>
@@ -260,6 +263,7 @@
   <string name="asset_verification_warning_title">Sanin Abinda kuke Karawa</string>
   <string name="asset_verification_warning_message">Kowa na iya ƙirƙirar ɗaya - gami da alamun karya ko na mugunta.</string>
   <string name="asset_buy_asset">Sayi %1$s</string>
+  <string name="asset_get_asset">Sami %1$s</string>
   <string name="asset_add_to_wallet">Ƙara zuwa walat</string>
   <string name="asset_hide_from_wallet">Boye daga walat</string>
   <string name="asset_resources">Albarkatu</string>
