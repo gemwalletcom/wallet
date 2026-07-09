@@ -77,7 +77,7 @@ impl Transaction {
 
 #[cfg(test)]
 impl TransactionReceiptData {
-    pub fn mock_with_result(result: &str) -> Self {
+    pub fn mock_transaction_receipt_with_result(result: &str) -> Self {
         Self {
             id: "test_id".to_string(),
             fee: Some(1000),

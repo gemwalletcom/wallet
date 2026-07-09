@@ -372,7 +372,7 @@ mod tests {
         let failed = map_transaction(
             Chain::Tron,
             TronTransaction::mock_token_approval("OUT_OF_ENERGY"),
-            TransactionReceiptData::mock_with_result("OUT_OF_ENERGY"),
+            TransactionReceiptData::mock_transaction_receipt_with_result("OUT_OF_ENERGY"),
         )
         .unwrap();
 
@@ -387,7 +387,7 @@ mod tests {
         let confirmed = map_transaction(
             Chain::Tron,
             TronTransaction::mock_token_approval("SUCCESS"),
-            TransactionReceiptData::mock_with_result("SUCCESS"),
+            TransactionReceiptData::mock_transaction_receipt_with_result("SUCCESS"),
         )
         .unwrap();
 
