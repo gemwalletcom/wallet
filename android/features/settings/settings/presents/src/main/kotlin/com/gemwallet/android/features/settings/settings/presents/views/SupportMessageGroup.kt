@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,11 +49,6 @@ internal fun SupportMessageGroup(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
         ) {
-            Text(
-                text = group.name,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary,
-            )
             group.messages.forEach { message ->
                 SupportMessageBubble(message = message, onImageClick = onImageClick, onRetry = onRetry)
             }

@@ -1,12 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.parseSupportMessageDisplayContent
+import struct Gemstone.SupportMessageDisplayContent
+import struct Gemstone.SupportMessageLink
 import Primitives
 import Style
 import SwiftUI
 
 struct SupportMessageBubbleViewModel: Identifiable {
     private let message: SupportMessage
+    private let displayContent: SupportMessageDisplayContent
     private let retryAction: (SupportMessage) -> Void
     private let imageAction: (SupportMessageImage) -> Void
 
@@ -16,13 +20,18 @@ struct SupportMessageBubbleViewModel: Identifiable {
         imageAction: @escaping (SupportMessageImage) -> Void,
     ) {
         self.message = message
+        self.displayContent = parseSupportMessageDisplayContent(markdown: message.content)
         self.retryAction = retryAction
         self.imageAction = imageAction
     }
 
     var id: String { message.id }
-    var content: String { message.content.trimmingCharacters(in: .whitespacesAndNewlines) }
-    var hasContent: Bool { content.isNotEmpty }
+    var content: String { message.content.trim() }
+    var displayText: String { displayContent.text }
+    var links: [SupportMessageLink] { displayContent.links }
+    var hasContent: Bool { hasDisplayText || hasLinks }
+    var hasDisplayText: Bool { displayText.isNotEmpty }
+    var hasLinks: Bool { links.isNotEmpty }
     var hasImages: Bool { message.images.isNotEmpty }
     var images: [SupportMessageImage] { message.images }
     var isSending: Bool { message.status == .sending }

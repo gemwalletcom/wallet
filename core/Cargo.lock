@@ -3914,6 +3914,7 @@ dependencies = [
  "signer",
  "simulation",
  "sui-sdk-types",
+ "support",
  "swapper",
  "tempfile",
  "uniffi",
@@ -7964,6 +7965,7 @@ dependencies = [
  "serde_json",
  "storage",
  "streamer",
+ "url",
 ]
 
 [[package]]
