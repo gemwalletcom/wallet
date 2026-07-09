@@ -1,5 +1,6 @@
 use crate::address::TronAddress;
 use crate::address::serializer::deserialize as tron_address_deserialize;
+use crate::address::serializer::optional as tron_address_optional;
 use primitives::hex::decode_hex_utf8;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{error::Error, fmt};
@@ -128,7 +129,7 @@ pub struct TransactionReceipt {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TronLog {
-    #[serde(default, with = "crate::address::serializer::optional")]
+    #[serde(default, with = "tron_address_optional")]
     pub address: Option<TronAddress>,
     pub topics: Option<Vec<String>>,
     pub data: Option<String>,

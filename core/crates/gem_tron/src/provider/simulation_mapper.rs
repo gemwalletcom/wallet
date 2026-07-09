@@ -67,7 +67,7 @@ fn decode_transfer_delta(log: &TronLog, owner: &TronAddress) -> Option<(String, 
 mod tests {
     use super::*;
 
-    fn owner() -> TronAddress {
+    fn mock_owner() -> TronAddress {
         TronAddress::from_hex_or_base58("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM").unwrap()
     }
 
@@ -75,7 +75,7 @@ mod tests {
     fn test_map_simulation_result_swap_with_logs() {
         let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_swap_with_logs.json")).unwrap();
 
-        let result = map_simulation_result(&owner(), &response, Some(1_000_000));
+        let result = map_simulation_result(&mock_owner(), &response, Some(1_000_000));
 
         assert!(result.warnings.is_empty());
         let output_token = TronAddress::from_hex("4e4bee11cea0070f957b98fd8cf4138ef3295e0e").unwrap().encode();
@@ -92,7 +92,7 @@ mod tests {
     fn test_map_simulation_result_reverted_returns_validation_warning() {
         let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
 
-        let result = map_simulation_result(&owner(), &response, Some(1_000_000));
+        let result = map_simulation_result(&mock_owner(), &response, Some(1_000_000));
 
         assert_eq!(result.warnings, vec![SimulationWarning::execution_error("REVERT opcode executed")]);
         assert!(result.balance_changes.is_empty());
@@ -110,7 +110,7 @@ mod tests {
             data: Some("00000000000000000000000000000000000000000000000000000000000f4240".to_string()),
         };
 
-        assert!(decode_transfer_delta(&log, &owner()).is_none());
+        assert!(decode_transfer_delta(&log, &mock_owner()).is_none());
     }
 
     #[test]
@@ -121,6 +121,6 @@ mod tests {
             data: Some("00".to_string()),
         };
 
-        assert!(decode_transfer_delta(&log, &owner()).is_none());
+        assert!(decode_transfer_delta(&log, &mock_owner()).is_none());
     }
 }
