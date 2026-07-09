@@ -85,6 +85,10 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn estimate_energy_with_data(&self, contract_data: &TriggerSmartContractData) -> Result<u64, Box<dyn Error + Send + Sync>> {
+        Ok(self.trigger_smart_contract_call(contract_data).await?.get_energy()?)
+    }
+
+    pub(crate) async fn trigger_smart_contract_call(&self, contract_data: &TriggerSmartContractData) -> Result<TriggerConstantContractResponse, Box<dyn Error + Send + Sync>> {
         let request_payload = serde_json::json!({
             "owner_address": contract_data.owner_address,
             "contract_address": contract_data.contract_address,
@@ -94,8 +98,7 @@ impl<C: Client> TronClient<C> {
             "visible": true,
         });
 
-        let response = self.trigger_constant_contract_request(&request_payload).await?;
-        Ok(response.get_energy()?)
+        self.trigger_constant_contract_request(&request_payload).await
     }
 }
 

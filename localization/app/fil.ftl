@@ -92,6 +92,12 @@ wallet_import_address_warning = Maaari mong tingnan ang mga balanse at transaksy
 wallet_deposit = Deposito
 wallet_withdraw = Mag-withdraw
 wallet_available_balance = Available: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Magbayad gamit ang card o bangko
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Mula sa iyong mga asset sa wallet
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Maglipat mula sa ibang wallet
 wallet_portfolio_title = Portfolio
 wallet_import_already_imported_message = Na-import na ang wallet na ito.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = Kahina-hinala
 asset_verification_warning_title = Alamin Kung Ano ang Iyong Idinaragdag
 asset_verification_warning_message = Kahit sino ay maaaring gumawa ng isa - kabilang ang mga peke o nakakahamak na token.
 asset_buy_asset = Bumili ng %@
+asset_get_asset = Kumuha ng %@
 asset_add_to_wallet = Idagdag sa wallet
 asset_hide_from_wallet = Itago sa wallet
 asset_resources = Mga mapagkukunan

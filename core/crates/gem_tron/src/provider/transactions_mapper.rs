@@ -111,11 +111,9 @@ pub fn map_transaction(chain: Chain, transaction: TronTransaction, receipt: Tran
                 return None;
             }
 
-            let from_string = format!("41{}", topics[1].chars().skip(24).collect::<String>());
-            let to_string = format!("41{}", topics[2].chars().skip(24).collect::<String>());
             let token_id = contract_value.contract_address?;
-            let from = TronAddress::from_hex(from_string.as_str())?.encode();
-            let to = TronAddress::from_hex(to_string.as_str())?.encode();
+            let from = TronAddress::from_topic(&topics[1])?.encode();
+            let to = TronAddress::from_topic(&topics[2])?.encode();
             let value = BigUint::from_bytes_be(&decode_hex(log.data.as_deref()?).ok()?);
             let asset_id = AssetId { chain, token_id: Some(token_id) };
 
@@ -297,6 +295,7 @@ mod tests {
                 result: Some("SUCCESS".to_string()),
             },
             log: Some(vec![crate::models::TronLog {
+                address: None,
                 topics: Some(vec![
                     "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".to_string(),
                     "0000000000000000000000002e1d447fa4169390cf5f5b3d12d380decfbfe20f".to_string(),

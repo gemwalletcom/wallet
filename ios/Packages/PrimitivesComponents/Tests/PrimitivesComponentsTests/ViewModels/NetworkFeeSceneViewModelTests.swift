@@ -22,6 +22,37 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
+    func showFeeDetailsForLoadedSingleRate() {
+        let model = NetworkFeeSceneViewModel.mock(chain: .ethereum)
+
+        model.update(rates: [.defaultRate()], feeAssetPrice: nil)
+        model.update(feeAmount: BigInt(1_000_000_000_000_000))
+
+        #expect(model.showFeeRates == false)
+        #expect(model.showFeeDetails)
+    }
+
+    @Test
+    func showFeeDetailsForMultipleRates() {
+        let model = NetworkFeeSceneViewModel.mock(chain: .ethereum)
+
+        model.update(rates: [.defaultRate(), .defaultRate()], feeAssetPrice: nil)
+
+        #expect(model.showFeeRates)
+        #expect(model.showFeeDetails)
+    }
+
+    @Test
+    func hideFeeDetailsWithoutLoadedSingleRate() {
+        let model = NetworkFeeSceneViewModel.mock(chain: .ethereum)
+
+        model.update(rates: [.defaultRate()], feeAssetPrice: nil)
+
+        #expect(model.showFeeRates == false)
+        #expect(model.showFeeDetails == false)
+    }
+
+    @Test
     func valueMatchesSelectedFeeRateEthereumValueText() {
         let model = NetworkFeeSceneViewModel.mock(chain: .ethereum)
 

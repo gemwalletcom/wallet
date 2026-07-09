@@ -92,6 +92,12 @@ wallet_import_address_warning = يمكنك عرض الأرصدة والمعام�
 wallet_deposit = إيداع
 wallet_withdraw = ينسحب
 wallet_available_balance = متاح: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = ادفع بالبطاقة أو البنك
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = من أصول محفظتك
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = حوّل من محفظة أخرى
 wallet_portfolio_title = المحفظة الاستثمارية
 wallet_import_already_imported_message = تم استيراد هذه المحفظة بالفعل.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = مثير للشك
 asset_verification_warning_title = تعرف على ما تضيفه
 asset_verification_warning_message = يمكن لأي شخص إنشاء واحدة - بما في ذلك الرموز المميزة أو الخبيثة.
 asset_buy_asset = شراء %@
+asset_get_asset = احصل على %@
 asset_add_to_wallet = أضف إلى المحفظة
 asset_hide_from_wallet = إخفاء من المحفظة
 asset_resources = موارد

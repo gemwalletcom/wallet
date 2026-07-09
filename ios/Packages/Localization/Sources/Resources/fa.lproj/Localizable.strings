@@ -81,6 +81,9 @@
 "wallet.deposit" = "واریز";
 "wallet.withdraw" = "برداشت";
 "wallet.available_balance" = "موجود: %@";
+"wallet.pay_with_card_or_bank" = "پرداخت با کارت یا بانک";
+"wallet.from_your_wallet_assets" = "از دارایی‌های کیف پول شما";
+"wallet.transfer_from_another_wallet" = "انتقال از کیف پول دیگر";
 "wallet.portfolio.title" = "سبد دارایی";
 "wallet.import.already_imported_message" = "این کیف پول قبلاً وارد شده است.";
 "wallets.title" = "کیف پول ها";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "بدانید چه چیزی اضافه می کنید";
 "asset.verification.warning_message" = "هر کسی می تواند یکی را ایجاد کند - از جمله توکن های جعلی یا مخرب.";
 "asset.buy_asset" = "خرید %@";
+"asset.get_asset" = "دریافت %@";
 "asset.add_to_wallet" = "اضافه کردن به کیف پول";
 "asset.hide_from_wallet" = "پنهان شدن از کیف پول";
 "asset.resources" = "منابع";

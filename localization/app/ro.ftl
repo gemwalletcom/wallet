@@ -92,6 +92,12 @@ wallet_import_address_warning = Puteți vizualiza soldurile și tranzacțiile pe
 wallet_deposit = Depozit
 wallet_withdraw = Retrage
 wallet_available_balance = Disponibil: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Plătește cu cardul sau banca
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Din activele portofelului tău
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Transferă din alt portofel
 wallet_portfolio_title = Portofoliu
 wallet_import_already_imported_message = Acest portofel a fost deja importat.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = Suspect
 asset_verification_warning_title = Aflați ce adăugați
 asset_verification_warning_message = Oricine poate crea unul - inclusiv jetoane false sau rău intenționate.
 asset_buy_asset = Cumpără %@
+asset_get_asset = Obține %@
 asset_add_to_wallet = Adaugă în portofel
 asset_hide_from_wallet = Ascunde din portofel
 asset_resources = Resurse

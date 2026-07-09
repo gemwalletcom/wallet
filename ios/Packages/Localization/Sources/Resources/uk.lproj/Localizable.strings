@@ -81,6 +81,9 @@
 "wallet.deposit" = "Депозит";
 "wallet.withdraw" = "Зняти";
 "wallet.available_balance" = "Доступно: %@";
+"wallet.pay_with_card_or_bank" = "Оплатіть карткою або через банк";
+"wallet.from_your_wallet_assets" = "З активів вашого гаманця";
+"wallet.transfer_from_another_wallet" = "Переказати з іншого гаманця";
 "wallet.portfolio.title" = "Портфоліо";
 "wallet.import.already_imported_message" = "Цей гаманець вже імпортовано.";
 "wallets.title" = "Гаманці";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "Знайте, що ви додаєте";
 "asset.verification.warning_message" = "Будь-хто може створити його, включно з підробленими чи шкідливими маркерами.";
 "asset.buy_asset" = "Купити %@";
+"asset.get_asset" = "Отримати %@";
 "asset.add_to_wallet" = "Додати до гаманця";
 "asset.hide_from_wallet" = "Приховати від гаманця";
 "asset.resources" = "Ресурси";

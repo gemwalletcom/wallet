@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.ext.updateUrl
+import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
@@ -32,16 +33,16 @@ import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
-import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.theme.Spacer16
+import com.wallet.core.primitives.AssetId
 
 @Composable
 fun WalletApp(
     pendingRoutes: List<NavKey> = emptyList(),
     onIntentConsumed: () -> Unit = {},
     onContentReady: () -> Unit = {},
-    walletConnectOverlay: @Composable (AssetIdAction) -> Unit = {},
+    walletConnectOverlay: @Composable ((GetNetworkFeeAssetAction, AssetId) -> Unit) -> Unit = { _ -> },
     viewModel: AppViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -52,7 +53,6 @@ fun WalletApp(
     val start = startDestination ?: return
     val currentTab = rememberSaveable { mutableStateOf(assetsRoute) }
     val navigator = rememberWalletNavigationState(startDestination = start, currentTab = currentTab)
-    val onBuy = remember(navigator) { AssetIdAction { navigator.openBuy(it) } }
     var confirmPendingNavigation by remember(pendingRoutes) { mutableStateOf(false) }
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute
@@ -100,7 +100,7 @@ fun WalletApp(
         }
     }
 
-    walletConnectOverlay(onBuy)
+    walletConnectOverlay(navigator::openGetNetworkFeeAsset)
     state.update?.let { update ->
         ShowUpdateDialog(
             version = update.version,

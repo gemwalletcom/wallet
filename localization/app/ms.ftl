@@ -92,6 +92,12 @@ wallet_import_address_warning = Anda boleh melihat baki dan urus niaga untuk ala
 wallet_deposit = Deposit
 wallet_withdraw = Tarik balik
 wallet_available_balance = Tersedia: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Bayar dengan kad atau bank
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Daripada aset dompet anda
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Pindahkan daripada dompet lain
 wallet_portfolio_title = Portfolio
 wallet_import_already_imported_message = Dompet ini telah pun diimport.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = Mencurigakan
 asset_verification_warning_title = Ketahui Perkara yang Anda Tambah
 asset_verification_warning_message = Sesiapa sahaja boleh mencipta satu - termasuk token palsu atau berniat jahat.
 asset_buy_asset = Beli %@
+asset_get_asset = Dapatkan %@
 asset_add_to_wallet = Tambah pada dompet
 asset_hide_from_wallet = Sembunyi dari dompet
 asset_resources = Sumber

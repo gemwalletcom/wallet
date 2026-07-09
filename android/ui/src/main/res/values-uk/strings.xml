@@ -86,6 +86,9 @@
   <string name="wallet_deposit">Депозит</string>
   <string name="wallet_withdraw">Зняти</string>
   <string name="wallet_available_balance">Доступно: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Оплатіть карткою або через банк</string>
+  <string name="wallet_from_your_wallet_assets">З активів вашого гаманця</string>
+  <string name="wallet_transfer_from_another_wallet">Переказати з іншого гаманця</string>
   <string name="wallet_portfolio_title">Портфоліо</string>
   <string name="wallet_import_already_imported_message">Цей гаманець вже імпортовано.</string>
   <string name="wallets_title">Гаманці</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">Знайте, що ви додаєте</string>
   <string name="asset_verification_warning_message">Будь-хто може створити його, включно з підробленими чи шкідливими маркерами.</string>
   <string name="asset_buy_asset">Купити %1$s</string>
+  <string name="asset_get_asset">Отримати %1$s</string>
   <string name="asset_add_to_wallet">Додати до гаманця</string>
   <string name="asset_hide_from_wallet">Приховати від гаманця</string>
   <string name="asset_resources">Ресурси</string>

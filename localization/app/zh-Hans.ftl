@@ -92,6 +92,12 @@ wallet_import_address_warning = 您可以查看此地址的余额和交易，但
 wallet_deposit = 充值
 wallet_withdraw = 提现
 wallet_available_balance = 可用： %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = 使用银行卡或银行付款
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = 来自你的钱包资产
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = 从另一个钱包转入
 wallet_portfolio_title = 投资组合
 wallet_import_already_imported_message = 此钱包已导入。
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = 可疑的
 asset_verification_warning_title = 了解您正在添加的内容
 asset_verification_warning_message = 任何人都可以创建，包括假冒或恶意代币。
 asset_buy_asset = 购买%@
+asset_get_asset = 获取 %@
 asset_add_to_wallet = 添加到钱包
 asset_hide_from_wallet = 从钱包隐藏
 asset_resources = 资源

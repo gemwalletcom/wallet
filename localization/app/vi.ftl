@@ -92,6 +92,12 @@ wallet_import_address_warning = Bạn có thể xem số dư và giao dịch c�
 wallet_deposit = Nạp tiền
 wallet_withdraw = Rút
 wallet_available_balance = Có sẵn: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Thanh toán bằng thẻ hoặc ngân hàng
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Từ tài sản trong ví của bạn
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Chuyển từ ví khác
 wallet_portfolio_title = Danh mục đầu tư
 wallet_import_already_imported_message = Ví này đã được nhập khẩu.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = Khả nghi
 asset_verification_warning_title = Biết những gì bạn đang thêm
 asset_verification_warning_message = Bất cứ ai cũng có thể tạo một cái - bao gồm cả mã thông báo giả mạo hoặc độc hại.
 asset_buy_asset = Mua %@
+asset_get_asset = Nhận %@
 asset_add_to_wallet = Thêm vào ví
 asset_hide_from_wallet = Ẩn khỏi ví
 asset_resources = Tài nguyên

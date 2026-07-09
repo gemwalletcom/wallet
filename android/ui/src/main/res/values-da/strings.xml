@@ -86,6 +86,9 @@
   <string name="wallet_deposit">Indbetal</string>
   <string name="wallet_withdraw">Hæv</string>
   <string name="wallet_available_balance">Tilgængelig: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Betal med kort eller bank</string>
+  <string name="wallet_from_your_wallet_assets">Fra dine wallet-aktiver</string>
+  <string name="wallet_transfer_from_another_wallet">Overfør fra en anden wallet</string>
   <string name="wallet_portfolio_title">Portefølje</string>
   <string name="wallet_import_already_imported_message">Denne tegnebog er allerede blevet importeret.</string>
   <string name="wallets_title">Tegnebøger</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">Ved, hvad du tilføjer</string>
   <string name="asset_verification_warning_message">Alle kan oprette en - inklusive falske eller ondsindede tokens.</string>
   <string name="asset_buy_asset">Køb %1$s</string>
+  <string name="asset_get_asset">Få %1$s</string>
   <string name="asset_add_to_wallet">Tilføj til tegnebog</string>
   <string name="asset_hide_from_wallet">Skjul fra tegnebogen</string>
   <string name="asset_resources">Ressourcer</string>

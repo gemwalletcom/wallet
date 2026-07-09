@@ -92,6 +92,12 @@ wallet_import_address_warning = Unaweza kuangalia salio na miamala ya anwani hii
 wallet_deposit = Amana
 wallet_withdraw = Ondoa
 wallet_available_balance = Inapatikana: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = Lipa kwa kadi au benki
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = Kutoka kwenye mali za pochi yako
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = Hamisha kutoka pochi nyingine
 wallet_portfolio_title = Kwingineko
 wallet_import_already_imported_message = Pochi hii tayari imeingizwa.
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = Inatiliwa shaka
 asset_verification_warning_title = Jua Unachoongeza
 asset_verification_warning_message = Mtu yeyote anaweza kuunda moja - ikiwa ni pamoja na ishara bandia au hasidi.
 asset_buy_asset = Nunua %@
+asset_get_asset = Pata %@
 asset_add_to_wallet = Ongeza kwenye mkoba
 asset_hide_from_wallet = Ficha kutoka kwa mkoba
 asset_resources = Rasilimali

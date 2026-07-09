@@ -1,0 +1,8 @@
+{
+  "result": {
+    "result": true,
+    "message": "REVERT opcode executed"
+  },
+  "constant_result": [""],
+  "energy_used": 8503
+}

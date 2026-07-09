@@ -22,6 +22,8 @@ fun DropDownContextItem(
     onDismiss: () -> Unit,
     content: @Composable (modifier: Modifier) -> Unit,
     menuItems: @Composable ColumnScope.() -> Unit,
+    menuAlignment: Alignment = Alignment.TopEnd,
+    menuOffset: DpOffset = DpOffset(x = -paddingDefault, y = 0.dp),
     onLongClick: () -> Unit,
     onClick: () -> Unit,
 ) {
@@ -38,9 +40,9 @@ fun DropDownContextItem(
                 )
         )
         DropdownMenu(
-            modifier = Modifier.align(Alignment.TopEnd),
+            modifier = Modifier.align(menuAlignment),
             expanded = isExpanded,
-            offset = DpOffset(x = -paddingDefault, y = 0.dp),
+            offset = menuOffset,
             containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = onDismiss,
             content = menuItems,

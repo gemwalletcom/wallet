@@ -81,6 +81,9 @@
 "wallet.deposit" = "Nạp tiền";
 "wallet.withdraw" = "Rút";
 "wallet.available_balance" = "Có sẵn: %@";
+"wallet.pay_with_card_or_bank" = "Thanh toán bằng thẻ hoặc ngân hàng";
+"wallet.from_your_wallet_assets" = "Từ tài sản trong ví của bạn";
+"wallet.transfer_from_another_wallet" = "Chuyển từ ví khác";
 "wallet.portfolio.title" = "Danh mục đầu tư";
 "wallet.import.already_imported_message" = "Ví này đã được nhập khẩu.";
 "wallets.title" = "Ví";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "Biết những gì bạn đang thêm";
 "asset.verification.warning_message" = "Bất cứ ai cũng có thể tạo một cái - bao gồm cả mã thông báo giả mạo hoặc độc hại.";
 "asset.buy_asset" = "Mua %@";
+"asset.get_asset" = "Nhận %@";
 "asset.add_to_wallet" = "Thêm vào ví";
 "asset.hide_from_wallet" = "Ẩn khỏi ví";
 "asset.resources" = "Tài nguyên";

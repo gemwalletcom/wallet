@@ -86,6 +86,9 @@
   <string name="wallet_deposit">Внести</string>
   <string name="wallet_withdraw">Вывести</string>
   <string name="wallet_available_balance">Доступно: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Оплатите картой или через банк</string>
+  <string name="wallet_from_your_wallet_assets">Из активов вашего кошелька</string>
+  <string name="wallet_transfer_from_another_wallet">Переведите из другого кошелька</string>
   <string name="wallet_portfolio_title">Портфель</string>
   <string name="wallet_import_already_imported_message">Этот кошелек уже импортирован.</string>
   <string name="wallets_title">Кошельки</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">Знайте, что вы добавляете</string>
   <string name="asset_verification_warning_message">Любой может создать его, включая поддельные или вредоносные токены.</string>
   <string name="asset_buy_asset">Купить %1$s</string>
+  <string name="asset_get_asset">Получить %1$s</string>
   <string name="asset_add_to_wallet">Добавить в кошелек</string>
   <string name="asset_hide_from_wallet">Скрыть из кошелька</string>
   <string name="asset_resources">Ресурсы</string>

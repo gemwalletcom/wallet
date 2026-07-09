@@ -3,16 +3,34 @@ name = "support"
 edition = { workspace = true }
 version = { workspace = true }
 
+[features]
+default = ["backend"]
+backend = [
+    "dep:cacher",
+    "dep:chrono",
+    "dep:localizer",
+    "dep:reqwest",
+    "dep:serde",
+    "dep:serde_json",
+    "dep:storage",
+    "dep:streamer",
+]
+
 [dependencies]
-chrono = { workspace = true }
-reqwest = { workspace = true, features = ["multipart"] }
-serde = { workspace = true }
-serde_json = { workspace = true }
-cacher = { path = "../cacher" }
-localizer = { path = "../localizer" }
+chrono = { workspace = true, optional = true }
+reqwest = { workspace = true, features = ["multipart"], optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+url = { workspace = true }
+cacher = { path = "../cacher", optional = true }
+localizer = { path = "../localizer", optional = true }
 primitives = { path = "../primitives" }
-storage = { path = "../storage" }
-streamer = { path = "../streamer" }
+storage = { path = "../storage", optional = true }
+streamer = { path = "../streamer", optional = true }
 
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }
+
+[[test]]
+name = "model_tests"
+required-features = ["backend"]

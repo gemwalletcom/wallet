@@ -24,6 +24,7 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var transactionPreload: TransactionLoadMetadata = .none
     public var transactionState: TransactionChanges = .init(state: .pending, changes: [])
     public var nodeStatus: NodeStatus = .init(chainId: "1", latestBlockNumber: .zero, latency: .from(duration: 1000))
+    public var onLoad: (@Sendable (TransactionInput) async -> Void)?
 
     public init() {}
 }
@@ -97,8 +98,9 @@ public extension ChainServiceMock {
         tokenData[tokenId] != nil
     }
 
-    func load(input _: TransactionInput) async throws -> TransactionData {
-        transactionData
+    func load(input: TransactionInput) async throws -> TransactionData {
+        await onLoad?(input)
+        return transactionData
     }
 
     func preload(input _: TransactionPreloadInput) async throws -> TransactionLoadMetadata {

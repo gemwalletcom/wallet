@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -14,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,26 +34,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.space12
+import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageImage
 import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportMessageStatus
 import java.text.DateFormat
 import java.util.Date
+import uniffi.gemstone.SupportMessageLink
+import uniffi.gemstone.parseSupportMessageDisplayContent
 
 private val messageBubbleCornerRadius = 18.dp
 private val messageBubbleMaxWidth = 300.dp
@@ -69,6 +82,7 @@ internal fun SupportMessageBubble(
     val bubbleColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
     val textColor = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface
     val metaColor = if (isUser) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondary
+    val linkColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
     val time = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(message.createdAt))
 
     Column(
@@ -87,16 +101,13 @@ internal fun SupportMessageBubble(
         if (message.content.isNotBlank()) {
             val context = LocalContext.current
             val clipboard = LocalClipboard.current.nativeClipboard
+            val uriHandler = LocalUriHandler.current
             var menuExpanded by remember { mutableStateOf(false) }
-            val markdown = parseMarkdownToAnnotatedString(
-                message.content,
-                linkColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-            )
-            val timeSpacerStyle = MaterialTheme.typography.labelSmall.toSpanStyle().copy(color = Color.Transparent)
-            val text = buildAnnotatedString {
-                append(markdown)
-                withStyle(timeSpacerStyle) { append("  $time") }
+            val displayContent = remember(message.content) {
+                parseSupportMessageDisplayContent(message.content)
             }
+            val hasText = displayContent.text.isNotBlank()
+            val hasLinks = displayContent.links.isNotEmpty()
             DropDownContextItem(
                 isExpanded = menuExpanded,
                 onDismiss = { menuExpanded = false },
@@ -112,30 +123,168 @@ internal fun SupportMessageBubble(
                         },
                     )
                 },
+                menuAlignment = if (isUser) Alignment.TopEnd else Alignment.TopStart,
+                menuOffset = DpOffset(x = if (isUser) -paddingDefault else paddingDefault, y = 0.dp),
                 content = { contentModifier ->
                     Surface(
                         color = bubbleColor,
                         shape = RoundedCornerShape(messageBubbleCornerRadius),
                         modifier = contentModifier,
                     ) {
-                        Box(modifier = Modifier.padding(horizontal = space12, vertical = paddingSmall)) {
-                            Text(
-                                text = text,
-                                color = textColor,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            MessageMeta(
-                                message = message,
-                                time = time,
-                                color = metaColor,
-                                onRetry = onRetry,
-                                modifier = Modifier.align(Alignment.BottomEnd),
-                            )
+                        Column {
+                            if (hasText) {
+                                MessageText(
+                                    text = displayContent.text,
+                                    textColor = textColor,
+                                    linkColor = linkColor,
+                                    metaColor = metaColor,
+                                    message = message,
+                                    time = time,
+                                    onRetry = onRetry,
+                                )
+                            }
+                            if (hasLinks) {
+                                SupportMessageLinks(
+                                    links = displayContent.links,
+                                    linkColor = linkColor,
+                                    metaColor = metaColor,
+                                    showTopDivider = hasText,
+                                    onClick = { uriHandler.open(context, it) },
+                                )
+                                if (!hasText) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = space12)
+                                            .padding(bottom = paddingSmall),
+                                        contentAlignment = Alignment.CenterEnd,
+                                    ) {
+                                        MessageMeta(
+                                            message = message,
+                                            time = time,
+                                            color = metaColor,
+                                            onRetry = onRetry,
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 },
             )
         }
+    }
+}
+
+@Composable
+private fun MessageText(
+    text: String,
+    textColor: Color,
+    linkColor: Color,
+    metaColor: Color,
+    message: SupportMessage,
+    time: String,
+    onRetry: (SupportMessage) -> Unit,
+) {
+    val markdown = parseMarkdownToAnnotatedString(text, linkColor = linkColor)
+    val textWithTime = buildAnnotatedString {
+        append(markdown)
+        withStyle(MaterialTheme.typography.labelSmall.toSpanStyle().copy(color = Color.Transparent)) {
+            append("    $time")
+        }
+    }
+    Box(
+        modifier = Modifier.padding(horizontal = space12, vertical = paddingSmall),
+    ) {
+        Text(
+            text = textWithTime,
+            color = textColor,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        MessageMeta(
+            message = message,
+            time = time,
+            color = metaColor,
+            onRetry = onRetry,
+            modifier = Modifier.align(Alignment.BottomEnd),
+        )
+    }
+}
+
+@Composable
+private fun SupportMessageLinks(
+    links: List<SupportMessageLink>,
+    linkColor: Color,
+    metaColor: Color,
+    showTopDivider: Boolean,
+    onClick: (String) -> Unit,
+) {
+    Column {
+        val dividerColor = metaColor.copy(alpha = 0.3f)
+        if (showTopDivider) {
+            HorizontalDivider(color = dividerColor)
+        }
+        links.forEachIndexed { index, link ->
+            if (index > 0) {
+                HorizontalDivider(color = dividerColor, modifier = Modifier.padding(start = space12))
+            }
+            SupportMessageLinkRow(
+                link = link,
+                linkColor = linkColor,
+                metaColor = metaColor,
+                onClick = onClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SupportMessageLinkRow(
+    link: SupportMessageLink,
+    linkColor: Color,
+    metaColor: Color,
+    onClick: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick(link.url) }
+            .padding(horizontal = space12, vertical = paddingSmall),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(space8),
+    ) {
+        Box(
+            modifier = Modifier.size(compactIconSize),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = AppIcons.Article,
+                contentDescription = null,
+                tint = linkColor,
+                modifier = Modifier.size(tinyIconSize),
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = link.title,
+                color = linkColor,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            link.subtitle?.let { subtitle ->
+                Text(
+                    text = subtitle,
+                    color = metaColor,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                )
+            }
+        }
+        ChevronIcon(
+            tint = metaColor,
+            modifier = Modifier.align(Alignment.CenterVertically),
+        )
     }
 }
 
