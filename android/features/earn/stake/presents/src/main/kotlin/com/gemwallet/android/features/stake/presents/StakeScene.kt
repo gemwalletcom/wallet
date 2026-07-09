@@ -2,6 +2,8 @@
 
 package com.gemwallet.android.features.stake.presents
 
+import android.icu.util.Measure
+import android.icu.util.MeasureUnit
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -24,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.lockTime
+import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.asset
@@ -166,7 +169,7 @@ private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
             )
             is StakeInfoRow.LockTime -> PropertyItem(
                 title = stringResource(id = R.string.stake_lock_time),
-                data = "${row.days} days",
+                data = formatDuration(Measure(row.days, MeasureUnit.DAY)),
                 info = InfoSheetEntity.StakeLockTimeInfo(icon = row.iconUrl),
                 listPosition = position,
             )
