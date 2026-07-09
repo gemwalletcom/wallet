@@ -1,5 +1,7 @@
 "common.cancel" = "Annuler";
 "common.done" = "Terminé";
+"common.maximum_value" = "La valeur maximale est %@";
+"common.minimum_value" = "La valeur minimale est %@";
 "common.secret_phrase" = "Phrase secrète";
 "common.copy" = "Copier";
 "common.share" = "Partager";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "Vous recevez";
 "swap.price_impact" = "Impact sur les prix";
 "swap.slippage" = "Glissement";
+"swap.slippage_warning" = "Glissement élevé. Votre échange pourrait s'exécuter à un prix pire que prévu.";
+"swap.slippage_auto" = "Automatique";
+"swap.slippage_auto_description" = "Définit automatiquement le meilleur glissement pour un échange réussi.";
 "swap.price_impact_warning.description" = "Vous perdrez %@ de vos %@ lors de cette transaction. Voulez-vous vraiment continuer ?";
 "swap.price_impact_warning.title" = "Impact élevé sur les prix";
 "swap.estimated_time.title" = "Temps estimé";

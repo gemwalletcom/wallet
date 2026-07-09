@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">रद्द करना</string>
   <string name="common_done">हो गया</string>
+  <string name="common_maximum_value">अधिकतम मान %1$s है</string>
+  <string name="common_minimum_value">न्यूनतम मान %1$s है</string>
   <string name="common_secret_phrase">गुप्त वाक्यांश</string>
   <string name="common_copy">प्रतिलिपि</string>
   <string name="common_share">साझा करें</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">आप प्राप्त करें</string>
   <string name="swap_price_impact">मूल्य प्रभाव</string>
   <string name="swap_slippage">स्लिपेज</string>
+  <string name="swap_slippage_warning">उच्च स्लिपेज। आपका स्वैप अपेक्षा से खराब मूल्य पर निष्पादित हो सकता है।</string>
+  <string name="swap_slippage_auto">ऑटो</string>
+  <string name="swap_slippage_auto_description">सफल स्वैप के लिए स्वचालित रूप से सर्वोत्तम स्लिपेज सेट करता है।</string>
   <string name="swap_price_impact_warning_description">इस व्यापार में आप अपना %1$s %2$s देंगे। क्या आप वाकई आगे बढ़ना चाहते हैं?</string>
   <string name="swap_price_impact_warning_title">उच्च मूल्य प्रभाव</string>
   <string name="swap_estimated_time_title">अनुमानित समय</string>

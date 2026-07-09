@@ -2,6 +2,8 @@
 
 common_cancel = 취소
 common_done = 완료
+common_maximum_value = 최대값은 %@입니다
+common_minimum_value = 최소값은 %@입니다
 common_secret_phrase = 비밀 문구
 common_copy = 복사
 common_share = 공유
@@ -351,6 +353,9 @@ swap_you_pay = 지불 금액
 swap_you_receive = 수령 금액
 swap_price_impact = 가격 영향
 swap_slippage = 슬리피지
+swap_slippage_warning = 슬리피지가 높습니다. 스왑이 예상보다 나쁜 가격에 체결될 수 있습니다.
+swap_slippage_auto = 자동
+swap_slippage_auto_description = 성공적인 스왑을 위해 최적의 슬리피지를 자동으로 설정합니다.
 swap_price_impact_warning_description = 이 거래에서 %@을(를) 잃게 되며, 이는 보유하신 %@의 일부입니다. 계속하시겠습니까?
 swap_price_impact_warning_title = 높은 가격의 영향
 swap_estimated_time_title = 예상 시간

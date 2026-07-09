@@ -26,6 +26,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     fromAssetPrice: AssetPriceValue(asset: fromAsset, price: metadata?.assetPrice),
                     toAssetPrice: AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id]),
                     selectedQuote: swapData.quote,
+                    slippage: .manual(bps: swapData.quote.slippageBps),
                 ),
             )
         case let .perpetual(_, perpetualType):

@@ -28,6 +28,7 @@ import java.util.Date
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
+import uniffi.gemstone.SwapperSlippageMode
 
 class TransactionDetailsAggregateImplTest {
 
@@ -144,12 +145,14 @@ class TransactionDetailsAggregateImplTest {
         id: SwapperProvider = SwapperProvider.NEAR_INTENTS,
         protocol: String = "near_intents",
         protocolId: String = SwapProvider.NearIntents.string,
+        slippageMode: SwapperSlippageMode = SwapperSlippageMode.EXACT,
     ) = SwapperProviderType(
         id = id,
         name = name,
         protocol = protocol,
         protocolId = protocolId,
         mode = mode,
+        slippageMode = slippageMode,
     )
 
     @Test
@@ -924,6 +927,7 @@ class TransactionDetailsAggregateImplTest {
             protocol = "uniswapv3",
             protocolId = "uniswapv3",
             mode = uniffi.gemstone.SwapperProviderMode.OnChain,
+            slippageMode = uniffi.gemstone.SwapperSlippageMode.EXACT,
         )
 
         val aggregate = createAggregate(

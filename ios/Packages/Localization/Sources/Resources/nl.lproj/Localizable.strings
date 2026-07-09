@@ -1,5 +1,7 @@
 "common.cancel" = "Annuleren";
 "common.done" = "Klaar";
+"common.maximum_value" = "Maximale waarde is %@";
+"common.minimum_value" = "Minimale waarde is %@";
 "common.secret_phrase" = "Geheime zin";
 "common.copy" = "Kopieer";
 "common.share" = "Deel";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "Jij ontvangt";
 "swap.price_impact" = "Prijsimpact";
 "swap.slippage" = "Slippage";
+"swap.slippage_warning" = "Hoge slippage. Je swap wordt mogelijk uitgevoerd tegen een slechtere prijs dan verwacht.";
+"swap.slippage_auto" = "Auto";
+"swap.slippage_auto_description" = "Stelt automatisch de beste slippage in voor een succesvolle swap.";
 "swap.price_impact_warning.description" = "U verliest %@ van uw %@ in deze transactie. Weet u zeker dat u wilt doorgaan?";
 "swap.price_impact_warning.title" = "Hoge prijsimpact";
 "swap.estimated_time.title" = "Geschatte tijd";

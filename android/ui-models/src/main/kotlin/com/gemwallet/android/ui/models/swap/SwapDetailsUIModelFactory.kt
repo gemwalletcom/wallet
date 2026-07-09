@@ -58,6 +58,7 @@ data class SwapDetailsUIModelInput(
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val slippageBps: UInt,
+    val selectedSlippage: UInt?,
     val etaInSeconds: UInt?,
     val isProviderSelectable: Boolean,
 )
@@ -106,6 +107,8 @@ object SwapDetailsUIModelFactory {
             minimumReceive = ValueFormatter(style = ValueFormatter.Style.Auto)
                 .string(minReceiveAtomic, input.receiveAsset.asset),
             slippageText = slippagePercent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+            slippageBps = input.slippageBps,
+            selectedSlippage = input.selectedSlippage,
             estimatedTime = input.etaInSeconds?.formatSwapEta(),
             isProviderSelectable = input.isProviderSelectable,
         )

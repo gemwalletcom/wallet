@@ -2,6 +2,8 @@
 
 common_cancel = Soke
 common_done = Anyi
+common_maximum_value = Matsakaicin ƙima shine %@
+common_minimum_value = Mafi ƙarancin ƙima shine %@
 common_secret_phrase = Kalmomin Sirri
 common_copy = Kwafi
 common_share = Raba
@@ -351,6 +353,9 @@ swap_you_pay = Kuna Biya
 swap_you_receive = Kuna karba
 swap_price_impact = Tasirin Farashin
 swap_slippage = Zamewa
+swap_slippage_warning = Zamewa mai yawa. Wataƙila a aiwatar da musayar ku a farashi mafi muni fiye da yadda ake tsammani.
+swap_slippage_auto = Auto
+swap_slippage_auto_description = Yana saita mafi kyawun zamewa ta atomatik don samun nasarar musaya.
 swap_price_impact_warning_description = Za ku rasa %@ na %@ naku a cikin wannan cinikin. Kun tabbata kuna son ci gaba?
 swap_price_impact_warning_title = Tasirin Farashin Mai Girma
 swap_estimated_time_title = Kiyasta Lokacin

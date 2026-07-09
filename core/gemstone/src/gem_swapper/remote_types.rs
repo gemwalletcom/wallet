@@ -62,6 +62,7 @@ pub struct SwapperProviderType {
     pub protocol: String,
     pub protocol_id: String,
     pub mode: SwapperProviderMode,
+    pub slippage_mode: SwapperSlippageMode,
 }
 
 #[uniffi::remote(Record)]

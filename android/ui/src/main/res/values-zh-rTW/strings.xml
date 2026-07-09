@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">取消</string>
   <string name="common_done">完畢</string>
+  <string name="common_maximum_value">最大值為 %1$s</string>
+  <string name="common_minimum_value">最小值為 %1$s</string>
   <string name="common_secret_phrase">秘密短語</string>
   <string name="common_copy">複製</string>
   <string name="common_share">共享</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">將收到</string>
   <string name="swap_price_impact">價格影響</string>
   <string name="swap_slippage">滑點</string>
+  <string name="swap_slippage_warning">滑點過高。您的兌換可能以比預期更差的價格成交。</string>
+  <string name="swap_slippage_auto">自動</string>
+  <string name="swap_slippage_auto_description">自動設定最佳滑點以確保兌換成功。</string>
   <string name="swap_price_impact_warning_description">您將在本次交易中損失 %1$s，這是您 %2$s 的一部分。您確定要繼續嗎？</string>
   <string name="swap_price_impact_warning_title">價格影響過大</string>
   <string name="swap_estimated_time_title">預估時間</string>

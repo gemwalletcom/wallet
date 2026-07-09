@@ -1,5 +1,7 @@
 "common.cancel" = "Hủy bỏ";
 "common.done" = "Xong";
+"common.maximum_value" = "Giá trị tối đa là %@";
+"common.minimum_value" = "Giá trị tối thiểu là %@";
 "common.secret_phrase" = "Cụm từ bí mật";
 "common.copy" = "Sao chép";
 "common.share" = "Chia sẻ";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "Bạn nhận được";
 "swap.price_impact" = "Tác động giá";
 "swap.slippage" = "Trượt giá";
+"swap.slippage_warning" = "Trượt giá cao. Giao dịch hoán đổi của bạn có thể được thực hiện ở mức giá tệ hơn dự kiến.";
+"swap.slippage_auto" = "Tự động";
+"swap.slippage_auto_description" = "Tự động đặt mức trượt giá tốt nhất để hoán đổi thành công.";
 "swap.price_impact_warning.description" = "Bạn sẽ mất %@ trong số %@ của mình trong giao dịch này. Bạn có chắc chắn muốn tiếp tục không?";
 "swap.price_impact_warning.title" = "Tác động giá cao";
 "swap.estimated_time.title" = "Thời gian dự kiến";

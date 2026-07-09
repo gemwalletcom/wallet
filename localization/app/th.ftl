@@ -2,6 +2,8 @@
 
 common_cancel = ยกเลิก
 common_done = เสร็จแล้ว
+common_maximum_value = ค่าสูงสุดคือ %@
+common_minimum_value = ค่าต่ำสุดคือ %@
 common_secret_phrase = วลีลับ
 common_copy = คัดลอก
 common_share = แบ่งปัน
@@ -351,6 +353,9 @@ swap_you_pay = คุณจ่าย
 swap_you_receive = คุณได้รับ
 swap_price_impact = ผลกระทบต่อราคา
 swap_slippage = สลิปเพจ
+swap_slippage_warning = สลิปเพจสูง การสว็อปของคุณอาจดำเนินการที่ราคาที่แย่กว่าที่คาดไว้
+swap_slippage_auto = อัตโนมัติ
+swap_slippage_auto_description = ตั้งค่าสลิปเพจที่ดีที่สุดโดยอัตโนมัติเพื่อการสว็อปที่สำเร็จ
 swap_price_impact_warning_description = คุณจะสูญเสีย %@ จาก %@ ของคุณในการซื้อขายครั้งนี้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?
 swap_price_impact_warning_title = ผลกระทบต่อราคาสูง
 swap_estimated_time_title = เวลาโดยประมาณ

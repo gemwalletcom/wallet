@@ -1,10 +1,14 @@
+use serde::{Deserialize, Serialize};
+use typeshare::typeshare;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Slippage {
     pub bps: u32,
     pub mode: SlippageMode,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+#[typeshare]
 pub enum SlippageMode {
     Auto,
     Exact,

@@ -363,6 +363,7 @@ class ConfirmViewModel @Inject constructor(
                 toValue = params.toAmount.toString(),
                 provider = provider,
                 slippageBps = params.slippageBps,
+                selectedSlippage = params.slippageBps,
                 etaInSeconds = params.etaInSeconds,
                 isProviderSelectable = false,
             )

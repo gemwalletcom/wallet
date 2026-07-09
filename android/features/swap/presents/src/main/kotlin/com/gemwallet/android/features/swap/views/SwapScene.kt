@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,6 +64,15 @@ internal fun SwapScene(
 
     Scene(
         title = stringResource(id = R.string.wallet_swap),
+        actions = {
+            IconButton(onClick = { onAction(SwapSceneAction.Slippage) }) {
+                Icon(
+                    imageVector = AppIcons.Tune,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = null,
+                )
+            }
+        },
         mainActionWidth = if (isPercentBarVisible) MainActionWidth.FillWidth else MainActionWidth.Constrained,
         mainActionPadding = PaddingValues(
             horizontal = sceneContentPadding(),

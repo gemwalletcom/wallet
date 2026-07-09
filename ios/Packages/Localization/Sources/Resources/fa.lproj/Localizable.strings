@@ -1,5 +1,7 @@
 "common.cancel" = "لغو کردن";
 "common.done" = "انجام شد";
+"common.maximum_value" = "حداکثر مقدار %@ است";
+"common.minimum_value" = "حداقل مقدار %@ است";
 "common.secret_phrase" = "عبارت مخفی";
 "common.copy" = "کپی کردن";
 "common.share" = "اشتراک گذاری";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "شما دریافت میکنید";
 "swap.price_impact" = "تاثیر قیمت";
 "swap.slippage" = "لغزش";
+"swap.slippage_warning" = "لغزش بالا. ممکن است سواپ شما با قیمتی بدتر از حد انتظار انجام شود.";
+"swap.slippage_auto" = "خودکار";
+"swap.slippage_auto_description" = "به‌طور خودکار بهترین لغزش را برای مبادله موفق تنظیم می‌کند.";
 "swap.price_impact_warning.description" = "شما %@ از %@ خود را در این معامله از دست خواهید داد. آیا مطمئن هستید که می خواهید ادامه دهید؟";
 "swap.price_impact_warning.title" = "تاثیر قیمت بالا";
 "swap.estimated_time.title" = "زمان تخمینی";

@@ -13,6 +13,7 @@ import struct Gemstone.SwapperOptions
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperQuoteAsset
 import struct Gemstone.SwapperQuoteRequest
+import struct Gemstone.SwapperSlippage
 import GemstonePrimitives
 import NativeProviderService
 import Primitives
@@ -47,7 +48,7 @@ public final class SwapService: Sendable, SwappableChainsProvider {
         )
     }
 
-    public func getQuotes(fromAsset: Asset, toAsset: Asset, value: String, walletAddress: String, destinationAddress: String, useMaxAmount: Bool) async throws -> [SwapperQuote] {
+    public func getQuotes(fromAsset: Asset, toAsset: Asset, value: String, walletAddress: String, destinationAddress: String, useMaxAmount: Bool, slippage: SwapSlippage) async throws -> [SwapperQuote] {
         let swapRequest = SwapperQuoteRequest(
             fromAsset: SwapperQuoteAsset(asset: fromAsset),
             toAsset: SwapperQuoteAsset(asset: toAsset),
@@ -55,7 +56,7 @@ public final class SwapService: Sendable, SwappableChainsProvider {
             destinationAddress: destinationAddress,
             value: value,
             options: SwapperOptions(
-                slippage: getDefaultSlippage(chain: fromAsset.id.chain.rawValue),
+                slippage: SwapperSlippage(slippage: slippage, defaultSlippage: getDefaultSlippage(chain: fromAsset.id.chain.rawValue)),
                 useMaxAmount: useMaxAmount,
             ),
         )

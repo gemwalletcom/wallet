@@ -11,6 +11,7 @@ import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
@@ -32,6 +33,7 @@ import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
 import com.gemwallet.android.ui.models.swap.SwapRateUIModel
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -98,6 +100,9 @@ class SwapViewModelTest {
     }
     private val enableAsset = mockk<EnableAsset>(relaxed = true)
     private val buildSwapConfirmParams = mockk<BuildSwapConfirmParams>(relaxed = true)
+    private val userConfig = mockk<UserConfig>(relaxed = true) {
+        every { swapSlippageBps() } returns flowOf(null)
+    }
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
 
     @Before
@@ -123,6 +128,7 @@ class SwapViewModelTest {
         assetsRepository = assetsRepository,
         enableAsset = enableAsset,
         buildSwapConfirmParams = buildSwapConfirmParams,
+        userConfig = userConfig,
         requestSwapQuotes = requestSwapQuotes,
         savedStateHandle = savedStateHandle,
     )
@@ -136,6 +142,17 @@ class SwapViewModelTest {
             RouteArgument.ToAssetId.key to to,
         )
     )
+
+    @Test
+    fun `setSlippage persists user preference`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        viewModel.setSlippage(200u)
+        advanceUntilIdle()
+
+        coVerify { userConfig.setSwapSlippageBps(200u) }
+    }
 
     @Test
     fun `onSelect updates pay asset from empty state`() = runTest(testDispatcher) {
@@ -464,6 +481,8 @@ class SwapViewModelTest {
             ),
             minimumReceive = "2.1 USDC",
             slippageText = "0.5%",
+            slippageBps = 50u,
+            selectedSlippage = 50u,
         )
 
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
@@ -572,6 +591,7 @@ class SwapViewModelTest {
                 protocol = "v3",
                 protocolId = "uniswap_v3",
                 mode = SwapperProviderMode.OnChain,
+                slippageMode = SwapperSlippageMode.EXACT,
             ),
             slippageBps = 50u,
             routes = listOf(

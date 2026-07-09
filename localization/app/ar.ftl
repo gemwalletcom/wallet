@@ -2,6 +2,8 @@
 
 common_cancel = يلغي
 common_done = تم
+common_maximum_value = القيمة القصوى هي %@
+common_minimum_value = القيمة الدنيا هي %@
 common_secret_phrase = العبارة السرية
 common_copy = نسخ
 common_share = مشاركة
@@ -351,6 +353,9 @@ swap_you_pay = انت تدفع
 swap_you_receive = انت تستقبل
 swap_price_impact = تأثير السعر
 swap_slippage = الانزلاق
+swap_slippage_warning = انزلاق مرتفع. قد يُنفَّذ التبادل بسعر أسوأ من المتوقع.
+swap_slippage_auto = تلقائي
+swap_slippage_auto_description = يحدد تلقائيًا أفضل انزلاق لإتمام المبادلة بنجاح.
 swap_price_impact_warning_description = ستخسر %@ من رصيدك %@ في هذه الصفقة. هل أنت متأكد من رغبتك في المتابعة؟
 swap_price_impact_warning_title = تأثير السعر المرتفع
 swap_estimated_time_title = الوقت المقدر

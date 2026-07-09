@@ -41,6 +41,7 @@ extension SwapDetailsViewModel {
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
             selectedQuote: selectedQuote,
+            slippage: .auto,
             preferences: .mock(),
             swapProviderSelectAction: nil,
         )

@@ -11,11 +11,14 @@ pub struct SquidRouteRequest {
     pub from_amount: String,
     pub from_address: String,
     pub to_address: String,
-    pub slippage_config: SlippageConfig,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slippage_config: Option<SlippageConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slippage: Option<f64>,
     pub quote_only: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct SlippageConfig {
     pub auto_mode: u32,

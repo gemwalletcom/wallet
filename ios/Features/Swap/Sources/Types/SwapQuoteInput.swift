@@ -9,6 +9,7 @@ public struct SwapQuoteInput: Hashable, Sendable {
     public let toAsset: Asset
     public let value: BigInt
     public let useMaxAmount: Bool
+    public let slippage: SwapSlippage
 }
 
 // MARK: - Identifiable
@@ -26,6 +27,7 @@ public extension SwapQuoteInput {
         fromAsset: AssetData?,
         toAsset: AssetData?,
         fromValue: String,
+        slippage: SwapSlippage,
         formatter: SwapValueFormatter,
     ) throws -> SwapQuoteInput {
         guard let fromAsset else {
@@ -46,6 +48,7 @@ public extension SwapQuoteInput {
             toAsset: toAsset,
             value: value,
             useMaxAmount: useMaxAmount,
+            slippage: slippage,
         )
     }
 }

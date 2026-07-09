@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Batalkan</string>
   <string name="common_done">Selesai</string>
+  <string name="common_maximum_value">Nilai maksimum adalah %1$s</string>
+  <string name="common_minimum_value">Nilai minimum adalah %1$s</string>
   <string name="common_secret_phrase">Frasa Rahasia</string>
   <string name="common_copy">Salin</string>
   <string name="common_share">Bagikan</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">Kamu Menerima</string>
   <string name="swap_price_impact">Dampak Harga</string>
   <string name="swap_slippage">Slippage</string>
+  <string name="swap_slippage_warning">Slippage tinggi. Swap Anda mungkin dieksekusi pada harga yang lebih buruk dari yang diharapkan.</string>
+  <string name="swap_slippage_auto">Otomatis</string>
+  <string name="swap_slippage_auto_description">Secara otomatis menetapkan slippage terbaik untuk swap yang berhasil.</string>
   <string name="swap_price_impact_warning_description">Anda akan kehilangan %1$s dari %2$s Anda dalam perdagangan ini. Apakah Anda yakin ingin melanjutkan?</string>
   <string name="swap_price_impact_warning_title">Dampak Harga Tinggi</string>
   <string name="swap_estimated_time_title">Perkiraan Waktu</string>

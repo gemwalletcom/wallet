@@ -2,6 +2,8 @@
 
 common_cancel = Ghairi
 common_done = Imekamilika
+common_maximum_value = Thamani ya juu ni %@
+common_minimum_value = Thamani ya chini ni %@
 common_secret_phrase = Kifungu cha Siri
 common_copy = Nakili
 common_share = Shiriki
@@ -351,6 +353,9 @@ swap_you_pay = Unalipa
 swap_you_receive = Unapokea
 swap_price_impact = Athari ya Bei
 swap_slippage = Kuteleza
+swap_slippage_warning = Kuteleza kwa juu. Ubadilishaji wako unaweza kutekelezwa kwa bei mbaya zaidi kuliko ilivyotarajiwa.
+swap_slippage_auto = Otomatiki
+swap_slippage_auto_description = Huweka kuteleza bora kiotomatiki kwa ubadilishaji uliofaulu.
 swap_price_impact_warning_description = Utapoteza %@ ya %@ yako katika biashara hii. Je, una uhakika unataka kuendelea?
 swap_price_impact_warning_title = Athari ya Bei ya Juu
 swap_estimated_time_title = Muda Unaokadiriwa

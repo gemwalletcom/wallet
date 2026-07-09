@@ -1,5 +1,7 @@
 "common.cancel" = "Soke";
 "common.done" = "Anyi";
+"common.maximum_value" = "Matsakaicin ƙima shine %@";
+"common.minimum_value" = "Mafi ƙarancin ƙima shine %@";
 "common.secret_phrase" = "Kalmomin Sirri";
 "common.copy" = "Kwafi";
 "common.share" = "Raba";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "Kuna karba";
 "swap.price_impact" = "Tasirin Farashin";
 "swap.slippage" = "Zamewa";
+"swap.slippage_warning" = "Zamewa mai yawa. Wataƙila a aiwatar da musayar ku a farashi mafi muni fiye da yadda ake tsammani.";
+"swap.slippage_auto" = "Auto";
+"swap.slippage_auto_description" = "Yana saita mafi kyawun zamewa ta atomatik don samun nasarar musaya.";
 "swap.price_impact_warning.description" = "Za ku rasa %@ na %@ naku a cikin wannan cinikin. Kun tabbata kuna son ci gaba?";
 "swap.price_impact_warning.title" = "Tasirin Farashin Mai Girma";
 "swap.estimated_time.title" = "Kiyasta Lokacin";

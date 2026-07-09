@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">לְבַטֵל</string>
   <string name="common_done">בוצע</string>
+  <string name="common_maximum_value">הערך המקסימלי הוא %1$s</string>
+  <string name="common_minimum_value">הערך המינימלי הוא %1$s</string>
   <string name="common_secret_phrase">ביטוי סודי</string>
   <string name="common_copy">העתק</string>
   <string name="common_share">שתף</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">אתה מקבל</string>
   <string name="swap_price_impact">השפעת המחיר</string>
   <string name="swap_slippage">החלקה</string>
+  <string name="swap_slippage_warning">החלקה גבוהה. ההמרה שלך עלולה להתבצע במחיר גרוע מהצפוי.</string>
+  <string name="swap_slippage_auto">אוטומטי</string>
+  <string name="swap_slippage_auto_description">מגדיר אוטומטית את ההחלקה הטובה ביותר להחלפה מוצלחת.</string>
   <string name="swap_price_impact_warning_description">אתה תפסיד %1$s מה- %2$s שלך במסחר הזה. האם אתה בטוח שאתה רוצה להמשיך?</string>
   <string name="swap_price_impact_warning_title">השפעת מחיר גבוהה</string>
   <string name="swap_estimated_time_title">זמן משוער</string>

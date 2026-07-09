@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Скасувати</string>
   <string name="common_done">Готово</string>
+  <string name="common_maximum_value">Максимальне значення %1$s</string>
+  <string name="common_minimum_value">Мінімальне значення %1$s</string>
   <string name="common_secret_phrase">Секретна фраза</string>
   <string name="common_copy">Скопіювати</string>
   <string name="common_share">Поділитися</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">Ви отримуєте</string>
   <string name="swap_price_impact">Вплив ціни</string>
   <string name="swap_slippage">Прослизання</string>
+  <string name="swap_slippage_warning">Високе прослизання. Обмін може відбутися за гіршою ціною, ніж очікувалося.</string>
+  <string name="swap_slippage_auto">Авто</string>
+  <string name="swap_slippage_auto_description">Автоматично встановлює найкраще прослизання для успішного обміну.</string>
   <string name="swap_price_impact_warning_description">Ви втратите %1$s із своїх %2$s у цій торгівлі. Ви впевнені, що бажаєте продовжити?</string>
   <string name="swap_price_impact_warning_title">Високий ціновий вплив</string>
   <string name="swap_estimated_time_title">Розрахунковий час</string>

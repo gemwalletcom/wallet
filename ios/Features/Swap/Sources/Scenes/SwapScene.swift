@@ -7,6 +7,7 @@ import SwiftUI
 
 public struct SwapScene: View {
     @FocusState private var focusedField: Bool
+    @State private var isPresentingSlippage = false
 
     @State private var model: SwapSceneViewModel
 
@@ -52,6 +53,18 @@ public struct SwapScene: View {
                 )
         }
         .navigationTitle(model.title)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("", systemImage: SystemImage.settings) {
+                    isPresentingSlippage = true
+                }
+            }
+        }
+        .sheet(isPresented: $isPresentingSlippage) {
+            SwapSlippageScene(model: model.swapSlippageViewModel)
+                .presentationDetents([.medium])
+                .presentationBackground(Colors.grayBackground)
+        }
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)
         .onChangeBindQuery(model.toAssetQuery, action: model.onChangeToAsset)
         .debouncedTask(id: model.fetchTrigger) {

@@ -9,6 +9,8 @@ import uniffi.gemstone.SwapperOptions
 import uniffi.gemstone.SwapperQuote
 import uniffi.gemstone.SwapperQuoteAsset
 import uniffi.gemstone.SwapperQuoteRequest
+import uniffi.gemstone.SwapperSlippage
+import uniffi.gemstone.SwapperSlippageMode
 import uniffi.gemstone.getDefaultSlippage
 import java.math.BigInteger
 
@@ -22,7 +24,10 @@ class GetSwapQuotesImpl(
         to: Asset,
         amount: String,
         useMaxAmount: Boolean,
+        slippageBps: UInt?,
     ): List<SwapperQuote> {
+        val slippage = slippageBps?.let { SwapperSlippage(bps = it, mode = SwapperSlippageMode.EXACT) }
+            ?: getDefaultSlippage(from.chain.string).copy(mode = SwapperSlippageMode.AUTO)
         val swapRequest = SwapperQuoteRequest(
             fromAsset = SwapperQuoteAsset(
                 id = from.id.toIdentifier(),
@@ -38,7 +43,7 @@ class GetSwapQuotesImpl(
             destinationAddress = destination,
             value = amount,
             options = SwapperOptions(
-                slippage = getDefaultSlippage(from.chain.string),
+                slippage = slippage,
                 useMaxAmount = useMaxAmount,
             )
         )

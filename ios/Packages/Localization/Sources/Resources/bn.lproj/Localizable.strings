@@ -1,5 +1,7 @@
 "common.cancel" = "বাতিল করুন";
 "common.done" = "সম্পন্ন";
+"common.maximum_value" = "সর্বোচ্চ মান %@";
+"common.minimum_value" = "সর্বনিম্ন মান %@";
 "common.secret_phrase" = "গোপন বাক্যাংশ";
 "common.copy" = "কপি";
 "common.share" = "শেয়ার করুন";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "আপনি পাবেন";
 "swap.price_impact" = "দামের প্রভাব";
 "swap.slippage" = "স্লিপেজ";
+"swap.slippage_warning" = "উচ্চ স্লিপেজ। আপনার সোয়াপ প্রত্যাশার চেয়ে খারাপ দামে সম্পন্ন হতে পারে।";
+"swap.slippage_auto" = "অটো";
+"swap.slippage_auto_description" = "সফল সোয়াপের জন্য স্বয়ংক্রিয়ভাবে সেরা স্লিপেজ নির্ধারণ করে।";
 "swap.price_impact_warning.description" = "এই ট্রেডে আপনি %@ হারাবেন, যা আপনার %@ এর একটি অংশ। আপনি কি নিশ্চিত যে এগিয়ে যেতে চান?";
 "swap.price_impact_warning.title" = "উচ্চ মূল্যের প্রভাব";
 "swap.estimated_time.title" = "আনুমানিক সময়";

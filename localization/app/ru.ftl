@@ -2,6 +2,8 @@
 
 common_cancel = Отмена
 common_done = Готово
+common_maximum_value = Максимальное значение %@
+common_minimum_value = Минимальное значение %@
 common_secret_phrase = Секретная фраза
 common_copy = Копировать
 common_share = Поделиться
@@ -351,6 +353,9 @@ swap_you_pay = Вы платите
 swap_you_receive = Вы получаете
 swap_price_impact = Влияние цены
 swap_slippage = Проскальзывание
+swap_slippage_warning = Высокое проскальзывание. Обмен может пройти по цене хуже ожидаемой.
+swap_slippage_auto = Авто
+swap_slippage_auto_description = Автоматически устанавливает оптимальное проскальзывание для успешного обмена.
 swap_price_impact_warning_description = Вы потеряете %@ из ваших %@ в этой сделке. Вы уверены, что хотите продолжить?
 swap_price_impact_warning_title = Высокое влияние на цену
 swap_estimated_time_title = Расчетное время

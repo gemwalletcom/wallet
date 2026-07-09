@@ -18,6 +18,7 @@ import com.gemwallet.android.application.swap.coordinators.create
 import com.gemwallet.android.application.swap.coordinators.getQuote
 import com.gemwallet.android.application.swap.coordinators.matches
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.domains.asset.formatFiat
@@ -67,6 +68,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.Config
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -78,6 +80,7 @@ class SwapViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val enableAsset: EnableAsset,
     private val buildSwapConfirmParams: BuildSwapConfirmParams,
+    private val userConfig: UserConfig,
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -95,6 +98,9 @@ class SwapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
 
     val selectedProvider = MutableStateFlow<SwapperProvider?>(null)
+    private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
+
+    val slippageWarningThresholdBps: UInt by lazy { Config().getSwapConfig().highSlippageWarningBps }
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
@@ -123,8 +129,8 @@ class SwapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val quoteRequestParams = combine(payValueFlow, payAsset, receiveAsset) { value, fromAsset, toAsset ->
-            SwapQuoteRequestParams.create(value, fromAsset, toAsset)
+    private val quoteRequestParams = combine(payValueFlow, payAsset, receiveAsset, selectedSlippageBps) { value, fromAsset, toAsset, slippageBps ->
+            SwapQuoteRequestParams.create(value, fromAsset, toAsset, slippageBps)
         }
         .distinctUntilChangedBy { it?.key }
         .onEach(::onQuoteRequestParamsChanged)
@@ -217,6 +223,7 @@ class SwapViewModel @Inject constructor(
                     provider = provider,
                     providers = providers,
                     slippageBps = quote.quote.data.slippageBps,
+                    selectedSlippage = selectedSlippageBps.value,
                     etaInSeconds = quote.quote.etaInSeconds,
                     isProviderSelectable = providers.size > 1,
                 )
@@ -234,6 +241,9 @@ class SwapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
 
     init {
+        viewModelScope.launch {
+            selectedSlippageBps.value = userConfig.swapSlippageBps().firstOrNull()
+        }
         matchedQuoteResults
             .onEach(::onQuoteResults)
             .launchIn(viewModelScope)
@@ -271,6 +281,17 @@ class SwapViewModel @Inject constructor(
     fun setProvider(provider: SwapperProvider) {
         clearTransferQuoteState()
         this.selectedProvider.update { provider }
+    }
+
+    fun setSlippage(slippageBps: UInt?) {
+        if (slippageBps == selectedSlippageBps.value) {
+            return
+        }
+        clearTransferQuoteState()
+        selectedSlippageBps.update { slippageBps }
+        viewModelScope.launch(Dispatchers.IO) {
+            userConfig.setSwapSlippageBps(slippageBps)
+        }
     }
 
     fun onSelectPercent(percent: Int) {

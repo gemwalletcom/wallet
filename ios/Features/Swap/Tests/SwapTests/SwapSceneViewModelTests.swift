@@ -7,6 +7,7 @@ import protocol Gemstone.GemSwapperProtocol
 import enum Gemstone.SwapperError
 import Keystore
 import KeystoreTestKit
+import Preferences
 import PreferencesTestKit
 import PriceServiceTestKit
 import Primitives
@@ -252,6 +253,18 @@ struct SwapSceneViewModelTests {
         #expect(model.fetchTrigger?.isImmediate == true)
     }
 
+    @Test
+    func slippagePersistsAcrossSessions() {
+        let preferences = Preferences.mock()
+        let model = SwapSceneViewModel.mock(preferences: preferences)
+        #expect(model.selectedSlippage == .auto)
+
+        model.onSelectSlippage(.manual(bps: 150))
+
+        #expect(preferences.swapSlippage == .manual(bps: 150))
+        #expect(SwapSceneViewModel.mock(preferences: preferences).selectedSlippage == .manual(bps: 150))
+    }
+
     // MARK: - Private methods
 
     private func model(
@@ -265,9 +278,9 @@ struct SwapSceneViewModelTests {
 }
 
 extension SwapSceneViewModel {
-    static func mock(swapper: GemSwapperProtocol = GemSwapperMock()) -> SwapSceneViewModel {
+    static func mock(swapper: GemSwapperProtocol = GemSwapperMock(), preferences: Preferences = .mock()) -> SwapSceneViewModel {
         let model = SwapSceneViewModel(
-            preferences: .mock(),
+            preferences: preferences,
             input: .init(
                 wallet: .mock(accounts: [.mock(chain: .ethereum)]),
                 pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),

@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Annuleren</string>
   <string name="common_done">Klaar</string>
+  <string name="common_maximum_value">Maximale waarde is %1$s</string>
+  <string name="common_minimum_value">Minimale waarde is %1$s</string>
   <string name="common_secret_phrase">Geheime zin</string>
   <string name="common_copy">Kopieer</string>
   <string name="common_share">Deel</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">Jij ontvangt</string>
   <string name="swap_price_impact">Prijsimpact</string>
   <string name="swap_slippage">Slippage</string>
+  <string name="swap_slippage_warning">Hoge slippage. Je swap wordt mogelijk uitgevoerd tegen een slechtere prijs dan verwacht.</string>
+  <string name="swap_slippage_auto">Auto</string>
+  <string name="swap_slippage_auto_description">Stelt automatisch de beste slippage in voor een succesvolle swap.</string>
   <string name="swap_price_impact_warning_description">U verliest %1$s van uw %2$s in deze transactie. Weet u zeker dat u wilt doorgaan?</string>
   <string name="swap_price_impact_warning_title">Hoge prijsimpact</string>
   <string name="swap_estimated_time_title">Geschatte tijd</string>

@@ -2,6 +2,8 @@
 
 common_cancel = Kanselahin
 common_done = Tapos na
+common_maximum_value = Ang maximum na halaga ay %@
+common_minimum_value = Ang minimum na halaga ay %@
 common_secret_phrase = Lihim na Parirala
 common_copy = Kopyahin
 common_share = Ibahagi
@@ -351,6 +353,9 @@ swap_you_pay = Babayaran Mo
 swap_you_receive = Matatanggap Mo
 swap_price_impact = Epekto sa Presyo
 swap_slippage = Pagkadulas
+swap_slippage_warning = Mataas na slippage. Maaaring maisagawa ang iyong swap sa mas masamang presyo kaysa inaasahan.
+swap_slippage_auto = Auto
+swap_slippage_auto_description = Awtomatikong itinatakda ang pinakamahusay na pagkadulas para sa matagumpay na swap.
 swap_price_impact_warning_description = Mawawalan ka ng %@ ng iyong %@ sa trade na ito. Sigurado ka bang gusto mong magpatuloy?
 swap_price_impact_warning_title = Mataas na Epekto sa Presyo
 swap_estimated_time_title = Tinatayang Oras

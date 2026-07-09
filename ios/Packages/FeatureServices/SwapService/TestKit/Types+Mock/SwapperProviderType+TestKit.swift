@@ -12,6 +12,7 @@ public extension SwapperProviderType {
             protocol: "v3",
             protocolId: "pancakeswap_v3",
             mode: .onChain,
+            slippageMode: .exact,
         )
     }
 }

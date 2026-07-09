@@ -1,5 +1,7 @@
 "common.cancel" = "Cancel";
 "common.done" = "Done";
+"common.maximum_value" = "Maximum value is %@";
+"common.minimum_value" = "Minimum value is %@";
 "common.secret_phrase" = "Secret Phrase";
 "common.copy" = "Copy";
 "common.share" = "Share";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "You Receive";
 "swap.price_impact" = "Price Impact";
 "swap.slippage" = "Slippage";
+"swap.slippage_warning" = "High slippage. Your swap may be executed at a worse price than expected.";
+"swap.slippage_auto" = "Auto";
+"swap.slippage_auto_description" = "Automatically set the best slippage for a successful swap.";
 "swap.price_impact_warning.description" = "You will lose %@ of your %@ in this trade. Are you sure you want to proceed?";
 "swap.price_impact_warning.title" = "High Price Impact";
 "swap.estimated_time.title" = "Estimated Time";

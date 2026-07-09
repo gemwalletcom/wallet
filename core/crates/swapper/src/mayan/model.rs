@@ -12,7 +12,7 @@ use std::{collections::BTreeSet, ops::Deref, str::FromStr};
 use gem_evm::ethereum_address_checksum;
 pub use gem_sui::tx_builder::transaction_json::TransactionArgument as SuiTransactionArgument;
 use primitives::SolanaInstruction;
-use primitives::swap::SwapStatus;
+use primitives::swap::{SlippageMode, SwapStatus};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -29,6 +29,8 @@ pub struct QuoteParams {
     pub to_chain: String,
     pub referrer: String,
     pub referrer_bps: u32,
+    pub slippage_bps: u32,
+    pub slippage_mode: SlippageMode,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

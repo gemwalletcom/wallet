@@ -24,5 +24,8 @@ pub const SUI_LOGGER_PACKAGE_ID: &str = "0x05680e9030c147b413a489f7891273acc221d
 pub const SUI_CCTP_DENY_LIST: &str = "0x403";
 pub const SDK_VERSION: &str = "14_1_0";
 
+// https://docs.mayan.finance/integration/quote-api
+pub const MAYAN_MAX_SLIPPAGE_BPS: u32 = 500;
+
 pub const MAYAN_DEPOSIT_CONTRACTS: [&str; 4] = [MAYAN_FORWARDER, MAYAN_MCTP, MAYAN_SWIFT, SUI_MCTP_PACKAGE_ID];
 pub const MAYAN_SEND_CONTRACTS: [&str; 1] = [MAYAN_FULFILL_HELPER];

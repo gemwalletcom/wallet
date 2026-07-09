@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Zrušit</string>
   <string name="common_done">Hotovo</string>
+  <string name="common_maximum_value">Maximální hodnota je %1$s</string>
+  <string name="common_minimum_value">Minimální hodnota je %1$s</string>
   <string name="common_secret_phrase">Tajná fráze</string>
   <string name="common_copy">Kopírovat</string>
   <string name="common_share">Sdílet</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">Přijímáte</string>
   <string name="swap_price_impact">Vliv ceny</string>
   <string name="swap_slippage">Skluz</string>
+  <string name="swap_slippage_warning">Vysoký skluz. Vaše směna může proběhnout za horší cenu, než se očekávalo.</string>
+  <string name="swap_slippage_auto">Auto</string>
+  <string name="swap_slippage_auto_description">Automaticky nastaví nejlepší skluz pro úspěšný swap.</string>
   <string name="swap_price_impact_warning_description">V tomto obchodu ztratíte %1$s z vašich %2$s. Jste si jisti, že chcete pokračovat?</string>
   <string name="swap_price_impact_warning_title">Vysoký cenový dopad</string>
   <string name="swap_estimated_time_title">Odhadovaný čas</string>

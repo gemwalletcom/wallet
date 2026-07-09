@@ -1,5 +1,7 @@
 "common.cancel" = "İptal";
 "common.done" = "Tamam";
+"common.maximum_value" = "Maksimum değer %@";
+"common.minimum_value" = "Minimum değer %@";
 "common.secret_phrase" = "Gizli İfade";
 "common.copy" = "Kopyala";
 "common.share" = "Paylaş";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "Alacağın";
 "swap.price_impact" = "Fiyat Etkisi";
 "swap.slippage" = "Kayma";
+"swap.slippage_warning" = "Yüksek kayma. Takasınız beklenenden daha kötü bir fiyattan gerçekleşebilir.";
+"swap.slippage_auto" = "Otomatik";
+"swap.slippage_auto_description" = "Başarılı bir takas için en iyi kaymayı otomatik olarak ayarlar.";
 "swap.price_impact_warning.description" = "Bu işlemde %@ kaybedeceksiniz; bu, %@ varlığınızın bir kısmıdır. Devam etmek istediğinizden emin misiniz?";
 "swap.price_impact_warning.title" = "Yüksek Fiyat Etkisi";
 "swap.estimated_time.title" = "Tahmini Süre";

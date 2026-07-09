@@ -74,6 +74,7 @@ class RequestSwapQuotesImpl(
             destination = receiveOwner.address,
             amount = amount.toString(),
             useMaxAmount = BigInteger(params.pay.balance.balance.available) == amount,
+            slippageBps = params.slippageBps,
         )
         currentCoroutineContext().ensureActive()
         SwapQuotesResult(quotes, params.key, params.pay, params.receive)

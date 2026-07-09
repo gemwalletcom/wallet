@@ -21,6 +21,7 @@ struct SwapQuoteInputTests {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: "1",
+            slippage: .auto,
             formatter: formatter,
         )
 
@@ -42,6 +43,7 @@ struct SwapQuoteInputTests {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: "0.5",
+            slippage: .auto,
             formatter: formatter,
         )
 
@@ -64,6 +66,7 @@ struct SwapQuoteInputTests {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: "1",
+            slippage: .auto,
             formatter: formatter,
         )
 

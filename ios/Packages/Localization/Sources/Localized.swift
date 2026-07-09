@@ -277,8 +277,16 @@ public enum Localized {
     public static let loading = Localized.tr("Localizable", "common.loading", fallback: "Loading")
     /// Manage
     public static let manage = Localized.tr("Localizable", "common.manage", fallback: "Manage")
+    /// Maximum value is %@
+    public static func maximumValue(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.maximum_value", String(describing: p1), fallback: "Maximum value is %@")
+    }
     /// Method
     public static let method = Localized.tr("Localizable", "common.method", fallback: "Method")
+    /// Minimum value is %@
+    public static func minimumValue(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.minimum_value", String(describing: p1), fallback: "Minimum value is %@")
+    }
     /// No
     public static let no = Localized.tr("Localizable", "common.no", fallback: "No")
     /// No Results Found
@@ -1356,6 +1364,12 @@ public enum Localized {
     public static let priceImpact = Localized.tr("Localizable", "swap.price_impact", fallback: "Price Impact")
     /// Slippage
     public static let slippage = Localized.tr("Localizable", "swap.slippage", fallback: "Slippage")
+    /// Auto
+    public static let slippageAuto = Localized.tr("Localizable", "swap.slippage_auto", fallback: "Auto")
+    /// Automatically set the best slippage for a successful swap.
+    public static let slippageAutoDescription = Localized.tr("Localizable", "swap.slippage_auto_description", fallback: "Automatically set the best slippage for a successful swap.")
+    /// High slippage. Your swap may be executed at a worse price than expected.
+    public static let slippageWarning = Localized.tr("Localizable", "swap.slippage_warning", fallback: "High slippage. Your swap may be executed at a worse price than expected.")
     /// Use Minimum Amount
     public static let useMinimumAmount = Localized.tr("Localizable", "swap.use_minimum_amount", fallback: "Use Minimum Amount")
     /// You Pay

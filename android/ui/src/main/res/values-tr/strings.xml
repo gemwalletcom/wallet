@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">İptal</string>
   <string name="common_done">Tamam</string>
+  <string name="common_maximum_value">Maksimum değer %1$s</string>
+  <string name="common_minimum_value">Minimum değer %1$s</string>
   <string name="common_secret_phrase">Gizli İfade</string>
   <string name="common_copy">Kopyala</string>
   <string name="common_share">Paylaş</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">Alacağın</string>
   <string name="swap_price_impact">Fiyat Etkisi</string>
   <string name="swap_slippage">Kayma</string>
+  <string name="swap_slippage_warning">Yüksek kayma. Takasınız beklenenden daha kötü bir fiyattan gerçekleşebilir.</string>
+  <string name="swap_slippage_auto">Otomatik</string>
+  <string name="swap_slippage_auto_description">Başarılı bir takas için en iyi kaymayı otomatik olarak ayarlar.</string>
   <string name="swap_price_impact_warning_description">Bu işlemde %1$s kaybedeceksiniz; bu, %2$s varlığınızın bir kısmıdır. Devam etmek istediğinizden emin misiniz?</string>
   <string name="swap_price_impact_warning_title">Yüksek Fiyat Etkisi</string>
   <string name="swap_estimated_time_title">Tahmini Süre</string>

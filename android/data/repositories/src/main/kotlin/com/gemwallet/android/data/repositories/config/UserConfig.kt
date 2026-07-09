@@ -116,6 +116,15 @@ class UserConfig(
         }
     }
 
+    fun swapSlippageBps(): Flow<UInt?> = context.dataStore.data
+        .map { preferences -> preferences[Key.SwapSlippageBps]?.takeIf { it > 0 }?.toUInt() }
+
+    suspend fun setSwapSlippageBps(bps: UInt?) {
+        context.dataStore.edit { preferences ->
+            preferences[Key.SwapSlippageBps] = bps?.toInt() ?: 0
+        }
+    }
+
     fun getLatestAppUpdate(): Flow<AppUpdateInfo?> = context.dataStore.data
         .map { preferences ->
             val version = preferences[Key.LatestVersion].orEmpty()
@@ -249,6 +258,7 @@ class UserConfig(
         val PerpetualLeverage = intPreferencesKey("perpetual_leverage")
         val PerpetualTakeProfit = intPreferencesKey("perpetual_take_profit")
         val PerpetualStopLoss = intPreferencesKey("perpetual_stop_loss")
+        val SwapSlippageBps = intPreferencesKey("swap_slippage_bps")
     }
 
 }

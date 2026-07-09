@@ -16,6 +16,7 @@ public final class Preferences: @unchecked Sendable {
         static let fiatOnRampAssetsVersion = "fiat_on_ramp_assets_version"
         static let fiatOffRampAssetsVersion = "fiat_off_ramp_assets_version"
         static let swapAssetsVersion = "swap_assets_version"
+        static let swapSlippageBps = "swap_slippage_bps"
         static let launchesCount = "launches_count"
         static let subscriptionsVersion = "subscriptions_version"
         static let subscriptionsVersionHasChange = "subscriptions_version_has_change"
@@ -61,6 +62,9 @@ public final class Preferences: @unchecked Sendable {
 
     @ConfigurableDefaults(key: Keys.swapAssetsVersion, defaultValue: 0)
     public var swapAssetsVersion: Int
+
+    @ConfigurableDefaults(key: Keys.swapSlippageBps, defaultValue: 0)
+    private var swapSlippageBpsRawValue: Int
 
     @ConfigurableDefaults(key: Keys.launchesCount, defaultValue: 0)
     public var launchesCount: Int
@@ -152,6 +156,7 @@ public final class Preferences: @unchecked Sendable {
         configure(\._fiatOnRampAssetsVersion, key: Keys.fiatOnRampAssetsVersion, defaultValue: 0)
         configure(\._fiatOffRampAssetsVersion, key: Keys.fiatOffRampAssetsVersion, defaultValue: 0)
         configure(\._swapAssetsVersion, key: Keys.swapAssetsVersion, defaultValue: 0)
+        configure(\._swapSlippageBpsRawValue, key: Keys.swapSlippageBps, defaultValue: 0)
         configure(\._launchesCount, key: Keys.launchesCount, defaultValue: 0)
         configure(\._subscriptionsVersion, key: Keys.subscriptionsVersion, defaultValue: 0)
         configure(\._subscriptionsVersionHasChange, key: Keys.subscriptionsVersionHasChange, defaultValue: true)
@@ -207,6 +212,16 @@ public final class Preferences: @unchecked Sendable {
 
     public func explorerName(chain: Chain) -> String? {
         defaults.string(forKey: "\(ExplorerKeys.explorerName)_\(chain.rawValue)")
+    }
+
+    public var swapSlippage: SwapSlippage {
+        get { swapSlippageBpsRawValue > 0 ? .manual(bps: UInt32(swapSlippageBpsRawValue)) : .auto }
+        set {
+            swapSlippageBpsRawValue = switch newValue {
+            case .auto: 0
+            case let .manual(bps): Int(bps)
+            }
+        }
     }
 
     public var chartPeriod: ChartPeriod {

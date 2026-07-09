@@ -3,7 +3,7 @@ use crate::{SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT
 pub use primitives::swap::SwapResult;
 use primitives::{
     AssetId, Chain,
-    swap::{ApprovalData, SwapProviderMode},
+    swap::{ApprovalData, SlippageMode, SwapProviderMode},
 };
 use serde::Serialize;
 use std::fmt::Debug;
@@ -15,6 +15,7 @@ pub struct ProviderType {
     pub protocol: String,
     pub protocol_id: String,
     pub mode: SwapProviderMode,
+    pub slippage_mode: SlippageMode,
 }
 
 impl ProviderType {
@@ -25,6 +26,7 @@ impl ProviderType {
             protocol: id.protocol_name().to_string(),
             protocol_id: id.id().to_string(),
             mode: ProviderType::mode(id),
+            slippage_mode: ProviderType::slippage_mode(id),
         }
     }
 
@@ -49,6 +51,31 @@ impl ProviderType {
             SwapperProvider::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain]),
             SwapperProvider::Across => SwapProviderMode::Bridge,
             SwapperProvider::Hyperliquid => SwapProviderMode::OmniChain(vec![Chain::HyperCore, Chain::Hyperliquid]),
+        }
+    }
+
+    pub fn slippage_mode(id: SwapperProvider) -> SlippageMode {
+        match id {
+            SwapperProvider::Okx | SwapperProvider::Squid | SwapperProvider::Mayan => SlippageMode::Auto,
+            SwapperProvider::UniswapV3
+            | SwapperProvider::UniswapV4
+            | SwapperProvider::PancakeswapV3
+            | SwapperProvider::Panora
+            | SwapperProvider::Jupiter
+            | SwapperProvider::Oku
+            | SwapperProvider::Wagmi
+            | SwapperProvider::CetusAggregator
+            | SwapperProvider::CetusClmm
+            | SwapperProvider::StonfiV2
+            | SwapperProvider::Aerodrome
+            | SwapperProvider::Orca
+            | SwapperProvider::Mayachain
+            | SwapperProvider::Chainflip
+            | SwapperProvider::Thorchain
+            | SwapperProvider::NearIntents
+            | SwapperProvider::Relay
+            | SwapperProvider::Across
+            | SwapperProvider::Hyperliquid => SlippageMode::Exact,
         }
     }
 }

@@ -17,13 +17,26 @@ use gem_encoding::encode_base64;
 use num_bigint::BigUint;
 use primitives::{
     Chain, ChainType,
-    swap::{ApprovalData, ProxyQuote, ProxyQuoteRequest, QuoteAsset, SwapQuoteData},
+    swap::{ApprovalData, ProxyQuote, ProxyQuoteRequest, QuoteAsset, SlippageMode, SwapQuoteData},
 };
 use serde_json::Value;
 use std::{fmt::Debug, str::FromStr, sync::Arc};
 
 const HUNDRED_PERCENT_IN_BPS: u32 = 10_000;
 const OKX_GAS_LIMIT_BUFFER_PERCENT: u64 = 50;
+
+// https://web3.okx.com/build/dev-docs/wallet-api/dex-swap
+const OKX_MAX_SLIPPAGE_BPS_EVM: u32 = HUNDRED_PERCENT_IN_BPS;
+const OKX_MAX_SLIPPAGE_BPS_SOLANA: u32 = HUNDRED_PERCENT_IN_BPS - 1;
+
+fn limit_slippage_bps(slippage_bps: u32, chain: Chain) -> u32 {
+    let max = if chain == Chain::Solana {
+        OKX_MAX_SLIPPAGE_BPS_SOLANA
+    } else {
+        OKX_MAX_SLIPPAGE_BPS_EVM
+    };
+    slippage_bps.min(max)
+}
 
 #[derive(Debug)]
 pub struct OkxProvider<C>
@@ -57,12 +70,13 @@ where
             return Err(SwapperError::NotSupportedChain);
         }
 
+        let slippage_bps = limit_slippage_bps(request.slippage_bps, chain);
         let params = QuoteParams {
             chain_index: chain_index(chain).ok_or(SwapperError::NotSupportedChain)?.to_string(),
             amount: request.from_value.clone(),
             from_token_address: asset_to_token_address(&request.from_asset)?,
             to_token_address: asset_to_token_address(&request.to_asset)?,
-            slippage_percent: slippage_percent(request.slippage_bps),
+            slippage_percent: slippage_percent(slippage_bps),
             dex_ids: dex_ids(chain),
             fee_percent: bps_to_percent_string(request.referral_bps)?,
         };
@@ -70,7 +84,7 @@ where
         let response = self.client.get_quote(&params).await?;
         let route = first_data(response, "Failed to fetch OKX quote")?;
 
-        let output_min_value = output_min_value(&route.to_token_amount, request.slippage_bps)?;
+        let output_min_value = output_min_value(&route.to_token_amount, slippage_bps)?;
         let route_data = serde_json::to_value(&route)?;
 
         Ok(ProxyQuote {
@@ -165,6 +179,8 @@ fn max_auto_slippage_percent(slippage_bps: u32) -> Option<String> {
 
 fn build_swap_params(request: &ProxyQuoteRequest, route: &QuoteData, chain: Chain, approve_transaction: bool) -> Result<SwapParams, SwapperError> {
     let referrers = referrer_wallet_addresses(&request.from_asset, &request.to_asset, chain);
+    let is_auto = request.slippage_mode == SlippageMode::Auto;
+    let slippage_bps = limit_slippage_bps(request.slippage_bps, chain);
     Ok(SwapParams {
         chain_index: chain_index(chain).ok_or(SwapperError::NotSupportedChain)?.to_string(),
         amount: request.from_value.clone(),
@@ -173,9 +189,9 @@ fn build_swap_params(request: &ProxyQuoteRequest, route: &QuoteData, chain: Chai
         user_wallet_address: request.from_address.clone(),
         approve_transaction: approve_transaction.then_some(true),
         approve_amount: approve_transaction.then(|| request.from_value.clone()),
-        slippage_percent: Some(slippage_percent(request.slippage_bps)),
-        auto_slippage: Some(true),
-        max_auto_slippage_percent: max_auto_slippage_percent(request.slippage_bps),
+        slippage_percent: Some(slippage_percent(slippage_bps)),
+        auto_slippage: Some(is_auto),
+        max_auto_slippage_percent: is_auto.then(|| max_auto_slippage_percent(slippage_bps)).flatten(),
         dex_ids: dex_ids(chain),
         fee_percent: bps_to_percent_string(request.referral_bps)?,
         from_token_referrer_wallet_address: referrers.from_token,
@@ -245,6 +261,7 @@ mod tests {
             from_value: "1000000000000000000".to_string(),
             referral_bps,
             slippage_bps,
+            slippage_mode: SlippageMode::Auto,
             use_max_amount: false,
         }
     }
@@ -272,6 +289,18 @@ mod tests {
         assert_eq!(slippage_percent(50), "0.5");
         assert_eq!(slippage_percent(100), "1");
         assert_eq!(slippage_percent(500), "1");
+    }
+
+    #[test]
+    fn test_limit_slippage_bps() {
+        assert_eq!(limit_slippage_bps(500, Chain::Ethereum), 500);
+        assert_eq!(limit_slippage_bps(500, Chain::Solana), 500);
+
+        assert_eq!(limit_slippage_bps(10_000, Chain::Ethereum), 10_000);
+        assert_eq!(limit_slippage_bps(20_000, Chain::Ethereum), 10_000);
+
+        assert_eq!(limit_slippage_bps(10_000, Chain::Solana), 9_999);
+        assert_eq!(limit_slippage_bps(9_999, Chain::Solana), 9_999);
     }
 
     #[test]
@@ -389,13 +418,31 @@ mod tests {
         assert!(sol_params.from_token_referrer_wallet_address.is_some());
         assert!(sol_params.to_token_referrer_wallet_address.is_none());
     }
+
+    #[test]
+    fn test_build_swap_params_exact_slippage_disables_auto() {
+        let eth = AssetId::from_chain(Chain::Ethereum).to_string();
+        let mut evm_request = proxy_request(&ETHEREUM_USDC_ASSET_ID.to_string(), &eth, 100, 50);
+        evm_request.slippage_mode = SlippageMode::Exact;
+        let evm_route = quote_data(ETHEREUM_USDC_TOKEN_ID, EVM_NATIVE_TOKEN_ADDRESS);
+        let evm_params = build_swap_params(&evm_request, &evm_route, Chain::Ethereum, true).unwrap();
+
+        assert_eq!(evm_params.auto_slippage, Some(false));
+        assert_eq!(evm_params.max_auto_slippage_percent, None);
+        assert_eq!(evm_params.slippage_percent.as_deref(), Some("1"));
+    }
 }
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
     use crate::alien::reqwest_provider::NativeProvider;
-    use primitives::{AssetId, asset_constants::SOLANA_USDC_ASSET_ID, swap::QuoteAsset, testkit::signer_mock::TEST_SOLANA_SENDER};
+    use primitives::{
+        AssetId,
+        asset_constants::SOLANA_USDC_ASSET_ID,
+        swap::{QuoteAsset, SlippageMode},
+        testkit::signer_mock::TEST_SOLANA_SENDER,
+    };
 
     fn okx_provider() -> OkxProvider<RpcClient> {
         let settings = settings::testkit::get_test_settings();
@@ -419,6 +466,7 @@ mod swap_integration_tests {
             from_value: "100000000".to_string(),
             referral_bps: 50,
             slippage_bps: 300,
+            slippage_mode: SlippageMode::Auto,
             use_max_amount: false,
         };
 
@@ -429,6 +477,32 @@ mod swap_integration_tests {
         let quote_data = provider.get_quote_data(quote).await?;
         assert!(!quote_data.to.is_empty());
         assert_eq!(quote_data.value, "0");
+        assert!(!quote_data.data.is_empty());
+        Ok(())
+    }
+
+    // Proves OKX's real swap-data API accepts autoSlippage=false with an explicit
+    // slippagePercent (previously untested: auto_slippage was always hardcoded true).
+    #[tokio::test]
+    async fn test_okx_fetch_quote_and_quote_data_exact_slippage() -> Result<(), SwapperError> {
+        let provider = okx_provider();
+        let request = ProxyQuoteRequest {
+            from_address: TEST_SOLANA_SENDER.to_string(),
+            to_address: TEST_SOLANA_SENDER.to_string(),
+            from_asset: QuoteAsset::from(AssetId::from_chain(Chain::Solana)),
+            to_asset: QuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+            from_value: "100000000".to_string(),
+            referral_bps: 50,
+            slippage_bps: 300,
+            slippage_mode: SlippageMode::Exact,
+            use_max_amount: false,
+        };
+
+        let quote = provider.get_quote(request).await?;
+        assert!(quote.output_value.parse::<u64>().unwrap() > 0);
+
+        let quote_data = provider.get_quote_data(quote).await?;
+        assert!(!quote_data.to.is_empty());
         assert!(!quote_data.data.is_empty());
         Ok(())
     }

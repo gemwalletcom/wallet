@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Cancellare</string>
   <string name="common_done">Fatto</string>
+  <string name="common_maximum_value">Il valore massimo è %1$s</string>
+  <string name="common_minimum_value">Il valore minimo è %1$s</string>
   <string name="common_secret_phrase">Frase segreta</string>
   <string name="common_copy">Copia</string>
   <string name="common_share">Condividi</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">Ricevi</string>
   <string name="swap_price_impact">Impatto sul prezzo</string>
   <string name="swap_slippage">Slippage</string>
+  <string name="swap_slippage_warning">Slippage elevato. Il tuo swap potrebbe essere eseguito a un prezzo peggiore del previsto.</string>
+  <string name="swap_slippage_auto">Auto</string>
+  <string name="swap_slippage_auto_description">Imposta automaticamente lo slippage migliore per uno swap riuscito.</string>
   <string name="swap_price_impact_warning_description">Perderai %1$s dei tuoi %2$s in questa operazione. Vuoi procedere?</string>
   <string name="swap_price_impact_warning_title">Impatto dei prezzi elevati</string>
   <string name="swap_estimated_time_title">Tempo stimato</string>

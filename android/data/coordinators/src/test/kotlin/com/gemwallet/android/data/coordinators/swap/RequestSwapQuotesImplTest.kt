@@ -282,6 +282,7 @@ class RequestSwapQuotesImplTest {
             to: Asset,
             amount: String,
             useMaxAmount: Boolean,
+            slippageBps: UInt?,
         ): List<SwapperQuote> {
             requestCount += 1
 

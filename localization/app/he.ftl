@@ -2,6 +2,8 @@
 
 common_cancel = לְבַטֵל
 common_done = בוצע
+common_maximum_value = הערך המקסימלי הוא %@
+common_minimum_value = הערך המינימלי הוא %@
 common_secret_phrase = ביטוי סודי
 common_copy = העתק
 common_share = שתף
@@ -351,6 +353,9 @@ swap_you_pay = אתה משלם
 swap_you_receive = אתה מקבל
 swap_price_impact = השפעת המחיר
 swap_slippage = החלקה
+swap_slippage_warning = החלקה גבוהה. ההמרה שלך עלולה להתבצע במחיר גרוע מהצפוי.
+swap_slippage_auto = אוטומטי
+swap_slippage_auto_description = מגדיר אוטומטית את ההחלקה הטובה ביותר להחלפה מוצלחת.
 swap_price_impact_warning_description = אתה תפסיד %@ מה- %@ שלך במסחר הזה. האם אתה בטוח שאתה רוצה להמשיך?
 swap_price_impact_warning_title = השפעת מחיר גבוהה
 swap_estimated_time_title = זמן משוער

@@ -7,10 +7,11 @@ use crate::{
     },
 };
 use gem_client::{Client, ClientError, ClientExt};
+use primitives::swap::SlippageMode;
 use serde::Serialize;
 use std::fmt::Debug;
 
-const QUOTE_DEFAULTS: [(&str, &str); 12] = [
+const QUOTE_DEFAULTS: [(&str, &str); 11] = [
     ("wormhole", "false"),
     ("swift", "true"),
     ("mctp", "true"),
@@ -22,7 +23,6 @@ const QUOTE_DEFAULTS: [(&str, &str); 12] = [
     ("monoChain", "true"),
     ("solanaProgram", MAYAN_PROGRAM_ID),
     ("forwarderAddress", MAYAN_FORWARDER),
-    ("slippageBps", "auto"),
 ];
 
 #[derive(Debug, Clone, Serialize)]
@@ -36,10 +36,15 @@ struct QuoteDynamicQuery {
     referrer: String,
     referrer_bps: u32,
     sdk_version: &'static str,
+    slippage_bps: String,
 }
 
 impl From<QuoteParams> for QuoteDynamicQuery {
     fn from(params: QuoteParams) -> Self {
+        let slippage_bps = match params.slippage_mode {
+            SlippageMode::Auto => "auto".to_string(),
+            SlippageMode::Exact => params.slippage_bps.to_string(),
+        };
         Self {
             amount_in64: params.amount_in64,
             from_token: params.from_token,
@@ -49,6 +54,7 @@ impl From<QuoteParams> for QuoteDynamicQuery {
             referrer: params.referrer,
             referrer_bps: params.referrer_bps,
             sdk_version: SDK_VERSION,
+            slippage_bps,
         }
     }
 }
@@ -107,12 +113,14 @@ mod tests {
             to_chain: "solana".to_string(),
             referrer: "0x1111111111111111111111111111111111111111".to_string(),
             referrer_bps: 50,
+            slippage_bps: 100,
+            slippage_mode: SlippageMode::Auto,
         })
         .unwrap();
 
         assert_eq!(
             path,
-            "/quote?wormhole=false&swift=true&mctp=true&shuttle=false&fastMctp=true&gasless=false&onlyDirect=false&fullList=false&monoChain=true&solanaProgram=FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf&forwarderAddress=0x337685fdaB40D39bd02028545a4FfA7D287cC3E2&slippageBps=auto&amountIn64=1000000&fromToken=0x0000000000000000000000000000000000000000&fromChain=ethereum&toToken=So11111111111111111111111111111111111111112&toChain=solana&referrer=0x1111111111111111111111111111111111111111&referrerBps=50&sdkVersion=14_1_0"
+            "/quote?wormhole=false&swift=true&mctp=true&shuttle=false&fastMctp=true&gasless=false&onlyDirect=false&fullList=false&monoChain=true&solanaProgram=FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf&forwarderAddress=0x337685fdaB40D39bd02028545a4FfA7D287cC3E2&amountIn64=1000000&fromToken=0x0000000000000000000000000000000000000000&fromChain=ethereum&toToken=So11111111111111111111111111111111111111112&toChain=solana&referrer=0x1111111111111111111111111111111111111111&referrerBps=50&sdkVersion=14_1_0&slippageBps=auto"
         );
     }
 

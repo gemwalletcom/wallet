@@ -3,7 +3,11 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_cosmos::{address::CosmosAddress, models::message::send_msg_json};
-use primitives::{AssetId, Chain, chain_cosmos::CosmosChain, swap::SwapQuoteDataType};
+use primitives::{
+    AssetId, Chain,
+    chain_cosmos::CosmosChain,
+    swap::{SlippageMode, SwapQuoteDataType},
+};
 
 use super::{SQUID_COSMOS_MULTICALL, SUPPORTED_CHAINS, client::SquidClient, model::*};
 use crate::{
@@ -68,6 +72,10 @@ where
     fn build_route_request(request: &QuoteRequest, from_value: &str, quote_only: bool) -> Result<SquidRouteRequest, SwapperError> {
         let from_asset_id = request.from_asset.asset_id();
         let to_asset_id = request.to_asset.asset_id();
+        let (slippage_config, slippage) = match request.options.slippage.mode {
+            SlippageMode::Auto => (Some(SlippageConfig { auto_mode: 1 }), None),
+            SlippageMode::Exact => (None, Some(request.options.slippage.bps as f64 / 100.0)),
+        };
         Ok(SquidRouteRequest {
             from_chain: Self::get_network_id(&from_asset_id.chain)?.to_string(),
             to_chain: Self::get_network_id(&to_asset_id.chain)?.to_string(),
@@ -76,7 +84,8 @@ where
             from_amount: from_value.to_string(),
             from_address: request.wallet_address.clone(),
             to_address: request.destination_address.clone(),
-            slippage_config: SlippageConfig { auto_mode: 1 },
+            slippage_config,
+            slippage,
             quote_only,
         })
     }
@@ -178,11 +187,53 @@ where
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{SwapperQuoteAsset, models::Options};
+    use primitives::swap::Slippage;
+
+    fn mock_request_with_slippage(slippage: Slippage) -> QuoteRequest {
+        QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
+            wallet_address: "osmo1tkvyjqeq204rmrrz3w4hcrs336qahsfwn8m0ye".to_string(),
+            destination_address: "cosmos1tkvyjqeq204rmrrz3w4hcrs336qahsfwmugljt".to_string(),
+            value: "10000000".to_string(),
+            options: Options::new_with_slippage(slippage),
+        }
+    }
+
+    #[test]
+    fn test_build_route_request_auto_slippage() {
+        let request = mock_request_with_slippage(Slippage {
+            bps: 100,
+            mode: SlippageMode::Auto,
+        });
+        let route_request = Squid::<RpcClient>::build_route_request(&request, "10000000", true).unwrap();
+
+        assert_eq!(route_request.slippage_config.map(|c| c.auto_mode), Some(1));
+        assert_eq!(route_request.slippage, None);
+    }
+
+    #[test]
+    fn test_build_route_request_exact_slippage() {
+        let request = mock_request_with_slippage(Slippage {
+            bps: 150,
+            mode: SlippageMode::Exact,
+        });
+        let route_request = Squid::<RpcClient>::build_route_request(&request, "10000000", true).unwrap();
+
+        assert_eq!(route_request.slippage_config, None);
+        assert_eq!(route_request.slippage, Some(1.5));
+    }
+}
+
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
     use crate::{SwapperQuoteAsset, models::Options};
-    use primitives::swap::SwapStatus;
+    use primitives::swap::{Slippage, SwapStatus};
 
     const OSMOSIS_ADDRESS: &str = "osmo1tkvyjqeq204rmrrz3w4hcrs336qahsfwn8m0ye";
     const COSMOS_ADDRESS: &str = "cosmos1tkvyjqeq204rmrrz3w4hcrs336qahsfwmugljt";
@@ -260,6 +311,30 @@ mod swap_integration_tests {
             .await?;
         println!("status: {:?}", result.status);
         assert_eq!(result.status, SwapStatus::Completed);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_squid_exact_slippage_quote_and_data_succeed() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let squid = create_provider();
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
+            wallet_address: OSMOSIS_ADDRESS.to_string(),
+            destination_address: COSMOS_ADDRESS.to_string(),
+            value: "10000000".to_string(),
+            options: Options::new_with_slippage(Slippage {
+                bps: 2000,
+                mode: SlippageMode::Exact,
+            }),
+        };
+
+        let quote = squid.get_quote(&request).await?;
+        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+
+        let quote_data = squid.get_quote_data(&quote, FetchQuoteData::None).await?;
+        assert!(!quote_data.data.is_empty());
+
         Ok(())
     }
 }

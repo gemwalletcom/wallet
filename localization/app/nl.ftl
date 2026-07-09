@@ -2,6 +2,8 @@
 
 common_cancel = Annuleren
 common_done = Klaar
+common_maximum_value = Maximale waarde is %@
+common_minimum_value = Minimale waarde is %@
 common_secret_phrase = Geheime zin
 common_copy = Kopieer
 common_share = Deel
@@ -351,6 +353,9 @@ swap_you_pay = Jij betaalt
 swap_you_receive = Jij ontvangt
 swap_price_impact = Prijsimpact
 swap_slippage = Slippage
+swap_slippage_warning = Hoge slippage. Je swap wordt mogelijk uitgevoerd tegen een slechtere prijs dan verwacht.
+swap_slippage_auto = Auto
+swap_slippage_auto_description = Stelt automatisch de beste slippage in voor een succesvolle swap.
 swap_price_impact_warning_description = U verliest %@ van uw %@ in deze transactie. Weet u zeker dat u wilt doorgaan?
 swap_price_impact_warning_title = Hoge prijsimpact
 swap_estimated_time_title = Geschatte tijd

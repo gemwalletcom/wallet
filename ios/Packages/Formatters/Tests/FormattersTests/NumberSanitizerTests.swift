@@ -46,4 +46,20 @@ struct NumberSanitizerTests {
         let sanitizer = NumberSanitizer(decimalSeparator: ".")
         #expect(sanitizer.sanitize("") == "")
     }
+
+    @Test
+    func sanitize_maximumFractionDigits_shouldTruncateDecimals() {
+        let sanitizer = NumberSanitizer(decimalSeparator: ".", maximumFractionDigits: 2)
+        #expect(sanitizer.sanitize("0.111111111") == "0.11")
+        #expect(sanitizer.sanitize("12.5") == "12.5")
+        #expect(sanitizer.sanitize("12") == "12")
+    }
+
+    @Test
+    func sanitize_maximumIntegerDigits_shouldTruncateInteger() {
+        let sanitizer = NumberSanitizer(decimalSeparator: ".", maximumIntegerDigits: 2)
+        #expect(sanitizer.sanitize("33333312312") == "33")
+        #expect(sanitizer.sanitize("5") == "5")
+        #expect(sanitizer.sanitize("19.555") == "19.555")
+    }
 }

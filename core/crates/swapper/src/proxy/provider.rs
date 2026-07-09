@@ -158,6 +158,7 @@ where
             from_value: request.value.clone(),
             referral_bps: self.referral_bps(),
             slippage_bps: request.options.slippage.bps,
+            slippage_mode: request.options.slippage.mode,
             use_max_amount: request.options.use_max_amount,
         };
 

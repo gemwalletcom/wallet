@@ -30,6 +30,8 @@ data class SwapDetailsUIModel(
     val priceImpact: SwapPriceImpactUIModel?,
     val minimumReceive: String,
     val slippageText: String,
+    val slippageBps: UInt,
+    val selectedSlippage: UInt?,
     val estimatedTime: String? = null,
     val isProviderSelectable: Boolean = false,
 ) {

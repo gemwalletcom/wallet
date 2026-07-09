@@ -4,13 +4,19 @@ import Foundation
 
 public struct NumberSanitizer {
     private let decimalSeparator: Character
+    private let maximumFractionDigits: Int?
+    private let maximumIntegerDigits: Int?
     private let allowedCharacters: CharacterSet
 
     public init(
         decimalSeparator: Character = Locale.current.decimalSeparator?.first ?? ".",
+        maximumFractionDigits: Int? = nil,
+        maximumIntegerDigits: Int? = nil,
         allowedCharacters: CharacterSet = CharacterSet.decimalDigits,
     ) {
         self.decimalSeparator = decimalSeparator
+        self.maximumFractionDigits = maximumFractionDigits
+        self.maximumIntegerDigits = maximumIntegerDigits
         self.allowedCharacters = allowedCharacters
             .union(CharacterSet(charactersIn: String(decimalSeparator)))
     }
@@ -33,13 +39,21 @@ public struct NumberSanitizer {
 
     private func sanitizeDecimalSeparator(_ input: String) -> String {
         guard let separatorIndex = input.firstIndex(of: decimalSeparator) else {
-            return input
+            return limitIntegerDigits(input)
         }
 
-        let integerPart = input.prefix(upTo: separatorIndex)
+        let integerPart = limitIntegerDigits(String(input.prefix(upTo: separatorIndex)))
         let decimalStartIndex = input.index(after: separatorIndex)
-        let decimalPart = input[decimalStartIndex...].filter { $0 != decimalSeparator }
+        var decimalPart = input[decimalStartIndex...].filter { $0 != decimalSeparator }
+        if let maximumFractionDigits {
+            decimalPart = String(decimalPart.prefix(maximumFractionDigits))
+        }
 
         return integerPart + String(decimalSeparator) + decimalPart
+    }
+
+    private func limitIntegerDigits(_ integer: String) -> String {
+        guard let maximumIntegerDigits else { return integer }
+        return String(integer.prefix(maximumIntegerDigits))
     }
 }

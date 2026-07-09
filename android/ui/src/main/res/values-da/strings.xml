@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">Ophæve</string>
   <string name="common_done">Færdig</string>
+  <string name="common_maximum_value">Maksimal værdi er %1$s</string>
+  <string name="common_minimum_value">Minimumsværdi er %1$s</string>
   <string name="common_secret_phrase">Hemmelig sætning</string>
   <string name="common_copy">Kopiér</string>
   <string name="common_share">Del</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">Du modtager</string>
   <string name="swap_price_impact">Prispåvirkning</string>
   <string name="swap_slippage">Slippage</string>
+  <string name="swap_slippage_warning">Høj slippage. Din swap kan blive udført til en dårligere pris end forventet.</string>
+  <string name="swap_slippage_auto">Auto</string>
+  <string name="swap_slippage_auto_description">Angiver automatisk den bedste slippage for en vellykket swap.</string>
   <string name="swap_price_impact_warning_description">Du vil miste %1$s af dine %2$s i denne handel. Er du sikker på, at du vil fortsætte?</string>
   <string name="swap_price_impact_warning_title">Høj prispåvirkning</string>
   <string name="swap_estimated_time_title">Anslået Tid</string>

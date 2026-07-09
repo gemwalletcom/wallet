@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">キャンセル</string>
   <string name="common_done">完了</string>
+  <string name="common_maximum_value">最大値は %1$s です</string>
+  <string name="common_minimum_value">最小値は %1$s です</string>
   <string name="common_secret_phrase">秘密のフレーズ</string>
   <string name="common_copy">コピー</string>
   <string name="common_share">共有</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">受け取るもの</string>
   <string name="swap_price_impact">価格の影響</string>
   <string name="swap_slippage">スリッページ</string>
+  <string name="swap_slippage_warning">スリッページが大きいです。スワップが予想より悪い価格で実行される可能性があります。</string>
+  <string name="swap_slippage_auto">自動</string>
+  <string name="swap_slippage_auto_description">スワップを成功させるための最適なスリッページを自動的に設定します。</string>
   <string name="swap_price_impact_warning_description">この取引で%1$s（保有する%2$sの一部）を失います。続行してもよろしいですか?</string>
   <string name="swap_price_impact_warning_title">高い価格影響</string>
   <string name="swap_estimated_time_title">推定時間</string>

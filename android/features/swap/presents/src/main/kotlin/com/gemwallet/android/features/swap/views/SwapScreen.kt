@@ -14,6 +14,7 @@ import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
+import com.gemwallet.android.ui.components.swap.SwapSlippageBottomSheet
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -36,6 +37,8 @@ fun SwapScreen(
 
     var isShowPriceImpactAlert by remember { mutableStateOf(false) }
     var isShowDetails by remember { mutableStateOf(false) }
+    var isShowSlippage by remember { mutableStateOf(false) }
+    var slippageSeedBps by remember { mutableStateOf<UInt?>(null) }
 
     ObserveStartedState(viewModel::setRefreshEnabled)
 
@@ -68,6 +71,10 @@ fun SwapScreen(
                 is SwapSceneAction.SelectPercent -> viewModel.onSelectPercent(action.percent)
                 SwapSceneAction.SwitchAssets -> viewModel.switchSwap()
                 SwapSceneAction.ShowDetails -> isShowDetails = true
+                SwapSceneAction.Slippage -> if (swapState.isQuoteInteractionEnabled) {
+                    slippageSeedBps = swapDetails?.selectedSlippage
+                    isShowSlippage = true
+                }
                 SwapSceneAction.Swap -> viewModel.onPrimaryAction(
                     onConfirm = onConfirm,
                     onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
@@ -92,5 +99,13 @@ fun SwapScreen(
         onDismiss = { isShowDetails = false },
         skipPartiallyExpanded = true,
         onProviderSelect = if (swapState.isQuoteInteractionEnabled) viewModel::setProvider else null,
+    )
+
+    SwapSlippageBottomSheet(
+        isVisible = isShowSlippage,
+        currentBps = slippageSeedBps,
+        warningThresholdBps = viewModel.slippageWarningThresholdBps,
+        onConfirm = viewModel::setSlippage,
+        onDismiss = { isShowSlippage = false },
     )
 }

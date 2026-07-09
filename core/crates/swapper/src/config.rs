@@ -21,6 +21,7 @@ pub struct Config {
     pub permit2_expiration: u64,
     pub permit2_sig_deadline: u64,
     pub high_price_impact_percent: u32,
+    pub high_slippage_warning_bps: u32,
 }
 
 pub fn get_swap_config() -> Config {
@@ -32,6 +33,7 @@ pub fn get_swap_config() -> Config {
         permit2_expiration: 2_592_000, // 30 days
         permit2_sig_deadline: 1800,    // 30 minutes
         high_price_impact_percent: 10,
+        high_slippage_warning_bps: 300,
     }
 }
 

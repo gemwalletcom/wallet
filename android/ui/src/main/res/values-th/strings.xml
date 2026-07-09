@@ -2,6 +2,8 @@
 <resources>
   <string name="common_cancel">ยกเลิก</string>
   <string name="common_done">เสร็จแล้ว</string>
+  <string name="common_maximum_value">ค่าสูงสุดคือ %1$s</string>
+  <string name="common_minimum_value">ค่าต่ำสุดคือ %1$s</string>
   <string name="common_secret_phrase">วลีลับ</string>
   <string name="common_copy">คัดลอก</string>
   <string name="common_share">แบ่งปัน</string>
@@ -297,6 +299,9 @@
   <string name="swap_you_receive">คุณได้รับ</string>
   <string name="swap_price_impact">ผลกระทบต่อราคา</string>
   <string name="swap_slippage">สลิปเพจ</string>
+  <string name="swap_slippage_warning">สลิปเพจสูง การสว็อปของคุณอาจดำเนินการที่ราคาที่แย่กว่าที่คาดไว้</string>
+  <string name="swap_slippage_auto">อัตโนมัติ</string>
+  <string name="swap_slippage_auto_description">ตั้งค่าสลิปเพจที่ดีที่สุดโดยอัตโนมัติเพื่อการสว็อปที่สำเร็จ</string>
   <string name="swap_price_impact_warning_description">คุณจะสูญเสีย %1$s จาก %2$s ของคุณในการซื้อขายครั้งนี้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?</string>
   <string name="swap_price_impact_warning_title">ผลกระทบต่อราคาสูง</string>
   <string name="swap_estimated_time_title">เวลาโดยประมาณ</string>

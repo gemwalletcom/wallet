@@ -49,6 +49,7 @@ public final class SwapSceneViewModel {
     var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
     var toValue: String = ""
     var fetchTrigger: SwapFetchTrigger?
+    var selectedSlippage: SwapSlippage = .auto
 
     private let onSwap: TransferDataAction
     private let swapQuotesProvider: any SwapQuotesProvidable
@@ -78,6 +79,7 @@ public final class SwapSceneViewModel {
         self.swapQuotesProvider = swapQuotesProvider
         self.swapQuoteDataProvider = swapQuoteDataProvider
         self.onSwap = onSwap
+        selectedSlippage = preferences.swapSlippage
     }
 
     var title: String {
@@ -103,10 +105,20 @@ public final class SwapSceneViewModel {
             fromAssetPrice: AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price),
             toAssetPrice: AssetPriceValue(asset: toAsset.asset, price: toAsset.price),
             selectedQuote: selectedQuote,
+            slippage: selectedSlippage,
             preferences: preferences,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
+            },
+        )
+    }
+
+    var swapSlippageViewModel: SwapSlippageViewModel {
+        SwapSlippageViewModel(
+            slippage: selectedSlippage,
+            onSelect: { [weak self] slippage in
+                self?.onSelectSlippage(slippage)
             },
         )
     }
@@ -275,6 +287,14 @@ extension SwapSceneViewModel {
         selectedSwapQuote = quote
     }
 
+    func onSelectSlippage(_ slippage: SwapSlippage) {
+        guard slippage != selectedSlippage else { return }
+        selectedSlippage = slippage
+        preferences.swapSlippage = slippage
+        resetTransferDataState()
+        setFetchTrigger(isImmediate: true)
+    }
+
     public func onFinishAssetSelection(asset: Asset) {
         guard case let .selectAsset(type) = isPresentingInfoSheet else { return }
         switch type {
@@ -301,6 +321,7 @@ extension SwapSceneViewModel {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: amountInputModel.text,
+            slippage: selectedSlippage,
             formatter: formatter,
         )
     }
@@ -394,6 +415,7 @@ extension SwapSceneViewModel {
                 toAsset: input.toAsset,
                 amount: input.value,
                 useMaxAmount: input.useMaxAmount,
+                slippage: input.slippage,
             )
 
             guard !isTransferDataLoading, currentInput == input else { return }

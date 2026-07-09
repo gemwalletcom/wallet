@@ -11,5 +11,6 @@ interface GetSwapQuotes {
         to: Asset,
         amount: String,
         useMaxAmount: Boolean,
+        slippageBps: UInt? = null,
     ): List<SwapperQuote>
 }

@@ -171,9 +171,14 @@ fun SwapDetailsBottomSheet(
                 )
             }
             item {
+                val slippageDisplay = if (model.selectedSlippage == null) {
+                    stringResource(R.string.swap_slippage_auto)
+                } else {
+                    model.slippageText
+                }
                 PropertyItem(
                     title = R.string.swap_slippage,
-                    data = model.slippageText,
+                    data = slippageDisplay,
                     info = InfoSheetEntity.Slippage,
                     listPosition = ListPosition.Last,
                 )

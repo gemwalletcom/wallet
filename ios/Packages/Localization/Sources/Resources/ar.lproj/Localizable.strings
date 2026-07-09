@@ -1,5 +1,7 @@
 "common.cancel" = "يلغي";
 "common.done" = "تم";
+"common.maximum_value" = "القيمة القصوى هي %@";
+"common.minimum_value" = "القيمة الدنيا هي %@";
 "common.secret_phrase" = "العبارة السرية";
 "common.copy" = "نسخ";
 "common.share" = "مشاركة";
@@ -282,6 +284,9 @@
 "swap.you_receive" = "انت تستقبل";
 "swap.price_impact" = "تأثير السعر";
 "swap.slippage" = "الانزلاق";
+"swap.slippage_warning" = "انزلاق مرتفع. قد يُنفَّذ التبادل بسعر أسوأ من المتوقع.";
+"swap.slippage_auto" = "تلقائي";
+"swap.slippage_auto_description" = "يحدد تلقائيًا أفضل انزلاق لإتمام المبادلة بنجاح.";
 "swap.price_impact_warning.description" = "ستخسر %@ من رصيدك %@ في هذه الصفقة. هل أنت متأكد من رغبتك في المتابعة؟";
 "swap.price_impact_warning.title" = "تأثير السعر المرتفع";
 "swap.estimated_time.title" = "الوقت المقدر";
