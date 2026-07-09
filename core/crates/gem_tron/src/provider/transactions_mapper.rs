@@ -1,20 +1,22 @@
-use chrono::DateTime;
+use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use primitives::{
     Address as _, AssetId, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionType, chain::Chain, decode_hex, hex::decode_hex_utf8, stake_type::Resource,
 };
+use serde_json::Value;
 use std::error::Error;
 
 use crate::address::TronAddress;
-use crate::models::{BlockTransactions, Transaction as TronTransaction, TransactionReceiptData, TronContractType, TronTransactionBroadcast};
+use crate::models::{BlockTransactions, ContractParameterValue, Transaction as TronTransaction, TransactionReceiptData, TronContractType, TronLog, TronTransactionBroadcast};
 use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
+use crate::trc20;
 
 fn decode_hex_message(hex_str: &str) -> String {
     decode_hex_utf8(hex_str).unwrap_or_else(|| hex_str.to_string())
 }
 
-fn resource_type_metadata(resource: Option<String>) -> Option<serde_json::Value> {
-    let resource_type = resource.as_deref().and_then(|resource| resource.parse::<Resource>().ok()).unwrap_or(Resource::Bandwidth);
+fn resource_type_metadata(resource: Option<&str>) -> Option<Value> {
+    let resource_type = resource.and_then(|resource| resource.parse::<Resource>().ok()).unwrap_or(Resource::Bandwidth);
     serde_json::to_value(TransactionResourceTypeMetadata::new(resource_type)).ok()
 }
 
@@ -46,104 +48,157 @@ pub fn map_transactions_by_address(transactions: Vec<TronTransaction>, receipts:
 }
 
 pub fn map_transaction(chain: Chain, transaction: TronTransaction, receipt: TransactionReceiptData) -> Option<Transaction> {
-    if let (Some(value), Some(contract_result)) = (transaction.raw_data.contract.first().cloned(), transaction.ret.first().cloned()) {
-        let state: TransactionState = if contract_result.contract_ret == "SUCCESS" {
-            TransactionState::Confirmed
-        } else {
-            TransactionState::Failed
-        };
-        let fee = receipt.fee.unwrap_or_default().to_string();
-        let created_at = DateTime::from_timestamp_millis(receipt.block_time_stamp)?;
+    let contract = transaction.raw_data.contract.first()?.clone();
+    let contract_result = transaction.ret.first()?;
+    let context = TransactionContext::new(
+        chain,
+        transaction.transaction_id,
+        contract.parameter.value.owner_address.clone(),
+        &contract_result.contract_ret,
+        receipt.fee,
+        receipt.block_time_stamp,
+        transaction.raw_data.data.as_deref(),
+    )?;
 
-        let memo = transaction.raw_data.data.as_deref().map(decode_hex_message);
-        let contract_value = value.parameter.value;
-        let from = contract_value.owner_address.unwrap_or_default();
-
-        let contract_type = value.contract_type;
-        if let Some((transaction_type, to, amount, metadata)) = match contract_type {
-            Some(TronContractType::Transfer) if !transaction.ret.is_empty() => {
-                let to = contract_value.to_address.unwrap_or_default();
-                Some((TransactionType::Transfer, to, contract_value.amount.unwrap_or_default().to_string(), None))
-            }
-            Some(TronContractType::FreezeBalanceV2) => Some((
-                TransactionType::StakeFreeze,
-                from.clone(),
-                contract_value.frozen_balance.unwrap_or_default().to_string(),
-                resource_type_metadata(contract_value.resource.clone()),
-            )),
-            Some(TronContractType::UnfreezeBalanceV2) => Some((
-                TransactionType::StakeUnfreeze,
-                from.clone(),
-                contract_value.unfreeze_balance.unwrap_or_default().to_string(),
-                resource_type_metadata(contract_value.resource.clone()),
-            )),
-            Some(TronContractType::VoteWitness) => {
-                let votes = contract_value.votes.as_ref()?;
-                let vote = votes.first()?;
-                let to = TronAddress::from_hex(vote.vote_address.as_str())?.encode();
-                let amount = vote.vote_count * 1_000_000;
-                Some((TransactionType::StakeDelegate, to, amount.to_string(), None))
-            }
-            _ => None,
-        } {
-            let transaction = Transaction::new(
-                transaction.transaction_id,
-                chain.as_asset_id(),
-                from,
-                to,
-                None,
-                transaction_type,
-                state,
-                fee,
-                chain.as_asset_id(),
-                amount,
-                memo.clone(),
-                metadata,
-                created_at,
-            );
-            return Some(transaction);
-        }
-        let logs = receipt.log.unwrap_or_default();
-        if contract_type == Some(TronContractType::TriggerSmart) && logs.len() == 1 {
-            let log = logs.first()?;
-            let topics = log.topics.as_ref()?;
-            if topics.len() != 3 || topics.first()?.as_str() != ERC20_TRANSFER_EVENT_SIGNATURE {
-                return None;
-            }
-
-            let token_id = contract_value.contract_address?;
-            let from = TronAddress::from_topic(&topics[1])?.encode();
-            let to = TronAddress::from_topic(&topics[2])?.encode();
-            let value = BigUint::from_bytes_be(&decode_hex(log.data.as_deref()?).ok()?);
-            let asset_id = AssetId { chain, token_id: Some(token_id) };
-
-            let transaction = Transaction::new(
-                transaction.transaction_id,
-                asset_id,
-                from,
-                to,
-                None,
-                TransactionType::Transfer,
-                state,
-                fee,
-                chain.as_asset_id(),
-                value.to_string(),
-                memo,
-                None,
-                created_at,
-            );
-
-            return Some(transaction);
-        }
+    if let Some(transaction) = context.map_native_contract(contract.contract_type, &contract.parameter.value) {
+        return Some(transaction);
     }
+
+    if contract.contract_type == Some(TronContractType::TriggerSmart) {
+        return context.map_trigger_smart_contract(&contract.parameter.value, &receipt.log.unwrap_or_default());
+    }
+
     None
+}
+
+struct TransactionContext {
+    chain: Chain,
+    hash: String,
+    from: String,
+    state: TransactionState,
+    fee: String,
+    fee_asset_id: AssetId,
+    memo: Option<String>,
+    created_at: DateTime<Utc>,
+}
+
+impl TransactionContext {
+    fn new(chain: Chain, hash: String, owner_address: Option<String>, contract_ret: &str, fee: Option<i64>, block_time_stamp: i64, data: Option<&str>) -> Option<Self> {
+        Some(Self {
+            chain,
+            hash,
+            from: owner_address.unwrap_or_default(),
+            state: map_transaction_state(contract_ret),
+            fee: fee.unwrap_or_default().to_string(),
+            fee_asset_id: chain.as_asset_id(),
+            memo: data.map(decode_hex_message),
+            created_at: DateTime::from_timestamp_millis(block_time_stamp)?,
+        })
+    }
+
+    fn map_native_contract(&self, contract_type: Option<TronContractType>, contract_value: &ContractParameterValue) -> Option<Transaction> {
+        let (transaction_type, to, value, metadata) = match contract_type? {
+            TronContractType::Transfer => (
+                TransactionType::Transfer,
+                contract_value.to_address.clone().unwrap_or_default(),
+                contract_value.amount.unwrap_or_default().to_string(),
+                None,
+            ),
+            TronContractType::FreezeBalanceV2 => (
+                TransactionType::StakeFreeze,
+                self.from.clone(),
+                contract_value.frozen_balance.unwrap_or_default().to_string(),
+                resource_type_metadata(contract_value.resource.as_deref()),
+            ),
+            TronContractType::UnfreezeBalanceV2 => (
+                TransactionType::StakeUnfreeze,
+                self.from.clone(),
+                contract_value.unfreeze_balance.unwrap_or_default().to_string(),
+                resource_type_metadata(contract_value.resource.as_deref()),
+            ),
+            TronContractType::VoteWitness => self.vote_witness_transaction_data(contract_value)?,
+            _ => return None,
+        };
+
+        Some(self.build_transaction(self.fee_asset_id.clone(), self.from.clone(), to, transaction_type, value, metadata))
+    }
+
+    fn vote_witness_transaction_data(&self, contract_value: &ContractParameterValue) -> Option<(TransactionType, String, String, Option<Value>)> {
+        let vote = contract_value.votes.as_ref()?.first()?;
+        let to = TronAddress::from_hex(vote.vote_address.as_str())?.encode();
+        let value = (vote.vote_count * 1_000_000).to_string();
+        Some((TransactionType::StakeDelegate, to, value, None))
+    }
+
+    fn map_trigger_smart_contract(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
+        self.map_token_approval(contract_value).or_else(|| self.map_token_transfer(contract_value, logs))
+    }
+
+    fn map_token_approval(&self, contract_value: &ContractParameterValue) -> Option<Transaction> {
+        let token_id = contract_value.contract_address.as_ref()?;
+        let approval = trc20::decode_approval_hex(contract_value.data.as_deref()?)?;
+
+        Some(self.build_transaction(
+            AssetId::from_token(self.chain, token_id),
+            self.from.clone(),
+            approval.spender.encode(),
+            TransactionType::TokenApproval,
+            approval.value.to_string(),
+            None,
+        ))
+    }
+
+    fn map_token_transfer(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
+        if logs.len() != 1 {
+            return None;
+        }
+
+        let log = logs.first()?;
+        let topics = log.topics.as_ref()?;
+        if topics.len() != 3 || topics.first()?.as_str() != ERC20_TRANSFER_EVENT_SIGNATURE {
+            return None;
+        }
+
+        let from = TronAddress::from_topic(&topics[1])?.encode();
+        let to = TronAddress::from_topic(&topics[2])?.encode();
+        let value = BigUint::from_bytes_be(&decode_hex(log.data.as_deref()?).ok()?).to_string();
+        let asset_id = AssetId::from_token(self.chain, contract_value.contract_address.as_ref()?);
+
+        Some(self.build_transaction(asset_id, from, to, TransactionType::Transfer, value, None))
+    }
+
+    fn build_transaction(&self, asset_id: AssetId, from: String, to: String, transaction_type: TransactionType, value: String, metadata: Option<Value>) -> Transaction {
+        Transaction::new(
+            self.hash.clone(),
+            asset_id,
+            from,
+            to,
+            None,
+            transaction_type,
+            self.state,
+            self.fee.clone(),
+            self.fee_asset_id.clone(),
+            value,
+            self.memo.clone(),
+            metadata,
+            self.created_at,
+        )
+    }
+}
+
+fn map_transaction_state(contract_ret: &str) -> TransactionState {
+    if contract_ret == "SUCCESS" {
+        TransactionState::Confirmed
+    } else {
+        TransactionState::Failed
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::models::{BlockTransactions, TransactionReceipt, TransactionReceiptData, TronContractType, TronTransactionBroadcast};
-    use crate::provider::testkit::TEST_TRANSACTION_ID;
+    use crate::provider::testkit::{TEST_TOKEN_APPROVAL_TRANSACTION_ID, TEST_TRANSACTION_ID};
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 
     #[test]
@@ -310,6 +365,34 @@ mod tests {
         let transaction = result.unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_ne!(transaction.from, transaction.to);
+    }
+
+    #[test]
+    fn test_map_transaction_token_approval() {
+        let failed = map_transaction(
+            Chain::Tron,
+            TronTransaction::mock_token_approval("OUT_OF_ENERGY"),
+            TransactionReceiptData::mock_with_result("OUT_OF_ENERGY"),
+        )
+        .unwrap();
+
+        assert_eq!(failed.hash, TEST_TOKEN_APPROVAL_TRANSACTION_ID);
+        assert_eq!(failed.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
+        assert_eq!(failed.from, "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
+        assert_eq!(failed.to, "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
+        assert_eq!(failed.value, "0");
+        assert_eq!(failed.transaction_type, TransactionType::TokenApproval);
+        assert_eq!(failed.state, TransactionState::Failed);
+
+        let confirmed = map_transaction(
+            Chain::Tron,
+            TronTransaction::mock_token_approval("SUCCESS"),
+            TransactionReceiptData::mock_with_result("SUCCESS"),
+        )
+        .unwrap();
+
+        assert_eq!(confirmed.transaction_type, TransactionType::TokenApproval);
+        assert_eq!(confirmed.state, TransactionState::Confirmed);
     }
 
     #[test]

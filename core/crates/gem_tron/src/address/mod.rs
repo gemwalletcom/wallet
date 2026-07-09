@@ -49,6 +49,24 @@ impl TronAddress {
         Self::from_hex(topic.get(topic.len().checked_sub(ADDRESS_LEN * 2)?..)?)
     }
 
+    pub(crate) fn from_abi_word(word: &[u8]) -> Option<Self> {
+        if word.len() != ABI_ADDRESS_PARAMETER_HEX_LEN / 2 {
+            return None;
+        }
+
+        let prefixed_offset = word.len().checked_sub(PREFIXED_ADDRESS_LEN)?;
+        if word.get(..prefixed_offset)?.iter().all(|value| *value == 0) && word.get(prefixed_offset) == Some(&ADDRESS_PREFIX) {
+            return Self::from_hex(&hex::encode(word.get(prefixed_offset..)?));
+        }
+
+        let account_id_offset = word.len().checked_sub(ADDRESS_LEN)?;
+        if word.get(..account_id_offset)?.iter().all(|value| *value == 0) {
+            return Self::from_hex(&hex::encode(word.get(account_id_offset..)?));
+        }
+
+        None
+    }
+
     pub fn parse(address: &str) -> Result<Self, AddressError> {
         Self::try_parse(address).ok_or_else(|| AddressError::new(format!("invalid Tron address: {address}")))
     }
@@ -160,6 +178,23 @@ mod tests {
 
         assert_eq!(TronAddress::from_topic(&address.abi_address_parameter()).unwrap(), address);
         assert_eq!(TronAddress::from_topic("too-short"), None);
+    }
+
+    #[test]
+    fn test_from_abi_word() {
+        let address = TronAddress::parse("TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7").unwrap();
+        let prefixed_address = TronAddress::parse("TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS").unwrap();
+
+        assert_eq!(TronAddress::from_abi_word(&hex::decode(address.abi_address_parameter()).unwrap()).unwrap(), address);
+        assert_eq!(
+            TronAddress::from_abi_word(&hex::decode("000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80").unwrap()).unwrap(),
+            prefixed_address
+        );
+        assert_eq!(
+            TronAddress::from_abi_word(&hex::decode("000000000000000000010000019e353a35efaa8e27c2a602a791ae1b19d9c9fa").unwrap()),
+            None
+        );
+        assert_eq!(TronAddress::from_abi_word(&hex::decode("019e353a35efaa8e27c2a602a791ae1b19d9c9fa").unwrap()), None);
     }
 
     #[test]

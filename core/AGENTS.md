@@ -60,6 +60,7 @@ Fluent wraps interpolated args in isolation marks (`\u{2068}…\u{2069}`) — ac
 - Do not write tolerance-based assertions against live network values or values recomputed from separate RPC/API calls in integration tests. These tests are flaky and low-signal.
 - For integration tests, assert stable invariants only. For exact numeric behavior, cover the pure calculation in unit tests with deterministic inputs.
 - Write one test function with many assertions instead of many separate single-assertion test functions. Group related cases into a single `test_<function_name>` test.
+- Put full JSON payloads in `testdata/` and load them with `include_str!`; do not embed request, response, or transaction JSON with `serde_json::json!` in Rust test files.
 
 ## Testkit Mocks
 
