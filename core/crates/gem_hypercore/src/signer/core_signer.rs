@@ -8,6 +8,7 @@ use primitives::{
 use serde::Serialize;
 use serde_json::{self, Value};
 use std::time::{SystemTime, UNIX_EPOCH};
+use zeroize::Zeroizing;
 
 use crate::{
     core::{
@@ -69,7 +70,7 @@ impl HyperCoreSigner {
             && is_spot_swap(from_asset.chain(), to_asset.chain())
         {
             let hl_order = input.metadata.get_hyperliquid_order()?;
-            let agent_key = decode_hex(&hl_order.agent_private_key).map_err(|_| SignerError::InvalidInput("Invalid agent private key".to_string()))?;
+            let agent_key = Zeroizing::new(decode_hex(&hl_order.agent_private_key).map_err(|_| SignerError::InvalidInput("Invalid agent private key".to_string()))?);
             let builder = get_builder(BUILDER_ADDRESS, hl_order.builder_fee_bps as i32).ok();
 
             let mut order: PlaceOrder = serde_json::from_str(&swap_data.data.data)?;
@@ -78,7 +79,7 @@ impl HyperCoreSigner {
             let mut timestamp_incrementer = NumberIncrementer::new(Self::timestamp_ms());
             let mut transactions = self.sign_approval_transactions(hl_order, private_key, &mut timestamp_incrementer)?;
 
-            transactions.push(self.sign_place_order(order, timestamp_incrementer.next_val(), &agent_key)?);
+            transactions.push(self.sign_place_order(order, timestamp_incrementer.next_val(), agent_key.as_slice())?);
             return Ok(transactions);
         }
 
@@ -121,7 +122,7 @@ impl HyperCoreSigner {
         let perpetual_type = input.input_type.get_perpetual_type().map_err(SignerError::invalid_input)?;
         let order = input.metadata.get_hyperliquid_order()?;
 
-        let agent_key = decode_hex(&order.agent_private_key).map_err(|_| SignerError::InvalidInput("Invalid agent private key".to_string()))?;
+        let agent_key = Zeroizing::new(decode_hex(&order.agent_private_key).map_err(|_| SignerError::InvalidInput("Invalid agent private key".to_string()))?);
         let builder = get_builder(BUILDER_ADDRESS, order.builder_fee_bps as i32).ok();
         let mut timestamp_incrementer = NumberIncrementer::new(Self::timestamp_ms());
 

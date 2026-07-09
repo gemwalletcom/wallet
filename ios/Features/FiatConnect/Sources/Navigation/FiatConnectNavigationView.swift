@@ -19,6 +19,7 @@ public struct FiatConnectNavigationView: View {
             model: model,
         )
         .onChangeBindQuery(model.assetQuery, action: model.onAssetDataChange)
+        .bindQuery(model.priceUsdQuery)
         .ifElse(
             model.showFiatTypePicker,
             ifContent: {

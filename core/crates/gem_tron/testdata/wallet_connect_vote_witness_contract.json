@@ -1,0 +1,18 @@
+{
+  "transaction": {
+    "raw_data": {
+      "contract": [
+        {
+          "type": "VoteWitnessContract",
+          "parameter": {
+            "type_url": "type.googleapis.com/protocol.VoteWitnessContract",
+            "value": {
+              "owner_address": "4160e00625a95cbc180f290e2611c826f90eeba56f",
+              "votes": []
+            }
+          }
+        }
+      ]
+    }
+  }
+}

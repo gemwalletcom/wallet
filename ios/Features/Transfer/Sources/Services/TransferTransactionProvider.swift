@@ -39,7 +39,15 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
         async let getTransactionMetadata = getTransactionMetadata(wallet: wallet, data: data)
         async let getTransactionScan = getTransactionScan(wallet: wallet, data: data)
 
-        let (rates, metadata, scanResult) = try await (getFeeRates, getTransactionMetadata, getTransactionScan)
+        let (rates, metadata) = try await (getFeeRates, getTransactionMetadata)
+        async let getTransactionData = getTransactionLoad(
+            wallet: wallet,
+            data: data,
+            available: available,
+            rate: rates.selected,
+            metadata: metadata,
+        )
+        let scanResult = try await getTransactionScan
 
         if let scanResult {
             try ScanTransactionValidator.validate(
@@ -51,13 +59,7 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
 
         return try await TransferTransactionData(
             allRates: rates.rates,
-            transactionData: getTransactionLoad(
-                wallet: wallet,
-                data: data,
-                available: available,
-                rate: rates.selected,
-                metadata: metadata,
-            ),
+            transactionData: getTransactionData,
             scanResult: scanResult,
         )
     }

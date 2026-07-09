@@ -92,6 +92,12 @@ wallet_import_address_warning = আপনি এই ঠিকানার ব্
 wallet_deposit = জমা
 wallet_withdraw = প্রত্যাহার করুন
 wallet_available_balance = উপলব্ধ: %@
+# Used in the insufficient network fee sheet for the buy option subtitle.
+wallet_pay_with_card_or_bank = কার্ড বা ব্যাংক দিয়ে পেমেন্ট করুন
+# Used in the insufficient network fee sheet for the swap option subtitle.
+wallet_from_your_wallet_assets = আপনার ওয়ালেটের সম্পদ থেকে
+# Used in the insufficient network fee sheet for the receive option subtitle.
+wallet_transfer_from_another_wallet = অন্য ওয়ালেট থেকে ট্রান্সফার করুন
 wallet_portfolio_title = পোর্টফোলিও
 wallet_import_already_imported_message = এই ওয়ালেটটি ইতিমধ্যেই আমদানি করা হয়েছে।
 
@@ -297,6 +303,7 @@ asset_verification_suspicious = সন্দেহজনক
 asset_verification_warning_title = আপনি কি যোগ করছেন তা জানুন
 asset_verification_warning_message = যে কেউ একটি তৈরি করতে পারে - জাল বা দূষিত টোকেন সহ।
 asset_buy_asset = %@ কিনুন
+asset_get_asset = %@ পান
 asset_add_to_wallet = ওয়ালেটে যোগ করুন
 asset_hide_from_wallet = মানিব্যাগ থেকে লুকান
 asset_resources = রিসোর্স

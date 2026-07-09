@@ -12,6 +12,8 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
     case payloadDetails
     case url(URL)
     case fiatConnect(assetAddress: AssetAddress, wallet: Wallet, amount: Int?)
+    case getNetworkFeeAsset(Asset)
+    case selectedAsset(SelectedAssetInput, wallet: Wallet)
     case swapDetails
     case perpetualDetails(PerpetualDetailsViewModel)
     case addContact(AddContactType)
@@ -23,6 +25,8 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
         case .networkFeeSelector: "network-fee-selector"
         case .payloadDetails: "payload-details"
         case .fiatConnect: "fiat-connect"
+        case let .getNetworkFeeAsset(asset): "get-network-fee-asset-\(asset.id.identifier)"
+        case let .selectedAsset(input, _): "selected-asset-\(input.id)"
         case .swapDetails: "swap-details"
         case let .perpetualDetails(model): "perpetual-details-\(model.id)"
         case let .addContact(type): "add-contact-\(type.id)"

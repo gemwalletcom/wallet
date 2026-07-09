@@ -7,7 +7,9 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
+import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
 import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
@@ -69,6 +71,7 @@ import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PortfolioChartRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
@@ -78,6 +81,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAssetId
+import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
@@ -190,6 +194,7 @@ class WalletNavigator(
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = push(AssetRoute(assetId))
     fun openAssetChart(assetId: AssetId) = push(AssetChartRoute(assetId))
+    fun openPortfolioChart(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioChartRoute(type))
     fun openTransaction(transactionId: TransactionId) = push(TransactionDetailsRoute(transactionId))
     fun openBridgeConnections() = push(BridgeConnectionsRoute)
     fun openBridgeConnectionDetails(connectionId: String) = push(BridgeConnectionDetailsRoute(connectionId))
@@ -235,6 +240,15 @@ class WalletNavigator(
         clearSwapSelections()
         push(SwapPairRoute(from, to))
     }
+    fun openSwapTo(assetId: AssetId) {
+        clearSwapSelections()
+        swapSelections[SwapRoute] = SwapSelection(
+            itemType = SwapItemType.Receive,
+            payAssetId = null,
+            receiveAssetId = assetId,
+        )
+        push(SwapRoute)
+    }
     fun openSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
         push(SwapSelectRoute(itemType, payAssetId, receiveAssetId))
     }
@@ -251,6 +265,13 @@ class WalletNavigator(
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
     fun openBuy(assetId: AssetId, amount: Double?) = push(FiatInputRoute(assetId, amount))
+    fun openGetNetworkFeeAsset(action: GetNetworkFeeAssetAction, assetId: AssetId) {
+        when (action) {
+            GetNetworkFeeAssetAction.Buy -> openBuy(assetId, amount = FiatConfig.insufficientNetworkFeeBuyAmount.toDouble())
+            GetNetworkFeeAssetAction.Swap -> openSwapTo(assetId)
+            GetNetworkFeeAssetAction.Receive -> openReceive(assetId)
+        }
+    }
     fun openFiatTransactions() = push(FiatTransactionsRoute)
     fun openConfirm(params: ConfirmParams) {
         val pack = params.pack() ?: return

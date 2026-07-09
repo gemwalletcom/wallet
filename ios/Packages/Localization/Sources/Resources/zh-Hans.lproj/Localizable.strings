@@ -81,6 +81,9 @@
 "wallet.deposit" = "充值";
 "wallet.withdraw" = "提现";
 "wallet.available_balance" = "可用： %@";
+"wallet.pay_with_card_or_bank" = "使用银行卡或银行付款";
+"wallet.from_your_wallet_assets" = "来自你的钱包资产";
+"wallet.transfer_from_another_wallet" = "从另一个钱包转入";
 "wallet.portfolio.title" = "投资组合";
 "wallet.import.already_imported_message" = "此钱包已导入。";
 "wallets.title" = "钱包";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "了解您正在添加的内容";
 "asset.verification.warning_message" = "任何人都可以创建，包括假冒或恶意代币。";
 "asset.buy_asset" = "购买%@";
+"asset.get_asset" = "获取 %@";
 "asset.add_to_wallet" = "添加到钱包";
 "asset.hide_from_wallet" = "从钱包隐藏";
 "asset.resources" = "资源";

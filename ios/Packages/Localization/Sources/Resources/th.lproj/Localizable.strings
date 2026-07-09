@@ -81,6 +81,9 @@
 "wallet.deposit" = "เงินฝาก";
 "wallet.withdraw" = "ถอน";
 "wallet.available_balance" = "พร้อมใช้งาน: %@";
+"wallet.pay_with_card_or_bank" = "ชำระด้วยบัตรหรือธนาคาร";
+"wallet.from_your_wallet_assets" = "จากสินทรัพย์ในกระเป๋าของคุณ";
+"wallet.transfer_from_another_wallet" = "โอนจากกระเป๋าอื่น";
 "wallet.portfolio.title" = "พอร์ตโฟลิโอ";
 "wallet.import.already_imported_message" = "กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว";
 "wallets.title" = "กระเป๋าสตางค์";
@@ -243,6 +246,7 @@
 "asset.verification.warning_title" = "รู้ว่าคุณกำลังเพิ่มอะไร";
 "asset.verification.warning_message" = "ใครๆ ก็สามารถสร้างโทเค็นขึ้นมาได้ รวมถึงโทเค็นปลอมหรือโทเค็นที่เป็นอันตราย";
 "asset.buy_asset" = "ซื้อ %@";
+"asset.get_asset" = "รับ %@";
 "asset.add_to_wallet" = "เพิ่มลงในกระเป๋าสตางค์";
 "asset.hide_from_wallet" = "ซ่อนจากกระเป๋าสตางค์";
 "asset.resources" = "ทรัพยากร";

@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.models.actions.AssetIdAction
 fun PerpetualMarketNavScreen(
     onCancel: () -> Unit,
     onOpenPerpetualDetails: AssetIdAction,
+    onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
     viewModel: PerpetualMarketViewModel = hiltViewModel(),
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
@@ -59,6 +60,7 @@ fun PerpetualMarketNavScreen(
                 PerpetualMarketAction.Close -> onCancel()
                 PerpetualMarketAction.Withdraw -> amountAction(AmountParams.Withdraw(HypercoreUSDC.id))
                 PerpetualMarketAction.Deposit -> amountAction(AmountParams.Deposit(PerpetualConfig.depositAssetId))
+                PerpetualMarketAction.OpenPortfolio -> onOpenPortfolio()
                 is PerpetualMarketAction.TogglePin -> viewModel.onTogglePin(action.perpetualId)
                 is PerpetualMarketAction.OpenPerpetual -> {
                     onOpenPerpetualDetails(action.assetId)

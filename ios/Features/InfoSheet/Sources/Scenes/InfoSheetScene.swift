@@ -39,32 +39,24 @@ public struct InfoSheetScene: View {
                     }
                 })
                 .if(model.shouldShowButton) {
-                    $0.safeAreaInset(edge: .bottom) {
-                        actionButton
-                            .padding([.bottom], .medium)
-                    }
+                    $0.safeAreaButton { actionButton }
                 }
                 .presentationDetentsForCurrentDeviceSize()
                 .safariSheet(url: $isPresentedUrl)
         }
     }
 
-    private var actionButton: some View {
+    private var actionButton: StateButton {
         StateButton(
             text: model.buttonTitle,
             action: onAction,
         )
-        .frame(maxWidth: .scene.button.maxWidth)
     }
 }
 
 // MARK: - Actions
 
 extension InfoSheetScene {
-    private func onClose() {
-        dismiss()
-    }
-
     private func onAction() {
         guard let button = model.button else { return }
 

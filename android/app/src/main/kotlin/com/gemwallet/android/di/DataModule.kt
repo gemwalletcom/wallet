@@ -5,6 +5,7 @@ import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
@@ -29,9 +30,11 @@ object DataModule {
     @Singleton
     fun provideSignerPreloader(
         gateway: GemGateway,
+        gemDeviceApiClient: GemDeviceApiClient,
     ): SignerPreloaderProxy {
         return SignerPreloaderProxy(
             gateway = gateway,
+            scanTransaction = gemDeviceApiClient::getScanTransaction,
         )
     }
 

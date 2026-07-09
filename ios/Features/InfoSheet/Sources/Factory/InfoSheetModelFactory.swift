@@ -40,11 +40,14 @@ public enum InfoSheetModelFactory {
                 feeAsset.name.boldMarkdown(),
                 feeAsset.symbol.boldMarkdown(),
             )
+            let actionTitle = feeAsset.chain == .tron
+                ? Localized.Asset.getAsset(feeAsset.symbol)
+                : Localized.Asset.buyAsset(feeAsset.symbol)
             return InfoSheetModel(
                 title: Localized.Info.InsufficientNetworkFeeBalance.title(feeAsset.symbol),
                 description: description,
                 image: .assetImage(image),
-                button: .action(title: Localized.Asset.buyAsset(asset.feeAsset.symbol), action: action),
+                button: .action(title: actionTitle, action: action),
             )
         case let .transactionState(imageURL, placeholder, state):
             let model = TransactionStateViewModel(state: state)

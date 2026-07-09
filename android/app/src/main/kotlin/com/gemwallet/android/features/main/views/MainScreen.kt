@@ -184,6 +184,7 @@ fun MainScreen(
                                     AssetsAction.Receive -> navigator.openReceive()
                                     AssetsAction.Buy -> navigator.openBuy()
                                     AssetsAction.Swap -> navigator.openSwap()
+                                    AssetsAction.Portfolio -> navigator.openPortfolioChart()
                                     AssetsAction.Perpetuals -> navigator.openPerpetuals()
                                     is AssetsAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
                                     is AssetsAction.OpenAsset -> navigator.openAsset(action.assetId)

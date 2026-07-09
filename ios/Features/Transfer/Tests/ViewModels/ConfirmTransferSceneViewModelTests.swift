@@ -216,9 +216,10 @@ struct ConfirmTransferSceneViewModelTests {
         model.state = .error(AnyError("test"))
         let errorFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
-        if case let .networkFee(listItem, _) = errorFeeItem?.itemModel {
+        if case let .networkFee(listItem, selectable) = errorFeeItem?.itemModel {
             #expect(listItem.subtitle == "-")
             #expect(listItem.subtitleExtra == nil)
+            #expect(selectable == false)
         } else {
             Issue.record("Expected network fee item model for error state")
         }
@@ -227,8 +228,9 @@ struct ConfirmTransferSceneViewModelTests {
         model.state = .data(TransactionInputViewModel.mock())
         let loadedFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
-        if case let .networkFee(listItem, _) = loadedFeeItem?.itemModel {
+        if case let .networkFee(listItem, selectable) = loadedFeeItem?.itemModel {
             #expect(listItem.subtitle != nil)
+            #expect(selectable)
         } else {
             Issue.record("Expected network fee item model with loaded fee")
         }
@@ -464,6 +466,25 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func tronInsufficientNetworkFeeActionShowsGetOptions() {
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
+        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockTronUSDT(), required: nil))
+
+        guard case let .info(.insufficientNetworkFee(_, _, _, _, _, action)) = model.isPresentingSheet else {
+            Issue.record("Expected insufficientNetworkFee sheet")
+            return
+        }
+
+        action()
+
+        guard case let .getNetworkFeeAsset(asset) = model.isPresentingSheet else {
+            Issue.record("Expected getNetworkFeeAsset sheet")
+            return
+        }
+        #expect(asset.id == Asset.mockTron().id)
+    }
+
+    @Test
     func insufficientNetworkFeeSheetShowsRequiredFeeWithFiat() {
         let asset = Asset.mockEthereum()
         let feeAsset = asset.chain.asset
@@ -490,6 +511,21 @@ struct ConfirmTransferSceneViewModelTests {
             feeAsset.name.boldMarkdown(),
             feeAsset.symbol.boldMarkdown(),
         ))
+    }
+
+    @Test
+    func tronInsufficientNetworkFeeSheetUsesGetActionTitle() {
+        let asset = Asset.mockTronUSDT()
+        let model = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
+            asset,
+            image: AssetViewModel(asset: asset).assetImage,
+            required: nil,
+            price: nil,
+            currency: "USD",
+            action: {},
+        ))
+
+        #expect(model.buttonTitle == Localized.Asset.getAsset("TRX"))
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {

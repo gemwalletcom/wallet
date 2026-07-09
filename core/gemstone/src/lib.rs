@@ -20,6 +20,7 @@ pub mod perpetual;
 pub mod price_alert_formatter;
 pub mod signer;
 pub mod siwe;
+pub mod support;
 #[cfg(all(test, feature = "reqwest_provider"))]
 pub(crate) mod testkit;
 pub mod transaction_state;

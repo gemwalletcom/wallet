@@ -86,6 +86,9 @@
   <string name="wallet_deposit">Depósito</string>
   <string name="wallet_withdraw">Retirar</string>
   <string name="wallet_available_balance">Disponível: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Pague com cartão ou banco</string>
+  <string name="wallet_from_your_wallet_assets">Dos ativos da sua carteira</string>
+  <string name="wallet_transfer_from_another_wallet">Transfira de outra carteira</string>
   <string name="wallet_portfolio_title">Portfólio</string>
   <string name="wallet_import_already_imported_message">Esta carteira já foi importada.</string>
   <string name="wallets_title">Carteiras</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">Saiba o que você está adicionando</string>
   <string name="asset_verification_warning_message">Qualquer um pode criar um – incluindo tokens falsos ou maliciosos.</string>
   <string name="asset_buy_asset">Comprar %1$s</string>
+  <string name="asset_get_asset">Obter %1$s</string>
   <string name="asset_add_to_wallet">Adicionar à carteira</string>
   <string name="asset_hide_from_wallet">Ocultar da carteira</string>
   <string name="asset_resources">Recursos</string>

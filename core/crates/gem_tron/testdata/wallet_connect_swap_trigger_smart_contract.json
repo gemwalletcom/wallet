@@ -1,0 +1,20 @@
+{
+  "transaction": {
+    "raw_data": {
+      "contract": [
+        {
+          "type": "TriggerSmartContract",
+          "parameter": {
+            "type_url": "type.googleapis.com/protocol.TriggerSmartContract",
+            "value": {
+              "owner_address": "4160e00625a95cbc180f290e2611c826f90eeba56f",
+              "contract_address": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+              "data": "9871efa4",
+              "call_value": 1000000
+            }
+          }
+        }
+      ]
+    }
+  }
+}

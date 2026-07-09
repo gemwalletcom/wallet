@@ -86,6 +86,9 @@
   <string name="wallet_deposit">Depozit</string>
   <string name="wallet_withdraw">Retrage</string>
   <string name="wallet_available_balance">Disponibil: %1$s</string>
+  <string name="wallet_pay_with_card_or_bank">Plătește cu cardul sau banca</string>
+  <string name="wallet_from_your_wallet_assets">Din activele portofelului tău</string>
+  <string name="wallet_transfer_from_another_wallet">Transferă din alt portofel</string>
   <string name="wallet_portfolio_title">Portofoliu</string>
   <string name="wallet_import_already_imported_message">Acest portofel a fost deja importat.</string>
   <string name="wallets_title">Portofele</string>
@@ -258,6 +261,7 @@
   <string name="asset_verification_warning_title">Aflați ce adăugați</string>
   <string name="asset_verification_warning_message">Oricine poate crea unul - inclusiv jetoane false sau rău intenționate.</string>
   <string name="asset_buy_asset">Cumpără %1$s</string>
+  <string name="asset_get_asset">Obține %1$s</string>
   <string name="asset_add_to_wallet">Adaugă în portofel</string>
   <string name="asset_hide_from_wallet">Ascunde din portofel</string>
   <string name="asset_resources">Resurse</string>

@@ -7,6 +7,7 @@ internal sealed interface PerpetualMarketAction {
     data object Refresh : PerpetualMarketAction
     data object Withdraw : PerpetualMarketAction
     data object Deposit : PerpetualMarketAction
+    data object OpenPortfolio : PerpetualMarketAction
     data object Close : PerpetualMarketAction
     data class TogglePin(val perpetualId: PerpetualId) : PerpetualMarketAction
     data class OpenPerpetual(val assetId: AssetId) : PerpetualMarketAction

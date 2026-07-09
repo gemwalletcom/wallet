@@ -5,21 +5,14 @@ import Style
 import SwiftUI
 
 struct SupportTypingIndicator: View {
-    let name: String
-
     var body: some View {
-        VStack(alignment: .leading, spacing: .tiny) {
-            Text(name)
-                .font(.caption)
-                .foregroundStyle(Colors.secondaryText)
-            HStack(spacing: .zero) {
-                SupportTypingDots()
-                    .padding(.horizontal, .space16)
-                    .padding(.vertical, .space12)
-                    .background(Colors.white)
-                    .clipShape(Capsule())
-                Spacer(minLength: .space32)
-            }
+        HStack(spacing: .zero) {
+            SupportTypingDots()
+                .padding(.horizontal, .space16)
+                .padding(.vertical, .space12)
+                .background(Colors.white)
+                .clipShape(Capsule())
+            Spacer(minLength: .space32)
         }
     }
 }

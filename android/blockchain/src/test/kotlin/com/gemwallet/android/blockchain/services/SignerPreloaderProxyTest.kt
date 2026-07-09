@@ -1,10 +1,13 @@
 package com.gemwallet.android.blockchain.services
 
+import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.ScanTransaction
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -99,20 +102,83 @@ class SignerPreloaderProxyTest {
         coVerify(exactly = 1) { gateway.getTransactionLoad(any(), any()) }
     }
 
+    @Test
+    fun preload_blocksMaliciousScan() = runBlocking {
+        val params = transferParams()
+        val subject = SignerPreloaderProxy(
+            gateway = gateway,
+            scanTransaction = { ScanTransaction(isMalicious = true, isMemoRequired = false) },
+        )
+
+        stubPreload()
+        stubTransactionLoad()
+
+        val error = runCatching { subject.preload(params, FeePriority.Normal) }.exceptionOrNull()
+
+        assertEquals(ConfirmError.ScanTransactionMalicious, error)
+    }
+
+    @Test
+    fun preload_blocksMemoRequiredScanWithoutMemo() = runBlocking {
+        val params = transferParams()
+        val subject = SignerPreloaderProxy(
+            gateway = gateway,
+            scanTransaction = { ScanTransaction(isMalicious = false, isMemoRequired = true) },
+        )
+
+        stubPreload()
+        stubTransactionLoad()
+
+        val error = runCatching { subject.preload(params, FeePriority.Normal) }.exceptionOrNull()
+
+        assertEquals(params.asset.symbol, (error as? ConfirmError.ScanTransactionMemoRequired)?.symbol)
+    }
+
     private fun transferParams(): ConfirmParams {
         val asset = mockAssetEthereum()
-        val account = mockAccount(
-            chain = asset.id.chain,
-            address = "0xsender",
-            derivationPath = "m/44'/60'/0'/0/0",
-        )
 
         return ConfirmParams.Builder(
             asset = asset,
-            from = account,
+            from = sender(asset),
             amount = BigInteger("1000000000000000"),
         ).transfer(
             destination = DestinationAddress("0xrecipient"),
+        )
+    }
+
+    private fun sender(
+        asset: Asset,
+        derivationPath: String = "m/44'/60'/0'/0/0",
+    ) = mockAccount(
+        chain = asset.id.chain,
+        address = "0xsender",
+        derivationPath = derivationPath,
+    )
+
+    private fun stubTransactionLoad() {
+        coEvery { gateway.getTransactionLoad(any(), any()) } returns GemTransactionData(
+            fee = GemTransactionLoadFee(
+                fee = "21000",
+                gasPriceType = GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3"),
+                gasLimit = "21000",
+                options = GemFeeOptions(emptyMap()),
+            ),
+            metadata = GemTransactionLoadMetadata.Evm(
+                nonce = 7u,
+                chainId = 1u,
+                contractCall = null,
+            ),
+        )
+    }
+
+    private fun stubPreload() {
+        coEvery { gateway.getTransactionPreload(any(), any()) } returns GemTransactionLoadMetadata.Evm(
+            nonce = 7u,
+            chainId = 1u,
+            contractCall = null,
+        )
+        coEvery { gateway.getFeeRates(any(), any()) } returns listOf(
+            GemFeeRate(FeePriority.Normal.string, GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
         )
     }
 }

@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.perpetual
 
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
@@ -21,10 +20,6 @@ interface PerpetualRepository {
     fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualData?>
 
     fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?>
-
-    suspend fun putPerpetualChartData(data: List<ChartCandleStick>)
-
-    fun getPerpetualChartData(perpetualId: PerpetualId): Flow<List<ChartCandleStick>>
 
     suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>)
 

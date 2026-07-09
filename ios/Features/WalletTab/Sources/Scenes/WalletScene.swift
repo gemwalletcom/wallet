@@ -37,7 +37,10 @@ public struct WalletScene: View {
 
             if model.showPerpetuals {
                 Section {
-                    PerpetualsPreviewView(wallet: model.wallet)
+                    PerpetualsPreviewView(
+                        wallet: model.wallet,
+                        showBalancePrivacy: $preferences.isHideBalanceEnabled,
+                    )
                 } header: {
                     HeaderNavigationLinkView(title: model.perpetualsTitle, destination: Scenes.Perpetuals())
                 }
