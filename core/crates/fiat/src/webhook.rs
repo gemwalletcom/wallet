@@ -26,3 +26,14 @@ impl FiatWebhookRequest {
         self.headers.get(&name.to_ascii_lowercase()).map(String::as_str)
     }
 }
+
+#[cfg(test)]
+impl FiatWebhookRequest {
+    pub fn mock(raw_body: &str) -> Self {
+        Self::new(raw_body.to_string(), HashMap::new()).unwrap()
+    }
+
+    pub fn mock_with_header(raw_body: &str, name: &str, value: &str) -> Self {
+        Self::new(raw_body.to_string(), HashMap::from([(name.to_ascii_lowercase(), value.to_string())])).unwrap()
+    }
+}

@@ -140,34 +140,9 @@ mod fiat_integration_tests {
 
 #[cfg(test)]
 mod tests {
-    use hmac::{Hmac, KeyInit, Mac};
-    use sha2::Sha256;
-    use std::collections::HashMap;
-
     use crate::{FiatProvider, FiatWebhookRequest, providers::moonpay::client::MoonPayClient};
     use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
     use streamer::FiatWebhook;
-
-    const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
-
-    fn client() -> MoonPayClient {
-        MoonPayClient::new(gem_client::reqwest_client(), String::new(), String::new(), TEST_WEBHOOK_SIGNING_KEY.to_string())
-    }
-
-    fn signed_request(raw_body: &str) -> FiatWebhookRequest {
-        type HmacSha256 = Hmac<Sha256>;
-        let timestamp = "1492774577";
-        let signed_payload = format!("{timestamp}.{raw_body}");
-        let mut mac = HmacSha256::new_from_slice(TEST_WEBHOOK_SIGNING_KEY.as_bytes()).unwrap();
-        mac.update(signed_payload.as_bytes());
-        let signature = hex::encode(mac.finalize().into_bytes());
-
-        FiatWebhookRequest::new(
-            raw_body.to_string(),
-            HashMap::from([("moonpay-signature-v2".to_string(), format!("t={timestamp},s={signature}"))]),
-        )
-        .unwrap()
-    }
 
     fn assert_transaction(webhook: FiatWebhook, expected: FiatTransactionUpdate) {
         match webhook {
@@ -180,7 +155,7 @@ mod tests {
     async fn test_process_webhook_accepts_wrapped_transaction() {
         let raw_body = include_str!("../../../testdata/moonpay/webhook_buy_complete.json");
 
-        let result = client().process_webhook(signed_request(raw_body)).await.unwrap();
+        let result = MoonPayClient::mock().process_webhook(FiatWebhookRequest::mock_moonpay_signed(raw_body)).await.unwrap();
 
         assert_transaction(
             result,
@@ -198,8 +173,8 @@ mod tests {
     #[tokio::test]
     async fn test_process_webhook_rejects_missing_signature() {
         let raw_body = include_str!("../../../testdata/moonpay/webhook_buy_complete.json");
-        let request = FiatWebhookRequest::new(raw_body.to_string(), HashMap::new()).unwrap();
+        let request = FiatWebhookRequest::mock(raw_body);
 
-        assert!(client().process_webhook(request).await.is_err());
+        assert!(MoonPayClient::mock().process_webhook(request).await.is_err());
     }
 }

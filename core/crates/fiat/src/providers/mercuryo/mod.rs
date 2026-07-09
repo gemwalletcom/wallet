@@ -4,3 +4,6 @@ pub mod models;
 pub mod provider;
 mod webhook;
 pub mod widget;
+
+#[cfg(test)]
+mod testkit;

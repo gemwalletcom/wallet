@@ -1,4 +1,32 @@
 use super::models::{Asset, CurrencyMetadata, FiatCurrencyType};
+use crate::{FiatWebhookRequest, hmac_signature::generate_hmac_signature_hex};
+
+use super::client::MoonPayClient;
+
+pub const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
+
+impl MoonPayClient {
+    pub fn mock() -> Self {
+        Self::mock_with_webhook_secret_key(TEST_WEBHOOK_SIGNING_KEY)
+    }
+
+    pub fn mock_with_webhook_secret_key(webhook_secret_key: &str) -> Self {
+        Self::new(gem_client::reqwest_client(), String::new(), String::new(), webhook_secret_key.to_string())
+    }
+}
+
+impl FiatWebhookRequest {
+    pub fn mock_moonpay_signed(raw_body: &str) -> Self {
+        let timestamp = "1492774577";
+        let signed_payload = format!("{timestamp}.{raw_body}");
+        let signature = generate_hmac_signature_hex(TEST_WEBHOOK_SIGNING_KEY, &signed_payload);
+        Self::mock_moonpay_with_signature(raw_body, &format!("t={timestamp},s={signature}"))
+    }
+
+    pub fn mock_moonpay_with_signature(raw_body: &str, signature: &str) -> Self {
+        Self::mock_with_header(raw_body, "moonpay-signature-v2", signature)
+    }
+}
 
 impl Asset {
     pub fn mock(code: &str, network_code: &str, contract_address: Option<&str>, is_base_asset: bool) -> Self {
