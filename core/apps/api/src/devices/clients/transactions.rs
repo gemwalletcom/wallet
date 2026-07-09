@@ -1,12 +1,11 @@
 use std::error::Error;
 
+use crate::params::MAX_QUERY_LIMIT;
 use primitives::{AssetId, Transaction, TransactionId, TransactionsResponse};
 use storage::models::TransactionRow;
 use storage::{Database, DevicesRepository, ScanAddressesRepository, TransactionsRepository, WalletsRepository};
 
 use chrono::{DateTime, Utc};
-
-const DEVICE_TRANSACTIONS_LIMIT: i64 = 50;
 
 pub struct TransactionsClient {
     database: Database,
@@ -24,6 +23,7 @@ impl TransactionsClient {
         wallet_id: i32,
         asset_id: Option<AssetId>,
         from_timestamp: Option<u64>,
+        limit: usize,
     ) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
         let subscriptions = self.database.wallets()?.get_subscriptions_by_wallet_id(device_row_id, wallet_id)?;
         let addresses = subscriptions.iter().map(|(_, addr)| addr.address.clone()).collect::<Vec<_>>();
@@ -32,7 +32,7 @@ impl TransactionsClient {
         let rows = self
             .database
             .transactions()?
-            .get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime, None)?;
+            .get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime, limit)?;
 
         self.transactions_response(rows, addresses)
     }
@@ -50,7 +50,7 @@ impl TransactionsClient {
         let rows = self
             .database
             .transactions()?
-            .get_transactions_by_device_id(device_id, addresses.clone(), chains, None, None, Some(DEVICE_TRANSACTIONS_LIMIT))?;
+            .get_transactions_by_device_id(device_id, addresses.clone(), chains, None, None, MAX_QUERY_LIMIT)?;
 
         self.transactions_response(rows, addresses)
     }

@@ -41,10 +41,11 @@ fn filter_string(value: String) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::params::MAX_QUERY_LIMIT;
 
     #[test]
     fn build_assets_filters_short_query() {
-        let request = SearchRequest::new("USDT TRC20", None, None, None, None);
+        let request = SearchRequest::new("USDT TRC20", None, None, MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 15"]);
@@ -52,7 +53,7 @@ mod tests {
 
     #[test]
     fn build_assets_filters_long_query() {
-        let request = SearchRequest::new("ethereum contract", None, None, None, None);
+        let request = SearchRequest::new("ethereum contract", None, None, MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5"]);
@@ -60,7 +61,7 @@ mod tests {
 
     #[test]
     fn build_assets_filters_with_tags() {
-        let request = SearchRequest::new("ethereum contract", None, Some("defi"), None, None);
+        let request = SearchRequest::new("ethereum contract", None, Some("defi"), MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "tags IN [\"defi\"]"]);
@@ -68,7 +69,7 @@ mod tests {
 
     #[test]
     fn build_assets_filters_with_chains() {
-        let request = SearchRequest::new("ethereum contract", Some("ethereum"), None, None, None);
+        let request = SearchRequest::new("ethereum contract", Some("ethereum"), None, MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "asset.chain IN [\"ethereum\"]"]);
@@ -76,7 +77,7 @@ mod tests {
 
     #[test]
     fn build_perpetuals_filters_with_tags() {
-        let request = SearchRequest::new("longquery", None, Some("stocks"), None, None);
+        let request = SearchRequest::new("longquery", None, Some("stocks"), MAX_QUERY_LIMIT, None);
         let filters = build_perpetuals_filters(&request);
 
         assert_eq!(filters, vec!["tags IN [\"stocks\"]"]);

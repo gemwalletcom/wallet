@@ -35,7 +35,7 @@ pub(crate) trait TransactionsStore {
         chains: Vec<String>,
         asset_id: Option<String>,
         from_datetime: Option<NaiveDateTime>,
-        limit: Option<i64>,
+        limit: usize,
     ) -> Result<Vec<TransactionRow>, diesel::result::Error>;
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, diesel::result::Error>;
     fn delete_transactions_addresses(&mut self, chain_addresses: Vec<AddressChainIdResultRow>) -> Result<Vec<i64>, diesel::result::Error>;
@@ -128,7 +128,7 @@ impl TransactionsStore for DatabaseClient {
         chains: Vec<String>,
         filter_asset_id: Option<String>,
         from_datetime: Option<NaiveDateTime>,
-        limit: Option<i64>,
+        limit: usize,
     ) -> Result<Vec<TransactionRow>, diesel::result::Error> {
         use crate::schema::transactions::dsl::*;
 
@@ -147,11 +147,12 @@ impl TransactionsStore for DatabaseClient {
             query = query.filter(created_at.gt(datetime).or(updated_at.gt(datetime)));
         }
 
-        if let Some(limit) = limit {
-            query = query.limit(limit);
-        }
-
-        query.order(created_at.desc()).select(TransactionRow::as_select()).distinct().load(&mut self.connection)
+        query
+            .order(created_at.desc())
+            .limit(limit as i64)
+            .select(TransactionRow::as_select())
+            .distinct()
+            .load(&mut self.connection)
     }
 
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, diesel::result::Error> {

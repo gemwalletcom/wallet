@@ -2,9 +2,10 @@ pub mod client;
 mod filter;
 mod model;
 
-use crate::params::{AssetIdParam, CurrencyParam, SearchQueryParam};
+use crate::params::{AssetIdParam, CurrencyParam};
 use crate::responders::{ApiError, ApiResponse};
 pub use client::{AssetsClient, SearchClient};
+use model::SearchParams;
 pub use model::SearchRequest;
 use pricer::PriceClient;
 use primitives::{AssetBasic, AssetFull, AssetId, SearchResponse};
@@ -34,29 +35,15 @@ pub async fn get_assets(
     Ok(client.lock().await.get_assets(asset_ids.0, rate)?.into())
 }
 
-#[get("/assets/search?<query>&<chains>&<tags>&<limit>&<offset>")]
-pub async fn get_assets_search(
-    query: SearchQueryParam,
-    chains: Option<&str>,
-    tags: Option<&str>,
-    limit: Option<usize>,
-    offset: Option<usize>,
-    client: &State<Mutex<SearchClient>>,
-) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
-    let request = SearchRequest::new(&query.0, chains, tags, limit, offset);
+#[get("/assets/search?<params..>")]
+pub async fn get_assets_search(params: SearchParams<'_>, client: &State<Mutex<SearchClient>>) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
+    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit, params.offset);
     Ok(client.lock().await.get_assets_search(&request).await?.into())
 }
 
-#[get("/search?<query>&<chains>&<tags>&<limit>&<offset>")]
-pub async fn get_search(
-    query: SearchQueryParam,
-    chains: Option<&str>,
-    tags: Option<&str>,
-    limit: Option<usize>,
-    offset: Option<usize>,
-    client: &State<Mutex<SearchClient>>,
-) -> Result<ApiResponse<SearchResponse>, ApiError> {
-    let request = SearchRequest::new(&query.0, chains, tags, limit, offset);
+#[get("/search?<params..>")]
+pub async fn get_search(params: SearchParams<'_>, client: &State<Mutex<SearchClient>>) -> Result<ApiResponse<SearchResponse>, ApiError> {
+    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit, params.offset);
 
     let search_client = client.lock().await;
     let assets = search_client.get_assets_search(&request).await?;

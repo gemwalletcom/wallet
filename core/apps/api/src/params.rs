@@ -10,6 +10,8 @@ const MAX_ADDRESS_LENGTH: usize = 256;
 const MAX_ASSET_ID_LENGTH: usize = 256;
 const MAX_NFT_ID_LENGTH: usize = 256;
 const MAX_SEARCH_QUERY_LENGTH: usize = 128;
+pub(crate) const MAX_QUERY_LIMIT: usize = 100;
+pub(crate) const MAX_QUERY_LIMIT_VALIDATION: isize = MAX_QUERY_LIMIT as isize;
 
 pub struct ChainParam(pub Chain);
 

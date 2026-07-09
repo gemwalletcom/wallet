@@ -5,14 +5,14 @@ use chrono::NaiveDateTime;
 use primitives::NotificationData;
 
 pub trait NotificationsRepository {
-    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>) -> Result<Vec<NotificationData>, DatabaseError>;
+    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>, limit: usize) -> Result<Vec<NotificationData>, DatabaseError>;
     fn create_notifications(&mut self, notifications: Vec<NewNotificationRow>) -> Result<usize, DatabaseError>;
     fn mark_all_as_read(&mut self, device_id: &str) -> Result<usize, DatabaseError>;
 }
 
 impl NotificationsRepository for DatabaseClient {
-    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>) -> Result<Vec<NotificationData>, DatabaseError> {
-        Ok(NotificationsStore::get_notifications_by_device_id(self, device_id, from_datetime)?
+    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>, limit: usize) -> Result<Vec<NotificationData>, DatabaseError> {
+        Ok(NotificationsStore::get_notifications_by_device_id(self, device_id, from_datetime, limit)?
             .into_iter()
             .map(|(row, wallet_identifier, asset_row)| row.as_primitive(wallet_identifier, asset_row.map(|a| a.as_primitive())))
             .collect())

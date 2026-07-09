@@ -7,7 +7,10 @@ pub mod error;
 pub mod guard;
 pub mod signature;
 use crate::assets::AssetsClient;
-use crate::params::{AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, TransactionIdParam, UserAgent};
+use crate::params::{
+    AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, MAX_QUERY_LIMIT, MAX_QUERY_LIMIT_VALIDATION, NftAssetIdParam,
+    TransactionIdParam, UserAgent,
+};
 use crate::responders::{ApiError, ApiResponse};
 use auth_config::AuthConfig;
 use body::DeviceJson;
@@ -31,11 +34,26 @@ use primitives::{
     PortfolioAssetsRequest, PriceAlerts, ReportNft, RewardEvent, Rewards, ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse, WalletConfigurationResult,
     WalletId, WalletSubscription, WalletSubscriptionChains,
 };
-use rocket::{State, delete, get, post, put, tokio::sync::Mutex};
+use rocket::{FromForm, State, delete, get, post, put, tokio::sync::Mutex};
 use std::sync::Arc;
 use streamer::{StreamProducer, StreamProducerQueue};
 
 use crate::auth::WalletSigned;
+
+#[derive(FromForm)]
+pub struct DeviceTransactionsParams {
+    asset_id: Option<AssetIdParam>,
+    from_timestamp: Option<u64>,
+    #[field(default = MAX_QUERY_LIMIT, validate = range(..=MAX_QUERY_LIMIT_VALIDATION))]
+    limit: usize,
+}
+
+#[derive(FromForm)]
+pub struct DeviceNotificationsParams {
+    from_timestamp: Option<u64>,
+    #[field(default = MAX_QUERY_LIMIT, validate = range(..=MAX_QUERY_LIMIT_VALIDATION))]
+    limit: usize,
+}
 
 #[post("/devices", format = "json", data = "<device>")]
 pub async fn add_device_v2(device_id: VerifiedDeviceId, device: DeviceJson<Device>, client: &State<Mutex<DevicesClient>>) -> Result<ApiResponse<Device>, ApiError> {
@@ -65,17 +83,23 @@ pub async fn get_device_assets_v2(
     Ok(client.lock().await.get_assets_by_wallet_id(device.device_row.id, device.wallet_id, from_timestamp)?.into())
 }
 
-#[get("/devices/transactions?<asset_id>&<from_timestamp>")]
+#[get("/devices/transactions?<params..>")]
 pub async fn get_device_transactions_v2(
     device: AuthenticatedDeviceWallet,
-    asset_id: Option<AssetIdParam>,
-    from_timestamp: Option<u64>,
+    params: DeviceTransactionsParams,
     client: &State<Mutex<TransactionsClient>>,
 ) -> Result<ApiResponse<TransactionsResponse>, ApiError> {
     Ok(client
         .lock()
         .await
-        .get_transactions_by_wallet_id(&device.device_row.device_id, device.device_row.id, device.wallet_id, asset_id.map(|x| x.0), from_timestamp)
+        .get_transactions_by_wallet_id(
+            &device.device_row.device_id,
+            device.device_row.id,
+            device.wallet_id,
+            params.asset_id.map(|x| x.0),
+            params.from_timestamp,
+            params.limit,
+        )
         .await?
         .into())
 }
@@ -276,13 +300,17 @@ pub async fn get_device_wallet_configuration_v2(
     Ok(client.get_configuration(device.device_row.id, device.wallet_id, device.wallet_identifier).await?.into())
 }
 
-#[get("/devices/notifications?<from_timestamp>")]
+#[get("/devices/notifications?<params..>")]
 pub async fn get_device_notifications_v2(
     device: AuthenticatedDevice,
-    from_timestamp: Option<u64>,
+    params: DeviceNotificationsParams,
     client: &State<Mutex<NotificationsClient>>,
 ) -> Result<ApiResponse<Vec<InAppNotification>>, ApiError> {
-    Ok(client.lock().await.get_notifications(&device.device_row.device_id, from_timestamp)?.into())
+    Ok(client
+        .lock()
+        .await
+        .get_notifications(&device.device_row.device_id, params.from_timestamp, params.limit)?
+        .into())
 }
 
 #[post("/devices/notifications/read")]

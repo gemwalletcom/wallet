@@ -17,13 +17,23 @@ fn wallet_ids_by_device_id(device_id: &str) -> WalletIdsSubquery<'_> {
 }
 
 pub trait NotificationsStore {
-    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError>;
+    fn get_notifications_by_device_id(
+        &mut self,
+        device_id: &str,
+        from_datetime: Option<NaiveDateTime>,
+        limit: usize,
+    ) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError>;
     fn create_notifications(&mut self, notifications: Vec<NewNotificationRow>) -> Result<usize, DatabaseError>;
     fn mark_all_as_read(&mut self, device_id: &str) -> Result<usize, DatabaseError>;
 }
 
 impl NotificationsStore for DatabaseClient {
-    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError> {
+    fn get_notifications_by_device_id(
+        &mut self,
+        device_id: &str,
+        from_datetime: Option<NaiveDateTime>,
+        limit: usize,
+    ) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError> {
         let mut query = notifications::table
             .inner_join(wallets::table)
             .left_join(assets::table)
@@ -36,7 +46,7 @@ impl NotificationsStore for DatabaseClient {
             query = query.filter(notifications::created_at.gt(datetime));
         }
 
-        Ok(query.load(&mut self.connection)?)
+        Ok(query.limit(limit as i64).load(&mut self.connection)?)
     }
 
     fn create_notifications(&mut self, values: Vec<NewNotificationRow>) -> Result<usize, DatabaseError> {
