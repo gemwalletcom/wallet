@@ -73,6 +73,11 @@ public final class AutocloseSceneViewModel {
 // MARK: - Actions
 
 public extension AutocloseSceneViewModel {
+    func isEditing(field: AutocloseScene.Field?) -> Bool {
+        guard let field else { return false }
+        return input.text(for: field).isEmpty
+    }
+
     func onChangeFocusField(_ _: AutocloseScene.Field?, _ newField: AutocloseScene.Field?) {
         input.focusField = newField
     }

@@ -46,11 +46,12 @@ public struct AutocloseScene: View {
                 focusedField: $focusedField,
             )
         }
+        .listSectionSpacing(.compact)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .scrollDismissesKeyboard(.interactively)
         .safeAreaView {
             InputAccessoryView(
-                isEditing: model.input.focused?.text.isEmpty == true,
+                isEditing: model.isEditing(field: focusedField),
                 suggestions: model.takeProfitModel.percentSuggestions,
                 onSelect: { model.onSelectPercent($0.value) },
                 onDone: { focusedField = nil },
