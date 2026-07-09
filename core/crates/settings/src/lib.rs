@@ -100,8 +100,13 @@ pub struct Key {
 pub struct KeySettings {
     pub key: Key,
 }
-pub type MoonPay = KeySettings;
 pub type Paybis = KeySettings;
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct MoonPay {
+    pub key: Key,
+    pub webhook: SecretKeySettings,
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Transak {

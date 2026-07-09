@@ -13,14 +13,20 @@ pub struct MoonPayClient {
     client: Client,
     api_key: String,
     secret_key: String,
+    pub(super) webhook_secret_key: String,
 }
 
 const MOONPAY_API_BASE_URL: &str = "https://api.moonpay.com";
 impl MoonPayClient {
     pub const NAME: FiatProviderName = FiatProviderName::MoonPay;
 
-    pub fn new(client: Client, api_key: String, secret_key: String) -> Self {
-        Self { client, api_key, secret_key }
+    pub fn new(client: Client, api_key: String, secret_key: String, webhook_secret_key: String) -> Self {
+        Self {
+            client,
+            api_key,
+            secret_key,
+            webhook_secret_key,
+        }
     }
 
     pub async fn get_ip_address(&self, ip_address: &str) -> Result<MoonPayIpAddress, reqwest::Error> {

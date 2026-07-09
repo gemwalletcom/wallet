@@ -26,7 +26,7 @@ pub fn create_transak_test_client() -> TransakClient {
 pub fn create_moonpay_test_client() -> MoonPayClient {
     let settings = get_test_settings();
     let client = FiatClient::request_client(settings.fiat.timeout);
-    MoonPayClient::new(client, settings.moonpay.key.public, settings.moonpay.key.secret)
+    MoonPayClient::new(client, settings.moonpay.key.public, settings.moonpay.key.secret, settings.moonpay.webhook.key.secret)
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]

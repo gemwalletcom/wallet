@@ -24,6 +24,9 @@ moonpay:
   key:
     public: ""
     secret: ""
+  webhook:
+    key:
+      secret: ""
 transak:
   key:
     public: ""
