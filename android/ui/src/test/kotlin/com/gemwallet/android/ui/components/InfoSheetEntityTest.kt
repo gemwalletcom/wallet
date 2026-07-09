@@ -12,4 +12,10 @@ class InfoSheetEntityTest {
         assertEquals(R.drawable.watch_badge, InfoSheetEntity.WatchWalletInfo.icon)
         assertNull(InfoSheetEntity.WatchWalletInfo.badgeIcon)
     }
+
+    @Test
+    fun noQuoteInfo_usesSwapErrorStrings() {
+        assertEquals(R.string.errors_swap_no_quote_available, InfoSheetEntity.NoQuoteInfo.title)
+        assertEquals(R.string.info_no_quote_description, InfoSheetEntity.NoQuoteInfo.description)
+    }
 }
