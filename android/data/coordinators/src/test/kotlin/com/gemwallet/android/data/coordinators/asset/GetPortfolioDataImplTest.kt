@@ -43,13 +43,17 @@ class GetPortfolioDataImplTest {
         sessionRepository = sessionRepository,
     )
 
-    private fun portfolio(allTimeHigh: ChartValuePercentage? = null) = PortfolioAssets(
+    private fun portfolio(
+        allTimeHigh: ChartValuePercentage? = null,
+        allTimeLow: ChartValuePercentage? = null,
+    ) = PortfolioAssets(
         totalValue = 5.0f,
         values = listOf(
             ChartValue(timestamp = 2, value = 3.0f),
             ChartValue(timestamp = 1, value = 2.0f),
         ),
         allTimeHigh = allTimeHigh,
+        allTimeLow = allTimeLow,
         allocation = emptyList(),
     )
 
@@ -77,17 +81,25 @@ class GetPortfolioDataImplTest {
     }
 
     @Test
-    fun getPortfolioData_mapsAllTimeStatistics() = runTest {
+    fun getPortfolioData_convertsAllTimeStatisticsByRate() = runTest {
         val bitcoin = mockAsset()
         every { assetsRepository.getAssetsInfo() } returns
             flowOf(listOf(mockAssetInfo(asset = bitcoin, balance = AssetBalance.create(bitcoin, available = "1"))))
-        every { assetsRepository.getCurrencyRate(Currency.USD) } returns flowOf(FiatRate("USD", 1.0))
+        every { assetsRepository.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
         val allTimeHigh = ChartValuePercentage(date = 10L, value = 99f, percentage = 5f)
-        coEvery { gemDeviceApiClient.getPortfolioAssets(any(), any()) } returns portfolio(allTimeHigh = allTimeHigh)
+        val allTimeLow = ChartValuePercentage(date = 20L, value = 10f, percentage = -3f)
+        coEvery { gemDeviceApiClient.getPortfolioAssets(any(), any()) } returns
+            portfolio(allTimeHigh = allTimeHigh, allTimeLow = allTimeLow)
 
-        val result = subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.USD)
+        val result = subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.EUR)
 
-        assertEquals(listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh)), result.statistics)
+        assertEquals(
+            listOf(
+                PortfolioStatistic.AllTimeHigh(allTimeHigh.copy(value = 198f)),
+                PortfolioStatistic.AllTimeLow(allTimeLow.copy(value = 20f)),
+            ),
+            result.statistics,
+        )
     }
 
     @Test(expected = IllegalStateException::class)

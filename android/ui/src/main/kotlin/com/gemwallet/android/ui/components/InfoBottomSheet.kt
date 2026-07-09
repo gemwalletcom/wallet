@@ -142,6 +142,13 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.Slippage) },
     )
 
+    object NoQuoteInfo : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.errors_swap_no_quote_available,
+        description = R.string.info_no_quote_description,
+        infoUrl = { AppUrl.docs(DocsUrl.NoQuotes) },
+    )
+
     object AssetStatusSuspiciousInfo : InfoSheetEntity(
         icon = R.drawable.suspicious,
         title = R.string.asset_verification_suspicious,

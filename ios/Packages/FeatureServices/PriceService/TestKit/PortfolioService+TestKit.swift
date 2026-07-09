@@ -4,21 +4,31 @@ import Foundation
 import GemAPI
 import PriceService
 import Primitives
+import Store
 import StoreTestKit
 
 public struct GemAPIPortfolioServiceMock: GemAPIPortfolioService {
-    public init() {}
+    private let allTimeHigh: ChartValuePercentage?
+    private let allTimeLow: ChartValuePercentage?
+
+    public init(allTimeHigh: ChartValuePercentage? = nil, allTimeLow: ChartValuePercentage? = nil) {
+        self.allTimeHigh = allTimeHigh
+        self.allTimeLow = allTimeLow
+    }
 
     public func getPortfolioAssets(period _: ChartPeriod, request _: PortfolioAssetsRequest) async throws -> PortfolioAssets {
-        PortfolioAssets(totalValue: 0, values: [], allTimeHigh: nil, allTimeLow: nil, allocation: [])
+        PortfolioAssets(totalValue: 0, values: [], allTimeHigh: allTimeHigh, allTimeLow: allTimeLow, allocation: [])
     }
 }
 
 public extension PortfolioService {
-    static func mock() -> PortfolioService {
+    static func mock(
+        apiService: any GemAPIPortfolioService = GemAPIPortfolioServiceMock(),
+        assetStore: AssetStore = .mock(),
+    ) -> PortfolioService {
         PortfolioService(
-            apiService: GemAPIPortfolioServiceMock(),
-            assetStore: .mock(),
+            apiService: apiService,
+            assetStore: assetStore,
         )
     }
 }

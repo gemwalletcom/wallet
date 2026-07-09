@@ -39,8 +39,10 @@ import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.matches
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.features.swap.viewmodels.models.toError
+import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
@@ -292,6 +294,15 @@ class SwapViewModel @Inject constructor(
         }
     }
 
+    fun onSelectPercent(percent: Int) {
+        val asset = payAsset.value ?: return
+        val value = asset.balance.balance.available.toBigInteger().multiplyByPercent(percent)
+        payValue.clearText()
+        payValue.setTextAndPlaceCursorAtEnd(
+            Crypto(value).value(asset.asset.decimals).stripTrailingZeros().toPlainString()
+        )
+    }
+
     fun refresh() {
         val params = quoteRequestParams.value ?: return
         clearTransferQuoteState()
@@ -448,5 +459,9 @@ class SwapViewModel @Inject constructor(
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {
         receiveValue.clearText()
         receiveValue.setTextAndPlaceCursorAtEnd(amount)
+    }
+
+    companion object {
+        val percentSuggestions = listOf(25, 50, 100)
     }
 }

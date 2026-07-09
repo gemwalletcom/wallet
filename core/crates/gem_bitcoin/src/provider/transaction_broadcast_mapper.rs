@@ -1,9 +1,9 @@
 use std::error::Error;
 
-use crate::models::BitcoinTransactionBroacastResult;
+use crate::models::BitcoinTransactionBroadcastResult;
 use crate::provider::transactions_mapper::map_transaction_broadcast;
 
-pub(crate) fn map_transaction_broadcast_response(response: BitcoinTransactionBroacastResult) -> Result<String, Box<dyn Error + Sync + Send>> {
+pub(crate) fn map_transaction_broadcast_response(response: BitcoinTransactionBroadcastResult) -> Result<String, Box<dyn Error + Sync + Send>> {
     if let Some(error) = response.error {
         return Err(error.message().into());
     }
@@ -12,5 +12,5 @@ pub(crate) fn map_transaction_broadcast_response(response: BitcoinTransactionBro
 }
 
 pub fn map_transaction_broadcast_response_from_str(response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
-    map_transaction_broadcast_response(serde_json::from_str::<BitcoinTransactionBroacastResult>(response)?)
+    map_transaction_broadcast_response(serde_json::from_str::<BitcoinTransactionBroadcastResult>(response)?)
 }

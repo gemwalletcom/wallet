@@ -4,6 +4,7 @@ import com.gemwallet.android.domains.swap.SwapItemType
 
 internal sealed interface SwapSceneAction {
     data class SelectAsset(val type: SwapItemType) : SwapSceneAction
+    data class SelectPercent(val percent: Int) : SwapSceneAction
     data object SwitchAssets : SwapSceneAction
     data object ShowDetails : SwapSceneAction
     data object Slippage : SwapSceneAction
