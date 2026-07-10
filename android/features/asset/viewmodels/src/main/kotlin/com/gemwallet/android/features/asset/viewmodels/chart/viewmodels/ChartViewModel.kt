@@ -27,7 +27,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
@@ -50,15 +49,14 @@ class ChartViewModel internal constructor(
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val selectedPeriod = MutableStateFlow(getChartPeriod())
-    private val refreshTrigger = MutableStateFlow(0L)
-    private val refreshState = MutableStateFlow(false)
+    private val refreshController = ChartRefreshController()
 
-    val isRefreshing = refreshState.asStateFlow()
+    val isRefreshing = refreshController.isRefreshing
 
     private val chartPrices = combine(
         selectedPeriod,
         getCurrentCurrency.getCurrency().distinctUntilChanged(),
-        refreshTrigger,
+        refreshController.trigger,
     ) { period, currency, _ -> AssetChartState(period, currency) }
         .transformLatest { state ->
             emit(state)
@@ -68,7 +66,7 @@ class ChartViewModel internal constructor(
                 currentCoroutineContext().ensureActive()
                 null
             }
-            refreshState.value = false
+            refreshController.stopRefreshing()
             val chartPrices = when {
                 prices == null -> StateViewType.Error
                 prices.size < MinChartPoints -> StateViewType.NoData
@@ -105,8 +103,7 @@ class ChartViewModel internal constructor(
     }
 
     fun refresh() {
-        refreshState.value = true
-        refreshTrigger.value = refreshTrigger.value + 1
+        refreshController.startRefreshing()
     }
 
     @Inject
