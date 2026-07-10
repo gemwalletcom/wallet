@@ -31,6 +31,7 @@ import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.NftListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
@@ -61,6 +62,8 @@ fun WalletSearchScreen(
     val hasMorePerpetuals by viewModel.hasMorePerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
     val perpetualRecentIds by viewModel.perpetualRecentIds.collectAsStateWithLifecycle()
+    val previewNfts by viewModel.previewNfts.collectAsStateWithLifecycle()
+    val hasMoreNfts by viewModel.hasMoreNfts.collectAsStateWithLifecycle()
     val lists by viewModel.lists.collectAsStateWithLifecycle()
 
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
@@ -92,6 +95,9 @@ fun WalletSearchScreen(
             WalletSearchAction.AddAsset,
             WalletSearchAction.Cancel,
             WalletSearchAction.OpenPerpetuals,
+            WalletSearchAction.OpenCollections,
+            is WalletSearchAction.OpenNftCollection,
+            is WalletSearchAction.OpenNftAsset,
             is WalletSearchAction.OpenList,
             is WalletSearchAction.ShowAllAssets -> onAction(action)
         }
@@ -145,6 +151,30 @@ fun WalletSearchScreen(
         null
     }
 
+    val nftsContent: (LazyListScope.() -> Unit)? = if (previewNfts.isNotEmpty()) {
+        {
+            item {
+                SubheaderItem(R.string.nft_collections, if (hasMoreNfts) ({ handleAction(WalletSearchAction.OpenCollections) }) else null)
+            }
+            itemsPositioned(previewNfts) { position, item ->
+                NftListItem(
+                    model = item,
+                    listPosition = position,
+                    onClick = {
+                        val asset = item.asset
+                        if (asset == null) {
+                            handleAction(WalletSearchAction.OpenNftCollection(item.collection.id.toIdentifier()))
+                        } else {
+                            handleAction(WalletSearchAction.OpenNftAsset(asset.id))
+                        }
+                    },
+                )
+            }
+        }
+    } else {
+        null
+    }
+
     AssetSelectScene(
         title = {
             SearchBar(
@@ -190,6 +220,7 @@ fun WalletSearchScreen(
         pinnedPerpetualRows = pinnedPerpetualRows,
         perpetualsContent = perpetualsContent,
         listsContent = listsContent,
+        nftsContent = nftsContent,
         assetsHeaderRes = R.string.assets_title,
         assetsHeaderClickable = hasMoreAssets,
         snackbar = snackbar,
