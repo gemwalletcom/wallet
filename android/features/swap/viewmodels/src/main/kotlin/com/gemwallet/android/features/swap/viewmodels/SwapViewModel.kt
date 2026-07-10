@@ -55,6 +55,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.firstOrNull
@@ -99,6 +101,7 @@ class SwapViewModel @Inject constructor(
 
     val selectedProvider = MutableStateFlow<SwapperProvider?>(null)
     private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
+    val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
     val slippageWarningThresholdBps: UInt by lazy { Config().getSwapConfig().highSlippageWarningBps }
 

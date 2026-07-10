@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.components.swap
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,7 +26,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.SuffixTextField
+import com.gemwallet.android.ui.components.SuggestionsBar
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -71,7 +74,11 @@ fun SwapSlippageBottomSheet(
             onDispose { commit() }
         }
 
-        Column(modifier = Modifier.height(SlippageSheetHeight)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(SlippageSheetHeight),
+        ) {
             SwitchProperty(
                 text = stringResource(R.string.swap_slippage_auto),
                 checked = isAuto,
@@ -90,7 +97,10 @@ fun SwapSlippageBottomSheet(
                         .padding(paddingDefault),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    PropertyTitleText(stringResource(R.string.swap_slippage))
+                    PropertyTitleText(
+                        stringResource(R.string.swap_slippage),
+                        info = InfoSheetEntity.Slippage,
+                    )
                     SuffixTextField(
                         modifier = Modifier
                             .weight(1f)
@@ -116,6 +126,12 @@ fun SwapSlippageBottomSheet(
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
+                Spacer(modifier = Modifier.weight(1f))
+                SuggestionsBar(
+                    labels = SwapSlippage.suggestionsBps.map { "${SwapSlippage.format(it)}%" },
+                    modifier = Modifier.padding(horizontal = paddingDefault, vertical = paddingSmall),
+                    onSelected = { index -> input = SwapSlippage.format(SwapSlippage.suggestionsBps[index]) },
+                )
             }
         }
 

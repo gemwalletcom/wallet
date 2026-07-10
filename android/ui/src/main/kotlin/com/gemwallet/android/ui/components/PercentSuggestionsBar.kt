@@ -17,18 +17,31 @@ fun PercentSuggestionsBar(
     modifier: Modifier = Modifier,
     onPercentSelected: (Int) -> Unit,
 ) {
+    SuggestionsBar(
+        labels = suggestions.map { "$it%" },
+        modifier = modifier,
+        onSelected = { index -> onPercentSelected(suggestions[index]) },
+    )
+}
+
+@Composable
+fun SuggestionsBar(
+    labels: List<String>,
+    modifier: Modifier = Modifier,
+    onSelected: (Int) -> Unit,
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        suggestions.forEach { percent ->
+        labels.forEachIndexed { index, label ->
             SuggestionChip(
                 modifier = Modifier.weight(1f),
-                onClick = { onPercentSelected(percent) },
+                onClick = { onSelected(index) },
                 label = {
                     Text(
-                        text = "$percent%",
+                        text = label,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                     )

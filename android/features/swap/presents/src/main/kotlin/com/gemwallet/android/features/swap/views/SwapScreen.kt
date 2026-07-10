@@ -34,6 +34,7 @@ fun SwapScreen(
     val toEquivalent by viewModel.toEquivalentFormatted.collectAsStateWithLifecycle()
     val swapState by viewModel.uiState.collectAsStateWithLifecycle()
     val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
+    val selectedSlippage by viewModel.selectedSlippage.collectAsStateWithLifecycle()
 
     var isShowPriceImpactAlert by remember { mutableStateOf(false) }
     var isShowDetails by remember { mutableStateOf(false) }
@@ -72,7 +73,7 @@ fun SwapScreen(
                 SwapSceneAction.SwitchAssets -> viewModel.switchSwap()
                 SwapSceneAction.ShowDetails -> isShowDetails = true
                 SwapSceneAction.Slippage -> if (swapState.isQuoteInteractionEnabled) {
-                    slippageSeedBps = swapDetails?.selectedSlippage
+                    slippageSeedBps = selectedSlippage
                     isShowSlippage = true
                 }
                 SwapSceneAction.Swap -> viewModel.onPrimaryAction(
