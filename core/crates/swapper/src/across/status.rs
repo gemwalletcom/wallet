@@ -3,7 +3,6 @@ use std::{str::FromStr, sync::Arc};
 use alloy_primitives::{Address, B256, U256, hex::encode_prefixed as HexEncode, keccak256};
 use alloy_sol_types::SolValue;
 use gem_evm::{across::contracts::V3SpokePoolInterface, across::deployment::AcrossDeployment};
-use gem_tron::rpc::constants::{RECEIPT_FAILED, RECEIPT_OUT_OF_ENERGY};
 use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
 
 use super::{
@@ -76,12 +75,7 @@ async fn source_deposit(rpc_provider: Arc<dyn RpcProvider>, chain: Chain, transa
             return Ok(SourceDeposit::Pending);
         };
 
-        if receipt
-            .receipt
-            .result
-            .as_deref()
-            .is_some_and(|result| result == RECEIPT_FAILED || result == RECEIPT_OUT_OF_ENERGY)
-        {
+        if receipt.is_failed() {
             return Ok(SourceDeposit::Failed);
         }
 

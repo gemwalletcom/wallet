@@ -1,13 +1,19 @@
+use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{DateTime, Utc};
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint};
 use primitives::{
-    Address as _, AssetId, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionType, chain::Chain, decode_hex, hex::decode_hex_utf8, stake_type::Resource,
+    Address as _, AssetId, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain, decode_hex,
+    hex::decode_hex_utf8, stake_type::Resource,
 };
 use serde_json::Value;
+use std::collections::HashMap;
 use std::error::Error;
 
 use crate::address::TronAddress;
-use crate::models::{BlockTransactions, ContractParameterValue, Transaction as TronTransaction, TransactionReceiptData, TronContractType, TronLog, TronTransactionBroadcast};
+use crate::models::{
+    BlockTransactions, ContractParameterValue, InternalTransaction, Transaction as TronTransaction, TransactionReceiptData, TronContractType, TronLog, TronTransactionBroadcast,
+};
+use crate::provider::balance_diff::{internal_transaction_deltas, token_balance_deltas};
 use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
 use crate::trc20;
 
@@ -18,6 +24,44 @@ fn decode_hex_message(hex_str: &str) -> String {
 fn resource_type_metadata(resource: Option<&str>) -> Option<Value> {
     let resource_type = resource.and_then(|resource| resource.parse::<Resource>().ok()).unwrap_or(Resource::Bandwidth);
     serde_json::to_value(TransactionResourceTypeMetadata::new(resource_type)).ok()
+}
+
+fn tron_swap_metadata(
+    chain: Chain,
+    owner: &TronAddress,
+    call_value: Option<u64>,
+    logs: &[TronLog],
+    internal_transactions: &[InternalTransaction],
+) -> Option<TransactionSwapMetadata> {
+    // Native TRX keys as `None` so its call_value and internal transfer legs merge into a single diff.
+    let mut deltas: HashMap<Option<String>, BigInt> = HashMap::new();
+
+    for (token, delta) in token_balance_deltas(logs, owner) {
+        *deltas.entry(Some(token)).or_default() += delta;
+    }
+
+    for (token_id, delta) in internal_transaction_deltas(internal_transactions, owner) {
+        *deltas.entry(token_id).or_default() += delta;
+    }
+
+    if let Some(call_value) = call_value.filter(|value| *value > 0) {
+        *deltas.entry(None).or_default() -= BigInt::from(call_value);
+    }
+
+    let balance_diffs: Vec<BalanceDiff> = deltas
+        .into_iter()
+        .map(|(token, diff)| BalanceDiff {
+            asset_id: match token {
+                Some(token) => AssetId { chain, token_id: Some(token) },
+                None => chain.as_asset_id(),
+            },
+            from_value: None,
+            to_value: None,
+            diff,
+        })
+        .collect();
+
+    SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), None)
 }
 
 pub fn map_transaction_broadcast(response: &TronTransactionBroadcast) -> Result<String, Box<dyn Error + Sync + Send>> {
@@ -65,7 +109,11 @@ pub fn map_transaction(chain: Chain, transaction: TronTransaction, receipt: Tran
     }
 
     if contract.contract_type == Some(TronContractType::TriggerSmart) {
-        return context.map_trigger_smart_contract(&contract.parameter.value, &receipt.log.unwrap_or_default());
+        return context.map_trigger_smart_contract(
+            &contract.parameter.value,
+            &receipt.log.unwrap_or_default(),
+            &receipt.internal_transactions.unwrap_or_default(),
+        );
     }
 
     None
@@ -130,8 +178,10 @@ impl TransactionContext {
         Some((TransactionType::StakeDelegate, to, value, None))
     }
 
-    fn map_trigger_smart_contract(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
-        self.map_token_approval(contract_value).or_else(|| self.map_token_transfer(contract_value, logs))
+    fn map_trigger_smart_contract(&self, contract_value: &ContractParameterValue, logs: &[TronLog], internal_transactions: &[InternalTransaction]) -> Option<Transaction> {
+        self.map_token_approval(contract_value)
+            .or_else(|| self.map_swap(contract_value, logs, internal_transactions))
+            .or_else(|| self.map_token_transfer(contract_value, logs))
     }
 
     fn map_token_approval(&self, contract_value: &ContractParameterValue) -> Option<Transaction> {
@@ -145,6 +195,20 @@ impl TransactionContext {
             TransactionType::TokenApproval,
             approval.value.to_string(),
             None,
+        ))
+    }
+
+    fn map_swap(&self, contract_value: &ContractParameterValue, logs: &[TronLog], internal_transactions: &[InternalTransaction]) -> Option<Transaction> {
+        let owner = TronAddress::from_hex_or_base58(&self.from)?;
+        let swap = tron_swap_metadata(self.chain, &owner, contract_value.call_value, logs, internal_transactions)?;
+
+        Some(self.build_transaction(
+            swap.from_asset.clone(),
+            self.from.clone(),
+            self.from.clone(),
+            TransactionType::Swap,
+            swap.from_value.clone(),
+            serde_json::to_value(&swap).ok(),
         ))
     }
 
@@ -197,7 +261,7 @@ fn map_transaction_state(contract_ret: &str) -> TransactionState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{BlockTransactions, TransactionReceipt, TransactionReceiptData, TronContractType, TronTransactionBroadcast};
+    use crate::models::{BlockTransactions, TransactionReceipt, TransactionReceiptData, TriggerConstantContractResponse, TronContractType, TronTransactionBroadcast};
     use crate::provider::testkit::{TEST_TOKEN_APPROVAL_TRANSACTION_ID, TEST_TRANSACTION_ID};
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 
@@ -240,10 +304,12 @@ mod tests {
             fee: Some(1000),
             block_number: 12345,
             block_time_stamp: 1758589896000,
+            result: None,
             receipt: TransactionReceipt {
                 result: Some("SUCCESS".to_string()),
             },
             log: None,
+            internal_transactions: None,
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
@@ -263,10 +329,12 @@ mod tests {
             fee: Some(1000),
             block_number: 12345,
             block_time_stamp: 1760552376000,
+            result: None,
             receipt: TransactionReceipt {
                 result: Some("SUCCESS".to_string()),
             },
             log: None,
+            internal_transactions: None,
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
@@ -286,10 +354,12 @@ mod tests {
             fee: Some(1000),
             block_number: 12345,
             block_time_stamp: 1758225849000,
+            result: None,
             receipt: TransactionReceipt {
                 result: Some("SUCCESS".to_string()),
             },
             log: None,
+            internal_transactions: None,
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
@@ -309,10 +379,12 @@ mod tests {
             fee: Some(1000),
             block_number: 12345,
             block_time_stamp: 1758596982000,
+            result: None,
             receipt: TransactionReceipt {
                 result: Some("SUCCESS".to_string()),
             },
             log: None,
+            internal_transactions: None,
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
@@ -346,6 +418,7 @@ mod tests {
             fee: Some(1000),
             block_number: 12345,
             block_time_stamp: 1727747910000,
+            result: None,
             receipt: TransactionReceipt {
                 result: Some("SUCCESS".to_string()),
             },
@@ -358,6 +431,7 @@ mod tests {
                 ]),
                 data: Some("00000000000000000000000000000000000000000000000000000000017d7840".to_string()),
             }]),
+            internal_transactions: None,
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
@@ -396,6 +470,79 @@ mod tests {
     }
 
     #[test]
+    fn test_map_transaction_trigger_smart_swap() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_trigger_smart_swap.json")).unwrap();
+        let swap_logs: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_swap_with_logs.json")).unwrap();
+        let receipt = TransactionReceiptData {
+            id: "test_id".to_string(),
+            fee: Some(1000),
+            block_number: 12345,
+            block_time_stamp: 1758589896000,
+            result: None,
+            receipt: TransactionReceipt {
+                result: Some("SUCCESS".to_string()),
+            },
+            log: swap_logs.logs,
+            internal_transactions: None,
+        };
+
+        let result = map_transaction(Chain::Tron, transaction, receipt);
+        assert!(result.is_some());
+        let transaction = result.unwrap();
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.from, transaction.to);
+        assert_eq!(transaction.asset_id, Chain::Tron.as_asset_id());
+        assert_eq!(transaction.value, "1000000");
+        let output_token = TronAddress::from_hex("4e4bee11cea0070f957b98fd8cf4138ef3295e0e").unwrap().encode();
+        let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+        assert_eq!(metadata.from_asset, Chain::Tron.as_asset_id());
+        assert_eq!(metadata.from_value, "1000000");
+        assert_eq!(
+            metadata.to_asset,
+            AssetId {
+                chain: Chain::Tron,
+                token_id: Some(output_token)
+            }
+        );
+        assert_eq!(metadata.to_value, "329114");
+    }
+
+    #[test]
+    fn test_map_transaction_trigger_smart_swap_credits_native_leg_from_internal_transaction() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_token_transfer.json")).unwrap();
+        let usdt_transfer_out = TronLog::mock_transfer(
+            "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+            "0000000000000000000000002e1d447fa4169390cf5f5b3d12d380decfbfe20f",
+            "0000000000000000000000006e2cf2878020b966786f01ab45ea1fcef6880092",
+            "00000000000000000000000000000000000000000000000000000000017d7840",
+        );
+        let trx_unwrap_in = InternalTransaction::mock(
+            "416e2cf2878020b966786f01ab45ea1fcef6880092",
+            "412e1d447fa4169390cf5f5b3d12d380decfbfe20f",
+            900_000,
+            None,
+            false,
+        );
+        let receipt = TransactionReceiptData::mock_transaction_receipt_with_logs(vec![usdt_transfer_out], vec![trx_unwrap_in]);
+
+        let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+
+        let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+        let usdt = TronAddress::from_hex("41a614f803b6fd780986a42c78ec9c7f77e6ded13c").unwrap().encode();
+        assert_eq!(
+            metadata.from_asset,
+            AssetId {
+                chain: Chain::Tron,
+                token_id: Some(usdt)
+            }
+        );
+        assert_eq!(metadata.from_value, "25000000");
+        assert_eq!(metadata.to_asset, Chain::Tron.as_asset_id());
+        assert_eq!(metadata.to_value, "900000");
+    }
+
+    #[test]
     fn test_map_transactions_by_block_ignores_unsupported_contract_types() {
         let block: BlockTransactions = serde_json::from_str(include_str!("../../testdata/block_mixed_contract_types.json")).unwrap();
         let receipts: Vec<TransactionReceiptData> = serde_json::from_str(include_str!("../../testdata/block_mixed_contract_types_receipts.json")).unwrap();
@@ -427,10 +574,12 @@ mod tests {
             fee: Some(1000),
             block_number: 12345,
             block_time_stamp: 1771951038000,
+            result: None,
             receipt: TransactionReceipt {
                 result: Some("SUCCESS".to_string()),
             },
             log: None,
+            internal_transactions: None,
         };
 
         let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();

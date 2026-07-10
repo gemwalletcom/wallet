@@ -1,8 +1,5 @@
-use crate::address::TronAddress;
-use crate::address::serializer::deserialize as tron_address_deserialize;
-use crate::address::serializer::optional as tron_address_optional;
 use primitives::hex::decode_hex_utf8;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{error::Error, fmt};
 
 pub mod account;
@@ -11,6 +8,7 @@ pub mod contract;
 pub mod contract_type;
 #[cfg(feature = "signer")]
 pub(crate) mod signing;
+pub mod transaction;
 
 pub use account::*;
 pub use block::*;
@@ -18,6 +16,7 @@ pub use contract::*;
 pub use contract_type::*;
 #[cfg(feature = "signer")]
 pub(crate) use signing::*;
+pub use transaction::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Block {
@@ -39,100 +38,6 @@ pub struct BlockHeader {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct BlockHeaderData {
     pub number: i64,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Transaction {
-    #[serde(rename = "txID")]
-    pub transaction_id: String,
-    pub ret: Vec<ContractRet>,
-    pub raw_data: TransactionData,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ContractRet {
-    #[serde(rename = "contractRet")]
-    pub contract_ret: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TransactionData {
-    pub contract: Vec<Contract>,
-    pub fee_limit: Option<u64>,
-    pub data: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Contract {
-    #[serde(rename = "type")]
-    #[serde(default, deserialize_with = "deserialize_contract_type_optional", skip_serializing_if = "Option::is_none")]
-    pub contract_type: Option<TronContractType>,
-    pub parameter: ContractParameter,
-}
-
-fn deserialize_contract_type_optional<'de, D>(deserializer: D) -> Result<Option<TronContractType>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value = Option::<String>::deserialize(deserializer)?;
-    Ok(value.as_deref().and_then(|value| value.parse().ok()))
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ContractParameter {
-    pub type_url: String,
-    pub value: ContractParameterValue,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ContractParameterValue {
-    pub amount: Option<i64>,
-    #[serde(default, deserialize_with = "tron_address_deserialize")]
-    pub owner_address: Option<String>,
-    #[serde(default, deserialize_with = "tron_address_deserialize")]
-    pub to_address: Option<String>,
-    #[serde(default, deserialize_with = "tron_address_deserialize")]
-    pub contract_address: Option<String>,
-    pub data: Option<String>,
-    pub frozen_balance: Option<i64>,
-    pub unfreeze_balance: Option<i64>,
-    pub resource: Option<String>,
-    pub votes: Option<Vec<VoteInfo>>,
-    pub support: Option<bool>,
-    pub call_value: Option<u64>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct VoteInfo {
-    pub vote_address: String,
-    pub vote_count: i64,
-}
-
-pub type BlockTransactionsInfo = Vec<TransactionReceiptData>;
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TransactionReceiptData {
-    pub id: String,
-    pub fee: Option<i64>,
-    #[serde(rename = "blockNumber")]
-    pub block_number: i64,
-    #[serde(rename = "blockTimeStamp")]
-    pub block_time_stamp: i64,
-    pub receipt: TransactionReceipt,
-    pub log: Option<Vec<TronLog>>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TransactionReceipt {
-    pub result: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TronLog {
-    #[serde(default, with = "tron_address_optional")]
-    pub address: Option<TronAddress>,
-    pub topics: Option<Vec<String>>,
-    pub data: Option<String>,
 }
 
 #[derive(Serialize, Debug)]
@@ -241,17 +146,10 @@ pub struct ChainParameter {
     pub value: Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TronTransactionBroadcast {
-    #[serde(rename = "txid")]
-    pub txid: Option<String>,
-    pub code: Option<String>,
-    pub message: Option<String>,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::address::TronAddress;
 
     #[test]
     fn test_get_energy_reverted_with_success_flag_and_message() {

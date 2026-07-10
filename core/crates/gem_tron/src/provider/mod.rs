@@ -1,5 +1,6 @@
 pub mod address;
 pub mod address_mapper;
+pub mod balance_diff;
 pub mod balances;
 pub mod balances_mapper;
 pub mod preload;
