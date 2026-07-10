@@ -9,7 +9,7 @@ use super::model::{FlashnetEstimateResponse, FlashnetOnrampRequest, FlashnetOnra
 pub struct FlashnetClient {
     client: Client,
     base_url: String,
-    api_key: String,
+    pub(crate) api_key: String,
     pub(crate) affiliate_id: String,
 }
 
