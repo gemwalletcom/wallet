@@ -11,15 +11,6 @@ just install-toolchains
 ```
 The project requires specific NDK and Rust toolchain versions for JNI compilation.
 
-### GitHub Packages Authentication
-
-Gradle pulls dependencies from GitHub Packages. If dependency resolution fails, verify `local.properties` contains:
-```
-gpr.username=<your-github-username>
-gpr.token=<your-github-pat>
-```
-The token needs `read:packages` scope.
-
 ### Gradle Daemon Memory
 
 Long sessions can exhaust the Gradle daemon heap. If builds become slow or OOM:

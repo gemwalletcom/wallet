@@ -65,13 +65,6 @@ just bootstrap
 just build-test
 ```
 
-Add GitHub Packages credentials to `android/local.properties` before Android builds that need private package access:
-
-```properties
-gpr.username=<your-github-username>
-gpr.token=<your-github-token>
-```
-
 ## Developer Shortcuts
 
 The repo root exposes monorepo commands plus module access to each platform:
@@ -97,7 +90,7 @@ Platform-specific commands remain available through the [`ios`](ios/justfile) an
 
 Gem Wallet is self-custodial, and keeping user funds safe is our highest priority. See the [Security Overview](https://gemwallet.com/security/) for our practices around key material, signing, and secure storage.
 
-- [Bug Bounty Program](https://gemwallet.com/security/bug-bounty/) — report vulnerabilities and earn rewards for responsible disclosure
+- [Responsible Disclosure](https://gemwallet.com/security/bug-bounty/) — report security vulnerabilities responsibly
 - [CertiK Security Audit (April 2026)](https://static.gemwallet.com/audits/Gem-Wallet-CertiK-Security-Audit-April-2026.pdf) — latest third-party audit report
 
 ## Contributing

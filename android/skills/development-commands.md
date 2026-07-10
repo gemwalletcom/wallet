@@ -13,7 +13,7 @@ just generate-models
 just localize
 ```
 
-For local environment prerequisites and GitHub Packages credentials, read `setup.md`.
+For local environment prerequisites, read `setup.md`.
 
 ## Build Commands
 
