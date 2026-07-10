@@ -20,7 +20,6 @@ use crate::monad::{STAKING_CONTRACT, encode_monad_staking};
 
 const GAS_LIMIT_PERCENT_INCREASE: u32 = 50;
 const GAS_LIMIT_21000: u64 = 21000;
-const ROBINHOOD_BASE_FEE_MULTIPLIER: u8 = 2;
 
 pub struct TransactionParams {
     pub to: String,
@@ -57,19 +56,14 @@ pub fn map_transaction_preload(nonce_hex: String, chain_id: String) -> Result<Tr
 
 pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHistory) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
     let base_fee = fee_history.base_fee_per_gas.last().ok_or("No base fee available")?;
-    let max_base_fee = if chain == EVMChain::Robinhood {
-        base_fee * ROBINHOOD_BASE_FEE_MULTIPLIER
-    } else {
-        base_fee.clone()
-    };
     let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
     Ok(FeeCalculator::new()
         .calculate_priority_fees(fee_history, &[FeePriority::Slow, FeePriority::Normal, FeePriority::Fast], min_priority_fee.clone())?
         .into_iter()
         .map(|x| {
-            let priority_fee = BigInt::max(min_priority_fee.clone(), x.value.clone());
-            FeeRate::new(x.priority, GasPriceType::eip1559(max_base_fee.clone(), priority_fee))
+            let priority_fee = BigInt::max(min_priority_fee.clone(), x.value);
+            FeeRate::new(x.priority, GasPriceType::eip1559(base_fee.clone(), priority_fee))
         })
         .collect())
 }
@@ -345,18 +339,6 @@ mod tests {
                 _ => panic!("Expected EIP-1559 gas price type"),
             }
         }
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_map_transaction_fee_rates_robinhood_base_fee_headroom() -> Result<(), Box<dyn Error + Sync + Send>> {
-        let fee_history = create_test_fee_history_for_mapper();
-
-        let result = map_transaction_fee_rates(EVMChain::Robinhood, &fee_history)?;
-
-        assert_eq!(result[0].gas_price_type.gas_price(), BigInt::from(40_000_000_000u64));
-        assert_eq!(result[0].gas_price_type.priority_fee(), BigInt::from(EVMChain::Robinhood.min_priority_fee()));
 
         Ok(())
     }

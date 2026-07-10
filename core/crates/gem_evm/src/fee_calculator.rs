@@ -72,7 +72,13 @@ impl FeeCalculator {
             .collect();
 
         result.sort_unstable_by(|a, b| a.value.cmp(&b.value));
-        result.iter_mut().zip(priorities.iter()).for_each(|(fee, &priority)| fee.priority = priority);
+        result.iter_mut().zip(priorities.iter()).for_each(|(fee, &priority)| {
+            fee.priority = priority;
+            match priority {
+                FeePriority::Slow | FeePriority::Normal => {}
+                FeePriority::Fast => fee.value *= BigInt::from(2),
+            }
+        });
 
         Ok(result)
     }
@@ -133,7 +139,7 @@ mod tests {
         assert_eq!(result[1].value, BigInt::from(584926205));
 
         assert_eq!(result[2].priority, FeePriority::Fast);
-        assert_eq!(result[2].value, BigInt::from(962019260));
+        assert_eq!(result[2].value, BigInt::from(1924038520));
     }
 
     #[test]
