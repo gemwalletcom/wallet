@@ -53,6 +53,12 @@ impl<'r> FromParam<'r> for FiatQuoteTypeParam {
 
 pub struct CurrencyParam(pub Currency);
 
+impl Default for CurrencyParam {
+    fn default() -> Self {
+        Self(Currency::USD)
+    }
+}
+
 impl<'r> FromFormField<'r> for CurrencyParam {
     fn from_value(field: ValueField<'r>) -> form::Result<'r, Self> {
         Currency::from_str(field.value)
@@ -193,5 +199,36 @@ impl<'r> rocket::request::FromRequest<'r> for UserAgent {
             Some(ua) => rocket::request::Outcome::Success(UserAgent(ua.to_string())),
             None => rocket::request::Outcome::Error((Status::BadRequest, ())),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use primitives::DEFAULT_FIAT_CURRENCY;
+    use rocket::http::Status;
+    use rocket::local::blocking::Client;
+    use rocket::{get, routes};
+
+    use super::CurrencyParam;
+
+    #[get("/currency?<currency>")]
+    fn currency(currency: Option<CurrencyParam>) -> String {
+        currency.unwrap_or_default().0.as_ref().to_string()
+    }
+
+    #[test]
+    fn test_optional_currency_param_defaults_and_validates() {
+        let client = Client::tracked(rocket::build().mount("/", routes![currency])).unwrap();
+
+        let response = client.get("/currency").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.into_string().unwrap(), DEFAULT_FIAT_CURRENCY);
+
+        let response = client.get("/currency?currency=EUR").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.into_string().unwrap(), "EUR");
+
+        let response = client.get("/currency?currency=BAD").dispatch();
+        assert_eq!(response.status(), Status::UnprocessableEntity);
     }
 }

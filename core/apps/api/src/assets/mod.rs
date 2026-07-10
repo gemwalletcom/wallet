@@ -14,23 +14,25 @@ use rocket::{State, get, post, serde::json::Json, tokio::sync::Mutex};
 #[get("/assets/<asset_id>?<currency>")]
 pub async fn get_asset(
     asset_id: AssetIdParam,
-    currency: CurrencyParam,
+    currency: Option<CurrencyParam>,
     client: &State<Mutex<AssetsClient>>,
     price_client: &State<Mutex<PriceClient>>,
 ) -> Result<ApiResponse<AssetFull>, ApiError> {
     let asset = client.lock().await.get_asset_full(&asset_id.0)?;
-    let rate = price_client.lock().await.get_fiat_rate(currency.0.as_ref())?.rate;
+    let currency = currency.unwrap_or_default().0;
+    let rate = price_client.lock().await.get_fiat_rate(currency.as_ref())?.rate;
     Ok(asset.with_rate(rate).into())
 }
 
 #[post("/assets?<currency>", format = "json", data = "<asset_ids>")]
 pub async fn get_assets(
     asset_ids: Json<Vec<AssetId>>,
-    currency: CurrencyParam,
+    currency: Option<CurrencyParam>,
     client: &State<Mutex<AssetsClient>>,
     price_client: &State<Mutex<PriceClient>>,
 ) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
-    let rate = price_client.lock().await.get_fiat_rate(currency.0.as_ref())?.rate;
+    let currency = currency.unwrap_or_default().0;
+    let rate = price_client.lock().await.get_fiat_rate(currency.as_ref())?.rate;
 
     Ok(client.lock().await.get_assets(asset_ids.0, rate)?.into())
 }
