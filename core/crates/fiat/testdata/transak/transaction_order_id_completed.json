@@ -1,0 +1,10 @@
+{
+    "data": {
+        "fiatAmount": 42.0,
+        "fiatCurrency": "usd",
+        "orderId": "order-id",
+        "partnerOrderId": "partner-order-id",
+        "status": "COMPLETED",
+        "transactionHash": "0x123"
+    }
+}

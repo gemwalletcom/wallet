@@ -44,7 +44,9 @@ impl FiatProvider for TransakClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         let encrypted_data = serde_json::from_value::<Data<String>>(request.data)?;
-        let order = self.decode_webhook_data(&encrypted_data.data).await?;
+        let Some(order) = self.decode_webhook_data(&encrypted_data.data).await? else {
+            return Ok(FiatWebhook::None);
+        };
 
         Ok(FiatWebhook::Transaction(map_order_from_response(order)))
     }
@@ -227,5 +229,13 @@ mod tests {
         let request = FiatWebhookRequest::mock_transak_signed(claims);
 
         assert!(TransakClient::mock_with_access_token("wrong_access_token").process_webhook(request).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_process_webhook_ignores_kyc_event() {
+        let claims = serde_json::from_str(include_str!("../../../testdata/transak/webhook_kyc_approved.json")).unwrap();
+        let request = FiatWebhookRequest::mock_transak_signed(claims);
+
+        assert!(matches!(TransakClient::mock().process_webhook(request).await.unwrap(), FiatWebhook::None));
     }
 }

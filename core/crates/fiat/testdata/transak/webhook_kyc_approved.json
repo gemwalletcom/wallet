@@ -1,0 +1,6 @@
+{
+    "eventID": "KYC_APPROVED",
+    "kycStatus": "APPROVED",
+    "partnerCustomerId": "customer-id",
+    "partnerUserId": "user-id"
+}

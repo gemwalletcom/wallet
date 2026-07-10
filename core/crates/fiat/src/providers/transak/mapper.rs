@@ -66,7 +66,7 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 }
 
 pub fn map_order_from_response(payload: TransakOrderResponse) -> FiatTransactionUpdate {
-    let transaction_id = payload.quote_id.clone().unwrap_or_else(|| payload.id.clone());
+    let transaction_id = payload.partner_order_id.clone().or(payload.quote_id.clone()).unwrap_or_else(|| payload.id.clone());
     let provider_transaction_id = (transaction_id != payload.id).then_some(payload.id.clone());
 
     FiatTransactionUpdate {
@@ -173,6 +173,25 @@ mod tests {
                 status: FiatTransactionStatus::Failed,
                 transaction_hash: None,
                 fiat_amount: Some(108.0),
+                fiat_currency: Some("USD".to_string()),
+            }
+        );
+    }
+
+    #[test]
+    fn test_map_order_accepts_order_id() {
+        let response: Data<TransakOrderResponse> = serde_json::from_str(include_str!("../../../testdata/transak/transaction_order_id_completed.json")).unwrap();
+
+        let result = map_order_from_response(response.data);
+
+        assert_eq!(
+            result,
+            FiatTransactionUpdate {
+                transaction_id: "partner-order-id".to_string(),
+                provider_transaction_id: Some("order-id".to_string()),
+                status: FiatTransactionStatus::Complete,
+                transaction_hash: Some("0x123".to_string()),
+                fiat_amount: Some(42.0),
                 fiat_currency: Some("USD".to_string()),
             }
         );
