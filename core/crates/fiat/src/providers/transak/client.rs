@@ -1,5 +1,4 @@
 use super::models::{Asset, CachedToken, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, Response, TokenResponse, TransakQuote, TransakResponse};
-use gem_encoding::decode_base64_url;
 use primitives::{FiatProviderName, FiatQuoteType};
 use reqwest::Client;
 use serde_json::{Value, json};
@@ -30,6 +29,17 @@ impl TransakClient {
             api_secret,
             referrer_domain,
             cached_token: Arc::new(Mutex::new(None)),
+        }
+    }
+
+    #[cfg(test)]
+    pub(super) fn new_with_access_token(access_token: &str) -> Self {
+        Self {
+            client: gem_client::reqwest_client(),
+            api_key: String::new(),
+            api_secret: String::new(),
+            referrer_domain: String::new(),
+            cached_token: Arc::new(Mutex::new(Some(CachedToken::new(access_token.to_string(), TOKEN_TTL_SECONDS)))),
         }
     }
 
@@ -150,7 +160,7 @@ impl TransakClient {
         self.client.get(&url).send().await?.json().await
     }
 
-    async fn get_access_token(&self) -> Result<String, reqwest::Error> {
+    pub(super) async fn get_access_token(&self) -> Result<String, reqwest::Error> {
         let mut token_guard = self.cached_token.lock().await;
 
         if let Some(cached) = token_guard.as_ref()
@@ -182,16 +192,6 @@ impl TransakClient {
             .await?
             .json()
             .await?;
-
         Ok(response.data.access_token)
-    }
-    pub fn decode_jwt_content(&self, jwt: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let parts: Vec<&str> = jwt.split('.').collect();
-        if parts.len() != 3 {
-            return Err("Invalid JWT format".to_string().into());
-        }
-        let payload = parts[1];
-        let payload = decode_base64_url(payload)?;
-        Ok(String::from_utf8(payload)?)
     }
 }

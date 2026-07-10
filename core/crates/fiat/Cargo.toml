@@ -16,6 +16,7 @@ pem-rfc7468 = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
 hex = { workspace = true }
+jsonwebtoken = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
 

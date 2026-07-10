@@ -2955,6 +2955,7 @@ dependencies = [
  "gem_tracing",
  "hex",
  "hmac 0.13.0",
+ "jsonwebtoken",
  "number_formatter",
  "pem-rfc7468 1.0.0",
  "primitives",

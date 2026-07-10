@@ -1,7 +1,7 @@
 use super::{
     client::TransakClient,
     mapper::map_order_from_response,
-    models::{Data, TransakOrderResponse, TransakQuote},
+    models::{Data, TransakQuote},
 };
 use crate::{
     FiatProvider, FiatWebhookRequest,
@@ -44,11 +44,7 @@ impl FiatProvider for TransakClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         let encrypted_data = serde_json::from_value::<Data<String>>(request.data)?;
-        let decoded_payload = self.decode_jwt_content(&encrypted_data.data).map_err(|e| format!("Failed to decode Transak JWT: {}", e))?;
-        let order = match serde_json::from_str::<Data<TransakOrderResponse>>(&decoded_payload) {
-            Ok(payload) => payload.data,
-            Err(_) => serde_json::from_str::<TransakOrderResponse>(&decoded_payload)?,
-        };
+        let order = self.decode_webhook_data(&encrypted_data.data).await?;
 
         Ok(FiatWebhook::Transaction(map_order_from_response(order)))
     }
@@ -193,5 +189,43 @@ mod fiat_integration_tests {
         assert!(quote.crypto_amount > 0.0);
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{FiatProvider, FiatWebhookRequest, providers::transak::client::TransakClient};
+    use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
+    use streamer::FiatWebhook;
+
+    #[tokio::test]
+    async fn test_process_webhook_accepts_signed_transaction() {
+        let claims = serde_json::from_str(include_str!("../../../testdata/transak/webhook_transaction_completed.json")).unwrap();
+        let request = FiatWebhookRequest::mock_transak_signed(claims);
+
+        let result = TransakClient::mock().process_webhook(request).await.unwrap();
+        let FiatWebhook::Transaction(transaction) = result else {
+            panic!("expected transaction webhook");
+        };
+
+        assert_eq!(
+            transaction,
+            FiatTransactionUpdate {
+                transaction_id: "quote-id".to_string(),
+                provider_transaction_id: Some("order-id".to_string()),
+                status: FiatTransactionStatus::Complete,
+                transaction_hash: Some("0x123".to_string()),
+                fiat_amount: Some(42.0),
+                fiat_currency: Some("USD".to_string()),
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn test_process_webhook_rejects_invalid_signature() {
+        let claims = serde_json::from_str(include_str!("../../../testdata/transak/webhook_transaction_completed.json")).unwrap();
+        let request = FiatWebhookRequest::mock_transak_signed(claims);
+
+        assert!(TransakClient::mock_with_access_token("wrong_access_token").process_webhook(request).await.is_err());
     }
 }

@@ -1,0 +1,10 @@
+{
+    "webhookData": {
+        "fiatAmount": 42.0,
+        "fiatCurrency": "usd",
+        "id": "order-id",
+        "quoteId": "quote-id",
+        "status": "COMPLETED",
+        "transactionHash": "0x123"
+    }
+}

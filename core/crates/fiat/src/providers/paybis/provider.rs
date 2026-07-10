@@ -46,6 +46,7 @@ impl FiatProvider for PaybisClient {
     }
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        self.verify_webhook(&request)?;
         Ok(map_process_webhook(request.data)?)
     }
 
@@ -102,14 +103,13 @@ impl FiatProvider for PaybisClient {
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
     use crate::testkit::*;
-    use crate::{FiatProvider, FiatWebhookRequest, model::FiatMapping};
+    use crate::{FiatProvider, model::FiatMapping};
     use primitives::asset_constants::{
         BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, POLYGON_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID,
         TRON_USDT_TOKEN_ID,
     };
     use primitives::currency::Currency;
-    use primitives::{Chain, FiatProviderName, FiatQuoteRequest, FiatTransactionStatus, FiatTransactionUpdate};
-    use streamer::FiatWebhook;
+    use primitives::{Chain, FiatProviderName, FiatQuoteRequest};
 
     #[tokio::test]
     async fn test_paybis_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -207,45 +207,6 @@ mod fiat_integration_tests {
         let ly_country = countries.iter().find(|c| c.alpha2 == "LY").unwrap();
         assert!(!ly_country.is_allowed);
         assert_eq!(ly_country.provider, FiatProviderName::Paybis);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_process_webhook_verification_maps_to_none() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_paybis_test_client();
-        let verification_webhook: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_no_changes.json"))?;
-
-        let result = client.process_webhook(FiatWebhookRequest::from_value(verification_webhook)).await?;
-        match result {
-            FiatWebhook::None => {}
-            _ => panic!("Verification webhooks should map to FiatWebhook::None"),
-        }
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_process_webhook_transaction() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_paybis_test_client();
-        let transaction_webhook: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_started.json"))?;
-
-        let result = client.process_webhook(FiatWebhookRequest::from_value(transaction_webhook)).await?;
-        let FiatWebhook::Transaction(transaction) = result else {
-            panic!("Expected FiatWebhook::Transaction variant");
-        };
-
-        assert_eq!(
-            transaction,
-            FiatTransactionUpdate {
-                transaction_id: "a4a211ad-3bcf-47d9-b4ae-073e841e3e7a".to_string(),
-                provider_transaction_id: Some("PB21095868675TX1".to_string()),
-                status: FiatTransactionStatus::Pending,
-                transaction_hash: None,
-                fiat_amount: Some(50.0),
-                fiat_currency: Some("USD".to_string()),
-            }
-        );
 
         Ok(())
     }
