@@ -15,19 +15,14 @@ impl FlashnetClient {
 
 impl FiatWebhookRequest {
     pub fn mock_flashnet_signed(raw_body: &str) -> Self {
-        let timestamp = "1700000000000";
-        let message = format!("{timestamp}.{raw_body}");
-        let signature = generate_hmac_signature_hex(TEST_API_KEY, &message);
-        Self::mock_flashnet_with_signature(raw_body, timestamp, &signature)
+        let signature = generate_hmac_signature_hex(TEST_API_KEY, raw_body);
+        Self::mock_flashnet_with_signature(raw_body, &signature)
     }
 
-    pub fn mock_flashnet_with_signature(raw_body: &str, timestamp: &str, signature: &str) -> Self {
+    pub fn mock_flashnet_with_signature(raw_body: &str, signature: &str) -> Self {
         Self::new(
             raw_body.to_string(),
-            HashMap::from([
-                ("x-flashnet-signature".to_string(), signature.to_string()),
-                ("x-flashnet-timestamp".to_string(), timestamp.to_string()),
-            ]),
+            HashMap::from([("x-flashnet-signature".to_string(), signature.to_string())]),
             String::new(),
         )
         .unwrap()
