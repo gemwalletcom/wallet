@@ -72,6 +72,7 @@ fun CreateWalletScreen(
         when (state) {
             true -> CheckPhrase(
                 words = uiState.data,
+                loading = uiState.loading,
                 onDone = { viewModel.handleCreate(onCreated) },
                 onCancel = viewModel::handleCreateDismiss,
             )

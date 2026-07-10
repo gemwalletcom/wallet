@@ -59,29 +59,34 @@ class ImportViewModel @Inject constructor(
         data: String,
         nameRecord: NameRecord?,
         onImported: (WalletImportResult) -> Unit
-    ) = viewModelScope.launch(Dispatchers.IO) {
+    ) {
+        if (state.value.loading) {
+            return
+        }
         state.update { it.copy(loading = true) }
 
-        try {
-            val result = importWalletService.importWallet(
-                importType = state.value.importType,
-                walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName,
-                data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
-            )
-            state.update { it.copy(dataError = null, loading = false) }
-            withContext(Dispatchers.Main) {
-                when (result) {
-                    is WalletImportResult.New -> onImported(result)
-                    is WalletImportResult.Existing -> {
-                        setCurrentWallet.setCurrentWallet(result.wallet.id)
-                        state.update {
-                            it.copy(existingWalletResult = result, loading = false)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = importWalletService.importWallet(
+                    importType = state.value.importType,
+                    walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName,
+                    data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
+                )
+                state.update { it.copy(dataError = null, loading = false) }
+                withContext(Dispatchers.Main) {
+                    when (result) {
+                        is WalletImportResult.New -> onImported(result)
+                        is WalletImportResult.Existing -> {
+                            setCurrentWallet.setCurrentWallet(result.wallet.id)
+                            state.update {
+                                it.copy(existingWalletResult = result, loading = false)
+                            }
                         }
                     }
                 }
+            } catch (err: Throwable) {
+                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError("Unknown error"), loading = false) }
             }
-        } catch (err: Throwable) {
-            state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError("Unknown error"), loading = false) }
         }
     }
 

@@ -25,6 +25,7 @@ import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.CenteredDescriptionText
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.SceneSizing
@@ -44,6 +45,7 @@ private const val verifyGroupCount = 3
 @Composable
 internal fun CheckPhrase(
     words: List<String>,
+    loading: Boolean,
     onDone: () -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -94,7 +96,7 @@ internal fun CheckPhrase(
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.common_continue),
-                enabled = isDone,
+                state = buttonState(enabled = isDone, loading = loading),
             ) {
                 onDone()
             }

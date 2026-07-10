@@ -63,8 +63,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
-                enabled = uiModel.canImport,
-                loading = uiModel.checking,
+                state = uiModel.buttonState,
             ) {
                 viewModel.addUrl()
                 onCancel()

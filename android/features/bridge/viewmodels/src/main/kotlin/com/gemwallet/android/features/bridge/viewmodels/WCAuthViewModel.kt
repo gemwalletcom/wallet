@@ -19,7 +19,9 @@ import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.PayloadField
+import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
@@ -30,9 +32,12 @@ import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.MessageSigner
@@ -55,6 +60,10 @@ class WCAuthViewModel @Inject constructor(
 
     private val _state = MutableStateFlow<AuthSceneState>(AuthSceneState.Loading)
     val state: StateFlow<AuthSceneState> = _state.asStateFlow()
+
+    val buttonState: StateFlow<ButtonState> = state
+        .map { buttonState(loading = it is AuthSceneState.Approving) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)
 
     fun onRequest(
         request: WalletConnectAuthenticationRequest,

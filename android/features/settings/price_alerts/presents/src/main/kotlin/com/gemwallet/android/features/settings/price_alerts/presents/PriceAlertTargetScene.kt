@@ -37,6 +37,7 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.Badge
@@ -78,6 +79,7 @@ fun PriceAlertTargetScene(
     assetPriceChangeFormatted: String = "",
     assetValueDirection: ValueDirection = ValueDirection.None,
     error: PriceAlertTargetError?,
+    buttonState: ButtonState,
     onType: (PriceAlertNotificationType) -> Unit,
     onDirection: (PriceAlertDirection) -> Unit,
     onConfirm: () -> Unit,
@@ -135,7 +137,7 @@ fun PriceAlertTargetScene(
             } else {
                 MainActionButton(
                     title = stringResource(R.string.transfer_confirm),
-                    enabled = error == null,
+                    state = buttonState,
                     onClick = onConfirm,
                 )
             }
@@ -278,6 +280,7 @@ fun PriceAlertTargetScenePricePreview() {
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
             error = null,
+            buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},
             onConfirm = {},
@@ -300,6 +303,7 @@ fun PriceAlertTargetScenePercentagePreview() {
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
             error = null,
+            buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},
             onConfirm = {},

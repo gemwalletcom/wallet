@@ -40,6 +40,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoI
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.AmountInputType
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.paddingMiddle
@@ -61,6 +62,7 @@ internal fun AmountScene(
     equivalent: String,
     availableBalance: String,
     reserveForFee: String? = null,
+    buttonState: ButtonState,
     onAction: (AmountAction) -> Unit,
     additionParams: (@Composable () -> Unit)? = null,
 ) {
@@ -78,6 +80,7 @@ internal fun AmountScene(
             if (!isKeyBoardOpen || !isSmallScreen) {
                 MainActionButton(
                     title = stringResource(id = R.string.common_continue),
+                    state = buttonState,
                     onClick = { onAction(AmountAction.Next) },
                 )
             }
@@ -85,6 +88,7 @@ internal fun AmountScene(
         actions = {
             TextButton(
                 onClick = { onAction(AmountAction.Next) },
+                enabled = buttonState == ButtonState.Enabled,
                 colors = ButtonDefaults.textButtonColors().copy(contentColor = MaterialTheme.colorScheme.primary),
             ) { Text(stringResource(R.string.common_continue).uppercase()) }
         },

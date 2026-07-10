@@ -25,6 +25,7 @@ import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -34,7 +35,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
@@ -72,6 +72,7 @@ fun RequestScene(
     }
 
     val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     when (sceneState) {
         RequestSceneState.Loading -> LoadingScene(
@@ -85,6 +86,7 @@ fun RequestScene(
                 is WCRequest.SignMessage -> SignMessageScene(
                     state = sceneState,
                     request = request,
+                    buttonState = buttonState,
                     onApprove = { viewModel.onSign(onError) },
                     onReject = viewModel::onReject,
                 )
@@ -106,6 +108,7 @@ fun RequestScene(
 private fun SignMessageScene(
     state: RequestSceneState.Content,
     request: WCRequest.SignMessage,
+    buttonState: ButtonState,
     onApprove: () -> Unit,
     onReject: () -> Unit,
 ) {
@@ -119,8 +122,7 @@ private fun SignMessageScene(
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.transfer_confirm),
-                enabled = !request.simulation.warnings.hasCriticalWarning(),
-                loading = state is RequestSceneState.Responding,
+                state = buttonState,
             ) {
                 context.requestAuth(AuthRequest.Confirmation) {
                     onApprove()

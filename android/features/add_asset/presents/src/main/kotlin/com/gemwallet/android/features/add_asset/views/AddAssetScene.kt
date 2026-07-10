@@ -31,6 +31,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -60,7 +61,7 @@ internal fun AddAssetScene(
     network: Asset,
     token: Asset?,
     explorerLink: BlockExplorerLink?,
-    isLoading: Boolean,
+    buttonState: ButtonState,
     canSelectChain: Boolean,
     onAction: (AddAssetAction) -> Unit,
 ) {
@@ -75,8 +76,7 @@ internal fun AddAssetScene(
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
-                enabled = searchState is TokenSearchState.Idle && token != null,
-                loading = isLoading,
+                state = buttonState,
                 onClick = { onAction(AddAssetAction.Add) },
             )
         },

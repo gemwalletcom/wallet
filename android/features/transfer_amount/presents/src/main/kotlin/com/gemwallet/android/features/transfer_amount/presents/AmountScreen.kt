@@ -40,6 +40,7 @@ fun AmountScreen(
     val available by viewModel.availableBalanceFormatted.collectAsStateWithLifecycle()
     val reserve by viewModel.reserveForFeeFormatted.collectAsStateWithLifecycle()
     val currency by viewModel.currency.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     AnimatedContent(
         isSelectValidator && canPickValidator,
@@ -74,6 +75,7 @@ fun AmountScreen(
                 equivalent = equivalent,
                 availableBalance = available,
                 reserveForFee = reserve,
+                buttonState = buttonState,
                 onAction = { action ->
                     when (action) {
                         AmountAction.Next -> viewModel.onNext(onConfirm)

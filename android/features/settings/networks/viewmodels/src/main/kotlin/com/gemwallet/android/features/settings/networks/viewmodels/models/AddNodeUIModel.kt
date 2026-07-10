@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.settings.networks.viewmodels.models
 
 import com.gemwallet.android.model.NodeStatus
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Chain
 
 data class AddNodeUIModel(
@@ -11,4 +13,7 @@ data class AddNodeUIModel(
 ) {
     val canImport: Boolean
         get() = status != null && errorResId == null && !checking
+
+    val buttonState: ButtonState
+        get() = buttonState(enabled = canImport, loading = checking)
 }

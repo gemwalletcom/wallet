@@ -25,6 +25,9 @@ import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.domains.confirm.AmountUIModel
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
@@ -111,6 +114,15 @@ class ConfirmViewModel @Inject constructor(
         }
         simulation.copy(headerAsset = asset)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
+
+    val buttonState = combine(state, simulation) { state, simulation ->
+        buttonState(
+            enabled = state !is ConfirmState.Prepare
+                && state !is ConfirmState.Sending
+                && !simulation.warnings.hasCriticalWarning(),
+            loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
 
     private val assetsInfo = request.filterNotNull().mapNotNull {
         if (it is ConfirmParams.SwapParams) {

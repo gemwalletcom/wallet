@@ -14,7 +14,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,6 +27,7 @@ import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -64,7 +64,7 @@ fun BuyScene(
     selectedProvider: BuyFiatProviderUIModel?,
     fiatAmount: String,
     suggestedAmounts: List<FiatSuggestion>,
-    urlLoading: State<Boolean>,
+    buttonState: ButtonState,
     cancelAction: CancelAction,
     titleContent: @Composable () -> Unit,
     onLotSelect: (FiatSuggestion) -> Unit,
@@ -93,8 +93,7 @@ fun BuyScene(
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.common_continue),
-                enabled = state == FiatSceneState.Ready && selectedProvider != null,
-                loading = urlLoading.value,
+                state = buttonState,
                 onClick = onBuy,
             )
         }

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -167,8 +167,10 @@ fun ReferralScene(
                         Box(modifier = Modifier.padding(horizontal = sceneContentPadding())) {
                             MainActionButton(
                                 title = stringResource(R.string.rewards_activate_referral_code_title),
-                                colors = ButtonDefaults.buttonColors()
-                                    .copy(containerColor = Color.White, contentColor = Color.Black)
+                                colors = mainActionButtonColors(
+                                    containerColor = Color.White,
+                                    contentColor = Color.Black,
+                                ),
                             ) { codeDialogShow = true }
                         }
                         Spacer8()

@@ -72,7 +72,6 @@ import com.gemwallet.android.ui.localizedDescription
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
-import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
@@ -100,6 +99,7 @@ fun ConfirmScreen(
     val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val isWalletConnect = params is ConfirmParams.TransferParams.Generic
     val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
 
@@ -131,10 +131,7 @@ fun ConfirmScreen(
         mainAction = {
             MainActionButton(
                 title = state.buttonLabel(),
-                enabled = state !is ConfirmState.Prepare
-                    && state !is ConfirmState.Sending
-                    && !simulation.warnings.hasCriticalWarning(),
-                loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
+                state = buttonState,
                 onClick = {
                     context.requestAuth(AuthRequest.Confirmation) {
                         viewModel.send(finishAction)

@@ -11,6 +11,8 @@ import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.ext.walletConnectIcon
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -73,6 +75,10 @@ class ProposalSceneViewModel @Inject constructor(
         wallet ?: availableWallets.firstOrNull { current?.id == it.id } ?: availableWallets.firstOrNull()
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val buttonState = combine(selectedWallet, state) { wallet, sceneState ->
+        buttonState(enabled = wallet != null, loading = sceneState is ProposalSceneState.Approving)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     fun onProposal(
         proposal: WalletConnectSessionProposal,

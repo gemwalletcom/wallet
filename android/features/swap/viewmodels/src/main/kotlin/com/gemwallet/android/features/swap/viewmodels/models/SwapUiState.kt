@@ -3,6 +3,8 @@ package com.gemwallet.android.features.swap.viewmodels.models
 import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
 import com.gemwallet.android.application.swap.coordinators.getQuote
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.SwapperProvider
 
 sealed interface SwapActionState {
@@ -48,6 +50,16 @@ data class SwapUiState(
             SwapActionState.QuoteLoading,
             SwapActionState.Ready,
             SwapActionState.TransferLoading -> null
+        }
+
+    val buttonState: ButtonState
+        get() = when (val currentAction = action) {
+            SwapActionState.Ready,
+            is SwapActionState.TransferError -> ButtonState.Enabled
+            is SwapActionState.QuoteError -> buttonState(enabled = currentAction.error !is SwapError.InsufficientBalance)
+            SwapActionState.QuoteLoading,
+            SwapActionState.TransferLoading -> ButtonState.Loading
+            SwapActionState.None -> ButtonState.Disabled
         }
 
     val isReceiveLoading: Boolean

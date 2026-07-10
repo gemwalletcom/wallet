@@ -63,7 +63,7 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: Reward
             HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = 0.5.dp)
             MainActionButton(
                 title = stringResource(R.string.transfer_confirm),
-                enabled = uiState.canActivatePendingReferral
+                state = uiState.buttonState
             ) {
                 onConfirm(code)
             }

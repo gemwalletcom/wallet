@@ -14,6 +14,8 @@ import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.filter
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
@@ -102,6 +104,13 @@ class AddAssetViewModel @Inject constructor(
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val buttonState = combine(searchState, token, uiState) { searchState, token, uiState ->
+        buttonState(
+            enabled = searchState is TokenSearchState.Idle && token != null,
+            loading = uiState.isLoading,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     val explorerLink = token.combine(selectedChain) { token, chain ->
         val tokenId = token?.id?.tokenId ?: return@combine null
