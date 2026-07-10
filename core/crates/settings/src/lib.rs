@@ -354,6 +354,7 @@ pub struct Scan {
 pub struct Support {
     pub url: String,
     pub widget_public_token: String,
+    pub webhook: SecretKeySettings,
     pub types: SupportTypes,
 }
 

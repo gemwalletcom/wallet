@@ -239,6 +239,9 @@ scan:
 support:
   url: ""
   widget_public_token: ""
+  webhook:
+    key:
+      secret: ""
   types:
     images:
       - jpeg

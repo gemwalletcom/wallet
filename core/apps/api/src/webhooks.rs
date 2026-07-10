@@ -10,6 +10,7 @@ use rocket::{Request, State, post, tokio::sync::Mutex};
 use std::{collections::HashMap, str::FromStr};
 use storage::{ApiClientResource, ApiClientScope, ApiClientsRepository, Database};
 use streamer::{QueueName, StreamProducer, SupportWebhookPayload};
+use support::ChatwootWebhookVerifier;
 
 use crate::devices::FiatQuotesClient;
 use crate::responders::{ApiError, ApiResponse};
@@ -18,14 +19,22 @@ const MAX_WEBHOOK_BODY_BYTES: u64 = 1024 * 1024;
 
 pub struct WebhooksClient {
     stream_producer: StreamProducer,
+    chatwoot_webhook_verifier: ChatwootWebhookVerifier,
 }
 
 impl WebhooksClient {
-    pub fn new(stream_producer: StreamProducer) -> Self {
-        Self { stream_producer }
+    pub fn new(stream_producer: StreamProducer, support_webhook_secret: String) -> Self {
+        Self {
+            stream_producer,
+            chatwoot_webhook_verifier: ChatwootWebhookVerifier::new(support_webhook_secret),
+        }
     }
 
-    pub async fn process_support_webhook(&self, webhook_data: serde_json::Value) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn process_support_webhook(&self, raw_body: &str, headers: &HashMap<String, String>) -> Result<(), ApiError> {
+        self.chatwoot_webhook_verifier
+            .verify(headers, raw_body)
+            .map_err(|error| ApiError::BadRequest(error.to_string()))?;
+        let webhook_data = serde_json::from_str(raw_body).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
         let payload = SupportWebhookPayload::new(webhook_data);
         self.stream_producer.publish(QueueName::SupportWebhooks, &payload).await?;
         Ok(())
@@ -54,11 +63,6 @@ pub struct WebhookSecret(String);
 pub struct WebhookRequest {
     headers: HashMap<String, String>,
     path: String,
-}
-
-struct WebhookBody {
-    data: serde_json::Value,
-    raw_body: String,
 }
 
 #[rocket::async_trait]
@@ -104,7 +108,7 @@ fn authorize_webhook(database: &State<Database>, kind: WebhookKind, sender: &str
     Ok(())
 }
 
-async fn read_webhook_body(webhook_data: Data<'_>) -> Result<WebhookBody, ApiError> {
+async fn read_webhook_body(webhook_data: Data<'_>) -> Result<String, ApiError> {
     let bytes = webhook_data
         .open(MAX_WEBHOOK_BODY_BYTES.bytes())
         .into_bytes()
@@ -115,10 +119,7 @@ async fn read_webhook_body(webhook_data: Data<'_>) -> Result<WebhookBody, ApiErr
         return Err(ApiError::BadRequest("Webhook body too large".to_string()));
     }
 
-    let raw_body = String::from_utf8(bytes.into_inner()).map_err(|_| ApiError::BadRequest("Webhook body is not valid UTF-8".to_string()))?;
-    let data = serde_json::from_str(&raw_body).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
-
-    Ok(WebhookBody { data, raw_body })
+    String::from_utf8(bytes.into_inner()).map_err(|_| ApiError::BadRequest("Webhook body is not valid UTF-8".to_string()))
 }
 
 async fn process_webhook(
@@ -133,18 +134,17 @@ async fn process_webhook(
 ) -> Result<ApiResponse<bool>, ApiError> {
     authorize_webhook(database, kind.0, sender, secret)?;
 
-    let webhook_body = read_webhook_body(webhook_data).await?;
+    let raw_body = read_webhook_body(webhook_data).await?;
     match kind.0 {
         WebhookKind::Transactions => {
-            let payload: TransactionId = serde_json::from_value(webhook_body.data)?;
+            let payload: TransactionId = serde_json::from_str(&raw_body).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
             webhooks_client.lock().await.process_broadcast_webhook(payload).await?;
         }
         WebhookKind::Support => {
-            webhooks_client.lock().await.process_support_webhook(webhook_body.data).await?;
+            webhooks_client.lock().await.process_support_webhook(&raw_body, &webhook_request.headers).await?;
         }
         WebhookKind::Fiat => {
-            let request = FiatWebhookRequest::new(webhook_body.raw_body, webhook_request.headers, webhook_request.path)
-                .map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
+            let request = FiatWebhookRequest::new(raw_body, webhook_request.headers, webhook_request.path).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
             fiat_quotes_client.lock().await.process_and_publish_webhook(request, sender).await?;
         }
     }

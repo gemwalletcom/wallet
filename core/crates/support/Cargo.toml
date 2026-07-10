@@ -8,16 +8,21 @@ default = ["backend"]
 backend = [
     "dep:cacher",
     "dep:chrono",
+    "dep:hex",
+    "dep:hmac",
     "dep:localizer",
     "dep:reqwest",
     "dep:serde",
     "dep:serde_json",
     "dep:storage",
     "dep:streamer",
+    "dep:sha2",
 ]
 
 [dependencies]
 chrono = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
+hmac = { workspace = true, optional = true }
 reqwest = { workspace = true, features = ["multipart"], optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
@@ -27,6 +32,7 @@ localizer = { path = "../localizer", optional = true }
 primitives = { path = "../primitives" }
 storage = { path = "../storage", optional = true }
 streamer = { path = "../streamer", optional = true }
+sha2 = { workspace = true, optional = true }
 
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }
