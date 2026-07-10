@@ -51,20 +51,19 @@ class PortfolioChartViewModel internal constructor(
     val selectedChartType = _selectedChartType.asStateFlow()
 
     private val selectedPeriod = MutableStateFlow(ChartPeriod.All)
-    private val refreshTrigger = MutableStateFlow(0L)
-    private val refreshState = MutableStateFlow(false)
+    private val refreshController = ChartRefreshController()
 
     val showSegmentedControl = observePerpetualWallet()
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), false)
 
-    val isRefreshing = refreshState.asStateFlow()
+    val isRefreshing = refreshController.isRefreshing
 
     private val portfolio = combine(
         selectedType,
         selectedPeriod,
         getCurrentCurrency.getCurrency().distinctUntilChanged(),
-        refreshTrigger,
+        refreshController.trigger,
     ) { type, period, currency, _ -> PortfolioState(type, period, currency) }
         .transformLatest { state ->
             emit(state)
@@ -74,7 +73,7 @@ class PortfolioChartViewModel internal constructor(
                 currentCoroutineContext().ensureActive()
                 null
             }
-            refreshState.value = false
+            refreshController.stopRefreshing()
             val periods = data?.availablePeriods.orEmpty()
             when {
                 data == null -> emit(state.copy(data = StateViewType.Error))
@@ -136,8 +135,7 @@ class PortfolioChartViewModel internal constructor(
     }
 
     fun refresh() {
-        refreshState.value = true
-        refreshTrigger.value = refreshTrigger.value + 1
+        refreshController.startRefreshing()
     }
 
     @Inject
