@@ -8,17 +8,12 @@ pub(super) struct ReferrerWalletAddresses {
 
 pub(super) fn referrer_wallet_addresses(from_asset: &QuoteAsset, to_asset: &QuoteAsset, chain: Chain) -> ReferrerWalletAddresses {
     let referrer = default_referral_address(chain);
-    if prefer_input_as_fee_token(from_asset, to_asset) {
-        ReferrerWalletAddresses {
-            from_token: Some(referrer),
-            to_token: None,
-        }
+    let (from_token, to_token) = if prefer_input_as_fee_token(from_asset, to_asset) {
+        (Some(referrer), None)
     } else {
-        ReferrerWalletAddresses {
-            from_token: None,
-            to_token: Some(referrer),
-        }
-    }
+        (None, Some(referrer))
+    };
+    ReferrerWalletAddresses { from_token, to_token }
 }
 
 fn fee_token_priority(asset: &QuoteAsset) -> FeeTokenPriority {

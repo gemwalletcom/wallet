@@ -13,9 +13,9 @@ use super::{SQUID_COSMOS_MULTICALL, SUPPORTED_CHAINS, client::SquidClient, model
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
     SwapperProvider, SwapperQuoteData,
-    config::{DEFAULT_SWAP_FEE_BPS, get_swap_proxy_url},
+    config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
-    fees::default_referral_fees,
+    fees::{DEFAULT_SWAP_FEE_BPS, default_referral_fees},
 };
 
 #[derive(Debug)]

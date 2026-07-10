@@ -55,7 +55,7 @@ use settings_chain::{ChainProviders, ProviderFactory};
 use storage::Database;
 use streamer::{StreamProducer, StreamProducerConfig};
 use swap::SwapClient;
-use swapper::okx::{OkxClientConfig, OkxProvider};
+use swapper::okx::{OkxClientConfig, OkxProviderProxy};
 use swapper::swapper::GemSwapper;
 use webhooks::WebhooksClient;
 use websocket_prices::PriceObserverConfig;
@@ -87,8 +87,10 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 markets::get_markets,
                 referral::get_rewards_leaderboard,
                 swap::post_near_intents_quote,
-                swap::okx::post_okx_quote,
-                swap::okx::post_okx_quote_data,
+                swap::okx::post_okx_quote_v6,
+                swap::okx::post_okx_swap_v6,
+                swap::okx::post_okx_quote_legacy,
+                swap::okx::post_okx_quote_data_legacy,
             ],
         )
         .mount(
@@ -265,7 +267,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
     let support_client = SupportApiClient::new(settings.support.url.clone(), settings.support.widget_public_token.clone(), database.clone());
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
     let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
-    let okx_provider = OkxProvider::new(
+    let okx_provider = OkxProviderProxy::new(
         OkxClientConfig {
             api_key: settings.swap.okx.key.public.clone(),
             secret_key: settings.swap.okx.key.secret.clone(),
