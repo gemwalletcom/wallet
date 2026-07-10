@@ -15,7 +15,7 @@ public protocol GemAPIFiatService: Sendable {
 }
 
 public protocol GemAPIPricesService: Sendable {
-    func getPrices(currency: String?, assetIds: [AssetId]) async throws -> [AssetPrice]
+    func getPrices(currency: Currency?, assetIds: [AssetId]) async throws -> [AssetPrice]
 }
 
 public protocol GemAPIAssetsListService: Sendable {
@@ -346,7 +346,7 @@ extension GemAPIService: GemAPIMarketService {
 }
 
 extension GemAPIService: GemAPIPricesService {
-    public func getPrices(currency: String?, assetIds: [AssetId]) async throws -> [AssetPrice] {
+    public func getPrices(currency: Currency?, assetIds: [AssetId]) async throws -> [AssetPrice] {
         try await provider
             .request(.getPrices(AssetPricesRequest(currency: currency, assetIds: assetIds)))
             .mapResponse(as: AssetPrices.self).prices

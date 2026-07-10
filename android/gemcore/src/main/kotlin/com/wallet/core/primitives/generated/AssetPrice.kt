@@ -36,7 +36,7 @@ data class AssetPrices (
 
 @Serializable
 data class AssetPricesRequest (
-	val currency: String? = null,
+	val currency: Currency? = null,
 	val assetIds: List<AssetId>
 )
 

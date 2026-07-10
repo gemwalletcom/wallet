@@ -13,7 +13,7 @@ pub async fn get_price(asset_id: AssetIdParam, currency: CurrencyParam, price_cl
 #[post("/prices", format = "json", data = "<request>")]
 pub async fn get_assets_prices(request: Json<AssetPricesRequest>, price_client: &State<Mutex<PriceClient>>) -> Result<ApiResponse<AssetPrices>, ApiError> {
     let AssetPricesRequest { currency, asset_ids } = request.into_inner();
-    let currency = currency.as_deref().unwrap_or(DEFAULT_FIAT_CURRENCY);
+    let currency = currency.as_ref().map(|currency| currency.as_ref()).unwrap_or(DEFAULT_FIAT_CURRENCY);
     Ok(price_client.lock().await.get_asset_prices(currency, asset_ids).await?.into())
 }
 

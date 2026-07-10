@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
+use crate::currency::Currency;
 use crate::portfolio::ChartValuePercentage;
 use crate::{AssetId, Price};
 
@@ -87,7 +88,7 @@ pub struct AssetPrices {
 #[typeshare(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPricesRequest {
-    pub currency: Option<String>,
+    pub currency: Option<Currency>,
     pub asset_ids: Vec<AssetId>,
 }
 

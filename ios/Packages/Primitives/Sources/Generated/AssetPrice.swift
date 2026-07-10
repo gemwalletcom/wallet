@@ -53,10 +53,10 @@ public struct AssetPrices: Codable, Sendable {
 }
 
 public struct AssetPricesRequest: Codable, Equatable, Sendable {
-	public let currency: String?
+	public let currency: Currency?
 	public let assetIds: [AssetId]
 
-	public init(currency: String?, assetIds: [AssetId]) {
+	public init(currency: Currency?, assetIds: [AssetId]) {
 		self.currency = currency
 		self.assetIds = assetIds
 	}
