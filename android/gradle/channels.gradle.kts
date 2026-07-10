@@ -52,7 +52,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
         "push" to ":flavors:pushes-stub",
         "review" to ":flavors:review-stub",
         "walletConnect" to ":data:services:walletconnect:noop",
-        "proguardFile" to "proguard-fdroid-rules.pro",
+        "proguardFiles" to listOf("proguard-reproducible-rules.pro"),
         "updateUrl" to "https://f-droid.org/en/packages/com.gemwallet.android/",
         "abis" to listOf("armeabi-v7a", "arm64-v8a"),
         "isDefault" to false,
