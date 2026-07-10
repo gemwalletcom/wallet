@@ -2,13 +2,16 @@
 
 import Foundation
 import GemAPI
+import Gemstone
 import Preferences
 import Primitives
 import Store
 import UIKit
 
 public struct DeviceService: DeviceServiceable {
-    public static let nodeAuthTokenUpdateInterval: Duration = .seconds(300)
+    private static let nodeAuthConfiguration = nodeAuthConfig()
+    public static let nodeAuthTokenUpdateInterval: Duration = .seconds(nodeAuthConfiguration.checkIntervalSeconds)
+    private static let nodeAuthTokenRefreshThreshold = UInt64(nodeAuthConfiguration.refreshThresholdSeconds)
 
     private let deviceProvider: any GemAPIDeviceService
     private let subscriptionsService: SubscriptionService
@@ -81,7 +84,7 @@ public struct DeviceService: DeviceServiceable {
         guard let token = try? securePreferences.nodeAuthToken() else { return true }
         let now = UInt64(Date.now.timeIntervalSince1970)
         let remainingTime = token.expiresAt > now ? token.expiresAt - now : 0
-        return remainingTime < UInt64(Self.nodeAuthTokenUpdateInterval.components.seconds)
+        return remainingTime < Self.nodeAuthTokenRefreshThreshold
     }
 
     private func getOrCreateDevice(_ deviceId: String) async throws -> Device {

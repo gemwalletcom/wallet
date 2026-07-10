@@ -2,9 +2,13 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import com.gemwallet.android.Constants
+import com.gemwallet.android.NodeAuthInterceptor
+import com.gemwallet.android.NodeAuthTokenService
+import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
-import com.gemwallet.android.data.repositories.config.SharedGemPreferences
 import com.gemwallet.android.data.password.TinkGemPreferences
+import com.gemwallet.android.data.repositories.config.SharedGemPreferences
+import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.data.services.gemapi.NativeProvider
 import com.gemwallet.android.data.services.gemapi.NativeProviderConfig
 import com.gemwallet.android.ui.R as UiR
@@ -16,6 +20,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPreferences
 import uniffi.gemstone.WalletConnectSimulationClient
 import uniffi.gemstone.WalletConnectSimulationClientInterface
 import javax.inject.Singleton
@@ -26,14 +31,27 @@ object GatewayModule {
 
     @Singleton
     @Provides
+    fun provideGemPreferences(@ApplicationContext context: Context): GemPreferences = TinkGemPreferences(context)
+
+    @Singleton
+    @Provides
+    fun provideNodeAuthTokenService(
+        deviceApiClient: GemDeviceApiClient,
+        isDeviceRegistered: IsDeviceRegistered,
+        preferences: GemPreferences,
+    ): NodeAuthTokenService = NodeAuthTokenService(deviceApiClient, isDeviceRegistered, preferences)
+
+    @Singleton
+    @Provides
     fun provideAlienProvider(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
+        nodeAuthInterceptor: NodeAuthInterceptor,
         @ApplicationContext context: Context,
     ): AlienProvider {
         return NativeProvider(
             getNodeUrlCase = getNodeUrlCase,
-            httpClient = okHttpClient,
+            httpClient = okHttpClient.newBuilder().addInterceptor(nodeAuthInterceptor).build(),
             config = NativeProviderConfig(
                 networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
             ),
@@ -44,6 +62,7 @@ object GatewayModule {
     @Singleton
     fun provideGateway(
         alienProvider: AlienProvider,
+        securePreferences: GemPreferences,
         @ApplicationContext context: Context,
     ): GemGateway {
         return GemGateway(
@@ -51,10 +70,14 @@ object GatewayModule {
             preferences = SharedGemPreferences(
                 sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE)
             ),
-            securePreferences = TinkGemPreferences(context),
+            securePreferences = securePreferences,
             apiUrl = Constants.API_URL
         )
     }
+
+    @Singleton
+    @Provides
+    fun provideNodeAuthInterceptor(preferences: GemPreferences): NodeAuthInterceptor = NodeAuthInterceptor(preferences)
 
     @Provides
     @Singleton

@@ -59,6 +59,9 @@ interface GemDeviceApiClient {
     @GET("/v2/devices/is_registered")
     suspend fun isDeviceRegistered(): Boolean
 
+    @GET("/v2/devices/token")
+    suspend fun getDeviceToken(): DeviceToken
+
     // Subscriptions
     @GET("/v2/devices/subscriptions")
     suspend fun getSubscriptions(): List<WalletSubscriptionChains>?
