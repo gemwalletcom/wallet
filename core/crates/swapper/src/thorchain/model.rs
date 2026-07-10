@@ -25,6 +25,8 @@ pub struct QuoteSwapRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuoteSwapResponse {
     pub expected_amount_out: String,
+    #[serde(deserialize_with = "deserialize_bigint_from_str")]
+    pub recommended_min_amount_in: BigInt,
     pub inbound_address: Option<String>,
     pub router: Option<String>,
     pub fees: QuoteFees,
@@ -429,5 +431,14 @@ mod tests {
         };
         assert!(error.is_input_amount_error());
         assert_eq!(error.parse_min_amount(), None);
+    }
+
+    #[test]
+    fn test_quote_swap_response() {
+        let response: QuoteSwapResponse =
+            serde_json::from_str(r#"{"expected_amount_out":"42","recommended_min_amount_in":"50570","inbound_address":null,"router":null,"fees":{},"total_swap_seconds":null}"#)
+                .unwrap();
+
+        assert_eq!(response.recommended_min_amount_in, BigInt::from(50570));
     }
 }

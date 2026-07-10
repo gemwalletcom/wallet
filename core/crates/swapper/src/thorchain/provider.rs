@@ -107,6 +107,12 @@ where
             .await
             .map_err(|e| self.map_quote_error(e, from_asset.decimals as i32))?;
 
+        if quote.recommended_min_amount_in > value {
+            return Err(SwapperError::InputAmountError {
+                min_amount: Some(value_to(&quote.recommended_min_amount_in.to_string(), from_asset.decimals as i32).to_string()),
+            });
+        }
+
         let to_value = super::asset::value_to(&quote.expected_amount_out, to_asset.decimals as i32);
         let inbound_address = RouteData::get_inbound_address(self.network, &from_asset, quote.inbound_address.clone())?;
         let route_data = RouteData {
