@@ -1,7 +1,10 @@
 use std::time::Duration;
 
+use jsonwebtoken::errors::{Error, ErrorKind};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
+
+const MIN_SECRET_LENGTH: usize = 32;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtClaims {
@@ -10,7 +13,15 @@ pub struct JwtClaims {
     pub iat: u64,
 }
 
+fn get_secret(secret: &str) -> Result<&str, Error> {
+    if secret.len() < MIN_SECRET_LENGTH {
+        return Err(ErrorKind::InvalidKeyFormat.into());
+    }
+    Ok(secret)
+}
+
 pub fn create_device_token(device_id: &str, secret: &str, expiry: Duration) -> Result<(String, u64), jsonwebtoken::errors::Error> {
+    let secret = get_secret(secret)?;
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
     let expires_at = now + expiry.as_secs();
     let claims = JwtClaims {
@@ -23,6 +34,7 @@ pub fn create_device_token(device_id: &str, secret: &str, expiry: Duration) -> R
 }
 
 pub fn verify_device_token(token: &str, secret: &str) -> Result<JwtClaims, jsonwebtoken::errors::Error> {
+    let secret = get_secret(secret)?;
     let token_data = decode::<JwtClaims>(token, &DecodingKey::from_secret(secret.as_bytes()), &Validation::new(Algorithm::HS256))?;
     Ok(token_data.claims)
 }
@@ -31,12 +43,13 @@ pub fn verify_device_token(token: &str, secret: &str) -> Result<JwtClaims, jsonw
 mod tests {
     use super::*;
 
+    const TEST_SECRET: &str = "test_secret_key_1234567890123456";
+
     #[test]
     fn test_create_and_verify() {
-        let secret = "test_secret_key_12345";
         let device_id = "abc123";
-        let (token, expires_at) = create_device_token(device_id, secret, Duration::from_secs(3600)).unwrap();
-        let claims = verify_device_token(&token, secret).unwrap();
+        let (token, expires_at) = create_device_token(device_id, TEST_SECRET, Duration::from_secs(3600)).unwrap();
+        let claims = verify_device_token(&token, TEST_SECRET).unwrap();
 
         assert_eq!(claims.sub, device_id);
         assert_eq!(claims.exp, expires_at);
@@ -45,24 +58,32 @@ mod tests {
 
     #[test]
     fn test_wrong_secret() {
-        let (token, _) = create_device_token("device1", "secret1", Duration::from_secs(3600)).unwrap();
-        assert!(verify_device_token(&token, "wrong_secret").is_err());
+        let (token, _) = create_device_token("device1", TEST_SECRET, Duration::from_secs(3600)).unwrap();
+        assert!(verify_device_token(&token, "wrong_secret_key_123456789012345").is_err());
+    }
+
+    #[test]
+    fn test_short_secret() {
+        let create_error = create_device_token("device1", &"a".repeat(MIN_SECRET_LENGTH - 1), Duration::from_secs(3600)).unwrap_err();
+        let verify_error = verify_device_token("token", "").unwrap_err();
+
+        assert_eq!(*create_error.kind(), ErrorKind::InvalidKeyFormat);
+        assert_eq!(*verify_error.kind(), ErrorKind::InvalidKeyFormat);
     }
 
     #[test]
     fn test_expired_token() {
-        let secret = "test_secret";
         let claims = JwtClaims {
             sub: "device1".to_string(),
             exp: 1000,
             iat: 900,
         };
-        let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_bytes())).unwrap();
-        assert!(verify_device_token(&token, secret).is_err());
+        let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(TEST_SECRET.as_bytes())).unwrap();
+        assert!(verify_device_token(&token, TEST_SECRET).is_err());
     }
 
     #[test]
     fn test_invalid_token() {
-        assert!(verify_device_token("not.a.valid.token", "secret").is_err());
+        assert!(verify_device_token("not.a.valid.token", TEST_SECRET).is_err());
     }
 }
