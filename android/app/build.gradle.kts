@@ -79,6 +79,9 @@ android {
             create(name) {
                 dimension = channelDimension
                 isDefault = channel["isDefault"] == true
+                if (name == "fdroid") {
+                    proguardFile("proguard-fdroid-rules.pro")
+                }
                 ndk {
                     @Suppress("UNCHECKED_CAST")
                     abiFilters.addAll(channel.getValue("abis") as List<String>)
