@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM lukemathwalker/cargo-chef:latest-rust-1.96.1-trixie AS chef
+FROM rust:1.97.0-trixie AS chef
+RUN cargo install --locked cargo-chef --version 0.1.77
 WORKDIR /app
 ENV CARGO_INCREMENTAL=0 \
     CARGO_TERM_COLOR=always
