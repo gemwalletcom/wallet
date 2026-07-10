@@ -9,7 +9,7 @@ use crate::{
     alien::{RpcClient, RpcProvider},
     approval::{check_approval_erc20, check_approval_trc20},
     fees::bps_to_percent_string,
-    models::ApprovalType,
+    models::{ApprovalType, SwapperChainAsset},
 };
 use alloy_primitives::U256;
 use gem_client::Client;
@@ -105,32 +105,64 @@ where
 
         let response = self.client.get_swap_data(&params).await?;
         let swap_data = first_data(response, "Failed to fetch OKX quote data")?;
-        let tx = swap_data.tx;
-        if tx.data.is_empty() {
+        let transaction_data = swap_data.tx;
+        if transaction_data.data.is_empty() {
             return Err(SwapperError::InvalidRoute);
         }
 
         match chain.chain_type() {
-            ChainType::Ethereum => self.build_evm_quote_data(&tx, &request.from_asset, &request.from_value, chain, &request.from_address).await,
-            ChainType::Solana => build_solana_quote_data(&tx),
-            ChainType::Tron => self.build_tron_quote_data(&tx, &request.from_asset, &request.from_value, &request.from_address).await,
+            ChainType::Ethereum => {
+                self.build_evm_quote_data(&transaction_data, &request.from_asset, &request.from_value, chain, &request.from_address)
+                    .await
+            }
+            ChainType::Solana => build_solana_quote_data(&transaction_data),
+            ChainType::Tron => {
+                self.build_tron_quote_data(&transaction_data, &request.from_asset, &request.from_value, &request.from_address)
+                    .await
+            }
             _ => Err(SwapperError::NotSupportedChain),
         }
     }
 
-    async fn build_evm_quote_data(&self, tx: &TransactionData, from_asset: &QuoteAsset, from_value: &str, chain: Chain, owner: &str) -> Result<SwapQuoteData, SwapperError> {
-        let approval = self.build_evm_approval(from_asset, tx.signature_data.as_deref(), from_value, chain, owner).await?;
-        let gas_limit = approval.is_some().then(|| apply_gas_multiplier_or_default(&tx.gas, chain));
-        let value = if tx.value.is_empty() { "0".to_string() } else { tx.value.clone() };
-        Ok(SwapQuoteData::new_contract(tx.to.clone(), value, tx.data.clone(), approval, gas_limit))
+    async fn build_evm_quote_data(
+        &self,
+        transaction_data: &TransactionData,
+        from_asset: &QuoteAsset,
+        from_value: &str,
+        chain: Chain,
+        owner: &str,
+    ) -> Result<SwapQuoteData, SwapperError> {
+        let approval = self
+            .build_evm_approval(from_asset, transaction_data.signature_data.as_deref(), from_value, chain, owner)
+            .await?;
+        let gas_limit = approval.is_some().then(|| apply_gas_multiplier_or_default(&transaction_data.gas, chain));
+        let value = if transaction_data.value.is_empty() {
+            "0".to_string()
+        } else {
+            transaction_data.value.clone()
+        };
+        Ok(SwapQuoteData::new_contract(
+            transaction_data.to.clone(),
+            value,
+            transaction_data.data.clone(),
+            approval,
+            gas_limit,
+        ))
     }
 
-    async fn build_tron_quote_data(&self, tx: &TransactionData, from_asset: &QuoteAsset, from_value: &str, owner: &str) -> Result<SwapQuoteData, SwapperError> {
+    async fn build_tron_quote_data(&self, transaction_data: &TransactionData, from_asset: &QuoteAsset, from_value: &str, owner: &str) -> Result<SwapQuoteData, SwapperError> {
         let approval = self.build_tron_approval(from_asset, from_value, owner).await?;
-        let gas_limit = approval.is_some().then(|| tx.gas.clone()).filter(|gas| gas.parse::<u64>().is_ok_and(|energy| energy > 0));
-        let value = if tx.value.is_empty() { "0".to_string() } else { tx.value.clone() };
-        let call_data = tx.data.strip_prefix("0x").unwrap_or(&tx.data).to_string();
-        Ok(SwapQuoteData::new_contract(tx.to.clone(), value, call_data, approval, gas_limit))
+        let gas_limit = approval
+            .is_some()
+            .then(|| transaction_data.gas.clone())
+            .filter(|gas| gas.parse::<u64>().is_ok_and(|energy| energy > 0));
+        let value = if transaction_data.value.is_empty() {
+            "0".to_string()
+        } else {
+            transaction_data.value.clone()
+        };
+        let call_data = transaction_data.data.strip_prefix("0x").unwrap_or(&transaction_data.data).to_string();
+        Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), value, call_data, approval, gas_limit))
     }
 
     async fn build_tron_approval(&self, from_asset: &QuoteAsset, from_value: &str, owner: &str) -> Result<Option<ApprovalData>, SwapperError> {
@@ -164,6 +196,31 @@ where
             _ => Ok(None),
         }
     }
+}
+
+pub(crate) fn support_assets() -> Vec<SwapperChainAsset> {
+    vec![
+        SwapperChainAsset::All(Chain::Solana),
+        SwapperChainAsset::All(Chain::Tron),
+        SwapperChainAsset::All(Chain::Ethereum),
+        SwapperChainAsset::All(Chain::SmartChain),
+        SwapperChainAsset::All(Chain::Polygon),
+        SwapperChainAsset::All(Chain::Arbitrum),
+        SwapperChainAsset::All(Chain::Optimism),
+        SwapperChainAsset::All(Chain::Base),
+        SwapperChainAsset::All(Chain::AvalancheC),
+        SwapperChainAsset::All(Chain::Fantom),
+        SwapperChainAsset::All(Chain::Manta),
+        SwapperChainAsset::All(Chain::Blast),
+        SwapperChainAsset::All(Chain::ZkSync),
+        SwapperChainAsset::All(Chain::Linea),
+        SwapperChainAsset::All(Chain::Mantle),
+        SwapperChainAsset::All(Chain::Hyperliquid),
+        SwapperChainAsset::All(Chain::Sonic),
+        SwapperChainAsset::All(Chain::Unichain),
+        SwapperChainAsset::All(Chain::Monad),
+        SwapperChainAsset::All(Chain::XLayer),
+    ]
 }
 
 fn first_data<T>(response: OkxApiResponse<T>, fallback: &str) -> Result<T, SwapperError> {
@@ -246,11 +303,11 @@ fn apply_gas_multiplier_or_default(gas: &str, chain: Chain) -> String {
     }
 }
 
-fn build_solana_quote_data(tx: &TransactionData) -> Result<SwapQuoteData, SwapperError> {
-    let bytes = bs58::decode(&tx.data)
+fn build_solana_quote_data(transaction_data: &TransactionData) -> Result<SwapQuoteData, SwapperError> {
+    let bytes = bs58::decode(&transaction_data.data)
         .into_vec()
-        .map_err(|err| SwapperError::TransactionError(format!("invalid swap tx data: {err}")))?;
-    Ok(SwapQuoteData::new_contract(tx.to.clone(), "0".to_string(), encode_base64(&bytes), None, None))
+        .map_err(|err| SwapperError::TransactionError(format!("invalid swap transaction data: {err}")))?;
+    Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), "0".to_string(), encode_base64(&bytes), None, None))
 }
 
 #[cfg(test)]
@@ -328,11 +385,11 @@ mod tests {
         let zero_allowance = r#"{"result":{"result":true},"constant_result":["0000000000000000000000000000000000000000000000000000000000000000"],"energy_used":1000}"#;
         let provider = OkxProvider::mock(zero_allowance);
 
-        let tx = TransactionData::mock("TAGVH5t42MuofaAfUauPPRe4Qw3i8Z3QHM", "0", "0xf2c42696abcd", "230400");
+        let transaction = TransactionData::mock("TAGVH5t42MuofaAfUauPPRe4Qw3i8Z3QHM", "0", "0xf2c42696abcd", "230400");
         let usdt = quote_asset(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID).to_string());
         let owner = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z";
 
-        let data = provider.build_tron_quote_data(&tx, &usdt, "50000000", owner).await.unwrap();
+        let data = provider.build_tron_quote_data(&transaction, &usdt, "50000000", owner).await.unwrap();
 
         assert_eq!(data.to, "TAGVH5t42MuofaAfUauPPRe4Qw3i8Z3QHM");
         assert_eq!(data.data, "f2c42696abcd");
@@ -342,12 +399,12 @@ mod tests {
         assert_eq!(approval.spender, TRON_DEX_TOKEN_APPROVE_ADDRESS);
         assert_eq!(approval.value, "50000000");
 
-        let native_tx = TransactionData {
+        let native_transaction = TransactionData {
             value: "100000000".to_string(),
-            ..tx
+            ..transaction
         };
         let trx = quote_asset(&AssetId::from_chain(Chain::Tron).to_string());
-        let data = provider.build_tron_quote_data(&native_tx, &trx, "100000000", owner).await.unwrap();
+        let data = provider.build_tron_quote_data(&native_transaction, &trx, "100000000", owner).await.unwrap();
 
         assert_eq!(data.value, "100000000");
         assert!(data.approval.is_none());
@@ -399,8 +456,8 @@ mod tests {
 
     #[test]
     fn test_build_solana_quote_data() {
-        let tx = TransactionData::mock("ToAddr", "", "Cn8eVZg", "");
-        let data = build_solana_quote_data(&tx).unwrap();
+        let transaction = TransactionData::mock("ToAddr", "", "Cn8eVZg", "");
+        let data = build_solana_quote_data(&transaction).unwrap();
         assert_eq!(data.data, "aGVsbG8=");
         assert_eq!(data.value, "0");
         assert_eq!(data.to, "ToAddr");
@@ -507,6 +564,7 @@ mod swap_integration_tests {
             EVM_WALLET,
             "100000000000000000",
             100,
+            70,
         );
 
         let quote = provider.get_quote(request).await?;
@@ -523,7 +581,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_okx_fetch_quote_and_quote_data_tron_trx_to_usdt() -> Result<(), SwapperError> {
         let provider = okx_provider();
-        let request = mock_proxy_quote_request_from_assets(AssetId::from_chain(Chain::Tron), TRON_USDT_ASSET_ID.clone(), TRON_WALLET, "100000000", 100);
+        let request = mock_proxy_quote_request_from_assets(AssetId::from_chain(Chain::Tron), TRON_USDT_ASSET_ID.clone(), TRON_WALLET, "100000000", 100, 70);
 
         let quote = provider.get_quote(request).await?;
         assert!(quote.output_value.parse::<u64>().unwrap() > 0);
@@ -540,7 +598,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_okx_fetch_quote_and_quote_data_sol_to_usdc() -> Result<(), SwapperError> {
         let provider = okx_provider();
-        let request = mock_proxy_quote_request_from_assets(AssetId::from_chain(Chain::Solana), SOLANA_USDC_ASSET_ID.clone(), TEST_SOLANA_SENDER, "100000000", 300);
+        let request = mock_proxy_quote_request_from_assets(AssetId::from_chain(Chain::Solana), SOLANA_USDC_ASSET_ID.clone(), TEST_SOLANA_SENDER, "100000000", 300, 70);
 
         let quote = provider.get_quote(request).await?;
         assert!(quote.output_value.parse::<u64>().unwrap() > 0);

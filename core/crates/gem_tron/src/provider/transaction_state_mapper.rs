@@ -37,6 +37,7 @@ mod tests {
                 result: receipt_result.map(|value| value.to_string()),
             },
             log: None,
+            internal_transactions: None,
         }
     }
 

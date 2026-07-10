@@ -122,12 +122,12 @@ pub fn mock_proxy_quote_request(from_asset: QuoteAsset, to_asset: QuoteAsset, sl
     }
 }
 
-pub fn mock_proxy_quote_request_from_assets(from_asset: AssetId, to_asset: AssetId, address: &str, value: &str, slippage_bps: u32) -> ProxyQuoteRequest {
+pub fn mock_proxy_quote_request_from_assets(from_asset: AssetId, to_asset: AssetId, address: &str, value: &str, slippage_bps: u32, referral_bps: u32) -> ProxyQuoteRequest {
     ProxyQuoteRequest {
         from_address: address.to_string(),
         to_address: address.to_string(),
         from_value: value.to_string(),
-        ..mock_proxy_quote_request(QuoteAsset::from(from_asset), QuoteAsset::from(to_asset), slippage_bps, 50)
+        ..mock_proxy_quote_request(QuoteAsset::from(from_asset), QuoteAsset::from(to_asset), slippage_bps, referral_bps)
     }
 }
 

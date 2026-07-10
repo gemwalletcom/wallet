@@ -1,9 +1,13 @@
 #[cfg(test)]
+use crate::address::TronAddress;
+#[cfg(test)]
 use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccountPermission, TronAccountPermissionKey, TronFrozen, TronVote};
 #[cfg(test)]
-use crate::models::{Transaction, TransactionReceipt, TransactionReceiptData};
+use crate::models::{InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TronLog};
 #[cfg(test)]
 use crate::rpc::client::TronClient;
+#[cfg(test)]
+use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
 #[cfg(test)]
 use crate::rpc::trongrid::client::TronGridClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -86,6 +90,41 @@ impl TransactionReceiptData {
             result: None,
             receipt: TransactionReceipt { result: Some(result.to_string()) },
             log: None,
+            internal_transactions: None,
+        }
+    }
+
+    pub fn mock_transaction_receipt_with_logs(log: Vec<TronLog>, internal_transactions: Vec<InternalTransaction>) -> Self {
+        Self {
+            log: Some(log),
+            internal_transactions: Some(internal_transactions),
+            ..Self::mock_transaction_receipt_with_result("SUCCESS")
+        }
+    }
+}
+
+#[cfg(test)]
+impl TronLog {
+    pub fn mock_transfer(token_address: &str, from_topic: &str, to_topic: &str, amount_hex: &str) -> Self {
+        Self {
+            address: TronAddress::from_hex_or_base58(token_address),
+            topics: Some(vec![ERC20_TRANSFER_EVENT_SIGNATURE.to_string(), from_topic.to_string(), to_topic.to_string()]),
+            data: Some(amount_hex.to_string()),
+        }
+    }
+}
+
+#[cfg(test)]
+impl InternalTransaction {
+    pub fn mock(caller: &str, transfer_to: &str, call_value: u64, token_id: Option<&str>, rejected: bool) -> Self {
+        Self {
+            caller_address: TronAddress::from_hex_or_base58(caller),
+            transfer_to_address: TronAddress::from_hex_or_base58(transfer_to),
+            call_value_info: vec![InternalTransactionCallValue {
+                call_value,
+                token_id: token_id.map(|token_id| token_id.to_string()),
+            }],
+            rejected,
         }
     }
 }
