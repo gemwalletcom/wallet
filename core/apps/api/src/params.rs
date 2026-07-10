@@ -53,13 +53,11 @@ impl<'r> FromParam<'r> for FiatQuoteTypeParam {
 
 pub struct CurrencyParam(pub Currency);
 
-impl Default for CurrencyParam {
-    fn default() -> Self {
-        Self(Currency::USD)
-    }
-}
-
 impl<'r> FromFormField<'r> for CurrencyParam {
+    fn default() -> Option<Self> {
+        Some(Self(Currency::USD))
+    }
+
     fn from_value(field: ValueField<'r>) -> form::Result<'r, Self> {
         Currency::from_str(field.value)
             .map(CurrencyParam)
@@ -212,8 +210,8 @@ mod tests {
     use super::CurrencyParam;
 
     #[get("/currency?<currency>")]
-    fn currency(currency: Option<CurrencyParam>) -> String {
-        currency.unwrap_or_default().0.as_ref().to_string()
+    fn currency(currency: CurrencyParam) -> String {
+        currency.0.as_ref().to_string()
     }
 
     #[test]
