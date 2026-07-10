@@ -68,7 +68,7 @@ internal fun AutocloseScene(
             } else {
                 MainActionButton(
                     title = stringResource(R.string.transfer_confirm),
-                    enabled = model.confirmEnabled,
+                    state = model.buttonState,
                     onClick = { onAction(AutocloseAction.Confirm) },
                 )
             }

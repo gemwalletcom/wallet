@@ -15,6 +15,8 @@ import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.Asset
@@ -90,6 +92,10 @@ class PriceAlertTargetViewModel @Inject constructor(
         }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val buttonState: StateFlow<ButtonState> = error
+        .map { buttonState(enabled = it == null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = error.value == null))
 
     private val _direction = MutableStateFlow(PriceAlertDirection.Up)
     val direction: StateFlow<PriceAlertDirection> = _direction

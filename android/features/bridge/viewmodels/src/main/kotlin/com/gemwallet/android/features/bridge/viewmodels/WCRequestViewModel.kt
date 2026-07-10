@@ -19,6 +19,9 @@ import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.bridge.viewmodels.model.payload
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnection
@@ -56,6 +59,14 @@ class WCRequestViewModel @Inject constructor(
     private val state = MutableStateFlow(RequestViewModelState())
     private var requestJob: Job? = null
     val sceneState = state.map { it.toSceneState() }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
+
+    val buttonState = sceneState.map { scene ->
+        val request = (scene as? RequestSceneState.Content)?.request as? WCRequest.SignMessage
+        buttonState(
+            enabled = request?.simulation?.warnings?.hasCriticalWarning() != true,
+            loading = scene is RequestSceneState.Responding,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)
 
     fun onRequest(
         sessionRequest: WalletConnectSessionRequest,

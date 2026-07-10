@@ -58,6 +58,9 @@ class CreateWalletViewModel @Inject constructor(
     }
 
     fun handleCreate(onCreated: (walletId: WalletId?) -> Unit) {
+        if (state.value.loading) {
+            return
+        }
         state.update { it.copy(isShowSafeMessage = true, loading = true) }
         viewModelScope.launch(Dispatchers.IO) {
             val phrase = state.value.data.joinToString(" ")

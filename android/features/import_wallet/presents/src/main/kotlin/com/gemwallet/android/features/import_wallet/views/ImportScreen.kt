@@ -56,6 +56,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
@@ -111,6 +113,7 @@ fun ImportScreen(
         chainName = uiState.chainName,
         nameRecord = uiState.nameRecord,
         dataError = uiState.dataError,
+        buttonState = buttonState(loading = uiState.loading),
         onImport = { generatedName, value, nameRecord ->
             viewModel.import(generatedName, value, nameRecord, onImported)
         },
@@ -163,6 +166,7 @@ private fun ImportScene(
     chainName: String,
     nameRecord: NameRecord?,
     dataError: ImportError?,
+    buttonState: ButtonState,
     onImport: (generatedName: String, value: String, nameRecord: NameRecord?) -> Unit,
     onTypeChange: (WalletType) -> Unit,
     onCancel: () -> Unit
@@ -189,6 +193,7 @@ private fun ImportScene(
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
+                state = buttonState,
                 onClick = {
                     onImport(generatedName, inputState.value.text, nameRecordState.value)
                 },
@@ -359,6 +364,7 @@ fun PreviewImportAddress() {
                 chainName = "Ethereum",
                 nameRecord = null,
                 dataError = null,
+                buttonState = ButtonState.Enabled,
                 onImport = {_, _, _ -> },
                 onTypeChange = {},
                 onCancel = {},

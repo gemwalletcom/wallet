@@ -23,6 +23,7 @@ import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticatio
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -47,6 +48,7 @@ fun AuthRequestScene(
     val context = LocalContext.current
     val viewModel: WCAuthViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     LaunchedEffect(request.id) {
         viewModel.onRequest(request, verifyContext)
@@ -81,6 +83,7 @@ fun AuthRequestScene(
         )
         is AuthSceneState.Content -> AuthRequestContent(
             state = currentState,
+            buttonState = buttonState,
             onApprove = viewModel::onApprove,
             onReject = viewModel::onReject,
             onWalletSelected = viewModel::onWalletSelected,
@@ -91,6 +94,7 @@ fun AuthRequestScene(
 @Composable
 private fun AuthRequestContent(
     state: AuthSceneState.Content,
+    buttonState: ButtonState,
     onApprove: () -> Unit,
     onReject: () -> Unit,
     onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit,
@@ -107,7 +111,7 @@ private fun AuthRequestContent(
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.transfer_confirm),
-                loading = state is AuthSceneState.Approving,
+                state = buttonState,
             ) {
                 context.requestAuth(AuthRequest.Confirmation) {
                     onApprove()

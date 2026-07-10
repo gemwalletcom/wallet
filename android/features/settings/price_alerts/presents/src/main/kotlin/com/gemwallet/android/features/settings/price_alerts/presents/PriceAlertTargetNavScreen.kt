@@ -29,6 +29,7 @@ fun PriceAlertTargetNavScreen(
     val asset by viewModel.asset.collectAsStateWithLifecycle()
     val priceChangeFormatted by viewModel.priceChangeFormatted.collectAsStateWithLifecycle()
     val priceState by viewModel.priceState.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     PriceAlertTargetScene(
         value = viewModel.value,
@@ -44,6 +45,7 @@ fun PriceAlertTargetNavScreen(
         assetPriceChangeFormatted = priceChangeFormatted,
         assetValueDirection = priceState,
         error = error,
+        buttonState = buttonState,
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,
         onConfirm = {

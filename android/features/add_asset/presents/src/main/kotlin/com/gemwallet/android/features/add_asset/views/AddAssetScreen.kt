@@ -26,6 +26,7 @@ fun AddAssetScreen(
     val token by viewModel.token.collectAsStateWithLifecycle()
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
     val explorerLink by viewModel.explorerLink.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     BackHandler(uiState.scene != AddAssetUIState.Scene.Form) {
         viewModel.cancelSelectChain()
@@ -53,7 +54,7 @@ fun AddAssetScreen(
                 network = network.asset(),
                 token = token,
                 explorerLink = explorerLink,
-                isLoading = uiState.isLoading,
+                buttonState = buttonState,
                 canSelectChain = (availableChains?.size ?: 0) > 1,
                 onAction = { action ->
                     when (action) {

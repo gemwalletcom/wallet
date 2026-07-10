@@ -20,6 +20,8 @@ import com.gemwallet.android.model.ValueConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.AmountInputType
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -84,6 +86,14 @@ class AmountViewModel @Inject constructor(
     val currency: StateFlow<Currency> = provider.assetInfo
         .mapLatest { it?.price?.currency ?: Currency.USD }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
+
+    val buttonState: StateFlow<ButtonState> = combine(
+        snapshotFlow { amount },
+        amountError,
+    ) { input, error ->
+        val valid = (input.parseNumberOrNull()?.signum() ?: 0) > 0 && error is AmountError.None
+        buttonState(enabled = valid)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     init {
         combine(

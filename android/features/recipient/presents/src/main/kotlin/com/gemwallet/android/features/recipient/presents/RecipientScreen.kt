@@ -34,6 +34,7 @@ import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.keyboardAsState
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -56,6 +57,7 @@ fun RecipientScreen(
     val addressError by viewModel.addressError.collectAsStateWithLifecycle()
     val memoError by viewModel.memoErrorState.collectAsStateWithLifecycle()
     val address by viewModel.address.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val memo by viewModel.memo.collectAsStateWithLifecycle()
 
     var scan by remember { mutableStateOf(QrScanField.None) }
@@ -72,6 +74,7 @@ fun RecipientScreen(
                 memoError = memoError,
                 wallets = wallets,
                 contacts = contacts,
+                buttonState = buttonState,
                 onAction = { action ->
                     when (action) {
                         is RecipientAction.SetAddress -> viewModel.onAddress(action.address, action.nameRecord)
@@ -106,6 +109,7 @@ internal fun RecipientScreen(
     memoError: RecipientError,
     wallets: List<Wallet>,
     contacts: List<ContactRecipient>,
+    buttonState: ButtonState,
     onAction: (RecipientAction) -> Unit,
 ) {
     val isKeyBoardOpen by keyboardAsState()
@@ -121,12 +125,14 @@ internal fun RecipientScreen(
             if (!isKeyBoardOpen || !isSmallScreen) {
                 MainActionButton(
                     title = stringResource(id = R.string.common_continue),
+                    state = buttonState,
                     onClick = { onAction(RecipientAction.Next) },
                 )
             }
         },
         actions = {
             TextButton(onClick = { onAction(RecipientAction.Next) },
+                enabled = buttonState == ButtonState.Enabled,
                 colors = ButtonDefaults.textButtonColors()
                     .copy(contentColor = MaterialTheme.colorScheme.primary)
             ) {

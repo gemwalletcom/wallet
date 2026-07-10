@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.list_item.SelectionIndicator
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -63,7 +64,7 @@ fun AcceptTermsScreen(
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.onboarding_accept_terms_continue),
-                enabled = isUnderstand1 && isUnderstand2 && isUnderstand3,
+                state = buttonState(enabled = isUnderstand1 && isUnderstand2 && isUnderstand3),
                 onClick = { onAccept() }
             )
         },

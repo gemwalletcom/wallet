@@ -21,6 +21,8 @@ import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.Fiat
 import com.gemwallet.android.model.hasAvailable
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.Currency
@@ -224,6 +226,10 @@ class FiatViewModel @Inject constructor(
     val selectedProvider = combine(assetInfoUIModel, currentSelectedQuote) { asset, quote ->
         return@combine asset?.let { quote?.toProviderUIModel(asset.asset, currency) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val buttonState = combine(state, selectedProvider) { state, provider ->
+        buttonState(enabled = state == FiatSceneState.Ready && provider != null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     fun updateAmount(newAmount: String) {
         currentOperation().updateAmount(newAmount)

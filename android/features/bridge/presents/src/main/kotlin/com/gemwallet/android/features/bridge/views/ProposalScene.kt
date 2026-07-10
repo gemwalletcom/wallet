@@ -29,6 +29,7 @@ import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -63,6 +64,7 @@ fun ProposalScene(
     val peer by viewModel.proposal.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     LaunchedEffect(proposal) {
         viewModel.onProposal(proposal, verifyContext)
@@ -104,6 +106,7 @@ fun ProposalScene(
             state = contentState,
             selectedWallet = selectedWallet,
             availableWallets = availableWallets,
+            buttonState = buttonState,
             onReject = viewModel::onReject,
             onApprove = viewModel::onApprove,
             onWalletSelected = viewModel::onWalletSelected
@@ -117,6 +120,7 @@ private fun Proposal(
     state: ProposalSceneState.Content,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
+    buttonState: ButtonState,
     onReject: () -> Unit,
     onApprove: () -> Unit,
     onWalletSelected: (WalletId) -> Unit,
@@ -129,9 +133,8 @@ private fun Proposal(
         closeIcon = true,
         mainAction = {
             MainActionButton(
-                enabled = selectedWallet != null,
                 title = stringResource(id = R.string.transfer_confirm),
-                loading = state is ProposalSceneState.Approving,
+                state = buttonState,
                 onClick = onApprove
             )
         },

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.referral.viewmodels
 
+import com.gemwallet.android.ui.models.ButtonState
 import com.wallet.core.primitives.RewardStatus
 import com.wallet.core.primitives.Rewards
 import org.junit.Assert.assertEquals
@@ -51,6 +52,7 @@ class RewardsUIStateTest {
         assertEquals(false, state.isUnverified)
         assertEquals(true, state.hasPendingReferral)
         assertEquals(false, state.canActivatePendingReferral)
+        assertEquals(ButtonState.Disabled, state.buttonState)
     }
 
     @Test
@@ -59,6 +61,7 @@ class RewardsUIStateTest {
         val state = RewardsUIState.from(rewards(status = RewardStatus.Pending, verifyAfter = past, usedReferralCode = "ref1"))
         assertEquals(true, state.hasPendingReferral)
         assertEquals(true, state.canActivatePendingReferral)
+        assertEquals(ButtonState.Enabled, state.buttonState)
     }
 
     @Test

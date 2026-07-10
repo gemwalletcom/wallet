@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.referral.viewmodels
 
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.RewardStatus
 import com.wallet.core.primitives.Rewards
 
@@ -9,6 +11,9 @@ data class RewardsUIState(
     val hasPendingReferral: Boolean,
     val canActivatePendingReferral: Boolean,
 ) {
+    val buttonState: ButtonState
+        get() = buttonState(enabled = canActivatePendingReferral)
+
     companion object {
         fun from(rewards: Rewards?): RewardsUIState {
             if (rewards == null) {

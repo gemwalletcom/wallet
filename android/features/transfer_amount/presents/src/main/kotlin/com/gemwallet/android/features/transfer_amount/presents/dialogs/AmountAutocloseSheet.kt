@@ -25,6 +25,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
@@ -166,7 +167,7 @@ internal fun AmountAutocloseSheet(
             } else {
                 MainActionButton(
                     title = stringResource(R.string.common_done),
-                    enabled = confirmEnabled,
+                    state = buttonState(enabled = confirmEnabled),
                     onClick = {
                         submitAttempted = true
                         if (isTakeProfitValid && isStopLossValid) {

@@ -24,6 +24,8 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -139,6 +141,19 @@ class RecipientViewModel @Inject constructor(
     }.mutableStateIn(viewModelScope, RecipientError.None)
 
     val memoErrorState = MutableStateFlow<RecipientError>(RecipientError.None)
+
+    val buttonState: StateFlow<ButtonState> = combine(
+        address,
+        nameRecord,
+        addressError,
+    ) { address, record, error ->
+        val valid = when {
+            record != null -> true
+            resolveName.canResolveName(address) -> false
+            else -> address.isNotBlank() && error == RecipientError.None
+        }
+        buttonState(enabled = valid)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     val hasMemo: StateFlow<Boolean> = state
         .map {

@@ -28,6 +28,7 @@ import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.iconSize
@@ -52,6 +53,8 @@ fun FiatNavScreen(
     val providers by viewModel.providers.collectAsStateWithLifecycle()
     val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle()
     val showFiatTypePicker by viewModel.showFiatTypePicker.collectAsStateWithLifecycle()
+    val quoteButtonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val buttonState = if (urlLoading.value) ButtonState.Loading else quoteButtonState
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -68,7 +71,7 @@ fun FiatNavScreen(
         cancelAction = cancelAction,
         fiatAmount = amount,
         suggestedAmounts = suggestedAmounts,
-        urlLoading = urlLoading,
+        buttonState = buttonState,
         titleContent = {
             FiatTitle(
                 asset = currentAsset,
