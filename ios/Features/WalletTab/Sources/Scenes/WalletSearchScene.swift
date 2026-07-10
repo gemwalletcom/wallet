@@ -3,6 +3,7 @@
 import AssetsService
 import Components
 import Localization
+import NFT
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -112,6 +113,20 @@ public struct WalletSearchScene: View {
                             HeaderNavigationLinkView(title: model.perpetualsTitle, destination: Scenes.Perpetuals())
                         } else {
                             SectionHeaderView(title: model.perpetualsTitle)
+                        }
+                    },
+                )
+                .listRowInsets(.assetListRowInsets)
+            }
+
+            if model.showNFTs {
+                Section(
+                    content: { CollectionsPreviewView(content: model.collectionsContent) },
+                    header: {
+                        if model.hasMoreNFTs {
+                            HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
+                        } else {
+                            SectionHeaderView(title: model.collectionsTitle)
                         }
                     },
                 )

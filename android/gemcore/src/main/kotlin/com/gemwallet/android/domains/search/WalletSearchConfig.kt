@@ -13,5 +13,7 @@ object WalletSearchConfig {
 
     val perpetualsPreviewLimit: Int get() = config.perpetualsPreviewLimit.toInt()
 
+    val nftsPreviewLimit: Int get() = config.nftsPreviewLimit.toInt()
+
     val resultsLimit: Int get() = config.resultsLimit.toInt()
 }

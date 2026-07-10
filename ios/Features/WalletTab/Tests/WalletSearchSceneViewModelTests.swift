@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BalanceServiceTestKit
+import NFT
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -22,8 +23,8 @@ struct WalletSearchSceneViewModelTests {
     func searchRequestInitialization() {
         #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.limit == 13)
         #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.limit == 13)
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.types == [.asset, .perpetual, .list])
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.types == [.asset, .perpetual, .list])
+        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.types == [.asset, .perpetual, .list, .nft])
+        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.types == [.asset, .perpetual, .list, .nft])
     }
 
     @Test
@@ -80,6 +81,33 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.showLists == true)
         #expect(model.showEmpty == false)
         #expect(model.listDestination(for: list) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
+    }
+
+    @Test
+    func hasMoreNFTs() {
+        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+
+        model.searchQuery.value = .mock(nfts: (0 ..< 3).map { _ in .asset(.mock()) })
+        #expect(model.hasMoreNFTs == false)
+
+        model.searchQuery.value = .mock(nfts: (0 ..< 4).map { _ in .asset(.mock()) })
+        #expect(model.hasMoreNFTs == true)
+    }
+
+    @Test
+    func nftsSection() {
+        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+
+        #expect(model.showNFTs == false)
+
+        model.searchQuery.value = .mock(nfts: [
+            .collection(NFTData(collection: .mock(), assets: [.mock(), .mock()])),
+            .asset(.mock()),
+        ])
+
+        #expect(model.showNFTs == true)
+        #expect(model.showEmpty == false)
+        #expect(model.collectionsContent.items.count == 2)
     }
 
     @Test

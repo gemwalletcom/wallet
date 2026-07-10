@@ -7,6 +7,7 @@ import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVi
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.assets.coordinators.GetSearchLists
+import com.gemwallet.android.application.nft.coordinators.GetNftCollections
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
 import com.gemwallet.android.application.session.coordinators.GetSession
@@ -24,13 +25,16 @@ import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.models.AssetToast
+import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.AssetTag
+import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -51,6 +55,7 @@ class WalletSearchViewModel @Inject constructor(
     toggleAssetPin: ToggleAssetPin,
     @WalletSearch searchTokensCase: SearchTokensCase,
     getPerpetuals: GetPerpetuals,
+    getNftCollections: GetNftCollections,
     getSearchLists: GetSearchLists,
     userConfig: UserConfig,
     private val togglePerpetualPin: TogglePerpetualPin,
@@ -98,6 +103,26 @@ class WalletSearchViewModel @Inject constructor(
             .flowOn(Dispatchers.IO)
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
+    private val nftData: Flow<List<NFTData>> = getNftCollections(null)
+        .map { data -> data.filter { it.assets.isNotEmpty() } }
+        .flowOn(Dispatchers.IO)
+
+    private val nfts: StateFlow<List<NftItemUIModel>> = combine(
+        nftData, currentQuery, selectedTag,
+    ) { data, query, tag ->
+        if (tag != null || query.isEmpty()) emptyList() else searchNfts(data, query)
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val previewNfts: StateFlow<List<NftItemUIModel>> = nfts
+        .map { items -> items.take(WalletSearchConfig.nftsPreviewLimit) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val hasMoreNfts: StateFlow<Boolean> = nfts
+        .map { items -> items.size > WalletSearchConfig.nftsPreviewLimit }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val lists: StateFlow<List<AssetList>> = currentQuery
         .flatMapLatest { query -> getSearchLists.getSearchLists(query) }
         .flowOn(Dispatchers.IO)
@@ -118,9 +143,9 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val state: StateFlow<UIState> = combine(
-        uiState, previewPerpetuals, pinnedPerpetuals,
-    ) { base, preview, pinnedPerps ->
-        if (preview.isNotEmpty() || pinnedPerps.isNotEmpty()) UIState.Idle else base
+        uiState, previewPerpetuals, pinnedPerpetuals, previewNfts,
+    ) { base, preview, pinnedPerps, nfts ->
+        if (preview.isNotEmpty() || pinnedPerps.isNotEmpty() || nfts.isNotEmpty()) UIState.Idle else base
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
@@ -129,6 +154,22 @@ class WalletSearchViewModel @Inject constructor(
         tag != null -> WalletSearchConfig.assetsTagLimit
         else -> WalletSearchConfig.assetsInitialLimit
     }
+
+    private fun searchNfts(data: List<NFTData>, query: String): List<NftItemUIModel> = data
+        .sortedWith(compareByDescending<NFTData> { it.assets.size }.thenBy { it.collection.name })
+        .flatMap { nft ->
+            if (nft.collection.name.contains(query, ignoreCase = true)) {
+                listOf(nft.toNftItem())
+            } else {
+                nft.assets
+                    .filter { it.name.contains(query, ignoreCase = true) }
+                    .sortedBy { it.name }
+                    .map { NftItemUIModel(nft.collection, it) }
+            }
+        }
+
+    private fun NFTData.toNftItem(): NftItemUIModel =
+        if (assets.size == 1) NftItemUIModel(collection, assets.first()) else NftItemUIModel(collection, null, assets.size)
 
     override fun assetsSearchLimit(query: String, tag: AssetTag?): Int = assetsLimit(query, tag) + 1
 

@@ -2,7 +2,7 @@
 
 import Foundation
 
-public extension Set {
+public extension Sequence {
     func asArray() -> [Element] {
         Array(self)
     }

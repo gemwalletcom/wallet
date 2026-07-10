@@ -97,6 +97,7 @@ let package = Package(
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
+                "NFT",
                 "WalletTab",
                 "WalletTabTestKit",
             ],

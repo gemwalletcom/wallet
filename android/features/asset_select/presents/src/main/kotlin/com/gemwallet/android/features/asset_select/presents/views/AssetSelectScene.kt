@@ -161,6 +161,7 @@ fun AssetSelectScene(
     pinnedPerpetualRows: List<@Composable (ListPosition) -> Unit> = emptyList(),
     perpetualsContent: (LazyListScope.() -> Unit)? = null,
     listsContent: (LazyListScope.() -> Unit)? = null,
+    nftsContent: (LazyListScope.() -> Unit)? = null,
     assetsHeaderRes: Int? = null,
     assetsHeaderClickable: Boolean = false,
     snackbar: SnackbarHostState? = null,
@@ -270,6 +271,7 @@ fun AssetSelectScene(
             }
             listsContent?.invoke(this)
             perpetualsContent?.invoke(this)
+            nftsContent?.invoke(this)
             if (assetsHeaderRes != null && commonAssets.isNotEmpty()) {
                 item {
                     SubheaderItem(assetsHeaderRes, onAssetsHeaderClick)
