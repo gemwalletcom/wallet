@@ -79,6 +79,9 @@ android {
             create(name) {
                 dimension = channelDimension
                 isDefault = channel["isDefault"] == true
+                (channel["proguardFiles"] as? List<*>)
+                    ?.filterIsInstance<String>()
+                    ?.forEach(::proguardFile)
                 ndk {
                     @Suppress("UNCHECKED_CAST")
                     abiFilters.addAll(channel.getValue("abis") as List<String>)

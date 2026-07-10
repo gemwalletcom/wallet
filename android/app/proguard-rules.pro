@@ -20,10 +20,9 @@
 #-dontobfuscate
 -ignorewarnings
 
-# Disable R8 optimization to keep pg-map-id and DEX output stable across clean builds.
--dontoptimize
-
-# Keep method names for stack traces while allowing shrinking.
+# Allow optimization while preserving stack traces.
+-optimizations !code/allocation/variable
+-optimizations !class/unboxing/enum
 -keep,allowshrinking,allowoptimization class * { <methods>; }
 -keepattributes Signature
 
