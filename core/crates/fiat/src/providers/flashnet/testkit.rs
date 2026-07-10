@@ -5,11 +5,22 @@ use crate::{FiatWebhookRequest, hmac_signature::generate_hmac_signature_hex};
 use super::client::FlashnetClient;
 
 const TEST_API_KEY: &str = "test_api_key";
+const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
 const TEST_AFFILIATE_ID: &str = "test_affiliate";
 
 impl FlashnetClient {
     pub fn mock() -> Self {
-        Self::new(gem_client::reqwest_client(), String::new(), TEST_API_KEY.to_string(), TEST_AFFILIATE_ID.to_string())
+        Self::mock_with_webhook_secret_key(TEST_WEBHOOK_SIGNING_KEY)
+    }
+
+    pub fn mock_with_webhook_secret_key(webhook_secret_key: &str) -> Self {
+        Self::new(
+            gem_client::reqwest_client(),
+            String::new(),
+            TEST_API_KEY.to_string(),
+            TEST_AFFILIATE_ID.to_string(),
+            webhook_secret_key.to_string(),
+        )
     }
 }
 
@@ -17,7 +28,7 @@ impl FiatWebhookRequest {
     pub fn mock_flashnet_signed(raw_body: &str) -> Self {
         let timestamp = "1700000000000";
         let signed_payload = format!("{timestamp}.{raw_body}");
-        let signature = generate_hmac_signature_hex(TEST_API_KEY, &signed_payload);
+        let signature = generate_hmac_signature_hex(TEST_WEBHOOK_SIGNING_KEY, &signed_payload);
         Self::mock_flashnet_with_signature(raw_body, timestamp, &signature)
     }
 

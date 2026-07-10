@@ -25,7 +25,7 @@ pub struct Settings {
     pub mercuryo: Mercuryo,
     pub banxa: UrlKeySettings,
     pub paybis: Paybis,
-    pub flashnet: UrlKeySettings,
+    pub flashnet: Flashnet,
 
     pub swap: Swap,
 
@@ -117,6 +117,13 @@ pub struct Transak {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Mercuryo {
     pub key: MercuryoKey,
+    pub webhook: SecretKeySettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Flashnet {
+    pub url: String,
+    pub key: Key,
     pub webhook: SecretKeySettings,
 }
 

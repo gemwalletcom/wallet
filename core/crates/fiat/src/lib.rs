@@ -49,7 +49,13 @@ impl FiatProviderFactory {
         );
         let banxa = BanxaClient::new(request_client.clone(), settings.banxa.url, settings.banxa.key.public, settings.banxa.key.secret);
         let paybis = PaybisClient::new(request_client.clone(), settings.paybis.key.public, settings.paybis.key.secret);
-        let flashnet = FlashnetClient::new(request_client.clone(), settings.flashnet.url, settings.flashnet.key.secret, settings.flashnet.key.public);
+        let flashnet = FlashnetClient::new(
+            request_client.clone(),
+            settings.flashnet.url,
+            settings.flashnet.key.secret,
+            settings.flashnet.key.public,
+            settings.flashnet.webhook.key.secret,
+        );
 
         vec![
             Box::new(moonpay),

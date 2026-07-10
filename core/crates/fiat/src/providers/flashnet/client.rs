@@ -10,17 +10,19 @@ pub struct FlashnetClient {
     client: Client,
     base_url: String,
     pub(crate) api_key: String,
+    pub(super) webhook_secret_key: String,
     pub(crate) affiliate_id: String,
 }
 
 impl FlashnetClient {
     pub const NAME: FiatProviderName = FiatProviderName::Flashnet;
 
-    pub fn new(client: Client, base_url: String, api_key: String, affiliate_id: String) -> Self {
+    pub fn new(client: Client, base_url: String, api_key: String, affiliate_id: String, webhook_secret_key: String) -> Self {
         Self {
             client,
             base_url,
             api_key,
+            webhook_secret_key,
             affiliate_id,
         }
     }

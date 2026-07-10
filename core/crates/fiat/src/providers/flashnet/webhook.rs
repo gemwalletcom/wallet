@@ -9,7 +9,7 @@ const TIMESTAMP_HEADER: &str = "x-flashnet-timestamp";
 
 impl FlashnetClient {
     pub fn verify_webhook(&self, request: &FiatWebhookRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
-        if self.api_key.is_empty() {
+        if self.webhook_secret_key.is_empty() {
             return Err(FiatQuoteError::InvalidRequest("Missing Flashnet webhook signing key".to_string()).into());
         }
 
@@ -20,7 +20,7 @@ impl FlashnetClient {
             .header(TIMESTAMP_HEADER)
             .ok_or_else(|| FiatQuoteError::InvalidRequest("Missing Flashnet webhook timestamp".to_string()))?;
         let signed_payload = format!("{timestamp}.{}", request.raw_body);
-        if verify_hmac_signature_hex(&self.api_key, &signed_payload, signature) {
+        if verify_hmac_signature_hex(&self.webhook_secret_key, &signed_payload, signature) {
             Ok(())
         } else {
             Err(FiatQuoteError::InvalidRequest("Invalid Flashnet webhook signature".to_string()).into())
@@ -54,10 +54,6 @@ mod tests {
     fn test_verify_webhook_rejects_missing_key() {
         let request = FiatWebhookRequest::mock_flashnet_signed(include_str!("../../../testdata/flashnet/webhook_completed.json"));
 
-        assert!(
-            FlashnetClient::new(gem_client::reqwest_client(), String::new(), String::new(), String::new())
-                .verify_webhook(&request)
-                .is_err()
-        );
+        assert!(FlashnetClient::mock_with_webhook_secret_key("").verify_webhook(&request).is_err());
     }
 }

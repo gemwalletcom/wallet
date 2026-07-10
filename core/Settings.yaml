@@ -55,6 +55,9 @@ flashnet:
   key:
     public: "gemwallet"
     secret: ""
+  webhook:
+    key:
+      secret: ""
 prices:
   pyth:
     url: "https://hermes.pyth.network"
