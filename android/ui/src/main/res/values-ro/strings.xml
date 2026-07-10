@@ -36,6 +36,8 @@
   <string name="common_pinned">Fixat</string>
   <string name="common_lists">Liste</string>
   <string name="common_unpin">Anulați fixarea</string>
+  <string name="common_pinned_asset">Fixat: %1$s</string>
+  <string name="common_unpinned_asset">Fixare anulată: %1$s</string>
   <string name="common_skip">Sari peste</string>
   <string name="common_warning">Avertizare</string>
   <string name="common_learn_more">Aflați mai multe</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Obține %1$s</string>
   <string name="asset_add_to_wallet">Adaugă în portofel</string>
   <string name="asset_hide_from_wallet">Ascunde din portofel</string>
+  <string name="asset_added_to_wallet">Adăugat în portofel</string>
+  <string name="asset_hidden_from_wallet">Ascuns din portofel</string>
   <string name="asset_resources">Resurse</string>
   <string name="asset_verification_verified">Verificat</string>
   <string name="asset_all_time_high">Maxim istoric</string>

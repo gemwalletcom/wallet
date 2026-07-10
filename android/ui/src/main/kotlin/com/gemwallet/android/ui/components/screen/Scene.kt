@@ -20,8 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -166,14 +164,7 @@ fun Scene(
         },
         snackbarHost = {
             if (snackbar != null) {
-                SnackbarHost(hostState = snackbar) { data ->
-                    Snackbar(
-                        snackbarData = data,
-                        containerColor = MaterialTheme.colorScheme.scrim,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        actionContentColor = MaterialTheme.colorScheme.primary,
-                    )
-                }
+                SnackbarHost(snackbar)
             }
         }
     ) { paddingValues ->

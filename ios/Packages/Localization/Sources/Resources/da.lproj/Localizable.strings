@@ -34,6 +34,8 @@
 "common.pinned" = "Fastgjort";
 "common.lists" = "Lister";
 "common.unpin" = "Frigør";
+"common.pinned_asset" = "Fastgjort: %@";
+"common.unpinned_asset" = "Frigjort: %@";
 "common.skip" = "Spring over";
 "common.warning" = "Advarsel";
 "common.learn_more" = "Lær mere";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Få %@";
 "asset.add_to_wallet" = "Tilføj til tegnebog";
 "asset.hide_from_wallet" = "Skjul fra tegnebogen";
+"asset.added_to_wallet" = "Tilføjet til tegnebogen";
+"asset.hidden_from_wallet" = "Skjult fra tegnebogen";
 "asset.resources" = "Ressourcer";
 "asset.verification.verified" = "Bekræftet";
 "asset.all_time_high" = "Højeste nogensinde";

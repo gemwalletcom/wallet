@@ -36,6 +36,8 @@
   <string name="common_pinned">Disemat</string>
   <string name="common_lists">Senarai</string>
   <string name="common_unpin">Nyahsemat</string>
+  <string name="common_pinned_asset">Disemat: %1$s</string>
+  <string name="common_unpinned_asset">Dinyahsemat: %1$s</string>
   <string name="common_skip">Langkau</string>
   <string name="common_warning">Amaran</string>
   <string name="common_learn_more">Ketahui Lebih Lanjut</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Dapatkan %1$s</string>
   <string name="asset_add_to_wallet">Tambah pada dompet</string>
   <string name="asset_hide_from_wallet">Sembunyi dari dompet</string>
+  <string name="asset_added_to_wallet">Ditambah ke dompet</string>
+  <string name="asset_hidden_from_wallet">Disembunyikan dari dompet</string>
   <string name="asset_resources">Sumber</string>
   <string name="asset_verification_verified">Disahkan</string>
   <string name="asset_all_time_high">Tertinggi Sepanjang Masa</string>

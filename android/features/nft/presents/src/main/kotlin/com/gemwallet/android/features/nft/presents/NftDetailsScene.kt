@@ -40,6 +40,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.toSocialLinks
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -103,8 +104,11 @@ fun NFTDetailsScene(
                     onClick = {
                         isMenuExpanded = false
                         scope.launch {
-                            val isSuccess = viewModel.refresh()
-                            snackbar.showSnackbar(if (isSuccess) refresh else refreshFailed)
+                            if (viewModel.refresh()) {
+                                snackbar.showSnackbar(refresh, R.drawable.ic_check_circle)
+                            } else {
+                                snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
+                            }
                         }
                     },
                 )

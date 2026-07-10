@@ -36,6 +36,8 @@
   <string name="common_pinned">Vastgezet</string>
   <string name="common_lists">Lijsten</string>
   <string name="common_unpin">Losmaken</string>
+  <string name="common_pinned_asset">Vastgezet: %1$s</string>
+  <string name="common_unpinned_asset">Losgemaakt: %1$s</string>
   <string name="common_skip">Overslaan</string>
   <string name="common_warning">Waarschuwing</string>
   <string name="common_learn_more">Meer informatie</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">%1$s krijgen</string>
   <string name="asset_add_to_wallet">Toevoegen aan portemonnee</string>
   <string name="asset_hide_from_wallet">Verbergen voor portemonnee</string>
+  <string name="asset_added_to_wallet">Toegevoegd aan portemonnee</string>
+  <string name="asset_hidden_from_wallet">Verborgen voor portemonnee</string>
   <string name="asset_resources">Bronnen</string>
   <string name="asset_verification_verified">Geverifieerd</string>
   <string name="asset_all_time_high">Hoogste ooit</string>

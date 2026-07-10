@@ -31,6 +31,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
@@ -146,7 +147,9 @@ class AssetsResultsViewModel @Inject constructor(
     }
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) {
+        val item = previewPerpetuals.value.firstOrNull { it.id == perpetualId }
         togglePerpetualPin.togglePin(perpetualId)
+        item?.let { emitToast(AssetToast.Pin(it.name, !it.isPinned)) }
     }
 
     fun onOpenPerpetual(assetId: AssetId) {

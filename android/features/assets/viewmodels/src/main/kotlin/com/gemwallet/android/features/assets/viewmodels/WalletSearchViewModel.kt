@@ -23,6 +23,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.ui.models.AssetToast
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.AssetTag
@@ -138,7 +139,9 @@ class WalletSearchViewModel @Inject constructor(
     }
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) {
+        val item = visiblePerpetuals.value.firstOrNull { it.id == perpetualId }
         togglePerpetualPin.togglePin(perpetualId)
+        item?.let { emitToast(AssetToast.Pin(it.name, !it.isPinned)) }
     }
 
     fun onOpenPerpetual(assetId: AssetId) {

@@ -34,6 +34,8 @@
 "common.pinned" = "Imebandikwa";
 "common.lists" = "Orodha";
 "common.unpin" = "Bandua";
+"common.pinned_asset" = "Imebandikwa: %@";
+"common.unpinned_asset" = "Imebanduliwa: %@";
 "common.skip" = "Ruka";
 "common.warning" = "Onyo";
 "common.learn_more" = "Jifunze Zaidi";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Pata %@";
 "asset.add_to_wallet" = "Ongeza kwenye mkoba";
 "asset.hide_from_wallet" = "Ficha kutoka kwa mkoba";
+"asset.added_to_wallet" = "Imeongezwa kwenye mkoba";
+"asset.hidden_from_wallet" = "Imefichwa kutoka kwa mkoba";
 "asset.resources" = "Rasilimali";
 "asset.verification.verified" = "Imethibitishwa";
 "asset.all_time_high" = "Wakati Wote Juu";

@@ -36,6 +36,8 @@
   <string name="common_pinned">ปักหมุดแล้ว</string>
   <string name="common_lists">รายการ</string>
   <string name="common_unpin">เลิกปักหมุด</string>
+  <string name="common_pinned_asset">ปักหมุดแล้ว: %1$s</string>
+  <string name="common_unpinned_asset">เลิกปักหมุดแล้ว: %1$s</string>
   <string name="common_skip">ข้าม</string>
   <string name="common_warning">คำเตือน</string>
   <string name="common_learn_more">เรียนรู้เพิ่มเติม</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">รับ %1$s</string>
   <string name="asset_add_to_wallet">เพิ่มลงในกระเป๋าสตางค์</string>
   <string name="asset_hide_from_wallet">ซ่อนจากกระเป๋าสตางค์</string>
+  <string name="asset_added_to_wallet">เพิ่มลงในกระเป๋าสตางค์แล้ว</string>
+  <string name="asset_hidden_from_wallet">ซ่อนจากกระเป๋าสตางค์แล้ว</string>
   <string name="asset_resources">ทรัพยากร</string>
   <string name="asset_verification_verified">ได้รับการยืนยันแล้ว</string>
   <string name="asset_all_time_high">สูงสุดตลอดกาล</string>

@@ -36,6 +36,8 @@
   <string name="common_pinned">고정됨</string>
   <string name="common_lists">목록</string>
   <string name="common_unpin">고정 해제</string>
+  <string name="common_pinned_asset">고정됨: %1$s</string>
+  <string name="common_unpinned_asset">고정 해제됨: %1$s</string>
   <string name="common_skip">건너뛰기</string>
   <string name="common_warning">경고</string>
   <string name="common_learn_more">더 알아보기</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">%1$s 받기</string>
   <string name="asset_add_to_wallet">지갑에 추가</string>
   <string name="asset_hide_from_wallet">지갑에서 숨기기</string>
+  <string name="asset_added_to_wallet">지갑에 추가됨</string>
+  <string name="asset_hidden_from_wallet">지갑에서 숨김</string>
   <string name="asset_resources">자원</string>
   <string name="asset_verification_verified">검증됨</string>
   <string name="asset_all_time_high">역대 최고</string>

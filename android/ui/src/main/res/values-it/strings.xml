@@ -36,6 +36,8 @@
   <string name="common_pinned">Appuntato</string>
   <string name="common_lists">Liste</string>
   <string name="common_unpin">Rimuovi fissaggio</string>
+  <string name="common_pinned_asset">Appuntato: %1$s</string>
+  <string name="common_unpinned_asset">Fissaggio rimosso: %1$s</string>
   <string name="common_skip">Salta</string>
   <string name="common_warning">Avviso</string>
   <string name="common_learn_more">Saperne di più</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Ottieni %1$s</string>
   <string name="asset_add_to_wallet">Aggiungi al portafoglio</string>
   <string name="asset_hide_from_wallet">Nascondi dal portafoglio</string>
+  <string name="asset_added_to_wallet">Aggiunto al portafoglio</string>
+  <string name="asset_hidden_from_wallet">Nascosto dal portafoglio</string>
   <string name="asset_resources">Risorse</string>
   <string name="asset_verification_verified">Verificato</string>
   <string name="asset_all_time_high">Massimo storico</string>

@@ -36,6 +36,8 @@
   <string name="common_pinned">Sabitlendi</string>
   <string name="common_lists">Listeler</string>
   <string name="common_unpin">Kaldır</string>
+  <string name="common_pinned_asset">Sabitlendi: %1$s</string>
+  <string name="common_unpinned_asset">Sabitleme kaldırıldı: %1$s</string>
   <string name="common_skip">Atla</string>
   <string name="common_warning">Uyarı</string>
   <string name="common_learn_more">Daha fazla bilgi edin</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">%1$s al</string>
   <string name="asset_add_to_wallet">Cüzdana ekle</string>
   <string name="asset_hide_from_wallet">Cüzdandan gizle</string>
+  <string name="asset_added_to_wallet">Cüzdana eklendi</string>
+  <string name="asset_hidden_from_wallet">Cüzdandan gizlendi</string>
   <string name="asset_resources">Kaynaklar</string>
   <string name="asset_verification_verified">Doğrulandı</string>
   <string name="asset_all_time_high">Tarihi zirve</string>

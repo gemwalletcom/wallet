@@ -36,6 +36,8 @@
   <string name="common_pinned">Naka-pin</string>
   <string name="common_lists">Mga Listahan</string>
   <string name="common_unpin">I-unpin</string>
+  <string name="common_pinned_asset">Naka-pin: %1$s</string>
+  <string name="common_unpinned_asset">Na-unpin: %1$s</string>
   <string name="common_skip">Laktawan</string>
   <string name="common_warning">Babala</string>
   <string name="common_learn_more">Matuto pa</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Kumuha ng %1$s</string>
   <string name="asset_add_to_wallet">Idagdag sa wallet</string>
   <string name="asset_hide_from_wallet">Itago sa wallet</string>
+  <string name="asset_added_to_wallet">Naidagdag sa wallet</string>
+  <string name="asset_hidden_from_wallet">Naitago sa wallet</string>
   <string name="asset_resources">Mga mapagkukunan</string>
   <string name="asset_verification_verified">Na-verify</string>
   <string name="asset_all_time_high">Mataas sa Lahat ng Panahon</string>

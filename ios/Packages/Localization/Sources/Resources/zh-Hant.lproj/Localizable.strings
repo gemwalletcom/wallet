@@ -34,6 +34,8 @@
 "common.pinned" = "置頂";
 "common.lists" = "列表";
 "common.unpin" = "取消置頂";
+"common.pinned_asset" = "已置頂：%@";
+"common.unpinned_asset" = "已取消置頂：%@";
 "common.skip" = "跳過";
 "common.warning" = "警告";
 "common.learn_more" = "了解更多";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "取得 %@";
 "asset.add_to_wallet" = "加入錢包";
 "asset.hide_from_wallet" = "隱藏錢包";
+"asset.added_to_wallet" = "已加入錢包";
+"asset.hidden_from_wallet" = "已從錢包隱藏";
 "asset.resources" = "資源";
 "asset.verification.verified" = "已驗證";
 "asset.all_time_high" = "歷史最高點";

@@ -34,6 +34,8 @@
 "common.pinned" = "Закрепленные";
 "common.lists" = "Списки";
 "common.unpin" = "Открепить";
+"common.pinned_asset" = "Закреплено: %@";
+"common.unpinned_asset" = "Откреплено: %@";
 "common.skip" = "Пропустить";
 "common.warning" = "Предупреждение";
 "common.learn_more" = "Узнать больше";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Получить %@";
 "asset.add_to_wallet" = "Добавить в кошелек";
 "asset.hide_from_wallet" = "Скрыть из кошелька";
+"asset.added_to_wallet" = "Добавлено в кошелек";
+"asset.hidden_from_wallet" = "Скрыто из кошелька";
 "asset.resources" = "Ресурсы";
 "asset.verification.verified" = "Проверено";
 "asset.all_time_high" = "Исторический максимум";

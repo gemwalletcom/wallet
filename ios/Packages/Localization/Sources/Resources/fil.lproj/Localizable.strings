@@ -34,6 +34,8 @@
 "common.pinned" = "Naka-pin";
 "common.lists" = "Mga Listahan";
 "common.unpin" = "I-unpin";
+"common.pinned_asset" = "Naka-pin: %@";
+"common.unpinned_asset" = "Na-unpin: %@";
 "common.skip" = "Laktawan";
 "common.warning" = "Babala";
 "common.learn_more" = "Matuto pa";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Kumuha ng %@";
 "asset.add_to_wallet" = "Idagdag sa wallet";
 "asset.hide_from_wallet" = "Itago sa wallet";
+"asset.added_to_wallet" = "Naidagdag sa wallet";
+"asset.hidden_from_wallet" = "Naitago sa wallet";
 "asset.resources" = "Mga mapagkukunan";
 "asset.verification.verified" = "Na-verify";
 "asset.all_time_high" = "Mataas sa Lahat ng Panahon";

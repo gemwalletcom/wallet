@@ -34,6 +34,8 @@
 "common.pinned" = "Disematkan";
 "common.lists" = "Daftar";
 "common.unpin" = "Lepas sematan";
+"common.pinned_asset" = "Disematkan: %@";
+"common.unpinned_asset" = "Sematan dilepas: %@";
 "common.skip" = "Lewati";
 "common.warning" = "Peringatan";
 "common.learn_more" = "Pelajari lebih lanjut";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Dapatkan %@";
 "asset.add_to_wallet" = "Tambahkan ke dompet";
 "asset.hide_from_wallet" = "Sembunyikan dari dompet";
+"asset.added_to_wallet" = "Ditambahkan ke dompet";
+"asset.hidden_from_wallet" = "Disembunyikan dari dompet";
 "asset.resources" = "Sumber daya";
 "asset.verification.verified" = "Terverifikasi";
 "asset.all_time_high" = "Tertinggi Sepanjang Masa";

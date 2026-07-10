@@ -19,6 +19,9 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.ui.models.AssetToast
+import com.gemwallet.android.ui.models.AssetToastEmitter
+import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
@@ -59,7 +62,7 @@ open class BaseAssetSelectViewModel(
     private val searchTokensCase: SearchTokensCase,
     val search: SelectSearch,
     private val remoteSearch: Boolean = true,
-) : ViewModel() {
+) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
     val queryState = TextFieldState()
     val selectedTag = MutableStateFlow<AssetTag?>(null)
@@ -159,15 +162,29 @@ open class BaseAssetSelectViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {
-        val session = session.value ?: return@launch
-        session.wallet.getAccount(assetId.chain) ?: return@launch
-        switchAssetVisibility(session.wallet.id, assetId, visible)
+        setVisibility(assetId, visible)
+    }
+
+    fun onAddToWallet(assetId: AssetId) = viewModelScope.launch {
+        if (setVisibility(assetId, visible = true)) {
+            emitToast(AssetToast.AddedToWallet)
+        }
     }
 
     fun onTogglePin(assetId: AssetId) = viewModelScope.launch {
         val session = session.value ?: return@launch
         session.wallet.getAccount(assetId.chain) ?: return@launch
+        val item = assets.value.firstOrNull { it.asset.id == assetId }
+        val willPin = item?.metadata?.isPinned != true
         toggleAssetPin(session.wallet.id, assetId)
+        item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
+    }
+
+    private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Boolean {
+        val session = session.value ?: return false
+        session.wallet.getAccount(assetId.chain) ?: return false
+        switchAssetVisibility(session.wallet.id, assetId, visible)
+        return true
     }
 
     fun onChainFilter(chain: Chain) {

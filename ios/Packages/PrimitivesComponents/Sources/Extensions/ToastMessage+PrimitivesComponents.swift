@@ -15,18 +15,18 @@ public extension ToastMessage {
 
     static func pin(_ name: String, pinned: Bool) -> ToastMessage {
         ToastMessage(
-            title: pinned ? "\(Localized.Common.pinned) \(name)" : "\(Localized.Common.unpin) \(name)",
+            title: pinned ? Localized.Common.pinnedAsset(name) : Localized.Common.unpinnedAsset(name),
             image: pinned ? SystemImage.pin : SystemImage.unpin,
         )
     }
 
     static func addedToWallet() -> ToastMessage {
-        ToastMessage(title: Localized.Asset.addToWallet, image: SystemImage.plusCircle)
+        ToastMessage(title: Localized.Asset.addedToWallet, image: SystemImage.plusCircle)
     }
 
     static func showAsset(visible: Bool) -> ToastMessage {
         ToastMessage(
-            title: visible ? Localized.Asset.addToWallet : Localized.Asset.hideFromWallet,
+            title: visible ? Localized.Asset.addedToWallet : Localized.Asset.hiddenFromWallet,
             image: visible ? SystemImage.plusCircle : SystemImage.minusCircle,
         )
     }

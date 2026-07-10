@@ -34,6 +34,8 @@
 "common.pinned" = "Appuntato";
 "common.lists" = "Liste";
 "common.unpin" = "Rimuovi fissaggio";
+"common.pinned_asset" = "Appuntato: %@";
+"common.unpinned_asset" = "Fissaggio rimosso: %@";
 "common.skip" = "Salta";
 "common.warning" = "Avviso";
 "common.learn_more" = "Saperne di più";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Ottieni %@";
 "asset.add_to_wallet" = "Aggiungi al portafoglio";
 "asset.hide_from_wallet" = "Nascondi dal portafoglio";
+"asset.added_to_wallet" = "Aggiunto al portafoglio";
+"asset.hidden_from_wallet" = "Nascosto dal portafoglio";
 "asset.resources" = "Risorse";
 "asset.verification.verified" = "Verificato";
 "asset.all_time_high" = "Massimo storico";

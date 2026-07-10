@@ -36,6 +36,8 @@
   <string name="common_pinned">Pinned</string>
   <string name="common_lists">Lists</string>
   <string name="common_unpin">Unpin</string>
+  <string name="common_pinned_asset">Pinned: %1$s</string>
+  <string name="common_unpinned_asset">Unpinned: %1$s</string>
   <string name="common_skip">Skip</string>
   <string name="common_warning">Warning</string>
   <string name="common_learn_more">Learn More</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Get %1$s</string>
   <string name="asset_add_to_wallet">Add to wallet</string>
   <string name="asset_hide_from_wallet">Hide from wallet</string>
+  <string name="asset_added_to_wallet">Added to wallet</string>
+  <string name="asset_hidden_from_wallet">Hidden from wallet</string>
   <string name="asset_resources">Resources</string>
   <string name="asset_verification_verified">Verified</string>
   <string name="asset_all_time_high">All Time High</string>

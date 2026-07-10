@@ -34,6 +34,8 @@
 "common.pinned" = "고정됨";
 "common.lists" = "목록";
 "common.unpin" = "고정 해제";
+"common.pinned_asset" = "고정됨: %@";
+"common.unpinned_asset" = "고정 해제됨: %@";
 "common.skip" = "건너뛰기";
 "common.warning" = "경고";
 "common.learn_more" = "더 알아보기";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "%@ 받기";
 "asset.add_to_wallet" = "지갑에 추가";
 "asset.hide_from_wallet" = "지갑에서 숨기기";
+"asset.added_to_wallet" = "지갑에 추가됨";
+"asset.hidden_from_wallet" = "지갑에서 숨김";
 "asset.resources" = "자원";
 "asset.verification.verified" = "검증됨";
 "asset.all_time_high" = "역대 최고";

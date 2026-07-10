@@ -29,6 +29,8 @@ public enum Localized {
   public enum Asset {
     /// Add to wallet
     public static let addToWallet = Localized.tr("Localizable", "asset.add_to_wallet", fallback: "Add to wallet")
+    /// Added to wallet
+    public static let addedToWallet = Localized.tr("Localizable", "asset.added_to_wallet", fallback: "Added to wallet")
     /// All Time High
     public static let allTimeHigh = Localized.tr("Localizable", "asset.all_time_high", fallback: "All Time High")
     /// All Time Low
@@ -49,6 +51,8 @@ public enum Localized {
     public static func getAsset(_ p1: Any) -> String {
       return Localized.tr("Localizable", "asset.get_asset", String(describing: p1), fallback: "Get %@")
     }
+    /// Hidden from wallet
+    public static let hiddenFromWallet = Localized.tr("Localizable", "asset.hidden_from_wallet", fallback: "Hidden from wallet")
     /// Hide from wallet
     public static let hideFromWallet = Localized.tr("Localizable", "asset.hide_from_wallet", fallback: "Hide from wallet")
     /// Market Cap
@@ -307,6 +311,10 @@ public enum Localized {
     public static let pin = Localized.tr("Localizable", "common.pin", fallback: "Pin")
     /// Pinned
     public static let pinned = Localized.tr("Localizable", "common.pinned", fallback: "Pinned")
+    /// Pinned: %@
+    public static func pinnedAsset(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.pinned_asset", String(describing: p1), fallback: "Pinned: %@")
+    }
     /// Private Key
     public static let privateKey = Localized.tr("Localizable", "common.private_key", fallback: "Private Key")
     /// Provider
@@ -337,6 +345,10 @@ public enum Localized {
     public static let type = Localized.tr("Localizable", "common.type", fallback: "Type")
     /// Unpin
     public static let unpin = Localized.tr("Localizable", "common.unpin", fallback: "Unpin")
+    /// Unpinned: %@
+    public static func unpinnedAsset(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.unpinned_asset", String(describing: p1), fallback: "Unpinned: %@")
+    }
     /// URL
     public static let url = Localized.tr("Localizable", "common.url", fallback: "URL")
     /// Wallet

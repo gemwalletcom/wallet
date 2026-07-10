@@ -34,6 +34,8 @@
 "common.pinned" = "Připnuto";
 "common.lists" = "Seznamy";
 "common.unpin" = "Odepnout";
+"common.pinned_asset" = "Připnuto: %@";
+"common.unpinned_asset" = "Odepnuto: %@";
 "common.skip" = "Přeskočit";
 "common.warning" = "Varování";
 "common.learn_more" = "Další informace";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Získat %@";
 "asset.add_to_wallet" = "Přidat do peněženky";
 "asset.hide_from_wallet" = "Skrýt z peněženky";
+"asset.added_to_wallet" = "Přidáno do peněženky";
+"asset.hidden_from_wallet" = "Skryto z peněženky";
 "asset.resources" = "Zdroje";
 "asset.verification.verified" = "Ověřeno";
 "asset.all_time_high" = "Historické maximum";

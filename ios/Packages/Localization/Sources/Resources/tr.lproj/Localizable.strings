@@ -34,6 +34,8 @@
 "common.pinned" = "Sabitlendi";
 "common.lists" = "Listeler";
 "common.unpin" = "Kaldır";
+"common.pinned_asset" = "Sabitlendi: %@";
+"common.unpinned_asset" = "Sabitleme kaldırıldı: %@";
 "common.skip" = "Atla";
 "common.warning" = "Uyarı";
 "common.learn_more" = "Daha fazla bilgi edin";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "%@ al";
 "asset.add_to_wallet" = "Cüzdana ekle";
 "asset.hide_from_wallet" = "Cüzdandan gizle";
+"asset.added_to_wallet" = "Cüzdana eklendi";
+"asset.hidden_from_wallet" = "Cüzdandan gizlendi";
 "asset.resources" = "Kaynaklar";
 "asset.verification.verified" = "Doğrulandı";
 "asset.all_time_high" = "Tarihi zirve";

@@ -36,6 +36,8 @@
   <string name="common_pinned">Đã ghim</string>
   <string name="common_lists">Danh sách</string>
   <string name="common_unpin">Bỏ ghim</string>
+  <string name="common_pinned_asset">Đã ghim: %1$s</string>
+  <string name="common_unpinned_asset">Đã bỏ ghim: %1$s</string>
   <string name="common_skip">Bỏ qua</string>
   <string name="common_warning">Cảnh báo</string>
   <string name="common_learn_more">Tìm hiểu thêm</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Nhận %1$s</string>
   <string name="asset_add_to_wallet">Thêm vào ví</string>
   <string name="asset_hide_from_wallet">Ẩn khỏi ví</string>
+  <string name="asset_added_to_wallet">Đã thêm vào ví</string>
+  <string name="asset_hidden_from_wallet">Đã ẩn khỏi ví</string>
   <string name="asset_resources">Tài nguyên</string>
   <string name="asset_verification_verified">Đã xác minh</string>
   <string name="asset_all_time_high">Mức cao nhất mọi thời đại</string>
