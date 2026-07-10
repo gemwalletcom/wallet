@@ -6,6 +6,8 @@ import Keychain
 import Primitives
 
 public final class SecurePreferences: Sendable {
+    private static let accessibility: Accessibility = .whenUnlockedThisDeviceOnly
+
     public enum Keys: String, CaseIterable {
         /// Deprecated. Use devicePublicKey
         case deviceId
@@ -26,7 +28,7 @@ public final class SecurePreferences: Sendable {
 
     @discardableResult
     public func set(value: String, key: SecurePreferences.Keys) throws -> String {
-        try keychain.set(value: value, key: key.rawValue)
+        try keychain.set(value: value, key: key.rawValue, accessibility: Self.accessibility)
         return value
     }
 
@@ -36,7 +38,7 @@ public final class SecurePreferences: Sendable {
 
     @discardableResult
     public func set(value: Data, key: SecurePreferences.Keys) throws -> Data {
-        try keychain.set(value, key: key.rawValue)
+        try keychain.set(value: value, key: key.rawValue, accessibility: Self.accessibility)
         return value
     }
 
@@ -53,7 +55,7 @@ public final class SecurePreferences: Sendable {
         if let privateKey = try getData(key: .devicePrivateKey),
            let publicKey = try getData(key: .devicePublicKey)
         {
-            return (privateKey, publicKey)
+            return try (set(value: privateKey, key: .devicePrivateKey), publicKey)
         }
 
         let keyPair = generateDeviceKeyPair()
@@ -89,16 +91,16 @@ public final class SecurePreferences: Sendable {
 }
 
 extension KeychainDefault: KeychainPreferenceStorable {
-    public func set(value: String, key: String) throws {
-        try set(value, key: key, ignoringAttributeSynchronizable: true)
+    public func set(value: String, key: String, accessibility: Accessibility) throws {
+        try self.accessibility(accessibility, authenticationPolicy: []).set(value, key: key)
     }
 
     public func get(key: String) throws -> String? {
         try get(key, ignoringAttributeSynchronizable: true)
     }
 
-    public func set(_ value: Data, key: String) throws {
-        try set(value, key: key, ignoringAttributeSynchronizable: true)
+    public func set(value: Data, key: String, accessibility: Accessibility) throws {
+        try self.accessibility(accessibility, authenticationPolicy: []).set(value, key: key)
     }
 
     public func getData(key: String) throws -> Data? {

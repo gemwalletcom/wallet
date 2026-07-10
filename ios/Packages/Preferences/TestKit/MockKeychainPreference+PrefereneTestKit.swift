@@ -1,25 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Keychain
 import Preferences
 
 public final class MockKeychainPreference: KeychainPreferenceStorable, @unchecked Sendable {
     private let storage: UserDefaults
 
-    init(storage: UserDefaults) {
+    public init(storage: UserDefaults) {
         self.storage = storage
     }
 
-    public func set(value: String, key: String) throws {
+    public func set(value: String, key: String, accessibility: Accessibility) throws {
         storage.set(value, forKey: key)
+        storage.set(accessibility.rawValue, forKey: accessibilityKey(key))
     }
 
     public func get(key: String) throws -> String? {
         storage.string(forKey: key)
     }
 
-    public func set(_ value: Data, key: String) throws {
+    public func set(value: Data, key: String, accessibility: Accessibility) throws {
         storage.set(value, forKey: key)
+        storage.set(accessibility.rawValue, forKey: accessibilityKey(key))
     }
 
     public func getData(key: String) throws -> Data? {
@@ -28,6 +31,15 @@ public final class MockKeychainPreference: KeychainPreferenceStorable, @unchecke
 
     public func remove(key: String) throws {
         storage.removeObject(forKey: key)
+        storage.removeObject(forKey: accessibilityKey(key))
+    }
+
+    public func accessibility(for key: String) -> Accessibility? {
+        storage.string(forKey: accessibilityKey(key)).flatMap(Accessibility.init(rawValue:))
+    }
+
+    private func accessibilityKey(_ key: String) -> String {
+        "\(key).accessibility"
     }
 }
 
