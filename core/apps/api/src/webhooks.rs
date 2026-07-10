@@ -51,7 +51,10 @@ impl<'r> FromParam<'r> for WebhookKindParam {
 }
 
 pub struct WebhookSecret(String);
-pub struct WebhookHeaders(HashMap<String, String>);
+pub struct WebhookRequest {
+    headers: HashMap<String, String>,
+    path: String,
+}
 
 struct WebhookBody {
     data: serde_json::Value,
@@ -75,7 +78,7 @@ impl<'r> FromRequest<'r> for WebhookSecret {
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for WebhookHeaders {
+impl<'r> FromRequest<'r> for WebhookRequest {
     type Error = String;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, String> {
@@ -84,7 +87,10 @@ impl<'r> FromRequest<'r> for WebhookHeaders {
             .iter()
             .map(|header| (header.name().as_str().to_ascii_lowercase(), header.value().to_string()))
             .collect();
-        Success(Self(headers))
+        Success(Self {
+            headers,
+            path: req.uri().path().as_str().to_string(),
+        })
     }
 }
 
@@ -121,7 +127,7 @@ async fn process_webhook(
     secret: &str,
     database: &State<Database>,
     webhook_data: Data<'_>,
-    headers: WebhookHeaders,
+    webhook_request: WebhookRequest,
     fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
     webhooks_client: &State<Mutex<WebhooksClient>>,
 ) -> Result<ApiResponse<bool>, ApiError> {
@@ -137,7 +143,8 @@ async fn process_webhook(
             webhooks_client.lock().await.process_support_webhook(webhook_body.data).await?;
         }
         WebhookKind::Fiat => {
-            let request = FiatWebhookRequest::new(webhook_body.raw_body, headers.0).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
+            let request = FiatWebhookRequest::new(webhook_body.raw_body, webhook_request.headers, webhook_request.path)
+                .map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
             fiat_quotes_client.lock().await.process_and_publish_webhook(request, sender).await?;
         }
     }
@@ -151,11 +158,11 @@ pub async fn create_webhook(
     secret: &str,
     database: &State<Database>,
     webhook_data: Data<'_>,
-    headers: WebhookHeaders,
+    webhook_request: WebhookRequest,
     fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
     webhooks_client: &State<Mutex<WebhooksClient>>,
 ) -> Result<ApiResponse<bool>, ApiError> {
-    process_webhook(kind, sender, secret, database, webhook_data, headers, fiat_quotes_client, webhooks_client).await
+    process_webhook(kind, sender, secret, database, webhook_data, webhook_request, fiat_quotes_client, webhooks_client).await
 }
 
 #[post("/webhooks/<kind>/<sender>", data = "<webhook_data>")]
@@ -165,9 +172,9 @@ pub async fn create_webhook_with_header(
     secret: WebhookSecret,
     database: &State<Database>,
     webhook_data: Data<'_>,
-    headers: WebhookHeaders,
+    webhook_request: WebhookRequest,
     fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
     webhooks_client: &State<Mutex<WebhooksClient>>,
 ) -> Result<ApiResponse<bool>, ApiError> {
-    process_webhook(kind, sender, &secret.0, database, webhook_data, headers, fiat_quotes_client, webhooks_client).await
+    process_webhook(kind, sender, &secret.0, database, webhook_data, webhook_request, fiat_quotes_client, webhooks_client).await
 }

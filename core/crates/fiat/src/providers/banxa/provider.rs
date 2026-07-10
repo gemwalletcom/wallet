@@ -41,6 +41,7 @@ impl FiatProvider for BanxaClient {
     }
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+        self.verify_webhook(&request)?;
         let order_id = serde_json::from_value::<Webhook>(request.data)?.order_id;
         Ok(FiatWebhook::OrderId(order_id))
     }
@@ -78,6 +79,27 @@ impl FiatProvider for BanxaClient {
             }
             FiatQuoteType::Sell => Err("not supported".into()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{FiatProvider, FiatWebhookRequest, providers::banxa::client::BanxaClient};
+    use streamer::FiatWebhook;
+
+    #[tokio::test]
+    async fn test_process_webhook_accepts_signed_order() {
+        let request = FiatWebhookRequest::mock_banxa_signed(include_str!("../../../testdata/banxa/webhook_order_complete.json"));
+        let result = BanxaClient::mock().process_webhook(request).await.unwrap();
+
+        assert!(matches!(result, FiatWebhook::OrderId(order_id) if order_id == "banxa_order_123"));
+    }
+
+    #[tokio::test]
+    async fn test_process_webhook_rejects_missing_signature() {
+        let request = FiatWebhookRequest::mock(include_str!("../../../testdata/banxa/webhook_order_complete.json"));
+
+        assert!(BanxaClient::mock().process_webhook(request).await.is_err());
     }
 }
 
