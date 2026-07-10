@@ -34,6 +34,8 @@
 "common.pinned" = "Vastgezet";
 "common.lists" = "Lijsten";
 "common.unpin" = "Losmaken";
+"common.pinned_asset" = "Vastgezet: %@";
+"common.unpinned_asset" = "Losgemaakt: %@";
 "common.skip" = "Overslaan";
 "common.warning" = "Waarschuwing";
 "common.learn_more" = "Meer informatie";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "%@ krijgen";
 "asset.add_to_wallet" = "Toevoegen aan portemonnee";
 "asset.hide_from_wallet" = "Verbergen voor portemonnee";
+"asset.added_to_wallet" = "Toegevoegd aan portemonnee";
+"asset.hidden_from_wallet" = "Verborgen voor portemonnee";
 "asset.resources" = "Bronnen";
 "asset.verification.verified" = "Geverifieerd";
 "asset.all_time_high" = "Hoogste ooit";

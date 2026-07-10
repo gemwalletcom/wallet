@@ -36,6 +36,8 @@
   <string name="common_pinned">پن لگا ہوا</string>
   <string name="common_lists">فہرستیں</string>
   <string name="common_unpin">پن کھول دیں۔</string>
+  <string name="common_pinned_asset">پن کر دیا گیا: %1$s</string>
+  <string name="common_unpinned_asset">پن ہٹا دیا گیا: %1$s</string>
   <string name="common_skip">چھوڑیں۔</string>
   <string name="common_warning">وارننگ</string>
   <string name="common_learn_more">مزید جانیں</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">%1$s حاصل کریں</string>
   <string name="asset_add_to_wallet">بٹوے میں شامل کریں۔</string>
   <string name="asset_hide_from_wallet">بٹوے سے چھپائیں۔</string>
+  <string name="asset_added_to_wallet">بٹوے میں شامل کر دیا گیا</string>
+  <string name="asset_hidden_from_wallet">بٹوے سے چھپا دیا گیا</string>
   <string name="asset_resources">وسائل</string>
   <string name="asset_verification_verified">تصدیق شدہ</string>
   <string name="asset_all_time_high">آل ٹائم ہائی</string>

@@ -36,6 +36,8 @@
   <string name="common_pinned">Angeheftet</string>
   <string name="common_lists">Listen</string>
   <string name="common_unpin">Lösen</string>
+  <string name="common_pinned_asset">Angeheftet: %1$s</string>
+  <string name="common_unpinned_asset">Losgelöst: %1$s</string>
   <string name="common_skip">Überspringen</string>
   <string name="common_warning">Warnung</string>
   <string name="common_learn_more">Mehr erfahren</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">%1$s erhalten</string>
   <string name="asset_add_to_wallet">Zum Wallet hinzufügen</string>
   <string name="asset_hide_from_wallet">Vor der Wallet verstecken</string>
+  <string name="asset_added_to_wallet">Zum Wallet hinzugefügt</string>
+  <string name="asset_hidden_from_wallet">Aus dem Wallet ausgeblendet</string>
   <string name="asset_resources">Ressourcen</string>
   <string name="asset_verification_verified">Bestätigt</string>
   <string name="asset_all_time_high">Allzeithoch</string>

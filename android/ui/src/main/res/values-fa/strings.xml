@@ -36,6 +36,8 @@
   <string name="common_pinned">پین شده</string>
   <string name="common_lists">فهرست‌ها</string>
   <string name="common_unpin">از پین درآوردن</string>
+  <string name="common_pinned_asset">%1$s پین شد.</string>
+  <string name="common_unpinned_asset">%1$s از پین خارج شد.</string>
   <string name="common_skip">پرش کنید</string>
   <string name="common_warning">هشدار</string>
   <string name="common_learn_more">بیشتر بدانید</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">دریافت %1$s</string>
   <string name="asset_add_to_wallet">اضافه کردن به کیف پول</string>
   <string name="asset_hide_from_wallet">پنهان شدن از کیف پول</string>
+  <string name="asset_added_to_wallet">به کیف پول اضافه شد</string>
+  <string name="asset_hidden_from_wallet">از کیف پول پنهان شد</string>
   <string name="asset_resources">منابع</string>
   <string name="asset_verification_verified">تأیید شده</string>
   <string name="asset_all_time_high">بالاترین رکورد تمام دوران</string>

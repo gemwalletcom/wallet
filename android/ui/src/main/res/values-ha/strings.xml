@@ -36,6 +36,8 @@
   <string name="common_pinned">Pinned</string>
   <string name="common_lists">Jerin</string>
   <string name="common_unpin">Cire</string>
+  <string name="common_pinned_asset">An manna: %1$s</string>
+  <string name="common_unpinned_asset">An cire: %1$s</string>
   <string name="common_skip">Tsallake</string>
   <string name="common_warning">Gargadi</string>
   <string name="common_learn_more">Ƙara Koyi</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Sami %1$s</string>
   <string name="asset_add_to_wallet">Ƙara zuwa walat</string>
   <string name="asset_hide_from_wallet">Boye daga walat</string>
+  <string name="asset_added_to_wallet">An ƙara zuwa walat</string>
+  <string name="asset_hidden_from_wallet">An ɓoye daga walat</string>
   <string name="asset_resources">Albarkatu</string>
   <string name="asset_verification_verified">An tantance</string>
   <string name="asset_all_time_high">Mafi Girma a Kowane Lokaci</string>

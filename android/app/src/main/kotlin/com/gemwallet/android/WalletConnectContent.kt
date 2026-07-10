@@ -86,7 +86,7 @@ private fun WalletConnectOverlay(
         when (val event = walletConnect) {
             is WalletConnectIntent.SessionProposal -> {
                 if (event.verifyContext == null) {
-                    makeText(context, "Session Proposal Error: Verify Context is not available", Toast.LENGTH_LONG).show()
+                    makeText(context, R.string.errors_error_occurred, Toast.LENGTH_LONG).show()
                     viewModel.rejectSessionProposal(event.sessionProposal)
                 }
             }

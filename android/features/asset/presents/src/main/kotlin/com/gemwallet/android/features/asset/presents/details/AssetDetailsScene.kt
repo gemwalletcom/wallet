@@ -12,6 +12,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,7 +25,10 @@ import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.showSnackbar
+import kotlinx.coroutines.launch
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.asset.presents.details.components.AssetDetailsMenu
 import com.gemwallet.android.features.asset.presents.details.components.AssetHeadItem
@@ -54,6 +59,13 @@ internal fun AssetDetailsScene(
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val snackBar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val isPinned = uiState.assetInfo.metadata?.isPinned == true
+    val pinToastMessage = stringResource(
+        if (isPinned) R.string.common_unpinned_asset else R.string.common_pinned_asset,
+        uiState.asset.name,
+    )
+    val addToastMessage = stringResource(R.string.asset_added_to_wallet)
     val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
         { onAction(AssetDetailsAction.Swap(uiState.asset.id, if (uiState.asset.type == AssetType.NATIVE) null else uiState.asset.id.chain.asset().id)) }
     } else {
@@ -110,7 +122,22 @@ internal fun AssetDetailsScene(
                     )
                 }
                 item { BannerItem(uiState.assetInfo, { onAction(AssetDetailsAction.Stake(it)) }, { onAction(AssetDetailsAction.Confirm(it)) }) }
-                manageAssetItem(uiState.assetInfo, { onAction(AssetDetailsAction.Pin) }, { onAction(AssetDetailsAction.Add) })
+                manageAssetItem(
+                    assetInfo = uiState.assetInfo,
+                    onPin = {
+                        onAction(AssetDetailsAction.Pin)
+                        scope.launch {
+                            snackBar.showSnackbar(
+                                pinToastMessage,
+                                if (isPinned) R.drawable.keep_off else R.drawable.ic_push_pin,
+                            )
+                        }
+                    },
+                    onAdd = {
+                        onAction(AssetDetailsAction.Add)
+                        scope.launch { snackBar.showSnackbar(addToastMessage, R.drawable.ic_add_circle_outlined) }
+                    },
+                )
                 status(uiState.asset, uiState.assetInfo.rank)
                 price(uiState, priceAlertsCount, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
                 network(uiState) { onAction(AssetDetailsAction.OpenNetwork(it)) }

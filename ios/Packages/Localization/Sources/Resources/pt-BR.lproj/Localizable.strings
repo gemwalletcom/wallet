@@ -34,6 +34,8 @@
 "common.pinned" = "Fixado";
 "common.lists" = "Listas";
 "common.unpin" = "Desafixar";
+"common.pinned_asset" = "Fixado: %@";
+"common.unpinned_asset" = "Desafixado: %@";
 "common.skip" = "Pular";
 "common.warning" = "Aviso";
 "common.learn_more" = "Saber mais";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Obter %@";
 "asset.add_to_wallet" = "Adicionar à carteira";
 "asset.hide_from_wallet" = "Ocultar da carteira";
+"asset.added_to_wallet" = "Adicionado à carteira";
+"asset.hidden_from_wallet" = "Oculto da carteira";
 "asset.resources" = "Recursos";
 "asset.verification.verified" = "Verificado";
 "asset.all_time_high" = "Maior de todos os tempos";

@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -99,6 +100,7 @@ fun AssetSelectScene(
     actions: @Composable RowScope.() -> Unit = {},
     contextActions: AssetContextActions = AssetContextActions.Empty,
     recentsSheetEnabled: Boolean = false,
+    snackbar: SnackbarHostState? = null,
 ) {
     AssetSelectScene(
         title = {
@@ -129,6 +131,7 @@ fun AssetSelectScene(
         actions = actions,
         contextActions = contextActions,
         recentsSheetEnabled = recentsSheetEnabled,
+        snackbar = snackbar,
     )
 }
 
@@ -160,6 +163,7 @@ fun AssetSelectScene(
     listsContent: (LazyListScope.() -> Unit)? = null,
     assetsHeaderRes: Int? = null,
     assetsHeaderClickable: Boolean = false,
+    snackbar: SnackbarHostState? = null,
 ) {
     val onSelect: (AssetId) -> Unit = { onAction(AssetSelectAction.Select(it)) }
     val onSelectRecent: (AssetId) -> Unit = { onAction(AssetSelectAction.SelectRecent(it)) }
@@ -214,6 +218,7 @@ fun AssetSelectScene(
             }
             actions()
         },
+        snackbar = snackbar,
         onClose = { onAction(AssetSelectAction.Cancel) }
     ) {
         if (searchable) {

@@ -36,6 +36,8 @@
   <string name="common_pinned">Przypięty</string>
   <string name="common_lists">Listy</string>
   <string name="common_unpin">Odepnij</string>
+  <string name="common_pinned_asset">Przypięto: %1$s</string>
+  <string name="common_unpinned_asset">Odpięto: %1$s</string>
   <string name="common_skip">Pomiń</string>
   <string name="common_warning">Ostrzeżenie</string>
   <string name="common_learn_more">Dowiedz się więcej</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Zdobądź %1$s</string>
   <string name="asset_add_to_wallet">Dodaj do portfela</string>
   <string name="asset_hide_from_wallet">Ukryj w portfelu</string>
+  <string name="asset_added_to_wallet">Dodano do portfela</string>
+  <string name="asset_hidden_from_wallet">Ukryto w portfelu</string>
   <string name="asset_resources">Zasoby</string>
   <string name="asset_verification_verified">Zweryfikowano</string>
   <string name="asset_all_time_high">Najwyższy poziom wszech czasów</string>

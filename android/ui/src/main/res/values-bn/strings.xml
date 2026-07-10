@@ -36,6 +36,8 @@
   <string name="common_pinned">পিন করা হয়েছে</string>
   <string name="common_lists">তালিকা</string>
   <string name="common_unpin">আনপিন করুন</string>
+  <string name="common_pinned_asset">পিন করা হয়েছে: %1$s</string>
+  <string name="common_unpinned_asset">আনপিন করা হয়েছে: %1$s</string>
   <string name="common_skip">এড়িয়ে যান</string>
   <string name="common_warning">সতর্কতা</string>
   <string name="common_learn_more">আরও জানুন</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">%1$s পান</string>
   <string name="asset_add_to_wallet">ওয়ালেটে যোগ করুন</string>
   <string name="asset_hide_from_wallet">মানিব্যাগ থেকে লুকান</string>
+  <string name="asset_added_to_wallet">ওয়ালেটে যোগ করা হয়েছে</string>
+  <string name="asset_hidden_from_wallet">ওয়ালেট থেকে লুকানো হয়েছে</string>
   <string name="asset_resources">রিসোর্স</string>
   <string name="asset_verification_verified">যাচাইকৃত</string>
   <string name="asset_all_time_high">সর্বকালের সর্বোচ্চ</string>

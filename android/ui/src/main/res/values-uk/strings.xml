@@ -36,6 +36,8 @@
   <string name="common_pinned">Закріплені</string>
   <string name="common_lists">Списки</string>
   <string name="common_unpin">Відкріпити</string>
+  <string name="common_pinned_asset">Закріплено: %1$s</string>
+  <string name="common_unpinned_asset">Відкріплено: %1$s</string>
   <string name="common_skip">Пропустити</string>
   <string name="common_warning">Попередження</string>
   <string name="common_learn_more">Дізнайтеся більше</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Отримати %1$s</string>
   <string name="asset_add_to_wallet">Додати до гаманця</string>
   <string name="asset_hide_from_wallet">Приховати від гаманця</string>
+  <string name="asset_added_to_wallet">Додано до гаманця</string>
+  <string name="asset_hidden_from_wallet">Приховано з гаманця</string>
   <string name="asset_resources">Ресурси</string>
   <string name="asset_verification_verified">Перевірено</string>
   <string name="asset_all_time_high">Історичний максимум</string>

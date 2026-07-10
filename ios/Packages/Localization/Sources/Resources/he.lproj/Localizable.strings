@@ -34,6 +34,8 @@
 "common.pinned" = "מוצמד";
 "common.lists" = "רשימות";
 "common.unpin" = "בטל את ההצמדה";
+"common.pinned_asset" = "הוצמד: %@";
+"common.unpinned_asset" = "ההצמדה בוטלה: %@";
 "common.skip" = "לְדַלֵג";
 "common.warning" = "אַזהָרָה";
 "common.learn_more" = "למידע נוסף";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "קבל %@";
 "asset.add_to_wallet" = "הוסף לארנק";
 "asset.hide_from_wallet" = "הסתר מהארנק";
+"asset.added_to_wallet" = "נוסף לארנק";
+"asset.hidden_from_wallet" = "הוסתר מהארנק";
 "asset.resources" = "משאבים";
 "asset.verification.verified" = "מְאוּמָת";
 "asset.all_time_high" = "שיא כל הזמנים";

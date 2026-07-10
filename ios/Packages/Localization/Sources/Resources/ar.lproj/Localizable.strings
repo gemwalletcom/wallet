@@ -34,6 +34,8 @@
 "common.pinned" = "مثبت";
 "common.lists" = "القوائم";
 "common.unpin" = "إزالة التثبيت";
+"common.pinned_asset" = "تم التثبيت: %@";
+"common.unpinned_asset" = "تمت إزالة التثبيت: %@";
 "common.skip" = "يتخطى";
 "common.warning" = "تحذير";
 "common.learn_more" = "يتعلم أكثر";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "احصل على %@";
 "asset.add_to_wallet" = "أضف إلى المحفظة";
 "asset.hide_from_wallet" = "إخفاء من المحفظة";
+"asset.added_to_wallet" = "تمت الإضافة إلى المحفظة";
+"asset.hidden_from_wallet" = "تم الإخفاء من المحفظة";
 "asset.resources" = "موارد";
 "asset.verification.verified" = "تم التحقق";
 "asset.all_time_high" = "أعلى مستوى على الإطلاق";

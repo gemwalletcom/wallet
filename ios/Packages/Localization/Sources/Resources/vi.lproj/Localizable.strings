@@ -34,6 +34,8 @@
 "common.pinned" = "Đã ghim";
 "common.lists" = "Danh sách";
 "common.unpin" = "Bỏ ghim";
+"common.pinned_asset" = "Đã ghim: %@";
+"common.unpinned_asset" = "Đã bỏ ghim: %@";
 "common.skip" = "Bỏ qua";
 "common.warning" = "Cảnh báo";
 "common.learn_more" = "Tìm hiểu thêm";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Nhận %@";
 "asset.add_to_wallet" = "Thêm vào ví";
 "asset.hide_from_wallet" = "Ẩn khỏi ví";
+"asset.added_to_wallet" = "Đã thêm vào ví";
+"asset.hidden_from_wallet" = "Đã ẩn khỏi ví";
 "asset.resources" = "Tài nguyên";
 "asset.verification.verified" = "Đã xác minh";
 "asset.all_time_high" = "Mức cao nhất mọi thời đại";

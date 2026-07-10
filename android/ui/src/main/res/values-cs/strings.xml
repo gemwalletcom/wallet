@@ -36,6 +36,8 @@
   <string name="common_pinned">Připnuto</string>
   <string name="common_lists">Seznamy</string>
   <string name="common_unpin">Odepnout</string>
+  <string name="common_pinned_asset">Připnuto: %1$s</string>
+  <string name="common_unpinned_asset">Odepnuto: %1$s</string>
   <string name="common_skip">Přeskočit</string>
   <string name="common_warning">Varování</string>
   <string name="common_learn_more">Další informace</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Získat %1$s</string>
   <string name="asset_add_to_wallet">Přidat do peněženky</string>
   <string name="asset_hide_from_wallet">Skrýt z peněženky</string>
+  <string name="asset_added_to_wallet">Přidáno do peněženky</string>
+  <string name="asset_hidden_from_wallet">Skryto z peněženky</string>
   <string name="asset_resources">Zdroje</string>
   <string name="asset_verification_verified">Ověřeno</string>
   <string name="asset_all_time_high">Historické maximum</string>

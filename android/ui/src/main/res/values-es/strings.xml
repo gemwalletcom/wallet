@@ -36,6 +36,8 @@
   <string name="common_pinned">Fijado</string>
   <string name="common_lists">Listas</string>
   <string name="common_unpin">Desanclar</string>
+  <string name="common_pinned_asset">Fijado: %1$s</string>
+  <string name="common_unpinned_asset">Desfijado: %1$s</string>
   <string name="common_skip">Saltar</string>
   <string name="common_warning">Advertencia</string>
   <string name="common_learn_more">Más información</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Obtener %1$s</string>
   <string name="asset_add_to_wallet">Añadir a la billetera</string>
   <string name="asset_hide_from_wallet">Ocultar de la billetera</string>
+  <string name="asset_added_to_wallet">Añadido a la billetera</string>
+  <string name="asset_hidden_from_wallet">Oculto de la billetera</string>
   <string name="asset_resources">Recursos</string>
   <string name="asset_verification_verified">Verificado</string>
   <string name="asset_all_time_high">Máximo histórico</string>

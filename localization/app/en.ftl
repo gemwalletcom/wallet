@@ -77,6 +77,10 @@ common_pinned = Pinned
 common_lists = Lists
 # Used in shared app UI for the unpin label.
 common_unpin = Unpin
+# Used in toast confirmations when an asset or perpetual is pinned. Contains 1 string placeholder.
+common_pinned_asset = Pinned: %@
+# Used in toast confirmations when an asset or perpetual is unpinned. Contains 1 string placeholder.
+common_unpinned_asset = Unpinned: %@
 # Used in shared app UI for the skip label.
 common_skip = Skip
 # Used in shared app UI as a warning.
@@ -585,6 +589,10 @@ asset_get_asset = Get %@
 asset_add_to_wallet = Add to wallet
 # Used in asset detail and asset verification screens for the hide from wallet label.
 asset_hide_from_wallet = Hide from wallet
+# Used in toast confirmations after an asset is added to the wallet.
+asset_added_to_wallet = Added to wallet
+# Used in toast confirmations after an asset is hidden from the wallet.
+asset_hidden_from_wallet = Hidden from wallet
 # Used in asset detail and asset verification screens for the resources label.
 asset_resources = Resources
 # Used in asset detail and asset verification screens for the verification verified label.

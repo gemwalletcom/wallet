@@ -14,6 +14,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertViewModel
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
@@ -29,7 +30,11 @@ fun PriceAlertsNavScreen(
 ) {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
-    val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
+    val snackbar = rememberSnackbarState(
+        message = toastMessage,
+        iconRes = R.drawable.ic_notifications,
+        onShown = onToastShown,
+    )
 
     var selectingAsset by remember { mutableStateOf(false) }
 
@@ -46,7 +51,7 @@ fun PriceAlertsNavScreen(
                     viewModel.includeAsset(it) { asset ->
                         val message = resources.getString(R.string.price_alerts_enabled_for, asset.name)
                         scope.launch {
-                            snackbar.showSnackbar(message)
+                            snackbar.showSnackbar(message, R.drawable.ic_notifications)
                         }
                     }
                     selectingAsset = false

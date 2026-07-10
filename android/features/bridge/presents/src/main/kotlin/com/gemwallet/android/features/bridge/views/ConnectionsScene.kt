@@ -33,6 +33,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
@@ -72,7 +73,7 @@ fun ConnectionsScene(
                     modifier = Modifier.clickable {
                         viewModel.addPairing(
                             clipboardManager.getPlainText() ?: return@clickable,
-                            { scope.launch { snackbar.showSnackbar(message = connectionToastText) } },
+                            { scope.launch { snackbar.showSnackbar(connectionToastText, R.drawable.ic_check_circle) } },
                             { pairError = it }
                         )
                     },

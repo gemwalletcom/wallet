@@ -34,6 +34,8 @@
 "common.pinned" = "ปักหมุดแล้ว";
 "common.lists" = "รายการ";
 "common.unpin" = "เลิกปักหมุด";
+"common.pinned_asset" = "ปักหมุดแล้ว: %@";
+"common.unpinned_asset" = "เลิกปักหมุดแล้ว: %@";
 "common.skip" = "ข้าม";
 "common.warning" = "คำเตือน";
 "common.learn_more" = "เรียนรู้เพิ่มเติม";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "รับ %@";
 "asset.add_to_wallet" = "เพิ่มลงในกระเป๋าสตางค์";
 "asset.hide_from_wallet" = "ซ่อนจากกระเป๋าสตางค์";
+"asset.added_to_wallet" = "เพิ่มลงในกระเป๋าสตางค์แล้ว";
+"asset.hidden_from_wallet" = "ซ่อนจากกระเป๋าสตางค์แล้ว";
 "asset.resources" = "ทรัพยากร";
 "asset.verification.verified" = "ได้รับการยืนยันแล้ว";
 "asset.all_time_high" = "สูงสุดตลอดกาล";

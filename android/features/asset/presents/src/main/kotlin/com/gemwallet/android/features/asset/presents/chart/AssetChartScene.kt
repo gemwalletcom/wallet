@@ -78,7 +78,11 @@ fun AssetChartScene(
     val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
     val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
-    val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
+    val snackbar = rememberSnackbarState(
+        message = toastMessage,
+        iconRes = R.drawable.ic_notifications,
+        onShown = onToastShown,
+    )
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 

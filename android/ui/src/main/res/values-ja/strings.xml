@@ -36,6 +36,8 @@
   <string name="common_pinned">ピン留め済み</string>
   <string name="common_lists">リスト</string>
   <string name="common_unpin">ピン解除</string>
+  <string name="common_pinned_asset">ピン留め済み: %1$s</string>
+  <string name="common_unpinned_asset">ピン解除済み: %1$s</string>
   <string name="common_skip">スキップ</string>
   <string name="common_warning">警告</string>
   <string name="common_learn_more">もっと詳しく知る</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">%1$sを入手</string>
   <string name="asset_add_to_wallet">ウォレットに追加</string>
   <string name="asset_hide_from_wallet">ウォレットから隠す</string>
+  <string name="asset_added_to_wallet">ウォレットに追加しました</string>
+  <string name="asset_hidden_from_wallet">ウォレットから非表示にしました</string>
   <string name="asset_resources">リソース</string>
   <string name="asset_verification_verified">検証済み</string>
   <string name="asset_all_time_high">史上最高値</string>

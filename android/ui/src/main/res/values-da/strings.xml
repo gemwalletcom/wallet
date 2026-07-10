@@ -36,6 +36,8 @@
   <string name="common_pinned">Fastgjort</string>
   <string name="common_lists">Lister</string>
   <string name="common_unpin">Frigør</string>
+  <string name="common_pinned_asset">Fastgjort: %1$s</string>
+  <string name="common_unpinned_asset">Frigjort: %1$s</string>
   <string name="common_skip">Spring over</string>
   <string name="common_warning">Advarsel</string>
   <string name="common_learn_more">Lær mere</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Få %1$s</string>
   <string name="asset_add_to_wallet">Tilføj til tegnebog</string>
   <string name="asset_hide_from_wallet">Skjul fra tegnebogen</string>
+  <string name="asset_added_to_wallet">Tilføjet til tegnebogen</string>
+  <string name="asset_hidden_from_wallet">Skjult fra tegnebogen</string>
   <string name="asset_resources">Ressourcer</string>
   <string name="asset_verification_verified">Bekræftet</string>
   <string name="asset_all_time_high">Højeste nogensinde</string>

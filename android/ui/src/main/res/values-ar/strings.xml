@@ -36,6 +36,8 @@
   <string name="common_pinned">مثبت</string>
   <string name="common_lists">القوائم</string>
   <string name="common_unpin">إزالة التثبيت</string>
+  <string name="common_pinned_asset">تم التثبيت: %1$s</string>
+  <string name="common_unpinned_asset">تمت إزالة التثبيت: %1$s</string>
   <string name="common_skip">يتخطى</string>
   <string name="common_warning">تحذير</string>
   <string name="common_learn_more">يتعلم أكثر</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">احصل على %1$s</string>
   <string name="asset_add_to_wallet">أضف إلى المحفظة</string>
   <string name="asset_hide_from_wallet">إخفاء من المحفظة</string>
+  <string name="asset_added_to_wallet">تمت الإضافة إلى المحفظة</string>
+  <string name="asset_hidden_from_wallet">تم الإخفاء من المحفظة</string>
   <string name="asset_resources">موارد</string>
   <string name="asset_verification_verified">تم التحقق</string>
   <string name="asset_all_time_high">أعلى مستوى على الإطلاق</string>

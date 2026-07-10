@@ -34,6 +34,8 @@
 "common.pinned" = "পিন করা হয়েছে";
 "common.lists" = "তালিকা";
 "common.unpin" = "আনপিন করুন";
+"common.pinned_asset" = "পিন করা হয়েছে: %@";
+"common.unpinned_asset" = "আনপিন করা হয়েছে: %@";
 "common.skip" = "এড়িয়ে যান";
 "common.warning" = "সতর্কতা";
 "common.learn_more" = "আরও জানুন";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "%@ পান";
 "asset.add_to_wallet" = "ওয়ালেটে যোগ করুন";
 "asset.hide_from_wallet" = "মানিব্যাগ থেকে লুকান";
+"asset.added_to_wallet" = "ওয়ালেটে যোগ করা হয়েছে";
+"asset.hidden_from_wallet" = "ওয়ালেট থেকে লুকানো হয়েছে";
 "asset.resources" = "রিসোর্স";
 "asset.verification.verified" = "যাচাইকৃত";
 "asset.all_time_high" = "সর্বকালের সর্বোচ্চ";

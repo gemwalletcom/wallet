@@ -34,6 +34,8 @@
 "common.pinned" = "Przypięty";
 "common.lists" = "Listy";
 "common.unpin" = "Odepnij";
+"common.pinned_asset" = "Przypięto: %@";
+"common.unpinned_asset" = "Odpięto: %@";
 "common.skip" = "Pomiń";
 "common.warning" = "Ostrzeżenie";
 "common.learn_more" = "Dowiedz się więcej";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Zdobądź %@";
 "asset.add_to_wallet" = "Dodaj do portfela";
 "asset.hide_from_wallet" = "Ukryj w portfelu";
+"asset.added_to_wallet" = "Dodano do portfela";
+"asset.hidden_from_wallet" = "Ukryto w portfelu";
 "asset.resources" = "Zasoby";
 "asset.verification.verified" = "Zweryfikowano";
 "asset.all_time_high" = "Najwyższy poziom wszech czasów";

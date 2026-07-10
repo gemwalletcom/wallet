@@ -36,6 +36,8 @@
   <string name="common_pinned">Imebandikwa</string>
   <string name="common_lists">Orodha</string>
   <string name="common_unpin">Bandua</string>
+  <string name="common_pinned_asset">Imebandikwa: %1$s</string>
+  <string name="common_unpinned_asset">Imebanduliwa: %1$s</string>
   <string name="common_skip">Ruka</string>
   <string name="common_warning">Onyo</string>
   <string name="common_learn_more">Jifunze Zaidi</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Pata %1$s</string>
   <string name="asset_add_to_wallet">Ongeza kwenye mkoba</string>
   <string name="asset_hide_from_wallet">Ficha kutoka kwa mkoba</string>
+  <string name="asset_added_to_wallet">Imeongezwa kwenye mkoba</string>
+  <string name="asset_hidden_from_wallet">Imefichwa kutoka kwa mkoba</string>
   <string name="asset_resources">Rasilimali</string>
   <string name="asset_verification_verified">Imethibitishwa</string>
   <string name="asset_all_time_high">Wakati Wote Juu</string>

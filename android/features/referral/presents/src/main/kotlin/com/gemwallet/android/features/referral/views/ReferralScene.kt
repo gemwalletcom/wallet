@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.referral.views
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,8 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.showSnackbar
+import kotlinx.coroutines.launch
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -76,7 +79,8 @@ fun ReferralScene(
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
     onRedeem: (RewardRedemptionOption) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
 
     val context = LocalContext.current
@@ -90,6 +94,8 @@ fun ReferralScene(
     var referralCode by remember(referralCode) { mutableStateOf(referralCode) }
 
     val successStr = stringResource(R.string.common_done)
+    val errorStr = stringResource(R.string.errors_error_occurred)
+    val scope = rememberCoroutineScope()
 
     val onShare = fun () {
         val type = "text/plain"
@@ -103,6 +109,7 @@ fun ReferralScene(
 
     Scene(
         title = stringResource(R.string.rewards_title),
+        snackbar = snackbar,
         actions = {
             if (isAvailableWalletSelect) {
                 Row(
@@ -186,8 +193,14 @@ fun ReferralScene(
                     referralError(rewards)
                     referralUnverified(uiState)
                     referralConfirmCode(rewards, uiState) {
-                        onCode(it) {
-                            Toast.makeText(context, it?.message ?: successStr, Toast.LENGTH_SHORT).show()
+                        onCode(it) { error ->
+                            scope.launch {
+                                if (error == null) {
+                                    snackbar.showSnackbar(successStr, R.drawable.ic_check_circle)
+                                } else {
+                                    snackbar.showSnackbar(error.message ?: errorStr, R.drawable.ic_error)
+                                }
+                            }
                             onRefresh()
                         }
                     }

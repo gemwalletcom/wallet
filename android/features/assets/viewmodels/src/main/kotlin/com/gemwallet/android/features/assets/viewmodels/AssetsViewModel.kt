@@ -14,6 +14,9 @@ import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.ui.models.AssetToast
+import com.gemwallet.android.ui.models.AssetToastEmitter
+import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.gemwallet.android.ext.isNftSupported
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
@@ -41,7 +44,7 @@ class AssetsViewModel @Inject constructor(
     getHideBalancesState: GetHideBalancesState,
     getShowWelcomeBanner: GetShowWelcomeBanner,
     getSession: GetSession,
-) : ViewModel() {
+) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
     val currentWalletId = getSession()
         .map { it?.wallet?.id }
@@ -101,7 +104,9 @@ class AssetsViewModel @Inject constructor(
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch {
+        val item = assetGroups.value.let { it.pinned + it.unpinned }.firstOrNull { it.id == assetId }
         toggleAssetPin(assetId)
+        item?.let { emitToast(AssetToast.Pin(it.asset.name, !it.pinned)) }
     }
 
     fun hideBalances() = viewModelScope.launch {

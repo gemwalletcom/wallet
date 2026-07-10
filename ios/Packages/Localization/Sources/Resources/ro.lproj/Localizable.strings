@@ -34,6 +34,8 @@
 "common.pinned" = "Fixat";
 "common.lists" = "Liste";
 "common.unpin" = "Anulați fixarea";
+"common.pinned_asset" = "Fixat: %@";
+"common.unpinned_asset" = "Fixare anulată: %@";
 "common.skip" = "Sari peste";
 "common.warning" = "Avertizare";
 "common.learn_more" = "Aflați mai multe";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Obține %@";
 "asset.add_to_wallet" = "Adaugă în portofel";
 "asset.hide_from_wallet" = "Ascunde din portofel";
+"asset.added_to_wallet" = "Adăugat în portofel";
+"asset.hidden_from_wallet" = "Ascuns din portofel";
 "asset.resources" = "Resurse";
 "asset.verification.verified" = "Verificat";
 "asset.all_time_high" = "Maxim istoric";

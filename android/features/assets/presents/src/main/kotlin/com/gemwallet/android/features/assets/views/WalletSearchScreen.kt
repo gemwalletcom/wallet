@@ -3,6 +3,7 @@ package com.gemwallet.android.features.assets.views
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.AssetList
@@ -62,11 +64,13 @@ fun WalletSearchScreen(
     val lists by viewModel.lists.collectAsStateWithLifecycle()
 
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
+    val snackbar = remember { SnackbarHostState() }
+    AssetToastEffect(viewModel.toastEvents, snackbar)
 
     val handleAction: (WalletSearchAction) -> Unit = { action ->
         when (action) {
             is WalletSearchAction.PinAsset -> viewModel.onPinAsset(action.assetId)
-            is WalletSearchAction.AddToWallet -> viewModel.onChangeVisibility(action.assetId, true)
+            is WalletSearchAction.AddToWallet -> viewModel.onAddToWallet(action.assetId)
             is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.perpetualId)
             is WalletSearchAction.SelectTag -> viewModel.onTagSelect(action.tag)
             WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
@@ -188,6 +192,7 @@ fun WalletSearchScreen(
         listsContent = listsContent,
         assetsHeaderRes = R.string.assets_title,
         assetsHeaderClickable = hasMoreAssets,
+        snackbar = snackbar,
     )
 
     RecentsSheetHost(viewModel = recentsViewModel, onSelect = { handleAction(WalletSearchAction.OpenRecent(it)) })

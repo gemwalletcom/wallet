@@ -3,6 +3,7 @@ package com.gemwallet.android.features.assets.views
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -27,6 +28,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.AssetId
@@ -44,6 +46,8 @@ fun AssetsResultsScreen(
     val isRefreshing by viewModel.refreshing.collectAsStateWithLifecycle()
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
+    val snackbar = remember { SnackbarHostState() }
+    AssetToastEffect(viewModel.toastEvents, snackbar)
 
     val onAssetClick: (AssetId) -> Unit = {
         viewModel.updateRecent(it, RecentType.Search)
@@ -56,13 +60,14 @@ fun AssetsResultsScreen(
     val contextActions = remember(viewModel) {
         AssetContextActions(
             onTogglePin = viewModel::onTogglePin,
-            onAddToWallet = { id -> viewModel.onChangeVisibility(id, true) },
+            onAddToWallet = viewModel::onAddToWallet,
         )
     }
     val pullToRefreshState = rememberPullToRefreshState()
 
     Scene(
         title = viewModel.title,
+        snackbar = snackbar,
         onClose = { onAction(WalletSearchAction.Cancel) },
     ) {
         PullToRefreshBox(

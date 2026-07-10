@@ -34,6 +34,8 @@
 "common.pinned" = "Закріплені";
 "common.lists" = "Списки";
 "common.unpin" = "Відкріпити";
+"common.pinned_asset" = "Закріплено: %@";
+"common.unpinned_asset" = "Відкріплено: %@";
 "common.skip" = "Пропустити";
 "common.warning" = "Попередження";
 "common.learn_more" = "Дізнайтеся більше";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Отримати %@";
 "asset.add_to_wallet" = "Додати до гаманця";
 "asset.hide_from_wallet" = "Приховати від гаманця";
+"asset.added_to_wallet" = "Додано до гаманця";
+"asset.hidden_from_wallet" = "Приховано з гаманця";
 "asset.resources" = "Ресурси";
 "asset.verification.verified" = "Перевірено";
 "asset.all_time_high" = "Історичний максимум";

@@ -34,6 +34,8 @@
 "common.pinned" = "پن لگا ہوا";
 "common.lists" = "فہرستیں";
 "common.unpin" = "پن کھول دیں۔";
+"common.pinned_asset" = "پن کر دیا گیا: %@";
+"common.unpinned_asset" = "پن ہٹا دیا گیا: %@";
 "common.skip" = "چھوڑیں۔";
 "common.warning" = "وارننگ";
 "common.learn_more" = "مزید جانیں";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "%@ حاصل کریں";
 "asset.add_to_wallet" = "بٹوے میں شامل کریں۔";
 "asset.hide_from_wallet" = "بٹوے سے چھپائیں۔";
+"asset.added_to_wallet" = "بٹوے میں شامل کر دیا گیا";
+"asset.hidden_from_wallet" = "بٹوے سے چھپا دیا گیا";
 "asset.resources" = "وسائل";
 "asset.verification.verified" = "تصدیق شدہ";
 "asset.all_time_high" = "آل ٹائم ہائی";

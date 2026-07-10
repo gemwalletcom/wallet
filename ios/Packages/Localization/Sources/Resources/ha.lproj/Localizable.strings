@@ -34,6 +34,8 @@
 "common.pinned" = "Pinned";
 "common.lists" = "Jerin";
 "common.unpin" = "Cire";
+"common.pinned_asset" = "An manna: %@";
+"common.unpinned_asset" = "An cire: %@";
 "common.skip" = "Tsallake";
 "common.warning" = "Gargadi";
 "common.learn_more" = "Ƙara Koyi";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "Sami %@";
 "asset.add_to_wallet" = "Ƙara zuwa walat";
 "asset.hide_from_wallet" = "Boye daga walat";
+"asset.added_to_wallet" = "An ƙara zuwa walat";
+"asset.hidden_from_wallet" = "An ɓoye daga walat";
 "asset.resources" = "Albarkatu";
 "asset.verification.verified" = "An tantance";
 "asset.all_time_high" = "Mafi Girma a Kowane Lokaci";

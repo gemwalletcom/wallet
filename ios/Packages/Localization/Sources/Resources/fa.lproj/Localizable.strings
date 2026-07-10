@@ -34,6 +34,8 @@
 "common.pinned" = "پین شده";
 "common.lists" = "فهرست‌ها";
 "common.unpin" = "از پین درآوردن";
+"common.pinned_asset" = "%@ پین شد.";
+"common.unpinned_asset" = "%@ از پین خارج شد.";
 "common.skip" = "پرش کنید";
 "common.warning" = "هشدار";
 "common.learn_more" = "بیشتر بدانید";
@@ -251,6 +253,8 @@
 "asset.get_asset" = "دریافت %@";
 "asset.add_to_wallet" = "اضافه کردن به کیف پول";
 "asset.hide_from_wallet" = "پنهان شدن از کیف پول";
+"asset.added_to_wallet" = "به کیف پول اضافه شد";
+"asset.hidden_from_wallet" = "از کیف پول پنهان شد";
 "asset.resources" = "منابع";
 "asset.verification.verified" = "تأیید شده";
 "asset.all_time_high" = "بالاترین رکورد تمام دوران";

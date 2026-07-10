@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
@@ -61,7 +62,7 @@ fun RowScope.AssetDetailsMenu(
     IconButton(
         onClick = {
             onPriceAlert(uiState.asset.id)
-            scope.launch { snackBar.showSnackbar(message = priceAlertToastMessage) }
+            scope.launch { snackBar.showSnackbar(priceAlertToastMessage, R.drawable.ic_notifications) }
         }
     ) {
         if (priceAlertEnabled) {

@@ -36,6 +36,8 @@
   <string name="common_pinned">Épinglé</string>
   <string name="common_lists">Listes</string>
   <string name="common_unpin">Désépingler</string>
+  <string name="common_pinned_asset">Épinglé : %1$s</string>
+  <string name="common_unpinned_asset">Désépinglé : %1$s</string>
   <string name="common_skip">Passer</string>
   <string name="common_warning">Avertissement</string>
   <string name="common_learn_more">En savoir plus</string>
@@ -266,6 +268,8 @@
   <string name="asset_get_asset">Obtenir %1$s</string>
   <string name="asset_add_to_wallet">Ajouter au portefeuille</string>
   <string name="asset_hide_from_wallet">Masquer du portefeuille</string>
+  <string name="asset_added_to_wallet">Ajouté au portefeuille</string>
+  <string name="asset_hidden_from_wallet">Masqué du portefeuille</string>
   <string name="asset_resources">Ressources</string>
   <string name="asset_verification_verified">Vérifié</string>
   <string name="asset_all_time_high">Record absolu</string>
