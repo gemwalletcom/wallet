@@ -3,6 +3,7 @@
 import Formatters
 import Foundation
 import GemstonePrimitives
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -12,6 +13,7 @@ import Validators
 @Observable
 public final class SwapSlippageViewModel {
     private static let defaultBps: UInt32 = 100
+    private static let suggestionsBps: [UInt32] = [30, 50, 300]
     static let minPercent: Double = 0.1
     static let maxPercent: Double = 20
     private static let maxFractionDigits: Int = 2
@@ -23,6 +25,7 @@ public final class SwapSlippageViewModel {
 
     var isAuto: Bool
     var inputModel: InputValidationViewModel
+    var infoSheet: InfoSheetType?
 
     public init(slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
         self.onSelect = onSelect
@@ -70,6 +73,18 @@ public final class SwapSlippageViewModel {
     var warningText: String? {
         guard inputModel.isValid, selectedBps >= highWarningBps else { return nil }
         return Localized.Swap.slippageWarning
+    }
+
+    var suggestions: [SlippageSuggestion] {
+        Self.suggestionsBps.map { SlippageSuggestion(bps: $0, percentText: Self.format(bps: $0)) }
+    }
+
+    func onSelect(suggestion: SlippageSuggestion) {
+        inputModel.text = suggestion.inputValue
+    }
+
+    func onSelectInfo() {
+        infoSheet = .slippage
     }
 
     func sanitize(_ text: String) -> String {

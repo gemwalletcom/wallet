@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import InfoSheet
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -35,6 +36,7 @@ public struct SwapSlippageScene: View {
                             Text(model.title)
                                 .lineLimit(1)
                                 .fixedSize(horizontal: true, vertical: false)
+                            InfoButton { model.onSelectInfo() }
                             SuffixTextField(
                                 suffix: "%",
                                 sanitizer: model.sanitize,
@@ -58,6 +60,16 @@ public struct SwapSlippageScene: View {
             .navigationBarTitleDisplayMode(.inline)
             .listSectionSpacing(.compact)
             .contentMargins([.top], .small, for: .scrollContent)
+            .safeAreaView {
+                if focusedField == .slippage {
+                    SuggestionsAccessoryView(
+                        suggestions: model.suggestions,
+                        onSelect: { model.onSelect(suggestion: $0) },
+                        onDone: { focusedField = nil },
+                    )
+                    .padding(.small)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("", systemImage: SystemImage.checkmark) {
@@ -74,6 +86,9 @@ public struct SwapSlippageScene: View {
                 if !model.isAuto {
                     focusedField = .slippage
                 }
+            }
+            .sheet(item: $model.infoSheet) {
+                InfoSheetScene(type: $0)
             }
         }
     }

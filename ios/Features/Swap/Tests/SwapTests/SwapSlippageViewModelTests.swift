@@ -99,6 +99,24 @@ struct SwapSlippageViewModelTests {
     }
 
     @Test
+    func suggestionsProvideExpectedValues() {
+        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+
+        #expect(model.suggestions.map(\.title) == ["0.3%", "0.5%", "3%"])
+        #expect(model.suggestions.map(\.inputValue) == ["0.3", "0.5", "3"])
+    }
+
+    @Test
+    func onSelectSuggestionUpdatesInput() {
+        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+        model.isAuto = false
+        model.onSelect(suggestion: model.suggestions[2])
+
+        #expect(model.inputModel.text == "3")
+        #expect(model.selectedBps == 300)
+    }
+
+    @Test
     func maximumBoundaryIsValid() {
         let model = SwapSlippageViewModel(slippage: .auto) { _ in }
         model.isAuto = false

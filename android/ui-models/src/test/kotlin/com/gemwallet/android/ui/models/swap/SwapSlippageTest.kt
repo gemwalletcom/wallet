@@ -50,6 +50,12 @@ class SwapSlippageTest {
     }
 
     @Test
+    fun suggestions_formatToExpectedLabels() {
+        assertEquals(listOf(30u, 50u, 300u), SwapSlippage.suggestionsBps)
+        assertEquals(listOf("0.3", "0.5", "3"), SwapSlippage.suggestionsBps.map { SwapSlippage.format(it) })
+    }
+
+    @Test
     fun sanitize_limitsFractionAndIntegerDigits() {
         assertEquals("0.11", SwapSlippage.sanitize("0.111111"))
         assertEquals("33", SwapSlippage.sanitize("33333312312"))
