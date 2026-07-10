@@ -7,20 +7,19 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class InitialAuthErrorTest {
 
     @Test
-    fun userAndTimeoutErrors_retryImmediately() {
+    fun userAndTimeoutErrors_retryAfterPromptDismissal() {
         listOf(
             BiometricPrompt.ERROR_CANCELED,
             BiometricPrompt.ERROR_NEGATIVE_BUTTON,
             BiometricPrompt.ERROR_TIMEOUT,
             BiometricPrompt.ERROR_USER_CANCELED,
         ).forEach { errorCode ->
-            assertEquals(Duration.ZERO, SystemAuthPolicy.initialRetryDelay(errorCode))
+            assertEquals(SystemAuthPolicy.authRequestRestartDelay, SystemAuthPolicy.initialRetryDelay(errorCode))
         }
     }
 

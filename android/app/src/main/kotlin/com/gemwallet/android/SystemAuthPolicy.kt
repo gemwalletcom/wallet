@@ -28,7 +28,7 @@ internal object SystemAuthPolicy {
         BiometricPrompt.ERROR_CANCELED,
         BiometricPrompt.ERROR_NEGATIVE_BUTTON,
         BiometricPrompt.ERROR_TIMEOUT,
-        BiometricPrompt.ERROR_USER_CANCELED -> Duration.ZERO
+        BiometricPrompt.ERROR_USER_CANCELED -> authRequestRestartDelay
         BiometricPrompt.ERROR_HW_UNAVAILABLE,
         BiometricPrompt.ERROR_UNABLE_TO_PROCESS,
         BiometricPrompt.ERROR_VENDOR -> transientRetryDelay
