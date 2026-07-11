@@ -52,7 +52,7 @@ internal fun GetNetworkFeeAssetBottomSheet(
             GetNetworkFeeAssetItem(
                 title = stringResource(R.string.wallet_swap),
                 subtitle = stringResource(R.string.wallet_from_your_wallet_assets),
-                icon = AppIcons.Swap,
+                icon = AppIcons.SwapVert,
                 position = ListPosition.Middle,
                 onClick = { onAction(GetNetworkFeeAssetAction.Swap) },
             )
