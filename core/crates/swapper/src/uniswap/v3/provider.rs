@@ -278,11 +278,20 @@ mod tests {
         assert!(swapper.support_chain(&Chain::Robinhood));
         assert!(swapper.supported_assets().contains(&SwapperChainAsset::All(Chain::Robinhood)));
     }
+
+    #[test]
+    fn test_robinhood_pancakeswap_supported() {
+        let provider = Arc::new(ProviderMock::new("{}".to_string()));
+        let swapper = uniswap::default::new_pancakeswap(provider);
+
+        assert!(swapper.support_chain(&Chain::Robinhood));
+        assert!(swapper.supported_assets().contains(&SwapperChainAsset::All(Chain::Robinhood)));
+    }
 }
 
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
 mod swap_integration_tests {
-    use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
+    use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, Swapper, SwapperError, client_factory::create_eth_client, uniswap};
     use primitives::{AssetId, Chain, asset_constants::ROBINHOOD_USDG_TOKEN_ID};
     use std::sync::Arc;
 
@@ -290,6 +299,17 @@ mod swap_integration_tests {
     async fn test_robinhood_eth_to_usdg_quote() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v3(network_provider.clone());
+        assert_robinhood_eth_to_usdg_quote(network_provider, swap_provider).await
+    }
+
+    #[tokio::test]
+    async fn test_robinhood_pancakeswap_eth_to_usdg_quote() -> Result<(), SwapperError> {
+        let network_provider = Arc::new(NativeProvider::default());
+        let swap_provider = uniswap::default::boxed_pancakeswap(network_provider.clone());
+        assert_robinhood_eth_to_usdg_quote(network_provider, swap_provider).await
+    }
+
+    async fn assert_robinhood_eth_to_usdg_quote(network_provider: Arc<NativeProvider>, swap_provider: Box<dyn Swapper>) -> Result<(), SwapperError> {
         let options = Options {
             slippage: 100.into(),
             use_max_amount: false,

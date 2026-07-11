@@ -189,6 +189,11 @@ pub fn get_pancakeswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Dep
             "0xDca6Dd86A5E305dB99A15eaEB2a6ecfc7F579778",
             "0x23682a588CF2601ACa977dF200938634c9F7d552",
         )),
+        Chain::Robinhood => Some(V3Deployment::v2(
+            "0x8553AA1615549A86882151784b329B017aA7c832",
+            "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
+            "0xE28c0e44F4016b073db20cF28971CAc6ce3664D3",
+        )),
         _ => None,
     }
 }
@@ -283,6 +288,16 @@ mod tests {
         assert_eq!(optimism.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(zksync.universal_router_abi, UniversalRouterAbi::V2);
         assert_eq!(stable.universal_router_abi, UniversalRouterAbi::V2);
+    }
+
+    #[test]
+    fn test_robinhood_pancakeswap_v3_deployment() {
+        let deployment = get_pancakeswap_router_deployment_by_chain(&Chain::Robinhood).unwrap();
+
+        assert_eq!(deployment.quoter_v2, "0x8553AA1615549A86882151784b329B017aA7c832");
+        assert_eq!(deployment.permit2, "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768");
+        assert_eq!(deployment.universal_router, "0xE28c0e44F4016b073db20cF28971CAc6ce3664D3");
+        assert_eq!(deployment.universal_router_abi, UniversalRouterAbi::V2);
     }
 
     #[test]
