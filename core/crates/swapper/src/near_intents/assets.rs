@@ -2,11 +2,13 @@ use crate::{SwapperError, SwapperQuoteAsset, models::SwapperChainAsset};
 use primitives::{
     AssetId, Chain,
     asset_constants::{
-        APTOS_USDT_ASSET_ID, ARBITRUM_ARB_ASSET_ID, ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_CBBTC_ASSET_ID,
-        BASE_USDC_ASSET_ID, BERACHAIN_USDT_ASSET_ID, ETHEREUM_AAVE_ASSET_ID, ETHEREUM_CBBTC_ASSET_ID, ETHEREUM_DAI_ASSET_ID, ETHEREUM_LINK_ASSET_ID, ETHEREUM_UNI_ASSET_ID,
-        ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_WBTC_ASSET_ID, GNOSIS_USDC_ASSET_ID, GNOSIS_USDT_ASSET_ID, MONAD_USDC_ASSET_ID, MONAD_USDT_ASSET_ID,
-        OPTIMISM_OP_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID,
-        SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, SUI_USDC_ASSET_ID, TON_USDT_ASSET_ID, TRON_USDT_ASSET_ID, XLAYER_USDC_ASSET_ID, XLAYER_USDT_ASSET_ID,
+        APTOS_USDC_ASSET_ID, APTOS_USDT_ASSET_ID, ARBITRUM_ARB_ASSET_ID, ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, ARBITRUM_WETH_ASSET_ID, AVALANCHE_USDC_ASSET_ID,
+        AVALANCHE_USDT_ASSET_ID, BASE_CBBTC_ASSET_ID, BASE_USDC_ASSET_ID, BASE_WETH_ASSET_ID, BERACHAIN_USDT_ASSET_ID, ETHEREUM_AAVE_ASSET_ID, ETHEREUM_CBBTC_ASSET_ID,
+        ETHEREUM_DAI_ASSET_ID, ETHEREUM_LINK_ASSET_ID, ETHEREUM_UNI_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_WBTC_ASSET_ID, ETHEREUM_WETH_ASSET_ID,
+        GNOSIS_USDC_ASSET_ID, GNOSIS_USDT_ASSET_ID, GNOSIS_WETH_ASSET_ID, MONAD_USDC_ASSET_ID, MONAD_USDT_ASSET_ID, OPTIMISM_OP_ASSET_ID, OPTIMISM_USDC_ASSET_ID,
+        OPTIMISM_USDT_ASSET_ID, OPTIMISM_WETH_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, POLYGON_WETH_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID,
+        SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, STELLAR_USDC_ASSET_ID, SUI_USDC_ASSET_ID, TON_USDT_ASSET_ID, TRON_USDT_ASSET_ID,
+        XLAYER_USDC_ASSET_ID, XLAYER_USDT_ASSET_ID,
     },
 };
 use std::{collections::HashMap, sync::LazyLock};
@@ -16,6 +18,7 @@ pub const NEAR_INTENTS_ETH_NATIVE: &str = "nep141:eth.omft.near";
 pub const NEAR_INTENTS_ETH_USDC: &str = "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near";
 pub const NEAR_INTENTS_ETH_USDT: &str = "nep141:eth-0xdac17f958d2ee523a2206206994597c13d831ec7.omft.near";
 pub const NEAR_INTENTS_ETH_WBTC: &str = "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near";
+pub const NEAR_INTENTS_ETH_WETH: &str = "nep141:eth-0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.omft.near";
 pub const NEAR_INTENTS_ETH_DAI: &str = "nep141:eth-0x6b175474e89094c44da98b954eedeac495271d0f.omft.near";
 pub const NEAR_INTENTS_ETH_CBBTC: &str = "nep141:eth-0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf.omft.near";
 pub const NEAR_INTENTS_ETH_LINK: &str = "nep141:eth-0x514910771af9ca656af840dff83e8264ecf986ca.omft.near";
@@ -31,13 +34,16 @@ pub const NEAR_INTENTS_ARB_NATIVE: &str = "nep141:arb.omft.near";
 pub const NEAR_INTENTS_ARB_USDC: &str = "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near";
 pub const NEAR_INTENTS_ARB_USDT: &str = "nep141:arb-0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9.omft.near";
 pub const NEAR_INTENTS_ARB_ARB: &str = "nep141:arb-0x912ce59144191c1204e64559fe8253a0e49e6548.omft.near";
+pub const NEAR_INTENTS_ARB_WETH: &str = "nep141:arb-0x82af49447d8a07e3bd95bd0d56f35241523fbab1.omft.near";
 pub const NEAR_INTENTS_BASE_NATIVE: &str = "nep141:base.omft.near";
 pub const NEAR_INTENTS_BASE_USDC: &str = "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near";
 pub const NEAR_INTENTS_BASE_CBBTC: &str = "nep141:base-0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf.omft.near";
+pub const NEAR_INTENTS_BASE_WETH: &str = "nep141:base-0x4200000000000000000000000000000000000006.omft.near";
 pub const NEAR_INTENTS_OPT_NATIVE: &str = "nep245:v2_1.omni.hot.tg:10_11111111111111111111";
 pub const NEAR_INTENTS_OPT_USDC: &str = "nep245:v2_1.omni.hot.tg:10_A2ewyUyDp6qsue1jqZsGypkCxRJ";
 pub const NEAR_INTENTS_OPT_USDT: &str = "nep245:v2_1.omni.hot.tg:10_359RPSJVdTxwTJT9TyGssr2rFoWo";
 pub const NEAR_INTENTS_OPT_OP: &str = "nep245:v2_1.omni.hot.tg:10_vLAiSt9KfUGKpw5cD3vsSyNYBo7";
+pub const NEAR_INTENTS_OPT_WETH: &str = "nep245:v2_1.omni.hot.tg:10_vLAiSt9KfUGKpw5cD3vsSyNYBn5";
 pub const NEAR_INTENTS_AVAX_NATIVE: &str = "nep245:v2_1.omni.hot.tg:43114_11111111111111111111";
 pub const NEAR_INTENTS_AVAX_USDC: &str = "nep245:v2_1.omni.hot.tg:43114_3atVJH3r5c4GqiSYmg9fECvjc47o";
 pub const NEAR_INTENTS_AVAX_USDT: &str = "nep245:v2_1.omni.hot.tg:43114_372BeH7ENZieCaabwkbWkBiTTgXp";
@@ -47,6 +53,7 @@ pub const NEAR_INTENTS_BSC_USDT: &str = "nep245:v2_1.omni.hot.tg:56_2CMMyVTGZkey
 pub const NEAR_INTENTS_POL_NATIVE: &str = "nep245:v2_1.omni.hot.tg:137_11111111111111111111";
 pub const NEAR_INTENTS_POL_USDC: &str = "nep245:v2_1.omni.hot.tg:137_qiStmoQJDQPTebaPjgx5VBxZv6L";
 pub const NEAR_INTENTS_POL_USDT: &str = "nep245:v2_1.omni.hot.tg:137_3hpYoaLtt8MP1Z2GH1U473DMRKgr";
+pub const NEAR_INTENTS_POL_WETH: &str = "nep245:v2_1.omni.hot.tg:137_2jwTGwKRX3AEe7tyzDrxtDjEFgSt";
 pub const NEAR_INTENTS_TON_NATIVE: &str = "nep245:v2_1.omni.hot.tg:1117_";
 pub const NEAR_INTENTS_TON_USDT: &str = "nep245:v2_1.omni.hot.tg:1117_3tsdfyziyc7EJbP2aULWSKU4toBaAcN4FdTgfm5W1mC4ouR";
 pub const NEAR_INTENTS_TRON_NATIVE: &str = "nep141:tron.omft.near";
@@ -57,10 +64,13 @@ pub const NEAR_INTENTS_CARDANO_NATIVE: &str = "nep141:cardano.omft.near";
 pub const NEAR_INTENTS_BERA_NATIVE: &str = "nep141:bera.omft.near";
 pub const NEAR_INTENTS_GNOSIS_NATIVE: &str = "nep141:gnosis.omft.near";
 pub const NEAR_INTENTS_GNOSIS_USDC: &str = "nep141:gnosis-0x2a22f9c3b484c3629090feed35f17ff8f88f76f0.omft.near";
+pub const NEAR_INTENTS_GNOSIS_WETH: &str = "nep141:gnosis-0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1.omft.near";
 pub const NEAR_INTENTS_APT_NATIVE: &str = "nep141:aptos.omft.near";
 pub const NEAR_INTENTS_APT_USDT: &str = "nep141:aptos-88cb7619440a914fe6400149a12b443c3ac21d59.omft.near";
+pub const NEAR_INTENTS_APT_USDC: &str = "nep141:aptos-34ee497f210c5a511e8d5b53bc56d75b63612bb5.omft.near";
 pub const NEAR_INTENTS_ZEC_NATIVE: &str = "nep141:zec.omft.near";
 pub const NEAR_INTENTS_STELLAR_NATIVE: &str = "nep245:v2_1.omni.hot.tg:1100_111bzQBB5v7AhLyPMDwS8uJgQV24KaAPXtwyVWu2KXbbfQU6NXRCz";
+pub const NEAR_INTENTS_STELLAR_USDC: &str = "nep245:v2_1.omni.hot.tg:1100_111bzQBB65GxAPAVoxqmMcgYo5oS3txhqs1Uh1cgahKQUeTUq1TJu";
 pub const NEAR_INTENTS_LTC_NATIVE: &str = "nep141:ltc.omft.near";
 pub const NEAR_INTENTS_BCH_NATIVE: &str = "nep141:bch.omft.near";
 pub const NEAR_INTENTS_BERA_USDT: &str = "nep141:bera-0x779ded0c9e1022225f8e0630b35a9b54be713736.omft.near";
@@ -73,6 +83,7 @@ pub const NEAR_INTENTS_XLAYER_USDT: &str = "nep245:v2_1.omni.hot.tg:196_2fezDCvV
 pub const NEAR_INTENTS_XLAYER_USDC: &str = "nep245:v2_1.omni.hot.tg:196_2dK9kLNR7Ekq7su8FxNGiUW3djTw";
 pub const NEAR_INTENTS_PLASMA_NATIVE: &str = "nep141:plasma.omft.near";
 pub const NEAR_INTENTS_PLASMA_USDT: &str = "nep141:plasma-0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb.omft.near";
+pub const NEAR_INTENTS_ABSTRACT_NATIVE: &str = "nep141:abs.omdep.near";
 
 type AssetsMap = HashMap<AssetId, &'static str>;
 
@@ -88,6 +99,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
             (ETHEREUM_USDC_ASSET_ID.clone(), NEAR_INTENTS_ETH_USDC),
             (ETHEREUM_USDT_ASSET_ID.clone(), NEAR_INTENTS_ETH_USDT),
             (ETHEREUM_WBTC_ASSET_ID.clone(), NEAR_INTENTS_ETH_WBTC),
+            (ETHEREUM_WETH_ASSET_ID.clone(), NEAR_INTENTS_ETH_WETH),
             (ETHEREUM_DAI_ASSET_ID.clone(), NEAR_INTENTS_ETH_DAI),
             (ETHEREUM_CBBTC_ASSET_ID.clone(), NEAR_INTENTS_ETH_CBBTC),
             (ETHEREUM_LINK_ASSET_ID.clone(), NEAR_INTENTS_ETH_LINK),
@@ -119,6 +131,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
             (ARBITRUM_USDC_ASSET_ID.clone(), NEAR_INTENTS_ARB_USDC),
             (ARBITRUM_USDT_ASSET_ID.clone(), NEAR_INTENTS_ARB_USDT),
             (ARBITRUM_ARB_ASSET_ID.clone(), NEAR_INTENTS_ARB_ARB),
+            (ARBITRUM_WETH_ASSET_ID.clone(), NEAR_INTENTS_ARB_WETH),
         ]),
     );
 
@@ -128,6 +141,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
             (Chain::Base.as_asset_id(), NEAR_INTENTS_BASE_NATIVE),
             (BASE_USDC_ASSET_ID.clone(), NEAR_INTENTS_BASE_USDC),
             (BASE_CBBTC_ASSET_ID.clone(), NEAR_INTENTS_BASE_CBBTC),
+            (BASE_WETH_ASSET_ID.clone(), NEAR_INTENTS_BASE_WETH),
         ]),
     );
 
@@ -138,6 +152,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
             (OPTIMISM_USDC_ASSET_ID.clone(), NEAR_INTENTS_OPT_USDC),
             (OPTIMISM_USDT_ASSET_ID.clone(), NEAR_INTENTS_OPT_USDT),
             (OPTIMISM_OP_ASSET_ID.clone(), NEAR_INTENTS_OPT_OP),
+            (OPTIMISM_WETH_ASSET_ID.clone(), NEAR_INTENTS_OPT_WETH),
         ]),
     );
 
@@ -165,6 +180,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
             (Chain::Polygon.as_asset_id(), NEAR_INTENTS_POL_NATIVE),
             (POLYGON_USDC_ASSET_ID.clone(), NEAR_INTENTS_POL_USDC),
             (POLYGON_USDT_ASSET_ID.clone(), NEAR_INTENTS_POL_USDT),
+            (POLYGON_WETH_ASSET_ID.clone(), NEAR_INTENTS_POL_WETH),
         ]),
     );
 
@@ -190,7 +206,11 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
     );
     map.insert(
         Chain::Aptos,
-        HashMap::from([(Chain::Aptos.as_asset_id(), NEAR_INTENTS_APT_NATIVE), (APTOS_USDT_ASSET_ID.clone(), NEAR_INTENTS_APT_USDT)]),
+        HashMap::from([
+            (Chain::Aptos.as_asset_id(), NEAR_INTENTS_APT_NATIVE),
+            (APTOS_USDT_ASSET_ID.clone(), NEAR_INTENTS_APT_USDT),
+            (APTOS_USDC_ASSET_ID.clone(), NEAR_INTENTS_APT_USDC),
+        ]),
     );
     map.insert(Chain::Zcash, HashMap::from([(Chain::Zcash.as_asset_id(), NEAR_INTENTS_ZEC_NATIVE)]));
 
@@ -200,10 +220,17 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
             (Chain::Gnosis.as_asset_id(), NEAR_INTENTS_GNOSIS_NATIVE),
             (GNOSIS_USDC_ASSET_ID.clone(), NEAR_INTENTS_GNOSIS_USDC),
             (GNOSIS_USDT_ASSET_ID.clone(), NEAR_INTENTS_GNOSIS_USDT),
+            (GNOSIS_WETH_ASSET_ID.clone(), NEAR_INTENTS_GNOSIS_WETH),
         ]),
     );
 
-    map.insert(Chain::Stellar, HashMap::from([(Chain::Stellar.as_asset_id(), NEAR_INTENTS_STELLAR_NATIVE)]));
+    map.insert(
+        Chain::Stellar,
+        HashMap::from([
+            (Chain::Stellar.as_asset_id(), NEAR_INTENTS_STELLAR_NATIVE),
+            (STELLAR_USDC_ASSET_ID.clone(), NEAR_INTENTS_STELLAR_USDC),
+        ]),
+    );
 
     map.insert(Chain::Litecoin, HashMap::from([(Chain::Litecoin.as_asset_id(), NEAR_INTENTS_LTC_NATIVE)]));
     map.insert(Chain::BitcoinCash, HashMap::from([(Chain::BitcoinCash.as_asset_id(), NEAR_INTENTS_BCH_NATIVE)]));
@@ -234,6 +261,8 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
         ]),
     );
 
+    map.insert(Chain::Abstract, HashMap::from([(Chain::Abstract.as_asset_id(), NEAR_INTENTS_ABSTRACT_NATIVE)]));
+
     map
 });
 
@@ -262,6 +291,10 @@ pub fn supported_assets() -> Vec<SwapperChainAsset> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::asset_constants::{
+        APTOS_USDC_ASSET_ID, ARBITRUM_WETH_ASSET_ID, BASE_WETH_ASSET_ID, ETHEREUM_WETH_ASSET_ID, GNOSIS_WETH_ASSET_ID, OPTIMISM_WETH_ASSET_ID, POLYGON_WETH_ASSET_ID,
+        STELLAR_USDC_ASSET_ID,
+    };
 
     #[test]
     fn test_get_asset_id() {
@@ -276,12 +309,36 @@ mod tests {
     }
 
     #[test]
+    fn test_new_asset_mappings() {
+        let mappings = [
+            (Chain::Abstract.as_asset_id(), NEAR_INTENTS_ABSTRACT_NATIVE),
+            (ETHEREUM_WETH_ASSET_ID.clone(), NEAR_INTENTS_ETH_WETH),
+            (ARBITRUM_WETH_ASSET_ID.clone(), NEAR_INTENTS_ARB_WETH),
+            (BASE_WETH_ASSET_ID.clone(), NEAR_INTENTS_BASE_WETH),
+            (OPTIMISM_WETH_ASSET_ID.clone(), NEAR_INTENTS_OPT_WETH),
+            (POLYGON_WETH_ASSET_ID.clone(), NEAR_INTENTS_POL_WETH),
+            (GNOSIS_WETH_ASSET_ID.clone(), NEAR_INTENTS_GNOSIS_WETH),
+            (APTOS_USDC_ASSET_ID.clone(), NEAR_INTENTS_APT_USDC),
+            (STELLAR_USDC_ASSET_ID.clone(), NEAR_INTENTS_STELLAR_USDC),
+        ];
+
+        for (asset_id, near_asset_id) in mappings {
+            assert_eq!(get_asset_id_from_near_asset(near_asset_id), Some(asset_id.clone()));
+            assert_eq!(get_near_asset_id(&SwapperQuoteAsset::from(asset_id)).unwrap(), near_asset_id);
+        }
+    }
+
+    #[test]
     fn test_supported_assets_contains_near() {
         let supported = supported_assets();
-        let contains_near = supported.iter().any(|entry| match entry {
-            SwapperChainAsset::All(chain) => *chain == Chain::Near,
-            SwapperChainAsset::Assets(chain, _) => *chain == Chain::Near,
-        });
-        assert!(contains_near);
+        let supported_chains = supported
+            .iter()
+            .map(|entry| match entry {
+                SwapperChainAsset::All(chain) => *chain,
+                SwapperChainAsset::Assets(chain, _) => *chain,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(supported_chains.contains(&Chain::Near), true);
     }
 }

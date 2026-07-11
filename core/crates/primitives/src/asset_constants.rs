@@ -179,6 +179,9 @@ pub static MONAD_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::fr
 pub const APTOS_USDT_TOKEN_ID: &str = "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b";
 pub static APTOS_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
 
+pub const APTOS_USDC_TOKEN_ID: &str = "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b";
+pub static APTOS_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Aptos, APTOS_USDC_TOKEN_ID));
+
 pub const ARBITRUM_WBTC_TOKEN_ID: &str = "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f";
 pub static ARBITRUM_WBTC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arbitrum, ARBITRUM_WBTC_TOKEN_ID));
 
@@ -229,6 +232,9 @@ pub static OPBNB_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::fr
 
 pub const POLYGON_WETH_TOKEN_ID: &str = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
 pub static POLYGON_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Polygon, POLYGON_WETH_TOKEN_ID));
+
+pub const GNOSIS_WETH_TOKEN_ID: &str = "0x6A023CCD1ff6F2045C3309768eAd9E68F978f6e1";
+pub static GNOSIS_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Gnosis, GNOSIS_WETH_TOKEN_ID));
 
 pub const WORLD_WETH_TOKEN_ID: &str = "0x4200000000000000000000000000000000000006";
 pub static WORLD_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::World, WORLD_WETH_TOKEN_ID));
