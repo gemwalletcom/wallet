@@ -41,6 +41,7 @@ impl AcrossDeployment {
             Chain::SmartChain => SMARTCHAIN_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Hyperliquid => HYPEREVM_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Plasma => PLASMA_ACROSS_SPOKE_POOL_CONTRACT,
+            Chain::Robinhood => ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Tron => TRON_ACROSS_SPOKE_POOL_CONTRACT,
             _ => return None,
         };
@@ -51,6 +52,7 @@ impl AcrossDeployment {
             Chain::Monad => MONAD_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Hyperliquid => HYPEREVM_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Plasma => PLASMA_ACROSS_MULTICALL_HANDLER_CONTRACT,
+            Chain::Robinhood => ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Blast | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => {
                 ETHEREUM_ACROSS_MULTICALL_HANDLER_CONTRACT
             }
@@ -95,6 +97,7 @@ impl AcrossDeployment {
             (Chain::Monad, vec![MONAD_USDC_ASSET_ID.clone(), MONAD_USDT_ASSET_ID.clone()]),
             (Chain::SmartChain, vec![SMARTCHAIN_ETH_ASSET_ID.clone()]),
             (Chain::Plasma, vec![PLASMA_USDT_ASSET_ID.clone()]),
+            (Chain::Robinhood, vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]),
             (Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
         ])
     }
@@ -141,6 +144,7 @@ impl AcrossDeployment {
                     INK_WETH_ASSET_ID.clone(),
                     UNICHAIN_WETH_ASSET_ID.clone(),
                     SMARTCHAIN_ETH_ASSET_ID.clone(),
+                    ROBINHOOD_WETH_ASSET_ID.clone(),
                 ]),
             },
             AssetMapping {
@@ -159,6 +163,7 @@ impl AcrossDeployment {
                     UNICHAIN_USDC_ASSET_ID.clone(),
                     HYPEREVM_USDC_ASSET_ID.clone(),
                     MONAD_USDC_ASSET_ID.clone(),
+                    ROBINHOOD_USDG_ASSET_ID.clone(),
                 ]),
             },
             // USDC on BSC decimals are 18
@@ -275,11 +280,21 @@ impl AcrossDeployment {
 #[cfg(test)]
 mod tests {
     use super::AcrossDeployment;
-    use primitives::Chain;
+    use primitives::{
+        Chain,
+        asset_constants::{ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
+        contract_constants::{ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT},
+    };
 
     #[test]
-    fn test_robinhood_is_not_supported() {
-        assert!(AcrossDeployment::deployment_by_chain(&Chain::Robinhood).is_none());
-        assert!(AcrossDeployment::supported_assets().get(&Chain::Robinhood).is_none());
+    fn test_robinhood_deployment() {
+        let deployment = AcrossDeployment::deployment_by_chain(&Chain::Robinhood).unwrap();
+        assert_eq!(deployment.chain_id, 4663);
+        assert_eq!(deployment.spoke_pool, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT);
+        assert_eq!(deployment.multicall_handler(), ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT);
+        assert_eq!(
+            AcrossDeployment::supported_assets().get(&Chain::Robinhood),
+            Some(&vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()])
+        );
     }
 }

@@ -554,10 +554,12 @@ mod tests {
         let weth_arb: AssetId = ARBITRUM_WETH_ASSET_ID.clone();
         let weth_blast: AssetId = BLAST_WETH_ASSET_ID.clone();
         let weth_bsc: AssetId = SMARTCHAIN_ETH_ASSET_ID.clone();
+        let weth_robinhood: AssetId = ROBINHOOD_WETH_ASSET_ID.clone();
 
         let usdc_eth: AssetId = ETHEREUM_USDC_ASSET_ID.clone();
         let usdc_arb: AssetId = ARBITRUM_USDC_ASSET_ID.clone();
         let usdc_monad: AssetId = MONAD_USDC_ASSET_ID.clone();
+        let usdg_robinhood: AssetId = ROBINHOOD_USDG_ASSET_ID.clone();
         let usdt_eth: AssetId = ETHEREUM_USDT_ASSET_ID.clone();
         let usdt_monad: AssetId = MONAD_USDT_ASSET_ID.clone();
         let usdt_tron: AssetId = TRON_USDT_ASSET_ID.clone();
@@ -572,6 +574,10 @@ mod tests {
         assert!(Across::is_supported_route(&usdt_tron, &usdt_eth));
         assert!(!Across::is_supported_route(&usdt_eth, &usdt_tron));
         assert!(Across::is_supported_route(&weth_eth, &weth_bsc));
+        assert!(Across::is_supported_route(&weth_robinhood, &weth_eth));
+        assert!(Across::is_supported_route(&weth_eth, &weth_robinhood));
+        assert!(Across::is_supported_route(&usdc_eth, &usdg_robinhood));
+        assert!(Across::is_supported_route(&usdg_robinhood, &usdc_eth));
 
         assert!(!Across::is_supported_route(&weth_eth, &usdc_eth));
         assert!(!Across::is_supported_route(&weth_eth, &usdt_tron));
@@ -586,7 +592,8 @@ mod tests {
         assert!(Across::is_supported_route(&op, &eth));
         assert!(Across::is_supported_route(&arb, &eth));
         assert!(Across::is_supported_route(&op, &arb));
-        assert!(!Across::is_supported_route(&eth, &AssetId::from(Chain::Robinhood, None)));
+        assert!(Across::is_supported_route(&eth, &AssetId::from(Chain::Robinhood, None)));
+        assert!(Across::is_supported_route(&AssetId::from(Chain::Robinhood, None), &eth));
     }
 
     fn provider_with_tron_allowance(allowance: &str) -> Across {
@@ -773,6 +780,30 @@ mod tests {
 
             let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
             println!("<== quote_data: {:?}", quote_data);
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_across_quote_eth_to_robinhood() -> Result<(), SwapperError> {
+            let network_provider = Arc::new(NativeProvider::default());
+            let swap_provider = Across::boxed(network_provider);
+            let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
+            let request = QuoteRequest {
+                from_asset: AssetId::from_chain(Chain::Ethereum).into(),
+                to_asset: AssetId::from_chain(Chain::Robinhood).into(),
+                wallet_address: wallet.into(),
+                destination_address: wallet.into(),
+                value: "20000000000000000".into(),
+                options: Options {
+                    slippage: 100.into(),
+                    use_max_amount: false,
+                },
+            };
+
+            let quote = swap_provider.get_quote(&request).await?;
+            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(!quote.data.routes[0].route_data.is_empty());
 
             Ok(())
         }

@@ -63,7 +63,11 @@ mod tests {
             supported_asset_for_token(Chain::Tron, "0xa614f803b6fd780986a42c78ec9c7f77e6ded13c"),
             Some(TRON_USDT_ASSET_ID.clone())
         );
-        assert_eq!(supported_asset_for_token(Chain::Robinhood, ROBINHOOD_WETH_TOKEN_ID), None);
+        assert_eq!(
+            supported_asset_for_token(Chain::Robinhood, ROBINHOOD_WETH_TOKEN_ID),
+            Some(AssetId::from_chain(Chain::Robinhood))
+        );
+        assert_eq!(supported_asset_for_token(Chain::Robinhood, ROBINHOOD_USDG_TOKEN_ID), Some(ROBINHOOD_USDG_ASSET_ID.clone()));
         assert_eq!(supported_asset_for_token(Chain::Bitcoin, "0x123"), None);
     }
 }
