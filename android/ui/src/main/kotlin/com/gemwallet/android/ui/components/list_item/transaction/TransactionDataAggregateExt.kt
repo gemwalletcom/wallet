@@ -10,10 +10,10 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.showsStatusBadge
 import com.gemwallet.android.ui.components.statusColor
 import com.gemwallet.android.ui.components.statusLabelRes
+import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
@@ -75,22 +75,16 @@ fun TransactionDataAggregate.formatAddress(): String? = when (type) {
         "${stringResource(R.string.asset_price)}: ${CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(it)}"
     }
     TransactionType.StakeFreeze -> resourceType?.let {
-        "${stringResource(id = R.string.transfer_to)} ${it.resourceTitle()}"
+        "${stringResource(id = R.string.transfer_to)} ${stringResource(it.titleRes())}"
     }
     TransactionType.StakeUnfreeze -> resourceType?.let {
-        "${stringResource(id = R.string.transfer_from)} ${it.resourceTitle()}"
+        "${stringResource(id = R.string.transfer_from)} ${stringResource(it.titleRes())}"
     }
     TransactionType.Swap,
     TransactionType.StakeWithdraw,
     TransactionType.AssetActivation,
     TransactionType.StakeRewards,
         -> null
-}
-
-@Composable
-private fun Resource.resourceTitle(): String = when (this) {
-    Resource.Bandwidth -> stringResource(R.string.stake_resource_bandwidth)
-    Resource.Energy -> stringResource(R.string.stake_resource_energy)
 }
 
 @Composable
