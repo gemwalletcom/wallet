@@ -215,11 +215,13 @@ pub(crate) fn support_assets() -> Vec<SwapperChainAsset> {
         SwapperChainAsset::All(Chain::ZkSync),
         SwapperChainAsset::All(Chain::Linea),
         SwapperChainAsset::All(Chain::Mantle),
+        SwapperChainAsset::All(Chain::Plasma),
         SwapperChainAsset::All(Chain::Hyperliquid),
         SwapperChainAsset::All(Chain::Sonic),
         SwapperChainAsset::All(Chain::Unichain),
         SwapperChainAsset::All(Chain::Monad),
         SwapperChainAsset::All(Chain::XLayer),
+        SwapperChainAsset::All(Chain::Robinhood),
     ]
 }
 
@@ -317,7 +319,10 @@ mod tests {
     use crate::{fees::default_referral_address, testkit::mock_proxy_quote_request};
     use primitives::{
         AssetId,
-        asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID, SMARTCHAIN_CAKE_TOKEN_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID},
+        asset_constants::{
+            ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID, PLASMA_USDT_ASSET_ID, PLASMA_USDT_TOKEN_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID, SMARTCHAIN_CAKE_TOKEN_ID,
+            SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID,
+        },
     };
 
     fn quote_asset(id: &str) -> QuoteAsset {
@@ -514,6 +519,26 @@ mod tests {
         assert_eq!(tron_params.dex_ids, Some("64,98,596"));
         assert!(tron_params.from_token_referrer_wallet_address.is_some());
         assert!(tron_params.to_token_referrer_wallet_address.is_none());
+
+        let robinhood = AssetId::from_chain(Chain::Robinhood).to_string();
+        let robinhood_request = mock_proxy_quote_request(quote_asset(&robinhood), quote_asset(&ROBINHOOD_USDG_ASSET_ID.to_string()), 100, 70);
+        let robinhood_route = quote_data(EVM_NATIVE_TOKEN_ADDRESS, ROBINHOOD_USDG_TOKEN_ID);
+        let robinhood_params = build_swap_params(&robinhood_request, &robinhood_route, Chain::Robinhood, false).unwrap();
+        assert_eq!(robinhood_params.chain_index, "4663");
+        assert_eq!(robinhood_params.dex_ids, None);
+
+        let plasma = AssetId::from_chain(Chain::Plasma).to_string();
+        let plasma_request = mock_proxy_quote_request(quote_asset(&plasma), quote_asset(&PLASMA_USDT_ASSET_ID.to_string()), 100, 70);
+        let plasma_route = quote_data(EVM_NATIVE_TOKEN_ADDRESS, PLASMA_USDT_TOKEN_ID);
+        let plasma_params = build_swap_params(&plasma_request, &plasma_route, Chain::Plasma, false).unwrap();
+        assert_eq!(plasma_params.chain_index, "9745");
+        assert_eq!(plasma_params.dex_ids, None);
+    }
+
+    #[test]
+    fn test_support_assets_includes_new_okx_evm_chains() {
+        assert!(support_assets().contains(&SwapperChainAsset::All(Chain::Plasma)));
+        assert!(support_assets().contains(&SwapperChainAsset::All(Chain::Robinhood)));
     }
 
     #[test]
@@ -536,7 +561,7 @@ mod swap_integration_tests {
     use crate::{alien::reqwest_provider::NativeProvider, testkit::mock_proxy_quote_request_from_assets};
     use primitives::{
         AssetId,
-        asset_constants::{HYPEREVM_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, TRON_USDT_ASSET_ID},
+        asset_constants::{HYPEREVM_USDT_ASSET_ID, PLASMA_USDT_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, SOLANA_USDC_ASSET_ID, TRON_USDT_ASSET_ID},
         swap::{QuoteAsset, SlippageMode},
         testkit::signer_mock::TEST_SOLANA_SENDER,
     };
@@ -566,6 +591,45 @@ mod swap_integration_tests {
             100,
             70,
         );
+
+        let quote = provider.get_quote(request).await?;
+        assert!(quote.output_value.parse::<u64>().unwrap() > 0);
+
+        let quote_data = provider.get_quote_data(quote).await?;
+        assert!(!quote_data.to.is_empty());
+        assert_eq!(quote_data.value, "100000000000000000");
+        assert!(!quote_data.data.is_empty());
+        assert!(quote_data.approval.is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_okx_fetch_quote_and_quote_data_robinhood_eth_to_usdg() -> Result<(), SwapperError> {
+        let provider = okx_provider();
+        let request = mock_proxy_quote_request_from_assets(
+            AssetId::from_chain(Chain::Robinhood),
+            ROBINHOOD_USDG_ASSET_ID.clone(),
+            EVM_WALLET,
+            "100000000000000",
+            100,
+            70,
+        );
+
+        let quote = provider.get_quote(request).await?;
+        assert!(quote.output_value.parse::<u64>().unwrap() > 0);
+
+        let quote_data = provider.get_quote_data(quote).await?;
+        assert!(!quote_data.to.is_empty());
+        assert_eq!(quote_data.value, "100000000000000");
+        assert!(!quote_data.data.is_empty());
+        assert!(quote_data.approval.is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_okx_fetch_quote_and_quote_data_plasma_xpl_to_usdt() -> Result<(), SwapperError> {
+        let provider = okx_provider();
+        let request = mock_proxy_quote_request_from_assets(AssetId::from_chain(Chain::Plasma), PLASMA_USDT_ASSET_ID.clone(), EVM_WALLET, "100000000000000000", 100, 70);
 
         let quote = provider.get_quote(request).await?;
         assert!(quote.output_value.parse::<u64>().unwrap() > 0);

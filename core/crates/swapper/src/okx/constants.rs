@@ -29,11 +29,13 @@ pub fn chain_index(chain: Chain) -> Option<&'static str> {
         | Chain::ZkSync
         | Chain::Linea
         | Chain::Mantle
+        | Chain::Plasma
         | Chain::Hyperliquid
         | Chain::Sonic
         | Chain::Unichain
         | Chain::Monad
-        | Chain::XLayer => Some(chain.config().network_id),
+        | Chain::XLayer
+        | Chain::Robinhood => Some(chain.config().network_id),
         _ => None,
     }
 }
