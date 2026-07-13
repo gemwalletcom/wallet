@@ -78,6 +78,11 @@ public struct SwapScene: View {
         )
         .onChange(of: model.amountInputModel.text, model.onChangeFromValue)
         .onChange(of: model.pairSelectorModel, model.onChangePair)
+        .onChange(of: model.pairSelectorModel.fromAssetId) { _, newValue in
+            if newValue == nil {
+                focusedField = false
+            }
+        }
         .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuote)
         .onTimer(every: 30, id: model.fetchTrigger) {
             await model.fetch()
@@ -104,17 +109,6 @@ extension SwapScene {
         } header: {
             Text(model.swapFromTitle)
                 .listRowInsets(.horizontalMediumInsets)
-        } footer: {
-            SwapChangeView(
-                fromId: $model.pairSelectorModel.fromAssetId,
-                toId: $model.pairSelectorModel.toAssetId,
-            )
-            .padding(.top, .small)
-            .frame(maxWidth: .infinity)
-            .disabled(model.isTransferDataLoading)
-            .textCase(nil)
-            .listRowSeparator(.hidden)
-            .listRowInsets(.horizontalMediumInsets)
         }
     }
 
@@ -129,8 +123,19 @@ extension SwapScene {
             )
             .buttonStyle(.borderless)
         } header: {
-            Text(model.swapToTitle)
-                .listRowInsets(.horizontalMediumInsets)
+            ZStack {
+                Text(model.swapToTitle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                SwapChangeView(
+                    fromId: $model.pairSelectorModel.fromAssetId,
+                    toId: $model.pairSelectorModel.toAssetId,
+                )
+                .padding(.vertical, .small)
+                .offset(y: -.tiny)
+                .disabled(model.isTransferDataLoading)
+                .textCase(nil)
+            }
+            .listRowInsets(.horizontalMediumInsets)
         }
     }
 

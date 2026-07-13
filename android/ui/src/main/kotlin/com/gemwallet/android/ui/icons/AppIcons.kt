@@ -9,7 +9,6 @@ object AppIcons {
     val Send: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_action_send)
     val Receive: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_action_receive)
     val Buy: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_action_buy)
-    val Swap: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_action_swap)
     val Deposit: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_action_deposit)
     val Withdraw: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_action_withdraw)
 

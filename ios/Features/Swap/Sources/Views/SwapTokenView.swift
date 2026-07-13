@@ -41,7 +41,7 @@ struct SwapTokenView: View {
     }
 
     private var fiatBalanceView: some View {
-        Text(model.fiatBalance(amount: text) ?? "")
+        Text(model.fiatBalance(amount: text) ?? " ")
             .lineLimit(1, reservesSpace: true)
             .font(.app.callout)
             .foregroundStyle(Colors.secondaryText)
@@ -65,16 +65,13 @@ struct SwapTokenView: View {
         .disabled(!model.interaction.isAssetSelectable)
     }
 
-    @ViewBuilder
     private var availableBalanceView: some View {
-        if let availableBalanceText = model.availableBalanceText {
-            Button(action: onBalanceAction) {
-                Text(availableBalanceText)
-                    .lineLimit(1)
-                    .font(.app.callout)
-                    .foregroundStyle(Colors.secondaryText)
-            }
-            .disabled(!model.interaction.isBalanceActionEnabled)
+        Button(action: onBalanceAction) {
+            Text(model.availableBalanceText ?? " ")
+                .lineLimit(1, reservesSpace: true)
+                .font(.app.callout)
+                .foregroundStyle(Colors.secondaryText)
         }
+        .disabled(model.isBalanceDisabled)
     }
 }

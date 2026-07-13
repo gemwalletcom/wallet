@@ -174,16 +174,16 @@ private fun SwapBalance(
     interaction: SwapItemInteraction,
     onBalanceClick: () -> Unit,
 ) {
-    if (balance == null) return
     Text(
         modifier = Modifier
             .clickable(
-                enabled = interaction.isBalanceActionEnabled,
+                enabled = balance != null && interaction.isBalanceActionEnabled,
                 shape = MaterialTheme.shapes.small,
                 onClick = onBalanceClick,
             )
             .smallPadding(),
-        text = stringResource(id = R.string.transfer_balance, balance),
+        text = if (balance == null) "" else stringResource(id = R.string.transfer_balance, balance),
+        minLines = 1,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         textAlign = TextAlign.End,
