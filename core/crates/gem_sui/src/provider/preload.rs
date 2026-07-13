@@ -11,7 +11,7 @@ use primitives::{
 };
 
 use crate::{
-    ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE,
+    ESTIMATION_GAS_BUDGET,
     gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, OwnedCoins, SuiObject},
 };
@@ -121,16 +121,16 @@ impl SuiClient {
     ) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
         match input_type {
             TransactionInputType::Transfer(asset) => match asset.id.token_id {
-                None => Ok((self.get_coins(address, SUI_COIN_TYPE).await?, None, Vec::new())),
+                None => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 Some(token_id) => {
-                    let (gas_coins, token_coins) = futures::try_join!(self.get_coins(address, SUI_COIN_TYPE), self.get_coins(address, &token_id))?;
+                    let (gas_coins, token_coins) = futures::try_join!(self.get_gas_coins(address), self.get_coins(address, &token_id))?;
                     Ok((gas_coins, Some(token_coins), Vec::new()))
                 }
             },
             TransactionInputType::Stake(_, stake_type) => match stake_type {
-                StakeType::Stake(_) => Ok((self.get_coins(address, SUI_COIN_TYPE).await?, None, Vec::new())),
+                StakeType::Stake(_) => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 StakeType::Unstake(delegation) => {
-                    let (gas_coins, staked_object) = futures::try_join!(self.get_coins(address, SUI_COIN_TYPE), self.get_object(delegation.base.delegation_id.clone()))?;
+                    let (gas_coins, staked_object) = futures::try_join!(self.get_gas_coins(address), self.get_object(delegation.base.delegation_id.clone()))?;
                     Ok((gas_coins, None, vec![staked_object]))
                 }
                 StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => {

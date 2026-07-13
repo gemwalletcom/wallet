@@ -6,7 +6,7 @@ use gem_jsonrpc::grpc::GrpcTransport;
 use num_bigint::BigInt;
 use primitives::Chain;
 use serde::de::DeserializeOwned;
-use sui_types::Address;
+use sui_types::{Address, Digest as SuiDigest};
 
 use super::mapper::{map_checkpoint, map_executed_transaction, map_inspect_result, map_sui_effects};
 use super::proto::{
@@ -19,7 +19,10 @@ use super::proto::{
 use super::transport::default_transport;
 use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
 use crate::models::{Balance, Checkpoint, Coin, Digest, InspectResult, Object, OwnedCoins, SuiCoinMetadata, SuiObject, TransactionBlocks};
-use crate::{SUI_COIN_TYPE, SUI_COIN_TYPE_FULL};
+use crate::{
+    SUI_COIN_TYPE, SUI_COIN_TYPE_FULL,
+    tx_builder::gas::{GasReservationContext, requires_address_balance_reservation, reserve_address_balance},
+};
 
 const TRANSACTION_READ_MASK: &[&str] = &[
     "digest",
@@ -176,6 +179,17 @@ impl SuiClient {
     pub async fn get_coins(&self, address: &str, coin_type: &str) -> Result<OwnedCoins<Coin>, Box<dyn Error + Send + Sync>> {
         let (objects, balance) = futures::try_join!(self.list_coin_objects(address, coin_type), self.get_balance_for_coin(address, coin_type),)?;
         Ok(OwnedCoins::new(coin_type.to_string(), objects, balance.address_balance))
+    }
+
+    pub async fn get_gas_coins(&self, address: &str) -> Result<OwnedCoins<Coin>, Box<dyn Error + Send + Sync>> {
+        let coins = self.get_coins(address, SUI_COIN_TYPE).await?;
+        if !requires_address_balance_reservation(&coins) {
+            return Ok(coins);
+        }
+
+        let (service_info, epoch) = futures::try_join!(self.service_info(), self.get_epoch(None, Some(FieldMask::from_path_string("epoch"))),)?;
+        let chain_id = service_info.chain_id.ok_or("missing Sui chain id")?.parse::<SuiDigest>()?;
+        reserve_address_balance(coins, address, GasReservationContext { epoch: epoch.epoch, chain_id }).map_err(|error| Box::new(error) as Box<dyn Error + Send + Sync>)
     }
 
     async fn list_coin_objects(&self, address: &str, coin_type: &str) -> Result<Vec<Coin>, Box<dyn Error + Send + Sync>> {

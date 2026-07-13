@@ -1,5 +1,5 @@
 use crate::{
-    ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SuiClient,
+    ESTIMATION_GAS_BUDGET, SuiClient,
     gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, Gas, OwnedCoins, TokenTransferInput, TransferInput},
     tx_builder::{encode_token_transfer, encode_transfer},
@@ -16,7 +16,7 @@ pub async fn build_transfer_message_bytes(
     amount: u64,
     token_type: Option<&str>,
 ) -> Result<String, Box<dyn Error + Send + Sync>> {
-    let (gas_price_bigint, sui_coins) = try_join!(client.get_gas_price(), client.get_coins(sender, SUI_COIN_TYPE))?;
+    let (gas_price_bigint, sui_coins) = try_join!(client.get_gas_price(), client.get_gas_coins(sender))?;
 
     let gas_price = gas_price_bigint
         .to_u64()
