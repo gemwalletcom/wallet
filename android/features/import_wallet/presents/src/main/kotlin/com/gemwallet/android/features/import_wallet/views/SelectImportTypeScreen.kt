@@ -14,16 +14,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.import_wallet.viewmodels.ChainUIState
 import com.gemwallet.android.features.import_wallet.viewmodels.SelectImportTypeViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.DocsUrl
 
 @Composable
 fun SelectImportTypeScreen(
@@ -51,6 +54,9 @@ private fun SelectImportTypeScene(
 
     Scene(
         title = stringResource(id = R.string.wallet_import_title),
+        actions = {
+            DocsInfoButton(AppUrl.docs(DocsUrl.MigrateWallet))
+        },
         onClose = onClose,
     ) {
         LazyColumn(modifier = Modifier) {

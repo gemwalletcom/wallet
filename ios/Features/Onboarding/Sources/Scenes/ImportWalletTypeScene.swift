@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -46,6 +47,7 @@ struct ImportWalletTypeScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .navigationBarTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarInfoButton(url: AppUrl.docs(.migrateWallet))
         .searchable(
             text: $searchQuery,
             placement: .navigationBarDrawer(displayMode: .always),
