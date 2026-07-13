@@ -54,6 +54,10 @@ struct SwapTokenViewModel {
         }
     }
 
+    var isBalanceDisabled: Bool {
+        availableBalanceText == nil || !interaction.isBalanceActionEnabled
+    }
+
     var assetImage: AssetImage? {
         switch type {
         case let .selected(model): model.assetImage

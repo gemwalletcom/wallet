@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -99,6 +100,11 @@ internal fun SwapScene(
         },
         onClose = { onAction(SwapSceneAction.Cancel) },
     ) {
+        LaunchedEffect(pay) {
+            if (pay == null) {
+                clearAmountFocus()
+            }
+        }
         LazyColumn {
             item {
                 SwapSectionHeader(R.string.swap_you_pay)
@@ -120,26 +126,10 @@ internal fun SwapScene(
                 )
             }
             item {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Box(
-                        modifier = Modifier
-                            .size(iconSize)
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable(
-                                enabled = swapState.isQuoteInteractionEnabled,
-                                onClick = { onAction(SwapSceneAction.SwitchAssets) },
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.SwapVert,
-                            contentDescription = stringResource(R.string.wallet_swap),
-                        )
-                    }
-                }
-            }
-            item {
-                SwapSectionHeader(R.string.swap_you_receive, topPadding = space0)
+                SwapReceiveHeader(
+                    enabled = swapState.isQuoteInteractionEnabled,
+                    onSwitch = { onAction(SwapSceneAction.SwitchAssets) },
+                )
             }
             item {
                 SwapItem(
@@ -170,9 +160,40 @@ internal fun SwapScene(
 }
 
 @Composable
-private fun SwapSectionHeader(resId: Int, topPadding: Dp? = null) {
-    Text(
+private fun SwapReceiveHeader(enabled: Boolean, onSwitch: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        SwapSectionHeader(
+            resId = R.string.swap_you_receive,
+            modifier = Modifier.fillMaxWidth(),
+            topPadding = space0,
+        )
+        SwitchButton(enabled = enabled, onClick = onSwitch)
+    }
+}
+
+@Composable
+private fun SwitchButton(enabled: Boolean, onClick: () -> Unit) {
+    Box(
         modifier = Modifier
+            .size(iconSize)
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = AppIcons.SwapVert,
+            contentDescription = stringResource(R.string.wallet_swap),
+        )
+    }
+}
+
+@Composable
+private fun SwapSectionHeader(resId: Int, modifier: Modifier = Modifier, topPadding: Dp? = null) {
+    Text(
+        modifier = modifier
             .sectionHeaderItem(paddingVertical = topPadding),
         text = stringResource(resId),
         style = MaterialTheme.typography.labelMedium,

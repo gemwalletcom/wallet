@@ -239,7 +239,7 @@ fun AssetHeadActions(
         AssetHeadActionItem(R.string.wallet_send, AppIcons.Send, transferEnabled && operationsEnabled, onTransfer),
         AssetHeadActionItem(R.string.wallet_receive, AppIcons.Receive, operationsEnabled, onReceive),
         AssetHeadActionItem(R.string.wallet_buy, AppIcons.Buy, operationsEnabled, onBuy, testTag = "assetBuy"),
-        AssetHeadActionItem(R.string.wallet_swap, AppIcons.Swap, operationsEnabled, onSwap),
+        AssetHeadActionItem(R.string.wallet_swap, AppIcons.SwapVert, operationsEnabled, onSwap),
     )
     Row(
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),

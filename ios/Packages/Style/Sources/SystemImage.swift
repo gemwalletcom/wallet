@@ -8,7 +8,7 @@ public enum SystemImage {
     public static let qrCode = "qrcode"
     public static let paste = "doc.on.clipboard"
     public static let copy = "doc.on.doc"
-    public static let arrowSwap = "arrow.trianglehead.2.clockwise"
+    public static let arrowSwap = "arrow.up.arrow.down"
     public static let arrowUp = "arrow.up"
     public static let paperplane = "paperplane"
     public static let compose = "square.and.pencil"
