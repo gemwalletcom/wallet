@@ -94,8 +94,9 @@ public final class AssetsResultsSceneViewModel {
         !showPinned && !showAssets && !showPerpetuals
     }
 
-    var showLoading: Bool {
-        state.isLoading && showEmpty
+    var searchState: SearchContentState {
+        guard showEmpty else { return .results }
+        return state.isLoading ? .loading : .empty(.search(type: .assets))
     }
 
     func contextMenuItems(for assetData: AssetData) -> [ContextMenuItemType] {

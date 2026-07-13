@@ -24,14 +24,7 @@ public struct WalletSearchScene: View {
             isSearching: $model.isSearching,
             dismissSearch: $model.dismissSearch,
         )
-        .searchStateOverlay(
-            isLoading: model.showLoading,
-            isEmpty: model.showEmpty,
-            empty: .search(
-                type: .assets,
-                action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil,
-            ),
-        )
+        .searchStateOverlay(model.searchState, background: Colors.sheetInsetGroupedListStyle)
         .bindQuery(model.searchQuery, model.recentsQuery)
         .searchable(
             text: $model.searchModel.searchableQuery,

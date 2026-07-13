@@ -48,7 +48,7 @@ public struct AssetsResultsScene: View {
         .refreshable {
             await model.refresh()
         }
-        .searchStateOverlay(isLoading: model.showLoading, isEmpty: model.showEmpty, empty: .search(type: .assets))
+        .searchStateOverlay(model.searchState, background: Colors.insetGroupedListStyle)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .bindQuery(model.searchQuery)

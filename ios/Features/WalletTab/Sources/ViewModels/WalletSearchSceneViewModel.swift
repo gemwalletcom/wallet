@@ -144,8 +144,13 @@ public final class WalletSearchSceneViewModel: Sendable {
         sections.perpetuals.isNotEmpty && preferences.showPerpetuals(for: wallet)
     }
 
-    var showLoading: Bool {
-        state.isLoading && showEmpty
+    var searchState: SearchContentState {
+        guard showEmpty else { return .results }
+        if state.isLoading { return .loading }
+        return .empty(.search(
+            type: .assets,
+            action: showAddToken ? { [weak self] in self?.onSelectAddCustomToken() } : nil,
+        ))
     }
 
     var showEmpty: Bool {
