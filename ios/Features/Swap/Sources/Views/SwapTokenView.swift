@@ -72,6 +72,6 @@ struct SwapTokenView: View {
                 .font(.app.callout)
                 .foregroundStyle(Colors.secondaryText)
         }
-        .disabled(model.availableBalanceText == nil || !model.interaction.isBalanceActionEnabled)
+        .disabled(model.isBalanceDisabled)
     }
 }
