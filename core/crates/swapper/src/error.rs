@@ -1,5 +1,4 @@
 use crate::alien::AlienError;
-use crate::proxy::ProxyError;
 use crate::thorchain::model::ErrorResponse as ThorchainError;
 use gem_client::ClientError;
 use gem_jsonrpc::types::JsonRpcError;
@@ -77,9 +76,6 @@ impl From<ClientError> for SwapperError {
             ClientError::Network(msg) => Self::ComputeQuoteError(msg),
             ClientError::Timeout => Self::ComputeQuoteError("Request timed out".into()),
             ClientError::Http { status, ref body } => {
-                if let Ok(proxy_error) = serde_json::from_slice::<ProxyError>(body) {
-                    return proxy_error.err;
-                }
                 if let Ok(thorchain_error) = serde_json::from_slice::<ThorchainError>(body)
                     && thorchain_error.is_input_amount_error()
                 {

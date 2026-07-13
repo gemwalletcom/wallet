@@ -5,10 +5,11 @@ use super::{
 };
 use crate::{QuoteRequest, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_quote};
 use gem_client::testkit::MockClient;
-use primitives::{AssetId, Chain, asset_constants::SOLANA_USDC_ASSET_ID, swap::QuoteAsset};
+use primitives::{AssetId, Chain, asset_constants::SOLANA_USDC_ASSET_ID, swap::QuoteAsset, testkit::signer_mock::TEST_SOLANA_SENDER};
 use std::sync::Arc;
 
-pub(super) const SOLANA_WALLET: &str = "A6bhCu4nvzWEnLGF3fnDBRE7ADXNzHTTh9GhBQdKSbXP";
+pub(super) const TRON_WALLET: &str = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z";
+pub(super) const EVM_WALLET: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";
 
 impl OkxProvider<MockClient> {
     pub fn mock(client: MockClient, rpc_result: &str) -> Self {
@@ -21,7 +22,7 @@ pub(super) fn mock_solana_request() -> QuoteRequest {
         SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
         SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
     );
-    request.wallet_address = SOLANA_WALLET.to_string();
+    request.wallet_address = TEST_SOLANA_SENDER.to_string();
     request.value = "100000000".to_string();
     request
 }
