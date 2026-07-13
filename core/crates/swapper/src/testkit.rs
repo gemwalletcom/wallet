@@ -108,26 +108,17 @@ pub fn mock_bitcoin_max_quote(to_asset: SwapperQuoteAsset) -> QuoteRequest {
     request
 }
 
-pub fn mock_proxy_quote_request(from_asset: QuoteAsset, to_asset: QuoteAsset, slippage_bps: u32, referral_bps: u32) -> ProxyQuoteRequest {
-    ProxyQuoteRequest {
-        from_address: "0xabc".to_string(),
-        to_address: "0xabc".to_string(),
-        from_asset,
-        to_asset,
-        from_value: "1000000000000000000".to_string(),
-        referral_bps,
-        slippage_bps,
-        slippage_mode: SlippageMode::Auto,
-        use_max_amount: false,
-    }
-}
-
-pub fn mock_proxy_quote_request_from_assets(from_asset: AssetId, to_asset: AssetId, address: &str, value: &str, slippage_bps: u32, referral_bps: u32) -> ProxyQuoteRequest {
+pub fn mock_proxy_quote_request_from_assets(from_asset: AssetId, to_asset: AssetId, address: &str, value: &str, slippage_bps: u32) -> ProxyQuoteRequest {
     ProxyQuoteRequest {
         from_address: address.to_string(),
         to_address: address.to_string(),
+        from_asset: QuoteAsset::from(from_asset),
+        to_asset: QuoteAsset::from(to_asset),
         from_value: value.to_string(),
-        ..mock_proxy_quote_request(QuoteAsset::from(from_asset), QuoteAsset::from(to_asset), slippage_bps, referral_bps)
+        referral_bps: 70,
+        slippage_bps,
+        slippage_mode: SlippageMode::Auto,
+        use_max_amount: false,
     }
 }
 

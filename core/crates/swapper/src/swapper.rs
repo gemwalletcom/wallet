@@ -1,7 +1,7 @@
 use crate::{
     AssetList, FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset,
     SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across, alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses,
-    fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, panora, proxy::provider_factory, relay, squid, stonfi, thorchain, uniswap,
+    fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -77,7 +77,7 @@ impl GemSwapper {
             Box::new(thorchain::ThorChain::new(rpc_provider.clone())),
             Box::new(thorchain::ThorChain::new_mayachain(rpc_provider.clone())),
             Box::new(jupiter::Jupiter::new(rpc_provider.clone())),
-            Box::new(provider_factory::new_okx(rpc_provider.clone())),
+            Box::new(okx::OkxProvider::new(rpc_provider.clone())),
             Box::new(across::Across::new(rpc_provider.clone())),
             Box::new(hyperliquid::Hyperliquid::new(rpc_provider.clone())),
             uniswap::default::boxed_oku(rpc_provider.clone()),

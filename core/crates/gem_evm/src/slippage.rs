@@ -1,7 +1,6 @@
 use alloy_primitives::U256;
+use primitives::swap::HUNDRED_PERCENT_IN_BPS;
 use std::ops::{Div, Mul};
-
-const HUNDRED_PERCENT_IN_BPS: u32 = 10000;
 
 pub trait BasisPointConvert: Sized + Copy {
     fn from_u32(value: u32) -> Self;

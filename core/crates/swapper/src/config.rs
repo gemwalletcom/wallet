@@ -2,8 +2,6 @@ use crate::{SwapperProvider, SwapperSlippage, SwapperSlippageMode};
 use primitives::Chain;
 
 pub const DEFAULT_SLIPPAGE_BPS: u32 = 100;
-pub const DEFAULT_SWAP_FEE_BPS: u32 = 50;
-pub const DEFAULT_CHAINFLIP_FEE_BPS: u32 = 45;
 
 pub const API_BASE_URL: &str = "https://api.gemwallet.com";
 

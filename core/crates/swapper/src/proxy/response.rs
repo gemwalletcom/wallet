@@ -1,8 +1,5 @@
 use crate::SwapperError;
-use gem_client::{Client, ClientExt};
-use primitives::swap::{ProxyQuote, ProxyQuoteRequest, SwapQuoteData};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use std::fmt::Debug;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ProxyError {
@@ -31,30 +28,6 @@ impl<T> From<ProxyResponse<T>> for Result<T, SwapperError> {
             ProxyResponse::Ok { ok } => Ok(ok),
             ProxyResponse::Err { err } => Err(err),
         }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ProxyClient<C: Client + Clone + Debug> {
-    client: C,
-}
-
-impl<C: Client + Clone + Debug> ProxyClient<C> {
-    pub fn new(client: C) -> Self {
-        Self { client }
-    }
-
-    pub async fn get_quote(&self, request: ProxyQuoteRequest) -> Result<ProxyQuote, SwapperError> {
-        self.post("/quote", &request).await
-    }
-
-    pub async fn get_quote_data(&self, quote: ProxyQuote) -> Result<SwapQuoteData, SwapperError> {
-        self.post("/quote_data", &quote).await
-    }
-
-    async fn post<Req: Serialize + Send + Sync, Res: DeserializeOwned + Send>(&self, path: &str, body: &Req) -> Result<Res, SwapperError> {
-        let response: ProxyResponse<Res> = self.client.post(path, body).await?;
-        response.into()
     }
 }
 

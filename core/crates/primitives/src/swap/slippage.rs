@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
+pub const HUNDRED_PERCENT_IN_BPS: u32 = 10_000;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Slippage {
     pub bps: u32,

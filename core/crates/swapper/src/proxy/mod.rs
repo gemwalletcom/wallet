@@ -1,6 +1,3 @@
-mod client;
+mod response;
 
-pub mod provider;
-pub mod provider_factory;
-
-pub use client::{ProxyError, ProxyResponse};
+pub use response::{ProxyError, ProxyResponse};

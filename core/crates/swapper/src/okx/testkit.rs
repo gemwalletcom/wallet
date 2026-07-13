@@ -1,28 +1,55 @@
-use super::{OkxClientConfig, OkxProvider, model::TransactionData};
-use crate::alien::mock::ProviderMock;
+use super::{
+    constants::{PROXY_QUOTE_PATH, PROXY_SWAP_PATH},
+    model::{QuoteData, TokenInfo},
+    provider::OkxProvider,
+};
+use crate::{QuoteRequest, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_quote};
 use gem_client::testkit::MockClient;
+use primitives::{AssetId, Chain, asset_constants::SOLANA_USDC_ASSET_ID, swap::QuoteAsset};
 use std::sync::Arc;
 
-impl TransactionData {
-    pub fn mock(to: &str, value: &str, data: &str, gas: &str) -> Self {
-        Self {
-            data: data.to_string(),
-            to: to.to_string(),
-            value: value.to_string(),
-            gas: gas.to_string(),
-            signature_data: None,
-        }
+pub(super) const SOLANA_WALLET: &str = "A6bhCu4nvzWEnLGF3fnDBRE7ADXNzHTTh9GhBQdKSbXP";
+
+impl OkxProvider<MockClient> {
+    pub fn mock(client: MockClient, rpc_result: &str) -> Self {
+        Self::new_with_client(client, Arc::new(ProviderMock::new(rpc_result.to_string())))
     }
 }
 
-impl OkxProvider<MockClient> {
-    pub fn mock(rpc_result: &str) -> Self {
-        let config = OkxClientConfig {
-            api_key: String::new(),
-            secret_key: String::new(),
-            passphrase: String::new(),
-            project: String::new(),
-        };
-        Self::new_with_client(MockClient::new(), config, Arc::new(ProviderMock::new(rpc_result.to_string())))
+pub(super) fn mock_solana_request() -> QuoteRequest {
+    let mut request = mock_quote(
+        SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
+        SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+    );
+    request.wallet_address = SOLANA_WALLET.to_string();
+    request.value = "100000000".to_string();
+    request
+}
+
+pub(super) fn mock_client(quote_response: &'static str, swap_response: &'static str) -> MockClient {
+    MockClient::new().with_post(move |path, _| match path {
+        PROXY_QUOTE_PATH => Ok(quote_response.as_bytes().to_vec()),
+        PROXY_SWAP_PATH => Ok(swap_response.as_bytes().to_vec()),
+        other => panic!("unexpected path: {other}"),
+    })
+}
+
+pub(super) fn mock_quote_asset_with_symbol(id: &str, symbol: &str) -> QuoteAsset {
+    QuoteAsset {
+        id: id.to_string(),
+        symbol: symbol.to_string(),
+        decimals: 18,
+    }
+}
+
+pub(super) fn mock_quote_data(from_token: &str, to_token: &str) -> QuoteData {
+    QuoteData {
+        from_token: TokenInfo {
+            token_contract_address: from_token.to_string(),
+        },
+        to_token: TokenInfo {
+            token_contract_address: to_token.to_string(),
+        },
+        to_token_amount: "200".to_string(),
     }
 }
