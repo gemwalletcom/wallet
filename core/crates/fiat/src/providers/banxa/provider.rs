@@ -9,7 +9,7 @@ use crate::{
     providers::banxa::mapper::map_asset_with_limits,
 };
 
-use super::{client::BanxaClient, mapper::map_order, models::Webhook};
+use super::{client::BanxaClient, mapper::{map_order, map_webhook_data}};
 
 #[async_trait]
 impl FiatProvider for BanxaClient {
@@ -42,7 +42,7 @@ impl FiatProvider for BanxaClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        let order_id = serde_json::from_value::<Webhook>(request.data)?.order_id;
+        let order_id = map_webhook_data(request.data)?;
         Ok(FiatWebhook::OrderId(order_id))
     }
 
@@ -100,6 +100,13 @@ mod tests {
         let request = FiatWebhookRequest::mock(include_str!("../../../testdata/banxa/webhook_order_complete.json"));
 
         assert!(BanxaClient::mock().process_webhook(request).await.is_err());
+    }
+
+    #[test]
+    fn test_map_webhook_data_extracts_order_id() {
+        let order_id = super::map_webhook_data(serde_json::from_str(include_str!("../../../testdata/banxa/webhook_order_complete.json")).unwrap()).unwrap();
+
+        assert_eq!(order_id, "banxa_order_123");
     }
 }
 
