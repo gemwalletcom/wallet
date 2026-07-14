@@ -47,7 +47,6 @@ banxa:
     secret: ""
   webhook:
     key:
-      public: ""
       secret: ""
 paybis:
   key:

@@ -45,7 +45,6 @@ pub fn create_banxa_test_client() -> BanxaClient {
         settings.banxa.url,
         settings.banxa.partner,
         settings.banxa.key.secret,
-        settings.banxa.webhook.key.public,
         settings.banxa.webhook.key.secret,
     )
 }

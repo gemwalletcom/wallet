@@ -16,20 +16,18 @@ pub struct BanxaClient {
     pub url: String,
     pub partner: String,
     pub api_key: String,
-    pub webhook_api_key: String,
     pub webhook_secret_key: String,
 }
 
 impl BanxaClient {
     pub const NAME: FiatProviderName = FiatProviderName::Banxa;
 
-    pub fn new(client: Client, url: String, partner: String, api_key: String, webhook_api_key: String, webhook_secret_key: String) -> Self {
+    pub fn new(client: Client, url: String, partner: String, api_key: String, webhook_secret_key: String) -> Self {
         Self {
             client,
             url,
             partner,
             api_key,
-            webhook_api_key,
             webhook_secret_key,
         }
     }

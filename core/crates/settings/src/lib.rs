@@ -132,7 +132,7 @@ pub struct Banxa {
     pub url: String,
     pub partner: String,
     pub key: KeySecret,
-    pub webhook: KeySettings,
+    pub webhook: SecretKeySettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
