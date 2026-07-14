@@ -19,7 +19,7 @@ impl FiatWebhookRequest {
         let nonce = "1700000000";
         let message = format!("POST\n{TEST_WEBHOOK_PATH}\n{nonce}\n{raw_body}");
         let signature = generate_hmac_signature_hex(TEST_SECRET_KEY, &message);
-        Self::mock_banxa_with_authorization(raw_body, &format!("Bearer {TEST_MERCHANT_KEY}:{signature}:{nonce}"))
+        Self::mock_banxa_with_authorization(raw_body, &format!("Bearer {TEST_SECRET_KEY}:{signature}:{nonce}"))
     }
 
     pub fn mock_banxa_with_authorization(raw_body: &str, authorization: &str) -> Self {

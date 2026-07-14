@@ -11,7 +11,11 @@ use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQu
 use std::error::Error;
 use streamer::FiatWebhook;
 
-use super::{client::MercuryoClient, mapper::{map_order_from_webhook, map_webhook_data}, widget::MercuryoWidget};
+use super::{
+    client::MercuryoClient,
+    mapper::{map_order_from_webhook, map_webhook_data},
+    widget::MercuryoWidget,
+};
 
 #[async_trait]
 impl FiatProvider for MercuryoClient {

@@ -9,7 +9,10 @@ use crate::{
     providers::banxa::mapper::map_asset_with_limits,
 };
 
-use super::{client::BanxaClient, mapper::{map_order, map_webhook_data}};
+use super::{
+    client::BanxaClient,
+    mapper::{map_order, map_webhook_data},
+};
 
 #[async_trait]
 impl FiatProvider for BanxaClient {

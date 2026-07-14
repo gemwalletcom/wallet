@@ -7,7 +7,10 @@ use async_trait::async_trait;
 use std::error::Error;
 use streamer::FiatWebhook;
 
-use super::{client::MoonPayClient, mapper::{map_order, map_webhook_data}};
+use super::{
+    client::MoonPayClient,
+    mapper::{map_order, map_webhook_data},
+};
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData};
 
 #[async_trait]

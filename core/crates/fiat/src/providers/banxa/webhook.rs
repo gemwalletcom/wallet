@@ -18,7 +18,7 @@ impl BanxaClient {
             .and_then(parse_authorization_header)
             .ok_or_else(|| FiatQuoteError::InvalidRequest("Invalid Banxa webhook authorization header".to_string()))?;
 
-        if api_key != self.merchant_key {
+        if api_key != self.secret_key {
             return Err(FiatQuoteError::InvalidRequest("Invalid Banxa webhook API key".to_string()).into());
         }
 

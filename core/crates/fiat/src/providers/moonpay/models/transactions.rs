@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
-use super::common::Data;
 use super::assets::Asset;
+use super::common::Data;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
