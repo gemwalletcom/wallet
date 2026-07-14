@@ -11,7 +11,7 @@ use primitives::{
 };
 
 use crate::{
-    ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE,
+    ESTIMATION_GAS_BUDGET,
     gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, OwnedCoins, SuiObject},
 };
@@ -33,7 +33,7 @@ impl ChainTransactionLoad for SuiClient {
         let (sui_coins, token_coins, objects) = self.get_coins_for_input_type(input.sender_address.as_str(), input.input_type.clone()).await?;
 
         let estimate_bytes = map_transaction_data(input.clone(), sui_coins.clone(), token_coins.clone(), objects.clone(), ESTIMATION_GAS_BUDGET)?;
-        let fee = self.estimate_fee(&estimate_bytes, &input.gas_price, input.is_max_value).await?;
+        let fee = self.estimate_fee(&estimate_bytes, &input.gas_price).await?;
 
         let message_bytes = match estimated_gas_budget(&input.input_type, &fee)? {
             Some(budget) => map_transaction_data(input, sui_coins, token_coins, objects, budget)?,
@@ -100,11 +100,11 @@ impl SuiClient {
         })
     }
 
-    async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType, is_max_value: bool) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let tx_data_only = tx_data.split('_').next().unwrap_or(tx_data);
         let result = self.dry_run(tx_data_only.to_string()).await?;
         let fee = result.effects.gas_used.calculate_gas_budget()?;
-        let gas_limit = if is_max_value { fee } else { fee * GAS_BUDGET_MULTIPLIER / 100 };
+        let gas_limit = fee * GAS_BUDGET_MULTIPLIER / 100;
 
         Ok(TransactionFee {
             fee: BigInt::from(fee),
@@ -121,16 +121,16 @@ impl SuiClient {
     ) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
         match input_type {
             TransactionInputType::Transfer(asset) => match asset.id.token_id {
-                None => Ok((self.get_coins(address, SUI_COIN_TYPE).await?, None, Vec::new())),
+                None => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 Some(token_id) => {
-                    let (gas_coins, token_coins) = futures::try_join!(self.get_coins(address, SUI_COIN_TYPE), self.get_coins(address, &token_id))?;
+                    let (gas_coins, token_coins) = futures::try_join!(self.get_gas_coins(address), self.get_coins(address, &token_id))?;
                     Ok((gas_coins, Some(token_coins), Vec::new()))
                 }
             },
             TransactionInputType::Stake(_, stake_type) => match stake_type {
-                StakeType::Stake(_) => Ok((self.get_coins(address, SUI_COIN_TYPE).await?, None, Vec::new())),
+                StakeType::Stake(_) => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 StakeType::Unstake(delegation) => {
-                    let (gas_coins, staked_object) = futures::try_join!(self.get_coins(address, SUI_COIN_TYPE), self.get_object(delegation.base.delegation_id.clone()))?;
+                    let (gas_coins, staked_object) = futures::try_join!(self.get_gas_coins(address), self.get_object(delegation.base.delegation_id.clone()))?;
                     Ok((gas_coins, None, vec![staked_object]))
                 }
                 StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => {
