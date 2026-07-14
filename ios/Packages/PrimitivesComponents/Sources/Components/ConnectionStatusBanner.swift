@@ -1,0 +1,53 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Components
+import Style
+import SwiftUI
+
+public struct ConnectionStatusBanner: View {
+    private let model: ConnectionStatusViewModel
+    private let onClose: () -> Void
+
+    public init(model: ConnectionStatusViewModel, onClose: @escaping () -> Void) {
+        self.model = model
+        self.onClose = onClose
+    }
+
+    public var body: some View {
+        HStack(spacing: .small) {
+            model.icon
+                .foregroundStyle(model.iconColor)
+
+            Text(model.title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Colors.black)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+
+            Spacer(minLength: 0)
+
+            closeButton
+        }
+        .padding(.medium)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .liquidGlass(interactive: false, in: RoundedRectangle(cornerRadius: .medium)) {
+            $0
+                .background(Colors.grayVeryLight)
+                .clipShape(RoundedRectangle(cornerRadius: .medium))
+        }
+        .padding(.horizontal, .medium)
+    }
+
+    private var closeButton: some View {
+        Button(action: onClose) {
+            Images.System.xmark
+                .font(.footnote.weight(.bold))
+                .foregroundStyle(Colors.gray)
+                .frame(width: 28, height: 28)
+                .liquidGlass(in: Circle()) {
+                    $0.background(Circle().fill(Colors.grayVeryLightFaded))
+                }
+        }
+        .buttonStyle(.plain)
+    }
+}

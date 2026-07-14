@@ -3,6 +3,7 @@
 import ConnectionsService
 import DeviceService
 import Foundation
+import ConnectionStatusService
 import PerpetualService
 import Preferences
 import Primitives
@@ -12,6 +13,7 @@ import SwiftUI
 public actor AppLifecycleService: Sendable {
     private let preferences: Preferences
     private let connectionsService: ConnectionsService
+    private let connectionStatusObserver: ConnectionStatusObserver
     private let deviceObserverService: DeviceObserverService
     private let streamObserverService: StreamObserverService
     private let streamSubscriptionService: StreamSubscriptionService
@@ -22,6 +24,7 @@ public actor AppLifecycleService: Sendable {
     public init(
         preferences: Preferences,
         connectionsService: ConnectionsService,
+        connectionStatusObserver: ConnectionStatusObserver,
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
         streamSubscriptionService: StreamSubscriptionService,
@@ -29,6 +32,7 @@ public actor AppLifecycleService: Sendable {
     ) {
         self.preferences = preferences
         self.connectionsService = connectionsService
+        self.connectionStatusObserver = connectionStatusObserver
         self.deviceObserverService = deviceObserverService
         self.streamObserverService = streamObserverService
         self.streamSubscriptionService = streamSubscriptionService
@@ -99,10 +103,11 @@ extension AppLifecycleService {
     }
 
     private func connectObservers() async {
+        async let connection: () = connectionStatusObserver.start()
         async let stream: () = connectStreamObserver()
         async let perpetual: () = connectPerpetual()
         async let nodeAuthToken: () = deviceObserverService.startNodeAuthTokenUpdates()
-        _ = await (stream, perpetual, nodeAuthToken)
+        _ = await (connection, stream, perpetual, nodeAuthToken)
     }
 
     private func connectStreamObserver() async {
@@ -130,9 +135,10 @@ extension AppLifecycleService {
     }
 
     private func disconnectObservers() async {
+        async let connection: () = connectionStatusObserver.stop()
         async let price: () = streamObserverService.disconnect()
         async let perpetual: () = hyperliquidObserverService.disconnect()
         async let nodeAuthToken: () = deviceObserverService.stopNodeAuthTokenUpdates()
-        _ = await (price, perpetual, nodeAuthToken)
+        _ = await (connection, price, perpetual, nodeAuthToken)
     }
 }

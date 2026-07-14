@@ -43,30 +43,6 @@ public final class AssetSceneViewModel: Sendable {
     public let bannersQuery: ObservableQuery<BannersRequest>
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
-    public var chainAssetData: ChainAssetData {
-        assetQuery.value
-    }
-
-    public var banners: [Banner] {
-        bannersQuery.value
-    }
-
-    public var transactions: [TransactionExtended] {
-        transactionsQuery.value
-    }
-
-    public var assetData: AssetData {
-        chainAssetData.assetData
-    }
-
-    private var asset: Asset {
-        assetData.asset
-    }
-
-    private var wallet: Wallet {
-        walletModel.wallet
-    }
-
     public init(
         assetsEnabler: any AssetsEnabler,
         balanceService: BalanceService,
@@ -97,6 +73,30 @@ public final class AssetSceneViewModel: Sendable {
         bannersQuery = ObservableQuery(input.bannersRequest, initialValue: [])
         transactionsQuery = ObservableQuery(input.transactionsRequest, initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
+    }
+    
+    public var chainAssetData: ChainAssetData {
+        assetQuery.value
+    }
+
+    public var banners: [Banner] {
+        bannersQuery.value
+    }
+
+    public var transactions: [TransactionExtended] {
+        transactionsQuery.value
+    }
+
+    public var assetData: AssetData {
+        chainAssetData.assetData
+    }
+
+    private var asset: Asset {
+        assetData.asset
+    }
+
+    private var wallet: Wallet {
+        walletModel.wallet
     }
 
     public var title: String {
