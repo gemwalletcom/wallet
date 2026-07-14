@@ -33,7 +33,7 @@ impl ChainTransactionLoad for SuiClient {
         let (sui_coins, token_coins, objects) = self.get_coins_for_input_type(input.sender_address.as_str(), input.input_type.clone()).await?;
 
         let estimate_bytes = map_transaction_data(input.clone(), sui_coins.clone(), token_coins.clone(), objects.clone(), ESTIMATION_GAS_BUDGET)?;
-        let fee = self.estimate_fee(&estimate_bytes, &input.gas_price, input.is_max_value).await?;
+        let fee = self.estimate_fee(&estimate_bytes, &input.gas_price).await?;
 
         let message_bytes = match estimated_gas_budget(&input.input_type, &fee)? {
             Some(budget) => map_transaction_data(input, sui_coins, token_coins, objects, budget)?,
@@ -100,11 +100,11 @@ impl SuiClient {
         })
     }
 
-    async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType, is_max_value: bool) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let tx_data_only = tx_data.split('_').next().unwrap_or(tx_data);
         let result = self.dry_run(tx_data_only.to_string()).await?;
         let fee = result.effects.gas_used.calculate_gas_budget()?;
-        let gas_limit = if is_max_value { fee } else { fee * GAS_BUDGET_MULTIPLIER / 100 };
+        let gas_limit = fee * GAS_BUDGET_MULTIPLIER / 100;
 
         Ok(TransactionFee {
             fee: BigInt::from(fee),

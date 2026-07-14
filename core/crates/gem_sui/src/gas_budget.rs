@@ -15,5 +15,9 @@ mod tests {
         let fee = calculate_gas_budget(611_000, 2_424_400, 2_400_156);
         assert_eq!(fee, 635_244);
         assert_eq!(fee * GAS_BUDGET_MULTIPLIER / 100, 762_292);
+
+        let rebate_dominated_fee = calculate_gas_budget(110_000, 988_000, 1_956_240);
+        assert_eq!(rebate_dominated_fee, 110_000);
+        assert_eq!(rebate_dominated_fee * GAS_BUDGET_MULTIPLIER / 100, 132_000);
     }
 }
