@@ -3,6 +3,7 @@ package com.gemwallet.android.ui
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -22,6 +23,15 @@ fun Context.findActivity(): Activity? {
 
 fun Context.requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
     (findActivity() as? AuthRequester)?.requestAuth(auth, onSuccess)
+}
+
+fun Context.shareText(subject: String?, text: String?, chooserTitle: String) {
+    val intent = Intent(Intent.ACTION_SEND)
+    intent.type = "text/plain"
+    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+    intent.putExtra(Intent.EXTRA_TEXT, text)
+
+    startActivity(Intent.createChooser(intent, chooserTitle))
 }
 
 @Composable

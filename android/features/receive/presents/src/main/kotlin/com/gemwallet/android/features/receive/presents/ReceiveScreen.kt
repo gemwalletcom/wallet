@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.receive.presents
 
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,6 +49,7 @@ import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -89,15 +89,8 @@ private fun ReceiveScene(
     val imagePadding = if (isCompactHeight) paddingSmall else paddingDefault
 
     val onShare = fun () {
-        val type = "text/plain"
         val subject = "${assetInfo.owner?.chain}\n${assetInfo.asset.symbol}"
-
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = type
-        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-        intent.putExtra(Intent.EXTRA_TEXT, assetInfo.owner?.address)
-
-        context.startActivity(Intent.createChooser(intent, shareTitle))
+        context.shareText(subject = subject, text = assetInfo.owner?.address, chooserTitle = shareTitle)
     }
 
     val onCopyClick = fun () {

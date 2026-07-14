@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.referral.views
 
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -40,6 +39,7 @@ import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.shareText
 import kotlinx.coroutines.launch
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer8
@@ -98,13 +98,7 @@ fun ReferralScene(
     val scope = rememberCoroutineScope()
 
     val onShare = fun () {
-        val type = "text/plain"
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = type
-        intent.putExtra(Intent.EXTRA_SUBJECT, link)
-        intent.putExtra(Intent.EXTRA_TEXT, joinText)
-
-        context.startActivity(Intent.createChooser(intent, shareTitle))
+        context.shareText(subject = link, text = joinText, chooserTitle = shareTitle)
     }
 
     Scene(
