@@ -3,10 +3,8 @@
 @testable import AppService
 import ConnectionsService
 import ConnectionsServiceTestKit
-import ConnectivityService
-import ConnectivityServiceTestKit
-import DeviceService
 import ConnectionStatusService
+import DeviceService
 import DeviceServiceTestKit
 import Foundation
 import PerpetualService
@@ -20,7 +18,7 @@ public extension AppLifecycleService {
     static func mock(
         preferences: Preferences = .mock(),
         connectionsService: ConnectionsService = .mock(),
-        connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(connectivity: ConnectivityService.mock()),
+        connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(monitors: []),
         deviceObserverService: DeviceObserverService = .mock(),
         streamObserverService: StreamObserverService = .mock(),
         streamSubscriptionService: StreamSubscriptionService = .mock(),
