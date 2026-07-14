@@ -6,8 +6,7 @@ use typeshare::typeshare;
 #[serde(rename_all = "camelCase")]
 #[typeshare(swift = "Equatable, Sendable")]
 pub struct InternetConnectionMetadata {
-    pub is_expensive: bool,
-    pub is_constrained: bool,
+    pub is_low_data: bool,
     pub is_vpn: bool,
 }
 

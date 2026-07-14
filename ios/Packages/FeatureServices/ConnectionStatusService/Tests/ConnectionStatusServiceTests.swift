@@ -16,13 +16,18 @@ struct ConnectionStatusServiceTests {
 
     @Test
     func connectivityStateHealth() {
-        let path = NetworkPath(transports: [.wifi], isExpensive: true, isConstrained: false, isVPN: true)
+        let expensivePath = NetworkPath(transports: [.wifi], isExpensive: true, isConstrained: false, isVPN: true)
+        let constrainedPath = NetworkPath(transports: [.wifi], isExpensive: false, isConstrained: true, isVPN: false)
 
         #expect(ConnectivityState.unknown.health == ConnectionComponentHealth(isHealthy: true, metadata: .none))
         #expect(ConnectivityState.unsatisfied(.noNetwork).health == ConnectionComponentHealth(isHealthy: false, metadata: .none))
-        #expect(ConnectivityState.satisfied(path).health == ConnectionComponentHealth(
+        #expect(ConnectivityState.satisfied(expensivePath).health == ConnectionComponentHealth(
             isHealthy: true,
-            metadata: .internet(InternetConnectionMetadata(isExpensive: true, isConstrained: false, isVpn: true)),
+            metadata: .internet(InternetConnectionMetadata(isLowData: true, isVpn: true)),
+        ))
+        #expect(ConnectivityState.satisfied(constrainedPath).health == ConnectionComponentHealth(
+            isHealthy: true,
+            metadata: .internet(InternetConnectionMetadata(isLowData: true, isVpn: false)),
         ))
     }
 

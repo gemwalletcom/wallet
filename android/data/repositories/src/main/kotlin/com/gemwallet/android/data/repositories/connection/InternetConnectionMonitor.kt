@@ -59,8 +59,8 @@ class InternetConnectionMonitor(
             isHealthy = isHealthy,
             metadata = ConnectionComponentMetadata.Internet(
                 InternetConnectionMetadata(
-                    isExpensive = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED),
-                    isConstrained = restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED,
+                    isLowData = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+                        || restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED,
                     isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN),
                 )
             ),

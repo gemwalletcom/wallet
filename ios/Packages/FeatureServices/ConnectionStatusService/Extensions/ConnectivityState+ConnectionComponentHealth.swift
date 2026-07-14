@@ -12,8 +12,7 @@ extension ConnectivityState {
             ConnectionComponentHealth(
                 isHealthy: true,
                 metadata: .internet(InternetConnectionMetadata(
-                    isExpensive: path.isExpensive,
-                    isConstrained: path.isConstrained,
+                    isLowData: path.isExpensive || path.isConstrained,
                     isVpn: path.isVPN,
                 )),
             )

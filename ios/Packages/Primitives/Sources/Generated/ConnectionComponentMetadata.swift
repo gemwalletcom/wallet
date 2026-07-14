@@ -5,13 +5,11 @@
 import Foundation
 
 public struct InternetConnectionMetadata: Codable, Equatable, Sendable {
-	public let isExpensive: Bool
-	public let isConstrained: Bool
+	public let isLowData: Bool
 	public let isVpn: Bool
 
-	public init(isExpensive: Bool, isConstrained: Bool, isVpn: Bool) {
-		self.isExpensive = isExpensive
-		self.isConstrained = isConstrained
+	public init(isLowData: Bool, isVpn: Bool) {
+		self.isLowData = isLowData
 		self.isVpn = isVpn
 	}
 }

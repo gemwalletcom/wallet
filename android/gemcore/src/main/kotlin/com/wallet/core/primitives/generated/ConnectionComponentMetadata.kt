@@ -9,8 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class InternetConnectionMetadata (
-	val isExpensive: Boolean,
-	val isConstrained: Boolean,
+	val isLowData: Boolean,
 	val isVpn: Boolean
 )
 
