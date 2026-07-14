@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Aangepast";
 "banner.account_activation.title" = "Accountactivatiekosten";
 "banner.account_activation.description" = "Voor het %@-netwerk is een eenmalige vergoeding van %@ vereist.";
 "banner.stake.title" = "Begin met uitzetten %@";

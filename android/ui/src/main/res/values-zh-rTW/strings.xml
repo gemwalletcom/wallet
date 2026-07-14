@@ -381,6 +381,7 @@
   <string name="fee_rate_satvB">%1$s 聰/vB</string>
   <string name="fee_rate_satB">%1$s 聰/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">自訂</string>
   <string name="banner_account_activation_title">帳戶啟動費用</string>
   <string name="banner_account_activation_description">%1$s 網路需要一次性費用 %2$s 。</string>
   <string name="banner_stake_title">開始質押 %1$s</string>

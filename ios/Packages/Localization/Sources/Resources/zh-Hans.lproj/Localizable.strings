@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ 聪/vB";
 "fee_rate.satB" = "%@ 聪/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "自定义";
 "banner.account_activation.title" = "账户激活费用";
 "banner.account_activation.description" = "%@ 网络需要一次性费用 %@。";
 "banner.stake.title" = "开始质押 %@";

@@ -462,6 +462,7 @@ fee_rates_normal = Bình thường
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Tùy chỉnh
 
 # Banner
 

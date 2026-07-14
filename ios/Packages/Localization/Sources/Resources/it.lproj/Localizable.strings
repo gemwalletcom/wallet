@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Personalizzato";
 "banner.account_activation.title" = "Commissione di attivazione del conto";
 "banner.account_activation.description" = "La rete %@ richiede una tariffa una tantum di %@.";
 "banner.stake.title" = "Inizia a puntare %@";

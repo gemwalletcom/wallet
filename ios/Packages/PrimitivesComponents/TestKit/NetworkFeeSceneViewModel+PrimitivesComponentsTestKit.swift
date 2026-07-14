@@ -12,6 +12,7 @@ public extension NetworkFeeSceneViewModel {
         priority: FeePriority = .normal,
         currency: Currency = .usd,
         feeAmount: BigInt? = nil,
+        allowsCustomFee: Bool = false,
     ) -> NetworkFeeSceneViewModel {
         let feeAsset = feeAsset ?? defaultFeeAsset(for: chain)
         return NetworkFeeSceneViewModel(
@@ -20,6 +21,31 @@ public extension NetworkFeeSceneViewModel {
             priority: priority,
             currency: currency,
             feeAmount: feeAmount,
+            allowsCustomFee: allowsCustomFee,
+        )
+    }
+}
+
+public extension NetworkFeeCustomViewModel {
+    static func mock(
+        chain: Chain = .bitcoin,
+        feeAsset: Asset? = nil,
+        feeAssetPrice: Price? = nil,
+        currency: Currency = .usd,
+        baseFee: BigInt? = 1000,
+        baseTotal: BigInt? = 2,
+        initialRate: BigInt? = nil,
+        onSelect: @escaping (BigInt) -> Void = { _ in },
+    ) -> NetworkFeeCustomViewModel {
+        NetworkFeeCustomViewModel(
+            chain: chain,
+            feeAsset: feeAsset ?? .mock(id: AssetId(chain: .bitcoin, tokenId: .none)),
+            feeAssetPrice: feeAssetPrice,
+            currency: currency,
+            baseFee: baseFee,
+            baseTotal: baseTotal,
+            initialRate: initialRate,
+            onSelect: onSelect,
         )
     }
 }

@@ -200,11 +200,50 @@ struct NetworkFeeSceneViewModelTests {
 
         #expect(model.selectedFeeRateViewModel?.feeRate.priority == .normal)
 
-        model.priority = .fast
+        model.select(.preset(.fast))
         #expect(model.selectedFeeRateViewModel?.feeRate.priority == .fast)
 
-        model.priority = .slow
-        #expect(model.selectedFeeRateViewModel?.feeRate.priority == .slow)
+        model.select(.custom(5))
+        #expect(model.selectedFeeRateViewModel == nil)
+    }
+
+    @Test
+    func supportsCustomFeeForSatVbWhenAllowed() {
+        #expect(NetworkFeeSceneViewModel.mock(chain: .bitcoin, allowsCustomFee: true).supportsCustomFee)
+        #expect(NetworkFeeSceneViewModel.mock(chain: .bitcoin, allowsCustomFee: false).supportsCustomFee == false)
+        #expect(NetworkFeeSceneViewModel.mock(chain: .ethereum, allowsCustomFee: true).supportsCustomFee == false)
+        #expect(NetworkFeeSceneViewModel.mock(chain: .solana, allowsCustomFee: true).supportsCustomFee == false)
+    }
+
+    @Test
+    func customFeeConfirmsEnteredRate() async {
+        await confirmation { confirmed in
+            let model = NetworkFeeCustomViewModel.mock(onSelect: { rate in
+                #expect(rate == BigInt(4))
+                confirmed()
+            })
+
+            #expect(model.isConfirmEnabled == false)
+
+            model.input = "4"
+            model.confirm()
+
+            #expect(model.isConfirmEnabled)
+        }
+    }
+
+    @Test
+    func customFeeRejectsRateAboveMax() async {
+        await confirmation(expectedCount: 0) { confirmed in
+            let model = NetworkFeeCustomViewModel.mock(baseTotal: 2, onSelect: { _ in confirmed() })
+
+            model.input = "999"
+
+            #expect(model.isConfirmEnabled == false)
+            #expect(model.errorText != nil)
+
+            model.confirm()
+        }
     }
 
     @Test

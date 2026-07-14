@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "কাস্টম";
 "banner.account_activation.title" = "অ্যাকাউন্ট অ্যাক্টিভেশন ফি";
 "banner.account_activation.description" = "%@ নেটওয়ার্কের জন্য %@ এর এককালীন ফি প্রয়োজন।";
 "banner.stake.title" = "%@ স্টেক করা শুরু করুন";

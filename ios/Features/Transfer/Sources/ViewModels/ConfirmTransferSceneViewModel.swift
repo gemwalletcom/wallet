@@ -71,6 +71,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: data.type.asset.feeAsset,
             priority: confirmService.defaultPriority(for: data.type),
             currency: Currency(rawValue: Preferences.standard.currency) ?? .usd,
+            allowsCustomFee: true,
         )
 
         let recipientAddress = data.recipientData.recipient.address
@@ -352,7 +353,7 @@ extension ConfirmTransferSceneViewModel {
         isPresentingSheet = .addContact(action)
     }
 
-    func onChangeFeePriority() {
+    func onChangeFeeSelection() {
         fetch()
     }
 
@@ -409,7 +410,7 @@ extension ConfirmTransferSceneViewModel {
             return try await confirmService.loadTransferTransactionData(
                 wallet: wallet,
                 data: transferData,
-                priority: feeModel.priority,
+                selection: feeModel.selection,
                 available: metadata.available,
             )
         } catch {

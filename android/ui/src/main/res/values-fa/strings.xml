@@ -381,6 +381,7 @@
   <string name="fee_rate_satvB">%1$s ساتوشی بر بایت</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">سفارشی</string>
   <string name="banner_account_activation_title">کارمزد فعال سازی حساب.</string>
   <string name="banner_account_activation_description">شبکه %1$s نیاز به کارمزد اولیه %2$s ای دارد.</string>
   <string name="banner_stake_title">شروع به استیک کردن %1$s.</string>

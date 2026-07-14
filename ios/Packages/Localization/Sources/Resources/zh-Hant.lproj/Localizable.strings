@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ 聰/vB";
 "fee_rate.satB" = "%@ 聰/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "自訂";
 "banner.account_activation.title" = "帳戶啟動費用";
 "banner.account_activation.description" = "%@ 網路需要一次性費用 %@ 。";
 "banner.stake.title" = "開始質押 %@";

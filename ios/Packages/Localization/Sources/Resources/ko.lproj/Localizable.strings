@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "사용자 지정";
 "banner.account_activation.title" = "계정 활성화 수수료";
 "banner.account_activation.description" = "%@ 네트워크에는 %@ 의 일회성 수수료가 필요합니다.";
 "banner.stake.title" = "스테이킹 시작 %@";

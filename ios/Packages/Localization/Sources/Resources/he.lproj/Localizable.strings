@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "מותאם אישית";
 "banner.account_activation.title" = "עמלת הפעלת חשבון";
 "banner.account_activation.description" = "הרשת %@ דורשת תשלום חד פעמי של %@.";
 "banner.stake.title" = "התחל להמר %@";

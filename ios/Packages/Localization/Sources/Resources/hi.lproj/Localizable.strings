@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "कस्टम";
 "banner.account_activation.title" = "खाता सक्रियण शुल्क";
 "banner.account_activation.description" = "%@ नेटवर्क को %@ का एक बार शुल्क देना पड़ता है।";
 "banner.stake.title" = "%@ स्टेक करना शुरू करें";

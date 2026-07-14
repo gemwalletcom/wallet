@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Kustom";
 "banner.account_activation.title" = "Biaya aktivasi akun";
 "banner.account_activation.description" = "Jaringan %@ memerlukan biaya satu kali sebesar %@";
 "banner.stake.title" = "Mulai Staking %@";

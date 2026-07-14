@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ サトシ/vB";
 "fee_rate.satB" = "%@ サトシ/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "カスタム";
 "banner.account_activation.title" = "アカウントの有効化手数料";
 "banner.account_activation.description" = "%@ネットワークは、一回限りの料金が%@必要です。";
 "banner.stake.title" = "%@ のステーキングを開始";

@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Personnalisé";
 "banner.account_activation.title" = "Frais d'activation de compte";
 "banner.account_activation.description" = "Le réseau %@ nécessite des frais uniques de %@.";
 "banner.stake.title" = "Commencez le staking de %@";

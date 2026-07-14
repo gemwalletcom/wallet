@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Na Musamman";
 "banner.account_activation.title" = "Kudin Kunna Asusu";
 "banner.account_activation.description" = "Cibiyar sadarwar %@ tana buƙatar kuɗin lokaci ɗaya na %@.";
 "banner.stake.title" = "Fara tarawa %@";

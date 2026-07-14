@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "حسب ضرورت";
 "banner.account_activation.title" = "اکاؤنٹ ایکٹیویشن فیس";
 "banner.account_activation.description" = "%@ نیٹ ورک کو %@ کی ایک بار کی فیس درکار ہے۔";
 "banner.stake.title" = "%@ اسٹیکنگ شروع کریں";

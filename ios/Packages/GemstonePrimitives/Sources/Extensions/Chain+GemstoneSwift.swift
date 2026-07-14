@@ -79,6 +79,14 @@ public extension Primitives.Chain {
         return feeUnitType
     }
 
+    var feeUnitDecimals: Int {
+        Int(FeeConfig.config(chain: self).unitDecimals)
+    }
+
+    var maxCustomFeeRateMultiplier: Int {
+        Int(FeeConfig.config(chain: self).maxCustomFeeRateMultiplier)
+    }
+
     var blockTime: UInt32 {
         ChainConfig.config(chain: self).blockTime
     }

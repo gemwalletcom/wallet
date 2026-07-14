@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Свій";
 "banner.account_activation.title" = "Плата за активацію рахунку";
 "banner.account_activation.description" = "Мережа %@ вимагає одноразової оплати в розмірі %@.";
 "banner.stake.title" = "Почніть стейкінг %@";

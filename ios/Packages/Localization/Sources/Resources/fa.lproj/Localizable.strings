@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ ساتوشی بر بایت";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "سفارشی";
 "banner.account_activation.title" = "کارمزد فعال سازی حساب.";
 "banner.account_activation.description" = "شبکه %@ نیاز به کارمزد اولیه %@ ای دارد.";
 "banner.stake.title" = "شروع به استیک کردن %@.";

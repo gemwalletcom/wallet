@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Свой";
 "banner.account_activation.title" = "Плата за активацию аккаунта";
 "banner.account_activation.description" = "Сеть %@ требует единовременную плату в размере %@.";
 "banner.stake.title" = "Начните стейкинг %@";

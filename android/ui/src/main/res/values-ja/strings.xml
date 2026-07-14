@@ -381,6 +381,7 @@
   <string name="fee_rate_satvB">%1$s サトシ/vB</string>
   <string name="fee_rate_satB">%1$s サトシ/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">カスタム</string>
   <string name="banner_account_activation_title">アカウントの有効化手数料</string>
   <string name="banner_account_activation_description">%1$sネットワークは、一回限りの料金が%2$s必要です。</string>
   <string name="banner_stake_title">%1$s のステーキングを開始</string>

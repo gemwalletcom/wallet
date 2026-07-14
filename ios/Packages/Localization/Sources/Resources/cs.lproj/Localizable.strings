@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Vlastní";
 "banner.account_activation.title" = "Poplatek za aktivaci účtu";
 "banner.account_activation.description" = "Síť %@ vyžaduje jednorázový poplatek %@.";
 "banner.stake.title" = "Začněte sázet %@";

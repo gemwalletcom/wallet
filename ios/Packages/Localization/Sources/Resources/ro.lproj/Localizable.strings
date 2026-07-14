@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Personalizat";
 "banner.account_activation.title" = "Taxa de activare a contului";
 "banner.account_activation.description" = "Rețeaua %@ necesită o taxă unică de %@.";
 "banner.stake.title" = "Începeți miza %@";

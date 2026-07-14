@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Tilpasset";
 "banner.account_activation.title" = "Kontoaktiveringsgebyr";
 "banner.account_activation.description" = "%@ netværket kræver et engangsgebyr på %@.";
 "banner.stake.title" = "Begynd at satse %@";

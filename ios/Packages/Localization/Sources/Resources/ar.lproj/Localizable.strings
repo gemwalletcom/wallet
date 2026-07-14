@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "مخصص";
 "banner.account_activation.title" = "رسوم تفعيل الحساب";
 "banner.account_activation.description" = "تتطلب شبكة %@ رسومًا لمرة واحدة قدرها %@.";
 "banner.stake.title" = "ابدأ تخزين %@";

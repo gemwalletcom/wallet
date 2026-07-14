@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "กำหนดเอง";
 "banner.account_activation.title" = "ค่าธรรมเนียมการเปิดใช้งานบัญชี";
 "banner.account_activation.description" = "เครือข่าย %@ ต้องเสียค่าธรรมเนียมครั้งเดียวจำนวน %@";
 "banner.stake.title" = "เริ่มสเตค %@";

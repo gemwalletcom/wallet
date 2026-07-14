@@ -3,6 +3,7 @@
 import BigInt
 import Localization
 import Primitives
+import Style
 import SwiftUI
 
 @Observable
@@ -11,11 +12,12 @@ public final class NetworkFeeSceneViewModel {
     private let chain: Chain
     private let feeAsset: Asset
     private let currency: Currency
+    private let allowsCustomFee: Bool
 
     private var rates: [FeeRate] = []
     private var feeAssetPrice: Price?
 
-    public var priority: FeePriority
+    public var selection: FeeSelection
     public var feeAmount: BigInt?
 
     public init(
@@ -24,12 +26,14 @@ public final class NetworkFeeSceneViewModel {
         priority: FeePriority,
         currency: Currency,
         feeAmount: BigInt? = nil,
+        allowsCustomFee: Bool = false,
     ) {
         self.chain = chain
         self.feeAsset = feeAsset
-        self.priority = priority
+        selection = .preset(priority)
         self.currency = currency
         self.feeAmount = feeAmount
+        self.allowsCustomFee = allowsCustomFee
     }
 
     public var title: String {
@@ -60,7 +64,8 @@ public final class NetworkFeeSceneViewModel {
     }
 
     public var selectedFeeRateViewModel: FeeRateViewModel? {
-        feeRatesViewModels.first(where: { $0.feeRate.priority == priority })
+        guard let priority = selection.presetPriority else { return nil }
+        return feeRatesViewModels.first(where: { $0.feeRate.priority == priority })
     }
 
     public var showFeeRates: Bool {
@@ -69,6 +74,39 @@ public final class NetworkFeeSceneViewModel {
 
     public var showFeeDetails: Bool {
         showFeeRates || feeAmount != nil
+    }
+
+    public var supportsCustomFee: Bool {
+        guard allowsCustomFee else { return false }
+        return switch chain.type {
+        case .bitcoin: true
+        default: false
+        }
+    }
+
+    public func isSelected(_ rate: FeeRateViewModel) -> Bool {
+        selection.presetPriority == rate.feeRate.priority
+    }
+
+    public var isCustomSelected: Bool {
+        selection.presetPriority == nil
+    }
+
+    public var customFeeEmoji: String {
+        Emoji.FeeRate.custom.rawValue
+    }
+
+    public var customFeeTitle: String {
+        Localized.FeeRate.custom
+    }
+
+    public var customRateText: String? {
+        guard case let .custom(value) = selection else { return nil }
+        return FeeUnitViewModel(
+            unit: FeeUnit(type: chain.feeUnitType, value: value),
+            decimals: chain.feeUnitDecimals,
+            symbol: feeAsset.symbol,
+        ).value
     }
 
     public func valueForRate(_ rate: FeeRateViewModel) -> String {
@@ -82,11 +120,34 @@ public final class NetworkFeeSceneViewModel {
         feeAmount(for: rate.feeRate).flatMap { display(for: $0).fiat?.text }
     }
 
+    public func customFeeModel(onComplete: @escaping () -> Void) -> NetworkFeeCustomViewModel {
+        NetworkFeeCustomViewModel(
+            chain: chain,
+            feeAsset: feeAsset,
+            feeAssetPrice: feeAssetPrice,
+            currency: currency,
+            baseFee: feeAmount,
+            baseTotal: selectedBaseTotalFee,
+            initialRate: selection.customValue,
+            onSelect: { [weak self] rate in
+                self?.selection = .custom(rate)
+                onComplete()
+            },
+        )
+    }
+
     func feeAmount(for rate: FeeRate) -> BigInt? {
-        guard let feeAmount, let selectedRate = rates.first(where: { $0.priority == priority }) else { return nil }
-        let selectedTotal = selectedRate.gasPriceType.totalFee
-        guard selectedTotal != .zero else { return nil }
-        return feeAmount * rate.gasPriceType.totalFee / selectedTotal
+        guard let feeAmount, let base = selectedBaseTotalFee, base != .zero else { return nil }
+        return feeAmount * rate.gasPriceType.totalFee / base
+    }
+
+    private var selectedBaseTotalFee: BigInt? {
+        switch selection {
+        case let .preset(priority):
+            rates.first(where: { $0.priority == priority })?.gasPriceType.totalFee
+        case let .custom(value):
+            value
+        }
     }
 }
 
@@ -100,6 +161,14 @@ public extension NetworkFeeSceneViewModel {
 
     func update(feeAmount: BigInt?) {
         self.feeAmount = feeAmount
+    }
+
+    func select(_ selection: FeeSelection) {
+        self.selection = selection
+    }
+
+    func onSelectPreset(_ rate: FeeRateViewModel) {
+        selection = .preset(rate.feeRate.priority)
     }
 
     func reset() {

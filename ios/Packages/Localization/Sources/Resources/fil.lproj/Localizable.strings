@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Pasadya";
 "banner.account_activation.title" = "Bayarin sa Pag-activate ng Account";
 "banner.account_activation.description" = "Ang %@ network ay nangangailangan ng isang beses na bayad na %@.";
 "banner.stake.title" = "Simulan ang staking %@";

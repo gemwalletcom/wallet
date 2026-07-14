@@ -462,6 +462,7 @@ fee_rates_normal = 普通
 fee_rate_satvB = %@ 聰/vB
 fee_rate_satB = %@ 聰/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = 自訂
 
 # Banner
 

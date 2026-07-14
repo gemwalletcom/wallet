@@ -856,6 +856,8 @@ fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 # Used in network fee rate selector for the gwei label. Contains 1 string placeholder.
 fee_rate_gwei = %@ gwei
+# Used in the network fee rate selector for the custom fee rate row label.
+fee_rate_custom = Custom
 
 # Banner
 

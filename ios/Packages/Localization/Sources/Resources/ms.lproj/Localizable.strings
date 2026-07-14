@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Tersuai";
 "banner.account_activation.title" = "Yuran Pengaktifan Akaun";
 "banner.account_activation.description" = "Rangkaian %@ memerlukan bayaran sekali sebanyak %@.";
 "banner.stake.title" = "Mula mempertaruhkan %@";

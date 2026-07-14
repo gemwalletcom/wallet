@@ -366,6 +366,7 @@
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Tùy chỉnh";
 "banner.account_activation.title" = "Phí kích hoạt tài khoản";
 "banner.account_activation.description" = "Mạng %@ yêu cầu một khoản phí một lần là %@.";
 "banner.stake.title" = "Bắt đầu đặt cược %@";

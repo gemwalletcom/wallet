@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import Primitives
 import Style
 import SwiftUI
@@ -10,6 +9,8 @@ public struct NetworkFeeScene: View {
     @Environment(\.dismiss) private var dismiss
 
     private var model: NetworkFeeSceneViewModel
+
+    @State private var isPresentingCustomFee = false
 
     public init(model: NetworkFeeSceneViewModel) {
         self.model = model
@@ -20,9 +21,8 @@ public struct NetworkFeeScene: View {
             if model.showFeeRates {
                 Section {
                     ForEach(model.feeRatesViewModels) { feeRate in
-                        let isSelected = feeRate.feeRate.priority == model.priority
                         Button {
-                            model.priority = feeRate.feeRate.priority
+                            model.onSelectPreset(feeRate)
                             dismiss()
                         } label: {
                             HStack(spacing: .space12) {
@@ -31,13 +31,33 @@ public struct NetworkFeeScene: View {
                                     emoji: feeRate.emoji,
                                 )
                                 .frame(width: Sizing.image.asset, height: Sizing.image.asset)
-                                .assetBadge(isSelected ? Images.Wallets.selected : nil)
+                                .assetBadge(model.isSelected(feeRate) ? Images.Wallets.selected : nil)
 
                                 ListItemView(
                                     title: feeRate.title,
                                     subtitle: model.valueForRate(feeRate),
                                     subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
                                     subtitleExtra: model.fiatValueForRate(feeRate),
+                                    subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
+                                )
+                            }
+                        }
+                    }
+
+                    if model.isCustomSelected {
+                        Button {
+                            isPresentingCustomFee = true
+                        } label: {
+                            HStack(spacing: .space12) {
+                                EmojiView(color: Colors.grayBackground, emoji: model.customFeeEmoji)
+                                    .frame(width: Sizing.image.asset, height: Sizing.image.asset)
+                                    .assetBadge(Images.Wallets.selected)
+
+                                ListItemView(
+                                    title: model.customFeeTitle,
+                                    subtitle: model.customRateText,
+                                    subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
+                                    subtitleExtra: model.fiatValue,
                                     subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
                                 )
                             }
@@ -65,6 +85,14 @@ public struct NetworkFeeScene: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button("", systemImage: SystemImage.xmark, action: { dismiss() })
             }
+            if model.supportsCustomFee {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("", systemImage: SystemImage.settings) { isPresentingCustomFee = true }
+                }
+            }
+        }
+        .navigationDestination(isPresented: $isPresentingCustomFee) {
+            NetworkFeeCustomScene(model: model.customFeeModel(onComplete: { dismiss() }))
         }
     }
 }
