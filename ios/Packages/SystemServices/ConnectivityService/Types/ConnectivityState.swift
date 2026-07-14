@@ -2,7 +2,7 @@
 
 public enum ConnectivityState: Equatable, Sendable {
     case unknown
-    case satisfied(NetworkPath)
+    case satisfied
     case unsatisfied(UnavailableReason)
 
     public var isOffline: Bool {

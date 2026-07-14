@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.connection
 
 import com.wallet.core.primitives.ConnectionComponent
-import com.wallet.core.primitives.ConnectionComponentHealth
 import com.wallet.core.primitives.ConnectionStatus
 
 internal val ConnectionComponent.failureStatus: ConnectionStatus
@@ -19,8 +18,8 @@ internal val ConnectionStatus.severity: Int
         ConnectionStatus.NoInternet -> 2
     }
 
-internal fun Map<ConnectionComponent, ConnectionComponentHealth>.rollup(): ConnectionStatus = this
-    .filterValues { !it.isHealthy }
+internal fun Map<ConnectionComponent, Boolean>.rollup(): ConnectionStatus = this
+    .filterValues { !it }
     .keys
     .map { it.failureStatus }
     .maxByOrNull { it.severity } ?: ConnectionStatus.Online

@@ -5,9 +5,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import com.wallet.core.primitives.ConnectionComponent
-import com.wallet.core.primitives.ConnectionComponentHealth
-import com.wallet.core.primitives.ConnectionComponentMetadata
-import com.wallet.core.primitives.InternetConnectionMetadata
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -23,48 +20,36 @@ class InternetConnectionMonitor(
 
     override val component: ConnectionComponent = ConnectionComponent.Internet
 
-    override fun healthFlow(): Flow<ConnectionComponentHealth> = callbackFlow {
+    override fun healthFlow(): Flow<Boolean> = callbackFlow {
         val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                trySend(connectivityManager.health(capabilities))
+                trySend(capabilities.isHealthy())
             }
 
             override fun onLost(network: Network) {
-                trySend(ConnectionComponentHealth(isHealthy = false, metadata = null))
+                trySend(false)
             }
         }
         trySend(connectivityManager.currentHealth())
         connectivityManager.registerDefaultNetworkCallback(callback)
         awaitClose { connectivityManager.unregisterNetworkCallback(callback) }
     }
-        .mapLatest { health ->
-            if (!health.isHealthy) {
+        .mapLatest { isHealthy ->
+            if (!isHealthy) {
                 delay(OFFLINE_DEBOUNCE_MILLISECONDS)
             }
-            health
+            isHealthy
         }
         .distinctUntilChanged()
 
-    private fun ConnectivityManager.currentHealth(): ConnectionComponentHealth {
-        val capabilities = getNetworkCapabilities(activeNetwork)
-            ?: return ConnectionComponentHealth(isHealthy = false, metadata = null)
-        return health(capabilities)
+    private fun ConnectivityManager.currentHealth(): Boolean {
+        return getNetworkCapabilities(activeNetwork)?.isHealthy() ?: false
     }
 
-    private fun ConnectivityManager.health(capabilities: NetworkCapabilities): ConnectionComponentHealth {
-        val isHealthy = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        return ConnectionComponentHealth(
-            isHealthy = isHealthy,
-            metadata = ConnectionComponentMetadata.Internet(
-                InternetConnectionMetadata(
-                    isLowData = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-                        || restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED,
-                    isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN),
-                )
-            ),
-        )
+    private fun NetworkCapabilities.isHealthy(): Boolean {
+        return hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
     private companion object {

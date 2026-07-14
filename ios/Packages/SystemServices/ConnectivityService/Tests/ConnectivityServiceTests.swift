@@ -8,7 +8,7 @@ struct ConnectivityServiceTests {
     @Test
     func stateDerivation() {
         #expect(ConnectivityState.unknown.isOffline == false)
-        #expect(ConnectivityState.satisfied(.mock).isOffline == false)
+        #expect(ConnectivityState.satisfied.isOffline == false)
         #expect(ConnectivityState.unsatisfied(.noNetwork).isOffline == true)
     }
 
@@ -21,11 +21,7 @@ struct ConnectivityServiceTests {
         var iterator = await service.observe().makeAsyncIterator()
         #expect(await iterator.next() == .unknown)
 
-        continuation.yield(.satisfied(.mock))
-        #expect(await iterator.next() == .satisfied(.mock))
+        continuation.yield(.satisfied)
+        #expect(await iterator.next() == .satisfied)
     }
-}
-
-private extension NetworkPath {
-    static let mock = NetworkPath(transports: [.wifi], isExpensive: false, isConstrained: false, isVPN: false)
 }

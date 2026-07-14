@@ -4,5 +4,5 @@ import Foundation
 
 public protocol ConnectionComponentMonitoring: Sendable {
     var component: ConnectionComponent { get }
-    func healthStream() -> AsyncStream<ConnectionComponentHealth>
+    func healthStream() -> AsyncStream<Bool>
 }

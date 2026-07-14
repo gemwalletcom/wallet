@@ -12,12 +12,12 @@ public struct InternetConnectionMonitor: ConnectionComponentMonitoring {
 
     public var component: ConnectionComponent { .internet }
 
-    public func healthStream() -> AsyncStream<ConnectionComponentHealth> {
+    public func healthStream() -> AsyncStream<Bool> {
         AsyncStream { continuation in
             let task = Task {
                 await connectivity.start()
                 for await state in await connectivity.observe() {
-                    continuation.yield(state.health)
+                    continuation.yield(!state.isOffline)
                 }
                 continuation.finish()
             }

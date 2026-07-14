@@ -8,7 +8,7 @@ import Primitives
 public final class ConnectionStatusObserver {
     private let monitors: [any ConnectionComponentMonitoring]
 
-    public private(set) var healthByComponent: [ConnectionComponent: ConnectionComponentHealth] = [:]
+    public private(set) var isHealthyByComponent: [ConnectionComponent: Bool] = [:]
 
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
 
@@ -20,8 +20,8 @@ public final class ConnectionStatusObserver {
         guard tasks.isEmpty else { return }
         tasks = monitors.map { monitor in
             Task { [weak self] in
-                for await health in monitor.healthStream() {
-                    self?.update(component: monitor.component, health: health)
+                for await isHealthy in monitor.healthStream() {
+                    self?.update(component: monitor.component, isHealthy: isHealthy)
                 }
             }
         }
@@ -33,17 +33,17 @@ public final class ConnectionStatusObserver {
     }
 
     public var status: ConnectionStatus {
-        healthByComponent
-            .filter { $0.value.isHealthy == false }
+        isHealthyByComponent
+            .filter { !$0.value }
             .keys
             .map(\.failureStatus)
             .max { $0.severity < $1.severity } ?? .online
     }
 
-    func update(component: ConnectionComponent, health: ConnectionComponentHealth) {
-        if component == .internet, health.isHealthy, healthByComponent[.internet]?.isHealthy == false {
-            healthByComponent = [:]
+    func update(component: ConnectionComponent, isHealthy: Bool) {
+        if component == .internet, isHealthy, isHealthyByComponent[.internet] == false {
+            isHealthyByComponent = [:]
         }
-        healthByComponent[component] = health
+        isHealthyByComponent[component] = isHealthy
     }
 }

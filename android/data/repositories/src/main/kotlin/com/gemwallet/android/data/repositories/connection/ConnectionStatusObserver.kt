@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.connection
 
 import com.wallet.core.primitives.ConnectionComponent
-import com.wallet.core.primitives.ConnectionComponentHealth
 import com.wallet.core.primitives.ConnectionStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,9 +18,9 @@ class ConnectionStatusObserver(
     private val monitors: List<ConnectionComponentMonitor>,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
-    private val state = MutableStateFlow<Map<ConnectionComponent, ConnectionComponentHealth>>(emptyMap())
+    private val state = MutableStateFlow<Map<ConnectionComponent, Boolean>>(emptyMap())
 
-    val healthByComponent: StateFlow<Map<ConnectionComponent, ConnectionComponentHealth>> = state.asStateFlow()
+    val isHealthyByComponent: StateFlow<Map<ConnectionComponent, Boolean>> = state.asStateFlow()
 
     val status: StateFlow<ConnectionStatus> = state
         .map { it.rollup() }
@@ -33,8 +32,8 @@ class ConnectionStatusObserver(
         if (jobs.isNotEmpty()) return
         jobs = monitors.map { monitor ->
             scope.launch {
-                monitor.healthFlow().collect { health ->
-                    update(monitor.component, health)
+                monitor.healthFlow().collect { isHealthy ->
+                    update(monitor.component, isHealthy)
                 }
             }
         }
@@ -45,13 +44,13 @@ class ConnectionStatusObserver(
         jobs = emptyList()
     }
 
-    internal fun update(component: ConnectionComponent, health: ConnectionComponentHealth) {
+    internal fun update(component: ConnectionComponent, isHealthy: Boolean) {
         state.update { current ->
             val isInternetRecovered = component == ConnectionComponent.Internet
-                && health.isHealthy
-                && current[ConnectionComponent.Internet]?.isHealthy == false
+                && isHealthy
+                && current[ConnectionComponent.Internet] == false
             val base = if (isInternetRecovered) emptyMap() else current
-            base + (component to health)
+            base + (component to isHealthy)
         }
     }
 }
