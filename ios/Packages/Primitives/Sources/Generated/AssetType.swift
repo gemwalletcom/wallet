@@ -16,6 +16,7 @@ public enum AssetType: String, Codable, CaseIterable, Equatable, Sendable {
 	case spl = "SPL"
 	case spl2022 = "SPL2022"
 	case trc20 = "TRC20"
+	case tip20 = "TIP20"
 	case token = "TOKEN"
 	case ibc = "IBC"
 	case jetton = "JETTON"

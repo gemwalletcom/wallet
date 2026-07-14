@@ -13,6 +13,7 @@ pub enum AssetType {
     SPL,     // Solana
     SPL2022, // Solana Token 2022
     TRC20,   // Tron
+    TIP20,   // Tempo
     TOKEN,   // Sui, Aptos
     IBC,     // COSMOS
     JETTON,  // Ton

@@ -20,6 +20,7 @@ pub enum GemAssetType {
     SPL,
     SPL2022,
     TRC20,
+    TIP20,
     TOKEN,
     IBC,
     JETTON,

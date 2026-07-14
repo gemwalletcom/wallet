@@ -29,6 +29,8 @@ enum class AssetType(val string: String) {
 	SPL2022("SPL2022"),
 	@SerialName("TRC20")
 	TRC20("TRC20"),
+	@SerialName("TIP20")
+	TIP20("TIP20"),
 	@SerialName("TOKEN")
 	TOKEN("TOKEN"),
 	@SerialName("IBC")
