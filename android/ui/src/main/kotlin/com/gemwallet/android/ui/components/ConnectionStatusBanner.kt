@@ -20,6 +20,11 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.pendingColor
+import com.gemwallet.android.ui.theme.space10
+
+private val statusIconSize = 18.dp
+private val dismissButtonSize = 28.dp
+private val dismissIconSize = 14.dp
 
 @Composable
 fun ConnectionStatusBanner(
@@ -35,11 +40,11 @@ fun ConnectionStatusBanner(
         Row(
             modifier = Modifier
                 .windowInsetsPadding(windowInsets)
-                .padding(horizontal = padding16, vertical = 10.dp),
+                .padding(horizontal = padding16, vertical = space10),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(statusIconSize),
                 imageVector = AppIcons.Warning,
                 tint = pendingColor,
                 contentDescription = null,
@@ -55,11 +60,11 @@ fun ConnectionStatusBanner(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(dismissButtonSize),
                 onClick = onDismiss,
             ) {
                 Icon(
-                    modifier = Modifier.size(14.dp),
+                    modifier = Modifier.size(dismissIconSize),
                     imageVector = AppIcons.Close,
                     tint = MaterialTheme.colorScheme.secondary,
                     contentDescription = "dismiss",
