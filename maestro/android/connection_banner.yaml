@@ -1,0 +1,45 @@
+# Connection banner — offline shows the banner on tabs and details, X dismisses it, recovery hides it.
+# Android-only: toggleAirplaneMode is not supported on iOS simulators.
+#   maestro --device emulator-5554 test maestro/android/connection_banner.yaml
+appId: com.gemwallet.android
+---
+- launchApp:
+    clearState: false
+- assertNotVisible:
+    id: "connectionStatusBanner"
+- toggleAirplaneMode
+- extendedWaitUntil:
+    visible:
+      id: "connectionStatusBanner"
+    timeout: 15000
+- tapOn:
+    id: "settingsTab"
+- assertVisible:
+    id: "connectionStatusBanner"
+- tapOn:
+    id: "activitiesTab"
+- assertVisible:
+    id: "connectionStatusBanner"
+- tapOn:
+    id: "mainTab"
+- tapOn:
+    id: "assetsManageAction"
+- assertVisible:
+    id: "connectionStatusBanner"
+- back
+- toggleAirplaneMode
+- extendedWaitUntil:
+    notVisible:
+      id: "connectionStatusBanner"
+    timeout: 15000
+- toggleAirplaneMode
+- extendedWaitUntil:
+    visible:
+      id: "connectionStatusBanner"
+    timeout: 15000
+- tapOn:
+    id: "connectionStatusDismiss"
+- assertNotVisible:
+    id: "connectionStatusBanner"
+- toggleAirplaneMode
+- takeScreenshot: connection-banner-flow

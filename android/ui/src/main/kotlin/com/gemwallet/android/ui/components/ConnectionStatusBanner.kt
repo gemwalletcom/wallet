@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.icons.AppIcons
@@ -34,7 +35,9 @@ fun ConnectionStatusBanner(
     windowInsets: WindowInsets = WindowInsets(0.dp),
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("connectionStatusBanner"),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Row(
@@ -60,7 +63,9 @@ fun ConnectionStatusBanner(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(
-                modifier = Modifier.size(dismissButtonSize),
+                modifier = Modifier
+                    .size(dismissButtonSize)
+                    .testTag("connectionStatusDismiss"),
                 onClick = onDismiss,
             ) {
                 Icon(
