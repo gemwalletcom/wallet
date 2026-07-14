@@ -38,7 +38,7 @@ internal fun MainContent(
     val isEnrollmentRequired = state.initialAuth == AuthState.Required && systemAuthEnrollmentMissing
     val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
     val unsupportedWalletConnectError = if (state.isWalletConnectUnsupportedVisible) {
-        "${stringResource(R.string.wallet_connect_title)}: ${stringResource(R.string.errors_not_supported)}"
+        "${stringResource(R.string.wallet_connect_title)}: ${stringResource(R.string.errors_not_supported)} (${BuildConfig.FLAVOR})"
     } else {
         null
     }
