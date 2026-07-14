@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures"]
-reqwest = ["gem_jsonrpc/reqwest", "gem_client/reqwest", "dep:reqwest"]
+reqwest = ["gem_jsonrpc/reqwest", "gem_client/reqwest"]
 signer = ["dep:alloy-signer-local", "dep:alloy-network", "dep:alloy-consensus"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 testkit = []
@@ -36,7 +36,6 @@ num-bigint = { workspace = true }
 num-traits = { workspace = true }
 bigdecimal = { workspace = true }
 url = { workspace = true }
-reqwest = { workspace = true, features = ["json"], optional = true }
 
 # rpc feature
 chrono = { workspace = true }

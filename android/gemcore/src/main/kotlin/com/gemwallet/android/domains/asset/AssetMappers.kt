@@ -33,6 +33,7 @@ fun Asset.toGem() = GemAsset(
         AssetType.SPL -> GemAssetType.SPL
         AssetType.SPL2022 -> GemAssetType.SPL2022
         AssetType.TRC20 -> GemAssetType.TRC20
+        AssetType.TIP20 -> GemAssetType.TIP20
         AssetType.TOKEN -> GemAssetType.TOKEN
         AssetType.IBC -> GemAssetType.IBC
         AssetType.JETTON -> GemAssetType.JETTON
@@ -91,6 +92,7 @@ fun GemAsset.toDTO() = Asset(
         GemAssetType.SPL -> AssetType.SPL
         GemAssetType.SPL2022 -> AssetType.SPL2022
         GemAssetType.TRC20 -> AssetType.TRC20
+        GemAssetType.TIP20 -> AssetType.TIP20
         GemAssetType.TOKEN -> AssetType.TOKEN
         GemAssetType.IBC -> AssetType.IBC
         GemAssetType.JETTON -> AssetType.JETTON

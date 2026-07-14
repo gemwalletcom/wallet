@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.asset.presents.details.components
 
-import android.content.Intent
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -22,6 +21,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
@@ -46,17 +46,11 @@ fun RowScope.AssetDetailsMenu(
     val shareTitle = stringResource(id = R.string.common_share)
 
     val onShare = fun () {
-        val type = "text/plain"
         val subject = "${uiState.assetInfo.owner?.chain}\n${uiState.assetInfo.asset.symbol}"
         val assetId = uiState.asset.id
         val shareUrl = deeplinkBuildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
 
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = type
-        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-        intent.putExtra(Intent.EXTRA_TEXT, shareUrl)
-
-        context.startActivity(Intent.createChooser(intent, shareTitle))
+        context.shareText(subject = subject, text = shareUrl, chooserTitle = shareTitle)
     }
 
     IconButton(

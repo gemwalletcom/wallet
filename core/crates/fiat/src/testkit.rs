@@ -40,7 +40,13 @@ pub fn create_paybis_test_client() -> PaybisClient {
 pub fn create_banxa_test_client() -> BanxaClient {
     let settings = get_test_settings();
     let client = FiatClient::request_client(settings.fiat.timeout);
-    BanxaClient::new(client, settings.banxa.url, settings.banxa.key.public, settings.banxa.key.secret)
+    BanxaClient::new(
+        client,
+        settings.banxa.url,
+        settings.banxa.partner,
+        settings.banxa.key.secret,
+        settings.banxa.webhook.key.secret,
+    )
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]

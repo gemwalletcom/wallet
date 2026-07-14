@@ -124,6 +124,7 @@ borsh = { version = "1.6.1", features = ["derive"] }
 bcs = { version = "0.2.1" }
 pem-rfc7468 = { version = "1.0.0", features = ["std"] }
 sui-types = { package = "sui-sdk-types", version = "0.3.1", features = [
+    "hash",
     "serde",
 ] }
 k256 = { version = "0.13.4", features = ["ecdsa", "sha256"] }

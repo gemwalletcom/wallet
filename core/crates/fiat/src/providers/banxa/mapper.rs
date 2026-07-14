@@ -2,6 +2,7 @@ use crate::model::{FiatProviderAsset, filter_token_id};
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
+use serde_json::Value;
 
 use super::models::{Asset, FiatCurrency, Order};
 
@@ -63,6 +64,10 @@ pub fn map_order(order: Order) -> Result<FiatTransactionUpdate, Box<dyn std::err
         fiat_amount: Some(order.fiat_amount),
         fiat_currency: Some(order.fiat.to_ascii_uppercase()),
     })
+}
+
+pub fn map_webhook_data(data: Value) -> Result<String, serde_json::Error> {
+    Ok(serde_json::from_value::<super::models::Webhook>(data)?.order_id)
 }
 
 fn map_status(status: &str) -> FiatTransactionStatus {

@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.activities.presents.details
 
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +10,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.viewmodels.TransactionDetailsViewModel
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.shareText
 
 @Composable
 fun TransactionDetailsNavScreen(
@@ -22,14 +22,7 @@ fun TransactionDetailsNavScreen(
     val context = LocalContext.current
 
     fun onShare(url: String, name: String) {
-        val type = "text/plain"
-
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = type
-        intent.putExtra(Intent.EXTRA_SUBJECT, url)
-        intent.putExtra(Intent.EXTRA_TEXT, url)
-
-        context.startActivity(Intent.createChooser(intent, name))
+        context.shareText(subject = url, text = url, chooserTitle = name)
     }
 
     val model = transaction

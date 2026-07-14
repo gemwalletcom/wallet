@@ -10,16 +10,12 @@ const TEST_AFFILIATE_ID: &str = "test_affiliate";
 
 impl FlashnetClient {
     pub fn mock() -> Self {
-        Self::mock_with_webhook_secret_key(TEST_WEBHOOK_SIGNING_KEY)
-    }
-
-    pub fn mock_with_webhook_secret_key(webhook_secret_key: &str) -> Self {
         Self::new(
             gem_client::reqwest_client(),
             String::new(),
             TEST_API_KEY.to_string(),
             TEST_AFFILIATE_ID.to_string(),
-            webhook_secret_key.to_string(),
+            TEST_WEBHOOK_SIGNING_KEY.to_string(),
         )
     }
 }

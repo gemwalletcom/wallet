@@ -4,6 +4,7 @@ use super::models::{Asset, CurrencyLimits, WebhookData};
 use crate::{model::FiatProviderAsset, providers::mercuryo::models::FiatPaymentMethod};
 use primitives::{Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate};
 use primitives::{PaymentType, currency::Currency, fiat_assets::FiatAssetLimits};
+use serde_json::Value;
 
 use super::models::Quote;
 
@@ -105,6 +106,10 @@ pub fn map_order_from_webhook(webhook: WebhookData) -> FiatTransactionUpdate {
         fiat_amount: Some(fiat_amount),
         fiat_currency: Some(fiat_currency.to_ascii_uppercase()),
     }
+}
+
+pub fn map_webhook_data(data: Value) -> Result<WebhookData, serde_json::Error> {
+    Ok(serde_json::from_value::<super::models::Webhook>(data)?.data)
 }
 
 fn map_status(status: &str) -> FiatTransactionStatus {
@@ -226,6 +231,16 @@ mod tests {
             }
         );
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_map_webhook_data_extracts_payload() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let payload = map_webhook_data(serde_json::from_str(include_str!("../../../testdata/mercuryo/webhook_buy_complete.json"))?).unwrap();
+
+        assert_eq!(payload.id, "buy_provider_tx_123456789");
+        assert_eq!(payload.status, "cancelled");
+        assert_eq!(payload.fiat_currency, "USD");
         Ok(())
     }
 

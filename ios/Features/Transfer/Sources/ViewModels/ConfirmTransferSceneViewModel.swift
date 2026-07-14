@@ -28,18 +28,7 @@ public final class ConfirmTransferSceneViewModel {
         }
     }
 
-    var confirmingState: StateViewType<Bool> = .noData {
-        didSet {
-            if case let .error(error) = confirmingState {
-                isPresentingAlertMessage = AlertMessage(
-                    title: Localized.Errors.transferError,
-                    message: error.localizedDescription,
-                )
-            } else {
-                isPresentingAlertMessage = nil
-            }
-        }
-    }
+    var confirmingState: StateViewType<Bool> = .noData
 
     public var isPresentingSheet: ConfirmTransferSheetType?
     public var isPresentingAlertMessage: AlertMessage?
@@ -500,7 +489,19 @@ extension ConfirmTransferSceneViewModel {
             }
             confirmingState = .data(true)
         } catch {
+            handleError(error)
+        }
+    }
+
+    private func handleError(_ error: Error) {
+        if error.isAuthenticationCancelled {
+            confirmingState = .noData
+        } else {
             confirmingState = .error(error)
+            isPresentingAlertMessage = AlertMessage(
+                title: Localized.Errors.transferError,
+                message: error.localizedDescription,
+            )
             debugLog("confirm transaction error: \(error)")
         }
     }

@@ -6,7 +6,7 @@ use super::model::SearchRequest;
 use chrono::{DateTime, Utc};
 use pricer::PriceClient;
 use primitives::asset_score::AssetRank;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetList, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetList, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
 use search_index::{
     ASSET_LISTS_INDEX_NAME, ASSETS_INDEX_NAME, AssetDocument, AssetListDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient,
 };
@@ -33,11 +33,7 @@ impl AssetsClient {
             .database
             .assets()?
             .get_assets_with_prices(
-                vec![
-                    AssetFilter::IsEnabled(true),
-                    AssetFilter::RankGt(AssetRank::Trivial.threshold()),
-                    AssetFilter::Ids(asset_ids.ids()),
-                ],
+                vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())],
                 self.config.primary_price_max_age,
             )?
             .into_iter()
@@ -54,7 +50,26 @@ impl AssetsClient {
         let chain_addresses: Vec<ChainAddress> = subscriptions.into_iter().map(|(sub, addr)| ChainAddress::new(sub.chain.0, addr.address)).collect();
         let from_datetime = from_timestamp.and_then(|ts| DateTime::<Utc>::from_timestamp(ts as i64, 0).map(|dt| dt.naive_utc()));
 
-        Ok(self.database.assets_addresses()?.get_assets_by_addresses(chain_addresses, from_datetime)?)
+        let asset_ids = self.database.assets_addresses()?.get_assets_by_addresses(chain_addresses, from_datetime)?;
+        if asset_ids.is_empty() {
+            return Ok(vec![]);
+        }
+
+        Ok(self
+            .database
+            .assets()?
+            .get_assets_with_prices(
+                vec![
+                    AssetFilter::IsEnabled(true),
+                    AssetFilter::HasPrice(true),
+                    AssetFilter::RankGt(AssetRank::Trivial.threshold()),
+                    AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect()),
+                ],
+                self.config.primary_price_max_age,
+            )?
+            .into_iter()
+            .map(|asset| asset.asset.asset.id)
+            .collect())
     }
 }
 

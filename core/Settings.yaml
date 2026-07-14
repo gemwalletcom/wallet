@@ -42,9 +42,12 @@ mercuryo:
       secret: ""
 banxa:
   url: "https://gemwallet.banxa.com"
+  partner: ""
   key:
-    public: ""
     secret: ""
+  webhook:
+    key:
+      secret: ""
 paybis:
   key:
     public: ""
@@ -238,7 +241,9 @@ scan:
 
 support:
   url: ""
-  widget_public_token: ""
+  widget:
+    ios: ""
+    android: ""
   webhook:
     key:
       secret: ""

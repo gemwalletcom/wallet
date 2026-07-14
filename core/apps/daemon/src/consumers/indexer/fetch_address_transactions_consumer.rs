@@ -4,25 +4,17 @@ use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use primitives::{Chain, Transaction};
 use settings_chain::{ChainProviders, TransactionsRequest};
-use storage::Database;
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 
 pub struct FetchAddressTransactionsConsumer {
-    #[allow(dead_code)]
-    pub database: Database,
     pub providers: ChainProviders,
     pub producer: StreamProducer,
     pub cacher: CacherClient,
 }
 
 impl FetchAddressTransactionsConsumer {
-    pub fn new(database: Database, providers: ChainProviders, producer: StreamProducer, cacher: CacherClient) -> Self {
-        Self {
-            database,
-            providers,
-            producer,
-            cacher,
-        }
+    pub fn new(providers: ChainProviders, producer: StreamProducer, cacher: CacherClient) -> Self {
+        Self { providers, producer, cacher }
     }
 
     pub async fn process_result(&self, chain: Chain, transactions: Vec<Transaction>) -> Result<bool, Box<dyn Error + Send + Sync>> {

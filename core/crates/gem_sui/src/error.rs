@@ -22,6 +22,12 @@ impl Display for SuiError {
 
 impl Error for SuiError {}
 
+impl From<sui_types::TypeParseError> for SuiError {
+    fn from(error: sui_types::TypeParseError) -> Self {
+        Self::from_display(error)
+    }
+}
+
 impl SuiError {
     pub fn invalid_input(message: impl Into<String>) -> Self {
         Self::InvalidInput(message.into())

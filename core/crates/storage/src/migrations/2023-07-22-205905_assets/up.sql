@@ -1,4 +1,4 @@
-CREATE TYPE asset_type AS ENUM ('NATIVE', 'ERC20', 'BEP20', 'BEP2', 'SPL', 'SPL2022', 'TRC20', 'TOKEN', 'IBC', 'JETTON', 'SYNTH', 'ASA', 'PERPETUAL', 'SPOT');
+CREATE TYPE asset_type AS ENUM ('NATIVE', 'ERC20', 'BEP20', 'BEP2', 'SPL', 'SPL2022', 'TRC20', 'TIP20', 'TOKEN', 'IBC', 'JETTON', 'SYNTH', 'ASA', 'PERPETUAL', 'SPOT');
 CREATE TYPE link_type AS ENUM ('x', 'discord', 'reddit', 'telegram', 'github', 'youtube', 'facebook', 'website', 'coingecko', 'opensea', 'instagram', 'magiceden', 'coinmarketcap', 'tiktok');
 CREATE TYPE tag_visibility AS ENUM ('public', 'internal');
 

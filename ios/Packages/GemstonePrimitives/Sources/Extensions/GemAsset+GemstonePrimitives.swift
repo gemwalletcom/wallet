@@ -13,6 +13,7 @@ public extension GemAssetType {
         case .spl: .spl
         case .spl2022: .spl2022
         case .trc20: .trc20
+        case .tip20: .tip20
         case .token: .token
         case .ibc: .ibc
         case .jetton: .jetton
@@ -33,6 +34,7 @@ public extension AssetType {
         case .spl: .spl
         case .spl2022: .spl2022
         case .trc20: .trc20
+        case .tip20: .tip20
         case .token: .token
         case .ibc: .ibc
         case .jetton: .jetton

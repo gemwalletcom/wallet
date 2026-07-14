@@ -11,7 +11,7 @@ use super::{
     replay::{TransactionJsonReplay, parse_transaction_json, prepare_replay},
 };
 use crate::{
-    ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SuiClient, SuiError,
+    ESTIMATION_GAS_BUDGET, SuiClient, SuiError,
     address::SuiAddress,
     gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, TxOutput},
@@ -82,7 +82,7 @@ async fn gas_objects(client: &SuiClient, replay: &TransactionJsonReplay, gas_dat
         return payment.iter().map(payment_object).collect();
     }
 
-    let coins = client.get_coins(sender, SUI_COIN_TYPE).await.map_err(SuiError::from_display)?;
+    let coins = client.get_gas_coins(sender).await.map_err(SuiError::from_display)?;
     let input_objects = input_object_ids(&replay.transaction.inputs)?;
     let gas_objects = coins
         .coins

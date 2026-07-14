@@ -1,4 +1,5 @@
 pub mod balance;
+pub(crate) mod gas;
 mod input;
 #[cfg(feature = "rpc")]
 pub(crate) mod object_resolver;

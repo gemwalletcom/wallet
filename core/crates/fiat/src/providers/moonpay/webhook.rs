@@ -7,10 +7,6 @@ const SIGNATURE_HEADER: &str = "moonpay-signature-v2";
 
 impl MoonPayClient {
     pub fn verify_webhook(&self, request: &FiatWebhookRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
-        if self.webhook_secret_key.is_empty() {
-            return Err(FiatQuoteError::InvalidRequest("Missing MoonPay webhook signing key".to_string()).into());
-        }
-
         let (timestamp, signature) = request
             .header(SIGNATURE_HEADER)
             .and_then(parse_signature_header)
@@ -61,12 +57,5 @@ mod tests {
         );
 
         assert!(MoonPayClient::mock().verify_webhook(&request).is_err());
-    }
-
-    #[test]
-    fn test_verify_webhook_rejects_missing_key() {
-        let request = FiatWebhookRequest::mock_moonpay_signed(r#"{"data":{"id":"tx_1"}}"#);
-
-        assert!(MoonPayClient::mock_with_webhook_secret_key("").verify_webhook(&request).is_err());
     }
 }

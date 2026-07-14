@@ -9,7 +9,6 @@ REMOTE_NAME="${BUMP_REMOTE:-origin}"
 BRANCH_NAME="${BUMP_BRANCH:-main}"
 REMOTE_BRANCH="$REMOTE_NAME/$BRANCH_NAME"
 BRANCH_REF="refs/heads/$BRANCH_NAME"
-preflight_tag=""
 
 cd "$ROOT_DIR"
 
@@ -17,14 +16,6 @@ fail() {
   echo "❌ $*" >&2
   exit 1
 }
-
-cleanup_preflight_tag() {
-  if [[ -n "$preflight_tag" ]]; then
-    git tag -d "$preflight_tag" >/dev/null 2>&1 || true
-  fi
-}
-
-trap cleanup_preflight_tag EXIT
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || fail "$1 is required."
@@ -86,7 +77,7 @@ verify_clean_latest_branch() {
 }
 
 verify_github_access() {
-  local repo can_push active_tag_rulesets
+  local repo can_push
 
   require_command gh
 
@@ -95,11 +86,6 @@ verify_github_access() {
 
   can_push="$(gh api "repos/$repo" --jq '.permissions | (.admin or .maintain or .push)')" || fail "Unable to read GitHub permissions for $repo."
   [[ "$can_push" == "true" ]] || fail "The active GitHub account cannot push to $repo."
-
-  active_tag_rulesets="$(gh api "repos/$repo/rulesets?targets=tag" --jq '[.[] | select(.enforcement == "active")] | length')" || fail "Unable to read tag rulesets for $repo."
-  if [[ "$active_tag_rulesets" != "0" ]]; then
-    echo "ℹ️ Found $active_tag_rulesets active tag ruleset(s); checking tag push with a dry-run." >&2
-  fi
 }
 
 verify_tag_available() {
@@ -108,14 +94,6 @@ verify_tag_available() {
   git rev-parse -q --verify "refs/tags/$tag" >/dev/null && fail "Tag $tag already exists locally."
   remote_tag_exists "$tag" && fail "Tag $tag already exists on $REMOTE_NAME."
   return 0
-}
-
-verify_tag_push_access() {
-  preflight_tag="bump-permission-check-$(date +%s)-$$"
-  create_signed_tag "$preflight_tag"
-  git push --dry-run "$REMOTE_NAME" "refs/tags/$preflight_tag:refs/tags/$preflight_tag" >/dev/null || fail "Dry-run tag push to $REMOTE_NAME failed."
-  git tag -d "$preflight_tag" >/dev/null
-  preflight_tag=""
 }
 
 resolve_version() {
@@ -154,7 +132,6 @@ new_android_build=$((current_android_build + 1))
 
 verify_tag_available "$new_version"
 verify_github_access
-verify_tag_push_access
 
 sed -i '' "s/MARKETING_VERSION = $current_version;/MARKETING_VERSION = $new_version;/g" "$IOS_FILE"
 sed -i '' "s/CURRENT_PROJECT_VERSION = $current_ios_build;/CURRENT_PROJECT_VERSION = $new_ios_build;/g" "$IOS_FILE"

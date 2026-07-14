@@ -4,7 +4,7 @@ use primitives::{ScanTransaction, ScanTransactionPayload};
 use rocket::futures::future;
 use security_provider::providers::goplus::GoPlusProvider;
 use security_provider::providers::hashdit::HashDitProvider;
-use security_provider::{AddressTarget, ScanProvider, ScanResult, TokenTarget};
+use security_provider::{AddressTarget, ScanProvider, ScanResult};
 use settings::Settings;
 use std::error::Error;
 use std::sync::Arc;
@@ -79,27 +79,6 @@ impl ScanClient {
             .filter_map(|result| match result {
                 Err(e) => {
                     error_with_fields!("error scanning", e.as_ref(),);
-                    None
-                }
-                Ok(result) => Some(result),
-            })
-            .collect();
-        Ok(results)
-    }
-
-    #[allow(dead_code)]
-    pub async fn scan_token(&self, chain: primitives::Chain, token_id: &str) -> Result<Vec<ScanResult<TokenTarget>>, Box<dyn Error + Send + Sync>> {
-        let target = TokenTarget {
-            token_id: token_id.to_string(),
-            chain,
-        };
-
-        let results = future::join_all(self.security_providers.iter().map(|provider| provider.scan_token(&target)))
-            .await
-            .into_iter()
-            .filter_map(|result| match result {
-                Err(e) => {
-                    error_with_fields!("error scanning token", e.as_ref(),);
                     None
                 }
                 Ok(result) => Some(result),
