@@ -1,8 +1,16 @@
-use crate::providers::moonpay::models::{Asset, FiatCurrencyType, Transaction};
+use crate::providers::moonpay::models::{Asset, FiatCurrencyType, Transaction, WebhookPayload};
 use primitives::{Chain, FiatQuoteType, FiatTransactionStatus, FiatTransactionUpdate};
 
 #[cfg(test)]
 use primitives::PaymentType;
+
+pub fn map_webhook_data(data: serde_json::Value) -> Result<Transaction, serde_json::Error> {
+    Ok(match serde_json::from_value::<WebhookPayload>(data)? {
+        WebhookPayload::Wrapped(payload) => payload.data,
+        WebhookPayload::Bare(payload) => payload,
+    })
+}
+
 pub fn map_asset_chain(asset: Asset) -> Option<Chain> {
     match asset.metadata?.network_code.as_str() {
         "ethereum" => Some(Chain::Ethereum),
@@ -95,15 +103,12 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 mod tests {
     use super::*;
     use crate::providers::moonpay::client::MoonPayClient;
-    use crate::providers::moonpay::models::{Data, Transaction};
     use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
 
     #[test]
     fn test_map_order_buy_failed() {
-        let webhook_data: Data<Transaction> = serde_json::from_str(include_str!("../../../testdata/moonpay/webhook_buy_complete.json")).unwrap();
-        let payload = webhook_data.data;
-
-        let result = map_order(payload);
+        let webhook_data = map_webhook_data(serde_json::from_str(include_str!("../../../testdata/moonpay/webhook_buy_complete.json")).unwrap()).unwrap();
+        let result = map_order(webhook_data);
 
         assert_eq!(
             result,
@@ -120,10 +125,8 @@ mod tests {
 
     #[test]
     fn test_map_order_sell_pending() {
-        let webhook_data: Data<Transaction> = serde_json::from_str(include_str!("../../../testdata/moonpay/webhook_sell_complete_.json")).unwrap();
-        let payload = webhook_data.data;
-
-        let result = map_order(payload);
+        let webhook_data = map_webhook_data(serde_json::from_str(include_str!("../../../testdata/moonpay/webhook_sell_complete_.json")).unwrap()).unwrap();
+        let result = map_order(webhook_data);
 
         assert_eq!(
             result,
@@ -252,5 +255,25 @@ mod tests {
     fn test_skip_token_without_contract() {
         assert!(MoonPayClient::map_asset(Asset::mock("sweat_near", "near", None, false)).is_none());
         assert!(MoonPayClient::map_asset(Asset::mock("near", "near", None, true)).is_some());
+    }
+
+    #[test]
+    fn test_map_webhook_data_accepts_wrapped_transaction() {
+        let raw_body = include_str!("../../../testdata/moonpay/webhook_buy_complete.json");
+        let payload = map_webhook_data(serde_json::from_str(raw_body).unwrap()).unwrap();
+
+        assert_eq!(payload.id, "1b6cdb1e-9299-45b1-9670-54db1ea5a21f");
+        assert_eq!(payload.status, "failed");
+        assert_eq!(payload.base_currency.code, "usd");
+    }
+
+    #[test]
+    fn test_map_webhook_data_accepts_bare_transaction() {
+        let raw_body = include_str!("../../../testdata/moonpay/sell_transaction_complete.json");
+        let payload = map_webhook_data(serde_json::from_str(raw_body).unwrap()).unwrap();
+
+        assert_eq!(payload.id, "bcd0315e-4264-48bb-8c10-1a5207297341");
+        assert_eq!(payload.status, "completed");
+        assert_eq!(payload.crypto_transaction_id.as_deref(), Some("0xabc123456789"));
     }
 }

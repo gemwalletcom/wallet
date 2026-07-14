@@ -2,13 +2,12 @@ use crate::{
     FiatProvider, FiatWebhookRequest,
     model::{FiatMapping, FiatProviderAsset},
     provider::generate_quote_id,
-    providers::moonpay::models::{Data, Transaction},
 };
 use async_trait::async_trait;
 use std::error::Error;
 use streamer::FiatWebhook;
 
-use super::{client::MoonPayClient, mapper::map_order};
+use super::{client::MoonPayClient, mapper::{map_order, map_webhook_data}};
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData};
 
 #[async_trait]
@@ -37,7 +36,7 @@ impl FiatProvider for MoonPayClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        let payload = serde_json::from_value::<Data<Transaction>>(request.data)?.data;
+        let payload = map_webhook_data(request.data)?;
         Ok(FiatWebhook::Transaction(map_order(payload)))
     }
 
@@ -141,34 +140,6 @@ mod fiat_integration_tests {
 #[cfg(test)]
 mod tests {
     use crate::{FiatProvider, FiatWebhookRequest, providers::moonpay::client::MoonPayClient};
-    use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
-    use streamer::FiatWebhook;
-
-    fn assert_transaction(webhook: FiatWebhook, expected: FiatTransactionUpdate) {
-        match webhook {
-            FiatWebhook::Transaction(transaction) => assert_eq!(transaction, expected),
-            webhook => panic!("unexpected webhook: {webhook:?}"),
-        }
-    }
-
-    #[tokio::test]
-    async fn test_process_webhook_accepts_wrapped_transaction() {
-        let raw_body = include_str!("../../../testdata/moonpay/webhook_buy_complete.json");
-
-        let result = MoonPayClient::mock().process_webhook(FiatWebhookRequest::mock_moonpay_signed(raw_body)).await.unwrap();
-
-        assert_transaction(
-            result,
-            FiatTransactionUpdate {
-                transaction_id: "1b6cdb1e-9299-45b1-9670-54db1ea5a21f".to_string(),
-                provider_transaction_id: None,
-                status: FiatTransactionStatus::Failed,
-                transaction_hash: None,
-                fiat_amount: Some(20.0),
-                fiat_currency: Some("USD".to_string()),
-            },
-        );
-    }
 
     #[tokio::test]
     async fn test_process_webhook_rejects_missing_signature() {

@@ -1,5 +1,6 @@
 use serde::Deserialize;
 
+use super::common::Data;
 use super::assets::Asset;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -16,4 +17,11 @@ pub struct Transaction {
     pub network_fee_amount: Option<f64>,
     pub extra_fee_amount: Option<f64>,
     pub fee_amount: Option<f64>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum WebhookPayload {
+    Wrapped(Data<Transaction>),
+    Bare(Transaction),
 }

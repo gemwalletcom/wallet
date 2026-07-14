@@ -11,7 +11,7 @@ use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQu
 use std::error::Error;
 use streamer::FiatWebhook;
 
-use super::{client::MercuryoClient, mapper::map_order_from_webhook, models::Webhook, widget::MercuryoWidget};
+use super::{client::MercuryoClient, mapper::{map_order_from_webhook, map_webhook_data}, widget::MercuryoWidget};
 
 #[async_trait]
 impl FiatProvider for MercuryoClient {
@@ -58,7 +58,7 @@ impl FiatProvider for MercuryoClient {
     // full transaction: https://github.com/mercuryoio/api-migration-docs/blob/master/Widget_API_Mercuryo_v1.6.md#22-callbacks-response-body
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        let webhook_data = serde_json::from_value::<Webhook>(request.data)?.data;
+        let webhook_data = map_webhook_data(request.data)?;
         Ok(FiatWebhook::Transaction(map_order_from_webhook(webhook_data)))
     }
 
