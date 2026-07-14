@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Security
 
 public extension Error {
     var isCancelled: Bool {
@@ -12,5 +13,9 @@ public extension Error {
         default:
             false
         }
+    }
+
+    var isAuthenticationCancelled: Bool {
+        (self as NSError).code == Int(errSecUserCanceled)
     }
 }
