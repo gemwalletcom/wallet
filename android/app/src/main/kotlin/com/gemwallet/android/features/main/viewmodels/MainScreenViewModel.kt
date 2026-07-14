@@ -19,7 +19,7 @@ import javax.inject.Inject
 class MainScreenViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     bridgesRepository: BridgesRepository,
-    getTransactions: GetPendingTransactionsCount,
+    getTransactions: GetPendingTransactionsCount
 ) : ViewModel() {
     val isWalletConnectEnabled: Boolean = bridgesRepository.isWalletConnectEnabled
 
