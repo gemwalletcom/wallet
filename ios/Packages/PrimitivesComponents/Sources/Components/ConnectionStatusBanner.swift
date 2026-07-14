@@ -30,16 +30,21 @@ public struct ConnectionStatusBanner: View {
         }
         .padding(.medium)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .liquidGlass(interactive: false, in: RoundedRectangle(cornerRadius: .medium)) {
-            $0
-                .background(Colors.grayVeryLight)
-                .clipShape(RoundedRectangle(cornerRadius: .medium))
+        .background {
+            Color.clear
+                .liquidGlass(interactive: false, in: RoundedRectangle(cornerRadius: .medium)) {
+                    $0
+                        .background(Colors.grayVeryLight)
+                        .clipShape(RoundedRectangle(cornerRadius: .medium))
+                }
         }
         .padding(.horizontal, .medium)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("connectionStatusBanner")
     }
 
     private var closeButton: some View {
-        Button(action: onClose) {
+        ZStack {
             Images.System.xmark
                 .font(.footnote.weight(.bold))
                 .foregroundStyle(Colors.gray)
@@ -47,7 +52,14 @@ public struct ConnectionStatusBanner: View {
                 .liquidGlass(in: Circle()) {
                     $0.background(Circle().fill(Colors.grayVeryLightFaded))
                 }
+
+            Button(action: onClose) {
+                Color.clear
+                    .frame(width: 28, height: 28)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("connectionStatusDismiss")
         }
-        .buttonStyle(.plain)
     }
 }
