@@ -241,7 +241,9 @@ scan:
 
 support:
   url: ""
-  widget_public_token: ""
+  widget:
+    ios: ""
+    android: ""
   webhook:
     key:
       secret: ""
