@@ -7,11 +7,7 @@ pub const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
 
 impl MoonPayClient {
     pub fn mock() -> Self {
-        Self::mock_with_webhook_secret_key(TEST_WEBHOOK_SIGNING_KEY)
-    }
-
-    pub fn mock_with_webhook_secret_key(webhook_secret_key: &str) -> Self {
-        Self::new(gem_client::reqwest_client(), String::new(), String::new(), webhook_secret_key.to_string())
+        Self::new(gem_client::reqwest_client(), String::new(), String::new(), TEST_WEBHOOK_SIGNING_KEY.to_string())
     }
 }
 

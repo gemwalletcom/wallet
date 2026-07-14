@@ -23,7 +23,7 @@ pub struct Settings {
     pub moonpay: MoonPay,
     pub transak: Transak,
     pub mercuryo: Mercuryo,
-    pub banxa: UrlKeySettings,
+    pub banxa: Banxa,
     pub paybis: Paybis,
     pub flashnet: Flashnet,
 
@@ -125,6 +125,14 @@ pub struct Flashnet {
     pub url: String,
     pub key: Key,
     pub webhook: SecretKeySettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Banxa {
+    pub url: String,
+    pub partner: String,
+    pub key: KeySecret,
+    pub webhook: KeySettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]

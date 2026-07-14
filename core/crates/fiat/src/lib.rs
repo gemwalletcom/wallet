@@ -47,7 +47,14 @@ impl FiatProviderFactory {
             settings.transak.key.secret,
             settings.transak.referrer_domain,
         );
-        let banxa = BanxaClient::new(request_client.clone(), settings.banxa.url, settings.banxa.key.public, settings.banxa.key.secret);
+        let banxa = BanxaClient::new(
+            request_client.clone(),
+            settings.banxa.url,
+            settings.banxa.partner,
+            settings.banxa.key.secret,
+            settings.banxa.webhook.key.public,
+            settings.banxa.webhook.key.secret,
+        );
         let paybis = PaybisClient::new(request_client.clone(), settings.paybis.key.public, settings.paybis.key.secret);
         let flashnet = FlashnetClient::new(
             request_client.clone(),
