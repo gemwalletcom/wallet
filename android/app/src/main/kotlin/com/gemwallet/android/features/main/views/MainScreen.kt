@@ -20,6 +20,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -43,6 +44,8 @@ import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsSceneAction
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
+import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.navigation.WalletNavigator
@@ -108,6 +111,7 @@ fun MainScreen(
         bottomBar = {
             Column {
                 HorizontalDivider(thickness = 0.5.dp)
+                ConnectionStatusBannerHost()
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.primary,
@@ -167,6 +171,7 @@ fun MainScreen(
         }
     ) {
         Box(modifier = Modifier.padding(bottom = it.calculateBottomPadding())) {
+            CompositionLocalProvider(LocalConnectionBannerHandled provides true) {
             AnimatedContent(
                 targetState = currentTab.value,
                 transitionSpec = { NavigationAnimation.tabContentTransition() },
@@ -222,6 +227,7 @@ fun MainScreen(
                         )
                     }
                 }
+            }
             }
         }
     }
