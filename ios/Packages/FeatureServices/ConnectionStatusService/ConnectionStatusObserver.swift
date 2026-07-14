@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Observation
 import Primitives
-import SwiftUI
 
 @Observable
 @MainActor
@@ -46,10 +46,4 @@ public final class ConnectionStatusObserver {
         }
         healthByComponent[component] = health
     }
-}
-
-// MARK: - EnvironmentValues
-
-public extension EnvironmentValues {
-    @Entry var connectionStatus = ConnectionStatusObserver()
 }
