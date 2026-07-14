@@ -246,6 +246,8 @@ errors_token_unable_fetch_token_information = Imeshindwa kuleta maelezo ya token
 errors_unknown_try_again = Hitilafu isiyojulikana imetokea. Tafadhali jaribu tena.
 errors_network_error = Hitilafu ya mtandao: %@
 errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
+errors_no_internet_connection = Hakuna muunganisho wa intaneti
+errors_no_service_connection = Hakuna muunganisho wa huduma
 
 # Activity
 

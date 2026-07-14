@@ -429,6 +429,10 @@ public enum Localized {
     public static let invalidUrl = Localized.tr("Localizable", "errors.invalid_url", fallback: "Invalid URL")
     /// No data available
     public static let noDataAvailable = Localized.tr("Localizable", "errors.no_data_available", fallback: "No data available")
+    /// No internet connection
+    public static let noInternetConnection = Localized.tr("Localizable", "errors.no_internet_connection", fallback: "No internet connection")
+    /// No service connection
+    public static let noServiceConnection = Localized.tr("Localizable", "errors.no_service_connection", fallback: "No service connection")
     /// Not Supported
     public static let notSupported = Localized.tr("Localizable", "errors.not_supported", fallback: "Not Supported")
     /// This device does not support QR code scanning. You can only select QR code image from library.

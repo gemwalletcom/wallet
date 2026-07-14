@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Localization
 import Primitives
 import Style
 import SwiftUI
@@ -18,8 +19,8 @@ public struct ConnectionStatusViewModel {
     public var title: String {
         switch status {
         case .online: ""
-        case .noInternet: "No internet connection"
-        case .noService: "No service connection"
+        case .noInternet: Localized.Errors.noInternetConnection
+        case .noService: Localized.Errors.noServiceConnection
         }
     }
 

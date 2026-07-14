@@ -246,6 +246,8 @@ errors_token_unable_fetch_token_information = Impossible de récupérer les info
 errors_unknown_try_again = Une erreur inconnue s'est produite. Veuillez réessayer.
 errors_network_error = Erreur réseau : %@
 errors_network_offline = La connexion Internet semble être hors ligne.
+errors_no_internet_connection = Pas de connexion Internet
+errors_no_service_connection = Pas de connexion au service
 
 # Activity
 

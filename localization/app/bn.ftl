@@ -246,6 +246,8 @@ errors_token_unable_fetch_token_information = টোকেন তথ্য আ�
 errors_unknown_try_again = একটি অজানা ত্রুটি ঘটেছে. আবার চেষ্টা করুন.
 errors_network_error = নেটওয়ার্ক ত্রুটি: %@
 errors_network_offline = ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।
+errors_no_internet_connection = ইন্টারনেট সংযোগ নেই
+errors_no_service_connection = পরিষেবা সংযোগ নেই
 
 # Activity
 

@@ -246,6 +246,8 @@ errors_token_unable_fetch_token_information = Не удается получит
 errors_unknown_try_again = Произошла неизвестная ошибка. Пожалуйста, повторите попытку.
 errors_network_error = Сетевая ошибка: %@
 errors_network_offline = По всей видимости, интернет-соединение отсутствует.
+errors_no_internet_connection = Нет подключения к интернету
+errors_no_service_connection = Нет подключения к сервису
 
 # Activity
 

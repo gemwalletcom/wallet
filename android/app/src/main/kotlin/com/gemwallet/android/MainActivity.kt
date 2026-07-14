@@ -16,6 +16,7 @@ import com.gemwallet.android.cases.security.AuthRequester
 import com.gemwallet.android.data.repositories.connection.ConnectionStatusObserver
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionBannerState
 import com.gemwallet.android.ui.components.LocalConnectionBannerState
 import com.wallet.core.primitives.ConnectionStatus
@@ -52,7 +53,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
             val connectionStatus by connectionStatusObserver.status.collectAsStateWithLifecycle()
             val connectionBannerState = remember { ConnectionBannerState() }
             LaunchedEffect(connectionStatus) {
-                connectionBannerState.update(connectionStatus.bannerTitle())
+                connectionBannerState.update(connectionStatus.bannerTitleRes()?.let(::getString))
             }
 
             CompositionLocalProvider(LocalConnectionBannerState provides connectionBannerState) {
@@ -100,8 +101,8 @@ class MainActivity : FragmentActivity(), AuthRequester {
     }
 }
 
-private fun ConnectionStatus.bannerTitle(): String? = when (this) {
+private fun ConnectionStatus.bannerTitleRes(): Int? = when (this) {
     ConnectionStatus.Online -> null
-    ConnectionStatus.NoInternet -> "No internet connection"
-    ConnectionStatus.NoService -> "No service connection"
+    ConnectionStatus.NoInternet -> R.string.errors_no_internet_connection
+    ConnectionStatus.NoService -> R.string.errors_no_service_connection
 }
