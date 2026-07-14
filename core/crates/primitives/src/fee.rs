@@ -24,6 +24,15 @@ pub enum FeeUnitType {
     Native,
 }
 
+impl FeeUnitType {
+    pub fn decimals(&self) -> u32 {
+        match self {
+            FeeUnitType::SatVb | FeeUnitType::Native => 0,
+            FeeUnitType::Gwei => 9,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FeeRate {
     pub priority: FeePriority,
