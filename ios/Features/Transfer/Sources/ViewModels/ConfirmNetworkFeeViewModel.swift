@@ -39,7 +39,7 @@ extension ConfirmNetworkFeeViewModel {
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),
-            selectable: selectable && !state.isError,
+            selectable: selectable && state.value != nil,
         )
     }
 }

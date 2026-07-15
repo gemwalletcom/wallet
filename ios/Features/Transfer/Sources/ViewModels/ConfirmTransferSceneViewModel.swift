@@ -20,7 +20,9 @@ import WalletConnector
 @MainActor
 public final class ConfirmTransferSceneViewModel {
     public var feeModel: NetworkFeeSceneViewModel
-    var state: ConfirmTransferState
+    var state: ConfirmTransferState {
+        didSet { onStateChange(state: state) }
+    }
 
     public var isPresentingSheet: ConfirmTransferSheetType?
 
@@ -212,7 +214,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
 // MARK: - Business Logic
 
 extension ConfirmTransferSceneViewModel {
-    func onSelectListError(error: Error) {
+    func onSelectListError(error: ConfirmTransferError) {
         guard let sheet = ConfirmInfoSheetBuilder.build(
             for: error,
             asset: dataModel.asset,
@@ -287,30 +289,25 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func fetch() async {
-        guard !state.confirmation.isConfirming else { return }
-        let priority = feeModel.priority
         state.transaction = .loading
         feeModel.reset()
         do {
-            let data = try await confirmService.load(request: request, priority: priority)
-            guard priority == feeModel.priority, !Task.isCancelled else { return }
+            let data = try await confirmService.load(request: request, priority: feeModel.priority)
             state = .loaded(data)
             feeModel.update(rates: data.input.feeRates, feeAssetPrice: data.metadata.feePrice)
             feeModel.update(feeAmount: data.input.transactionData.fee.fee)
         } catch {
-            guard priority == feeModel.priority, !error.isCancelled else { return }
-            state.transaction = .error(error)
+            state.transaction.setError(error)
             debugLog("preload transaction error: \(error)")
         }
-        presentTransactionError()
     }
 
-    private func presentTransactionError() {
+    private func onStateChange(state: ConfirmTransferState) {
         guard let error = state.transactionError else { return }
         switch error {
-        case is TransferAmountCalculatorError, is ScanTransactionError:
+        case .amount, .scan:
             onSelectListError(error: error)
-        default:
+        case .chain, .other:
             break
         }
     }

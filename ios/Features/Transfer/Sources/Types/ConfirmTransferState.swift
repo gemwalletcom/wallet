@@ -16,9 +16,9 @@ extension ConfirmTransferState {
         ConfirmTransferState(simulation: data.simulation, metadata: data.metadata, transaction: .data(data.input))
     }
 
-    var transactionError: Error? {
-        if case let .error(error) = transaction { return error }
-        if case let .failure(error)? = transaction.value?.transferAmount { return error }
+    var transactionError: ConfirmTransferError? {
+        if case let .error(error) = transaction { return ConfirmTransferError(error: error) }
+        if case let .failure(error)? = transaction.value?.transferAmount { return .amount(error) }
         return nil
     }
 }

@@ -413,7 +413,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMaliciousError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: ScanTransactionError.malicious)
+        model.onSelectListError(error: .scan(.malicious))
 
         guard case .info(.maliciousTransaction) = model.isPresentingSheet else {
             Issue.record("Expected maliciousTransaction sheet")
@@ -424,7 +424,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMemoRequiredError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: ScanTransactionError.memoRequired(symbol: "BTC"))
+        model.onSelectListError(error: .scan(.memoRequired(symbol: "BTC")))
 
         guard case let .info(.memoRequired(symbol)) = model.isPresentingSheet else {
             Issue.record("Expected memoRequired sheet")
@@ -437,7 +437,7 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientNetworkFeeErrorShowsRequiredAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
         let required = BigInt(21_000_000_000_000)
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockEthereum(), required: required))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockEthereum(), required: required)))
 
         guard case let .info(.insufficientNetworkFee(_, _, sheetRequired, _, _, _)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -449,7 +449,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func insufficientNetworkFeeBuyActionUsesSmallDefaultAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockEthereum(), required: nil))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockEthereum(), required: nil)))
 
         guard case let .info(.insufficientNetworkFee(_, _, _, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -468,7 +468,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronInsufficientNetworkFeeActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockTronUSDT(), required: nil))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTronUSDT(), required: nil)))
 
         guard case let .info(.insufficientNetworkFee(_, _, _, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -526,18 +526,6 @@ struct ConfirmTransferSceneViewModelTests {
         ))
 
         #expect(model.buttonTitle == Localized.Asset.getAsset("TRX"))
-    }
-
-    @Test
-    func fetchSkippedWhileConfirming() async {
-        let model = ConfirmTransferSceneViewModel.mock()
-        model.state.transaction = .data(.mock())
-        model.state.confirmation = .confirming
-
-        await model.fetch()
-
-        #expect(model.state.transaction.value != nil)
-        #expect(model.state.confirmation.isConfirming)
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {

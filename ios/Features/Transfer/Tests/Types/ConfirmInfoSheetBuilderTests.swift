@@ -53,6 +53,12 @@ struct ConfirmInfoSheetBuilderTests {
     }
 
     private func build(for error: Error, asset: Asset = .mock()) -> InfoSheetType? {
-        ConfirmInfoSheetBuilder.build(for: error, asset: asset, feePrice: nil, currency: Currency.usd.rawValue, onGetNetworkFeeAsset: {})
+        ConfirmInfoSheetBuilder.build(
+            for: ConfirmTransferError(error: error),
+            asset: asset,
+            feePrice: nil,
+            currency: Currency.usd.rawValue,
+            onGetNetworkFeeAsset: {},
+        )
     }
 }
