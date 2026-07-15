@@ -3,7 +3,6 @@
 import Components
 import Primitives
 import PrimitivesComponents
-import PrimitivesTestKit
 @testable import Transfer
 
 extension ConfirmSimulationState {
@@ -29,15 +28,5 @@ extension ConfirmTransferState {
         simulation: ConfirmSimulationState = .mock(),
     ) -> ConfirmTransferState {
         ConfirmTransferState(simulation: simulation, metadata: metadata, transaction: transaction)
-    }
-}
-
-extension ConfirmTransferRequest {
-    static func mock(
-        wallet: Wallet = .mock(),
-        data: TransferData = .mock(),
-        simulation: SimulationResult? = nil,
-    ) -> ConfirmTransferRequest {
-        ConfirmTransferRequest(wallet: wallet, data: data, simulation: simulation)
     }
 }

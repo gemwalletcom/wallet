@@ -15,7 +15,10 @@ struct ConfirmErrorViewModelTests {
         let state = ConfirmTransferState.mock(transaction: .error(error))
         let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })
 
-        guard case let .error(title, errorValue, _) = model.itemModel else { return }
+        guard case let .error(title, errorValue, _) = model.itemModel else {
+            Issue.record("Expected .error")
+            return
+        }
         #expect(title == Localized.Errors.errorOccurred)
         #expect(errorValue.localizedDescription == error.localizedDescription)
     }

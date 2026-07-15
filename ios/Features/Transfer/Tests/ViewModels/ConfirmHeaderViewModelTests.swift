@@ -7,6 +7,7 @@ import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
+import TransferTestKit
 
 struct ConfirmHeaderViewModelTests {
     @Test

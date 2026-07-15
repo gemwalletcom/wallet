@@ -45,8 +45,6 @@ public struct ConfirmService: Sendable {
         self.addressNameService = addressNameService
     }
 
-    // MARK: - Load
-
     func simulationState(request: ConfirmTransferRequest) -> ConfirmSimulationState {
         simulationService.makeState(data: request.data, simulation: request.simulation)
     }
@@ -62,8 +60,6 @@ public struct ConfirmService: Sendable {
         return try await ConfirmTransferData(metadata: metadata, input: input, simulation: simulation)
     }
 
-    // MARK: - Confirm
-
     func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {
         let input = TransferConfirmationInput(
             data: request.data,
@@ -78,8 +74,6 @@ public struct ConfirmService: Sendable {
             updateRecent(data: recent, walletId: request.wallet.id)
         }
     }
-
-    // MARK: - Queries
 
     public func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
         explorerService.addressUrl(chain: chain, address: address)
