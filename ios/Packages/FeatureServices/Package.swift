@@ -112,7 +112,7 @@ let package = Package(
                 "Formatters",
             ],
             path: "BalanceService",
-            exclude: ["TestKit"],
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "BalanceServiceTestKit",
@@ -712,6 +712,19 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "DiscoverAssetsService/Tests",
+        ),
+        .testTarget(
+            name: "BalanceServiceTests",
+            dependencies: [
+                "BalanceService",
+                "BalanceServiceTestKit",
+                "AssetsServiceTestKit",
+                .product(name: "BlockchainTestKit", package: "Blockchain"),
+                .product(name: "ChainServiceTestKit", package: "ChainServices"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "StoreTestKit", package: "Store"),
+            ],
+            path: "BalanceService/Tests",
         ),
         .testTarget(
             name: "PriceAlertServiceTests",
