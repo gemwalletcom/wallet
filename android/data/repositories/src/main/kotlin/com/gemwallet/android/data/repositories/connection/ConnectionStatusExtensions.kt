@@ -18,8 +18,9 @@ internal val ConnectionStatus.severity: Int
         ConnectionStatus.NoInternet -> 2
     }
 
-internal fun Map<ConnectionComponent, Boolean>.rollup(): ConnectionStatus = this
-    .filterValues { !it }
-    .keys
-    .map { it.failureStatus }
-    .maxByOrNull { it.severity } ?: ConnectionStatus.Online
+internal val Map<ConnectionComponent, Boolean>.connectionStatus: ConnectionStatus
+    get() = this
+        .filterValues { !it }
+        .keys
+        .map { it.failureStatus }
+        .maxByOrNull { it.severity } ?: ConnectionStatus.Online

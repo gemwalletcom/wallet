@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.connection
 
+import android.util.Log
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.ConnectionStatus
 import kotlinx.coroutines.CoroutineScope
@@ -9,7 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,7 +26,9 @@ class ConnectionStatusObserver(
     val isHealthyByComponent: StateFlow<Map<ConnectionComponent, Boolean>> = state.asStateFlow()
 
     val status: StateFlow<ConnectionStatus> = state
-        .map { it.rollup() }
+        .map { it.connectionStatus }
+        .distinctUntilChanged()
+        .onEach { Log.d(TAG, "Connection status changed: $it") }
         .stateIn(scope, SharingStarted.Eagerly, ConnectionStatus.Online)
 
     private var jobs: List<Job> = emptyList()
@@ -52,5 +57,9 @@ class ConnectionStatusObserver(
             val base = if (isInternetRecovered) emptyMap() else current
             base + (component to isHealthy)
         }
+    }
+
+    private companion object {
+        const val TAG = "ConnectionStatusObserver"
     }
 }

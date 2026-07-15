@@ -8,7 +8,13 @@ import Primitives
 public final class ConnectionStatusObserver {
     private let monitors: [any ConnectionComponentMonitoring]
 
-    public private(set) var isHealthyByComponent: [ConnectionComponent: Bool] = [:]
+    public private(set) var isHealthyByComponent: [ConnectionComponent: Bool] = [:] {
+        didSet {
+            if status != status(for: oldValue) {
+                debugLog("Connection status changed: \(status)")
+            }
+        }
+    }
 
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
 
@@ -33,11 +39,7 @@ public final class ConnectionStatusObserver {
     }
 
     public var status: ConnectionStatus {
-        isHealthyByComponent
-            .filter { !$0.value }
-            .keys
-            .map(\.failureStatus)
-            .max { $0.severity < $1.severity } ?? .online
+        status(for: isHealthyByComponent)
     }
 
     func update(component: ConnectionComponent, isHealthy: Bool) {
@@ -45,5 +47,13 @@ public final class ConnectionStatusObserver {
             isHealthyByComponent = [:]
         }
         isHealthyByComponent[component] = isHealthy
+    }
+
+    private func status(for components: [ConnectionComponent: Bool]) -> ConnectionStatus {
+        components
+            .filter { !$0.value }
+            .keys
+            .map(\.failureStatus)
+            .max { $0.severity < $1.severity } ?? .online
     }
 }

@@ -1,17 +1,27 @@
 package com.gemwallet.android.data.repositories.connection
 
+import android.util.Log
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.ConnectionStatus
+import io.mockk.every
+import io.mockk.mockkStatic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionStatusObserverTest {
+
+    @Before
+    fun setUp() {
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
+    }
 
     @Test
     fun testFailureStatus() {
@@ -22,21 +32,21 @@ class ConnectionStatusObserverTest {
     }
 
     @Test
-    fun testRollup() {
-        assertEquals(ConnectionStatus.Online, emptyMap<ConnectionComponent, Boolean>().rollup())
+    fun testConnectionStatus() {
+        assertEquals(ConnectionStatus.Online, emptyMap<ConnectionComponent, Boolean>().connectionStatus)
         assertEquals(
             ConnectionStatus.NoInternet,
             mapOf(
                 ConnectionComponent.Internet to false,
                 ConnectionComponent.Api to false,
-            ).rollup()
+            ).connectionStatus
         )
         assertEquals(
             ConnectionStatus.NoService,
             mapOf(
                 ConnectionComponent.Internet to true,
                 ConnectionComponent.Nodes to false,
-            ).rollup()
+            ).connectionStatus
         )
     }
 
