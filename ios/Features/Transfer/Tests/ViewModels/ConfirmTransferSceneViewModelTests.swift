@@ -213,7 +213,7 @@ struct ConfirmTransferSceneViewModelTests {
     func networkFeeItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
 
-        model.state = .error(AnyError("test"))
+        model.state = .mock(transaction: .error(AnyError("test")))
         let errorFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = errorFeeItem?.itemModel {
@@ -225,7 +225,7 @@ struct ConfirmTransferSceneViewModelTests {
         }
 
         model.feeModel.update(feeAmount: BigInt(1_000_000_000_000_000))
-        model.state = .data(TransactionInputViewModel.mock())
+        model.state = .mock(transaction: .data(.mock()))
         let loadedFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = loadedFeeItem?.itemModel {
@@ -293,7 +293,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func errorItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.state = .error(AnyError("Test error"))
+        model.state = .mock(transaction: .error(AnyError("Test error")))
 
         let errorItem = model.itemModel(for: .error) as? ConfirmErrorViewModel
 
@@ -528,6 +528,18 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(model.buttonTitle == Localized.Asset.getAsset("TRX"))
     }
 
+    @Test
+    func fetchSkippedWhileConfirming() async {
+        let model = ConfirmTransferSceneViewModel.mock()
+        model.state.transaction = .data(.mock())
+        model.state.confirmation = .confirming
+
+        await model.fetch()
+
+        #expect(model.state.transaction.value != nil)
+        #expect(model.state.confirmation.isConfirming)
+    }
+
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {
         if case .empty = model.itemModel {
             Issue.record("Expected non-empty model")
@@ -543,8 +555,11 @@ private extension ConfirmTransferSceneViewModel {
         simulation: SimulationResult? = nil,
     ) -> ConfirmTransferSceneViewModel {
         ConfirmTransferSceneViewModel(
-            wallet: wallet,
-            data: data,
+            request: ConfirmTransferRequest(
+                wallet: wallet,
+                data: data,
+                simulation: simulation,
+            ),
             confirmService: ConfirmServiceFactory.create(
                 keystore: KeystoreMock(),
                 chainServiceFactory: ChainServiceFactoryMock(),
@@ -559,28 +574,7 @@ private extension ConfirmTransferSceneViewModel {
                 eventPresenterService: .mock(),
                 chain: data.chain,
             ),
-            simulationService: ConfirmSimulationServiceFactory.create(
-                addressNameService: addressNameService,
-                assetsService: .mock(),
-            ),
-            fiatService: .mock(),
-            simulation: simulation,
             onComplete: {},
-        )
-    }
-}
-
-private extension TransactionInputViewModel {
-    static func mock(
-        validation: TransferAmountValidation = TransferAmountValidation.success(
-            TransferAmount(value: BigInt(100), networkFee: BigInt(21000), useMaxAmount: false),
-        ),
-    ) -> TransactionInputViewModel {
-        TransactionInputViewModel(
-            data: .mock(),
-            transactionData: nil,
-            metaData: nil,
-            transferAmount: validation,
         )
     }
 }

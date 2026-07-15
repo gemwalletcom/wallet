@@ -6,14 +6,14 @@ import Localization
 import Primitives
 
 struct ConfirmErrorViewModel {
-    private let state: StateViewType<TransactionInputViewModel>
+    private let error: Error?
     private let onSelectListError: (Error) -> Void
 
     init(
-        state: StateViewType<TransactionInputViewModel>,
+        error: Error?,
         onSelectListError: @escaping (Error) -> Void,
     ) {
-        self.state = state
+        self.error = error
         self.onSelectListError = onSelectListError
     }
 }
@@ -22,21 +22,11 @@ struct ConfirmErrorViewModel {
 
 extension ConfirmErrorViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
-        guard let error = listError else { return .empty }
+        guard let error else { return .empty }
         return .error(
             title: Localized.Errors.errorOccurred,
             error: ChainCoreError.fromError(error) ?? error,
             onInfoAction: { onSelectListError(error) },
         )
-    }
-}
-
-// MARK: - Private
-
-extension ConfirmErrorViewModel {
-    private var listError: Error? {
-        if case let .error(error) = state { return error }
-        if case let .failure(error) = state.value?.transferAmount { return error }
-        return nil
     }
 }

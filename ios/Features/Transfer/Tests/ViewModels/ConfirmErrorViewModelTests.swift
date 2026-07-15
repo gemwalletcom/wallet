@@ -12,7 +12,8 @@ struct ConfirmErrorViewModelTests {
     @Test
     func error() {
         let error = AnyError("test error")
-        let model = ConfirmErrorViewModel(state: .error(error), onSelectListError: { _ in })
+        let state = ConfirmTransferState.mock(transaction: .error(error))
+        let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })
 
         guard case let .error(title, errorValue, _) = model.itemModel else { return }
         #expect(title == Localized.Errors.errorOccurred)
@@ -21,13 +22,9 @@ struct ConfirmErrorViewModelTests {
 
     @Test
     func transferFailure() {
-        let input = TransactionInputViewModel(
-            data: .mock(),
-            transactionData: .mock(),
-            metaData: nil,
-            transferAmount: .failure(.insufficientBalance(.mock())),
-        )
-        let model = ConfirmErrorViewModel(state: .data(input), onSelectListError: { _ in })
+        let input = ConfirmTransferInput.mock(transferAmount: .failure(.insufficientBalance(.mock())))
+        let state = ConfirmTransferState.mock(transaction: .data(input))
+        let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })
 
         guard case .error = model.itemModel else {
             Issue.record("Expected .error")
@@ -37,7 +34,8 @@ struct ConfirmErrorViewModelTests {
 
     @Test
     func loaded() {
-        let model = ConfirmErrorViewModel(state: .data(.mock()), onSelectListError: { _ in })
+        let state = ConfirmTransferState.mock(transaction: .data(.mock()))
+        let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })
         guard case .empty = model.itemModel else {
             Issue.record("Expected .empty")
             return

@@ -13,27 +13,6 @@ public struct ConfirmAppViewModel: ItemModelProvidable {
     init(type: TransferDataType) {
         self.type = type
     }
-
-    var websiteURL: URL? {
-        switch type {
-        case .transfer,
-             .deposit,
-             .withdrawal,
-             .transferNft,
-             .swap,
-             .tokenApprove,
-             .stake,
-             .account,
-             .perpetual,
-             .earn: .none
-        case let .generic(_, metadata, _):
-            URL(string: metadata.url)
-        }
-    }
-
-    var websiteTitle: String {
-        Localized.Settings.website
-    }
 }
 
 // MARK: - ItemModelPrividable

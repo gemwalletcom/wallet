@@ -20,7 +20,5 @@ struct ConfirmAppViewModelTests {
         guard case let .app(item) = model.itemModel else { return }
         #expect(item.title == Localized.WalletConnect.app)
         #expect(item.subtitle == "PancakeSwap")
-        #expect(model.websiteURL == URL(string: metadata.url))
-        #expect(model.websiteTitle == Localized.Settings.website)
     }
 }
