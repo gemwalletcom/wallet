@@ -150,6 +150,16 @@ class SwapDetailsUIModelFactoryTest {
     }
 
     @Test
+    fun `minimum receive applies sub percent slippage`() {
+        val result = swapDetails(
+            toValue = DEFAULT_TO_VALUE,
+            slippageBps = 50u,
+        )
+
+        assertEquals(formattedReceiveAmount("995000000000000000"), result!!.minimumReceive)
+    }
+
+    @Test
     fun `minimum receive floors to zero for a single atomic unit`() {
         val result = swapDetails(
             toValue = "1",
