@@ -63,4 +63,43 @@ struct AssetsServicePersistenceTests {
         #expect(result.market?.allTimeHighValue?.value == 50.0)
         #expect(result.market?.allTimeLowValue?.value == 0.5)
     }
+
+    @Test(arguments: [Price?.none, Price.mock(price: 0)])
+    func updateAssetMapsStoredZeroToNoPriceWhenAssetResponseHasNoUsablePrice(price: Price?) async throws {
+        let db = DB.mock()
+        let assetStore = AssetStore(db: db)
+        let balanceStore = BalanceStore(db: db)
+        let priceStore = PriceStore(db: db)
+        let fiatRateStore = FiatRateStore(db: db)
+        let asset = Asset.mock()
+
+        try assetStore.add(assets: [.mock(asset: asset)])
+        try fiatRateStore.add([.mock(symbol: Currency.usd.rawValue, rate: 1)])
+        try priceStore.updatePrice(
+            price: .mock(assetId: asset.id, price: 100, priceChangePercentage24h: 10),
+            currency: Currency.usd.rawValue,
+        )
+
+        let service = AssetsService.mock(
+            assetStore: assetStore,
+            balanceStore: balanceStore,
+            priceStore: priceStore,
+            assetsProvider: GemAPIAssetsServiceMock(assetResult: .mock(asset: asset, price: price)),
+        )
+
+        try await service.updateAsset(assetId: asset.id, currency: Currency.usd.rawValue)
+
+        let result = try await db.dbQueue.read { db in
+            try PriceRequest(assetId: asset.id).fetch(db)
+        }
+        let record = try await db.dbQueue.read { db in
+            try PriceRecord.fetchOne(db, key: asset.id.identifier)
+        }
+
+        #expect(result?.price == nil)
+        #expect(record != nil)
+        #expect(record?.price == 0)
+        #expect(record?.priceUsd == 0)
+        #expect(record?.priceChangePercentage24h == 0)
+    }
 }

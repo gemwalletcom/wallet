@@ -25,7 +25,7 @@ extension TransactionInfo {
             price: price?.mapToPrice(),
             feePrice: feePrice?.mapToPrice(),
             assets: assets.map { $0.mapToAsset() },
-            prices: prices.map { $0.mapToAssetPrice() },
+            prices: prices.compactMap { $0.mapToAssetPrice() },
             fromAddress: fromAddress?.mapToAddressName(),
             toAddress: toAddress?.mapToAddressName(),
         )
