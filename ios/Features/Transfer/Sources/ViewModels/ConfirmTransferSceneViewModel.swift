@@ -344,8 +344,12 @@ extension ConfirmTransferSceneViewModel {
                 state.confirmation = .idle
                 onComplete?()
             } catch {
-                state.confirmation = .failed(error)
-                debugLog("confirm transaction error: \(error)")
+                if error.isAuthenticationCancelled {
+                    state.confirmation = .idle
+                } else {
+                    state.confirmation = .failed(error)
+                    debugLog("confirm transaction error: \(error)")
+                }
             }
         }
     }
