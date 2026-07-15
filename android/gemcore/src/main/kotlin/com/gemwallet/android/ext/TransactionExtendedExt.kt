@@ -24,59 +24,32 @@ fun Transaction.getSwapMetadata(): TransactionSwapMetadata? = getTransactionSwap
 fun getTransactionSwapMetadata(
     type: TransactionType,
     metadata: String?,
-): TransactionSwapMetadata? {
-    if (type != TransactionType.Swap ||  metadata.isNullOrEmpty()) {
-        return null
-    }
-    return try {
-        jsonEncoder.decodeFromString(metadata)
-    } catch (_: Throwable) {
-        null
-    }
-}
+): TransactionSwapMetadata? = decodeMetadata(type == TransactionType.Swap, metadata)
 
 fun Transaction.getPerpetualMetadata(): TransactionPerpetualMetadata? {
     val isPerpetual = type == TransactionType.PerpetualOpenPosition ||
         type == TransactionType.PerpetualClosePosition ||
         type == TransactionType.PerpetualModifyPosition
-    if (!isPerpetual || metadata.isNullOrEmpty()) return null
-    return try {
-        jsonEncoder.decodeFromString(metadata)
-    } catch (_: Throwable) {
-        null
-    }
+    return decodeMetadata(isPerpetual, metadata)
 }
 
-fun Transaction.getNftMetadata(): TransactionNFTTransferMetadata? {
-    if (type != TransactionType.TransferNFT || metadata.isNullOrEmpty()) {
-        return null
-    }
-    return try {
-        jsonEncoder.decodeFromString(metadata)
-    } catch (_: Throwable) {
-        null
-    }
-}
+fun Transaction.getNftMetadata(): TransactionNFTTransferMetadata? =
+    decodeMetadata(type == TransactionType.TransferNFT, metadata)
 
 fun Transaction.getResourceMetadata(): TransactionResourceTypeMetadata? {
     val isResourceTransaction = type == TransactionType.StakeFreeze || type == TransactionType.StakeUnfreeze
-    if (!isResourceTransaction || metadata.isNullOrEmpty()) {
-        return null
-    }
-    return try {
-        jsonEncoder.decodeFromString(metadata)
-    } catch (_: Throwable) {
-        null
-    }
+    return decodeMetadata(isResourceTransaction, metadata)
 }
 
-fun Transaction.getWalletConnectOutputAction(): TransferDataOutputAction? {
-    if (type != TransactionType.SmartContractCall || metadata.isNullOrEmpty()) {
+fun Transaction.getWalletConnectOutputAction(): TransferDataOutputAction? =
+    decodeMetadata<TransactionWalletConnectMetadata>(type == TransactionType.SmartContractCall, metadata)?.outputAction
+
+private inline fun <reified T> decodeMetadata(matches: Boolean, metadata: String?): T? {
+    if (!matches || metadata.isNullOrEmpty()) {
         return null
     }
-
     return try {
-        jsonEncoder.decodeFromString<TransactionWalletConnectMetadata>(metadata).outputAction
+        jsonEncoder.decodeFromString<T>(metadata)
     } catch (_: Throwable) {
         null
     }
