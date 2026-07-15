@@ -16,23 +16,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.pendingColor
+import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space10
-
-private val statusIconSize = 18.dp
-private val dismissButtonSize = 28.dp
-private val dismissIconSize = 14.dp
+import com.gemwallet.android.ui.theme.tinyIconSize
 
 @Composable
 fun ConnectionStatusBanner(
     title: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    windowInsets: WindowInsets = WindowInsets(0.dp),
+    windowInsets: WindowInsets = WindowInsets(space0),
 ) {
     Surface(
         modifier = modifier
@@ -47,7 +46,7 @@ fun ConnectionStatusBanner(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                modifier = Modifier.size(statusIconSize),
+                modifier = Modifier.size(compactIconSize),
                 imageVector = AppIcons.Warning,
                 tint = pendingColor,
                 contentDescription = null,
@@ -64,12 +63,12 @@ fun ConnectionStatusBanner(
             )
             IconButton(
                 modifier = Modifier
-                    .size(dismissButtonSize)
+                    .size(iconSize)
                     .testTag("connectionStatusDismiss"),
                 onClick = onDismiss,
             ) {
                 Icon(
-                    modifier = Modifier.size(dismissIconSize),
+                    modifier = Modifier.size(tinyIconSize),
                     imageVector = AppIcons.Close,
                     tint = MaterialTheme.colorScheme.secondary,
                     contentDescription = "dismiss",

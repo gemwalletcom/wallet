@@ -15,7 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.theme.space0
 
 @Stable
 class ConnectionBannerState {
@@ -46,7 +46,7 @@ val LocalConnectionBannerHandled = compositionLocalOf { false }
 @Composable
 fun ConnectionStatusBannerHost(
     modifier: Modifier = Modifier,
-    windowInsets: WindowInsets = WindowInsets(0.dp),
+    windowInsets: WindowInsets = WindowInsets(space0),
 ) {
     if (LocalConnectionBannerHandled.current) return
     val state = LocalConnectionBannerState.current

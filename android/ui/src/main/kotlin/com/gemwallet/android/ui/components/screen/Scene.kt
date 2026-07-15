@@ -38,6 +38,7 @@ import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.ui.theme.space0
 
 enum class MainActionWidth {
     Constrained,
@@ -147,7 +148,7 @@ fun Scene(
                     windowInsets = if (mainAction == null) {
                         WindowInsets.navigationBars
                     } else {
-                        WindowInsets(0.dp)
+                        WindowInsets(space0)
                     },
                 )
                 if (mainAction != null) {
