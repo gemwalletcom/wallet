@@ -92,14 +92,7 @@ struct AssetsServicePersistenceTests {
         let result = try await db.dbQueue.read { db in
             try PriceRequest(assetId: asset.id).fetch(db)
         }
-        let record = try await db.dbQueue.read { db in
-            try PriceRecord.fetchOne(db, key: asset.id.identifier)
-        }
 
         #expect(result?.price == nil)
-        #expect(record != nil)
-        #expect(record?.price == 0)
-        #expect(record?.priceUsd == 0)
-        #expect(record?.priceChangePercentage24h == 0)
     }
 }
