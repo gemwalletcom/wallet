@@ -37,13 +37,13 @@ pub async fn get_assets(
 
 #[get("/assets/search?<params..>")]
 pub async fn get_assets_search(params: SearchParams<'_>, client: &State<Mutex<SearchClient>>) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
-    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit, params.offset);
+    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit.0, params.offset);
     Ok(client.lock().await.get_assets_search(&request).await?.into())
 }
 
 #[get("/search?<params..>")]
 pub async fn get_search(params: SearchParams<'_>, client: &State<Mutex<SearchClient>>) -> Result<ApiResponse<SearchResponse>, ApiError> {
-    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit, params.offset);
+    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit.0, params.offset);
 
     let search_client = client.lock().await;
     let assets = search_client.get_assets_search(&request).await?;

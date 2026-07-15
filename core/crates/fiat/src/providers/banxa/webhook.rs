@@ -9,14 +9,10 @@ const BEARER_PREFIX: &str = "Bearer ";
 
 impl BanxaClient {
     pub fn verify_webhook(&self, request: &FiatWebhookRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let (api_key, signature, nonce) = request
+        let (_, signature, nonce) = request
             .header(AUTHORIZATION_HEADER)
             .and_then(parse_authorization_header)
             .ok_or_else(|| FiatQuoteError::InvalidRequest("Invalid Banxa webhook authorization header".to_string()))?;
-
-        if api_key != self.webhook_api_key {
-            return Err(FiatQuoteError::InvalidRequest("Invalid Banxa webhook API key".to_string()).into());
-        }
 
         let message = format!("POST\n{}\n{nonce}\n{}", request.path, request.raw_body);
         if verify_hmac_signature_hex(&self.webhook_secret_key, &message, signature) {
@@ -52,16 +48,6 @@ mod tests {
         let request = FiatWebhookRequest::mock_banxa_with_authorization(
             include_str!("../../../testdata/banxa/webhook_order_complete.json"),
             "Bearer test_merchant_key:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1700000000",
-        );
-
-        assert!(BanxaClient::mock().verify_webhook(&request).is_err());
-    }
-
-    #[test]
-    fn test_verify_webhook_rejects_invalid_api_key() {
-        let request = FiatWebhookRequest::mock_banxa_with_authorization(
-            include_str!("../../../testdata/banxa/webhook_order_complete.json"),
-            "Bearer wrong_merchant_key:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1700000000",
         );
 
         assert!(BanxaClient::mock().verify_webhook(&request).is_err());

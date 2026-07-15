@@ -8,8 +8,7 @@ pub mod guard;
 pub mod signature;
 use crate::assets::AssetsClient;
 use crate::params::{
-    AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, MAX_QUERY_LIMIT, MAX_QUERY_LIMIT_VALIDATION, NftAssetIdParam,
-    TransactionIdParam, UserAgent,
+    AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, QueryLimitParam, TransactionIdParam, UserAgent,
 };
 use crate::responders::{ApiError, ApiResponse};
 use auth_config::AuthConfig;
@@ -44,15 +43,13 @@ use crate::auth::WalletSigned;
 pub struct DeviceTransactionsParams {
     asset_id: Option<AssetIdParam>,
     from_timestamp: Option<u64>,
-    #[field(default = MAX_QUERY_LIMIT, validate = range(..=MAX_QUERY_LIMIT_VALIDATION))]
-    limit: usize,
+    limit: QueryLimitParam,
 }
 
 #[derive(FromForm)]
 pub struct DeviceNotificationsParams {
     from_timestamp: Option<u64>,
-    #[field(default = MAX_QUERY_LIMIT, validate = range(..=MAX_QUERY_LIMIT_VALIDATION))]
-    limit: usize,
+    limit: QueryLimitParam,
 }
 
 #[post("/devices", format = "json", data = "<device>")]
@@ -98,7 +95,7 @@ pub async fn get_device_transactions_v2(
             device.wallet_id,
             params.asset_id.map(|x| x.0),
             params.from_timestamp,
-            params.limit,
+            params.limit.0,
         )
         .await?
         .into())
@@ -309,7 +306,7 @@ pub async fn get_device_notifications_v2(
     Ok(client
         .lock()
         .await
-        .get_notifications(&device.device_row.device_id, params.from_timestamp, params.limit)?
+        .get_notifications(&device.device_row.device_id, params.from_timestamp, params.limit.0)?
         .into())
 }
 

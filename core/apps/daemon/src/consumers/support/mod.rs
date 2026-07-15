@@ -19,7 +19,7 @@ pub async fn run_consumer_support(settings: Settings, shutdown_rx: ShutdownRecei
     let retry = streamer::Retry::new(settings.rabbitmq.retry.delay, settings.rabbitmq.retry.timeout);
     let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);
     let stream_producer = StreamProducer::new(&rabbitmq_config, "daemon_support_producer", shutdown_rx.clone()).await?;
-    let cacher = CacherClient::new(&settings.redis.url).await;
+    let cacher = CacherClient::new(&settings.redis.url).await?;
 
     let support_client = SupportClient::new(database, stream_producer, cacher);
     let consumer = SupportWebhookConsumer::new(support_client);
