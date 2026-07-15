@@ -28,7 +28,7 @@ class CustomFeeTest {
     )
 
     private fun custom(input: String, selection: FeeSelection) =
-        CustomFee.from(input, currentFee, feeRates, selection, decimals = 0, maxMultiplier = 10, unitSymbol = "sat/vB")
+        CustomFee.from(input, currentFee, feeRates, selection, decimals = 0, maxMultiplier = 10)
 
     @Test
     fun customFeeComputesRateScalingAndMax() {

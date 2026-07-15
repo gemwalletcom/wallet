@@ -17,14 +17,13 @@ class NetworkFeeCustomViewModel(
     private val selection: FeeSelection,
     private val decimals: Int,
     private val maxMultiplier: Int,
-    private val unitSymbol: String,
     initialRate: BigInteger?,
 ) {
     var input by mutableStateOf(initialRate?.let { CustomFee.format(it, decimals) } ?: "")
         private set
 
     private val custom by derivedStateOf {
-        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier, unitSymbol)
+        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier)
     }
 
     val placeholder: String get() = custom.placeholder

@@ -4,13 +4,15 @@ use crate::config::chain::fee_unit_type;
 
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
 pub struct FeeConfig {
-    pub unit_decimals: u32,
-    pub max_custom_fee_rate_multiplier: u32,
+    pub decimals: u32,
+    pub max_multiplier: u32,
+    pub custom_fee_enabled: bool,
 }
 
 pub fn get_fee_config(chain: Chain) -> FeeConfig {
     FeeConfig {
-        unit_decimals: fee_unit_type(chain).decimals(),
-        max_custom_fee_rate_multiplier: 10,
+        decimals: fee_unit_type(chain).decimals(),
+        max_multiplier: 10,
+        custom_fee_enabled: chain == Chain::Bitcoin,
     }
 }

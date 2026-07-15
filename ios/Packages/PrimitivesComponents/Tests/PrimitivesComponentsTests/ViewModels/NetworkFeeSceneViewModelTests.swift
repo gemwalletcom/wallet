@@ -208,15 +208,19 @@ struct NetworkFeeSceneViewModelTests {
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 2)),
         ]
 
-        let allowed = NetworkFeeSceneViewModel.mock(chain: .solana, mode: .custom)
+        let allowed = NetworkFeeSceneViewModel.mock(chain: .bitcoin, mode: .custom)
         allowed.update(rates: rates, feeAssetPrice: nil)
         #expect(allowed.supportsCustomFee)
 
-        let notAllowed = NetworkFeeSceneViewModel.mock(chain: .solana, mode: .standard)
-        notAllowed.update(rates: rates, feeAssetPrice: nil)
-        #expect(notAllowed.supportsCustomFee == false)
+        let chainNotAllowed = NetworkFeeSceneViewModel.mock(chain: .solana, mode: .custom)
+        chainNotAllowed.update(rates: rates, feeAssetPrice: nil)
+        #expect(chainNotAllowed.supportsCustomFee == false)
 
-        let singleRate = NetworkFeeSceneViewModel.mock(chain: .solana, mode: .custom)
+        let standardMode = NetworkFeeSceneViewModel.mock(chain: .bitcoin, mode: .standard)
+        standardMode.update(rates: rates, feeAssetPrice: nil)
+        #expect(standardMode.supportsCustomFee == false)
+
+        let singleRate = NetworkFeeSceneViewModel.mock(chain: .bitcoin, mode: .custom)
         singleRate.update(rates: [rates[0]], feeAssetPrice: nil)
         #expect(singleRate.supportsCustomFee == false)
     }

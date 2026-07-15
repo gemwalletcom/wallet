@@ -57,7 +57,7 @@ fun SuffixTextField(
             },
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyLarge.copy(
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.End,
             ),
             keyboardOptions = keyboardOptions,

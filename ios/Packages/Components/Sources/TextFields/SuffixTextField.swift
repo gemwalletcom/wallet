@@ -34,8 +34,8 @@ public struct SuffixTextField<Field: Hashable>: View {
                 .multilineTextAlignment(.trailing)
                 .focused(focusedField, equals: field)
             Text(suffix)
+                .foregroundStyle(Colors.gray)
         }
-        .foregroundStyle(Colors.gray)
         .onChange(of: text) { _, newValue in
             guard let sanitizer else { return }
             let sanitized = sanitizer(newValue)

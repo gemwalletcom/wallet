@@ -83,14 +83,14 @@ fun FeeDetails(
     val unitSuffix = feeUnitSuffix(feeUnitType, feeAssetInfo.asset.symbol)
     val unitSymbol = unitSuffix.trim()
     val feeConfig = remember(chain) { Config().getFeeConfig(chain.string) }
-    val supportsCustomFee = feeRates.size > 1
+    val supportsCustomFee = feeConfig.customFeeEnabled && feeRates.size > 1
     val decimals = feeUnitType?.gasPriceDecimals ?: feeAssetInfo.asset.decimals
-    val maxMultiplier = feeConfig.maxCustomFeeRateMultiplier.toInt()
+    val maxMultiplier = feeConfig.maxMultiplier.toInt()
 
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
     var showCustom by remember(isVisible) { mutableStateOf(false) }
     val customModel = remember(showCustom) {
-        NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, unitSymbol, selectedCustomRate)
+        NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, selectedCustomRate)
     }
 
     ModalBottomSheet(

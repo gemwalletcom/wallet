@@ -14,7 +14,6 @@ data class CustomFee(
     val rate: BigInteger?,
     val placeholder: String,
     val networkFee: FeeUIModel.FeeInfo,
-    val rateText: String,
     val maxRateText: String,
     val isOverMax: Boolean,
     val isConfirmEnabled: Boolean,
@@ -27,7 +26,6 @@ data class CustomFee(
             selection: FeeSelection,
             decimals: Int,
             maxMultiplier: Int,
-            unitSymbol: String,
         ): CustomFee {
             val baseTotal = baseTotal(selection, feeRates, currentFee.priority)
             val normalTotal = normalTotal(feeRates) ?: baseTotal
@@ -45,7 +43,6 @@ data class CustomFee(
                 rate = rate,
                 placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
                 networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeAmount), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
-                rateText = rate?.let { formatRate(it, decimals, unitSymbol) } ?: "",
                 maxRateText = format(BigInteger(estimate.maxRate), decimals),
                 isOverMax = estimate.isOverMax,
                 isConfirmEnabled = rate != null && !estimate.isOverMax,

@@ -115,7 +115,7 @@ public final class NetworkFeeSceneViewModel {
     public var supportsCustomFee: Bool {
         switch mode {
         case .standard: false
-        case .custom: showFeeRates
+        case .custom: chain.customFeeEnabled && showFeeRates
         }
     }
 
