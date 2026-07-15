@@ -24,4 +24,5 @@ public struct TransferConfirmationInput: Sendable {
         self.amount = amount
         self.delegate = delegate
     }
+
 }
