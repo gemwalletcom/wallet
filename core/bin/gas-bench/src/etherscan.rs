@@ -14,7 +14,6 @@ const ETHERSCAN_API_URL: &str = "https://api.etherscan.io/api";
 pub struct EtherscanResult {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub last_block: u64,
-    pub safe_gas_price: String,
     pub propose_gas_price: String,
     pub fast_gas_price: String,
     #[serde(rename = "suggestBaseFee")]
@@ -27,7 +26,6 @@ impl EtherscanResult {
     /// Converts the raw Etherscan gas oracle data into the common `GemstoneFeeData` format.
     pub fn fee_data(&self) -> GemstoneFeeData {
         let base_fee: f64 = self.suggest_base_fee.parse().unwrap();
-        let safe_fee: f64 = self.safe_gas_price.parse().unwrap();
         let propose_fee: f64 = self.propose_gas_price.parse().unwrap();
         let fast_fee: f64 = self.fast_gas_price.parse().unwrap();
 
