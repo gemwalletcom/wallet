@@ -37,7 +37,7 @@ pub type AssetsProviders = Arc<PriceProviders>;
 pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
     let database = ctx.database();
     let settings = ctx.settings();
-    let cacher_client = CacherClient::new(&settings.redis.url).await;
+    let cacher_client = CacherClient::new(&settings.redis.url).await?;
     let config = Arc::new(ConfigCacher::new(database.clone()));
     let producer_assets = stream_producer(&settings, "prices_provider_assets").await?;
     let producer_prices = stream_producer(&settings, "prices_provider_prices").await?;

@@ -14,6 +14,7 @@ pub enum CacheKey<'a> {
 
     // Device keys
     InactiveDeviceObserver(&'a str),
+    DeviceStreamEvents(&'a str, u64),
 
     // Fetch consumer keys (chain, address)
     FetchCoinAddresses(&'a str, &'a str),
@@ -75,6 +76,7 @@ impl CacheKey<'_> {
             Self::UsernameCreationGlobalDaily => "username:global:daily".to_string(),
             Self::UsernameCreationPerCountryDaily(country) => format!("username:country:daily:{}", country),
             Self::InactiveDeviceObserver(device_id) => format!("device:inactive_observer:{}", device_id),
+            Self::DeviceStreamEvents(device_id, _) => format!("stream:device:events:{}", device_id),
             Self::FetchCoinAddresses(chain, address) => format!("fetch:coin_addresses:{}:{}", chain, address),
             Self::FetchTokenAddresses(chain, address) => format!("fetch:token_addresses:{}:{}", chain, address),
             Self::FetchNftAssetsAddresses(chain, address) => format!("fetch:nft_assets_addresses:{}:{}", chain, address),
@@ -113,6 +115,7 @@ impl CacheKey<'_> {
             Self::UsernameCreationGlobalDaily => SECONDS_PER_DAY,
             Self::UsernameCreationPerCountryDaily(_) => SECONDS_PER_DAY,
             Self::InactiveDeviceObserver(_) => 30 * SECONDS_PER_DAY,
+            Self::DeviceStreamEvents(_, ttl) => *ttl,
             Self::FetchCoinAddresses(_, _) => 7 * SECONDS_PER_DAY,
             Self::FetchTokenAddresses(_, _) => 30 * SECONDS_PER_DAY,
             Self::FetchNftAssetsAddresses(_, _) => 30 * SECONDS_PER_DAY,

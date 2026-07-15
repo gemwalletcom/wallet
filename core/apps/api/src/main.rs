@@ -23,8 +23,9 @@ mod websocket;
 mod websocket_prices;
 mod websocket_stream;
 
+use std::{error::Error, str::FromStr, sync::Arc};
+
 use gem_tracing::info_with_fields;
-use std::{str::FromStr, sync::Arc};
 use strum::IntoEnumIterator;
 
 use ::defi::{DefiClient, DefiProviderClient, DefiProviderConfig};
@@ -184,13 +185,13 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
     }
 }
 
-async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::error::Error + Send + Sync>> {
+async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
     let redis_url = settings.redis.url.as_str();
     let postgres_url = settings.postgres.url.as_str();
     let settings_clone = settings.clone();
 
     let database = Database::new(postgres_url, settings.postgres.pool);
-    let cacher_client = CacherClient::new(redis_url).await;
+    let cacher_client = CacherClient::new(redis_url).await?;
     let config_cacher = storage::ConfigCacher::new(database.clone());
     let price_config = PriceConfig {
         primary_price_max_age: config_cacher.get_duration(primitives::ConfigKey::PricePrimaryMaxAge)?,
@@ -326,27 +327,30 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
     Ok(mount_routes(rocket, settings.api.admin.enabled))
 }
 
-async fn rocket_ws_prices(settings: Settings) -> Rocket<Build> {
-    let cacher_client = CacherClient::new(&settings.redis.url).await;
+async fn rocket_ws_prices(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
+    let cacher_client = CacherClient::new(&settings.redis.url).await?;
     let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
     let price_client = PriceClient::new(database, cacher_client);
     let price_observer_config = PriceObserverConfig {
         redis_url: settings.redis.url.clone(),
     };
-    rocket::build()
+    Ok(rocket::build()
         .manage(Arc::new(Mutex::new(price_client)))
         .manage(Arc::new(price_observer_config))
         .mount("/", routes![websocket_prices::ws_health])
         .mount("/v1/ws", routes![websocket_prices::ws_prices])
-        .register("/", catchers![catchers::default_catcher])
+        .register("/", catchers![catchers::default_catcher]))
 }
 
-async fn rocket_ws_stream(settings: Settings) -> Rocket<Build> {
-    let cacher_client = CacherClient::new(&settings.redis.url).await;
+async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
+    let cacher_client = CacherClient::new(&settings.redis.url).await?;
     let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
-    let price_client = PriceClient::new(database.clone(), cacher_client);
+    let config_cacher = storage::ConfigCacher::new(database.clone());
+    let price_client = PriceClient::new(database.clone(), cacher_client.clone());
     let stream_observer_config = websocket_stream::StreamObserverConfig {
         redis_url: settings.redis.url.clone(),
+        cacher_client,
+        retention: config_cacher.get_duration(primitives::ConfigKey::DeviceStreamRetention)?,
     };
 
     let jwt_config = devices::auth_config::JwtConfig {
@@ -355,18 +359,18 @@ async fn rocket_ws_stream(settings: Settings) -> Rocket<Build> {
     };
     let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.tolerance, jwt_config);
 
-    rocket::build()
+    Ok(rocket::build()
         .manage(auth_config)
         .manage(database)
         .manage(Arc::new(Mutex::new(price_client)))
         .manage(Arc::new(stream_observer_config))
         .mount("/v2/devices", routes![websocket_stream::ws_stream])
         .mount("/", routes![websocket_stream::ws_health])
-        .register("/", catchers![catchers::default_catcher])
+        .register("/", catchers![catchers::default_catcher]))
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = Settings::new()?;
 
     let service = match std::env::args().nth(1) {
@@ -381,8 +385,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let rocket = match service {
         APIService::Api => rocket_api(settings).await?,
-        APIService::WebsocketPrices => rocket_ws_prices(settings).await,
-        APIService::WebsocketStream => rocket_ws_stream(settings).await,
+        APIService::WebsocketPrices => rocket_ws_prices(settings).await?,
+        APIService::WebsocketStream => rocket_ws_stream(settings).await?,
     };
     rocket.launch().await?;
     Ok(())
