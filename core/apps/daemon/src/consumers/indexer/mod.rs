@@ -132,7 +132,7 @@ async fn run_fetch_assets(
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
-    let cacher = CacherClient::new(&settings.redis.url).await;
+    let cacher = CacherClient::new(&settings.redis.url).await?;
     let consumer = FetchAssetsConsumer {
         providers: chain_providers(&settings, &name),
         database,
@@ -169,7 +169,7 @@ async fn run_fetch_prices(
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
-    let cacher = CacherClient::new(&settings.redis.url).await;
+    let cacher = CacherClient::new(&settings.redis.url).await?;
     let price_client = PriceClient::new(database, cacher);
     let providers = crate::worker::prices::price_providers(&settings);
     let consumer = FetchPricesConsumer { price_client, providers };
@@ -269,7 +269,7 @@ async fn run_fetch_nft_assets(
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
-    let cacher = CacherClient::new(&settings.redis.url).await;
+    let cacher = CacherClient::new(&settings.redis.url).await?;
     let nft_config = ::nft::NFTProviderConfig::new(
         settings.nft.opensea.key.secret.clone(),
         settings.nft.magiceden.key.secret.clone(),

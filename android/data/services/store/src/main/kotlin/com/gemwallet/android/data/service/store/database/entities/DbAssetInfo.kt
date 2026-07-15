@@ -142,7 +142,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
         owner = account,
         asset = asset,
         balance = balances,
-        price = if (entity.priceValue != null && currency != null) {
+        price = if (entity.priceValue != null && entity.priceValue > 0 && currency != null) {
             AssetPriceInfo(
                 currency = currency,
                 price = AssetPrice(

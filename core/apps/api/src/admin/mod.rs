@@ -1,3 +1,4 @@
+pub mod addresses;
 pub mod assets;
 pub mod devices;
 pub mod fiat;

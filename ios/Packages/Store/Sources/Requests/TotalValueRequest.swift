@@ -48,7 +48,7 @@ public struct TotalValueRequest: DatabaseQueryable, Equatable {
 
 extension AssetFiatValue {
     init?(record: AssetRecordInfoMinimal, amount: Double) {
-        guard let price = record.price else { return nil }
+        guard let price = record.price, price.price > 0 else { return nil }
         self.init(
             amount: amount,
             price: price.price,

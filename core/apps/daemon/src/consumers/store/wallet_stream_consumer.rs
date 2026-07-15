@@ -1,14 +1,16 @@
 use std::error::Error;
+use std::time::Duration;
 
 use async_trait::async_trait;
-use cacher::CacherClient;
-use primitives::{StreamBalanceUpdate, StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, WalletId, device_stream_channel};
+use cacher::{CacheKey, CacherClient};
+use primitives::{StreamBalanceUpdate, StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, WalletId, device_stream_channel, unix_timestamp};
 use storage::{Database, WalletsRepository};
 use streamer::{WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 
 pub struct WalletStreamConsumer {
     pub database: Database,
     pub cacher_client: CacherClient,
+    pub retention: Duration,
 }
 
 fn stream_events(wallet_id: WalletId, event: WalletStreamEvent) -> Vec<StreamEvent> {
@@ -39,18 +41,38 @@ impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
     async fn process(&self, payload: WalletStreamPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let wallet = self.database.wallets()?.get_wallet_by_id(payload.wallet_id)?;
         let devices = self.database.wallets()?.get_devices_by_wallet_id(payload.wallet_id)?;
-        let wallet_id = wallet.wallet_id.0;
-        let events = stream_events(wallet_id, payload.event);
+        let events = stream_events(wallet.wallet_id.0, payload.event);
+        let now = unix_timestamp();
+        let expires_at = now.saturating_add(self.retention.as_secs()) as f64;
 
-        let mut count = 0;
         for device in &devices {
             let channel = device_stream_channel(&device.device_id);
+            let mut missed_events = Vec::new();
             for event in &events {
-                self.cacher_client.publish(&channel, event).await?;
-                count += 1;
+                let subscribers: usize = self.cacher_client.publish(&channel, event).await?;
+                if subscribers == 0 {
+                    missed_events.push((serde_json::to_string(event)?, expires_at));
+                }
             }
+            if missed_events.is_empty() {
+                continue;
+            }
+
+            let cache_key = CacheKey::DeviceStreamEvents(&device.device_id, self.retention.as_secs());
+            let expired_events = self
+                .cacher_client
+                .sorted_set_range_with_scores(&cache_key.key(), 0, -1)
+                .await?
+                .into_iter()
+                .filter(|(_, score)| *score <= now as f64)
+                .map(|(event, _)| event)
+                .collect::<Vec<_>>();
+            self.cacher_client.remove_from_sorted_set_cached(cache_key, &expired_events).await?;
+            self.cacher_client
+                .add_to_sorted_set_cached(CacheKey::DeviceStreamEvents(&device.device_id, self.retention.as_secs()), &missed_events)
+                .await?;
         }
-        Ok(count)
+        Ok(devices.len() * events.len())
     }
 }
 

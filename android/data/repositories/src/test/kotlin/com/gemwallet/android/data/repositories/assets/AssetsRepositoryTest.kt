@@ -163,6 +163,27 @@ class AssetsRepositoryTest {
     }
 
     @Test
+    fun saveAssetMetadata_storesZeroWhenResponseHasNoUsablePrice() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        coEvery { sessionRepository.getCurrentCurrency() } returns Currency.USD
+        every { pricesDao.getRates(Currency.USD) } returns flowOf(null)
+
+        val subject = createSubject()
+        listOf(null, mockPrice(price = 0.0)).forEach { price ->
+            subject.saveAssetMetadata(mockAssetFull(asset = mockAssetSolana(), price = price))
+        }
+
+        val prices = mutableListOf<DbPrice>()
+        coVerify(exactly = 2) { pricesDao.insert(capture(prices)) }
+        prices.forEach { price ->
+            assertEquals("solana", price.assetId)
+            assertEquals(0.0, price.value)
+            assertEquals(0.0, price.usdValue)
+            assertEquals(0.0, price.dayChanged)
+        }
+    }
+
+    @Test
     fun addBalancesIfMissing_insertsHiddenBalanceOnlyForExistingAssets() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
 

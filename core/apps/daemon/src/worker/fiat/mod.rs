@@ -20,7 +20,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let settings = ctx.settings();
     let config = ConfigCacher::new(database.clone());
 
-    let cacher_client = CacherClient::new(&settings.redis.url).await;
+    let cacher_client = CacherClient::new(&settings.redis.url).await?;
 
     ctx.plan_builder(WorkerService::Fiat, &config, shutdown_rx)
         .job(WorkerJob::UpdateFiatRates, {
