@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import GemstonePrimitives
 import Localization
 import Observation
 import Primitives
@@ -15,6 +16,8 @@ public final class NetworkFeeCustomViewModel {
     private let currency: Currency
     private let baseFee: BigInt?
     private let baseTotal: BigInt?
+    private let normalTotal: BigInt?
+    private let decimals: Int
     private let onSelect: (BigInt) -> Void
 
     public var input: String = ""
@@ -26,6 +29,7 @@ public final class NetworkFeeCustomViewModel {
         currency: Currency,
         baseFee: BigInt?,
         baseTotal: BigInt?,
+        normalTotal: BigInt?,
         initialRate: BigInt?,
         onSelect: @escaping (BigInt) -> Void,
     ) {
@@ -35,24 +39,24 @@ public final class NetworkFeeCustomViewModel {
         self.currency = currency
         self.baseFee = baseFee
         self.baseTotal = baseTotal
+        self.normalTotal = normalTotal
         self.onSelect = onSelect
-        input = initialRate.map { ValueFormatter.full.string($0, decimals: chain.feeUnitDecimals) } ?? ""
+        decimals = switch chain.feeUnitType {
+        case .satVb, .gwei: chain.feeUnitDecimals
+        case .native: feeAsset.decimals.asInt
+        }
+        input = initialRate.map { ValueFormatter.full.string($0, decimals: decimals) } ?? ""
     }
 
-    public var title: String {
-        Localized.FeeRate.custom
-    }
-
-    public var networkFeeTitle: String {
-        Localized.Transfer.networkFee
-    }
+    public var title: String { Localized.FeeRate.custom }
+    public var networkFeeTitle: String { Localized.Transfer.networkFee }
 
     public var suffix: String {
         FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: .zero), decimals: decimals, symbol: feeAsset.symbol).suffix
     }
 
     public var placeholder: String {
-        baseTotal.map { ValueFormatter.full.string($0, decimals: decimals) } ?? ""
+        baseTotal.map { ValueFormatter.auto.string($0, decimals: decimals) } ?? ""
     }
 
     public var value: String? {
@@ -64,13 +68,13 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var errorText: String? {
-        guard isAboveMax, let maxRate else { return nil }
-        let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: maxRate), decimals: decimals, symbol: feeAsset.symbol).value
+        guard estimate.isOverMax else { return nil }
+        let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: estimate.maxRate), decimals: decimals, symbol: feeAsset.symbol).value
         return Localized.Common.maximumValue(maxText)
     }
 
     public var isConfirmEnabled: Bool {
-        rate != nil && isAboveMax == false
+        rate != nil && !estimate.isOverMax
     }
 
     public func sanitize(_ text: String) -> String {
@@ -78,12 +82,8 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func confirm() {
-        guard isConfirmEnabled, let rate else { return }
+        guard let rate, !estimate.isOverMax else { return }
         onSelect(rate)
-    }
-
-    private var decimals: Int {
-        chain.feeUnitDecimals
     }
 
     private var rate: BigInt? {
@@ -91,18 +91,18 @@ public final class NetworkFeeCustomViewModel {
         return value
     }
 
-    private var maxRate: BigInt? {
-        baseTotal.map { $0 * BigInt(chain.maxCustomFeeRateMultiplier) }
-    }
-
-    private var isAboveMax: Bool {
-        guard let rate, let maxRate else { return false }
-        return rate > maxRate
+    private var estimate: CustomFeeEstimate {
+        CustomFeeEstimate.estimate(
+            rate: rate,
+            loadedFee: baseFee ?? .zero,
+            baseTotal: baseTotal ?? .zero,
+            normalTotal: normalTotal ?? .zero,
+            maxMultiplier: chain.maxCustomFeeRateMultiplier,
+        )
     }
 
     private var feeAmount: BigInt? {
-        guard let baseFee, let baseTotal, baseTotal != .zero, let rate else { return baseFee }
-        return baseFee * rate / baseTotal
+        baseFee.map { _ in estimate.feeAmount }
     }
 
     private func display(for amount: BigInt) -> AmountDisplay {

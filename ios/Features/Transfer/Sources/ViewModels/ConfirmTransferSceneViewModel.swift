@@ -71,7 +71,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: data.type.asset.feeAsset,
             priority: confirmService.defaultPriority(for: data.type),
             currency: Currency(rawValue: Preferences.standard.currency) ?? .usd,
-            allowsCustomFee: true,
+            mode: .custom,
         )
 
         let recipientAddress = data.recipientData.recipient.address

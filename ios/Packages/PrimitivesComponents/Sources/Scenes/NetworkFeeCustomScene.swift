@@ -10,10 +10,12 @@ public struct NetworkFeeCustomScene: View {
     }
 
     @State private var model: NetworkFeeCustomViewModel
+    private let onConfirm: () -> Void
     @FocusState private var focusedField: Field?
 
-    public init(model: NetworkFeeCustomViewModel) {
+    public init(model: NetworkFeeCustomViewModel, onConfirm: @escaping () -> Void) {
         _model = State(initialValue: model)
+        self.onConfirm = onConfirm
     }
 
     public var body: some View {
@@ -49,8 +51,11 @@ public struct NetworkFeeCustomScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("", systemImage: SystemImage.checkmark, action: model.confirm)
-                    .disabled(model.isConfirmEnabled == false)
+                Button("", systemImage: SystemImage.checkmark) {
+                    model.confirm()
+                    onConfirm()
+                }
+                .disabled(model.isConfirmEnabled == false)
             }
         }
         .onAppear {

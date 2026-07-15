@@ -36,7 +36,6 @@ struct SourceFeeDetail {
     source_name: String,
     base_fee: String,
     gas_used_ratio: Option<String>,
-    slow_fee: String,
     normal_fee: String,
     fast_fee: String,
 }
@@ -131,12 +130,10 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
         }
 
         let process_fee_data = |source_name: &str, data: &GemstoneFeeData| -> SourceFeeDetail {
-            let mut slow = "N/A".to_string();
             let mut normal = "N/A".to_string();
             let mut fast = "N/A".to_string();
             for fee_record in &data.priority_fees {
                 match fee_record.priority {
-                    FeePriority::Slow => slow = EtherConv::to_gwei(&fee_record.value),
                     FeePriority::Normal => normal = EtherConv::to_gwei(&fee_record.value),
                     FeePriority::Fast => fast = EtherConv::to_gwei(&fee_record.value),
                 }
@@ -145,7 +142,6 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
                 source_name: source_name.to_string(),
                 base_fee: data.suggest_base_fee.clone(),
                 gas_used_ratio: data.gas_used_ratio.clone(),
-                slow_fee: slow,
                 normal_fee: normal,
                 fast_fee: fast,
             }
@@ -230,7 +226,6 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
                     Cell::new("Source"),
                     Cell::new("Base Fee (Gwei)"),
                     Cell::new("Used Gas (%)"),
-                    Cell::new("Slow (Gwei)"),
                     Cell::new("Normal (Gwei)"),
                     Cell::new("Fast (Gwei)"),
                 ]));
@@ -240,7 +235,6 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
                         Cell::new(&detail.source_name),
                         Cell::new(&detail.base_fee),
                         Cell::new(&detail.gas_used_ratio.clone().unwrap_or_else(|| "N/A".to_string())),
-                        Cell::new(&detail.slow_fee),
                         Cell::new(&detail.normal_fee),
                         Cell::new(&detail.fast_fee),
                     ]));
@@ -335,8 +329,7 @@ fn print_solana_fee_data(
     }
     if let Some(helius) = helius_data {
         print!(
-            " | Helius: slow={} normal={} fast={}",
-            format_micro_lamports(helius.low),
+            " | Helius: normal={} fast={}",
             format_micro_lamports(helius.medium),
             format_micro_lamports(helius.high)
         );
@@ -353,7 +346,6 @@ fn print_solana_fee_data(
     table.add_row(Row::new(header));
 
     let levels = [
-        ("Slow", fee_data.priority_fees.slow, fee_data.jito_tips.slow),
         ("Normal", fee_data.priority_fees.normal, fee_data.jito_tips.normal),
         ("Fast", fee_data.priority_fees.fast, fee_data.jito_tips.fast),
     ];
@@ -371,7 +363,6 @@ fn print_solana_fee_data(
 
         if let Some(jito) = jito_data {
             let jito_floor = match *level {
-                "Slow" => jito.p25_lamports,
                 "Normal" => jito.p50_lamports,
                 "Fast" => jito.p75_lamports,
                 _ => 0,

@@ -1,6 +1,8 @@
 package com.gemwallet.android.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import com.gemwallet.android.ui.theme.secondaryFaded
 
 @Composable
 fun SuffixTextField(
@@ -26,6 +29,7 @@ fun SuffixTextField(
     onValueChange: (String) -> Unit,
     suffix: String,
     modifier: Modifier = Modifier,
+    placeholder: String = "",
     focusRequester: FocusRequester? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
@@ -58,6 +62,18 @@ fun SuffixTextField(
             ),
             keyboardOptions = keyboardOptions,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            decorationBox = { innerTextField ->
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                    if (textFieldValue.text.isEmpty() && placeholder.isNotEmpty()) {
+                        Text(
+                            text = placeholder,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.secondaryFaded,
+                        )
+                    }
+                    innerTextField()
+                }
+            },
         )
         Text(
             text = suffix,

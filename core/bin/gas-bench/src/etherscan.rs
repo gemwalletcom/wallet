@@ -44,10 +44,6 @@ impl EtherscanResult {
             gas_used_ratio: gas_used_ratio_str,
             priority_fees: vec![
                 PriorityFeeValue {
-                    priority: FeePriority::Slow,
-                    value: BigInt::from((safe_fee - base_fee) as i64),
-                },
-                PriorityFeeValue {
                     priority: FeePriority::Normal,
                     value: BigInt::from((propose_fee - base_fee) as i64),
                 },

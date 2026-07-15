@@ -9,7 +9,7 @@ struct TransferTransactionProviderTests {
     @Test
     func selectFeeRateUsesRequestedPriority() throws {
         let rates = [
-            FeeRate(priority: .slow, gasPriceType: .regular(gasPrice: 1)),
+            FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 1)),
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 3)),
         ]
 
@@ -19,11 +19,10 @@ struct TransferTransactionProviderTests {
     @Test
     func selectFeeRateFallsBackToFirstAvailableRate() throws {
         let rates = [
-            FeeRate(priority: .slow, gasPriceType: .regular(gasPrice: 1)),
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 3)),
         ]
 
-        #expect(try selectFeeRate(from: rates, selection: .preset(.normal)).priority == .slow)
+        #expect(try selectFeeRate(from: rates, selection: .preset(.normal)).priority == .fast)
     }
 
     @Test
@@ -36,7 +35,7 @@ struct TransferTransactionProviderTests {
     @Test
     func selectFeeRateUsesCustomGasPrice() throws {
         let rates = [
-            FeeRate(priority: .slow, gasPriceType: .regular(gasPrice: 1)),
+            FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 1)),
             FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 2)),
         ]
 

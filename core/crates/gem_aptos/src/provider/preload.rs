@@ -43,7 +43,6 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
         let gas_fee = self.get_gas_price().await?;
 
         Ok(vec![
-            FeeRate::new(FeePriority::Slow, GasPriceType::regular(gas_fee.deprioritized_gas_estimate)),
             FeeRate::new(FeePriority::Normal, GasPriceType::regular(gas_fee.gas_estimate)),
             FeeRate::new(FeePriority::Fast, GasPriceType::regular(gas_fee.prioritized_gas_estimate)),
         ])

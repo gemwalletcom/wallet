@@ -21,46 +21,27 @@ public struct NetworkFeeScene: View {
             if model.showFeeRates {
                 Section {
                     ForEach(model.feeRatesViewModels) { feeRate in
-                        Button {
-                            model.onSelectPreset(feeRate)
+                        NavigationCustomLink(
+                            with: FeeRow(
+                                emoji: feeRate.emoji,
+                                isSelected: model.isSelected(feeRate),
+                                model: model.rowItem(for: feeRate),
+                            ),
+                        ) {
+                            model.select(.preset(feeRate.feeRate.priority))
                             dismiss()
-                        } label: {
-                            HStack(spacing: .space12) {
-                                EmojiView(
-                                    color: Colors.grayBackground,
-                                    emoji: feeRate.emoji,
-                                )
-                                .frame(width: Sizing.image.asset, height: Sizing.image.asset)
-                                .assetBadge(model.isSelected(feeRate) ? Images.Wallets.selected : nil)
-
-                                ListItemView(
-                                    title: feeRate.title,
-                                    subtitle: model.valueForRate(feeRate),
-                                    subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
-                                    subtitleExtra: model.fiatValueForRate(feeRate),
-                                    subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
-                                )
-                            }
                         }
                     }
 
-                    if model.isCustomSelected {
-                        Button {
+                    if model.supportsCustomFee {
+                        NavigationCustomLink(
+                            with: FeeRow(
+                                emoji: Emoji.FeeRate.custom.rawValue,
+                                isSelected: model.isCustomSelected,
+                                model: model.customRowItem,
+                            ),
+                        ) {
                             isPresentingCustomFee = true
-                        } label: {
-                            HStack(spacing: .space12) {
-                                EmojiView(color: Colors.grayBackground, emoji: model.customFeeEmoji)
-                                    .frame(width: Sizing.image.asset, height: Sizing.image.asset)
-                                    .assetBadge(Images.Wallets.selected)
-
-                                ListItemView(
-                                    title: model.customFeeTitle,
-                                    subtitle: model.customRateText,
-                                    subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
-                                    subtitleExtra: model.fiatValue,
-                                    subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
-                                )
-                            }
                         }
                     }
                 } footer: {
@@ -85,14 +66,28 @@ public struct NetworkFeeScene: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button("", systemImage: SystemImage.xmark, action: { dismiss() })
             }
-            if model.supportsCustomFee {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("", systemImage: SystemImage.settings) { isPresentingCustomFee = true }
-                }
-            }
         }
         .navigationDestination(isPresented: $isPresentingCustomFee) {
-            NetworkFeeCustomScene(model: model.customFeeModel(onComplete: { dismiss() }))
+            NetworkFeeCustomScene(
+                model: model.customFeeModel(),
+                onConfirm: { dismiss() },
+            )
+        }
+    }
+}
+
+private struct FeeRow: View {
+    let emoji: String
+    let isSelected: Bool
+    let model: ListItemModel
+
+    var body: some View {
+        HStack(spacing: .space12) {
+            EmojiView(color: Colors.grayBackground, emoji: emoji)
+                .frame(width: Sizing.image.asset, height: Sizing.image.asset)
+                .assetBadge(isSelected ? Images.Wallets.selected : nil)
+
+            ListItemView(model: model)
         }
     }
 }

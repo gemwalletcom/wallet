@@ -13,10 +13,10 @@ public enum FeeSelection: Equatable, Sendable {
         }
     }
 
-    public var customValue: BigInt? {
+    public var customRate: BigInt? {
         switch self {
         case .preset: nil
-        case let .custom(value): value
+        case let .custom(rate): rate
         }
     }
 }
