@@ -114,6 +114,13 @@ impl CacherClient {
         Ok(self.connection.clone().del::<&str, i64>(key).await? > 0)
     }
 
+    pub async fn delete_keys(&self, keys: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if keys.is_empty() {
+            return Ok(0);
+        }
+        Ok(self.connection.clone().del(keys).await?)
+    }
+
     pub async fn increment(&self, key: &str) -> Result<i64, Box<dyn Error + Send + Sync>> {
         Ok(self.connection.clone().incr(key, 1).await?)
     }

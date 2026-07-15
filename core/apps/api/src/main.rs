@@ -155,6 +155,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::assets::add_asset,
                 admin::transactions::get_transactions_by_hash,
                 admin::transactions::add_transaction,
+                admin::addresses::refresh_addresses,
                 admin::prices::add_price,
                 admin::lists::add_list,
                 admin::nft::update_nft_asset,
@@ -322,6 +323,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         .manage(okx_provider)
         .manage(Mutex::new(portfolio_client))
         .manage(auth_client)
+        .manage(cacher_client)
         .manage(stream_producer);
 
     Ok(mount_routes(rocket, settings.api.admin.enabled))
