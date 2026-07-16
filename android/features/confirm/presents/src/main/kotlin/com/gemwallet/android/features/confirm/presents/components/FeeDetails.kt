@@ -41,6 +41,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
+import com.gemwallet.android.ui.components.title
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -60,7 +61,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemFeeRate
@@ -159,10 +159,7 @@ private fun FeeRates(
                 val feeRate = FeeRateUIModel(item, feeAssetInfo, feeUnitType, selectedRate, currentFee.amount, unitSymbol)
                 FeeRow(
                     emoji = feeRate.emoji,
-                    title = when (feeRate.priority) {
-                        FeePriority.Fast -> stringResource(R.string.fee_rates_fast)
-                        FeePriority.Normal -> stringResource(R.string.fee_rates_normal)
-                    },
+                    title = feeRate.priority.title(),
                     rate = feeRate.price,
                     fiat = feeRate.fiatValue,
                     isSelected = selection is FeeSelection.Preset && selection.priority == feeRate.priority,
