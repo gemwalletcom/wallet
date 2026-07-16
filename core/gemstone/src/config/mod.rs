@@ -104,8 +104,7 @@ impl Config {
         crate::config::chain::get_chain_config(chain)
     }
 
-    fn get_fee_config(&self, chain: String) -> FeeConfig {
-        let chain = Chain::from_str(&chain).unwrap();
+    fn get_fee_config(&self, chain: Chain) -> FeeConfig {
         get_fee_config(chain)
     }
 

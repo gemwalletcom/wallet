@@ -42,7 +42,7 @@ data class CustomFee(
             return CustomFee(
                 rate = rate,
                 placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
-                networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeAmount), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
+                networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeValue), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
                 maxRateText = format(BigInteger(estimate.maxRate), decimals),
                 isOverMax = estimate.isOverMax,
                 isConfirmEnabled = rate != null && !estimate.isOverMax,

@@ -68,13 +68,13 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var errorText: String? {
-        guard estimate.isOverMax else { return nil }
+        guard let estimate, estimate.isOverMax else { return nil }
         let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: estimate.maxRate), decimals: decimals, symbol: feeAsset.symbol).value
         return Localized.Common.maximumValue(maxText)
     }
 
     public var isConfirmEnabled: Bool {
-        rate != nil && !estimate.isOverMax
+        rate != nil && estimate?.isOverMax == false
     }
 
     public func sanitize(_ text: String) -> String {
@@ -82,7 +82,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func confirm() {
-        guard let rate, !estimate.isOverMax else { return }
+        guard let rate, estimate?.isOverMax == false else { return }
         onSelect(rate)
     }
 
@@ -91,8 +91,8 @@ public final class NetworkFeeCustomViewModel {
         return value
     }
 
-    private var estimate: CustomFeeEstimate {
-        CustomFeeEstimate.estimate(
+    private var estimate: CustomFeeEstimate? {
+        try? CustomFeeEstimate.estimate(
             rate: rate,
             loadedFee: baseFee ?? .zero,
             baseTotal: baseTotal ?? .zero,
@@ -102,7 +102,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     private var feeAmount: BigInt? {
-        baseFee.map { _ in estimate.feeAmount }
+        baseFee.flatMap { _ in estimate?.feeAmount }
     }
 
     private func display(for amount: BigInt) -> AmountDisplay {
