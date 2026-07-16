@@ -15,7 +15,7 @@ public struct PriceAlertService: Sendable {
     private let deviceService: any DeviceServiceable
     private let priceUpdater: any PriceUpdater
     private let preferences: Preferences
-    private let pushNotificationService: PushNotificationEnablerService
+    private let pushNotificationService: any PushNotificationEnabler
 
     public init(
         store: PriceAlertStore,
@@ -23,13 +23,14 @@ public struct PriceAlertService: Sendable {
         deviceService: any DeviceServiceable,
         priceUpdater: any PriceUpdater,
         preferences: Preferences = .standard,
+        pushNotificationService: any PushNotificationEnabler,
     ) {
         self.store = store
         self.apiService = apiService
         self.deviceService = deviceService
         self.priceUpdater = priceUpdater
         self.preferences = preferences
-        pushNotificationService = PushNotificationEnablerService(preferences: preferences)
+        self.pushNotificationService = pushNotificationService
     }
 
     @discardableResult
@@ -63,6 +64,12 @@ public struct PriceAlertService: Sendable {
             deleteIds: changes.toDelete.asArray(),
             alerts: remote,
         )
+    }
+
+    public func enable(priceAlert: PriceAlert) async throws {
+        try await add(priceAlert: priceAlert)
+        try await requestPermissions()
+        try await enablePriceAlerts()
     }
 
     public func add(priceAlert: PriceAlert) async throws {
