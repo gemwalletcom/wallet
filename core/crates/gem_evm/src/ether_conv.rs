@@ -1,8 +1,5 @@
-use bigdecimal::{
-    BigDecimal,
-    num_bigint::{BigInt as DecimalBigInt, Sign as DecimalSign},
-};
-use num_bigint::{BigInt, Sign};
+use bigdecimal::{BigDecimal, num_bigint::BigInt as DecimalBigInt};
+use num_bigint::BigInt;
 
 pub struct EtherConv {}
 
@@ -30,23 +27,11 @@ pub fn to_bn_wei(value: &str, decimals: u32) -> BigInt {
 }
 
 fn to_decimal_bigint(value: &BigInt) -> DecimalBigInt {
-    let (sign, bytes) = value.to_bytes_be();
-    let sign = match sign {
-        Sign::Minus => DecimalSign::Minus,
-        Sign::NoSign => DecimalSign::NoSign,
-        Sign::Plus => DecimalSign::Plus,
-    };
-    DecimalBigInt::from_bytes_be(sign, &bytes)
+    DecimalBigInt::from_signed_bytes_be(&value.to_signed_bytes_be())
 }
 
 fn to_bigint(value: &DecimalBigInt) -> BigInt {
-    let (sign, bytes) = value.to_bytes_be();
-    let sign = match sign {
-        DecimalSign::Minus => Sign::Minus,
-        DecimalSign::NoSign => Sign::NoSign,
-        DecimalSign::Plus => Sign::Plus,
-    };
-    BigInt::from_bytes_be(sign, &bytes)
+    BigInt::from_signed_bytes_be(&value.to_signed_bytes_be())
 }
 
 #[cfg(test)]
