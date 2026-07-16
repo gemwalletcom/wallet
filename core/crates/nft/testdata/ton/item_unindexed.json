@@ -1,0 +1,18 @@
+{
+  "nft_items": [
+    {
+      "address": "0:AB8672200772130496EEE219B489EF079BBEA974F12C97ED7FD702DA46631039",
+      "collection_address": "0:A0693C5BDB003FDC18BC11CE0514DBBC09ABA81E8D153E99F0C5DAE10203AB39",
+      "content": {
+        "uri": "https://nft.fragment.com/gift/swagbag-219028.json"
+      }
+    }
+  ],
+  "metadata": {
+    "0:AB8672200772130496EEE219B489EF079BBEA974F12C97ED7FD702DA46631039": {
+      "token_info": [
+        {}
+      ]
+    }
+  }
+}
