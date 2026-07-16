@@ -8,6 +8,7 @@ pub mod config;
 pub mod deeplink;
 pub mod device;
 pub mod ethereum;
+pub mod fee;
 pub mod gateway;
 pub mod gem_swapper;
 pub mod keystore;

@@ -8,7 +8,6 @@ use crate::{encode_split_and_stake, encode_token_transfer, encode_transfer, enco
 
 pub fn map_transaction_rate_rates(base_gas_price: BigInt) -> Vec<FeeRate> {
     vec![
-        FeeRate::new(FeePriority::Slow, GasPriceType::regular(base_gas_price.clone())),
         FeeRate::new(FeePriority::Normal, GasPriceType::regular(&base_gas_price * BigInt::from(110) / BigInt::from(100))),
         FeeRate::new(FeePriority::Fast, GasPriceType::regular(&base_gas_price * BigInt::from(2))),
     ]
@@ -157,12 +156,10 @@ mod tests {
     fn test_map_transaction_rate_rates() {
         let rates = map_transaction_rate_rates(BigInt::from(497));
 
-        assert_eq!(rates.len(), 3);
-        assert_eq!(rates[0].priority, FeePriority::Slow);
-        assert_eq!(rates[0].gas_price_type.gas_price(), BigInt::from(497));
-        assert_eq!(rates[1].priority, FeePriority::Normal);
-        assert_eq!(rates[1].gas_price_type.gas_price(), BigInt::from(546));
-        assert_eq!(rates[2].priority, FeePriority::Fast);
-        assert_eq!(rates[2].gas_price_type.gas_price(), BigInt::from(994));
+        assert_eq!(rates.len(), 2);
+        assert_eq!(rates[0].priority, FeePriority::Normal);
+        assert_eq!(rates[0].gas_price_type.gas_price(), BigInt::from(546));
+        assert_eq!(rates[1].priority, FeePriority::Fast);
+        assert_eq!(rates[1].gas_price_type.gas_price(), BigInt::from(994));
     }
 }

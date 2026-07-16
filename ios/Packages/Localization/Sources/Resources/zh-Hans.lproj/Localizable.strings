@@ -360,12 +360,12 @@
 "nodes.import_node.warning_message" = "自定义节点可能存在恶意，可能会泄露您的交易数据或提供虚假信息。";
 "library.select_from_photo_library" = "从照片中选取";
 "fee_rates.info" = "交易速度取决于向矿工支付的网络费用";
-"fee_rates.slow" = "慢速";
 "fee_rates.fast" = "极速";
 "fee_rates.normal" = "普通";
 "fee_rate.satvB" = "%@ 聪/vB";
 "fee_rate.satB" = "%@ 聪/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "自定义";
 "banner.account_activation.title" = "账户激活费用";
 "banner.account_activation.description" = "%@ 网络需要一次性费用 %@。";
 "banner.stake.title" = "开始质押 %@";

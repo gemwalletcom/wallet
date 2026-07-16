@@ -15,7 +15,7 @@ public struct TransferTransactionProviderMock: TransferTransactionProvidable {
     public func loadTransferTransactionData(
         wallet _: Wallet,
         data _: TransferData,
-        priority _: FeePriority,
+        selection _: FeeSelection,
         available _: BigInt,
     ) async throws -> TransferTransactionData {
         try result.get()

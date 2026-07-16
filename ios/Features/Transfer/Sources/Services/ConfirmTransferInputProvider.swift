@@ -15,13 +15,13 @@ public struct ConfirmTransferInputProvider: Sendable {
     public func load(
         request: ConfirmTransferRequest,
         metadata: TransferDataMetadata,
-        priority: FeePriority,
+        selection: FeeSelection,
     ) async throws -> ConfirmTransferInput {
         do {
             let transactionData = try await transferTransactionProvider.loadTransferTransactionData(
                 wallet: request.wallet,
                 data: request.data,
-                priority: priority,
+                selection: selection,
                 available: metadata.available,
             )
             let transferAmountInput = TransferAmountInput(

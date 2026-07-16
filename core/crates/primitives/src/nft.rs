@@ -332,6 +332,13 @@ mod tests {
     }
 
     #[test]
+    fn test_nft_resource_webp_mime_type() {
+        let resource = NFTResource::from_url("https://example.com/image.webp");
+
+        assert_eq!(resource.mime_type, "image/webp");
+    }
+
+    #[test]
     fn test_nft_attribute_skips_empty_optional_fields() {
         let value = serde_json::to_value(NFTAttribute {
             name: "Length".to_string(),

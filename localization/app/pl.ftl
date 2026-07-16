@@ -453,7 +453,6 @@ library_select_from_photo_library = Wybierz z biblioteki zdjęć
 # Fee Rates
 
 fee_rates_info = Szybkość transakcji zależy od opłaty sieciowej płaconej górnikom sieciowym.
-fee_rates_slow = Powolny
 fee_rates_fast = Szybko
 fee_rates_normal = Normalne
 
@@ -462,6 +461,7 @@ fee_rates_normal = Normalne
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Niestandardowe
 
 # Banner
 

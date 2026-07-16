@@ -18,7 +18,7 @@ struct ConfirmTransferInputProviderTests {
             ),
         ))
 
-        let input = try await provider.load(request: .mock(), metadata: .mock(), priority: .normal)
+        let input = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
 
         #expect(input.feeRates.count == 1)
         #expect(input.transactionData.fee.fee == 1)
@@ -33,7 +33,7 @@ struct ConfirmTransferInputProviderTests {
         )
 
         await #expect(throws: TransferAmountCalculatorError.self) {
-            try await provider.load(request: .mock(), metadata: metadata, priority: .normal)
+            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
         }
     }
 
@@ -46,7 +46,7 @@ struct ConfirmTransferInputProviderTests {
         )
 
         await #expect(throws: AnyError.self) {
-            try await provider.load(request: .mock(), metadata: metadata, priority: .normal)
+            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
         }
     }
 }

@@ -32,6 +32,14 @@ public struct FeeUnitViewModel {
         }
     }
 
+    public var suffix: String {
+        switch unit.type {
+        case .satVb: Localized.FeeRate.satvB("")
+        case .gwei: Localized.FeeRate.gwei("")
+        case .native: symbol
+        }
+    }
+
     private var unitValueText: String {
         switch unit.type {
         case .satVb:

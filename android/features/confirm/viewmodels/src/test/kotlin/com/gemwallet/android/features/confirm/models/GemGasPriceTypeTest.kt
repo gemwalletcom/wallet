@@ -1,7 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.gasPriceDecimals
-import com.gemwallet.android.ext.gasPriceSymbol
 import com.gemwallet.android.ext.totalFee
 import com.wallet.core.primitives.FeeUnitType
 import org.junit.Assert.assertEquals
@@ -27,12 +26,5 @@ class GemGasPriceTypeTest {
         assertEquals(0, FeeUnitType.SatVb.gasPriceDecimals)
         assertEquals(9, FeeUnitType.Gwei.gasPriceDecimals)
         assertNull(FeeUnitType.Native.gasPriceDecimals)
-    }
-
-    @Test
-    fun gasPriceSymbolMapsByUnitType() {
-        assertEquals(FeeUnitType.SatVb.string, FeeUnitType.SatVb.gasPriceSymbol)
-        assertEquals(FeeUnitType.Gwei.string, FeeUnitType.Gwei.gasPriceSymbol)
-        assertNull(FeeUnitType.Native.gasPriceSymbol)
     }
 }

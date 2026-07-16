@@ -97,6 +97,7 @@ fun ConfirmScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val feeRates by viewModel.feeRates.collectAsStateWithLifecycle()
     val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
+    val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
@@ -270,12 +271,10 @@ fun ConfirmScreen(
         FeeDetails(
             isVisible = showSelectTxSpeed,
             currentFee = feeModel as? FeeUIModel.FeeInfo,
+            selection = feeSelection,
             feeRates = feeRates,
             feeAssetInfo = feeAssetInfo,
-            onSelect = {
-                showSelectTxSpeed = false
-                viewModel.changeFeePriority(it)
-            },
+            onSelect = viewModel::changeFeeSelection,
             onCancel = { showSelectTxSpeed = false },
         )
 

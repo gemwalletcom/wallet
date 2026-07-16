@@ -74,7 +74,6 @@ fn map_fee_rates(slow: BigInt, normal: BigInt, fast: BigInt, chain: BitcoinChain
     let third: BigInt = &normal / 3;
     let fast = fast.max(&slow + &min_fee * 2).max(&normal + third);
     vec![
-        FeeRate::new(FeePriority::Slow, GasPriceType::regular(slow)),
         FeeRate::new(FeePriority::Normal, GasPriceType::regular(normal)),
         FeeRate::new(FeePriority::Fast, GasPriceType::regular(fast)),
     ]

@@ -360,12 +360,12 @@
 "nodes.import_node.warning_message" = "Brugerdefinerede noder kan være skadelige og kan eksponere dine transaktionsdata eller give falske oplysninger.";
 "library.select_from_photo_library" = "Vælg fra fotobibliotek";
 "fee_rates.info" = "Transaktionshastigheden bestemmes af netværksgebyr, der betales til netværksminearbejderne.";
-"fee_rates.slow" = "Langsomt";
 "fee_rates.fast" = "Hurtigt";
 "fee_rates.normal" = "Normal";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Tilpasset";
 "banner.account_activation.title" = "Kontoaktiveringsgebyr";
 "banner.account_activation.description" = "%@ netværket kræver et engangsgebyr på %@.";
 "banner.stake.title" = "Begynd at satse %@";

@@ -24,11 +24,9 @@ impl<C: Client + Clone> ChainTransactionLoad for XRPClient<C> {
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         let fees = self.get_fees().await?;
-        let minimum_fee = fees.drops.minimum_fee;
         let median_fee = fees.drops.median_fee;
 
         Ok(vec![
-            FeeRate::new(FeePriority::Slow, GasPriceType::regular(BigInt::from(std::cmp::max(minimum_fee, median_fee / 2)))),
             FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(median_fee))),
             FeeRate::new(FeePriority::Fast, GasPriceType::regular(BigInt::from(median_fee * 2))),
         ])

@@ -63,6 +63,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: request.data.type.asset.feeAsset,
             priority: confirmService.defaultPriority(for: request.data.type),
             currency: currency,
+            mode: .custom,
         )
 
         let recipientAddress = request.data.recipientData.recipient.address
@@ -292,7 +293,7 @@ extension ConfirmTransferSceneViewModel {
         state.transaction = .loading
         feeModel.reset()
         do {
-            let data = try await confirmService.load(request: request, priority: feeModel.priority)
+            let data = try await confirmService.load(request: request, selection: feeModel.selection)
             state = .loaded(data)
             feeModel.update(rates: data.input.feeRates, feeAssetPrice: data.metadata.feePrice)
             feeModel.update(feeAmount: data.input.transactionData.fee.fee)

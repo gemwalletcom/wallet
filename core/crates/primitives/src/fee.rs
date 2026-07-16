@@ -1,3 +1,4 @@
+use num_bigint::BigInt;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString};
 use typeshare::typeshare;
@@ -9,7 +10,6 @@ pub use crate::gas_price_type::GasPriceType;
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum FeePriority {
-    Slow,
     Normal,
     Fast,
 }
@@ -22,6 +22,15 @@ pub enum FeeUnitType {
     SatVb,
     Gwei,
     Native,
+}
+
+impl FeeUnitType {
+    pub fn decimals(&self) -> u32 {
+        match self {
+            FeeUnitType::SatVb | FeeUnitType::Native => 0,
+            FeeUnitType::Gwei => 9,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,3 +48,66 @@ impl FeeRate {
         rates.iter().find(|r| r.priority == priority)
     }
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CustomFee {
+    pub fee_value: BigInt,
+    pub max_rate: BigInt,
+    pub is_over_max: bool,
+}
+
+impl CustomFee {
+    pub fn calculate(rate: Option<BigInt>, loaded_fee: BigInt, base_total: BigInt, normal_total: BigInt, max_multiplier: u32) -> Self {
+        let rate = rate.filter(|value| value > &BigInt::from(0));
+        let max_rate = normal_total * BigInt::from(max_multiplier);
+
+        let (fee_value, is_over_max) = match rate {
+            Some(rate) => {
+                let is_over_max = rate > max_rate;
+                let fee_value = if base_total != BigInt::from(0) { &loaded_fee * &rate / &base_total } else { loaded_fee };
+                (fee_value, is_over_max)
+            }
+            None => (loaded_fee, false),
+        };
+
+        Self {
+            fee_value,
+            max_rate,
+            is_over_max,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn calculate(rate: Option<i64>, loaded_fee: i64, base_total: i64, normal_total: i64, max_multiplier: u32) -> CustomFee {
+        CustomFee::calculate(rate.map(BigInt::from), BigInt::from(loaded_fee), BigInt::from(base_total), BigInt::from(normal_total), max_multiplier)
+    }
+
+    #[test]
+    fn test_calculate() {
+        let fee = calculate(Some(20), 1000, 10, 10, 10);
+        assert_eq!(fee.fee_value, BigInt::from(2000));
+        assert_eq!(fee.max_rate, BigInt::from(100));
+        assert!(!fee.is_over_max);
+
+        let over = calculate(Some(101), 1000, 10, 10, 10);
+        assert_eq!(over.fee_value, BigInt::from(10100));
+        assert!(over.is_over_max);
+
+        let empty = calculate(None, 1000, 10, 10, 10);
+        assert_eq!(empty.fee_value, BigInt::from(1000));
+        assert!(!empty.is_over_max);
+
+        let non_positive = calculate(Some(0), 1000, 10, 10, 10);
+        assert_eq!(non_positive.fee_value, BigInt::from(1000));
+        assert!(!non_positive.is_over_max);
+
+        let zero_base = calculate(Some(20), 1000, 0, 10, 10);
+        assert_eq!(zero_base.fee_value, BigInt::from(1000));
+        assert!(!zero_base.is_over_max);
+    }
+}
+

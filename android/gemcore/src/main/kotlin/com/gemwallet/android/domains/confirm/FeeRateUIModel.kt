@@ -7,7 +7,6 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
 import com.gemwallet.android.ext.gasPriceDecimals
-import com.gemwallet.android.ext.gasPriceSymbol
 import com.gemwallet.android.ext.totalFee
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemFeeRate
@@ -19,6 +18,7 @@ data class FeeRateUIModel(
     val feeUnitType: FeeUnitType?,
     val selectedRate: GemFeeRate? = null,
     val selectedFeeAmount: BigInteger? = null,
+    val unitSymbol: String? = null,
 ) {
     val priority: FeePriority = FeePriority.entries.first { it.string == feeRate.priority }
 
@@ -34,7 +34,6 @@ data class FeeRateUIModel(
 
     val emoji: String
         get() = when (priority) {
-            FeePriority.Slow -> "\u23F1\uFE0F"
             FeePriority.Normal -> "\uD83D\uDC8E"
             FeePriority.Fast -> "\u26A1\uFE0F"
         }
@@ -59,7 +58,7 @@ data class FeeRateUIModel(
     private fun gasPriceText(): String {
         val unit = feeUnitType ?: return ""
         val decimals = unit.gasPriceDecimals ?: return ""
-        val symbol = unit.gasPriceSymbol ?: return ""
+        val symbol = unitSymbol ?: return ""
         return ValueFormatter(style = ValueFormatter.Style.Auto)
             .string(feeRate.gasPriceType.totalFee(), decimals, symbol)
     }

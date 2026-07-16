@@ -6,9 +6,9 @@ import com.gemwallet.android.blockchain.gemstone.toScanTransactionPayload
 import com.gemwallet.android.blockchain.gemstone.validate
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,7 @@ class SignerPreloaderProxy(
     private val scanTransaction: suspend (ScanTransactionPayload) -> ScanTransaction? = { null },
 ) {
 
-    suspend fun preload(params: ConfirmParams, feePriority: FeePriority): SignerParams = withContext(Dispatchers.IO) {
+    suspend fun preload(params: ConfirmParams, selection: FeeSelection): SignerParams = withContext(Dispatchers.IO) {
         val assetId = params.assetId
         val chain = assetId.chain
         val feeAssetId = AssetId(chain)
@@ -58,7 +58,7 @@ class SignerPreloaderProxy(
             val metadata = metadataDeferred.await()
             val feeRates = feeRatesDeferred.await()
             val validFeeRates = feeRates.filter { it.priority.toFeePriority() != null }
-            val selectedRate = validFeeRates.selectFeeRate(feePriority)
+            val selectedRate = validFeeRates.selectFeeRate(selection)
             val selectedPriority = requireNotNull(selectedRate.priority.toFeePriority())
 
             val transactionLoadDeferred = async {

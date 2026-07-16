@@ -59,7 +59,7 @@ pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHisto
     let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
     Ok(FeeCalculator::new()
-        .calculate_priority_fees(fee_history, &[FeePriority::Slow, FeePriority::Normal, FeePriority::Fast], min_priority_fee.clone())?
+        .calculate_priority_fees(fee_history, &[FeePriority::Normal, FeePriority::Fast], min_priority_fee.clone())?
         .into_iter()
         .map(|x| {
             let priority_fee = BigInt::max(min_priority_fee.clone(), x.value);
@@ -314,7 +314,7 @@ mod tests {
 
     fn create_test_fee_history_for_mapper() -> EthereumFeeHistory {
         EthereumFeeHistory {
-            reward: vec![vec!["0x5f5e100".to_string(), "0xbebc200".to_string(), "0x11e1a300".to_string()]],
+            reward: vec![vec!["0xbebc200".to_string(), "0x11e1a300".to_string()]],
             base_fee_per_gas: vec![BigInt::from(20_000_000_000u64)],
             gas_used_ratio: vec![0.5],
             oldest_block: 0x1234,
@@ -327,7 +327,7 @@ mod tests {
 
         let result = map_transaction_fee_rates(EVMChain::Ethereum, &fee_history)?;
 
-        assert_eq!(result.len(), 3);
+        assert_eq!(result.len(), 2);
 
         let min_priority_fee = BigInt::from(EVMChain::Ethereum.min_priority_fee());
         for fee_rate in &result {
@@ -346,7 +346,7 @@ mod tests {
     #[test]
     fn test_map_transaction_fee_rates_zero_base_fee() -> Result<(), Box<dyn Error + Sync + Send>> {
         let fee_history = EthereumFeeHistory {
-            reward: vec![vec!["0x5f5e100".to_string(), "0xbebc200".to_string(), "0x11e1a300".to_string()]],
+            reward: vec![vec!["0xbebc200".to_string(), "0x11e1a300".to_string()]],
             base_fee_per_gas: vec![BigInt::from(0u64)], // Zero base fee
             gas_used_ratio: vec![0.5],
             oldest_block: 0x1234,
@@ -354,7 +354,7 @@ mod tests {
 
         let result = map_transaction_fee_rates(EVMChain::SmartChain, &fee_history)?;
 
-        assert_eq!(result.len(), 3);
+        assert_eq!(result.len(), 2);
 
         assert_eq!(result[0].gas_price_type.gas_price(), BigInt::ZERO);
         assert!(result[0].gas_price_type.priority_fee() != BigInt::ZERO);
