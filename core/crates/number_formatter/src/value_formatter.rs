@@ -1,5 +1,4 @@
-use bigdecimal::BigDecimal;
-use num_bigint::Sign;
+use bigdecimal::{BigDecimal, num_bigint::Sign};
 
 use crate::big_number_formatter::{BigNumberFormatter, NumberFormatterError};
 use crate::currency::add_thousands_separator;

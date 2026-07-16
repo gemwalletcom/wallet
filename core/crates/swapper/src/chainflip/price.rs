@@ -1,6 +1,7 @@
-use bigdecimal::BigDecimal;
-use num_bigint::BigInt;
-use num_bigint::ToBigInt;
+use bigdecimal::{
+    BigDecimal,
+    num_bigint::{BigInt, ToBigInt},
+};
 use num_traits::FromPrimitive;
 
 pub fn apply_slippage(original_price: f64, slippage_bps: u32) -> f64 {
