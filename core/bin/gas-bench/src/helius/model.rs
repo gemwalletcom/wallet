@@ -37,14 +37,12 @@ pub struct HeliusPriorityFeeResult {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HeliusPriorityFeeLevels {
-    pub low: f64,
     pub medium: f64,
     pub high: f64,
 }
 
 #[derive(Debug)]
 pub struct HeliusPriorityFees {
-    pub low: u64,
     pub medium: u64,
     pub high: u64,
 }
@@ -52,7 +50,6 @@ pub struct HeliusPriorityFees {
 impl HeliusPriorityFees {
     pub fn from_levels(levels: &HeliusPriorityFeeLevels) -> Self {
         Self {
-            low: levels.low as u64,
             medium: levels.medium as u64,
             high: levels.high as u64,
         }

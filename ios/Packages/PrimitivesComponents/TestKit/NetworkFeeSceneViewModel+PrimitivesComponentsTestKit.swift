@@ -12,6 +12,7 @@ public extension NetworkFeeSceneViewModel {
         priority: FeePriority = .normal,
         currency: Currency = .usd,
         feeAmount: BigInt? = nil,
+        mode: NetworkFeeSceneViewModel.Mode = .standard,
     ) -> NetworkFeeSceneViewModel {
         let feeAsset = feeAsset ?? defaultFeeAsset(for: chain)
         return NetworkFeeSceneViewModel(
@@ -20,6 +21,7 @@ public extension NetworkFeeSceneViewModel {
             priority: priority,
             currency: currency,
             feeAmount: feeAmount,
+            mode: mode,
         )
     }
 }

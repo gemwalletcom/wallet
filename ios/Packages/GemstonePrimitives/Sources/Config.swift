@@ -4,6 +4,7 @@ import Foundation
 import typealias Gemstone.ChainConfig
 import class Gemstone.Config
 import enum Gemstone.DocsUrl
+import struct Gemstone.FeeConfig
 import enum Gemstone.PublicUrl
 import enum Gemstone.RewardsUrl
 import enum Gemstone.SocialUrl
@@ -64,6 +65,12 @@ public enum ChainConfig {
 
     public static func config(chain: Primitives.Chain) -> Gemstone.ChainConfig {
         chainConfigs[chain]!
+    }
+}
+
+public enum FeeConfig {
+    public static func config(chain: Primitives.Chain) -> Gemstone.FeeConfig {
+        Config.shared.getFeeConfig(chain: chain.rawValue)
     }
 }
 

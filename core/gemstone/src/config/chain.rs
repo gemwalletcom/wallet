@@ -76,3 +76,11 @@ pub fn fee_unit_type(chain: Chain) -> FeeUnitType {
         _ => FeeUnitType::Native,
     }
 }
+
+#[allow(clippy::match_like_matches_macro)]
+pub fn custom_fee_enabled(chain: Chain) -> bool {
+    match chain.chain_type() {
+        ChainType::Bitcoin => true,
+        _ => false,
+    }
+}

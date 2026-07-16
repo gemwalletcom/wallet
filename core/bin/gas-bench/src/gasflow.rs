@@ -46,10 +46,6 @@ impl GasflowResponse {
             gas_used_ratio: gas_used_ratio_str,
             priority_fees: vec![
                 PriorityFeeValue {
-                    priority: FeePriority::Slow,
-                    value: BigInt::from(self.predicted_quantiles.minimum as i64),
-                },
-                PriorityFeeValue {
                     priority: FeePriority::Normal,
                     value: BigInt::from(self.predicted_quantiles.normal as i64),
                 },

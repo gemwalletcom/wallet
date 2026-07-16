@@ -523,6 +523,8 @@ public enum Localized {
     }
   }
   public enum FeeRate {
+    /// Custom
+    public static let custom = Localized.tr("Localizable", "fee_rate.custom", fallback: "Custom")
     /// %@ gwei
     public static func gwei(_ p1: Any) -> String {
       return Localized.tr("Localizable", "fee_rate.gwei", String(describing: p1), fallback: "%@ gwei")
@@ -543,8 +545,6 @@ public enum Localized {
     public static let info = Localized.tr("Localizable", "fee_rates.info", fallback: "Speed of transaction is determined by network fee paid to the network miners.")
     /// Normal
     public static let normal = Localized.tr("Localizable", "fee_rates.normal", fallback: "Normal")
-    /// Slow
-    public static let slow = Localized.tr("Localizable", "fee_rates.slow", fallback: "Slow")
   }
   public enum Filter {
     /// Clear

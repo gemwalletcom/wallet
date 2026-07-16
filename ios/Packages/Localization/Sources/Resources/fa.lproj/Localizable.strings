@@ -360,12 +360,12 @@
 "nodes.import_node.warning_message" = "گره‌های سفارشی می‌توانند مخرب باشند و ممکن است داده‌های تراکنش شما را افشا کنند یا اطلاعات نادرست ارائه دهند.";
 "library.select_from_photo_library" = "انتخاب از تصاویر گالری";
 "fee_rates.info" = "سرعت انجام تراکنش بر اساس کارمزدی که به ماینرهای شبکه پرداخت میشود مشخص میشود.";
-"fee_rates.slow" = "آهسته";
 "fee_rates.fast" = "سریع";
 "fee_rates.normal" = "عادی";
 "fee_rate.satvB" = "%@ ساتوشی بر بایت";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "سفارشی";
 "banner.account_activation.title" = "کارمزد فعال سازی حساب.";
 "banner.account_activation.description" = "شبکه %@ نیاز به کارمزد اولیه %@ ای دارد.";
 "banner.stake.title" = "شروع به استیک کردن %@.";

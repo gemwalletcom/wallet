@@ -375,12 +375,12 @@
   <string name="nodes_import_node_warning_message">কাস্টম নোডগুলি ক্ষতিকারক হতে পারে এবং আপনার লেনদেনের ডেটা প্রকাশ করতে পারে বা মিথ্যা তথ্য প্রদান করতে পারে।</string>
   <string name="library_select_from_photo_library">ফটো লাইব্রেরি থেকে নির্বাচন করুন</string>
   <string name="fee_rates_info">লেনদেনের গতি নেটওয়ার্ক মাইনারদের দেওয়া নেটওয়ার্ক ফি দ্বারা নির্ধারিত হয়।</string>
-  <string name="fee_rates_slow">ধীর</string>
   <string name="fee_rates_fast">দ্রুত</string>
   <string name="fee_rates_normal">স্বাভাবিক</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">কাস্টম</string>
   <string name="banner_account_activation_title">অ্যাকাউন্ট অ্যাক্টিভেশন ফি</string>
   <string name="banner_account_activation_description">%1$s নেটওয়ার্কের জন্য %2$s এর এককালীন ফি প্রয়োজন।</string>
   <string name="banner_stake_title">%1$s স্টেক করা শুরু করুন</string>

@@ -29,7 +29,6 @@ impl<C: Client> ChainTransactionLoad for StellarClient<C> {
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         let fees = self.get_fees().await?;
         Ok(vec![
-            FeeRate::new(FeePriority::Slow, GasPriceType::regular(fees.fee_charged.min)),
             FeeRate::new(FeePriority::Normal, GasPriceType::regular(fees.fee_charged.min)),
             FeeRate::new(FeePriority::Fast, GasPriceType::regular(fees.fee_charged.p95 * 2)),
         ])

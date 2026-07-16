@@ -375,12 +375,12 @@
   <string name="nodes_import_node_warning_message">قد تكون العقد المخصصة ضارة وقد تكشف بيانات معاملاتك أو تقدم معلومات خاطئة.</string>
   <string name="library_select_from_photo_library">اختر من مكتبة الصور</string>
   <string name="fee_rates_info">يتم تحديد سرعة المعاملة من خلال رسوم الشبكة المدفوعة لعمال المناجم في الشبكة.</string>
-  <string name="fee_rates_slow">بطيء</string>
   <string name="fee_rates_fast">سريع</string>
   <string name="fee_rates_normal">طبيعي</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">مخصص</string>
   <string name="banner_account_activation_title">رسوم تفعيل الحساب</string>
   <string name="banner_account_activation_description">تتطلب شبكة %1$s رسومًا لمرة واحدة قدرها %2$s.</string>
   <string name="banner_stake_title">ابدأ تخزين %1$s</string>

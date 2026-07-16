@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
@@ -78,7 +79,7 @@ class ConfirmViewModel @Inject constructor(
 
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
-    val feePriority = MutableStateFlow(FeePriority.Normal)
+    val feeSelection = MutableStateFlow<FeeSelection>(FeeSelection.Preset(FeePriority.Normal))
     private val simulationResult = MutableStateFlow<SimulationResult?>(null)
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
@@ -137,8 +138,8 @@ class ConfirmViewModel @Inject constructor(
     private val preloadData = combine(
         session,
         request.filterNotNull(),
-        feePriority,
-    ) { session, request, feePriority ->
+        feeSelection,
+    ) { session, request, feeSelection ->
         val owner = session?.wallet?.getAccount(request.assetId.chain)
         if (owner == null) {
             state.update { ConfirmState.FatalError("Session not found") }
@@ -146,7 +147,7 @@ class ConfirmViewModel @Inject constructor(
         }
 
         val preload = try {
-            signerPreload.preload(params = request, feePriority = feePriority)
+            signerPreload.preload(params = request, selection = feeSelection)
         } catch (err: Throwable) {
             state.update {
                 ConfirmState.Error(err.toPreloadConfirmError(owner.chain))
@@ -276,13 +277,10 @@ class ConfirmViewModel @Inject constructor(
         }
     }
 
-    fun changeFeePriority(feePriority: FeePriority) {
-        val selectedPriority = preloadData.value?.fee()?.priority ?: this.feePriority.value
-        if (feePriority == selectedPriority) {
-            return
-        }
+    fun changeFeeSelection(selection: FeeSelection) {
+        if (selection == feeSelection.value) return
         state.update { ConfirmState.Prepare }
-        this.feePriority.update { feePriority }
+        feeSelection.update { selection }
     }
 
     fun send(finishAction: FinishConfirmAction) = viewModelScope.launch(Dispatchers.IO) {

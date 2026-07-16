@@ -453,7 +453,6 @@ library_select_from_photo_library = Zaɓi daga Laburaren Hoto
 # Fee Rates
 
 fee_rates_info = Ana ƙayyade saurin ma'amala ta hanyar kuɗin hanyar sadarwa da aka biya ga masu hakar ma'adinai na cibiyar sadarwa.
-fee_rates_slow = Sannu a hankali
 fee_rates_fast = Mai sauri
 fee_rates_normal = Na al'ada
 
@@ -462,6 +461,7 @@ fee_rates_normal = Na al'ada
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Na Musamman
 
 # Banner
 

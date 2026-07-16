@@ -5,7 +5,6 @@
 import Foundation
 
 public enum FeePriority: String, Codable, CaseIterable, Equatable, Sendable {
-	case slow
 	case normal
 	case fast
 }

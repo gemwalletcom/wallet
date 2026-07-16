@@ -9,8 +9,6 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 enum class FeePriority(val string: String) {
-	@SerialName("slow")
-	Slow("slow"),
 	@SerialName("normal")
 	Normal("normal"),
 	@SerialName("fast")
