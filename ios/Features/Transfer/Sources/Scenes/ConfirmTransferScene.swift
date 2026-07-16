@@ -27,8 +27,8 @@ public struct ConfirmTransferScene: View {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .onChange(of: model.feeModel.priority) { _, _ in
-            model.onChangeFeePriority()
+        .onChange(of: model.feeModel.selection) { _, _ in
+            model.onChangeFeeSelection()
         }
         .taskOnce { model.fetch() }
         .navigationTitle(model.title)

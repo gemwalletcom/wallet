@@ -16,9 +16,3 @@ val FeeUnitType.gasPriceDecimals: Int?
         FeeUnitType.Gwei -> 9
         FeeUnitType.Native -> null
     }
-
-val FeeUnitType.gasPriceSymbol: String?
-    get() = when (this) {
-        FeeUnitType.SatVb, FeeUnitType.Gwei -> string
-        FeeUnitType.Native -> null
-    }

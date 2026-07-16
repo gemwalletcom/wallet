@@ -12,8 +12,8 @@ pub fn get_fee_history_blocks(chain: EVMChain) -> u64 {
     min(60 * 1000 / block_time, 15) as u64
 }
 
-pub fn get_reward_percentiles() -> [u64; 3] {
-    [20, 40, 60]
+pub fn get_reward_percentiles() -> [u64; 2] {
+    [40, 60]
 }
 
 pub struct FeeCalculator;
@@ -75,7 +75,7 @@ impl FeeCalculator {
         result.iter_mut().zip(priorities.iter()).for_each(|(fee, &priority)| {
             fee.priority = priority;
             match priority {
-                FeePriority::Slow | FeePriority::Normal => {}
+                FeePriority::Normal => {}
                 FeePriority::Fast => fee.value *= BigInt::from(2),
             }
         });
@@ -92,11 +92,11 @@ mod tests {
     fn create_test_fee_history() -> EthereumFeeHistory {
         EthereumFeeHistory {
             reward: vec![
-                vec!["0x54e0840".to_string(), "0x31e7fe5d".to_string(), "0x3b9aca04".to_string()],
-                vec!["0x4b571c0".to_string(), "0x18bf8474".to_string(), "0x3b9aca00".to_string()],
-                vec!["0x18e20bb9".to_string(), "0x32324960".to_string(), "0x3b9aca00".to_string()],
-                vec!["0x38444c0".to_string(), "0x7bf60c0".to_string(), "0x31e7fe5d".to_string()],
-                vec!["0x5f5e100".to_string(), "0x29b92700".to_string(), "0x39fbe24e".to_string()],
+                vec!["0x31e7fe5d".to_string(), "0x3b9aca04".to_string()],
+                vec!["0x18bf8474".to_string(), "0x3b9aca00".to_string()],
+                vec!["0x32324960".to_string(), "0x3b9aca00".to_string()],
+                vec!["0x7bf60c0".to_string(), "0x31e7fe5d".to_string()],
+                vec!["0x29b92700".to_string(), "0x39fbe24e".to_string()],
             ],
             base_fee_per_gas: vec![
                 BigInt::from(2618877110u64),
@@ -119,27 +119,24 @@ mod tests {
 
     #[test]
     fn test_get_reward_percentiles() {
-        assert_eq!(get_reward_percentiles(), [20, 40, 60]);
+        assert_eq!(get_reward_percentiles(), [40, 60]);
     }
 
     #[test]
     fn test_calculate_priority_fees() {
         let calculator = FeeCalculator::new();
         let fee_history = create_test_fee_history();
-        let priorities = [FeePriority::Slow, FeePriority::Normal, FeePriority::Fast];
+        let priorities = [FeePriority::Normal, FeePriority::Fast];
 
         let result = calculator.calculate_priority_fees(&fee_history, &priorities, BigInt::from(100_000_000)).unwrap();
 
-        assert_eq!(result.len(), 3);
+        assert_eq!(result.len(), 2);
 
-        assert_eq!(result[0].priority, FeePriority::Slow);
-        assert_eq!(result[0].value, BigInt::from(148893464));
+        assert_eq!(result[0].priority, FeePriority::Normal);
+        assert_eq!(result[0].value, BigInt::from(584926205));
 
-        assert_eq!(result[1].priority, FeePriority::Normal);
-        assert_eq!(result[1].value, BigInt::from(584926205));
-
-        assert_eq!(result[2].priority, FeePriority::Fast);
-        assert_eq!(result[2].value, BigInt::from(1924038520));
+        assert_eq!(result[1].priority, FeePriority::Fast);
+        assert_eq!(result[1].value, BigInt::from(1924038520));
     }
 
     #[test]
@@ -147,7 +144,6 @@ mod tests {
         let calculator = FeeCalculator::new();
         let fee_history = EthereumFeeHistory {
             reward: vec![vec![
-                "0x77359400".to_string(), // 2 Gwei
                 "0xb2d05e00".to_string(), // 3 Gwei
                 "0x3b9aca00".to_string(), // 1 Gwei
             ]],
@@ -155,16 +151,14 @@ mod tests {
             gas_used_ratio: vec![0.5],
             oldest_block: 0,
         };
-        let priorities = [FeePriority::Slow, FeePriority::Normal, FeePriority::Fast];
+        let priorities = [FeePriority::Normal, FeePriority::Fast];
 
         let result = calculator.calculate_priority_fees(&fee_history, &priorities, BigInt::from(0)).unwrap();
 
-        assert_eq!(result.len(), 3);
-        assert_eq!(result[0].priority, FeePriority::Slow);
-        assert_eq!(result[1].priority, FeePriority::Normal);
-        assert_eq!(result[2].priority, FeePriority::Fast);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].priority, FeePriority::Normal);
+        assert_eq!(result[1].priority, FeePriority::Fast);
         assert!(result[0].value < result[1].value);
-        assert!(result[1].value < result[2].value);
     }
 
     #[test]
@@ -177,10 +171,10 @@ mod tests {
             oldest_block: 0,
         };
 
-        assert!(calculator.calculate_priority_fees(&empty_history, &[FeePriority::Slow], BigInt::from(100)).is_err());
+        assert!(calculator.calculate_priority_fees(&empty_history, &[FeePriority::Normal], BigInt::from(100)).is_err());
         assert!(
             calculator
-                .calculate_priority_fees(&create_test_fee_history(), &[FeePriority::Slow, FeePriority::Normal], BigInt::from(100))
+                .calculate_priority_fees(&create_test_fee_history(), &[FeePriority::Normal], BigInt::from(100))
                 .is_err()
         );
     }

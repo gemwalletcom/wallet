@@ -453,7 +453,6 @@ library_select_from_photo_library = Vyberte z knihovny fotografií
 # Fee Rates
 
 fee_rates_info = Rychlost transakce je určena síťovým poplatkem placeným síťovým těžařům.
-fee_rates_slow = Pomalý
 fee_rates_fast = Rychle
 fee_rates_normal = Normální
 
@@ -462,6 +461,7 @@ fee_rates_normal = Normální
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Vlastní
 
 # Banner
 

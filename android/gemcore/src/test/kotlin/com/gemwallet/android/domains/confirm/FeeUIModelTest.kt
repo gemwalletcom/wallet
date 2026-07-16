@@ -32,10 +32,13 @@ class FeeUIModelTest {
     )
 
     @Test fun formatsCryptoAndFiat() {
-        assertEquals("1 SOL", feeInfo(price = null).cryptoAmount)
-        assertEquals("", feeInfo(price = null).fiatAmount)
-        assertEquals("$200.00", feeInfo(price = 200.0).fiatAmount)
-        assertEquals("1 SOL", feeInfo(price = null).cryptoAmountWithFiat)
-        assertEquals("1 SOL (~$200.00)", feeInfo(price = 200.0).cryptoAmountWithFiat)
+        val noPrice = feeInfo(price = null)
+        val withPrice = feeInfo(price = 200.0)
+
+        assertEquals("1 SOL", noPrice.cryptoAmount)
+        assertEquals("", noPrice.fiatAmount)
+        assertEquals("$200.00", withPrice.fiatAmount)
+        assertEquals("1 SOL", noPrice.cryptoAmountWithFiat)
+        assertEquals("1 SOL (~$200.00)", withPrice.cryptoAmountWithFiat)
     }
 }

@@ -21,6 +21,7 @@ pub struct TokenMetadata {
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct TokenInfo {
+    #[serde(default)]
     pub valid: bool,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -38,6 +39,19 @@ pub struct TokenInfoExtra {
 pub struct NftItem {
     pub address: String,
     pub collection_address: Option<String>,
+    pub content: Option<NftContent>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct NftContent {
+    pub uri: Option<String>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct NftOffchainMetadata {
+    pub name: String,
+    pub description: Option<String>,
+    pub image: Option<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]

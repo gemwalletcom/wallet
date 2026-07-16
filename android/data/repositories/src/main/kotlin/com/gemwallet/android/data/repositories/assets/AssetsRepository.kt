@@ -12,6 +12,7 @@ import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinksModel
@@ -119,12 +120,10 @@ class AssetsRepository @Inject constructor(
         val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
         val marketRecord = rate?.let { assetFull.toMarketRecord(it.rate) }
         assetsDao.upsertAssetMetadata(record, linkRecords, marketRecord)
-        rate?.let { fiatRate ->
-            val currentPrice = pricesDao.getByAssets(listOf(assetIdIdentifier)).firstOrNull()
-            val priceRecord = assetFull.toPriceRecord(fiatRate)
-            if (priceRecord != null && (currentPrice == null || currentPrice.currency != priceRecord.currency || currentPrice.value == null)) {
-                pricesDao.insert(priceRecord)
-            }
+        rate?.let {
+            pricesDao.insert(
+                assetFull.toPriceRecord(it) ?: DbPrice(assetId = assetIdIdentifier, currency = currency.string)
+            )
         }
     }
 

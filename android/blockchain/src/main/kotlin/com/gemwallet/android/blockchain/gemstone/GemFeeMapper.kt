@@ -3,11 +3,13 @@ package com.gemwallet.android.blockchain.gemstone
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.Fee
+import com.gemwallet.android.model.FeeSelection
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRate
+import uniffi.gemstone.customGasPrice
 import uniffi.gemstone.FeeOption as GemFeeOption
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemGasPriceType
@@ -54,10 +56,17 @@ internal fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee
     )
 )
 
-internal fun List<GemFeeRate>.selectFeeRate(priority: FeePriority): GemFeeRate {
-    return firstOrNull { it.priority.toFeePriority() == priority }
+internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate = when (selection) {
+    is FeeSelection.Preset -> firstOrNull { it.priority.toFeePriority() == selection.priority }
         ?: firstOrNull()
         ?: throw IllegalStateException("Fee rates not found")
+
+    is FeeSelection.Custom -> {
+        val base = firstOrNull { it.priority.toFeePriority() == FeePriority.Normal }
+            ?: firstOrNull()
+            ?: throw IllegalStateException("Fee rates not found")
+        GemFeeRate(base.priority, customGasPrice(base.gasPriceType, selection.gasPrice.toString()))
+    }
 }
 
 internal fun Chain.toFee(

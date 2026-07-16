@@ -11,7 +11,6 @@ use serde_json::json;
 
 pub const ORCA_WHIRLPOOL: &str = "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc";
 
-const MIN_SLOW_FEE: u64 = 1_000;
 const MIN_NORMAL_FEE: u64 = 10_000;
 const MIN_FAST_FEE: u64 = 100_000;
 
@@ -19,7 +18,6 @@ const JITO_TIP_MIN_LAMPORTS: u64 = 10_000;
 
 #[derive(Debug, Clone)]
 pub struct JitoTipEstimates {
-    pub slow: u64,
     pub normal: u64,
     pub fast: u64,
 }
@@ -35,7 +33,6 @@ pub struct SolanaFeeData {
 
 #[derive(Debug)]
 pub struct PriorityFees {
-    pub slow: u64,
     pub normal: u64,
     pub fast: u64,
 }
@@ -112,14 +109,12 @@ fn get_best_fee_stats(global: &FeeStats, accounts: &AccountFeeStats) -> FeeStats
 
 fn calculate_priority_fees(stats: &FeeStats) -> PriorityFees {
     PriorityFees {
-        slow: (stats.median as u64).max(MIN_SLOW_FEE),
         normal: (stats.p75 as u64).max(MIN_NORMAL_FEE),
         fast: (stats.p90 as u64).max(MIN_FAST_FEE),
     }
 }
 
 fn estimate_jito_tips(stats: &FeeStats) -> JitoTipEstimates {
-    const BASE_SLOW: u64 = 1_000;
     const BASE_NORMAL: u64 = 3_000;
     const BASE_FAST: u64 = 10_000;
     const REFERENCE_FEE: f64 = 10_000.0;
@@ -132,7 +127,6 @@ fn estimate_jito_tips(stats: &FeeStats) -> JitoTipEstimates {
     };
 
     JitoTipEstimates {
-        slow: ((BASE_SLOW as f64 * congestion_multiplier) as u64).max(JITO_TIP_MIN_LAMPORTS),
         normal: ((BASE_NORMAL as f64 * congestion_multiplier) as u64).max(JITO_TIP_MIN_LAMPORTS),
         fast: ((BASE_FAST as f64 * congestion_multiplier) as u64).max(JITO_TIP_MIN_LAMPORTS),
     }

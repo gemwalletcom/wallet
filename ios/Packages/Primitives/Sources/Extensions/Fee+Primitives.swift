@@ -9,7 +9,6 @@ extension FeePriority: Identifiable {
 
     public var rank: Int {
         switch self {
-        case .slow: 3
         case .normal: 2
         case .fast: 1
         }

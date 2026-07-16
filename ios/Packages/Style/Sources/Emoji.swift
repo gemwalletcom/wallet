@@ -148,6 +148,7 @@ public enum Emoji {
         case slow = "⏱️"
         case normal = "💎"
         case fast = "⚡️"
+        case custom = "⚙️"
     }
 }
 

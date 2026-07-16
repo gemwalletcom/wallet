@@ -11,7 +11,21 @@ const MAX_ASSET_ID_LENGTH: usize = 256;
 const MAX_NFT_ID_LENGTH: usize = 256;
 const MAX_SEARCH_QUERY_LENGTH: usize = 128;
 pub(crate) const MAX_QUERY_LIMIT: usize = 100;
-pub(crate) const MAX_QUERY_LIMIT_VALIDATION: isize = MAX_QUERY_LIMIT as isize;
+
+#[derive(Clone, Copy)]
+pub struct QueryLimitParam(pub usize);
+
+impl<'r> FromFormField<'r> for QueryLimitParam {
+    fn default() -> Option<Self> {
+        Some(Self(MAX_QUERY_LIMIT))
+    }
+
+    fn from_value(field: ValueField<'r>) -> form::Result<'r, Self> {
+        usize::from_str(field.value)
+            .map(|limit| Self(if limit > MAX_QUERY_LIMIT { MAX_QUERY_LIMIT } else { limit }))
+            .map_err(|_| form::Error::validation(format!("Invalid limit: {}", field.value)).into())
+    }
+}
 
 pub struct ChainParam(pub Chain);
 
@@ -207,11 +221,16 @@ mod tests {
     use rocket::local::blocking::Client;
     use rocket::{get, routes};
 
-    use super::CurrencyParam;
+    use super::{CurrencyParam, MAX_QUERY_LIMIT, QueryLimitParam};
 
     #[get("/currency?<currency>")]
     fn currency(currency: CurrencyParam) -> String {
         currency.0.as_ref().to_string()
+    }
+
+    #[get("/limit?<limit>")]
+    fn limit(limit: QueryLimitParam) -> String {
+        limit.0.to_string()
     }
 
     #[test]
@@ -227,6 +246,24 @@ mod tests {
         assert_eq!(response.into_string().unwrap(), "EUR");
 
         let response = client.get("/currency?currency=BAD").dispatch();
+        assert_eq!(response.status(), Status::UnprocessableEntity);
+    }
+
+    #[test]
+    fn test_query_limit_defaults_and_validates() {
+        let client = Client::tracked(rocket::build().mount("/", routes![limit])).unwrap();
+
+        for path in ["/limit", "/limit?limit=200"] {
+            let response = client.get(path).dispatch();
+            assert_eq!(response.status(), Status::Ok);
+            assert_eq!(response.into_string().unwrap(), MAX_QUERY_LIMIT.to_string());
+        }
+
+        let response = client.get("/limit?limit=50").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.into_string().unwrap(), "50");
+
+        let response = client.get("/limit?limit=invalid").dispatch();
         assert_eq!(response.status(), Status::UnprocessableEntity);
     }
 }

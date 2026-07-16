@@ -54,7 +54,7 @@ impl GemstoneClient {
         let base_fee_for_next = fee_history_data.base_fee_per_gas.last().ok_or("Fee history missing base_fee_per_gas data")?;
 
         let service = FeeCalculator::new();
-        let priorities = vec![FeePriority::Slow, FeePriority::Normal, FeePriority::Fast];
+        let priorities = vec![FeePriority::Normal, FeePriority::Fast];
         let calculated_priority_fees = service
             .calculate_priority_fees(&fee_history_data, &priorities, BigInt::from(min_priority_fee))
             .map_err(|e| format!("Failed to calculate priority fees: {}", e))?;

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import Primitives
 import Style
 import SwiftUI
@@ -10,6 +9,8 @@ public struct NetworkFeeScene: View {
     @Environment(\.dismiss) private var dismiss
 
     private var model: NetworkFeeSceneViewModel
+
+    @State private var isPresentingCustomFee = false
 
     public init(model: NetworkFeeSceneViewModel) {
         self.model = model
@@ -20,27 +21,27 @@ public struct NetworkFeeScene: View {
             if model.showFeeRates {
                 Section {
                     ForEach(model.feeRatesViewModels) { feeRate in
-                        let isSelected = feeRate.feeRate.priority == model.priority
-                        Button {
-                            model.priority = feeRate.feeRate.priority
+                        NavigationCustomLink(
+                            with: FeeRow(
+                                emoji: feeRate.emoji,
+                                isSelected: model.isSelected(feeRate),
+                                model: model.rowItem(for: feeRate),
+                            ),
+                        ) {
+                            model.select(.preset(feeRate.feeRate.priority))
                             dismiss()
-                        } label: {
-                            HStack(spacing: .space12) {
-                                EmojiView(
-                                    color: Colors.grayBackground,
-                                    emoji: feeRate.emoji,
-                                )
-                                .frame(width: Sizing.image.asset, height: Sizing.image.asset)
-                                .assetBadge(isSelected ? Images.Wallets.selected : nil)
+                        }
+                    }
 
-                                ListItemView(
-                                    title: feeRate.title,
-                                    subtitle: model.valueForRate(feeRate),
-                                    subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
-                                    subtitleExtra: model.fiatValueForRate(feeRate),
-                                    subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
-                                )
-                            }
+                    if model.supportsCustomFee {
+                        NavigationCustomLink(
+                            with: FeeRow(
+                                emoji: Emoji.FeeRate.custom.rawValue,
+                                isSelected: model.isCustomSelected,
+                                model: model.customRowItem,
+                            ),
+                        ) {
+                            isPresentingCustomFee = true
                         }
                     }
                 } footer: {
@@ -65,6 +66,28 @@ public struct NetworkFeeScene: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button("", systemImage: SystemImage.xmark, action: { dismiss() })
             }
+        }
+        .navigationDestination(isPresented: $isPresentingCustomFee) {
+            NetworkFeeCustomScene(
+                model: model.customFeeModel(),
+                onConfirm: { dismiss() },
+            )
+        }
+    }
+}
+
+private struct FeeRow: View {
+    let emoji: String
+    let isSelected: Bool
+    let model: ListItemModel
+
+    var body: some View {
+        HStack(spacing: .space12) {
+            EmojiView(color: Colors.grayBackground, emoji: emoji)
+                .frame(width: Sizing.image.asset, height: Sizing.image.asset)
+                .assetBadge(isSelected ? Images.Wallets.selected : nil)
+
+            ListItemView(model: model)
         }
     }
 }

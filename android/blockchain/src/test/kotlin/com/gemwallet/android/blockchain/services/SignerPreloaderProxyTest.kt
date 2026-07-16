@@ -3,6 +3,7 @@ package com.gemwallet.android.blockchain.services
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.wallet.core.primitives.Asset
@@ -33,13 +34,8 @@ class SignerPreloaderProxyTest {
     @Test
     fun preload_loadsOnlySelectedPriorityAndKeepsAllFeeRates() = runBlocking {
         val params = transferParams()
-        val metadata = GemTransactionLoadMetadata.Evm(
-            nonce = 7u,
-            chainId = 1u,
-            contractCall = null,
-        )
+        val metadata = evmMetadata()
         val feeRates = listOf(
-            GemFeeRate(FeePriority.Slow.string, GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
             GemFeeRate(FeePriority.Normal.string, GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
             GemFeeRate(FeePriority.Fast.string, GemGasPriceType.Eip1559(gasPrice = "4", priorityFee = "5")),
         )
@@ -47,22 +43,14 @@ class SignerPreloaderProxyTest {
 
         coEvery { gateway.getTransactionPreload(any(), any()) } returns metadata
         coEvery { gateway.getFeeRates(any(), any()) } returns feeRates
-        coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns GemTransactionData(
-            fee = GemTransactionLoadFee(
-                fee = "21000",
-                gasPriceType = feeRates[1].gasPriceType,
-                gasLimit = "21000",
-                options = GemFeeOptions(emptyMap()),
-            ),
-            metadata = metadata,
-        )
+        coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns transactionData(feeRates[1].gasPriceType)
 
-        val result = subject.preload(params, FeePriority.Normal)
+        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal))
 
         assertEquals(feeRates, result.feeRates)
         assertEquals(FeePriority.Normal, result.fee().priority)
         assertEquals(BigInteger("21000"), result.fee().amount)
-        assertEquals(feeRates[1].gasPriceType, loadInput.captured.gasPrice)
+        assertEquals(feeRates[0].gasPriceType, loadInput.captured.gasPrice)
         coVerify(exactly = 1) { gateway.getTransactionPreload(any(), any()) }
         coVerify(exactly = 1) { gateway.getFeeRates(any(), any()) }
         coVerify(exactly = 1) { gateway.getTransactionLoad(any(), any()) }
@@ -71,11 +59,7 @@ class SignerPreloaderProxyTest {
     @Test
     fun preload_fallsBackToFirstAvailableValidPriority() = runBlocking {
         val params = transferParams()
-        val metadata = GemTransactionLoadMetadata.Evm(
-            nonce = 7u,
-            chainId = 1u,
-            contractCall = null,
-        )
+        val metadata = evmMetadata()
         val feeRates = listOf(
             GemFeeRate(priority = "unsupported", gasPriceType = GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
             GemFeeRate(FeePriority.Fast.string, GemGasPriceType.Eip1559(gasPrice = "4", priorityFee = "5")),
@@ -84,17 +68,9 @@ class SignerPreloaderProxyTest {
 
         coEvery { gateway.getTransactionPreload(any(), any()) } returns metadata
         coEvery { gateway.getFeeRates(any(), any()) } returns feeRates
-        coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns GemTransactionData(
-            fee = GemTransactionLoadFee(
-                fee = "21000",
-                gasPriceType = feeRates[1].gasPriceType,
-                gasLimit = "21000",
-                options = GemFeeOptions(emptyMap()),
-            ),
-            metadata = metadata,
-        )
+        coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns transactionData(feeRates[1].gasPriceType)
 
-        val result = subject.preload(params, FeePriority.Normal)
+        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal))
 
         assertEquals(listOf(feeRates[1]), result.feeRates)
         assertEquals(FeePriority.Fast, result.fee().priority)
@@ -113,7 +89,7 @@ class SignerPreloaderProxyTest {
         stubPreload()
         stubTransactionLoad()
 
-        val error = runCatching { subject.preload(params, FeePriority.Normal) }.exceptionOrNull()
+        val error = runCatching { subject.preload(params, FeeSelection.Preset(FeePriority.Normal)) }.exceptionOrNull()
 
         assertEquals(ConfirmError.ScanTransactionMalicious, error)
     }
@@ -129,7 +105,7 @@ class SignerPreloaderProxyTest {
         stubPreload()
         stubTransactionLoad()
 
-        val error = runCatching { subject.preload(params, FeePriority.Normal) }.exceptionOrNull()
+        val error = runCatching { subject.preload(params, FeeSelection.Preset(FeePriority.Normal)) }.exceptionOrNull()
 
         assertEquals(params.asset.symbol, (error as? ConfirmError.ScanTransactionMemoRequired)?.symbol)
     }
@@ -156,29 +132,30 @@ class SignerPreloaderProxyTest {
     )
 
     private fun stubTransactionLoad() {
-        coEvery { gateway.getTransactionLoad(any(), any()) } returns GemTransactionData(
-            fee = GemTransactionLoadFee(
-                fee = "21000",
-                gasPriceType = GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3"),
-                gasLimit = "21000",
-                options = GemFeeOptions(emptyMap()),
-            ),
-            metadata = GemTransactionLoadMetadata.Evm(
-                nonce = 7u,
-                chainId = 1u,
-                contractCall = null,
-            ),
-        )
+        coEvery { gateway.getTransactionLoad(any(), any()) } returns
+            transactionData(GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3"))
     }
 
     private fun stubPreload() {
-        coEvery { gateway.getTransactionPreload(any(), any()) } returns GemTransactionLoadMetadata.Evm(
-            nonce = 7u,
-            chainId = 1u,
-            contractCall = null,
-        )
+        coEvery { gateway.getTransactionPreload(any(), any()) } returns evmMetadata()
         coEvery { gateway.getFeeRates(any(), any()) } returns listOf(
             GemFeeRate(FeePriority.Normal.string, GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
         )
     }
+
+    private fun evmMetadata() = GemTransactionLoadMetadata.Evm(
+        nonce = 7u,
+        chainId = 1u,
+        contractCall = null,
+    )
+
+    private fun transactionData(gasPriceType: GemGasPriceType) = GemTransactionData(
+        fee = GemTransactionLoadFee(
+            fee = "21000",
+            gasPriceType = gasPriceType,
+            gasLimit = "21000",
+            options = GemFeeOptions(emptyMap()),
+        ),
+        metadata = evmMetadata(),
+    )
 }

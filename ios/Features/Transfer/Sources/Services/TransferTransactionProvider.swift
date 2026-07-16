@@ -2,6 +2,7 @@
 
 import BigInt
 import Blockchain
+import GemstonePrimitives
 import Primitives
 import ScanService
 import Validators
@@ -10,7 +11,7 @@ public protocol TransferTransactionProvidable: Sendable {
     func loadTransferTransactionData(
         wallet: Wallet,
         data: TransferData,
-        priority: FeePriority,
+        selection: FeeSelection,
         available: BigInt,
     ) async throws -> TransferTransactionData
 }
@@ -32,10 +33,10 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
     public func loadTransferTransactionData(
         wallet: Wallet,
         data: TransferData,
-        priority: FeePriority,
+        selection: FeeSelection,
         available: BigInt,
     ) async throws -> TransferTransactionData {
-        async let getFeeRates = getFeeRates(type: data.type, priority: priority)
+        async let getFeeRates = getFeeRates(type: data.type, selection: selection)
         async let getTransactionMetadata = getTransactionMetadata(wallet: wallet, data: data)
         async let getTransactionScan = getTransactionScan(wallet: wallet, data: data)
 
@@ -111,18 +112,25 @@ extension TransferTransactionProvider {
         )
     }
 
-    private func getFeeRates(type: TransferDataType, priority: FeePriority) async throws -> (rates: [FeeRate], selected: FeeRate) {
+    private func getFeeRates(type: TransferDataType, selection: FeeSelection) async throws -> (rates: [FeeRate], selected: FeeRate) {
         let rates = try await feeRatesProvider.rates(for: type)
-        let selected = try selectFeeRate(from: rates, requestedPriority: priority)
+        let selected = try selectFeeRate(from: rates, selection: selection)
 
         return (rates, selected)
     }
 }
 
-func selectFeeRate(from rates: [FeeRate], requestedPriority: FeePriority) throws -> FeeRate {
-    guard let selected = rates.first(where: { $0.priority == requestedPriority }) ?? rates.first else {
-        throw ChainCoreError.feeRateMissed
+func selectFeeRate(from rates: [FeeRate], selection: FeeSelection) throws -> FeeRate {
+    switch selection {
+    case let .custom(gasPrice):
+        let base = rates.first(where: { $0.priority == .normal }) ?? rates.first
+        let baseGasPriceType = base?.gasPriceType ?? .regular(gasPrice: gasPrice)
+        let gasPriceType = try GasPriceType.custom(base: baseGasPriceType, gasPrice: gasPrice)
+        return FeeRate(priority: base?.priority ?? .normal, gasPriceType: gasPriceType)
+    case let .preset(priority):
+        guard let selected = rates.first(where: { $0.priority == priority }) ?? rates.first else {
+            throw ChainCoreError.feeRateMissed
+        }
+        return selected
     }
-
-    return selected
 }

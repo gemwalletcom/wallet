@@ -5,14 +5,12 @@ const MICRO_LAMPORTS_PER_LAMPORT: u64 = 1_000_000;
 
 #[derive(Debug, Deserialize)]
 pub struct JitoTipFloorEntry {
-    pub landed_tips_25th_percentile: f64,
     pub landed_tips_50th_percentile: f64,
     pub landed_tips_75th_percentile: f64,
 }
 
 #[derive(Debug)]
 pub struct JitoTipFloor {
-    pub p25_lamports: u64,
     pub p50_lamports: u64,
     pub p75_lamports: u64,
 }
@@ -20,7 +18,6 @@ pub struct JitoTipFloor {
 impl JitoTipFloor {
     pub fn from_entry(entry: &JitoTipFloorEntry) -> Self {
         Self {
-            p25_lamports: sol_to_lamports(entry.landed_tips_25th_percentile),
             p50_lamports: sol_to_lamports(entry.landed_tips_50th_percentile),
             p75_lamports: sol_to_lamports(entry.landed_tips_75th_percentile),
         }

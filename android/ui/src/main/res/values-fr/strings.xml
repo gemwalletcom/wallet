@@ -375,12 +375,12 @@
   <string name="nodes_import_node_warning_message">Les nœuds personnalisés peuvent être malveillants et exposer vos données de transaction ou fournir de fausses informations.</string>
   <string name="library_select_from_photo_library">Sélectionner dans la photothèque</string>
   <string name="fee_rates_info">La vitesse de transaction est déterminée par les frais de réseau payés aux mineurs du réseau.</string>
-  <string name="fee_rates_slow">Lent</string>
   <string name="fee_rates_fast">Rapide</string>
   <string name="fee_rates_normal">Normale</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">Personnalisé</string>
   <string name="banner_account_activation_title">Frais d\'activation de compte</string>
   <string name="banner_account_activation_description">Le réseau %1$s nécessite des frais uniques de %2$s.</string>
   <string name="banner_stake_title">Commencez le staking de %1$s</string>

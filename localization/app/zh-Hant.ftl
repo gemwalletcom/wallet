@@ -453,7 +453,6 @@ library_select_from_photo_library = 從照片中選取
 # Fee Rates
 
 fee_rates_info = 交易速度取決於向礦工支付的網路費用
-fee_rates_slow = 緩慢
 fee_rates_fast = 極速
 fee_rates_normal = 普通
 
@@ -462,6 +461,7 @@ fee_rates_normal = 普通
 fee_rate_satvB = %@ 聰/vB
 fee_rate_satB = %@ 聰/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = 自訂
 
 # Banner
 

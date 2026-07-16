@@ -41,7 +41,6 @@ struct Migrations {
             try FiatRateRecord.create(db: db)
             try PriceRecord.create(db: db)
             try AssetLinkRecord.create(db: db)
-            // TODO: Market. try MarketAssetRecord.create(db: db)
 
             // transactions
             try TransactionRecord.create(db: db)
@@ -276,11 +275,6 @@ struct Migrations {
                     .defaults(to: 0)
             }
         }
-
-//        TODO: Market.
-//        migrator.registerMigration("Add markets_assets table") { db in
-//            try? MarketAssetRecord.create(db: db)
-//        }
 
         migrator.registerMigration("Add updatedAt to \(PriceRecord.databaseTableName)") { db in
             try? db.alter(table: PriceRecord.databaseTableName) {

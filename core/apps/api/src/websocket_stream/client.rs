@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
+use cacher::CacherClient;
 use gem_tracing::info_with_fields;
 use pricer::PriceClient;
 use primitives::{AssetPrice, StreamEvent, StreamMessage, device_stream_channel};
@@ -17,9 +19,12 @@ use crate::websocket::decode_push_message;
 
 pub struct StreamObserverConfig {
     pub redis_url: String,
+    pub cacher_client: CacherClient,
+    pub retention: Duration,
 }
 
 pub struct StreamObserverClient {
+    device_id: String,
     device_channel: String,
     price_handler: PriceHandler,
 }
@@ -28,6 +33,7 @@ impl StreamObserverClient {
     pub fn new(device_id: String, price_client: Arc<Mutex<PriceClient>>) -> Self {
         let device_channel = device_stream_channel(&device_id);
         Self {
+            device_id,
             device_channel,
             price_handler: PriceHandler::new(price_client),
         }
@@ -44,6 +50,10 @@ impl StreamObserverClient {
     pub async fn subscribe_device_channel(&self, redis_connection: &mut MultiplexedConnection) -> Result<(), Box<dyn Error + Send + Sync>> {
         redis_connection.subscribe(&self.device_channel).await?;
         Ok(())
+    }
+
+    pub fn device_id(&self) -> &str {
+        &self.device_id
     }
 
     pub async fn handle_ws_message(
