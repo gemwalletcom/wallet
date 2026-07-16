@@ -453,7 +453,6 @@ library_select_from_photo_library = Pilih dari Galeri Foto
 # Fee Rates
 
 fee_rates_info = Kecepatan transaksi dihitung berdasarkan biaya jaringan yang dibayarkan pada jaringan penambang
-fee_rates_slow = Lambat
 fee_rates_fast = Cepat
 fee_rates_normal = Biasa
 

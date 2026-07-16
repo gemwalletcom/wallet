@@ -453,7 +453,6 @@ library_select_from_photo_library = Chagua kutoka kwa Maktaba ya Picha
 # Fee Rates
 
 fee_rates_info = Kasi ya ununuzi imedhamiriwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.
-fee_rates_slow = Polepole
 fee_rates_fast = Haraka
 fee_rates_normal = Kawaida
 

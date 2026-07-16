@@ -453,7 +453,6 @@ library_select_from_photo_library = Vælg fra fotobibliotek
 # Fee Rates
 
 fee_rates_info = Transaktionshastigheden bestemmes af netværksgebyr, der betales til netværksminearbejderne.
-fee_rates_slow = Langsomt
 fee_rates_fast = Hurtigt
 fee_rates_normal = Normal
 

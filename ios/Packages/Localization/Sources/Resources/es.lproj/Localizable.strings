@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Los nodos personalizados pueden ser maliciosos y pueden exponer sus datos de transacciones o proporcionar información falsa.";
 "library.select_from_photo_library" = "Seleccionar de la biblioteca de fotos";
 "fee_rates.info" = "La velocidad de la transacción está determinada por la tarifa de red pagada a los mineros de la red.";
-"fee_rates.slow" = "Lento";
 "fee_rates.fast" = "Rápido";
 "fee_rates.normal" = "Normales";
 "fee_rate.satvB" = "%@ sat/vB";

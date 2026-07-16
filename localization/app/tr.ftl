@@ -453,7 +453,6 @@ library_select_from_photo_library = Fotoğraf Kitaplığından Seç
 # Fee Rates
 
 fee_rates_info = İşlem hızı, ağ madencilerine ödenen ağ ücreti tarafından belirlenir.
-fee_rates_slow = Yavaş
 fee_rates_fast = Hızlı
 fee_rates_normal = Normal
 

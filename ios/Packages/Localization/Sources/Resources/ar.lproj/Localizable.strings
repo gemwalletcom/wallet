@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "قد تكون العقد المخصصة ضارة وقد تكشف بيانات معاملاتك أو تقدم معلومات خاطئة.";
 "library.select_from_photo_library" = "اختر من مكتبة الصور";
 "fee_rates.info" = "يتم تحديد سرعة المعاملة من خلال رسوم الشبكة المدفوعة لعمال المناجم في الشبكة.";
-"fee_rates.slow" = "بطيء";
 "fee_rates.fast" = "سريع";
 "fee_rates.normal" = "طبيعي";
 "fee_rate.satvB" = "%@ sat/vB";

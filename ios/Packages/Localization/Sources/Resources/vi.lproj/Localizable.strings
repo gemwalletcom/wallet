@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Các node tùy chỉnh có thể chứa mã độc và có thể làm lộ dữ liệu giao dịch của bạn hoặc cung cấp thông tin sai lệch.";
 "library.select_from_photo_library" = "Chọn từ Thư viện ảnh";
 "fee_rates.info" = "Tốc độ giao dịch được xác định bằng phí mạng trả cho người khai thác mạng.";
-"fee_rates.slow" = "Chậm";
 "fee_rates.fast" = "Nhanh";
 "fee_rates.normal" = "Bình thường";
 "fee_rate.satvB" = "%@ sat/vB";

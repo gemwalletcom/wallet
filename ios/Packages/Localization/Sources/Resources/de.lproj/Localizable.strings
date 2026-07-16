@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Benutzerdefinierte Knoten können bösartig sein und Ihre Transaktionsdaten offenlegen oder falsche Informationen liefern.";
 "library.select_from_photo_library" = "Aus der Fotobibliothek auswählen";
 "fee_rates.info" = "Die Geschwindigkeit der Transaktion wird durch die Netzwerkgebühr bestimmt, die an die Miner des Netzwerks gezahlt wird.";
-"fee_rates.slow" = "Langsam";
 "fee_rates.fast" = "Schnell";
 "fee_rates.normal" = "Normal";
 "fee_rate.satvB" = "%@ sat/vB";

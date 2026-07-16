@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Node kustom dapat bersifat berbahaya dan dapat membocorkan data transaksi Anda atau memberikan informasi palsu.";
 "library.select_from_photo_library" = "Pilih dari Galeri Foto";
 "fee_rates.info" = "Kecepatan transaksi dihitung berdasarkan biaya jaringan yang dibayarkan pada jaringan penambang";
-"fee_rates.slow" = "Lambat";
 "fee_rates.fast" = "Cepat";
 "fee_rates.normal" = "Biasa";
 "fee_rate.satvB" = "%@ sat/vB";

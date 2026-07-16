@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Custom nodes can be malicious and may expose your transaction data or provide false information.";
 "library.select_from_photo_library" = "Select from Photo Library";
 "fee_rates.info" = "Speed of transaction is determined by network fee paid to the network miners.";
-"fee_rates.slow" = "Slow";
 "fee_rates.fast" = "Fast";
 "fee_rates.normal" = "Normal";
 "fee_rate.satvB" = "%@ sat/vB";

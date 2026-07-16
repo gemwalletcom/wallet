@@ -453,7 +453,6 @@ library_select_from_photo_library = انتخاب از تصاویر گالری
 # Fee Rates
 
 fee_rates_info = سرعت انجام تراکنش بر اساس کارمزدی که به ماینرهای شبکه پرداخت میشود مشخص میشود.
-fee_rates_slow = آهسته
 fee_rates_fast = سریع
 fee_rates_normal = عادی
 

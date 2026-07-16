@@ -453,7 +453,6 @@ library_select_from_photo_library = فوٹو لائبریری سے منتخب ک
 # Fee Rates
 
 fee_rates_info = لین دین کی رفتار کا تعین نیٹ ورک کے کان کنوں کو ادا کی جانے والی نیٹ ورک فیس سے کیا جاتا ہے۔
-fee_rates_slow = سست
 fee_rates_fast = تیز
 fee_rates_normal = نارمل
 

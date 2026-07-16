@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "カスタム ノードは悪意のあるものである可能性があり、トランザクション データが公開されたり、誤った情報が提供されたりする可能性があります。";
 "library.select_from_photo_library" = "写真ライブラリから選択";
 "fee_rates.info" = "取引速度は、マイナーへのネットワーク手数料により決定します。";
-"fee_rates.slow" = "遅い";
 "fee_rates.fast" = "速い";
 "fee_rates.normal" = "普通";
 "fee_rate.satvB" = "%@ サトシ/vB";

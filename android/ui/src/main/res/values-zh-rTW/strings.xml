@@ -375,7 +375,6 @@
   <string name="nodes_import_node_warning_message">自訂節點可能存在惡意，可能會洩露您的交易資料或提供虛假資訊。</string>
   <string name="library_select_from_photo_library">從照片中選取</string>
   <string name="fee_rates_info">交易速度取決於向礦工支付的網路費用</string>
-  <string name="fee_rates_slow">緩慢</string>
   <string name="fee_rates_fast">極速</string>
   <string name="fee_rates_normal">普通</string>
   <string name="fee_rate_satvB">%1$s 聰/vB</string>

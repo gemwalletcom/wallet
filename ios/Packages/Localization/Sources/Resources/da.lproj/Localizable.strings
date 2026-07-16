@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Brugerdefinerede noder kan være skadelige og kan eksponere dine transaktionsdata eller give falske oplysninger.";
 "library.select_from_photo_library" = "Vælg fra fotobibliotek";
 "fee_rates.info" = "Transaktionshastigheden bestemmes af netværksgebyr, der betales til netværksminearbejderne.";
-"fee_rates.slow" = "Langsomt";
 "fee_rates.fast" = "Hurtigt";
 "fee_rates.normal" = "Normal";
 "fee_rate.satvB" = "%@ sat/vB";

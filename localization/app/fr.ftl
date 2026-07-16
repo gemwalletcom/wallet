@@ -453,7 +453,6 @@ library_select_from_photo_library = Sélectionner dans la photothèque
 # Fee Rates
 
 fee_rates_info = La vitesse de transaction est déterminée par les frais de réseau payés aux mineurs du réseau.
-fee_rates_slow = Lent
 fee_rates_fast = Rapide
 fee_rates_normal = Normale
 

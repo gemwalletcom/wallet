@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Nodi maalum zinaweza kuwa na nia mbaya na zinaweza kufichua data ya muamala wako au kutoa taarifa za uongo.";
 "library.select_from_photo_library" = "Chagua kutoka kwa Maktaba ya Picha";
 "fee_rates.info" = "Kasi ya ununuzi imedhamiriwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.";
-"fee_rates.slow" = "Polepole";
 "fee_rates.fast" = "Haraka";
 "fee_rates.normal" = "Kawaida";
 "fee_rate.satvB" = "%@ sat/vB";

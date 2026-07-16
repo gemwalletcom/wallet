@@ -453,7 +453,6 @@ library_select_from_photo_library = ফটো লাইব্রেরি থে
 # Fee Rates
 
 fee_rates_info = লেনদেনের গতি নেটওয়ার্ক মাইনারদের দেওয়া নেটওয়ার্ক ফি দ্বারা নির্ধারিত হয়।
-fee_rates_slow = ধীর
 fee_rates_fast = দ্রুত
 fee_rates_normal = স্বাভাবিক
 

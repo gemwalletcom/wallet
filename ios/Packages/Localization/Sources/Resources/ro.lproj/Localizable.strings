@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Nodurile personalizate pot fi rău intenționate și pot expune datele tranzacțiilor sau pot furniza informații false.";
 "library.select_from_photo_library" = "Selectați din Biblioteca foto";
 "fee_rates.info" = "Viteza tranzacției este determinată de taxa de rețea plătită minerilor din rețea.";
-"fee_rates.slow" = "Încet";
 "fee_rates.fast" = "Rapid";
 "fee_rates.normal" = "Normal";
 "fee_rate.satvB" = "%@ sat/vB";

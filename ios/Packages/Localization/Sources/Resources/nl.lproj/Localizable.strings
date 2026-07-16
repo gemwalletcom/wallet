@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Aangepaste nodes kunnen kwaadaardig zijn en uw transactiegegevens blootleggen of valse informatie verstrekken.";
 "library.select_from_photo_library" = "Selecteer uit Fotobibliotheek";
 "fee_rates.info" = "De transactiesnelheid wordt bepaald door de netwerkkosten die aan de netwerkmijnwerkers worden betaald.";
-"fee_rates.slow" = "Langzaam";
 "fee_rates.fast" = "Snel";
 "fee_rates.normal" = "Normaal";
 "fee_rate.satvB" = "%@ sat/vB";

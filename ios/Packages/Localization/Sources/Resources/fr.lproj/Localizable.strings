@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Les nœuds personnalisés peuvent être malveillants et exposer vos données de transaction ou fournir de fausses informations.";
 "library.select_from_photo_library" = "Sélectionner dans la photothèque";
 "fee_rates.info" = "La vitesse de transaction est déterminée par les frais de réseau payés aux mineurs du réseau.";
-"fee_rates.slow" = "Lent";
 "fee_rates.fast" = "Rapide";
 "fee_rates.normal" = "Normale";
 "fee_rate.satvB" = "%@ sat/vB";

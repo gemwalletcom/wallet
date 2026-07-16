@@ -453,7 +453,6 @@ library_select_from_photo_library = Виберіть з фототеки
 # Fee Rates
 
 fee_rates_info = Швидкість транзакції визначається мережевою комісією, яка виплачується майнерам мережі.
-fee_rates_slow = Повільно
 fee_rates_fast = Швидко
 fee_rates_normal = Нормальний
 

@@ -453,7 +453,6 @@ library_select_from_photo_library = Seleziona dalla Libreria foto
 # Fee Rates
 
 fee_rates_info = La velocità della transazione è determinata dalla tariffa di rete pagata ai minatori della rete.
-fee_rates_slow = Lento
 fee_rates_fast = Veloce
 fee_rates_normal = Normale
 

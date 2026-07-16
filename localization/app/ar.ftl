@@ -453,7 +453,6 @@ library_select_from_photo_library = اختر من مكتبة الصور
 # Fee Rates
 
 fee_rates_info = يتم تحديد سرعة المعاملة من خلال رسوم الشبكة المدفوعة لعمال المناجم في الشبكة.
-fee_rates_slow = بطيء
 fee_rates_fast = سريع
 fee_rates_normal = طبيعي
 

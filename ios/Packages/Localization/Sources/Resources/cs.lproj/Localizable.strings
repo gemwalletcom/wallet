@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "Vlastní uzly mohou být škodlivé a mohou zveřejnit vaše transakční data nebo poskytovat nepravdivé informace.";
 "library.select_from_photo_library" = "Vyberte z knihovny fotografií";
 "fee_rates.info" = "Rychlost transakce je určena síťovým poplatkem placeným síťovým těžařům.";
-"fee_rates.slow" = "Pomalý";
 "fee_rates.fast" = "Rychle";
 "fee_rates.normal" = "Normální";
 "fee_rate.satvB" = "%@ sat/vB";

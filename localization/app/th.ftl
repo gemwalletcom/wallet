@@ -453,7 +453,6 @@ library_select_from_photo_library = เลือกจากคลังรู�
 # Fee Rates
 
 fee_rates_info = ความเร็วของการทำธุรกรรมจะถูกกำหนดโดยค่าธรรมเนียมเครือข่ายที่จ่ายให้กับนักขุดในเครือข่าย
-fee_rates_slow = ช้า
 fee_rates_fast = รวดเร็ว
 fee_rates_normal = ปกติ
 

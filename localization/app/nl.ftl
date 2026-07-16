@@ -453,7 +453,6 @@ library_select_from_photo_library = Selecteer uit Fotobibliotheek
 # Fee Rates
 
 fee_rates_info = De transactiesnelheid wordt bepaald door de netwerkkosten die aan de netwerkmijnwerkers worden betaald.
-fee_rates_slow = Langzaam
 fee_rates_fast = Snel
 fee_rates_normal = Normaal
 

@@ -453,7 +453,6 @@ library_select_from_photo_library = Aus der Fotobibliothek auswählen
 # Fee Rates
 
 fee_rates_info = Die Geschwindigkeit der Transaktion wird durch die Netzwerkgebühr bestimmt, die an die Miner des Netzwerks gezahlt wird.
-fee_rates_slow = Langsam
 fee_rates_fast = Schnell
 fee_rates_normal = Normal
 

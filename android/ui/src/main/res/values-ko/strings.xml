@@ -375,7 +375,6 @@
   <string name="nodes_import_node_warning_message">사용자 지정 노드는 악의적일 수 있으며 거래 데이터를 노출하거나 허위 정보를 제공할 수 있습니다.</string>
   <string name="library_select_from_photo_library">사진 라이브러리에서 선택</string>
   <string name="fee_rates_info">거래 속도는 네트워크 채굴자에게 지불되는 네트워크 수수료에 따라 결정됩니다.</string>
-  <string name="fee_rates_slow">느림</string>
   <string name="fee_rates_fast">빠르게</string>
   <string name="fee_rates_normal">보통</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>

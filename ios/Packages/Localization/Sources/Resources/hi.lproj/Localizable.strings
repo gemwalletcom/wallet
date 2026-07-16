@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "कस्टम नोड्स दुर्भावनापूर्ण हो सकते हैं और आपके लेनदेन डेटा को उजागर कर सकते हैं या गलत जानकारी प्रदान कर सकते हैं।";
 "library.select_from_photo_library" = "फोटो लाइब्रेरी से चयन करें";
 "fee_rates.info" = "लेन-देन की गति नेटवर्क खनिकों को भुगतान किए गए नेटवर्क शुल्क से निर्धारित होती है।";
-"fee_rates.slow" = "धीरे";
 "fee_rates.fast" = "तेज";
 "fee_rates.normal" = "सामान्य";
 "fee_rate.satvB" = "%@ sat/vB";

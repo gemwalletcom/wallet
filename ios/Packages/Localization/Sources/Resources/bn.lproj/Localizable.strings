@@ -360,7 +360,6 @@
 "nodes.import_node.warning_message" = "কাস্টম নোডগুলি ক্ষতিকারক হতে পারে এবং আপনার লেনদেনের ডেটা প্রকাশ করতে পারে বা মিথ্যা তথ্য প্রদান করতে পারে।";
 "library.select_from_photo_library" = "ফটো লাইব্রেরি থেকে নির্বাচন করুন";
 "fee_rates.info" = "লেনদেনের গতি নেটওয়ার্ক মাইনারদের দেওয়া নেটওয়ার্ক ফি দ্বারা নির্ধারিত হয়।";
-"fee_rates.slow" = "ধীর";
 "fee_rates.fast" = "দ্রুত";
 "fee_rates.normal" = "স্বাভাবিক";
 "fee_rate.satvB" = "%@ sat/vB";

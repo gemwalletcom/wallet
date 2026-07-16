@@ -841,8 +841,6 @@ library_select_from_photo_library = Select from Photo Library
 
 # Used in fee UI for the rates info label.
 fee_rates_info = Speed of transaction is determined by network fee paid to the network miners.
-# Used in fee UI for the rates slow label.
-fee_rates_slow = Slow
 # Used in fee UI for the rates fast label.
 fee_rates_fast = Fast
 # Used in fee UI for the rates normal label.

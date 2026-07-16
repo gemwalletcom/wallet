@@ -375,7 +375,6 @@
   <string name="nodes_import_node_warning_message">Maɓallan da aka keɓance na iya zama masu cutarwa kuma suna iya fallasa bayanan ma\'amalar ku ko kuma samar da bayanan karya.</string>
   <string name="library_select_from_photo_library">Zaɓi daga Laburaren Hoto</string>
   <string name="fee_rates_info">Ana ƙayyade saurin ma\'amala ta hanyar kuɗin hanyar sadarwa da aka biya ga masu hakar ma\'adinai na cibiyar sadarwa.</string>
-  <string name="fee_rates_slow">Sannu a hankali</string>
   <string name="fee_rates_fast">Mai sauri</string>
   <string name="fee_rates_normal">Na al\'ada</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>

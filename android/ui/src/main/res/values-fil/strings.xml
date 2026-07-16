@@ -375,7 +375,6 @@
   <string name="nodes_import_node_warning_message">Ang mga custom node ay maaaring maging malisyoso at maaaring maglantad ng iyong data ng transaksyon o magbigay ng maling impormasyon.</string>
   <string name="library_select_from_photo_library">Pumili mula sa Photo Library</string>
   <string name="fee_rates_info">Ang bilis ng transaksyon ay tinutukoy ng bayad sa network na binabayaran sa mga minero ng network.</string>
-  <string name="fee_rates_slow">Mabagal</string>
   <string name="fee_rates_fast">Mabilis</string>
   <string name="fee_rates_normal">Normal</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
