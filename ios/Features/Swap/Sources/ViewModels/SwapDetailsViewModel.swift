@@ -138,10 +138,6 @@ public final class SwapDetailsViewModel {
 
     // MARK: - Slippage
 
-    var slippageValue: UInt32 {
-        selectedQuote.slippageBps / 100
-    }
-
     var slippageField: ListItemField {
         let value: String = switch slippage {
         case .auto: Localized.Swap.slippageAuto
@@ -155,7 +151,7 @@ public final class SwapDetailsViewModel {
     var minReceiveField: ListItemField {
         ListItemField(
             title: Localized.Swap.minReceive,
-            value: valueFormatter.string(selectedQuote.toValueBigInt.decrease(byPercent: Int(slippageValue)), asset: toAssetPrice.asset),
+            value: valueFormatter.string(selectedQuote.toValueBigInt.decrease(byBasisPoints: Int(selectedQuote.slippageBps)), asset: toAssetPrice.asset),
         )
     }
 
