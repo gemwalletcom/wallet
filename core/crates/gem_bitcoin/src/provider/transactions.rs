@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use primitives::Transaction;
 use std::error::Error;
 
@@ -41,12 +41,12 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
         Ok(map_transaction(self.get_chain(), &transaction))
     }
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let address = Address::new(&address, self.get_chain()).full();
         let address_details = self.get_address_details(&address, limit.unwrap_or(25)).await?;
         let transactions = address_details.transactions.unwrap_or_default();
-        Ok(map_transactions(self.get_chain(), transactions))
+        Ok(TransactionsResult::Transactions(map_transactions(self.get_chain(), transactions)))
     }
 }
 
@@ -82,10 +82,11 @@ mod chain_integration_tests {
     async fn test_bitcoin_get_transactions_by_address() {
         let bitcoin_client = create_bitcoin_test_client();
 
-        let transactions = bitcoin_client
+        let result = bitcoin_client
             .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()))
             .await
             .unwrap();
+        let transactions = result.transactions().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 

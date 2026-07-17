@@ -6,9 +6,17 @@ use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
+    NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType, TransactionLoadData, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
+
+#[cfg(feature = "testkit")]
+pub mod testkit;
+
+pub enum TransactionsResult {
+    Transactions(Vec<Transaction>),
+    TransactionIds(Vec<TransactionId>),
+}
 
 pub struct TransactionsRequest {
     pub address: String,
@@ -122,8 +130,8 @@ pub trait ChainTransactions: Send + Sync {
     async fn get_transactions_by_block(&self, _block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
     }
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![])
+    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        Ok(TransactionsResult::Transactions(Vec::new()))
     }
 
     async fn get_transaction_by_hash(&self, _hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {

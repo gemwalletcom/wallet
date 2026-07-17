@@ -3,70 +3,47 @@ use std::error::Error;
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::{ChainTransactions, TransactionsRequest};
-use primitives::{NodeType, Transaction};
-
-use crate::rpc::{EthereumMapper, client::EthereumClient, mapper::CONTRACT_REGISTRY};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
-use gem_jsonrpc::types::JsonRpcError;
+use primitives::{NodeType, Transaction, TransactionId};
+use serde_json::json;
 
-#[cfg(feature = "rpc")]
-async fn load_transactions_by_hashes<C: Client + Clone>(client: &EthereumClient<C>, node_type: NodeType, hashes: &[String]) -> Result<Vec<Transaction>, JsonRpcError> {
-    if hashes.is_empty() {
-        return Ok(vec![]);
-    }
+use crate::rpc::{
+    EthereumMapper,
+    client::EthereumClient,
+    mapper::CONTRACT_REGISTRY,
+    model::{BlockTransactionsIds, Transaction as EthereumTransaction, TransactionReplayTrace},
+};
 
-    let transactions = client.get_transactions_by_hash(hashes).await?;
-    let receipts = client.get_transactions_receipts(hashes).await?;
-    let block_ids = receipts.iter().map(|x| format!("0x{}", x.block_number.to_str_radix(16))).collect::<Vec<String>>();
-    let blocks = client.get_blocks(&block_ids, false).await?;
-
-    let traces = if node_type == NodeType::Archival {
-        Some(client.trace_replay_transactions(hashes).await?)
-    } else {
-        None
-    };
-
-    let chain = client.get_chain();
-    Ok(transactions
-        .into_iter()
-        .zip(receipts)
-        .zip(blocks)
-        .enumerate()
-        .filter_map(|(index, ((transactions, receipt), block))| {
-            let trace = traces.as_ref().and_then(|entries| entries.get(index));
-            EthereumMapper::map_transaction(chain, &transactions, &receipt, trace, &block.timestamp, Some(&CONTRACT_REGISTRY))
-        })
-        .collect())
-}
+const DEFAULT_TRANSACTIONS_LIMIT: usize = 1;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest { address, .. } = request;
-        let hashes = if let Some(ankr_client) = &self.ankr_client {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        let TransactionsRequest { address, limit, .. } = request;
+        let limit = limit.unwrap_or(DEFAULT_TRANSACTIONS_LIMIT);
+        let transaction_ids = if let Some(ankr_client) = &self.ankr_client {
             ankr_client
-                .get_ankr_transactions_by_address(address.as_str())
+                .get_ankr_transactions_by_address(&address, limit)
                 .await?
                 .transactions
                 .into_iter()
-                .map(|tx| tx.hash)
-                .collect::<Vec<String>>()
+                .map(|transaction| TransactionId::new(self.get_chain(), transaction.hash))
+                .collect()
         } else {
-            vec![]
+            Vec::new()
         };
-        Ok(load_transactions_by_hashes(self, self.node_type.clone(), &hashes).await?)
+        Ok(TransactionsResult::TransactionIds(transaction_ids))
     }
 
     async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let block = self.get_block(block_number).await?;
-        let receipts = self.get_block_receipts(block_number).await?;
-
         if block.transactions.is_empty() {
-            return Ok(vec![]);
+            return Ok(Vec::new());
         }
 
+        let receipts = self.get_block_receipts(block_number).await?;
         let traces = if self.node_type == NodeType::Archival {
             Some(self.trace_replay_block_transactions(block_number).await?)
         } else {
@@ -87,7 +64,34 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
     }
 
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        Ok(load_transactions_by_hashes(self, self.node_type.clone(), &[hash]).await?.into_iter().next())
+        let Some(transaction) = self.call::<Option<EthereumTransaction>>("eth_getTransactionByHash".to_string(), json!([hash])).await? else {
+            return Ok(None);
+        };
+        let Some(receipt) = self.get_transaction_receipt(&hash).await? else {
+            return Ok(None);
+        };
+        let Some(block) = self
+            .call::<Option<BlockTransactionsIds>>("eth_getBlockByNumber".to_string(), json!([format!("0x{:x}", receipt.block_number), false]))
+            .await?
+        else {
+            return Ok(None);
+        };
+        let trace = if self.node_type == NodeType::Archival {
+            Some(
+                self.call::<TransactionReplayTrace>("trace_replayTransaction".to_string(), json!([hash, ["stateDiff"]]))
+                    .await?,
+            )
+        } else {
+            None
+        };
+        Ok(EthereumMapper::map_transaction(
+            self.get_chain(),
+            &transaction,
+            &receipt,
+            trace.as_ref(),
+            &block.timestamp,
+            Some(&CONTRACT_REGISTRY),
+        ))
     }
 }
 
@@ -101,14 +105,10 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_ethereum_get_transactions_by_address() -> Result<(), Box<dyn Error + Send + Sync>> {
         let client = create_ethereum_test_client();
-        let transactions = ChainTransactions::get_transactions_by_address(&client, TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(5)).await?;
-
-        assert!(!transactions.is_empty());
-
-        for tx in transactions.iter().take(3) {
-            assert_eq!(tx.asset_id.chain, client.get_chain());
-            assert!(tx.created_at.timestamp() > 0);
-        }
+        let result = ChainTransactions::get_transactions_by_address(&client, TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(5)).await?;
+        let transaction_ids = result.transaction_ids().unwrap();
+        assert!(!transaction_ids.is_empty());
+        assert!(transaction_ids.iter().all(|transaction_id| transaction_id.chain == client.get_chain()));
 
         Ok(())
     }

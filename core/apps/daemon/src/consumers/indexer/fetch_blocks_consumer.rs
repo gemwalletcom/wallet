@@ -23,9 +23,7 @@ impl MessageConsumer<FetchBlocksPayload, usize> for FetchBlocksConsumer {
     async fn process(&self, payload: FetchBlocksPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let blocks = vec![payload.block];
         let transactions = self.providers.get_transactions_in_blocks(payload.chain, blocks.clone()).await?;
-        let count = transactions.len();
         let payload = TransactionsPayload::new_with_notify(payload.chain, blocks, transactions);
-        self.stream_producer.publish_transactions(payload).await?;
-        Ok(count)
+        self.stream_producer.publish_transactions(payload).await
     }
 }

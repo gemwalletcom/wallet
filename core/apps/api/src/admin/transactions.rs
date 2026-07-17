@@ -1,10 +1,10 @@
+use cacher::{CacheKey, CacherClient};
 use primitives::{Transaction, TransactionId};
 use rocket::serde::json::Json;
 use rocket::{State, get, post, tokio::sync::Mutex};
-use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
+use streamer::{StreamProducer, StreamProducerQueue};
 
 use crate::api_clients::{PermissionAdminWrite, PermissionDeviceTransactionsRead};
-use crate::chain::ChainClient;
 use crate::devices::TransactionsClient;
 use crate::responders::{ApiError, ApiResponse};
 
@@ -21,18 +21,12 @@ pub async fn get_transactions_by_hash(
 pub async fn add_transaction(
     _permission: PermissionAdminWrite,
     transaction_id: Json<TransactionId>,
-    chain_client: &State<Mutex<ChainClient>>,
+    cacher: &State<CacherClient>,
     stream_producer: &State<StreamProducer>,
-) -> Result<ApiResponse<Option<Transaction>>, ApiError> {
-    let client = chain_client.lock().await;
-
-    let transaction_id = transaction_id.0;
-    let transaction = client.get_transaction_by_hash(transaction_id.chain, transaction_id.hash).await?;
-
-    if let Some(transaction) = transaction.as_ref() {
-        let payload = TransactionsPayload::new(transaction.asset_id.chain, vec![transaction.clone()]);
-        stream_producer.publish_transactions(payload).await?;
-    }
-
-    Ok(transaction.into())
+) -> Result<ApiResponse<TransactionId>, ApiError> {
+    let transaction_id = transaction_id.into_inner();
+    let cache_key = CacheKey::FetchTransaction(transaction_id.chain.as_ref(), &transaction_id.hash).key();
+    cacher.delete(&cache_key).await?;
+    stream_producer.publish_fetch_transactions(vec![transaction_id.clone()]).await?;
+    Ok(transaction_id.into())
 }

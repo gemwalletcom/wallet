@@ -64,6 +64,7 @@ pub enum CacheKey<'a> {
     PerpetualObserverCheckpoint(&'a str, &'a str),
 
     // Transaction keys
+    FetchTransaction(&'a str, &'a str),
     PendingTransactions(&'a str),
 }
 
@@ -81,6 +82,7 @@ impl CacheKey<'_> {
             Self::FetchTokenAddresses(chain, address) => format!("fetch:token_addresses:{}:{}", chain, address),
             Self::FetchNftAssetsAddresses(chain, address) => format!("fetch:nft_assets_addresses:{}:{}", chain, address),
             Self::FetchAddressTransactions(chain, address) => format!("fetch:address_transactions:{}:{}", chain, address),
+            Self::FetchTransaction(chain, hash) => format!("fetch:transaction:{}:{}", chain, hash),
             Self::FetchAssets(asset_id) => format!("fetch:assets:{}", asset_id),
             Self::FetchNftAsset(asset_id) => format!("fetch:nft_asset:{}", asset_id),
             Self::Price(asset_id) => format!("prices:{}", asset_id),
@@ -120,6 +122,7 @@ impl CacheKey<'_> {
             Self::FetchTokenAddresses(_, _) => 30 * SECONDS_PER_DAY,
             Self::FetchNftAssetsAddresses(_, _) => 30 * SECONDS_PER_DAY,
             Self::FetchAddressTransactions(_, _) => 30 * SECONDS_PER_DAY,
+            Self::FetchTransaction(_, _) => 30 * SECONDS_PER_DAY,
             Self::FetchAssets(_) => 30 * SECONDS_PER_DAY,
             Self::FetchNftAsset(_) => SECONDS_PER_HOUR,
             Self::Price(_) => 30 * SECONDS_PER_DAY,
@@ -144,5 +147,17 @@ impl CacheKey<'_> {
             Self::PerpetualObserverCheckpoint(_, _) => 30 * SECONDS_PER_DAY,
             Self::PendingTransactions(_) => 30 * SECONDS_PER_DAY,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CacheKey, SECONDS_PER_DAY};
+
+    #[test]
+    fn test_fetch_transaction() {
+        let key = CacheKey::FetchTransaction("ethereum", "0x123");
+        assert_eq!(key.key(), "fetch:transaction:ethereum:0x123");
+        assert_eq!(key.ttl(), 30 * SECONDS_PER_DAY);
     }
 }

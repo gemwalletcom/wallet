@@ -7505,6 +7505,7 @@ name = "settings_chain"
 version = "1.0.0"
 dependencies = [
  "chain_traits",
+ "futures",
  "gem_algorand",
  "gem_aptos",
  "gem_bitcoin",
@@ -7520,6 +7521,7 @@ dependencies = [
  "gem_stellar",
  "gem_sui",
  "gem_ton",
+ "gem_tracing",
  "gem_tron",
  "gem_xrp",
  "primitives",

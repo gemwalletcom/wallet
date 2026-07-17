@@ -7,6 +7,7 @@ pub mod fetch_nft_asset_consumer;
 pub mod fetch_nft_assets_addresses_consumer;
 pub mod fetch_prices_consumer;
 pub mod fetch_token_addresses_consumer;
+pub mod fetch_transaction_consumer;
 
 use std::error::Error;
 use std::sync::Arc;
@@ -16,7 +17,7 @@ use cacher::CacherClient;
 use coingecko::CoinGeckoClient;
 use lists::{CoinGeckoListProvider, ListsClient};
 use pricer::PriceClient;
-use primitives::{Chain, NFTChain};
+use primitives::{Chain, NFTChain, TransactionId};
 use settings::Settings;
 use storage::Database;
 use streamer::{
@@ -36,6 +37,7 @@ use fetch_nft_asset_consumer::FetchNftAssetConsumer;
 use fetch_nft_assets_addresses_consumer::FetchNftAssetsAddressesConsumer;
 use fetch_prices_consumer::FetchPricesConsumer;
 use fetch_token_addresses_consumer::FetchTokenAddressesConsumer;
+use fetch_transaction_consumer::FetchTransactionConsumer;
 
 pub async fn run_consumer_indexer(
     settings: Settings,
@@ -60,6 +62,7 @@ pub async fn run_consumer_indexer(
             FetchNftAssociations,
             FetchNftAssets,
             FetchAddressTransactions,
+            FetchTransactions,
         ],
     };
 
@@ -81,6 +84,7 @@ pub async fn run_consumer_indexer(
                     FetchNftAssociations => run_fetch_nft_associations(settings, database, shutdown_rx, reporter).await,
                     FetchNftAssets => run_fetch_nft_assets(settings, database, shutdown_rx, reporter).await,
                     FetchAddressTransactions => run_fetch_transaction_associations(settings, database, shutdown_rx, reporter).await,
+                    FetchTransactions => run_fetch_transactions(settings, database, shutdown_rx, reporter).await,
                 }
             })
         })
@@ -300,6 +304,35 @@ async fn run_fetch_transaction_associations(
             let stream_producer = runner.stream_producer().await?;
             let consumer = FetchAddressTransactionsConsumer::new(chain_providers_for(chain, &runner.settings, &name), stream_producer, runner.cacher);
             run_consumer::<ChainAddressPayload, FetchAddressTransactionsConsumer, usize>(
+                &name,
+                stream_reader,
+                queue,
+                Some(chain.as_ref()),
+                consumer,
+                runner.config,
+                runner.shutdown_rx,
+                runner.reporter,
+            )
+            .await
+        })
+        .await
+}
+
+async fn run_fetch_transactions(
+    settings: Arc<Settings>,
+    database: Database,
+    shutdown_rx: ShutdownReceiver,
+    reporter: Arc<dyn ConsumerStatusReporter>,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+    ChainConsumerRunner::new((*settings).clone(), database, QueueName::FetchTransactions, shutdown_rx, reporter)
+        .await?
+        .run(|runner, chain| async move {
+            let queue = QueueName::FetchTransactions;
+            let name = format!("{}.{}", queue, chain.as_ref());
+            let stream_reader = runner.stream_reader().await?;
+            let stream_producer = runner.stream_producer().await?;
+            let consumer = FetchTransactionConsumer::new(chain_providers_for(chain, &runner.settings, &name), stream_producer, runner.cacher);
+            run_consumer::<TransactionId, FetchTransactionConsumer, usize>(
                 &name,
                 stream_reader,
                 queue,

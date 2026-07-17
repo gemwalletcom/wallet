@@ -224,24 +224,6 @@ impl<C: Client + Clone> SolanaClient<C> {
         self.rpc_call("getSignaturesForAddress", params).await
     }
 
-    pub async fn get_transactions(&self, signatures: Vec<String>) -> Result<Vec<crate::models::BlockTransaction>, JsonRpcError> {
-        let mut transactions = Vec::new();
-
-        for signature in signatures {
-            let config = confirmed_config(serde_json::json!({
-                "encoding": "json",
-                "maxSupportedTransactionVersion": 0,
-            }));
-            let params = serde_json::json!([signature, config]);
-
-            if let Ok(tx) = self.rpc_call::<crate::models::BlockTransaction>("getTransaction", params).await {
-                transactions.push(tx);
-            }
-        }
-
-        Ok(transactions)
-    }
-
     pub async fn get_token_accounts(&self, address: &str, token_mints: &[String]) -> Result<Vec<ValueResult<Vec<TokenAccountInfo>>>, Box<dyn Error + Send + Sync>> {
         let calls: Vec<(String, serde_json::Value)> = token_mints
             .iter()

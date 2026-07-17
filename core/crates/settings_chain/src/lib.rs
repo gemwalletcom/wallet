@@ -3,7 +3,7 @@ mod chain_providers;
 mod provider_config;
 pub use broadcast_providers::BroadcastProviders;
 pub use chain_providers::ChainProviders;
-pub use chain_traits::TransactionsRequest;
+pub use chain_traits::{TransactionsRequest, TransactionsResult};
 use gem_algorand::{
     AlgorandClient,
     rpc::{AlgorandClientIndexer, client_indexer::ALGORAND_INDEXER_URL},

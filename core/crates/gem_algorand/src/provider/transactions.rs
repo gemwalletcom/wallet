@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -17,10 +17,10 @@ impl<C: Client> ChainTransactions for AlgorandClient<C> {
         Ok(map_transactions(block.transactions))
     }
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, .. } = request;
         let transactions = self.indexer.get_account_transactions(&address).await?;
-        Ok(map_transactions(transactions.transactions))
+        Ok(TransactionsResult::Transactions(map_transactions(transactions.transactions)))
     }
 
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
@@ -47,7 +47,8 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_algorand_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_algorand_test_client();
-        let transactions = client.get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string())).await?;
+        let result = client.get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string())).await?;
+        let transactions = result.transactions().unwrap();
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 
         assert!(!transactions.is_empty());

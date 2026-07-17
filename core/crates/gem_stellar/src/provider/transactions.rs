@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -13,13 +13,14 @@ use crate::{
 
 #[async_trait]
 impl<C: Client> ChainTransactions for StellarClient<C> {
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, .. } = request;
         let payments = self.get_account_payments(address).await?;
-        match payments {
-            AccountResult::Found(payments) => Ok(map_transactions(self.get_chain(), payments._embedded.records)),
-            AccountResult::NotFound => Ok(Vec::new()),
-        }
+        let transactions = match payments {
+            AccountResult::Found(payments) => map_transactions(self.get_chain(), payments._embedded.records),
+            AccountResult::NotFound => Vec::new(),
+        };
+        Ok(TransactionsResult::Transactions(transactions))
     }
 
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
@@ -55,10 +56,11 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transactions_by_address() {
         let stellar_client = create_test_client();
-        let transactions = stellar_client
+        let result = stellar_client
             .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()))
             .await
             .unwrap();
+        let transactions = result.transactions().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 
@@ -68,10 +70,11 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transactions_by_address_empty() {
         let stellar_client = create_test_client();
-        let transactions = stellar_client
+        let result = stellar_client
             .get_transactions_by_address(TransactionsRequest::new(TEST_EMPTY_ADDRESS.to_string()))
             .await
             .unwrap();
+        let transactions = result.transactions().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_EMPTY_ADDRESS, transactions.len());
 
