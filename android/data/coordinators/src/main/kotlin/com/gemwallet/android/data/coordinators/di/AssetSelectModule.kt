@@ -6,7 +6,6 @@ import com.gemwallet.android.application.asset_select.coordinators.GetSelectAsse
 import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
@@ -15,7 +14,6 @@ import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoI
 import com.gemwallet.android.data.coordinators.asset_select.SearchListAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
-import com.gemwallet.android.data.coordinators.asset_select.ToggleAssetPinImpl
 import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -59,12 +57,6 @@ object AssetSelectModule {
         enableAsset: EnableAsset,
         assetsRepository: AssetsRepository,
     ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(enableAsset, assetsRepository)
-
-    @Provides
-    @Singleton
-    fun provideToggleAssetPin(
-        assetsRepository: AssetsRepository,
-    ): ToggleAssetPin = ToggleAssetPinImpl(assetsRepository)
 
     @Provides
     @Singleton
