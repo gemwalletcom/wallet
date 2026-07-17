@@ -7521,11 +7521,11 @@ dependencies = [
  "gem_stellar",
  "gem_sui",
  "gem_ton",
+ "gem_tracing",
  "gem_tron",
  "gem_xrp",
  "primitives",
  "settings",
- "tracing",
  "url",
 ]
 

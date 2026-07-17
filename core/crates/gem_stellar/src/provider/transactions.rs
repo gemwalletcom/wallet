@@ -60,9 +60,7 @@ mod chain_integration_tests {
             .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()))
             .await
             .unwrap();
-        let TransactionsResult::Transactions(transactions) = result else {
-            panic!("expected transactions");
-        };
+        let transactions = result.transactions().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 
@@ -76,9 +74,7 @@ mod chain_integration_tests {
             .get_transactions_by_address(TransactionsRequest::new(TEST_EMPTY_ADDRESS.to_string()))
             .await
             .unwrap();
-        let TransactionsResult::Transactions(transactions) = result else {
-            panic!("expected transactions");
-        };
+        let transactions = result.transactions().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_EMPTY_ADDRESS, transactions.len());
 

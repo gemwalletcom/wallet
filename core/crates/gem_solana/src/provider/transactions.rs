@@ -72,9 +72,7 @@ mod chain_integration_tests {
     async fn test_solana_get_transactions_by_address() {
         let client = create_solana_test_client();
         let result = client.get_transactions_by_address(TransactionsRequest::new(TEST_SOLANA_SENDER.to_string())).await.unwrap();
-        let TransactionsResult::TransactionIds(transaction_ids) = result else {
-            panic!("expected transaction IDs");
-        };
+        let transaction_ids = result.transaction_ids().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_SOLANA_SENDER, transaction_ids.len());
         assert!(!transaction_ids.is_empty());

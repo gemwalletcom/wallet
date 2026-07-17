@@ -6,13 +6,13 @@ edition = { workspace = true }
 [dependencies]
 url = { workspace = true }
 futures = { workspace = true }
-tracing = { workspace = true }
 
 primitives = { path = "../primitives" }
 chain_traits = { path = "../chain_traits" }
 settings = { path = "../settings" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
+gem_tracing = { path = "../tracing" }
 
 gem_algorand = { path = "../gem_algorand", features = ["rpc", "reqwest"] }
 gem_aptos = { path = "../gem_aptos", features = ["rpc", "reqwest"] }

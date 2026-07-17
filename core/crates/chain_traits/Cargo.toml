@@ -3,6 +3,9 @@ name = "chain_traits"
 version = { workspace = true }
 edition = { workspace = true }
 
+[features]
+testkit = []
+
 [dependencies]
 primitives = { path = "../primitives" }
 async-trait = { workspace = true }

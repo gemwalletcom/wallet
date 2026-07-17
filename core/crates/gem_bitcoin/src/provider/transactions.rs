@@ -53,7 +53,7 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest, TransactionsResult};
+    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest};
     use primitives::{TransactionState, TransactionStateRequest};
 
     #[tokio::test]
@@ -86,9 +86,7 @@ mod chain_integration_tests {
             .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()))
             .await
             .unwrap();
-        let TransactionsResult::Transactions(transactions) = result else {
-            panic!("expected transactions");
-        };
+        let transactions = result.transactions().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 

@@ -57,9 +57,7 @@ mod tests {
             .get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string()).with_limit(4))
             .await
             .unwrap();
-        let TransactionsResult::TransactionIds(transaction_ids) = result else {
-            panic!("expected transaction IDs");
-        };
+        let transaction_ids = result.transaction_ids().unwrap();
         assert_eq!(transaction_ids.len(), 4);
         assert!(transaction_ids.iter().any(|transaction| transaction.hash == LAGGING_TRANSACTION_ID));
         assert!(transaction_ids.iter().any(|transaction| transaction.hash == INCOMING_TRANSACTION_ID));
@@ -95,9 +93,7 @@ mod chain_integration_tests {
             .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(2))
             .await
             .unwrap();
-        let TransactionsResult::TransactionIds(transaction_ids) = result else {
-            panic!("expected transaction IDs");
-        };
+        let transaction_ids = result.transaction_ids().unwrap();
         assert!(!transaction_ids.is_empty());
     }
 

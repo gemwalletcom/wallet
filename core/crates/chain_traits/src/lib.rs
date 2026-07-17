@@ -10,6 +10,9 @@ use primitives::{
     TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
 
+#[cfg(feature = "testkit")]
+pub mod testkit;
+
 pub enum TransactionsResult {
     Transactions(Vec<Transaction>),
     TransactionIds(Vec<TransactionId>),

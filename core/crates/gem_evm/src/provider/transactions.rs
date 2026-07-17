@@ -95,7 +95,7 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_ethereum_test_client};
-    use chain_traits::{ChainBalances, ChainTransactionBroadcast, ChainTransactions, TransactionsRequest, TransactionsResult};
+    use chain_traits::{ChainBalances, ChainTransactionBroadcast, ChainTransactions, TransactionsRequest};
     use num_bigint::BigUint;
     use std::error::Error;
 
@@ -103,9 +103,7 @@ mod chain_integration_tests {
     async fn test_ethereum_get_transactions_by_address() -> Result<(), Box<dyn Error + Send + Sync>> {
         let client = create_ethereum_test_client();
         let result = ChainTransactions::get_transactions_by_address(&client, TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(5)).await?;
-        let TransactionsResult::TransactionIds(transaction_ids) = result else {
-            panic!("expected transaction IDs");
-        };
+        let transaction_ids = result.transaction_ids().unwrap();
         assert!(!transaction_ids.is_empty());
         assert!(transaction_ids.iter().all(|transaction_id| transaction_id.chain == client.get_chain()));
 

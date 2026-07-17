@@ -32,7 +32,7 @@ impl<C: Client> ChainTransactions for AlgorandClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactions, TransactionsRequest, TransactionsResult};
+    use chain_traits::{ChainState, ChainTransactions, TransactionsRequest};
 
     #[tokio::test]
     async fn test_algorand_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -48,9 +48,7 @@ mod chain_integration_tests {
     async fn test_algorand_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_algorand_test_client();
         let result = client.get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string())).await?;
-        let TransactionsResult::Transactions(transactions) = result else {
-            panic!("expected transactions");
-        };
+        let transactions = result.transactions().unwrap();
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 
         assert!(!transactions.is_empty());

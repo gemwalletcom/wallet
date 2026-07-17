@@ -47,9 +47,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let result = ChainTransactions::get_transactions_by_address(&create_ton_test_client(), TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(10)).await?;
-        let TransactionsResult::Transactions(transactions) = result else {
-            panic!("expected transactions");
-        };
+        let transactions = result.transactions().unwrap();
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 
         assert!(!transactions.is_empty());

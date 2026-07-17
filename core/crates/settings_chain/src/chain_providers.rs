@@ -2,6 +2,7 @@ use std::error::Error;
 
 use chain_traits::{ChainTraits, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, stream};
+use gem_tracing::warn_with_fields;
 use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPositionsSummary, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
 use settings::Settings;
 
@@ -70,11 +71,11 @@ impl ChainProviders {
                         match provider.get_transaction_by_hash(transaction_id.hash.clone()).await {
                             Ok(Some(transaction)) => Some(transaction),
                             Ok(None) => {
-                                tracing::warn!(chain = %transaction_id.chain, hash = transaction_id.hash, "transaction not found");
+                                warn_with_fields!("transaction not found", chain = transaction_id.chain, hash = &transaction_id.hash);
                                 None
                             }
                             Err(error) => {
-                                tracing::warn!(chain = %transaction_id.chain, hash = transaction_id.hash, %error, "failed to fetch transaction");
+                                warn_with_fields!("failed to fetch transaction", chain = transaction_id.chain, hash = &transaction_id.hash, error = &error);
                                 None
                             }
                         }
