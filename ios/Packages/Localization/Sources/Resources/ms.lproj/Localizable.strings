@@ -426,10 +426,10 @@
 "info.slippage.description" = "Slippage merujuk kepada perbezaan antara harga jangkaan perdagangan dan harga sebenar di mana ia dilaksanakan.";
 "info.asset_status.unverified.description" = "Token yang tidak disahkan belum disahkan dengan secukupnya oleh perkhidmatan pihak ketiga yang dipercayai. Ia mungkin muncul dalam dompet anda disebabkan oleh airdrop, pemindahan atau import manual.";
 "info.asset_status.suspicious.description" = "Token yang mencurigakan atau spam dikenal pasti sebagai potensi penipuan atau aset berbahaya. Ia mungkin muncul dalam dompet anda disebabkan oleh airdrop, pemindahan atau import manual.";
-"info.insufficient_network_fee_balance.title" = "%@ diperlukan";
-"info.insufficient_network_fee_balance.description" = "Transaksi ini memerlukan %@ untuk menampung yuran rangkaian yang dibayar kepada %@ pelombong, bukan Gem Wallet. Pastikan anda mempunyai cukup %@.";
+"info.balance_required_title" = "%@ diperlukan";
+"info.insufficient_network_fee_balance.description" = "Transaksi ini memerlukan %@ untuk yuran rangkaian %@, tetapi hanya %@ tersedia. Anda memerlukan %@ lagi untuk meneruskan.";
 "info.insufficient_balance.title" = "Baki Tidak Mencukupi";
-"info.insufficient_balance.description" = "Anda tidak mempunyai cukup %@ untuk menyelesaikan transaksi ini. Sila tambah nilai, terima atau tukar dalam dompet anda dan cuba lagi.";
+"info.balance_required_description" = "Transaksi ini memerlukan %@, tetapi hanya %@ tersedia. Anda memerlukan %@ lagi untuk meneruskan.";
 "info.account_minimum_balance.title" = "Baki minimum";
 "info.perpetual.funding_payments.title" = "Pembayaran Pembiayaan";
 "info.perpetual.funding_payments.description" = "Pembayaran pembiayaan ialah pembayaran berkala antara pedagang untuk memastikan harga kontrak kekal hampir dengan harga spot aset pendasar. Pembiayaan positif bermakna kedudukan panjang membayar kedudukan pendek, manakala pembiayaan negatif bermakna kedudukan pendek membayar kedudukan panjang.";

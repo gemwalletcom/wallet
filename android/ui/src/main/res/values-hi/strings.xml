@@ -441,10 +441,10 @@
   <string name="info_slippage_description">स्लिपेज से तात्पर्य किसी व्यापार की अपेक्षित कीमत और उस वास्तविक कीमत, जिस पर वह व्यापार निष्पादित होता है, के बीच के अंतर से है।</string>
   <string name="info_asset_status_unverified_description">असत्यापित टोकन को विश्वसनीय तृतीय-पक्ष सेवाओं द्वारा पर्याप्त रूप से सत्यापित नहीं किया गया है। वे एयरड्रॉप, ट्रांसफ़र या मैन्युअल आयात के कारण आपके वॉलेट में दिखाई दे सकते हैं।</string>
   <string name="info_asset_status_suspicious_description">संदिग्ध या स्पैम टोकन को संभावित घोटाले या हानिकारक संपत्ति के रूप में पहचाना जाता है। वे एयरड्रॉप, ट्रांसफ़र या मैन्युअल आयात के कारण आपके वॉलेट में दिखाई दे सकते हैं।</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s आवश्यक</string>
-  <string name="info_insufficient_network_fee_balance_description">इस लेनदेन में नेटवर्क शुल्क के लिए %1$s की आवश्यकता है, जो %2$s खनिकों को दिया जाता है, Gem Wallet को नहीं। सुनिश्चित करें कि आपके पास पर्याप्त %3$s हो।</string>
+  <string name="info_balance_required_title">%1$s आवश्यक</string>
+  <string name="info_insufficient_network_fee_balance_description">इस लेनदेन के लिए %1$s नेटवर्क शुल्क हेतु %2$s आवश्यक है, लेकिन केवल %3$s उपलब्ध हैं। जारी रखने के लिए आपको %4$s और चाहिए।</string>
   <string name="info_insufficient_balance_title">अपर्याप्त शेषराशि</string>
-  <string name="info_insufficient_balance_description">इस लेनदेन को पूरा करने के लिए आपके पास पर्याप्त %1$s नहीं है। कृपया अपने वॉलेट में टॉप अप करें, प्राप्त करें या स्वैप करें और फिर से प्रयास करें।</string>
+  <string name="info_balance_required_description">इस लेनदेन के लिए %1$s आवश्यक है, लेकिन केवल %2$s उपलब्ध हैं। जारी रखने के लिए आपको %3$s और चाहिए।</string>
   <string name="info_account_minimum_balance_title">न्यूनतम शेष</string>
   <string name="info_perpetual_funding_payments_title">फंडिंग भुगतान</string>
   <string name="info_perpetual_funding_payments_description">स्थायी अनुबंध मूल्य को अंतर्निहित परिसंपत्ति के हाजिर मूल्य के करीब रखने के लिए व्यापारियों के बीच फंडिंग भुगतान आवधिक भुगतान है। सकारात्मक फंडिंग का मतलब है कि लंबी पोजीशनें छोटी पोजीशनों के लिए भुगतान करती हैं, जबकि नकारात्मक फंडिंग का मतलब है कि छोटी पोजीशनें लंबी पोजीशनों के लिए भुगतान करती हैं।</string>

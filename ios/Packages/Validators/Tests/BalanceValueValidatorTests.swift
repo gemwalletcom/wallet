@@ -12,7 +12,7 @@ struct BalanceValueValidatorTests {
 
     @Test
     func passesWithinBalance() throws {
-        let validator = BalanceValueValidator<BigInt>(
+        let validator = BalanceValueValidator(
             available: available,
             asset: asset,
         )
@@ -22,11 +22,14 @@ struct BalanceValueValidatorTests {
 
     @Test
     func throwsExceedingBalance() {
-        let validator = BalanceValueValidator<BigInt>(
+        let validator = BalanceValueValidator(
             available: available,
             asset: asset,
         )
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(asset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            asset,
+            requirement: BalanceRequirement(required: available + 1, available: available),
+        )) {
             try validator.validate(available + 1)
         }
     }

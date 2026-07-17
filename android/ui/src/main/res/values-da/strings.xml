@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Slippage refererer til forskellen mellem den forventede pris på en handel og den faktiske pris, den udføres til.</string>
   <string name="info_asset_status_unverified_description">Ubekræftede tokens er ikke blevet tilstrækkeligt verificeret af betroede tredjepartstjenester. De kan dukke op i din wallet på grund af airdrops, overførsler eller manuelle importer.</string>
   <string name="info_asset_status_suspicious_description">Mistænkelige eller spam-tokens identificeres som potentielle svindelnumre eller skadelige aktiver. De kan dukke op i din wallet på grund af airdrops, overførsler eller manuelle importer.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s påkrævet</string>
-  <string name="info_insufficient_network_fee_balance_description">Denne transaktion kræver %1$s til dækning af netværksgebyret betalt til %2$s-minearbejdere, ikke Gem Wallet. Sørg for, at du har nok %3$s.</string>
+  <string name="info_balance_required_title">%1$s påkrævet</string>
+  <string name="info_insufficient_network_fee_balance_description">Denne transaktion kræver %1$s til netværksgebyret på %2$s, men kun %3$s er tilgængelig. Du mangler %4$s for at fortsætte.</string>
   <string name="info_insufficient_balance_title">Utilstrækkelig saldo</string>
-  <string name="info_insufficient_balance_description">Du har ikke nok %1$s til at gennemføre denne transaktion. Tank op, modtag eller veksle i din wallet, og prøv igen.</string>
+  <string name="info_balance_required_description">Denne transaktion kræver %1$s, men kun %2$s er tilgængelig. Du mangler %3$s for at fortsætte.</string>
   <string name="info_account_minimum_balance_title">Minimumsaldo</string>
   <string name="info_perpetual_funding_payments_title">Finansieringsbetalinger</string>
   <string name="info_perpetual_funding_payments_description">Finansieringsbetalinger er periodiske betalinger mellem handlende for at holde den evige kontraktpris tæt på det underliggende aktivs spotpris. Positiv finansiering betyder, at lange positioner betaler korte positioner, mens negativ funding betyder, at korte positioner betaler lange positioner.</string>

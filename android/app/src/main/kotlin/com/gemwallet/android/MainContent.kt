@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
@@ -42,7 +42,7 @@ internal fun MainContent(
     } else {
         null
     }
-    val walletConnectOverlay: @Composable ((GetNetworkFeeAssetAction, AssetId) -> Unit) -> Unit = if (walletConnectEnabled) {
+    val walletConnectOverlay: @Composable ((AcquireAssetAction, AssetId) -> Unit) -> Unit = if (walletConnectEnabled) {
         rememberWalletConnectOverlay(walletConnectViewModel, onWalletConnectError)
     } else {
         remember { { _ -> } }

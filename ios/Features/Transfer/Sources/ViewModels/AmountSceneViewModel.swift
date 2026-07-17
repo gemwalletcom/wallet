@@ -273,7 +273,7 @@ private extension AmountSceneViewModel {
                 validators: [
                     PositiveValueValidator<BigInt>().silent,
                     MinimumValueValidator<BigInt>(minimumValue: provider.minimumValue, asset: asset),
-                    BalanceValueValidator<BigInt>(available: provider.availableValue(from: assetData), asset: asset),
+                    BalanceValueValidator(available: provider.availableValue(from: assetData), asset: asset),
                 ],
             ),
         ]

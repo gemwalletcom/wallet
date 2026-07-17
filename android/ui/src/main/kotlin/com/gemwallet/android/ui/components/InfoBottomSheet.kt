@@ -64,15 +64,39 @@ sealed class InfoSheetEntity(
         descriptionArgs = listOf("**$networkTitle**", "**$networkSymbol**"),
     )
 
-    class NetworkBalanceRequiredInfo(chain: Chain, value: String, actionLabel: String, action: () -> Unit) : InfoSheetEntity(
+    class NetworkBalanceRequiredInfo(
+        chain: Chain,
+        required: String,
+        available: String,
+        shortfall: String,
+        actionLabel: String,
+        action: () -> Unit,
+    ) : InfoSheetEntity(
         icon = chain.asset().getIconUrl(),
-        title = R.string.info_insufficient_network_fee_balance_title,
+        title = R.string.info_balance_required_title,
         description = R.string.info_insufficient_network_fee_balance_description,
         infoUrl = { AppUrl.docs(DocsUrl.NetworkFees) },
         action = action,
         actionLabel = actionLabel,
         titleArgs = listOf(chain.asset().symbol),
-        descriptionArgs = listOf("**$value**", "**${chain.networkName()}**", "**${chain.asset().symbol}**"),
+        descriptionArgs = listOf("**$required**", "**${chain.networkName()}**", "**$available**", "**$shortfall**"),
+    )
+
+    class BalanceRequiredInfo(
+        asset: Asset,
+        required: String,
+        available: String,
+        shortfall: String,
+        actionLabel: String,
+        action: () -> Unit,
+    ) : InfoSheetEntity(
+        icon = asset.getIconUrl(),
+        title = R.string.info_balance_required_title,
+        description = R.string.info_balance_required_description,
+        action = action,
+        actionLabel = actionLabel,
+        titleArgs = listOf(asset.symbol),
+        descriptionArgs = listOf("**$required**", "**$available**", "**$shortfall**"),
     )
 
     class MinimumAccountBalanceInfo(asset: Asset, value: String) : InfoSheetEntity(

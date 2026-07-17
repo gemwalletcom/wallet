@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Alunecarea se referă la diferența dintre prețul așteptat al unei tranzacții și prețul real la care aceasta este executată.</string>
   <string name="info_asset_status_unverified_description">Token-urile neverificate nu au fost suficient verificate de servicii terțe de încredere. Acestea pot apărea în portofelul dvs. din cauza lansărilor prin airdrop, transferurilor sau importurilor manuale.</string>
   <string name="info_asset_status_suspicious_description">Tokenurile suspecte sau spam sunt identificate ca potențiale escrocherii sau active dăunătoare. Acestea pot apărea în portofelul dvs. din cauza lansărilor prin airdrop, transferuri sau importuri manuale.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s necesar</string>
-  <string name="info_insufficient_network_fee_balance_description">Această tranzacție necesită %1$s pentru a acoperi taxa de rețea plătită către %2$s mineri, nu Gem Wallet. Asigurați-vă că aveți suficienți %3$s.</string>
+  <string name="info_balance_required_title">%1$s necesar</string>
+  <string name="info_insufficient_network_fee_balance_description">Această tranzacție necesită %1$s pentru taxa rețelei %2$s, dar sunt disponibili doar %3$s. Mai aveți nevoie de %4$s pentru a continua.</string>
   <string name="info_insufficient_balance_title">Sold insuficient</string>
-  <string name="info_insufficient_balance_description">Nu aveți suficienți %1$s pentru a finaliza această tranzacție. Vă rugăm să încărcați, să primiți sau să schimbați contul în portofelul dvs. și să încercați din nou.</string>
+  <string name="info_balance_required_description">Această tranzacție necesită %1$s, dar sunt disponibili doar %2$s. Mai aveți nevoie de %3$s pentru a continua.</string>
   <string name="info_account_minimum_balance_title">Sold minim</string>
   <string name="info_perpetual_funding_payments_title">Plăți de finanțare</string>
   <string name="info_perpetual_funding_payments_description">Plățile de finanțare sunt plăți periodice între comercianți pentru a menține prețul contractului perpetuu aproape de prețul spot al activului suport. Finanțarea pozitivă înseamnă că pozițiile lungi plătesc poziții scurte, în timp ce finanțarea negativă înseamnă că pozițiile scurte plătesc poziții lungi.</string>

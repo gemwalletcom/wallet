@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Ang slippage ay tumutukoy sa pagkakaiba sa pagitan ng inaasahang presyo ng isang kalakalan at ang aktwal na presyo kung saan ito isinasagawa.</string>
   <string name="info_asset_status_unverified_description">Ang mga hindi na-verify na token ay hindi sapat na na-verify ng mga pinagkakatiwalaang serbisyo ng third-party. Maaaring lumabas ang mga ito sa iyong wallet dahil sa mga airdrop, paglilipat, o manual na pag-import.</string>
   <string name="info_asset_status_suspicious_description">Ang mga kahina-hinalang token o spam ay tinutukoy bilang mga potensyal na scam o mapaminsalang asset. Maaaring lumabas ang mga ito sa iyong wallet dahil sa mga airdrop, paglilipat, o manual na pag-import.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s kinakailangan</string>
-  <string name="info_insufficient_network_fee_balance_description">Ang transaksyong ito ay nangangailangan ng %1$s para mabayaran ang bayad sa network na ibinayad sa %2$s mga minero, hindi Gem Wallet. Tiyaking mayroon kang sapat na %3$s.</string>
+  <string name="info_balance_required_title">%1$s kinakailangan</string>
+  <string name="info_insufficient_network_fee_balance_description">Nangangailangan ang transaksyong ito ng %1$s para sa bayad sa network ng %2$s, ngunit %3$s lang ang available. Kailangan mo pa ng %4$s para magpatuloy.</string>
   <string name="info_insufficient_balance_title">Hindi Sapat na Balanse</string>
-  <string name="info_insufficient_balance_description">Wala kang sapat na %1$s upang makumpleto ang transaksyong ito. Mangyaring mag-top up, tumanggap, o magpalit sa iyong wallet at subukang muli.</string>
+  <string name="info_balance_required_description">Nangangailangan ang transaksyong ito ng %1$s, ngunit %2$s lang ang available. Kailangan mo pa ng %3$s para magpatuloy.</string>
   <string name="info_account_minimum_balance_title">Minimum na balanse</string>
   <string name="info_perpetual_funding_payments_title">Mga Pagbabayad sa Pagpopondo</string>
   <string name="info_perpetual_funding_payments_description">Ang mga pagbabayad sa pagpopondo ay mga pana-panahong pagbabayad sa pagitan ng mga mangangalakal upang panatilihing malapit ang panghabang-buhay na presyo ng kontrata sa presyo ng pinagbabatayan ng asset. Ang ibig sabihin ng positibong pagpopondo ay ang mga mahabang posisyon ay nagbabayad ng mga maikling posisyon, habang ang negatibong pagpopondo ay nangangahulugan na ang mga maikling posisyon ay nagbabayad ng mga mahabang posisyon.</string>

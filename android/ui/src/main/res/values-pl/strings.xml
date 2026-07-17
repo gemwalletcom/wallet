@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Poślizg odnosi się do różnicy między oczekiwaną ceną transakcji a rzeczywistą ceną, po której została ona zrealizowana.</string>
   <string name="info_asset_status_unverified_description">Niezweryfikowane tokeny nie zostały wystarczająco zweryfikowane przez zaufane usługi stron trzecich. Mogą pojawić się w Twoim portfelu z powodu airdropów, transferów lub ręcznych importów.</string>
   <string name="info_asset_status_suspicious_description">Podejrzane lub spamowe tokeny są identyfikowane jako potencjalne oszustwa lub szkodliwe aktywa. Mogą pojawić się w Twoim portfelu z powodu airdropów, transferów lub ręcznych importów.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s wymagane</string>
-  <string name="info_insufficient_network_fee_balance_description">Ta transakcja wymaga %1$s aby pokryć opłatę sieciową uiszczaną %2$s górnicy, nie Gem Wallet. Upewnij się, że masz wystarczająco dużo %3$s.</string>
+  <string name="info_balance_required_title">%1$s wymagane</string>
+  <string name="info_insufficient_network_fee_balance_description">Ta transakcja wymaga %1$s na opłatę sieciową %2$s, ale dostępne jest tylko %3$s. Aby kontynuować, potrzebujesz jeszcze %4$s.</string>
   <string name="info_insufficient_balance_title">Niewystarczające saldo</string>
-  <string name="info_insufficient_balance_description">Nie masz wystarczająco %1$s aby ukończyć tę transakcję. Doładuj, odbierz lub wymień w swoim portfelu i spróbuj ponownie.</string>
+  <string name="info_balance_required_description">Ta transakcja wymaga %1$s, ale dostępne jest tylko %2$s. Aby kontynuować, potrzebujesz jeszcze %3$s.</string>
   <string name="info_account_minimum_balance_title">Minimalne saldo</string>
   <string name="info_perpetual_funding_payments_title">Płatności finansowe</string>
   <string name="info_perpetual_funding_payments_description">Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że ​​długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że ​​krótkie pozycje opłacają długie pozycje.</string>

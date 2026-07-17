@@ -271,12 +271,15 @@ extension ConfirmTransferSceneViewModel {
         switch error {
         case let error as TransferAmountCalculatorError:
             switch error {
-            case let .insufficientBalance(asset):
-                isPresentingSheet = .info(.insufficientBalance(asset, image: AssetViewModel(asset: asset).assetImage))
-            case let .insufficientNetworkFee(asset, required):
-                isPresentingSheet = .info(.insufficientNetworkFee(asset, image: AssetViewModel(asset: asset).assetImage, required: required, price: metadata?.feePrice, currency: Preferences.standard.currency, action: onSelectGetNetworkFeeAsset))
-            case let .minimumAccountBalanceTooLow(asset, required):
-                isPresentingSheet = .info(.accountMinimalBalance(asset, required: required))
+            case let .insufficientBalance(asset, requirement):
+                isPresentingSheet = .info(.balanceRequired(asset, image: AssetViewModel(asset: asset).assetImage, requirement: requirement, action: { [weak self] in self?.onSelectGetAsset(asset) }))
+            case let .insufficientNetworkFee(asset, requirement):
+                let feeAsset = asset.chain.asset
+                isPresentingSheet = .info(.insufficientNetworkFee(feeAsset, image: AssetViewModel(asset: feeAsset).assetImage, requirement: requirement, price: metadata?.feePrice, currency: Preferences.standard.currency, action: { [weak self] in
+                    self?.onSelectGetAsset(feeAsset, buyAmount: FiatConfig.insufficientNetworkFeeBuyAmount)
+                }))
+            case let .minimumAccountBalanceTooLow(asset, requirement):
+                isPresentingSheet = .info(.accountMinimalBalance(asset, required: requirement.required))
             }
         case let error as ScanTransactionError:
             switch error {
@@ -434,20 +437,16 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
-    private func onSelectGetNetworkFeeAsset() {
-        guard dataModel.chain == .tron else {
-            onSelectBuy()
-            return
+    private func onSelectGetAsset(_ asset: Asset, buyAmount: Int? = nil) {
+        if asset.chain == .tron {
+            isPresentingSheet = .getAsset(asset, buyAmount: buyAmount)
+        } else {
+            isPresentingSheet = .fiatConnect(
+                assetAddress: AssetAddress(asset: asset, address: senderAddress),
+                wallet: wallet,
+                amount: buyAmount,
+            )
         }
-        isPresentingSheet = .getNetworkFeeAsset(feeAsset)
-    }
-
-    private func onSelectBuy() {
-        isPresentingSheet = .fiatConnect(
-            assetAddress: feeAssetAddress,
-            wallet: wallet,
-            amount: FiatConfig.insufficientNetworkFeeBuyAmount,
-        )
     }
 
     private func onSelectConfirmTransfer() {
@@ -550,28 +549,16 @@ extension ConfirmTransferSceneViewModel {
         confirmService.getExplorerLink(chain: dataModel.chain, address: senderAddress)
     }
 
-    public var networkFeeAssetAddress: AssetAddress {
-        feeAssetAddress
+    public func assetAddress(_ asset: Asset) -> AssetAddress {
+        AssetAddress(asset: asset, address: senderAddress)
     }
 
-    public var networkFeeSwapFromAsset: Asset {
-        swapFromAsset
+    public func swapFromAsset(to asset: Asset) -> Asset {
+        dataModel.asset.id == asset.id ? dataModel.asset.feeAsset : dataModel.asset
     }
 
-    public var networkFeeWallet: Wallet {
+    public var assetAcquisitionWallet: Wallet {
         wallet
-    }
-
-    private var feeAssetAddress: AssetAddress {
-        AssetAddress(asset: feeAsset, address: senderAddress)
-    }
-
-    private var feeAsset: Asset {
-        dataModel.asset.feeAsset
-    }
-
-    private var swapFromAsset: Asset {
-        dataModel.asset.id == feeAsset.id ? feeAsset : dataModel.asset
     }
 
     private var confirmButtonIcon: Image? {

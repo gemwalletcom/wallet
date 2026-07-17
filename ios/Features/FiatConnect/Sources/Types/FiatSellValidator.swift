@@ -30,7 +30,10 @@ struct FiatSellValidator: ValueValidator {
         let amount = try formatter.number(from: String(quote.cryptoAmount), decimals: asset.decimals.asInt)
 
         guard amount <= availableBalance else {
-            throw TransferAmountCalculatorError.insufficientBalance(asset)
+            throw TransferAmountCalculatorError.insufficientBalance(
+                asset,
+                requirement: BalanceRequirement(required: amount, available: availableBalance),
+            )
         }
     }
 

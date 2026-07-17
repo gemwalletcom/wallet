@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.ext.updateUrl
-import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
@@ -42,7 +42,7 @@ fun WalletApp(
     pendingRoutes: List<NavKey> = emptyList(),
     onIntentConsumed: () -> Unit = {},
     onContentReady: () -> Unit = {},
-    walletConnectOverlay: @Composable ((GetNetworkFeeAssetAction, AssetId) -> Unit) -> Unit = { _ -> },
+    walletConnectOverlay: @Composable ((AcquireAssetAction, AssetId) -> Unit) -> Unit = { _ -> },
     viewModel: AppViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -100,7 +100,7 @@ fun WalletApp(
         }
     }
 
-    walletConnectOverlay(navigator::openGetNetworkFeeAsset)
+    walletConnectOverlay(navigator::openAcquireAsset)
     state.update?.let { update ->
         ShowUpdateDialog(
             version = update.version,

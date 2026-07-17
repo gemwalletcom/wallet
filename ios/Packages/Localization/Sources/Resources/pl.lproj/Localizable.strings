@@ -426,10 +426,10 @@
 "info.slippage.description" = "Poślizg odnosi się do różnicy między oczekiwaną ceną transakcji a rzeczywistą ceną, po której została ona zrealizowana.";
 "info.asset_status.unverified.description" = "Niezweryfikowane tokeny nie zostały wystarczająco zweryfikowane przez zaufane usługi stron trzecich. Mogą pojawić się w Twoim portfelu z powodu airdropów, transferów lub ręcznych importów.";
 "info.asset_status.suspicious.description" = "Podejrzane lub spamowe tokeny są identyfikowane jako potencjalne oszustwa lub szkodliwe aktywa. Mogą pojawić się w Twoim portfelu z powodu airdropów, transferów lub ręcznych importów.";
-"info.insufficient_network_fee_balance.title" = "%@ wymagane";
-"info.insufficient_network_fee_balance.description" = "Ta transakcja wymaga %@ aby pokryć opłatę sieciową uiszczaną %@ górnicy, nie Gem Wallet. Upewnij się, że masz wystarczająco dużo %@.";
+"info.balance_required_title" = "%@ wymagane";
+"info.insufficient_network_fee_balance.description" = "Ta transakcja wymaga %@ na opłatę sieciową %@, ale dostępne jest tylko %@. Aby kontynuować, potrzebujesz jeszcze %@.";
 "info.insufficient_balance.title" = "Niewystarczające saldo";
-"info.insufficient_balance.description" = "Nie masz wystarczająco %@ aby ukończyć tę transakcję. Doładuj, odbierz lub wymień w swoim portfelu i spróbuj ponownie.";
+"info.balance_required_description" = "Ta transakcja wymaga %@, ale dostępne jest tylko %@. Aby kontynuować, potrzebujesz jeszcze %@.";
 "info.account_minimum_balance.title" = "Minimalne saldo";
 "info.perpetual.funding_payments.title" = "Płatności finansowe";
 "info.perpetual.funding_payments.description" = "Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że ​​długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że ​​krótkie pozycje opłacają długie pozycje.";

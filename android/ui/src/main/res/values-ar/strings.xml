@@ -441,10 +441,10 @@
   <string name="info_slippage_description">يشير الانزلاق إلى الفرق بين السعر المتوقع للتداول والسعر الفعلي الذي يتم تنفيذه به.</string>
   <string name="info_asset_status_unverified_description">لم يتم التحقق من الرموز غير المُوثَّقة بشكل كافٍ من قِبل خدمات خارجية موثوقة. قد تظهر في محفظتك نتيجةً لعمليات الإنزال الجوي، أو التحويلات، أو الاستيراد اليدوي.</string>
   <string name="info_asset_status_suspicious_description">يتم تحديد الرموز المشبوهة أو غير المرغوب فيها على أنها عمليات احتيال محتملة أو أصول ضارة. قد تظهر في محفظتك نتيجةً لعمليات الإنزال الجوي أو التحويلات أو الاستيراد اليدوي.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s مطلوب</string>
-  <string name="info_insufficient_network_fee_balance_description">تتطلب هذه المعاملة %1$s لتغطية رسوم الشبكة المدفوعة لعمال التعدين %2$s ، وليس Gem Wallet. تأكد من أن لديك ما يكفي %3$s.</string>
+  <string name="info_balance_required_title">%1$s مطلوب</string>
+  <string name="info_insufficient_network_fee_balance_description">تتطلب هذه المعاملة %1$s لرسوم شبكة %2$s، ولكن المتاح هو %3$s فقط. تحتاج إلى %4$s إضافية للمتابعة.</string>
   <string name="info_insufficient_balance_title">رصيد غير كاف</string>
-  <string name="info_insufficient_balance_description">ليس لديك رصيد كافٍ %1$s لإتمام هذه المعاملة. يُرجى شحن رصيدك أو استلامه أو استبداله في محفظتك والمحاولة مرة أخرى.</string>
+  <string name="info_balance_required_description">تتطلب هذه المعاملة %1$s، ولكن المتاح هو %2$s فقط. تحتاج إلى %3$s إضافية للمتابعة.</string>
   <string name="info_account_minimum_balance_title">الحد الأدنى للرصيد</string>
   <string name="info_perpetual_funding_payments_title">مدفوعات التمويل</string>
   <string name="info_perpetual_funding_payments_description">مدفوعات التمويل هي دفعات دورية بين المتداولين لإبقاء سعر العقد الدائم قريبًا من السعر الفوري للأصل الأساسي. التمويل الإيجابي يعني أن المراكز الطويلة تدفع المراكز القصيرة، في حين أن التمويل السلبي يعني أن المراكز القصيرة تدفع المراكز الطويلة.</string>

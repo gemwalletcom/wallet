@@ -27,7 +27,10 @@ struct TransactionInputViewModelTests {
             data: .mock(value: 100),
             transactionData: nil,
             metaData: nil,
-            transferAmount: .failure(TransferAmountCalculatorError.insufficientBalance(.mock())),
+            transferAmount: .failure(TransferAmountCalculatorError.insufficientBalance(
+                .mock(),
+                requirement: BalanceRequirement(required: 1, available: 0),
+            )),
         )
 
         #expect(viewModel.value == 100)

@@ -426,10 +426,10 @@
 "info.slippage.description" = "Le glissement fait référence à la différence entre le prix attendu d'une transaction et le prix réel auquel elle est exécutée.";
 "info.asset_status.unverified.description" = "Les jetons non vérifiés n'ont pas été suffisamment vérifiés par des services tiers de confiance. Ils peuvent apparaître dans votre portefeuille suite à des airdrops, des transferts ou des importations manuelles.";
 "info.asset_status.suspicious.description" = "Les jetons suspects ou indésirables sont identifiés comme des arnaques potentielles ou des actifs dangereux. Ils peuvent apparaître dans votre portefeuille suite à des airdrops, des transferts ou des importations manuelles.";
-"info.insufficient_network_fee_balance.title" = "%@ requis";
-"info.insufficient_network_fee_balance.description" = "Cette transaction nécessite %@ pour couvrir les frais de réseau payés aux mineurs %@, et non à Gem Wallet. Assurez-vous d'en avoir suffisamment %@.";
+"info.balance_required_title" = "%@ requis";
+"info.insufficient_network_fee_balance.description" = "Cette transaction nécessite %@ pour les frais du réseau %@, mais seulement %@ sont disponibles. Il vous faut encore %@ pour continuer.";
 "info.insufficient_balance.title" = "Solde insuffisant";
-"info.insufficient_balance.description" = "Vous n'avez pas assez de %@ pour finaliser cette transaction. Veuillez recharger, recevoir ou échanger votre portefeuille et réessayer.";
+"info.balance_required_description" = "Cette transaction nécessite %@, mais seulement %@ sont disponibles. Il vous faut encore %@ pour continuer.";
 "info.account_minimum_balance.title" = "Solde minimum";
 "info.perpetual.funding_payments.title" = "Paiements de financement";
 "info.perpetual.funding_payments.description" = "Les paiements de financement sont des paiements périodiques entre traders visant à maintenir le prix du contrat perpétuel proche du prix au comptant de l'actif sous-jacent. Un financement positif signifie que les positions longues paient les positions courtes, tandis qu'un financement négatif signifie que les positions courtes paient les positions longues.";

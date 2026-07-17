@@ -12,8 +12,8 @@ import SwiftUI
 
 public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Chain)
-    case insufficientBalance(Asset, image: AssetImage)
-    case insufficientNetworkFee(Asset, image: AssetImage, required: BigInt?, price: Price?, currency: String, action: InfoSheetAction)
+    case balanceRequired(Asset, image: AssetImage, requirement: BalanceRequirement, action: InfoSheetAction)
+    case insufficientNetworkFee(Asset, image: AssetImage, requirement: BalanceRequirement?, price: Price?, currency: String, action: InfoSheetAction)
     case transactionState(imageURL: URL?, placeholder: Image?, state: TransactionState)
     case watchWallet
     case stakeLockTime(Image?)
@@ -49,8 +49,8 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     public var id: String {
         switch self {
         case .networkFee: "networkFees"
-        case .insufficientNetworkFee: "insufficientNetworkFee"
-        case let .insufficientBalance(asset, _): "insufficientBalance_\(asset.id.identifier)"
+        case let .insufficientNetworkFee(asset, _, _, _, _, _): "insufficientNetworkFee_\(asset.id.identifier)"
+        case let .balanceRequired(asset, _, _, _): "balanceRequired_\(asset.id.identifier)"
         case let .transactionState(_, _, state): state.id
         case .watchWallet: "watchWallet"
         case .stakeLockTime: "stakeLockTime"

@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Kayma, bir işlemin beklenen fiyatı ile gerçekleştirildiği gerçek fiyat arasındaki farkı ifade eder.</string>
   <string name="info_asset_status_unverified_description">Doğrulanmamış token\'lar güvenilir üçüncü taraf hizmetleri tarafından yeterince doğrulanmamıştır. Airdrop\'lar, transferler veya manuel içe aktarmalar nedeniyle cüzdanınızda görünebilirler.</string>
   <string name="info_asset_status_suspicious_description">Şüpheli veya spam token\'lar potansiyel dolandırıcılık veya zararlı varlıklar olarak tanımlanır. Airdrop\'lar, transferler veya manuel ithalatlar nedeniyle cüzdanınızda görünebilirler.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s gerekli</string>
-  <string name="info_insufficient_network_fee_balance_description">Bu işlem %1$s \'un %2$s madencilerine ödenen ağ ücretini karşılamasını gerektirir, Gem Wallet değil. Yeterli %3$s olduğundan emin olun.</string>
+  <string name="info_balance_required_title">%1$s gerekli</string>
+  <string name="info_insufficient_network_fee_balance_description">Bu işlem %1$s ağ ücreti için %2$s gerektirir, ancak yalnızca %3$s kullanılabilir. Devam etmek için %4$s daha gerekiyor.</string>
   <string name="info_insufficient_balance_title">Yetersiz Bakiye</string>
-  <string name="info_insufficient_balance_description">Bu işlemi tamamlamak için yeterli %1$s iniz yok. Lütfen cüzdanınıza para yükleyin, alın veya takas edin ve tekrar deneyin.</string>
+  <string name="info_balance_required_description">Bu işlem %1$s gerektirir, ancak yalnızca %2$s kullanılabilir. Devam etmek için %3$s daha gerekiyor.</string>
   <string name="info_account_minimum_balance_title">Minimum bakiye</string>
   <string name="info_perpetual_funding_payments_title">Finansman Ödemeleri</string>
   <string name="info_perpetual_funding_payments_description">Fonlama ödemeleri, daimi sözleşme fiyatını dayanak varlığın spot fiyatına yakın tutmak için yatırımcılar arasında yapılan periyodik ödemelerdir. Pozitif fonlama, uzun pozisyonların kısa pozisyon ödediği anlamına gelirken, negatif fonlama, kısa pozisyonların uzun pozisyon ödediği anlamına gelir.</string>

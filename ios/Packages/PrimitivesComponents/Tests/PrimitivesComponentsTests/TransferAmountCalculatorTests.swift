@@ -19,7 +19,10 @@ struct TransferAmountCalculatorTests {
 
     @Test
     func transferCoin() {
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 11, available: 0),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: .zero,
@@ -33,7 +36,10 @@ struct TransferAmountCalculatorTests {
             ))
         }
 
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 1, available: 0),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: .zero,
@@ -47,7 +53,10 @@ struct TransferAmountCalculatorTests {
             ))
         }
 
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 20, available: 10),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: Balance(available: BigInt(10)),
@@ -61,7 +70,10 @@ struct TransferAmountCalculatorTests {
             ))
         }
 
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 10, available: 0),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: .zero,
@@ -152,8 +164,31 @@ struct TransferAmountCalculatorTests {
     }
 
     @Test
-    func transferCoinBelowMinimumAfterFee() {
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+    func zeroLiquidBalanceReportsLiquidAvailability() {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 11, available: 0),
+        )) {
+            try service.calculate(input: TransferAmountInput(
+                asset: coinAsset,
+                assetBalance: .zero,
+                value: 10,
+                availableValue: 10,
+                assetFee: coinAsset.feeAsset,
+                assetFeeBalance: Balance(available: 10),
+                fee: 1,
+                canChangeValue: true,
+                ignoreValueCheck: false,
+            ))
+        }
+    }
+
+    @Test
+    func maxTransactionBelowRequiredAmountAfterFee() {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 99, available: 98),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: Balance(available: 100),
@@ -167,6 +202,45 @@ struct TransferAmountCalculatorTests {
                 minimumValue: BigInt(99),
             ))
         }
+    }
+
+    @Test
+    func maxTransactionBelowRequiredAmountBeforeFee() {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 101, available: 98),
+        )) {
+            try service.calculate(input: TransferAmountInput(
+                asset: coinAsset,
+                assetBalance: Balance(available: 100),
+                value: BigInt(100),
+                availableValue: BigInt(100),
+                assetFee: coinAsset.feeAsset,
+                assetFeeBalance: Balance(available: BigInt(100)),
+                fee: BigInt(2),
+                canChangeValue: true,
+                ignoreValueCheck: false,
+                minimumValue: BigInt(101),
+            ))
+        }
+    }
+
+    @Test
+    func nonMaxTransactionPaysFeeOutsideRequiredAmount() throws {
+        let amount = try service.calculate(input: TransferAmountInput(
+            asset: coinAsset,
+            assetBalance: Balance(available: 1000),
+            value: 30,
+            availableValue: 1000,
+            assetFee: coinAsset.feeAsset,
+            assetFeeBalance: Balance(available: 1000),
+            fee: 1,
+            canChangeValue: true,
+            ignoreValueCheck: false,
+            minimumValue: 29,
+        ))
+
+        #expect(amount == TransferAmount(value: 30, networkFee: 1, useMaxAmount: false))
     }
 
     @Test
@@ -186,7 +260,10 @@ struct TransferAmountCalculatorTests {
             #expect(result == TransferAmount(value: 1000, networkFee: 1, useMaxAmount: true))
         }
 
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 1000, available: 12),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: Balance(available: 12),
@@ -218,7 +295,10 @@ struct TransferAmountCalculatorTests {
             #expect(result == TransferAmount(value: 9, networkFee: 3, useMaxAmount: true))
         }
 
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 15, available: 12),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: Balance(available: 12),
@@ -250,7 +330,10 @@ struct TransferAmountCalculatorTests {
             #expect(result == TransferAmount(value: 2222, networkFee: 3, useMaxAmount: false))
         }
 
-        #expect(throws: TransferAmountCalculatorError.insufficientNetworkFee(coinAsset, required: BigInt(13))) {
+        #expect(throws: TransferAmountCalculatorError.insufficientNetworkFee(
+            coinAsset,
+            requirement: BalanceRequirement(required: 13, available: 12),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: Balance(available: 12),
@@ -267,7 +350,10 @@ struct TransferAmountCalculatorTests {
 
     @Test
     func insufficientBalanceError() {
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            coinAsset,
+            requirement: BalanceRequirement(required: 100, available: 50),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: Balance(available: BigInt(50)),
@@ -285,7 +371,10 @@ struct TransferAmountCalculatorTests {
     func minimumAccountBalance() {
         let asset1 = Asset(.solana)
 
-        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(asset1, required: BigInt(890_880))) {
+        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(
+            asset1,
+            requirement: BalanceRequirement(required: 890_880, available: 300_000),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: asset1,
                 assetBalance: Balance(available: BigInt(1_000_890_880)),
@@ -299,7 +388,10 @@ struct TransferAmountCalculatorTests {
             ))
         }
 
-        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(asset1, required: BigInt(890_880))) {
+        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(
+            asset1,
+            requirement: BalanceRequirement(required: 890_880, available: -100_000),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: asset1,
                 assetBalance: Balance(available: BigInt(1_000_000)),
@@ -352,14 +444,17 @@ struct TransferAmountCalculatorTests {
 
     @Test
     func testValidateNetworkFee() {
-        #expect(throws: TransferAmountCalculatorError.insufficientNetworkFee(.mockEthereum(), required: nil)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientNetworkFee(.mockEthereum(), requirement: nil)) {
             try service.validateNetworkFee(
                 .zero,
                 feeAssetId: .mockEthereum(),
             )
         }
 
-        #expect(throws: TransferAmountCalculatorError.insufficientNetworkFee(coinAsset, required: BigInt(10))) {
+        #expect(throws: TransferAmountCalculatorError.insufficientNetworkFee(
+            coinAsset,
+            requirement: BalanceRequirement(required: 10, available: 5),
+        )) {
             try service.calculate(input: TransferAmountInput(
                 asset: coinAsset,
                 assetBalance: Balance(available: BigInt(100)),

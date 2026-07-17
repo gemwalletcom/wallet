@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
@@ -30,10 +30,11 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 
 @Composable
-internal fun GetNetworkFeeAssetBottomSheet(
+internal fun GetAssetBottomSheet(
     asset: Asset,
+    buyAmount: Int?,
     onDismiss: () -> Unit,
-    onAction: (GetNetworkFeeAssetAction) -> Unit,
+    onAction: (AcquireAssetAction) -> Unit,
 ) {
     ModalBottomSheet(
         isVisible = true,
@@ -42,33 +43,33 @@ internal fun GetNetworkFeeAssetBottomSheet(
         title = stringResource(R.string.asset_get_asset, asset.symbol),
     ) {
         Column(modifier = Modifier.padding(bottom = paddingDefault)) {
-            GetNetworkFeeAssetItem(
+            GetAssetItem(
                 title = stringResource(R.string.wallet_buy),
                 subtitle = stringResource(R.string.wallet_pay_with_card_or_bank),
                 icon = AppIcons.Buy,
                 position = ListPosition.First,
-                onClick = { onAction(GetNetworkFeeAssetAction.Buy) },
+                onClick = { onAction(AcquireAssetAction.Buy(buyAmount)) },
             )
-            GetNetworkFeeAssetItem(
+            GetAssetItem(
                 title = stringResource(R.string.wallet_swap),
                 subtitle = stringResource(R.string.wallet_from_your_wallet_assets),
                 icon = AppIcons.SwapVert,
                 position = ListPosition.Middle,
-                onClick = { onAction(GetNetworkFeeAssetAction.Swap) },
+                onClick = { onAction(AcquireAssetAction.Swap) },
             )
-            GetNetworkFeeAssetItem(
+            GetAssetItem(
                 title = stringResource(R.string.wallet_receive),
                 subtitle = stringResource(R.string.wallet_transfer_from_another_wallet),
                 icon = AppIcons.Receive,
                 position = ListPosition.Last,
-                onClick = { onAction(GetNetworkFeeAssetAction.Receive) },
+                onClick = { onAction(AcquireAssetAction.Receive) },
             )
         }
     }
 }
 
 @Composable
-private fun GetNetworkFeeAssetItem(
+private fun GetAssetItem(
     title: String,
     subtitle: String,
     icon: ImageVector,
@@ -78,7 +79,7 @@ private fun GetNetworkFeeAssetItem(
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = position,
-        leading = { GetNetworkFeeAssetIcon(icon = icon) },
+        leading = { GetAssetIcon(icon = icon) },
         title = { ListItemTitleText(text = title) },
         subtitle = { ListItemSupportText(text = subtitle) },
         trailing = { DataBadgeChevron() },
@@ -86,7 +87,7 @@ private fun GetNetworkFeeAssetItem(
 }
 
 @Composable
-private fun GetNetworkFeeAssetIcon(icon: ImageVector) {
+private fun GetAssetIcon(icon: ImageVector) {
     Box(
         modifier = Modifier
             .size(listItemIconSize)

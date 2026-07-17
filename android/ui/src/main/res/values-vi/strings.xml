@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Trượt giá là sự chênh lệch giữa giá dự kiến của một giao dịch và giá thực tế khi giao dịch đó được thực hiện.</string>
   <string name="info_asset_status_unverified_description">Các mã thông báo chưa được xác minh chưa được xác minh đầy đủ bởi các dịch vụ của bên thứ ba đáng tin cậy. Chúng có thể xuất hiện trong ví của bạn do airdrop, chuyển khoản hoặc nhập thủ công.</string>
   <string name="info_asset_status_suspicious_description">Mã thông báo đáng ngờ hoặc thư rác được xác định là lừa đảo tiềm ẩn hoặc tài sản có hại. Chúng có thể xuất hiện trong ví của bạn do airdrop, chuyển khoản hoặc nhập thủ công.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s bắt buộc</string>
-  <string name="info_insufficient_network_fee_balance_description">Giao dịch này yêu cầu %1$s để trang trải phí mạng đã trả cho %2$s thợ mỏ, không phải Gem Wallet. Hãy đảm bảo bạn có đủ %3$s.</string>
+  <string name="info_balance_required_title">%1$s bắt buộc</string>
+  <string name="info_insufficient_network_fee_balance_description">Giao dịch này yêu cầu %1$s cho phí mạng %2$s, nhưng chỉ có %3$s khả dụng. Bạn cần thêm %4$s để tiếp tục.</string>
   <string name="info_insufficient_balance_title">Số dư không đủ</string>
-  <string name="info_insufficient_balance_description">Bạn không có đủ %1$s để hoàn tất giao dịch này. Vui lòng nạp tiền, nhận hoặc đổi trong ví của bạn và thử lại.</string>
+  <string name="info_balance_required_description">Giao dịch này yêu cầu %1$s, nhưng chỉ có %2$s khả dụng. Bạn cần thêm %3$s để tiếp tục.</string>
   <string name="info_account_minimum_balance_title">Số dư tối thiểu</string>
   <string name="info_perpetual_funding_payments_title">Thanh toán tài trợ</string>
   <string name="info_perpetual_funding_payments_description">Thanh toán cấp vốn là khoản thanh toán định kỳ giữa các nhà giao dịch để giữ giá hợp đồng vĩnh viễn gần với giá giao ngay của tài sản cơ bản. Nguồn vốn dương có nghĩa là các vị thế mua sẽ trả cho các vị thế bán, trong khi nguồn vốn âm có nghĩa là các vị thế bán sẽ trả cho các vị thế mua.</string>

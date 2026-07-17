@@ -441,10 +441,10 @@
   <string name="info_slippage_description">لغزش به تفاوت بین قیمت مورد انتظار یک معامله و قیمت واقعی که در آن انجام می‌شود اشاره دارد.</string>
   <string name="info_asset_status_unverified_description">توکن‌های تایید نشده به اندازه کافی توسط سرویس‌های شخص ثالث مورد اعتماد تایید نشده‌اند. آنها ممکن است به دلیل ایردراپ، انتقال یا وارد کردن دستی در کیف پول شما ظاهر شوند.</string>
   <string name="info_asset_status_suspicious_description">توکن‌های مشکوک یا اسپم به عنوان کلاهبرداری‌های بالقوه یا دارایی‌های مضر شناسایی می‌شوند. آنها ممکن است به دلیل ایردراپ‌ها، انتقال‌ها یا واردات دستی در کیف پول شما ظاهر شوند.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s مورد نیاز</string>
-  <string name="info_insufficient_network_fee_balance_description">این تراکنش به %1$s برای پوشش کارمزد شبکه که به ماینرهای %2$s پرداخت می‌شود نیاز دارد، نه به Gem Wallet. مطمئن شوید که %3$s کافی دارید.</string>
+  <string name="info_balance_required_title">%1$s مورد نیاز</string>
+  <string name="info_insufficient_network_fee_balance_description">این تراکنش برای کارمزد شبکه %1$s به %2$s نیاز دارد، اما فقط %3$s در دسترس است. برای ادامه به %4$s بیشتر نیاز دارید.</string>
   <string name="info_insufficient_balance_title">موجودی ناکافی</string>
-  <string name="info_insufficient_balance_description">شما %1$s کافی برای تکمیل این تراکنش ندارید. لطفاً کیف پول خود را شارژ، دریافت یا مبادله کنید و دوباره امتحان کنید.</string>
+  <string name="info_balance_required_description">این تراکنش به %1$s نیاز دارد، اما فقط %2$s در دسترس است. برای ادامه به %3$s بیشتر نیاز دارید.</string>
   <string name="info_account_minimum_balance_title">حداقل موجودی</string>
   <string name="info_perpetual_funding_payments_title">پرداخت های مالی</string>
   <string name="info_perpetual_funding_payments_description">پرداخت های تامین مالی، پرداخت های دوره ای بین معامله گران است تا قیمت قرارداد دائمی را نزدیک به قیمت لحظه ای دارایی پایه نگه دارند. تامین مالی مثبت به این معنی است که موقعیت‌های لانگ به موقعیت‌های شورت پرداخت می‌کنند، در حالی که تامین مالی منفی به معنای پرداخت موقعیت‌های شورت به موقعیت‌های لانگ است.</string>

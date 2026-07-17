@@ -48,9 +48,10 @@ struct ConfirmTransferNavigationView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
-                case let .getNetworkFeeAsset(asset):
-                    GetNetworkFeeAssetNavigationStack(
+                case let .getAsset(asset, buyAmount):
+                    GetAssetNavigationStack(
                         asset: asset,
+                        buyAmount: buyAmount,
                         model: model,
                         viewModelFactory: viewModelFactory,
                         assetsEnabler: assetsEnabler,
@@ -82,20 +83,21 @@ struct ConfirmTransferNavigationView: View {
     }
 }
 
-private struct GetNetworkFeeAssetNavigationStack: View {
+private struct GetAssetNavigationStack: View {
     private static let optionsDetent = PresentationDetent.height(360)
 
     let asset: Asset
+    let buyAmount: Int?
     let model: ConfirmTransferSceneViewModel
     let viewModelFactory: ViewModelFactory
     let assetsEnabler: any AssetsEnabler
 
-    @State private var selectedAction: GetNetworkFeeAssetAction?
+    @State private var selectedAction: GetAssetAction?
     @State private var actionNavigationPath = NavigationPath()
 
     var body: some View {
         NavigationStack {
-            GetNetworkFeeAssetScene(
+            GetAssetScene(
                 asset: asset,
                 onSelect: {
                     actionNavigationPath = NavigationPath()
@@ -113,7 +115,7 @@ private struct GetNetworkFeeAssetNavigationStack: View {
                         .navigationDestination(for: TransferData.self) { data in
                             ConfirmTransferNavigationView(
                                 model: viewModelFactory.confirmTransferScene(
-                                    wallet: model.networkFeeWallet,
+                                    wallet: model.assetAcquisitionWallet,
                                     data: data,
                                     onComplete: { model.isPresentingSheet = nil },
                                 ),
@@ -127,23 +129,23 @@ private struct GetNetworkFeeAssetNavigationStack: View {
     }
 
     @ViewBuilder
-    private func destination(for type: GetNetworkFeeAssetAction) -> some View {
+    private func destination(for type: GetAssetAction) -> some View {
         switch type {
         case .buy:
             FiatConnectNavigationView(
                 model: viewModelFactory.fiatScene(
-                    assetAddress: model.networkFeeAssetAddress,
-                    wallet: model.networkFeeWallet,
-                    amount: FiatConfig.insufficientNetworkFeeBuyAmount,
+                    assetAddress: model.assetAddress(asset),
+                    wallet: model.assetAcquisitionWallet,
+                    amount: buyAmount,
                 ),
             )
         case .swap:
             SwapNavigationView(
                 model: viewModelFactory.swapScene(
                     input: SwapInput(
-                        wallet: model.networkFeeWallet,
+                        wallet: model.assetAcquisitionWallet,
                         pairSelector: SwapPairSelectorViewModel(
-                            fromAssetId: model.networkFeeSwapFromAsset.id,
+                            fromAssetId: model.swapFromAsset(to: asset).id,
                             toAssetId: asset.id,
                         ),
                     ),
@@ -154,8 +156,8 @@ private struct GetNetworkFeeAssetNavigationStack: View {
             ReceiveScene(
                 model: ReceiveViewModel(
                     assetModel: AssetViewModel(asset: asset),
-                    wallet: model.networkFeeWallet,
-                    address: model.networkFeeAssetAddress.address,
+                    wallet: model.assetAcquisitionWallet,
+                    address: model.assetAddress(asset).address,
                     assetsEnabler: assetsEnabler,
                 ),
             )

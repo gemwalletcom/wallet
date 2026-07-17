@@ -38,7 +38,10 @@ struct FiatSellValidatorTests {
             asset: asset,
         )
 
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(asset)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            asset,
+            requirement: BalanceRequirement(required: 200_000_000, available: 100_000_000),
+        )) {
             try validator.validate(BigInt(100))
         }
     }

@@ -441,10 +441,10 @@
   <string name="info_slippage_description">スリッページとは、取引の予想価格と実際に約定した価格の差を指します。</string>
   <string name="info_asset_status_unverified_description">未検証トークンは、信頼できるサードパーティサービスによって十分に検証されていません。エアドロップ、送金、または手動インポートによってウォレットに表示される場合があります。</string>
   <string name="info_asset_status_suspicious_description">疑わしいトークンやスパムトークンは、詐欺や有害な資産の可能性があると判断されます。エアドロップ、送金、または手動インポートによってウォレットに表示される場合があります。</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$sが必要です</string>
-  <string name="info_insufficient_network_fee_balance_description">この取引では、ネットワーク手数料を賄うために%1$sが必要です。この手数料はGem Walletではなく%2$sのマイナーに支払われます。十分な%3$sがあることを確認してください。</string>
+  <string name="info_balance_required_title">%1$sが必要です</string>
+  <string name="info_insufficient_network_fee_balance_description">この取引には、%1$sネットワーク手数料として%2$sが必要ですが、利用できるのは%3$sのみです。続行するには、あと%4$s必要です。</string>
   <string name="info_insufficient_balance_title">残高不足</string>
-  <string name="info_insufficient_balance_description">この取引を完了するには%1$sが足りません。ウォレットにチャージ、受け取り、または交換して、もう一度お試しください。</string>
+  <string name="info_balance_required_description">この取引には%1$sが必要ですが、利用できるのは%2$sのみです。続行するには、あと%3$s必要です。</string>
   <string name="info_account_minimum_balance_title">最低残高</string>
   <string name="info_perpetual_funding_payments_title">ファンディングペイメント</string>
   <string name="info_perpetual_funding_payments_description">ファンディングペイメントは、永久契約の価格を基礎資産のスポット価格に近づけるためにトレーダー間で定期的に行われる支払いです。プラスのファンディングではロングポジションがショートポジションに支払い、マイナスのファンディングではショートポジションがロングポジションに支払います。</string>

@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Slippage bezeichnet die Differenz zwischen dem erwarteten Preis eines Handels und dem tatsächlichen Preis, zu dem er ausgeführt wird.</string>
   <string name="info_asset_status_unverified_description">Nicht verifizierte Token wurden von vertrauenswürdigen Drittanbietern nicht ausreichend verifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrem Wallet erscheinen.</string>
   <string name="info_asset_status_suspicious_description">Verdächtige oder Spam-Token werden als potenzieller Betrug oder schädliche Vermögenswerte identifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrer Wallet erscheinen.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s erforderlich</string>
-  <string name="info_insufficient_network_fee_balance_description">Für diese Transaktion sind %1$s erforderlich, um die Netzwerkgebühr zu decken, die an %2$s-Miner gezahlt wird, nicht an Gem Wallet. Stellen Sie sicher, dass Sie genügend %3$s haben.</string>
+  <string name="info_balance_required_title">%1$s erforderlich</string>
+  <string name="info_insufficient_network_fee_balance_description">Diese Transaktion erfordert %1$s für die %2$s-Netzwerkgebühr, aber nur %3$s sind verfügbar. Sie benötigen noch %4$s, um fortzufahren.</string>
   <string name="info_insufficient_balance_title">Unzureichendes Guthaben</string>
-  <string name="info_insufficient_balance_description">Sie haben nicht genügend %1$s, um diese Transaktion abzuschließen. Bitte laden Sie Ihr Wallet auf, empfangen Sie es oder tauschen Sie es um und versuchen Sie es erneut.</string>
+  <string name="info_balance_required_description">Diese Transaktion erfordert %1$s, aber nur %2$s sind verfügbar. Sie benötigen noch %3$s, um fortzufahren.</string>
   <string name="info_account_minimum_balance_title">Mindestguthaben</string>
   <string name="info_perpetual_funding_payments_title">Finanzierungszahlungen</string>
   <string name="info_perpetual_funding_payments_description">Finanzierungszahlungen sind regelmäßige Zahlungen zwischen Händlern, um den Preis des unbefristeten Vertrags nahe am Spotpreis des zugrunde liegenden Vermögenswerts zu halten. Positive Finanzierung bedeutet, dass Long-Positionen Short-Positionen bezahlen, während negative Finanzierung bedeutet, dass Short-Positionen Long-Positionen bezahlen.</string>

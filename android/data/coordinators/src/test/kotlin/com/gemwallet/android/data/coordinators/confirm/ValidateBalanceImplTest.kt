@@ -20,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
@@ -62,9 +63,11 @@ class ValidateBalanceImplTest {
             .transfer(DestinationAddress("recipient"))
         val info = assetInfo(walletAvailable = "10500000")
 
-        assertThrows(ConfirmError.MinimumAccountBalanceTooLow::class.java) {
+        val error = assertThrows(ConfirmError.MinimumAccountBalanceTooLow::class.java) {
             validate(params, finalAmount = transferAmount, info = info, assetBalance = BigInteger("10500000"))
         }
+        assertEquals(BigInteger.valueOf(890_880L), error.requirement.required)
+        assertEquals(BigInteger.valueOf(495_000L), error.requirement.available)
     }
 
     @Test
@@ -74,9 +77,11 @@ class ValidateBalanceImplTest {
             .transfer(DestinationAddress("recipient"))
         val info = assetInfo(walletAvailable = "10000000")
 
-        assertThrows(ConfirmError.InsufficientBalance::class.java) {
+        val error = assertThrows(ConfirmError.InsufficientBalance::class.java) {
             validate(params, finalAmount = transferAmount, info = info, assetBalance = BigInteger("10000000"))
         }
+        assertEquals(BigInteger.valueOf(10_005_000L), error.requirement.required)
+        assertEquals(BigInteger.valueOf(10_000_000L), error.requirement.available)
     }
 
     @Test
@@ -86,9 +91,11 @@ class ValidateBalanceImplTest {
             .withdraw(mockDelegation(asset.id, DelegationState.AwaitingWithdrawal, stakeAmount.toString()))
         val info = assetInfo(walletAvailable = "1000")
 
-        assertThrows(ConfirmError.InsufficientFee::class.java) {
+        val error = assertThrows(ConfirmError.InsufficientFee::class.java) {
             validate(params, finalAmount = stakeAmount, info = info, assetBalance = stakeAmount)
         }
+        assertEquals(feeAmount, error.requirement.required)
+        assertEquals(BigInteger.valueOf(1_000L), error.requirement.available)
     }
 
     @Test
@@ -131,34 +138,75 @@ class ValidateBalanceImplTest {
     }
 
     @Test
-    fun `swap below quoted minimum throws`() {
+    fun `max swap below quoted minimum reports final amount`() {
         val swapAmount = BigInteger.valueOf(9_990_000L)
-        val params = ConfirmParams.SwapParams(
-            from = account,
-            fromAsset = asset,
+        val params = swapParams(
             fromAmount = swapAmount + feeAmount,
             minFromAmount = swapAmount + BigInteger.ONE,
-            toAsset = asset,
-            toAmount = BigInteger.ONE,
-            swapData = "",
-            memo = null,
-            providerId = SwapperProvider.NEAR_INTENTS,
-            providerName = "NEAR Intents",
-            protocol = "NEAR Intents",
-            protocolId = "near-intents",
-            toAddress = "recipient",
-            value = "0",
-            slippageBps = 50u,
-            etaInSeconds = null,
-            dataType = GemSwapQuoteDataType.TRANSFER,
-            useMaxAmount = true,
         )
         val info = assetInfo(walletAvailable = "10000000")
 
-        assertThrows(ConfirmError.InsufficientBalance::class.java) {
+        val error = assertThrows(ConfirmError.InsufficientBalance::class.java) {
             validate(params, finalAmount = swapAmount, info = info, assetBalance = BigInteger("10000000"))
         }
+        assertEquals(swapAmount + BigInteger.ONE, error.requirement.required)
+        assertEquals(swapAmount, error.requirement.available)
     }
+
+    @Test
+    fun `quoted minimum is enforced when input amount is lower`() {
+        val swapAmount = BigInteger.valueOf(9_990_000L)
+        val params = swapParams(
+            fromAmount = swapAmount + feeAmount,
+            minFromAmount = swapAmount + feeAmount + BigInteger.ONE,
+        )
+        val info = assetInfo(walletAvailable = "10000000")
+
+        val error = assertThrows(ConfirmError.InsufficientBalance::class.java) {
+            validate(params, finalAmount = swapAmount, info = info, assetBalance = BigInteger("10000000"))
+        }
+        assertEquals(swapAmount + feeAmount + BigInteger.ONE, error.requirement.required)
+        assertEquals(swapAmount, error.requirement.available)
+    }
+
+    @Test
+    fun `non max swap pays fee outside quoted amount`() {
+        val swapAmount = BigInteger.valueOf(30_000_000L)
+        val params = swapParams(
+            fromAmount = swapAmount,
+            minFromAmount = BigInteger.valueOf(29_100_000L),
+            useMaxAmount = false,
+        )
+        val balance = BigInteger.valueOf(1_000_000_000L)
+        val info = assetInfo(walletAvailable = balance.toString())
+
+        validate(params, finalAmount = swapAmount, info = info, assetBalance = balance)
+    }
+
+    private fun swapParams(
+        fromAmount: BigInteger,
+        minFromAmount: BigInteger,
+        useMaxAmount: Boolean = true,
+    ) = ConfirmParams.SwapParams(
+        from = account,
+        fromAsset = asset,
+        fromAmount = fromAmount,
+        minFromAmount = minFromAmount,
+        toAsset = asset,
+        toAmount = BigInteger.ONE,
+        swapData = "",
+        memo = null,
+        providerId = SwapperProvider.NEAR_INTENTS,
+        providerName = "NEAR Intents",
+        protocol = "NEAR Intents",
+        protocolId = "near-intents",
+        toAddress = "recipient",
+        value = "0",
+        slippageBps = 50u,
+        etaInSeconds = null,
+        dataType = GemSwapQuoteDataType.TRANSFER,
+        useMaxAmount = useMaxAmount,
+    )
 
     private fun assetInfo(walletAvailable: String) = mockAssetInfo(
         asset = asset,

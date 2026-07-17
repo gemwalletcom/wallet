@@ -446,7 +446,7 @@ extension SwapSceneViewModel {
                 source: .asset,
                 decimals: assetData.asset.decimals.asInt,
                 validators: [
-                    BalanceValueValidator<BigInt>(available: assetData.balance.available, asset: assetData.asset),
+                    BalanceValueValidator(available: assetData.balance.available, asset: assetData.asset),
                 ],
             )],
         )

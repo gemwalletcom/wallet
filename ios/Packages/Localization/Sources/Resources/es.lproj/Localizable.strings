@@ -426,10 +426,10 @@
 "info.slippage.description" = "El deslizamiento se refiere a la diferencia entre el precio esperado de una operación y el precio real al que se ejecuta.";
 "info.asset_status.unverified.description" = "Los tokens no verificados no han sido verificados adecuadamente por servicios externos de confianza. Podrían aparecer en tu billetera debido a airdrops, transferencias o importaciones manuales.";
 "info.asset_status.suspicious.description" = "Los tokens sospechosos o spam se identifican como posibles estafas o activos dañinos. Pueden aparecer en tu billetera debido a airdrops, transferencias o importaciones manuales.";
-"info.insufficient_network_fee_balance.title" = "%@ requerido";
-"info.insufficient_network_fee_balance.description" = "Esta transacción requiere %@ para cubrir la tarifa de red pagada a %@ mineros, no Gem Wallet. Asegúrese de tener suficiente %@.";
+"info.balance_required_title" = "%@ requerido";
+"info.insufficient_network_fee_balance.description" = "Esta transacción requiere %@ para la tarifa de red de %@, pero solo hay %@ disponibles. Necesitas %@ más para continuar.";
 "info.insufficient_balance.title" = "Saldo insuficiente";
-"info.insufficient_balance.description" = "No tienes suficientes %@ para completar esta transacción. Recarga, recibe o intercambia tu billetera y vuelve a intentarlo.";
+"info.balance_required_description" = "Esta transacción requiere %@, pero solo hay %@ disponibles. Necesitas %@ más para continuar.";
 "info.account_minimum_balance.title" = "Saldo mínimo";
 "info.perpetual.funding_payments.title" = "Pagos de financiación";
 "info.perpetual.funding_payments.description" = "Los pagos de financiación son pagos periódicos entre comerciantes para mantener el precio del contrato perpetuo cerca del precio al contado del activo subyacente. La financiación positiva significa que las posiciones largas pagan posiciones cortas, mientras que la financiación negativa significa que las posiciones cortas pagan posiciones largas.";
