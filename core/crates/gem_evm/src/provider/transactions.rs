@@ -44,10 +44,10 @@ async fn load_transactions_by_hashes<C: Client + Clone>(client: &EthereumClient<
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest { address, limit, .. } = request;
+        let TransactionsRequest { address, .. } = request;
         let hashes = if let Some(ankr_client) = &self.ankr_client {
             ankr_client
-                .get_ankr_transactions_by_address(address.as_str(), limit)
+                .get_ankr_transactions_by_address(address.as_str())
                 .await?
                 .transactions
                 .into_iter()

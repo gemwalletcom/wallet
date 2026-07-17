@@ -21,12 +21,11 @@ impl<C: Client + Clone> AnkrClient<C> {
 
 impl<C: Client + Clone> AnkrClient<C> {
     /// Reference: https://www.ankr.com/docs/advanced-api/query-methods/#ankr_gettransactionsbyaddress
-    pub async fn get_ankr_transactions_by_address(&self, address: &str, limit: Option<usize>) -> Result<Transactions, Box<dyn Error + Send + Sync>> {
+    pub async fn get_ankr_transactions_by_address(&self, address: &str) -> Result<Transactions, Box<dyn Error + Send + Sync>> {
         if let Some(chain) = ankr_chain(self.chain) {
             let params = serde_json::json!({
                 "address": address,
                 "blockchain": chain,
-                "pageSize": limit.unwrap_or(1),
                 "descOrder": true
             });
             Ok(self.rpc_client.call("ankr_getTransactionsByAddress", params).await?)
@@ -50,5 +49,33 @@ impl<C: Client + Clone> AnkrClient<C> {
         } else {
             Ok(TokenBalances { assets: vec![] })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_ankr_transactions_by_address_request() {
+        let rpc_client = mock_jsonrpc_client(|method, params| {
+            assert_eq!(method, "ankr_getTransactionsByAddress");
+            assert_eq!(
+                params,
+                &json!({
+                    "address": "0x123",
+                    "blockchain": "xlayer",
+                    "descOrder": true
+                })
+            );
+            Ok(json!({ "transactions": [] }))
+        });
+        let client = AnkrClient::new(rpc_client, EVMChain::XLayer);
+
+        let transactions = client.get_ankr_transactions_by_address("0x123").await.unwrap();
+
+        assert_eq!(transactions.transactions.len(), 0);
     }
 }

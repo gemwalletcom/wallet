@@ -7,8 +7,6 @@ use serde_serializers::deserialize_biguint_from_str;
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
     pub hash: String,
-    #[serde(deserialize_with = "deserialize_biguint_from_str")]
-    pub timestamp: BigUint,
 }
 
 #[derive(Debug, Deserialize)]
@@ -31,6 +29,7 @@ pub struct TokenBalance {
     pub balance_raw_integer: BigUint,
 }
 
+/// Supported blockchains: https://www.ankr.com/docs/api-reference/aapi/ankr-get-transactions-by-address/
 pub fn ankr_chain(chain: EVMChain) -> Option<String> {
     match chain {
         EVMChain::Ethereum => Some("eth".to_string()),
@@ -59,7 +58,7 @@ pub fn ankr_chain(chain: EVMChain) -> Option<String> {
         EVMChain::Hyperliquid => None,
         EVMChain::Plasma => None,
         EVMChain::Monad => None,
-        EVMChain::XLayer => None,
+        EVMChain::XLayer => Some("xlayer".to_string()),
         EVMChain::Robinhood => None,
         EVMChain::Stable => None,
     }
@@ -80,12 +79,9 @@ mod tests {
     }
 
     #[test]
-    fn test_transaction_deserializes_decimal_timestamp() {
+    fn test_transaction_deserializes_when_timestamp_is_hex() {
         let transactions: Transactions = serde_json::from_str(include_str!("../../../testdata/ankr_get_transactions_by_address.json")).unwrap();
 
-        let timestamp = &transactions.transactions[0].timestamp;
-
-        assert_eq!(timestamp, &BigUint::parse_bytes(b"1767225600", 10).unwrap());
-        assert_ne!(timestamp, &BigUint::parse_bytes(b"1767225600", 16).unwrap());
+        assert_eq!(transactions.transactions[0].hash, "0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7");
     }
 }
