@@ -331,7 +331,7 @@ interface AssetsDao {
             (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
             AND assetRank > 0
             AND search.`query` = :query
-            ORDER BY search.priority ASC, assetRank DESC
+            ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
         """)
     fun swapSearchWithPriority(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 

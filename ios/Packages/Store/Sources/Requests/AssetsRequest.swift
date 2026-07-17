@@ -73,9 +73,12 @@ extension AssetsRequest {
         switch filter {
         case let .search(query, hasPriorityAssets):
             if hasPriorityAssets {
+                let totalValue = (TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.totalAmount] * (TableAlias(name: PriceRecord.databaseTableName)[PriceRecord.Columns.price] ?? 0))
                 return request.joining(required: AssetRecord.search
                     .filter(SearchRecord.Columns.query == query))
                     .order(
+                        totalValue.desc,
+                        (totalValue == 0).desc,
                         TableAlias(name: SearchRecord.databaseTableName)[SearchRecord.Columns.priority].ascNullsLast,
                         TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.rank].desc,
                     )
