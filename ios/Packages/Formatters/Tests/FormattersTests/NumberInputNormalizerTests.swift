@@ -178,6 +178,27 @@ struct NumberInputNormalizerTests {
     }
 
     @Test
+    func groupedWholeNumbersWithoutDecimalSeparator() {
+        let testCases: [(locale: Locale, input: String, expected: String)] = [
+            (Locale.US, "1,000,000", "1000000"),
+            (Locale.US, "12,345,678", "12345678"),
+            (Locale.DA_DK, "1.000.000", "1000000"),
+            (Locale.IT, "1.000.000", "1000000"),
+            (Locale.PT_BR, "12.345.678", "12345678"),
+            (Locale.US, "1.000.000", "1000000"),
+            (Locale.DA_DK, "1,000,000", "1000000"),
+            (Locale.DA_DK, "1.234", "1234"),
+            (Locale.DA_DK, "1,5", "1.5"),
+            (Locale.US, "1.5", "1.5"),
+            (Locale.US, "1.234", "1.234"),
+        ]
+        for testCase in testCases {
+            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(normalized == testCase.expected)
+        }
+    }
+
+    @Test
     func inputWithMixedGrouping() {
         let testCases: [(locale: Locale, input: String, expected: String)] = [
             (Locale.US, "1,234 567.89", "1234567.89"),
