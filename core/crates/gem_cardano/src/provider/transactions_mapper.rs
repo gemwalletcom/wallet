@@ -1,4 +1,4 @@
-use crate::models::rpc::{Block, Transaction};
+use crate::models::rpc::Transaction;
 use chrono::DateTime;
 use primitives::{TransactionState, TransactionType, chain::Chain, transaction_utxo::TransactionUtxoInput};
 use std::error::Error;
@@ -7,7 +7,7 @@ pub fn map_transaction_broadcast(hash: String) -> Result<String, Box<dyn Error +
     if hash.is_empty() { Err("Empty transaction hash".into()) } else { Ok(hash) }
 }
 
-pub fn map_transaction(chain: Chain, block: &Block, transaction: &Transaction) -> Option<primitives::Transaction> {
+pub fn map_transaction(chain: Chain, created_at: &str, transaction: &Transaction) -> Option<primitives::Transaction> {
     let inputs: Vec<TransactionUtxoInput> = transaction
         .inputs
         .iter()
@@ -29,7 +29,7 @@ pub fn map_transaction(chain: Chain, block: &Block, transaction: &Transaction) -
     if inputs.is_empty() || outputs.is_empty() {
         return None;
     }
-    let created_at = DateTime::parse_from_rfc3339(&block.forged_at).ok()?.into();
+    let created_at = DateTime::parse_from_rfc3339(created_at).ok()?.into();
 
     let transaction = primitives::Transaction::new_with_utxo(
         transaction.hash.clone(),
@@ -63,13 +63,6 @@ mod tests {
 
     #[test]
     fn test_map_transaction() {
-        let block = Block {
-            number: 123,
-            hash: "block_hash".to_string(),
-            forged_at: "2023-01-01T00:00:00Z".to_string(),
-            transactions: vec![],
-        };
-
         let transaction = Transaction {
             hash: "tx_hash".to_string(),
             inputs: vec![Input {
@@ -83,7 +76,7 @@ mod tests {
             fee: "100".to_string(),
         };
 
-        let result = map_transaction(Chain::Cardano, &block, &transaction);
+        let result = map_transaction(Chain::Cardano, "2023-01-01T00:00:00Z", &transaction);
         assert!(result.is_some());
 
         let mapped_tx = result.unwrap();

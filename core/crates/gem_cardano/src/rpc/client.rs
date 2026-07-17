@@ -7,13 +7,14 @@ use primitives::chain::Chain;
 use crate::models::{
     account::BalanceResponse,
     block::{Block, BlockData, GenesisData},
-    rpc::{Block as RpcBlock, Blocks, Data},
+    rpc::{AddressTransaction, AddressTransactions, Block as RpcBlock, Blocks, Data},
     transaction::TransactionBroadcast,
     utxo::{UTXO, UTXOS},
 };
 use primitives::graphql::GraphqlData;
 
 const TIP_QUERY: &str = "{ cardano { tip { number slotNo } } }";
+const TRANSACTIONS_BY_ADDRESS_QUERY: &str = "query GetTransactionsByAddress($address: String!, $limit: Int!) { transactions(limit: $limit, order_by: { includedAt: desc }, where: { outputs: { address: { _eq: $address } } }) { hash includedAt inputs { address value } outputs { address value } fee } }";
 
 #[derive(Debug)]
 pub struct CardanoClient<C: Client> {
@@ -48,6 +49,19 @@ impl<C: Client> CardanoClient<C> {
         });
         let response: Data<Blocks> = self.client.post("/", &json).await?;
         response.data.blocks.first().cloned().ok_or_else(|| "Block not found".into())
+    }
+
+    pub async fn get_address_transactions(&self, address: &str, limit: usize) -> Result<Vec<AddressTransaction>, Box<dyn Error + Send + Sync>> {
+        let request = serde_json::json!({
+            "operationName": "GetTransactionsByAddress",
+            "variables": {
+                "address": address,
+                "limit": limit,
+            },
+            "query": TRANSACTIONS_BY_ADDRESS_QUERY,
+        });
+        let response: Data<AddressTransactions> = self.client.post("/", &request).await?;
+        Ok(response.data.transactions)
     }
 
     pub async fn get_balance(&self, address: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
@@ -154,5 +168,24 @@ mod tests {
         let tip = cardano.get_tip().await.unwrap();
         assert_eq!(tip.number, 13_427_226);
         assert_eq!(tip.slot_no, 187_400_452);
+    }
+
+    #[tokio::test]
+    async fn test_get_address_transactions() {
+        let address = "addr1test";
+        let client = MockClient::new().with_post(move |path, body| {
+            assert_eq!(path, "/");
+            let request: serde_json::Value = serde_json::from_slice(body).unwrap();
+            assert_eq!(request["operationName"], "GetTransactionsByAddress");
+            assert_eq!(request["variables"], serde_json::json!({ "address": address, "limit": 25 }));
+            assert_eq!(request["query"], TRANSACTIONS_BY_ADDRESS_QUERY);
+            Ok(br#"{"data":{"transactions":[{"hash":"tx_hash","includedAt":"2023-01-01T00:00:00Z","inputs":[{"address":"addr1","value":"1000"}],"outputs":[{"address":"addr2","value":"900"}],"fee":"100"}]}}"#.to_vec())
+        });
+
+        let transactions = CardanoClient::new(client).get_address_transactions(address, 25).await.unwrap();
+
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].transaction.hash, "tx_hash");
+        assert_eq!(transactions[0].included_at, "2023-01-01T00:00:00Z");
     }
 }
