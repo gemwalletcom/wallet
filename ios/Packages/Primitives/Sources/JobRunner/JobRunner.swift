@@ -36,12 +36,12 @@ extension JobRunner {
     private func runJob(_ job: Job) async {
         var intervalMs = job.configuration.initialIntervalMs
 
+        if intervalMs > 0 {
+            try? await clock.sleep(for: .milliseconds(Int(intervalMs)))
+        }
+
         while !Task.isCancelled {
-            do {
-                try await clock.sleep(for: .milliseconds(Int(intervalMs)))
-            } catch {
-                return
-            }
+            let attemptStart = clock.now
 
             switch await job.run() {
             case .complete:
@@ -53,6 +53,10 @@ extension JobRunner {
                 }
                 return
             case let .retry(error):
+                let sleepUntil = attemptStart.advanced(by: .milliseconds(Int(intervalMs)))
+                if clock.now < sleepUntil {
+                    try? await clock.sleep(until: sleepUntil)
+                }
                 intervalMs = job.nextInterval(after: intervalMs)
                 if let error {
                     debugLog("transaction status pending: id=\(job.id), next check = \(intervalMs)ms, error=\(error)")

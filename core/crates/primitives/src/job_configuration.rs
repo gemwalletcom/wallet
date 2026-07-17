@@ -21,7 +21,7 @@ impl JobConfiguration {
     pub fn transaction_state(chain: Chain) -> Self {
         let config = Self::default();
         Self {
-            initial_interval_ms: chain.block_time().clamp(1_000, config.initial_interval_ms),
+            initial_interval_ms: chain.block_time().clamp(1, config.initial_interval_ms),
             ..config
         }
     }
@@ -57,8 +57,6 @@ mod tests {
         assert_eq!(config.initial_interval_ms, 5_000);
         assert_eq!(config.max_interval_ms, 60_000);
         assert_eq!(config.step_factor, 1.1);
-
-        assert_eq!(JobConfiguration::transaction_state(Chain::Solana).initial_interval_ms, 1_000);
     }
 
     #[test]
