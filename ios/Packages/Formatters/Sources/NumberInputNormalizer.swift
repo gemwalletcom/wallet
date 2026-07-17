@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 
 enum NumberInputNormalizer {
     /// Symbol used as our standard decimal separator in the final output.
@@ -53,7 +54,7 @@ enum NumberInputNormalizer {
         }
         // Only dot
         else if hasDot {
-            if occursMoreThanOnce(dot, in: result) || (decimalSeparator == comma && isSingleDotUsedAsGrouping(result)) {
+            if result.numberOfOccurrencesOf(string: dot) > 1 || (decimalSeparator == comma && isSingleDotUsedAsGrouping(result)) {
                 result = result.replacingOccurrences(of: dot, with: String.empty)
             } else {
                 result = keepOnlyLastOccurrence(of: dot, in: result)
@@ -61,7 +62,7 @@ enum NumberInputNormalizer {
         }
         // Only comma
         else if hasComma {
-            if occursMoreThanOnce(comma, in: result) || decimalSeparator != comma {
+            if result.numberOfOccurrencesOf(string: comma) > 1 || decimalSeparator != comma {
                 result = result.replacingOccurrences(of: comma, with: String.empty)
             } else {
                 result = result.replacingOccurrences(of: comma, with: dot)
@@ -69,10 +70,6 @@ enum NumberInputNormalizer {
         }
 
         return result
-    }
-
-    private static func occursMoreThanOnce(_ symbol: String, in s: String) -> Bool {
-        s.filter { String($0) == symbol }.count > 1
     }
 
     /// Returns true if there's exactly one '.' in the string and it's placed as a grouping mark,
