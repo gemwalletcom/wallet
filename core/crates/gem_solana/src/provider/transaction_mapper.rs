@@ -4,7 +4,7 @@ use num_bigint::{BigUint, Sign};
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM,
     TOKEN_PROGRAM_2022,
-    models::{BlockTransaction, BlockTransactions, Signature},
+    models::{BlockTransaction, BlockTransactions},
 };
 use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
 
@@ -139,14 +139,6 @@ pub fn map_block_transactions(transactions: &BlockTransactions) -> Vec<primitive
         .transactions
         .iter()
         .filter_map(|transaction| map_transaction(transaction, transactions.block_time))
-        .collect()
-}
-
-pub fn map_signatures_transactions(transactions: Vec<BlockTransaction>, signatures: Vec<Signature>) -> Vec<primitives::Transaction> {
-    transactions
-        .iter()
-        .zip(signatures.iter())
-        .filter_map(|(transaction, signature)| map_transaction(transaction, signature.block_time))
         .collect()
 }
 

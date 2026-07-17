@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainProvider, ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainProvider, ChainTransactions};
 use std::error::Error;
 
 use gem_client::Client;
@@ -13,10 +13,6 @@ impl<C: Client> ChainTransactions for PolkadotClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let block_data = self.get_block(block as i64).await?;
         Ok(transactions_mapper::map_transactions(self.get_chain(), block_data))
-    }
-
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![])
     }
 }
 

@@ -83,14 +83,6 @@ pub fn map_transactions_by_block(chain: Chain, block: BlockTransactions, receipt
         .collect()
 }
 
-pub fn map_transactions_by_address(transactions: Vec<TronTransaction>, receipts: Vec<TransactionReceiptData>) -> Vec<Transaction> {
-    transactions
-        .into_iter()
-        .zip(receipts)
-        .filter_map(|(transaction, receipt)| map_transaction(Chain::Tron, transaction, receipt))
-        .collect()
-}
-
 pub fn map_transaction(chain: Chain, transaction: TronTransaction, receipt: TransactionReceiptData) -> Option<Transaction> {
     let contract = transaction.raw_data.contract.first()?.clone();
     let contract_result = transaction.ret.first()?;

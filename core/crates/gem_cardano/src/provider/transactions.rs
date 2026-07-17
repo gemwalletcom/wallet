@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::ChainTransactions;
 use std::error::Error;
 
 use gem_client::Client;
@@ -19,9 +19,5 @@ impl<C: Client> ChainTransactions for CardanoClient<C> {
             .flat_map(|x| map_transaction(self.get_chain(), &block, &x))
             .collect::<Vec<Transaction>>();
         Ok(transactions)
-    }
-
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        Ok(vec![])
     }
 }

@@ -8,7 +8,7 @@ use super::transaction_payload::{Erc20ApprovalPayload, Erc20TransferPayload, Nft
 use crate::{
     address::ethereum_address_checksum,
     registry::ContractRegistry,
-    rpc::model::{Block, Transaction, TransactionReceipt, TransactionReplayTrace},
+    rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace},
 };
 use primitives::{
     AssetId, NFTAssetId, Transaction as PrimitivesTransaction, TransactionType, chain::Chain, hex::decode_hex_utf8, transaction_metadata_types::TransactionNFTTransferMetadata,
@@ -18,26 +18,6 @@ pub static CONTRACT_REGISTRY: LazyLock<ContractRegistry> = LazyLock::new(Contrac
 pub struct EthereumMapper;
 
 impl EthereumMapper {
-    pub fn map_transactions(chain: Chain, block: Block, transactions_receipts: Vec<TransactionReceipt>, traces: Option<Vec<TransactionReplayTrace>>) -> Vec<PrimitivesTransaction> {
-        match traces {
-            Some(traces) => block
-                .transactions
-                .into_iter()
-                .zip(transactions_receipts.iter())
-                .zip(traces.iter())
-                .filter_map(|((transaction, receipt), trace)| {
-                    EthereumMapper::map_transaction(chain, &transaction, receipt, Some(trace), &block.timestamp, Some(&CONTRACT_REGISTRY))
-                })
-                .collect(),
-            None => block
-                .transactions
-                .into_iter()
-                .zip(transactions_receipts.iter())
-                .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction(chain, &transaction, receipt, None, &block.timestamp, Some(&CONTRACT_REGISTRY)))
-                .collect(),
-        }
-    }
-
     pub fn map_transaction(
         chain: Chain,
         transaction: &Transaction,

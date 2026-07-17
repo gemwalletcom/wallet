@@ -1,7 +1,7 @@
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::ChainTransactions;
 use primitives::Transaction;
 
 use crate::provider::transactions_mapper::{map_transaction, map_transaction_blocks};
@@ -18,16 +18,12 @@ impl ChainTransactions for SuiClient {
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
         Ok(map_transaction(self.get_transaction(hash).await?))
     }
-
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
-        Ok(vec![])
-    }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest};
+    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions};
     use primitives::{TransactionState, TransactionStateRequest};
 
     #[tokio::test]
@@ -54,14 +50,6 @@ mod chain_integration_tests {
 
         assert!(status.state == TransactionState::Confirmed);
         assert!(status.changes.is_empty());
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_sui_test_client();
-        let transactions = ChainTransactions::get_transactions_by_address(&client, TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(1)).await?;
-        assert!(transactions.is_empty());
         Ok(())
     }
 

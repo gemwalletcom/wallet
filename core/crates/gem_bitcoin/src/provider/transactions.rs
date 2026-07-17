@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use primitives::Transaction;
 use std::error::Error;
 
@@ -41,19 +41,19 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
         Ok(map_transaction(self.get_chain(), &transaction))
     }
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let address = Address::new(&address, self.get_chain()).full();
         let address_details = self.get_address_details(&address, limit.unwrap_or(25)).await?;
         let transactions = address_details.transactions.unwrap_or_default();
-        Ok(map_transactions(self.get_chain(), transactions))
+        Ok(TransactionsResult::Transactions(map_transactions(self.get_chain(), transactions)))
     }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest};
+    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest, TransactionsResult};
     use primitives::{TransactionState, TransactionStateRequest};
 
     #[tokio::test]
@@ -82,10 +82,13 @@ mod chain_integration_tests {
     async fn test_bitcoin_get_transactions_by_address() {
         let bitcoin_client = create_bitcoin_test_client();
 
-        let transactions = bitcoin_client
+        let result = bitcoin_client
             .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()))
             .await
             .unwrap();
+        let TransactionsResult::Transactions(transactions) = result else {
+            panic!("expected transactions");
+        };
 
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 

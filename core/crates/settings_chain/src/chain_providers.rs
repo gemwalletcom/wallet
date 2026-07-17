@@ -1,6 +1,7 @@
 use std::error::Error;
 
-use chain_traits::{ChainTraits, TransactionsRequest};
+use chain_traits::{ChainTraits, TransactionsRequest, TransactionsResult};
+use futures::{StreamExt, stream};
 use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPositionsSummary, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
 use settings::Settings;
 
@@ -60,7 +61,29 @@ impl ChainProviders {
     }
 
     pub async fn get_transactions_by_address(&self, chain: Chain, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        self.get_provider(chain)?.get_transactions_by_address(request).await.map(sort_transactions_by_date)
+        let provider = self.get_provider(chain)?;
+        let transactions = match provider.get_transactions_by_address(request).await? {
+            TransactionsResult::Transactions(transactions) => transactions,
+            TransactionsResult::TransactionIds(transaction_ids) => {
+                stream::iter(transaction_ids)
+                    .filter_map(|transaction_id| async move {
+                        match provider.get_transaction_by_hash(transaction_id.hash.clone()).await {
+                            Ok(Some(transaction)) => Some(transaction),
+                            Ok(None) => {
+                                tracing::warn!(chain = %transaction_id.chain, hash = transaction_id.hash, "transaction not found");
+                                None
+                            }
+                            Err(error) => {
+                                tracing::warn!(chain = %transaction_id.chain, hash = transaction_id.hash, %error, "failed to fetch transaction");
+                                None
+                            }
+                        }
+                    })
+                    .collect()
+                    .await
+            }
+        };
+        Ok(sort_transactions_by_date(transactions))
     }
 
     pub async fn get_validators(&self, chain: Chain) -> Result<Vec<StakeValidator>, Box<dyn Error + Send + Sync>> {

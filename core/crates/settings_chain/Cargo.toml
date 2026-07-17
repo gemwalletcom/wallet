@@ -5,6 +5,8 @@ edition = { workspace = true }
 
 [dependencies]
 url = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
 
 primitives = { path = "../primitives" }
 chain_traits = { path = "../chain_traits" }
