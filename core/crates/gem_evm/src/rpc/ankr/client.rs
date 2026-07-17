@@ -9,7 +9,7 @@ use crate::rpc::ankr::model::{TokenBalances, Transactions, ankr_chain};
 
 #[derive(Debug, Clone)]
 pub struct AnkrClient<C: Client + Clone> {
-    pub chain: EVMChain,
+    chain: EVMChain,
     rpc_client: GenericJsonRpcClient<C>,
 }
 
@@ -17,38 +17,35 @@ impl<C: Client + Clone> AnkrClient<C> {
     pub fn new(client: GenericJsonRpcClient<C>, chain: EVMChain) -> Self {
         Self { chain, rpc_client: client }
     }
-}
 
-impl<C: Client + Clone> AnkrClient<C> {
     /// Reference: https://www.ankr.com/docs/advanced-api/query-methods/#ankr_gettransactionsbyaddress
-    pub async fn get_ankr_transactions_by_address(&self, address: &str) -> Result<Transactions, Box<dyn Error + Send + Sync>> {
-        if let Some(chain) = ankr_chain(self.chain) {
-            let params = serde_json::json!({
-                "address": address,
-                "blockchain": chain,
-                "descOrder": true
-            });
-            Ok(self.rpc_client.call("ankr_getTransactionsByAddress", params).await?)
-        } else {
-            Ok(Transactions { transactions: vec![] })
-        }
+    pub async fn get_ankr_transactions_by_address(&self, address: &str, limit: usize) -> Result<Transactions, Box<dyn Error + Send + Sync>> {
+        let Some(chain) = ankr_chain(self.chain) else {
+            return Ok(Transactions { transactions: vec![] });
+        };
+        let params = json!({
+            "address": address,
+            "blockchain": chain,
+            "pageSize": limit,
+            "descOrder": true
+        });
+        Ok(self.rpc_client.call("ankr_getTransactionsByAddress", params).await?)
     }
 
     /// Reference: https://www.ankr.com/docs/advanced-api/token-methods/#ankr_getaccountbalance
     pub async fn get_token_balances(&self, address: &str) -> Result<TokenBalances, Box<dyn Error + Send + Sync>> {
-        if let Some(chain) = ankr_chain(self.chain) {
-            let params = json!([
-                {
-                    "walletAddress": address,
-                    "blockchain": chain,
-                    "onlyWhitelisted": true,
-                }
-            ]);
+        let Some(chain) = ankr_chain(self.chain) else {
+            return Ok(TokenBalances { assets: vec![] });
+        };
+        let params = json!([
+            {
+                "walletAddress": address,
+                "blockchain": chain,
+                "onlyWhitelisted": true,
+            }
+        ]);
 
-            Ok(self.rpc_client.call("ankr_getAccountBalance", params).await?)
-        } else {
-            Ok(TokenBalances { assets: vec![] })
-        }
+        Ok(self.rpc_client.call("ankr_getAccountBalance", params).await?)
     }
 }
 
@@ -67,6 +64,7 @@ mod tests {
                 &json!({
                     "address": "0x123",
                     "blockchain": "xlayer",
+                    "pageSize": 25,
                     "descOrder": true
                 })
             );
@@ -74,7 +72,7 @@ mod tests {
         });
         let client = AnkrClient::new(rpc_client, EVMChain::XLayer);
 
-        let transactions = client.get_ankr_transactions_by_address("0x123").await.unwrap();
+        let transactions = client.get_ankr_transactions_by_address("0x123", 25).await.unwrap();
 
         assert_eq!(transactions.transactions.len(), 0);
     }

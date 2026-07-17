@@ -32,7 +32,7 @@ pub async fn main() {
     let service_arg = args.iter().skip(1).map(|s| s.as_str()).collect::<Vec<_>>().join(" ");
 
     let service = DaemonService::from_str(&service_arg).unwrap_or_else(|e| {
-        panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer fetch_transactions");
+        panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer fetch_transactions");
     });
 
     let settings = settings::Settings::new().unwrap();

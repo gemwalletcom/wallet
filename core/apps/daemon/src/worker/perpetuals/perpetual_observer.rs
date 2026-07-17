@@ -77,11 +77,8 @@ impl PerpetualPositionObserver {
         let request = TransactionsRequest::new(address.to_string()).with_from_timestamp(Some(from_timestamp));
         let transactions = self.providers.get_transactions_by_address(self.chain, request).await?;
 
-        let count = transactions.len();
-        if !transactions.is_empty() {
-            let payload = TransactionsPayload::new_with_notify(self.chain, vec![], transactions);
-            self.stream_producer.publish_transactions(payload).await?;
-        }
+        let payload = TransactionsPayload::new_with_notify(self.chain, vec![], transactions);
+        let count = self.stream_producer.publish_transactions(payload).await?;
 
         self.cacher.set_value_with_ttl(&checkpoint_key, now.to_string(), checkpoint.ttl()).await?;
 

@@ -15,14 +15,17 @@ use crate::rpc::{
     model::{BlockTransactionsIds, Transaction as EthereumTransaction, TransactionReplayTrace},
 };
 
+const DEFAULT_TRANSACTIONS_LIMIT: usize = 1;
+
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest { address, .. } = request;
+        let TransactionsRequest { address, limit, .. } = request;
+        let limit = limit.unwrap_or(DEFAULT_TRANSACTIONS_LIMIT);
         let transaction_ids = if let Some(ankr_client) = &self.ankr_client {
             ankr_client
-                .get_ankr_transactions_by_address(&address)
+                .get_ankr_transactions_by_address(&address, limit)
                 .await?
                 .transactions
                 .into_iter()

@@ -37,6 +37,7 @@ pub enum QueueName {
     FetchNftAssociations,
     // Fetch address transactions from providers and store to db
     FetchAddressTransactions,
+    FetchTransactions,
     // Process fiat order webhooks
     FiatOrderWebhooks,
     // Process support webhooks
@@ -66,6 +67,7 @@ impl QueueName {
             QueueName::FetchCoinAssociations,
             QueueName::FetchNftAssociations,
             QueueName::FetchAddressTransactions,
+            QueueName::FetchTransactions,
         ]
     }
 }
@@ -86,6 +88,7 @@ impl fmt::Display for QueueName {
             QueueName::FetchTokenAssociations => write!(f, "fetch_token_associations"),
             QueueName::FetchCoinAssociations => write!(f, "fetch_coin_associations"),
             QueueName::FetchAddressTransactions => write!(f, "fetch_address_transactions"),
+            QueueName::FetchTransactions => write!(f, "fetch_transactions"),
             QueueName::FetchNftAssociations => write!(f, "fetch_nft_associations"),
             QueueName::FiatOrderWebhooks => write!(f, "fiat_order_webhooks"),
             QueueName::SupportWebhooks => write!(f, "support_webhooks"),
@@ -100,5 +103,19 @@ impl fmt::Display for QueueName {
             QueueName::NotificationsInApp => write!(f, "notifications_in_app"),
             QueueName::WalletStreamEvents => write!(f, "wallet_stream_events"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::QueueName;
+
+    #[test]
+    fn test_fetch_transactions_queue() {
+        assert_eq!(QueueName::FetchTransactions.to_string(), "fetch_transactions");
+        assert_eq!(
+            QueueName::chain_queues().into_iter().find(|queue| queue == &QueueName::FetchTransactions),
+            Some(QueueName::FetchTransactions)
+        );
     }
 }

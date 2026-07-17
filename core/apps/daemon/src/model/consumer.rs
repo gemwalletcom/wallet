@@ -30,10 +30,21 @@ pub enum IndexerConsumer {
     FetchNftAssociations,
     FetchNftAssets,
     FetchAddressTransactions,
+    FetchTransactions,
 }
 
 #[derive(Debug, Clone)]
 pub struct ConsumerOptions {
     pub service: Option<ConsumerService>,
     pub indexer: Option<IndexerConsumer>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::IndexerConsumer;
+
+    #[test]
+    fn test_fetch_transactions_consumer_name() {
+        assert_eq!("fetch_transactions".parse::<IndexerConsumer>(), Ok(IndexerConsumer::FetchTransactions));
+    }
 }

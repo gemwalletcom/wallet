@@ -62,10 +62,10 @@ impl ChainProviders {
     }
 
     pub async fn get_transactions_by_address(&self, chain: Chain, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let provider = self.get_provider(chain)?;
-        let transactions = match provider.get_transactions_by_address(request).await? {
+        let transactions = match self.get_transactions_by_address_result(chain, request).await? {
             TransactionsResult::Transactions(transactions) => transactions,
             TransactionsResult::TransactionIds(transaction_ids) => {
+                let provider = self.get_provider(chain)?;
                 stream::iter(transaction_ids)
                     .filter_map(|transaction_id| async move {
                         match provider.get_transaction_by_hash(transaction_id.hash.clone()).await {
@@ -85,6 +85,10 @@ impl ChainProviders {
             }
         };
         Ok(sort_transactions_by_date(transactions))
+    }
+
+    pub async fn get_transactions_by_address_result(&self, chain: Chain, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transactions_by_address(request).await
     }
 
     pub async fn get_validators(&self, chain: Chain) -> Result<Vec<StakeValidator>, Box<dyn Error + Send + Sync>> {
