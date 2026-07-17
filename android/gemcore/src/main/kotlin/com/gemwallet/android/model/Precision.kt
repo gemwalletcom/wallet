@@ -2,6 +2,7 @@ package com.gemwallet.android.model
 
 import java.math.BigDecimal
 import java.math.MathContext
+import java.math.RoundingMode
 import java.text.DecimalFormat
 
 internal sealed interface Precision {
@@ -17,15 +18,20 @@ internal sealed interface Precision {
     }
 }
 
+internal fun BigDecimal.rounded(precision: Precision, roundingMode: RoundingMode): BigDecimal = when (precision) {
+    is Precision.Fraction -> setScale(precision.max, roundingMode)
+    is Precision.Significant -> round(MathContext(precision.max, roundingMode)).stripTrailingZeros()
+}
+
 internal fun DecimalFormat.format(value: BigDecimal, precision: Precision): String = when (precision) {
     is Precision.Fraction -> apply {
         minimumFractionDigits = precision.min
         maximumFractionDigits = precision.max
-    }.format(value)
+    }.format(value.rounded(precision, roundingMode))
     is Precision.Significant -> apply {
         minimumFractionDigits = 0
         maximumFractionDigits = Int.MAX_VALUE
-    }.format(value.round(MathContext(precision.max, roundingMode)).stripTrailingZeros())
+    }.format(value.rounded(precision, roundingMode))
 }
 
 internal fun adaptivePrecision(magnitude: BigDecimal): Precision =

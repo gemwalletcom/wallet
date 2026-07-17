@@ -13,7 +13,7 @@ import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
-import com.gemwallet.android.math.parseNumberOrNull
+import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -103,7 +103,7 @@ class AmountPerpetualProvider(
         val market = perpetual.value
         val leverage = (leverageState.value?.current ?: market?.maxLeverage ?: 1).coerceAtLeast(1)
         val marketPrice = market?.price ?: 0.0
-        val usdAmount = amount.parseNumberOrNull()?.toDouble() ?: 0.0
+        val usdAmount = amount.parseInputNumberOrNull()?.toDouble() ?: 0.0
         val positionSize = if (marketPrice > 0.0) (usdAmount * leverage) / marketPrice else 0.0
         return AutocloseEstimator(
             entryPrice = marketPrice,

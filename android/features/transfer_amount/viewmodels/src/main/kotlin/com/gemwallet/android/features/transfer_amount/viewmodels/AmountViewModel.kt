@@ -10,13 +10,11 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
-import com.gemwallet.android.math.parseNumber
-import com.gemwallet.android.math.parseNumberOrNull
+import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.ValueConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.AmountInputType
@@ -91,7 +89,7 @@ class AmountViewModel @Inject constructor(
         snapshotFlow { amount },
         amountError,
     ) { input, error ->
-        val valid = (input.parseNumberOrNull()?.signum() ?: 0) > 0 && error is AmountError.None
+        val valid = (input.parseInputNumberOrNull()?.signum() ?: 0) > 0 && error is AmountError.None
         buttonState(enabled = valid)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
@@ -161,7 +159,7 @@ class AmountViewModel @Inject constructor(
 
     private fun validate(inputs: ValidationInputs): AmountError {
         if (inputs.amount.isEmpty()) return AmountError.None
-        if (inputs.amount.parseNumberOrNull()?.signum() == 0) return AmountError.None
+        if (inputs.amount.parseInputNumberOrNull()?.signum() == 0) return AmountError.None
         val asset = inputs.asset ?: return AmountError.None
         val current = provider.assetInfo.value ?: return AmountError.None
         return try {
@@ -188,12 +186,12 @@ class AmountViewModel @Inject constructor(
             when (direction) {
                 AmountInputType.Crypto -> {
                     AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
-                    val value = input.parseNumber()
-                    val unit = CryptoFiatConverter.toFiat(Crypto(value, asset.decimals), asset.decimals, price)
+                    val crypto = direction.getAmount(input, asset.decimals, price)
+                    val unit = CryptoFiatConverter.toFiat(crypto, asset.decimals, price)
                     currencyFormatter.string(unit.atomicValue)
                 }
                 AmountInputType.Fiat -> {
-                    val crypto = ValueConverter.convertToAmount(input, price, asset.decimals)
+                    val crypto = direction.getAmount(input, asset.decimals, price)
                     AmountValidation.validateAmount(asset, crypto.value(asset.decimals).toPlainString(), BigInteger.ZERO)
                     valueFormatter.string(crypto.atomicValue, asset.decimals, asset.symbol)
                 }
