@@ -7,6 +7,7 @@ use crate::config::NFTProviderConfig;
 use crate::provider::NFTProvider;
 use crate::providers::magiceden;
 use crate::providers::opensea;
+use crate::providers::ton::provider::TonNftProvider;
 use crate::providers::{MagicEdenEvmClient, MagicEdenSolanaClient, OpenSeaClient};
 
 pub struct NFTProviderFactory;
@@ -21,7 +22,7 @@ impl NFTProviderFactory {
             Arc::new(OpenSeaClient::new(opensea_client)),
             Arc::new(MagicEdenSolanaClient::new(magiceden_client.clone())),
             Arc::new(MagicEdenEvmClient::new(magiceden_client)),
-            Arc::new(TonClient::new(ton_client)),
+            Arc::new(TonNftProvider::new(TonClient::new(ton_client), config.offchain)),
         ]
     }
 }

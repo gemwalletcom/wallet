@@ -311,6 +311,10 @@ assets:
 
 nft:
   url: "https://assets.gemwallet.com/nft"
+  offchain:
+    timeout: 5
+    concurrency: 8
+    limit: 1048576
   nftscan:
     key:
       secret: ""

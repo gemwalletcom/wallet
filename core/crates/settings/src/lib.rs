@@ -396,10 +396,19 @@ impl Settings {
 #[derive(Debug, Deserialize, Clone)]
 pub struct NFT {
     pub url: String,
+    pub offchain: NFTOffchain,
     pub nftscan: NFTScan,
     pub opensea: OpenSea,
     pub magiceden: MagicEden,
 }
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct NFTOffchain {
+    pub timeout: u64,
+    pub concurrency: usize,
+    pub limit: usize,
+}
+
 pub type Ankr = SecretKeySettings;
 pub type Trongrid = SecretKeySettings;
 pub type NFTScan = SecretKeySettings;
