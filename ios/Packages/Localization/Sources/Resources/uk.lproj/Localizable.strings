@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "Користувацькі вузли можуть бути шкідливими та розкривати дані ваших транзакцій або надавати неправдиву інформацію.";
 "library.select_from_photo_library" = "Виберіть з фототеки";
 "fee_rates.info" = "Швидкість транзакції визначається мережевою комісією, яка виплачується майнерам мережі.";
-"fee_rates.slow" = "Повільно";
 "fee_rates.fast" = "Швидко";
 "fee_rates.normal" = "Нормальний";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Свій";
 "banner.account_activation.title" = "Плата за активацію рахунку";
 "banner.account_activation.description" = "Мережа %@ вимагає одноразової оплати в розмірі %@.";
 "banner.stake.title" = "Почніть стейкінг %@";

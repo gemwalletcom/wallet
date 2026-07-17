@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "Maɓallan da aka keɓance na iya zama masu cutarwa kuma suna iya fallasa bayanan ma'amalar ku ko kuma samar da bayanan karya.";
 "library.select_from_photo_library" = "Zaɓi daga Laburaren Hoto";
 "fee_rates.info" = "Ana ƙayyade saurin ma'amala ta hanyar kuɗin hanyar sadarwa da aka biya ga masu hakar ma'adinai na cibiyar sadarwa.";
-"fee_rates.slow" = "Sannu a hankali";
 "fee_rates.fast" = "Mai sauri";
 "fee_rates.normal" = "Na al'ada";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Na Musamman";
 "banner.account_activation.title" = "Kudin Kunna Asusu";
 "banner.account_activation.description" = "Cibiyar sadarwar %@ tana buƙatar kuɗin lokaci ɗaya na %@.";
 "banner.stake.title" = "Fara tarawa %@";

@@ -86,9 +86,7 @@ extension AssetPriceAlertsViewModel {
         let currency = Preferences.standard.currency
         do {
             if enabled {
-                try await priceAlertService.add(priceAlert: .default(for: asset.id, currency: currency))
-                try await priceAlertService.requestPermissions()
-                try await priceAlertService.enablePriceAlerts()
+                try await priceAlertService.enable(priceAlert: .default(for: asset.id, currency: currency))
             } else {
                 try await priceAlertService.delete(priceAlerts: [.default(for: asset.id, currency: currency)])
             }

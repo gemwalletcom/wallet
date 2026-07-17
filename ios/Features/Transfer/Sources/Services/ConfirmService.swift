@@ -54,13 +54,13 @@ public struct ConfirmService: Sendable {
     public func loadTransferTransactionData(
         wallet: Wallet,
         data: TransferData,
-        priority: FeePriority,
+        selection: FeeSelection,
         available: BigInt,
     ) async throws -> TransferTransactionData {
         try await transferTransactionProvider.loadTransferTransactionData(
             wallet: wallet,
             data: data,
-            priority: priority,
+            selection: selection,
             available: available,
         )
     }

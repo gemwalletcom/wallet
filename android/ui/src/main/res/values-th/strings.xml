@@ -377,12 +377,12 @@
   <string name="nodes_import_node_warning_message">โหนดที่กำหนดเองอาจเป็นอันตรายและอาจเปิดเผยข้อมูลธุรกรรมของคุณหรือให้ข้อมูลเท็จได้</string>
   <string name="library_select_from_photo_library">เลือกจากคลังรูปภาพ</string>
   <string name="fee_rates_info">ความเร็วของการทำธุรกรรมจะถูกกำหนดโดยค่าธรรมเนียมเครือข่ายที่จ่ายให้กับนักขุดในเครือข่าย</string>
-  <string name="fee_rates_slow">ช้า</string>
   <string name="fee_rates_fast">รวดเร็ว</string>
   <string name="fee_rates_normal">ปกติ</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">กำหนดเอง</string>
   <string name="banner_account_activation_title">ค่าธรรมเนียมการเปิดใช้งานบัญชี</string>
   <string name="banner_account_activation_description">เครือข่าย %1$s ต้องเสียค่าธรรมเนียมครั้งเดียวจำนวน %2$s</string>
   <string name="banner_stake_title">เริ่มสเตค %1$s</string>

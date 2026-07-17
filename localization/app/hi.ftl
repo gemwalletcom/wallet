@@ -455,7 +455,6 @@ library_select_from_photo_library = फोटो लाइब्रेरी स
 # Fee Rates
 
 fee_rates_info = लेन-देन की गति नेटवर्क खनिकों को भुगतान किए गए नेटवर्क शुल्क से निर्धारित होती है।
-fee_rates_slow = धीरे
 fee_rates_fast = तेज
 fee_rates_normal = सामान्य
 
@@ -464,6 +463,7 @@ fee_rates_normal = सामान्य
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = कस्टम
 
 # Banner
 

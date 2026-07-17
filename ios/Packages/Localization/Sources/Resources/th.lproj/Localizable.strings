@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "โหนดที่กำหนดเองอาจเป็นอันตรายและอาจเปิดเผยข้อมูลธุรกรรมของคุณหรือให้ข้อมูลเท็จได้";
 "library.select_from_photo_library" = "เลือกจากคลังรูปภาพ";
 "fee_rates.info" = "ความเร็วของการทำธุรกรรมจะถูกกำหนดโดยค่าธรรมเนียมเครือข่ายที่จ่ายให้กับนักขุดในเครือข่าย";
-"fee_rates.slow" = "ช้า";
 "fee_rates.fast" = "รวดเร็ว";
 "fee_rates.normal" = "ปกติ";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "กำหนดเอง";
 "banner.account_activation.title" = "ค่าธรรมเนียมการเปิดใช้งานบัญชี";
 "banner.account_activation.description" = "เครือข่าย %@ ต้องเสียค่าธรรมเนียมครั้งเดียวจำนวน %@";
 "banner.stake.title" = "เริ่มสเตค %@";

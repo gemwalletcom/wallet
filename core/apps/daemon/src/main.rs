@@ -51,7 +51,7 @@ pub async fn main() {
                 Some(worker) => vec![worker],
                 None => WorkerService::all(),
             };
-            run_worker_services(settings, &services, opts).await;
+            run_worker_services(settings, &services, opts).await.expect("Worker failed");
         }
         DaemonService::Parser(chain) => {
             let parser_metrics = Arc::new(metrics::parser::ParserMetrics::new());
@@ -68,17 +68,17 @@ pub async fn main() {
     }
 }
 
-async fn run_worker_services(settings: settings::Settings, services: &[WorkerService], options: WorkerOptions) {
+async fn run_worker_services(settings: settings::Settings, services: &[WorkerService], options: WorkerOptions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if services.is_empty() {
         info_with_fields!("no worker services requested", status = "ok");
-        return;
+        return Ok(());
     }
 
     let settings = Arc::new(settings);
     let (shutdown_tx, shutdown_rx) = shutdown::channel();
     let shutdown_timeout = settings.daemon.shutdown.timeout;
 
-    let scheduler_cacher = CacherClient::new(&settings.redis.url).await;
+    let scheduler_cacher = CacherClient::new(&settings.redis.url).await?;
     let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
 
     let service_name = services.first().map(|s| s.as_ref()).unwrap_or("worker");
@@ -119,7 +119,7 @@ async fn run_worker_services(settings: settings::Settings, services: &[WorkerSer
 
     if worker_jobs.is_empty() {
         info_with_fields!("no workers started", status = "ok");
-        return;
+        return Ok(());
     }
 
     let status_tracks = collect_status_tracks(&worker_jobs);
@@ -133,6 +133,7 @@ async fn run_worker_services(settings: settings::Settings, services: &[WorkerSer
     }
 
     info_with_fields!("all workers stopped", status = "ok");
+    Ok(())
 }
 
 struct WorkerStatusTrack {

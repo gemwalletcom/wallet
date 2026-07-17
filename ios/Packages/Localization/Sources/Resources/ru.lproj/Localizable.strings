@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "Пользовательские узлы могут быть вредоносными и способны раскрыть данные ваших транзакций или предоставить ложную информацию.";
 "library.select_from_photo_library" = "Выберите из медиатеки";
 "fee_rates.info" = "Скорость транзакции определяется сетевой комиссией, выплачиваемой майнерам сети.";
-"fee_rates.slow" = "Медленный";
 "fee_rates.fast" = "Быстрый";
 "fee_rates.normal" = "Нормальный";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Свой";
 "banner.account_activation.title" = "Плата за активацию аккаунта";
 "banner.account_activation.description" = "Сеть %@ требует единовременную плату в размере %@.";
 "banner.stake.title" = "Начните стейкинг %@";

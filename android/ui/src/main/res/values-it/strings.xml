@@ -377,12 +377,12 @@
   <string name="nodes_import_node_warning_message">I nodi personalizzati possono essere dannosi e potrebbero esporre i dati delle transazioni o fornire informazioni false.</string>
   <string name="library_select_from_photo_library">Seleziona dalla Libreria foto</string>
   <string name="fee_rates_info">La velocità della transazione è determinata dalla tariffa di rete pagata ai minatori della rete.</string>
-  <string name="fee_rates_slow">Lento</string>
   <string name="fee_rates_fast">Veloce</string>
   <string name="fee_rates_normal">Normale</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">Personalizzato</string>
   <string name="banner_account_activation_title">Commissione di attivazione del conto</string>
   <string name="banner_account_activation_description">La rete %1$s richiede una tariffa una tantum di %2$s.</string>
   <string name="banner_stake_title">Inizia a puntare %1$s</string>

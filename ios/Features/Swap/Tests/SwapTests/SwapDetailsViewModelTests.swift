@@ -32,6 +32,13 @@ struct SwapDetailsViewModelTests {
         model.switchRateDirection()
         #expect(model.rateText == "1 USDT ≈ 0.000004 ETH")
     }
+
+    @Test
+    func minReceiveAppliesSlippageBasisPoints() throws {
+        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: "250000000000").map())
+
+        #expect(model.minReceiveField.value.text == "248,750 USDT")
+    }
 }
 
 extension SwapDetailsViewModel {

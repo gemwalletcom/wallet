@@ -377,12 +377,12 @@
   <string name="nodes_import_node_warning_message">Nodi maalum zinaweza kuwa na nia mbaya na zinaweza kufichua data ya muamala wako au kutoa taarifa za uongo.</string>
   <string name="library_select_from_photo_library">Chagua kutoka kwa Maktaba ya Picha</string>
   <string name="fee_rates_info">Kasi ya ununuzi imedhamiriwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.</string>
-  <string name="fee_rates_slow">Polepole</string>
   <string name="fee_rates_fast">Haraka</string>
   <string name="fee_rates_normal">Kawaida</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">Maalum</string>
   <string name="banner_account_activation_title">Ada ya Kuanzisha Akaunti</string>
   <string name="banner_account_activation_description">Mtandao wa %1$s unahitaji ada ya mara moja ya %2$s.</string>
   <string name="banner_stake_title">Anza kugoma %1$s</string>

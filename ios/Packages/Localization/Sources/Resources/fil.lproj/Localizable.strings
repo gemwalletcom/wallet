@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "Ang mga custom node ay maaaring maging malisyoso at maaaring maglantad ng iyong data ng transaksyon o magbigay ng maling impormasyon.";
 "library.select_from_photo_library" = "Pumili mula sa Photo Library";
 "fee_rates.info" = "Ang bilis ng transaksyon ay tinutukoy ng bayad sa network na binabayaran sa mga minero ng network.";
-"fee_rates.slow" = "Mabagal";
 "fee_rates.fast" = "Mabilis";
 "fee_rates.normal" = "Normal";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Pasadya";
 "banner.account_activation.title" = "Bayarin sa Pag-activate ng Account";
 "banner.account_activation.description" = "Ang %@ network ay nangangailangan ng isang beses na bayad na %@.";
 "banner.stake.title" = "Simulan ang staking %@";

@@ -48,7 +48,7 @@ async fn run_store_transactions(
     let queue = QueueName::StoreTransactions;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
     let stream_producer = producer_for_queue(&settings, &name, shutdown_rx.clone()).await?;
-    let cacher = CacherClient::new(&settings.redis.url).await;
+    let cacher = CacherClient::new(&settings.redis.url).await?;
     let config_cacher = ConfigCacher::new(database.clone());
     let config = StoreTransactionsConsumerConfig {
         swap_outdated_timeout: config_cacher.get_duration(ConfigKey::TransactionSwapOutdatedTimeout)?,
@@ -76,7 +76,7 @@ async fn run_store_prices(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::StorePrices;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
-    let cacher_client = CacherClient::new(&settings.redis.url).await;
+    let cacher_client = CacherClient::new(&settings.redis.url).await?;
     let price_client = PriceClient::new(database.clone(), cacher_client);
     let config = ConfigCacher::new(database.clone());
     let ttl_seconds = config.get_duration(ConfigKey::PriceOutdated)?.as_secs() as i64;
@@ -99,8 +99,13 @@ async fn run_wallet_stream(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::WalletStreamEvents;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
-    let cacher_client = CacherClient::new(&settings.redis.url).await;
-    let consumer = WalletStreamConsumer { database, cacher_client };
+    let cacher_client = CacherClient::new(&settings.redis.url).await?;
+    let retention = ConfigCacher::new(database.clone()).get_duration(ConfigKey::DeviceStreamRetention)?;
+    let consumer = WalletStreamConsumer {
+        database,
+        cacher_client,
+        retention,
+    };
     run_consumer::<WalletStreamPayload, WalletStreamConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
@@ -111,7 +116,7 @@ async fn run_store_pending_transactions(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::StorePendingTransactions;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
-    let cacher = CacherClient::new(&settings.redis.url).await;
+    let cacher = CacherClient::new(&settings.redis.url).await?;
     let consumer = StorePendingTransactionsConsumer::new(cacher);
     run_consumer::<TransactionId, StorePendingTransactionsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter)
         .await

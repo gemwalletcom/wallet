@@ -455,7 +455,6 @@ library_select_from_photo_library = 사진 라이브러리에서 선택
 # Fee Rates
 
 fee_rates_info = 거래 속도는 네트워크 채굴자에게 지불되는 네트워크 수수료에 따라 결정됩니다.
-fee_rates_slow = 느림
 fee_rates_fast = 빠르게
 fee_rates_normal = 보통
 
@@ -464,6 +463,7 @@ fee_rates_normal = 보통
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = 사용자 지정
 
 # Banner
 

@@ -455,7 +455,6 @@ library_select_from_photo_library = Pumili mula sa Photo Library
 # Fee Rates
 
 fee_rates_info = Ang bilis ng transaksyon ay tinutukoy ng bayad sa network na binabayaran sa mga minero ng network.
-fee_rates_slow = Mabagal
 fee_rates_fast = Mabilis
 fee_rates_normal = Normal
 
@@ -464,6 +463,7 @@ fee_rates_normal = Normal
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Pasadya
 
 # Banner
 

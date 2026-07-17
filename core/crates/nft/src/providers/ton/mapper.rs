@@ -1,25 +1,11 @@
-use std::collections::HashMap;
-
 use gem_ton::address::Address;
-use gem_ton::models::{NftCollectionsResponse, NftItem, NftItemsResponse, TokenInfo, TokenMetadata};
-use primitives::{Address as _, Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, VerificationStatus};
+use gem_ton::models::{NftCollectionsResponse, NftItem, NftItemsResponse, NftOffchainMetadata, TokenInfo, TokenMetadata};
+use primitives::{Address as _, Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTImages, NFTResource, NFTType, VerificationStatus};
 
 use super::verified::is_verified;
 
-pub fn map_asset_ids(response: &NftItemsResponse) -> Vec<NFTAssetId> {
-    response.nft_items.iter().filter_map(|item| asset_id_from_item(item, &response.metadata)).collect()
-}
-
-pub fn map_asset(response: NftItemsResponse, asset_id: NFTAssetId) -> Option<NFTAsset> {
-    Address::try_parse_base64(&asset_id.contract_address)?;
-    let item = response.nft_items.into_iter().next()?;
-    let info = valid_named_token_info(response.metadata.get(&item.address))?;
-    let collection_image = item
-        .collection_address
-        .as_deref()
-        .and_then(|hex| valid_named_token_info(response.metadata.get(hex)))
-        .and_then(|i| i.image.as_deref());
-    Some(build_asset(asset_id, info, collection_image))
+pub fn map_assets(response: &NftItemsResponse) -> Vec<NFTAssetId> {
+    response.nft_items.iter().filter_map(asset_id_from_item).collect()
 }
 
 pub fn map_collection(response: NftCollectionsResponse, collection_id: NFTCollectionId) -> Option<NFTCollection> {
@@ -29,44 +15,42 @@ pub fn map_collection(response: NftCollectionsResponse, collection_id: NFTCollec
     Some(build_collection(&collection_id, &address, info))
 }
 
-pub fn map_nft_data(response: NftItemsResponse) -> Vec<NFTData> {
-    let NftItemsResponse { nft_items, metadata } = response;
-
-    let collections: HashMap<NFTCollectionId, NFTCollection> = nft_items
-        .iter()
-        .filter_map(|item| {
-            let hex = item.collection_address.as_deref()?;
-            let address = Address::try_parse_hex(hex)?;
-            let info = valid_named_token_info(metadata.get(hex))?;
-            let collection_id = NFTCollectionId::new(Chain::Ton, &address.encode());
-            Some((collection_id.clone(), build_collection(&collection_id, &address, info)))
-        })
-        .collect();
-
-    nft_items
-        .into_iter()
-        .filter_map(|item| {
-            let asset_id = asset_id_from_item(&item, &metadata)?;
-            let collection = collections.get(&asset_id.get_collection_id())?;
-            let info = valid_named_token_info(metadata.get(&item.address))?;
-            let key = asset_id.get_collection_id();
-            let asset = build_asset(asset_id, info, Some(&collection.images.preview.url));
-            Some((key, asset))
-        })
-        .fold(HashMap::<NFTCollectionId, Vec<NFTAsset>>::new(), |mut acc, (key, asset)| {
-            acc.entry(key).or_default().push(asset);
-            acc
-        })
-        .into_iter()
-        .filter_map(|(collection_id, assets)| {
-            let collection = collections.get(&collection_id)?.clone();
-            Some(NFTData { collection, assets })
-        })
-        .collect()
+pub fn map_asset(response: &NftItemsResponse, asset_id: NFTAssetId) -> Option<NFTAsset> {
+    Address::try_parse_base64(&asset_id.contract_address)?;
+    let item = response.nft_items.first()?;
+    map_indexed_asset(response, item, asset_id)
 }
 
-fn build_asset(asset_id: NFTAssetId, info: &TokenInfo, collection_image: Option<&str>) -> NFTAsset {
-    let image = info.image.as_deref().or(collection_image).unwrap_or_default();
+pub fn map_offchain_asset(metadata: NftOffchainMetadata, asset_id: NFTAssetId) -> Option<NFTAsset> {
+    if metadata.name.is_empty() {
+        return None;
+    }
+    Some(build_asset(asset_id, &metadata.name, metadata.description, metadata.image.as_deref()))
+}
+
+pub(super) fn map_indexed_asset(response: &NftItemsResponse, item: &NftItem, asset_id: NFTAssetId) -> Option<NFTAsset> {
+    let info = valid_named_token_info(response.metadata.get(&item.address))?;
+    let collection_image = item
+        .collection_address
+        .as_deref()
+        .and_then(|address| valid_named_token_info(response.metadata.get(address)))
+        .and_then(|info| info.image.as_deref());
+    Some(build_asset(
+        asset_id,
+        token_info_name(info)?,
+        info.description.clone(),
+        info.image.as_deref().or(collection_image),
+    ))
+}
+
+pub(super) fn asset_id_from_item(item: &NftItem) -> Option<NFTAssetId> {
+    let collection = Address::try_parse_hex(item.collection_address.as_deref()?)?;
+    let token = Address::try_parse_hex(&item.address)?;
+    Some(NFTAssetId::new(Chain::Ton, &collection.encode(), &token.encode()))
+}
+
+fn build_asset(asset_id: NFTAssetId, name: &str, description: Option<String>, image: Option<&str>) -> NFTAsset {
+    let image = image.unwrap_or_default();
     let collection_id = asset_id.get_collection_id();
     NFTAsset {
         chain: asset_id.chain,
@@ -75,8 +59,8 @@ fn build_asset(asset_id: NFTAssetId, info: &TokenInfo, collection_image: Option<
         id: asset_id,
         collection_id,
         token_type: NFTType::JETTON,
-        name: token_info_name(info).unwrap_or_default().to_string(),
-        description: info.description.clone(),
+        name: name.to_string(),
+        description,
         resource: NFTResource::from_url(image),
         images: NFTImages {
             preview: NFTResource::from_url(image),
@@ -115,14 +99,6 @@ fn token_info_name(info: &TokenInfo) -> Option<&str> {
         .filter(|s| !s.is_empty())
 }
 
-fn asset_id_from_item(item: &NftItem, metadata: &HashMap<String, TokenMetadata>) -> Option<NFTAssetId> {
-    let collection_hex = item.collection_address.as_deref()?;
-    let collection = Address::try_parse_hex(collection_hex)?;
-    valid_named_token_info(metadata.get(&item.address))?;
-    let token = Address::try_parse_hex(&item.address)?;
-    Some(NFTAssetId::new(Chain::Ton, &collection.encode(), &token.encode()))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -134,9 +110,9 @@ mod tests {
     const GETGEMS_COLLECTION: &str = "EQCwbUhN1REI4q-N8EV2ordMxXognDW2y0teRiBP0RjgCc6T";
 
     #[test]
-    fn test_map_asset_ids() {
+    fn test_map_assets() {
         let response: NftItemsResponse = serde_json::from_str(include_str!("../../../testdata/ton/items.json")).unwrap();
-        let asset_ids = map_asset_ids(&response);
+        let asset_ids = map_assets(&response);
 
         assert_eq!(asset_ids.len(), 1);
         let first = &asset_ids[0];
@@ -150,7 +126,7 @@ mod tests {
     fn test_map_asset() {
         let response: NftItemsResponse = serde_json::from_str(include_str!("../../../testdata/ton/items.json")).unwrap();
         let asset_id = NFTAssetId::new(Chain::Ton, VERIFIED_COLLECTION, ITEM);
-        let asset = map_asset(response, asset_id).expect("Failed to map asset");
+        let asset = map_asset(&response, asset_id).expect("Failed to map asset");
 
         assert_eq!(asset.id.to_string(), format!("ton_{VERIFIED_COLLECTION}::{ITEM}"));
         assert_eq!(asset.collection_id.to_string(), format!("ton_{VERIFIED_COLLECTION}"));
@@ -166,11 +142,37 @@ mod tests {
     fn test_map_asset_unverified_collection() {
         let response: NftItemsResponse = serde_json::from_str(include_str!("../../../testdata/ton/items_unverified.json")).unwrap();
         let asset_id = NFTAssetId::new(Chain::Ton, UNVERIFIED_COLLECTION, ITEM);
-        let asset = map_asset(response, asset_id).unwrap();
+        let asset = map_asset(&response, asset_id).unwrap();
 
         assert_eq!(asset.id, NFTAssetId::new(Chain::Ton, UNVERIFIED_COLLECTION, ITEM));
         assert_eq!(asset.collection_id, NFTCollectionId::new(Chain::Ton, UNVERIFIED_COLLECTION));
         assert_eq!(asset.name, "Unverified Item");
+    }
+
+    #[test]
+    fn test_map_offchain_asset() {
+        let metadata: NftOffchainMetadata = serde_json::from_str(include_str!("../../../testdata/ton/item_offchain.json")).unwrap();
+        let asset_id = NFTAssetId::new(Chain::Ton, VERIFIED_COLLECTION, ITEM);
+        let asset = map_offchain_asset(metadata, asset_id.clone()).unwrap();
+
+        assert_eq!(asset.id, asset_id);
+        assert_eq!(asset.name, "Swag Bag #219028");
+        assert_eq!(asset.description.as_deref(), Some("An exclusive Swag Bag by Snoop Dogg."));
+        assert_eq!(asset.images.preview.url, "https://nft.fragment.com/gift/swagbag-219028.webp");
+    }
+
+    #[test]
+    fn test_map_assets_includes_unindexed_metadata() {
+        let response: NftItemsResponse = serde_json::from_str(include_str!("../../../testdata/ton/item_unindexed.json")).unwrap();
+
+        assert_eq!(
+            map_assets(&response),
+            vec![NFTAssetId::new(
+                Chain::Ton,
+                "EQCgaTxb2wA_3Bi8Ec4FFNu8CauoHo0VPpnwxdrhAgOrOXvA",
+                "EQCrhnIgB3ITBJbu4hm0ie8Hm76pdPEsl-1_1wLaRmMQOUTN"
+            )]
+        );
     }
 
     #[test]
@@ -196,21 +198,6 @@ mod tests {
         assert_eq!(collection.status, VerificationStatus::Verified);
         assert!(collection.is_verified);
         assert_eq!(collection.links, vec![]);
-    }
-
-    #[test]
-    fn test_map_nft_data_includes_unverified_collection() {
-        let response: NftItemsResponse = serde_json::from_str(include_str!("../../../testdata/ton/items_unverified.json")).unwrap();
-        let asset_ids = map_asset_ids(&response);
-        let data = map_nft_data(response);
-
-        assert_eq!(asset_ids, vec![NFTAssetId::new(Chain::Ton, UNVERIFIED_COLLECTION, ITEM)]);
-        assert_eq!(data.len(), 1);
-        assert_eq!(data[0].collection.id, NFTCollectionId::new(Chain::Ton, UNVERIFIED_COLLECTION));
-        assert_eq!(data[0].collection.status, VerificationStatus::Unverified);
-        assert!(!data[0].collection.is_verified);
-        assert_eq!(data[0].assets.len(), 1);
-        assert_eq!(data[0].assets[0].id, NFTAssetId::new(Chain::Ton, UNVERIFIED_COLLECTION, ITEM));
     }
 
     #[test]

@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "I nodi personalizzati possono essere dannosi e potrebbero esporre i dati delle transazioni o fornire informazioni false.";
 "library.select_from_photo_library" = "Seleziona dalla Libreria foto";
 "fee_rates.info" = "La velocità della transazione è determinata dalla tariffa di rete pagata ai minatori della rete.";
-"fee_rates.slow" = "Lento";
 "fee_rates.fast" = "Veloce";
 "fee_rates.normal" = "Normale";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Personalizzato";
 "banner.account_activation.title" = "Commissione di attivazione del conto";
 "banner.account_activation.description" = "La rete %@ richiede una tariffa una tantum di %@.";
 "banner.stake.title" = "Inizia a puntare %@";

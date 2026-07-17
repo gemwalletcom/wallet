@@ -455,7 +455,6 @@ library_select_from_photo_library = Selecionar na biblioteca de fotos
 # Fee Rates
 
 fee_rates_info = A velocidade da transação é determinada pela taxa de rede paga aos mineradores da rede.
-fee_rates_slow = Lento
 fee_rates_fast = Rápido
 fee_rates_normal = Normal
 
@@ -464,6 +463,7 @@ fee_rates_normal = Normal
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Personalizado
 
 # Banner
 

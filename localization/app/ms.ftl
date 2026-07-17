@@ -455,7 +455,6 @@ library_select_from_photo_library = Pilih daripada Pustaka Foto
 # Fee Rates
 
 fee_rates_info = Kelajuan transaksi ditentukan oleh bayaran rangkaian yang dibayar kepada pelombong rangkaian.
-fee_rates_slow = Lambat
 fee_rates_fast = Cepat
 fee_rates_normal = Biasa
 
@@ -464,6 +463,7 @@ fee_rates_normal = Biasa
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Tersuai
 
 # Banner
 

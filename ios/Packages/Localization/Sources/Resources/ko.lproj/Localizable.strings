@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "사용자 지정 노드는 악의적일 수 있으며 거래 데이터를 노출하거나 허위 정보를 제공할 수 있습니다.";
 "library.select_from_photo_library" = "사진 라이브러리에서 선택";
 "fee_rates.info" = "거래 속도는 네트워크 채굴자에게 지불되는 네트워크 수수료에 따라 결정됩니다.";
-"fee_rates.slow" = "느림";
 "fee_rates.fast" = "빠르게";
 "fee_rates.normal" = "보통";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "사용자 지정";
 "banner.account_activation.title" = "계정 활성화 수수료";
 "banner.account_activation.description" = "%@ 네트워크에는 %@ 의 일회성 수수료가 필요합니다.";
 "banner.stake.title" = "스테이킹 시작 %@";

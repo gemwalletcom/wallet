@@ -377,12 +377,12 @@
   <string name="nodes_import_node_warning_message">Vlastní uzly mohou být škodlivé a mohou zveřejnit vaše transakční data nebo poskytovat nepravdivé informace.</string>
   <string name="library_select_from_photo_library">Vyberte z knihovny fotografií</string>
   <string name="fee_rates_info">Rychlost transakce je určena síťovým poplatkem placeným síťovým těžařům.</string>
-  <string name="fee_rates_slow">Pomalý</string>
   <string name="fee_rates_fast">Rychle</string>
   <string name="fee_rates_normal">Normální</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">Vlastní</string>
   <string name="banner_account_activation_title">Poplatek za aktivaci účtu</string>
   <string name="banner_account_activation_description">Síť %1$s vyžaduje jednorázový poplatek %2$s.</string>
   <string name="banner_stake_title">Začněte sázet %1$s</string>

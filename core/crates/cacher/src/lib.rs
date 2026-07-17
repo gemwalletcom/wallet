@@ -14,10 +14,10 @@ pub struct CacherClient {
 }
 
 impl CacherClient {
-    pub async fn new(redis_url: &str) -> Self {
-        let client = Client::open(redis_url).expect("invalid redis url");
-        let connection = ConnectionManager::new(client).await.expect("failed to connect to redis");
-        Self { connection }
+    pub async fn new(redis_url: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let client = Client::open(redis_url)?;
+        let connection = ConnectionManager::new(client).await?;
+        Ok(Self { connection })
     }
 
     pub async fn set_values(&self, values: Vec<(String, String)>) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -112,6 +112,13 @@ impl CacherClient {
 
     pub async fn delete(&self, key: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(self.connection.clone().del::<&str, i64>(key).await? > 0)
+    }
+
+    pub async fn delete_keys(&self, keys: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if keys.is_empty() {
+            return Ok(0);
+        }
+        Ok(self.connection.clone().del(keys).await?)
     }
 
     pub async fn increment(&self, key: &str) -> Result<i64, Box<dyn Error + Send + Sync>> {
@@ -260,10 +267,9 @@ impl CacherClient {
         Ok(())
     }
 
-    pub async fn publish<T: serde::Serialize>(&self, channel: &str, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn publish<T: serde::Serialize, R: redis::FromRedisValue>(&self, channel: &str, value: &T) -> Result<R, Box<dyn Error + Send + Sync>> {
         let message = serde_json::to_string(value)?;
-        self.connection.clone().publish::<&str, &str, ()>(channel, &message).await?;
-        Ok(())
+        Ok(self.connection.clone().publish(channel, &message).await?)
     }
 
     pub async fn keys(&self, pattern: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
@@ -294,6 +300,14 @@ impl CacherClient {
             .arg("WITHSCORES")
             .query_async(&mut self.connection.clone())
             .await?)
+    }
+
+    pub async fn take_sorted_set_with_scores(&self, key: &str) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>> {
+        let count = self.sorted_set_card(key).await?;
+        if count == 0 {
+            return Ok(vec![]);
+        }
+        Ok(redis::cmd("ZPOPMIN").arg(key).arg(count).query_async(&mut self.connection.clone()).await?)
     }
 
     async fn set_serialized_values_with_ttl(&self, values: Vec<(String, String, i64)>) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -342,7 +356,7 @@ mod tests {
     #[ignore = "requires REDIS_URL pointing at a disposable Redis instance"]
     async fn get_and_delete_value_is_atomic_under_concurrency() {
         let redis_url = std::env::var("REDIS_URL").expect("set REDIS_URL to run Redis-backed cache tests");
-        let client = CacherClient::new(&redis_url).await;
+        let client = CacherClient::new(&redis_url).await.unwrap();
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
         let key = format!("test:get-and-delete:{}:{timestamp}", std::process::id());
         let value = TestValue { nonce: "single-use".to_string() };

@@ -11,6 +11,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import java.math.BigDecimal
+import java.math.BigInteger
 import uniffi.gemstone.SwapPriceImpact
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderType
@@ -64,6 +65,8 @@ data class SwapDetailsUIModelInput(
 )
 
 object SwapDetailsUIModelFactory {
+    private const val BPS_SCALE = 10_000
+
     private val rateFormatter = AssetRateFormatter()
 
     fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
@@ -95,9 +98,7 @@ object SwapDetailsUIModelFactory {
         }
 
         val toAmount = Crypto(input.toValue)
-        val minReceiveAtomic = toAmount.atomicValue.toBigDecimal().let { amount ->
-            amount - (amount * BigDecimal.valueOf(slippagePercent / 100.0))
-        }.toBigInteger()
+        val minReceiveAtomic = minimumReceiveAtomic(toAmount.atomicValue, input.slippageBps)
 
         return SwapDetailsUIModel(
             provider = input.provider,
@@ -113,6 +114,9 @@ object SwapDetailsUIModelFactory {
             isProviderSelectable = input.isProviderSelectable,
         )
     }
+
+    internal fun minimumReceiveAtomic(atomicValue: BigInteger, slippageBps: UInt): BigInteger =
+        atomicValue * (BPS_SCALE - slippageBps.toInt()).toBigInteger() / BPS_SCALE.toBigInteger()
 
     private fun estimateSwapRate(
         payAsset: AssetInfo,

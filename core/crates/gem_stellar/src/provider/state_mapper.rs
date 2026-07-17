@@ -10,7 +10,6 @@ pub fn map_fee_stats_to_priorities(fees: &StellarFees) -> Vec<FeeRate> {
     let fast_fee = fees.fee_charged.p95.max(min_fee) * 2;
 
     vec![
-        FeeRate::new(FeePriority::Slow, GasPriceType::regular(min_fee)),
         FeeRate::new(FeePriority::Normal, GasPriceType::regular(min_fee)),
         FeeRate::new(FeePriority::Fast, GasPriceType::regular(fast_fee)),
     ]
@@ -29,12 +28,12 @@ mod tests {
         };
 
         let result = map_fee_stats_to_priorities(&fees);
-        assert_eq!(result.len(), 3);
+        assert_eq!(result.len(), 2);
         match &result[0].gas_price_type {
             GasPriceType::Regular { gas_price } => assert_eq!(gas_price, &BigInt::from(150)), // max(100, 150)
             _ => panic!("Expected Regular gas price"),
         }
-        match &result[2].gas_price_type {
+        match &result[1].gas_price_type {
             GasPriceType::Regular { gas_price } => assert_eq!(gas_price, &BigInt::from(1000)), // 500 * 2
             _ => panic!("Expected Regular gas price"),
         }

@@ -845,8 +845,6 @@ library_select_from_photo_library = Select from Photo Library
 
 # Used in fee UI for the rates info label.
 fee_rates_info = Speed of transaction is determined by network fee paid to the network miners.
-# Used in fee UI for the rates slow label.
-fee_rates_slow = Slow
 # Used in fee UI for the rates fast label.
 fee_rates_fast = Fast
 # Used in fee UI for the rates normal label.
@@ -860,6 +858,8 @@ fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 # Used in network fee rate selector for the gwei label. Contains 1 string placeholder.
 fee_rate_gwei = %@ gwei
+# Used in the network fee rate selector for the custom fee rate row label.
+fee_rate_custom = Custom
 
 # Banner
 

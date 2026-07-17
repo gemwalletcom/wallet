@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "حسب ضرورت نوڈس بدنیتی پر مبنی ہو سکتے ہیں اور آپ کے لین دین کے ڈیٹا کو بے نقاب کر سکتے ہیں یا غلط معلومات فراہم کر سکتے ہیں۔";
 "library.select_from_photo_library" = "فوٹو لائبریری سے منتخب کریں۔";
 "fee_rates.info" = "لین دین کی رفتار کا تعین نیٹ ورک کے کان کنوں کو ادا کی جانے والی نیٹ ورک فیس سے کیا جاتا ہے۔";
-"fee_rates.slow" = "سست";
 "fee_rates.fast" = "تیز";
 "fee_rates.normal" = "نارمل";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "حسب ضرورت";
 "banner.account_activation.title" = "اکاؤنٹ ایکٹیویشن فیس";
 "banner.account_activation.description" = "%@ نیٹ ورک کو %@ کی ایک بار کی فیس درکار ہے۔";
 "banner.stake.title" = "%@ اسٹیکنگ شروع کریں";

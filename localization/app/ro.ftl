@@ -455,7 +455,6 @@ library_select_from_photo_library = Selectați din Biblioteca foto
 # Fee Rates
 
 fee_rates_info = Viteza tranzacției este determinată de taxa de rețea plătită minerilor din rețea.
-fee_rates_slow = Încet
 fee_rates_fast = Rapid
 fee_rates_normal = Normal
 
@@ -464,6 +463,7 @@ fee_rates_normal = Normal
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Personalizat
 
 # Banner
 

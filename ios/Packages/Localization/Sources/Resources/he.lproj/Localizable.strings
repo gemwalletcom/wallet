@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "צמתים מותאמים אישית עלולים להיות זדוניים ולחשוף את נתוני העסקאות שלך או לספק מידע כוזב.";
 "library.select_from_photo_library" = "בחר מספריית התמונות";
 "fee_rates.info" = "מהירות העסקה נקבעת לפי עמלת הרשת המשולמת לכורי הרשת.";
-"fee_rates.slow" = "איטי";
 "fee_rates.fast" = "מהר";
 "fee_rates.normal" = "רגיל";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "מותאם אישית";
 "banner.account_activation.title" = "עמלת הפעלת חשבון";
 "banner.account_activation.description" = "הרשת %@ דורשת תשלום חד פעמי של %@.";
 "banner.stake.title" = "התחל להמר %@";

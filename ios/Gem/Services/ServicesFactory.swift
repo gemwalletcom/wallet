@@ -567,6 +567,7 @@ extension ServicesFactory {
             deviceService: deviceService,
             priceUpdater: priceUpdater,
             preferences: preferences,
+            pushNotificationService: PushNotificationEnablerService(preferences: preferences),
         )
     }
 

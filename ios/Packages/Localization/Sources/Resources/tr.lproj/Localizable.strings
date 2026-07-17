@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "Özel düğümler kötü amaçlı olabilir ve işlem verilerinizi ifşa edebilir veya yanlış bilgi sağlayabilir.";
 "library.select_from_photo_library" = "Fotoğraf Kitaplığından Seç";
 "fee_rates.info" = "İşlem hızı, ağ madencilerine ödenen ağ ücreti tarafından belirlenir.";
-"fee_rates.slow" = "Yavaş";
 "fee_rates.fast" = "Hızlı";
 "fee_rates.normal" = "Normal";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Özel";
 "banner.account_activation.title" = "Hesap Aktivasyon Ücreti";
 "banner.account_activation.description" = "%@ ağı, tek seferlik bir ücret gerektirir %@.";
 "banner.stake.title" = "%@ bahisine başla";

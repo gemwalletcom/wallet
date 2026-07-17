@@ -455,7 +455,6 @@ library_select_from_photo_library = Chọn từ Thư viện ảnh
 # Fee Rates
 
 fee_rates_info = Tốc độ giao dịch được xác định bằng phí mạng trả cho người khai thác mạng.
-fee_rates_slow = Chậm
 fee_rates_fast = Nhanh
 fee_rates_normal = Bình thường
 
@@ -464,6 +463,7 @@ fee_rates_normal = Bình thường
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = Tùy chỉnh
 
 # Banner
 

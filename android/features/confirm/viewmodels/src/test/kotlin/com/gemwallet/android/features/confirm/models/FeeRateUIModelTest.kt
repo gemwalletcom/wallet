@@ -52,7 +52,6 @@ class FeeRateUIModelTest {
             selectedFeeAmount = BigInteger("110000"),
         )
 
-        assertEquals("0.0001 SOL", model(FeePriority.Slow, "100").price)
         assertEquals("0.00011 SOL", model(FeePriority.Normal, "110").price)
         assertEquals("0.0002 SOL", model(FeePriority.Fast, "200").price)
     }

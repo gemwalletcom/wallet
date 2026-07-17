@@ -455,7 +455,6 @@ library_select_from_photo_library = בחר מספריית התמונות
 # Fee Rates
 
 fee_rates_info = מהירות העסקה נקבעת לפי עמלת הרשת המשולמת לכורי הרשת.
-fee_rates_slow = איטי
 fee_rates_fast = מהר
 fee_rates_normal = רגיל
 
@@ -464,6 +463,7 @@ fee_rates_normal = רגיל
 fee_rate_satvB = %@ sat/vB
 fee_rate_satB = %@ sat/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = מותאם אישית
 
 # Banner
 

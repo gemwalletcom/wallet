@@ -34,13 +34,11 @@ public struct FeeRateViewModel: Identifiable {
         switch feeRate.priority {
         case .fast: Emoji.FeeRate.fast.rawValue
         case .normal: Emoji.FeeRate.normal.rawValue
-        case .slow: Emoji.FeeRate.slow.rawValue
         }
     }
 
     public var title: String {
         switch feeRate.priority {
-        case .slow: Localized.FeeRates.slow
         case .normal: Localized.FeeRates.normal
         case .fast: Localized.FeeRates.fast
         }

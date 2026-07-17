@@ -1,5 +1,6 @@
 pub mod chain;
 pub mod docs;
+pub mod fee_config;
 pub mod fiat_config;
 pub mod node;
 pub mod node_auth;
@@ -22,6 +23,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use {
     docs::{DocsUrl, get_docs_url},
+    fee_config::{FeeConfig, get_fee_config},
     fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, select_leverage},
     public::{ASSETS_URL, PublicUrl, get_public_url},
@@ -100,6 +102,10 @@ impl Config {
     fn get_chain_config(&self, chain: String) -> ChainConfig {
         let chain = Chain::from_str(&chain).unwrap();
         crate::config::chain::get_chain_config(chain)
+    }
+
+    fn get_fee_config(&self, chain: Chain) -> FeeConfig {
+        get_fee_config(chain)
     }
 
     fn get_wallet_connect_config(&self) -> WalletConnectConfig {

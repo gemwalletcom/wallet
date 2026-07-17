@@ -362,12 +362,12 @@
 "nodes.import_node.warning_message" = "Węzły niestandardowe mogą mieć charakter złośliwy i ujawniać dane transakcji lub podawać fałszywe informacje.";
 "library.select_from_photo_library" = "Wybierz z biblioteki zdjęć";
 "fee_rates.info" = "Szybkość transakcji zależy od opłaty sieciowej płaconej górnikom sieciowym.";
-"fee_rates.slow" = "Powolny";
 "fee_rates.fast" = "Szybko";
 "fee_rates.normal" = "Normalne";
 "fee_rate.satvB" = "%@ sat/vB";
 "fee_rate.satB" = "%@ sat/B";
 "fee_rate.gwei" = "%@ gwei";
+"fee_rate.custom" = "Niestandardowe";
 "banner.account_activation.title" = "Opłata za aktywację konta";
 "banner.account_activation.description" = "Sieć %@ wymaga jednorazowej opłaty w wysokości %@.";
 "banner.stake.title" = "Zacznij stawiać %@";

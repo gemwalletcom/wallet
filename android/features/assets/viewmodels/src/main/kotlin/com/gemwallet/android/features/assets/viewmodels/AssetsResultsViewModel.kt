@@ -8,7 +8,7 @@ import com.gemwallet.android.application.asset_select.coordinators.GetRecentAsse
 import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin

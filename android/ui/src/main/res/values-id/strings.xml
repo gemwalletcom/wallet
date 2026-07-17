@@ -377,12 +377,12 @@
   <string name="nodes_import_node_warning_message">Node kustom dapat bersifat berbahaya dan dapat membocorkan data transaksi Anda atau memberikan informasi palsu.</string>
   <string name="library_select_from_photo_library">Pilih dari Galeri Foto</string>
   <string name="fee_rates_info">Kecepatan transaksi dihitung berdasarkan biaya jaringan yang dibayarkan pada jaringan penambang</string>
-  <string name="fee_rates_slow">Lambat</string>
   <string name="fee_rates_fast">Cepat</string>
   <string name="fee_rates_normal">Biasa</string>
   <string name="fee_rate_satvB">%1$s sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_custom">Kustom</string>
   <string name="banner_account_activation_title">Biaya aktivasi akun</string>
   <string name="banner_account_activation_description">Jaringan %1$s memerlukan biaya satu kali sebesar %2$s</string>
   <string name="banner_stake_title">Mulai Staking %1$s</string>

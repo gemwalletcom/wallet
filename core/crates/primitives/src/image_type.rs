@@ -6,6 +6,7 @@ pub const MIME_TYPE_PNG: &str = "image/png";
 const MIME_TYPE_JPEG: &str = "image/jpeg";
 const MIME_TYPE_SVG: &str = "image/svg+xml";
 const MIME_TYPE_GIF: &str = "image/gif";
+const MIME_TYPE_WEBP: &str = "image/webp";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumIter, EnumString)]
 #[serde(rename_all = "lowercase")]
@@ -16,6 +17,7 @@ pub enum ImageType {
     Jpg,
     Png,
     Svg,
+    Webp,
 }
 
 impl ImageType {
@@ -28,7 +30,7 @@ impl ImageType {
     }
 
     pub fn from_magic_bytes(data: &[u8]) -> Option<Self> {
-        Self::iter().find(|image_type| data.starts_with(image_type.magic_bytes()))
+        Self::iter().find(|image_type| image_type.matches_magic_bytes(data))
     }
 
     pub fn mime_type(self) -> &'static str {
@@ -37,6 +39,7 @@ impl ImageType {
             Self::Jpeg | Self::Jpg => MIME_TYPE_JPEG,
             Self::Png => MIME_TYPE_PNG,
             Self::Svg => MIME_TYPE_SVG,
+            Self::Webp => MIME_TYPE_WEBP,
         }
     }
 
@@ -44,12 +47,13 @@ impl ImageType {
         self.as_ref().to_string()
     }
 
-    fn magic_bytes(self) -> &'static [u8] {
+    fn matches_magic_bytes(self, data: &[u8]) -> bool {
         match self {
-            Self::Gif => b"GIF8",
-            Self::Jpeg | Self::Jpg => &[0xFF, 0xD8, 0xFF],
-            Self::Png => b"\x89PNG\r\n\x1A\n",
-            Self::Svg => b"<svg",
+            Self::Gif => data.starts_with(b"GIF8"),
+            Self::Jpeg | Self::Jpg => data.starts_with(&[0xFF, 0xD8, 0xFF]),
+            Self::Png => data.starts_with(b"\x89PNG\r\n\x1A\n"),
+            Self::Svg => data.starts_with(b"<svg"),
+            Self::Webp => data.len() >= 12 && data.starts_with(b"RIFF") && &data[8..12] == b"WEBP",
         }
     }
 }
@@ -64,6 +68,7 @@ mod tests {
         assert_eq!(ImageType::from_label("jpeg"), Some(ImageType::Jpeg));
         assert_eq!(ImageType::from_label("png"), Some(ImageType::Png));
         assert_eq!(ImageType::from_label("gif"), Some(ImageType::Gif));
+        assert_eq!(ImageType::from_label("webp"), Some(ImageType::Webp));
         assert_eq!(ImageType::from_label("html"), None);
     }
 
@@ -72,6 +77,8 @@ mod tests {
         assert_eq!(ImageType::from_magic_bytes(&[0xFF, 0xD8, 0xFF]), Some(ImageType::Jpeg));
         assert_eq!(ImageType::from_magic_bytes(b"\x89PNG\r\n\x1A\nrest"), Some(ImageType::Png));
         assert_eq!(ImageType::from_magic_bytes(b"GIF89a"), Some(ImageType::Gif));
+        assert_eq!(ImageType::from_magic_bytes(b"RIFF\x01\x02\x03\x04WEBPVP8 "), Some(ImageType::Webp));
+        assert_eq!(ImageType::from_magic_bytes(b"RIFF\x01\x02\x03\x04WAVEfmt "), None);
         assert_eq!(ImageType::from_magic_bytes(b"<html></html>"), None);
     }
 }

@@ -31,7 +31,7 @@ impl ChainConsumerRunner {
         reporter: Arc<dyn ConsumerStatusReporter>,
     ) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let connection = StreamConnection::new(&settings.rabbitmq.url, queue.to_string()).await?;
-        let cacher = CacherClient::new(&settings.redis.url).await;
+        let cacher = CacherClient::new(&settings.redis.url).await?;
         let config = consumer_config(&settings.consumer);
         Ok(Self {
             settings,

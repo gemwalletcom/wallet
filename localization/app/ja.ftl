@@ -455,7 +455,6 @@ library_select_from_photo_library = 写真ライブラリから選択
 # Fee Rates
 
 fee_rates_info = 取引速度は、マイナーへのネットワーク手数料により決定します。
-fee_rates_slow = 遅い
 fee_rates_fast = 速い
 fee_rates_normal = 普通
 
@@ -464,6 +463,7 @@ fee_rates_normal = 普通
 fee_rate_satvB = %@ サトシ/vB
 fee_rate_satB = %@ サトシ/B
 fee_rate_gwei = %@ gwei
+fee_rate_custom = カスタム
 
 # Banner
 
