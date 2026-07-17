@@ -40,7 +40,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.matches
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.features.swap.viewmodels.models.toError
 import com.gemwallet.android.math.multiplyByPercent
-import com.gemwallet.android.math.parseNumberOrNull
+import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
@@ -96,7 +96,7 @@ class SwapViewModel @Inject constructor(
 
     private val payValueFlow = snapshotFlow { payValue.text }
         .map { it.toString() }
-        .map { it.parseNumberOrNull() ?: BigDecimal.ZERO }
+        .map { it.parseInputNumberOrNull() ?: BigDecimal.ZERO }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
 
     val selectedProvider = MutableStateFlow<SwapperProvider?>(null)

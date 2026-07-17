@@ -34,10 +34,12 @@ class ValueFormatter(
         }
 
         val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
-            roundingMode = RoundingMode.DOWN
+            roundingMode = ROUNDING_MODE
         }
         return appendCurrency(formatter.format(value, precision(value.abs())), currency)
     }
+
+    fun rounded(value: BigDecimal): BigDecimal = value.rounded(precision(value.abs()), ROUNDING_MODE)
 
     private fun precision(magnitude: BigDecimal): Precision = when (style) {
         Style.Full -> Precision.full
@@ -67,6 +69,7 @@ class ValueFormatter(
         if (currency.isEmpty()) value else "$value $currency"
 
     companion object {
+        private val ROUNDING_MODE: RoundingMode = RoundingMode.DOWN
         private val SMALL_AMOUNT_THRESHOLD: BigDecimal = BigDecimal("0.1")
         private val DUST_THRESHOLD: BigDecimal = BigDecimal("0.0001")
         val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(100_000)

@@ -1,7 +1,6 @@
 package com.gemwallet.android.model
 
 import java.math.BigDecimal
-import java.math.BigInteger
 import java.math.MathContext
 
 object CryptoFiatConverter {
@@ -12,12 +11,16 @@ object CryptoFiatConverter {
         return Fiat(result)
     }
 
-    fun toCrypto(fiat: Fiat, decimals: Int, price: Double): Crypto {
-        if (price == 0.0) return Crypto(BigInteger.ZERO)
-        val result = fiat.atomicValue
-            .divide(price.toBigDecimal(), MathContext.DECIMAL128)
-            .multiply(BigDecimal.TEN.pow(decimals))
-            .toBigInteger()
-        return Crypto(result)
-    }
+    fun toCrypto(fiat: Fiat, decimals: Int, price: Double): Crypto =
+        Crypto(cryptoValue(fiat, price), decimals)
+
+    fun toCryptoAtDisplayPrecision(fiat: Fiat, decimals: Int, price: Double): Crypto =
+        Crypto(ValueFormatter(style = ValueFormatter.Style.Auto).rounded(cryptoValue(fiat, price)), decimals)
+
+    private fun cryptoValue(fiat: Fiat, price: Double): BigDecimal =
+        if (price == 0.0) {
+            BigDecimal.ZERO
+        } else {
+            fiat.atomicValue.divide(price.toBigDecimal(), MathContext.DECIMAL128)
+        }
 }
