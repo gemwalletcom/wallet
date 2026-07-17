@@ -6,7 +6,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import WalletService
 
 struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     private let onCreateWallet: ([String]) -> Void
@@ -21,15 +20,11 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     init(
-        walletService: WalletService,
+        words: [String],
         onCreateWallet: @escaping (([String]) -> Void),
     ) {
+        self.words = words
         self.onCreateWallet = onCreateWallet
-        do {
-            words = try walletService.createWallet()
-        } catch {
-            fatalError("Unable to create wallet")
-        }
     }
 
     var title: String {
