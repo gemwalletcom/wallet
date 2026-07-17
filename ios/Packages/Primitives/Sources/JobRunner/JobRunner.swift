@@ -37,7 +37,11 @@ extension JobRunner {
         var intervalMs = job.configuration.initialIntervalMs
 
         while !Task.isCancelled {
-            let attemptStart = clock.now
+            do {
+                try await clock.sleep(for: .milliseconds(Int(intervalMs)))
+            } catch {
+                return
+            }
 
             switch await job.run() {
             case .complete:
@@ -49,10 +53,6 @@ extension JobRunner {
                 }
                 return
             case let .retry(error):
-                let sleepUntil = attemptStart.advanced(by: .milliseconds(Int(intervalMs)))
-                if clock.now < sleepUntil {
-                    try? await clock.sleep(until: sleepUntil)
-                }
                 intervalMs = job.nextInterval(after: intervalMs)
                 if let error {
                     debugLog("transaction status pending: id=\(job.id), next check = \(intervalMs)ms, error=\(error)")
