@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+use std::collections::HashSet;
 use std::error::Error;
 
 use gem_client::Client;
@@ -8,7 +10,7 @@ use serde_json::json;
 
 use crate::rpc::EVMIndexerClient;
 
-use super::model::{TokenBalances, Transactions};
+use super::model::{TokenBalances, TokenTransfers, Transactions};
 
 #[derive(Debug, Clone)]
 pub(crate) struct AnkrClient<C: Client + Clone> {
@@ -61,14 +63,44 @@ impl<C: Client + Clone> AnkrClient<C> {
 
 impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
     async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let params = json!({
-            "address": address,
-            "blockchain": self.chain,
-            "pageSize": limit,
-            "descOrder": true
-        });
-        let transactions: Transactions = self.rpc_client.call("ankr_getTransactionsByAddress", params).await?;
-        Ok(transactions.transactions.into_iter().map(|transaction| transaction.hash).collect())
+        let transactions: Transactions = self
+            .rpc_client
+            .call(
+                "ankr_getTransactionsByAddress",
+                json!({
+                    "address": address,
+                    "blockchain": self.chain,
+                    "pageSize": limit,
+                    "descOrder": true
+                }),
+            )
+            .await?;
+        let token_transfers: TokenTransfers = self
+            .rpc_client
+            .call(
+                "ankr_getTokenTransfers",
+                json!({
+                    "address": address,
+                    "blockchain": self.chain,
+                    "pageSize": limit
+                }),
+            )
+            .await?;
+
+        let mut transactions = transactions
+            .transactions
+            .into_iter()
+            .map(|transaction| (transaction.hash, transaction.timestamp))
+            .chain(token_transfers.transfers.into_iter().map(|transfer| (transfer.transaction_hash, transfer.timestamp)))
+            .collect::<Vec<_>>();
+        transactions.sort_by_key(|(_, timestamp)| Reverse(*timestamp));
+
+        let mut seen = HashSet::new();
+        Ok(transactions
+            .into_iter()
+            .filter_map(|(hash, _)| seen.insert(hash.clone()).then_some(hash))
+            .take(limit)
+            .collect())
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
@@ -95,24 +127,43 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transaction_ids_by_address() {
-        let rpc_client = mock_jsonrpc_client(|method, params| {
-            assert_eq!(method, "ankr_getTransactionsByAddress");
-            assert_eq!(
-                params,
-                &json!({
-                    "address": "0x123",
-                    "blockchain": "xlayer",
-                    "pageSize": 25,
-                    "descOrder": true
-                })
-            );
-            Ok(load_json(include_str!("../../../testdata/ankr_get_transactions_by_address.json")))
+        let rpc_client = mock_jsonrpc_client(|method, params| match method {
+            "ankr_getTransactionsByAddress" => {
+                assert_eq!(
+                    params,
+                    &json!({
+                        "address": "0x123",
+                        "blockchain": "bsc",
+                        "pageSize": 2,
+                        "descOrder": true
+                    })
+                );
+                Ok(load_json(include_str!("../../../testdata/ankr_get_transactions_by_address.json")))
+            }
+            "ankr_getTokenTransfers" => {
+                assert_eq!(
+                    params,
+                    &json!({
+                        "address": "0x123",
+                        "blockchain": "bsc",
+                        "pageSize": 2
+                    })
+                );
+                Ok(load_json(include_str!("../../../testdata/ankr_get_token_transfers.json")))
+            }
+            _ => panic!("unexpected method: {method}"),
         });
-        let client = AnkrClient::new(rpc_client, EVMChain::XLayer).unwrap();
+        let client = AnkrClient::new(rpc_client, EVMChain::SmartChain).unwrap();
 
-        let transaction_ids = client.get_transaction_ids_by_address("0x123", 25).await.unwrap();
+        let transaction_ids = client.get_transaction_ids_by_address("0x123", 2).await.unwrap();
 
-        assert_eq!(transaction_ids, vec!["0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7"]);
+        assert_eq!(
+            transaction_ids,
+            vec![
+                "0x1111111111111111111111111111111111111111111111111111111111111111",
+                "0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7"
+            ]
+        );
     }
 
     #[tokio::test]
