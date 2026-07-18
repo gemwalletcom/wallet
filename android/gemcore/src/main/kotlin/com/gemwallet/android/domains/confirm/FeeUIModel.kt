@@ -2,7 +2,6 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
@@ -25,8 +24,7 @@ sealed interface FeeUIModel {
 
         val fiatAmount: String by lazy {
             if (price == null) ""
-            else CurrencyFormatter(currency = currency)
-                .string(CryptoFiatConverter.toFiat(Crypto(amount), feeAsset.decimals, price).atomicValue)
+            else CryptoFiatConverter.toFiatString(Crypto(amount), feeAsset.decimals, price, currency)
         }
 
         val cryptoAmountWithFiat: String by lazy {
