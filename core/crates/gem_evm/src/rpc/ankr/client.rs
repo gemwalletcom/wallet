@@ -1,4 +1,3 @@
-use std::cmp::Reverse;
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -59,11 +58,9 @@ impl<C: Client + Clone> AnkrClient<C> {
             | EVMChain::Stable => None,
         }
     }
-}
 
-impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let transactions: Transactions = self
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Transactions, Box<dyn Error + Send + Sync>> {
+        Ok(self
             .rpc_client
             .call(
                 "ankr_getTransactionsByAddress",
@@ -74,8 +71,11 @@ impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
                     "descOrder": true
                 }),
             )
-            .await?;
-        let token_transfers: TokenTransfers = self
+            .await?)
+    }
+
+    async fn get_token_transfers(&self, address: &str, limit: usize) -> Result<TokenTransfers, Box<dyn Error + Send + Sync>> {
+        Ok(self
             .rpc_client
             .call(
                 "ankr_getTokenTransfers",
@@ -85,22 +85,23 @@ impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
                     "pageSize": limit
                 }),
             )
-            .await?;
+            .await?)
+    }
+}
 
-        let mut transactions = transactions
+impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
+    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+        let transactions = self.get_transactions_by_address(address, limit).await?;
+        let token_transfers = self.get_token_transfers(address, limit).await?;
+
+        let transaction_ids = transactions
             .transactions
             .into_iter()
-            .map(|transaction| (transaction.hash, transaction.timestamp))
-            .chain(token_transfers.transfers.into_iter().map(|transfer| (transfer.transaction_hash, transfer.timestamp)))
-            .collect::<Vec<_>>();
-        transactions.sort_by_key(|(_, timestamp)| Reverse(*timestamp));
+            .map(|transaction| transaction.hash)
+            .chain(token_transfers.transfers.into_iter().map(|transfer| transfer.transaction_hash));
 
         let mut seen = HashSet::new();
-        Ok(transactions
-            .into_iter()
-            .filter_map(|(hash, _)| seen.insert(hash.clone()).then_some(hash))
-            .take(limit)
-            .collect())
+        Ok(transaction_ids.filter(|hash| seen.insert(hash.clone())).collect())
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
@@ -160,8 +161,8 @@ mod tests {
         assert_eq!(
             transaction_ids,
             vec![
-                "0x1111111111111111111111111111111111111111111111111111111111111111",
-                "0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7"
+                "0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7",
+                "0x1111111111111111111111111111111111111111111111111111111111111111"
             ]
         );
     }
