@@ -41,7 +41,6 @@ impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
 
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(10);
         let signatures = self.get_signatures_for_address(&address, limit).await?;
         Ok(TransactionsResult::TransactionIds(
             signatures.into_iter().map(|signature| TransactionId::new(self.get_chain(), signature.signature)).collect(),
@@ -71,7 +70,10 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_solana_get_transactions_by_address() {
         let client = create_solana_test_client();
-        let result = client.get_transactions_by_address(TransactionsRequest::new(TEST_SOLANA_SENDER.to_string())).await.unwrap();
+        let result = client
+            .get_transactions_by_address(TransactionsRequest::new(TEST_SOLANA_SENDER.to_string(), 100))
+            .await
+            .unwrap();
         let transaction_ids = result.transaction_ids().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_SOLANA_SENDER, transaction_ids.len());

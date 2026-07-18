@@ -38,7 +38,6 @@ impl<C: Client> ChainTransactions for CosmosClient<C> {
 
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(20);
         let transactions = self.get_transactions_by_address_with_limit(&address, limit).await?;
         Ok(TransactionsResult::Transactions(map_transactions(self.chain, transactions)))
     }

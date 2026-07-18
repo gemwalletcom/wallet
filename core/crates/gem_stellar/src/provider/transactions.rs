@@ -57,7 +57,7 @@ mod chain_integration_tests {
     async fn test_get_transactions_by_address() {
         let stellar_client = create_test_client();
         let result = stellar_client
-            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()))
+            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string(), 100))
             .await
             .unwrap();
         let transactions = result.transactions().unwrap();
@@ -71,7 +71,7 @@ mod chain_integration_tests {
     async fn test_get_transactions_by_address_empty() {
         let stellar_client = create_test_client();
         let result = stellar_client
-            .get_transactions_by_address(TransactionsRequest::new(TEST_EMPTY_ADDRESS.to_string()))
+            .get_transactions_by_address(TransactionsRequest::new(TEST_EMPTY_ADDRESS.to_string(), 100))
             .await
             .unwrap();
         let transactions = result.transactions().unwrap();

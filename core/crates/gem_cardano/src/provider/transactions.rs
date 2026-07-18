@@ -23,7 +23,7 @@ impl<C: Client> ChainTransactions for CardanoClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let transactions = self
-            .get_address_transactions(&address, limit.unwrap_or(100))
+            .get_address_transactions(&address, limit)
             .await?
             .into_iter()
             .filter_map(|transaction| map_transaction(self.get_chain(), &transaction.included_at, &transaction.transaction))

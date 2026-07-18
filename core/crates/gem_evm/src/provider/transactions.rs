@@ -15,14 +15,11 @@ use crate::rpc::{
     model::{BlockTransactionsIds, Transaction as EthereumTransaction, TransactionReplayTrace},
 };
 
-const DEFAULT_TRANSACTIONS_LIMIT: usize = 1;
-
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(DEFAULT_TRANSACTIONS_LIMIT);
         let transaction_hashes = self.indexer.get_transaction_ids_by_address(&address, limit).await?;
         let transaction_ids = transaction_hashes.into_iter().map(|hash| TransactionId::new(self.get_chain(), hash)).collect();
         Ok(TransactionsResult::TransactionIds(transaction_ids))
@@ -96,7 +93,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_ethereum_get_transactions_by_address() -> Result<(), Box<dyn Error + Send + Sync>> {
         let client = create_ethereum_test_client();
-        let result = ChainTransactions::get_transactions_by_address(&client, TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(5)).await?;
+        let result = ChainTransactions::get_transactions_by_address(&client, TransactionsRequest::new(TEST_ADDRESS.to_string(), 5)).await?;
         let transaction_ids = result.transaction_ids().unwrap();
         assert!(!transaction_ids.is_empty());
         assert!(transaction_ids.iter().all(|transaction_id| transaction_id.chain == client.get_chain()));

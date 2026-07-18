@@ -47,7 +47,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_algorand_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_algorand_test_client();
-        let result = client.get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string())).await?;
+        let result = client.get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string(), 100)).await?;
         let transactions = result.transactions().unwrap();
         println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
 

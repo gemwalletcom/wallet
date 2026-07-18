@@ -21,23 +21,18 @@ pub enum TransactionsResult {
 pub struct TransactionsRequest {
     pub address: String,
     pub asset_id: Option<AssetId>,
-    pub limit: Option<usize>,
+    pub limit: usize,
     pub from_timestamp: Option<u64>,
 }
 
 impl TransactionsRequest {
-    pub fn new(address: String) -> Self {
+    pub fn new(address: String, limit: usize) -> Self {
         Self {
             address,
             asset_id: None,
-            limit: None,
+            limit,
             from_timestamp: None,
         }
-    }
-
-    pub fn with_limit(mut self, limit: usize) -> Self {
-        self.limit = Some(limit);
-        self
     }
 
     pub fn with_from_timestamp(mut self, from_timestamp: Option<u64>) -> Self {

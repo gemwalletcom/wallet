@@ -5,8 +5,9 @@ use std::sync::Arc;
 use cacher::{CacheKey, CacherClient};
 use chain_traits::TransactionsRequest;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::Chain;
+use primitives::{Chain, ConfigParamKey};
 use settings_chain::ChainProviders;
+use storage::ConfigCacher;
 use streamer::steam_producer_queue::StreamProducerQueue;
 use streamer::{StreamProducer, TransactionsPayload};
 
@@ -14,15 +15,17 @@ pub struct PerpetualPositionObserver {
     chain: Chain,
     providers: Arc<ChainProviders>,
     cacher: CacherClient,
+    config: ConfigCacher,
     stream_producer: StreamProducer,
 }
 
 impl PerpetualPositionObserver {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, cacher: CacherClient, stream_producer: StreamProducer) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, cacher: CacherClient, config: ConfigCacher, stream_producer: StreamProducer) -> Self {
         Self {
             chain,
             providers,
             cacher,
+            config,
             stream_producer,
         }
     }
@@ -73,8 +76,9 @@ impl PerpetualPositionObserver {
         let checkpoint_key = checkpoint.key();
         let now = chrono::Utc::now().timestamp() as u64;
         let from_timestamp: u64 = self.cacher.get_value_optional(&checkpoint_key).await?.unwrap_or(now);
+        let limit = self.config.get_param_usize(&ConfigParamKey::TransactionsRequestLimit(self.chain))?;
 
-        let request = TransactionsRequest::new(address.to_string()).with_from_timestamp(Some(from_timestamp));
+        let request = TransactionsRequest::new(address.to_string(), limit).with_from_timestamp(Some(from_timestamp));
         let transactions = self.providers.get_transactions_by_address(self.chain, request).await?;
 
         let payload = TransactionsPayload::new_with_notify(self.chain, vec![], transactions);

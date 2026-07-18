@@ -19,7 +19,7 @@ use lists::{CoinGeckoListProvider, ListsClient};
 use pricer::PriceClient;
 use primitives::{Chain, NFTChain, TransactionId};
 use settings::Settings;
-use storage::Database;
+use storage::{ConfigCacher, Database};
 use streamer::{
     ChainAddressPayload, ConsumerStatusReporter, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, QueueName, ShutdownReceiver,
     StreamConnection, StreamReader, run_consumer,
@@ -302,7 +302,12 @@ async fn run_fetch_transaction_associations(
             let name = format!("{}.{}", queue, chain.as_ref());
             let stream_reader = runner.stream_reader().await?;
             let stream_producer = runner.stream_producer().await?;
-            let consumer = FetchAddressTransactionsConsumer::new(chain_providers_for(chain, &runner.settings, &name), stream_producer, runner.cacher);
+            let consumer = FetchAddressTransactionsConsumer::new(
+                chain_providers_for(chain, &runner.settings, &name),
+                stream_producer,
+                runner.cacher,
+                ConfigCacher::new(runner.database.clone()),
+            );
             run_consumer::<ChainAddressPayload, FetchAddressTransactionsConsumer, usize>(
                 &name,
                 stream_reader,

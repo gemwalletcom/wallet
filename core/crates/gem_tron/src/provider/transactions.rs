@@ -29,7 +29,6 @@ impl<C: Client + Clone> ChainTransactions for TronClient<C> {
 
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(20);
         let transactions = self.trongrid_client.get_transactions_by_address(&address, limit).await?.data;
 
         Ok(TransactionsResult::TransactionIds(
@@ -53,10 +52,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_transactions_by_address() {
         let client = TronClient::mock(|_| Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec()));
-        let result = client
-            .get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string()).with_limit(4))
-            .await
-            .unwrap();
+        let result = client.get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string(), 4)).await.unwrap();
         let transaction_ids = result.transaction_ids().unwrap();
         assert_eq!(transaction_ids.len(), 4);
         assert!(transaction_ids.iter().any(|transaction| transaction.hash == LAGGING_TRANSACTION_ID));
@@ -90,7 +86,7 @@ mod chain_integration_tests {
     async fn test_get_transactions_by_address() {
         let tron_client = create_test_client();
         let result = tron_client
-            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(2))
+            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string(), 2))
             .await
             .unwrap();
         let transaction_ids = result.transaction_ids().unwrap();

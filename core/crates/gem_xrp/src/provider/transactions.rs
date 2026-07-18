@@ -17,7 +17,6 @@ impl<C: Client + Clone> ChainTransactions for XRPClient<C> {
 
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(100);
         let account_ledger = self.get_account_transactions(address, limit).await?;
         Ok(TransactionsResult::Transactions(map_transactions_by_address(account_ledger)))
     }

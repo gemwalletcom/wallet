@@ -35,10 +35,7 @@ impl ChainClient {
 
     pub async fn get_transactions(&self, request: ChainAddress, from_timestamp: Option<u64>, limit: usize) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         self.providers
-            .get_transactions_by_address(
-                request.chain,
-                TransactionsRequest::new(request.address).with_from_timestamp(from_timestamp).with_limit(limit),
-            )
+            .get_transactions_by_address(request.chain, TransactionsRequest::new(request.address, limit).with_from_timestamp(from_timestamp))
             .await
     }
 
