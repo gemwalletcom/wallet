@@ -11,7 +11,7 @@ use std::any::TypeId;
 use std::str::FromStr;
 
 use super::{
-    ankr::AnkrClient,
+    EVMIndexer,
     model::{Block, TraceCallResult, TransactionReceipt, TransactionReplayTrace},
 };
 use crate::jsonrpc::{BlockParameter, TransactionObject};
@@ -35,7 +35,7 @@ pub struct EthereumClient<C: Client + Clone> {
     pub chain: EVMChain,
     pub client: GenericJsonRpcClient<C>,
     pub(crate) node_type: NodeType,
-    pub(crate) ankr_client: Option<AnkrClient<C>>,
+    pub(crate) indexer: EVMIndexer<C>,
 }
 
 impl<C: Client + Clone> EthereumClient<C> {
@@ -44,21 +44,20 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub fn new(client: GenericJsonRpcClient<C>, chain: EVMChain) -> Self {
+        Self::new_with_indexer(client, chain, EVMIndexer::unsupported())
+    }
+
+    pub fn new_with_indexer(client: GenericJsonRpcClient<C>, chain: EVMChain, indexer: EVMIndexer<C>) -> Self {
         Self {
             chain,
             client,
             node_type: NodeType::Default,
-            ankr_client: None,
+            indexer,
         }
     }
 
     pub fn with_node_type(mut self, node_type: NodeType) -> Self {
         self.node_type = node_type;
-        self
-    }
-
-    pub fn with_ankr_client(mut self, ankr_client: AnkrClient<C>) -> Self {
-        self.ankr_client = Some(ankr_client);
         self
     }
 

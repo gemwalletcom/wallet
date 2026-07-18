@@ -298,6 +298,10 @@ api:
       secret: ""
       expiry: 1h
 
+alchemy:
+  key:
+    secret: ""
+
 ankr:
   key:
     secret: ""

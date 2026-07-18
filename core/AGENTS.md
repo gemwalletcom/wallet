@@ -28,6 +28,7 @@ Subsystem references live in [docs/](docs). Read the relevant one before changin
 
 ## Before Coding
 
+- Keep every Rust `use` declaration at the top of the file. Import types before using them; never place imports inside functions or write fully qualified type paths inline, including in impl targets, bounds, fields, parameters, and return types
 - State assumptions explicitly. UniFFI bounds, lifetimes, provider trait contracts, and JSON shape assumptions are invisible — call them out so a reviewer can spot the wrong one
 - Read before you write. Open the file's existing exports, the immediate caller, the related provider/mapper/repository, and any obvious testkit fixture before adding code. "Looks orthogonal to me" is the most expensive sentence in this crate
 - If two patterns in the codebase contradict (e.g., two providers handling decimals or error mapping differently), do not average them. Pick one — typically the more recent or better tested — explain why, and flag the other for cleanup

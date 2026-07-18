@@ -9,7 +9,7 @@ use primitives::{NodeType, Transaction, TransactionId};
 use serde_json::json;
 
 use crate::rpc::{
-    EthereumMapper,
+    EVMIndexerClient, EthereumMapper,
     client::EthereumClient,
     mapper::CONTRACT_REGISTRY,
     model::{BlockTransactionsIds, Transaction as EthereumTransaction, TransactionReplayTrace},
@@ -23,17 +23,8 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let limit = limit.unwrap_or(DEFAULT_TRANSACTIONS_LIMIT);
-        let transaction_ids = if let Some(ankr_client) = &self.ankr_client {
-            ankr_client
-                .get_ankr_transactions_by_address(&address, limit)
-                .await?
-                .transactions
-                .into_iter()
-                .map(|transaction| TransactionId::new(self.get_chain(), transaction.hash))
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let transaction_hashes = self.indexer.get_transaction_ids_by_address(&address, limit).await?;
+        let transaction_ids = transaction_hashes.into_iter().map(|hash| TransactionId::new(self.get_chain(), hash)).collect();
         Ok(TransactionsResult::TransactionIds(transaction_ids))
     }
 

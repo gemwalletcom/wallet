@@ -10,7 +10,7 @@ use gem_algorand::{
 };
 use gem_client::{ReqwestClient, retry_policy};
 use gem_hypercore::rpc::client::HyperCoreClient;
-pub use provider_config::ProviderConfig;
+pub use provider_config::{ProviderConfig, ProviderKeyConfig};
 pub use settings::ChainURLType;
 
 use chain_traits::ChainTraits;
@@ -19,7 +19,7 @@ use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EthereumClient, ankr::AnkrClient};
+use gem_evm::rpc::{EVMIndexer, EthereumClient, alchemy_url};
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_near::rpc::client::NearClient;
 use gem_polkadot::rpc::PolkadotClient;
@@ -51,8 +51,11 @@ impl ProviderFactory {
                 chain,
                 &chain_config.url,
                 node_type,
-                settings.ankr.key.secret.as_str(),
-                settings.trongrid.key.secret.as_str(),
+                ProviderKeyConfig {
+                    alchemy: settings.alchemy.key.secret.clone(),
+                    ankr: settings.ankr.key.secret.clone(),
+                    trongrid: settings.trongrid.key.secret.clone(),
+                },
             ),
             user_agent,
         )
@@ -77,7 +80,7 @@ impl ProviderFactory {
 
         let chain = config.chain;
         let url = config.url.clone();
-        let node_type = config.clone().node_type;
+        let node_type = config.node_type.clone();
         let gem_client = ReqwestClient::new_with_user_agent(url.clone(), reqwest_client.clone(), user_agent.to_string());
 
         match chain {
@@ -114,13 +117,11 @@ impl ProviderFactory {
             | Chain::Robinhood
             | Chain::Stable => {
                 let chain = EVMChain::from_chain(chain).unwrap();
-                let client = gem_client.clone();
-                let rpc_client = JsonRpcClient::new(client.clone());
-                let ethereum_client = EthereumClient::new(rpc_client.clone(), chain).with_node_type(node_type).with_ankr_client(AnkrClient::new(
-                    JsonRpcClient::new(ReqwestClient::new(config.clone().ankr_url(), reqwest_client.clone())),
-                    chain,
-                ));
-                Box::new(ethereum_client)
+                let rpc_client = JsonRpcClient::new(gem_client.clone());
+                let ankr_client = JsonRpcClient::new(ReqwestClient::new(config.ankr_url(), reqwest_client.clone()));
+                let alchemy_client = alchemy_url(chain, &config.keys.alchemy).map(|url| JsonRpcClient::new(ReqwestClient::new(url, reqwest_client.clone())));
+                let indexer = EVMIndexer::new(ankr_client, alchemy_client, chain);
+                Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer).with_node_type(node_type))
             }
             Chain::Cardano => Box::new(CardanoClient::new(gem_client)),
             Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Noble | Chain::Sei => {
@@ -139,7 +140,7 @@ impl ProviderFactory {
             Chain::Polkadot => Box::new(PolkadotClient::new(gem_client.clone())),
             Chain::Solana => Box::new(SolanaClient::new(JsonRpcClient::new(gem_client.clone()))),
             Chain::Ton => Box::new(TonClient::new(gem_client.clone())),
-            Chain::Tron => Box::new(TronClient::new(gem_client.clone(), TronGridClient::new(gem_client.clone(), config.trongrid_key.clone()))),
+            Chain::Tron => Box::new(TronClient::new(gem_client.clone(), TronGridClient::new(gem_client.clone(), config.keys.trongrid.clone()))),
             Chain::HyperCore => Box::new(HyperCoreClient::new(gem_client.clone())),
         }
     }

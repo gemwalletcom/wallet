@@ -1,58 +1,66 @@
 pub use crate::testkit::{TEST_ADDRESS, TEST_MONAD_ADDRESS, TEST_SMARTCHAIN_STAKING_ADDRESS, TEST_TRANSACTION_ID, TOKEN_DAI_ADDRESS, TOKEN_USDC_ADDRESS};
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-use primitives::FeeRate;
-
+use crate::{
+    ether_conv,
+    rpc::{EVMIndexer, EthereumClient},
+};
+#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+use gem_client::ReqwestClient;
+#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+use gem_jsonrpc::JsonRpcClient;
+#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+use primitives::{EVMChain, FeeRate};
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use settings::testkit::get_test_settings;
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-fn build_test_client(chain: primitives::EVMChain, rpc_url: &str) -> crate::rpc::client::EthereumClient<gem_client::ReqwestClient> {
-    use crate::rpc::{ankr::AnkrClient, client::EthereumClient};
-    use gem_jsonrpc::JsonRpcClient;
-
+fn build_test_client(chain: EVMChain, rpc_url: &str) -> EthereumClient<ReqwestClient> {
     let settings = get_test_settings();
     let rpc_client = JsonRpcClient::new_reqwest(rpc_url.to_string());
 
-    let ankr_client = AnkrClient::new(JsonRpcClient::new_reqwest(format!("https://rpc.ankr.com/multichain/{}", settings.ankr.key.secret)), chain);
+    let indexer = EVMIndexer::new(
+        JsonRpcClient::new_reqwest(format!("https://rpc.ankr.com/multichain/{}", settings.ankr.key.secret)),
+        None,
+        chain,
+    );
 
-    EthereumClient::new(rpc_client, chain).with_ankr_client(ankr_client)
+    EthereumClient::new_with_indexer(rpc_client, chain, indexer)
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_ethereum_test_client() -> crate::rpc::client::EthereumClient<gem_client::ReqwestClient> {
+pub fn create_ethereum_test_client() -> EthereumClient<ReqwestClient> {
     let settings = get_test_settings();
-    build_test_client(primitives::EVMChain::Ethereum, &settings.chains.ethereum.url)
+    build_test_client(EVMChain::Ethereum, &settings.chains.ethereum.url)
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_smartchain_test_client() -> crate::rpc::client::EthereumClient<gem_client::ReqwestClient> {
+pub fn create_smartchain_test_client() -> EthereumClient<ReqwestClient> {
     let settings = get_test_settings();
-    build_test_client(primitives::EVMChain::SmartChain, &settings.chains.smartchain.url)
+    build_test_client(EVMChain::SmartChain, &settings.chains.smartchain.url)
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_polygon_test_client() -> crate::rpc::client::EthereumClient<gem_client::ReqwestClient> {
+pub fn create_polygon_test_client() -> EthereumClient<ReqwestClient> {
     let settings = get_test_settings();
-    build_test_client(primitives::EVMChain::Polygon, &settings.chains.polygon.url)
+    build_test_client(EVMChain::Polygon, &settings.chains.polygon.url)
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_arbitrum_test_client() -> crate::rpc::client::EthereumClient<gem_client::ReqwestClient> {
+pub fn create_arbitrum_test_client() -> EthereumClient<ReqwestClient> {
     let settings = get_test_settings();
-    build_test_client(primitives::EVMChain::Arbitrum, &settings.chains.arbitrum.url)
+    build_test_client(EVMChain::Arbitrum, &settings.chains.arbitrum.url)
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_monad_test_client() -> crate::rpc::client::EthereumClient<gem_client::ReqwestClient> {
+pub fn create_monad_test_client() -> EthereumClient<ReqwestClient> {
     let settings = get_test_settings();
-    build_test_client(primitives::EVMChain::Monad, &settings.chains.monad.url)
+    build_test_client(EVMChain::Monad, &settings.chains.monad.url)
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 pub fn print_fee_rates(fee_rates: Vec<FeeRate>) {
     for fee_rate in &fee_rates {
-        use crate::ether_conv;
         println!(
             "Fee rate: {:?} total: {}, gas_price: {}, priority_fee: {}",
             fee_rate.priority,

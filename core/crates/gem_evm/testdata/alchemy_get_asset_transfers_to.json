@@ -1,0 +1,12 @@
+{
+    "transfers": [
+        {
+            "blockNum": "0x3",
+            "hash": "0xin"
+        },
+        {
+            "blockNum": "0x1",
+            "hash": "0xduplicate"
+        }
+    ]
+}
