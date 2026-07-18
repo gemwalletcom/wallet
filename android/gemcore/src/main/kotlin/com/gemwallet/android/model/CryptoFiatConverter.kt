@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import com.wallet.core.primitives.Currency
 import java.math.BigDecimal
 import java.math.MathContext
 
@@ -10,6 +11,9 @@ object CryptoFiatConverter {
             .multiply(price.toBigDecimal())
         return Fiat(result)
     }
+
+    fun toFiatString(crypto: Crypto, decimals: Int, price: Double, currency: Currency): String =
+        CurrencyFormatter(currency = currency).string(toFiat(crypto, decimals, price).atomicValue)
 
     fun toCrypto(fiat: Fiat, decimals: Int, price: Double): Crypto =
         Crypto(cryptoValue(fiat, price), decimals)
