@@ -5,7 +5,7 @@ use gem_evm::{
     jsonrpc::TransactionObject,
     rpc::{
         EthereumClient,
-        model::{BlockTransactionsIds, Transaction},
+        model::{BlockTransactionsIds, Transaction, TransactionReceipt},
     },
 };
 use num_traits::ToPrimitive;
@@ -52,20 +52,7 @@ impl EthereumNodeChecker {
         .await;
         let transaction = method_result(reporter, "eth_getTransactionByHash", transaction, |_| "found".to_string())?;
 
-        let receipt: Result<_, String> = async {
-            let receipt = self
-                .client
-                .get_transaction_receipt(transaction_id)
-                .await
-                .map_err(|error| error.to_string())?
-                .ok_or_else(|| "returned null".to_string())?;
-            if receipt.block_number != transaction.block_number || !receipt.has_valid_block_reference() {
-                return Err("invalid block reference".to_string());
-            }
-            Ok(receipt)
-        }
-        .await;
-        method_result(reporter, "eth_getTransactionReceipt", receipt, |result| format!("block {}", result.block_number))?;
+        self.check_transaction_receipt(transaction_id, Some(&transaction), reporter).await?;
 
         let block: Result<_, String> = async {
             let block_number = transaction
@@ -112,9 +99,44 @@ impl EthereumNodeChecker {
         Ok(())
     }
 
-    async fn check_provider_methods(&self, address: &str, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
+    async fn check_transaction_receipt(&self, transaction_id: &str, transaction: Option<&Transaction>, reporter: &dyn NodeCheckReporter) -> NodeCheckResult<TransactionReceipt> {
+        let receipt: Result<_, String> = async {
+            let receipt = self
+                .client
+                .get_transaction_receipt(transaction_id)
+                .await
+                .map_err(|error| error.to_string())?
+                .ok_or_else(|| "returned null".to_string())?;
+            if !receipt.has_valid_block_reference() {
+                return Err("invalid block reference".to_string());
+            }
+            if transaction.is_some_and(|transaction| receipt.block_number != transaction.block_number) {
+                return Err("transaction and receipt block numbers do not match".to_string());
+            }
+            Ok(receipt)
+        }
+        .await;
+        method_result(reporter, "eth_getTransactionReceipt", receipt, |result| format!("block {}", result.block_number))
+    }
+
+    async fn check_load_balancer_methods(&self, address: &str, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
         let fee_history = self.client.get_fee_history(1, vec![50]).await.map(|_| ());
         method_result(reporter, "eth_feeHistory", fee_history, |_| "available".to_string())?;
+
+        let gas_price = self.client.call::<String>("eth_gasPrice".to_string(), json!([])).await;
+        method_result(reporter, "eth_gasPrice", gas_price, Clone::clone)?;
+
+        let code = self.client.call::<String>("eth_getCode".to_string(), json!([address, "latest"])).await;
+        method_result(reporter, "eth_getCode", code, |result| {
+            if result.len() <= MAX_LOGGED_RESULT_LENGTH {
+                result.clone()
+            } else {
+                "available".to_string()
+            }
+        })?;
+
+        let syncing = self.client.call::<serde_json::Value>("eth_syncing".to_string(), json!([])).await;
+        method_result(reporter, "eth_syncing", syncing, ToString::to_string)?;
 
         let call = self.client.eth_call::<String>(address, "0x").await;
         method_result(reporter, "eth_call", call, |result| {
@@ -139,27 +161,25 @@ impl EthereumNodeChecker {
 
 #[async_trait]
 impl NodeCheck for EthereumNodeChecker {
-    async fn check_load_balancer(&self, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
-        check_chain(&self.client, "eth_chainId", "eth_blockNumber", reporter).await?;
-        check_batch(&self.client.client, "eth_chainId", json!([]), reporter).await?;
-        check_expected_rpc_error(reporter, "eth_sendRawTransaction", self.client.send_raw_transaction("0x").await)
-    }
-
-    async fn check_indexer(&self, fixture: NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
-        let (address, addresses) = fixture.addresses.split_first().ok_or("node fixture has no addresses")?;
-        let (transaction_id, transaction_ids) = fixture.transaction_ids.split_first().ok_or("node fixture has no transaction ids")?;
+    async fn check_load_balancer(&self, fixture: &NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
+        let address = fixture.addresses.first().ok_or("node fixture has no addresses")?;
+        let transaction_id = fixture.transaction_ids.first().ok_or("node fixture has no transaction ids")?;
 
         check_chain(&self.client, "eth_chainId", "eth_blockNumber", reporter).await?;
         self.check_address(address, reporter).await?;
-        for address in addresses {
-            self.check_address(address, reporter).await?;
-        }
+        self.check_transaction_receipt(transaction_id, None, reporter).await?;
+        self.check_load_balancer_methods(address, reporter).await?;
+        check_expected_rpc_error(reporter, "eth_sendRawTransaction", self.client.send_raw_transaction("0x").await)
+    }
 
+    async fn check_indexer(&self, fixture: &NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
+        let (transaction_id, transaction_ids) = fixture.transaction_ids.split_first().ok_or("node fixture has no transaction ids")?;
+
+        check_chain(&self.client, "eth_chainId", "eth_blockNumber", reporter).await?;
         self.check_transaction(transaction_id, reporter).await?;
         for transaction_id in transaction_ids {
             self.check_transaction(transaction_id, reporter).await?;
         }
-
-        self.check_provider_methods(address, reporter).await
+        Ok(())
     }
 }

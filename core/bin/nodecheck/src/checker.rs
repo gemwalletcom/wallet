@@ -101,6 +101,6 @@ pub(crate) fn check_expected_rpc_error<T>(reporter: &dyn NodeCheckReporter, meth
 
 #[async_trait]
 pub(crate) trait NodeCheck: Send + Sync {
-    async fn check_load_balancer(&self, reporter: &dyn NodeCheckReporter) -> NodeCheckResult;
-    async fn check_indexer(&self, fixture: NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult;
+    async fn check_load_balancer(&self, fixture: &NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult;
+    async fn check_indexer(&self, fixture: &NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult;
 }

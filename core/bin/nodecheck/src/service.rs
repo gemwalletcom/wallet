@@ -52,8 +52,10 @@ impl NodeCheckService {
 
     pub(crate) async fn run(&self, fixture: NodeFixture) -> bool {
         let reporter = TracingReporter;
-        let load_balancer = self.run_section(NodeCheckSection::LoadBalancer, self.checker.check_load_balancer(&reporter)).await;
-        let indexer = self.run_section(NodeCheckSection::Indexer, self.checker.check_indexer(fixture, &reporter)).await;
+        let load_balancer = self
+            .run_section(NodeCheckSection::LoadBalancer, self.checker.check_load_balancer(&fixture, &reporter))
+            .await;
+        let indexer = self.run_section(NodeCheckSection::Indexer, self.checker.check_indexer(&fixture, &reporter)).await;
 
         load_balancer && indexer
     }

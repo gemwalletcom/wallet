@@ -121,14 +121,14 @@ impl SolanaNodeChecker {
 
 #[async_trait]
 impl NodeCheck for SolanaNodeChecker {
-    async fn check_load_balancer(&self, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
+    async fn check_load_balancer(&self, _fixture: &NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
         check_chain(&self.client, "getGenesisHash", "getSlot", reporter).await?;
         self.check_vote_accounts(reporter).await?;
         check_batch(self.client.get_client(), "getSlot", json!([]), reporter).await?;
         check_expected_rpc_error(reporter, "sendTransaction", self.client.send_transaction(String::new(), None).await)
     }
 
-    async fn check_indexer(&self, fixture: NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
+    async fn check_indexer(&self, fixture: &NodeFixture, reporter: &dyn NodeCheckReporter) -> NodeCheckResult {
         let (address, addresses) = fixture.addresses.split_first().ok_or("node fixture has no addresses")?;
         let (transaction_id, transaction_ids) = fixture.transaction_ids.split_first().ok_or("node fixture has no transaction ids")?;
 
