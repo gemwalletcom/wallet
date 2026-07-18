@@ -5386,13 +5386,16 @@ name = "nodecheck"
 version = "1.0.0"
 dependencies = [
  "async-trait",
+ "chain_traits",
  "clap",
  "gem_client",
  "gem_evm",
  "gem_jsonrpc",
+ "gem_solana",
  "gem_tracing",
  "num-traits",
  "primitives",
+ "reqwest 0.13.4",
  "serde_json",
  "tokio",
 ]
