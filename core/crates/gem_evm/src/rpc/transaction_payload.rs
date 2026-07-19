@@ -63,7 +63,14 @@ impl TransactionPayload {
         let has_call_data = Self::has_call_data(transaction);
 
         match transaction.input.as_str() {
-            input if has_recipient && input == INPUT_0X && transaction_receipt.logs.is_empty() && (transaction.value > BigUint::from(0u8) || from == to) => Self::NativeTransfer,
+            input
+                if has_recipient
+                    && input == INPUT_0X
+                    && (transaction_receipt.logs.is_empty() || transaction_receipt.gas_used == BigUint::from(TRANSFER_GAS_LIMIT))
+                    && (transaction.value > BigUint::from(0u8) || from == to) =>
+            {
+                Self::NativeTransfer
+            }
             input if input.starts_with(FUNCTION_ERC20_APPROVE) => match Self::erc20_approval(transaction_receipt) {
                 Some(approval) => Self::Erc20Approve(approval),
                 None => Self::SmartContractCall,

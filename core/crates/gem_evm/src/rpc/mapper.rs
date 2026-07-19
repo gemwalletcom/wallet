@@ -292,6 +292,41 @@ mod tests {
     }
 
     #[test]
+    fn test_polygon_native_transfer_with_system_logs() {
+        let transaction = Transaction {
+            hash: "0xc56cc9636631087a3595310f2b6b5713e2633921a12a444ee744ac94f2e26343".to_string(),
+            from: "0x9810762578accf1f314320cca5b72506ae7d7630".to_string(),
+            gas: 30_000,
+            input: INPUT_0X.to_string(),
+            to: Some("0xf170892b35fe3d17c75e066fbeb37a73d5b7e5d6".to_string()),
+            block_number: BigUint::from(87_308_906u64),
+            value: BigUint::from(44_665_000_000_000_000_000u128),
+        };
+        let receipt = TransactionReceipt {
+            gas_used: BigUint::from(21_000u64),
+            effective_gas_price: BigUint::from(610_596_383_502u64),
+            l1_fee: None,
+            logs: vec![Log {
+                address: "0x0000000000000000000000000000000000001010".to_string(),
+                topics: vec!["0xe6497e3ee548a3372136af2fcb0696db31fc6cf20260707645068bd3fe97f3c4".to_string()],
+                data: "0x".to_string(),
+                transaction_hash: Some(transaction.hash.clone()),
+            }],
+            status: "0x1".to_string(),
+            block_hash: "0x270bff304e402943393102149e5034d2a4771ecb7a217b3cb526ebf44bdfa0fa".to_string(),
+            block_number: transaction.block_number.clone(),
+        };
+
+        let mapped_transaction = EthereumMapper::map_transaction(Chain::Polygon, &transaction, &receipt, None, &BigUint::from(1_779_530_294u64), None).unwrap();
+
+        assert_eq!(mapped_transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(mapped_transaction.asset_id, AssetId::from_chain(Chain::Polygon));
+        assert_eq!(mapped_transaction.from, "0x9810762578aCCF1F314320CCa5B72506aE7D7630");
+        assert_eq!(mapped_transaction.to, "0xF170892B35FE3d17c75E066FbeB37a73D5b7e5d6");
+        assert_eq!(mapped_transaction.value, "44665000000000000000");
+    }
+
+    #[test]
     fn test_arbitrum_native_self_transfer_with_l1_gas() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/arbitrum_native_self_transfer_transaction.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/arbitrum_native_self_transfer_receipt.json"));
