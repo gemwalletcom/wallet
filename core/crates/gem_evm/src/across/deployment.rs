@@ -1,8 +1,8 @@
 use super::fees::CapitalCostConfig;
 use crate::ether_conv::EtherConv;
-use alloy_primitives::map::HashSet;
+use alloy_primitives::{Address, map::HashSet};
 use num_bigint::BigInt;
-use primitives::{AssetId, Chain, asset_constants::*, contract_constants::*};
+use primitives::{AssetId, Chain, EVMChain, asset_constants::*, contract_constants::*};
 use std::{collections::HashMap, vec};
 
 /// https://docs.across.to/developer-docs/developers/contract-addresses
@@ -100,6 +100,25 @@ impl AcrossDeployment {
             (Chain::Robinhood, vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]),
             (Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
         ])
+    }
+
+    pub fn supported_asset_for_token(chain: Chain, token: Address) -> Option<AssetId> {
+        let asset = Self::supported_assets()
+            .get(&chain)?
+            .iter()
+            .find(|asset| {
+                asset
+                    .token_id
+                    .as_deref()
+                    .and_then(|token_id| token_id.parse::<Address>().ok())
+                    .is_some_and(|address| address == token)
+            })?
+            .clone();
+        let is_wrapped_native = EVMChain::from_chain(chain)
+            .and_then(|chain| chain.weth_contract().and_then(|address| address.parse::<Address>().ok()))
+            .is_some_and(|address| address == token);
+
+        if is_wrapped_native { Some(chain.as_asset_id()) } else { Some(asset) }
     }
 
     pub fn deposit_addresses() -> Vec<String> {

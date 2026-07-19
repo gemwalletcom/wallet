@@ -8,7 +8,7 @@ use crate::{
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata};
 
-use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data, make_swap_transaction, try_map_balance_diff_swap};
+use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data};
 
 pub(crate) const FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID: &str = "0xf2c42696";
 pub(crate) const FUNCTION_OKX_UNISWAP_V3_SWAP_TO: &str = "0x0d5f0e3b";
@@ -40,10 +40,9 @@ impl ProtocolParser for OkxParser {
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        let metadata = Self::try_map_receipt_swap(context)
-            .or_else(|| try_map_balance_diff_swap(context.chain, &context.transaction.from, context.trace, context.receipt, Some(Self::provider())))?;
+        let metadata = Self::try_map_receipt_swap(context).or_else(|| context.try_map_balance_diff_swap(&context.transaction.from, Some(Self::provider())))?;
 
-        make_swap_transaction(context.chain, context.transaction, context.receipt, &metadata, context.created_at)
+        context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
 
