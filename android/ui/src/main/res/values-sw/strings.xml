@@ -218,6 +218,7 @@
   <string name="errors_network_offline">Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.</string>
   <string name="errors_no_internet_connection">Hakuna muunganisho wa intaneti</string>
   <string name="errors_no_service_connection">Hakuna muunganisho wa huduma</string>
+  <string name="errors_balances_activity_outdated">Salio na shughuli huenda si za sasa.</string>
   <string name="activity_title">Shughuli</string>
   <string name="activity_state_empty_title">Shughuli yako itaonekana hapa</string>
   <string name="activity_state_empty_description">Fanya muamala wako wa kwanza</string>

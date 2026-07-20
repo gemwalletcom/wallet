@@ -248,6 +248,7 @@ errors_network_error = Errore di rete: %@
 errors_network_offline = La connessione Internet risulta offline.
 errors_no_internet_connection = Nessuna connessione a internet
 errors_no_service_connection = Nessuna connessione al servizio
+errors_balances_activity_outdated = Saldi e attività potrebbero non essere aggiornati.
 
 # Activity
 

@@ -218,6 +218,7 @@
   <string name="errors_network_offline">Da alama haɗin intanet ɗin ya katse.</string>
   <string name="errors_no_internet_connection">Babu haɗin intanet</string>
   <string name="errors_no_service_connection">Babu haɗin sabis</string>
+  <string name="errors_balances_activity_outdated">Ma\'aunai da ayyuka na iya zama tsofaffi.</string>
   <string name="activity_title">Ayyuka</string>
   <string name="activity_state_empty_title">Ayyukanku za su bayyana a nan</string>
   <string name="activity_state_empty_description">Yi ciniki na farko</string>

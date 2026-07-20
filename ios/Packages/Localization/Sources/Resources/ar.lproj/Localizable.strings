@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "يجب أن يكون سعر التفعيل أعلى من سعر السوق";
 "errors.no_internet_connection" = "لا يوجد اتصال بالإنترنت";
 "errors.no_service_connection" = "لا يوجد اتصال بالخدمة";
+"errors.balances_activity_outdated" = "قد تكون الأرصدة والنشاط غير محدثة.";
 "activity.title" = "نشاط";
 "activity.state.empty.title" = "سوف يظهر نشاطك هنا";
 "activity.state.empty.description" = "قم بإجراء معاملتك الأولى";

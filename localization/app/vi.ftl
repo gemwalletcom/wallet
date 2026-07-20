@@ -248,6 +248,7 @@ errors_network_error = Lỗi mạng: %@
 errors_network_offline = Kết nối Internet dường như đang bị ngắt.
 errors_no_internet_connection = Không có kết nối internet
 errors_no_service_connection = Không có kết nối dịch vụ
+errors_balances_activity_outdated = Số dư và hoạt động có thể chưa được cập nhật.
 
 # Activity
 

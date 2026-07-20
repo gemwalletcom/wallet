@@ -395,6 +395,8 @@ public enum Localized {
     }
   }
   public enum Errors {
+    /// Balances and activity may be outdated.
+    public static let balancesActivityOutdated = Localized.tr("Localizable", "errors.balances_activity_outdated", fallback: "Balances and activity may be outdated.")
     /// Camera permission not granted. Please enable camera access in settings to scan QR code.
     public static let cameraPermissionsNotGranted = Localized.tr("Localizable", "errors.camera_permissions_not_granted", fallback: "Camera permission not granted. Please enable camera access in settings to scan QR code.")
     /// Create Wallet Error: %@

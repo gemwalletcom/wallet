@@ -218,6 +218,7 @@
   <string name="errors_network_offline">Conexiunea la internet pare să fie offline.</string>
   <string name="errors_no_internet_connection">Nicio conexiune la internet</string>
   <string name="errors_no_service_connection">Nicio conexiune la serviciu</string>
+  <string name="errors_balances_activity_outdated">Soldurile și activitatea pot fi învechite.</string>
   <string name="activity_title">Activitate</string>
   <string name="activity_state_empty_title">Activitatea ta va apărea aici</string>
   <string name="activity_state_empty_description">Efectuați prima tranzacție</string>

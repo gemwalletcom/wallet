@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Le prix de déclenchement doit être supérieur au prix du marché";
 "errors.no_internet_connection" = "Pas de connexion Internet";
 "errors.no_service_connection" = "Pas de connexion au service";
+"errors.balances_activity_outdated" = "Les soldes et l'activité peuvent être obsolètes.";
 "activity.title" = "Activité";
 "activity.state.empty.title" = "Votre activité apparaîtra ici";
 "activity.state.empty.description" = "Effectuez votre première transaction";

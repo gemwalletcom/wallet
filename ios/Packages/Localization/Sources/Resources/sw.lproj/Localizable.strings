@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Bei ya kichochezi inapaswa kuwa juu ya bei ya soko";
 "errors.no_internet_connection" = "Hakuna muunganisho wa intaneti";
 "errors.no_service_connection" = "Hakuna muunganisho wa huduma";
+"errors.balances_activity_outdated" = "Salio na shughuli huenda si za sasa.";
 "activity.title" = "Shughuli";
 "activity.state.empty.title" = "Shughuli yako itaonekana hapa";
 "activity.state.empty.description" = "Fanya muamala wako wa kwanza";

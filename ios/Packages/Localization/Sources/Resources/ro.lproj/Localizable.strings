@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Prețul de declanșare trebuie să fie mai mare decât prețul pieței";
 "errors.no_internet_connection" = "Nicio conexiune la internet";
 "errors.no_service_connection" = "Nicio conexiune la serviciu";
+"errors.balances_activity_outdated" = "Soldurile și activitatea pot fi învechite.";
 "activity.title" = "Activitate";
 "activity.state.empty.title" = "Activitatea ta va apărea aici";
 "activity.state.empty.description" = "Efectuați prima tranzacție";

@@ -248,6 +248,7 @@ errors_network_error = خطای شبکه: %@
 errors_network_offline = به نظر می‌رسد اتصال اینترنت آفلاین است.
 errors_no_internet_connection = اتصال اینترنت برقرار نیست
 errors_no_service_connection = اتصال سرویس برقرار نیست
+errors_balances_activity_outdated = موجودی‌ها و فعالیت ممکن است به‌روز نباشند.
 
 # Activity
 

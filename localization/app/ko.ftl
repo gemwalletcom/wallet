@@ -248,6 +248,7 @@ errors_network_error = 네트워크 오류: %@
 errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
 errors_no_internet_connection = 인터넷 연결 없음
 errors_no_service_connection = 서비스 연결 없음
+errors_balances_activity_outdated = 잔액 및 활동이 최신이 아닐 수 있습니다.
 
 # Activity
 

@@ -218,6 +218,7 @@
   <string name="errors_network_offline">Die Internetverbindung scheint unterbrochen zu sein.</string>
   <string name="errors_no_internet_connection">Keine Internetverbindung</string>
   <string name="errors_no_service_connection">Keine Serviceverbindung</string>
+  <string name="errors_balances_activity_outdated">Guthaben und Aktivität sind möglicherweise nicht aktuell.</string>
   <string name="activity_title">Aktivität</string>
   <string name="activity_state_empty_title">Ihre Aktivität wird hier angezeigt</string>
   <string name="activity_state_empty_description">Machen Sie Ihre erste Transaktion</string>

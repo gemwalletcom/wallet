@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Harga pencetus perlu lebih tinggi daripada harga pasaran";
 "errors.no_internet_connection" = "Tiada sambungan internet";
 "errors.no_service_connection" = "Tiada sambungan perkhidmatan";
+"errors.balances_activity_outdated" = "Baki dan aktiviti mungkin tidak terkini.";
 "activity.title" = "Aktiviti";
 "activity.state.empty.title" = "Aktiviti anda akan dipaparkan di sini";
 "activity.state.empty.description" = "Buat transaksi pertama anda";

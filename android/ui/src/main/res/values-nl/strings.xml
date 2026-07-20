@@ -218,6 +218,7 @@
   <string name="errors_network_offline">De internetverbinding lijkt offline te zijn.</string>
   <string name="errors_no_internet_connection">Geen internetverbinding</string>
   <string name="errors_no_service_connection">Geen serviceverbinding</string>
+  <string name="errors_balances_activity_outdated">Saldi en activiteit zijn mogelijk verouderd.</string>
   <string name="activity_title">Activiteit</string>
   <string name="activity_state_empty_title">Uw activiteit zal hier verschijnen</string>
   <string name="activity_state_empty_description">Maak uw eerste transactie</string>

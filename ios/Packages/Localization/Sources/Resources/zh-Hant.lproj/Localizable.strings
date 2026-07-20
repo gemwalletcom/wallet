@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "觸發價格應高於市場價格";
 "errors.no_internet_connection" = "無網際網路連線";
 "errors.no_service_connection" = "無服務連線";
+"errors.balances_activity_outdated" = "餘額和活動可能不是最新的。";
 "activity.title" = "活動";
 "activity.state.empty.title" = "您的交易將顯示在此處";
 "activity.state.empty.description" = "發起您的第一筆交易";

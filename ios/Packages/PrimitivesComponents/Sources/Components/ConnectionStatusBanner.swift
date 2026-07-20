@@ -18,11 +18,19 @@ public struct ConnectionStatusBanner: View {
             model.icon
                 .foregroundStyle(model.iconColor)
 
-            Text(model.title)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Colors.black)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
+            VStack(alignment: .leading, spacing: .extraSmall) {
+                if let title = model.title {
+                    Text(title)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Colors.black)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                }
+                Text(model.subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(Colors.gray)
+                    .lineLimit(2)
+            }
 
             Spacer(minLength: 0)
 
@@ -48,14 +56,14 @@ public struct ConnectionStatusBanner: View {
             Images.System.xmark
                 .font(.footnote.weight(.bold))
                 .foregroundStyle(Colors.gray)
-                .frame(width: 28, height: 28)
+                .frame(width: Sizing.list.settings, height: Sizing.list.settings)
                 .liquidGlass(in: Circle()) {
                     $0.background(Circle().fill(Colors.grayVeryLightFaded))
                 }
 
             Button(action: onClose) {
                 Color.clear
-                    .frame(width: 28, height: 28)
+                    .frame(width: Sizing.list.settings, height: Sizing.list.settings)
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)

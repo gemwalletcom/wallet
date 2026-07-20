@@ -476,6 +476,7 @@ errors_network_offline = The Internet connection appears to be offline.
 errors_no_internet_connection = No internet connection
 # Used in the connection status banner when app services are unreachable.
 errors_no_service_connection = No service connection
+errors_balances_activity_outdated = Balances and activity may be outdated.
 
 # Activity
 

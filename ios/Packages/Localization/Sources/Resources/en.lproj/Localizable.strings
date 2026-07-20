@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Trigger price should be higher than market price";
 "errors.no_internet_connection" = "No internet connection";
 "errors.no_service_connection" = "No service connection";
+"errors.balances_activity_outdated" = "Balances and activity may be outdated.";
 "activity.title" = "Activity";
 "activity.state.empty.title" = "Your activity will appear here";
 "activity.state.empty.description" = "Make your first transaction";

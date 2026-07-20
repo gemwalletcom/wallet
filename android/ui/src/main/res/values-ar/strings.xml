@@ -218,6 +218,7 @@
   <string name="errors_network_offline">يبدو أن الاتصال بالإنترنت غير متاح.</string>
   <string name="errors_no_internet_connection">لا يوجد اتصال بالإنترنت</string>
   <string name="errors_no_service_connection">لا يوجد اتصال بالخدمة</string>
+  <string name="errors_balances_activity_outdated">قد تكون الأرصدة والنشاط غير محدثة.</string>
   <string name="activity_title">نشاط</string>
   <string name="activity_state_empty_title">سوف يظهر نشاطك هنا</string>
   <string name="activity_state_empty_description">قم بإجراء معاملتك الأولى</string>

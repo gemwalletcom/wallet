@@ -218,6 +218,7 @@
   <string name="errors_network_offline">По всей видимости, интернет-соединение отсутствует.</string>
   <string name="errors_no_internet_connection">Нет подключения к интернету</string>
   <string name="errors_no_service_connection">Нет подключения к сервису</string>
+  <string name="errors_balances_activity_outdated">Балансы и активность могут быть устаревшими.</string>
   <string name="activity_title">Активность</string>
   <string name="activity_state_empty_title">Ваша активность будет отображаться здесь</string>
   <string name="activity_state_empty_description">Совершите свою первую транзакцию</string>

@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "ราคา Trigger ควรสูงกว่าราคาตลาด";
 "errors.no_internet_connection" = "ไม่มีการเชื่อมต่ออินเทอร์เน็ต";
 "errors.no_service_connection" = "ไม่มีการเชื่อมต่อบริการ";
+"errors.balances_activity_outdated" = "ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน";
 "activity.title" = "กิจกรรม";
 "activity.state.empty.title" = "กิจกรรมของคุณจะปรากฏที่นี่";
 "activity.state.empty.description" = "ทำธุรกรรมครั้งแรกของคุณ";

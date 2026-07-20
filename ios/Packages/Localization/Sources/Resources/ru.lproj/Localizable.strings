@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Цена триггера должна быть выше рыночной цены";
 "errors.no_internet_connection" = "Нет подключения к интернету";
 "errors.no_service_connection" = "Нет подключения к сервису";
+"errors.balances_activity_outdated" = "Балансы и активность могут быть устаревшими.";
 "activity.title" = "Активность";
 "activity.state.empty.title" = "Ваша активность будет отображаться здесь";
 "activity.state.empty.description" = "Совершите свою первую транзакцию";

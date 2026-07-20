@@ -218,6 +218,7 @@
   <string name="errors_network_offline">נראה שחיבור האינטרנט אינו מקוון.</string>
   <string name="errors_no_internet_connection">אין חיבור לאינטרנט</string>
   <string name="errors_no_service_connection">אין חיבור לשירות</string>
+  <string name="errors_balances_activity_outdated">היתרות והפעילות עשויות להיות לא מעודכנות.</string>
   <string name="activity_title">פעילות</string>
   <string name="activity_state_empty_title">הפעילות שלך תופיע כאן</string>
   <string name="activity_state_empty_description">בצעו את העסקה הראשונה שלכם</string>

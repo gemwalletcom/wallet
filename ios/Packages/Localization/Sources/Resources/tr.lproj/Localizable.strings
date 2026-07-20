@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Tetikleme fiyatı piyasa fiyatından yüksek olmalıdır";
 "errors.no_internet_connection" = "İnternet bağlantısı yok";
 "errors.no_service_connection" = "Servis bağlantısı yok";
+"errors.balances_activity_outdated" = "Bakiyeler ve etkinlik güncel olmayabilir.";
 "activity.title" = "Aktivite";
 "activity.state.empty.title" = "Etkinliğiniz burada görünecek";
 "activity.state.empty.description" = "İlk işleminizi yapın";

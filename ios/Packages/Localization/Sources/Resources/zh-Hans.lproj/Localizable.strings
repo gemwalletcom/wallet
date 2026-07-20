@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "触发价格应高于市场价格";
 "errors.no_internet_connection" = "无互联网连接";
 "errors.no_service_connection" = "无服务连接";
+"errors.balances_activity_outdated" = "余额和活动可能不是最新的。";
 "activity.title" = "活动";
 "activity.state.empty.title" = "交易将在此显示";
 "activity.state.empty.description" = "发起第一笔交易";

@@ -248,6 +248,7 @@ errors_network_error = Помилка мережі: %@
 errors_network_offline = Здається, підключення до Інтернету відсутнє.
 errors_no_internet_connection = Немає підключення до інтернету
 errors_no_service_connection = Немає підключення до сервісу
+errors_balances_activity_outdated = Баланси та активність можуть бути застарілими.
 
 # Activity
 

@@ -218,6 +218,7 @@
   <string name="errors_network_offline">इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।</string>
   <string name="errors_no_internet_connection">इंटरनेट कनेक्शन नहीं है</string>
   <string name="errors_no_service_connection">सेवा कनेक्शन नहीं है</string>
+  <string name="errors_balances_activity_outdated">बैलेंस और गतिविधि पुरानी हो सकती है।</string>
   <string name="activity_title">गतिविधि</string>
   <string name="activity_state_empty_title">आपकी गतिविधि यहां दिखाई देगी</string>
   <string name="activity_state_empty_description">अपना पहला लेनदेन करें</string>

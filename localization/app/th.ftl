@@ -248,6 +248,7 @@ errors_network_error = เกิดข้อผิดพลาดเครือ
 errors_network_offline = ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์
 errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
 errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
+errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
 
 # Activity
 

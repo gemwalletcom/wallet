@@ -218,6 +218,7 @@
   <string name="errors_network_offline">インターネット接続が切断されているようです。</string>
   <string name="errors_no_internet_connection">インターネット接続がありません</string>
   <string name="errors_no_service_connection">サービス接続がありません</string>
+  <string name="errors_balances_activity_outdated">残高とアクティビティは最新でない場合があります。</string>
   <string name="activity_title">アクティビティ</string>
   <string name="activity_state_empty_title">アクティビティはここに表示されます</string>
   <string name="activity_state_empty_description">最初の取引を行う</string>

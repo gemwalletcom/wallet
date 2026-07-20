@@ -218,6 +218,7 @@
   <string name="errors_network_offline">Kết nối Internet dường như đang bị ngắt.</string>
   <string name="errors_no_internet_connection">Không có kết nối internet</string>
   <string name="errors_no_service_connection">Không có kết nối dịch vụ</string>
+  <string name="errors_balances_activity_outdated">Số dư và hoạt động có thể chưa được cập nhật.</string>
   <string name="activity_title">Hoạt động</string>
   <string name="activity_state_empty_title">Hoạt động của bạn sẽ xuất hiện ở đây</string>
   <string name="activity_state_empty_description">Thực hiện giao dịch đầu tiên của bạn</string>

@@ -248,6 +248,7 @@ errors_network_error = Error sa network: %@
 errors_network_offline = Mukhang offline ang koneksyon sa internet.
 errors_no_internet_connection = Walang koneksyon sa internet
 errors_no_service_connection = Walang koneksyon sa serbisyo
+errors_balances_activity_outdated = Maaaring luma na ang mga balanse at aktibidad.
 
 # Activity
 

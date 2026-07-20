@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Farashin kunnawa ya kamata ya zama sama da farashin kasuwa";
 "errors.no_internet_connection" = "Babu haɗin intanet";
 "errors.no_service_connection" = "Babu haɗin sabis";
+"errors.balances_activity_outdated" = "Ma'aunai da ayyuka na iya zama tsofaffi.";
 "activity.title" = "Ayyuka";
 "activity.state.empty.title" = "Ayyukanku za su bayyana a nan";
 "activity.state.empty.description" = "Yi ciniki na farko";

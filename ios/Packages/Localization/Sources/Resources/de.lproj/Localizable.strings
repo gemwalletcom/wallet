@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Der Triggerpreis muss über dem Marktpreis liegen";
 "errors.no_internet_connection" = "Keine Internetverbindung";
 "errors.no_service_connection" = "Keine Serviceverbindung";
+"errors.balances_activity_outdated" = "Guthaben und Aktivität sind möglicherweise nicht aktuell.";
 "activity.title" = "Aktivität";
 "activity.state.empty.title" = "Ihre Aktivität wird hier angezeigt";
 "activity.state.empty.description" = "Machen Sie Ihre erste Transaktion";

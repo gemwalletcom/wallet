@@ -16,12 +16,16 @@ public struct ConnectionStatusViewModel {
         status != .online
     }
 
-    public var title: String {
+    public var title: String? {
         switch status {
-        case .online: ""
+        case .online: .none
         case .noInternet: Localized.Errors.noInternetConnection
         case .noService: Localized.Errors.noServiceConnection
         }
+    }
+
+    public var subtitle: String {
+        Localized.Errors.balancesActivityOutdated
     }
 
     public var icon: Image {

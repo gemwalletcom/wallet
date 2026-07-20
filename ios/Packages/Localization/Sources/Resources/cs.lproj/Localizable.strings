@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "Spouštěcí cena musí být vyšší než tržní cena";
 "errors.no_internet_connection" = "Žádné připojení k internetu";
 "errors.no_service_connection" = "Žádné připojení ke službě";
+"errors.balances_activity_outdated" = "Zůstatky a aktivita mohou být zastaralé.";
 "activity.title" = "Aktivita";
 "activity.state.empty.title" = "Vaše aktivita se zde zobrazí";
 "activity.state.empty.description" = "Proveďte svou první transakci";

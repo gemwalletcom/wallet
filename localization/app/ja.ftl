@@ -248,6 +248,7 @@ errors_network_error = ネットワークエラー: %@
 errors_network_offline = インターネット接続が切断されているようです。
 errors_no_internet_connection = インターネット接続がありません
 errors_no_service_connection = サービス接続がありません
+errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
 
 # Activity
 

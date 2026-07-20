@@ -248,6 +248,7 @@ errors_network_error = Ralat rangkaian: %@
 errors_network_offline = Sambungan Internet nampaknya di luar talian.
 errors_no_internet_connection = Tiada sambungan internet
 errors_no_service_connection = Tiada sambungan perkhidmatan
+errors_balances_activity_outdated = Baki dan aktiviti mungkin tidak terkini.
 
 # Activity
 

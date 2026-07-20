@@ -218,6 +218,7 @@
   <string name="errors_network_offline">A conexão com a internet parece estar offline.</string>
   <string name="errors_no_internet_connection">Sem conexão com a internet</string>
   <string name="errors_no_service_connection">Sem conexão com o serviço</string>
+  <string name="errors_balances_activity_outdated">Os saldos e a atividade podem estar desatualizados.</string>
   <string name="activity_title">Atividade</string>
   <string name="activity_state_empty_title">Sua atividade aparecerá aqui</string>
   <string name="activity_state_empty_description">Faça sua primeira transação</string>

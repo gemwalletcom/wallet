@@ -248,6 +248,7 @@ errors_network_error = Сетевая ошибка: %@
 errors_network_offline = По всей видимости, интернет-соединение отсутствует.
 errors_no_internet_connection = Нет подключения к интернету
 errors_no_service_connection = Нет подключения к сервису
+errors_balances_activity_outdated = Балансы и активность могут быть устаревшими.
 
 # Activity
 

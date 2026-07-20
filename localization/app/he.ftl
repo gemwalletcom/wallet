@@ -248,6 +248,7 @@ errors_network_error = שגיאת רשת: %@
 errors_network_offline = נראה שחיבור האינטרנט אינו מקוון.
 errors_no_internet_connection = אין חיבור לאינטרנט
 errors_no_service_connection = אין חיבור לשירות
+errors_balances_activity_outdated = היתרות והפעילות עשויות להיות לא מעודכנות.
 
 # Activity
 

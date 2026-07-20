@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "El precio de activación debe ser superior al precio de mercado";
 "errors.no_internet_connection" = "Sin conexión a internet";
 "errors.no_service_connection" = "Sin conexión al servicio";
+"errors.balances_activity_outdated" = "Los saldos y la actividad pueden estar desactualizados.";
 "activity.title" = "Actividad";
 "activity.state.empty.title" = "Tu actividad aparecerá aquí";
 "activity.state.empty.description" = "Realiza tu primera transacción";

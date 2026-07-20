@@ -248,6 +248,7 @@ errors_network_error = Ağ hatası: %@
 errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
 errors_no_internet_connection = İnternet bağlantısı yok
 errors_no_service_connection = Servis bağlantısı yok
+errors_balances_activity_outdated = Bakiyeler ve etkinlik güncel olmayabilir.
 
 # Activity
 

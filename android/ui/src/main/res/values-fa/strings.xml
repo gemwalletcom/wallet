@@ -218,6 +218,7 @@
   <string name="errors_network_offline">به نظر می‌رسد اتصال اینترنت آفلاین است.</string>
   <string name="errors_no_internet_connection">اتصال اینترنت برقرار نیست</string>
   <string name="errors_no_service_connection">اتصال سرویس برقرار نیست</string>
+  <string name="errors_balances_activity_outdated">موجودی‌ها و فعالیت ممکن است به‌روز نباشند.</string>
   <string name="activity_title">فعالیت</string>
   <string name="activity_state_empty_title">فعالیت شما اینجا نمایش داده می‌شود</string>
   <string name="activity_state_empty_description">اولین تراکنش خود را انجام دهید</string>

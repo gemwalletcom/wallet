@@ -248,6 +248,7 @@ errors_network_error = خطأ في الشبكة: %@
 errors_network_offline = يبدو أن الاتصال بالإنترنت غير متاح.
 errors_no_internet_connection = لا يوجد اتصال بالإنترنت
 errors_no_service_connection = لا يوجد اتصال بالخدمة
+errors_balances_activity_outdated = قد تكون الأرصدة والنشاط غير محدثة.
 
 # Activity
 

@@ -248,6 +248,7 @@ errors_network_error = Eroare de rețea: %@
 errors_network_offline = Conexiunea la internet pare să fie offline.
 errors_no_internet_connection = Nicio conexiune la internet
 errors_no_service_connection = Nicio conexiune la serviciu
+errors_balances_activity_outdated = Soldurile și activitatea pot fi învechite.
 
 # Activity
 

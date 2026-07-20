@@ -248,6 +248,7 @@ errors_network_error = नेटवर्क त्रुटि: %@
 errors_network_offline = इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।
 errors_no_internet_connection = इंटरनेट कनेक्शन नहीं है
 errors_no_service_connection = सेवा कनेक्शन नहीं है
+errors_balances_activity_outdated = बैलेंस और गतिविधि पुरानी हो सकती है।
 
 # Activity
 

@@ -248,6 +248,7 @@ errors_network_error = Netwerkfout: %@
 errors_network_offline = De internetverbinding lijkt offline te zijn.
 errors_no_internet_connection = Geen internetverbinding
 errors_no_service_connection = Geen serviceverbinding
+errors_balances_activity_outdated = Saldi en activiteit zijn mogelijk verouderd.
 
 # Activity
 

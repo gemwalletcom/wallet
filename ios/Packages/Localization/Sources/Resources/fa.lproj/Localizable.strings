@@ -207,6 +207,7 @@
 "errors.perpetual.trigger_price_higher" = "قیمت فعالسازی باید بیشتر از قیمت بازار باشد";
 "errors.no_internet_connection" = "اتصال اینترنت برقرار نیست";
 "errors.no_service_connection" = "اتصال سرویس برقرار نیست";
+"errors.balances_activity_outdated" = "موجودی‌ها و فعالیت ممکن است به‌روز نباشند.";
 "activity.title" = "فعالیت";
 "activity.state.empty.title" = "فعالیت شما اینجا نمایش داده می‌شود";
 "activity.state.empty.description" = "اولین تراکنش خود را انجام دهید";

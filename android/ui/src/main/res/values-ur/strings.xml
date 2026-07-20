@@ -218,6 +218,7 @@
   <string name="errors_network_offline">انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔</string>
   <string name="errors_no_internet_connection">انٹرنیٹ کنکشن نہیں ہے</string>
   <string name="errors_no_service_connection">سروس کنکشن نہیں ہے</string>
+  <string name="errors_balances_activity_outdated">بیلنس اور سرگرمی پرانی ہو سکتی ہے۔</string>
   <string name="activity_title">سرگرمی</string>
   <string name="activity_state_empty_title">آپ کی سرگرمی یہاں ظاہر ہوگی۔</string>
   <string name="activity_state_empty_description">اپنا پہلا لین دین کریں۔</string>
