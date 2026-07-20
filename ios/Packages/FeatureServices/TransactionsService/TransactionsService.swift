@@ -49,9 +49,6 @@ public final class TransactionsService: Sendable {
             asset: assetId,
             fromTimestamp: store.transactionsForAssetTimestamp(assetId: assetId.identifier),
         )
-        if response.transactions.isEmpty {
-            return
-        }
 
         try await prefetchAssets(walletId: walletId, transactions: response.transactions)
         try transactionStore.addTransactions(walletId: walletId, transactions: response.transactions)

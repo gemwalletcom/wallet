@@ -151,10 +151,12 @@ impl SuiClient {
                     .map_err(|error| error.into())
             })
             .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()?;
+        if staked_sui.is_empty() {
+            return Ok(Vec::new());
+        }
         let ids = staked_sui.iter().map(|stake| stake.id).collect::<Vec<_>>();
         let pool_ids = staked_sui.iter().map(|stake| stake.pool_id).collect::<Vec<_>>();
-        let rewards = self.calculate_rewards(&ids).await?;
-        let validator_addresses = self.get_validator_address_by_pool_id(&pool_ids).await?;
+        let (rewards, validator_addresses) = futures::try_join!(self.calculate_rewards(&ids), self.get_validator_address_by_pool_id(&pool_ids))?;
 
         Ok(staked_sui
             .into_iter()

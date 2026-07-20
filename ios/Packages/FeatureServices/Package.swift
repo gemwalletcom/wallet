@@ -302,7 +302,7 @@ let package = Package(
                 "AssetsService",
             ],
             path: "TransactionsService",
-            exclude: ["TestKit"],
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "TransactionsServiceTestKit",
@@ -714,6 +714,16 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "DiscoverAssetsService/Tests",
+        ),
+        .testTarget(
+            name: "TransactionsServiceTests",
+            dependencies: [
+                "TransactionsService",
+                "TransactionsServiceTestKit",
+                .product(name: "GemAPITestKit", package: "GemAPI"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "TransactionsService/Tests",
         ),
         .testTarget(
             name: "BalanceServiceTests",
