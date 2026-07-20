@@ -47,7 +47,7 @@ use model::APIService;
 use name_resolver::NameProviderFactory;
 use name_resolver::client::{Client as NameClient, NameConfig};
 use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
-use primitives::PriceConfig;
+use primitives::{Chain, PriceConfig};
 use rocket::tokio::sync::Mutex;
 use rocket::{Build, Rocket, catchers, routes};
 use search_index::SearchIndexClient;
@@ -243,7 +243,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let nft_config = NFTProviderConfig::new(
         settings.nft.opensea.key.secret.clone(),
         settings.nft.magiceden.key.secret.clone(),
-        settings.chains.ton.url.clone(),
+        ProviderFactory::get_chain_url(Chain::Ton, &settings),
         OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
     );
     let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());

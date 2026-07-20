@@ -113,6 +113,7 @@ mod tests {
     use super::*;
     use crate::config::Url;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
+    use primitives::NodeType;
     use reqwest::StatusCode;
     use std::collections::HashMap;
 
@@ -131,6 +132,7 @@ mod tests {
     fn create_chain_config(chain: Chain) -> ChainConfig {
         ChainConfig {
             chain,
+            node: NodeType::Default,
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,

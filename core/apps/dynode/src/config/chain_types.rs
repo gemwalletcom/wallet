@@ -80,7 +80,7 @@ struct ChainPolicyConfig {
 mod tests {
     use super::*;
     use crate::config::Url;
-    use primitives::Chain;
+    use primitives::{Chain, NodeType};
     use serde_json::json;
 
     fn jsonrpc(method: &str) -> RequestType {
@@ -100,6 +100,7 @@ mod tests {
     fn chain_config(chain: Chain) -> ChainConfig {
         ChainConfig {
             chain,
+            node: NodeType::Default,
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,

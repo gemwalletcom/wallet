@@ -6,6 +6,7 @@ use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use primitives::Chain;
 use settings::Settings;
+use settings_chain::ProviderFactory;
 use storage::Database;
 use streamer::{ChainAddressPayload, ConsumerConfig, ConsumerStatusReporter, QueueName, ShutdownReceiver, StreamConnection, StreamReader, consumer::MessageConsumer, run_consumer};
 
@@ -34,7 +35,7 @@ impl FetchNftAssetsAddressesConsumer {
         let nft_config = NFTProviderConfig::new(
             settings.nft.opensea.key.secret.clone(),
             settings.nft.magiceden.key.secret.clone(),
-            settings.chains.ton.url.clone(),
+            ProviderFactory::get_chain_url(Chain::Ton, &settings),
             OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
         );
         let nft_client = NFTClient::from_config(database, nft_config, settings.nft.url.clone());

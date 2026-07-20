@@ -98,9 +98,8 @@ fn parse_rewards_wallets(settings: &Settings) -> Result<HashMap<ChainType, Walle
 
 fn create_evm_client_provider(settings: Settings) -> EvmClientProvider {
     Arc::new(move |chain: EVMChain| {
-        let chain_config = ProviderFactory::get_chain_config(chain.to_chain(), &settings);
         let reqwest_client = gem_client::builder().build().ok()?;
-        let client = ReqwestClient::new(chain_config.url.clone(), reqwest_client);
+        let client = ReqwestClient::new(ProviderFactory::get_chain_url(chain.to_chain(), &settings), reqwest_client);
         let rpc_client = JsonRpcClient::new(client);
         Some(EthereumClient::new(rpc_client, chain))
     })

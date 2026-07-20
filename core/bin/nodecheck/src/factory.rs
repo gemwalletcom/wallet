@@ -6,7 +6,7 @@ use primitives::{Chain, NodeType};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use settings_chain::{ProviderConfig, ProviderFactory, ProviderKeyConfig};
 
-pub(crate) fn new_provider(chain: Chain, url: &str, headers: &[String]) -> Result<Box<dyn ChainTraits>, Box<dyn Error + Send + Sync>> {
+pub(crate) fn new_provider(chain: Chain, node: NodeType, url: &str, headers: &[String]) -> Result<Box<dyn ChainTraits>, Box<dyn Error + Send + Sync>> {
     let headers = headers
         .iter()
         .map(|header| {
@@ -15,6 +15,6 @@ pub(crate) fn new_provider(chain: Chain, url: &str, headers: &[String]) -> Resul
         })
         .collect::<Result<HeaderMap, Box<dyn Error + Send + Sync>>>()?;
     let client = builder().default_headers(headers).build()?;
-    let config = ProviderConfig::new(chain, url, NodeType::Default, ProviderKeyConfig::default());
+    let config = ProviderConfig::new(chain, url, node, ProviderKeyConfig::default());
     Ok(ProviderFactory::new_provider_with_client(config, "nodecheck", client))
 }

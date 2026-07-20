@@ -1,4 +1,4 @@
-use primitives::Chain;
+use primitives::{Chain, NodeType};
 use serde::Deserialize;
 use std::time::Duration;
 
@@ -9,6 +9,8 @@ use super::{AllowlistConfig, CacheRule};
 #[derive(Debug, Clone, Deserialize)]
 pub struct ChainConfig {
     pub chain: Chain,
+    #[serde(default)]
+    pub node: NodeType,
     pub poll_interval_seconds: Option<u64>,
     pub overrides: Option<Vec<Override>>,
     pub allowlist: Option<AllowlistConfig>,
@@ -50,11 +52,13 @@ impl ChainConfig {
 mod tests {
     use super::*;
     use crate::testkit::config as testkit;
+    use serde_json::json;
     use std::time::Duration;
 
     fn make_chain_config(poll_interval: Option<u64>) -> ChainConfig {
         ChainConfig {
             chain: primitives::Chain::Ethereum,
+            node: NodeType::Default,
             poll_interval_seconds: poll_interval,
             overrides: None,
             allowlist: None,
@@ -73,6 +77,7 @@ mod tests {
     fn make_chain_config_with_overrides(overrides: Vec<Override>) -> ChainConfig {
         ChainConfig {
             chain: primitives::Chain::Ethereum,
+            node: NodeType::Default,
             poll_interval_seconds: None,
             overrides: Some(overrides),
             allowlist: None,
@@ -100,6 +105,15 @@ mod tests {
         let chain_config = make_chain_config(None);
         let config = make_monitoring_config(45);
         assert_eq!(chain_config.monitoring_interval(&config), Duration::from_secs(45));
+    }
+
+    #[test]
+    fn chain_type_deserialization() {
+        let archival: ChainConfig = serde_json::from_value(json!({ "chain": "ethereum", "node": "archival", "urls": [] })).unwrap();
+        let default: ChainConfig = serde_json::from_value(json!({ "chain": "base", "urls": [] })).unwrap();
+
+        assert_eq!(archival.node, NodeType::Archival);
+        assert_eq!(default.node, NodeType::Default);
     }
 
     #[test]

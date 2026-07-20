@@ -48,11 +48,12 @@ impl ProviderFactory {
     pub fn new_from_settings_with_user_agent(chain: Chain, settings: &Settings, user_agent: &str) -> Box<dyn ChainTraits> {
         let chain_config = Self::get_chain_config(chain, settings);
         let node_type = Self::get_node_type(chain_config.node.clone());
+        let url = Self::get_chain_url(chain, settings);
 
         Self::new_provider(
             ProviderConfig::new(
                 chain,
-                &chain_config.url,
+                &url,
                 node_type,
                 ProviderKeyConfig {
                     alchemy: settings.alchemy.key.secret.clone(),
@@ -214,9 +215,17 @@ impl ProviderFactory {
     pub fn get_chain_endpoints(settings: &Settings) -> HashMap<Chain, String> {
         Chain::all()
             .into_iter()
-            .map(|chain| (chain, Self::get_chain_config(chain, settings).url.clone()))
+            .map(|chain| (chain, Self::get_chain_url(chain, settings)))
             .filter(|(_, url)| !url.is_empty())
             .collect()
+    }
+
+    pub fn get_chain_url(chain: Chain, settings: &Settings) -> String {
+        if settings.dynode.url.is_empty() {
+            Self::get_chain_config(chain, settings).url.clone()
+        } else {
+            format!("{}/{}", settings.dynode.url, chain.as_ref())
+        }
     }
 
     pub fn get_node_type(url_type: ChainURLType) -> NodeType {

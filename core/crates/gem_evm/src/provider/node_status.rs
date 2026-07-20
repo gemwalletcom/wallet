@@ -4,7 +4,7 @@ use chain_traits::{
     node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
 };
 use gem_client::Client;
-use primitives::NodeSyncStatus;
+use primitives::{NodeSyncStatus, NodeType};
 
 use crate::{jsonrpc::TransactionObject, method, rpc::EthereumClient};
 
@@ -58,7 +58,12 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumClient<C> {
 
         let recorder = recorder.record_available(method::ETH_GET_BLOCK_BY_NUMBER, self.get_block(block_number).await);
         let recorder = recorder.record_available(method::ETH_GET_BLOCK_RECEIPTS, self.get_block_receipts(block_number).await);
-        let recorder = recorder.record_available(method::TRACE_REPLAY_BLOCK_TRANSACTIONS, self.trace_replay_block_transactions(block_number).await);
-        recorder.record_available(method::TRACE_REPLAY_TRANSACTION, self.trace_replay_transaction(transaction_id).await)
+        match self.node_type {
+            NodeType::Default => recorder,
+            NodeType::Archival => {
+                let recorder = recorder.record_available(method::TRACE_REPLAY_BLOCK_TRANSACTIONS, self.trace_replay_block_transactions(block_number).await);
+                recorder.record_available(method::TRACE_REPLAY_TRANSACTION, self.trace_replay_transaction(transaction_id).await)
+            }
+        }
     }
 }

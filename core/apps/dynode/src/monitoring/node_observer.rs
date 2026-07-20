@@ -8,7 +8,7 @@ use super::switch_reason::CurrentNodeErrorKind;
 use super::sync::NodeStatusObservation;
 use crate::config::Url;
 
-pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: Url) -> NodeStatusObservation {
+pub(super) async fn observe_node(chain: Chain, node: NodeType, request: &NodeCheckRequest, url: Url) -> NodeStatusObservation {
     let started_at = Instant::now();
     let observation = |state| NodeStatusObservation::new(url.clone(), state, started_at.elapsed());
 
@@ -20,7 +20,7 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
         Ok(client) => client,
         Err(error) => return observation(NodeStatusState::error(error.to_string())),
     };
-    let config = ProviderConfig::new(chain, &url.url, NodeType::Default, ProviderKeyConfig::default());
+    let config = ProviderConfig::new(chain, &url.url, node, ProviderKeyConfig::default());
     let provider = ProviderFactory::new_provider_with_client(config, "dynode_get_status", client);
 
     match provider.get_node_status().await {

@@ -1,3 +1,6 @@
+dynode:
+  url: ""
+
 redis:
   url: "redis://default:@localhost:6379?protocol=resp3"
 postgres:
@@ -113,9 +116,10 @@ chains:
     url: https://solana-rpc.publicnode.com
   ethereum:
     url: https://eth-pokt.nodies.app
-    node: Archival
+    node: archival
   smartchain:
     url: https://bsc-dataseed1.bnbchain.org
+    node: archival
   polygon:
     url: https://rpc-mainnet.matic.quiknode.pro
   optimism:

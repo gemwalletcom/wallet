@@ -6,7 +6,7 @@ use std::{error::Error, process::ExitCode};
 use clap::Parser;
 use factory::new_provider;
 use gem_tracing::error_with_fields;
-use primitives::{Chain, NodeCheckProfile};
+use primitives::{Chain, NodeCheckProfile, NodeType};
 use settings_chain::node_check_request;
 
 use crate::service::NodeCheckService;
@@ -18,6 +18,8 @@ struct Args {
     url: String,
     #[arg(short, long)]
     profile: NodeCheckProfile,
+    #[arg(long, default_value = "default")]
+    node: NodeType,
     #[arg(short = 'H', long = "header", value_name = "NAME:VALUE")]
     headers: Vec<String>,
 }
@@ -25,8 +27,9 @@ struct Args {
 impl Args {
     async fn run(&self) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let request = node_check_request(self.chain, self.profile)?;
-        let provider = new_provider(self.chain, &self.url, &self.headers)?;
-        Ok(NodeCheckService::new(request, provider).run().await)
+        Ok(NodeCheckService::new(request, new_provider(self.chain, self.node.clone(), &self.url, &self.headers)?)
+            .run()
+            .await)
     }
 }
 

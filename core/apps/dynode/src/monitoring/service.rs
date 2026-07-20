@@ -371,7 +371,7 @@ mod tests {
     use super::*;
     use crate::config::{CacheConfig, ChainTypesConfig, MetricsConfig, Url};
     use crate::testkit::config as testkit;
-    use primitives::Chain;
+    use primitives::{Chain, NodeType};
     use reqwest::{Method, header, header::HeaderMap};
 
     fn create_service(chains: HashMap<Chain, ChainConfig>) -> NodeService {
@@ -404,6 +404,7 @@ mod tests {
     fn create_chain_config(chain: Chain, url: &str) -> ChainConfig {
         ChainConfig {
             chain,
+            node: NodeType::Default,
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,

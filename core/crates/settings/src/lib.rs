@@ -9,6 +9,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
+    pub dynode: URL,
     pub redis: Redis,
     pub postgres: Postgres,
     pub meilisearch: MeiliSearch,
@@ -272,6 +273,7 @@ pub struct Chain {
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
+#[serde(rename_all = "lowercase")]
 pub enum ChainURLType {
     #[default]
     Default,
