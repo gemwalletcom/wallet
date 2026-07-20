@@ -1,5 +1,5 @@
-use bigdecimal::{BigDecimal, RoundingMode, ToPrimitive};
-use num_bigint::{BigInt, BigUint};
+use bigdecimal::{BigDecimal, RoundingMode, ToPrimitive, num_bigint::BigInt};
+use num_bigint::BigUint;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq)]

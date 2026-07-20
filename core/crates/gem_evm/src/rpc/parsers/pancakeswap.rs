@@ -10,7 +10,7 @@ use crate::{
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data, make_swap_transaction, try_map_balance_diff_swap, universal_router::decode_execute_swap};
+use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data, universal_router::decode_execute_swap};
 
 const EVENT_WORD_SIZE: usize = 64;
 
@@ -27,9 +27,9 @@ impl ProtocolParser for PancakeSwapParser {
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
         let metadata = Self::try_map_transfer_swap(context)
-            .or_else(|| try_map_balance_diff_swap(context.chain, &context.transaction.from, context.trace, context.receipt, Some(Self::provider())))
+            .or_else(|| context.try_map_balance_diff_swap(&context.transaction.from, Some(Self::provider())))
             .or_else(|| Self::try_map_command_swap(context))?;
-        make_swap_transaction(context.chain, context.transaction, context.receipt, &metadata, context.created_at)
+        context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
 

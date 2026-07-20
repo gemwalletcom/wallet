@@ -15,7 +15,7 @@ use crate::{
 };
 use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data, make_swap_transaction, try_map_balance_diff_swap};
+use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data};
 
 const WITHDRAWAL_TOPIC: &str = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65";
 
@@ -65,9 +65,9 @@ impl ProtocolParser for UniversalRouterParser {
         let fallback_provider = router_abi.fallback_provider(&provider, &execute_call.commands);
 
         let metadata = decode_execute_swap_call(context.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.receipt)
-            .or_else(|| try_map_balance_diff_swap(context.chain, &context.transaction.from, context.trace, context.receipt, Some(fallback_provider)))?;
+            .or_else(|| context.try_map_balance_diff_swap(&context.transaction.from, Some(fallback_provider)))?;
 
-        make_swap_transaction(context.chain, context.transaction, context.receipt, &metadata, context.created_at)
+        context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
 

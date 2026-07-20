@@ -30,6 +30,9 @@ use gem_ton::rpc::client::TonClient;
 use settings::Settings;
 
 #[cfg(feature = "nft_integration_tests")]
+use crate::providers::ton::provider::TonNftProvider;
+
+#[cfg(feature = "nft_integration_tests")]
 fn get_test_settings() -> Settings {
     let settings_path = std::env::current_dir().expect("Failed to get current directory").join("../../Settings.yaml");
     Settings::new_setting_path(settings_path).expect("Failed to load settings for tests")
@@ -57,8 +60,9 @@ pub fn create_magiceden_evm_test_client() -> MagicEdenEvmClient {
 }
 
 #[cfg(feature = "nft_integration_tests")]
-pub fn create_ton_test_client() -> TonClient<ReqwestClient> {
+pub fn create_ton_test_client() -> TonNftProvider<ReqwestClient> {
     let settings = get_test_settings();
     let reqwest_client = ReqwestClient::new(settings.chains.ton.url, gem_client::reqwest_client());
-    TonClient::new(reqwest_client)
+    let config = crate::OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit);
+    TonNftProvider::new(TonClient::new(reqwest_client), config)
 }

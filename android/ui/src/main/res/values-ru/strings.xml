@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Проскальзывание означает разницу между ожидаемой ценой сделки и фактической ценой, по которой она исполняется.</string>
   <string name="info_asset_status_unverified_description">Неподтверждённые токены не прошли достаточную проверку со стороны надёжных сторонних сервисов. Они могут появиться в вашем кошельке в результате airdrop\'ов, переводов или ручного импорта.</string>
   <string name="info_asset_status_suspicious_description">Подозрительные или спам‑токены помечаются как потенциальные мошеннические или вредоносные активы. Они могут появиться в вашем кошельке в результате airdrop‑раздач, переводов или ручного добавления.</string>
-  <string name="info_insufficient_network_fee_balance_title">Требуется %1$s</string>
-  <string name="info_insufficient_network_fee_balance_description">Эта транзакция требует %1$s для покрытия сетевой комиссии, выплачиваемой майнерам %2$s , а не Gem Wallet. Убедитесь, что у вас достаточно %3$s.</string>
+  <string name="info_balance_required_title">Требуется %1$s</string>
+  <string name="info_insufficient_network_fee_balance_description">Для этой транзакции требуется %1$s на комиссию сети %2$s, но доступно только %3$s. Для продолжения вам нужно еще %4$s.</string>
   <string name="info_insufficient_balance_title">Недостаточный баланс</string>
-  <string name="info_insufficient_balance_description">У вас недостаточно %1$s для завершения этой транзакции. Пожалуйста, пополните, получите или обменяйте ваш кошелек и попробуйте еще раз.</string>
+  <string name="info_balance_required_description">Для этой транзакции требуется %1$s, но доступно только %2$s. Для продолжения вам нужно еще %3$s.</string>
   <string name="info_account_minimum_balance_title">Минимальный баланс</string>
   <string name="info_perpetual_funding_payments_title">Платежи по финансированию</string>
   <string name="info_perpetual_funding_payments_description">Платежи финансирования — это периодические платежи между трейдерами, позволяющие поддерживать цену бессрочного контракта близкой к спотовой цене базового актива. Положительное финансирование означает, что длинные позиции оплачиваются короткими позициями, а отрицательное финансирование означает, что короткие позиции оплачиваются длинными позициями.</string>

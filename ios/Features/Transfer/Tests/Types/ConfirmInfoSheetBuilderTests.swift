@@ -14,17 +14,21 @@ struct ConfirmInfoSheetBuilderTests {
     @Test
     func insufficientBalanceSheet() {
         let asset = Asset.mock()
+        let requirement = BalanceRequirement(required: 2, available: 1)
 
-        guard case let .insufficientBalance(sheetAsset, _) = build(for: TransferAmountCalculatorError.insufficientBalance(asset)) else {
-            Issue.record("Expected insufficientBalance sheet")
+        guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: TransferAmountCalculatorError.insufficientBalance(asset, requirement: requirement)) else {
+            Issue.record("Expected balanceRequired sheet")
             return
         }
         #expect(sheetAsset == asset)
+        #expect(sheetRequirement == requirement)
     }
 
     @Test
     func minimumAccountBalanceSheet() {
-        guard case let .accountMinimalBalance(_, required) = build(for: TransferAmountCalculatorError.minimumAccountBalanceTooLow(.mock(), required: BigInt(10))) else {
+        let requirement = BalanceRequirement(required: BigInt(10), available: .zero)
+
+        guard case let .accountMinimalBalance(_, required) = build(for: TransferAmountCalculatorError.minimumAccountBalanceTooLow(.mock(), requirement: requirement)) else {
             Issue.record("Expected accountMinimalBalance sheet")
             return
         }
@@ -58,7 +62,7 @@ struct ConfirmInfoSheetBuilderTests {
             asset: asset,
             feePrice: nil,
             currency: Currency.usd.rawValue,
-            onGetNetworkFeeAsset: {},
+            onGetAsset: { _, _ in },
         )
     }
 }

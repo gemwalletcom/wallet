@@ -36,24 +36,17 @@ public struct AmountValidator: FormattedValidator {
     }
 
     public func format(_ text: String) throws -> BigInt {
-        let canonical: String
-
         switch source {
         case .asset:
-            canonical = text
+            return try formatter.inputNumber(from: text, decimals: decimals)
         case let .fiat(price, converter):
             guard let price else { throw TransferError.invalidAmount }
-            canonical = (try? converter.convertToAmount(
+            return (try? converter.convertToDisplayedAmount(
                 fiatValue: text,
                 price: price,
                 decimals: decimals,
-            )).or(.zero)
+            )) ?? .zero
         }
-
-        return try formatter.inputNumber(
-            from: canonical,
-            decimals: decimals,
-        )
     }
 }
 

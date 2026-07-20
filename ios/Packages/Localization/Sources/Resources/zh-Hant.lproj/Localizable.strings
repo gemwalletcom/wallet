@@ -426,10 +426,10 @@
 "info.slippage.description" = "滑點是指交易預期價格與實際成交價格之間的差異。";
 "info.asset_status.unverified.description" = "未驗證代幣是指未經可信任第三方服務充分驗證的代幣。它們可能因空投、轉帳或手動匯入而出現在您的錢包中。";
 "info.asset_status.suspicious.description" = "可疑或垃圾代幣會被識別為潛在的詐騙或有害資產。它們可能因空投、轉帳或手動匯入而出現在您的錢包中。";
-"info.insufficient_network_fee_balance.title" = "需要%@";
-"info.insufficient_network_fee_balance.description" = "此交易需要 %@ 用於支付網路費用 %@ 礦工，而不是 Gem Wallet。確保你有足夠的 %@。";
+"info.balance_required_title" = "需要%@";
+"info.insufficient_network_fee_balance.description" = "此交易需要 %@ 支付 %@ 網路費用，但只有 %@ 可用。還需要 %@ 才能繼續。";
 "info.insufficient_balance.title" = "餘額不足";
-"info.insufficient_balance.description" = "您的餘額不足%@ ，無法完成此交易。請充值、接收或兌換您的錢包，然後重試。";
+"info.balance_required_description" = "此交易需要%@，但只有%@可用。還需要%@才能繼續。";
 "info.account_minimum_balance.title" = "最低餘額";
 "info.perpetual.funding_payments.title" = "資金費用";
 "info.perpetual.funding_payments.description" = "資金費用是交易者之間的定期支付，用以使永續合約價格接近標的資產的現貨價格。正向資金費用表示多頭支付空頭，負向資金費用則表示空頭支付多頭。";

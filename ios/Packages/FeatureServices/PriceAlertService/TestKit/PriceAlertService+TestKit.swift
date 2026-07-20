@@ -5,6 +5,8 @@ import DeviceServiceTestKit
 import Foundation
 import GemAPI
 import GemAPITestKit
+import NotificationService
+import NotificationServiceTestKit
 import Preferences
 import PreferencesTestKit
 import PriceAlertService
@@ -20,6 +22,7 @@ public extension PriceAlertService {
         deviceService: any DeviceServiceable = DeviceServiceMock(),
         priceUpdater: any PriceUpdater = .mock(),
         preferences: Preferences = .mock(),
+        pushNotificationService: any PushNotificationEnabler = PushNotificationEnablerMock(),
     ) -> PriceAlertService {
         PriceAlertService(
             store: store,
@@ -27,6 +30,7 @@ public extension PriceAlertService {
             deviceService: deviceService,
             priceUpdater: priceUpdater,
             preferences: preferences,
+            pushNotificationService: pushNotificationService,
         )
     }
 }

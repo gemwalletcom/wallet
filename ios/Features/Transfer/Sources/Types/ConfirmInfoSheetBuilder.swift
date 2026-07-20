@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import Primitives
 import PrimitivesComponents
@@ -13,11 +14,11 @@ enum ConfirmInfoSheetBuilder {
         asset: Asset,
         feePrice: Price?,
         currency: String,
-        onGetNetworkFeeAsset: @escaping @MainActor @Sendable () -> Void,
+        onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
     ) -> InfoSheetType? {
         switch error {
         case let .amount(error):
-            amountSheet(for: error, feePrice: feePrice, currency: currency, onGetNetworkFeeAsset: onGetNetworkFeeAsset)
+            amountSheet(for: error, feePrice: feePrice, currency: currency, onGetAsset: onGetAsset)
         case let .scan(error):
             scanSheet(for: error)
         case .chain(.dustThreshold):
@@ -31,15 +32,18 @@ enum ConfirmInfoSheetBuilder {
         for error: TransferAmountCalculatorError,
         feePrice: Price?,
         currency: String,
-        onGetNetworkFeeAsset: @escaping @MainActor @Sendable () -> Void,
+        onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
     ) -> InfoSheetType {
         switch error {
-        case let .insufficientBalance(asset):
-            .insufficientBalance(asset, image: image(for: asset))
-        case let .insufficientNetworkFee(asset, required):
-            .insufficientNetworkFee(asset, image: image(for: asset), required: required, price: feePrice, currency: currency, action: onGetNetworkFeeAsset)
-        case let .minimumAccountBalanceTooLow(asset, required):
-            .accountMinimalBalance(asset, required: required)
+        case let .insufficientBalance(asset, requirement):
+            return .balanceRequired(asset, image: image(for: asset), requirement: requirement, action: { onGetAsset(asset, nil) })
+        case let .insufficientNetworkFee(asset, requirement):
+            let feeAsset = asset.chain.asset
+            return .insufficientNetworkFee(feeAsset, image: image(for: feeAsset), requirement: requirement, price: feePrice, currency: currency, action: {
+                onGetAsset(feeAsset, FiatConfig.insufficientNetworkFeeBuyAmount)
+            })
+        case let .minimumAccountBalanceTooLow(asset, requirement):
+            return .accountMinimalBalance(asset, required: requirement.required)
         }
     }
 

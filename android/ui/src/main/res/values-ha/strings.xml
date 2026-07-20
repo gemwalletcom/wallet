@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Zamewa yana nufin bambanci tsakanin farashin ciniki da ake tsammani da ainihin farashin da ake aiwatar da shi.</string>
   <string name="info_asset_status_unverified_description">Amintattun ayyuka na ɓangare na uku ba su tabbatar da isassun alamun da ba a tantance ba. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.</string>
   <string name="info_asset_status_suspicious_description">Ana gano alamun tuhuma ko spam a matsayin masu yuwuwar zamba ko kadarorin cutarwa. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s ake bukata</string>
-  <string name="info_insufficient_network_fee_balance_description">Wannan ciniki yana buƙatar %1$s don biyan kuɗin hanyar sadarwa da aka biya %2$s masu hakar ma\'adinai, ba Gem Wallet ba. Tabbatar kana da isassun %3$s.</string>
+  <string name="info_balance_required_title">%1$s ake bukata</string>
+  <string name="info_insufficient_network_fee_balance_description">Wannan ciniki yana buƙatar %1$s don kuɗin hanyar sadarwar %2$s, amma %3$s kawai ake da shi. Kuna buƙatar ƙarin %4$s don ci gaba.</string>
   <string name="info_insufficient_balance_title">Rashin Isasshen Ma\'auni</string>
-  <string name="info_insufficient_balance_description">Baku da isassun %1$s don kammala wannan ciniki. Da fatan za a cika asusu, karɓa, ko musanya a cikin walat ɗin ku kuma a sake gwadawa.</string>
+  <string name="info_balance_required_description">Wannan ciniki yana buƙatar %1$s, amma %2$s kawai ake da shi. Kuna buƙatar ƙarin %3$s don ci gaba.</string>
   <string name="info_account_minimum_balance_title">Mafi ƙarancin ma\'auni</string>
   <string name="info_perpetual_funding_payments_title">Biyan Kuɗi</string>
   <string name="info_perpetual_funding_payments_description">Biyan kuɗi kuɗi ne na lokaci-lokaci tsakanin ƴan kasuwa don kiyaye farashin kwangila na dindindin kusa da ainihin ƙimar kadara. Kudi mai kyau yana nufin matsayi mai tsawo yana biyan gajerun matsayi, yayin da kudade mara kyau yana nufin gajeren matsayi yana biyan matsayi mai tsawo.</string>

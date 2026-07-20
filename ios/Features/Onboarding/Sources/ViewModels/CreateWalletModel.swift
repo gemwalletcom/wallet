@@ -45,6 +45,14 @@ extension CreateWalletModel {
         isPresentingSelectImageWallet = wallet
     }
 
+    func generateSecretPhrase() -> [String] {
+        do {
+            return try walletService.createWallet()
+        } catch {
+            fatalError("Unable to create wallet")
+        }
+    }
+
     func createWallet(words: [String]) async throws -> Wallet {
         let result = try await walletService.loadOrCreateWallet(
             name: WalletNameGenerator(type: .multicoin, walletService: walletService).name,

@@ -87,6 +87,10 @@ impl ConfigCacher {
         parse_duration(&self.get_param_value(param))
     }
 
+    pub fn get_param_usize(&self, param: &ConfigParamKey) -> Result<usize, DatabaseError> {
+        Ok(self.get_param_value(param).parse()?)
+    }
+
     pub fn get_datetime(&self, key: ConfigKey) -> Result<NaiveDateTime, DatabaseError> {
         let ts = self.get_i64(key)?;
         DateTime::from_timestamp(ts, 0)

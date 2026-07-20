@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, TryStreamExt, stream};
 use std::error::Error;
 
@@ -36,11 +36,10 @@ impl<C: Client> ChainTransactions for CosmosClient<C> {
         Ok(map_transactions(self.chain, vec![self.get_transaction(hash).await?]).into_iter().next())
     }
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(20);
         let transactions = self.get_transactions_by_address_with_limit(&address, limit).await?;
-        Ok(map_transactions(self.chain, transactions))
+        Ok(TransactionsResult::Transactions(map_transactions(self.chain, transactions)))
     }
 }
 

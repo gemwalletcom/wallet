@@ -36,6 +36,10 @@ extension JobRunner {
     private func runJob(_ job: Job) async {
         var intervalMs = job.configuration.initialIntervalMs
 
+        if intervalMs > 0 {
+            try? await clock.sleep(for: .milliseconds(Int(intervalMs)))
+        }
+
         while !Task.isCancelled {
             let attemptStart = clock.now
 

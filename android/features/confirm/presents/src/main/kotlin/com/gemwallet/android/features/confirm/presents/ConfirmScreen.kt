@@ -85,7 +85,7 @@ fun ConfirmScreen(
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
-    onGetNetworkFeeAssetAction: (GetNetworkFeeAssetAction, AssetId) -> Unit,
+    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
     handleSystemBack: Boolean = false,
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
@@ -261,9 +261,8 @@ fun ConfirmScreen(
             item {
                 ConfirmErrorInfo(
                     state = state,
-                    feeValue = feeValue,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
-                    onGetNetworkFeeAssetAction = onGetNetworkFeeAssetAction,
+                    onAcquireAsset = onAcquireAsset,
                 )
             }
         }
@@ -383,7 +382,7 @@ fun ConfirmError.toLabel() = when (this) {
     is ConfirmError.Init,
     is ConfirmError.TransactionIncorrect,
     is ConfirmError.PreloadError -> "${stringResource(R.string.confirm_fee_error)}: ${stringResource(R.string.errors_unable_estimate_network_fee)}"
-    is ConfirmError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, chainTitle.boldMarkdown())
+    is ConfirmError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, "${asset.name} (${asset.symbol})".boldMarkdown())
     is ConfirmError.InsufficientFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, chain.asset().title.boldMarkdown())
     is ConfirmError.BroadcastError -> "${stringResource(R.string.errors_transfer_error)}: ${this.details}"
     is ConfirmError.NetworkError -> error.localizedDescription()

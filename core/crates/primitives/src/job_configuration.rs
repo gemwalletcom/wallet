@@ -11,7 +11,7 @@ impl Default for JobConfiguration {
     fn default() -> Self {
         Self {
             initial_interval_ms: 5_000,
-            max_interval_ms: 30_000,
+            max_interval_ms: 60_000,
             step_factor: 1.1,
         }
     }
@@ -47,7 +47,7 @@ mod tests {
             JobConfiguration::default(),
             JobConfiguration {
                 initial_interval_ms: 5_000,
-                max_interval_ms: 30_000,
+                max_interval_ms: 60_000,
                 step_factor: 1.1,
             }
         );
@@ -55,7 +55,7 @@ mod tests {
         let config = JobConfiguration::transaction_state(Chain::Ethereum);
 
         assert_eq!(config.initial_interval_ms, 5_000);
-        assert_eq!(config.max_interval_ms, 30_000);
+        assert_eq!(config.max_interval_ms, 60_000);
         assert_eq!(config.step_factor, 1.1);
     }
 

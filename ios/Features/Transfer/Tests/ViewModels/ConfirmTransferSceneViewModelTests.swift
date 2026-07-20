@@ -437,19 +437,22 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientNetworkFeeErrorShowsRequiredAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
         let required = BigInt(21_000_000_000_000)
-        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockEthereum(), required: required)))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(
+            .mockEthereum(),
+            requirement: BalanceRequirement(required: required, available: .zero),
+        )))
 
-        guard case let .info(.insufficientNetworkFee(_, _, sheetRequired, _, _, _)) = model.isPresentingSheet else {
+        guard case let .info(.insufficientNetworkFee(_, _, sheetRequirement, _, _, _)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
             return
         }
-        #expect(sheetRequired == required)
+        #expect(sheetRequirement == BalanceRequirement(required: required, available: .zero))
     }
 
     @Test
     func insufficientNetworkFeeBuyActionUsesSmallDefaultAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockEthereum(), required: nil)))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockEthereum(), requirement: nil)))
 
         guard case let .info(.insufficientNetworkFee(_, _, _, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -466,22 +469,81 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func tronInsufficientNetworkFeeActionShowsGetOptions() {
+    func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTronUSDT(), required: nil)))
+        model.onSelectListError(error: .amount(.insufficientBalance(
+            .mockTron(),
+            requirement: BalanceRequirement(required: 36_798_300, available: 36_070_000),
+        )))
 
-        guard case let .info(.insufficientNetworkFee(_, _, _, _, _, action)) = model.isPresentingSheet else {
-            Issue.record("Expected insufficientNetworkFee sheet")
+        guard case let .info(sheet) = model.isPresentingSheet,
+              case let .balanceRequired(_, _, requirement, action) = sheet
+        else {
+            Issue.record("Expected balanceRequired sheet")
             return
         }
+        #expect(requirement == BalanceRequirement(required: 36_798_300, available: 36_070_000))
+        #expect(InfoSheetModelFactory.create(from: sheet).description == Localized.Info.balanceRequiredDescription(
+            "36.7983 TRX".boldMarkdown(),
+            "36.07 TRX".boldMarkdown(),
+            "0.7283 TRX".boldMarkdown(),
+        ))
 
         action()
 
-        guard case let .getNetworkFeeAsset(asset) = model.isPresentingSheet else {
-            Issue.record("Expected getNetworkFeeAsset sheet")
+        guard case let .getAsset(asset, buyAmount) = model.isPresentingSheet else {
+            Issue.record("Expected getAsset sheet")
             return
         }
         #expect(asset.id == Asset.mockTron().id)
+        #expect(buyAmount == nil)
+    }
+
+    @Test
+    func tronTokenInsufficientBalancePreservesAsset() {
+        let asset = Asset.mockTronUSDT()
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
+        model.onSelectListError(error: .amount(.insufficientBalance(
+            asset,
+            requirement: BalanceRequirement(required: 2, available: 1),
+        )))
+
+        guard case let .info(.balanceRequired(_, _, _, action)) = model.isPresentingSheet else {
+            Issue.record("Expected balanceRequired sheet")
+            return
+        }
+        action()
+
+        guard case let .getAsset(sheetAsset, buyAmount) = model.isPresentingSheet else {
+            Issue.record("Expected getAsset sheet")
+            return
+        }
+        #expect(sheetAsset.id == asset.id)
+        #expect(model.assetAddress(sheetAsset).asset.id == asset.id)
+        #expect(buyAmount == nil)
+    }
+
+    @Test
+    func insufficientBalanceBuyActionUsesErrorAsset() {
+        let asset = Asset.mockEthereumUSDT()
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
+        model.onSelectListError(error: .amount(.insufficientBalance(
+            asset,
+            requirement: BalanceRequirement(required: 2, available: 1),
+        )))
+
+        guard case let .info(.balanceRequired(_, _, _, action)) = model.isPresentingSheet else {
+            Issue.record("Expected balanceRequired sheet")
+            return
+        }
+        action()
+
+        guard case let .fiatConnect(assetAddress, _, amount) = model.isPresentingSheet else {
+            Issue.record("Expected fiatConnect sheet")
+            return
+        }
+        #expect(assetAddress.asset.id == asset.id)
+        #expect(amount == nil)
     }
 
     @Test
@@ -492,40 +554,51 @@ struct ConfirmTransferSceneViewModelTests {
         let required = BigInt(2_000_000_000_000_000)
 
         let withPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
-            asset, image: image, required: required,
+            asset, image: image, requirement: BalanceRequirement(required: required, available: .zero),
             price: Price(price: 2000, priceChangePercentage24h: 0, updatedAt: Date()),
             currency: "USD", action: {},
         ))
         let withoutPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
-            asset, image: image, required: required,
+            asset, image: image, requirement: BalanceRequirement(required: required, available: .zero),
             price: nil, currency: "USD", action: {},
         ))
 
         #expect(withPrice.description == Localized.Info.InsufficientNetworkFeeBalance.description(
             "0.002 ETH (~$4.00)".boldMarkdown(),
             feeAsset.name.boldMarkdown(),
-            feeAsset.symbol.boldMarkdown(),
+            "0 ETH".boldMarkdown(),
+            "0.002 ETH".boldMarkdown(),
         ))
         #expect(withoutPrice.description == Localized.Info.InsufficientNetworkFeeBalance.description(
             "0.002 ETH".boldMarkdown(),
             feeAsset.name.boldMarkdown(),
-            feeAsset.symbol.boldMarkdown(),
+            "0 ETH".boldMarkdown(),
+            "0.002 ETH".boldMarkdown(),
         ))
     }
 
     @Test
-    func tronInsufficientNetworkFeeSheetUsesGetActionTitle() {
-        let asset = Asset.mockTronUSDT()
-        let model = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
-            asset,
-            image: AssetViewModel(asset: asset).assetImage,
-            required: nil,
-            price: nil,
-            currency: "USD",
-            action: {},
-        ))
+    func tronInsufficientNetworkFeeUsesNativeAsset() {
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTronUSDT(), requirement: nil)))
 
-        #expect(model.buttonTitle == Localized.Asset.getAsset("TRX"))
+        guard case let .info(sheet) = model.isPresentingSheet,
+              case let .insufficientNetworkFee(asset, _, _, _, _, action) = sheet
+        else {
+            Issue.record("Expected insufficientNetworkFee sheet")
+            return
+        }
+        #expect(asset.id == Asset.mockTron().id)
+        #expect(InfoSheetModelFactory.create(from: sheet).buttonTitle == Localized.Asset.getAsset("TRX"))
+
+        action()
+
+        guard case let .getAsset(asset, buyAmount) = model.isPresentingSheet else {
+            Issue.record("Expected getAsset sheet")
+            return
+        }
+        #expect(asset.id == Asset.mockTron().id)
+        #expect(buyAmount == FiatConfig.insufficientNetworkFeeBuyAmount)
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {

@@ -47,8 +47,8 @@ extension BalanceService: BalanceUpdater {
             for account in wallet.accounts {
                 let chain = account.chain
                 let address = account.address
-                let ids = assetIds.filter { $0.identifier.hasPrefix(chain.rawValue) }
-                let tokenIds = ids.filter { $0.identifier != chain.id }
+                let ids = assetIds.filter { $0.chain == chain }
+                let tokenIds = ids.filter { $0.type == .token }
 
                 guard !ids.isEmpty else { continue }
 

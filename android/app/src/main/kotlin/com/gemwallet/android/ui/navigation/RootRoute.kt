@@ -7,9 +7,8 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
-import com.gemwallet.android.features.confirm.presents.GetNetworkFeeAssetAction
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
@@ -265,11 +264,11 @@ class WalletNavigator(
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
     fun openBuy(assetId: AssetId, amount: Double?) = push(FiatInputRoute(assetId, amount))
-    fun openGetNetworkFeeAsset(action: GetNetworkFeeAssetAction, assetId: AssetId) {
+    fun openAcquireAsset(action: AcquireAssetAction, assetId: AssetId) {
         when (action) {
-            GetNetworkFeeAssetAction.Buy -> openBuy(assetId, amount = FiatConfig.insufficientNetworkFeeBuyAmount.toDouble())
-            GetNetworkFeeAssetAction.Swap -> openSwapTo(assetId)
-            GetNetworkFeeAssetAction.Receive -> openReceive(assetId)
+            is AcquireAssetAction.Buy -> openBuy(assetId, amount = action.amount?.toDouble())
+            AcquireAssetAction.Swap -> openSwapTo(assetId)
+            AcquireAssetAction.Receive -> openReceive(assetId)
         }
     }
     fun openFiatTransactions() = push(FiatTransactionsRoute)

@@ -142,7 +142,6 @@ public final class ConfirmTransferSceneViewModel {
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
         state.simulation.balanceChanges.map(ConfirmBalanceChangeViewModel.init)
     }
-
 }
 
 // MARK: - ListSectionProvideable
@@ -157,7 +156,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
             ListSection(type: .fee, [.networkFee]),
             ListSection(type: .error, [.error]),
-        ].compactMap { $0 }
+        ].compactMap(\.self)
     }
 
     private var detailItems: [ConfirmTransferItem] {
@@ -221,7 +220,7 @@ extension ConfirmTransferSceneViewModel {
             asset: dataModel.asset,
             feePrice: state.metadata?.feePrice,
             currency: currency.rawValue,
-            onGetNetworkFeeAsset: onSelectGetNetworkFeeAsset,
+            onGetAsset: { [weak self] asset, buyAmount in self?.onSelectGetAsset(asset, buyAmount: buyAmount) },
         ) else { return }
         isPresentingSheet = .info(sheet)
     }
@@ -317,20 +316,16 @@ extension ConfirmTransferSceneViewModel {
 // MARK: - Private
 
 extension ConfirmTransferSceneViewModel {
-    private func onSelectGetNetworkFeeAsset() {
-        guard dataModel.chain == .tron else {
-            onSelectBuy()
-            return
+    private func onSelectGetAsset(_ asset: Asset, buyAmount: Int? = nil) {
+        if asset.chain == .tron {
+            isPresentingSheet = .getAsset(asset, buyAmount: buyAmount)
+        } else {
+            isPresentingSheet = .fiatConnect(
+                assetAddress: AssetAddress(asset: asset, address: senderAddress),
+                wallet: request.wallet,
+                amount: buyAmount,
+            )
         }
-        isPresentingSheet = .getNetworkFeeAsset(feeAsset)
-    }
-
-    private func onSelectBuy() {
-        isPresentingSheet = .fiatConnect(
-            assetAddress: feeAssetAddress,
-            wallet: request.wallet,
-            amount: FiatConfig.insufficientNetworkFeeBuyAmount,
-        )
     }
 
     private func confirm(transactionData: TransactionData, amount: TransferAmount) {
@@ -356,28 +351,16 @@ extension ConfirmTransferSceneViewModel {
         (try? request.wallet.account(for: dataModel.chain).address) ?? ""
     }
 
-    public var networkFeeAssetAddress: AssetAddress {
-        feeAssetAddress
+    public func assetAddress(_ asset: Asset) -> AssetAddress {
+        AssetAddress(asset: asset, address: senderAddress)
     }
 
-    public var networkFeeSwapFromAsset: Asset {
-        swapFromAsset
+    public func swapFromAsset(to asset: Asset) -> Asset {
+        dataModel.asset.id == asset.id ? dataModel.asset.feeAsset : dataModel.asset
     }
 
-    public var networkFeeWallet: Wallet {
+    public var assetAcquisitionWallet: Wallet {
         request.wallet
-    }
-
-    private var feeAssetAddress: AssetAddress {
-        AssetAddress(asset: feeAsset, address: senderAddress)
-    }
-
-    private var feeAsset: Asset {
-        dataModel.asset.feeAsset
-    }
-
-    private var swapFromAsset: Asset {
-        dataModel.asset.id == feeAsset.id ? feeAsset : dataModel.asset
     }
 
     private var dataModel: TransferDataViewModel {

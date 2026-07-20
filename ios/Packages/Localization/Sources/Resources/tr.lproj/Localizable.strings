@@ -426,10 +426,10 @@
 "info.slippage.description" = "Kayma, bir işlemin beklenen fiyatı ile gerçekleştirildiği gerçek fiyat arasındaki farkı ifade eder.";
 "info.asset_status.unverified.description" = "Doğrulanmamış token'lar güvenilir üçüncü taraf hizmetleri tarafından yeterince doğrulanmamıştır. Airdrop'lar, transferler veya manuel içe aktarmalar nedeniyle cüzdanınızda görünebilirler.";
 "info.asset_status.suspicious.description" = "Şüpheli veya spam token'lar potansiyel dolandırıcılık veya zararlı varlıklar olarak tanımlanır. Airdrop'lar, transferler veya manuel ithalatlar nedeniyle cüzdanınızda görünebilirler.";
-"info.insufficient_network_fee_balance.title" = "%@ gerekli";
-"info.insufficient_network_fee_balance.description" = "Bu işlem %@ 'un %@ madencilerine ödenen ağ ücretini karşılamasını gerektirir, Gem Wallet değil. Yeterli %@ olduğundan emin olun.";
+"info.balance_required_title" = "%@ gerekli";
+"info.insufficient_network_fee_balance.description" = "Bu işlem %@ ağ ücreti için %@ gerektirir, ancak yalnızca %@ kullanılabilir. Devam etmek için %@ daha gerekiyor.";
 "info.insufficient_balance.title" = "Yetersiz Bakiye";
-"info.insufficient_balance.description" = "Bu işlemi tamamlamak için yeterli %@ iniz yok. Lütfen cüzdanınıza para yükleyin, alın veya takas edin ve tekrar deneyin.";
+"info.balance_required_description" = "Bu işlem %@ gerektirir, ancak yalnızca %@ kullanılabilir. Devam etmek için %@ daha gerekiyor.";
 "info.account_minimum_balance.title" = "Minimum bakiye";
 "info.perpetual.funding_payments.title" = "Finansman Ödemeleri";
 "info.perpetual.funding_payments.description" = "Fonlama ödemeleri, daimi sözleşme fiyatını dayanak varlığın spot fiyatına yakın tutmak için yatırımcılar arasında yapılan periyodik ödemelerdir. Pozitif fonlama, uzun pozisyonların kısa pozisyon ödediği anlamına gelirken, negatif fonlama, kısa pozisyonların uzun pozisyon ödediği anlamına gelir.";

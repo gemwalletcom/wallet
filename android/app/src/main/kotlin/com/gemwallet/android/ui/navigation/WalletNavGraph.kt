@@ -161,7 +161,7 @@ fun WalletNavGraph(
 
             confirm(
                 finishAction = { _ -> navigator.popConfirmFlow() },
-                onGetNetworkFeeAssetAction = navigator::openGetNetworkFeeAsset,
+                onAcquireAsset = navigator::openAcquireAsset,
                 cancelAction = onCancel,
             )
 

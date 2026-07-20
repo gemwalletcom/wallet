@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.models.swap
 
 import com.gemwallet.android.math.NumberSanitizer
-import com.gemwallet.android.math.parseNumberOrNull
+import com.gemwallet.android.math.parseInputNumberOrNull
 import java.math.BigDecimal
 
 object SwapSlippage {
@@ -20,15 +20,15 @@ object SwapSlippage {
         NumberSanitizer(maximumFractionDigits = 2, maximumIntegerDigits = 2).sanitize(input)
 
     fun parseBps(input: String): UInt? {
-        val percent = input.parseNumberOrNull()?.takeIf { it > BigDecimal.ZERO } ?: return null
+        val percent = input.parseInputNumberOrNull()?.takeIf { it > BigDecimal.ZERO } ?: return null
         return (percent.min(BigDecimal(maxPercent)) * BigDecimal(100)).toInt().toUInt()
     }
 
     fun isOverMax(input: String): Boolean =
-        (input.parseNumberOrNull() ?: BigDecimal.ZERO) > BigDecimal(maxPercent)
+        (input.parseInputNumberOrNull() ?: BigDecimal.ZERO) > BigDecimal(maxPercent)
 
     fun isBelowMin(input: String): Boolean {
-        val percent = input.parseNumberOrNull() ?: return false
+        val percent = input.parseInputNumberOrNull() ?: return false
         return percent > BigDecimal.ZERO && percent < minPercent
     }
 }

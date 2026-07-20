@@ -18,8 +18,8 @@ struct NumberInputNormalizerTests {
             ("12,345,678,901.23456789", "12345678901.23456789"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -33,8 +33,8 @@ struct NumberInputNormalizerTests {
             ("12.345.678.901,23456789", "12345678901.23456789"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -51,8 +51,8 @@ struct NumberInputNormalizerTests {
         ]
 
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -68,8 +68,8 @@ struct NumberInputNormalizerTests {
             ("123,456.78BTC", "123456.78"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -81,8 +81,8 @@ struct NumberInputNormalizerTests {
             ("123,456,789,012,345.67890123", "123456789012345.67890123"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -111,8 +111,8 @@ struct NumberInputNormalizerTests {
             (Locale.PT_BR, "1.234.567.890,12345678", "1234567890.12345678"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -127,8 +127,8 @@ struct NumberInputNormalizerTests {
             (Locale.ZH_Traditional, "1,234.56HKD", "1234.56"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -139,8 +139,8 @@ struct NumberInputNormalizerTests {
             (Locale.FR, "1 234,56€", "1234.56"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -149,8 +149,8 @@ struct NumberInputNormalizerTests {
         let locale = Locale.US
         let input = "123,456.78!!!!"
         let expected = "123456.78"
-        let normalized = NumberInputNormalizer.normalize(input, locale: locale)
-        #expect(normalized == expected)
+        let decimalString = NumberInputNormalizer.normalize(input, locale: locale)
+        #expect(decimalString == expected)
     }
 
     @Test
@@ -160,8 +160,8 @@ struct NumberInputNormalizerTests {
             (Locale.DA_DK, "1234.56", "1234.56"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -172,8 +172,29 @@ struct NumberInputNormalizerTests {
             (Locale.DA_DK, "1.234", "1234"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
+        }
+    }
+
+    @Test
+    func groupedWholeNumbersWithoutDecimalSeparator() {
+        let testCases: [(locale: Locale, input: String, expected: String)] = [
+            (Locale.US, "1,000,000", "1000000"),
+            (Locale.US, "12,345,678", "12345678"),
+            (Locale.DA_DK, "1.000.000", "1000000"),
+            (Locale.IT, "1.000.000", "1000000"),
+            (Locale.PT_BR, "12.345.678", "12345678"),
+            (Locale.US, "1.000.000", "1000000"),
+            (Locale.DA_DK, "1,000,000", "1000000"),
+            (Locale.DA_DK, "1.234", "1234"),
+            (Locale.DA_DK, "1,5", "1.5"),
+            (Locale.US, "1.5", "1.5"),
+            (Locale.US, "1.234", "1.234"),
+        ]
+        for testCase in testCases {
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -184,8 +205,8 @@ struct NumberInputNormalizerTests {
             (Locale.FR, "1 234 567,89 €", "1234567.89"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -200,8 +221,8 @@ struct NumberInputNormalizerTests {
             (Locale.DA_DK, "0,12317", "0.12317"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 
@@ -223,8 +244,8 @@ struct NumberInputNormalizerTests {
             (Locale.ZH_Traditional, "1,234.56", "1234.56"),
         ]
         for testCase in testCases {
-            let normalized = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
-            #expect(normalized == testCase.expected)
+            let decimalString = NumberInputNormalizer.normalize(testCase.input, locale: testCase.locale)
+            #expect(decimalString == testCase.expected)
         }
     }
 }

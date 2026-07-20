@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.assets.coordinators.GetSearchLists
 import com.gemwallet.android.application.nft.coordinators.GetNftCollections

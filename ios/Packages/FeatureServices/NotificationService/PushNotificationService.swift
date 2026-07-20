@@ -4,7 +4,7 @@ import Foundation
 import Preferences
 import UIKit
 
-public struct PushNotificationEnablerService: Sendable {
+public struct PushNotificationEnablerService: PushNotificationEnabler {
     private let preferences: Preferences
 
     public init(preferences: Preferences = .standard) {

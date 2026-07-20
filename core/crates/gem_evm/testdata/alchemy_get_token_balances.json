@@ -1,0 +1,12 @@
+{
+    "tokenBalances": [
+        {
+            "contractAddress": "0xtoken",
+            "tokenBalance": "0x2a"
+        },
+        {
+            "contractAddress": "0xerror",
+            "tokenBalance": null
+        }
+    ]
+}

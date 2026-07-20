@@ -6,30 +6,33 @@ use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
+    NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType, TransactionLoadData, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
+
+#[cfg(feature = "testkit")]
+pub mod testkit;
+
+pub enum TransactionsResult {
+    Transactions(Vec<Transaction>),
+    TransactionIds(Vec<TransactionId>),
+}
 
 pub struct TransactionsRequest {
     pub address: String,
     pub asset_id: Option<AssetId>,
-    pub limit: Option<usize>,
+    pub limit: usize,
     pub from_timestamp: Option<u64>,
 }
 
 impl TransactionsRequest {
-    pub fn new(address: String) -> Self {
+    pub fn new(address: String, limit: usize) -> Self {
         Self {
             address,
             asset_id: None,
-            limit: None,
+            limit,
             from_timestamp: None,
         }
-    }
-
-    pub fn with_limit(mut self, limit: usize) -> Self {
-        self.limit = Some(limit);
-        self
     }
 
     pub fn with_from_timestamp(mut self, from_timestamp: Option<u64>) -> Self {
@@ -122,8 +125,8 @@ pub trait ChainTransactions: Send + Sync {
     async fn get_transactions_by_block(&self, _block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
     }
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![])
+    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        Ok(TransactionsResult::Transactions(Vec::new()))
     }
 
     async fn get_transaction_by_hash(&self, _hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {

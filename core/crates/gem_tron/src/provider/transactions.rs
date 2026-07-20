@@ -1,11 +1,11 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::Transaction;
+use primitives::{Transaction, TransactionId};
 
-use super::transactions_mapper::{map_transaction, map_transactions_by_address, map_transactions_by_block};
+use super::transactions_mapper::{map_transaction, map_transactions_by_block};
 use crate::rpc::client::TronClient;
 
 #[async_trait]
@@ -27,84 +27,36 @@ impl<C: Client + Clone> ChainTransactions for TronClient<C> {
         Ok(map_transaction(self.get_chain(), self.get_transaction(hash).await?, receipt))
     }
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(20);
         let transactions = self.trongrid_client.get_transactions_by_address(&address, limit).await?.data;
 
-        if transactions.is_empty() {
-            return Ok(vec![]);
-        }
-
-        let futures = transactions.iter().map(|transaction| self.get_transaction_receipt(transaction.transaction_id.clone()));
-        let receipts = futures::future::try_join_all(futures).await?;
-        let (transactions, receipts) = transactions
-            .into_iter()
-            .zip(receipts)
-            .filter_map(|(transaction, receipt)| receipt.map(|receipt| (transaction, receipt)))
-            .unzip();
-
-        Ok(map_transactions_by_address(transactions, receipts))
+        Ok(TransactionsResult::TransactionIds(
+            transactions
+                .into_iter()
+                .map(|transaction| TransactionId::new(self.get_chain(), transaction.transaction_id))
+                .collect(),
+        ))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_client::ClientError;
 
     const TRANSACTIONS_RESPONSE: &str = include_str!("../../testdata/transactions_by_address.json");
-    const RECEIPTS_RESPONSE: &str = include_str!("../../testdata/transactions_by_address_receipts.json");
     const ADDRESS: &str = "TBKwjUtXVsX1r724C1V52nocBgtioDjx9u";
     const LAGGING_TRANSACTION_ID: &str = "e5c5dc535b267134024e887c00b1522426661b1b5ae6efb76606f4d83bca1a81";
     const INCOMING_TRANSACTION_ID: &str = "7b633cd06802d7117a7202650c7580516c742ce1e20d43ba736ab8da1a02cd8f";
 
     #[tokio::test]
     async fn test_get_transactions_by_address() {
-        let receipts: Vec<serde_json::Value> = serde_json::from_str(RECEIPTS_RESPONSE).unwrap();
-
-        let valid_receipts = receipts.clone();
-        let client = TronClient::mock(move |path| {
-            if path.contains("/transactions?") {
-                Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec())
-            } else if path.contains(LAGGING_TRANSACTION_ID) {
-                Ok(b"{}".to_vec())
-            } else {
-                let receipt = valid_receipts.iter().find(|receipt| path.contains(receipt["id"].as_str().unwrap())).unwrap();
-                Ok(serde_json::to_vec(receipt).unwrap())
-            }
-        });
-        let transactions = client
-            .get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string()).with_limit(4))
-            .await
-            .unwrap();
-        assert_eq!(transactions.len(), 3);
-        assert!(!transactions.iter().any(|transaction| transaction.hash == LAGGING_TRANSACTION_ID));
-        assert!(transactions.iter().any(|transaction| transaction.hash == INCOMING_TRANSACTION_ID));
-
-        let client = TronClient::mock(|path| {
-            if path.contains("/transactions?") {
-                Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec())
-            } else if path.contains(LAGGING_TRANSACTION_ID) {
-                Err(ClientError::Http { status: 503, body: vec![] })
-            } else {
-                Ok(b"{}".to_vec())
-            }
-        });
-        let outage = client.get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string()).with_limit(4)).await;
-        assert!(outage.is_err());
-
-        let client = TronClient::mock(|path| {
-            if path.contains("/transactions?") {
-                Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec())
-            } else if path.contains(LAGGING_TRANSACTION_ID) {
-                Ok(br#"{"unexpected":"shape"}"#.to_vec())
-            } else {
-                Ok(b"{}".to_vec())
-            }
-        });
-        let malformed = client.get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string()).with_limit(4)).await;
-        assert!(malformed.is_err());
+        let client = TronClient::mock(|_| Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec()));
+        let result = client.get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string(), 4)).await.unwrap();
+        let transaction_ids = result.transaction_ids().unwrap();
+        assert_eq!(transaction_ids.len(), 4);
+        assert!(transaction_ids.iter().any(|transaction| transaction.hash == LAGGING_TRANSACTION_ID));
+        assert!(transaction_ids.iter().any(|transaction| transaction.hash == INCOMING_TRANSACTION_ID));
     }
 }
 
@@ -133,12 +85,12 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transactions_by_address() {
         let tron_client = create_test_client();
-        let transactions = tron_client
-            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()).with_limit(2))
+        let result = tron_client
+            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string(), 2))
             .await
             .unwrap();
-
-        assert!(!transactions.is_empty());
+        let transaction_ids = result.transaction_ids().unwrap();
+        assert!(!transaction_ids.is_empty());
     }
 
     #[tokio::test]

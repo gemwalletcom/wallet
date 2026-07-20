@@ -23,19 +23,16 @@ pub(in crate::across) fn parse_address(chain: Chain, address: &str) -> Result<Ad
 
 pub(in crate::across) fn supported_asset_for_token(chain: Chain, token_address: &str) -> Option<AssetId> {
     let token_address = parse_address(chain, token_address).ok()?;
+    if chain != Chain::Tron {
+        return AcrossDeployment::supported_asset_for_token(chain, token_address);
+    }
+
     AcrossDeployment::supported_assets().get(&chain)?.iter().find_map(|asset| {
-        let across_asset = across_asset_id(asset)?;
-        let asset_address = parse_address(across_asset.chain, across_asset.token_id.as_deref()?).ok()?;
+        let asset_address = parse_address(asset.chain, asset.token_id.as_deref()?).ok()?;
         if asset_address != token_address {
             return None;
         }
-
-        let native_asset = AssetId::from_chain(asset.chain);
-        if across_asset_id(&native_asset).as_ref() == Some(asset) {
-            Some(native_asset)
-        } else {
-            Some(asset.clone())
-        }
+        Some(asset.clone())
     })
 }
 

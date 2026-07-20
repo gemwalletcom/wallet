@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Deslizamento refere-se à diferença entre o preço esperado de uma negociação e o preço real pelo qual ela é executada.</string>
   <string name="info_asset_status_unverified_description">Tokens não verificados não foram suficientemente verificados por serviços terceirizados confiáveis. Eles podem aparecer na sua carteira devido a airdrops, transferências ou importações manuais.</string>
   <string name="info_asset_status_suspicious_description">Tokens suspeitos ou de spam são identificados como potenciais golpes ou ativos nocivos. Eles podem aparecer na sua carteira devido a airdrops, transferências ou importações manuais.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s necessário</string>
-  <string name="info_insufficient_network_fee_balance_description">Esta transação requer %1$s para cobrir a taxa de rede paga a %2$s mineiros, não Gem Wallet. Certifique-se de ter %3$s suficiente.</string>
+  <string name="info_balance_required_title">%1$s necessário</string>
+  <string name="info_insufficient_network_fee_balance_description">Esta transação requer %1$s para a taxa da rede %2$s, mas apenas %3$s estão disponíveis. Você precisa de mais %4$s para continuar.</string>
   <string name="info_insufficient_balance_title">Saldo insuficiente</string>
-  <string name="info_insufficient_balance_description">Você não tem %1$s suficientes para concluir esta transação. Recarregue, receba ou troque na sua carteira e tente novamente.</string>
+  <string name="info_balance_required_description">Esta transação requer %1$s, mas apenas %2$s estão disponíveis. Você precisa de mais %3$s para continuar.</string>
   <string name="info_account_minimum_balance_title">Saldo mínimo</string>
   <string name="info_perpetual_funding_payments_title">Pagamentos de financiamento</string>
   <string name="info_perpetual_funding_payments_description">Os pagamentos de financiamento são pagamentos periódicos entre traders para manter o preço do contrato perpétuo próximo do preço à vista do ativo subjacente. O financiamento positivo significa que as posições longas pagam as posições curtas, enquanto o financiamento negativo significa que as posições curtas pagam as posições longas.</string>

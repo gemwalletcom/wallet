@@ -526,9 +526,7 @@ extension AssetSceneViewModel {
     }
 
     private func enablePriceAlert() async throws {
-        try await priceAlertService.add(priceAlert: .default(for: assetModel.asset.id, currency: preferences.preferences.currency))
-        try await priceAlertService.requestPermissions()
-        try await priceAlertService.enablePriceAlerts()
+        try await priceAlertService.enable(priceAlert: .default(for: assetModel.asset.id, currency: preferences.preferences.currency))
     }
 
     private func disablePriceAlert() async throws {

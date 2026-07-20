@@ -19,9 +19,7 @@ struct GatewayChainService {
     }
 }
 
-// MARK: - ChainBalanceable
-
-extension GatewayChainService: ChainBalanceable {
+extension GatewayChainService: ChainServiceable {
     func coinBalance(for address: String) async throws -> AssetBalance {
         try await gateway.coinBalance(chain: chain, address: address)
     }
@@ -37,79 +35,39 @@ extension GatewayChainService: ChainBalanceable {
     func getEarnBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance] {
         try await gateway.getEarnBalance(chain: chain, address: address, tokenIds: tokenIds)
     }
-}
 
-// MARK: - ChainFeeRateFetchable
-
-extension GatewayChainService: ChainFeeRateFetchable {
     func feeRates(type: TransferDataType) async throws -> [FeeRate] {
         try await gateway.feeRates(chain: chain, input: type)
     }
-}
 
-// MARK: - ChainBroadcastable
-
-extension GatewayChainService: ChainBroadcastable {
-    func broadcast(data: String, options: BroadcastOptions) async throws -> String {
-        try await gateway.transactionBroadcast(chain: chain, data: data, options: options)
-    }
-}
-
-// MARK: - ChainTransactionStateFetchable
-
-extension GatewayChainService: ChainTransactionStateFetchable {
-    func transactionState(for request: TransactionStateRequest) async throws -> TransactionChanges {
-        try await gateway.transactionStatus(chain: chain, request: request)
-    }
-}
-
-// MARK: - ChainTokenable
-
-extension GatewayChainService: ChainTokenable {
-    func getTokenData(tokenId: String) async throws -> Asset {
-        try await gateway.tokenData(chain: chain, tokenId: tokenId)
-    }
-
-    func getIsTokenAddress(tokenId: String) async throws -> Bool {
-        try await gateway.isTokenAddress(chain: chain, tokenId: tokenId)
-    }
-}
-
-// MARK: - ChainIDFetchable
-
-extension GatewayChainService: ChainIDFetchable {
-    func getChainID() async throws -> String {
-        try await gateway.chainId(chain: chain)
-    }
-}
-
-// MARK: - ChainLatestBlockFetchable
-
-extension GatewayChainService: ChainLatestBlockFetchable {
-    func getLatestBlock() async throws -> BigInt {
-        try await BigInt(gateway.latestBlock(chain: chain))
-    }
-}
-
-// MARK: - ChainTransactionPreloadable
-
-extension GatewayChainService: ChainTransactionPreloadable {
     func preload(input: TransactionPreloadInput) async throws -> TransactionLoadMetadata {
         try await gateway.transactionPreload(chain: chain, input: input)
     }
-}
 
-// MARK: - ChainTransactionDataLoadable
-
-extension GatewayChainService: ChainTransactionDataLoadable {
     func load(input: TransactionInput) async throws -> TransactionData {
         try await gateway.transactionLoad(chain: chain, input: input.map())
     }
-}
 
-// MARK: - ChainStakable
+    func broadcast(data: String, options: BroadcastOptions) async throws -> String {
+        try await gateway.transactionBroadcast(chain: chain, data: data, options: options)
+    }
 
-extension GatewayChainService: ChainStakable {
+    func transactionState(for request: TransactionStateRequest) async throws -> TransactionChanges {
+        try await gateway.transactionStatus(chain: chain, request: request)
+    }
+
+    func getChainID() async throws -> String {
+        try await gateway.chainId(chain: chain)
+    }
+
+    func getLatestBlock() async throws -> BigInt {
+        try await BigInt(gateway.latestBlock(chain: chain))
+    }
+
+    func getNodeStatus(url: String) async throws -> NodeStatus {
+        try await gateway.nodeStatus(chain: chain, url: url)
+    }
+
     func getValidators(apr: Double) async throws -> [DelegationValidator] {
         try await gateway.validators(chain: chain, apy: apr)
     }
@@ -121,12 +79,12 @@ extension GatewayChainService: ChainStakable {
     func getStakeDelegations(address: String) async throws -> [DelegationBase] {
         try await gateway.delegations(chain: chain, address: address)
     }
-}
 
-// MARK: - ChainNodeStatusFetchable
+    func getTokenData(tokenId: String) async throws -> Asset {
+        try await gateway.tokenData(chain: chain, tokenId: tokenId)
+    }
 
-extension GatewayChainService: ChainNodeStatusFetchable {
-    func getNodeStatus(url: String) async throws -> NodeStatus {
-        try await gateway.nodeStatus(chain: chain, url: url)
+    func getIsTokenAddress(tokenId: String) async throws -> Bool {
+        try await gateway.isTokenAddress(chain: chain, tokenId: tokenId)
     }
 }

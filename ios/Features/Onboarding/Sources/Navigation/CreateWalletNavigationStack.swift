@@ -38,10 +38,10 @@ public struct CreateWalletNavigationStack: View {
                     .navigationBarBackButtonHidden()
                     .interactiveDismissDisabled()
                 }
-                .navigationDestination(for: Scenes.CreateWallet.self) { _ in
+                .navigationDestination(for: Scenes.CreateWallet.self) {
                     ShowSecretDataScene(
                         model: NewSecretPhraseViewModel(
-                            walletService: model.walletService,
+                            words: $0.words,
                             onCreateWallet: { navigate(to: .verifyPhrase(words: $0)) },
                         ),
                     )
@@ -89,7 +89,8 @@ extension CreateWalletNavigationStack {
     func navigate(to route: CreateWalletRoute) {
         switch route {
         case .securityReminder: navigationPath.append(Scenes.SecurityReminder())
-        case .createWallet: navigationPath.append(Scenes.CreateWallet())
+        case .createWallet:
+            navigationPath.append(Scenes.CreateWallet(words: model.generateSecretPhrase()))
         case let .verifyPhrase(words): navigationPath.append(Scenes.VerifyPhrase(words: words))
         case let .walletProfile(wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
         }

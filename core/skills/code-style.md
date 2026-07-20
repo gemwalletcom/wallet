@@ -63,7 +63,7 @@ Order:
 3. Local crate imports
 4. Module re-exports with `pub use`
 
-**IMPORTANT**: Always import models and types at the top of the file. Never use inline imports inside functions. Never use full paths inline — always import types first.
+**IMPORTANT**: Keep every `use` declaration at the top of the file. Never use inline imports inside functions. Never use fully qualified type paths inline—including in impl targets, bounds, fields, parameters, and return types—always import types first.
 
 ```rust
 // bad — inline import inside function body

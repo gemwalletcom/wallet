@@ -1,7 +1,7 @@
 use std::{collections::HashMap, error::Error, sync::Arc};
 use tokio::sync::Mutex;
 
-use ::nft::{NFTClient, NFTProviderConfig};
+use ::nft::{NFTClient, NFTProviderConfig, OffchainClientConfig};
 use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use primitives::Chain;
@@ -35,6 +35,7 @@ impl FetchNftAssetsAddressesConsumer {
             settings.nft.opensea.key.secret.clone(),
             settings.nft.magiceden.key.secret.clone(),
             settings.chains.ton.url.clone(),
+            OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
         );
         let nft_client = NFTClient::from_config(database, nft_config, settings.nft.url.clone());
         let nft_client = Arc::new(Mutex::new(nft_client));

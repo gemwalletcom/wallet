@@ -25,7 +25,10 @@ struct ConfirmErrorViewModelTests {
 
     @Test
     func transferFailure() {
-        let input = ConfirmTransferInput.mock(transferAmount: .failure(.insufficientBalance(.mock())))
+        let input = ConfirmTransferInput.mock(transferAmount: .failure(.insufficientBalance(
+            .mock(),
+            requirement: BalanceRequirement(required: 1, available: 0),
+        )))
         let state = ConfirmTransferState.mock(transaction: .data(input))
         let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })
 

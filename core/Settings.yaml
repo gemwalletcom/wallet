@@ -117,7 +117,7 @@ chains:
   smartchain:
     url: https://bsc-dataseed1.bnbchain.org
   polygon:
-    url: https://polygon.publicnode.com
+    url: https://rpc-mainnet.matic.quiknode.pro
   optimism:
     url: https://mainnet.optimism.io
   arbitrum:
@@ -298,6 +298,10 @@ api:
       secret: ""
       expiry: 1h
 
+alchemy:
+  key:
+    secret: ""
+
 ankr:
   key:
     secret: ""
@@ -311,6 +315,10 @@ assets:
 
 nft:
   url: "https://assets.gemwallet.com/nft"
+  offchain:
+    timeout: 5
+    concurrency: 8
+    limit: 1048576
   nftscan:
     key:
       secret: ""

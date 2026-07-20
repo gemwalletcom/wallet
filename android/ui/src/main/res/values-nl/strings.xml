@@ -441,10 +441,10 @@
   <string name="info_slippage_description">Slippage verwijst naar het verschil tussen de verwachte prijs van een transactie en de daadwerkelijke prijs waartegen de transactie wordt uitgevoerd.</string>
   <string name="info_asset_status_unverified_description">Ongeverifieerde tokens zijn niet voldoende geverifieerd door betrouwbare externe partijen. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.</string>
   <string name="info_asset_status_suspicious_description">Verdachte of spamtokens worden herkend als potentiële oplichting of schadelijke activa. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s vereist</string>
-  <string name="info_insufficient_network_fee_balance_description">Deze transactie vereist %1$s om de netwerkkosten te dekken die betaald worden aan %2$s mijnwerkers, niet Gem Wallet. Zorg ervoor dat je voldoende %3$s hebt.</string>
+  <string name="info_balance_required_title">%1$s vereist</string>
+  <string name="info_insufficient_network_fee_balance_description">Deze transactie vereist %1$s voor de netwerkkosten van %2$s, maar er is slechts %3$s beschikbaar. Je hebt nog %4$s nodig om door te gaan.</string>
   <string name="info_insufficient_balance_title">Onvoldoende saldo</string>
-  <string name="info_insufficient_balance_description">Je hebt niet genoeg %1$s om deze transactie te voltooien. Vul je wallet aan, ontvang of wissel in en probeer het opnieuw.</string>
+  <string name="info_balance_required_description">Deze transactie vereist %1$s, maar er is slechts %2$s beschikbaar. Je hebt nog %3$s nodig om door te gaan.</string>
   <string name="info_account_minimum_balance_title">Minimumsaldo</string>
   <string name="info_perpetual_funding_payments_title">Financieringsbetalingen</string>
   <string name="info_perpetual_funding_payments_description">Financieringsbetalingen zijn periodieke betalingen tussen handelaren om de eeuwigdurende contractprijs dicht bij de spotprijs van de onderliggende waarde te houden. Positieve financiering betekent dat longposities shortposities betalen, terwijl negatieve financiering betekent dat shortposities longposities betalen.</string>

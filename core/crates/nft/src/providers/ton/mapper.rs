@@ -21,17 +21,6 @@ pub fn map_asset(response: &NftItemsResponse, asset_id: NFTAssetId) -> Option<NF
     map_indexed_asset(response, item, asset_id)
 }
 
-pub fn map_indexed_assets(response: &NftItemsResponse) -> Vec<NFTAsset> {
-    response
-        .nft_items
-        .iter()
-        .filter_map(|item| {
-            let asset_id = asset_id_from_item(item)?;
-            map_indexed_asset(response, item, asset_id)
-        })
-        .collect()
-}
-
 pub fn map_offchain_asset(metadata: NftOffchainMetadata, asset_id: NFTAssetId) -> Option<NFTAsset> {
     if metadata.name.is_empty() {
         return None;
@@ -39,7 +28,7 @@ pub fn map_offchain_asset(metadata: NftOffchainMetadata, asset_id: NFTAssetId) -
     Some(build_asset(asset_id, &metadata.name, metadata.description, metadata.image.as_deref()))
 }
 
-fn map_indexed_asset(response: &NftItemsResponse, item: &NftItem, asset_id: NFTAssetId) -> Option<NFTAsset> {
+pub(super) fn map_indexed_asset(response: &NftItemsResponse, item: &NftItem, asset_id: NFTAssetId) -> Option<NFTAsset> {
     let info = valid_named_token_info(response.metadata.get(&item.address))?;
     let collection_image = item
         .collection_address
@@ -54,7 +43,7 @@ fn map_indexed_asset(response: &NftItemsResponse, item: &NftItem, asset_id: NFTA
     ))
 }
 
-fn asset_id_from_item(item: &NftItem) -> Option<NFTAssetId> {
+pub(super) fn asset_id_from_item(item: &NftItem) -> Option<NFTAssetId> {
     let collection = Address::try_parse_hex(item.collection_address.as_deref()?)?;
     let token = Address::try_parse_hex(&item.address)?;
     Some(NFTAssetId::new(Chain::Ton, &collection.encode(), &token.encode()))

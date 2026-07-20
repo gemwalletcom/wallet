@@ -15,7 +15,7 @@ struct MinimumAccountReserveValidatorTests {
 
     @Test
     func passesWhenRemainingZeroOrAboveReservePlusOne() throws {
-        let validator = MinimumAccountReserveValidator<BigInt>(
+        let validator = MinimumAccountReserveValidator(
             available: availableAmount,
             reserve: requiredReserve,
             asset: nativeAsset,
@@ -28,23 +28,29 @@ struct MinimumAccountReserveValidatorTests {
 
     @Test
     func throwsWhenRemainingBetweenOneAndReserveInclusive() {
-        let validator = MinimumAccountReserveValidator<BigInt>(
+        let validator = MinimumAccountReserveValidator(
             available: availableAmount,
             reserve: requiredReserve,
             asset: nativeAsset,
         )
 
-        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(nativeAsset, required: requiredReserve)) {
+        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(
+            nativeAsset,
+            requirement: BalanceRequirement(required: requiredReserve, available: 1),
+        )) {
             try validator.validate(availableAmount - 1)
         }
-        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(nativeAsset, required: requiredReserve)) {
+        #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(
+            nativeAsset,
+            requirement: BalanceRequirement(required: requiredReserve, available: requiredReserve),
+        )) {
             try validator.validate(availableAmount - requiredReserve)
         }
     }
 
     @Test
     func ignoresWhenAssetIsNonNative() throws {
-        let validator = MinimumAccountReserveValidator<BigInt>(
+        let validator = MinimumAccountReserveValidator(
             available: availableAmount,
             reserve: requiredReserve,
             asset: nonNativeAsset,

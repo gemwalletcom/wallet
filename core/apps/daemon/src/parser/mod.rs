@@ -204,14 +204,9 @@ impl Parser {
 
     async fn parse_blocks(&self, blocks: Vec<u64>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let transactions = self.provider.get_transactions_in_blocks(blocks.clone()).await?;
-        if transactions.is_empty() {
-            return Ok(0);
-        }
         self.reporter.record_transactions(&transactions);
-        let count = transactions.len();
         let payload = TransactionsPayload::new_with_notify(self.chain, blocks, transactions);
-        self.stream_producer.publish_transactions(payload).await?;
-        Ok(count)
+        self.stream_producer.publish_transactions(payload).await
     }
 }
 

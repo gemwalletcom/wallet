@@ -194,26 +194,10 @@ public final class SetPriceAlertViewModel {
 extension SetPriceAlertViewModel {
     func setPriceAlert() async {
         do {
-            await updateNotificationsIfNeeded()
             onComplete?(completeMessage)
-            try await priceAlertService.add(priceAlert: priceAlert())
-            try await priceAlertService.enablePriceAlerts()
+            try await priceAlertService.enable(priceAlert: priceAlert())
         } catch {
             debugLog("Set price alert error: \(error.localizedDescription)")
         }
-    }
-
-    private func updateNotificationsIfNeeded() async {
-        guard !preferences.isPushNotificationsEnabled else { return }
-
-        do {
-            preferences.isPushNotificationsEnabled = try await requestPermissions()
-        } catch {
-            debugLog("pushesUpdate error: \(error)")
-        }
-    }
-
-    private func requestPermissions() async throws -> Bool {
-        try await priceAlertService.requestPermissions()
     }
 }

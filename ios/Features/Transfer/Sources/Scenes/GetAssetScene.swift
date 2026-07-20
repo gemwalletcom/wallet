@@ -6,13 +6,13 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct GetNetworkFeeAssetScene: View {
+public struct GetAssetScene: View {
     private let asset: Asset
-    private let onSelect: (GetNetworkFeeAssetAction) -> Void
+    private let onSelect: (GetAssetAction) -> Void
 
     public init(
         asset: Asset,
-        onSelect: @escaping (GetNetworkFeeAssetAction) -> Void,
+        onSelect: @escaping (GetAssetAction) -> Void,
     ) {
         self.asset = asset
         self.onSelect = onSelect
@@ -59,9 +59,9 @@ public struct GetNetworkFeeAssetScene: View {
 
 // MARK: - UI Components
 
-extension GetNetworkFeeAssetScene {
+extension GetAssetScene {
     private func option(
-        action: GetNetworkFeeAssetAction,
+        action: GetAssetAction,
         title: String,
         subtitle: String,
         image: Image,

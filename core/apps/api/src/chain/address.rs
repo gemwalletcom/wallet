@@ -1,7 +1,7 @@
 use rocket::{State, get, tokio::sync::Mutex};
 
 use crate::api_clients::PermissionChainRead;
-use crate::params::{AddressParam, ChainParam};
+use crate::params::{AddressParam, ChainParam, QueryLimitParam};
 use crate::responders::{ApiError, ApiResponse};
 use primitives::{AddressBalances, AssetBalance, ChainAddress, Transaction};
 
@@ -33,14 +33,15 @@ pub async fn get_assets(
     Ok(client.lock().await.get_balances_assets(request).await?.into())
 }
 
-#[get("/chain/address/<chain>/<address>/transactions?<from_timestamp>")]
+#[get("/chain/address/<chain>/<address>/transactions?<from_timestamp>&<limit>")]
 pub async fn get_transactions(
     _permission: PermissionChainRead,
     chain: ChainParam,
     address: AddressParam,
     from_timestamp: Option<u64>,
+    limit: QueryLimitParam,
     client: &State<Mutex<ChainClient>>,
 ) -> Result<ApiResponse<Vec<Transaction>>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
-    Ok(client.lock().await.get_transactions(request, from_timestamp).await?.into())
+    Ok(client.lock().await.get_transactions(request, from_timestamp, limit.0).await?.into())
 }

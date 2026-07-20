@@ -112,7 +112,7 @@ let package = Package(
                 "Formatters",
             ],
             path: "BalanceService",
-            exclude: ["TestKit"],
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "BalanceServiceTestKit",
@@ -256,6 +256,8 @@ let package = Package(
                 "DeviceServiceTestKit",
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 "PriceServiceTestKit",
+                "NotificationService",
+                "NotificationServiceTestKit",
                 .product(name: "PreferencesTestKit", package: "Preferences"),
             ],
             path: "PriceAlertService/TestKit",
@@ -300,7 +302,7 @@ let package = Package(
                 "AssetsService",
             ],
             path: "TransactionsService",
-            exclude: ["TestKit"],
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "TransactionsServiceTestKit",
@@ -714,6 +716,29 @@ let package = Package(
             path: "DiscoverAssetsService/Tests",
         ),
         .testTarget(
+            name: "TransactionsServiceTests",
+            dependencies: [
+                "TransactionsService",
+                "TransactionsServiceTestKit",
+                .product(name: "GemAPITestKit", package: "GemAPI"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "TransactionsService/Tests",
+        ),
+        .testTarget(
+            name: "BalanceServiceTests",
+            dependencies: [
+                "BalanceService",
+                "BalanceServiceTestKit",
+                "AssetsServiceTestKit",
+                .product(name: "BlockchainTestKit", package: "Blockchain"),
+                .product(name: "ChainServiceTestKit", package: "ChainServices"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "StoreTestKit", package: "Store"),
+            ],
+            path: "BalanceService/Tests",
+        ),
+        .testTarget(
             name: "PriceAlertServiceTests",
             dependencies: [
                 "PriceAlertService",
@@ -723,6 +748,8 @@ let package = Package(
                 "DeviceServiceTestKit",
                 "PriceServiceTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "PreferencesTestKit", package: "Preferences"),
+                "NotificationServiceTestKit",
             ],
             path: "PriceAlertService/Tests",
         ),

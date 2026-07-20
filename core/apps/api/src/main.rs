@@ -31,7 +31,7 @@ use strum::IntoEnumIterator;
 use ::defi::{DefiClient, DefiProviderClient, DefiProviderConfig};
 use ::fiat::FiatClient;
 use ::fiat::FiatProviderFactory;
-use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig};
+use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig, OffchainClientConfig};
 use api_connector::PusherClient;
 use assets::{AssetsClient, SearchClient};
 use cacher::CacherClient;
@@ -244,6 +244,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         settings.nft.opensea.key.secret.clone(),
         settings.nft.magiceden.key.secret.clone(),
         settings.chains.ton.url.clone(),
+        OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
     );
     let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());
     let nft_provider_client = NFTProviderClient::new(nft_config);

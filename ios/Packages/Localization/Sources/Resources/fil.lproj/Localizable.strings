@@ -426,10 +426,10 @@
 "info.slippage.description" = "Ang slippage ay tumutukoy sa pagkakaiba sa pagitan ng inaasahang presyo ng isang kalakalan at ang aktwal na presyo kung saan ito isinasagawa.";
 "info.asset_status.unverified.description" = "Ang mga hindi na-verify na token ay hindi sapat na na-verify ng mga pinagkakatiwalaang serbisyo ng third-party. Maaaring lumabas ang mga ito sa iyong wallet dahil sa mga airdrop, paglilipat, o manual na pag-import.";
 "info.asset_status.suspicious.description" = "Ang mga kahina-hinalang token o spam ay tinutukoy bilang mga potensyal na scam o mapaminsalang asset. Maaaring lumabas ang mga ito sa iyong wallet dahil sa mga airdrop, paglilipat, o manual na pag-import.";
-"info.insufficient_network_fee_balance.title" = "%@ kinakailangan";
-"info.insufficient_network_fee_balance.description" = "Ang transaksyong ito ay nangangailangan ng %@ para mabayaran ang bayad sa network na ibinayad sa %@ mga minero, hindi Gem Wallet. Tiyaking mayroon kang sapat na %@.";
+"info.balance_required_title" = "%@ kinakailangan";
+"info.insufficient_network_fee_balance.description" = "Nangangailangan ang transaksyong ito ng %@ para sa bayad sa network ng %@, ngunit %@ lang ang available. Kailangan mo pa ng %@ para magpatuloy.";
 "info.insufficient_balance.title" = "Hindi Sapat na Balanse";
-"info.insufficient_balance.description" = "Wala kang sapat na %@ upang makumpleto ang transaksyong ito. Mangyaring mag-top up, tumanggap, o magpalit sa iyong wallet at subukang muli.";
+"info.balance_required_description" = "Nangangailangan ang transaksyong ito ng %@, ngunit %@ lang ang available. Kailangan mo pa ng %@ para magpatuloy.";
 "info.account_minimum_balance.title" = "Minimum na balanse";
 "info.perpetual.funding_payments.title" = "Mga Pagbabayad sa Pagpopondo";
 "info.perpetual.funding_payments.description" = "Ang mga pagbabayad sa pagpopondo ay mga pana-panahong pagbabayad sa pagitan ng mga mangangalakal upang panatilihing malapit ang panghabang-buhay na presyo ng kontrata sa presyo ng pinagbabatayan ng asset. Ang ibig sabihin ng positibong pagpopondo ay ang mga mahabang posisyon ay nagbabayad ng mga maikling posisyon, habang ang negatibong pagpopondo ay nangangahulugan na ang mga maikling posisyon ay nagbabayad ng mga mahabang posisyon.";

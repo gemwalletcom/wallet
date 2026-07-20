@@ -426,10 +426,10 @@
 "info.slippage.description" = "Slippage bezeichnet die Differenz zwischen dem erwarteten Preis eines Handels und dem tatsächlichen Preis, zu dem er ausgeführt wird.";
 "info.asset_status.unverified.description" = "Nicht verifizierte Token wurden von vertrauenswürdigen Drittanbietern nicht ausreichend verifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrem Wallet erscheinen.";
 "info.asset_status.suspicious.description" = "Verdächtige oder Spam-Token werden als potenzieller Betrug oder schädliche Vermögenswerte identifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrer Wallet erscheinen.";
-"info.insufficient_network_fee_balance.title" = "%@ erforderlich";
-"info.insufficient_network_fee_balance.description" = "Für diese Transaktion sind %@ erforderlich, um die Netzwerkgebühr zu decken, die an %@-Miner gezahlt wird, nicht an Gem Wallet. Stellen Sie sicher, dass Sie genügend %@ haben.";
+"info.balance_required_title" = "%@ erforderlich";
+"info.insufficient_network_fee_balance.description" = "Diese Transaktion erfordert %@ für die %@-Netzwerkgebühr, aber nur %@ sind verfügbar. Sie benötigen noch %@, um fortzufahren.";
 "info.insufficient_balance.title" = "Unzureichendes Guthaben";
-"info.insufficient_balance.description" = "Sie haben nicht genügend %@, um diese Transaktion abzuschließen. Bitte laden Sie Ihr Wallet auf, empfangen Sie es oder tauschen Sie es um und versuchen Sie es erneut.";
+"info.balance_required_description" = "Diese Transaktion erfordert %@, aber nur %@ sind verfügbar. Sie benötigen noch %@, um fortzufahren.";
 "info.account_minimum_balance.title" = "Mindestguthaben";
 "info.perpetual.funding_payments.title" = "Finanzierungszahlungen";
 "info.perpetual.funding_payments.description" = "Finanzierungszahlungen sind regelmäßige Zahlungen zwischen Händlern, um den Preis des unbefristeten Vertrags nahe am Spotpreis des zugrunde liegenden Vermögenswerts zu halten. Positive Finanzierung bedeutet, dass Long-Positionen Short-Positionen bezahlen, während negative Finanzierung bedeutet, dass Short-Positionen Long-Positionen bezahlen.";

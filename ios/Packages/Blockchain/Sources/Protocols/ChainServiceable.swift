@@ -2,78 +2,32 @@ import BigInt
 import Foundation
 import Primitives
 
-public typealias ChainServiceable =
-    ChainBalanceable &
-    ChainBroadcastable &
-    ChainFeeRateFetchable &
-    ChainIDFetchable &
-    ChainLatestBlockFetchable &
-    ChainNodeStatusFetchable &
-    ChainStakable &
-    ChainTokenable &
-    ChainTransactionDataLoadable &
-    ChainTransactionPreloadable &
-    ChainTransactionStateFetchable
-
-// MARK: - Protocols
-
-public protocol ChainBalanceable: Sendable {
-    func coinBalance(for address: String) async throws -> AssetBalance
-    func tokenBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance]
-    func getStakeBalance(for address: String) async throws -> AssetBalance?
-    func getEarnBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance]
-}
-
 public protocol ChainFeeRateFetchable: Sendable {
     func feeRates(type: TransferDataType) async throws -> [FeeRate]
     func defaultPriority(for type: TransferDataType) -> FeePriority
 }
 
-public protocol ChainTransactionPreloadable: Sendable {
+public protocol ChainServiceable: ChainFeeRateFetchable {
+    func coinBalance(for address: String) async throws -> AssetBalance
+    func tokenBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance]
+    func getStakeBalance(for address: String) async throws -> AssetBalance?
+    func getEarnBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance]
+
     func preload(input: TransactionPreloadInput) async throws -> TransactionLoadMetadata
-}
-
-public protocol ChainTransactionDataLoadable: Sendable {
     func load(input: TransactionInput) async throws -> TransactionData
-}
-
-public protocol ChainBroadcastable: Sendable {
     func broadcast(data: String, options: BroadcastOptions) async throws -> String
-}
-
-public protocol ChainTransactionStateFetchable: Sendable {
     func transactionState(for request: TransactionStateRequest) async throws -> TransactionChanges
-}
 
-public protocol ChainIDFetchable: Sendable {
     func getChainID() async throws -> String
-}
+    func getLatestBlock() async throws -> BigInt
+    func getNodeStatus(url: String) async throws -> NodeStatus
 
-public protocol ChainStakable: Sendable {
     func getValidators(apr: Double) async throws -> [DelegationValidator]
     func getDelegationValidators(address: String) async throws -> [DelegationValidator]
     func getStakeDelegations(address: String) async throws -> [DelegationBase]
-}
 
-public protocol ChainTokenable: Sendable {
     func getTokenData(tokenId: String) async throws -> Asset
     func getIsTokenAddress(tokenId: String) async throws -> Bool
-}
-
-public protocol ChainLatestBlockFetchable: Sendable {
-    func getLatestBlock() async throws -> BigInt
-}
-
-public protocol ChainNodeStatusFetchable: Sendable {
-    func getNodeStatus(url: String) async throws -> NodeStatus
-}
-
-protocol ChainFeePriorityPreference: Sendable {}
-
-public extension ChainBalanceable {
-    func getEarnBalance(for _: String, tokenIds _: [AssetId]) async throws -> [AssetBalance] {
-        []
-    }
 }
 
 public extension ChainFeeRateFetchable {
@@ -85,7 +39,11 @@ public extension ChainFeeRateFetchable {
     }
 }
 
-public extension ChainStakable {
+public extension ChainServiceable {
+    func getEarnBalance(for _: String, tokenIds _: [AssetId]) async throws -> [AssetBalance] {
+        []
+    }
+
     func getValidators(apr _: Double) async throws -> [DelegationValidator] {
         []
     }
@@ -97,9 +55,7 @@ public extension ChainStakable {
     func getStakeDelegations(address _: String) async throws -> [DelegationBase] {
         []
     }
-}
 
-public extension ChainTokenable {
     func getTokenData(tokenId _: String) async throws -> Asset {
         throw AnyError("Not Implemented")
     }

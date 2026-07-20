@@ -26,6 +26,15 @@ struct BigInt_PrimitivesTests {
     }
 
     @Test
+    func decreaseByBasisPoints() {
+        #expect(BigInt(1_000_000).decrease(byBasisPoints: 30) == BigInt(997_000))
+        #expect(BigInt(1_000_000).decrease(byBasisPoints: 50) == BigInt(995_000))
+        #expect(BigInt(1_000_000).decrease(byBasisPoints: 100) == BigInt(990_000))
+        #expect(BigInt(1_000_000).decrease(byBasisPoints: 300) == BigInt(970_000))
+        #expect(BigInt(1_000_000).decrease(byBasisPoints: 0) == BigInt(1_000_000))
+    }
+
+    @Test
     func multiplyByPercent() {
         #expect(BigInt(100).multiply(byPercent: 10) == BigInt(10))
         #expect(BigInt(100).multiply(byPercent: 5) == BigInt(5))

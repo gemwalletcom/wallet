@@ -3,6 +3,9 @@
 import DeviceServiceTestKit
 import Foundation
 import GemAPITestKit
+import NotificationServiceTestKit
+import Preferences
+import PreferencesTestKit
 @testable import PriceAlertService
 import PriceAlertServiceTestKit
 import Primitives
@@ -62,6 +65,24 @@ struct PriceAlertServiceTests {
 
         #expect(updatedBitcoin?.lastNotifiedAt == Date(timeIntervalSince1970: 1000))
         #expect(unchangedEthereum?.lastNotifiedAt == nil)
+    }
+
+    @Test
+    func enableAlertRequestsPermissionsAndEnablesAlerts() async throws {
+        let store = try createStore()
+        let preferences = Preferences.mock()
+        let pushNotificationService = PushNotificationEnablerMock()
+        let service = PriceAlertService.mock(
+            store: store,
+            preferences: preferences,
+            pushNotificationService: pushNotificationService,
+        )
+
+        try await service.enable(priceAlert: .mock(assetId: .mock(.bitcoin)))
+
+        #expect(pushNotificationService.didRequestPermissions)
+        #expect(preferences.isPriceAlertsEnabled)
+        #expect(try store.getPriceAlerts().count == 1)
     }
 
     // MARK: - Private methods
