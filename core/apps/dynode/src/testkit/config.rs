@@ -7,11 +7,7 @@ pub fn monitoring_config() -> NodeMonitoringConfig {
     NodeMonitoringConfig {
         enabled: true,
         profile: NodeCheckProfile::Basic,
-        poll_interval: Duration::from_secs(600),
-        max_sync_delay: Duration::from_secs(24),
-        max_sync_blocks: 20,
-        latency_threshold: Some(Duration::from_millis(250)),
-        latency_threshold_percent: Some(20.0),
+        interval: Duration::from_secs(600),
     }
 }
 

@@ -17,8 +17,8 @@ pub struct ChainConfig {
 }
 
 impl ChainConfig {
-    pub fn poll_interval(&self, monitoring_config: &NodeMonitoringConfig) -> Duration {
-        self.poll_interval_seconds.map(Duration::from_secs).unwrap_or(monitoring_config.poll_interval)
+    pub fn monitoring_interval(&self, monitoring_config: &NodeMonitoringConfig) -> Duration {
+        self.poll_interval_seconds.map(Duration::from_secs).unwrap_or(monitoring_config.interval)
     }
 
     pub fn resolve_url(&self, base_url: &Url, rpc_method: Option<&str>, request_path: Option<&str>) -> Url {
@@ -81,25 +81,25 @@ mod tests {
         }
     }
 
-    fn make_monitoring_config(poll_interval: u64) -> NodeMonitoringConfig {
+    fn make_monitoring_config(interval: u64) -> NodeMonitoringConfig {
         NodeMonitoringConfig {
-            poll_interval: Duration::from_secs(poll_interval),
+            interval: Duration::from_secs(interval),
             ..testkit::monitoring_config()
         }
     }
 
     #[test]
-    fn poll_interval_uses_chain_override() {
+    fn monitoring_interval_uses_chain_override() {
         let chain_config = make_chain_config(Some(20));
         let config = make_monitoring_config(45);
-        assert_eq!(chain_config.poll_interval(&config), Duration::from_secs(20));
+        assert_eq!(chain_config.monitoring_interval(&config), Duration::from_secs(20));
     }
 
     #[test]
-    fn poll_interval_uses_global_fallback() {
+    fn monitoring_interval_uses_global_fallback() {
         let chain_config = make_chain_config(None);
         let config = make_monitoring_config(45);
-        assert_eq!(chain_config.poll_interval(&config), Duration::from_secs(45));
+        assert_eq!(chain_config.monitoring_interval(&config), Duration::from_secs(45));
     }
 
     #[test]

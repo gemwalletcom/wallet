@@ -45,28 +45,21 @@ impl NodeMonitor {
 
             let nodes = Arc::clone(&self.nodes);
             let metrics = Arc::clone(&self.metrics);
-            let monitoring_config = self.monitoring_config.clone();
-            let poll_interval = chain_config.poll_interval(&monitoring_config);
+            let interval = chain_config.monitoring_interval(&self.monitoring_config);
             let initial_delay = Duration::from_millis(((index as u64) + 1) * 250);
 
             tokio::task::spawn(async move {
                 sleep(initial_delay).await;
 
                 loop {
-                    Self::evaluate_chain(&chain_config, &request, &nodes, &metrics, &monitoring_config).await;
-                    sleep(poll_interval).await;
+                    Self::evaluate_chain(&chain_config, &request, &nodes, &metrics).await;
+                    sleep(interval).await;
                 }
             });
         }
     }
 
-    async fn evaluate_chain(
-        chain_config: &ChainConfig,
-        request: &NodeCheckRequest,
-        nodes: &Arc<RwLock<HashMap<Chain, NodeDomain>>>,
-        metrics: &Arc<Metrics>,
-        monitoring_config: &NodeMonitoringConfig,
-    ) {
+    async fn evaluate_chain(chain_config: &ChainConfig, request: &NodeCheckRequest, nodes: &Arc<RwLock<HashMap<Chain, NodeDomain>>>, metrics: &Arc<Metrics>) {
         let current_node = match NodeService::get_node_domain(nodes, chain_config.chain).await {
             Some(node) => node,
             None => {
@@ -78,7 +71,7 @@ impl NodeMonitor {
         let current_observation = observe_node(chain_config.chain, request, current_node.url.clone()).await;
         NodeTelemetry::log_status_debug(chain_config, std::slice::from_ref(&current_observation));
 
-        if NodeSyncAnalyzer::is_node_healthy(&current_observation) {
+        if current_observation.state.is_healthy() {
             NodeTelemetry::log_node_healthy(chain_config, &current_observation);
             return;
         }
@@ -91,7 +84,7 @@ impl NodeMonitor {
 
         let all_observations = std::iter::once(current_observation).chain(fallback_statuses).collect::<Vec<_>>();
 
-        match NodeSyncAnalyzer::select_best_node(&current_node.url, &all_observations, monitoring_config, chain_config.chain) {
+        match NodeSyncAnalyzer::select_best_node(&current_node.url, &all_observations) {
             Some(switch) => Self::try_switch(chain_config, nodes, metrics, &current_node.url, &switch).await,
             None => NodeTelemetry::log_no_candidate(chain_config, &all_observations),
         }
