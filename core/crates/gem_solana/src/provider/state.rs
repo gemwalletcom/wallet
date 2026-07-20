@@ -58,7 +58,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_node_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_solana_test_client();
-        let node_status = client.get_node_status().await?;
+        let node_status = ChainState::get_node_status(&client).await?;
 
         assert!(node_status.in_sync);
         assert!(node_status.latest_block_number.is_some());

@@ -15,7 +15,7 @@ impl NodeCheckService {
     }
 
     pub(crate) async fn run(&self) -> bool {
-        info_with_fields!(&format!("┌─ {} / {}", self.provider.get_chain(), self.request.profile().as_ref()));
+        info_with_fields!(&format!("┌─ {} / {}", self.provider.get_chain(), self.request.profile()));
         info_with_fields!(&format!("│ status │ {:<METHOD_WIDTH$} │ result", "method"));
         let passed = match self.provider.get_node_status().await {
             Ok(status) => {

@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumString};
+use strum::{Display, EnumString};
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum NodeCheckProfile {
@@ -37,18 +37,17 @@ pub enum NodeCheckStatus {
     Failed { error: String },
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NodeCheckReport {
     pub checks: BTreeMap<String, NodeCheckStatus>,
 }
 
 impl NodeCheckReport {
     pub fn is_healthy(&self) -> bool {
-        !self.checks.is_empty()
-            && self.checks.values().all(|status| match status {
-                NodeCheckStatus::Passed { .. } => true,
-                NodeCheckStatus::Failed { .. } => false,
-            })
+        self.checks.values().all(|status| match status {
+            NodeCheckStatus::Passed { .. } => true,
+            NodeCheckStatus::Failed { .. } => false,
+        })
     }
 
     pub fn error(&self) -> Option<String> {
@@ -92,6 +91,5 @@ mod tests {
         };
         assert!(!report.is_healthy());
         assert_eq!(report.error().as_deref(), Some("method: returned null"));
-        assert!(!NodeCheckReport::default().is_healthy());
     }
 }

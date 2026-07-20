@@ -16,7 +16,7 @@ use crate::service::NodeCheckService;
 struct Args {
     chain: Chain,
     url: String,
-    #[arg(short, long, default_value = "wallet")]
+    #[arg(short, long, default_value_t)]
     profile: NodeCheckProfile,
     #[arg(short = 'H', long = "header", value_name = "NAME:VALUE")]
     headers: Vec<String>,

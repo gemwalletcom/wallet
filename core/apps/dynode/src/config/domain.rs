@@ -93,6 +93,17 @@ mod tests {
     }
 
     #[test]
+    fn missing_check_uses_basic_profile() {
+        let config: ChainConfig = serde_json::from_value(serde_json::json!({
+            "chain": "bitcoin",
+            "urls": []
+        }))
+        .unwrap();
+
+        assert_eq!(config.check, NodeCheckProfile::Basic);
+    }
+
+    #[test]
     fn poll_interval_uses_chain_override() {
         let chain_config = make_chain_config(Some(20));
         let config = make_monitoring_config(45);

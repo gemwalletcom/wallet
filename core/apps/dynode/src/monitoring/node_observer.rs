@@ -26,13 +26,9 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
     match provider.get_node_status().await {
         Ok(status) => {
             let report = provider.check_node(request, &status).await;
-            let state = if report.is_healthy() {
-                NodeStatusState::healthy(status)
-            } else {
-                match report.error() {
-                    Some(error) => NodeStatusState::error(error),
-                    None => NodeStatusState::error("node check returned no results"),
-                }
+            let state = match report.error() {
+                Some(error) => NodeStatusState::error(error),
+                None => NodeStatusState::healthy(status),
             };
             observation(state)
         }
