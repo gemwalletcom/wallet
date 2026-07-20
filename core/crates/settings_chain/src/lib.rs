@@ -1,5 +1,6 @@
 mod broadcast_providers;
 mod chain_providers;
+mod node_check;
 mod provider_config;
 pub use broadcast_providers::BroadcastProviders;
 pub use chain_providers::ChainProviders;
@@ -10,6 +11,7 @@ use gem_algorand::{
 };
 use gem_client::{ReqwestClient, retry_policy};
 use gem_hypercore::rpc::client::HyperCoreClient;
+pub use node_check::node_check_request;
 pub use provider_config::{ProviderConfig, ProviderKeyConfig};
 pub use settings::ChainURLType;
 

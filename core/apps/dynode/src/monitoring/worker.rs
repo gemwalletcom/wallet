@@ -1,12 +1,13 @@
 use std::{collections::HashMap, sync::Arc};
 
 use futures::future;
-use primitives::{Chain, NodeCheckProfile};
+use primitives::{Chain, NodeCheckRequest};
+use settings_chain::node_check_request;
 use tokio::sync::RwLock;
 use tokio::time::{Duration, sleep};
 
-use super::chain_client::ChainClient;
-use super::sync::{NodeStatusObservation, NodeSwitchResult, NodeSyncAnalyzer};
+use super::node_observer::observe_node;
+use super::sync::{NodeSwitchResult, NodeSyncAnalyzer};
 use super::telemetry::NodeTelemetry;
 use crate::config::{ChainConfig, NodeMonitoringConfig, Url};
 use crate::metrics::Metrics;
@@ -30,7 +31,7 @@ impl NodeMonitor {
         }
     }
 
-    pub async fn start_monitoring(&self) {
+    pub fn start_monitoring(&self) {
         for (index, chain_config) in self.chains.values().cloned().enumerate() {
             if let Some(url) = chain_config.urls.first() {
                 NodeService::sync_current_node_metric(&self.metrics, chain_config.chain, url);
@@ -39,6 +40,14 @@ impl NodeMonitor {
             if chain_config.urls.len() <= 1 {
                 continue;
             }
+
+            let request = match node_check_request(chain_config.chain, chain_config.check) {
+                Ok(request) => request,
+                Err(error) => {
+                    NodeTelemetry::log_monitor_error(&chain_config, &error);
+                    continue;
+                }
+            };
 
             let nodes = Arc::clone(&self.nodes);
             let metrics = Arc::clone(&self.metrics);
@@ -50,10 +59,7 @@ impl NodeMonitor {
                 sleep(initial_delay).await;
 
                 loop {
-                    if let Err(err) = Self::evaluate_chain(&chain_config, &nodes, &metrics, &monitoring_config).await {
-                        NodeTelemetry::log_monitor_error(&chain_config, err.as_ref());
-                    }
-
+                    Self::evaluate_chain(&chain_config, &request, &nodes, &metrics, &monitoring_config).await;
                     sleep(poll_interval).await;
                 }
             });
@@ -62,51 +68,39 @@ impl NodeMonitor {
 
     async fn evaluate_chain(
         chain_config: &ChainConfig,
+        request: &NodeCheckRequest,
         nodes: &Arc<RwLock<HashMap<Chain, NodeDomain>>>,
         metrics: &Arc<Metrics>,
         monitoring_config: &NodeMonitoringConfig,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        if chain_config.urls.len() <= 1 {
-            return Ok(());
-        }
-
+    ) {
         let current_node = match NodeService::get_node_domain(nodes, chain_config.chain).await {
             Some(node) => node,
             None => {
                 NodeTelemetry::log_missing_current(chain_config);
-                return Ok(());
+                return;
             }
         };
 
-        let current_observation = Self::get_status(chain_config.chain, chain_config.check, current_node.url.clone()).await;
+        let current_observation = observe_node(chain_config.chain, request, current_node.url.clone()).await;
         NodeTelemetry::log_status_debug(chain_config, std::slice::from_ref(&current_observation));
 
         if NodeSyncAnalyzer::is_node_healthy(&current_observation) {
             NodeTelemetry::log_node_healthy(chain_config, &current_observation);
-            return Ok(());
+            return;
         }
 
         NodeTelemetry::log_node_unhealthy(chain_config, &current_observation);
 
         let fallback_urls: Vec<Url> = chain_config.urls.iter().filter(|&url| *url != current_node.url).cloned().collect();
-
-        if fallback_urls.is_empty() {
-            NodeTelemetry::log_no_candidate(chain_config, &[]);
-            return Ok(());
-        }
-
-        let fallback_statuses = Self::get_statuses(chain_config.chain, chain_config.check, fallback_urls).await;
+        let fallback_statuses = future::join_all(fallback_urls.into_iter().map(|url| observe_node(chain_config.chain, request, url))).await;
         NodeTelemetry::log_status_debug(chain_config, &fallback_statuses);
 
-        let mut all_observations = vec![current_observation];
-        all_observations.extend(fallback_statuses);
+        let all_observations = std::iter::once(current_observation).chain(fallback_statuses).collect::<Vec<_>>();
 
         match NodeSyncAnalyzer::select_best_node(&current_node.url, &all_observations, monitoring_config, chain_config.chain) {
             Some(switch) => Self::try_switch(chain_config, nodes, metrics, &current_node.url, &switch).await,
             None => NodeTelemetry::log_no_candidate(chain_config, &all_observations),
         }
-
-        Ok(())
     }
 
     async fn try_switch(chain_config: &ChainConfig, nodes: &Arc<RwLock<HashMap<Chain, NodeDomain>>>, metrics: &Arc<Metrics>, current_url: &Url, switch: &NodeSwitchResult) {
@@ -117,16 +111,5 @@ impl NodeMonitor {
         {
             NodeTelemetry::log_node_switch(chain_config, current_url, switch);
         }
-    }
-
-    async fn get_statuses(chain: Chain, profile: Option<NodeCheckProfile>, urls: Vec<Url>) -> Vec<NodeStatusObservation> {
-        let futures = urls.into_iter().map(move |url| Self::get_status(chain, profile, url));
-
-        future::join_all(futures).await
-    }
-
-    async fn get_status(chain: Chain, profile: Option<NodeCheckProfile>, url: Url) -> NodeStatusObservation {
-        let client = ChainClient::new(chain, profile, url);
-        client.get_status().await
     }
 }

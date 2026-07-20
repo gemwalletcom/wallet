@@ -3,6 +3,8 @@ use gem_jsonrpc::types::{JsonRpcRequest, JsonRpcRequestConvert};
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::{Value, json};
 
+use crate::method;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionObject {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,13 +108,13 @@ pub enum EthereumRpc {
 impl EthereumRpc {
     pub fn method_name(&self) -> &'static str {
         match self {
-            EthereumRpc::GasPrice => "eth_gasPrice",
-            EthereumRpc::GetBalance(_) => "eth_getBalance",
-            EthereumRpc::Call(_, _) => "eth_call",
-            EthereumRpc::GetTransactionReceipt(_) => "eth_getTransactionReceipt",
-            EthereumRpc::EstimateGas(_, _) => "eth_estimateGas",
-            EthereumRpc::FeeHistory { .. } => "eth_feeHistory",
-            EthereumRpc::TraceRawTransaction(_) => "trace_rawTransaction",
+            EthereumRpc::GasPrice => method::ETH_GAS_PRICE,
+            EthereumRpc::GetBalance(_) => method::ETH_GET_BALANCE,
+            EthereumRpc::Call(_, _) => method::ETH_CALL,
+            EthereumRpc::GetTransactionReceipt(_) => method::ETH_GET_TRANSACTION_RECEIPT,
+            EthereumRpc::EstimateGas(_, _) => method::ETH_ESTIMATE_GAS,
+            EthereumRpc::FeeHistory { .. } => method::ETH_FEE_HISTORY,
+            EthereumRpc::TraceRawTransaction(_) => method::TRACE_RAW_TRANSACTION,
         }
     }
 }

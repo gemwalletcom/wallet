@@ -1,22 +1,15 @@
 use num_bigint::{BigInt, BigUint};
-use num_traits::Zero;
 use primitives::{TransactionState, contract_constants::EVM_ZERO_BLOCK_HASH};
 use serde::{Deserialize, Serialize};
-use serde_serializers::{bigint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_u64_from_str_or_int};
+use serde_serializers::{
+    bigint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_u64_from_str, deserialize_u64_from_str_or_int,
+};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Block {
     pub transactions: Vec<Transaction>,
-    #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
-    pub timestamp: BigUint,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct BlockTransactionsIds {
-    pub transactions: Vec<String>,
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
     pub timestamp: BigUint,
 }
@@ -30,8 +23,8 @@ pub struct Transaction {
     pub hash: String,
     pub input: String,
     pub to: Option<String>,
-    #[serde(rename = "blockNumber", default, deserialize_with = "deserialize_biguint_from_hex_str")]
-    pub block_number: BigUint,
+    #[serde(rename = "blockNumber", default, deserialize_with = "deserialize_u64_from_str")]
+    pub block_number: u64,
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
     pub value: BigUint,
 }
@@ -48,8 +41,8 @@ pub struct TransactionReceipt {
     pub logs: Vec<Log>,
     pub status: String,
     pub block_hash: String,
-    #[serde(default, deserialize_with = "deserialize_biguint_from_hex_str")]
-    pub block_number: BigUint,
+    #[serde(default, deserialize_with = "deserialize_u64_from_str")]
+    pub block_number: u64,
 }
 
 impl TransactionReceipt {
@@ -62,7 +55,7 @@ impl TransactionReceipt {
     }
 
     pub fn has_valid_block_reference(&self) -> bool {
-        !self.block_number.is_zero() && self.block_hash != EVM_ZERO_BLOCK_HASH
+        self.block_number != 0 && self.block_hash != EVM_ZERO_BLOCK_HASH
     }
 
     pub fn get_state(&self) -> TransactionState {

@@ -1,4 +1,4 @@
-mod chain_client;
+mod node_observer;
 mod service;
 mod switch_reason;
 mod sync;

@@ -5,6 +5,8 @@ use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
 use primitives::Chain;
 use serde_json::json;
 
+use crate::method;
+
 #[derive(Debug)]
 pub struct NearClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
@@ -22,7 +24,7 @@ impl<C: Client + Clone> NearClient<C> {
             "finality": "final",
             "account_id": address
         });
-        self.client.call("query", params).await
+        self.client.call(method::QUERY, params).await
     }
 
     pub async fn get_account_access_key(&self, address: &str, public_key: &str) -> Result<AccountAccessKey, JsonRpcError> {
@@ -32,27 +34,27 @@ impl<C: Client + Clone> NearClient<C> {
             "account_id": address,
             "public_key": public_key
         });
-        self.client.call("query", params).await
+        self.client.call(method::QUERY, params).await
     }
 
     pub async fn get_latest_block(&self) -> Result<Block, JsonRpcError> {
         let params = json!({"finality": "final"});
-        self.client.call("block", params).await
+        self.client.call(method::BLOCK, params).await
     }
 
     pub async fn get_gas_price(&self) -> Result<GasPrice, JsonRpcError> {
         let params = json!([null]);
-        self.client.call("gas_price", params).await
+        self.client.call(method::GAS_PRICE, params).await
     }
 
     pub async fn get_status(&self) -> Result<NodeStatus, JsonRpcError> {
         let params = json!([]);
-        self.client.call("status", params).await
+        self.client.call(method::STATUS, params).await
     }
 
     pub async fn broadcast_transaction(&self, signed_tx_base64: &str) -> Result<BroadcastResult, JsonRpcError> {
         let params = json!({"signed_tx_base64": signed_tx_base64});
-        self.client.call("send_tx", params).await
+        self.client.call(method::SEND_TRANSACTION, params).await
     }
 
     pub async fn get_transaction_status(&self, tx_hash: &str, sender_account_id: &str) -> Result<BroadcastResult, JsonRpcError> {
@@ -61,7 +63,7 @@ impl<C: Client + Clone> NearClient<C> {
             "sender_account_id": sender_account_id,
             "wait_until": "EXECUTED"
         });
-        self.client.call("tx", params).await
+        self.client.call(method::TRANSACTION, params).await
     }
 }
 

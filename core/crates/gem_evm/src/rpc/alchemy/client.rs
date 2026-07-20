@@ -8,7 +8,7 @@ use primitives::EVMChain;
 use serde_json::{Value, json};
 
 use super::model::{TokenBalances, Transfer, Transfers};
-use crate::rpc::EVMIndexerClient;
+use crate::{method, rpc::EVMIndexerClient};
 
 pub fn alchemy_url(chain: EVMChain, key: &str) -> Option<String> {
     let network = match chain {
@@ -47,7 +47,7 @@ impl<C: Client + Clone> AlchemyClient<C> {
             "order": "desc"
         });
         request[address_field] = Value::String(address.to_string());
-        let response: Transfers = self.rpc_client.call("alchemy_getAssetTransfers", json!([request])).await?;
+        let response: Transfers = self.rpc_client.call(method::ALCHEMY_GET_ASSET_TRANSFERS, json!([request])).await?;
         Ok(response.transfers)
     }
 }
@@ -68,7 +68,7 @@ impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
-        let balances: TokenBalances = self.rpc_client.call("alchemy_getTokenBalances", json!([address, "erc20"])).await?;
+        let balances: TokenBalances = self.rpc_client.call(method::ALCHEMY_GET_TOKEN_BALANCES, json!([address, "erc20"])).await?;
         Ok(balances
             .token_balances
             .into_iter()
@@ -92,8 +92,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transaction_ids_by_address() {
-        let rpc_client = mock_jsonrpc_client(|method, params| {
-            assert_eq!(method, "alchemy_getAssetTransfers");
+        let rpc_client = mock_jsonrpc_client(|request_method, params| {
+            assert_eq!(request_method, method::ALCHEMY_GET_ASSET_TRANSFERS);
             let request = &params[0];
             assert_eq!(request["category"], json!(["external", "erc20", "erc721", "erc1155"]));
             assert_eq!(request["maxCount"], "0x2");
@@ -115,8 +115,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_token_balances() {
-        let rpc_client = mock_jsonrpc_client(|method, params| {
-            assert_eq!(method, "alchemy_getTokenBalances");
+        let rpc_client = mock_jsonrpc_client(|request_method, params| {
+            assert_eq!(request_method, method::ALCHEMY_GET_TOKEN_BALANCES);
             assert_eq!(params, &json!(["0x123", "erc20"]));
             Ok(load_json(include_str!("../../../testdata/alchemy_get_token_balances.json")))
         });

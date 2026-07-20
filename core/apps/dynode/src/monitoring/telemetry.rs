@@ -1,6 +1,4 @@
-use std::error::Error;
-
-use gem_tracing::{DurationMs, error_with_fields, error_with_fields_impl, info_with_fields_impl};
+use gem_tracing::{DurationMs, error_fields, error_fields_impl, info_with_fields_impl};
 use primitives::NodeStatusState;
 
 use crate::config::{ChainConfig, Url};
@@ -62,16 +60,12 @@ impl NodeTelemetry {
                 let latency = DurationMs(observation.latency);
                 let latest = status.latest_block_number;
                 let current = if status.in_sync { None } else { status.current_block_number };
-                let error = std::io::Error::other("Current node not in sync");
-
-                log_error_event("Node out of sync", &error, chain, fields, &latency, latest, current);
+                log_error_event("Node out of sync", chain, fields, &latency, latest, current);
             }
             NodeStatusState::Error { message } => {
                 let latency = DurationMs(observation.latency);
-                let error = std::io::Error::other(message.clone());
                 log_error_event(
                     "Node check error",
-                    &error,
                     chain,
                     [("host", observation.url.host()), ("message", message.clone())],
                     &latency,
@@ -102,24 +96,19 @@ impl NodeTelemetry {
     }
 
     pub fn log_no_candidate(chain_config: &ChainConfig, observations: &[NodeStatusObservation]) {
-        error_with_fields!(
+        error_fields!(
             "Node switch unavailable",
-            &std::io::Error::other("No healthy nodes available"),
             chain = chain_config.chain.as_ref(),
             statuses = &NodeSyncAnalyzer::format_status_summary(observations),
         );
     }
 
-    pub fn log_monitor_error(chain_config: &ChainConfig, err: &dyn std::error::Error) {
-        error_with_fields!("Node monitor error", err, chain = chain_config.chain.as_ref());
+    pub fn log_monitor_error(chain_config: &ChainConfig, message: &str) {
+        error_fields!("Node monitor error", chain = chain_config.chain.as_ref(), error = message);
     }
 
     pub fn log_missing_current(chain_config: &ChainConfig) {
-        error_with_fields!(
-            "Node monitor current missing",
-            &std::io::Error::other("Node not configured"),
-            chain = chain_config.chain.as_ref(),
-        );
+        error_fields!("Node monitor current missing", chain = chain_config.chain.as_ref());
     }
 }
 
@@ -127,14 +116,14 @@ fn log_info_event<I>(message: &'static str, chain: &str, fields: I, latency: &Du
 where
     I: IntoIterator<Item = (&'static str, String)>,
 {
-    emit_event(message, chain, fields, latency, latest, current, |msg, slice| info_with_fields_impl(msg, slice));
+    emit_event(message, chain, fields, latency, latest, current, info_with_fields_impl);
 }
 
-fn log_error_event<I>(message: &'static str, err: &dyn Error, chain: &str, fields: I, latency: &DurationMs, latest: Option<u64>, current: Option<u64>)
+fn log_error_event<I>(message: &'static str, chain: &str, fields: I, latency: &DurationMs, latest: Option<u64>, current: Option<u64>)
 where
     I: IntoIterator<Item = (&'static str, String)>,
 {
-    emit_event(message, chain, fields, latency, latest, current, |msg, slice| error_with_fields_impl(msg, err, slice));
+    emit_event(message, chain, fields, latency, latest, current, error_fields_impl);
 }
 
 fn emit_event<I>(

@@ -10,6 +10,8 @@ use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
+use crate::method;
+
 #[derive(Clone, Debug)]
 pub struct XRPClient<C: Client + Clone> {
     client: GenericJsonRpcClient<C>,
@@ -46,17 +48,17 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        self.call("account_info", params).await
+        self.call(method::ACCOUNT_INFO, params).await
     }
 
     pub async fn get_ledger_current(&self) -> Result<LedgerCurrent, Box<dyn Error + Send + Sync>> {
         let params = json!([{}]);
-        self.call("ledger_current", params).await
+        self.call(method::LEDGER_CURRENT, params).await
     }
 
     pub async fn get_fees(&self) -> Result<FeesResult, Box<dyn Error + Send + Sync>> {
         let params = json!([{}]);
-        self.call("fee", params).await
+        self.call(method::FEE, params).await
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<TransactionBroadcast, Box<dyn Error + Send + Sync>> {
@@ -67,7 +69,7 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        self.call("submit", params).await
+        self.call(method::SUBMIT, params).await
     }
 
     pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
@@ -83,7 +85,7 @@ impl<C: Client + Clone> XRPClient<C> {
                 "transaction": transaction_id
             }
         ]);
-        self.call("tx", params).await
+        self.call(method::TRANSACTION, params).await
     }
 
     pub async fn get_account_objects(&self, address: &str) -> Result<AccountObjects, Box<dyn Error + Send + Sync>> {
@@ -95,7 +97,7 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        self.call("account_objects", params).await
+        self.call(method::ACCOUNT_OBJECTS, params).await
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
@@ -107,7 +109,7 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        let result: LedgerData = self.call("ledger", params).await?;
+        let result: LedgerData = self.call(method::LEDGER, params).await?;
         Ok(result.ledger)
     }
 
@@ -121,7 +123,7 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        self.call("account_tx", params).await
+        self.call(method::ACCOUNT_TRANSACTIONS, params).await
     }
 }
 
@@ -194,7 +196,7 @@ mod tests {
             "error_code": 14,
             "error_message": "Amendment blocked, need upgrade.",
             "request": {
-                "command": "ledger_current"
+                "command": method::LEDGER_CURRENT
             },
             "status": "error"
         }))

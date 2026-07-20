@@ -10,8 +10,6 @@ tokio = { workspace = true }
 
 chain_traits = { path = "../../crates/chain_traits" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
-gem_evm = { path = "../../crates/gem_evm", features = ["rpc"] }
-gem_jsonrpc = { path = "../../crates/gem_jsonrpc", features = ["reqwest"] }
-gem_solana = { path = "../../crates/gem_solana", features = ["rpc"] }
 gem_tracing = { path = "../../crates/tracing" }
 primitives = { path = "../../crates/primitives" }
+settings_chain = { path = "../../crates/settings_chain" }

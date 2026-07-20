@@ -63,8 +63,7 @@ mod tests {
 
     use alloy_primitives::{U256, address};
     use alloy_sol_types::SolCall;
-    use gem_evm::eip712::parse_eip712_json;
-    use gem_evm::rpc::EthereumClient;
+    use gem_evm::{eip712::parse_eip712_json, method, rpc::EthereumClient};
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::{Chain, EVMChain, SimulationSeverity, SimulationWarning, SimulationWarningType, asset_constants::ETHEREUM_USDC_TOKEN_ID};
     use serde_json::Value;
@@ -165,8 +164,8 @@ mod tests {
     }
     fn ethereum_client(code: &str) -> EthereumClient<gem_client::testkit::MockClient> {
         let code = code.to_string();
-        let client = mock_jsonrpc_client(move |method, _| match method {
-            "eth_getCode" => Ok(Value::from(code.clone())),
+        let client = mock_jsonrpc_client(move |request_method, _| match request_method {
+            method::ETH_GET_CODE => Ok(Value::from(code.clone())),
             _ => Ok(Value::Null),
         });
         EthereumClient::new(client, EVMChain::Ethereum)

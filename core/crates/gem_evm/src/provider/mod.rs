@@ -2,7 +2,7 @@ pub mod accounts;
 pub mod balances;
 pub mod balances_mapper;
 pub mod balances_smartchain;
-mod node_check;
+mod node_status;
 pub mod preload;
 pub mod preload_mapper;
 pub mod preload_optimism;

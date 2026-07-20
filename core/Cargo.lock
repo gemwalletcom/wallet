@@ -5389,12 +5389,10 @@ dependencies = [
  "chain_traits",
  "clap",
  "gem_client",
- "gem_evm",
- "gem_jsonrpc",
- "gem_solana",
  "gem_tracing",
  "primitives",
  "reqwest 0.13.4",
+ "settings_chain",
  "tokio",
 ]
 

@@ -121,7 +121,7 @@ mod tests {
         };
         let encoded = event.encode_log_data();
         let (topics, data) = encoded.split();
-        let topics = topics.into_iter().map(|topic| hex::encode(topic)).collect::<Vec<_>>();
+        let topics = topics.into_iter().map(hex::encode).collect::<Vec<_>>();
         let data = hex::encode(data);
         let deposit = parse_deposit([(topics.as_slice(), data.as_str())], 137).unwrap().unwrap();
 

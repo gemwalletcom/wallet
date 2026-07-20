@@ -13,7 +13,7 @@ use crate::monad::{
     IMonadStakingLens, MONAD_SCALE, MonadLensBalance, MonadLensDelegation, MonadLensValidatorInfo, STAKING_LENS_CONTRACT, decode_get_lens_apys, decode_get_lens_balance,
     decode_get_lens_delegations, decode_get_lens_validators, delegation_id, encode_get_lens_apys, encode_get_lens_balance, encode_get_lens_delegations, encode_get_lens_validators,
 };
-use crate::rpc::client::EthereumClient;
+use crate::{method, rpc::client::EthereumClient};
 
 const MONAD_VALIDATOR_NAMES: &[(u64, &str)] = &[(16, "MonadVision"), (5, "Alchemy"), (10, "Stakin"), (9, "Everstake")];
 
@@ -150,7 +150,7 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     fn build_lens_call(data: &[u8]) -> Option<(String, serde_json::Value)> {
         Some((
-            "eth_call".to_string(),
+            method::ETH_CALL.to_string(),
             serde_json::json!([{
                 "to": STAKING_LENS_CONTRACT,
                 "data": hex::encode_prefixed(data)

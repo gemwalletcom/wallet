@@ -7,6 +7,7 @@ use clap::Parser;
 use factory::new_provider;
 use gem_tracing::error_with_fields;
 use primitives::{Chain, NodeCheckProfile};
+use settings_chain::node_check_request;
 
 use crate::service::NodeCheckService;
 
@@ -15,7 +16,7 @@ use crate::service::NodeCheckService;
 struct Args {
     chain: Chain,
     url: String,
-    #[arg(short, long, default_value = "load_balancer")]
+    #[arg(short, long, default_value = "wallet")]
     profile: NodeCheckProfile,
     #[arg(short = 'H', long = "header", value_name = "NAME:VALUE")]
     headers: Vec<String>,
@@ -23,8 +24,9 @@ struct Args {
 
 impl Args {
     async fn run(&self) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let provider = new_provider(self.chain, self.url.clone(), &self.headers)?;
-        Ok(NodeCheckService::new(self.chain, self.profile, provider).run().await)
+        let request = node_check_request(self.chain, self.profile)?;
+        let provider = new_provider(self.chain, &self.url, &self.headers)?;
+        Ok(NodeCheckService::new(request, provider).run().await)
     }
 }
 

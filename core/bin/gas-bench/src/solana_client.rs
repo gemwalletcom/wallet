@@ -2,6 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use gem_jsonrpc::client::JsonRpcClient;
+use gem_solana::method;
 use gem_solana::models::jito::{FeeStats, calculate_fee_stats};
 use gem_solana::models::prioritization_fee::SolanaPrioritizationFee;
 use gem_solana::{JUPITER_PROGRAM_ID, USDC_TOKEN_MINT};
@@ -58,14 +59,14 @@ impl SolanaGasClient {
         let alien_client = new_alien_client(endpoint, self.native_provider.clone());
         let client: JsonRpcClient<_> = JsonRpcClient::new(alien_client);
 
-        let slot: u64 = client.call("getSlot", json!([])).await?;
+        let slot: u64 = client.call(method::GET_SLOT, json!([])).await?;
 
-        let global_fees: Vec<SolanaPrioritizationFee> = client.call("getRecentPrioritizationFees", json!([])).await?;
+        let global_fees: Vec<SolanaPrioritizationFee> = client.call(method::GET_RECENT_PRIORITIZATION_FEES, json!([])).await?;
 
         let mut account_fees = AccountFeeStats::default();
 
         for (account, name) in [(JUPITER_PROGRAM_ID, "jupiter"), (ORCA_WHIRLPOOL, "orca"), (USDC_TOKEN_MINT, "usdc")] {
-            let fees: Vec<SolanaPrioritizationFee> = client.call("getRecentPrioritizationFees", json!([[account]])).await?;
+            let fees: Vec<SolanaPrioritizationFee> = client.call(method::GET_RECENT_PRIORITIZATION_FEES, json!([[account]])).await?;
 
             if !fees.is_empty() {
                 let values: Vec<i64> = fees.iter().map(|f| f.prioritization_fee).collect();
