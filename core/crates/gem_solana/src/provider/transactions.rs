@@ -1,13 +1,13 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::Transaction;
+use primitives::{Transaction, TransactionId};
 
 use crate::{
     models::{BlockTransaction, SingleTransaction},
-    provider::transaction_mapper::{map_block_transactions, map_signatures_transactions, map_transaction},
+    provider::transaction_mapper::{map_block_transactions, map_transaction},
     rpc::{client::SolanaClient, constants::MISSING_BLOCKS_ERRORS},
 };
 
@@ -26,9 +26,12 @@ impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
     }
 
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let transaction = self
-            .rpc_call::<SingleTransaction>("getTransaction", serde_json::json!([hash, { "encoding": "json", "maxSupportedTransactionVersion": 0 }]))
-            .await?;
+        let Some(transaction) = self
+            .rpc_call::<Option<SingleTransaction>>("getTransaction", serde_json::json!([hash, { "encoding": "json", "maxSupportedTransactionVersion": 0 }]))
+            .await?
+        else {
+            return Ok(None);
+        };
         let block_transaction = BlockTransaction {
             meta: transaction.meta,
             transaction: transaction.transaction,
@@ -36,16 +39,12 @@ impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
         Ok(map_transaction(&block_transaction, transaction.block_time))
     }
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let limit = limit.unwrap_or(10);
         let signatures = self.get_signatures_for_address(&address, limit).await?;
-        if signatures.is_empty() {
-            return Ok(vec![]);
-        }
-        let signatures_ids = signatures.clone().iter().map(|x| x.signature.clone()).collect();
-        let transactions = self.get_transactions(signatures_ids).await?;
-        Ok(map_signatures_transactions(transactions, signatures))
+        Ok(TransactionsResult::TransactionIds(
+            signatures.into_iter().map(|signature| TransactionId::new(self.get_chain(), signature.signature)).collect(),
+        ))
     }
 }
 
@@ -71,9 +70,14 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_solana_get_transactions_by_address() {
         let client = create_solana_test_client();
-        let transactions = client.get_transactions_by_address(TransactionsRequest::new(TEST_SOLANA_SENDER.to_string())).await.unwrap();
+        let result = client
+            .get_transactions_by_address(TransactionsRequest::new(TEST_SOLANA_SENDER.to_string(), 100))
+            .await
+            .unwrap();
+        let transaction_ids = result.transaction_ids().unwrap();
 
-        println!("Address: {}, transactions count: {}", TEST_SOLANA_SENDER, transactions.len());
+        println!("Address: {}, transactions count: {}", TEST_SOLANA_SENDER, transaction_ids.len());
+        assert!(!transaction_ids.is_empty());
     }
 
     #[tokio::test]

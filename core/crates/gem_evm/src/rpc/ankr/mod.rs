@@ -1,5 +1,4 @@
-pub mod client;
-pub mod model;
+mod client;
+mod model;
 
-pub use client::AnkrClient;
-pub use model::{TokenBalance, Transaction, Transactions};
+pub(crate) use client::AnkrClient;

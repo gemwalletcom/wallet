@@ -2,7 +2,7 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.ext.totalFee
-import com.gemwallet.android.math.parseNumberOrNull
+import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
@@ -29,7 +29,7 @@ data class CustomFee(
         ): CustomFee {
             val baseTotal = baseTotal(selection, feeRates, currentFee.priority)
             val normalTotal = normalTotal(feeRates) ?: baseTotal
-            val rate = input.parseNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
+            val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
 
             val estimate = customFeeEstimate(
                 rate = rate?.toString(),

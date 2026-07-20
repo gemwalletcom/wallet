@@ -1004,14 +1004,14 @@ info_slippage_description = Slippage refers to the difference between the expect
 info_asset_status_unverified_description = Unverified tokens have not been sufficiently verified by trusted third-party services. They may appear in your wallet due to airdrops, transfers, or manual imports.
 # Used in Info bottom sheets for the asset status suspicious description.
 info_asset_status_suspicious_description = Suspicious or spam tokens are identified as potential scams or harmful assets. They may appear in your wallet due to airdrops, transfers, or manual imports.
-# Used in Info bottom sheets for the insufficient network fee balance title. Contains 1 string placeholder.
-info_insufficient_network_fee_balance_title = %@ required
-# Used in Info bottom sheets for the insufficient network fee balance description. Contains 3 string placeholders.
-info_insufficient_network_fee_balance_description = This transaction requires %@ to cover the network fee paid to %@ miners, not Gem Wallet. Ensure you have enough %@.
-# Used in Info bottom sheets for the insufficient balance title.
+# Used in Info bottom sheets when an asset balance is required. Contains 1 string placeholder.
+info_balance_required_title = %@ required
+# Used in Info bottom sheets for insufficient network fee balances. Arguments: required amount, network, available amount, shortfall.
+info_insufficient_network_fee_balance_description = This transaction requires %@ for the %@ network fee, but only %@ is available. You need %@ more to continue.
+# Used for errors where the required asset is unavailable.
 info_insufficient_balance_title = Insufficient Balance
-# Used in Info bottom sheets for the insufficient balance description. Contains 1 string placeholder.
-info_insufficient_balance_description = You don't have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.
+# Used when a fixed transaction amount cannot be met after reserving fees. Arguments: required amount, available amount, shortfall.
+info_balance_required_description = This transaction requires %@, but only %@ is available. You need %@ more to continue.
 # Used in Info bottom sheets for the account minimum balance title.
 info_account_minimum_balance_title = Minimum balance
 # Used in Info bottom sheets for the perpetual funding payments title.

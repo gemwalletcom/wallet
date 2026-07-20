@@ -1,6 +1,8 @@
 use std::error::Error;
 
-use chain_traits::{ChainTraits, TransactionsRequest};
+use chain_traits::{ChainTraits, TransactionsRequest, TransactionsResult};
+use futures::{StreamExt, stream};
+use gem_tracing::warn_with_fields;
 use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPositionsSummary, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
 use settings::Settings;
 
@@ -60,7 +62,33 @@ impl ChainProviders {
     }
 
     pub async fn get_transactions_by_address(&self, chain: Chain, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        self.get_provider(chain)?.get_transactions_by_address(request).await.map(sort_transactions_by_date)
+        let transactions = match self.get_transactions_by_address_result(chain, request).await? {
+            TransactionsResult::Transactions(transactions) => transactions,
+            TransactionsResult::TransactionIds(transaction_ids) => {
+                let provider = self.get_provider(chain)?;
+                stream::iter(transaction_ids)
+                    .filter_map(|transaction_id| async move {
+                        match provider.get_transaction_by_hash(transaction_id.hash.clone()).await {
+                            Ok(Some(transaction)) => Some(transaction),
+                            Ok(None) => {
+                                warn_with_fields!("transaction not found", chain = transaction_id.chain, hash = &transaction_id.hash);
+                                None
+                            }
+                            Err(error) => {
+                                warn_with_fields!("failed to fetch transaction", chain = transaction_id.chain, hash = &transaction_id.hash, error = &error);
+                                None
+                            }
+                        }
+                    })
+                    .collect()
+                    .await
+            }
+        };
+        Ok(sort_transactions_by_date(transactions))
+    }
+
+    pub async fn get_transactions_by_address_result(&self, chain: Chain, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transactions_by_address(request).await
     }
 
     pub async fn get_validators(&self, chain: Chain) -> Result<Vec<StakeValidator>, Box<dyn Error + Send + Sync>> {

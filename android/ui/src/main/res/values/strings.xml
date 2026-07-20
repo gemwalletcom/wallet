@@ -443,10 +443,10 @@
   <string name="info_slippage_description">Slippage refers to the difference between the expected price of a trade and the actual price at which it is executed.</string>
   <string name="info_asset_status_unverified_description">Unverified tokens have not been sufficiently verified by trusted third-party services. They may appear in your wallet due to airdrops, transfers, or manual imports.</string>
   <string name="info_asset_status_suspicious_description">Suspicious or spam tokens are identified as potential scams or harmful assets. They may appear in your wallet due to airdrops, transfers, or manual imports.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s required</string>
-  <string name="info_insufficient_network_fee_balance_description">This transaction requires %1$s to cover the network fee paid to %2$s miners, not Gem Wallet. Ensure you have enough %3$s.</string>
+  <string name="info_balance_required_title">%1$s required</string>
+  <string name="info_insufficient_network_fee_balance_description">This transaction requires %1$s for the %2$s network fee, but only %3$s is available. You need %4$s more to continue.</string>
   <string name="info_insufficient_balance_title">Insufficient Balance</string>
-  <string name="info_insufficient_balance_description">You don\'t have enough %1$s to complete this transaction. Please top up, receive, or swap in your wallet and try again.</string>
+  <string name="info_balance_required_description">This transaction requires %1$s, but only %2$s is available. You need %3$s more to continue.</string>
   <string name="info_account_minimum_balance_title">Minimum balance</string>
   <string name="info_perpetual_funding_payments_title">Funding Payments</string>
   <string name="info_perpetual_funding_payments_description">Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset\'s spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.</string>

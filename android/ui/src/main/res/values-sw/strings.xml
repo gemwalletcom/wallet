@@ -443,10 +443,10 @@
   <string name="info_slippage_description">Slippage inarejelea tofauti kati ya bei inayotarajiwa ya biashara na bei halisi ambayo inatekelezwa.</string>
   <string name="info_asset_status_unverified_description">Tokeni ambazo hazijathibitishwa hazijathibitishwa vya kutosha na huduma zinazoaminika za wahusika wengine. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.</string>
   <string name="info_asset_status_suspicious_description">Tokeni zinazotiliwa shaka au taka zinatambuliwa kuwa ulaghai au mali hatari. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s inahitajika</string>
-  <string name="info_insufficient_network_fee_balance_description">Muamala huu unahitaji %1$s ili kufidia ada ya mtandao iliyolipwa kwa wachimbaji wa %2$s, si Gem Wallet. Hakikisha una %3$s ya kutosha.</string>
+  <string name="info_balance_required_title">%1$s inahitajika</string>
+  <string name="info_insufficient_network_fee_balance_description">Muamala huu unahitaji %1$s kwa ada ya mtandao wa %2$s, lakini ni %3$s pekee zinazopatikana. Unahitaji %4$s zaidi ili kuendelea.</string>
   <string name="info_insufficient_balance_title">Salio halitoshi</string>
-  <string name="info_insufficient_balance_description">Huna %1$s ya kutosha kukamilisha muamala huu. Tafadhali jaza, pokea, au ubadilishe pochi yako na ujaribu tena.</string>
+  <string name="info_balance_required_description">Muamala huu unahitaji %1$s, lakini ni %2$s pekee zinazopatikana. Unahitaji %3$s zaidi ili kuendelea.</string>
   <string name="info_account_minimum_balance_title">Salio la chini</string>
   <string name="info_perpetual_funding_payments_title">Malipo ya Ufadhili</string>
   <string name="info_perpetual_funding_payments_description">Malipo ya ufadhili ni malipo ya mara kwa mara kati ya wafanyabiashara ili kuweka bei ya kudumu ya mkataba karibu na bei ya msingi ya mali. Ufadhili mzuri unamaanisha nafasi ndefu kulipa nafasi fupi, wakati ufadhili hasi unamaanisha nafasi fupi kulipa nafasi ndefu.</string>

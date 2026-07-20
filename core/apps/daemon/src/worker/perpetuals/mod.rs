@@ -47,14 +47,26 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
             }
         })
         .jobs(WorkerJob::ObservePerpetualActiveAddresses, Chain::perpetual_chains(), |chain, _| {
-            let observer = Arc::new(PerpetualPositionObserver::new(chain, providers.clone(), cacher.clone(), stream_producer.clone()));
+            let observer = Arc::new(PerpetualPositionObserver::new(
+                chain,
+                providers.clone(),
+                cacher.clone(),
+                ConfigCacher::new(database.clone()),
+                stream_producer.clone(),
+            ));
             move |_| {
                 let observer = observer.clone();
                 async move { observer.observe_active().await }
             }
         })
         .jobs(WorkerJob::ObservePerpetualPriorityAddresses, Chain::perpetual_chains(), |chain, _| {
-            let observer = Arc::new(PerpetualPositionObserver::new(chain, providers.clone(), cacher.clone(), stream_producer.clone()));
+            let observer = Arc::new(PerpetualPositionObserver::new(
+                chain,
+                providers.clone(),
+                cacher.clone(),
+                ConfigCacher::new(database.clone()),
+                stream_producer.clone(),
+            ));
             move |_| {
                 let observer = observer.clone();
                 async move { observer.observe_priority().await }

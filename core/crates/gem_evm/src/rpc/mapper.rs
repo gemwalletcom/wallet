@@ -8,7 +8,7 @@ use super::transaction_payload::{Erc20ApprovalPayload, Erc20TransferPayload, Nft
 use crate::{
     address::ethereum_address_checksum,
     registry::ContractRegistry,
-    rpc::model::{Block, Transaction, TransactionReceipt, TransactionReplayTrace},
+    rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace},
 };
 use primitives::{
     AssetId, NFTAssetId, Transaction as PrimitivesTransaction, TransactionType, chain::Chain, hex::decode_hex_utf8, transaction_metadata_types::TransactionNFTTransferMetadata,
@@ -18,26 +18,6 @@ pub static CONTRACT_REGISTRY: LazyLock<ContractRegistry> = LazyLock::new(Contrac
 pub struct EthereumMapper;
 
 impl EthereumMapper {
-    pub fn map_transactions(chain: Chain, block: Block, transactions_receipts: Vec<TransactionReceipt>, traces: Option<Vec<TransactionReplayTrace>>) -> Vec<PrimitivesTransaction> {
-        match traces {
-            Some(traces) => block
-                .transactions
-                .into_iter()
-                .zip(transactions_receipts.iter())
-                .zip(traces.iter())
-                .filter_map(|((transaction, receipt), trace)| {
-                    EthereumMapper::map_transaction(chain, &transaction, receipt, Some(trace), &block.timestamp, Some(&CONTRACT_REGISTRY))
-                })
-                .collect(),
-            None => block
-                .transactions
-                .into_iter()
-                .zip(transactions_receipts.iter())
-                .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction(chain, &transaction, receipt, None, &block.timestamp, Some(&CONTRACT_REGISTRY)))
-                .collect(),
-        }
-    }
-
     pub fn map_transaction(
         chain: Chain,
         transaction: &Transaction,
@@ -309,6 +289,41 @@ mod tests {
         assert_eq!(tx.to, "0x0700572b54ccA24Dad0eD4Cdad2c3d3ab6dB652a");
         assert_eq!(tx.value, "2739900000000000000");
         assert_eq!(tx.id.to_string(), "ethereum_0x0c0626172dbba6984a2e95b3abf1caba39cf11d3c9bc99d7de9ac814671c0cb1");
+    }
+
+    #[test]
+    fn test_polygon_native_transfer_with_system_logs() {
+        let transaction = Transaction {
+            hash: "0xc56cc9636631087a3595310f2b6b5713e2633921a12a444ee744ac94f2e26343".to_string(),
+            from: "0x9810762578accf1f314320cca5b72506ae7d7630".to_string(),
+            gas: 30_000,
+            input: INPUT_0X.to_string(),
+            to: Some("0xf170892b35fe3d17c75e066fbeb37a73d5b7e5d6".to_string()),
+            block_number: BigUint::from(87_308_906u64),
+            value: BigUint::from(44_665_000_000_000_000_000u128),
+        };
+        let receipt = TransactionReceipt {
+            gas_used: BigUint::from(21_000u64),
+            effective_gas_price: BigUint::from(610_596_383_502u64),
+            l1_fee: None,
+            logs: vec![Log {
+                address: "0x0000000000000000000000000000000000001010".to_string(),
+                topics: vec!["0xe6497e3ee548a3372136af2fcb0696db31fc6cf20260707645068bd3fe97f3c4".to_string()],
+                data: "0x".to_string(),
+                transaction_hash: Some(transaction.hash.clone()),
+            }],
+            status: "0x1".to_string(),
+            block_hash: "0x270bff304e402943393102149e5034d2a4771ecb7a217b3cb526ebf44bdfa0fa".to_string(),
+            block_number: transaction.block_number.clone(),
+        };
+
+        let mapped_transaction = EthereumMapper::map_transaction(Chain::Polygon, &transaction, &receipt, None, &BigUint::from(1_779_530_294u64), None).unwrap();
+
+        assert_eq!(mapped_transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(mapped_transaction.asset_id, AssetId::from_chain(Chain::Polygon));
+        assert_eq!(mapped_transaction.from, "0x9810762578aCCF1F314320CCa5B72506aE7D7630");
+        assert_eq!(mapped_transaction.to, "0xF170892B35FE3d17c75E066FbeB37a73D5b7e5d6");
+        assert_eq!(mapped_transaction.value, "44665000000000000000");
     }
 
     #[test]

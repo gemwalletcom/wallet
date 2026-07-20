@@ -25,7 +25,10 @@ struct ConfirmErrorViewModelTests {
             data: .mock(),
             transactionData: .mock(),
             metaData: nil,
-            transferAmount: .failure(.insufficientBalance(.mock())),
+            transferAmount: .failure(.insufficientBalance(
+                .mock(),
+                requirement: BalanceRequirement(required: 1, available: 0),
+            )),
         )
         let model = ConfirmErrorViewModel(state: .data(input), onSelectListError: { _ in })
 

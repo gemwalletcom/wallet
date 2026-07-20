@@ -1,3 +1,4 @@
+pub mod across;
 pub mod dex;
 pub mod okx;
 pub mod pancakeswap;
@@ -18,6 +19,7 @@ use chain_primitives::SwapMapper as BalanceSwapMapper;
 use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionType};
 
 use self::{
+    across::AcrossParser,
     dex::DexSwapParser,
     okx::OkxParser,
     pancakeswap::PancakeSwapParser,
@@ -35,6 +37,42 @@ pub struct ParseContext<'a> {
     pub created_at: DateTime<Utc>,
 }
 
+impl ParseContext<'_> {
+    fn make_swap_transaction(&self, from: &str, to: &str, metadata: &TransactionSwapMetadata) -> Option<PrimitivesTransaction> {
+        let from = ethereum_address_checksum(from).ok()?;
+        let to = ethereum_address_checksum(to).ok()?;
+        let contract = self.transaction.to.as_ref().and_then(|to| ethereum_address_checksum(to).ok());
+
+        Some(PrimitivesTransaction::new(
+            self.transaction.hash.clone(),
+            metadata.from_asset.clone(),
+            from,
+            to,
+            contract,
+            TransactionType::Swap,
+            self.receipt.get_state(),
+            self.receipt.get_fee().to_string(),
+            AssetId::from_chain(*self.chain),
+            self.transaction.value.to_string(),
+            None,
+            serde_json::to_value(metadata).ok(),
+            self.created_at,
+        ))
+    }
+
+    fn try_map_balance_diff_swap(&self, from: &str, provider: Option<String>) -> Option<TransactionSwapMetadata> {
+        let trace = self.trace?;
+        let from = ethereum_address_checksum(from).ok()?;
+        let differ = BalanceDiffer::new(*self.chain);
+        let diff_map = differ.calculate(trace, self.receipt);
+        let diff = diff_map.get(&from)?;
+        let native_asset_id = self.chain.as_asset_id();
+        let fee = self.receipt.get_fee();
+
+        BalanceSwapMapper::map_swap(diff, &fee, &native_asset_id, provider)
+    }
+}
+
 pub trait ProtocolParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool;
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction>;
@@ -47,11 +85,12 @@ fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<
 pub struct ProtocolParsers;
 
 impl ProtocolParsers {
-    fn parsers() -> [&'static dyn ProtocolParser; 8] {
+    fn parsers() -> [&'static dyn ProtocolParser; 9] {
         [
             &EverstakeParser,
             &MonadStakingParser,
             &SmartChainStakingParser,
+            &AcrossParser,
             &OkxParser,
             &YoParser,
             &PancakeSwapParser,
@@ -82,49 +121,4 @@ impl ProtocolParsers {
             .filter(|parser| parser.matches(&context))
             .find_map(|parser| parser.parse(&context))
     }
-}
-
-pub fn make_swap_transaction(
-    chain: &Chain,
-    transaction: &Transaction,
-    receipt: &TransactionReceipt,
-    metadata: &TransactionSwapMetadata,
-    created_at: DateTime<Utc>,
-) -> Option<PrimitivesTransaction> {
-    let from_checksum = ethereum_address_checksum(&transaction.from).ok()?;
-    let contract_checksum = transaction.to.as_ref().and_then(|to| ethereum_address_checksum(to).ok());
-
-    Some(PrimitivesTransaction::new(
-        transaction.hash.clone(),
-        metadata.from_asset.clone(),
-        from_checksum.clone(),
-        from_checksum,
-        contract_checksum,
-        TransactionType::Swap,
-        receipt.get_state(),
-        receipt.get_fee().to_string(),
-        AssetId::from_chain(*chain),
-        transaction.value.to_string(),
-        None,
-        serde_json::to_value(metadata).ok(),
-        created_at,
-    ))
-}
-
-pub fn try_map_balance_diff_swap(
-    chain: &Chain,
-    from: &str,
-    trace: Option<&TransactionReplayTrace>,
-    receipt: &TransactionReceipt,
-    provider: Option<String>,
-) -> Option<TransactionSwapMetadata> {
-    let trace = trace?;
-    let from = ethereum_address_checksum(from).ok()?;
-    let differ = BalanceDiffer::new(*chain);
-    let diff_map = differ.calculate(trace, receipt);
-    let diff = diff_map.get(&from)?;
-    let native_asset_id = chain.as_asset_id();
-    let fee = receipt.get_fee();
-
-    BalanceSwapMapper::map_swap(diff, &fee, &native_asset_id, provider)
 }

@@ -7,20 +7,20 @@ import Localization
 import Primitives
 
 public enum TransferAmountCalculatorError: Equatable {
-    case insufficientBalance(Asset)
-    case insufficientNetworkFee(Asset, required: BigInt?)
-    case minimumAccountBalanceTooLow(Asset, required: BigInt)
+    case insufficientBalance(Asset, requirement: BalanceRequirement)
+    case insufficientNetworkFee(Asset, requirement: BalanceRequirement?)
+    case minimumAccountBalanceTooLow(Asset, requirement: BalanceRequirement)
 }
 
 extension TransferAmountCalculatorError: LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case let .insufficientBalance(asset):
+        case let .insufficientBalance(asset, _):
             Localized.Transfer.insufficientBalance(Self.title(asset: asset))
         case let .insufficientNetworkFee(asset, _):
             Localized.Transfer.insufficientNetworkFeeBalance(Self.title(asset: asset))
-        case let .minimumAccountBalanceTooLow(asset, required):
-            Localized.Transfer.minimumAccountBalance(Self.formattedValue(required, asset: asset))
+        case let .minimumAccountBalanceTooLow(asset, requirement):
+            Localized.Transfer.minimumAccountBalance(Self.formattedValue(requirement.required, asset: asset))
         }
     }
 

@@ -443,10 +443,10 @@
   <string name="info_slippage_description">Slippage merujuk kepada perbezaan antara harga jangkaan perdagangan dan harga sebenar di mana ia dilaksanakan.</string>
   <string name="info_asset_status_unverified_description">Token yang tidak disahkan belum disahkan dengan secukupnya oleh perkhidmatan pihak ketiga yang dipercayai. Ia mungkin muncul dalam dompet anda disebabkan oleh airdrop, pemindahan atau import manual.</string>
   <string name="info_asset_status_suspicious_description">Token yang mencurigakan atau spam dikenal pasti sebagai potensi penipuan atau aset berbahaya. Ia mungkin muncul dalam dompet anda disebabkan oleh airdrop, pemindahan atau import manual.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s diperlukan</string>
-  <string name="info_insufficient_network_fee_balance_description">Transaksi ini memerlukan %1$s untuk menampung yuran rangkaian yang dibayar kepada %2$s pelombong, bukan Gem Wallet. Pastikan anda mempunyai cukup %3$s.</string>
+  <string name="info_balance_required_title">%1$s diperlukan</string>
+  <string name="info_insufficient_network_fee_balance_description">Transaksi ini memerlukan %1$s untuk yuran rangkaian %2$s, tetapi hanya %3$s tersedia. Anda memerlukan %4$s lagi untuk meneruskan.</string>
   <string name="info_insufficient_balance_title">Baki Tidak Mencukupi</string>
-  <string name="info_insufficient_balance_description">Anda tidak mempunyai cukup %1$s untuk menyelesaikan transaksi ini. Sila tambah nilai, terima atau tukar dalam dompet anda dan cuba lagi.</string>
+  <string name="info_balance_required_description">Transaksi ini memerlukan %1$s, tetapi hanya %2$s tersedia. Anda memerlukan %3$s lagi untuk meneruskan.</string>
   <string name="info_account_minimum_balance_title">Baki minimum</string>
   <string name="info_perpetual_funding_payments_title">Pembayaran Pembiayaan</string>
   <string name="info_perpetual_funding_payments_description">Pembayaran pembiayaan ialah pembayaran berkala antara pedagang untuk memastikan harga kontrak kekal hampir dengan harga spot aset pendasar. Pembiayaan positif bermakna kedudukan panjang membayar kedudukan pendek, manakala pembiayaan negatif bermakna kedudukan pendek membayar kedudukan panjang.</string>

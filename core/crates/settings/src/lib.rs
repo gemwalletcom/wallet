@@ -40,6 +40,7 @@ pub struct Settings {
     pub support: Support,
     pub defi: Defi,
     pub nft: NFT,
+    pub alchemy: Alchemy,
     pub ankr: Ankr,
     pub trongrid: Trongrid,
     pub assets: Assets,
@@ -409,6 +410,7 @@ pub struct NFTOffchain {
     pub limit: usize,
 }
 
+pub type Alchemy = SecretKeySettings;
 pub type Ankr = SecretKeySettings;
 pub type Trongrid = SecretKeySettings;
 pub type NFTScan = SecretKeySettings;

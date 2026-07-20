@@ -443,10 +443,10 @@
   <string name="info_slippage_description">Le glissement fait référence à la différence entre le prix attendu d\'une transaction et le prix réel auquel elle est exécutée.</string>
   <string name="info_asset_status_unverified_description">Les jetons non vérifiés n\'ont pas été suffisamment vérifiés par des services tiers de confiance. Ils peuvent apparaître dans votre portefeuille suite à des airdrops, des transferts ou des importations manuelles.</string>
   <string name="info_asset_status_suspicious_description">Les jetons suspects ou indésirables sont identifiés comme des arnaques potentielles ou des actifs dangereux. Ils peuvent apparaître dans votre portefeuille suite à des airdrops, des transferts ou des importations manuelles.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s requis</string>
-  <string name="info_insufficient_network_fee_balance_description">Cette transaction nécessite %1$s pour couvrir les frais de réseau payés aux mineurs %2$s, et non à Gem Wallet. Assurez-vous d\'en avoir suffisamment %3$s.</string>
+  <string name="info_balance_required_title">%1$s requis</string>
+  <string name="info_insufficient_network_fee_balance_description">Cette transaction nécessite %1$s pour les frais du réseau %2$s, mais seulement %3$s sont disponibles. Il vous faut encore %4$s pour continuer.</string>
   <string name="info_insufficient_balance_title">Solde insuffisant</string>
-  <string name="info_insufficient_balance_description">Vous n\'avez pas assez de %1$s pour finaliser cette transaction. Veuillez recharger, recevoir ou échanger votre portefeuille et réessayer.</string>
+  <string name="info_balance_required_description">Cette transaction nécessite %1$s, mais seulement %2$s sont disponibles. Il vous faut encore %3$s pour continuer.</string>
   <string name="info_account_minimum_balance_title">Solde minimum</string>
   <string name="info_perpetual_funding_payments_title">Paiements de financement</string>
   <string name="info_perpetual_funding_payments_description">Les paiements de financement sont des paiements périodiques entre traders visant à maintenir le prix du contrat perpétuel proche du prix au comptant de l\'actif sous-jacent. Un financement positif signifie que les positions longues paient les positions courtes, tandis qu\'un financement négatif signifie que les positions courtes paient les positions longues.</string>

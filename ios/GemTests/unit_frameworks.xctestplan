@@ -359,6 +359,13 @@
         "identifier" : "DiscoverAssetsServiceTests",
         "name" : "DiscoverAssetsServiceTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/FeatureServices",
+        "identifier" : "TransactionsServiceTests",
+        "name" : "TransactionsServiceTests"
+      }
     }
   ],
   "version" : 1

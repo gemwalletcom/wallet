@@ -428,10 +428,10 @@
 "info.slippage.description" = "Deslizamento refere-se à diferença entre o preço esperado de uma negociação e o preço real pelo qual ela é executada.";
 "info.asset_status.unverified.description" = "Tokens não verificados não foram suficientemente verificados por serviços terceirizados confiáveis. Eles podem aparecer na sua carteira devido a airdrops, transferências ou importações manuais.";
 "info.asset_status.suspicious.description" = "Tokens suspeitos ou de spam são identificados como potenciais golpes ou ativos nocivos. Eles podem aparecer na sua carteira devido a airdrops, transferências ou importações manuais.";
-"info.insufficient_network_fee_balance.title" = "%@ necessário";
-"info.insufficient_network_fee_balance.description" = "Esta transação requer %@ para cobrir a taxa de rede paga a %@ mineiros, não Gem Wallet. Certifique-se de ter %@ suficiente.";
+"info.balance_required_title" = "%@ necessário";
+"info.insufficient_network_fee_balance.description" = "Esta transação requer %@ para a taxa da rede %@, mas apenas %@ estão disponíveis. Você precisa de mais %@ para continuar.";
 "info.insufficient_balance.title" = "Saldo insuficiente";
-"info.insufficient_balance.description" = "Você não tem %@ suficientes para concluir esta transação. Recarregue, receba ou troque na sua carteira e tente novamente.";
+"info.balance_required_description" = "Esta transação requer %@, mas apenas %@ estão disponíveis. Você precisa de mais %@ para continuar.";
 "info.account_minimum_balance.title" = "Saldo mínimo";
 "info.perpetual.funding_payments.title" = "Pagamentos de financiamento";
 "info.perpetual.funding_payments.description" = "Os pagamentos de financiamento são pagamentos periódicos entre traders para manter o preço do contrato perpétuo próximo do preço à vista do ativo subjacente. O financiamento positivo significa que as posições longas pagam as posições curtas, enquanto o financiamento negativo significa que as posições curtas pagam as posições longas.";

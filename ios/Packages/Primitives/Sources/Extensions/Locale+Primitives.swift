@@ -3,6 +3,7 @@
 import Foundation
 
 public extension Locale {
+    static let canonical = Locale(identifier: "en_US_POSIX")
     static let US = Locale(identifier: "en_US")
     static let UK = Locale(identifier: "en_UK")
     static let UA = Locale(identifier: "ru_UA")

@@ -28,6 +28,19 @@ pub struct Transaction {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct AddressTransactions {
+    pub transactions: Vec<AddressTransaction>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct AddressTransaction {
+    #[serde(flatten)]
+    pub transaction: Transaction,
+    #[serde(rename = "includedAt")]
+    pub included_at: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Input {
     pub address: String,
     pub value: String,

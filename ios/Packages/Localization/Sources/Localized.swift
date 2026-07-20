@@ -561,6 +561,14 @@ public enum Localized {
     public static let types = Localized.tr("Localizable", "filter.types", fallback: "Types")
   }
   public enum Info {
+    /// This transaction requires %@, but only %@ is available. You need %@ more to continue.
+    public static func balanceRequiredDescription(_ p1: Any, _ p2: Any, _ p3: Any) -> String {
+      return Localized.tr("Localizable", "info.balance_required_description", String(describing: p1), String(describing: p2), String(describing: p3), fallback: "This transaction requires %@, but only %@ is available. You need %@ more to continue.")
+    }
+    /// %@ required
+    public static func balanceRequiredTitle(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "info.balance_required_title", String(describing: p1), fallback: "%@ required")
+    }
     public enum AccountMinimumBalance {
       /// Minimum balance
       public static let title = Localized.tr("Localizable", "info.account_minimum_balance.title", fallback: "Minimum balance")
@@ -586,21 +594,13 @@ public enum Localized {
       public static let title = Localized.tr("Localizable", "info.fully_diluted_valuation.title", fallback: "Fully Diluted Valuation")
     }
     public enum InsufficientBalance {
-      /// You don't have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.
-      public static func description(_ p1: Any) -> String {
-        return Localized.tr("Localizable", "info.insufficient_balance.description", String(describing: p1), fallback: "You don't have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.")
-      }
       /// Insufficient Balance
       public static let title = Localized.tr("Localizable", "info.insufficient_balance.title", fallback: "Insufficient Balance")
     }
     public enum InsufficientNetworkFeeBalance {
-      /// This transaction requires %@ to cover the network fee paid to %@ miners, not Gem Wallet. Ensure you have enough %@.
-      public static func description(_ p1: Any, _ p2: Any, _ p3: Any) -> String {
-        return Localized.tr("Localizable", "info.insufficient_network_fee_balance.description", String(describing: p1), String(describing: p2), String(describing: p3), fallback: "This transaction requires %@ to cover the network fee paid to %@ miners, not Gem Wallet. Ensure you have enough %@.")
-      }
-      /// %@ required
-      public static func title(_ p1: Any) -> String {
-        return Localized.tr("Localizable", "info.insufficient_network_fee_balance.title", String(describing: p1), fallback: "%@ required")
+      /// This transaction requires %@ for the %@ network fee, but only %@ is available. You need %@ more to continue.
+      public static func description(_ p1: Any, _ p2: Any, _ p3: Any, _ p4: Any) -> String {
+        return Localized.tr("Localizable", "info.insufficient_network_fee_balance.description", String(describing: p1), String(describing: p2), String(describing: p3), String(describing: p4), fallback: "This transaction requires %@ for the %@ network fee, but only %@ is available. You need %@ more to continue.")
       }
     }
     public enum LockTime {

@@ -1,29 +1,19 @@
 package com.gemwallet.android.ui.models
 
-import com.gemwallet.android.math.parseNumber
+import com.gemwallet.android.math.parseInputNumber
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.ValueConverter
+import com.gemwallet.android.model.Fiat
 
 enum class AmountInputType {
     Crypto {
         override fun getAmount(value: String, decimals: Int, price: Double): Crypto =
-            Crypto(value.parseNumber(), decimals)
-
-        override fun getInput(amount: Crypto?, decimals: Int, price: Double): String
-                = amount?.value(decimals)?.stripTrailingZeros()?.toPlainString() ?: ""
+            Crypto(value.parseInputNumber(), decimals)
     },
     Fiat {
         override fun getAmount(value: String, decimals: Int, price: Double): Crypto =
-            ValueConverter.convertToAmount(value, price, decimals)
-
-        override fun getInput(amount: Crypto?, decimals: Int, price: Double): String =
-            amount?.let { CryptoFiatConverter.toFiat(it, decimals, price).atomicValue }
-                ?.stripTrailingZeros()?.toPlainString()
-                ?: ""
+            CryptoFiatConverter.toCryptoAtDisplayPrecision(Fiat(value.parseInputNumber()), decimals, price)
     };
 
     abstract fun getAmount(value: String, decimals: Int, price: Double = 0.0): Crypto
-
-    abstract fun getInput(amount: Crypto?, decimals: Int, price: Double): String
 }

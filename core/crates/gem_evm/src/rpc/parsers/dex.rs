@@ -3,7 +3,7 @@ use std::str::FromStr;
 use alloy_primitives::Address;
 use primitives::Transaction as PrimitivesTransaction;
 
-use super::{ParseContext, ProtocolParser, make_swap_transaction, try_map_balance_diff_swap};
+use super::{ParseContext, ProtocolParser};
 
 pub struct DexSwapParser;
 
@@ -24,7 +24,7 @@ impl ProtocolParser for DexSwapParser {
         let to = Address::from_str(context.transaction.to.as_ref()?).ok()?;
         let entry = registry.get_by_address(&to, *context.chain)?;
 
-        let metadata = try_map_balance_diff_swap(context.chain, &context.transaction.from, context.trace, context.receipt, Some(entry.provider.to_string()))?;
-        make_swap_transaction(context.chain, context.transaction, context.receipt, &metadata, context.created_at)
+        let metadata = context.try_map_balance_diff_swap(&context.transaction.from, Some(entry.provider.to_string()))?;
+        context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }

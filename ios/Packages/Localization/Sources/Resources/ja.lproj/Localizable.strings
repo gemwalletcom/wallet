@@ -428,10 +428,10 @@
 "info.slippage.description" = "スリッページとは、取引の予想価格と実際に約定した価格の差を指します。";
 "info.asset_status.unverified.description" = "未検証トークンは、信頼できるサードパーティサービスによって十分に検証されていません。エアドロップ、送金、または手動インポートによってウォレットに表示される場合があります。";
 "info.asset_status.suspicious.description" = "疑わしいトークンやスパムトークンは、詐欺や有害な資産の可能性があると判断されます。エアドロップ、送金、または手動インポートによってウォレットに表示される場合があります。";
-"info.insufficient_network_fee_balance.title" = "%@が必要です";
-"info.insufficient_network_fee_balance.description" = "この取引では、ネットワーク手数料を賄うために%@が必要です。この手数料はGem Walletではなく%@のマイナーに支払われます。十分な%@があることを確認してください。";
+"info.balance_required_title" = "%@が必要です";
+"info.insufficient_network_fee_balance.description" = "この取引には、%@ネットワーク手数料として%@が必要ですが、利用できるのは%@のみです。続行するには、あと%@必要です。";
 "info.insufficient_balance.title" = "残高不足";
-"info.insufficient_balance.description" = "この取引を完了するには%@が足りません。ウォレットにチャージ、受け取り、または交換して、もう一度お試しください。";
+"info.balance_required_description" = "この取引には%@が必要ですが、利用できるのは%@のみです。続行するには、あと%@必要です。";
 "info.account_minimum_balance.title" = "最低残高";
 "info.perpetual.funding_payments.title" = "ファンディングペイメント";
 "info.perpetual.funding_payments.description" = "ファンディングペイメントは、永久契約の価格を基礎資産のスポット価格に近づけるためにトレーダー間で定期的に行われる支払いです。プラスのファンディングではロングポジションがショートポジションに支払い、マイナスのファンディングではショートポジションがロングポジションに支払います。";

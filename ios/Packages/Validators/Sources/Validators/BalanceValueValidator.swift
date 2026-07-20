@@ -1,20 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import BigInt
 import Primitives
 
-public struct BalanceValueValidator<V: ValueValidatable>: ValueValidator {
-    private let available: V
+public struct BalanceValueValidator: ValueValidator {
+    private let available: BigInt
     private let asset: Asset
 
-    public init(available: V, asset: Asset) {
+    public init(available: BigInt, asset: Asset) {
         self.available = available
         self.asset = asset
     }
 
-    public func validate(_ value: V) throws {
+    public func validate(_ value: BigInt) throws {
         guard value <= available else {
-            throw TransferAmountCalculatorError.insufficientBalance(asset)
+            throw TransferAmountCalculatorError.insufficientBalance(
+                asset,
+                requirement: BalanceRequirement(required: value, available: available),
+            )
         }
     }
 

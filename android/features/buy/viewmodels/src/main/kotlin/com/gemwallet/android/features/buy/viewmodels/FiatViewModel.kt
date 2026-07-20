@@ -15,7 +15,7 @@ import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
-import com.gemwallet.android.math.parseNumber
+import com.gemwallet.android.math.parseInputNumber
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.Fiat
@@ -175,7 +175,7 @@ class FiatViewModel @Inject constructor(
             }
             operation.updateState(FiatSceneState.Loading)
             operation.clearQuotes()
-            val amountParsed = amount.parseNumber().toDouble()
+            val amountParsed = amount.parseInputNumber().toDouble()
             val crypto = data.price?.price?.price?.let { price ->
                 CryptoFiatConverter.toCrypto(Fiat(BigDecimal(amountParsed)), data.asset.decimals, price).atomicValue
             } ?: BigInteger.ZERO

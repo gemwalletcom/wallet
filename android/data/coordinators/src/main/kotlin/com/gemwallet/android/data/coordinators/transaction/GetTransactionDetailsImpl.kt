@@ -145,7 +145,7 @@ class TransactionDetailsAggregateImpl(
                 else -> {
                     val value = Crypto(data.transaction.value.toBigInteger())
                     val fiat = data.price?.price?.let {
-                        CurrencyFormatter(currency = currency).string(CryptoFiatConverter.toFiat(value, asset.decimals, it).atomicValue)
+                        CryptoFiatConverter.toFiatString(value, asset.decimals, it, currency)
                     } ?: ""
 
                     val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
@@ -184,7 +184,7 @@ class TransactionDetailsAggregateImpl(
             val feeCrypto = ValueFormatter(style = ValueFormatter.Style.Full)
                 .string(fee.atomicValue, data.feeAsset)
             val feeFiat = data.feePrice?.price?.let {
-                CurrencyFormatter(currency = currency).string(CryptoFiatConverter.toFiat(fee, data.feeAsset.decimals, it).atomicValue)
+                CryptoFiatConverter.toFiatString(fee, data.feeAsset.decimals, it, currency)
             } ?: ""
             return TransactionDetailsValue.Fee(data.feeAsset, feeCrypto, feeFiat)
         }

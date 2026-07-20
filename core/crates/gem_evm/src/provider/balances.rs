@@ -7,7 +7,7 @@ use chain_traits::ChainBalances;
 use primitives::{AssetBalance, EVMChain};
 
 use crate::provider::balances_mapper::{map_assets_balances, map_balance_coin, map_balance_tokens};
-use crate::rpc::client::EthereumClient;
+use crate::rpc::{EVMIndexerClient, client::EthereumClient};
 use gem_client::Client;
 
 #[cfg(feature = "rpc")]
@@ -32,17 +32,8 @@ impl<C: Client + Clone> ChainBalances for EthereumClient<C> {
     }
 
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        if let Some(ankr_client) = &self.ankr_client {
-            let balances = ankr_client
-                .get_token_balances(address.as_str())
-                .await?
-                .assets
-                .into_iter()
-                .filter_map(|asset| asset.contract_address.map(|addr| (addr, asset.balance_raw_integer)))
-                .collect();
-            return Ok(map_assets_balances(balances, self.get_chain()));
-        }
-        return Ok(vec![]);
+        let balances = self.indexer.get_token_balances(&address).await?;
+        Ok(map_assets_balances(balances, self.get_chain()))
     }
 }
 

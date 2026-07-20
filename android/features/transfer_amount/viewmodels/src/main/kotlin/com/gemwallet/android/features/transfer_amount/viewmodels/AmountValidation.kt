@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels
 
 import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.math.parseNumber
+import com.gemwallet.android.math.parseInputNumber
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -16,11 +16,11 @@ object AmountValidation {
             throw AmountError.Required
         }
         try {
-            amount.parseNumber()
+            amount.parseInputNumber()
         } catch (_: Throwable) {
             throw AmountError.IncorrectAmount
         }
-        val crypto = Crypto(amount.parseNumber(), asset.decimals)
+        val crypto = Crypto(amount.parseInputNumber(), asset.decimals)
         if (minValue != BigInteger.ZERO && crypto.atomicValue < minValue) {
             throw AmountError.MinimumValue(
                 ValueFormatter(style = ValueFormatter.Style.Full).string(minValue, asset)

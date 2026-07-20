@@ -428,10 +428,10 @@
 "info.slippage.description" = "Slippage refers to the difference between the expected price of a trade and the actual price at which it is executed.";
 "info.asset_status.unverified.description" = "Unverified tokens have not been sufficiently verified by trusted third-party services. They may appear in your wallet due to airdrops, transfers, or manual imports.";
 "info.asset_status.suspicious.description" = "Suspicious or spam tokens are identified as potential scams or harmful assets. They may appear in your wallet due to airdrops, transfers, or manual imports.";
-"info.insufficient_network_fee_balance.title" = "%@ required";
-"info.insufficient_network_fee_balance.description" = "This transaction requires %@ to cover the network fee paid to %@ miners, not Gem Wallet. Ensure you have enough %@.";
+"info.balance_required_title" = "%@ required";
+"info.insufficient_network_fee_balance.description" = "This transaction requires %@ for the %@ network fee, but only %@ is available. You need %@ more to continue.";
 "info.insufficient_balance.title" = "Insufficient Balance";
-"info.insufficient_balance.description" = "You don't have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.";
+"info.balance_required_description" = "This transaction requires %@, but only %@ is available. You need %@ more to continue.";
 "info.account_minimum_balance.title" = "Minimum balance";
 "info.perpetual.funding_payments.title" = "Funding Payments";
 "info.perpetual.funding_payments.description" = "Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.";

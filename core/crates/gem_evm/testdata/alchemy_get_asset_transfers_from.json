@@ -1,0 +1,12 @@
+{
+    "transfers": [
+        {
+            "blockNum": "0x2",
+            "hash": "0xout"
+        },
+        {
+            "blockNum": "0x1",
+            "hash": "0xduplicate"
+        }
+    ]
+}

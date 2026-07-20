@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
 
@@ -18,14 +19,18 @@ public struct ValueConverter: Sendable {
         return value * Decimal(price.price)
     }
 
-    public func convertToAmount(
+    public func convertToDisplayedAmount(
         fiatValue: String,
         price: AssetPrice,
         decimals: Int,
-    ) throws -> String {
+    ) throws -> BigInt {
         let fiatNumber = try formatter.number(amount: fiatValue)
         let amount = try calculateAssetAmount(fiat: fiatNumber, price: price)
-        return try formatAssetAmount(amount: amount, decimals: decimals)
+        let value = try formatter.displayedNumber(from: amount, decimals: decimals)
+        guard !value.isZero else {
+            throw AnyError("Cannot format zero amount")
+        }
+        return value
     }
 }
 
@@ -40,17 +45,5 @@ extension ValueConverter {
             throw AnyError("Incorrect price")
         }
         return fiat / Decimal(price.price)
-    }
-
-    private func formatAssetAmount(
-        amount: Decimal,
-        decimals: Int,
-    ) throws -> String {
-        let amount = NSDecimalNumber(decimal: amount).stringValue
-        let inputNumber = try formatter.inputNumber(from: amount, decimals: decimals)
-        guard !inputNumber.isZero else {
-            throw AnyError("Cannot format zero amount")
-        }
-        return formatter.string(inputNumber, decimals: decimals)
     }
 }

@@ -117,7 +117,7 @@ chains:
   smartchain:
     url: https://bsc-dataseed1.bnbchain.org
   polygon:
-    url: https://polygon.publicnode.com
+    url: https://rpc-mainnet.matic.quiknode.pro
   optimism:
     url: https://mainnet.optimism.io
   arbitrum:
@@ -297,6 +297,10 @@ api:
     jwt:
       secret: ""
       expiry: 1h
+
+alchemy:
+  key:
+    secret: ""
 
 ankr:
   key:

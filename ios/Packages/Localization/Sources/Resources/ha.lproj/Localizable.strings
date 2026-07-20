@@ -428,10 +428,10 @@
 "info.slippage.description" = "Zamewa yana nufin bambanci tsakanin farashin ciniki da ake tsammani da ainihin farashin da ake aiwatar da shi.";
 "info.asset_status.unverified.description" = "Amintattun ayyuka na ɓangare na uku ba su tabbatar da isassun alamun da ba a tantance ba. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.";
 "info.asset_status.suspicious.description" = "Ana gano alamun tuhuma ko spam a matsayin masu yuwuwar zamba ko kadarorin cutarwa. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.";
-"info.insufficient_network_fee_balance.title" = "%@ ake bukata";
-"info.insufficient_network_fee_balance.description" = "Wannan ciniki yana buƙatar %@ don biyan kuɗin hanyar sadarwa da aka biya %@ masu hakar ma'adinai, ba Gem Wallet ba. Tabbatar kana da isassun %@.";
+"info.balance_required_title" = "%@ ake bukata";
+"info.insufficient_network_fee_balance.description" = "Wannan ciniki yana buƙatar %@ don kuɗin hanyar sadarwar %@, amma %@ kawai ake da shi. Kuna buƙatar ƙarin %@ don ci gaba.";
 "info.insufficient_balance.title" = "Rashin Isasshen Ma'auni";
-"info.insufficient_balance.description" = "Baku da isassun %@ don kammala wannan ciniki. Da fatan za a cika asusu, karɓa, ko musanya a cikin walat ɗin ku kuma a sake gwadawa.";
+"info.balance_required_description" = "Wannan ciniki yana buƙatar %@, amma %@ kawai ake da shi. Kuna buƙatar ƙarin %@ don ci gaba.";
 "info.account_minimum_balance.title" = "Mafi ƙarancin ma'auni";
 "info.perpetual.funding_payments.title" = "Biyan Kuɗi";
 "info.perpetual.funding_payments.description" = "Biyan kuɗi kuɗi ne na lokaci-lokaci tsakanin ƴan kasuwa don kiyaye farashin kwangila na dindindin kusa da ainihin ƙimar kadara. Kudi mai kyau yana nufin matsayi mai tsawo yana biyan gajerun matsayi, yayin da kudade mara kyau yana nufin gajeren matsayi yana biyan matsayi mai tsawo.";

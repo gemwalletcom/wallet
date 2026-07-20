@@ -28,4 +28,18 @@ struct CreateWalletModelTests {
 
         preferences.clear()
     }
+
+    @Test
+    func generateSecretPhraseReturnsGeneratedWords() {
+        let model = CreateWalletModel(
+            walletService: .mock(keystore: KeystoreMock()),
+            avatarService: .init(store: .mock()),
+            onComplete: nil,
+        )
+
+        let words = model.generateSecretPhrase()
+
+        #expect(words.isNotEmpty)
+        #expect(words == LocalKeystore.words)
+    }
 }

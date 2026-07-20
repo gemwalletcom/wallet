@@ -428,10 +428,10 @@
 "info.slippage.description" = "Slippage inarejelea tofauti kati ya bei inayotarajiwa ya biashara na bei halisi ambayo inatekelezwa.";
 "info.asset_status.unverified.description" = "Tokeni ambazo hazijathibitishwa hazijathibitishwa vya kutosha na huduma zinazoaminika za wahusika wengine. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.";
 "info.asset_status.suspicious.description" = "Tokeni zinazotiliwa shaka au taka zinatambuliwa kuwa ulaghai au mali hatari. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.";
-"info.insufficient_network_fee_balance.title" = "%@ inahitajika";
-"info.insufficient_network_fee_balance.description" = "Muamala huu unahitaji %@ ili kufidia ada ya mtandao iliyolipwa kwa wachimbaji wa %@, si Gem Wallet. Hakikisha una %@ ya kutosha.";
+"info.balance_required_title" = "%@ inahitajika";
+"info.insufficient_network_fee_balance.description" = "Muamala huu unahitaji %@ kwa ada ya mtandao wa %@, lakini ni %@ pekee zinazopatikana. Unahitaji %@ zaidi ili kuendelea.";
 "info.insufficient_balance.title" = "Salio halitoshi";
-"info.insufficient_balance.description" = "Huna %@ ya kutosha kukamilisha muamala huu. Tafadhali jaza, pokea, au ubadilishe pochi yako na ujaribu tena.";
+"info.balance_required_description" = "Muamala huu unahitaji %@, lakini ni %@ pekee zinazopatikana. Unahitaji %@ zaidi ili kuendelea.";
 "info.account_minimum_balance.title" = "Salio la chini";
 "info.perpetual.funding_payments.title" = "Malipo ya Ufadhili";
 "info.perpetual.funding_payments.description" = "Malipo ya ufadhili ni malipo ya mara kwa mara kati ya wafanyabiashara ili kuweka bei ya kudumu ya mkataba karibu na bei ya msingi ya mali. Ufadhili mzuri unamaanisha nafasi ndefu kulipa nafasi fupi, wakati ufadhili hasi unamaanisha nafasi fupi kulipa nafasi ndefu.";

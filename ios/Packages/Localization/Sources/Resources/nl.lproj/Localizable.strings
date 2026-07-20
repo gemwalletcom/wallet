@@ -428,10 +428,10 @@
 "info.slippage.description" = "Slippage verwijst naar het verschil tussen de verwachte prijs van een transactie en de daadwerkelijke prijs waartegen de transactie wordt uitgevoerd.";
 "info.asset_status.unverified.description" = "Ongeverifieerde tokens zijn niet voldoende geverifieerd door betrouwbare externe partijen. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.";
 "info.asset_status.suspicious.description" = "Verdachte of spamtokens worden herkend als potentiële oplichting of schadelijke activa. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.";
-"info.insufficient_network_fee_balance.title" = "%@ vereist";
-"info.insufficient_network_fee_balance.description" = "Deze transactie vereist %@ om de netwerkkosten te dekken die betaald worden aan %@ mijnwerkers, niet Gem Wallet. Zorg ervoor dat je voldoende %@ hebt.";
+"info.balance_required_title" = "%@ vereist";
+"info.insufficient_network_fee_balance.description" = "Deze transactie vereist %@ voor de netwerkkosten van %@, maar er is slechts %@ beschikbaar. Je hebt nog %@ nodig om door te gaan.";
 "info.insufficient_balance.title" = "Onvoldoende saldo";
-"info.insufficient_balance.description" = "Je hebt niet genoeg %@ om deze transactie te voltooien. Vul je wallet aan, ontvang of wissel in en probeer het opnieuw.";
+"info.balance_required_description" = "Deze transactie vereist %@, maar er is slechts %@ beschikbaar. Je hebt nog %@ nodig om door te gaan.";
 "info.account_minimum_balance.title" = "Minimumsaldo";
 "info.perpetual.funding_payments.title" = "Financieringsbetalingen";
 "info.perpetual.funding_payments.description" = "Financieringsbetalingen zijn periodieke betalingen tussen handelaren om de eeuwigdurende contractprijs dicht bij de spotprijs van de onderliggende waarde te houden. Positieve financiering betekent dat longposities shortposities betalen, terwijl negatieve financiering betekent dat shortposities longposities betalen.";

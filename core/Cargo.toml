@@ -19,6 +19,7 @@ members = [
     "bin/generate",
     "bin/uniffi-*",
     "bin/gas-bench",
+    "bin/nodecheck",
 
     "gemstone",
 

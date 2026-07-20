@@ -443,10 +443,10 @@
   <string name="info_slippage_description">Slippage merujuk pada perbedaan antara harga yang diharapkan dari suatu perdagangan dan harga aktual saat perdagangan itu dieksekusi.</string>
   <string name="info_asset_status_unverified_description">Token yang belum diverifikasi belum diverifikasi secara memadai oleh layanan pihak ketiga yang tepercaya. Token tersebut mungkin muncul di dompet Anda karena airdrop, transfer, atau impor manual.</string>
   <string name="info_asset_status_suspicious_description">Token yang mencurigakan atau spam diidentifikasi sebagai potensi penipuan atau aset berbahaya. Token tersebut mungkin muncul di dompet Anda karena airdrop, transfer, atau impor manual.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s diperlukan</string>
-  <string name="info_insufficient_network_fee_balance_description">Transaksi ini memerlukan %1$s untuk menutupi biaya jaringan yang dibayarkan kepada %2$s penambang, bukan Gem Wallet. Pastikan Anda memiliki cukup %3$s.</string>
+  <string name="info_balance_required_title">%1$s diperlukan</string>
+  <string name="info_insufficient_network_fee_balance_description">Transaksi ini memerlukan %1$s untuk biaya jaringan %2$s, tetapi hanya %3$s yang tersedia. Anda memerlukan %4$s lagi untuk melanjutkan.</string>
   <string name="info_insufficient_balance_title">Saldo Tidak Cukup</string>
-  <string name="info_insufficient_balance_description">Anda tidak memiliki cukup %1$s untuk menyelesaikan transaksi ini. Harap isi ulang, terima, atau tukarkan di dompet Anda dan coba lagi.</string>
+  <string name="info_balance_required_description">Transaksi ini memerlukan %1$s, tetapi hanya %2$s yang tersedia. Anda memerlukan %3$s lagi untuk melanjutkan.</string>
   <string name="info_account_minimum_balance_title">Saldo minimum</string>
   <string name="info_perpetual_funding_payments_title">Pembayaran Pendanaan</string>
   <string name="info_perpetual_funding_payments_description">Pembayaran pendanaan adalah pembayaran berkala antar pedagang untuk menjaga harga kontrak abadi tetap dekat dengan harga spot aset dasar. Pendanaan positif berarti posisi panjang membayar posisi pendek, sedangkan pendanaan negatif berarti posisi pendek membayar posisi panjang.</string>

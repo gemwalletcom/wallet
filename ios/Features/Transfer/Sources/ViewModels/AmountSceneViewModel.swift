@@ -23,7 +23,8 @@ public final class AmountSceneViewModel {
     let fiatService: FiatService
 
     private let formatter = ValueFormatter(style: .full)
-    private let valueConverter = ValueConverter()
+    private let amountFormatter = ValueFormatter.auto
+    private let valueConverter = ValueConverter(formatter: .auto)
     let currencyFormatter: CurrencyFormatter
 
     public let provider: AmountDataProvider
@@ -245,8 +246,7 @@ private extension AmountSceneViewModel {
     func fetch() async {
         do {
             transferState = .loading
-            let value = try formatter.inputNumber(from: amountTransferValue, decimals: asset.decimals.asInt)
-            let transfer = try await provider.makeTransferData(value: value)
+            let transfer = try await provider.makeTransferData(value: amountTransferValue)
             transferState = .noData
             onTransferAction?(transfer)
         } catch {
@@ -273,26 +273,28 @@ private extension AmountSceneViewModel {
                 validators: [
                     PositiveValueValidator<BigInt>().silent,
                     MinimumValueValidator<BigInt>(minimumValue: provider.minimumValue, asset: asset),
-                    BalanceValueValidator<BigInt>(available: provider.availableValue(from: assetData), asset: asset),
+                    BalanceValueValidator(available: provider.availableValue(from: assetData), asset: asset),
                 ],
             ),
         ]
     }
 
-    var amountTransferValue: String {
-        switch amountInputType {
-        case .asset: amountInputModel.text
-        case .fiat: amountValue
+    var amountTransferValue: BigInt {
+        get throws {
+            switch amountInputType {
+            case .asset: try formatter.inputNumber(from: amountInputModel.text, decimals: asset.decimals.asInt)
+            case .fiat: amountValue
+            }
         }
     }
 
-    var amountValue: String {
+    var amountValue: BigInt {
         guard let price = assetData.price else { return .zero }
-        return (try? valueConverter.convertToAmount(
+        return (try? valueConverter.convertToDisplayedAmount(
             fiatValue: amountInputModel.text,
             price: price.mapToAssetPrice(assetId: asset.id),
             decimals: asset.decimals.asInt,
-        )).or(.zero)
+        )) ?? .zero
     }
 
     var fiatValue: Decimal {
@@ -306,7 +308,7 @@ private extension AmountSceneViewModel {
     var secondaryText: String {
         switch amountInputType {
         case .asset: currencyFormatter.string(fiatValue.doubleValue)
-        case .fiat: [amountValue, asset.symbol].joined(separator: " ")
+        case .fiat: amountFormatter.string(amountValue, asset: asset)
         }
     }
 }

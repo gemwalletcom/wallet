@@ -19,7 +19,6 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -116,8 +115,8 @@ private fun SwapItem(
             )
             if (currency != null) {
                 Text(
-                    text = CurrencyFormatter(currency = currency).string(
-                        CryptoFiatConverter.toFiat(Crypto(value), decimals, assetInfo.price?.price?.price ?: 0.0).atomicValue
+                    text = CryptoFiatConverter.toFiatString(
+                        Crypto(value), decimals, assetInfo.price?.price?.price ?: 0.0, currency
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,

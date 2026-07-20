@@ -141,6 +141,32 @@ struct AssetsRequestTests {
         }
     }
 
+    @Test func searchPrioritySortsHeldBalanceFirst() throws {
+        let db = DB.mockAssets()
+        let searchStore = SearchStore(db: db)
+        let priceStore = PriceStore(db: db)
+        let fiatRateStore = FiatRateStore(db: db)
+
+        try fiatRateStore.add([FiatRate(symbol: Currency.usd.rawValue, rate: 1)])
+
+        let assets = [AssetBasic].mock()
+        try priceStore.updatePrices(
+            prices: assets.map {
+                .mock(assetId: $0.asset.id, price: 1, priceChangePercentage24h: 0)
+            },
+            currency: Currency.usd.rawValue,
+        )
+
+        let query = "usdt"
+        try searchStore.add(type: .asset, query: query, ids: assets.map(\.asset.id.identifier))
+
+        try db.dbQueue.read { db in
+            let result = try AssetsRequest.mock(filters: [.search(query, hasPriorityAssets: true)]).fetch(db)
+
+            #expect(result.map(\.asset.id) == assets.reversed().map(\.asset.id))
+        }
+    }
+
     @Test func searchNativeAssetByChainDoesNotMatchChainTokens() throws {
         let db = DB.mockAssets(assets: [
             .mock(asset: .mock(id: AssetId(chain: .ton), name: "Gram", symbol: "GRAM", decimals: 9, type: .native)),

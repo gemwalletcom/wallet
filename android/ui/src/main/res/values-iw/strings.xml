@@ -443,10 +443,10 @@
   <string name="info_slippage_description">החלקה (Slippage) מתייחסת להפרש בין המחיר הצפוי של עסקה לבין המחיר בפועל שבו היא מבוצעת.</string>
   <string name="info_asset_status_unverified_description">אסימונים שלא אומתו לא אומתו כראוי על ידי שירותי צד שלישי מהימנים. ייתכן שהם יופיעו בארנק שלך עקב הטלות אוויר, העברות או ייבוא ידני.</string>
   <string name="info_asset_status_suspicious_description">אסימונים חשודים או ספאם מזוהים כתרמיות פוטנציאליות או נכסים מזיקים. הם עשויים להופיע בארנק שלך עקב הטלות אוויר, העברות או ייבוא ידני.</string>
-  <string name="info_insufficient_network_fee_balance_title">נדרש %1$s</string>
-  <string name="info_insufficient_network_fee_balance_description">עסקה זו דורשת %1$s כדי לכסות את עמלת הרשת המשולמת לכורי %2$s, ולא ל-Gem Wallet. ודא שיש לך מספיק %3$s.</string>
+  <string name="info_balance_required_title">נדרש %1$s</string>
+  <string name="info_insufficient_network_fee_balance_description">העסקה הזו דורשת %1$s עבור עמלת הרשת של %2$s, אבל רק %3$s זמינים. נדרשים עוד %4$s כדי להמשיך.</string>
   <string name="info_insufficient_balance_title">יתרה לא מספקת</string>
-  <string name="info_insufficient_balance_description">אין לך מספיק %1$s כדי להשלים עסקה זו. אנא טען, קבל או החלף בארנק שלך ונסה שוב.</string>
+  <string name="info_balance_required_description">העסקה הזו דורשת %1$s, אבל רק %2$s זמינים. נדרשים עוד %3$s כדי להמשיך.</string>
   <string name="info_account_minimum_balance_title">יתרה מינימלית</string>
   <string name="info_perpetual_funding_payments_title">מימון תשלומים</string>
   <string name="info_perpetual_funding_payments_description">תשלומי מימון הם תשלומים תקופתיים בין סוחרים כדי לשמור על מחיר החוזה התמידי קרוב למחיר הספוט של נכס הבסיס. מימון חיובי פירושו שפוזיציות ארוכות משלמות פוזיציות שורט, בעוד מימון שלילי פירושו פוזיציות שורט משלמות פוזיציות לונג.</string>

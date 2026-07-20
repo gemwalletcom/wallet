@@ -2,23 +2,26 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
-use primitives::{Chain, Transaction};
-use settings_chain::{ChainProviders, TransactionsRequest};
+use primitives::ConfigParamKey;
+use settings_chain::{ChainProviders, TransactionsRequest, TransactionsResult};
+use storage::ConfigCacher;
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 
 pub struct FetchAddressTransactionsConsumer {
     pub providers: ChainProviders,
     pub producer: StreamProducer,
     pub cacher: CacherClient,
+    pub config: ConfigCacher,
 }
 
 impl FetchAddressTransactionsConsumer {
-    pub fn new(providers: ChainProviders, producer: StreamProducer, cacher: CacherClient) -> Self {
-        Self { providers, producer, cacher }
-    }
-
-    pub async fn process_result(&self, chain: Chain, transactions: Vec<Transaction>) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.producer.publish_transactions(TransactionsPayload::new(chain, transactions)).await
+    pub fn new(providers: ChainProviders, producer: StreamProducer, cacher: CacherClient, config: ConfigCacher) -> Self {
+        Self {
+            providers,
+            producer,
+            cacher,
+            config,
+        }
     }
 }
 
@@ -30,12 +33,15 @@ impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsCon
             .await
     }
     async fn process(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let transactions = self
+        let chain = payload.value.chain;
+        let limit = self.config.get_param_usize(&ConfigParamKey::TransactionsRequestLimit(chain))?;
+        let transactions_result = self
             .providers
-            .get_transactions_by_address(payload.value.chain, TransactionsRequest::new(payload.value.address.clone()))
+            .get_transactions_by_address_result(chain, TransactionsRequest::new(payload.value.address, limit))
             .await?;
-        let count = transactions.len();
-        let _ = self.process_result(payload.value.chain, transactions).await;
-        Ok(count)
+        match transactions_result {
+            TransactionsResult::Transactions(transactions) => self.producer.publish_transactions(TransactionsPayload::new(chain, transactions)).await,
+            TransactionsResult::TransactionIds(transaction_ids) => self.producer.publish_fetch_transactions(transaction_ids).await,
+        }
     }
 }

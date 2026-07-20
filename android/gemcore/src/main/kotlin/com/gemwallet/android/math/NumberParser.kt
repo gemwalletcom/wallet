@@ -3,7 +3,7 @@ package com.gemwallet.android.math
 import java.math.BigDecimal
 
 
-fun String.parseNumber(): BigDecimal {
+fun String.parseInputNumber(): BigDecimal {
     val parts = trim().replace(",", ".")
         .replace(" ", "")
         .split(".")
@@ -13,9 +13,9 @@ fun String.parseNumber(): BigDecimal {
     return BigDecimal(number.trim().replace("\uFEFF", ""))
 }
 
-fun String.parseNumberOrNull(): BigDecimal? {
+fun String.parseInputNumberOrNull(): BigDecimal? {
     return try {
-        parseNumber()
+        parseInputNumber()
     } catch (_: Throwable) {
         null
     }

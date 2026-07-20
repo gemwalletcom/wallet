@@ -428,10 +428,10 @@
 "info.slippage.description" = "滑点是指交易预期价格与实际执行价格之间的差异。";
 "info.asset_status.unverified.description" = "未验证代币是指未经可信第三方服务充分验证的代币。它们可能因空投、转账或手动导入而出现在您的钱包中。";
 "info.asset_status.suspicious.description" = "可疑或垃圾代币会被识别为潜在的诈骗或有害资产。它们可能因空投、转账或手动导入而出现在您的钱包中。";
-"info.insufficient_network_fee_balance.title" = "需要%@";
-"info.insufficient_network_fee_balance.description" = "此交易需要 %@ 支付给 %@ 矿工的网络费用，而非 Gem Wallet。请确保你有足够的 %@。";
+"info.balance_required_title" = "需要%@";
+"info.insufficient_network_fee_balance.description" = "此交易需要 %@ 支付 %@ 网络费用，但只有 %@ 可用。还需要 %@ 才能继续。";
 "info.insufficient_balance.title" = "余额不足";
-"info.insufficient_balance.description" = "您的余额不足%@ ，无法完成此交易。请充值、接收或兑换您的钱包，然后重试。";
+"info.balance_required_description" = "此交易需要%@，但只有%@可用。还需要%@才能继续。";
 "info.account_minimum_balance.title" = "最低余额";
 "info.perpetual.funding_payments.title" = "资金费用";
 "info.perpetual.funding_payments.description" = "资金费用是交易者之间的定期支付，用于使永续合约价格接近标的资产现货价格。正资金费用表示多头支付空头，负资金费用表示空头支付多头。";

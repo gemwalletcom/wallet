@@ -443,10 +443,10 @@
   <string name="info_slippage_description">Lo slippage si riferisce alla differenza tra il prezzo previsto di una transazione e il prezzo effettivo a cui viene eseguita.</string>
   <string name="info_asset_status_unverified_description">I token non verificati non sono stati sufficientemente verificati da servizi di terze parti affidabili. Potrebbero comparire nel tuo portafoglio a causa di airdrop, trasferimenti o importazioni manuali.</string>
   <string name="info_asset_status_suspicious_description">I token sospetti o spam vengono identificati come potenziali truffe o asset dannosi. Potrebbero comparire nel tuo portafoglio a seguito di airdrop, trasferimenti o importazioni manuali.</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s richiesto</string>
-  <string name="info_insufficient_network_fee_balance_description">Questa transazione richiede %1$s per coprire la quota di rete pagata a %2$s minatori, non Gem Wallet. Assicurati di averne abbastanza %3$s.</string>
+  <string name="info_balance_required_title">%1$s richiesto</string>
+  <string name="info_insufficient_network_fee_balance_description">Questa transazione richiede %1$s per la commissione di rete %2$s, ma sono disponibili solo %3$s. Ti serve ancora %4$s per continuare.</string>
   <string name="info_insufficient_balance_title">Saldo insufficiente</string>
-  <string name="info_insufficient_balance_description">Non hai abbastanza %1$s per completare questa transazione. Ricarica, ricevi o scambia nel tuo portafoglio e riprova.</string>
+  <string name="info_balance_required_description">Questa transazione richiede %1$s, ma sono disponibili solo %2$s. Ti serve ancora %3$s per continuare.</string>
   <string name="info_account_minimum_balance_title">Saldo minimo</string>
   <string name="info_perpetual_funding_payments_title">Pagamenti di finanziamento</string>
   <string name="info_perpetual_funding_payments_description">I pagamenti di finanziamento sono pagamenti periodici tra trader per mantenere il prezzo del contratto perpetuo vicino al prezzo spot dell\'attività sottostante. Un finanziamento positivo significa che le posizioni lunghe pagano le posizioni corte, mentre un finanziamento negativo significa che le posizioni corte pagano le posizioni lunghe.</string>

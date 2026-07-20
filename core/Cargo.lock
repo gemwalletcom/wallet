@@ -5382,6 +5382,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "nodecheck"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "chain_traits",
+ "clap",
+ "gem_client",
+ "gem_evm",
+ "gem_jsonrpc",
+ "gem_solana",
+ "gem_tracing",
+ "num-traits",
+ "primitives",
+ "reqwest 0.13.4",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "nom"
 version = "7.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7505,6 +7524,7 @@ name = "settings_chain"
 version = "1.0.0"
 dependencies = [
  "chain_traits",
+ "futures",
  "gem_algorand",
  "gem_aptos",
  "gem_bitcoin",
@@ -7520,6 +7540,7 @@ dependencies = [
  "gem_stellar",
  "gem_sui",
  "gem_ton",
+ "gem_tracing",
  "gem_tron",
  "gem_xrp",
  "primitives",

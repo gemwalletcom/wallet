@@ -443,10 +443,10 @@
   <string name="info_slippage_description">ความสลิปเพจหมายถึงความแตกต่างระหว่างราคาที่คาดหวังของการซื้อขายและราคาจริงที่ดำเนินการ</string>
   <string name="info_asset_status_unverified_description">โทเค็นที่ไม่ได้รับการตรวจสอบนั้นไม่ได้รับการตรวจสอบอย่างเพียงพอโดยบริการบุคคลที่สามที่เชื่อถือได้ โทเค็นเหล่านี้อาจปรากฏในกระเป๋าเงินของคุณเนื่องจากการส่งทางอากาศ การโอน หรือการนำเข้าด้วยตนเอง</string>
   <string name="info_asset_status_suspicious_description">โทเค็นที่น่าสงสัยหรือเป็นสแปมจะถูกระบุว่าเป็นการหลอกลวงหรือทรัพย์สินที่เป็นอันตราย โทเค็นเหล่านี้อาจปรากฏในกระเป๋าเงินของคุณเนื่องจากการส่งทางอากาศ การโอน หรือการนำเข้าด้วยตนเอง</string>
-  <string name="info_insufficient_network_fee_balance_title">%1$s จำเป็น</string>
-  <string name="info_insufficient_network_fee_balance_description">ธุรกรรมนี้ต้องการ %1$s เพื่อครอบคลุมค่าธรรมเนียมเครือข่ายที่จ่ายให้นักขุดของ %2$s ไม่ใช่ Gem Wallet โปรดตรวจสอบว่าคุณมี %3$s เพียงพอ</string>
+  <string name="info_balance_required_title">%1$s จำเป็น</string>
+  <string name="info_insufficient_network_fee_balance_description">ธุรกรรมนี้ต้องใช้ %1$s สำหรับค่าธรรมเนียมเครือข่าย %2$s แต่มีเพียง %3$s เท่านั้น คุณต้องการอีก %4$s เพื่อดำเนินการต่อ</string>
   <string name="info_insufficient_balance_title">ยอดเงินคงเหลือไม่เพียงพอ</string>
-  <string name="info_insufficient_balance_description">คุณมี %1$s ไม่เพียงพอสำหรับการทำธุรกรรมนี้ โปรดเติมเงิน รับ หรือแลกเปลี่ยนในกระเป๋าสตางค์ของคุณแล้วลองอีกครั้ง</string>
+  <string name="info_balance_required_description">ธุรกรรมนี้ต้องใช้ %1$s แต่มีเพียง %2$s เท่านั้น คุณต้องการอีก %3$s เพื่อดำเนินการต่อ</string>
   <string name="info_account_minimum_balance_title">ยอดคงเหลือขั้นต่ำ</string>
   <string name="info_perpetual_funding_payments_title">การชำระเงินเงินทุน</string>
   <string name="info_perpetual_funding_payments_description">การจ่ายเงินเป็นงวด ๆ ระหว่างเทรดเดอร์เพื่อรักษาราคาสัญญาถาวรให้ใกล้กับราคาสปอตของสินทรัพย์อ้างอิง funding ที่เป็นบวกหมายถึงตำแหน่ง Long จ่ายให้ตำแหน่ง Short ในขณะที่ funding ติดลบหมายถึงตำแหน่ง Short จ่ายให้ตำแหน่ง Long</string>

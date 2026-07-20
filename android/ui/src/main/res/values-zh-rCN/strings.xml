@@ -443,10 +443,10 @@
   <string name="info_slippage_description">滑点是指交易预期价格与实际执行价格之间的差异。</string>
   <string name="info_asset_status_unverified_description">未验证代币是指未经可信第三方服务充分验证的代币。它们可能因空投、转账或手动导入而出现在您的钱包中。</string>
   <string name="info_asset_status_suspicious_description">可疑或垃圾代币会被识别为潜在的诈骗或有害资产。它们可能因空投、转账或手动导入而出现在您的钱包中。</string>
-  <string name="info_insufficient_network_fee_balance_title">需要%1$s</string>
-  <string name="info_insufficient_network_fee_balance_description">此交易需要 %1$s 支付给 %2$s 矿工的网络费用，而非 Gem Wallet。请确保你有足够的 %3$s。</string>
+  <string name="info_balance_required_title">需要%1$s</string>
+  <string name="info_insufficient_network_fee_balance_description">此交易需要 %1$s 支付 %2$s 网络费用，但只有 %3$s 可用。还需要 %4$s 才能继续。</string>
   <string name="info_insufficient_balance_title">余额不足</string>
-  <string name="info_insufficient_balance_description">您的余额不足%1$s ，无法完成此交易。请充值、接收或兑换您的钱包，然后重试。</string>
+  <string name="info_balance_required_description">此交易需要%1$s，但只有%2$s可用。还需要%3$s才能继续。</string>
   <string name="info_account_minimum_balance_title">最低余额</string>
   <string name="info_perpetual_funding_payments_title">资金费用</string>
   <string name="info_perpetual_funding_payments_description">资金费用是交易者之间的定期支付，用于使永续合约价格接近标的资产现货价格。正资金费用表示多头支付空头，负资金费用表示空头支付多头。</string>
