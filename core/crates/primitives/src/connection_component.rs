@@ -1,3 +1,4 @@
+use crate::ConnectionStatus;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
@@ -9,4 +10,13 @@ pub enum ConnectionComponent {
     Api,
     Nodes,
     Stream,
+}
+
+impl ConnectionComponent {
+    pub fn failure_status(&self) -> ConnectionStatus {
+        match self {
+            Self::Internet => ConnectionStatus::NoInternet,
+            Self::Api | Self::Nodes | Self::Stream => ConnectionStatus::NoService,
+        }
+    }
 }

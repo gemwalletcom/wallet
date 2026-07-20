@@ -505,6 +505,7 @@ let package = Package(
             name: "ConnectionStatusService",
             dependencies: [
                 "Primitives",
+                "GemstonePrimitives",
                 .product(name: "ConnectivityService", package: "SystemServices"),
             ],
             path: "ConnectionStatusService",

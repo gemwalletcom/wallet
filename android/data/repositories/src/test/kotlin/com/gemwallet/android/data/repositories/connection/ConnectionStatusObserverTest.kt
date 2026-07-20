@@ -13,6 +13,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemConnectionComponent
+import uniffi.gemstone.GemConnectionStatus
+import uniffi.gemstone.connectionStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionStatusObserverTest {
@@ -21,33 +24,15 @@ class ConnectionStatusObserverTest {
     fun setUp() {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
-    }
-
-    @Test
-    fun testFailureStatus() {
-        assertEquals(ConnectionStatus.NoInternet, ConnectionComponent.Internet.failureStatus)
-        assertEquals(ConnectionStatus.NoService, ConnectionComponent.Api.failureStatus)
-        assertEquals(ConnectionStatus.NoService, ConnectionComponent.Nodes.failureStatus)
-        assertEquals(ConnectionStatus.NoService, ConnectionComponent.Stream.failureStatus)
-    }
-
-    @Test
-    fun testConnectionStatus() {
-        assertEquals(ConnectionStatus.Online, emptyMap<ConnectionComponent, Boolean>().connectionStatus)
-        assertEquals(
-            ConnectionStatus.NoInternet,
-            mapOf(
-                ConnectionComponent.Internet to false,
-                ConnectionComponent.Api to false,
-            ).connectionStatus
-        )
-        assertEquals(
-            ConnectionStatus.NoService,
-            mapOf(
-                ConnectionComponent.Internet to true,
-                ConnectionComponent.Nodes to false,
-            ).connectionStatus
-        )
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { connectionStatus(any()) } answers {
+            val components = firstArg<List<GemConnectionComponent>>()
+            when {
+                components.contains(GemConnectionComponent.INTERNET) -> GemConnectionStatus.NO_INTERNET
+                components.isNotEmpty() -> GemConnectionStatus.NO_SERVICE
+                else -> GemConnectionStatus.ONLINE
+            }
+        }
     }
 
     @Test

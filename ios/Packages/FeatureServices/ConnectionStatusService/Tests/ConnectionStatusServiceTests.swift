@@ -7,14 +7,6 @@ import Testing
 
 struct ConnectionStatusServiceTests {
     @Test
-    func failureStatus() {
-        #expect(ConnectionComponent.internet.failureStatus == .noInternet)
-        #expect(ConnectionComponent.api.failureStatus == .noService)
-        #expect(ConnectionComponent.nodes.failureStatus == .noService)
-        #expect(ConnectionComponent.stream.failureStatus == .noService)
-    }
-
-    @Test
     func connectivityStateIsOffline() {
         #expect(ConnectivityState.unknown.isOffline == false)
         #expect(ConnectivityState.satisfied.isOffline == false)

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import Observation
 import Primitives
 
@@ -50,10 +51,6 @@ public final class ConnectionStatusObserver {
     }
 
     private func status(for components: [ConnectionComponent: Bool]) -> ConnectionStatus {
-        components
-            .filter { !$0.value }
-            .keys
-            .map(\.failureStatus)
-            .max { $0.severity < $1.severity } ?? .online
+        Array(components.filter { !$0.value }.keys).connectionStatus
     }
 }
