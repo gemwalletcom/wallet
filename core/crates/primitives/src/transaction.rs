@@ -336,9 +336,8 @@ impl Transaction {
         }
     }
 
-    pub fn with_data(mut self, data: Option<String>) -> Self {
-        self.data = data;
-        self
+    pub fn with_data(self, data: Option<String>) -> Self {
+        Self { data, ..self }
     }
 
     pub fn with_swap_state(self, state: TransactionState, metadata: Option<serde_json::Value>) -> Self {

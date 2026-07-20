@@ -3,6 +3,7 @@ use alloy_primitives::{Address, Bytes, hex};
 use alloy_sol_types::SolCall;
 use async_trait::async_trait;
 use gem_client::ReqwestClient;
+use gem_evm::method;
 use gem_jsonrpc::JsonRpcClient;
 use serde_json::json;
 use std::{error::Error, str::FromStr};
@@ -48,7 +49,7 @@ impl Hyperliquid {
             "latest"
         ]);
 
-        let result_str: String = self.client.call("eth_call", params).await?;
+        let result_str: String = self.client.call(method::ETH_CALL, params).await?;
         let result = Bytes::from(hex::decode(&result_str).map_err(|e| format!("Failed to decode hex response: {}", e))?);
         Ok(result)
     }

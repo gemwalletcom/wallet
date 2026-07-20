@@ -1,20 +1,21 @@
 use alloy_primitives::{Address, Bytes, hex};
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
-use gem_jsonrpc::types::{ERROR_INTERNAL_ERROR, JsonRpcError, JsonRpcResult};
+use gem_jsonrpc::types::{ERROR_INTERNAL_ERROR, JsonRpcError};
 
 use num_bigint::{BigInt, Sign};
 use serde::de::DeserializeOwned;
-use serde_json::json;
+use serde_json::{Value, json};
 use serde_serializers::biguint_from_hex_str;
 use std::any::TypeId;
 use std::str::FromStr;
 
 use super::{
     EVMIndexer,
-    model::{Block, TraceCallResult, TransactionReceipt, TransactionReplayTrace},
+    model::{Block, TraceCallResult, Transaction, TransactionReceipt, TransactionReplayTrace},
 };
 use crate::jsonrpc::{BlockParameter, TransactionObject};
+use crate::method;
 use crate::models::fee::EthereumFeeHistory;
 #[cfg(feature = "rpc")]
 use crate::multicall3::{
@@ -69,10 +70,6 @@ impl<C: Client + Clone> EthereumClient<C> {
         self.client.call(&method, params).await
     }
 
-    pub async fn batch_call<T: DeserializeOwned + Send + 'static>(&self, calls: Vec<(String, serde_json::Value)>) -> Result<Vec<JsonRpcResult<T>>, JsonRpcError> {
-        Ok(self.client.batch_call::<T>(calls).await?.into_iter().collect())
-    }
-
     pub async fn eth_call<T: DeserializeOwned + Send + 'static>(&self, contract_address: &str, call_data: &str) -> Result<T, Box<dyn std::error::Error + Send + Sync>> {
         let to_address = Address::from_str(contract_address)?;
 
@@ -84,7 +81,7 @@ impl<C: Client + Clone> EthereumClient<C> {
             Self::latest_block_parameter()
         ]);
 
-        let result: String = self.client.call("eth_call", params).await?;
+        let result: String = self.client.call(method::ETH_CALL, params).await?;
         let result_bytes = Bytes::from(hex::decode(&result)?);
 
         // Deserialize T (hex string or struct) from the returned bytes.
@@ -97,47 +94,59 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub async fn get_block(&self, block_number: u64) -> Result<Block, JsonRpcError> {
         let params = json!([format!("0x{:x}", block_number), true]);
-        self.client.call("eth_getBlockByNumber", params).await
+        self.client.call(method::ETH_GET_BLOCK_BY_NUMBER, params).await
+    }
+
+    pub async fn get_transaction(&self, hash: &str) -> Result<Option<Transaction>, JsonRpcError> {
+        self.client.call(method::ETH_GET_TRANSACTION_BY_HASH, json!([hash])).await
     }
 
     pub async fn get_block_receipts(&self, block_number: u64) -> Result<Vec<TransactionReceipt>, JsonRpcError> {
         let params = json!([format!("0x{:x}", block_number)]);
-        self.client.call("eth_getBlockReceipts", params).await
+        self.client.call(method::ETH_GET_BLOCK_RECEIPTS, params).await
     }
 
     pub async fn get_latest_block(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-        let block_hex: String = self.client.call("eth_blockNumber", json!([])).await?;
+        let block_hex: String = self.client.call(method::ETH_BLOCK_NUMBER, json!([])).await?;
         let block_hex = block_hex.trim_start_matches("0x");
         Ok(u64::from_str_radix(block_hex, 16)?)
     }
 
     pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReceipt>, JsonRpcError> {
         let params = json!([hash]);
-        self.client.call("eth_getTransactionReceipt", params).await
+        self.client.call(method::ETH_GET_TRANSACTION_RECEIPT, params).await
     }
 
     pub async fn trace_replay_block_transactions(&self, block_number: u64) -> Result<Vec<TransactionReplayTrace>, JsonRpcError> {
         let params = json!([format!("0x{:x}", block_number), json!(["stateDiff"])]);
-        self.client.call("trace_replayBlockTransactions", params).await
+        self.client.call(method::TRACE_REPLAY_BLOCK_TRANSACTIONS, params).await
+    }
+
+    pub async fn trace_replay_transaction(&self, hash: &str) -> Result<TransactionReplayTrace, JsonRpcError> {
+        self.client.call(method::TRACE_REPLAY_TRANSACTION, json!([hash, ["stateDiff"]])).await
     }
 
     pub async fn trace_call(&self, transaction: &TransactionObject) -> Result<TraceCallResult, JsonRpcError> {
         let params = json!([transaction, json!(["trace", "stateDiff"]), Self::latest_block_parameter()]);
-        self.client.call("trace_call", params).await
+        self.client.call(method::TRACE_CALL, params).await
     }
 
     pub async fn get_eth_balance(&self, address: &str) -> Result<String, JsonRpcError> {
         let params = json!([address, Self::latest_block_parameter()]);
-        self.client.call("eth_getBalance", params).await
+        self.client.call(method::ETH_GET_BALANCE, params).await
     }
 
     pub async fn get_code(&self, address: &str) -> Result<String, JsonRpcError> {
         let params = json!([address, Self::latest_block_parameter()]);
-        self.client.call("eth_getCode", params).await
+        self.client.call(method::ETH_GET_CODE, params).await
+    }
+
+    pub async fn get_syncing(&self) -> Result<Value, JsonRpcError> {
+        self.client.call(method::ETH_SYNCING, json!([])).await
     }
 
     pub async fn gas_price(&self) -> Result<BigInt, JsonRpcError> {
-        let value: String = self.client.call("eth_gasPrice", json!([])).await?;
+        let value: String = self.client.call(method::ETH_GAS_PRICE, json!([])).await?;
         let biguint = biguint_from_hex_str(&value).map_err(|_| JsonRpcError {
             code: ERROR_INTERNAL_ERROR,
             message: format!("Failed to parse gas price: {value}"),
@@ -146,27 +155,28 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn get_chain_id(&self) -> Result<String, JsonRpcError> {
-        self.client.call("eth_chainId", json!([])).await
-    }
-
-    pub async fn get_block_number(&self) -> Result<String, JsonRpcError> {
-        self.client.call("eth_blockNumber", json!([])).await
+        self.client.call(method::ETH_CHAIN_ID, json!([])).await
     }
 
     pub async fn get_transaction_count(&self, address: &str) -> Result<String, JsonRpcError> {
         let params = json!([address, Self::latest_block_parameter()]);
-        self.client.call("eth_getTransactionCount", params).await
+        self.client.call(method::ETH_GET_TRANSACTION_COUNT, params).await
     }
 
     pub async fn send_raw_transaction(&self, data: &str) -> Result<String, JsonRpcError> {
         let params = json!([data]);
-        self.client.call("eth_sendRawTransaction", params).await
+        self.client.call(method::ETH_SEND_RAW_TRANSACTION, params).await
     }
 
     pub async fn batch_eth_call<const N: usize>(&self, contract_address: &str, function_selectors: [&str; N]) -> Result<[String; N], Box<dyn std::error::Error + Sync + Send>> {
         let calls: Vec<(String, serde_json::Value)> = function_selectors
             .iter()
-            .map(|selector| ("eth_call".to_string(), json!([{"to": contract_address, "data": selector}, Self::latest_block_parameter()])))
+            .map(|selector| {
+                (
+                    method::ETH_CALL.to_string(),
+                    json!([{"to": contract_address, "data": selector}, Self::latest_block_parameter()]),
+                )
+            })
             .collect();
         let results = self.client.batch_call::<String>(calls).await?.take_all()?;
         results.try_into().map_err(|_| "Array conversion failed".into())
@@ -174,14 +184,14 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub async fn get_fee_history(&self, blocks: u64, reward_percentiles: Vec<u64>) -> Result<EthereumFeeHistory, JsonRpcError> {
         let params = json!([format!("0x{:x}", blocks), Self::latest_block_parameter(), reward_percentiles]);
-        self.client.call("eth_feeHistory", params).await
+        self.client.call(method::ETH_FEE_HISTORY, params).await
     }
 
     pub async fn batch_token_balance_calls(&self, address: &str, contracts: &[String]) -> Result<Vec<String>, Box<dyn std::error::Error + Sync + Send>> {
         let data = format!("0x70a08231000000000000000000000000{:0>40}", address.strip_prefix("0x").unwrap_or(address));
         let calls: Vec<(String, serde_json::Value)> = contracts
             .iter()
-            .map(|x| ("eth_call".to_string(), json!([{"to": x, "data": &data}, Self::latest_block_parameter()])))
+            .map(|x| (method::ETH_CALL.to_string(), json!([{"to": x, "data": &data}, Self::latest_block_parameter()])))
             .collect();
         Ok(self.client.batch_call::<String>(calls).await?.take_all()?)
     }
@@ -203,7 +213,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         }
 
         let params = json!([params_obj, Self::latest_block_parameter()]);
-        self.client.call("eth_estimateGas", params).await
+        self.client.call(method::ETH_ESTIMATE_GAS, params).await
     }
 
     #[cfg(feature = "rpc")]
@@ -212,7 +222,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         let multicall_data = IMulticall3::aggregate3Call { calls }.abi_encode();
 
         let call = (
-            "eth_call".to_string(),
+            method::ETH_CALL.to_string(),
             json!([{
                 "to": multicall_address,
                 "data": hex::encode_prefixed(&multicall_data)
@@ -230,7 +240,7 @@ impl<C: Client + Clone> EthereumClient<C> {
     pub async fn call_contract<T: SolCall>(&self, target: Address, sol_call: T) -> Result<T::Return, Box<dyn std::error::Error + Sync + Send>> {
         let call_data = hex::encode_prefixed(sol_call.abi_encode());
         let params = json!([{ "to": target.to_string(), "data": call_data }, Self::latest_block_parameter()]);
-        let result: String = self.client.call("eth_call", params).await?;
+        let result: String = self.client.call(method::ETH_CALL, params).await?;
         let result_data = hex::decode(&result)?;
         Ok(T::abi_decode_returns(&result_data)?)
     }

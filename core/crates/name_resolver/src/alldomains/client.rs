@@ -7,7 +7,7 @@ use serde_json::{self, json};
 
 use gem_client::ReqwestClient;
 use gem_jsonrpc::JsonRpcClient;
-use gem_solana::{COMMITMENT_CONFIRMED, Pubkey, find_program_address};
+use gem_solana::{COMMITMENT_CONFIRMED, Pubkey, find_program_address, method};
 use primitives::{
     chain::Chain,
     contract_constants::{SOLANA_ALLDOMAINS_ANS_PROGRAM_ID, SOLANA_ALLDOMAINS_NAME_HOUSE_PROGRAM_ID, SOLANA_ALLDOMAINS_ROOT_PUBLIC_KEY, SOLANA_ALLDOMAINS_TLD_HOUSE_PROGRAM_ID},
@@ -88,7 +88,7 @@ impl AllDomainsClient {
         let response: serde_json::Value = self
             .client
             .call(
-                "getAccountInfo",
+                method::GET_ACCOUNT_INFO,
                 vec![json!(name_account_key.to_string()), json!({"encoding": "base64", "commitment": COMMITMENT_CONFIRMED})],
             )
             .await?;

@@ -13,11 +13,8 @@ webhook:
 
 monitoring:
   enabled: false
-  poll_interval: 10m
-  max_sync_delay: 24s
-  max_sync_blocks: 20
-  latency_threshold: 250ms
-  latency_threshold_percent: 20
+  profile: basic
+  interval: 10m
 
 request:
   timeout: 3s

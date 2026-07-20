@@ -57,7 +57,6 @@ impl fmt::Display for CurrentNodeErrorKind {
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum NodeSwitchReason {
     BlockHeight { old_block: u64, new_block: u64 },
-    Latency { old_latency_ms: u64, new_latency_ms: u64 },
     CurrentNodeError { kind: CurrentNodeErrorKind, message: String },
 }
 
@@ -65,7 +64,6 @@ impl NodeSwitchReason {
     pub(crate) fn metric_reason(&self) -> String {
         match self {
             Self::BlockHeight { .. } => "block_height".to_string(),
-            Self::Latency { .. } => "latency".to_string(),
             Self::CurrentNodeError { kind, .. } => kind.to_string(),
         }
     }
@@ -75,7 +73,6 @@ impl fmt::Display for NodeSwitchReason {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BlockHeight { old_block, new_block } => write!(f, "block_behind:{}", new_block.saturating_sub(*old_block)),
-            Self::Latency { old_latency_ms, new_latency_ms } => write!(f, "latency:{}ms->{}ms", old_latency_ms, new_latency_ms),
             Self::CurrentNodeError { message, .. } => write!(f, "{}", message),
         }
     }
@@ -84,19 +81,6 @@ impl fmt::Display for NodeSwitchReason {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metric_reason_keeps_stable_switch_labels() {
-        assert_eq!(NodeSwitchReason::BlockHeight { old_block: 1, new_block: 2 }.metric_reason(), "block_height");
-        assert_eq!(
-            NodeSwitchReason::Latency {
-                old_latency_ms: 400,
-                new_latency_ms: 100
-            }
-            .metric_reason(),
-            "latency"
-        );
-    }
 
     #[test]
     fn metric_reason_categorizes_current_node_errors() {

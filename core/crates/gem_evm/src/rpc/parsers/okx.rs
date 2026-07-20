@@ -246,7 +246,7 @@ mod tests {
             hash: "0x77144af6766c014ad05b0ae90979dc5df9978ecb5829c89925659445b8630dd2".to_string(),
             input: FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID.to_string(),
             to: Some("0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc".to_string()),
-            block_number: BigUint::from(1u32),
+            block_number: 1,
             value: BigUint::from(0u8),
         };
         let transfer_receipt = TransactionReceipt {
@@ -269,7 +269,7 @@ mod tests {
             ],
             status: "0x1".to_string(),
             block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
-            block_number: BigUint::from(1u32),
+            block_number: 1,
         };
         let transfer_swap_tx = map_transaction(&Chain::Base, &transfer_tx, &transfer_receipt, None);
         let transfer_metadata: TransactionSwapMetadata = serde_json::from_value(transfer_swap_tx.metadata.clone().unwrap()).unwrap();
@@ -298,7 +298,7 @@ mod tests {
             hash: "0x336524846fec8f7a4a37ebac417f3ddd2d25b6fdf9b9cf0b88e1f69bb5601393".to_string(),
             input: "0x0d5f0e3b00000000000000003bbc864aadaf6f9b702718e3cec12f944be7df8b34e59e2f00000000000000000000000000000000000000000000043c33c19375648000000000000000000000000000000000000000000000000000000036e5945adfeb74000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000012000000000000000000000009bdc7dfd19b75b023e28bbb8e197295c51ce55e4777777771111800000000000000000000000000000000000003798ea0b0a14fd777777771111000000000064fa00a9ed787f3793db668bff3e6e6e7db0f92a1b800000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee3ca20afc2bbb0000004c4b400d9dab1a248f63b0a48965ba8435e4de7497a3dc".to_string(),
             to: Some("0x5e1f62dac767b0491e3ce72469c217365d5b48cc".to_string()),
-            block_number: BigUint::from(24717134u32),
+            block_number: 24717134,
             value: BigUint::from(0u8),
         };
         let uniswap_v3_swap_to_receipt = TransactionReceipt {
@@ -313,7 +313,7 @@ mod tests {
             }],
             status: "0x1".to_string(),
             block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
-            block_number: BigUint::from(24717134u32),
+            block_number: 24717134,
         };
         let uniswap_v3_swap_to = map_transaction(&Chain::Ethereum, &uniswap_v3_swap_to_tx, &uniswap_v3_swap_to_receipt, None);
         let uniswap_v3_swap_to_metadata: TransactionSwapMetadata = serde_json::from_value(uniswap_v3_swap_to.metadata.clone().unwrap()).unwrap();
@@ -339,7 +339,7 @@ mod tests {
             hash: "0xf3714f46b23016a349e549e6212c6e39fd3f2ef3926039775377ba70d962bfa5".to_string(),
             input: "0x9871efa400000000000000003bbc864a249e38ea4102d0cf8264d3701f1a0e39c4f2dc3b000000000000000000000000000000000000000001c47e5d3263f59c9d062a020000000000000000000000000000000000000000000000000020068f78c840c70000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000170000000000000003b6d034097e1fcb93ae7267dbafad23f7b9afaa08264cfd87777777711118000000000000000000000000000000000000020595fca29f3dc777777771111000000000064fa00a9ed787f3793db668bff3e6e6e7db0f92a1b800000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee3ca20afc2bbb0000004c4b400d9dab1a248f63b0a48965ba8435e4de7497a3dc".to_string(),
             to: Some("0x5e1f62dac767b0491e3ce72469c217365d5b48cc".to_string()),
-            block_number: BigUint::from(24717121u32),
+            block_number: 24717121,
             value: BigUint::from(0u8),
         };
         let unxswap_by_order_id_receipt = TransactionReceipt {
@@ -354,7 +354,7 @@ mod tests {
             }],
             status: "0x1".to_string(),
             block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
-            block_number: BigUint::from(24717121u32),
+            block_number: 24717121,
         };
         let unxswap_by_order_id = map_transaction(&Chain::Ethereum, &unxswap_by_order_id_tx, &unxswap_by_order_id_receipt, None);
         let unxswap_by_order_id_metadata: TransactionSwapMetadata = serde_json::from_value(unxswap_by_order_id.metadata.clone().unwrap()).unwrap();

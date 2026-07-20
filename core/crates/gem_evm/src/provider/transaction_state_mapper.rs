@@ -22,7 +22,7 @@ mod tests {
 
     const BLOCK_HASH: &str = "0x1111111111111111111111111111111111111111111111111111111111111111";
 
-    fn receipt(status: &str, block_number: u32, block_hash: &str, l1_fee: Option<BigUint>) -> TransactionReceipt {
+    fn receipt(status: &str, block_number: u64, block_hash: &str, l1_fee: Option<BigUint>) -> TransactionReceipt {
         TransactionReceipt {
             gas_used: BigUint::from(21000u32),
             effective_gas_price: BigUint::from(20000000000u64),
@@ -30,7 +30,7 @@ mod tests {
             logs: vec![],
             status: status.to_string(),
             block_hash: block_hash.to_string(),
-            block_number: BigUint::from(block_number),
+            block_number,
         }
     }
 

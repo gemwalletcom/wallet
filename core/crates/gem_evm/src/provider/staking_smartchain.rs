@@ -1,5 +1,5 @@
 use crate::jsonrpc::BlockParameter;
-use crate::{constants::STAKING_VALIDATORS_LIMIT, rpc::client::EthereumClient};
+use crate::{constants::STAKING_VALIDATORS_LIMIT, method, rpc::client::EthereumClient};
 use alloy_primitives::hex;
 use chrono::{DateTime, Utc};
 use gem_bsc::stake_hub::{
@@ -18,7 +18,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         let call_data = encode_validators_call(0, limit);
 
         let call = (
-            "eth_call".to_string(),
+            method::ETH_CALL.to_string(),
             serde_json::json!([{
             "to": HUB_READER_ADDRESS,
             "data": hex::encode_prefixed(&call_data)
@@ -129,14 +129,14 @@ impl<C: Client + Clone> EthereumClient<C> {
 
         let calls = vec![
             (
-                "eth_call".to_string(),
+                method::ETH_CALL.to_string(),
                 serde_json::json!([{
                     "to": HUB_READER_ADDRESS,
                     "data": hex::encode_prefixed(&delegations_call_data)
                 }, serde_json::Value::from(BlockParameter::Latest)]),
             ),
             (
-                "eth_call".to_string(),
+                method::ETH_CALL.to_string(),
                 serde_json::json!([{
                     "to": HUB_READER_ADDRESS,
                     "data": hex::encode_prefixed(&undelegations_call_data)
@@ -157,7 +157,7 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     async fn get_max_elected_validators(&self) -> Result<u16, Box<dyn Error + Sync + Send>> {
         let call = (
-            "eth_call".to_string(),
+            method::ETH_CALL.to_string(),
             serde_json::json!([{
                 "to": STAKE_HUB_ADDRESS,
                 "data": "0xc473318f"

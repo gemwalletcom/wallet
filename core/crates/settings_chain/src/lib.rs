@@ -1,5 +1,6 @@
 mod broadcast_providers;
 mod chain_providers;
+mod node_check;
 mod provider_config;
 pub use broadcast_providers::BroadcastProviders;
 pub use chain_providers::ChainProviders;
@@ -10,6 +11,7 @@ use gem_algorand::{
 };
 use gem_client::{ReqwestClient, retry_policy};
 use gem_hypercore::rpc::client::HyperCoreClient;
+pub use node_check::node_check_request;
 pub use provider_config::{ProviderConfig, ProviderKeyConfig};
 pub use settings::ChainURLType;
 
@@ -29,6 +31,7 @@ use gem_sui::rpc::SuiClient;
 use gem_ton::rpc::TonClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XRPClient;
+use reqwest::Client;
 
 use std::collections::HashMap;
 
@@ -78,6 +81,10 @@ impl ProviderFactory {
         let retry_policy_config = retry_policy(host, 3);
         let reqwest_client = gem_client::builder().retry(retry_policy_config).build().expect("Failed to build reqwest client");
 
+        Self::new_provider_with_client(config, user_agent, reqwest_client)
+    }
+
+    pub fn new_provider_with_client(config: ProviderConfig, user_agent: &str, reqwest_client: Client) -> Box<dyn ChainTraits> {
         let chain = config.chain;
         let url = config.url.clone();
         let node_type = config.node_type.clone();

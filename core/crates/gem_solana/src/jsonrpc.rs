@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use crate::method;
 use crate::models::{Configuration, Filter};
 use gem_jsonrpc::types::{JsonRpcRequest, JsonRpcRequestConvert};
 use serde_json::Value;
@@ -14,13 +15,13 @@ pub enum SolanaRpc {
 
 impl Display for SolanaRpc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SolanaRpc::GetProgramAccounts(_, _) => write!(f, "getProgramAccounts"),
-            SolanaRpc::GetAccountInfo(_) => write!(f, "getAccountInfo"),
-            SolanaRpc::GetMultipleAccounts(_) => write!(f, "getMultipleAccounts"),
-            SolanaRpc::GetEpochInfo => write!(f, "getEpochInfo"),
-            SolanaRpc::GetLatestBlockhash => write!(f, "getLatestBlockhash"),
-        }
+        f.write_str(match self {
+            SolanaRpc::GetProgramAccounts(_, _) => method::GET_PROGRAM_ACCOUNTS,
+            SolanaRpc::GetAccountInfo(_) => method::GET_ACCOUNT_INFO,
+            SolanaRpc::GetMultipleAccounts(_) => method::GET_MULTIPLE_ACCOUNTS,
+            SolanaRpc::GetEpochInfo => method::GET_EPOCH_INFO,
+            SolanaRpc::GetLatestBlockhash => method::GET_LATEST_BLOCKHASH,
+        })
     }
 }
 

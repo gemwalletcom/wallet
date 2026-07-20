@@ -60,6 +60,7 @@ impl<C: Client + Clone> EthereumClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::method;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID;
     use primitives::testkit::json_rpc::load_json_rpc_result;
@@ -69,8 +70,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_simulate_transaction_native_transfer() {
-        let ethereum_client = mock_jsonrpc_client(|method, _| match method {
-            "trace_call" => Ok(load_json_rpc_result(include_str!("../../testdata/trace_call_native_transfer.json"))),
+        let ethereum_client = mock_jsonrpc_client(|request_method, _| match request_method {
+            method::TRACE_CALL => Ok(load_json_rpc_result(include_str!("../../testdata/trace_call_native_transfer.json"))),
             _ => Ok(Value::Null),
         });
         let ethereum_client = EthereumClient::new(ethereum_client, EVMChain::Ethereum);
@@ -96,8 +97,8 @@ mod tests {
     #[tokio::test]
     async fn test_simulate_transaction_root_revert_returns_validation_warning() {
         let trace_result: Value = load_json_rpc_result(include_str!("../../testdata/trace_call_reverted_root.json"));
-        let ethereum_client = mock_jsonrpc_client(move |method, _| match method {
-            "trace_call" => Ok(trace_result.clone()),
+        let ethereum_client = mock_jsonrpc_client(move |request_method, _| match request_method {
+            method::TRACE_CALL => Ok(trace_result.clone()),
             _ => Ok(Value::Null),
         });
         let ethereum_client = EthereumClient::new(ethereum_client, EVMChain::Ethereum);
@@ -113,8 +114,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_simulate_transaction_preserves_change_when_token_metadata_lookup_fails() {
-        let ethereum_client = mock_jsonrpc_client(|method, _| match method {
-            "trace_call" => Ok(load_json_rpc_result(include_str!("../../testdata/trace_call_erc20_transfer_proxy.json"))),
+        let ethereum_client = mock_jsonrpc_client(|request_method, _| match request_method {
+            method::TRACE_CALL => Ok(load_json_rpc_result(include_str!("../../testdata/trace_call_erc20_transfer_proxy.json"))),
             _ => Ok(Value::Null),
         });
         let ethereum_client = EthereumClient::new(ethereum_client, EVMChain::Ethereum);

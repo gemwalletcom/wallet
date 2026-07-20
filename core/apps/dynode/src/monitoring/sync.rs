@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use super::switch_reason::{CurrentNodeErrorKind, NodeSwitchReason};
-use crate::config::{NodeMonitoringConfig, Url};
-use primitives::{Chain, NodeStatusState, NodeSyncStatus};
+use crate::config::Url;
+use primitives::{NodeStatusState, NodeSyncStatus};
 
 #[derive(Debug, Clone)]
 pub struct NodeStatusObservation {
@@ -22,9 +22,8 @@ impl NodeStatusObservation {
         }
     }
 
-    pub(crate) fn with_error_kind(mut self, error_kind: CurrentNodeErrorKind) -> Self {
-        self.error_kind = error_kind;
-        self
+    pub(crate) fn with_error_kind(self, error_kind: CurrentNodeErrorKind) -> Self {
+        Self { error_kind, ..self }
     }
 }
 
@@ -37,32 +36,20 @@ pub(crate) struct NodeSwitchResult {
 pub struct NodeSyncAnalyzer;
 
 impl NodeSyncAnalyzer {
-    pub fn is_node_healthy(observation: &NodeStatusObservation) -> bool {
-        observation.state.is_healthy()
-    }
-
-    pub(crate) fn select_best_node(current: &Url, observations: &[NodeStatusObservation], monitoring_config: &NodeMonitoringConfig, chain: Chain) -> Option<NodeSwitchResult> {
+    pub(crate) fn select_best_node(current: &Url, observations: &[NodeStatusObservation]) -> Option<NodeSwitchResult> {
         let current_observation = observations.iter().find(|o| o.url == *current)?;
-
-        let error_reason = match &current_observation.state {
-            NodeStatusState::Error { message } => Some(NodeSwitchReason::CurrentNodeError {
+        let (candidate, candidate_status) = Self::find_best_candidate(current, observations)?;
+        let reason = match &current_observation.state {
+            NodeStatusState::Error { message } => NodeSwitchReason::CurrentNodeError {
                 kind: current_observation.error_kind.clone(),
                 message: message.clone(),
-            }),
-            NodeStatusState::Healthy(_) => None,
+            },
+            NodeStatusState::Healthy(status) if !status.in_sync => NodeSwitchReason::BlockHeight {
+                old_block: Self::status_height(status),
+                new_block: Self::status_height(candidate_status),
+            },
+            NodeStatusState::Healthy(_) => return None,
         };
-
-        let (candidate, candidate_status) = Self::find_best_candidate(current, observations)?;
-
-        if let Some(reason) = error_reason {
-            return Some(NodeSwitchResult {
-                observation: candidate.clone(),
-                reason,
-            });
-        }
-
-        let current_status = current_observation.state.as_status()?;
-        let reason = Self::evaluate_switch(current_status, candidate_status, current_observation.latency, candidate.latency, monitoring_config, chain)?;
 
         Some(NodeSwitchResult {
             observation: candidate.clone(),
@@ -79,32 +66,6 @@ impl NodeSyncAnalyzer {
                 _ => None,
             })
             .max_by(|(left_observation, left_status), (right_observation, right_status)| Self::compare_candidates(left_observation, left_status, right_observation, right_status))
-    }
-
-    fn evaluate_switch(
-        current: &NodeSyncStatus,
-        new: &NodeSyncStatus,
-        current_latency: Duration,
-        new_latency: Duration,
-        monitoring_config: &NodeMonitoringConfig,
-        chain: Chain,
-    ) -> Option<NodeSwitchReason> {
-        let old_block = Self::status_height(current);
-        let new_block = Self::status_height(new);
-        let block_delay_threshold = monitoring_config.block_delay_threshold(chain);
-
-        if new_block > old_block + block_delay_threshold {
-            return Some(NodeSwitchReason::BlockHeight { old_block, new_block });
-        }
-
-        if current.in_sync && !monitoring_config.is_latency_improvement_significant(current_latency, new_latency) {
-            return None;
-        }
-
-        Some(NodeSwitchReason::Latency {
-            old_latency_ms: current_latency.as_millis() as u64,
-            new_latency_ms: new_latency.as_millis() as u64,
-        })
     }
 
     pub fn format_status_summary(observations: &[NodeStatusObservation]) -> String {
@@ -125,7 +86,7 @@ impl NodeSyncAnalyzer {
             .join("; ")
     }
 
-    pub fn format_optional_number(value: Option<u64>) -> String {
+    fn format_optional_number(value: Option<u64>) -> String {
         value.map(|v| v.to_string()).unwrap_or_else(|| "unknown".to_string())
     }
 
@@ -152,68 +113,45 @@ impl NodeSyncAnalyzer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::config as testkit;
     use crate::testkit::sync::{healthy_observation, not_in_sync_observation, url};
-
-    fn config() -> NodeMonitoringConfig {
-        testkit::monitoring_config()
-    }
-
-    #[test]
-    fn is_node_healthy_requires_in_sync() {
-        let synced = healthy_observation("https://a", Some(100), Some(100), 10);
-        let not_synced = not_in_sync_observation("https://b", Some(100), Some(90), 10);
-        let error = NodeStatusObservation::new(url("https://c"), NodeStatusState::error("fail"), Duration::from_millis(10));
-
-        assert!(NodeSyncAnalyzer::is_node_healthy(&synced));
-        assert!(!NodeSyncAnalyzer::is_node_healthy(&not_synced));
-        assert!(!NodeSyncAnalyzer::is_node_healthy(&error));
-    }
 
     #[test]
     fn selects_highest_block_number() {
         let current = url("https://a");
         let observations = vec![
-            healthy_observation("https://a", Some(100), Some(100), 10),
+            not_in_sync_observation("https://a", Some(100), Some(90), 10),
             healthy_observation("https://b", Some(120), Some(120), 30),
             healthy_observation("https://c", Some(110), Some(110), 5),
         ];
 
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).unwrap();
+        let result = NodeSyncAnalyzer::select_best_node(&current, &observations).unwrap();
         assert_eq!(result.observation.url.url, "https://b");
-        assert_eq!(result.reason, NodeSwitchReason::BlockHeight { old_block: 100, new_block: 120 });
+        assert_eq!(result.reason, NodeSwitchReason::BlockHeight { old_block: 90, new_block: 120 });
     }
 
     #[test]
     fn prioritizes_latency_on_equal_height() {
         let current = url("https://a");
         let observations = vec![
-            healthy_observation("https://a", Some(120), Some(120), 500),
+            not_in_sync_observation("https://a", Some(120), Some(110), 500),
             healthy_observation("https://b", Some(120), Some(120), 400),
             healthy_observation("https://c", Some(120), Some(120), 100),
         ];
 
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).unwrap();
+        let result = NodeSyncAnalyzer::select_best_node(&current, &observations).unwrap();
         assert_eq!(result.observation.url.url, "https://c");
-        assert_eq!(
-            result.reason,
-            NodeSwitchReason::Latency {
-                old_latency_ms: 500,
-                new_latency_ms: 100
-            }
-        );
     }
 
     #[test]
     fn ignores_unhealthy_nodes() {
         let current = url("https://a");
         let observations = vec![
-            healthy_observation("https://a", Some(100), Some(100), 10),
+            not_in_sync_observation("https://a", Some(100), Some(90), 10),
             healthy_observation("https://b", Some(120), Some(120), 40),
             NodeStatusObservation::new(url("https://c"), NodeStatusState::error("rpc error"), Duration::from_millis(5)),
         ];
 
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).unwrap();
+        let result = NodeSyncAnalyzer::select_best_node(&current, &observations).unwrap();
         assert_eq!(result.observation.url.url, "https://b");
     }
 
@@ -221,11 +159,11 @@ mod tests {
     fn reports_none_when_no_candidate() {
         let current = url("https://a");
         let observations = vec![
-            healthy_observation("https://a", Some(100), Some(100), 10),
+            not_in_sync_observation("https://a", Some(100), Some(90), 10),
             NodeStatusObservation::new(url("https://b"), NodeStatusState::error("rpc"), Duration::from_millis(5)),
         ];
 
-        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).is_none());
+        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations).is_none());
     }
 
     #[test]
@@ -236,7 +174,7 @@ mod tests {
             healthy_observation("https://b", Some(120), Some(120), 40),
         ];
 
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).unwrap();
+        let result = NodeSyncAnalyzer::select_best_node(&current, &observations).unwrap();
         assert_eq!(result.observation.url.url, "https://b");
         assert_eq!(
             result.reason,
@@ -252,7 +190,7 @@ mod tests {
         let current = url("https://a");
         let observations = vec![healthy_observation("https://b", Some(120), Some(120), 40)];
 
-        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).is_none());
+        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations).is_none());
     }
 
     #[test]
@@ -263,100 +201,7 @@ mod tests {
             NodeStatusObservation::new(url("https://b"), NodeStatusState::error("also failed"), Duration::from_millis(20)),
         ];
 
-        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).is_none());
-    }
-
-    #[test]
-    fn block_height_within_threshold_returns_latency() {
-        let current = url("https://a");
-        let observations = vec![
-            healthy_observation("https://a", Some(100), Some(100), 500),
-            healthy_observation("https://b", Some(102), Some(102), 100),
-        ];
-
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).unwrap();
-        assert_eq!(
-            result.reason,
-            NodeSwitchReason::Latency {
-                old_latency_ms: 500,
-                new_latency_ms: 100
-            }
-        );
-    }
-
-    #[test]
-    fn block_height_exceeds_threshold_returns_block_height() {
-        let current = url("https://a");
-        let observations = vec![
-            healthy_observation("https://a", Some(100), Some(100), 10),
-            healthy_observation("https://b", Some(115), Some(115), 30),
-        ];
-
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).unwrap();
-        assert_eq!(result.reason, NodeSwitchReason::BlockHeight { old_block: 100, new_block: 115 });
-    }
-
-    #[test]
-    fn skips_latency_switch_below_threshold() {
-        let mut cfg = config();
-        cfg.latency_threshold = Some(Duration::from_millis(50));
-        cfg.latency_threshold_percent = Some(20.0);
-
-        let current = url("https://a");
-        let observations = vec![
-            healthy_observation("https://a", Some(120), Some(120), 200),
-            healthy_observation("https://b", Some(120), Some(120), 195),
-        ];
-
-        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations, &cfg, Chain::Ethereum).is_none());
-    }
-
-    #[test]
-    fn allows_latency_switch_above_threshold() {
-        let mut cfg = config();
-        cfg.latency_threshold = Some(Duration::from_millis(50));
-        cfg.latency_threshold_percent = Some(20.0);
-
-        let current = url("https://a");
-        let observations = vec![
-            healthy_observation("https://a", Some(120), Some(120), 400),
-            healthy_observation("https://b", Some(120), Some(120), 200),
-        ];
-
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &cfg, Chain::Ethereum).unwrap();
-        assert_eq!(
-            result.reason,
-            NodeSwitchReason::Latency {
-                old_latency_ms: 400,
-                new_latency_ms: 200
-            }
-        );
-    }
-
-    #[test]
-    fn skips_latency_switch_below_percent_threshold() {
-        let mut cfg = config();
-        cfg.latency_threshold = Some(Duration::from_millis(10));
-        cfg.latency_threshold_percent = Some(30.0);
-
-        let current = url("https://a");
-        let observations = vec![
-            healthy_observation("https://a", Some(120), Some(120), 400),
-            healthy_observation("https://b", Some(120), Some(120), 350),
-        ];
-
-        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations, &cfg, Chain::Ethereum).is_none());
-    }
-
-    #[test]
-    fn skips_switch_to_slower_node() {
-        let current = url("https://a");
-        let observations = vec![
-            healthy_observation("https://a", Some(120), Some(120), 300),
-            healthy_observation("https://b", Some(120), Some(120), 700),
-        ];
-
-        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).is_none());
+        assert!(NodeSyncAnalyzer::select_best_node(&current, &observations).is_none());
     }
 
     #[test]
@@ -367,7 +212,7 @@ mod tests {
             healthy_observation("https://b", Some(100), Some(100), 500),
         ];
 
-        let result = NodeSyncAnalyzer::select_best_node(&current, &observations, &config(), Chain::Ethereum).unwrap();
+        let result = NodeSyncAnalyzer::select_best_node(&current, &observations).unwrap();
         assert_eq!(result.observation.url.url, "https://b");
     }
 }

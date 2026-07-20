@@ -7,6 +7,7 @@ pub mod rpc;
 pub mod provider;
 
 pub mod constants;
+pub mod method;
 pub mod models;
 #[cfg(feature = "signer")]
 pub mod signer;

@@ -192,6 +192,7 @@ pub struct BlockTransactions {
 pub struct SingleTransaction {
     pub block_time: i64,
     pub meta: Meta,
+    pub slot: u64,
     pub transaction: Transaction,
 }
 

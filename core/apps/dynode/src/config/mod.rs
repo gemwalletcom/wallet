@@ -6,7 +6,7 @@ use std::{
 };
 
 use config::{Config, ConfigError, Environment, File};
-use primitives::Chain;
+use primitives::{Chain, NodeCheckProfile};
 use serde::Deserialize;
 use serde_serializers::duration;
 
@@ -31,44 +31,10 @@ pub(crate) fn path_without_query(path: &str) -> &str {
 #[derive(Debug, Deserialize, Clone)]
 pub struct NodeMonitoringConfig {
     pub enabled: bool,
-    #[serde(deserialize_with = "duration::deserialize")]
-    pub poll_interval: Duration,
-    #[serde(deserialize_with = "duration::deserialize")]
-    pub max_sync_delay: Duration,
-    pub max_sync_blocks: u64,
-    #[serde(deserialize_with = "duration::deserialize_option")]
-    pub latency_threshold: Option<Duration>,
     #[serde(default)]
-    pub latency_threshold_percent: Option<f64>,
-}
-
-impl NodeMonitoringConfig {
-    pub fn block_delay_threshold(&self, chain: Chain) -> u64 {
-        let block_time_ms = chain.block_time() as u64;
-        if block_time_ms == 0 {
-            return 1;
-        }
-        let computed = self.max_sync_delay.as_millis() as u64 / block_time_ms;
-        computed.clamp(1, self.max_sync_blocks)
-    }
-
-    pub fn is_latency_improvement_significant(&self, old: Duration, new: Duration) -> bool {
-        if new >= old {
-            return false;
-        }
-        let diff = old - new;
-        if let Some(threshold) = self.latency_threshold
-            && diff < threshold
-        {
-            return false;
-        }
-        if let Some(percent) = self.latency_threshold_percent
-            && (diff.as_millis() as f64 / old.as_millis() as f64) * 100.0 < percent
-        {
-            return false;
-        }
-        true
-    }
+    pub profile: NodeCheckProfile,
+    #[serde(deserialize_with = "duration::deserialize")]
+    pub interval: Duration,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -169,18 +135,6 @@ mod tests {
         let config_limited = testkit::retry_config_with_attempts(true, 3, vec![], vec![]);
         assert_eq!(config_limited.effective_max_attempts(5), 3);
         assert_eq!(config_limited.effective_max_attempts(2), 3);
-    }
-
-    #[test]
-    fn test_block_delay_threshold() {
-        use primitives::Chain;
-
-        let config = testkit::monitoring_config();
-
-        assert_eq!(config.block_delay_threshold(Chain::Ethereum), 2);
-        assert_eq!(config.block_delay_threshold(Chain::Bitcoin), 1);
-        assert_eq!(config.block_delay_threshold(Chain::Solana), 20);
-        assert_eq!(config.block_delay_threshold(Chain::SmartChain), 20);
     }
 }
 

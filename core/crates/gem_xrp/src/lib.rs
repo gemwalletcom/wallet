@@ -1,5 +1,6 @@
 pub mod address;
 pub mod constants;
+pub mod method;
 pub mod models;
 
 #[cfg(feature = "signer")]

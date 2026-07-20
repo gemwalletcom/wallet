@@ -6,9 +6,11 @@ use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType, TransactionLoadData, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
+    NodeCheckReport, NodeCheckRequest, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType, TransactionLoadData,
+    TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
+
+pub mod node_check;
 
 #[cfg(feature = "testkit")]
 pub mod testkit;
@@ -35,9 +37,8 @@ impl TransactionsRequest {
         }
     }
 
-    pub fn with_from_timestamp(mut self, from_timestamp: Option<u64>) -> Self {
-        self.from_timestamp = from_timestamp;
-        self
+    pub fn with_from_timestamp(self, from_timestamp: Option<u64>) -> Self {
+        Self { from_timestamp, ..self }
     }
 }
 
@@ -154,6 +155,10 @@ pub trait ChainState: Send + Sync {
         Ok(NodeSyncStatus::in_sync())
     }
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>>;
+
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
+        node_check::check_node(self, request, status).await
+    }
 }
 
 #[async_trait]

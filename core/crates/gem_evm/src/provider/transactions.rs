@@ -6,14 +6,8 @@ use async_trait::async_trait;
 use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::{NodeType, Transaction, TransactionId};
-use serde_json::json;
 
-use crate::rpc::{
-    EVMIndexerClient, EthereumMapper,
-    client::EthereumClient,
-    mapper::CONTRACT_REGISTRY,
-    model::{BlockTransactionsIds, Transaction as EthereumTransaction, TransactionReplayTrace},
-};
+use crate::rpc::{EVMIndexerClient, EthereumMapper, client::EthereumClient, mapper::CONTRACT_REGISTRY};
 
 #[cfg(feature = "rpc")]
 #[async_trait]
@@ -52,23 +46,15 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
     }
 
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let Some(transaction) = self.call::<Option<EthereumTransaction>>("eth_getTransactionByHash".to_string(), json!([hash])).await? else {
+        let Some(transaction) = self.get_transaction(&hash).await? else {
             return Ok(None);
         };
         let Some(receipt) = self.get_transaction_receipt(&hash).await? else {
             return Ok(None);
         };
-        let Some(block) = self
-            .call::<Option<BlockTransactionsIds>>("eth_getBlockByNumber".to_string(), json!([format!("0x{:x}", receipt.block_number), false]))
-            .await?
-        else {
-            return Ok(None);
-        };
+        let block = self.get_block(receipt.block_number).await?;
         let trace = if self.node_type == NodeType::Archival {
-            Some(
-                self.call::<TransactionReplayTrace>("trace_replayTransaction".to_string(), json!([hash, ["stateDiff"]]))
-                    .await?,
-            )
+            Some(self.trace_replay_transaction(&hash).await?)
         } else {
             None
         };

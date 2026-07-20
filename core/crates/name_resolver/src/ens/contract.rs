@@ -2,6 +2,7 @@ use alloy_ens::namehash;
 use alloy_primitives::{Address, Bytes, hex};
 use alloy_sol_types::{SolCall, sol};
 use gem_client::ReqwestClient;
+use gem_evm::method;
 use gem_jsonrpc::JsonRpcClient;
 use serde_json::json;
 use std::error::Error;
@@ -79,7 +80,7 @@ impl Contract {
             },
             "latest"
         ]);
-        let result: String = self.client.call("eth_call", params).await?;
+        let result: String = self.client.call(method::ETH_CALL, params).await?;
         let bytes = hex::decode(&result)?;
         Ok(Bytes::from(bytes))
     }

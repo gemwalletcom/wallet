@@ -1,9 +1,9 @@
 use async_trait::async_trait;
-use chain_traits::ChainState;
+use chain_traits::{ChainState, node_check::ChainNodeStatus};
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::NodeSyncStatus;
+use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
 
 use crate::provider::state_mapper;
 use crate::rpc::client::SolanaClient;
@@ -21,6 +21,10 @@ impl<C: Client + Clone> ChainState for SolanaClient<C> {
     async fn get_node_status(&self) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
         let slot = self.get_slot().await?;
         state_mapper::map_node_status(slot)
+    }
+
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
+        ChainNodeStatus::get_node_status(self, request, status).await
     }
 }
 
@@ -54,7 +58,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_node_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_solana_test_client();
-        let node_status = client.get_node_status().await?;
+        let node_status = ChainState::get_node_status(&client).await?;
 
         assert!(node_status.in_sync);
         assert!(node_status.latest_block_number.is_some());

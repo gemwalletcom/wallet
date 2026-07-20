@@ -7,7 +7,7 @@ use num_bigint::BigUint;
 use primitives::EVMChain;
 use serde_json::json;
 
-use crate::rpc::EVMIndexerClient;
+use crate::{method, rpc::EVMIndexerClient};
 
 use super::model::{TokenBalances, TokenTransfers, Transactions};
 
@@ -63,7 +63,7 @@ impl<C: Client + Clone> AnkrClient<C> {
         Ok(self
             .rpc_client
             .call(
-                "ankr_getTransactionsByAddress",
+                method::ANKR_GET_TRANSACTIONS_BY_ADDRESS,
                 json!({
                     "address": address,
                     "blockchain": self.chain,
@@ -78,7 +78,7 @@ impl<C: Client + Clone> AnkrClient<C> {
         Ok(self
             .rpc_client
             .call(
-                "ankr_getTokenTransfers",
+                method::ANKR_GET_TOKEN_TRANSFERS,
                 json!({
                     "address": address,
                     "blockchain": self.chain,
@@ -110,7 +110,7 @@ impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
             "blockchain": self.chain,
             "onlyWhitelisted": true,
         }]);
-        let balances: TokenBalances = self.rpc_client.call("ankr_getAccountBalance", params).await?;
+        let balances: TokenBalances = self.rpc_client.call(method::ANKR_GET_ACCOUNT_BALANCE, params).await?;
         Ok(balances
             .assets
             .into_iter()
@@ -128,8 +128,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transaction_ids_by_address() {
-        let rpc_client = mock_jsonrpc_client(|method, params| match method {
-            "ankr_getTransactionsByAddress" => {
+        let rpc_client = mock_jsonrpc_client(|request_method, params| match request_method {
+            method::ANKR_GET_TRANSACTIONS_BY_ADDRESS => {
                 assert_eq!(
                     params,
                     &json!({
@@ -141,7 +141,7 @@ mod tests {
                 );
                 Ok(load_json(include_str!("../../../testdata/ankr_get_transactions_by_address.json")))
             }
-            "ankr_getTokenTransfers" => {
+            method::ANKR_GET_TOKEN_TRANSFERS => {
                 assert_eq!(
                     params,
                     &json!({
@@ -152,7 +152,7 @@ mod tests {
                 );
                 Ok(load_json(include_str!("../../../testdata/ankr_get_token_transfers.json")))
             }
-            _ => panic!("unexpected method: {method}"),
+            _ => panic!("unexpected method: {request_method}"),
         });
         let client = AnkrClient::new(rpc_client, EVMChain::SmartChain).unwrap();
 
@@ -169,8 +169,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_token_balances() {
-        let rpc_client = mock_jsonrpc_client(|method, params| {
-            assert_eq!(method, "ankr_getAccountBalance");
+        let rpc_client = mock_jsonrpc_client(|request_method, params| {
+            assert_eq!(request_method, method::ANKR_GET_ACCOUNT_BALANCE);
             assert_eq!(
                 params,
                 &json!([{

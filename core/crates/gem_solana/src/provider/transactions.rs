@@ -26,10 +26,8 @@ impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
     }
 
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let Some(transaction) = self
-            .rpc_call::<Option<SingleTransaction>>("getTransaction", serde_json::json!([hash, { "encoding": "json", "maxSupportedTransactionVersion": 0 }]))
-            .await?
-        else {
+        let transaction: Option<SingleTransaction> = self.get_transaction(&hash).await?;
+        let Some(transaction) = transaction else {
             return Ok(None);
         };
         let block_transaction = BlockTransaction {

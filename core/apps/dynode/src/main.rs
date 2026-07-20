@@ -166,9 +166,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             monitoring_config,
         );
 
-        rocket::tokio::spawn(async move {
-            monitor.start_monitoring().await;
-        });
+        monitor.start_monitoring();
     }
 
     info_with_fields!("Server started", node_address = &format!("{}:{}", node_address, config.port), metrics_path = "/metrics",);
