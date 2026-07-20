@@ -100,6 +100,7 @@ mod tests {
     fn chain_config(chain: Chain) -> ChainConfig {
         ChainConfig {
             chain,
+            check: None,
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,

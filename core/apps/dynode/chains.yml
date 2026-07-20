@@ -1,6 +1,7 @@
 chains:
   # Ethereum
   - chain: ethereum
+    check: load_balancer
     overrides:
       - rpc_method: eth_chainId
         url: https://public-eth.nownodes.io
@@ -11,6 +12,7 @@ chains:
 
   # Optimism
   - chain: optimism
+    check: load_balancer
     urls:
       - url: https://mainnet.optimism.io
 
@@ -28,6 +30,7 @@ chains:
 
   # Solana
   - chain: solana
+    check: load_balancer
     urls:
       - url: https://api.mainnet-beta.solana.com
       - url: https://api.tatum.io/v3/blockchain/node/solana-mainnet
@@ -82,5 +85,6 @@ chains:
 
   # Robinhood
   - chain: robinhood
+    check: load_balancer
     urls:
       - url: https://rpc.mainnet.chain.robinhood.com

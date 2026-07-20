@@ -404,6 +404,7 @@ mod tests {
     fn create_chain_config(chain: Chain, url: &str) -> ChainConfig {
         ChainConfig {
             chain,
+            check: None,
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,

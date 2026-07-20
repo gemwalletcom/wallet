@@ -4,11 +4,8 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-async-trait = { workspace = true }
 clap = { version = "4.6.1", features = ["derive"] }
-num-traits = { workspace = true }
 reqwest = { workspace = true }
-serde_json = { workspace = true }
 tokio = { workspace = true }
 
 chain_traits = { path = "../../crates/chain_traits" }

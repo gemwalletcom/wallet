@@ -1,4 +1,4 @@
-use std::{error::Error, str};
+use std::{error::Error, fmt::Display, str};
 
 use async_trait::async_trait;
 use primitives::chart::ChartCandleStick;
@@ -6,8 +6,8 @@ use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType, TransactionLoadData, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
+    NodeCheckProfile, NodeCheckReport, NodeCheckStatus, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType,
+    TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
 
 #[cfg(feature = "testkit")]
@@ -154,6 +154,50 @@ pub trait ChainState: Send + Sync {
         Ok(NodeSyncStatus::in_sync())
     }
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>>;
+
+    async fn check_node(&self, _profile: NodeCheckProfile, reporter: &dyn NodeCheckReporter) -> NodeCheckReport {
+        let mut recorder = NodeCheckRecorder::new(reporter);
+        recorder.record::<(), _>("node_check", Err("not supported"), |_| String::new());
+        recorder.finish()
+    }
+}
+
+pub trait NodeCheckReporter: Send + Sync {
+    fn report(&self, method: &str, status: &NodeCheckStatus);
+}
+
+pub struct NodeCheckRecorder<'a> {
+    reporter: &'a dyn NodeCheckReporter,
+    report: NodeCheckReport,
+}
+
+impl<'a> NodeCheckRecorder<'a> {
+    pub fn new(reporter: &'a dyn NodeCheckReporter) -> Self {
+        Self {
+            reporter,
+            report: NodeCheckReport::default(),
+        }
+    }
+
+    pub fn record<T, E: Display>(&mut self, method: &str, result: Result<T, E>, format_result: impl FnOnce(&T) -> String) -> Option<T> {
+        let (status, value) = match result {
+            Ok(value) => (NodeCheckStatus::Passed { result: format_result(&value) }, Some(value)),
+            Err(error) => (NodeCheckStatus::Failed { error: error.to_string() }, None),
+        };
+        self.reporter.report(method, &status);
+        self.report.checks.insert(method.to_string(), status);
+        value
+    }
+
+    pub fn finish(self) -> NodeCheckReport {
+        self.report
+    }
+}
+
+pub struct NoopNodeCheckReporter;
+
+impl NodeCheckReporter for NoopNodeCheckReporter {
+    fn report(&self, _method: &str, _status: &NodeCheckStatus) {}
 }
 
 #[async_trait]
