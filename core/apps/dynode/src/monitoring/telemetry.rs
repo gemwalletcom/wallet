@@ -103,10 +103,6 @@ impl NodeTelemetry {
         );
     }
 
-    pub fn log_monitor_error(chain_config: &ChainConfig, message: &str) {
-        error_fields!("Node monitor error", chain = chain_config.chain.as_ref(), error = message);
-    }
-
     pub fn log_missing_current(chain_config: &ChainConfig) {
         error_fields!("Node monitor current missing", chain = chain_config.chain.as_ref());
     }

@@ -6,7 +6,7 @@ use std::{
 };
 
 use config::{Config, ConfigError, Environment, File};
-use primitives::Chain;
+use primitives::{Chain, NodeCheckProfile};
 use serde::Deserialize;
 use serde_serializers::duration;
 
@@ -31,6 +31,8 @@ pub(crate) fn path_without_query(path: &str) -> &str {
 #[derive(Debug, Deserialize, Clone)]
 pub struct NodeMonitoringConfig {
     pub enabled: bool,
+    #[serde(default)]
+    pub profile: NodeCheckProfile,
     #[serde(deserialize_with = "duration::deserialize")]
     pub poll_interval: Duration,
     #[serde(deserialize_with = "duration::deserialize")]

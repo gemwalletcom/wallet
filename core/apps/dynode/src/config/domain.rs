@@ -1,4 +1,4 @@
-use primitives::{Chain, NodeCheckProfile};
+use primitives::Chain;
 use serde::Deserialize;
 use std::time::Duration;
 
@@ -9,8 +9,6 @@ use super::{AllowlistConfig, CacheRule};
 #[derive(Debug, Clone, Deserialize)]
 pub struct ChainConfig {
     pub chain: Chain,
-    #[serde(default)]
-    pub check: NodeCheckProfile,
     pub poll_interval_seconds: Option<u64>,
     pub overrides: Option<Vec<Override>>,
     pub allowlist: Option<AllowlistConfig>,
@@ -57,7 +55,6 @@ mod tests {
     fn make_chain_config(poll_interval: Option<u64>) -> ChainConfig {
         ChainConfig {
             chain: primitives::Chain::Ethereum,
-            check: NodeCheckProfile::Basic,
             poll_interval_seconds: poll_interval,
             overrides: None,
             allowlist: None,
@@ -76,7 +73,6 @@ mod tests {
     fn make_chain_config_with_overrides(overrides: Vec<Override>) -> ChainConfig {
         ChainConfig {
             chain: primitives::Chain::Ethereum,
-            check: NodeCheckProfile::Basic,
             poll_interval_seconds: None,
             overrides: Some(overrides),
             allowlist: None,
@@ -90,17 +86,6 @@ mod tests {
             poll_interval: Duration::from_secs(poll_interval),
             ..testkit::monitoring_config()
         }
-    }
-
-    #[test]
-    fn missing_check_uses_basic_profile() {
-        let config: ChainConfig = serde_json::from_value(serde_json::json!({
-            "chain": "bitcoin",
-            "urls": []
-        }))
-        .unwrap();
-
-        assert_eq!(config.check, NodeCheckProfile::Basic);
     }
 
     #[test]

@@ -108,7 +108,7 @@ pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> Result<Nod
         | Chain::Algorand
         | Chain::Polkadot
         | Chain::Cardano
-        | Chain::HyperCore => return Err(format!("node check fixture is not configured for {chain}")),
+        | Chain::HyperCore => return Err(format!("{profile} profile is not supported for {chain}")),
     };
 
     let address = address.to_string();

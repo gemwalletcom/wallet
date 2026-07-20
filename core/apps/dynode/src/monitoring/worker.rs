@@ -41,13 +41,7 @@ impl NodeMonitor {
                 continue;
             }
 
-            let request = match node_check_request(chain_config.chain, chain_config.check) {
-                Ok(request) => request,
-                Err(error) => {
-                    NodeTelemetry::log_monitor_error(&chain_config, &error);
-                    continue;
-                }
-            };
+            let request = node_check_request(chain_config.chain, self.monitoring_config.profile).unwrap_or(NodeCheckRequest::Basic);
 
             let nodes = Arc::clone(&self.nodes);
             let metrics = Arc::clone(&self.metrics);

@@ -1,10 +1,12 @@
 use std::time::Duration;
 
 use crate::config::{ErrorMatcherConfig, NodeMonitoringConfig, RetryConfig};
+use primitives::NodeCheckProfile;
 
 pub fn monitoring_config() -> NodeMonitoringConfig {
     NodeMonitoringConfig {
         enabled: true,
+        profile: NodeCheckProfile::Basic,
         poll_interval: Duration::from_secs(600),
         max_sync_delay: Duration::from_secs(24),
         max_sync_blocks: 20,
