@@ -22,6 +22,18 @@ import Testing
 @MainActor
 struct SwapSceneViewModelTests {
     @Test
+    func assetIdsIgnoresPairOrder() {
+        let model = SwapSceneViewModel.mock()
+        let assetIds = model.assetIds
+
+        model.fromAssetQuery.value = .mock(asset: .mockEthereumUSDT())
+        model.toAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
+
+        #expect(model.assetIds == assetIds)
+        #expect(model.assetIds == [AssetId.mockEthereum(), AssetId.mockEthereumUSDT()])
+    }
+
+    @Test
     func toValue() async {
         #expect(await model().toValue == "250,000")
         #expect(await model(toValueMock: "1000000").toValue == "1")
