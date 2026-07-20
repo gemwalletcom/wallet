@@ -152,8 +152,8 @@ public final class SwapSceneViewModel {
         isQuoteLoading
     }
 
-    var assetIds: [AssetId] {
-        [fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self)
+    var assetIds: Set<AssetId> {
+        Set([fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self))
     }
 
     var errorInfoAction: VoidAction {
@@ -260,8 +260,8 @@ extension SwapSceneViewModel {
         swap()
     }
 
-    func onAssetIdsChange(assetIds: [AssetId]) async {
-        await performUpdate(for: assetIds)
+    func onAssetIdsChange(assetIds: Set<AssetId>) async {
+        await performUpdate(for: Array(assetIds))
     }
 
     func onSelectPriceImpactInfo() {
