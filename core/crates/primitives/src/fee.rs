@@ -70,11 +70,7 @@ impl CustomFee {
             None => (loaded_fee, false),
         };
 
-        Self {
-            fee_value,
-            max_rate,
-            is_over_max,
-        }
+        Self { fee_value, max_rate, is_over_max }
     }
 }
 
@@ -83,7 +79,13 @@ mod tests {
     use super::*;
 
     fn calculate(rate: Option<i64>, loaded_fee: i64, base_total: i64, normal_total: i64, max_multiplier: u32) -> CustomFee {
-        CustomFee::calculate(rate.map(BigInt::from), BigInt::from(loaded_fee), BigInt::from(base_total), BigInt::from(normal_total), max_multiplier)
+        CustomFee::calculate(
+            rate.map(BigInt::from),
+            BigInt::from(loaded_fee),
+            BigInt::from(base_total),
+            BigInt::from(normal_total),
+            max_multiplier,
+        )
     }
 
     #[test]
@@ -110,4 +112,3 @@ mod tests {
         assert!(!zero_base.is_over_max);
     }
 }
-

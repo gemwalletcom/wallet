@@ -328,11 +328,7 @@ fn print_solana_fee_data(
         print!("Sampling: {} (avg: {} µL/CU)", active_accounts.join(", "), fee_data.raw_fees.avg);
     }
     if let Some(helius) = helius_data {
-        print!(
-            " | Helius: normal={} fast={}",
-            format_micro_lamports(helius.medium),
-            format_micro_lamports(helius.high)
-        );
+        print!(" | Helius: normal={} fast={}", format_micro_lamports(helius.medium), format_micro_lamports(helius.high));
     }
     println!();
 
