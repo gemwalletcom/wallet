@@ -48,6 +48,8 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
+import com.gemwallet.android.ui.models.swap.SwapSlippageUIModel
+import com.gemwallet.android.ui.models.swap.SwapSlippageUIModelFactory
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +60,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -70,7 +73,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.Config
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -103,8 +105,6 @@ class SwapViewModel @Inject constructor(
     private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
     val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
-    val slippageWarningThresholdBps: UInt by lazy { Config().getSwapConfig().highSlippageWarningBps }
-
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
     private val pauseQuoteRefreshUntilNextStart = MutableStateFlow(false)
@@ -122,6 +122,12 @@ class SwapViewModel @Inject constructor(
         .map { it?.toAssetId() }
         .onEach { id -> id?.let { updateBalance(it) } }
         .flatMapLatest { assetId -> assetId?.let { assetsRepository.getAssetInfo(it) } ?: flow { emit(null) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val slippageModel: StateFlow<SwapSlippageUIModel?> = payAsset
+        .map { it?.id()?.chain }
+        .distinctUntilChanged()
+        .map { chain -> chain?.let { SwapSlippageUIModelFactory.create(it) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val payEquivalentFormatted = combine(payValueFlow, payAsset) { input, fromAsset ->

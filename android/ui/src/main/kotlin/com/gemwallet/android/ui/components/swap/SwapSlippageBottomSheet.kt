@@ -34,7 +34,7 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.swap.SwapSlippage
+import com.gemwallet.android.ui.models.swap.SwapSlippageUIModel
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
@@ -45,7 +45,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 fun SwapSlippageBottomSheet(
     isVisible: Boolean,
     currentBps: UInt?,
-    warningThresholdBps: UInt,
+    model: SwapSlippageUIModel,
     onConfirm: (UInt?) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -57,15 +57,15 @@ fun SwapSlippageBottomSheet(
     ) {
         var isAuto by remember(currentBps) { mutableStateOf(currentBps == null) }
         var input by remember(currentBps) {
-            mutableStateOf(SwapSlippage.format(currentBps ?: SwapSlippage.defaultBps))
+            mutableStateOf(SwapSlippageUIModel.format(currentBps ?: model.defaultBps))
         }
         val focusRequester = remember { FocusRequester() }
 
-        val isOverMax = !isAuto && SwapSlippage.isOverMax(input)
-        val isBelowMin = !isAuto && SwapSlippage.isBelowMin(input)
-        val bps = SwapSlippage.parseBps(input)
+        val isOverMax = !isAuto && model.isOverMax(input)
+        val isBelowMin = !isAuto && model.isBelowMin(input)
+        val bps = model.parseBps(input)
         val isConfirmEnabled = isAuto || (bps != null && !isOverMax && !isBelowMin)
-        val showWarning = !isAuto && !isOverMax && bps != null && bps >= warningThresholdBps
+        val showWarning = !isAuto && !isOverMax && bps != null && bps >= model.highWarningBps
 
         val commit by rememberUpdatedState {
             if (isConfirmEnabled) onConfirm(if (isAuto) null else bps)
@@ -106,7 +106,7 @@ fun SwapSlippageBottomSheet(
                             .weight(1f)
                             .padding(start = paddingSmall),
                         value = input,
-                        onValueChange = { input = SwapSlippage.sanitize(it) },
+                        onValueChange = { input = model.sanitize(it) },
                         suffix = "%",
                         focusRequester = focusRequester,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -114,11 +114,11 @@ fun SwapSlippageBottomSheet(
                 }
                 when {
                     isOverMax -> FooterText(
-                        text = stringResource(R.string.common_maximum_value, SwapSlippage.maxPercentLabel),
+                        text = stringResource(R.string.common_maximum_value, model.maxPercentLabel),
                         color = MaterialTheme.colorScheme.error,
                     )
                     isBelowMin -> FooterText(
-                        text = stringResource(R.string.common_minimum_value, SwapSlippage.minPercentLabel),
+                        text = stringResource(R.string.common_minimum_value, model.minPercentLabel),
                         color = MaterialTheme.colorScheme.error,
                     )
                     showWarning -> FooterText(
@@ -128,9 +128,9 @@ fun SwapSlippageBottomSheet(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 SuggestionsBar(
-                    labels = SwapSlippage.suggestionsBps.map { "${SwapSlippage.format(it)}%" },
+                    labels = model.suggestionsBps.map { "${SwapSlippageUIModel.format(it)}%" },
                     modifier = Modifier.padding(horizontal = paddingDefault, vertical = paddingSmall),
-                    onSelected = { index -> input = SwapSlippage.format(SwapSlippage.suggestionsBps[index]) },
+                    onSelected = { index -> input = SwapSlippageUIModel.format(model.suggestionsBps[index]) },
                 )
             }
         }

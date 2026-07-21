@@ -35,6 +35,7 @@ fun SwapScreen(
     val swapState by viewModel.uiState.collectAsStateWithLifecycle()
     val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
     val selectedSlippage by viewModel.selectedSlippage.collectAsStateWithLifecycle()
+    val slippageModel by viewModel.slippageModel.collectAsStateWithLifecycle()
 
     var isShowPriceImpactAlert by remember { mutableStateOf(false) }
     var isShowDetails by remember { mutableStateOf(false) }
@@ -102,11 +103,13 @@ fun SwapScreen(
         onProviderSelect = if (swapState.isQuoteInteractionEnabled) viewModel::setProvider else null,
     )
 
-    SwapSlippageBottomSheet(
-        isVisible = isShowSlippage,
-        currentBps = slippageSeedBps,
-        warningThresholdBps = viewModel.slippageWarningThresholdBps,
-        onConfirm = viewModel::setSlippage,
-        onDismiss = { isShowSlippage = false },
-    )
+    slippageModel?.let { model ->
+        SwapSlippageBottomSheet(
+            isVisible = isShowSlippage,
+            currentBps = slippageSeedBps,
+            model = model,
+            onConfirm = viewModel::setSlippage,
+            onDismiss = { isShowSlippage = false },
+        )
+    }
 }

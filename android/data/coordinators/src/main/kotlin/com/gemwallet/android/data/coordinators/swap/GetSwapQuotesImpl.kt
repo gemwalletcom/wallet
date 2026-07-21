@@ -11,7 +11,7 @@ import uniffi.gemstone.SwapperQuoteAsset
 import uniffi.gemstone.SwapperQuoteRequest
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
-import uniffi.gemstone.getDefaultSlippage
+import uniffi.gemstone.getDefaultSlippageBps
 import java.math.BigInteger
 
 class GetSwapQuotesImpl(
@@ -27,7 +27,7 @@ class GetSwapQuotesImpl(
         slippageBps: UInt?,
     ): List<SwapperQuote> {
         val slippage = slippageBps?.let { SwapperSlippage(bps = it, mode = SwapperSlippageMode.EXACT) }
-            ?: getDefaultSlippage(from.chain.string).copy(mode = SwapperSlippageMode.AUTO)
+            ?: SwapperSlippage(bps = getDefaultSlippageBps(from.chain.string), mode = SwapperSlippageMode.AUTO)
         val swapRequest = SwapperQuoteRequest(
             fromAsset = SwapperQuoteAsset(
                 id = from.id.toIdentifier(),
