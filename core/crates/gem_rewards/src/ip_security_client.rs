@@ -26,7 +26,8 @@ impl IpSecurityClient {
     }
 
     async fn check_ip_with_fallback(&self, ip_address: &str) -> Result<IpCheckResult, Box<dyn Error + Send + Sync>> {
-        match try_in_order(self.providers.iter().map(|provider| provider.check_ip(ip_address))).await? {
+        let operations = self.providers.iter().map(|provider| provider.check_ip(ip_address)).collect::<Vec<_>>();
+        match try_in_order(operations).await? {
             Some(result) => Ok(result),
             None => Err("No IP check providers configured".into()),
         }

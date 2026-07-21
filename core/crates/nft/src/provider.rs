@@ -54,7 +54,8 @@ impl NFTProviders {
     }
 
     async fn fetch_assets(chain: Chain, address: String, providers: impl Iterator<Item = &Arc<dyn NFTProvider>>) -> Vec<NFTAssetId> {
-        match try_in_order(providers.map(|provider| provider.get_assets(chain, address.clone()))).await {
+        let operations = providers.map(|provider| provider.get_assets(chain, address.clone())).collect::<Vec<_>>();
+        match try_in_order(operations).await {
             Ok(Some(asset_ids)) => asset_ids,
             Ok(None) | Err(_) => Vec::new(),
         }
@@ -70,17 +71,19 @@ impl NFTProviders {
     }
 
     pub async fn get_collection(&self, collection_id: NFTCollectionId) -> Option<NFTCollection> {
-        try_in_order(self.providers_for_chain(collection_id.chain).map(|provider| provider.get_collection(collection_id.clone())))
-            .await
-            .ok()
-            .flatten()
+        let operations = self
+            .providers_for_chain(collection_id.chain)
+            .map(|provider| provider.get_collection(collection_id.clone()))
+            .collect::<Vec<_>>();
+        try_in_order(operations).await.ok().flatten()
     }
 
     pub async fn get_asset(&self, asset_id: NFTAssetId) -> Option<NFTAsset> {
-        try_in_order(self.providers_for_chain(asset_id.chain).map(|provider| provider.get_asset(asset_id.clone())))
-            .await
-            .ok()
-            .flatten()
+        let operations = self
+            .providers_for_chain(asset_id.chain)
+            .map(|provider| provider.get_asset(asset_id.clone()))
+            .collect::<Vec<_>>();
+        try_in_order(operations).await.ok().flatten()
     }
 
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
