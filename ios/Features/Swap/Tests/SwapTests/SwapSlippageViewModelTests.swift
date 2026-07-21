@@ -8,17 +8,17 @@ import Testing
 @MainActor
 struct SwapSlippageViewModelTests {
     @Test
-    func initAuto() {
-        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+    func initAutoUsesDefaultBps() {
+        let model = SwapSlippageViewModel(slippage: .auto, defaultBps: 300) { _ in }
 
         #expect(model.isAuto)
-        #expect(model.selectedBps == 100)
-        #expect(model.inputModel.text == "1")
+        #expect(model.selectedBps == 300)
+        #expect(model.inputModel.text == "3")
     }
 
     @Test
     func initManual() {
-        let model = SwapSlippageViewModel(slippage: .manual(bps: 50)) { _ in }
+        let model = SwapSlippageViewModel(slippage: .manual(bps: 50), defaultBps: 100) { _ in }
 
         #expect(model.isAuto == false)
         #expect(model.selectedBps == 50)
@@ -28,7 +28,7 @@ struct SwapSlippageViewModelTests {
     @Test
     func confirmAuto() {
         var applied: SwapSlippage?
-        let model = SwapSlippageViewModel(slippage: .manual(bps: 50)) { applied = $0 }
+        let model = SwapSlippageViewModel(slippage: .manual(bps: 50), defaultBps: 100) { applied = $0 }
         model.isAuto = true
         model.confirm()
 
@@ -42,7 +42,7 @@ struct SwapSlippageViewModelTests {
     ] as [(String, UInt32)])
     func confirmAppliesManualValue(input: String, expected: UInt32) {
         var applied: SwapSlippage?
-        let model = SwapSlippageViewModel(slippage: .auto) { applied = $0 }
+        let model = SwapSlippageViewModel(slippage: .auto, defaultBps: 100) { applied = $0 }
         model.isAuto = false
         model.inputModel.text = input
         model.confirm()
@@ -53,7 +53,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func aboveMaximumShowsErrorAndDisablesConfirm() {
-        let model = SwapSlippageViewModel(slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel(slippage: .manual(bps: 100), defaultBps: 100) { _ in }
         model.isAuto = false
         model.inputModel.text = "25"
 
@@ -63,7 +63,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func belowMinimumShowsErrorAndDisablesConfirm() {
-        let model = SwapSlippageViewModel(slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel(slippage: .manual(bps: 100), defaultBps: 100) { _ in }
         model.isAuto = false
         model.inputModel.text = "0.05"
 
@@ -73,7 +73,7 @@ struct SwapSlippageViewModelTests {
 
     @Test(arguments: ["", "0", "0.", "abc"])
     func incompleteInputDisablesConfirmWithoutError(input: String) {
-        let model = SwapSlippageViewModel(slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel(slippage: .manual(bps: 100), defaultBps: 100) { _ in }
         model.isAuto = false
         model.inputModel.text = input
 
@@ -83,7 +83,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func confirmEnabledState() {
-        let model = SwapSlippageViewModel(slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel(slippage: .manual(bps: 100), defaultBps: 100) { _ in }
         #expect(model.isConfirmEnabled)
 
         model.inputModel.text = ""
@@ -100,7 +100,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func suggestionsProvideExpectedValues() {
-        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel(slippage: .auto, defaultBps: 100) { _ in }
 
         #expect(model.suggestions.map(\.title) == ["0.3%", "0.5%", "3%"])
         #expect(model.suggestions.map(\.inputValue) == ["0.3", "0.5", "3"])
@@ -108,7 +108,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func onSelectSuggestionUpdatesInput() {
-        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel(slippage: .auto, defaultBps: 100) { _ in }
         model.isAuto = false
         model.onSelect(suggestion: model.suggestions[2])
 
@@ -118,7 +118,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func maximumBoundaryIsValid() {
-        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel(slippage: .auto, defaultBps: 100) { _ in }
         model.isAuto = false
         model.inputModel.text = "20"
 
@@ -128,7 +128,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func minimumBoundaryIsValid() {
-        let model = SwapSlippageViewModel(slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel(slippage: .auto, defaultBps: 100) { _ in }
         model.isAuto = false
         model.inputModel.text = "0.1"
 
@@ -144,7 +144,7 @@ struct SwapSlippageViewModelTests {
         (UInt32(500), true),
     ] as [(UInt32, Bool)])
     func warning(bps: UInt32, expected: Bool) {
-        let model = SwapSlippageViewModel(slippage: .manual(bps: bps)) { _ in }
+        let model = SwapSlippageViewModel(slippage: .manual(bps: bps), defaultBps: 100) { _ in }
 
         #expect((model.warningText != nil) == expected)
     }

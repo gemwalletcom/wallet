@@ -7,7 +7,6 @@ import enum Gemstone.FetchQuoteData
 import class Gemstone.GemSwapper
 import protocol Gemstone.GemSwapperProtocol
 import struct Gemstone.GemSwapQuoteData
-import func Gemstone.getDefaultSlippage
 import struct Gemstone.Permit2ApprovalData
 import struct Gemstone.SwapperOptions
 import struct Gemstone.SwapperQuote
@@ -56,7 +55,7 @@ public final class SwapService: Sendable, SwappableChainsProvider {
             destinationAddress: destinationAddress,
             value: value,
             options: SwapperOptions(
-                slippage: SwapperSlippage(slippage: slippage, defaultSlippage: getDefaultSlippage(chain: fromAsset.id.chain.rawValue)),
+                slippage: SwapperSlippage(slippage: slippage, defaultBps: SwapConfig.defaultSlippageBps(chain: fromAsset.id.chain)),
                 useMaxAmount: useMaxAmount,
             ),
         )

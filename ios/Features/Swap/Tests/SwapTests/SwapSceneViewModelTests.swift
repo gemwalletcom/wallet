@@ -42,6 +42,18 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
+    func swapSlippageViewModelUsesPerChainDefault() {
+        let model = SwapSceneViewModel.mock()
+        #expect(model.swapSlippageViewModel.selectedBps == 100)
+
+        model.pairSelectorModel.fromAssetId = AssetId(chain: .solana)
+        #expect(model.swapSlippageViewModel.selectedBps == 300)
+
+        model.pairSelectorModel.fromAssetId = nil
+        #expect(model.swapSlippageViewModel.selectedBps == 100)
+    }
+
+    @Test
     func additionalInfoVisibility() {
         let model = SwapSceneViewModel.mock()
 

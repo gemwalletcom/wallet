@@ -117,6 +117,7 @@ public final class SwapSceneViewModel {
     var swapSlippageViewModel: SwapSlippageViewModel {
         SwapSlippageViewModel(
             slippage: selectedSlippage,
+            defaultBps: defaultSlippageBps,
             onSelect: { [weak self] slippage in
                 self?.onSelectSlippage(slippage)
             },
@@ -316,6 +317,13 @@ extension SwapSceneViewModel {
 // MARK: - Private
 
 extension SwapSceneViewModel {
+    private var defaultSlippageBps: UInt32 {
+        switch pairSelectorModel.fromAssetId {
+        case let .some(fromAssetId): SwapConfig.defaultSlippageBps(chain: fromAssetId.chain)
+        case .none: SwapConfig.config().slippage.defaultBps
+        }
+    }
+
     private var currentInput: SwapQuoteInput? {
         try? SwapQuoteInput.create(
             fromAsset: fromAsset,

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.Config
 import struct Gemstone.Permit2ApprovalData
 import struct Gemstone.Permit2Data
 import func Gemstone.permit2DataToEip712Json
 import struct Gemstone.Permit2Detail
 import struct Gemstone.PermitSingle
+import GemstonePrimitives
 import Keystore
 import Primitives
 import Signer
@@ -50,7 +50,7 @@ struct Permit2DataProvider: Permit2DataProvidable {
 
 extension Permit2DataProvider {
     private func permitSingle(approval: Permit2ApprovalData) -> PermitSingle {
-        let config = Config.shared.getSwapConfig()
+        let config = SwapConfig.config()
         let now = Date().timeIntervalSince1970
         return PermitSingle(
             details: Permit2Detail(

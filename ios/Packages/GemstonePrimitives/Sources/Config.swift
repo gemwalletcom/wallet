@@ -5,6 +5,7 @@ import typealias Gemstone.ChainConfig
 import class Gemstone.Config
 import enum Gemstone.DocsUrl
 import struct Gemstone.FeeConfig
+import func Gemstone.getDefaultSlippageBps
 import enum Gemstone.PublicUrl
 import enum Gemstone.RewardsUrl
 import enum Gemstone.SocialUrl
@@ -15,10 +16,6 @@ import Primitives
 
 public extension Config {
     static let shared = Config()
-
-    func swapConfig() -> SwapConfig {
-        getSwapConfig()
-    }
 }
 
 public enum GemstoneConfig {
@@ -71,6 +68,16 @@ public enum ChainConfig {
 public enum FeeConfig {
     public static func config(chain: Primitives.Chain) -> Gemstone.FeeConfig {
         Config.shared.getFeeConfig(chain: chain.rawValue)
+    }
+}
+
+public enum SwapConfig {
+    public static func config() -> Gemstone.SwapConfig {
+        Config.shared.getSwapConfig()
+    }
+
+    public static func defaultSlippageBps(chain: Primitives.Chain) -> UInt32 {
+        getDefaultSlippageBps(chain: chain.rawValue)
     }
 }
 
