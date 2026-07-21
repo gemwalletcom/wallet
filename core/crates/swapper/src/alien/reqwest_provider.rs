@@ -5,6 +5,7 @@ use primitives::{Chain, node_config::get_nodes_for_chain};
 
 use async_trait::async_trait;
 use futures::TryFutureExt;
+use gem_client::reqwest_client;
 use gem_jsonrpc::RpcResponse;
 use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
 use reqwest::{Client, Method};
@@ -19,7 +20,7 @@ pub struct NativeProvider {
 impl NativeProvider {
     pub fn new() -> Self {
         Self {
-            client: Client::new(),
+            client: reqwest_client(),
             debug: true,
             endpoints: HashMap::new(),
         }
@@ -27,7 +28,7 @@ impl NativeProvider {
 
     pub fn new_with_endpoints(endpoints: HashMap<Chain, String>) -> Self {
         Self {
-            client: Client::new(),
+            client: reqwest_client(),
             debug: false,
             endpoints,
         }
