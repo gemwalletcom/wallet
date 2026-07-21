@@ -33,7 +33,6 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
-reqwest = { workspace = true }
 
 primitives = { path = "../primitives", features = ["testkit"] }
 settings = { path = "../settings", features = ["testkit"] }

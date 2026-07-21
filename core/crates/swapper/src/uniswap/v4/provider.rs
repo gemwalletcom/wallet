@@ -135,7 +135,7 @@ impl Swapper for UniswapV4 {
             .iter()
             .map(|pool_key| build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key.1))
             .collect();
-        requests.push(Box::pin(async move { initial_client.batch_call_requests(direct_calls).await }));
+        requests.push(Box::pin(async move { initial_client.batch_request(direct_calls).await }));
 
         let quote_exact_params: Vec<Vec<(Vec<TokenPair>, QuoteExactParams)>>;
         if !Self::is_base_pair(&token_in, &token_out, &evm_chain) {
@@ -144,7 +144,7 @@ impl Swapper for UniswapV4 {
             build_quote_exact_requests(deployment.quoter, &quote_exact_params).iter().for_each(|call_array| {
                 let client = Arc::clone(&client);
                 let calls = call_array.clone();
-                requests.push(Box::pin(async move { client.batch_call_requests(calls).await }));
+                requests.push(Box::pin(async move { client.batch_request(calls).await }));
             });
         } else {
             quote_exact_params = vec![];

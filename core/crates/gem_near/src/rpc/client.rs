@@ -1,11 +1,11 @@
-use crate::models::{Account, AccountAccessKey, Block, BroadcastResult, GasPrice, NodeStatus};
+use crate::{
+    jsonrpc::NearRpc,
+    models::{Account, AccountAccessKey, Block, BroadcastResult, GasPrice, NodeStatus},
+};
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainToken, ChainTraits};
 use gem_client::Client;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
 use primitives::Chain;
-use serde_json::json;
-
-use crate::method;
 
 #[derive(Debug)]
 pub struct NearClient<C: Client + Clone> {
@@ -19,51 +19,41 @@ impl<C: Client + Clone> NearClient<C> {
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, JsonRpcError> {
-        let params = json!({
-            "request_type": "view_account",
-            "finality": "final",
-            "account_id": address
-        });
-        self.client.call(method::QUERY, params).await
+        self.client.request(NearRpc::GetAccount(address.to_string())).await
     }
 
     pub async fn get_account_access_key(&self, address: &str, public_key: &str) -> Result<AccountAccessKey, JsonRpcError> {
-        let params = json!({
-            "request_type": "view_access_key",
-            "finality": "final",
-            "account_id": address,
-            "public_key": public_key
-        });
-        self.client.call(method::QUERY, params).await
+        self.client
+            .request(NearRpc::GetAccountAccessKey {
+                address: address.to_string(),
+                public_key: public_key.to_string(),
+            })
+            .await
     }
 
     pub async fn get_latest_block(&self) -> Result<Block, JsonRpcError> {
-        let params = json!({"finality": "final"});
-        self.client.call(method::BLOCK, params).await
+        self.client.request(NearRpc::GetLatestBlock).await
     }
 
     pub async fn get_gas_price(&self) -> Result<GasPrice, JsonRpcError> {
-        let params = json!([null]);
-        self.client.call(method::GAS_PRICE, params).await
+        self.client.request(NearRpc::GetGasPrice).await
     }
 
     pub async fn get_status(&self) -> Result<NodeStatus, JsonRpcError> {
-        let params = json!([]);
-        self.client.call(method::STATUS, params).await
+        self.client.request(NearRpc::GetStatus).await
     }
 
-    pub async fn broadcast_transaction(&self, signed_tx_base64: &str) -> Result<BroadcastResult, JsonRpcError> {
-        let params = json!({"signed_tx_base64": signed_tx_base64});
-        self.client.call(method::SEND_TRANSACTION, params).await
+    pub async fn broadcast_transaction(&self, signed_transaction: &str) -> Result<BroadcastResult, JsonRpcError> {
+        self.client.request(NearRpc::SendTransaction(signed_transaction.to_string())).await
     }
 
-    pub async fn get_transaction_status(&self, tx_hash: &str, sender_account_id: &str) -> Result<BroadcastResult, JsonRpcError> {
-        let params = json!({
-            "tx_hash": tx_hash,
-            "sender_account_id": sender_account_id,
-            "wait_until": "EXECUTED"
-        });
-        self.client.call(method::TRANSACTION, params).await
+    pub async fn get_transaction_status(&self, transaction_hash: &str, sender_account_id: &str) -> Result<BroadcastResult, JsonRpcError> {
+        self.client
+            .request(NearRpc::GetTransactionStatus {
+                transaction_hash: transaction_hash.to_string(),
+                sender_account_id: sender_account_id.to_string(),
+            })
+            .await
     }
 }
 

@@ -19,8 +19,13 @@ pub struct JsonRpcRequest {
     pub params: Value,
 }
 
-pub trait JsonRpcRequestConvert {
-    fn to_req(&self, id: u64) -> JsonRpcRequest;
+pub trait ToJsonRpcRequest {
+    fn method(&self) -> &'static str;
+    fn params(&self) -> Value;
+
+    fn to_jsonrpc_request(&self, id: u64) -> JsonRpcRequest {
+        JsonRpcRequest::new(id, self.method(), self.params())
+    }
 }
 
 impl JsonRpcRequest {

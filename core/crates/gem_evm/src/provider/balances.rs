@@ -14,7 +14,7 @@ use gem_client::Client;
 #[async_trait]
 impl<C: Client + Clone> ChainBalances for EthereumClient<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-        map_balance_coin(self.get_eth_balance(&address).await?, self.get_chain())
+        map_balance_coin(self.get_balance(&address).await?, self.get_chain())
     }
 
     async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {

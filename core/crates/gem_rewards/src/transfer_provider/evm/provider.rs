@@ -101,7 +101,7 @@ impl EvmTransferProvider {
 
         let signed_tx = sign_eip1559_tx(&tx, &private_key)?;
         let signed_tx_hex = format!("0x{}", hex::encode(&signed_tx));
-        let transaction_id = client.send_raw_transaction(&signed_tx_hex).await?;
+        let transaction_id = client.broadcast_transaction(&signed_tx_hex).await?;
 
         Ok(RedemptionResult { transaction_id })
     }

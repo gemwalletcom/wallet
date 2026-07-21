@@ -1,0 +1,95 @@
+use gem_jsonrpc::types::ToJsonRpcRequest;
+use serde_json::json;
+
+use crate::method;
+
+#[derive(Clone, Debug)]
+pub enum XrpRpc {
+    GetAccountInfo(String),
+    GetAccountObjects(String),
+    GetAccountTransactions { address: String, limit: usize },
+    GetFees,
+    GetLedger(u64),
+    GetLedgerCurrent,
+    GetTransaction(String),
+    SubmitTransaction(String),
+}
+
+impl ToJsonRpcRequest for XrpRpc {
+    fn method(&self) -> &'static str {
+        match self {
+            Self::GetAccountInfo(_) => method::ACCOUNT_INFO,
+            Self::GetAccountObjects(_) => method::ACCOUNT_OBJECTS,
+            Self::GetAccountTransactions { .. } => method::ACCOUNT_TRANSACTIONS,
+            Self::GetFees => method::FEE,
+            Self::GetLedger(_) => method::LEDGER,
+            Self::GetLedgerCurrent => method::LEDGER_CURRENT,
+            Self::GetTransaction(_) => method::TRANSACTION,
+            Self::SubmitTransaction(_) => method::SUBMIT,
+        }
+    }
+
+    fn params(&self) -> serde_json::Value {
+        match self {
+            Self::GetAccountInfo(address) => json!([{
+                "account": address,
+                "ledger_index": "current"
+            }]),
+            Self::GetAccountObjects(address) => json!([{
+                "account": address,
+                "type": "state",
+                "ledger_index": "validated"
+            }]),
+            Self::GetAccountTransactions { address, limit } => json!([{
+                "account": address,
+                "limit": limit,
+                "ledger_index_max": -1,
+                "ledger_index_min": -1
+            }]),
+            Self::GetFees | Self::GetLedgerCurrent => json!([{}]),
+            Self::GetLedger(block_number) => json!([{
+                "ledger_index": block_number,
+                "transactions": true,
+                "expand": true
+            }]),
+            Self::GetTransaction(transaction_id) => json!([{"transaction": transaction_id}]),
+            Self::SubmitTransaction(data) => json!([{
+                "tx_blob": data,
+                "fail_hard": true
+            }]),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_request(rpc: XrpRpc, method: &str, params: serde_json::Value) {
+        let request = rpc.to_jsonrpc_request(42);
+        assert_eq!(request.id, 42);
+        assert_eq!(request.method, method);
+        assert_eq!(request.params, params);
+    }
+
+    #[test]
+    fn builds_account_transactions_request() {
+        assert_request(
+            XrpRpc::GetAccountTransactions {
+                address: "rAddress".into(),
+                limit: 25,
+            },
+            method::ACCOUNT_TRANSACTIONS,
+            json!([{"account": "rAddress", "limit": 25, "ledger_index_max": -1, "ledger_index_min": -1}]),
+        );
+    }
+
+    #[test]
+    fn builds_broadcast_request_with_fail_hard() {
+        assert_request(
+            XrpRpc::SubmitTransaction("signed-transaction".into()),
+            method::SUBMIT,
+            json!([{"tx_blob": "signed-transaction", "fail_hard": true}]),
+        );
+    }
+}

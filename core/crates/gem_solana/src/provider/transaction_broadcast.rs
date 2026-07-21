@@ -13,7 +13,7 @@ use crate::{
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionBroadcast for SolanaClient<C> {
     async fn transaction_broadcast(&self, data: String, options: BroadcastOptions) -> Result<String, Box<dyn Error + Sync + Send>> {
-        let response = self.send_transaction(data, Some(options.skip_preflight)).await?;
+        let response = self.broadcast_transaction(data, Some(options.skip_preflight)).await?;
         Ok(response)
     }
 }

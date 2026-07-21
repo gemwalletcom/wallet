@@ -1,5 +1,6 @@
 use super::{
     VaultSwapExtras, VaultSwapResponse,
+    jsonrpc::RequestSwapParameterEncoding,
     model::{ChainflipAsset, DcaParameters},
 };
 use crate::SwapperError;
@@ -53,12 +54,6 @@ where
             dca_params,
         ]);
 
-        let result = self
-            .client
-            .call_method_with_param("broker_request_swap_parameter_encoding", params, None)
-            .await
-            .map_err(SwapperError::from)?;
-
-        result.take().map_err(SwapperError::from)
+        self.client.request(RequestSwapParameterEncoding(params)).await.map_err(SwapperError::from)
     }
 }

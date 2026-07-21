@@ -1,25 +1,24 @@
 use serde::de::DeserializeOwned;
-use serde_json::{Value, json};
+use serde_json::Value;
 use std::error::Error;
 
+use crate::jsonrpc::XrpRpc;
 use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerCurrent, LedgerData, TransactionBroadcast, TransactionStatus};
 
 use chain_traits::{ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits};
 use gem_client::Client;
-use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
+use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
-use crate::method;
-
 #[derive(Clone, Debug)]
-pub struct XRPClient<C: Client + Clone> {
-    client: GenericJsonRpcClient<C>,
+pub struct XrpClient<C: Client + Clone> {
+    client: JsonRpcClient<C>,
     pub chain: Chain,
 }
 
-impl<C: Client + Clone> XRPClient<C> {
-    pub fn new(client: GenericJsonRpcClient<C>) -> Self {
+impl<C: Client + Clone> XrpClient<C> {
+    pub fn new(client: JsonRpcClient<C>) -> Self {
         Self { client, chain: Chain::Xrp }
     }
 
@@ -27,11 +26,11 @@ impl<C: Client + Clone> XRPClient<C> {
         self.chain
     }
 
-    async fn call<T>(&self, method: &str, params: impl Into<Value>) -> Result<T, Box<dyn Error + Send + Sync>>
+    async fn request<T>(&self, request: XrpRpc) -> Result<T, Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned + Send,
     {
-        let result: Value = self.client.call(method, params).await?;
+        let result: Value = self.client.request(request).await?;
         deserialize_result(result)
     }
 
@@ -41,35 +40,19 @@ impl<C: Client + Clone> XRPClient<C> {
     }
 
     pub async fn get_account_info_full(&self, address: &str) -> Result<AccountInfoResult, Box<dyn Error + Send + Sync>> {
-        let params = json!([
-            {
-                "account": address,
-                "ledger_index": "current"
-            }
-        ]);
-
-        self.call(method::ACCOUNT_INFO, params).await
+        self.request(XrpRpc::GetAccountInfo(address.to_string())).await
     }
 
     pub async fn get_ledger_current(&self) -> Result<LedgerCurrent, Box<dyn Error + Send + Sync>> {
-        let params = json!([{}]);
-        self.call(method::LEDGER_CURRENT, params).await
+        self.request(XrpRpc::GetLedgerCurrent).await
     }
 
     pub async fn get_fees(&self) -> Result<FeesResult, Box<dyn Error + Send + Sync>> {
-        let params = json!([{}]);
-        self.call(method::FEE, params).await
+        self.request(XrpRpc::GetFees).await
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<TransactionBroadcast, Box<dyn Error + Send + Sync>> {
-        let params = json!([
-            {
-                "tx_blob": data,
-                "fail_hard": true
-            }
-        ]);
-
-        self.call(method::SUBMIT, params).await
+        self.request(XrpRpc::SubmitTransaction(data.to_string())).await
     }
 
     pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
@@ -80,50 +63,20 @@ impl<C: Client + Clone> XRPClient<C> {
     where
         T: DeserializeOwned + Send,
     {
-        let params = json!([
-            {
-                "transaction": transaction_id
-            }
-        ]);
-        self.call(method::TRANSACTION, params).await
+        self.request(XrpRpc::GetTransaction(transaction_id.to_string())).await
     }
 
     pub async fn get_account_objects(&self, address: &str) -> Result<AccountObjects, Box<dyn Error + Send + Sync>> {
-        let params = json!([
-            {
-                "account": address,
-                "type": "state",
-                "ledger_index": "validated"
-            }
-        ]);
-
-        self.call(method::ACCOUNT_OBJECTS, params).await
+        self.request(XrpRpc::GetAccountObjects(address.to_string())).await
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
-        let params = json!([
-            {
-                "ledger_index": block_number,
-                "transactions": true,
-                "expand": true
-            }
-        ]);
-
-        let result: LedgerData = self.call(method::LEDGER, params).await?;
+        let result: LedgerData = self.request(XrpRpc::GetLedger(block_number)).await?;
         Ok(result.ledger)
     }
 
     pub async fn get_account_transactions(&self, address: String, limit: usize) -> Result<AccountLedger, Box<dyn Error + Send + Sync>> {
-        let params = json!([
-            {
-                "account": address,
-                "limit": limit,
-                "ledger_index_max": -1,
-                "ledger_index_min": -1
-            }
-        ]);
-
-        self.call(method::ACCOUNT_TRANSACTIONS, params).await
+        self.request(XrpRpc::GetAccountTransactions { address, limit }).await
     }
 }
 
@@ -160,19 +113,19 @@ fn map_error_result(result: &Value) -> Option<JsonRpcError> {
     Some(JsonRpcError { code, message })
 }
 
-impl<C: Client + Clone> ChainStaking for XRPClient<C> {}
+impl<C: Client + Clone> ChainStaking for XrpClient<C> {}
 
-impl<C: Client + Clone> ChainPerpetual for XRPClient<C> {}
+impl<C: Client + Clone> ChainPerpetual for XrpClient<C> {}
 
-impl<C: Client + Clone> ChainAddressStatus for XRPClient<C> {}
+impl<C: Client + Clone> ChainAddressStatus for XrpClient<C> {}
 
-impl<C: Client + Clone> chain_traits::ChainAccount for XRPClient<C> {}
+impl<C: Client + Clone> chain_traits::ChainAccount for XrpClient<C> {}
 
-impl<C: Client + Clone> ChainSimulation for XRPClient<C> {}
+impl<C: Client + Clone> ChainSimulation for XrpClient<C> {}
 
-impl<C: Client + Clone> ChainTraits for XRPClient<C> {}
+impl<C: Client + Clone> ChainTraits for XrpClient<C> {}
 
-impl<C: Client + Clone> ChainProvider for XRPClient<C> {
+impl<C: Client + Clone> ChainProvider for XrpClient<C> {
     fn get_chain(&self) -> Chain {
         self.chain
     }
@@ -180,6 +133,9 @@ impl<C: Client + Clone> ChainProvider for XRPClient<C> {
 
 #[cfg(test)]
 mod tests {
+    use crate::method;
+    use serde_json::json;
+
     use super::*;
 
     #[test]

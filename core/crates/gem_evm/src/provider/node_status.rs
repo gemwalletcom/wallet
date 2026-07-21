@@ -28,14 +28,14 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumClient<C> {
             .and_then(|receipt| receipt.map(|receipt| receipt.block_number).ok_or_else(|| "returned null".to_string()));
         let recorder = recorder.record(method::ETH_GET_TRANSACTION_RECEIPT, receipt);
         let recorder = recorder.record_available(method::ETH_FEE_HISTORY, self.get_fee_history(1, vec![50]).await);
-        let recorder = recorder.record(method::ETH_GAS_PRICE, self.gas_price().await);
+        let recorder = recorder.record(method::ETH_GAS_PRICE, self.get_gas_price().await);
         let recorder = recorder.record(method::ETH_GET_CODE, self.get_code(address).await);
         let recorder = recorder.record(method::ETH_SYNCING, self.get_syncing().await);
-        let recorder = recorder.record(method::ETH_CALL, self.eth_call::<String>(address, "0x").await);
+        let recorder = recorder.record_available(method::ETH_CALL, self.eth_call(address, &[]).await);
         let recorder = recorder.record(method::ETH_ESTIMATE_GAS, self.estimate_gas(None, address, None, Some("0x")).await);
 
         let transaction = TransactionObject::new_call_with_from(address, address, Vec::new());
-        recorder.record_available(method::TRACE_CALL, self.trace_call(&transaction).await)
+        recorder.record_optional_available(method::TRACE_CALL, self.trace_call(&transaction).await)
     }
 
     async fn get_node_parser_status(&self, _address: &str, _transaction_id: &str, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {

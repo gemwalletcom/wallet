@@ -46,7 +46,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_near_get_balance_coin() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_near_test_client()?;
+        let client = create_near_test_client();
         let address = TEST_ADDRESS.to_string();
         let balance = client.get_balance_coin(address).await?;
         assert!(balance.balance.available > num_bigint::BigUint::from(0u32));
@@ -56,7 +56,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_near_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_near_test_client()?;
+        let client = create_near_test_client();
         let address = TEST_ADDRESS.to_string();
         let assets = client.get_balance_assets(address).await?;
 

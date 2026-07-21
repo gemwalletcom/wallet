@@ -6,10 +6,10 @@ use gem_client::Client;
 use primitives::Transaction;
 
 use crate::provider::transactions_mapper::{map_direct_transaction, map_transactions_by_address, map_transactions_by_block};
-use crate::rpc::client::XRPClient;
+use crate::rpc::XrpClient;
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactions for XRPClient<C> {
+impl<C: Client + Clone> ChainTransactions for XrpClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let ledger = self.get_block_transactions(block).await?;
         Ok(map_transactions_by_block(ledger))

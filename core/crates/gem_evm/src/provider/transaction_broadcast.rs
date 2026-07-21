@@ -21,7 +21,7 @@ use gem_client::Client;
 impl<C: Client + Clone> ChainTransactionBroadcast for EthereumClient<C> {
     async fn transaction_broadcast(&self, data: String, _options: BroadcastOptions) -> Result<String, Box<dyn Error + Sync + Send>> {
         let data = map_transaction_broadcast_request(&data);
-        let response = self.send_raw_transaction(&data).await?;
+        let response = self.broadcast_transaction(&data).await?;
         Ok(response)
     }
 }

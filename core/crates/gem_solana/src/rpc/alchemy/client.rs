@@ -3,9 +3,8 @@ use std::error::Error;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use serde::Deserialize;
-use serde_json::json;
 
-use crate::COMMITMENT_CONFIRMED;
+use super::jsonrpc::AlchemySolanaRpc;
 
 #[derive(Debug, Deserialize)]
 struct Transactions {
@@ -30,17 +29,12 @@ impl<C: Client + Clone> SolanaIndexer<C> {
     pub(crate) async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
         let transactions: Transactions = self
             .client
-            .call(
-                "getTransactionsForAddress",
-                json!([address, {
-                    "transactionDetails": "signatures",
-                    "sortOrder": "desc",
-                    "limit": limit,
-                    "commitment": COMMITMENT_CONFIRMED
-                }]),
-            )
+            .request(AlchemySolanaRpc::GetTransactionsForAddress {
+                address: address.to_string(),
+                limit,
+            })
             .await?;
-        Ok(transactions.data.into_iter().map(|signature| signature.signature).collect())
+        Ok(transactions.data.into_iter().map(|transaction| transaction.signature).collect())
     }
 }
 
@@ -48,13 +42,16 @@ impl<C: Client + Clone> SolanaIndexer<C> {
 mod tests {
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::testkit::json::load_json;
+    use serde_json::json;
 
+    use super::super::jsonrpc::GET_TRANSACTIONS_FOR_ADDRESS;
     use super::*;
+    use crate::COMMITMENT_CONFIRMED;
 
     #[tokio::test]
     async fn test_get_transaction_ids_by_address() {
         let client = mock_jsonrpc_client(|method, params| {
-            assert_eq!(method, "getTransactionsForAddress");
+            assert_eq!(method, GET_TRANSACTIONS_FOR_ADDRESS);
             assert_eq!(
                 params,
                 &json!(["address", {
@@ -64,7 +61,7 @@ mod tests {
                     "commitment": COMMITMENT_CONFIRMED
                 }])
             );
-            Ok(load_json(include_str!("../../testdata/alchemy_get_transactions_for_address.json")))
+            Ok(load_json(include_str!("../../../testdata/alchemy_get_transactions_for_address.json")))
         });
         let indexer = SolanaIndexer::new(client);
 

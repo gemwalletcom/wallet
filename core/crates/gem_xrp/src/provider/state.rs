@@ -3,12 +3,12 @@ use chain_traits::ChainState;
 use std::error::Error;
 
 use crate::provider::state_mapper;
-use crate::rpc::client::XRPClient;
+use crate::rpc::XrpClient;
 use gem_client::Client;
 use primitives::NodeSyncStatus;
 
 #[async_trait]
-impl<C: Client + Clone> ChainState for XRPClient<C> {
+impl<C: Client + Clone> ChainState for XrpClient<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
         Ok("".to_string())
     }

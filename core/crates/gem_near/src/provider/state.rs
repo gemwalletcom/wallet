@@ -29,7 +29,7 @@ mod chain_integration_tests {
     use crate::rpc::client::NearClient;
     use chain_traits::{ChainProvider, ChainState};
     use gem_client::ReqwestClient;
-    use gem_jsonrpc::{client::JsonRpcClient, new_client};
+    use gem_jsonrpc::client::JsonRpcClient;
 
     #[tokio::test]
     async fn test_near_client_generic_interface() {
@@ -42,7 +42,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_get_chain_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let jsonrpc_client = new_client("https://rpc.mainnet.near.org".to_string())?;
+        let jsonrpc_client = JsonRpcClient::new_reqwest("https://rpc.mainnet.near.org".to_string());
         let near_client: NearClient<gem_client::ReqwestClient> = NearClient::new(jsonrpc_client);
 
         let chain_id = near_client.get_chain_id().await?;
@@ -53,7 +53,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_get_node_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let jsonrpc_client = new_client("https://rpc.mainnet.near.org".to_string())?;
+        let jsonrpc_client = JsonRpcClient::new_reqwest("https://rpc.mainnet.near.org".to_string());
         let near_client: NearClient<gem_client::ReqwestClient> = NearClient::new(jsonrpc_client);
         let node_status = near_client.get_node_status().await?;
 

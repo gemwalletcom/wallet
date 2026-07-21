@@ -5,7 +5,7 @@ use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::
 
 use alloy_primitives::hex;
 use gem_encoding::encode_base64;
-use gem_solana::{jsonrpc::SolanaRpc, models::LatestBlockhash, try_decode_blockhash};
+use gem_solana::{SolanaRpc, SolanaRpcConfig, models::LatestBlockhash, try_decode_blockhash};
 use gem_tron::address::TronAddress;
 use primitives::{Chain, decode_hex, swap::SwapQuoteDataType::Contract};
 use solana_primitives::{AccountMeta, InstructionBuilder, Pubkey, TransactionBuilder, compute_budget::set_compute_unit_limit};
@@ -33,7 +33,10 @@ pub async fn build_solana_tx(fee_payer: &str, response: &SolanaVaultSwapResponse
     let data = hex::decode(response.data.as_str()).map_err(|_| "Invalid data".to_string())?;
 
     let rpc_client = create_client_with_chain(provider, Chain::Solana);
-    let blockhash_response: LatestBlockhash = rpc_client.request(SolanaRpc::GetLatestBlockhash).await.map_err(|e| e.to_string())?;
+    let blockhash_response: LatestBlockhash = rpc_client
+        .request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Default))
+        .await
+        .map_err(|e| e.to_string())?;
     let blockhash_array = try_decode_blockhash(&blockhash_response.value.blockhash).ok_or_else(|| "Invalid Solana blockhash".to_string())?;
 
     let mut instruction = InstructionBuilder::new(program_id).data(data).build();

@@ -2,6 +2,8 @@ use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::alien::{self, RpcClient, RpcProvider};
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
+#[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]
+use gem_solana::SolanaRpcConfig;
 use gem_sui::rpc::client::SuiClient;
 use gem_tron::rpc::{TronClient, trongrid::client::TronGridClient};
 use primitives::{Chain, EVMChain};
@@ -34,13 +36,16 @@ pub fn create_tron_client(provider: Arc<dyn RpcProvider>) -> Result<TronClient<R
 mod tests {
     use super::*;
     use crate::NativeProvider;
-    use gem_solana::{jsonrpc::SolanaRpc, models::blockhash::SolanaBlockhashResult, try_decode_blockhash};
+    use gem_solana::{SolanaRpc, models::blockhash::SolanaBlockhashResult, try_decode_blockhash};
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_solana_json_rpc() -> Result<(), String> {
         let rpc_client = create_client_with_chain(Arc::new(NativeProvider::default()), Chain::Solana);
-        let response: SolanaBlockhashResult = rpc_client.request(SolanaRpc::GetLatestBlockhash).await.map_err(|e| e.to_string())?;
+        let response: SolanaBlockhashResult = rpc_client
+            .request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Default))
+            .await
+            .map_err(|e| e.to_string())?;
         let recent_blockhash = response.value.blockhash;
 
         println!("recent_blockhash: {}", recent_blockhash);

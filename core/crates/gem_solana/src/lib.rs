@@ -19,7 +19,7 @@ pub mod transaction;
 pub mod signer;
 
 pub use address::{SolanaAddress, validate_address};
-pub use jsonrpc::SolanaRpc;
+pub use jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
 pub use solana_primitives::{Pubkey, SolanaError, find_program_address};
 pub use transaction::{decode_transaction, encode_v0_transaction, instruction_from_primitive, instructions_from_primitives, try_decode_blockhash, try_decode_transaction};
 

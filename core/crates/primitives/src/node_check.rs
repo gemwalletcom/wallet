@@ -34,6 +34,7 @@ impl NodeCheckRequest {
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum NodeCheckStatus {
     Passed { result: String },
+    Warning { warning: String },
     Failed { error: String },
 }
 
@@ -45,14 +46,14 @@ pub struct NodeCheckReport {
 impl NodeCheckReport {
     pub fn is_healthy(&self) -> bool {
         self.checks.values().all(|status| match status {
-            NodeCheckStatus::Passed { .. } => true,
+            NodeCheckStatus::Passed { .. } | NodeCheckStatus::Warning { .. } => true,
             NodeCheckStatus::Failed { .. } => false,
         })
     }
 
     pub fn error(&self) -> Option<String> {
         self.checks.iter().find_map(|(method, status)| match status {
-            NodeCheckStatus::Passed { .. } => None,
+            NodeCheckStatus::Passed { .. } | NodeCheckStatus::Warning { .. } => None,
             NodeCheckStatus::Failed { error } => Some(format!("{method}: {error}")),
         })
     }
@@ -76,6 +77,28 @@ mod tests {
                     "method": {
                         "status": "passed",
                         "result": "22820942"
+                    }
+                }
+            })
+        );
+
+        let report = NodeCheckReport {
+            checks: BTreeMap::from([(
+                "optional_method".to_string(),
+                NodeCheckStatus::Warning {
+                    warning: "method not found".to_string(),
+                },
+            )]),
+        };
+        assert!(report.is_healthy());
+        assert_eq!(report.error(), None);
+        assert_eq!(
+            serde_json::to_value(&report).unwrap(),
+            serde_json::json!({
+                "checks": {
+                    "optional_method": {
+                        "status": "warning",
+                        "warning": "method not found"
                     }
                 }
             })

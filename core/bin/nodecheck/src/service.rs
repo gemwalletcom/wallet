@@ -23,6 +23,7 @@ impl NodeCheckService {
                 for (method, status) in &report.checks {
                     match status {
                         NodeCheckStatus::Passed { result } => info_with_fields!(&format!("│ ✅     │ {method:<METHOD_WIDTH$} │ {result}")),
+                        NodeCheckStatus::Warning { warning } => info_with_fields!(&format!("│ ⚠️     │ {method:<METHOD_WIDTH$} │ {warning}")),
                         NodeCheckStatus::Failed { error } => error_fields!(&format!("│ ❌     │ {method:<METHOD_WIDTH$} │ {error}")),
                     }
                 }

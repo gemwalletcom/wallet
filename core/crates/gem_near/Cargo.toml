@@ -25,7 +25,6 @@ signer = { path = "../signer", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-reqwest = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }
 hex = { workspace = true }
 

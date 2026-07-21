@@ -49,13 +49,21 @@ impl NodeCheckRecorder {
         recorder
     }
 
+    pub fn record_optional_available<T, E: Display>(self, method: &str, result: Result<T, E>) -> Self {
+        let status = match result {
+            Ok(_) => NodeCheckStatus::Passed { result: "available".to_string() },
+            Err(error) => NodeCheckStatus::Warning { warning: error.to_string() },
+        };
+        self.record_status(method, status)
+    }
+
     fn record_error(self, method: &str, error: impl Display) -> Self {
         self.record_status(method, NodeCheckStatus::Failed { error: error.to_string() })
     }
 
     fn has_failed(&self) -> bool {
         self.checks.values().any(|status| match status {
-            NodeCheckStatus::Passed { .. } => false,
+            NodeCheckStatus::Passed { .. } | NodeCheckStatus::Warning { .. } => false,
             NodeCheckStatus::Failed { .. } => true,
         })
     }
@@ -139,5 +147,18 @@ mod tests {
         let (recorder, recorded) = recorder.record_value("method", result);
         assert_eq!(recorded, Some(value));
         assert_eq!(recorder.finish().checks.get("method"), Some(&NodeCheckStatus::Passed { result: "available".to_string() }));
+    }
+
+    #[test]
+    fn records_optional_failure_as_warning() {
+        let result: Result<(), &str> = Err("method not found");
+        let recorder = NodeCheckRecorder::new().record_optional_available("method", result);
+
+        assert_eq!(
+            recorder.finish().checks.get("method"),
+            Some(&NodeCheckStatus::Warning {
+                warning: "method not found".to_string()
+            })
+        );
     }
 }

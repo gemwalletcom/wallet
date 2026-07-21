@@ -13,12 +13,12 @@ use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_near::rpc::client::NearClient;
 use gem_polkadot::rpc::client::PolkadotClient;
-use gem_solana::{SolanaClient, rpc::SolanaIndexer};
+use gem_solana::SolanaClient;
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::client::SuiClient;
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
-use gem_xrp::rpc::client::XRPClient;
+use gem_xrp::rpc::XrpClient;
 use primitives::{BitcoinChain, Chain, EVMChain, chain_cosmos::CosmosChain};
 use std::sync::Arc;
 
@@ -63,7 +63,7 @@ impl ChainClientFactory {
                 url,
                 Arc::new(AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.alien.clone())))),
             ))),
-            Chain::Xrp => Ok(Arc::new(XRPClient::new(JsonRpcClient::new(alien_client.clone())))),
+            Chain::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client.clone())))),
             Chain::Algorand => {
                 let indexer_client = new_alien_client(ALGORAND_INDEXER_URL.to_string(), self.alien.clone());
                 Ok(Arc::new(AlgorandClient::new(alien_client, AlgorandClientIndexer::new(indexer_client))))
@@ -78,7 +78,7 @@ impl ChainClientFactory {
             Chain::Polkadot => Ok(Arc::new(PolkadotClient::new(alien_client))),
             Chain::Solana => {
                 let client = JsonRpcClient::new(alien_client.clone());
-                Ok(Arc::new(SolanaClient::new(client.clone(), SolanaIndexer::new(client))))
+                Ok(Arc::new(SolanaClient::new(client)))
             }
             Chain::Ethereum
             | Chain::Arbitrum

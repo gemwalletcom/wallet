@@ -2,13 +2,16 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use gem_client::Client;
-use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
+use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
 use primitives::Chain;
 use serde_json::{Value, json};
 
-use super::model::{TokenBalances, Transfer, Transfers};
-use crate::{method, rpc::EVMIndexerClient};
+use super::{
+    jsonrpc::AlchemyRpc,
+    model::{TokenBalances, Transfer, Transfers},
+};
+use crate::rpc::EVMIndexerClient;
 
 pub fn alchemy_url(chain: Chain, key: &str) -> String {
     let network = match chain {
@@ -50,12 +53,12 @@ pub fn alchemy_url(chain: Chain, key: &str) -> String {
 
 #[derive(Debug, Clone)]
 pub(crate) struct AlchemyClient<C: Client + Clone> {
-    rpc_client: GenericJsonRpcClient<C>,
+    client: JsonRpcClient<C>,
 }
 
 impl<C: Client + Clone> AlchemyClient<C> {
-    pub(crate) fn new(client: GenericJsonRpcClient<C>) -> Self {
-        Self { rpc_client: client }
+    pub(crate) fn new(client: JsonRpcClient<C>) -> Self {
+        Self { client }
     }
 
     async fn get_asset_transfers(&self, address_field: &str, address: &str, limit: usize) -> Result<Vec<Transfer>, Box<dyn Error + Send + Sync>> {
@@ -66,7 +69,7 @@ impl<C: Client + Clone> AlchemyClient<C> {
             "order": "desc"
         });
         request[address_field] = Value::String(address.to_string());
-        let response: Transfers = self.rpc_client.call(method::ALCHEMY_GET_ASSET_TRANSFERS, json!([request])).await?;
+        let response: Transfers = self.client.request(AlchemyRpc::GetAssetTransfers(request)).await?;
         Ok(response.transfers)
     }
 }
@@ -87,7 +90,7 @@ impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
-        let balances: TokenBalances = self.rpc_client.call(method::ALCHEMY_GET_TOKEN_BALANCES, json!([address, "erc20"])).await?;
+        let balances: TokenBalances = self.client.request(AlchemyRpc::GetTokenBalances(address.to_string())).await?;
         Ok(balances
             .token_balances
             .into_iter()
@@ -98,6 +101,7 @@ impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
 
 #[cfg(test)]
 mod tests {
+    use crate::method;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::testkit::json::load_json;
 

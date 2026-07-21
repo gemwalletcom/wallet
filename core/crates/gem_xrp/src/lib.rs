@@ -1,5 +1,6 @@
 pub mod address;
 pub mod constants;
+pub mod jsonrpc;
 pub mod method;
 pub mod models;
 
@@ -7,7 +8,6 @@ pub mod models;
 pub mod signer;
 
 pub use address::{XrpAddress, validate_address};
-
 #[cfg(feature = "rpc")]
 pub mod rpc;
 #[cfg(feature = "rpc")]

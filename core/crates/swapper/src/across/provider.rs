@@ -86,7 +86,7 @@ impl Across {
     }
 
     async fn gas_price(&self, chain: Chain) -> Result<U256, SwapperError> {
-        let gas_price = create_eth_client(self.rpc_provider.clone(), chain)?.gas_price().await?;
+        let gas_price = create_eth_client(self.rpc_provider.clone(), chain)?.get_gas_price().await?;
         Self::bigint_to_u256(&gas_price)
     }
 

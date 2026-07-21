@@ -1,13 +1,11 @@
 use std::{error::Error, str::FromStr};
 
 use async_trait::async_trait;
+use gem_client::ReqwestClient;
 use gem_encoding::decode_base64;
 use gem_hash::sha2::sha256;
-use serde_json::{self, json};
-
-use gem_client::ReqwestClient;
 use gem_jsonrpc::JsonRpcClient;
-use gem_solana::{COMMITMENT_CONFIRMED, Pubkey, find_program_address, method};
+use gem_solana::{Pubkey, SolanaAccountEncoding, SolanaRpc, find_program_address};
 use primitives::{
     chain::Chain,
     contract_constants::{SOLANA_ALLDOMAINS_ANS_PROGRAM_ID, SOLANA_ALLDOMAINS_NAME_HOUSE_PROGRAM_ID, SOLANA_ALLDOMAINS_ROOT_PUBLIC_KEY, SOLANA_ALLDOMAINS_TLD_HOUSE_PROGRAM_ID},
@@ -87,10 +85,7 @@ impl AllDomainsClient {
     async fn get_name_owner(&self, name_account_key: Pubkey, tld_house: Option<Pubkey>) -> Result<Pubkey, Box<dyn Error + Send + Sync>> {
         let response: serde_json::Value = self
             .client
-            .call(
-                method::GET_ACCOUNT_INFO,
-                vec![json!(name_account_key.to_string()), json!({"encoding": "base64", "commitment": COMMITMENT_CONFIRMED})],
-            )
+            .request(SolanaRpc::GetAccountInfo(name_account_key.to_string(), SolanaAccountEncoding::Base64))
             .await?;
 
         let account_value = response.get("value").ok_or("Invalid response format")?;

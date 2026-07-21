@@ -62,7 +62,7 @@ impl ConfigStoreClient {
     pub(super) async fn fetch_config(&self, l1token: &Address) -> Result<TokenConfig, SwapperError> {
         let data = AcrossConfigStore::l1TokenConfigCall { l1Token: *l1token }.abi_encode();
         let call = EthereumRpc::Call(TransactionObject::new_call(&self.contract, data), BlockParameter::Latest);
-        let response: JsonRpcResult<String> = self.client.call_with_cache(&call, Some(CONFIG_CACHE_TTL)).await?;
+        let response: JsonRpcResult<String> = self.client.request_with_cache(&call, Some(CONFIG_CACHE_TTL)).await?;
         let result = response.take()?;
         let hex_data = HexDecode(result).map_err(SwapperError::compute_quote_error)?;
         let decoded = AcrossConfigStore::l1TokenConfigCall::abi_decode_returns(&hex_data).map_err(SwapperError::from)?;

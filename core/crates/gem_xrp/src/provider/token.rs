@@ -3,12 +3,12 @@ use chain_traits::ChainToken;
 use std::error::Error;
 
 use crate::XRP_DEFAULT_ASSET_DECIMALS;
-use crate::rpc::client::XRPClient;
+use crate::rpc::XrpClient;
 use gem_client::Client;
 use primitives::{Asset, AssetId, AssetType};
 
 #[async_trait]
-impl<C: Client + Clone> ChainToken for XRPClient<C> {
+impl<C: Client + Clone> ChainToken for XrpClient<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         let objects = self.get_account_objects(&token_id).await?;
 

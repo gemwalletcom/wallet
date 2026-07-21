@@ -1,19 +1,17 @@
 use std::collections::HashMap;
 use std::error::Error;
 
-use alloy_primitives::hex;
 use chrono::{DateTime, Utc};
 use gem_client::Client;
 use num_bigint::BigUint;
 use num_traits::{ToPrimitive, Zero};
 use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator};
 
-use crate::jsonrpc::BlockParameter;
 use crate::monad::{
     IMonadStakingLens, MONAD_SCALE, MonadLensBalance, MonadLensDelegation, MonadLensValidatorInfo, STAKING_LENS_CONTRACT, decode_get_lens_apys, decode_get_lens_balance,
     decode_get_lens_delegations, decode_get_lens_validators, delegation_id, encode_get_lens_apys, encode_get_lens_balance, encode_get_lens_delegations, encode_get_lens_validators,
 };
-use crate::{method, rpc::client::EthereumClient};
+use crate::rpc::client::EthereumClient;
 
 const MONAD_VALIDATOR_NAMES: &[(u64, &str)] = &[(16, "MonadVision"), (5, "Alchemy"), (10, "Stakin"), (9, "Everstake")];
 
@@ -21,7 +19,7 @@ const MONAD_VALIDATOR_NAMES: &[(u64, &str)] = &[(16, "MonadVision"), (5, "Alchem
 impl<C: Client + Clone> EthereumClient<C> {
     pub async fn get_monad_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         let data = encode_get_lens_apys(&[]);
-        let result = self.call_lens(data).await.ok_or_else(|| "Monad staking lens not configured".to_string())??;
+        let result = self.call_lens(data).await?;
 
         let apys = decode_get_lens_apys(&result)?;
         let apy_bps = apys.into_iter().max().unwrap_or(0);
@@ -37,7 +35,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         let validator_names: HashMap<u64, &str> = MONAD_VALIDATOR_NAMES.iter().copied().collect();
         let validator_ids = Self::monad_curated_validator_ids();
         let data = encode_get_lens_validators(&validator_ids);
-        let result = self.call_lens(data).await.ok_or_else(|| "Monad staking lens not configured".to_string())??;
+        let result = self.call_lens(data).await?;
 
         let (validators, network_apy_bps) = decode_get_lens_validators(&result)?;
         let network_apy = network_apy_bps as f64 / 100.0;
@@ -59,18 +57,14 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     async fn fetch_monad_balance(&self, address: &str) -> Result<MonadLensBalance, Box<dyn Error + Sync + Send>> {
         let data = encode_get_lens_balance(address)?;
-        let result = self.call_lens(data).await.ok_or_else(|| "Monad staking lens not configured".to_string())??;
+        let result = self.call_lens(data).await?;
 
         decode_get_lens_balance(&result)
     }
 
     async fn fetch_monad_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let data = encode_get_lens_delegations(address)?;
-        let Some(result) = self.call_lens(data).await else {
-            return Ok(Vec::new());
-        };
-
-        let positions = match result {
+        let positions = match self.call_lens(data).await {
             Ok(bytes) => match decode_get_lens_delegations(&bytes) {
                 Ok(position_list) => position_list,
                 Err(_) => return Ok(Vec::new()),
@@ -137,25 +131,8 @@ impl<C: Client + Clone> EthereumClient<C> {
         }
     }
 
-    async fn call_lens(&self, data: Vec<u8>) -> Option<Result<Vec<u8>, Box<dyn Error + Sync + Send>>> {
-        let call = Self::build_lens_call(&data)?;
-
-        Some(
-            self.call(call.0, call.1)
-                .await
-                .map_err(|err| -> Box<dyn Error + Sync + Send> { Box::new(err) })
-                .and_then(|result: String| hex::decode(result).map_err(|err| -> Box<dyn Error + Sync + Send> { Box::new(err) })),
-        )
-    }
-
-    fn build_lens_call(data: &[u8]) -> Option<(String, serde_json::Value)> {
-        Some((
-            method::ETH_CALL.to_string(),
-            serde_json::json!([{
-                "to": STAKING_LENS_CONTRACT,
-                "data": hex::encode_prefixed(data)
-            }, serde_json::Value::from(BlockParameter::Latest)]),
-        ))
+    async fn call_lens(&self, data: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
+        self.eth_call(STAKING_LENS_CONTRACT, &data).await
     }
 
     fn lens_commission_rate(commission: &BigUint) -> f64 {

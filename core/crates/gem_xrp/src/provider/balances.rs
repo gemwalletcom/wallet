@@ -7,11 +7,11 @@ use primitives::AssetBalance;
 
 use crate::{
     provider::balances_mapper::{map_balance_assets, map_balance_coin, map_balance_tokens},
-    rpc::client::XRPClient,
+    rpc::XrpClient,
 };
 
 #[async_trait]
-impl<C: Client + Clone> ChainBalances for XRPClient<C> {
+impl<C: Client + Clone> ChainBalances for XrpClient<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let account = self.get_account_info(&address).await?;
         let reserved_amount = self.get_chain().account_activation_fee().unwrap_or(0) as u64;

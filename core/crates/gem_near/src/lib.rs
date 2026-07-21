@@ -7,6 +7,8 @@ pub mod rpc;
 pub mod provider;
 
 pub mod constants;
+#[cfg(feature = "rpc")]
+pub mod jsonrpc;
 pub mod method;
 pub mod models;
 #[cfg(feature = "signer")]

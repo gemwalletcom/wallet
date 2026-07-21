@@ -148,7 +148,7 @@ impl Swapper for UniswapV3 {
                     .iter()
                     .map(|path| super::quoter_v2::build_quoter_request(&request.wallet_address, deployment.quoter_v2, quote_amount_in, &path.1))
                     .collect();
-                async move { client.batch_call_requests(calls).await }
+                async move { client.batch_request(calls).await }
             })
             .collect();
 

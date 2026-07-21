@@ -29,7 +29,7 @@ use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::SuiClient;
 use gem_ton::rpc::TonClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
-use gem_xrp::rpc::XRPClient;
+use gem_xrp::rpc::XrpClient;
 use reqwest::Client;
 
 use std::collections::HashMap;
@@ -134,7 +134,7 @@ impl ProviderFactory {
             }
             Chain::Aptos => Box::new(AptosClient::new(gem_client.clone())),
             Chain::Sui => Box::new(SuiClient::new(url)),
-            Chain::Xrp => Box::new(XRPClient::new(JsonRpcClient::new(gem_client.clone()))),
+            Chain::Xrp => Box::new(XrpClient::new(JsonRpcClient::new(gem_client.clone()))),
             Chain::Algorand => {
                 let indexer_client = ReqwestClient::new(ALGORAND_INDEXER_URL.to_string(), reqwest_client.clone());
                 Box::new(AlgorandClient::new(gem_client.clone(), AlgorandClientIndexer::new(indexer_client)))
@@ -146,7 +146,7 @@ impl ProviderFactory {
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
                 let url = alchemy_url(chain, &config.keys.alchemy);
                 let indexer = SolanaIndexer::new(JsonRpcClient::new(ReqwestClient::new(url, reqwest_client.clone())));
-                Box::new(SolanaClient::new(rpc_client, indexer))
+                Box::new(SolanaClient::new_with_indexer(rpc_client, indexer))
             }
             Chain::Ton => Box::new(TonClient::new(gem_client.clone())),
             Chain::Tron => Box::new(TronClient::new(gem_client.clone(), TronGridClient::new(gem_client.clone(), config.keys.trongrid.clone()))),
