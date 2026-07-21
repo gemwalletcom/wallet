@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use primitives::{AssetId, swap::SwapResult};
 use rocket::{State, get};
-use swapper::{Options, QuoteRequest, SwapQuotes, SwapperQuoteAsset, config::get_default_slippage, cross_chain::VaultAddresses, swapper::GemSwapper};
+use swapper::{
+    Options, QuoteRequest, SwapQuotes, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode, config::get_default_slippage_bps,
+    cross_chain::VaultAddresses, swapper::GemSwapper,
+};
 
 use crate::api_clients::PermissionChainRead;
 use crate::params::{AddressParam, AssetIdParam, ChainParam, SwapProviderParam};
@@ -49,7 +52,10 @@ fn build_quote_request(from_asset_id: AssetId, to_asset_id: AssetId, value: &str
         destination_address,
         value: value.to_string(),
         options: Options {
-            slippage: get_default_slippage(&from_asset_id.chain),
+            slippage: SwapperSlippage {
+                bps: get_default_slippage_bps(&from_asset_id.chain),
+                mode: SwapperSlippageMode::Exact,
+            },
             use_max_amount: false,
         },
     }
