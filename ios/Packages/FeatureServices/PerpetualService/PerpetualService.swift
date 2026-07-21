@@ -111,7 +111,7 @@ public struct PerpetualService: PerpetualServiceable {
 
     private func perpetualBalanceValue(_ amount: Double) throws -> UpdateBalanceValue {
         try UpdateBalanceValue(
-            value: ValueFormatter.full.inputNumber(from: amount.description, decimals: 6).description,
+            value: BigNumberFormatter.standard.number(from: amount.description, decimals: 6).description,
             amount: amount,
         )
     }
