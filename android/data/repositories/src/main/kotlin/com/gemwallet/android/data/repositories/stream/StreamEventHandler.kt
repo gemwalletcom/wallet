@@ -84,8 +84,16 @@ class StreamEventHandler(
     }
 
     private suspend fun handleBalances(update: StreamBalanceUpdate) {
-        val walletId = update.walletId.id
-        val assetIds = listOf(update.assetId.toIdentifier())
+        updateBalances(update.walletId.id, update.assetIds.map { it.toIdentifier() })
+    }
+
+    private suspend fun handleTransactions(update: StreamTransactionsUpdate) {
+        val wallet = walletsRepository.getWallet(update.walletId).firstOrNull() ?: return
+        syncTransactions.get().syncTransactions(wallet)
+        updateBalances(update.walletId.id, update.assetIds.map { it.toIdentifier() })
+    }
+
+    private suspend fun updateBalances(walletId: String, assetIds: List<String>) {
         assetsDao.getAssetsInfo(walletId, assetIds)
             .toAssetInfoModel()
             .firstOrNull()
@@ -95,11 +103,6 @@ class StreamEventHandler(
                 val owner: Account = account ?: return@forEach
                 updateBalances.updateBalances(walletId, owner, assetInfos.map { it.asset })
             }
-    }
-
-    private suspend fun handleTransactions(update: StreamTransactionsUpdate) {
-        val wallet = walletsRepository.getWallet(update.walletId).firstOrNull() ?: return
-        syncTransactions.get().syncTransactions(wallet)
     }
 
     private suspend fun handlePriceAlerts() {

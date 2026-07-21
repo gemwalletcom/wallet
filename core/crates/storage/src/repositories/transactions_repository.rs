@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::database::transactions::{TransactionFilter, TransactionUpdate, TransactionsStore};
 use crate::models::{AddressChainIdResultRow, TransactionRow};
 use crate::sql_types::TransactionType;
@@ -9,7 +11,7 @@ pub trait TransactionsRepository {
     fn get_transaction_by_id(&mut self, id: &TransactionId) -> Result<TransactionRow, DatabaseError>;
     fn get_transactions_by_hash(&mut self, hash: &str) -> Result<Vec<TransactionRow>, DatabaseError>;
     fn get_transaction_exists(&mut self, id: &TransactionId) -> Result<bool, DatabaseError>;
-    fn add_transactions(&mut self, transactions: Vec<Transaction>) -> Result<usize, DatabaseError>;
+    fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError>;
     fn get_transactions_by_device_id(
         &mut self,
         _device_id: &str,
@@ -41,8 +43,8 @@ impl TransactionsRepository for DatabaseClient {
         Ok(TransactionsStore::get_transaction_exists(self, id.chain.as_ref(), &id.hash)?)
     }
 
-    fn add_transactions(&mut self, transactions: Vec<Transaction>) -> Result<usize, DatabaseError> {
-        Ok(TransactionsStore::add_transactions(self, transactions)?)
+    fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError> {
+        Ok(TransactionsStore::upsert_transactions(self, transactions)?)
     }
 
     fn get_transactions_by_device_id(

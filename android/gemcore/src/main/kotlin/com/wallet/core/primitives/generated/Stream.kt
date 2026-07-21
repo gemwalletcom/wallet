@@ -10,7 +10,7 @@ import kotlinx.serialization.SerialName
 @Serializable
 data class StreamBalanceUpdate (
 	val walletId: WalletId,
-	val assetId: AssetId
+	val assetIds: List<AssetId>
 )
 
 @Serializable
@@ -32,7 +32,8 @@ data class StreamPriceAlertUpdate (
 @Serializable
 data class StreamTransactionsUpdate (
 	val walletId: WalletId,
-	val transactions: List<TransactionId>
+	val transactions: List<TransactionId>,
+	val assetIds: List<AssetId>
 )
 
 @Serializable

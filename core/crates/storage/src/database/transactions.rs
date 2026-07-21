@@ -1,15 +1,15 @@
+use std::collections::HashSet;
+
 use crate::{
     DatabaseClient,
     models::*,
-    schema::transactions_addresses,
+    schema::{transactions::dsl as transactions_dsl, transactions_addresses},
     sql_types::{AssetId, TransactionState, TransactionType},
 };
 use chrono::NaiveDateTime;
-use diesel::dsl::{count, exists, sql};
+use diesel::dsl::{count, exists};
 use diesel::prelude::*;
-use diesel::sql_types::{Jsonb, Nullable};
-use diesel::upsert::excluded;
-use primitives::Transaction;
+use primitives::{Transaction, TransactionId};
 
 pub enum TransactionFilter {
     States(Vec<TransactionState>),
@@ -27,7 +27,7 @@ pub(crate) trait TransactionsStore {
     fn get_transaction_by_id(&mut self, chain: &str, hash: &str) -> Result<TransactionRow, diesel::result::Error>;
     fn get_transactions_by_hash(&mut self, hash: &str) -> Result<Vec<TransactionRow>, diesel::result::Error>;
     fn get_transaction_exists(&mut self, chain: &str, hash: &str) -> Result<bool, diesel::result::Error>;
-    fn add_transactions(&mut self, transactions: Vec<Transaction>) -> Result<usize, diesel::result::Error>;
+    fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, diesel::result::Error>;
     fn get_transactions_by_device_id(
         &mut self,
         _device_id: &str,
@@ -45,6 +45,44 @@ pub(crate) trait TransactionsStore {
     fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<TransactionRow>, diesel::result::Error>;
     fn update_transaction(&mut self, chain: &str, hash: &str, updates: Vec<TransactionUpdate>) -> Result<usize, diesel::result::Error>;
     fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, diesel::result::Error>;
+}
+
+impl DatabaseClient {
+    fn upsert_transaction(connection: &mut PgConnection, transaction: &Transaction) -> Result<(TransactionRow, bool), diesel::result::Error> {
+        let new_transaction = NewTransactionRow::from_primitive(transaction.clone());
+        let inserted = diesel::insert_into(transactions_dsl::transactions)
+            .values(&new_transaction)
+            .on_conflict((transactions_dsl::chain, transactions_dsl::hash))
+            .do_nothing()
+            .returning(TransactionRow::as_returning())
+            .get_result(connection)
+            .optional()?;
+
+        match inserted {
+            Some(transaction) => Ok((transaction, true)),
+            None => diesel::update(
+                transactions_dsl::transactions
+                    .filter(transactions_dsl::chain.eq(&new_transaction.chain))
+                    .filter(transactions_dsl::hash.eq(&new_transaction.hash)),
+            )
+            .set((
+                transactions_dsl::from_address.eq(&new_transaction.from_address),
+                transactions_dsl::to_address.eq(&new_transaction.to_address),
+                transactions_dsl::value.eq(&new_transaction.value),
+                transactions_dsl::kind.eq(&new_transaction.kind),
+                transactions_dsl::state.eq(&new_transaction.state),
+                transactions_dsl::fee.eq(&new_transaction.fee),
+                transactions_dsl::fee_asset_id.eq(&new_transaction.fee_asset_id),
+                transactions_dsl::memo.eq(&new_transaction.memo),
+                new_transaction.metadata.as_ref().map(|metadata| transactions_dsl::metadata.eq(metadata)),
+                transactions_dsl::utxo_inputs.eq(&new_transaction.utxo_inputs),
+                transactions_dsl::utxo_outputs.eq(&new_transaction.utxo_outputs),
+            ))
+            .returning(TransactionRow::as_returning())
+            .get_result(connection)
+            .map(|transaction| (transaction, false)),
+        }
+    }
 }
 
 impl TransactionsStore for DatabaseClient {
@@ -73,51 +111,30 @@ impl TransactionsStore for DatabaseClient {
         diesel::select(diesel::dsl::exists(dsl::transactions.filter(dsl::chain.eq(chain)).filter(dsl::hash.eq(hash)))).get_result(&mut self.connection)
     }
 
-    fn add_transactions(&mut self, transactions: Vec<Transaction>) -> Result<usize, diesel::result::Error> {
-        use crate::schema::transactions::dsl;
-
+    fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, diesel::result::Error> {
         self.connection
             .build_transaction()
             .read_write()
             .run::<_, diesel::result::Error, _>(|conn: &mut diesel::pg::PgConnection| {
-                let mut total_addresses = 0usize;
+                transactions
+                    .into_iter()
+                    .map(|transaction| {
+                        let (stored, is_inserted) = Self::upsert_transaction(conn, &transaction)?;
 
-                for transaction in transactions {
-                    let new_transaction = NewTransactionRow::from_primitive(transaction.clone());
+                        let addresses = NewTransactionAddressesRow::from_transaction(stored.id, &transaction);
+                        if !addresses.is_empty() {
+                            use crate::schema::transactions_addresses::dsl as addr_dsl;
+                            diesel::insert_into(addr_dsl::transactions_addresses)
+                                .values(&addresses)
+                                .on_conflict((addr_dsl::transaction_id, addr_dsl::address, addr_dsl::asset_id))
+                                .do_nothing()
+                                .execute(conn)?;
+                        }
 
-                    let inserted: TransactionRow = diesel::insert_into(dsl::transactions)
-                        .values(&new_transaction)
-                        .on_conflict((dsl::chain, dsl::hash))
-                        .do_update()
-                        .set((
-                            dsl::from_address.eq(excluded(dsl::from_address)),
-                            dsl::to_address.eq(excluded(dsl::to_address)),
-                            dsl::value.eq(excluded(dsl::value)),
-                            dsl::kind.eq(excluded(dsl::kind)),
-                            dsl::state.eq(excluded(dsl::state)),
-                            dsl::fee.eq(excluded(dsl::fee)),
-                            dsl::fee_asset_id.eq(excluded(dsl::fee_asset_id)),
-                            dsl::memo.eq(excluded(dsl::memo)),
-                            dsl::metadata.eq(sql::<Nullable<Jsonb>>("COALESCE(EXCLUDED.metadata, transactions.metadata)")),
-                            dsl::utxo_inputs.eq(excluded(dsl::utxo_inputs)),
-                            dsl::utxo_outputs.eq(excluded(dsl::utxo_outputs)),
-                        ))
-                        .returning(TransactionRow::as_select())
-                        .get_result(conn)?;
-
-                    let addresses = NewTransactionAddressesRow::from_transaction(inserted.id, &transaction);
-
-                    if !addresses.is_empty() {
-                        use crate::schema::transactions_addresses::dsl as addr_dsl;
-                        total_addresses += diesel::insert_into(addr_dsl::transactions_addresses)
-                            .values(&addresses)
-                            .on_conflict((addr_dsl::transaction_id, addr_dsl::address, addr_dsl::asset_id))
-                            .do_nothing()
-                            .execute(conn)?;
-                    }
-                }
-
-                Ok(total_addresses)
+                        Ok(is_inserted.then_some(transaction.id))
+                    })
+                    .collect::<Result<Vec<_>, diesel::result::Error>>()
+                    .map(|transaction_ids| transaction_ids.into_iter().flatten().collect())
             })
     }
 

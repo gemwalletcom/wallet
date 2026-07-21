@@ -6,11 +6,11 @@ import Foundation
 
 public struct StreamBalanceUpdate: Codable, Sendable {
 	public let walletId: WalletId
-	public let assetId: AssetId
+	public let assetIds: [AssetId]
 
-	public init(walletId: WalletId, assetId: AssetId) {
+	public init(walletId: WalletId, assetIds: [AssetId]) {
 		self.walletId = walletId
-		self.assetId = assetId
+		self.assetIds = assetIds
 	}
 }
 
@@ -43,10 +43,12 @@ public struct StreamPriceAlertUpdate: Codable, Sendable {
 public struct StreamTransactionsUpdate: Codable, Sendable {
 	public let walletId: WalletId
 	public let transactions: [TransactionId]
+	public let assetIds: [AssetId]
 
-	public init(walletId: WalletId, transactions: [TransactionId]) {
+	public init(walletId: WalletId, transactions: [TransactionId], assetIds: [AssetId]) {
 		self.walletId = walletId
 		self.transactions = transactions
+		self.assetIds = assetIds
 	}
 }
 

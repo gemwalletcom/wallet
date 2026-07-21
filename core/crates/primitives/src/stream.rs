@@ -49,7 +49,9 @@ pub enum StreamMessage {
 #[typeshare(swift = "Sendable")]
 pub struct StreamBalanceUpdate {
     pub wallet_id: WalletId,
+    #[typeshare(skip)]
     pub asset_id: AssetId,
+    pub asset_ids: Vec<AssetId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,6 +60,7 @@ pub struct StreamBalanceUpdate {
 pub struct StreamTransactionsUpdate {
     pub wallet_id: WalletId,
     pub transactions: Vec<TransactionId>,
+    pub asset_ids: Vec<AssetId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

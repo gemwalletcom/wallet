@@ -85,26 +85,28 @@ Uses the same device authentication as all `/v2/devices/*` endpoints.
 }
 ```
 
-**Balance Update:**
-```json
-{
-  "event": "balances",
-  "data": [
-    {
-      "walletId": "multicoin_0x742d35...",
-      "assetId": "ethereum"
-    }
-  ]
-}
-```
-
 **Transactions Update:**
 ```json
 {
   "event": "transactions",
   "data": {
     "walletId": "multicoin_0x742d35...",
-    "transactions": ["0xabc123...", "0xdef456..."]
+    "transactions": ["ethereum_0xabc123..."],
+    "assetIds": ["ethereum", "ethereum_0xtoken..."]
+  }
+}
+```
+
+Transaction updates include affected assets. Separate `balances` events remain temporarily available for older clients during migration.
+
+**Legacy Balance Update:**
+```json
+{
+  "event": "balances",
+  "data": {
+    "walletId": "multicoin_0x742d35...",
+    "assetId": "ethereum",
+    "assetIds": ["ethereum"]
   }
 }
 ```

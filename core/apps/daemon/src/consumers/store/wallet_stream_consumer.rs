@@ -18,11 +18,13 @@ fn stream_events(wallet_id: WalletId, event: WalletStreamEvent) -> Vec<StreamEve
         WalletStreamEvent::Transactions { transaction_ids, asset_ids } => std::iter::once(StreamEvent::Transactions(StreamTransactionsUpdate {
             wallet_id: wallet_id.clone(),
             transactions: transaction_ids,
+            asset_ids: asset_ids.clone(),
         }))
         .chain(asset_ids.into_iter().map(|asset_id| {
             StreamEvent::Balances(StreamBalanceUpdate {
                 wallet_id: wallet_id.clone(),
-                asset_id,
+                asset_id: asset_id.clone(),
+                asset_ids: vec![asset_id],
             })
         }))
         .collect(),
@@ -83,7 +85,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_stream_events_sends_transactions_before_balances() {
+    fn test_stream_events_combines_transaction_and_balances() {
         let wallet_id = WalletId::Multicoin("wallet".to_string());
         let transaction_id = TransactionId::new(Chain::Ethereum, "0x123".to_string());
         let asset_id = AssetId::from_chain(Chain::Ethereum);
@@ -101,15 +103,17 @@ mod tests {
             StreamEvent::Transactions(update) => {
                 assert_eq!(update.wallet_id, wallet_id);
                 assert_eq!(update.transactions, vec![transaction_id]);
+                assert_eq!(update.asset_ids, vec![asset_id.clone()]);
             }
-            _ => panic!("expected transactions event"),
+            _ => panic!("expected transaction event"),
         }
         match &events[1] {
             StreamEvent::Balances(update) => {
                 assert_eq!(update.wallet_id, wallet_id);
-                assert_eq!(update.asset_id, asset_id);
+                assert_eq!(update.asset_id, asset_id.clone());
+                assert_eq!(update.asset_ids, vec![asset_id]);
             }
-            _ => panic!("expected balances event"),
+            _ => panic!("expected balance event"),
         }
     }
 }

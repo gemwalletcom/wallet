@@ -13,6 +13,8 @@ import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
@@ -69,6 +71,7 @@ class StreamEventHandlerTest {
     @Test
     fun `transactions event syncs wallet transactions`() = runTest {
         val sync = mockk<SyncTransactions>(relaxed = true)
+        val assetId = mockAssetId()
         every { syncTransactions.get() } returns sync
         coEvery { walletsRepository.getWallet(walletId) } returns flowOf(wallet)
 
@@ -77,11 +80,13 @@ class StreamEventHandlerTest {
                 StreamTransactionsUpdate(
                     walletId = walletId,
                     transactions = listOf(mockTransactionId(Chain.Bitcoin, "tx1")),
+                    assetIds = listOf(assetId),
                 )
             )
         )
 
         coVerify { sync.syncTransactions(wallet) }
+        verify { assetsDao.getAssetsInfo(walletId.id, listOf(assetId.toIdentifier())) }
     }
 
     @Test
@@ -134,7 +139,15 @@ class StreamEventHandlerTest {
         every { syncTransactions.get() } returns sync
         coEvery { walletsRepository.getWallet(mockWalletId("unknown")) } returns flowOf(null)
 
-        handler.handle(StreamEvent.Transactions(StreamTransactionsUpdate(walletId = mockWalletId("unknown"), transactions = emptyList())))
+        handler.handle(
+            StreamEvent.Transactions(
+                StreamTransactionsUpdate(
+                    walletId = mockWalletId("unknown"),
+                    transactions = listOf(mockTransactionId()),
+                    assetIds = emptyList(),
+                )
+            )
+        )
 
         coVerify(exactly = 0) { sync.syncTransactions(any()) }
     }

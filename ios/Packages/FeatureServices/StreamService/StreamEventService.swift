@@ -59,7 +59,7 @@ public struct StreamEventService: Sendable {
         case let .balances(update):
             Task { await perform { try await handleBalanceUpdate(update) } }
         case let .transactions(update):
-            Task { await perform { try await transactionsService.updateAll(walletId: update.walletId) } }
+            Task { await perform { try await handleTransactionUpdate(update) } }
         case let .nft(update):
             Task { await perform { try await handleNftUpdate(update) } }
         case let .perpetual(update):
@@ -95,7 +95,13 @@ extension StreamEventService {
 
     private func handleBalanceUpdate(_ update: StreamBalanceUpdate) async throws {
         guard let wallet = try walletStore.getWallet(id: update.walletId) else { return }
-        await balanceUpdater.updateBalance(for: wallet, assetIds: [update.assetId])
+        await balanceUpdater.updateBalance(for: wallet, assetIds: update.assetIds)
+    }
+
+    private func handleTransactionUpdate(_ update: StreamTransactionsUpdate) async throws {
+        guard let wallet = try walletStore.getWallet(id: update.walletId) else { return }
+        try await transactionsService.updateAll(walletId: update.walletId)
+        await balanceUpdater.updateBalance(for: wallet, assetIds: update.assetIds)
     }
 
     private func handleNftUpdate(_ update: StreamWalletUpdate) async throws {
