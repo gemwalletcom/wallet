@@ -27,7 +27,6 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.math.BigInteger
 
 class GetTransactionsImpl(
     private val transactionsRepository: TransactionRepository,
@@ -107,8 +107,8 @@ class TransactionDataAggregateImpl(
 
     override val value: String get() = when (data.transaction.type) {
         TransactionType.Swap -> {
-            getSwapMetadata(true)?.let { (metadata, asset) ->
-                AmountSign.Incoming.format(formatter.string(metadata.toValue.toBigInteger(), asset))
+            getSwapValue(true)?.let { (value, asset) ->
+                AmountSign.Incoming.format(formatter.string(value, asset))
             } ?: ""
         }
         TransactionType.PerpetualOpenPosition -> CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(
@@ -136,8 +136,8 @@ class TransactionDataAggregateImpl(
     }
 
     override val equivalentValue: String? get() = when (data.transaction.type) {
-        TransactionType.Swap -> getSwapMetadata(false)?.let { (metadata, asset) ->
-            AmountSign.Outgoing.format(formatter.string(metadata.fromValue.toBigInteger(), asset))
+        TransactionType.Swap -> getSwapValue(false)?.let { (value, asset) ->
+            AmountSign.Outgoing.format(formatter.string(value, asset))
         }
         else -> null
     }
@@ -161,15 +161,16 @@ class TransactionDataAggregateImpl(
     override val state: TransactionState = data.transaction.state
     override val createdAt: Long = data.transaction.createdAt
 
-    private fun getSwapMetadata(toAsset: Boolean): Pair<TransactionSwapMetadata, Asset>? {
+    private fun getSwapValue(toAsset: Boolean): Pair<BigInteger, Asset>? {
         val swapMetadata = data.transaction.getSwapMetadata() ?: return null
-        val asset = if (toAsset) {
-            data.assets.firstOrNull { swapMetadata.toAsset == it.id }
+        val (value, assetId) = if (toAsset) {
+            Pair(swapMetadata.toValue, swapMetadata.toAsset)
         } else {
-            data.assets.firstOrNull { swapMetadata.fromAsset == it.id }
-        } ?: return null
+            Pair(swapMetadata.fromValue, swapMetadata.fromAsset)
+        }
+        val asset = data.assets.firstOrNull { assetId == it.id } ?: return null
 
-        return Pair(swapMetadata, asset)
+        return value.toBigIntegerOrNull()?.let { Pair(it, asset) }
     }
 
     private fun getFormattedValue(): String =

@@ -904,6 +904,32 @@ class TransactionDetailsAggregateImplTest {
     }
 
     @Test
+    fun testAmountSwap_invalidMetadataValues() {
+        val swapMetadata = TransactionSwapMetadata(
+            fromAsset = ethAsset.id,
+            toAsset = usdtAsset.id,
+            fromValue = "1.5",
+            toValue = "",
+        )
+        val transaction = createTransaction(type = TransactionType.Swap)
+        val extended = createTransactionExtended(
+            transaction = transaction,
+            asset = ethAsset,
+            assets = listOf(ethAsset, usdtAsset),
+        )
+        val aggregate = createAggregate(
+            data = extended,
+            associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(usdtAsset)),
+            swapMetadata = swapMetadata,
+            swapProvider = createSwapProvider(),
+        )
+
+        Assert.assertTrue(aggregate.amount is TransactionDetailsValue.Amount.None)
+        Assert.assertNull(aggregate.swapProgress)
+        Assert.assertNull(aggregate.rate)
+    }
+
+    @Test
     fun testDestination_swapWithProvider() {
         val swapMetadata = TransactionSwapMetadata(
             fromAsset = ethAsset.id,

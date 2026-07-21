@@ -1,0 +1,9 @@
+{
+  "fromTokenAddress": "0x0000000000000000000000000000000000000000",
+  "toTokenAddress": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+  "fromTokenChain": "47",
+  "toTokenChain": "1",
+  "fromAmount64": "460347",
+  "toAmount64": "54.108086",
+  "clientStatus": "COMPLETED"
+}

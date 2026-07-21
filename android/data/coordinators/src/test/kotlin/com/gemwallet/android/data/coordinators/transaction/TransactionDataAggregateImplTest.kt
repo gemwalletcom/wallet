@@ -410,6 +410,30 @@ class TransactionDataAggregateImplTest {
     }
 
     @Test
+    fun testValue_swapInvalidValues() {
+        val swapMetadata = TransactionSwapMetadata(
+            fromAsset = btcAsset.id,
+            toAsset = ethAsset.id,
+            fromValue = "1.5",
+            toValue = "",
+        )
+        val transaction = createTransaction(
+            type = TransactionType.Swap,
+            assetId = btcAsset.id,
+            metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata),
+        )
+        val aggregate = createAggregate(
+            createTransactionExtended(
+                transaction = transaction,
+                assets = listOf(btcAsset, ethAsset),
+            ),
+        )
+
+        assertEquals("", aggregate.value)
+        assertNull(aggregate.equivalentValue)
+    }
+
+    @Test
     fun testValue_smallAmount() {
         val transaction = createTransaction(
             type = TransactionType.Transfer,

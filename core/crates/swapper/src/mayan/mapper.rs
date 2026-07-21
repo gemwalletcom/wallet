@@ -14,11 +14,20 @@ pub fn map_swap_result(result: &MayanTransactionResult) -> SwapResult {
 
     let metadata = if result.client_status != MayanClientStatus::InProgress {
         from_chain.zip(to_chain).and_then(|(from_chain, to_chain)| {
+            let from_value = result
+                .from_amount64
+                .clone()
+                .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))?;
+            let to_value = result
+                .to_amount64
+                .clone()
+                .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))?;
+
             Some(TransactionSwapMetadata {
                 from_asset: asset_id_for_token(from_chain, &result.from_token_address)?,
-                from_value: result.from_amount64.clone()?,
+                from_value,
                 to_asset: asset_id_for_token(to_chain, &result.to_token_address)?,
-                to_value: result.to_amount64.clone()?,
+                to_value,
                 provider: Some(SwapperProvider::Mayan.as_ref().to_string()),
             })
         })
@@ -43,6 +52,18 @@ mod tests {
         let missing_to_amount64 = map_swap_result(&result(include_str!("test/eth_to_sui_swift.json")));
         assert_eq!(missing_to_amount64.status, SwapStatus::Completed);
         assert!(missing_to_amount64.metadata.is_none());
+
+        let decimal_from_amount64 = MayanTransactionResult {
+            from_amount64: Some("0.006671888".to_string()),
+            ..result(include_str!("test/pol_to_bnb_swift.json"))
+        };
+        assert_eq!(
+            map_swap_result(&decimal_from_amount64),
+            SwapResult {
+                status: SwapStatus::Completed,
+                metadata: None,
+            }
+        );
 
         assert_eq!(
             map_swap_result(&result(include_str!("test/pol_to_bnb_swift.json"))),
@@ -91,5 +112,16 @@ mod tests {
         let refunded = map_swap_result(&result(include_str!("test/swift_refunded.json")));
         assert_eq!(refunded.status, SwapStatus::Failed);
         assert!(refunded.metadata.is_none());
+    }
+
+    #[test]
+    fn test_map_swap_result_rejects_decimal_hyperevm_output() {
+        assert_eq!(
+            map_swap_result(&result(include_str!("test/hyperevm_to_solana_invalid_amount.json"))),
+            SwapResult {
+                status: SwapStatus::Completed,
+                metadata: None,
+            }
+        );
     }
 }

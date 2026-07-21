@@ -103,13 +103,17 @@ class GetTransactionDetailsImpl(
 class TransactionDetailsAggregateImpl(
     private val data: TransactionExtended,
     private val associatedAssets: List<AssetInfo>,
-    private val swapMetadata: TransactionSwapMetadata? = null,
+    swapMetadata: TransactionSwapMetadata? = null,
     override val explorer: TransactionDetailsValue.Explorer,
     override val currency: Currency,
     private val swapProvider: SwapperProviderType? = null,
     private val senderExplorerLink: BlockExplorerLink? = null,
     private val recipientExplorerLink: BlockExplorerLink? = null,
 ) : TransactionDetailsAggregate {
+
+    private val swapMetadata = swapMetadata?.takeIf {
+        it.fromValue.toBigIntegerOrNull() != null && it.toValue.toBigIntegerOrNull() != null
+    }
 
     override val id: String = data.transaction.id.identifier
 
