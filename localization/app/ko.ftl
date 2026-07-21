@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = 토큰 정보를 가져올 수 없
 errors_unknown_try_again = 알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.
 errors_network_error = 네트워크 오류: %@
 errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
+errors_no_internet_connection = 인터넷 연결 없음
+errors_no_service_connection = 서비스 연결 없음
+errors_balances_activity_outdated = 잔액 및 활동이 최신이 아닐 수 있습니다.
 
 # Activity
 

@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "Jumlah transaksi minimum adalah %@. Silakan masukkan jumlah yang lebih tinggi.";
 "errors.perpetual.trigger_price_lower" = "Harga pemicu harus lebih rendah dari harga pasar";
 "errors.perpetual.trigger_price_higher" = "Harga pemicu harus lebih tinggi dari harga pasar";
+"errors.no_internet_connection" = "Tidak ada koneksi internet";
+"errors.no_service_connection" = "Tidak ada koneksi layanan";
+"errors.balances_activity_outdated" = "Saldo dan aktivitas mungkin tidak terbaru.";
 "activity.title" = "Aktivitas";
 "activity.state.empty.title" = "Aktivitas Anda akan muncul di sini";
 "activity.state.empty.description" = "Lakukan transaksi pertama Anda";

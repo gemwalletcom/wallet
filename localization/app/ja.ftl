@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = トークン情報を取得でき�
 errors_unknown_try_again = 未知のエラーが発生しました。もう一度お試しください。
 errors_network_error = ネットワークエラー: %@
 errors_network_offline = インターネット接続が切断されているようです。
+errors_no_internet_connection = インターネット接続がありません
+errors_no_service_connection = サービス接続がありません
+errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
 
 # Activity
 

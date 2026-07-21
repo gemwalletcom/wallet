@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Došlo k neznámé chybě. Zkuste to prosím znovu.</string>
   <string name="errors_network_error">Chyba sítě: %1$s</string>
   <string name="errors_network_offline">Zdá se, že je internetové připojení offline.</string>
+  <string name="errors_no_internet_connection">Žádné připojení k internetu</string>
+  <string name="errors_no_service_connection">Žádné připojení ke službě</string>
+  <string name="errors_balances_activity_outdated">Zůstatky a aktivita mohou být zastaralé.</string>
   <string name="activity_title">Aktivita</string>
   <string name="activity_state_empty_title">Vaše aktivita se zde zobrazí</string>
   <string name="activity_state_empty_description">Proveďte svou první transakci</string>

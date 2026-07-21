@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "সর্বনিম্ন ট্রেডের পরিমাণ হল %@. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।";
 "errors.perpetual.trigger_price_lower" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত";
 "errors.perpetual.trigger_price_higher" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত";
+"errors.no_internet_connection" = "ইন্টারনেট সংযোগ নেই";
+"errors.no_service_connection" = "পরিষেবা সংযোগ নেই";
+"errors.balances_activity_outdated" = "ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।";
 "activity.title" = "কার্যকলাপ";
 "activity.state.empty.title" = "আপনার কার্যকলাপ এখানে প্রদর্শিত হবে";
 "activity.state.empty.description" = "আপনার প্রথম লেনদেন করুন";

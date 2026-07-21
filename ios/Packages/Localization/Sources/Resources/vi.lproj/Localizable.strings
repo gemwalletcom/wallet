@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "Số tiền giao dịch tối thiểu là %@. Vui lòng nhập số tiền lớn hơn.";
 "errors.perpetual.trigger_price_lower" = "Giá kích hoạt phải thấp hơn giá thị trường";
 "errors.perpetual.trigger_price_higher" = "Giá kích hoạt phải cao hơn giá thị trường";
+"errors.no_internet_connection" = "Không có kết nối internet";
+"errors.no_service_connection" = "Không có kết nối dịch vụ";
+"errors.balances_activity_outdated" = "Số dư và hoạt động có thể chưa được cập nhật.";
 "activity.title" = "Hoạt động";
 "activity.state.empty.title" = "Hoạt động của bạn sẽ xuất hiện ở đây";
 "activity.state.empty.description" = "Thực hiện giao dịch đầu tiên của bạn";

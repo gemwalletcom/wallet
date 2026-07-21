@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Nelze načíst informace o tokenu:
 errors_unknown_try_again = Došlo k neznámé chybě. Zkuste to prosím znovu.
 errors_network_error = Chyba sítě: %@
 errors_network_offline = Zdá se, že je internetové připojení offline.
+errors_no_internet_connection = Žádné připojení k internetu
+errors_no_service_connection = Žádné připojení ke službě
+errors_balances_activity_outdated = Zůstatky a aktivita mohou být zastaralé.
 
 # Activity
 

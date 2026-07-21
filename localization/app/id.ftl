@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Gagal mengambil informasi token: %
 errors_unknown_try_again = Terjadi kesalahan. Silakan coba lagi.
 errors_network_error = Kesalahan jaringan: %@
 errors_network_offline = Koneksi internet tampaknya sedang offline.
+errors_no_internet_connection = Tidak ada koneksi internet
+errors_no_service_connection = Tidak ada koneksi layanan
+errors_balances_activity_outdated = Saldo dan aktivitas mungkin tidak terbaru.
 
 # Activity
 

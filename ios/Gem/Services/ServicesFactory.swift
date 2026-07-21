@@ -26,6 +26,7 @@ import GemstonePrimitives
 import Keystore
 import NameService
 import NativeProviderService
+import ConnectionStatusService
 import NFTService
 import NodeService
 import NotificationService
@@ -91,6 +92,11 @@ struct ServicesFactory {
         let nodeService = NodeService(nodeStore: storeManager.nodeStore)
         let nodeAuthProvider = NodeAuthTokenProvider(securePreferences: securePreferences)
         let nodeProvider: any NodeURLFetchable = nodeService
+        let connectionStatusObserver = ConnectionStatusObserver(
+            monitors: [
+                InternetConnectionMonitor(),
+            ],
+        )
         let nativeProvider = NativeProvider(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
         let gatewayService = GatewayService(provider: nativeProvider)
         let chainServiceFactory = ChainServiceFactory(
@@ -311,6 +317,7 @@ struct ServicesFactory {
         let appLifecycleService = AppLifecycleService(
             preferences: preferences,
             connectionsService: connectionsService,
+            connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
@@ -345,6 +352,7 @@ struct ServicesFactory {
             bannerService: bannerService,
             chainServiceFactory: chainServiceFactory,
             connectionsService: connectionsService,
+            connectionStatusObserver: connectionStatusObserver,
             deviceService: deviceService,
             nodeService: nodeService,
             navigationHandler: navigationHandler,

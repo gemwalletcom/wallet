@@ -25,6 +25,20 @@
     },
     {
       "target" : {
+        "containerPath" : "container:Packages\/SystemServices",
+        "identifier" : "ConnectivityServiceTests",
+        "name" : "ConnectivityServiceTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/FeatureServices",
+        "identifier" : "ConnectionStatusServiceTests",
+        "name" : "ConnectionStatusServiceTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Packages\/Style",
         "identifier" : "StyleTests",
         "name" : "StyleTests"

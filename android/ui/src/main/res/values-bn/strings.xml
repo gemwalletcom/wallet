@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">একটি অজানা ত্রুটি ঘটেছে. আবার চেষ্টা করুন.</string>
   <string name="errors_network_error">নেটওয়ার্ক ত্রুটি: %1$s</string>
   <string name="errors_network_offline">ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।</string>
+  <string name="errors_no_internet_connection">ইন্টারনেট সংযোগ নেই</string>
+  <string name="errors_no_service_connection">পরিষেবা সংযোগ নেই</string>
+  <string name="errors_balances_activity_outdated">ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।</string>
   <string name="activity_title">কার্যকলাপ</string>
   <string name="activity_state_empty_title">আপনার কার্যকলাপ এখানে প্রদর্শিত হবে</string>
   <string name="activity_state_empty_description">আপনার প্রথম লেনদেন করুন</string>

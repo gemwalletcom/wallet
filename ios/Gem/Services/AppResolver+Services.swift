@@ -17,6 +17,7 @@ import ExplorerService
 import FiatService
 import Foundation
 import NameService
+import ConnectionStatusService
 import NFTService
 import NodeService
 import NotificationService
@@ -43,6 +44,7 @@ extension AppResolver {
         let bannerService: BannerService
         let chainServiceFactory: ChainServiceFactory
         let connectionsService: ConnectionsService
+        let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: DeviceService
         let nodeService: NodeService
         let navigationHandler: NavigationHandler
@@ -96,6 +98,7 @@ extension AppResolver {
             bannerService: BannerService,
             chainServiceFactory: ChainServiceFactory,
             connectionsService: ConnectionsService,
+            connectionStatusObserver: ConnectionStatusObserver,
             deviceService: DeviceService,
             nodeService: NodeService,
             navigationHandler: NavigationHandler,
@@ -148,6 +151,7 @@ extension AppResolver {
             self.bannerService = bannerService
             self.chainServiceFactory = chainServiceFactory
             self.connectionsService = connectionsService
+            self.connectionStatusObserver = connectionStatusObserver
             self.deviceService = deviceService
             self.nodeService = nodeService
             self.navigationHandler = navigationHandler

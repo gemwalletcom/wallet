@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Impossibile recuperare le informaz
 errors_unknown_try_again = Si è verificato un errore sconosciuto. Per favore riprova.
 errors_network_error = Errore di rete: %@
 errors_network_offline = La connessione Internet risulta offline.
+errors_no_internet_connection = Nessuna connessione a internet
+errors_no_service_connection = Nessuna connessione al servizio
+errors_balances_activity_outdated = Saldi e attività potrebbero non essere aggiornati.
 
 # Activity
 

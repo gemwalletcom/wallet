@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Ralat tidak diketahui berlaku. Sila cuba lagi.</string>
   <string name="errors_network_error">Ralat rangkaian: %1$s</string>
   <string name="errors_network_offline">Sambungan Internet nampaknya di luar talian.</string>
+  <string name="errors_no_internet_connection">Tiada sambungan internet</string>
+  <string name="errors_no_service_connection">Tiada sambungan perkhidmatan</string>
+  <string name="errors_balances_activity_outdated">Baki dan aktiviti mungkin tidak terkini.</string>
   <string name="activity_title">Aktiviti</string>
   <string name="activity_state_empty_title">Aktiviti anda akan dipaparkan di sini</string>
   <string name="activity_state_empty_description">Buat transaksi pertama anda</string>

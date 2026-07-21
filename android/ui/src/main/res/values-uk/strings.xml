@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Сталася невідома помилка. Будь ласка, спробуйте ще раз.</string>
   <string name="errors_network_error">Помилка мережі: %1$s</string>
   <string name="errors_network_offline">Здається, підключення до Інтернету відсутнє.</string>
+  <string name="errors_no_internet_connection">Немає підключення до інтернету</string>
+  <string name="errors_no_service_connection">Немає підключення до сервісу</string>
+  <string name="errors_balances_activity_outdated">Баланси та активність можуть бути застарілими.</string>
   <string name="activity_title">Активність</string>
   <string name="activity_state_empty_title">Ваша активність відображатиметься тут</string>
   <string name="activity_state_empty_description">Зробіть свою першу транзакцію</string>

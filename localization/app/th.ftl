@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = ไม่สามารถดึ�
 errors_unknown_try_again = เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง
 errors_network_error = เกิดข้อผิดพลาดเครือข่าย: %@
 errors_network_offline = ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์
+errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
+errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
+errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
 
 # Activity
 

@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Nie można pobrać informacji o to
 errors_unknown_try_again = Wystąpił nieznany błąd. Spróbuj ponownie.
 errors_network_error = Błąd sieciowy: %@
 errors_network_offline = Połączenie internetowe wydaje się być niedostępne.
+errors_no_internet_connection = Brak połączenia z internetem
+errors_no_service_connection = Brak połączenia z usługą
+errors_balances_activity_outdated = Salda i aktywność mogą być nieaktualne.
 
 # Activity
 

@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.</string>
   <string name="errors_network_error">Ağ hatası: %1$s</string>
   <string name="errors_network_offline">İnternet bağlantısı kesilmiş gibi görünüyor.</string>
+  <string name="errors_no_internet_connection">İnternet bağlantısı yok</string>
+  <string name="errors_no_service_connection">Servis bağlantısı yok</string>
+  <string name="errors_balances_activity_outdated">Bakiyeler ve etkinlik güncel olmayabilir.</string>
   <string name="activity_title">Aktivite</string>
   <string name="activity_state_empty_title">Etkinliğiniz burada görünecek</string>
   <string name="activity_state_empty_description">İlk işleminizi yapın</string>

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import ConnectionStatusService
 import Store
 import SwiftUI
 
@@ -31,6 +32,7 @@ extension View {
             .environment(\.explorerService, services.explorerService)
             .environment(\.scanService, services.scanService)
             .environment(\.connectionsService, services.connectionsService)
+            .environment(\.connectionStatus, services.connectionStatusObserver)
             .environment(\.nftService, services.nftService)
             .environment(\.avatarService, services.avatarService)
             .environment(\.releaseService, services.appReleaseService)

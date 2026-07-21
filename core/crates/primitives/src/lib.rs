@@ -342,6 +342,10 @@ pub use self::simulation::{
 };
 pub mod ip_usage_type;
 pub use self::ip_usage_type::IpUsageType;
+pub mod connection_component;
+pub use self::connection_component::ConnectionComponent;
+pub mod connection_status;
+pub use self::connection_status::ConnectionStatus;
 pub mod metrics;
 pub use self::metrics::{ConsumerStatus, ParserStatus, ReportedError};
 pub mod value_access;

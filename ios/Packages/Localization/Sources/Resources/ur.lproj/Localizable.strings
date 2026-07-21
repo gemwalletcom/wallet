@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "کم از کم تجارتی رقم %@ ہے۔ براہ کرم زیادہ رقم درج کریں۔";
 "errors.perpetual.trigger_price_lower" = "ٹرگر قیمت مارکیٹ قیمت سے کم ہونی چاہیے";
 "errors.perpetual.trigger_price_higher" = "ٹرگر قیمت مارکیٹ قیمت سے زیادہ ہونی چاہیے";
+"errors.no_internet_connection" = "انٹرنیٹ کنکشن نہیں ہے";
+"errors.no_service_connection" = "سروس کنکشن نہیں ہے";
+"errors.balances_activity_outdated" = "بیلنس اور سرگرمی پرانی ہو سکتی ہے۔";
 "activity.title" = "سرگرمی";
 "activity.state.empty.title" = "آپ کی سرگرمی یہاں ظاہر ہوگی۔";
 "activity.state.empty.description" = "اپنا پہلا لین دین کریں۔";

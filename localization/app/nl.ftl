@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Kan tokeninformatie niet ophalen: 
 errors_unknown_try_again = Er is een onbekende fout opgetreden. Probeer het opnieuw.
 errors_network_error = Netwerkfout: %@
 errors_network_offline = De internetverbinding lijkt offline te zijn.
+errors_no_internet_connection = Geen internetverbinding
+errors_no_service_connection = Geen serviceverbinding
+errors_balances_activity_outdated = Saldi en activiteit zijn mogelijk verouderd.
 
 # Activity
 
