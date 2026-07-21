@@ -26,13 +26,11 @@ pub struct EVMIndexer<C: Client + Clone> {
 }
 
 impl<C: Client + Clone> EVMIndexer<C> {
-    pub fn new(ankr_client: JsonRpcClient<C>, alchemy_client: Option<JsonRpcClient<C>>, chain: EVMChain) -> Self {
+    pub fn new(ankr_client: JsonRpcClient<C>, alchemy_client: JsonRpcClient<C>, chain: EVMChain) -> Self {
         let provider = if let Some(client) = AnkrClient::new(ankr_client, chain) {
             Provider::Ankr(client)
-        } else if let Some(client) = alchemy_client {
-            Provider::Alchemy(AlchemyClient::new(client))
         } else {
-            Provider::Unsupported
+            Provider::Alchemy(AlchemyClient::new(alchemy_client))
         };
         Self { provider }
     }

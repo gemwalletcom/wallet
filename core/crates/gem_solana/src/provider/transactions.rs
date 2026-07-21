@@ -39,9 +39,12 @@ impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
 
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let signatures = self.get_signatures_for_address(&address, limit).await?;
+        let transaction_ids = self.indexer.get_transaction_ids_by_address(&address, limit).await?;
         Ok(TransactionsResult::TransactionIds(
-            signatures.into_iter().map(|signature| TransactionId::new(self.get_chain(), signature.signature)).collect(),
+            transaction_ids
+                .into_iter()
+                .map(|transaction_id| TransactionId::new(self.get_chain(), transaction_id))
+                .collect(),
         ))
     }
 }

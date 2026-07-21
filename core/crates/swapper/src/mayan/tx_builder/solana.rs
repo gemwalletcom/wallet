@@ -8,7 +8,7 @@ use gem_encoding::decode_base64;
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_solana::{
     ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient, WSOL_TOKEN_ADDRESS, encode_v0_transaction, instruction_from_primitive,
-    instructions_from_primitives,
+    instructions_from_primitives, rpc::SolanaIndexer,
 };
 use primitives::{Chain, SolanaInstruction};
 use solana_primitives::associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id};
@@ -36,7 +36,8 @@ pub(in crate::mayan::tx_builder) async fn build_quote_data(
     transaction: SolanaTransaction,
     rpc_provider: Arc<dyn RpcProvider>,
 ) -> Result<SwapperQuoteData, SwapperError> {
-    let rpc_client = SolanaClient::new(create_client_with_chain(rpc_provider, Chain::Solana));
+    let client = create_client_with_chain(rpc_provider, Chain::Solana);
+    let rpc_client = SolanaClient::new(client.clone(), SolanaIndexer::new(client));
     let lookup_tables = async { rpc_client.get_address_lookup_tables(transaction.lookup_table_addresses).await.map_err(solana_error) };
     let blockhash = async { rpc_client.get_latest_blockhash().await.map(|response| response.value.blockhash).map_err(SwapperError::from) };
     let (lookup_tables, blockhash) = try_join!(lookup_tables, blockhash)?;

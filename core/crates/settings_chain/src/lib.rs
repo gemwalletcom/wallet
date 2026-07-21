@@ -24,7 +24,7 @@ use gem_evm::rpc::{EVMIndexer, EthereumClient, alchemy_url};
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_near::rpc::client::NearClient;
 use gem_polkadot::rpc::PolkadotClient;
-use gem_solana::rpc::client::SolanaClient;
+use gem_solana::rpc::{SolanaClient, SolanaIndexer};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::SuiClient;
 use gem_ton::rpc::TonClient;
@@ -119,10 +119,11 @@ impl ProviderFactory {
             | Chain::XLayer
             | Chain::Robinhood
             | Chain::Stable => {
+                let alchemy_url = alchemy_url(chain, &config.keys.alchemy);
                 let chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
                 let ankr_client = JsonRpcClient::new(ReqwestClient::new(config.ankr_url(), reqwest_client.clone()));
-                let alchemy_client = alchemy_url(chain, &config.keys.alchemy).map(|url| JsonRpcClient::new(ReqwestClient::new(url, reqwest_client.clone())));
+                let alchemy_client = JsonRpcClient::new(ReqwestClient::new(alchemy_url, reqwest_client.clone()));
                 let indexer = EVMIndexer::new(ankr_client, alchemy_client, chain);
                 Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer))
             }
@@ -141,7 +142,12 @@ impl ProviderFactory {
             Chain::Stellar => Box::new(StellarClient::new(gem_client.clone())),
             Chain::Near => Box::new(NearClient::new(JsonRpcClient::new(gem_client.clone()))),
             Chain::Polkadot => Box::new(PolkadotClient::new(gem_client.clone())),
-            Chain::Solana => Box::new(SolanaClient::new(JsonRpcClient::new(gem_client.clone()))),
+            Chain::Solana => {
+                let rpc_client = JsonRpcClient::new(gem_client.clone());
+                let url = alchemy_url(chain, &config.keys.alchemy);
+                let indexer = SolanaIndexer::new(JsonRpcClient::new(ReqwestClient::new(url, reqwest_client.clone())));
+                Box::new(SolanaClient::new(rpc_client, indexer))
+            }
             Chain::Ton => Box::new(TonClient::new(gem_client.clone())),
             Chain::Tron => Box::new(TronClient::new(gem_client.clone(), TronGridClient::new(gem_client.clone(), config.keys.trongrid.clone()))),
             Chain::HyperCore => Box::new(HyperCoreClient::new(gem_client.clone())),

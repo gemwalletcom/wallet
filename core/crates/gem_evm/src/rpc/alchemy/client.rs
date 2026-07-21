@@ -4,29 +4,48 @@ use std::error::Error;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
 use num_bigint::BigUint;
-use primitives::EVMChain;
+use primitives::Chain;
 use serde_json::{Value, json};
 
 use super::model::{TokenBalances, Transfer, Transfers};
 use crate::{method, rpc::EVMIndexerClient};
 
-pub fn alchemy_url(chain: EVMChain, key: &str) -> Option<String> {
+pub fn alchemy_url(chain: Chain, key: &str) -> String {
     let network = match chain {
-        EVMChain::Blast => "blast-mainnet",
-        EVMChain::ZkSync => "zksync-mainnet",
-        EVMChain::Celo => "celo-mainnet",
-        EVMChain::World => "worldchain-mainnet",
-        EVMChain::Abstract => "abstract-mainnet",
-        EVMChain::Berachain => "berachain-mainnet",
-        EVMChain::Ink => "ink-mainnet",
-        EVMChain::Unichain => "unichain-mainnet",
-        EVMChain::Hyperliquid => "hyperliquid-mainnet",
-        EVMChain::Monad => "monad-mainnet",
-        EVMChain::Robinhood => "robinhood-mainnet",
-        _ => return None,
+        Chain::Ethereum => "eth-mainnet",
+        Chain::SmartChain => "bnb-mainnet",
+        Chain::Solana => "solana-mainnet",
+        Chain::Polygon => "polygon-mainnet",
+        Chain::Plasma => "plasma-mainnet",
+        Chain::Arbitrum => "arb-mainnet",
+        Chain::Optimism => "opt-mainnet",
+        Chain::Base => "base-mainnet",
+        Chain::AvalancheC => "avax-mainnet",
+        Chain::OpBNB => "opbnb-mainnet",
+        Chain::Gnosis => "gnosis-mainnet",
+        Chain::Blast => "blast-mainnet",
+        Chain::ZkSync => "zksync-mainnet",
+        Chain::Linea => "linea-mainnet",
+        Chain::Mantle => "mantle-mainnet",
+        Chain::Celo => "celo-mainnet",
+        Chain::World => "worldchain-mainnet",
+        Chain::Sonic => "sonic-mainnet",
+        Chain::SeiEvm => "sei-mainnet",
+        Chain::Abstract => "abstract-mainnet",
+        Chain::Berachain => "berachain-mainnet",
+        Chain::Ink => "ink-mainnet",
+        Chain::Unichain => "unichain-mainnet",
+        Chain::Hyperliquid => "hyperliquid-mainnet",
+        Chain::Monad => "monad-mainnet",
+        Chain::XLayer => "xlayer-mainnet",
+        Chain::Robinhood => "robinhood-mainnet",
+        Chain::Stable => "stable-mainnet",
+        Chain::Fantom => "fantom-mainnet",
+        Chain::Manta => "manta-mainnet",
+        _ => panic!("Alchemy is not supported for {chain}"),
     };
 
-    Some(format!("https://{network}.g.alchemy.com/v2/{key}"))
+    format!("https://{network}.g.alchemy.com/v2/{key}")
 }
 
 #[derive(Debug, Clone)]
@@ -83,12 +102,6 @@ mod tests {
     use primitives::testkit::json::load_json;
 
     use super::*;
-
-    #[test]
-    fn test_alchemy_url() {
-        assert_eq!(alchemy_url(EVMChain::Robinhood, "key"), Some("https://robinhood-mainnet.g.alchemy.com/v2/key".to_string()));
-        assert_eq!(alchemy_url(EVMChain::Ethereum, "key"), None);
-    }
 
     #[tokio::test]
     async fn test_get_transaction_ids_by_address() {

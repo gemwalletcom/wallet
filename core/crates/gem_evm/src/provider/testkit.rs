@@ -21,7 +21,7 @@ fn build_test_client(chain: EVMChain, rpc_url: &str) -> EthereumClient<ReqwestCl
 
     let indexer = EVMIndexer::new(
         JsonRpcClient::new_reqwest(format!("https://rpc.ankr.com/multichain/{}", settings.ankr.key.secret)),
-        None,
+        JsonRpcClient::new_reqwest(crate::rpc::alchemy_url(chain.to_chain(), &settings.alchemy.key.secret)),
         chain,
     );
 

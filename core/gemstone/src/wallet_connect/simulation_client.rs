@@ -5,7 +5,7 @@ use chain_traits::ChainSimulation;
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
-use gem_solana::rpc::client::SolanaClient;
+use gem_solana::{SolanaClient, rpc::SolanaIndexer};
 use gem_sui::rpc::client::SuiClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_wallet_connect::{
@@ -144,7 +144,8 @@ impl WalletConnectSimulationClient {
     fn solana_client(&self) -> Option<SolanaClient<AlienClient>> {
         let url = self.provider.get_endpoint(Chain::Solana).ok()?;
         let client = new_alien_client(url, self.provider.clone());
-        Some(SolanaClient::new(JsonRpcClient::new(client)))
+        let client = JsonRpcClient::new(client);
+        Some(SolanaClient::new(client.clone(), SolanaIndexer::new(client)))
     }
 
     fn sui_client(&self) -> Option<SuiClient> {

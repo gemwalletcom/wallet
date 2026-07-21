@@ -1,5 +1,5 @@
 #[cfg(feature = "chain_integration_tests")]
-use crate::rpc::client::SolanaClient;
+use crate::rpc::{SolanaIndexer, client::SolanaClient};
 #[cfg(feature = "chain_integration_tests")]
 use gem_client::ReqwestClient;
 #[cfg(feature = "chain_integration_tests")]
@@ -17,5 +17,5 @@ pub fn create_solana_test_client() -> SolanaClient<ReqwestClient> {
     let settings = get_test_settings();
     let reqwest_client = ReqwestClient::new_test_client(settings.chains.solana.url);
     let rpc_client = JsonRpcClient::new(reqwest_client);
-    SolanaClient::new(rpc_client)
+    SolanaClient::new(rpc_client.clone(), SolanaIndexer::new(rpc_client))
 }

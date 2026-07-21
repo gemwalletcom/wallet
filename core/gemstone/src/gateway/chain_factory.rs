@@ -13,7 +13,7 @@ use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_near::rpc::client::NearClient;
 use gem_polkadot::rpc::client::PolkadotClient;
-use gem_solana::rpc::client::SolanaClient;
+use gem_solana::{SolanaClient, rpc::SolanaIndexer};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::client::SuiClient;
 use gem_ton::rpc::client::TonClient;
@@ -76,7 +76,10 @@ impl ChainClientFactory {
             Chain::Ton => Ok(Arc::new(TonClient::new(alien_client))),
             Chain::Tron => Ok(Arc::new(TronClient::new(alien_client.clone(), TronGridClient::new(alien_client.clone(), String::new())))),
             Chain::Polkadot => Ok(Arc::new(PolkadotClient::new(alien_client))),
-            Chain::Solana => Ok(Arc::new(SolanaClient::new(JsonRpcClient::new(alien_client.clone())))),
+            Chain::Solana => {
+                let client = JsonRpcClient::new(alien_client.clone());
+                Ok(Arc::new(SolanaClient::new(client.clone(), SolanaIndexer::new(client))))
+            }
             Chain::Ethereum
             | Chain::Arbitrum
             | Chain::SmartChain

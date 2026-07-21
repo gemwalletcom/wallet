@@ -2,6 +2,8 @@ use crate::models::{
     AccountData, EpochInfo, InflationRate, ResultTokenInfo, Signature, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance,
     blockhash::SolanaBlockhashResult, prioritization_fee::SolanaPrioritizationFee, simulation::SimulateTransactionResult, transaction::BlockTransactions,
 };
+#[cfg(feature = "rpc")]
+use crate::rpc::SolanaIndexer;
 use crate::{
     COMMITMENT_CONFIRMED, STAKE_PROGRAM_ID, SolanaRpc,
     metaplex::{decode_metadata, metadata::Metadata},
@@ -25,6 +27,7 @@ use crate::method;
 #[cfg(feature = "rpc")]
 pub struct SolanaClient<C: Client + Clone> {
     client: GenericJsonRpcClient<C>,
+    pub(crate) indexer: SolanaIndexer<C>,
     pub chain: Chain,
 }
 
@@ -60,8 +63,12 @@ pub fn token_accounts_by_mint_params(owner: &str, mint: &str) -> serde_json::Val
 
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> SolanaClient<C> {
-    pub fn new(client: GenericJsonRpcClient<C>) -> Self {
-        Self { client, chain: Chain::Solana }
+    pub fn new(client: GenericJsonRpcClient<C>, indexer: SolanaIndexer<C>) -> Self {
+        Self {
+            client,
+            indexer,
+            chain: Chain::Solana,
+        }
     }
 
     pub fn get_client(&self) -> &GenericJsonRpcClient<C> {
