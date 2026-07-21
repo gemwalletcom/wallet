@@ -21,6 +21,7 @@ pub fn get_uniswap_permit2_by_chain(chain: &Chain) -> Option<&'static str> {
         | Chain::SmartChain
         | Chain::Celo
         | Chain::Blast
+        | Chain::Linea
         | Chain::World
         | Chain::Unichain
         | Chain::Ink

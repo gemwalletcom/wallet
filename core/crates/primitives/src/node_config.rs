@@ -129,7 +129,7 @@ pub fn get_nodes_for_chain(chain: Chain) -> Vec<Node> {
             Node::new("https://zksync.drpc.org", NodePriority::High),
             Node::new("https://mainnet.era.zksync.io", NodePriority::High),
         ],
-        Chain::Linea => vec![Node::new("https://linea-rpc.polkachu.com", NodePriority::High)],
+        Chain::Linea => vec![Node::new("https://rpc.linea.build", NodePriority::High)],
         Chain::Mantle => vec![Node::new("https://rpc.mantle.xyz", NodePriority::High)],
         Chain::Celo => vec![],
         Chain::Near => vec![Node::new("https://rpc.mainnet.near.org", NodePriority::High)],

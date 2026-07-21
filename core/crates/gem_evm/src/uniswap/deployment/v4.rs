@@ -66,6 +66,11 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
+        Chain::Linea => Some(V4Deployment::v2_1(
+            "0x2C125569C0BeE20A66E33E5491C552B37EBD9934",
+            permit2,
+            "0xBA548cE7A95f87Bc66a0C7c6eAB1e428735F8b57",
+        )),
         Chain::World => Some(V4Deployment::v2_1(
             "0x55d235b3ff2daf7c3ede0defc9521f1d6fe6c5c0",
             permit2,
@@ -91,17 +96,17 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             "0x28bD21bB4Ea4fDa370D8d7544992038375D8d456",
         )),
+        Chain::XLayer => Some(V4Deployment::v2_1(
+            "0x8928074CA1b241D8Ec02815881c1Af11E8bC5219",
+            permit2,
+            "0xDa00aE15d3A71466517129255255db7c0c0956d3",
+        )),
         // See: https://github.com/Uniswap/contracts/blob/main/deployments/4663.md
         Chain::Robinhood => Some(V4Deployment::v2_1(
             "0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94",
             permit2,
             "0x8876789976dEcBfCbBbe364623C63652db8C0904",
         )),
-        // Chain::XLayer => Some(V4Deployment {
-        //     quoter: "0x8928074CA1b241D8Ec02815881c1Af11E8bC5219",
-        //     permit2,
-        //     universal_router: "0xDa00aE15d3A71466517129255255db7c0c0956d3",
-        // }),
         _ => None,
     }
 }
@@ -122,19 +127,21 @@ pub fn is_uniswap_router_contract_by_chain(chain: &Chain, contract: &str) -> boo
 
 fn legacy_uniswap_router_abi_by_chain_contract(chain: &Chain, contract: &str) -> Option<UniversalRouterAbi> {
     let legacy_router = match chain {
-        Chain::Ethereum => "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
-        Chain::Optimism => "0x851116d9223fabed8e56c0e6b8ad0c31d98b3507",
-        Chain::Arbitrum => "0xa51afafe0263b40edaef0df8781ea9aa03e381a3",
-        Chain::Polygon => "0x1095692a6237d83c6a72f3f5efedb9a670c49223",
-        Chain::AvalancheC => "0x94b75331ae8d42c1b61065089b7d48fe14aa73b7",
-        Chain::Base => "0x6ff5693b99212da76ad316178a184ab56d299b43",
-        Chain::SmartChain => "0x1906c1d672b88cd1b9ac7593301ca990f94eae07",
-        Chain::Blast => "0xeabbcb3e8e415306207ef514f660a3f820025be3",
-        Chain::World => "0x8ac7bee993bb44dab564ea4bc9ea67bf9eb5e743",
+        Chain::Ethereum => "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
+        Chain::Optimism => "0x851116D9223fabED8E56C0E6b8Ad0c31d98B3507",
+        Chain::Arbitrum => "0xA51afAFe0263b40EdaEf0Df8781eA9aa03E381a3",
+        Chain::Polygon => "0x1095692A6237d83C6a72F3F5eFEdb9A670C49223",
+        Chain::AvalancheC => "0x94b75331AE8d42C1b61065089B7d48FE14aA73b7",
+        Chain::Base => "0x6fF5693b99212Da76ad316178A184AB56D299b43",
+        Chain::SmartChain => "0x1906c1d672b88cD1B9aC7593301cA990F94Eae07",
+        Chain::Blast => "0xeAbBcB3E8E415306207ef514f660A3F820025BE3",
+        Chain::Linea => "0x661E93cca42AfacB172121EF892830cA3b70F08d",
+        Chain::World => "0x8ac7bEE993bb44dAb564Ea4bc9EA67Bf9Eb5e743",
         Chain::Unichain => UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT,
         Chain::Celo => "0xcb695bc5D3Aa22cAD1E6DF07801b061a05A0233A",
         Chain::Monad => "0x0D97Dc33264bfC1c226207428A79b26757fb9dc3",
         Chain::Ink => "0x112908daC86e20e7241B0927479Ea3Bf935d1fa0",
+        Chain::XLayer => "0x5507749F2c558Bb3E162c6e90c314c092E7372Ff",
         _ => return None,
     };
 

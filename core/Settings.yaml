@@ -325,9 +325,6 @@ nft:
     timeout: 5
     concurrency: 8
     limit: 1048576
-  nftscan:
-    key:
-      secret: ""
   opensea:
     key:
       secret: ""
