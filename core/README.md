@@ -33,6 +33,8 @@ Gem Wallet Core serves as the backbone for both backend and frontend apps, handl
 - More
 - ...
 
+See the [chain and provider feature comparison](docs/CHAIN_FEATURE_COMPARISON.md).
+
 ## Running API
 
 ### Install dependencies
