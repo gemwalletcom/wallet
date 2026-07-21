@@ -80,7 +80,7 @@ struct ChainPolicyConfig {
 mod tests {
     use super::*;
     use crate::config::Url;
-    use primitives::{Chain, NodeType};
+    use primitives::Chain;
     use serde_json::json;
 
     fn jsonrpc(method: &str) -> RequestType {
@@ -100,7 +100,6 @@ mod tests {
     fn chain_config(chain: Chain) -> ChainConfig {
         ChainConfig {
             chain,
-            node: NodeType::Default,
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,
@@ -125,7 +124,7 @@ mod tests {
 
         assert!(config.allows(&chain_config(Chain::Ethereum), &jsonrpc("eth_call")));
         assert!(config.allows(&chain_config(Chain::Arbitrum), &jsonrpc("eth_call")));
-        assert!(!config.allows(&chain_config(Chain::Ethereum), &jsonrpc("trace_replayTransaction")));
+        assert!(!config.allows(&chain_config(Chain::Ethereum), &jsonrpc("unsupported_method")));
     }
 
     #[test]

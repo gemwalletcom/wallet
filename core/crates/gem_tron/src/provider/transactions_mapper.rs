@@ -55,8 +55,6 @@ fn tron_swap_metadata(
                 Some(token) => AssetId { chain, token_id: Some(token) },
                 None => chain.as_asset_id(),
             },
-            from_value: None,
-            to_value: None,
             diff,
         })
         .collect();

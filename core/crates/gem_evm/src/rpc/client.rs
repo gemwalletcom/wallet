@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 use super::{
     EVMIndexer,
-    model::{Block, TraceCallResult, Transaction, TransactionReceipt, TransactionReplayTrace},
+    model::{Block, TraceCallResult, Transaction, TransactionReceipt},
 };
 use crate::jsonrpc::{BlockParameter, TransactionObject};
 use crate::method;
@@ -25,7 +25,7 @@ use crate::multicall3::{
 };
 #[cfg(feature = "rpc")]
 use alloy_sol_types::SolCall;
-use primitives::{Chain, EVMChain, NodeType};
+use primitives::{Chain, EVMChain};
 
 pub const FUNCTION_ERC20_NAME: &str = "0x06fdde03";
 pub const FUNCTION_ERC20_SYMBOL: &str = "0x95d89b41";
@@ -35,7 +35,6 @@ pub const FUNCTION_ERC20_DECIMALS: &str = "0x313ce567";
 pub struct EthereumClient<C: Client + Clone> {
     pub chain: EVMChain,
     pub client: GenericJsonRpcClient<C>,
-    pub(crate) node_type: NodeType,
     pub(crate) indexer: EVMIndexer<C>,
 }
 
@@ -49,17 +48,7 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub fn new_with_indexer(client: GenericJsonRpcClient<C>, chain: EVMChain, indexer: EVMIndexer<C>) -> Self {
-        Self {
-            chain,
-            client,
-            node_type: NodeType::Default,
-            indexer,
-        }
-    }
-
-    pub fn with_node_type(mut self, node_type: NodeType) -> Self {
-        self.node_type = node_type;
-        self
+        Self { chain, client, indexer }
     }
 
     pub fn get_chain(&self) -> Chain {
@@ -115,15 +104,6 @@ impl<C: Client + Clone> EthereumClient<C> {
     pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReceipt>, JsonRpcError> {
         let params = json!([hash]);
         self.client.call(method::ETH_GET_TRANSACTION_RECEIPT, params).await
-    }
-
-    pub async fn trace_replay_block_transactions(&self, block_number: u64) -> Result<Vec<TransactionReplayTrace>, JsonRpcError> {
-        let params = json!([format!("0x{:x}", block_number), json!(["stateDiff"])]);
-        self.client.call(method::TRACE_REPLAY_BLOCK_TRANSACTIONS, params).await
-    }
-
-    pub async fn trace_replay_transaction(&self, hash: &str) -> Result<TransactionReplayTrace, JsonRpcError> {
-        self.client.call(method::TRACE_REPLAY_TRANSACTION, json!([hash, ["stateDiff"]])).await
     }
 
     pub async fn trace_call(&self, transaction: &TransactionObject) -> Result<TraceCallResult, JsonRpcError> {

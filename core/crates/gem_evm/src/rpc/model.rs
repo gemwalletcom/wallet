@@ -23,8 +23,6 @@ pub struct Transaction {
     pub hash: String,
     pub input: String,
     pub to: Option<String>,
-    #[serde(rename = "blockNumber", default, deserialize_with = "deserialize_u64_from_str")]
-    pub block_number: u64,
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
     pub value: BigUint,
 }
@@ -83,13 +81,6 @@ pub struct Log {
 
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TransactionReplayTrace {
-    #[serde(default)]
-    pub state_diff: HashMap<String, StateChange>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct TraceCallResult {
     #[serde(default)]
     pub state_diff: HashMap<String, StateChange>,
@@ -130,7 +121,6 @@ pub struct TraceCallAction {
 #[serde(rename_all = "camelCase")]
 pub struct StateChange {
     pub balance: Diff<String>,
-    pub storage: HashMap<String, Diff<String>>,
 }
 
 impl StateChange {
@@ -180,13 +170,6 @@ mod tests {
     use primitives::testkit::json_rpc::load_json_rpc_result;
 
     use super::*;
-
-    #[test]
-    fn test_decode_trace_replay_transaction() {
-        let trace_replay_transaction = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../testdata/trace_replay_tx_trace.json"));
-
-        assert!(trace_replay_transaction.state_diff.len() > 1);
-    }
 
     #[test]
     fn test_root_call_error_detects_top_level_revert_only() {

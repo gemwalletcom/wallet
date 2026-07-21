@@ -1,16 +1,9 @@
 use num_bigint::{BigInt, BigUint};
-use std::collections::HashMap;
-
 use primitives::{AssetId, TransactionSwapMetadata};
-
-/// Address -> Vec<BalanceDiff>
-pub type BalanceDiffMap = HashMap<String, Vec<BalanceDiff>>;
 
 #[derive(Debug)]
 pub struct BalanceDiff {
     pub asset_id: AssetId,
-    pub from_value: Option<BigInt>,
-    pub to_value: Option<BigInt>,
     pub diff: BigInt,
 }
 
@@ -78,14 +71,10 @@ mod tests {
         let balance_diffs = vec![
             BalanceDiff {
                 asset_id: native_asset.clone(),
-                from_value: Some(BigInt::from(5000)),
-                to_value: Some(BigInt::from(0)),
                 diff: BigInt::from(-5000),
             },
             BalanceDiff {
                 asset_id: token_asset.clone(),
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(100),
             },
         ];
@@ -109,14 +98,10 @@ mod tests {
         let balance_diffs = vec![
             BalanceDiff {
                 asset_id: token_a.clone(),
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(-200),
             },
             BalanceDiff {
                 asset_id: token_b.clone(),
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(150),
             },
         ];
@@ -138,14 +123,10 @@ mod tests {
         let balance_diffs = vec![
             BalanceDiff {
                 asset_id: native_asset.clone(),
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(5000),
             },
             BalanceDiff {
                 asset_id: token_asset,
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(100),
             },
         ];
@@ -162,8 +143,6 @@ mod tests {
 
         let balance_diffs = vec![BalanceDiff {
             asset_id: native_asset.clone(),
-            from_value: None,
-            to_value: None,
             diff: BigInt::from(-5000),
         }];
 
@@ -181,20 +160,14 @@ mod tests {
         let balance_diffs = vec![
             BalanceDiff {
                 asset_id: native_asset.clone(),
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(-5000),
             },
             BalanceDiff {
                 asset_id: token_asset.clone(),
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(100),
             },
             BalanceDiff {
                 asset_id: AssetId::from_token(Chain::Ethereum, "0x789"),
-                from_value: None,
-                to_value: None,
                 diff: BigInt::from(0),
             },
         ];

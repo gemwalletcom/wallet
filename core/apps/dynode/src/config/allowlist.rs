@@ -93,7 +93,7 @@ mod tests {
         let config = config();
 
         assert!(config.allows(&jsonrpc("eth_call")));
-        assert!(!config.allows(&jsonrpc("trace_replayTransaction")));
+        assert!(!config.allows(&jsonrpc("unsupported_method")));
     }
 
     #[test]
@@ -113,7 +113,7 @@ mod tests {
             "/".to_string(),
             serde_json::to_vec(&json!([
                 {"jsonrpc": "2.0", "method": "eth_call", "params": [], "id": 1},
-                {"jsonrpc": "2.0", "method": "trace_replayTransaction", "params": [], "id": 2}
+                {"jsonrpc": "2.0", "method": "unsupported_method", "params": [], "id": 2}
             ]))
             .unwrap(),
         );

@@ -19,6 +19,3 @@ pub const ETH_GET_TRANSACTION_RECEIPT: &str = "eth_getTransactionReceipt";
 pub const ETH_SEND_RAW_TRANSACTION: &str = "eth_sendRawTransaction";
 pub const ETH_SYNCING: &str = "eth_syncing";
 pub const TRACE_CALL: &str = "trace_call";
-pub const TRACE_RAW_TRANSACTION: &str = "trace_rawTransaction";
-pub const TRACE_REPLAY_BLOCK_TRANSACTIONS: &str = "trace_replayBlockTransactions";
-pub const TRACE_REPLAY_TRANSACTION: &str = "trace_replayTransaction";

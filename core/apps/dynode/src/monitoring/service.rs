@@ -371,7 +371,7 @@ mod tests {
     use super::*;
     use crate::config::{CacheConfig, ChainTypesConfig, MetricsConfig, Url};
     use crate::testkit::config as testkit;
-    use primitives::{Chain, NodeType};
+    use primitives::Chain;
     use reqwest::{Method, header, header::HeaderMap};
 
     fn create_service(chains: HashMap<Chain, ChainConfig>) -> NodeService {
@@ -404,7 +404,6 @@ mod tests {
     fn create_chain_config(chain: Chain, url: &str) -> ChainConfig {
         ChainConfig {
             chain,
-            node: NodeType::Default,
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,
@@ -514,7 +513,7 @@ mod tests {
     async fn test_handle_request_denies_disallowed_jsonrpc_method() {
         let chains = HashMap::from([(Chain::Ethereum, create_chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
         let service = create_service_with_config(chains, testkit::retry_config(false, vec![], vec![]), ethereum_chain_types());
-        let request = create_jsonrpc_request(Chain::Ethereum, "trace_replayTransaction");
+        let request = create_jsonrpc_request(Chain::Ethereum, "unsupported_method");
 
         let response = service.handle_request(request).await.unwrap();
 

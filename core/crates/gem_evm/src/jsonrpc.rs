@@ -102,7 +102,6 @@ pub enum EthereumRpc {
     GetBalance(&'static str),
     GetTransactionReceipt(String),
     FeeHistory { blocks: u64, reward_percentiles: Vec<u64> },
-    TraceRawTransaction(String),
 }
 
 impl EthereumRpc {
@@ -114,7 +113,6 @@ impl EthereumRpc {
             EthereumRpc::GetTransactionReceipt(_) => method::ETH_GET_TRANSACTION_RECEIPT,
             EthereumRpc::EstimateGas(_, _) => method::ETH_ESTIMATE_GAS,
             EthereumRpc::FeeHistory { .. } => method::ETH_FEE_HISTORY,
-            EthereumRpc::TraceRawTransaction(_) => method::TRACE_RAW_TRANSACTION,
         }
     }
 }
@@ -144,9 +142,6 @@ impl JsonRpcRequestConvert for EthereumRpc {
                     serde_json::Value::from(BlockParameter::Latest),
                     json!(reward_percentiles.iter().map(|x| json!(x)).collect::<Vec<_>>()),
                 ]
-            }
-            EthereumRpc::TraceRawTransaction(raw_tx) => {
-                vec![json!(raw_tx), json!(vec!["stateDiff"])]
             }
         };
 

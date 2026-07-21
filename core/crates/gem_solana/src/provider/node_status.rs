@@ -48,7 +48,7 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaClient<C> {
         )
     }
 
-    async fn get_node_parser_status(&self, address: &str, transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+    async fn get_node_parser_status(&self, address: &str, transaction_id: &str, _status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
         let signatures = self.get_signatures_for_address(address, 100).await.map(|signatures| signatures.len());
         let recorder = recorder.record(method::GET_SIGNATURES_FOR_ADDRESS, signatures);
 

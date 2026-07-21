@@ -116,10 +116,8 @@ chains:
     url: https://solana-rpc.publicnode.com
   ethereum:
     url: https://eth-pokt.nodies.app
-    node: archival
   smartchain:
     url: https://bsc-dataseed1.bnbchain.org
-    node: archival
   polygon:
     url: https://rpc-mainnet.matic.quiknode.pro
   optimism:

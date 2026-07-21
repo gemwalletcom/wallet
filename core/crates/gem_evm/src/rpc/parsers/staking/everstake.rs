@@ -1,7 +1,7 @@
 use crate::{
     ethereum_address_checksum,
     everstake::{EVERSTAKE_ACCOUNTING_ADDRESS, EVERSTAKE_POOL_ADDRESS},
-    rpc::{balance_differ::BalanceDiffer, model::Log},
+    rpc::model::Log,
 };
 use primitives::{Chain, Transaction as PrimitivesTransaction, TransactionType};
 
@@ -43,11 +43,6 @@ impl EverstakeParser {
             EVENT_STAKED if log.address.eq_ignore_ascii_case(EVERSTAKE_POOL_ADDRESS) => make_staking_transaction(context, &pool_address, TransactionType::StakeDelegate, value),
             EVENT_UNSTAKED if log.address.eq_ignore_ascii_case(EVERSTAKE_POOL_ADDRESS) => make_staking_transaction(context, &pool_address, TransactionType::StakeUndelegate, value),
             EVENT_WITHDRAWN if log.address.eq_ignore_ascii_case(EVERSTAKE_ACCOUNTING_ADDRESS) => {
-                let value = context
-                    .trace
-                    .and_then(|trace| BalanceDiffer::new(*context.chain).get_native_balance_change(trace, context.receipt, &context.transaction.from))
-                    .unwrap_or(value);
-
                 make_staking_transaction(context, &pool_address, TransactionType::StakeWithdraw, value)
             }
             _ => None,
@@ -59,7 +54,7 @@ impl EverstakeParser {
 mod tests {
     use primitives::{Chain, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
-    use crate::rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace};
+    use crate::rpc::model::{Transaction, TransactionReceipt};
 
     use super::super::{assert_staking_transaction, map_transaction};
 
@@ -67,7 +62,7 @@ mod tests {
     fn test_map_everstake_transactions() {
         let stake_transaction = load_json_rpc_result::<Transaction>(include_str!("../../../../testdata/everstake/transaction_stake.json"));
         let stake_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/everstake/transaction_stake_receipt.json"));
-        let stake = map_transaction(&Chain::Ethereum, &stake_transaction, &stake_receipt, None);
+        let stake = map_transaction(&Chain::Ethereum, &stake_transaction, &stake_receipt);
         assert_staking_transaction(
             &stake,
             Chain::Ethereum,
@@ -80,7 +75,7 @@ mod tests {
 
         let unstake_transaction = load_json_rpc_result::<Transaction>(include_str!("../../../../testdata/everstake/transaction_unstake.json"));
         let unstake_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/everstake/transaction_unstake_receipt.json"));
-        let unstake = map_transaction(&Chain::Ethereum, &unstake_transaction, &unstake_receipt, None);
+        let unstake = map_transaction(&Chain::Ethereum, &unstake_transaction, &unstake_receipt);
         assert_staking_transaction(
             &unstake,
             Chain::Ethereum,
@@ -93,8 +88,7 @@ mod tests {
 
         let withdraw_transaction = load_json_rpc_result::<Transaction>(include_str!("../../../../testdata/everstake/transaction_withdraw.json"));
         let withdraw_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/everstake/transaction_withdraw_receipt.json"));
-        let withdraw_trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../../testdata/everstake/transaction_withdraw_trace.json"));
-        let withdraw = map_transaction(&Chain::Ethereum, &withdraw_transaction, &withdraw_receipt, Some(&withdraw_trace));
+        let withdraw = map_transaction(&Chain::Ethereum, &withdraw_transaction, &withdraw_receipt);
         assert_staking_transaction(
             &withdraw,
             Chain::Ethereum,

@@ -34,7 +34,7 @@ pub use self::chain_bitcoin::{BITCOINCASH_PREFIX, BitcoinChain};
 pub mod name;
 pub use self::name::NameProvider;
 pub mod node;
-pub use self::node::{Node, NodeType};
+pub use self::node::Node;
 pub mod node_check;
 pub use self::node_check::{NodeCheckProfile, NodeCheckReport, NodeCheckRequest, NodeCheckStatus};
 pub mod node_status;

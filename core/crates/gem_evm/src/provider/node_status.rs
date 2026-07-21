@@ -4,9 +4,11 @@ use chain_traits::{
     node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
 };
 use gem_client::Client;
-use primitives::{NodeSyncStatus, NodeType};
+use primitives::NodeSyncStatus;
 
 use crate::{jsonrpc::TransactionObject, method, rpc::EthereumClient};
+
+const PARSER_BLOCK_OFFSET: u64 = 10;
 
 #[async_trait]
 impl<C: Client + Clone> ChainNodeStatus for EthereumClient<C> {
@@ -36,34 +38,13 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumClient<C> {
         recorder.record_available(method::TRACE_CALL, self.trace_call(&transaction).await)
     }
 
-    async fn get_node_parser_status(&self, _address: &str, transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
-        let block_number = self
-            .get_transaction(transaction_id)
-            .await
-            .map_err(|error| error.to_string())
-            .and_then(|transaction| transaction.ok_or_else(|| "returned null".to_string()))
-            .map(|transaction| transaction.block_number);
-        let (recorder, block_number) = recorder.record_value(method::ETH_GET_TRANSACTION_BY_HASH, block_number);
-        let Some(block_number) = block_number else {
+    async fn get_node_parser_status(&self, _address: &str, _transaction_id: &str, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+        let Some(latest_block) = status.current_block_number.or(status.latest_block_number) else {
             return recorder;
         };
 
-        let receipt = self
-            .get_transaction_receipt(transaction_id)
-            .await
-            .map_err(|error| error.to_string())
-            .and_then(|receipt| receipt.ok_or_else(|| "returned null".to_string()))
-            .map(|receipt| receipt.block_number);
-        let recorder = recorder.record(method::ETH_GET_TRANSACTION_RECEIPT, receipt);
-
+        let block_number = latest_block.saturating_sub(PARSER_BLOCK_OFFSET);
         let recorder = recorder.record_available(method::ETH_GET_BLOCK_BY_NUMBER, self.get_block(block_number).await);
-        let recorder = recorder.record_available(method::ETH_GET_BLOCK_RECEIPTS, self.get_block_receipts(block_number).await);
-        match self.node_type {
-            NodeType::Default => recorder,
-            NodeType::Archival => {
-                let recorder = recorder.record_available(method::TRACE_REPLAY_BLOCK_TRANSACTIONS, self.trace_replay_block_transactions(block_number).await);
-                recorder.record_available(method::TRACE_REPLAY_TRANSACTION, self.trace_replay_transaction(transaction_id).await)
-            }
-        }
+        recorder.record_available(method::ETH_GET_BLOCK_RECEIPTS, self.get_block_receipts(block_number).await)
     }
 }

@@ -68,7 +68,7 @@ impl NodeMonitor {
             }
         };
 
-        let current_observation = observe_node(chain_config.chain, chain_config.node.clone(), request, current_node.url.clone()).await;
+        let current_observation = observe_node(chain_config.chain, request, current_node.url.clone()).await;
         NodeTelemetry::log_status_debug(chain_config, std::slice::from_ref(&current_observation));
 
         if current_observation.state.is_healthy() {
@@ -78,11 +78,13 @@ impl NodeMonitor {
 
         NodeTelemetry::log_node_unhealthy(chain_config, &current_observation);
 
-        let fallback_urls: Vec<Url> = chain_config.urls.iter().filter(|&url| *url != current_node.url).cloned().collect();
         let fallback_statuses = future::join_all(
-            fallback_urls
-                .into_iter()
-                .map(|url| observe_node(chain_config.chain, chain_config.node.clone(), request, url)),
+            chain_config
+                .urls
+                .iter()
+                .filter(|url| **url != current_node.url)
+                .cloned()
+                .map(|url| observe_node(chain_config.chain, request, url)),
         )
         .await;
         NodeTelemetry::log_status_debug(chain_config, &fallback_statuses);

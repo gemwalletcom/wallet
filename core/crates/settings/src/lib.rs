@@ -268,16 +268,6 @@ pub struct Chains {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Chain {
     pub url: String,
-    #[serde(default)]
-    pub node: ChainURLType,
-}
-
-#[derive(Debug, Deserialize, Clone, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum ChainURLType {
-    #[default]
-    Default,
-    Archival,
 }
 
 #[derive(Debug, Deserialize, Clone)]

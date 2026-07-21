@@ -85,14 +85,10 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         let balance_diffs = vec![
             BalanceDiff {
                 asset_id: from_asset,
-                from_value: None,
-                to_value: None,
                 diff: -BigInt::parse_bytes(summary.input_token_amount.as_bytes(), 10)?,
             },
             BalanceDiff {
                 asset_id: to_asset,
-                from_value: None,
-                to_value: None,
                 diff: BigInt::parse_bytes(summary.output_token_amount.as_bytes(), 10)?,
             },
         ];
@@ -129,14 +125,10 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
     let balance_diffs = vec![
         BalanceDiff {
             asset_id: from_asset,
-            from_value: None,
-            to_value: None,
             diff: -BigInt::parse_bytes(withdraw_amount.as_bytes(), 10)?,
         },
         BalanceDiff {
             asset_id: to_asset,
-            from_value: None,
-            to_value: None,
             diff: BigInt::parse_bytes(deposit_amount.as_bytes(), 10)?,
         },
     ];

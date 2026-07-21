@@ -74,7 +74,7 @@ mod tests {
     fn test_map_monad_staking_transactions() {
         let delegate_transaction = load_json_rpc_result::<Transaction>(include_str!("../../../../testdata/monad/transaction_staking_delegate.json"));
         let delegate_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/monad/transaction_staking_delegate_receipt.json"));
-        let delegate = map_transaction(&Chain::Monad, &delegate_transaction, &delegate_receipt, None);
+        let delegate = map_transaction(&Chain::Monad, &delegate_transaction, &delegate_receipt);
         assert_staking_transaction(
             &delegate,
             Chain::Monad,
@@ -87,7 +87,7 @@ mod tests {
 
         let undelegate_transaction = load_json_rpc_result::<Transaction>(include_str!("../../../../testdata/monad/transaction_staking_undelegate.json"));
         let undelegate_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/monad/transaction_staking_undelegate_receipt.json"));
-        let undelegate = map_transaction(&Chain::Monad, &undelegate_transaction, &undelegate_receipt, None);
+        let undelegate = map_transaction(&Chain::Monad, &undelegate_transaction, &undelegate_receipt);
         assert_staking_transaction(
             &undelegate,
             Chain::Monad,
@@ -100,7 +100,7 @@ mod tests {
 
         let claim_transaction = load_json_rpc_result::<Transaction>(include_str!("../../../../testdata/monad/transaction_staking_claim_rewards.json"));
         let claim_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/monad/transaction_staking_claim_rewards_receipt.json"));
-        let claim = map_transaction(&Chain::Monad, &claim_transaction, &claim_receipt, None);
+        let claim = map_transaction(&Chain::Monad, &claim_transaction, &claim_receipt);
         assert_staking_transaction(
             &claim,
             Chain::Monad,
@@ -113,7 +113,7 @@ mod tests {
 
         let withdraw_transaction = load_json_rpc_result::<Transaction>(include_str!("../../../../testdata/monad/transaction_staking_withdraw.json"));
         let withdraw_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/monad/transaction_staking_withdraw_receipt.json"));
-        let withdraw = map_transaction(&Chain::Monad, &withdraw_transaction, &withdraw_receipt, None);
+        let withdraw = map_transaction(&Chain::Monad, &withdraw_transaction, &withdraw_receipt);
         assert_staking_transaction(
             &withdraw,
             Chain::Monad,

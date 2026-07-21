@@ -89,7 +89,7 @@ pub trait ChainNodeStatus: ChainState {
         let recorder = match request {
             NodeCheckRequest::Basic => recorder,
             NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id, recorder).await,
-            NodeCheckRequest::Parser { address, transaction_id } => self.get_node_parser_status(address, transaction_id, recorder).await,
+            NodeCheckRequest::Parser { address, transaction_id } => self.get_node_parser_status(address, transaction_id, status, recorder).await,
         };
         recorder.finish()
     }
@@ -98,7 +98,7 @@ pub trait ChainNodeStatus: ChainState {
 
     async fn get_node_wallet_status(&self, address: &str, transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
 
-    async fn get_node_parser_status(&self, address: &str, transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+    async fn get_node_parser_status(&self, address: &str, transaction_id: &str, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
 }
 
 pub async fn record_node_state<T: ChainState + ?Sized>(

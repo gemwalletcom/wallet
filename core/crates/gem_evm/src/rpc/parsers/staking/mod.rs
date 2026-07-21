@@ -9,7 +9,7 @@ use chrono::DateTime;
 use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionState, TransactionType};
 
 #[cfg(test)]
-use crate::rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace};
+use crate::rpc::model::{Transaction, TransactionReceipt};
 
 #[cfg(test)]
 use super::ProtocolParsers;
@@ -23,8 +23,8 @@ pub use smartchain::SmartChainStakingParser;
 const EVENT_WORD_SIZE: usize = 64;
 
 #[cfg(test)]
-fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, trace: Option<&TransactionReplayTrace>) -> PrimitivesTransaction {
-    ProtocolParsers::map_transaction(chain, transaction, receipt, trace, None, DateTime::default()).unwrap()
+fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
+    ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default()).unwrap()
 }
 
 #[cfg(test)]

@@ -5,9 +5,9 @@ use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
-use primitives::{NodeType, Transaction, TransactionId};
+use primitives::{Transaction, TransactionId};
 
-use crate::rpc::{EVMIndexerClient, EthereumMapper, client::EthereumClient, mapper::CONTRACT_REGISTRY};
+use crate::rpc::{EVMIndexerClient, EthereumMapper, client::EthereumClient};
 
 #[cfg(feature = "rpc")]
 #[async_trait]
@@ -26,22 +26,12 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
         }
 
         let receipts = self.get_block_receipts(block_number).await?;
-        let traces = if self.node_type == NodeType::Archival {
-            Some(self.trace_replay_block_transactions(block_number).await?)
-        } else {
-            None
-        };
-
         let chain = self.get_chain();
         Ok(block
             .transactions
             .into_iter()
             .zip(receipts)
-            .enumerate()
-            .filter_map(|(index, (tx, receipt))| {
-                let trace = traces.as_ref().and_then(|entries| entries.get(index));
-                EthereumMapper::map_transaction(chain, &tx, &receipt, trace, &block.timestamp, Some(&CONTRACT_REGISTRY))
-            })
+            .filter_map(|(tx, receipt)| EthereumMapper::map_transaction(chain, &tx, &receipt, &block.timestamp))
             .collect())
     }
 
@@ -53,19 +43,7 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
             return Ok(None);
         };
         let block = self.get_block(receipt.block_number).await?;
-        let trace = if self.node_type == NodeType::Archival {
-            Some(self.trace_replay_transaction(&hash).await?)
-        } else {
-            None
-        };
-        Ok(EthereumMapper::map_transaction(
-            self.get_chain(),
-            &transaction,
-            &receipt,
-            trace.as_ref(),
-            &block.timestamp,
-            Some(&CONTRACT_REGISTRY),
-        ))
+        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &block.timestamp))
     }
 }
 

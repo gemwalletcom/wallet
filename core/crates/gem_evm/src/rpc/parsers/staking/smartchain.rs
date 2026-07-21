@@ -149,7 +149,7 @@ mod tests {
         for (transaction, receipt, transaction_type, from, to, value) in cases {
             let transaction = load_json_rpc_result::<Transaction>(transaction);
             let receipt = load_json_rpc_result::<TransactionReceipt>(receipt);
-            let staking_transaction = map_transaction(&Chain::SmartChain, &transaction, &receipt, None);
+            let staking_transaction = map_transaction(&Chain::SmartChain, &transaction, &receipt);
 
             assert_staking_transaction(
                 &staking_transaction,
@@ -166,6 +166,6 @@ mod tests {
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/smartchain/transaction_staking_delegate_receipt.json"));
         transaction.to = Some("0x1234567890123456789012345678901234567890".to_string());
 
-        assert!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &receipt, None, None, DateTime::default()).is_none());
+        assert!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &receipt, DateTime::default()).is_none());
     }
 }

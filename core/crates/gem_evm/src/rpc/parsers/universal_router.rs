@@ -37,14 +37,6 @@ impl RouterAbi {
             v4: v4_abi,
         }
     }
-
-    fn fallback_provider(self, provider: &str, commands: &[u8]) -> String {
-        if self.v4.is_some() && commands.contains(&V4_SWAP_COMMAND) {
-            SwapProvider::UniswapV4.id().to_string()
-        } else {
-            provider.to_string()
-        }
-    }
 }
 
 impl ProtocolParser for UniversalRouterParser {
@@ -62,10 +54,7 @@ impl ProtocolParser for UniversalRouterParser {
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
         let execute_call = IUniversalRouter::executeCall::abi_decode(&input_bytes).ok()?;
         let router_abi = RouterAbi::from_chain_contract(context.chain, to);
-        let fallback_provider = router_abi.fallback_provider(&provider, &execute_call.commands);
-
-        let metadata = decode_execute_swap_call(context.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.receipt)
-            .or_else(|| context.try_map_balance_diff_swap(&context.transaction.from, Some(fallback_provider)))?;
+        let metadata = decode_execute_swap_call(context.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.receipt)?;
 
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
@@ -241,8 +230,7 @@ fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionRecei
 #[cfg(test)]
 mod tests {
     use crate::provider::testkit::TOKEN_USDC_ADDRESS;
-    use crate::registry::ContractRegistry;
-    use crate::rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace};
+    use crate::rpc::model::{Transaction, TransactionReceipt};
     use crate::rpc::parsers::ProtocolParsers;
     use crate::uniswap::{actions::V4Action, contracts::v4::IV4Router, deployment::UniversalRouterAbi};
     use alloy_primitives::Address;
@@ -255,17 +243,7 @@ mod tests {
     };
 
     fn map_swap(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> primitives::Transaction {
-        ProtocolParsers::map_transaction(chain, transaction, receipt, None, None, DateTime::default()).unwrap()
-    }
-
-    fn map_swap_with_trace(
-        chain: &Chain,
-        transaction: &Transaction,
-        receipt: &TransactionReceipt,
-        trace: &TransactionReplayTrace,
-        registry: &ContractRegistry,
-    ) -> primitives::Transaction {
-        ProtocolParsers::map_transaction(chain, transaction, receipt, Some(trace), Some(registry), DateTime::from_timestamp(1735671600, 0).unwrap()).unwrap()
+        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default()).unwrap()
     }
 
     #[test]
@@ -464,52 +442,6 @@ mod tests {
             }
         );
         assert_eq!(metadata.to_value, "9017156750431593");
-    }
-
-    #[test]
-    fn test_swap_from_balance_diff() {
-        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/trace_replay_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/trace_replay_tx_receipt.json"));
-        let trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../testdata/trace_replay_tx_trace.json"));
-
-        let contract_registry = ContractRegistry::default();
-        let swap_tx = map_swap_with_trace(&Chain::Ethereum, &transaction, &receipt, &trace, &contract_registry);
-
-        assert_eq!(swap_tx.from, "0x52A07c930157d07D9EffD147ecF41C5cBbC6000c");
-        assert_eq!(swap_tx.to, "0x52A07c930157d07D9EffD147ecF41C5cBbC6000c");
-        assert_eq!(swap_tx.contract.unwrap(), "0x111111125421cA6dc452d289314280a0f8842A65");
-        assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
-        assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(swap_tx.value, "0");
-
-        let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
-        assert_eq!(
-            metadata.from_asset,
-            AssetId {
-                chain: Chain::Ethereum,
-                token_id: Some("0xD0eC028a3D21533Fdd200838F39c85B03679285D".to_string())
-            }
-        );
-        assert_eq!(metadata.from_value, "780000000000000000000");
-        assert_eq!(
-            metadata.to_asset,
-            AssetId {
-                chain: Chain::Ethereum,
-                token_id: None
-            }
-        );
-        assert_eq!(metadata.to_value, "158035947652936307");
-    }
-
-    #[test]
-    fn test_map_transaction_v2_token_eth() {
-        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v2_token_eth_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v2_token_eth_tx_receipt.json"));
-        let trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../testdata/v2_token_eth_tx_trace.json"));
-
-        let contract_registry = ContractRegistry::default();
-        let swap_tx = map_swap_with_trace(&Chain::Ethereum, &transaction, &receipt, &trace, &contract_registry);
-        assert!(swap_tx.metadata.is_some());
     }
 
     #[test]

@@ -13,7 +13,6 @@ use gem_client::{ReqwestClient, retry_policy};
 use gem_hypercore::rpc::client::HyperCoreClient;
 pub use node_check::node_check_request;
 pub use provider_config::{ProviderConfig, ProviderKeyConfig};
-pub use settings::ChainURLType;
 
 use chain_traits::ChainTraits;
 
@@ -35,7 +34,7 @@ use reqwest::Client;
 
 use std::collections::HashMap;
 
-use primitives::{Chain, EVMChain, NodeType, chain_cosmos::CosmosChain};
+use primitives::{Chain, EVMChain, chain_cosmos::CosmosChain};
 use settings::Settings;
 
 pub struct ProviderFactory {}
@@ -46,15 +45,12 @@ impl ProviderFactory {
     }
 
     pub fn new_from_settings_with_user_agent(chain: Chain, settings: &Settings, user_agent: &str) -> Box<dyn ChainTraits> {
-        let chain_config = Self::get_chain_config(chain, settings);
-        let node_type = Self::get_node_type(chain_config.node.clone());
         let url = Self::get_chain_url(chain, settings);
 
         Self::new_provider(
             ProviderConfig::new(
                 chain,
                 &url,
-                node_type,
                 ProviderKeyConfig {
                     alchemy: settings.alchemy.key.secret.clone(),
                     ankr: settings.ankr.key.secret.clone(),
@@ -66,13 +62,13 @@ impl ProviderFactory {
     }
 
     pub fn new_providers(settings: &Settings) -> Vec<Box<dyn ChainTraits>> {
-        Chain::all().iter().map(|x| Self::new_from_settings(*x, &settings.clone())).collect()
+        Chain::all().iter().map(|chain| Self::new_from_settings(*chain, settings)).collect()
     }
 
     pub fn new_providers_with_user_agent(settings: &Settings, user_agent: &str) -> Vec<Box<dyn ChainTraits>> {
         Chain::all()
             .iter()
-            .map(|x| Self::new_from_settings_with_user_agent(*x, &settings.clone(), user_agent))
+            .map(|chain| Self::new_from_settings_with_user_agent(*chain, settings, user_agent))
             .collect()
     }
 
@@ -88,7 +84,6 @@ impl ProviderFactory {
     pub fn new_provider_with_client(config: ProviderConfig, user_agent: &str, reqwest_client: Client) -> Box<dyn ChainTraits> {
         let chain = config.chain;
         let url = config.url.clone();
-        let node_type = config.node_type.clone();
         let gem_client = ReqwestClient::new_with_user_agent(url.clone(), reqwest_client.clone(), user_agent.to_string());
 
         match chain {
@@ -129,7 +124,7 @@ impl ProviderFactory {
                 let ankr_client = JsonRpcClient::new(ReqwestClient::new(config.ankr_url(), reqwest_client.clone()));
                 let alchemy_client = alchemy_url(chain, &config.keys.alchemy).map(|url| JsonRpcClient::new(ReqwestClient::new(url, reqwest_client.clone())));
                 let indexer = EVMIndexer::new(ankr_client, alchemy_client, chain);
-                Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer).with_node_type(node_type))
+                Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer))
             }
             Chain::Cardano => Box::new(CardanoClient::new(gem_client)),
             Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Noble | Chain::Sei => {
@@ -225,13 +220,6 @@ impl ProviderFactory {
             Self::get_chain_config(chain, settings).url.clone()
         } else {
             format!("{}/{}", settings.dynode.url, chain.as_ref())
-        }
-    }
-
-    pub fn get_node_type(url_type: ChainURLType) -> NodeType {
-        match url_type {
-            ChainURLType::Default => NodeType::Default,
-            ChainURLType::Archival => NodeType::Archival,
         }
     }
 }

@@ -6,8 +6,6 @@ use typeshare::typeshare;
 #[typeshare(swift = "Sendable")]
 pub struct Node {
     pub url: String,
-    #[typeshare(skip)]
-    pub node_type: NodeType,
     pub status: NodeState,
     pub priority: i32,
 }
@@ -42,14 +40,4 @@ pub enum NodeState {
     #[default]
     Active,
     Inactive,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq)]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
-#[derive(Default)]
-pub enum NodeType {
-    #[default]
-    Default,
-    Archival,
 }

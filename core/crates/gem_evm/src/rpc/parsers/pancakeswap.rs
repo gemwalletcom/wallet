@@ -26,9 +26,7 @@ impl ProtocolParser for PancakeSwapParser {
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        let metadata = Self::try_map_transfer_swap(context)
-            .or_else(|| context.try_map_balance_diff_swap(&context.transaction.from, Some(Self::provider())))
-            .or_else(|| Self::try_map_command_swap(context))?;
+        let metadata = Self::try_map_transfer_swap(context).or_else(|| Self::try_map_command_swap(context))?;
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
@@ -113,13 +111,13 @@ impl PancakeSwapParser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rpc::model::{Transaction, TransactionReceipt, TransactionReplayTrace};
+    use crate::rpc::model::{Transaction, TransactionReceipt};
     use crate::rpc::parsers::ProtocolParsers;
     use chrono::DateTime;
     use primitives::{Chain, SwapProvider, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
-    fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, trace: Option<&TransactionReplayTrace>) -> PrimitivesTransaction {
-        ProtocolParsers::map_transaction(chain, transaction, receipt, trace, None, DateTime::from_timestamp(1744602456, 0).unwrap()).unwrap()
+    fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
+        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1744602456, 0).unwrap()).unwrap()
     }
 
     #[test]
@@ -127,7 +125,7 @@ mod tests {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/pancakeswap_bsc_swap_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/pancakeswap_bsc_swap_tx_receipt.json"));
 
-        let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt, None);
+        let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
 
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
@@ -144,29 +142,11 @@ mod tests {
     }
 
     #[test]
-    fn test_map_pancakeswap_swap_with_trace_fallback() {
-        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/pancakeswap_bsc_native_swap_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/pancakeswap_bsc_native_swap_tx_receipt.json"));
-        let trace = load_json_rpc_result::<TransactionReplayTrace>(include_str!("../../../testdata/pancakeswap_bsc_native_swap_tx_trace.json"));
-
-        let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt, Some(&trace));
-        let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
-
-        assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
-        assert_eq!(swap_tx.state, TransactionState::Confirmed);
-        assert_eq!(metadata.provider, Some(SwapProvider::PancakeswapV3.id().to_string()));
-        assert_eq!(metadata.from_asset, AssetId::from_token(Chain::SmartChain, "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"));
-        assert_eq!(metadata.from_value, "1000000000000000000");
-        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::SmartChain));
-        assert_eq!(metadata.to_value, "2255593079375436");
-    }
-
-    #[test]
     fn test_map_pancakeswap_native_to_token_swap() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/pancakeswap_bsc_bnb_cake_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/pancakeswap_bsc_bnb_cake_tx_receipt.json"));
 
-        let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt, None);
+        let swap_tx = map_transaction(&Chain::SmartChain, &transaction, &receipt);
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_tx.metadata.unwrap()).unwrap();
 
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);

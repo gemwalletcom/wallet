@@ -207,8 +207,6 @@ pub fn map_swap_from_balance_changes(balance_changes: Vec<BalanceChange>, fee: &
         .into_iter()
         .map(|change| BalanceDiff {
             asset_id: map_asset_id(&change.coin_type),
-            from_value: None,
-            to_value: None,
             diff: change.amount,
         })
         .collect();
