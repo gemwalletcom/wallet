@@ -149,9 +149,9 @@ Android's EVM namespace and iOS's all-method list advertise `eth_sendRawTransact
 
 ## Transaction-indexing providers
 
-The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) prefers [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) for 11 mapped chains and otherwise calls Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs). A generic Alchemy Chain API endpoint is not evidence that the Transfers API works there, so those two facts are kept separate below. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) currently constructs EVM clients without an indexer; its EVM address-history calls therefore return an empty result.
+The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) prefers [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) for 11 mapped chains and calls Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) only for explicitly supported chains. Other EVM chains are unsupported. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) currently constructs EVM clients without an indexer.
 
-`➖` in the Third-party provider column means that Core uses a chain-specific implementation instead. It is not a missing capability.
+`➖` in the Third-party provider column means that Core does not use Ankr or Alchemy. It is not a missing capability when Core uses a chain-specific implementation.
 
 | Gem chain | Core transaction-history route | Third-party provider | Verification |
 | --- | --- | :---: | --- |
@@ -177,27 +177,27 @@ The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.
 | Avalanche C-Chain | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
 | Sui | [Sui GraphQL](../crates/gem_sui/src/rpc/indexer/mod.rs) | ➖ | ✅ Core implementation |
 | XRP Ledger | [XRP chain client](../crates/gem_xrp/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| opBNB | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
+| opBNB | Unsupported | ➖ | ➖ Unsupported |
 | Fantom | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
 | Gnosis | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
 | Celestia | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
 | Injective | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
 | Sei | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Sei EVM | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Manta | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | 🏗️ Alchemy | 🏗️ Configured hostname is absent from Alchemy's chain list and does not resolve |
+| Sei EVM | Unsupported | ➖ | ➖ Unsupported |
+| Manta | Unsupported | ➖ | ➖ Unsupported |
 | Blast | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
 | Noble | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
 | ZKsync | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
 | Linea | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Mantle | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
+| Mantle | Unsupported | ➖ | ➖ Unsupported |
 | Celo | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
 | NEAR | [FastNear Transfers and Transactions APIs](../crates/gem_near/src/rpc/indexer/mod.rs) | ✅ FastNear | ✅ Full indexed transfers with transaction fees |
 | World Chain | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
 | Stellar | [Stellar chain client](../crates/gem_stellar/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Sonic | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
+| Sonic | Unsupported | ➖ | ➖ Unsupported |
 | Algorand | [Algorand Indexer](../crates/gem_algorand/src/rpc/indexer/mod.rs) | ➖ | ✅ Core implementation |
 | Polkadot | [Subscan Asset Hub API](../crates/gem_polkadot/src/rpc/indexer/mod.rs) | ✅ Subscan | ✅ Full transfer records; authenticated API key required |
-| Plasma | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
+| Plasma | Unsupported | ➖ | ➖ Unsupported |
 | Cardano | [Cardano chain client](../crates/gem_cardano/src/rpc/client.rs) | ➖ | ✅ Core implementation |
 | Abstract | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
 | Berachain | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
@@ -208,7 +208,7 @@ The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.
 | Monad | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
 | X Layer | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
 | Robinhood Chain | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Alchemy endpoint and Core route exist; 🏗️ verify exact method support |
-| Stable | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
+| Stable | Unsupported | ➖ | ➖ Unsupported |
 
 [Ankr's Advanced API](https://www.ankr.com/docs/advanced-api/overview/) also advertises Flare, Scroll, Story, Syscoin, Taiko, Telos, and Xai, which are not Gem chains. Alchemy's generic [Chain API list](https://www.alchemy.com/docs/reference/node-supported-chains) is retained as endpoint evidence only; method-level support must be checked against the [Transfers API](https://www.alchemy.com/docs/reference/transfers-api-quickstart) or an authenticated request.
 
@@ -327,7 +327,6 @@ This backlog only includes gaps that apply to an existing Gem chain, an active p
 | Area | Work | Applicable scope | References | Status |
 | --- | --- | --- | --- | :---: |
 | Transaction indexing | Inject an EVM indexer into gemstone or explicitly remove EVM address history from that API surface | All EVM chains created by gemstone | <sub>[factory](../gemstone/src/gateway/chain_factory.rs) · [unsupported default](../crates/gem_evm/src/rpc/client.rs) · [configured backend path](../crates/settings_chain/src/lib.rs)</sub> | 🏗️ |
-| Transaction indexing | Verify Manta against a working Alchemy endpoint; keep the route only if it is still supported | Manta | <sub>[Core endpoint](../crates/gem_evm/src/rpc/alchemy/client.rs) · [Alchemy chains](https://www.alchemy.com/docs/reference/node-supported-chains)</sub> | 🏗️ |
 | WalletConnect | Align EVM method policy: remove `eth_sendRawTransaction` from platform advertisements or implement it in Core, and explicitly decide whether to support `eth_sign` | EVM chains | <sub>[Core handler](../crates/gem_wallet_connect/src/request_handler/ethereum.rs) · [EVM method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/evm) · [Android](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/bridge/Namespace.kt) · [iOS](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift)</sub> | 🏗️ |
 | WalletConnect | Add the published account-discovery methods | Solana | <sub>[Core handler](../crates/gem_wallet_connect/src/request_handler/solana.rs) · [Solana method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/solana)</sub> | 🏗️ |
 | WalletConnect | Decide whether to implement the optional published balance method | Tron | <sub>[Core handler](../crates/gem_wallet_connect/src/request_handler/tron.rs) · [Tron method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/tron)</sub> | 🏗️ |
