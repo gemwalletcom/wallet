@@ -26,9 +26,9 @@ public struct WalletImageScene: View {
         VStack {
             if let dbWallet = model.dbWallet {
                 AvatarView(
-                    avatarImage: WalletViewModel(wallet: dbWallet).avatarImage,
+                    avatarImage: model.avatarAssetImage(for: dbWallet),
                     size: model.emojiViewSize,
-                    action: setDefaultAvatar,
+                    removeAction: model.hasAvatar ? { onRemoveAvatar() } : nil,
                 )
                 .padding(.top, .medium)
                 .padding(.bottom, .extraLarge)
@@ -106,6 +106,11 @@ public struct WalletImageScene: View {
 // MARK: - Actions
 
 private extension WalletImageScene {
+    func onRemoveAvatar() {
+        model.onRemoveAvatar()
+        onDismiss()
+    }
+
     func onSelectNftAsset(_ item: WalletImageViewModel.NFTAssetImageItem) {
         guard let url = item.assetImage.imageURL else {
             return
@@ -113,11 +118,6 @@ private extension WalletImageScene {
         Task {
             await model.setImage(from: url)
         }
-    }
-
-    func setDefaultAvatar() {
-        model.setDefaultAvatar()
-        onDismiss()
     }
 
     func onDismiss() {
