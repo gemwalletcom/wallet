@@ -3,12 +3,14 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct CandlestickChartViewModel {
+    private let priceChangeCalculator = PriceChangeCalculator()
     enum Constants {
         static let labelOverlapPriceFraction = 0.06
         static let labelOverlapSpacing: CGFloat = 115
@@ -100,7 +102,7 @@ struct CandlestickChartViewModel {
             period: period,
             date: selectedCandle?.date,
             price: target.close,
-            priceChangePercentage: PriceChangeCalculator.calculate(.percentage(from: base, to: target.close)),
+            priceChangePercentage: priceChangeCalculator.percentage(from: base, to: target.close),
             formatter: formatter,
         )
     }
