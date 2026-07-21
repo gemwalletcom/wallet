@@ -5,6 +5,9 @@ pub type UInt64 = u64;
 #[macro_use]
 pub mod string_serde;
 
+mod async_result;
+pub use self::async_result::try_in_order;
+
 pub mod localize;
 pub use self::localize::Localize;
 

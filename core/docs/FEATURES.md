@@ -149,70 +149,68 @@ Android's EVM namespace and iOS's all-method list advertise `eth_sendRawTransact
 
 ## Transaction-indexing providers
 
-The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) prefers [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) for 11 mapped chains and calls Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) only for explicitly supported chains. Other EVM chains are unsupported. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) currently constructs EVM clients without an indexer.
+The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) uses ordered provider lists. Blockscout PRO is first for its 12 supported Gem chains, followed by the existing Ankr or Alchemy route when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) is only called on explicitly supported chains. Other EVM chains are unsupported. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) currently constructs EVM clients without an indexer.
 
-`➖` in the Third-party provider column means that Core does not use Ankr or Alchemy. It is not a missing capability when Core uses a chain-specific implementation.
-
-| Gem chain | Core transaction-history route | Third-party provider | Verification |
-| --- | --- | :---: | --- |
-| Bitcoin | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Bitcoin Cash | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Litecoin | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Ethereum | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| BNB Smart Chain | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Solana | [Alchemy `getTransactionsForAddress`](../crates/gem_solana/src/rpc/indexer/mod.rs) | ✅ Alchemy | ✅ Core implementation and method documented |
-| Polygon | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| THORChain | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| MayaChain | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Cosmos | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Osmosis | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Arbitrum | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| TON | [TON chain client](../crates/gem_ton/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Tron | [TronGrid](../crates/gem_tron/src/rpc/trongrid/client.rs) | ➖ | ✅ Core implementation |
-| Dogecoin | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Zcash | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Optimism | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Aptos | [Aptos chain client](../crates/gem_aptos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Base | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Avalanche C-Chain | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Sui | [Sui GraphQL](../crates/gem_sui/src/rpc/indexer/mod.rs) | ➖ | ✅ Core implementation |
-| XRP Ledger | [XRP chain client](../crates/gem_xrp/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| opBNB | Unsupported | ➖ | ➖ Unsupported |
-| Fantom | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Gnosis | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Celestia | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Injective | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Sei | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Sei EVM | Unsupported | ➖ | ➖ Unsupported |
-| Manta | Unsupported | ➖ | ➖ Unsupported |
-| Blast | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Noble | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| ZKsync | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Linea | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Mantle | Unsupported | ➖ | ➖ Unsupported |
-| Celo | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| NEAR | [FastNear Transfers and Transactions APIs](../crates/gem_near/src/rpc/indexer/mod.rs) | ✅ FastNear | ✅ Full indexed transfers with transaction fees |
-| World Chain | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Stellar | [Stellar chain client](../crates/gem_stellar/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Sonic | Unsupported | ➖ | ➖ Unsupported |
-| Algorand | [Algorand Indexer](../crates/gem_algorand/src/rpc/indexer/mod.rs) | ➖ | ✅ Core implementation |
-| Polkadot | [Subscan Asset Hub API](../crates/gem_polkadot/src/rpc/indexer/mod.rs) | ✅ Subscan | ✅ Full transfer records; authenticated API key required |
-| Plasma | Unsupported | ➖ | ➖ Unsupported |
-| Cardano | [Cardano chain client](../crates/gem_cardano/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Abstract | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Berachain | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Ink | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Unichain | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| Hyperliquid | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured for HyperEVM; 🏗️ verify exact method support |
-| HyperCore | [HyperCore chain client](../crates/gem_hypercore/src/rpc/client.rs) | ➖ | ✅ Core implementation |
-| Monad | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Core route configured; 🏗️ verify exact method support |
-| X Layer | [Ankr Advanced API](../crates/gem_evm/src/rpc/ankr/client.rs) | ✅ Ankr | ✅ Core mapping and exact Ankr methods documented |
-| Robinhood Chain | [Alchemy Transfers API](../crates/gem_evm/src/rpc/alchemy/client.rs) | ✅ Alchemy | ✅ Alchemy endpoint and Core route exist; 🏗️ verify exact method support |
-| Stable | Unsupported | ➖ | ➖ Unsupported |
+| Gem chain | Providers |
+| --- | --- |
+| Bitcoin | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) |
+| Bitcoin Cash | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) |
+| Litecoin | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) |
+| Ethereum | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| BNB Smart Chain | [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Solana | [Alchemy](../crates/gem_solana/src/rpc/indexer/mod.rs) |
+| Polygon | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| THORChain | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| MayaChain | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| Cosmos | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| Osmosis | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| Arbitrum | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| TON | [TON chain client](../crates/gem_ton/src/rpc/client.rs) |
+| Tron | [TronGrid](../crates/gem_tron/src/rpc/trongrid/client.rs) |
+| Dogecoin | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) |
+| Zcash | [Bitcoin chain client](../crates/gem_bitcoin/src/rpc/client.rs) |
+| Optimism | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Aptos | [Aptos chain client](../crates/gem_aptos/src/rpc/client.rs) |
+| Base | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Avalanche C-Chain | [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Sui | [Sui GraphQL](../crates/gem_sui/src/rpc/indexer/mod.rs) |
+| XRP Ledger | [XRP chain client](../crates/gem_xrp/src/rpc/client.rs) |
+| opBNB | Unsupported |
+| Fantom | [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Gnosis | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Celestia | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| Injective | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| Sei | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| Sei EVM | Unsupported |
+| Manta | Unsupported |
+| Blast | [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Noble | [Cosmos chain client](../crates/gem_cosmos/src/rpc/client.rs) |
+| ZKsync | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Linea | [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Mantle | Unsupported |
+| Celo | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| NEAR | [FastNear](../crates/gem_near/src/rpc/indexer/mod.rs) |
+| World Chain | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Stellar | [Stellar chain client](../crates/gem_stellar/src/rpc/client.rs) |
+| Sonic | Unsupported |
+| Algorand | [Algorand Indexer](../crates/gem_algorand/src/rpc/indexer/mod.rs) |
+| Polkadot | [Subscan](../crates/gem_polkadot/src/rpc/indexer/mod.rs) |
+| Plasma | Unsupported |
+| Cardano | [Cardano chain client](../crates/gem_cardano/src/rpc/client.rs) |
+| Abstract | [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Berachain | [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Ink | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Unichain | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Hyperliquid | [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| HyperCore | [HyperCore chain client](../crates/gem_hypercore/src/provider/transactions.rs) |
+| Monad | [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| X Layer | [Ankr](../crates/gem_evm/src/rpc/ankr/client.rs) |
+| Robinhood Chain | [Blockscout](../crates/gem_evm/src/rpc/blockscout/client.rs) → [Alchemy](../crates/gem_evm/src/rpc/alchemy/client.rs) |
+| Stable | Unsupported |
 
 [Ankr's Advanced API](https://www.ankr.com/docs/advanced-api/overview/) also advertises Flare, Scroll, Story, Syscoin, Taiko, Telos, and Xai, which are not Gem chains. Alchemy's generic [Chain API list](https://www.alchemy.com/docs/reference/node-supported-chains) is retained as endpoint evidence only; method-level support must be checked against the [Transfers API](https://www.alchemy.com/docs/reference/transfers-api-quickstart) or an authenticated request.
 
-<sub>Reviewed 2026-07-21. External method references: [Ankr Advanced API](https://www.ankr.com/docs/advanced-api/overview/) · [Alchemy Transfers API](https://www.alchemy.com/docs/reference/transfers-api-quickstart) · [Alchemy Solana history method](https://www.alchemy.com/docs/chains/solana/solana-api-endpoints/get-transactions-for-address) · [Sui GraphQL](https://docs.sui.io/concepts/data-access/graphql-rpc) · [TronGrid account transactions](https://developers.tron.network/reference/get-transaction-info-by-account-address) · [Algorand Indexer](https://dev.algorand.co/reference/rest-api/indexer/).</sub>
+<sub>Reviewed 2026-07-21. External method references: [Blockscout PRO chains](https://docs.blockscout.com/devs/pro-api) · [Blockscout transactions](https://docs.blockscout.com/api-reference/get-address-transactions) · [Blockscout token transfers](https://docs.blockscout.com/api-reference/get-address-token-transfers) · [Blockscout token balances](https://docs.blockscout.com/api-reference/get-all-tokens-balances-for-the-address) · [Ankr Advanced API](https://www.ankr.com/docs/advanced-api/overview/) · [Alchemy Transfers API](https://www.alchemy.com/docs/reference/transfers-api-quickstart) · [Alchemy Solana history method](https://www.alchemy.com/docs/chains/solana/solana-api-endpoints/get-transactions-for-address) · [Sui GraphQL](https://docs.sui.io/concepts/data-access/graphql-rpc) · [TronGrid account transactions](https://developers.tron.network/reference/get-transaction-info-by-account-address) · [Algorand Indexer](https://dev.algorand.co/reference/rest-api/indexer/).</sub>
 
 ## Swap providers
 

@@ -50,6 +50,10 @@ impl ReqwestClient {
         Self { default_headers, ..self }
     }
 
+    pub fn with_base_url(self, base_url: String) -> Self {
+        Self { base_url, ..self }
+    }
+
     pub fn new_test_client(url: String) -> Self {
         Self::new_with_retry(url, 30, 3)
     }

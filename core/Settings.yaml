@@ -308,6 +308,10 @@ ankr:
   key:
     secret: ""
 
+blockscout:
+  key:
+    secret: ""
+
 subscan:
   key:
     secret: ""

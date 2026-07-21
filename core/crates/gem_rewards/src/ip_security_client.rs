@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use cacher::{CacheKey, CacherClient};
-use primitives::ConfigKey;
+use primitives::{ConfigKey, try_in_order};
 
 use crate::UsernameError;
 use crate::ip_check_provider::IpCheckProvider;
@@ -26,18 +26,10 @@ impl IpSecurityClient {
     }
 
     async fn check_ip_with_fallback(&self, ip_address: &str) -> Result<IpCheckResult, Box<dyn Error + Send + Sync>> {
-        let mut last_error: Option<Box<dyn Error + Send + Sync>> = None;
-
-        for provider in &self.providers {
-            match provider.check_ip(ip_address).await {
-                Ok(result) => return Ok(result),
-                Err(e) => {
-                    last_error = Some(e);
-                }
-            }
+        match try_in_order(self.providers.iter().map(|provider| provider.check_ip(ip_address))).await? {
+            Some(result) => Ok(result),
+            None => Err("No IP check providers configured".into()),
         }
-
-        Err(last_error.unwrap_or_else(|| "No IP check providers configured".into()))
     }
 
     pub async fn check_username_creation_limits(
