@@ -2,21 +2,22 @@
 
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Primitives
 
 public struct AutocloseValidator: TextValidator {
     private let type: TpslType
-    private let marketPrice: Double
     private let direction: PerpetualDirection
+    private let validator: GemstonePrimitives.AutocloseValidator
 
     public init(
         type: TpslType,
         marketPrice: Double,
         direction: PerpetualDirection,
     ) {
-        self.marketPrice = marketPrice
         self.type = type
         self.direction = direction
+        validator = GemstonePrimitives.AutocloseValidator(type: type, direction: direction, marketPrice: marketPrice)
     }
 
     public func validate(_ text: String) throws {
@@ -26,16 +27,16 @@ public struct AutocloseValidator: TextValidator {
         formatter.locale = Locale.current
         formatter.numberStyle = .decimal
 
-        guard let price = formatter.number(from: text)?.doubleValue, price > 0 else {
+        guard let price = formatter.number(from: text)?.doubleValue else {
             throw TransferError.invalidAmount
         }
 
-        let isValid = switch (type, direction) {
-        case (.takeProfit, .long), (.stopLoss, .short): price > marketPrice
-        case (.takeProfit, .short), (.stopLoss, .long): price < marketPrice
-        }
-
-        guard isValid else {
+        switch validator.validate(price) {
+        case .valid:
+            break
+        case .invalidAmount:
+            throw TransferError.invalidAmount
+        case .triggerMustBeHigher, .triggerMustBeLower:
             throw PerpetualError.invalidAutoclose(type: type, direction: direction)
         }
     }
