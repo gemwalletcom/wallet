@@ -30,7 +30,16 @@ impl<C: Client + Clone> ChainTransactions for XrpClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use super::*;
-    use crate::provider::testkit::{TEST_TRANSACTION_ID, create_xrp_test_client};
+    use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_xrp_test_client};
+
+    #[tokio::test]
+    async fn test_xrp_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let transactions = create_xrp_test_client().get_account_transactions(TEST_ADDRESS.to_string(), 1).await?.transactions;
+
+        assert_eq!(transactions.len(), 1);
+        assert!(!transactions[0].hash.is_empty());
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_xrp_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
