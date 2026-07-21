@@ -134,7 +134,7 @@ fn support_assets() -> Vec<SwapperChainAsset> {
 #[cfg(test)]
 mod tests {
     use super::super::constants::TRON_DEX_TOKEN_APPROVE_ADDRESS;
-    use super::super::testkit::{TRON_WALLET, mock_client, mock_solana_request};
+    use super::super::testkit::{TEST_TRON_WALLET, mock_client, mock_solana_request};
     use super::*;
     use crate::{SwapperProviderMode, SwapperQuoteAsset, testkit::mock_quote};
     use gem_client::testkit::MockClient;
@@ -262,7 +262,7 @@ mod tests {
             SwapperQuoteAsset::from(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)),
             SwapperQuoteAsset::from(AssetId::from_chain(Chain::Tron)),
         );
-        request.wallet_address = TRON_WALLET.to_string();
+        request.wallet_address = TEST_TRON_WALLET.to_string();
         request.value = "50000000".to_string();
 
         let quote = provider.get_quote(&request).await.unwrap();
@@ -283,7 +283,7 @@ mod swap_integration_tests {
     use super::super::{
         model::OkxClientConfig,
         provider_proxy::{OkxProviderProxy, error_response},
-        testkit::{EVM_WALLET, TRON_WALLET},
+        testkit::{TEST_EVM_WALLET, TEST_TRON_WALLET},
     };
     use super::*;
     use crate::{SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
@@ -362,22 +362,22 @@ mod swap_integration_tests {
             (
                 AssetId::from_chain(Chain::Hyperliquid),
                 HYPEREVM_USDT_ASSET_ID.clone(),
-                EVM_WALLET,
+                TEST_EVM_WALLET,
                 "100000000000000000",
                 "100000000000000000",
             ),
-            (AssetId::from_chain(Chain::Tron), TRON_USDT_ASSET_ID.clone(), TRON_WALLET, "100000000", "100000000"),
+            (AssetId::from_chain(Chain::Tron), TRON_USDT_ASSET_ID.clone(), TEST_TRON_WALLET, "100000000", "100000000"),
             (
                 AssetId::from_chain(Chain::Robinhood),
                 ROBINHOOD_USDG_ASSET_ID.clone(),
-                EVM_WALLET,
+                TEST_EVM_WALLET,
                 "100000000000000",
                 "100000000000000",
             ),
             (
                 AssetId::from_chain(Chain::Plasma),
                 PLASMA_USDT_ASSET_ID.clone(),
-                EVM_WALLET,
+                TEST_EVM_WALLET,
                 "100000000000000000",
                 "100000000000000000",
             ),

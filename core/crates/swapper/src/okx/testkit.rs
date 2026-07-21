@@ -8,8 +8,9 @@ use gem_client::testkit::MockClient;
 use primitives::{AssetId, Chain, asset_constants::SOLANA_USDC_ASSET_ID, swap::QuoteAsset, testkit::signer_mock::TEST_SOLANA_SENDER};
 use std::sync::Arc;
 
-pub(super) const TRON_WALLET: &str = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z";
-pub(super) const EVM_WALLET: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";
+pub(super) const TEST_TRON_WALLET: &str = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z";
+#[cfg(feature = "swap_integration_tests")]
+pub(super) const TEST_EVM_WALLET: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";
 
 impl OkxProvider<MockClient> {
     pub fn mock(client: MockClient, rpc_result: &str) -> Self {
