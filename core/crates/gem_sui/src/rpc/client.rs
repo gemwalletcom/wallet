@@ -1,13 +1,19 @@
 use std::{error::Error, str::FromStr, sync::Arc};
 
+use gem_client::Client;
 use gem_encoding::decode_base64;
 use gem_encoding::protobuf::{MessageDecode, MessageEncode, decode_grpc_message, encode_grpc_message};
 use gem_jsonrpc::grpc::GrpcTransport;
+#[cfg(feature = "reqwest")]
+use gem_jsonrpc::grpc::ReqwestGrpcTransport;
 use num_bigint::BigInt;
 use primitives::Chain;
 use serde::de::DeserializeOwned;
 use sui_types::{Address, Digest as SuiDigest};
 
+#[cfg(feature = "reqwest")]
+use super::indexer::default_indexer;
+use super::indexer::{SuiIndexer, SuiIndexerClient};
 use super::mapper::{map_checkpoint, map_executed_transaction, map_inspect_result, map_sui_effects};
 use super::proto::{
     self as proto, BatchGetObjectsRequest, BatchGetObjectsResponse, BatchGetTransactionsRequest, BatchGetTransactionsResponse, ExecuteTransactionRequest,
@@ -16,7 +22,6 @@ use super::proto::{
     GetServiceInfoResponse, GetTransactionRequest, GetTransactionResponse, ListBalancesRequest, ListBalancesResponse, ListOwnedObjectsRequest, ListOwnedObjectsResponse,
     SimulateTransactionRequest, SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, UserSignature as GrpcUserSignature, WithMut,
 };
-use super::transport::default_transport;
 use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
 use crate::models::{Balance, Checkpoint, Coin, Digest, InspectResult, Object, OwnedCoins, SuiCoinMetadata, SuiObject, TransactionBlocks};
 use crate::{
@@ -57,20 +62,24 @@ const BATCH_GET_TRANSACTIONS_LIMIT: usize = 50;
 pub struct SuiClient {
     endpoint: String,
     transport: Option<Arc<dyn GrpcTransport>>,
+    pub(crate) indexer: Arc<dyn SuiIndexerClient>,
 }
 
 impl SuiClient {
+    #[cfg(feature = "reqwest")]
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
             endpoint: endpoint.into(),
-            transport: default_transport(),
+            transport: Some(Arc::new(ReqwestGrpcTransport::new())),
+            indexer: default_indexer(),
         }
     }
 
-    pub fn new_with_transport(endpoint: impl Into<String>, transport: Arc<dyn GrpcTransport>) -> Self {
+    pub fn new_with_transport<C: Client + 'static>(endpoint: impl Into<String>, transport: Arc<dyn GrpcTransport>, indexer: SuiIndexer<C>) -> Self {
         Self {
             endpoint: endpoint.into(),
             transport: Some(transport),
+            indexer: Arc::new(indexer),
         }
     }
 
