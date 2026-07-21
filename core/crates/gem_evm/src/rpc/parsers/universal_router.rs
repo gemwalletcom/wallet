@@ -15,7 +15,7 @@ use crate::{
 };
 use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
 
 const WITHDRAWAL_TOPIC: &str = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65";
 
@@ -206,7 +206,7 @@ fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReceipt) -> Opt
 
     receipt.logs.iter().find_map(|log| {
         (ethereum_address_checksum(&log.address).ok()? == token && log.topics.len() == 2 && log.topics.first().is_some_and(|topic| topic == WITHDRAWAL_TOPIC))
-            .then(|| ethereum_value_from_log_data(&log.data, 0, 64))
+            .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
             .flatten()
             .map(|value| value.to_string())
     })
@@ -221,7 +221,7 @@ fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionRecei
             && log.topics.len() == 3
             && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC)
             && ethereum_address_from_topic(log.topics.get(2)?)? == to)
-            .then(|| ethereum_value_from_log_data(&log.data, 0, 64))
+            .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
             .flatten()
             .map(|value| value.to_string())
     })
