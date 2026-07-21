@@ -9,6 +9,7 @@ use std::{collections::HashMap, str::FromStr, time::Duration};
 pub struct ReqwestClient {
     base_url: String,
     client: reqwest::Client,
+    default_headers: HashMap<String, String>,
     user_agent: Option<String>,
 }
 
@@ -17,6 +18,7 @@ impl ReqwestClient {
         Self {
             base_url: url,
             client,
+            default_headers: HashMap::new(),
             user_agent: None,
         }
     }
@@ -25,6 +27,7 @@ impl ReqwestClient {
         Self {
             base_url: url,
             client,
+            default_headers: HashMap::new(),
             user_agent: Some(user_agent),
         }
     }
@@ -38,8 +41,13 @@ impl ReqwestClient {
         Self {
             base_url: url,
             client,
+            default_headers: HashMap::new(),
             user_agent: None,
         }
+    }
+
+    pub fn with_default_headers(self, default_headers: HashMap<String, String>) -> Self {
+        Self { default_headers, ..self }
     }
 
     pub fn new_test_client(url: String) -> Self {
@@ -57,7 +65,8 @@ impl ReqwestClient {
             request
         };
 
-        headers.into_iter().fold(request, |req, (key, value)| req.header(&key, &value))
+        let request = self.default_headers.iter().fold(request, |request, (key, value)| request.header(key, value));
+        headers.into_iter().fold(request, |request, (key, value)| request.header(&key, &value))
     }
 
     async fn send_request<R>(&self, response: reqwest::Response) -> Result<R, ClientError>

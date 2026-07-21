@@ -25,7 +25,7 @@ Subsystem references live in [docs/](docs). Read the relevant one before changin
 - [Wallet Authentication](docs/WALLET_AUTHENTICATION.md)
 - [Device WebSockets](docs/DEVICE_WEBSOCKETS.md)
 - [Rewards and Referrals](docs/REWARDS_AND_REFERRALS.md)
-- [Chain and Provider Feature Comparison](docs/CHAIN_FEATURE_COMPARISON.md) — chain capabilities, indexing providers, WalletConnect, and swap-provider coverage
+- [Core Features and Providers](docs/FEATURES.md) — chain capabilities and indexing, WalletConnect, swap, fiat, and NFT provider coverage
 
 ## Before Coding
 
@@ -33,7 +33,7 @@ Subsystem references live in [docs/](docs). Read the relevant one before changin
 - State assumptions explicitly. UniFFI bounds, lifetimes, provider trait contracts, and JSON shape assumptions are invisible — call them out so a reviewer can spot the wrong one
 - Read before you write. Open the file's existing exports, the immediate caller, the related provider/mapper/repository, and any obvious testkit fixture before adding code. "Looks orthogonal to me" is the most expensive sentence in this crate
 - If two patterns in the codebase contradict (e.g., two providers handling decimals or error mapping differently), do not average them. Pick one — typically the more recent or better tested — explain why, and flag the other for cleanup
-- Keep `docs/CHAIN_FEATURE_COMPARISON.md` current in the same change when chain capabilities, simulations, WalletConnect coverage, transaction-indexing routes, active swap providers, provider modes, amount/slippage behavior, deployments, or supported assets change. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
+- Keep `docs/FEATURES.md` current in the same change when chain capabilities, simulations, WalletConnect coverage, transaction-indexing routes, active swap, fiat, or NFT providers, provider modes, amount/slippage behavior, deployments, or supported assets change. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
 
 ## Task Completion
 

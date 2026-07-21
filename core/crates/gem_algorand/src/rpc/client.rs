@@ -3,7 +3,7 @@ use std::error::Error;
 
 use crate::{
     models::{Account, AssetDetails, Block, TransactionBroadcast, TransactionStatus, TransactionsParams},
-    rpc::AlgorandClientIndexer,
+    rpc::AlgorandIndexer,
 };
 use gem_client::{CONTENT_TYPE, ContentType};
 
@@ -18,11 +18,11 @@ use primitives::Chain;
 pub struct AlgorandClient<C: Client> {
     client: C,
     pub chain: Chain,
-    pub indexer: AlgorandClientIndexer<C>,
+    pub indexer: AlgorandIndexer<C>,
 }
 
 impl<C: Client> AlgorandClient<C> {
-    pub fn new(client: C, indexer: AlgorandClientIndexer<C>) -> Self {
+    pub fn new(client: C, indexer: AlgorandIndexer<C>) -> Self {
         Self {
             client,
             chain: Chain::Algorand,

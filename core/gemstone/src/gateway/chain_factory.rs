@@ -3,7 +3,7 @@ use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
 use crate::network::JsonRpcClient;
 use chain_traits::ChainTraits;
 use gem_algorand::rpc::client::AlgorandClient;
-use gem_algorand::rpc::{AlgorandClientIndexer, client_indexer::ALGORAND_INDEXER_URL};
+use gem_algorand::rpc::{ALGORAND_INDEXER_URL, AlgorandIndexer};
 use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::client::CardanoClient;
@@ -11,8 +11,8 @@ use gem_cosmos::rpc::client::CosmosClient;
 use gem_evm::rpc::EthereumClient;
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
-use gem_near::rpc::client::NearClient;
-use gem_polkadot::rpc::client::PolkadotClient;
+use gem_near::rpc::{FASTNEAR_TRANSACTIONS_URL, FASTNEAR_TRANSFERS_URL, NearClient, NearIndexer};
+use gem_polkadot::rpc::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotClient, PolkadotIndexer};
 use gem_solana::SolanaClient;
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::{SUI_GRAPHQL_URL, SuiClient, SuiIndexer};
@@ -70,16 +70,26 @@ impl ChainClientFactory {
             Chain::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client.clone())))),
             Chain::Algorand => {
                 let indexer_client = new_alien_client(ALGORAND_INDEXER_URL.to_string(), self.alien.clone());
-                Ok(Arc::new(AlgorandClient::new(alien_client, AlgorandClientIndexer::new(indexer_client))))
+                Ok(Arc::new(AlgorandClient::new(alien_client, AlgorandIndexer::new(indexer_client))))
             }
-            Chain::Near => Ok(Arc::new(NearClient::new(JsonRpcClient::new(alien_client.clone())))),
+            Chain::Near => {
+                let transfers_client = new_alien_client(FASTNEAR_TRANSFERS_URL.to_string(), self.alien.clone());
+                let transactions_client = new_alien_client(FASTNEAR_TRANSACTIONS_URL.to_string(), self.alien.clone());
+                Ok(Arc::new(NearClient::new(
+                    JsonRpcClient::new(alien_client.clone()),
+                    NearIndexer::new(transfers_client, transactions_client),
+                )))
+            }
             Chain::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
             Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Sei | Chain::Noble => {
                 Ok(Arc::new(CosmosClient::new(CosmosChain::from_chain(chain).unwrap(), alien_client)))
             }
             Chain::Ton => Ok(Arc::new(TonClient::new(alien_client))),
             Chain::Tron => Ok(Arc::new(TronClient::new(alien_client.clone(), TronGridClient::new(alien_client.clone(), String::new())))),
-            Chain::Polkadot => Ok(Arc::new(PolkadotClient::new(alien_client))),
+            Chain::Polkadot => {
+                let asset_hub_client = new_alien_client(POLKADOT_ASSET_HUB_SUBSCAN_URL.to_string(), self.alien.clone());
+                Ok(Arc::new(PolkadotClient::new(alien_client, PolkadotIndexer::new(asset_hub_client))))
+            }
             Chain::Solana => {
                 let client = JsonRpcClient::new(alien_client.clone());
                 Ok(Arc::new(SolanaClient::new(client)))

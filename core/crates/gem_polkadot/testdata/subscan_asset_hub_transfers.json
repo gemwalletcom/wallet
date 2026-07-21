@@ -1,0 +1,32 @@
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "transfers": [
+      {
+        "amount": "0.25",
+        "asset_symbol": "DOT",
+        "block_num": 300,
+        "block_timestamp": 1800000300,
+        "fee": "0.01",
+        "from": "asset-hub-sender",
+        "hash": "asset-hub-newest",
+        "nonce": 30,
+        "success": true,
+        "to": "address"
+      },
+      {
+        "amount": "2",
+        "asset_symbol": "DOT",
+        "block_num": 200,
+        "block_timestamp": 1800000200,
+        "fee": "0.005",
+        "from": "address",
+        "hash": "asset-hub-older",
+        "nonce": 20,
+        "success": true,
+        "to": "asset-hub-recipient"
+      }
+    ]
+  }
+}

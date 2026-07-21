@@ -13,14 +13,14 @@ pub(crate) trait EVMIndexerClient {
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>>;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 enum Provider<C: Client + Clone> {
     Alchemy(AlchemyClient<C>),
     Ankr(AnkrClient<C>),
     Unsupported,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct EVMIndexer<C: Client + Clone> {
     provider: Provider<C>,
 }

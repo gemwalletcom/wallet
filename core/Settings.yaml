@@ -308,6 +308,10 @@ ankr:
   key:
     secret: ""
 
+subscan:
+  key:
+    secret: ""
+
 trongrid:
   key:
     secret: ""

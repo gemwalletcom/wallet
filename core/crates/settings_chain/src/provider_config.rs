@@ -4,6 +4,7 @@ use primitives::Chain;
 pub struct ProviderKeyConfig {
     pub alchemy: String,
     pub ankr: String,
+    pub subscan: String,
     pub trongrid: String,
 }
 

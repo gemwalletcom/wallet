@@ -7,15 +7,22 @@ use gem_client::Client;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
 use primitives::Chain;
 
+use super::indexer::NearIndexer;
+
 #[derive(Debug)]
 pub struct NearClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
+    pub(crate) indexer: NearIndexer<C>,
     pub chain: Chain,
 }
 
 impl<C: Client + Clone> NearClient<C> {
-    pub fn new(client: JsonRpcClient<C>) -> Self {
-        Self { client, chain: Chain::Near }
+    pub fn new(client: JsonRpcClient<C>, indexer: NearIndexer<C>) -> Self {
+        Self {
+            client,
+            indexer,
+            chain: Chain::Near,
+        }
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, JsonRpcError> {

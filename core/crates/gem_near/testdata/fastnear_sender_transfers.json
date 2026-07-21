@@ -1,0 +1,29 @@
+{
+  "resume_token": "",
+  "transfers": [
+    {
+      "account_id": "address.near",
+      "amount": "-1000000000000000000000000",
+      "asset_id": "native:near",
+      "block_height": "200",
+      "block_timestamp": "1800000200000000000",
+      "predecessor_id": "address.near",
+      "receipt_account_id": "recipient.near",
+      "receipt_id": "outgoing-receipt",
+      "signer_id": "address.near",
+      "transaction_id": "outgoing-transaction"
+    },
+    {
+      "account_id": "address.near",
+      "amount": "-500000000000000000000000",
+      "asset_id": "native:near",
+      "block_height": "100",
+      "block_timestamp": "1800000100000000000",
+      "predecessor_id": "address.near",
+      "receipt_account_id": "contract.near",
+      "receipt_id": "attached-deposit-receipt",
+      "signer_id": "address.near",
+      "transaction_id": "attached-deposit-transaction"
+    }
+  ]
+}
