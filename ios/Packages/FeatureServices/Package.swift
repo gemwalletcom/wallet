@@ -42,6 +42,7 @@ let package = Package(
         .library(name: "AppServiceTestKit", targets: ["AppServiceTestKit"]),
         .library(name: "DeviceService", targets: ["DeviceService"]),
         .library(name: "DeviceServiceTestKit", targets: ["DeviceServiceTestKit"]),
+        .library(name: "ConnectionStatusService", targets: ["ConnectionStatusService"]),
         .library(name: "NotificationService", targets: ["NotificationService"]),
         .library(name: "NotificationServiceTestKit", targets: ["NotificationServiceTestKit"]),
         .library(name: "AddressNameService", targets: ["AddressNameService"]),
@@ -75,6 +76,7 @@ let package = Package(
         .package(name: "Formatters", path: "../Formatters"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
         .package(name: "NativeProviderService", path: "../NativeProviderService"),
+        .package(name: "SystemServices", path: "../SystemServices"),
     ],
     targets: [
         .target(
@@ -453,6 +455,7 @@ let package = Package(
                 "StreamService",
                 "PerpetualService",
                 "ConnectionsService",
+                "ConnectionStatusService",
             ],
             path: "AppService",
             exclude: ["Tests", "TestKit"],
@@ -472,6 +475,9 @@ let package = Package(
                 "StreamServiceTestKit",
                 "PerpetualServiceTestKit",
                 "ConnectionsServiceTestKit",
+                "ConnectionStatusService",
+                .product(name: "ConnectivityService", package: "SystemServices"),
+                .product(name: "ConnectivityServiceTestKit", package: "SystemServices"),
             ],
             path: "AppService/TestKit",
         ),
@@ -494,6 +500,24 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
             ],
             path: "DeviceService/TestKit",
+        ),
+        .target(
+            name: "ConnectionStatusService",
+            dependencies: [
+                "Primitives",
+                "GemstonePrimitives",
+                .product(name: "ConnectivityService", package: "SystemServices"),
+            ],
+            path: "ConnectionStatusService",
+            exclude: ["Tests"],
+        ),
+        .testTarget(
+            name: "ConnectionStatusServiceTests",
+            dependencies: [
+                "ConnectionStatusService",
+                .product(name: "ConnectivityService", package: "SystemServices"),
+            ],
+            path: "ConnectionStatusService/Tests",
         ),
         .target(
             name: "NotificationService",

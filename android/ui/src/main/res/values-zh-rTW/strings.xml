@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">發生未知錯誤，請重試</string>
   <string name="errors_network_error">網路錯誤： %1$s</string>
   <string name="errors_network_offline">網路連線似乎已斷開。</string>
+  <string name="errors_no_internet_connection">無網際網路連線</string>
+  <string name="errors_no_service_connection">無服務連線</string>
+  <string name="errors_balances_activity_outdated">餘額和活動可能不是最新的。</string>
   <string name="activity_title">活動</string>
   <string name="activity_state_empty_title">您的交易將顯示在此處</string>
   <string name="activity_state_empty_description">發起您的第一筆交易</string>

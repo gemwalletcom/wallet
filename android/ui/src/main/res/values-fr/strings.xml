@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Une erreur inconnue s\'est produite. Veuillez réessayer.</string>
   <string name="errors_network_error">Erreur réseau : %1$s</string>
   <string name="errors_network_offline">La connexion Internet semble être hors ligne.</string>
+  <string name="errors_no_internet_connection">Pas de connexion Internet</string>
+  <string name="errors_no_service_connection">Pas de connexion au service</string>
+  <string name="errors_balances_activity_outdated">Les soldes et l\'activité peuvent être obsolètes.</string>
   <string name="activity_title">Activité</string>
   <string name="activity_state_empty_title">Votre activité apparaîtra ici</string>
   <string name="activity_state_empty_description">Effectuez votre première transaction</string>

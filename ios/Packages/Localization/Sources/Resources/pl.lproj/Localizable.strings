@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "Minimalna kwota transakcji wynosi %@. Proszę wprowadzić wyższą kwotę.";
 "errors.perpetual.trigger_price_lower" = "Cena aktywacji powinna być niższa niż cena rynkowa";
 "errors.perpetual.trigger_price_higher" = "Cena aktywacji powinna być wyższa niż cena rynkowa";
+"errors.no_internet_connection" = "Brak połączenia z internetem";
+"errors.no_service_connection" = "Brak połączenia z usługą";
+"errors.balances_activity_outdated" = "Salda i aktywność mogą być nieaktualne.";
 "activity.title" = "Aktywność";
 "activity.state.empty.title" = "Twoja aktywność będzie tutaj wyświetlana";
 "activity.state.empty.description" = "Dokonaj pierwszej transakcji";

@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Jeton bilgileri getirilemiyor: %@
 errors_unknown_try_again = Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.
 errors_network_error = Ağ hatası: %@
 errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
+errors_no_internet_connection = İnternet bağlantısı yok
+errors_no_service_connection = Servis bağlantısı yok
+errors_balances_activity_outdated = Bakiyeler ve etkinlik güncel olmayabilir.
 
 # Activity
 

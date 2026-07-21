@@ -43,6 +43,8 @@ pub struct Settings {
     pub nft: NFT,
     pub alchemy: Alchemy,
     pub ankr: Ankr,
+    pub blockscout: Blockscout,
+    pub subscan: Subscan,
     pub trongrid: Trongrid,
     pub assets: Assets,
     pub rewards: Rewards,
@@ -390,7 +392,6 @@ impl Settings {
 pub struct NFT {
     pub url: String,
     pub offchain: NFTOffchain,
-    pub nftscan: NFTScan,
     pub opensea: OpenSea,
     pub magiceden: MagicEden,
 }
@@ -404,8 +405,9 @@ pub struct NFTOffchain {
 
 pub type Alchemy = SecretKeySettings;
 pub type Ankr = SecretKeySettings;
+pub type Blockscout = SecretKeySettings;
+pub type Subscan = SecretKeySettings;
 pub type Trongrid = SecretKeySettings;
-pub type NFTScan = SecretKeySettings;
 pub type OpenSea = SecretKeySettings;
 pub type MagicEden = SecretKeySettings;
 

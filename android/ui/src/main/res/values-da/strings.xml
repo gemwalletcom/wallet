@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Der opstod en ukendt fejl. Prøv venligst igen.</string>
   <string name="errors_network_error">Netværksfejl: %1$s</string>
   <string name="errors_network_offline">Internetforbindelsen ser ud til at være offline.</string>
+  <string name="errors_no_internet_connection">Ingen internetforbindelse</string>
+  <string name="errors_no_service_connection">Ingen serviceforbindelse</string>
+  <string name="errors_balances_activity_outdated">Saldi og aktivitet kan være forældede.</string>
   <string name="activity_title">Aktivitet</string>
   <string name="activity_state_empty_title">Din aktivitet vil blive vist her</string>
   <string name="activity_state_empty_description">Foretag din første transaktion</string>

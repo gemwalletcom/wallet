@@ -7,7 +7,7 @@ pub use chain_providers::ChainProviders;
 pub use chain_traits::{TransactionsRequest, TransactionsResult};
 use gem_algorand::{
     AlgorandClient,
-    rpc::{AlgorandClientIndexer, client_indexer::ALGORAND_INDEXER_URL},
+    rpc::{ALGORAND_INDEXER_URL, AlgorandIndexer},
 };
 use gem_client::{ReqwestClient, retry_policy};
 use gem_hypercore::rpc::client::HyperCoreClient;
@@ -20,10 +20,10 @@ use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EVMIndexer, EthereumClient, alchemy_url};
+use gem_evm::rpc::{EVMIndexer, EVMIndexerConfig, EthereumClient, alchemy_url};
 use gem_jsonrpc::client::JsonRpcClient;
-use gem_near::rpc::client::NearClient;
-use gem_polkadot::rpc::PolkadotClient;
+use gem_near::rpc::{FASTNEAR_TRANSACTIONS_URL, FASTNEAR_TRANSFERS_URL, NearClient, NearIndexer};
+use gem_polkadot::rpc::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotClient, PolkadotIndexer};
 use gem_solana::rpc::{SolanaClient, SolanaIndexer};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::SuiClient;
@@ -54,6 +54,8 @@ impl ProviderFactory {
                 ProviderKeyConfig {
                     alchemy: settings.alchemy.key.secret.clone(),
                     ankr: settings.ankr.key.secret.clone(),
+                    blockscout: settings.blockscout.key.secret.clone(),
+                    subscan: settings.subscan.key.secret.clone(),
                     trongrid: settings.trongrid.key.secret.clone(),
                 },
             ),
@@ -119,12 +121,17 @@ impl ProviderFactory {
             | Chain::XLayer
             | Chain::Robinhood
             | Chain::Stable => {
-                let alchemy_url = alchemy_url(chain, &config.keys.alchemy);
                 let chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
-                let ankr_client = JsonRpcClient::new(ReqwestClient::new(config.ankr_url(), reqwest_client.clone()));
-                let alchemy_client = JsonRpcClient::new(ReqwestClient::new(alchemy_url, reqwest_client.clone()));
-                let indexer = EVMIndexer::new(ankr_client, alchemy_client, chain);
+                let indexer = EVMIndexer::new_reqwest(
+                    gem_client,
+                    chain,
+                    EVMIndexerConfig {
+                        alchemy: config.keys.alchemy,
+                        ankr: config.keys.ankr,
+                        blockscout: config.keys.blockscout,
+                    },
+                );
                 Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer))
             }
             Chain::Cardano => Box::new(CardanoClient::new(gem_client)),
@@ -137,11 +144,22 @@ impl ProviderFactory {
             Chain::Xrp => Box::new(XrpClient::new(JsonRpcClient::new(gem_client.clone()))),
             Chain::Algorand => {
                 let indexer_client = ReqwestClient::new(ALGORAND_INDEXER_URL.to_string(), reqwest_client.clone());
-                Box::new(AlgorandClient::new(gem_client.clone(), AlgorandClientIndexer::new(indexer_client)))
+                Box::new(AlgorandClient::new(gem_client.clone(), AlgorandIndexer::new(indexer_client)))
             }
             Chain::Stellar => Box::new(StellarClient::new(gem_client.clone())),
-            Chain::Near => Box::new(NearClient::new(JsonRpcClient::new(gem_client.clone()))),
-            Chain::Polkadot => Box::new(PolkadotClient::new(gem_client.clone())),
+            Chain::Near => {
+                let transfers_client = ReqwestClient::new(FASTNEAR_TRANSFERS_URL.to_string(), reqwest_client.clone());
+                let transactions_client = ReqwestClient::new(FASTNEAR_TRANSACTIONS_URL.to_string(), reqwest_client.clone());
+                Box::new(NearClient::new(
+                    JsonRpcClient::new(gem_client.clone()),
+                    NearIndexer::new(transfers_client, transactions_client),
+                ))
+            }
+            Chain::Polkadot => {
+                let asset_hub_client = ReqwestClient::new(POLKADOT_ASSET_HUB_SUBSCAN_URL.to_string(), reqwest_client.clone())
+                    .with_default_headers(HashMap::from([("x-api-key".to_string(), config.keys.subscan.clone())]));
+                Box::new(PolkadotClient::new(gem_client.clone(), PolkadotIndexer::new(asset_hub_client)))
+            }
             Chain::Solana => {
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
                 let url = alchemy_url(chain, &config.keys.alchemy);

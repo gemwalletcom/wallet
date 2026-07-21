@@ -1,9 +1,9 @@
-#[cfg(feature = "rpc")]
-mod alchemy;
 pub mod client;
 pub mod constants;
-
 #[cfg(feature = "rpc")]
-pub use alchemy::SolanaIndexer;
+mod indexer;
+
 pub use client::SolanaClient;
 pub use constants::*;
+#[cfg(feature = "rpc")]
+pub use indexer::SolanaIndexer;

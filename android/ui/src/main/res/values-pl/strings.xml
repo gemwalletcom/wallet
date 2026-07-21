@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Wystąpił nieznany błąd. Spróbuj ponownie.</string>
   <string name="errors_network_error">Błąd sieciowy: %1$s</string>
   <string name="errors_network_offline">Połączenie internetowe wydaje się być niedostępne.</string>
+  <string name="errors_no_internet_connection">Brak połączenia z internetem</string>
+  <string name="errors_no_service_connection">Brak połączenia z usługą</string>
+  <string name="errors_balances_activity_outdated">Salda i aktywność mogą być nieaktualne.</string>
   <string name="activity_title">Aktywność</string>
   <string name="activity_state_empty_title">Twoja aktywność będzie tutaj wyświetlana</string>
   <string name="activity_state_empty_description">Dokonaj pierwszej transakcji</string>

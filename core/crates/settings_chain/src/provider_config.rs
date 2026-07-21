@@ -4,6 +4,8 @@ use primitives::Chain;
 pub struct ProviderKeyConfig {
     pub alchemy: String,
     pub ankr: String,
+    pub blockscout: String,
+    pub subscan: String,
     pub trongrid: String,
 }
 
@@ -21,9 +23,5 @@ impl ProviderConfig {
             url: url.to_string(),
             keys,
         }
-    }
-
-    pub fn ankr_url(&self) -> String {
-        format!("https://rpc.ankr.com/multichain/{}", self.keys.ankr)
     }
 }

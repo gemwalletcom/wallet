@@ -5,11 +5,11 @@ use crate::COMMITMENT_CONFIRMED;
 
 pub(super) const GET_TRANSACTIONS_FOR_ADDRESS: &str = "getTransactionsForAddress";
 
-pub(super) enum AlchemySolanaRpc {
+pub(super) enum SolanaIndexerRpc {
     GetTransactionsForAddress { address: String, limit: usize },
 }
 
-impl ToJsonRpcRequest for AlchemySolanaRpc {
+impl ToJsonRpcRequest for SolanaIndexerRpc {
     fn method(&self) -> &'static str {
         match self {
             Self::GetTransactionsForAddress { .. } => GET_TRANSACTIONS_FOR_ADDRESS,

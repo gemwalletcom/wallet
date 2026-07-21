@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Ba a iya samo bayanan alamar: %@
 errors_unknown_try_again = An sami kuskuren da ba a sani ba. Da fatan za a sake gwadawa.
 errors_network_error = Kuskuren hanyar sadarwa: %@
 errors_network_offline = Da alama haɗin intanet ɗin ya katse.
+errors_no_internet_connection = Babu haɗin intanet
+errors_no_service_connection = Babu haɗin sabis
+errors_balances_activity_outdated = Ma'aunai da ayyuka na iya zama tsofaffi.
 
 # Activity
 

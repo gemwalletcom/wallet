@@ -1,6 +1,5 @@
 pub mod client;
 mod indexer;
-mod indexer_mapper;
 mod mapper;
 pub(crate) mod proto;
 mod staking;

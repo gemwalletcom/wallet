@@ -1,4 +1,4 @@
 pub mod client;
 pub use client::AlgorandClient;
-pub mod client_indexer;
-pub use client_indexer::AlgorandClientIndexer;
+mod indexer;
+pub use indexer::{ALGORAND_INDEXER_URL, AlgorandIndexer};

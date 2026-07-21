@@ -1,10 +1,12 @@
+mod jsonrpc;
+
 use std::error::Error;
 
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use serde::Deserialize;
 
-use super::jsonrpc::AlchemySolanaRpc;
+use self::jsonrpc::SolanaIndexerRpc;
 
 #[derive(Debug, Deserialize)]
 struct Transactions {
@@ -16,7 +18,7 @@ struct Transaction {
     signature: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct SolanaIndexer<C: Client + Clone> {
     client: JsonRpcClient<C>,
 }
@@ -29,7 +31,7 @@ impl<C: Client + Clone> SolanaIndexer<C> {
     pub(crate) async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
         let transactions: Transactions = self
             .client
-            .request(AlchemySolanaRpc::GetTransactionsForAddress {
+            .request(SolanaIndexerRpc::GetTransactionsForAddress {
                 address: address.to_string(),
                 limit,
             })
@@ -44,7 +46,7 @@ mod tests {
     use primitives::testkit::json::load_json;
     use serde_json::json;
 
-    use super::super::jsonrpc::GET_TRANSACTIONS_FOR_ADDRESS;
+    use super::jsonrpc::GET_TRANSACTIONS_FOR_ADDRESS;
     use super::*;
     use crate::COMMITMENT_CONFIRMED;
 

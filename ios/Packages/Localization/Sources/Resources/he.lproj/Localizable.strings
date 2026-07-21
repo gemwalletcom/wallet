@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "סכום המסחר המינימלי הוא %@. אנא הזן סכום גבוה יותר.";
 "errors.perpetual.trigger_price_lower" = "מחיר ההפעלה צריך להיות נמוך ממחיר השוק";
 "errors.perpetual.trigger_price_higher" = "מחיר ההפעלה צריך להיות גבוה ממחיר השוק";
+"errors.no_internet_connection" = "אין חיבור לאינטרנט";
+"errors.no_service_connection" = "אין חיבור לשירות";
+"errors.balances_activity_outdated" = "היתרות והפעילות עשויות להיות לא מעודכנות.";
 "activity.title" = "פעילות";
 "activity.state.empty.title" = "הפעילות שלך תופיע כאן";
 "activity.state.empty.description" = "בצעו את העסקה הראשונה שלכם";

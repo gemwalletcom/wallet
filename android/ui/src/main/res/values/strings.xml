@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">An unknown error occurred. Please try again.</string>
   <string name="errors_network_error">Network error: %1$s</string>
   <string name="errors_network_offline">The Internet connection appears to be offline.</string>
+  <string name="errors_no_internet_connection">No internet connection</string>
+  <string name="errors_no_service_connection">No service connection</string>
+  <string name="errors_balances_activity_outdated">Balances and activity may be outdated.</string>
   <string name="activity_title">Activity</string>
   <string name="activity_state_empty_title">Your activity will appear here</string>
   <string name="activity_state_empty_description">Make your first transaction</string>

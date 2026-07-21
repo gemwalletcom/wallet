@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "O valor mínimo de transação é %@. Por favor, insira um valor maior.";
 "errors.perpetual.trigger_price_lower" = "O preço de acionamento deve ser menor que o preço de mercado";
 "errors.perpetual.trigger_price_higher" = "O preço de acionamento deve ser maior que o preço de mercado";
+"errors.no_internet_connection" = "Sem conexão com a internet";
+"errors.no_service_connection" = "Sem conexão com o serviço";
+"errors.balances_activity_outdated" = "Os saldos e a atividade podem estar desatualizados.";
 "activity.title" = "Atividade";
 "activity.state.empty.title" = "Sua atividade aparecerá aqui";
 "activity.state.empty.description" = "Faça sua primeira transação";

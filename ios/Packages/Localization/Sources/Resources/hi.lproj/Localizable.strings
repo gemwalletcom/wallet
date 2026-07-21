@@ -205,6 +205,9 @@
 "errors.swap.minimum_amount" = "न्यूनतम व्यापार राशि है %@। कृपया अधिक राशि दर्ज करें।";
 "errors.perpetual.trigger_price_lower" = "ट्रिगर मूल्य बाजार मूल्य से कम होना चाहिए";
 "errors.perpetual.trigger_price_higher" = "ट्रिगर मूल्य बाजार मूल्य से अधिक होना चाहिए";
+"errors.no_internet_connection" = "इंटरनेट कनेक्शन नहीं है";
+"errors.no_service_connection" = "सेवा कनेक्शन नहीं है";
+"errors.balances_activity_outdated" = "बैलेंस और गतिविधि पुरानी हो सकती है।";
 "activity.title" = "गतिविधि";
 "activity.state.empty.title" = "आपकी गतिविधि यहां दिखाई देगी";
 "activity.state.empty.description" = "अपना पहला लेनदेन करें";

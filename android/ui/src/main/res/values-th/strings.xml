@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง</string>
   <string name="errors_network_error">เกิดข้อผิดพลาดเครือข่าย: %1$s</string>
   <string name="errors_network_offline">ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์</string>
+  <string name="errors_no_internet_connection">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</string>
+  <string name="errors_no_service_connection">ไม่มีการเชื่อมต่อบริการ</string>
+  <string name="errors_balances_activity_outdated">ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน</string>
   <string name="activity_title">กิจกรรม</string>
   <string name="activity_state_empty_title">กิจกรรมของคุณจะปรากฏที่นี่</string>
   <string name="activity_state_empty_description">ทำธุรกรรมครั้งแรกของคุณ</string>

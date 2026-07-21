@@ -308,6 +308,14 @@ ankr:
   key:
     secret: ""
 
+blockscout:
+  key:
+    secret: ""
+
+subscan:
+  key:
+    secret: ""
+
 trongrid:
   key:
     secret: ""
@@ -321,9 +329,6 @@ nft:
     timeout: 5
     concurrency: 8
     limit: 1048576
-  nftscan:
-    key:
-      secret: ""
   opensea:
     key:
       secret: ""

@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = 無法取得代幣資訊： %@
 errors_unknown_try_again = 發生未知錯誤，請重試
 errors_network_error = 網路錯誤： %@
 errors_network_offline = 網路連線似乎已斷開。
+errors_no_internet_connection = 無網際網路連線
+errors_no_service_connection = 無服務連線
+errors_balances_activity_outdated = 餘額和活動可能不是最新的。
 
 # Activity
 

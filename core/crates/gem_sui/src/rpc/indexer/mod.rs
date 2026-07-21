@@ -1,3 +1,5 @@
+mod mapper;
+
 #[cfg(feature = "reqwest")]
 use std::sync::Arc;
 use std::{error::Error, fmt::Debug};
@@ -9,7 +11,7 @@ use gem_client::{Client, ClientExt};
 use primitives::graphql::GraphqlData;
 use serde::Deserialize;
 
-use super::indexer_mapper::{GraphqlTransaction, map_transaction};
+use self::mapper::{GraphqlTransaction, map_transaction};
 use crate::models::Digest;
 
 pub const SUI_GRAPHQL_URL: &str = "https://graphql.mainnet.sui.io/graphql";
@@ -106,8 +108,8 @@ mod tests {
     #[tokio::test]
     async fn test_get_transactions_by_address() {
         let responses = Arc::new(Mutex::new(VecDeque::from([
-            include_str!("../../testdata/transactions_by_address_page_1.json").as_bytes().to_vec(),
-            include_str!("../../testdata/transactions_by_address_page_2.json").as_bytes().to_vec(),
+            include_str!("../../../testdata/transactions_by_address_page_1.json").as_bytes().to_vec(),
+            include_str!("../../../testdata/transactions_by_address_page_2.json").as_bytes().to_vec(),
         ])));
         let requests = Arc::new(Mutex::new(Vec::new()));
         let responses_for_client = responses.clone();
@@ -139,7 +141,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transactions_by_address_error() {
-        let client = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/transactions_by_address_error.json").as_bytes().to_vec()));
+        let client = MockClient::new().with_post(|_, _| Ok(include_str!("../../../testdata/transactions_by_address_error.json").as_bytes().to_vec()));
 
         let error = SuiIndexer::new(client).get_transactions_by_address("invalid", 1).await.unwrap_err();
 

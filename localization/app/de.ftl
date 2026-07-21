@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Token-Informationen konnten nicht 
 errors_unknown_try_again = Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.
 errors_network_error = Netzwerkfehler: %@
 errors_network_offline = Die Internetverbindung scheint unterbrochen zu sein.
+errors_no_internet_connection = Keine Internetverbindung
+errors_no_service_connection = Keine Serviceverbindung
+errors_balances_activity_outdated = Guthaben und Aktivität sind möglicherweise nicht aktuell.
 
 # Activity
 

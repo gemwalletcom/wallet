@@ -1,0 +1,42 @@
+{
+  "transactions": [
+    {
+      "execution_outcome": {
+        "outcome": {
+          "tokens_burnt": "30"
+        }
+      },
+      "receipts": [
+        {
+          "execution_outcome": {
+            "outcome": {
+              "tokens_burnt": "40"
+            }
+          }
+        }
+      ],
+      "transaction": {
+        "hash": "outgoing-transaction"
+      }
+    },
+    {
+      "execution_outcome": {
+        "outcome": {
+          "tokens_burnt": "50"
+        }
+      },
+      "receipts": [
+        {
+          "execution_outcome": {
+            "outcome": {
+              "tokens_burnt": "60"
+            }
+          }
+        }
+      ],
+      "transaction": {
+        "hash": "attached-deposit-transaction"
+      }
+    }
+  ]
+}

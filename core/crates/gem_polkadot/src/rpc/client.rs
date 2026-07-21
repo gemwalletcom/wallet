@@ -9,14 +9,16 @@ use crate::models::block::PolkadotNodeVersion;
 use crate::models::fee::PolkadotEstimateFee;
 use crate::models::rpc::{Block, BlockHeader};
 use crate::models::transaction::{PolkadotTransactionBroadcastResponse, PolkadotTransactionMaterial, PolkadotTransactionPayload};
+use crate::rpc::indexer::PolkadotIndexer;
 
 pub struct PolkadotClient<C: Client> {
     pub client: C,
+    pub(crate) indexer: PolkadotIndexer<C>,
 }
 
 impl<C: Client> PolkadotClient<C> {
-    pub fn new(client: C) -> Self {
-        Self { client }
+    pub fn new(client: C, indexer: PolkadotIndexer<C>) -> Self {
+        Self { client, indexer }
     }
 
     pub async fn get_balance(&self, address: String) -> Result<PolkadotAccountBalance, Box<dyn Error + Send + Sync>> {

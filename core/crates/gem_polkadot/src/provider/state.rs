@@ -26,14 +26,17 @@ impl<C: Client> ChainState for PolkadotClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rpc::PolkadotIndexer;
     use gem_client::testkit::MockClient;
 
     #[tokio::test]
     async fn test_get_node_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = PolkadotClient::new(MockClient::new().with_get(|path| {
+        let rpc_client = MockClient::new().with_get(|path| {
             assert_eq!(path, "/v1/blocks/head/header");
             Ok(r#"{"number":"123456"}"#.as_bytes().to_vec())
-        }));
+        });
+        let indexer_client = MockClient::new();
+        let client = PolkadotClient::new(rpc_client, PolkadotIndexer::new(indexer_client));
 
         let status = client.get_node_status().await?;
 

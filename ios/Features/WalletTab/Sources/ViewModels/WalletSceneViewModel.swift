@@ -38,19 +38,6 @@ public final class WalletSceneViewModel: Sendable {
     public let assetsQuery: ObservableQuery<AssetsRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
 
-    /// db observed values
-    public var totalFiatValue: TotalFiatValue {
-        totalFiatQuery.value
-    }
-
-    public var assets: [AssetData] {
-        assetsQuery.value
-    }
-
-    public var banners: [Banner] {
-        bannersQuery.value
-    }
-
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingSheet: WalletSheetType?
     public var isPresentingSearch = false
@@ -85,6 +72,18 @@ public final class WalletSceneViewModel: Sendable {
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
+    }
+    
+    public var totalFiatValue: TotalFiatValue {
+        totalFiatQuery.value
+    }
+
+    public var assets: [AssetData] {
+        assetsQuery.value
+    }
+
+    public var banners: [Banner] {
+        bannersQuery.value
     }
 
     public var currentWallet: Wallet? {

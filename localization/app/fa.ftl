@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = خطا در واکشی اطلاع�
 errors_unknown_try_again = خطای ناشناخته ای رخ داد. لطفا دوباره امتحان کنید.
 errors_network_error = خطای شبکه: %@
 errors_network_offline = به نظر می‌رسد اتصال اینترنت آفلاین است.
+errors_no_internet_connection = اتصال اینترنت برقرار نیست
+errors_no_service_connection = اتصال سرویس برقرار نیست
+errors_balances_activity_outdated = موجودی‌ها و فعالیت ممکن است به‌روز نباشند.
 
 # Activity
 

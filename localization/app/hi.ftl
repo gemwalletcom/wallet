@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = टोकन जानकारी
 errors_unknown_try_again = एक अज्ञात त्रुटि उत्पन्न हुई. कृपया पुन: प्रयास करें।
 errors_network_error = नेटवर्क त्रुटि: %@
 errors_network_offline = इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।
+errors_no_internet_connection = इंटरनेट कनेक्शन नहीं है
+errors_no_service_connection = सेवा कनेक्शन नहीं है
+errors_balances_activity_outdated = बैलेंस और गतिविधि पुरानी हो सकती है।
 
 # Activity
 

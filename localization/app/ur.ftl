@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = ٹوکن کی معلومات حا�
 errors_unknown_try_again = ایک نامعلوم خرابی پیش آگئی۔ براہ کرم دوبارہ کوشش کریں۔
 errors_network_error = نیٹ ورک کی خرابی: %@
 errors_network_offline = انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔
+errors_no_internet_connection = انٹرنیٹ کنکشن نہیں ہے
+errors_no_service_connection = سروس کنکشن نہیں ہے
+errors_balances_activity_outdated = بیلنس اور سرگرمی پرانی ہو سکتی ہے۔
 
 # Activity
 

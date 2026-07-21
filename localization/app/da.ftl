@@ -246,6 +246,9 @@ errors_token_unable_fetch_token_information = Kan ikke hente tokenoplysninger: %
 errors_unknown_try_again = Der opstod en ukendt fejl. Prøv venligst igen.
 errors_network_error = Netværksfejl: %@
 errors_network_offline = Internetforbindelsen ser ud til at være offline.
+errors_no_internet_connection = Ingen internetforbindelse
+errors_no_service_connection = Ingen serviceforbindelse
+errors_balances_activity_outdated = Saldi og aktivitet kan være forældede.
 
 # Activity
 

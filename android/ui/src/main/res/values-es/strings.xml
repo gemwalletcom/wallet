@@ -216,6 +216,9 @@
   <string name="errors_unknown_try_again">Se produjo un error desconocido. Por favor inténtalo de nuevo.</string>
   <string name="errors_network_error">Error de red: %1$s</string>
   <string name="errors_network_offline">La conexión a Internet parece estar fuera de línea.</string>
+  <string name="errors_no_internet_connection">Sin conexión a internet</string>
+  <string name="errors_no_service_connection">Sin conexión al servicio</string>
+  <string name="errors_balances_activity_outdated">Los saldos y la actividad pueden estar desactualizados.</string>
   <string name="activity_title">Actividad</string>
   <string name="activity_state_empty_title">Tu actividad aparecerá aquí</string>
   <string name="activity_state_empty_description">Realiza tu primera transacción</string>

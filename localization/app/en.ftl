@@ -472,6 +472,11 @@ errors_unknown_try_again = An unknown error occurred. Please try again.
 errors_network_error = Network error: %@
 # Used in error cards and validation UI for the network offline label.
 errors_network_offline = The Internet connection appears to be offline.
+# Used in the connection status banner when the device has no internet connection.
+errors_no_internet_connection = No internet connection
+# Used in the connection status banner when app services are unreachable.
+errors_no_service_connection = No service connection
+errors_balances_activity_outdated = Balances and activity may be outdated.
 
 # Activity
 

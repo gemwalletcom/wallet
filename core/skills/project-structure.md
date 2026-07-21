@@ -66,7 +66,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 ### NFT & Digital Assets
 - `nft/`: NFT data models and business logic
 - `nft_client/`: NFT marketplace API clients
-- `nft_provider/`: NFT data provider integrations (OpenSea, Magic Eden, NFTScan)
+- `nft_provider/`: NFT data provider integrations (OpenSea, Magic Eden)
 
 ### Integrations & Services
 - `fiat/`: Fiat on-ramp/off-ramp providers (MoonPay, Transak, Mercuryo, Paybis, Flashnet)

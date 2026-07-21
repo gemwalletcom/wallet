@@ -5,7 +5,6 @@ use crate::rpc::EVMIndexerClient;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
-use primitives::EVMChain;
 
 use super::{
     jsonrpc::AnkrRpc,
@@ -19,45 +18,8 @@ pub(crate) struct AnkrClient<C: Client + Clone> {
 }
 
 impl<C: Client + Clone> AnkrClient<C> {
-    pub(crate) fn new(client: JsonRpcClient<C>, chain: EVMChain) -> Option<Self> {
-        Some(Self {
-            chain: Self::chain_name(chain)?,
-            client,
-        })
-    }
-
-    fn chain_name(chain: EVMChain) -> Option<&'static str> {
-        match chain {
-            EVMChain::Ethereum => Some("eth"),
-            EVMChain::Polygon => Some("polygon"),
-            EVMChain::AvalancheC => Some("avalanche"),
-            EVMChain::SmartChain => Some("bsc"),
-            EVMChain::Arbitrum => Some("arbitrum"),
-            EVMChain::Optimism => Some("optimism"),
-            EVMChain::Base => Some("base"),
-            EVMChain::Fantom => Some("fantom"),
-            EVMChain::Gnosis => Some("gnosis"),
-            EVMChain::Linea => Some("linea"),
-            EVMChain::XLayer => Some("xlayer"),
-            EVMChain::OpBNB
-            | EVMChain::Manta
-            | EVMChain::Blast
-            | EVMChain::ZkSync
-            | EVMChain::Mantle
-            | EVMChain::Celo
-            | EVMChain::World
-            | EVMChain::Sonic
-            | EVMChain::SeiEvm
-            | EVMChain::Abstract
-            | EVMChain::Berachain
-            | EVMChain::Ink
-            | EVMChain::Unichain
-            | EVMChain::Hyperliquid
-            | EVMChain::Plasma
-            | EVMChain::Monad
-            | EVMChain::Robinhood
-            | EVMChain::Stable => None,
-        }
+    pub(crate) fn new(client: JsonRpcClient<C>, chain: &'static str) -> Self {
+        Self { chain, client }
     }
 }
 
@@ -143,7 +105,7 @@ mod tests {
             }
             _ => panic!("unexpected method: {request_method}"),
         });
-        let client = AnkrClient::new(rpc_client, EVMChain::SmartChain).unwrap();
+        let client = AnkrClient::new(rpc_client, "bsc");
 
         let transaction_ids = client.get_transaction_ids_by_address("0x123", 2).await.unwrap();
 
@@ -170,7 +132,7 @@ mod tests {
             );
             Ok(load_json(include_str!("../../../testdata/ankr_get_account_balance.json")))
         });
-        let client = AnkrClient::new(rpc_client, EVMChain::XLayer).unwrap();
+        let client = AnkrClient::new(rpc_client, "xlayer");
 
         let balances = client.get_token_balances("0x123").await.unwrap();
 

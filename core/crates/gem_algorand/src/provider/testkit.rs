@@ -13,13 +13,13 @@ pub const TEST_ADDRESS: &str = "RXIOUIR5IGFZMIZ7CR7FJXDYY4JI7NZG5UCWCZZNWXUPFJRL
 
 #[cfg(feature = "chain_integration_tests")]
 pub fn create_algorand_test_client() -> AlgorandClient<ReqwestClient> {
-    use crate::rpc::{AlgorandClientIndexer, client_indexer::ALGORAND_INDEXER_URL};
+    use crate::rpc::{ALGORAND_INDEXER_URL, AlgorandIndexer};
 
     let settings = get_test_settings();
     let client = gem_client::reqwest_client();
     let reqwest_client = ReqwestClient::new(settings.chains.algorand.url, client.clone());
     AlgorandClient::new(
         reqwest_client.clone(),
-        AlgorandClientIndexer::new(ReqwestClient::new(ALGORAND_INDEXER_URL.to_string(), client.clone())),
+        AlgorandIndexer::new(ReqwestClient::new(ALGORAND_INDEXER_URL.to_string(), client.clone())),
     )
 }

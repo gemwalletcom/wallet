@@ -42,6 +42,7 @@ impl ToJsonRpcRequest for XrpRpc {
             }]),
             Self::GetAccountTransactions { address, limit } => json!([{
                 "account": address,
+                "api_version": 2,
                 "limit": limit,
                 "ledger_index_max": -1,
                 "ledger_index_min": -1
@@ -63,6 +64,8 @@ impl ToJsonRpcRequest for XrpRpc {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::Value;
+
     use super::*;
 
     fn assert_request(rpc: XrpRpc, method: &str, params: serde_json::Value) {
@@ -74,14 +77,14 @@ mod tests {
 
     #[test]
     fn builds_account_transactions_request() {
-        assert_request(
-            XrpRpc::GetAccountTransactions {
-                address: "rAddress".into(),
-                limit: 25,
-            },
-            method::ACCOUNT_TRANSACTIONS,
-            json!([{"account": "rAddress", "limit": 25, "ledger_index_max": -1, "ledger_index_min": -1}]),
-        );
+        let request = XrpRpc::GetAccountTransactions {
+            address: "rAddress".into(),
+            limit: 25,
+        }
+        .to_jsonrpc_request(42);
+        let expected: Value = serde_json::from_str(include_str!("../testdata/account_transactions_request.json")).unwrap();
+
+        assert_eq!(serde_json::to_value(request).unwrap(), expected);
     }
 
     #[test]
