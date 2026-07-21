@@ -2,7 +2,7 @@ use super::{GatewayError, GemPreferences, PreferencesWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
 use crate::network::JsonRpcClient;
 use chain_traits::ChainTraits;
-use gem_algorand::rpc::AlgorandClientIndexer;
+use gem_algorand::rpc::{AlgorandClientIndexer, client_indexer::ALGORAND_INDEXER_URL};
 use gem_algorand::rpc::client::AlgorandClient;
 use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
@@ -64,7 +64,10 @@ impl ChainClientFactory {
                 Arc::new(AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.alien.clone())))),
             ))),
             Chain::Xrp => Ok(Arc::new(XRPClient::new(JsonRpcClient::new(alien_client.clone())))),
-            Chain::Algorand => Ok(Arc::new(AlgorandClient::new(alien_client.clone(), AlgorandClientIndexer::new(alien_client.clone())))),
+            Chain::Algorand => {
+                let indexer_client = new_alien_client(ALGORAND_INDEXER_URL.to_string(), self.alien.clone());
+                Ok(Arc::new(AlgorandClient::new(alien_client, AlgorandClientIndexer::new(indexer_client))))
+            }
             Chain::Near => Ok(Arc::new(NearClient::new(JsonRpcClient::new(alien_client.clone())))),
             Chain::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
             Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Sei | Chain::Noble => {
