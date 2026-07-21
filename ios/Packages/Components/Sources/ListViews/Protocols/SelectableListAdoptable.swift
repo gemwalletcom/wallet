@@ -54,4 +54,13 @@ public extension SelectableListAdoptable {
     mutating func reset() {
         selectedItems = []
     }
+
+    mutating func select(item: Item) -> [Item]? {
+        toggle(item: item)
+
+        return switch selectionType {
+        case .multiSelection: nil
+        case .navigationLink, .checkmark: Array(selectedItems)
+        }
+    }
 }
