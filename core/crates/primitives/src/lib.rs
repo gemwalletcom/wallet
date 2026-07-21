@@ -45,6 +45,8 @@ pub mod latency_type;
 pub use self::latency_type::{Latency, LatencyType};
 pub mod price;
 pub use self::price::Price;
+pub mod price_change;
+pub use self::price_change::PriceChangeCalculator;
 pub mod price_config;
 pub use self::price_config::PriceConfig;
 pub mod price_data;

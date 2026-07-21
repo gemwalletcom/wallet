@@ -18,6 +18,7 @@ pub mod models;
 pub mod network;
 pub mod payment;
 pub mod perpetual;
+pub mod price;
 pub mod price_alert_formatter;
 pub mod signer;
 pub mod siwe;
