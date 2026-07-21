@@ -2,6 +2,7 @@ package com.gemwallet.android.model
 
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -23,23 +24,21 @@ class CryptoFiatConverterTest {
             CryptoFiatConverter.toFiat(Crypto(BigInteger("100000000")), decimals = 8, price = 50_000.0)
                 .atomicValue.compareTo(BigDecimal("50000"))
         )
-        assertEquals(
-            0,
-            CryptoFiatConverter.toFiat(Crypto(BigInteger.ZERO), decimals = 8, price = 50_000.0)
-                .atomicValue.compareTo(BigDecimal.ZERO)
-        )
     }
 
     @Test
     fun toCrypto() {
         assertEquals(
             BigInteger("100000000"),
-            CryptoFiatConverter.toCrypto(Fiat(BigDecimal("50000")), decimals = 8, price = 50_000.0).atomicValue
+            CryptoFiatConverter.toCrypto(Fiat(BigDecimal("50000")), decimals = 8, price = 50_000.0)?.atomicValue
         )
-        assertEquals(
-            BigInteger.ZERO,
-            CryptoFiatConverter.toCrypto(Fiat(BigDecimal("100")), decimals = 8, price = 0.0).atomicValue
-        )
+    }
+
+    @Test
+    fun toCryptoInvalidPriceReturnsNull() {
+        assertNull(CryptoFiatConverter.toCrypto(Fiat(BigDecimal("100")), decimals = 8, price = 0.0))
+        assertNull(CryptoFiatConverter.toCrypto(Fiat(BigDecimal("100")), decimals = 8, price = -1.0))
+        assertNull(CryptoFiatConverter.toCryptoAtDisplayPrecision(Fiat(BigDecimal("1")), decimals = 18, price = 0.0))
     }
 
     @Test
@@ -51,7 +50,6 @@ class CryptoFiatConverterTest {
             assertEquals(BigInteger.valueOf(1_250_000L), atDisplayPrecision("1", 80.0, 8))
             assertEquals(BigInteger.valueOf(12_200L), atDisplayPrecision("1", 8192.0, 8))
             assertEquals(BigInteger.valueOf(400_000_000L), atDisplayPrecision("10", 2.5, 8))
-            assertEquals(BigInteger.ZERO, atDisplayPrecision("1", 0.0, 18))
             assertEquals(BigInteger.ZERO, atDisplayPrecision("0", 2.5, 8))
         }
     }
@@ -68,6 +66,6 @@ class CryptoFiatConverterTest {
         }
     }
 
-    private fun atDisplayPrecision(fiat: String, price: Double, decimals: Int): BigInteger =
-        CryptoFiatConverter.toCryptoAtDisplayPrecision(Fiat(BigDecimal(fiat)), decimals, price).atomicValue
+    private fun atDisplayPrecision(fiat: String, price: Double, decimals: Int): BigInteger? =
+        CryptoFiatConverter.toCryptoAtDisplayPrecision(Fiat(BigDecimal(fiat)), decimals, price)?.atomicValue
 }
