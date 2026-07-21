@@ -135,7 +135,7 @@ where
         };
         let swap_quote = self.http_client.get_swap_quote(quote_request).await?;
 
-        // Updated docs: https://dev.jup.ag/docs/api/swap-api/quote
+        // Updated docs: https://dev.jup.ag/docs/swap/v1/get-quote
         // The value includes platform fees and DEX fees, excluding slippage.
         let out_amount: U256 = swap_quote.out_amount.parse().map_err(SwapperError::from)?;
 

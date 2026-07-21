@@ -1,0 +1,59 @@
+{
+  "data": {
+    "transactions": {
+      "nodes": [
+        {
+          "digest": "oldest",
+          "effects": {
+            "status": "SUCCESS",
+            "timestamp": "2025-12-31T00:00:00Z",
+            "gasEffects": {
+              "gasObject": {
+                "owner": {
+                  "address": {
+                    "address": "sender"
+                  }
+                }
+              },
+              "gasSummary": {
+                "computationCost": 1,
+                "storageCost": 0,
+                "storageRebate": 0,
+                "nonRefundableStorageFee": 0
+              }
+            },
+            "balanceChanges": {
+              "nodes": [
+                {
+                  "owner": {
+                    "address": "sender"
+                  },
+                  "coinType": {
+                    "repr": "0x2::sui::SUI"
+                  },
+                  "amount": "-101"
+                },
+                {
+                  "owner": {
+                    "address": "recipient"
+                  },
+                  "coinType": {
+                    "repr": "0x2::sui::SUI"
+                  },
+                  "amount": "100"
+                }
+              ]
+            },
+            "events": {
+              "nodes": []
+            }
+          }
+        }
+      ],
+      "pageInfo": {
+        "hasPreviousPage": false,
+        "startCursor": null
+      }
+    }
+  }
+}
