@@ -11,7 +11,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.PriceChange
+import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
@@ -60,7 +60,7 @@ class GetWalletSummaryImpl(
             val (assetsValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
                 val currentValue = asset.balance.fiatTotalAmount.toBigDecimal()
                 val changePercentage = asset.price?.price?.priceChangePercentage24h ?: 0.0
-                val currentChangedValue = PriceChange.amount(percentage = changePercentage, value = currentValue.toDouble()).toBigDecimal()
+                val currentChangedValue = PriceChangeCalculator.amount(percentage = changePercentage, value = currentValue.toDouble()).toBigDecimal()
 
                 (total + currentValue) to (changed + currentChangedValue)
             }
@@ -117,7 +117,7 @@ internal fun calculateWalletChangedPercentage(
     if (totalValue.compareTo(BigDecimal.ZERO) == 0) {
         return 0.0
     }
-    return PriceChange.percentage(
+    return PriceChangeCalculator.percentage(
         from = (totalValue - changedValue).toDouble(),
         to = totalValue.toDouble(),
     )
