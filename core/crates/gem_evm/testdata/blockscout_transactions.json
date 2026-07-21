@@ -1,0 +1,79 @@
+{
+  "items": [
+    {
+      "priority_fee": null,
+      "raw_input": "0x",
+      "is_pending_update": false,
+      "result": "success",
+      "hash": "0xnormal",
+      "max_fee_per_gas": null,
+      "revert_reason": null,
+      "confirmation_duration": [0, 12.0],
+      "transaction_burnt_fee": null,
+      "type": 0,
+      "token_transfers_overflow": null,
+      "confirmations": 100,
+      "position": 1,
+      "max_priority_fee_per_gas": null,
+      "transaction_tag": null,
+      "created_contract": null,
+      "value": "1000000000000000000",
+      "from": {
+        "ens_domain_name": null,
+        "hash": "0x1111111111111111111111111111111111111111",
+        "implementations": [],
+        "is_contract": false,
+        "is_scam": false,
+        "is_verified": false,
+        "metadata": null,
+        "name": null,
+        "private_tags": [],
+        "proxy_type": null,
+        "public_tags": [],
+        "reputation": "ok",
+        "watchlist_names": []
+      },
+      "gas_used": "21000",
+      "status": "ok",
+      "to": {
+        "ens_domain_name": null,
+        "hash": "0x2222222222222222222222222222222222222222",
+        "implementations": [],
+        "is_contract": false,
+        "is_scam": false,
+        "is_verified": false,
+        "metadata": null,
+        "name": null,
+        "private_tags": [],
+        "proxy_type": null,
+        "public_tags": [],
+        "reputation": "ok",
+        "watchlist_names": []
+      },
+      "authorization_list": [],
+      "method": null,
+      "fee": {
+        "type": "actual",
+        "value": "21000000000000"
+      },
+      "gas_limit": "21000",
+      "gas_price": "1000000000",
+      "decoded_input": null,
+      "fhe_operations_count": 0,
+      "token_transfers": null,
+      "base_fee_per_gas": "900000000",
+      "timestamp": "2026-07-21T12:00:00.000000Z",
+      "nonce": 1,
+      "historic_exchange_rate": "3000.0",
+      "transaction_types": ["coin_transfer"],
+      "exchange_rate": "3000.0",
+      "block_number": 10,
+      "has_error_in_internal_transactions": false
+    },
+    {
+      "hash": "0xshared",
+      "block_number": 8
+    }
+  ],
+  "next_page_params": null
+}
