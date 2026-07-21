@@ -16,12 +16,14 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
     ],
     targets: [
         .target(
             name: "Formatters",
             dependencies: [
                 "Primitives",
+                "GemstonePrimitives",
             ],
         ),
         .testTarget(
