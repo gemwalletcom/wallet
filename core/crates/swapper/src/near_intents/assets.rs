@@ -339,6 +339,6 @@ mod tests {
             })
             .collect::<Vec<_>>();
 
-        assert_eq!(supported_chains.contains(&Chain::Near), true);
+        assert!(supported_chains.contains(&Chain::Near));
     }
 }

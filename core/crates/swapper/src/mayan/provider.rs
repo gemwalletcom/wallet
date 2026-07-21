@@ -247,7 +247,6 @@ mod tests {
     use primitives::{
         AssetId,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
-        swap::{Slippage, SlippageMode},
     };
     use std::collections::BTreeSet;
 
