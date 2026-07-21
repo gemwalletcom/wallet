@@ -3,7 +3,7 @@ pub use crate::testkit::{TEST_ADDRESS, TEST_MONAD_ADDRESS, TEST_SMARTCHAIN_STAKI
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use crate::{
     ether_conv,
-    rpc::{EVMIndexer, EthereumClient},
+    rpc::{EVMIndexer, EVMIndexerConfig, EthereumClient},
 };
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use gem_client::ReqwestClient;
@@ -17,12 +17,17 @@ use settings::testkit::get_test_settings;
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 fn build_test_client(chain: EVMChain, rpc_url: &str) -> EthereumClient<ReqwestClient> {
     let settings = get_test_settings();
-    let rpc_client = JsonRpcClient::new_reqwest(rpc_url.to_string());
+    let client = ReqwestClient::new_test_client(rpc_url.to_string());
+    let rpc_client = JsonRpcClient::new(client.clone());
 
-    let indexer = EVMIndexer::new(
-        JsonRpcClient::new_reqwest(format!("https://rpc.ankr.com/multichain/{}", settings.ankr.key.secret)),
-        JsonRpcClient::new_reqwest(crate::rpc::alchemy_url(chain.to_chain(), &settings.alchemy.key.secret)),
+    let indexer = EVMIndexer::new_reqwest(
+        client,
         chain,
+        EVMIndexerConfig {
+            alchemy: settings.alchemy.key.secret,
+            ankr: settings.ankr.key.secret,
+            blockscout: settings.blockscout.key.secret,
+        },
     );
 
     EthereumClient::new_with_indexer(rpc_client, chain, indexer)
