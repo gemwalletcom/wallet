@@ -22,6 +22,8 @@ class AddressChainViewModel @Inject constructor(
 
     fun onInput(input: String, chain: Chain?) = resolver.onInput(input, chain)
 
+    fun reset() = resolver.reset()
+
     fun onResolved(onResolved: (NameRecord?) -> Unit) {
         resolver.onResolved = onResolved
     }
