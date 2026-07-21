@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import Localization
 import Primitives
@@ -96,39 +95,4 @@ struct TransferDataViewModel {
         }
     }
 
-    func availableValue(metadata: TransferDataMetadata?) -> BigInt {
-        switch type {
-        case .transfer,
-             .deposit,
-             .withdrawal,
-             .swap,
-             .tokenApprove,
-             .generic,
-             .transferNft,
-             .perpetual: metadata?.available ?? .zero
-        case let .account(_, type):
-            switch type {
-            case .activate: metadata?.available ?? .zero
-            }
-        case let .stake(_, stakeType):
-            switch stakeType {
-            case let .unstake(delegation): delegation.base.balanceValue
-            case let .redelegate(data): data.delegation.base.balanceValue
-            case let .withdraw(delegation): delegation.base.balanceValue
-            case .rewards: data.value
-            case .stake: metadata?.available ?? .zero
-            case .freeze: metadata?.available ?? .zero
-            case let .unfreeze(resource):
-                switch resource {
-                case .bandwidth: metadata?.assetBalance.frozen ?? .zero
-                case .energy: metadata?.assetBalance.locked ?? .zero
-                }
-            }
-        case let .earn(_, earnType, _):
-            switch earnType {
-            case .deposit: metadata?.available ?? .zero
-            case let .withdraw(delegation): delegation.base.balanceValue
-            }
-        }
-    }
 }

@@ -27,13 +27,12 @@ public struct ConfirmTransferScene: View {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .onChange(of: model.feeModel.selection) { _, _ in
-            model.onChangeFeeSelection()
+        .task(id: model.feeModel.selection) {
+            await model.fetch()
         }
-        .taskOnce { model.fetch() }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
-        .activityIndicator(isLoading: model.confirmingState.isLoading, message: model.progressMessage)
+        .activityIndicator(isLoading: model.isConfirming, message: model.progressMessage)
         .alertSheet($model.isPresentingAlertMessage)
         .bindQuery(model.recipientAddressNameQuery)
     }

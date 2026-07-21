@@ -25,7 +25,7 @@ import TransactionStateServiceTestKit
 struct ConfirmServiceTests {
     @Test
     func simulationStateUsesTransferApprovalValue() {
-        let service = ConfirmSimulationServiceFactory.create(
+        let service = ConfirmSimulationService(
             addressNameService: .mock(addressStore: .mock()),
             assetsService: .mock(),
         )
@@ -47,7 +47,7 @@ struct ConfirmServiceTests {
         let assetStore = AssetStore.mock()
         try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
 
-        let service = ConfirmSimulationServiceFactory.create(
+        let service = ConfirmSimulationService(
             addressNameService: .mock(addressStore: .mock()),
             assetsService: .mock(assetStore: assetStore),
         )
@@ -65,7 +65,7 @@ struct ConfirmServiceTests {
         let assetStore = AssetStore.mock()
         try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
 
-        let service = ConfirmSimulationServiceFactory.create(
+        let service = ConfirmSimulationService(
             addressNameService: .mock(addressStore: .mock()),
             assetsService: .mock(assetStore: assetStore),
         )
@@ -93,7 +93,7 @@ struct ConfirmServiceTests {
         let usdc = Asset.mock(id: .mockSolanaUSDC(), name: "USD Coin", symbol: "USDC", decimals: 6, type: .spl)
         let unknownAssetId = AssetId(chain: .solana, tokenId: "MissingMint111111111111111111111111111111111")
 
-        let service = ConfirmSimulationServiceFactory.create(
+        let service = ConfirmSimulationService(
             addressNameService: .mock(addressStore: .mock()),
             assetsService: .mock(),
         )
@@ -116,7 +116,7 @@ struct ConfirmServiceTests {
 
     @Test
     func simulationStateIgnoresAddressNameLookupFailure() async {
-        let service = ConfirmSimulationServiceFactory.create(
+        let service = ConfirmSimulationService(
             addressNameService: .mock(
                 addressStore: .mock(),
                 apiService: GemAPIAddressNamesServiceMock(error: NSError(domain: "test", code: 404)),

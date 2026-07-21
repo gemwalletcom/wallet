@@ -63,15 +63,10 @@ struct ConfirmNetworkFeeViewModelTests {
     func calculatorError() {
         let value = "0.001 ETH"
         let fiatValue = "$2.50"
-        let input = TransactionInputViewModel(
-            data: .mock(),
-            transactionData: .mock(),
-            metaData: nil,
-            transferAmount: .failure(.insufficientBalance(
-                .mock(),
-                requirement: BalanceRequirement(required: 1, available: 0),
-            )),
-        )
+        let input = ConfirmTransferInput.mock(transferAmount: .failure(.insufficientBalance(
+            .mock(),
+            requirement: BalanceRequirement(required: 1, available: 0),
+        )))
         let model = ConfirmNetworkFeeViewModel(
             state: .data(input),
             title: Localized.Transfer.networkFee,

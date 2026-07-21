@@ -36,11 +36,11 @@ struct TransferDataViewModelTests {
         )
 
         #expect(
-            TransferDataViewModel.mock(type: .stake(.mock(), .unfreeze(.bandwidth)))
+            TransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth)))
                 .availableValue(metadata: metadata) == BigInt(500),
         )
         #expect(
-            TransferDataViewModel.mock(type: .stake(.mock(), .unfreeze(.energy)))
+            TransferData.mock(type: .stake(.mock(), .unfreeze(.energy)))
                 .availableValue(metadata: metadata) == BigInt(300),
         )
     }

@@ -100,33 +100,27 @@ public struct ViewModelFactory: Sendable {
         simulation: SimulationResult? = nil,
         onComplete: VoidAction,
     ) -> ConfirmTransferSceneViewModel {
-        let confirmService = ConfirmServiceFactory.create(
-            keystore: keystore,
-            chainServiceFactory: chainServiceFactory,
-            assetsEnabler: assetsEnabler,
-            scanService: scanService,
-            balanceService: balanceService,
-            assetsService: assetsService,
-            priceService: priceService,
-            transactionStateScheduler: transactionStateScheduler,
-            addressNameService: addressNameService,
-            activityService: activityService,
-            eventPresenterService: eventPresenterService,
-            chain: data.chain,
-        )
-        let simulationService = ConfirmSimulationServiceFactory.create(
-            addressNameService: addressNameService,
-            assetsService: assetsService,
-        )
-
-        return ConfirmTransferSceneViewModel(
-            wallet: wallet,
-            data: data,
-            confirmService: confirmService,
-            simulationService: simulationService,
-            fiatService: fiatService,
-            confirmTransferDelegate: confirmTransferDelegate,
-            simulation: simulation,
+        ConfirmTransferSceneViewModel(
+            request: ConfirmTransferRequest(
+                wallet: wallet,
+                data: data,
+                simulation: simulation,
+                delegate: confirmTransferDelegate,
+            ),
+            confirmService: ConfirmServiceFactory.create(
+                keystore: keystore,
+                chainServiceFactory: chainServiceFactory,
+                assetsEnabler: assetsEnabler,
+                scanService: scanService,
+                balanceService: balanceService,
+                assetsService: assetsService,
+                priceService: priceService,
+                transactionStateScheduler: transactionStateScheduler,
+                addressNameService: addressNameService,
+                activityService: activityService,
+                eventPresenterService: eventPresenterService,
+                chain: data.chain,
+            ),
             onComplete: onComplete,
         )
     }

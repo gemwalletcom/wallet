@@ -1,92 +1,105 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
 import ActivityService
 import AddressNameService
-import BigInt
 import Blockchain
 import ChainService
 import EventPresenterService
-
-// Copyright (c). Gem Wallet. All rights reserved.
 import ExplorerService
 import Keystore
 import Primitives
 
 public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
-    private let transferTransactionProvider: any TransferTransactionProvidable
+    private let inputProvider: ConfirmTransferInputProvider
+    private let simulationService: ConfirmSimulationService
     private let transferExecutor: any TransferExecutable
+    private let activityService: ActivityService
+    private let eventPresenterService: EventPresenterService
     private let keystore: any Keystore
     private let chainService: any ChainServiceable
     private let explorerService: any ExplorerLinkFetchable
     private let addressNameService: AddressNameService
-    private let activityService: ActivityService
-    private let eventPresenterService: EventPresenterService
 
     public init(
-        explorerService: any ExplorerLinkFetchable,
         metadataProvider: any TransferMetadataProvidable,
-        transferTransactionProvider: any TransferTransactionProvidable,
+        inputProvider: ConfirmTransferInputProvider,
+        simulationService: ConfirmSimulationService,
         transferExecutor: any TransferExecutable,
-        keystore: any Keystore,
-        chainService: any ChainServiceable,
-        addressNameService: AddressNameService,
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
+        keystore: any Keystore,
+        chainService: any ChainServiceable,
+        explorerService: any ExplorerLinkFetchable,
+        addressNameService: AddressNameService,
     ) {
-        self.explorerService = explorerService
         self.metadataProvider = metadataProvider
-        self.transferTransactionProvider = transferTransactionProvider
+        self.inputProvider = inputProvider
+        self.simulationService = simulationService
         self.transferExecutor = transferExecutor
-        self.keystore = keystore
-        self.chainService = chainService
-        self.addressNameService = addressNameService
         self.activityService = activityService
         self.eventPresenterService = eventPresenterService
+        self.keystore = keystore
+        self.chainService = chainService
+        self.explorerService = explorerService
+        self.addressNameService = addressNameService
     }
 
-    public func getMetadata(wallet: Wallet, data: TransferData) throws -> TransferDataMetadata {
-        try metadataProvider.metadata(wallet: wallet, data: data)
+    func simulationState(request: ConfirmTransferRequest) -> ConfirmSimulationState {
+        simulationService.makeState(data: request.data, simulation: request.simulation)
     }
 
-    public func getExplorerLink(chain: Chain, address: String) -> BlockExplorerLink {
-        explorerService.addressUrl(chain: chain, address: address)
+    func metadata(request: ConfirmTransferRequest) throws -> TransferDataMetadata {
+        try metadataProvider.metadata(wallet: request.wallet, data: request.data)
     }
 
-    public func loadTransferTransactionData(
-        wallet: Wallet,
-        data: TransferData,
-        selection: FeeSelection,
-        available: BigInt,
-    ) async throws -> TransferTransactionData {
-        try await transferTransactionProvider.loadTransferTransactionData(
-            wallet: wallet,
-            data: data,
-            selection: selection,
-            available: available,
+    func load(request: ConfirmTransferRequest, selection: FeeSelection) async throws -> ConfirmTransferData {
+        let metadata = try metadata(request: request)
+        async let input = inputProvider.load(request: request, metadata: metadata, selection: selection)
+        async let simulation = simulationService.updateState(data: request.data, simulation: request.simulation)
+        return try await ConfirmTransferData(metadata: metadata, input: input, simulation: simulation)
+    }
+
+    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {
+        let input = TransferConfirmationInput(
+            data: request.data,
+            wallet: request.wallet,
+            transactionData: transactionData,
+            amount: amount,
+            delegate: request.delegate,
         )
-    }
-
-    public func executeTransfer(input: TransferConfirmationInput) async throws {
         try await transferExecutor.execute(input: input)
-        await eventPresenterService.present(.transfer(input.data))
-    }
-
-    public func updateRecent(data: RecentActivityData, walletId: WalletId) {
-        do {
-            try activityService.updateRecent(data: data, walletId: walletId)
-        } catch {
-            debugLog("Failed to update recent activity: \(error)")
+        await eventPresenterService.present(.transfer(request.data))
+        if let recent = request.data.type.recentActivityData {
+            updateRecent(data: recent, walletId: request.wallet.id)
         }
     }
 
-    public func getPasswordAuthentication() throws -> KeystoreAuthentication {
+    public func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
+        explorerService.addressUrl(chain: chain, address: address)
+    }
+
+    public func addressName(chain: Chain, address: String) throws -> AddressName? {
+        try addressNameService.getAddressName(chain: chain, address: address)
+    }
+
+    public func passwordAuthentication() throws -> KeystoreAuthentication {
         try keystore.getPasswordAuthentication()
     }
 
     public func defaultPriority(for type: TransferDataType) -> FeePriority {
         chainService.defaultPriority(for: type)
     }
+}
 
-    public func getAddressName(chain: Chain, address: String) throws -> AddressName? {
-        try addressNameService.getAddressName(chain: chain, address: address)
+// MARK: - Private
+
+extension ConfirmService {
+    private func updateRecent(data: RecentActivityData, walletId: WalletId) {
+        do {
+            try activityService.updateRecent(data: data, walletId: walletId)
+        } catch {
+            debugLog("Failed to update recent activity: \(error)")
+        }
     }
 }

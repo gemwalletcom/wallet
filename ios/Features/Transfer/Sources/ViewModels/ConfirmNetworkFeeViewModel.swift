@@ -4,7 +4,7 @@ import Components
 import Primitives
 
 struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
-    private let state: StateViewType<TransactionInputViewModel>
+    private let state: StateViewType<ConfirmTransferInput>
     private let title: String
     private let value: String?
     private let fiatValue: String?
@@ -12,7 +12,7 @@ struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
     private let infoAction: VoidAction
 
     init(
-        state: StateViewType<TransactionInputViewModel>,
+        state: StateViewType<ConfirmTransferInput>,
         title: String,
         value: String?,
         fiatValue: String?,
@@ -39,7 +39,7 @@ extension ConfirmNetworkFeeViewModel {
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),
-            selectable: selectable && !state.isError,
+            selectable: selectable && state.value != nil,
         )
     }
 }
