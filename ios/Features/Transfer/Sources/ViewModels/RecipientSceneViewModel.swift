@@ -29,7 +29,6 @@ public final class RecipientSceneViewModel {
 
     private let walletService: WalletService
     private let onRecipientDataAction: RecipientDataAction
-    private let formatter = ValueFormatter(style: .full)
     private let assetImageFormatter: AssetImageFormatter
 
     public var isPresentingScanner: RecipientScene.Field?
@@ -204,7 +203,7 @@ extension RecipientSceneViewModel {
             case let .nft(asset): .transferNft(asset)
             }
 
-            let value = try formatter.inputNumber(from: amount, decimals: asset.decimals.asInt)
+            let value = try BigNumberFormatter.standard.number(from: amount, decimals: asset.decimals.asInt)
             let recipientData = RecipientData(
                 recipient: Recipient(
                     name: .none,

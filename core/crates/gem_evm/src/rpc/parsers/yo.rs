@@ -4,7 +4,7 @@ use crate::{
 };
 use primitives::{AssetId, Transaction as PrimitivesTransaction, TransactionType, contract_constants::ETHEREUM_YO_PROTOCOL_CONTRACT};
 
-use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
 
 pub(crate) const FUNCTION_YO_DEPOSIT: &str = "0x82b78ba7";
 pub(crate) const FUNCTION_YO_WITHDRAW: &str = "0x99519ab8";
@@ -44,7 +44,7 @@ impl ProtocolParser for YoParser {
                     .is_some_and(|address| address == from)
         })?;
         let token_id = ethereum_address_checksum(&log.address).ok()?;
-        let value = ethereum_value_from_log_data(&log.data, 0, 64)?;
+        let value = ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?;
 
         Some(PrimitivesTransaction::new(
             context.transaction.hash.clone(),

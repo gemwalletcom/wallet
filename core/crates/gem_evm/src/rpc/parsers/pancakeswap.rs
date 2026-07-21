@@ -10,9 +10,7 @@ use crate::{
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{ParseContext, ProtocolParser, ethereum_value_from_log_data, universal_router::decode_execute_swap};
-
-const EVENT_WORD_SIZE: usize = 64;
+use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data, universal_router::decode_execute_swap};
 
 pub struct PancakeSwapParser;
 
