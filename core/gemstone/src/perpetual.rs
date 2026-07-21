@@ -3,7 +3,7 @@ use gem_hypercore::{
     perpetual_formatter::PerpetualFormatter,
     provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data},
 };
-use primitives::{PerpetualPosition, PerpetualProvider};
+use primitives::{AutocloseValidation, AutocloseValidator as PrimitivesAutocloseValidator, PerpetualDirection, PerpetualPosition, PerpetualProvider, TpslType};
 
 use crate::models::perpetual::{GemHyperliquidOpenOrder, GemHyperliquidSocketMessage, GemPerpetualSubscription, GemPositionsDiff, GemSubscriptionMethod};
 
@@ -71,6 +71,39 @@ impl Hyperliquid {
 
     pub fn diff_open_orders_positions(&self, orders: Vec<GemHyperliquidOpenOrder>, existing_positions: Vec<PerpetualPosition>) -> GemPositionsDiff {
         diff_open_orders_positions(&orders, existing_positions)
+    }
+}
+
+#[uniffi::remote(Enum)]
+pub enum TpslType {
+    TakeProfit,
+    StopLoss,
+}
+
+#[uniffi::remote(Enum)]
+pub enum AutocloseValidation {
+    Valid,
+    InvalidAmount,
+    TriggerMustBeHigher,
+    TriggerMustBeLower,
+}
+
+#[derive(Debug, uniffi::Object)]
+pub struct AutocloseValidator {
+    inner: PrimitivesAutocloseValidator,
+}
+
+#[uniffi::export]
+impl AutocloseValidator {
+    #[uniffi::constructor]
+    pub fn new(trigger_type: TpslType, direction: PerpetualDirection, market_price: f64) -> Self {
+        Self {
+            inner: PrimitivesAutocloseValidator::new(trigger_type, direction, market_price),
+        }
+    }
+
+    pub fn validate(&self, price: f64) -> AutocloseValidation {
+        self.inner.validate(price)
     }
 }
 
