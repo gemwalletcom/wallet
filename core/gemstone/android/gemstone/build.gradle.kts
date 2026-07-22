@@ -85,7 +85,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
         "-t", "armeabi-v7a",
         "-t", "x86_64",
         "-o", jniLibsDir.absolutePath,
-        "build", "--lib"
+        "build", "--lib", "--release"
     )
 }
 

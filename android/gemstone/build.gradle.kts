@@ -87,7 +87,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     inputs.dir(cratesDir)
     inputs.file(gemstoneRoot.resolve("Cargo.toml"))
     outputs.dir(jniLibsDir)
-    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib")
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib --release")
 }
 
 tasks.configureEach {
