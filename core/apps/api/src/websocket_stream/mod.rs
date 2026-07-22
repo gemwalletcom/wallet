@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use pricer::PriceClient;
 use rocket::State;
-use rocket::tokio::sync::Mutex;
 use rocket_ws::{Channel, WebSocket};
 
 use crate::devices::auth_config::AuthConfig;
@@ -20,7 +19,7 @@ pub fn ws_health(_config: &State<AuthConfig>) -> rocket::http::Status {
 pub use client::StreamObserverConfig;
 
 #[rocket::get("/stream")]
-pub async fn ws_stream(ws: WebSocket, auth: AuthenticatedDevice, price_client: &State<Arc<Mutex<PriceClient>>>, config: &State<Arc<StreamObserverConfig>>) -> Channel<'static> {
+pub async fn ws_stream(ws: WebSocket, auth: AuthenticatedDevice, price_client: &State<PriceClient>, config: &State<Arc<StreamObserverConfig>>) -> Channel<'static> {
     let price_client = price_client.inner().clone();
     let redis_url = config.redis_url.clone();
     let cacher_client = config.cacher_client.clone();

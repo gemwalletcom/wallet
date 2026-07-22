@@ -282,10 +282,7 @@ async fn run_fetch_nft_assets(
         OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
     );
     let nft_client = NFTClient::from_config(database, nft_config, settings.nft.url.clone());
-    let consumer = FetchNftAssetConsumer {
-        nft_client: Arc::new(tokio::sync::Mutex::new(nft_client)),
-        cacher,
-    };
+    let consumer = FetchNftAssetConsumer { nft_client, cacher };
     run_consumer::<FetchNFTAssetPayload, FetchNftAssetConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter)
         .await
 }

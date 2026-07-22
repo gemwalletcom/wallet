@@ -6,8 +6,14 @@ use async_trait::async_trait;
 use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::{Transaction, TransactionId};
+use serde_json::{Value, from_value};
 
-use crate::rpc::{EVMIndexerClient, EthereumMapper, client::EthereumClient};
+use crate::jsonrpc::EthereumRpc;
+use crate::rpc::{
+    EVMIndexerClient, EthereumMapper,
+    client::EthereumClient,
+    model::{Transaction as RpcTransaction, TransactionReceipt},
+};
 
 #[cfg(feature = "rpc")]
 #[async_trait]
@@ -36,14 +42,22 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
     }
 
     async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let Some(transaction) = self.get_transaction(&hash).await? else {
+        let responses = self
+            .client
+            .batch_request::<EthereumRpc, Value>(vec![EthereumRpc::GetTransactionByHash(hash.clone()), EthereumRpc::GetTransactionReceipt(hash)])
+            .await?
+            .take_all()?;
+        let [transaction, receipt] = responses.try_into().map_err(|_| "EVM transaction batch response length mismatch")?;
+        let transaction: Option<RpcTransaction> = from_value(transaction)?;
+        let Some(transaction) = transaction else {
             return Ok(None);
         };
-        let Some(receipt) = self.get_transaction_receipt(&hash).await? else {
+        let receipt: Option<TransactionReceipt> = from_value(receipt)?;
+        let Some(receipt) = receipt else {
             return Ok(None);
         };
-        let block = self.get_block(receipt.block_number).await?;
-        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &block.timestamp))
+        let timestamp = self.get_block_timestamp(receipt.block_number).await?;
+        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &timestamp))
     }
 }
 

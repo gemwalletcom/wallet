@@ -1,22 +1,19 @@
-use std::collections::{HashMap, HashSet};
-use std::error::Error;
-use std::sync::Arc;
-
 use cacher::CacheKey;
 use pricer::PriceClient;
 use primitives::{AssetId, AssetPrice, AssetPriceInfo, StreamEvent, StreamMessage, StreamMessagePrices, WebSocketPricePayload};
 use redis::aio::MultiplexedConnection;
-use rocket::tokio::sync::Mutex;
+use std::collections::{HashMap, HashSet};
+use std::error::Error;
 
 pub struct PriceHandler {
-    price_client: Arc<Mutex<PriceClient>>,
+    price_client: PriceClient,
     assets: HashSet<AssetId>,
     prices_to_publish: HashMap<String, AssetPrice>,
     interval: rocket::tokio::time::Interval,
 }
 
 impl PriceHandler {
-    pub fn new(price_client: Arc<Mutex<PriceClient>>) -> Self {
+    pub fn new(price_client: PriceClient) -> Self {
         Self {
             price_client,
             assets: HashSet::new(),
@@ -104,13 +101,18 @@ impl PriceHandler {
 
     async fn observe_assets(&self) {
         let observed: Vec<AssetId> = self.assets.iter().cloned().collect();
-        let _ = self.price_client.lock().await.track_observed_assets(&observed).await;
+        let _ = self.price_client.track_observed_assets(&observed).await;
     }
 
     async fn price_event(&self, asset_ids: Vec<AssetId>, include_rates: bool) -> Result<StreamEvent, Box<dyn Error + Send + Sync>> {
-        let client = self.price_client.lock().await;
-        let prices = client.get_cache_prices(asset_ids).await?.into_iter().map(|x| x.as_asset_price_primitive()).collect();
-        let rates = if include_rates { client.get_cache_fiat_rates().await? } else { vec![] };
+        let prices = self
+            .price_client
+            .get_cache_prices(asset_ids)
+            .await?
+            .into_iter()
+            .map(|x| x.as_asset_price_primitive())
+            .collect();
+        let rates = if include_rates { self.price_client.get_cache_fiat_rates().await? } else { vec![] };
         Ok(StreamEvent::Prices(WebSocketPricePayload { prices, rates }))
     }
 }

@@ -3,14 +3,14 @@ use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::types::{ERROR_INTERNAL_ERROR, JsonRpcError};
 
-use num_bigint::{BigInt, Sign};
+use num_bigint::{BigInt, BigUint, Sign};
 use serde_json::{Value, json};
 use serde_serializers::biguint_from_hex_str;
 use std::str::FromStr;
 
 use super::{
     EVMIndexer,
-    model::{Block, TraceCallResult, Transaction, TransactionReceipt},
+    model::{Block, BlockHeader, TraceCallResult, TransactionReceipt},
 };
 use crate::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use crate::models::fee::EthereumFeeHistory;
@@ -56,11 +56,11 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn get_block(&self, block_number: u64) -> Result<Block, JsonRpcError> {
-        self.client.request(EthereumRpc::GetBlockByNumber(block_number)).await
+        self.client.request(EthereumRpc::GetBlockByNumber(block_number, true)).await
     }
 
-    pub async fn get_transaction(&self, hash: &str) -> Result<Option<Transaction>, JsonRpcError> {
-        self.client.request(EthereumRpc::GetTransactionByHash(hash.to_string())).await
+    pub async fn get_block_timestamp(&self, block_number: u64) -> Result<BigUint, JsonRpcError> {
+        Ok(self.client.request::<EthereumRpc, BlockHeader>(EthereumRpc::GetBlockByNumber(block_number, false)).await?.timestamp)
     }
 
     pub async fn get_block_receipts(&self, block_number: u64) -> Result<Vec<TransactionReceipt>, JsonRpcError> {

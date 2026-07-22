@@ -1,4 +1,4 @@
-use rocket::{State, get, tokio::sync::Mutex};
+use rocket::{State, get};
 
 use crate::api_clients::PermissionChainRead;
 use crate::params::{AddressParam, ChainParam, QueryLimitParam};
@@ -12,10 +12,9 @@ pub async fn get_balances(
     _permission: PermissionChainRead,
     chain: ChainParam,
     address: AddressParam,
-    client: &State<Mutex<ChainClient>>,
+    client: &State<ChainClient>,
 ) -> Result<ApiResponse<AddressBalances>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
-    let client = client.lock().await;
     let coin = client.get_balances_coin(request.clone()).await?;
     let staking = client.get_balances_staking(request.clone()).await?;
     let assets = client.get_balances_assets(request).await?;
@@ -27,10 +26,10 @@ pub async fn get_assets(
     _permission: PermissionChainRead,
     chain: ChainParam,
     address: AddressParam,
-    client: &State<Mutex<ChainClient>>,
+    client: &State<ChainClient>,
 ) -> Result<ApiResponse<Vec<AssetBalance>>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
-    Ok(client.lock().await.get_balances_assets(request).await?.into())
+    Ok(client.get_balances_assets(request).await?.into())
 }
 
 #[get("/chain/address/<chain>/<address>/transactions?<from_timestamp>&<limit>")]
@@ -40,8 +39,8 @@ pub async fn get_transactions(
     address: AddressParam,
     from_timestamp: Option<u64>,
     limit: QueryLimitParam,
-    client: &State<Mutex<ChainClient>>,
+    client: &State<ChainClient>,
 ) -> Result<ApiResponse<Vec<Transaction>>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
-    Ok(client.lock().await.get_transactions(request, from_timestamp, limit.0).await?.into())
+    Ok(client.get_transactions(request, from_timestamp, limit.0).await?.into())
 }

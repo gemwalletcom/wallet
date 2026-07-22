@@ -62,11 +62,12 @@ impl ChainProviders {
     }
 
     pub async fn get_transactions_by_address(&self, chain: Chain, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        let limit = request.limit;
         let transactions = match self.get_transactions_by_address_result(chain, request).await? {
             TransactionsResult::Transactions(transactions) => transactions,
             TransactionsResult::TransactionIds(transaction_ids) => {
                 let provider = self.get_provider(chain)?;
-                stream::iter(transaction_ids)
+                stream::iter(transaction_ids.into_iter().take(limit))
                     .filter_map(|transaction_id| async move {
                         match provider.get_transaction_by_hash(transaction_id.hash.clone()).await {
                             Ok(Some(transaction)) => Some(transaction),
