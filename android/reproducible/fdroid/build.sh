@@ -4,6 +4,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 export NDK_PATH="${NDK_PATH:?NDK_PATH must point to the Android NDK}"
+export BUILD_MODE="${BUILD_MODE:-release}"
 source "$script_dir/env.sh"
 
 touch local.properties

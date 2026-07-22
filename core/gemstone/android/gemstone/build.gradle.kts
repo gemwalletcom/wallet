@@ -10,6 +10,7 @@ val rustSrcDir = gemstoneRoot.resolve("src")
 val cratesDir = gemstoneRoot.resolve("../crates")
 val jniLibsDir = project.projectDir.resolve("src/main/jniLibs")
 val generatedKotlinDir = project.projectDir.resolve("src/main/java")
+val cargoBuildFlag = if (System.getenv("BUILD_MODE") == "release") "--release" else null
 
 android {
     namespace = "com.gemwallet.gemstone"
@@ -78,6 +79,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     inputs.dir(rustSrcDir)
     inputs.dir(cratesDir)
     inputs.file(gemstoneRoot.resolve("Cargo.toml"))
+    inputs.property("cargoBuildFlag", cargoBuildFlag.orEmpty())
     outputs.dir(jniLibsDir)
     commandLine(
         "cargo", "ndk",
@@ -85,8 +87,9 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
         "-t", "armeabi-v7a",
         "-t", "x86_64",
         "-o", jniLibsDir.absolutePath,
-        "build", "--lib", "--release"
+        "build", "--lib"
     )
+    cargoBuildFlag?.let { args(it) }
 }
 
 tasks.configureEach {

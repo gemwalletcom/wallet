@@ -136,8 +136,7 @@ impl GemKeystore {
     }
 }
 
-#[cfg(any(test, debug_assertions))]
-#[uniffi::export]
+#[cfg(test)]
 impl GemKeystore {
     pub fn private_key(&self, keystore_id: String, chain: Chain, password: Vec<u8>) -> Result<Vec<u8>, GemstoneError> {
         let password = Zeroizing::new(password);
