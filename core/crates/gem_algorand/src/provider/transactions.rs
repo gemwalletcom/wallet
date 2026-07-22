@@ -33,7 +33,7 @@ impl<C: Client> ChainTransactions for AlgorandClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactions, TransactionsRequest};
+    use chain_traits::{ChainState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
 
     #[tokio::test]
     async fn test_algorand_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
