@@ -9,17 +9,7 @@ import Testing
 struct TotalValueRequestTests {
     @Test
     func walletBalanceWithPrice() throws {
-        let db = DB.mockAssets()
-        let fiatRateStore = FiatRateStore(db: db)
-        let priceStore = PriceStore(db: db)
-
-        try fiatRateStore.add([FiatRate(symbol: Currency.usd.rawValue, rate: 1)])
-
-        let ethId = AssetId(chain: .ethereum)
-        try priceStore.updatePrice(
-            price: AssetPrice(assetId: ethId, price: 1100, priceChangePercentage24h: 10, updatedAt: .now),
-            currency: Currency.usd.rawValue,
-        )
+        let db = try DB.mockAssetsWithPrice(priceChangePercentage24h: 10)
 
         try db.dbQueue.read { db in
             let result = try TotalValueRequest(walletId: .mock(), type: .wallet).fetch(db)
@@ -45,17 +35,7 @@ struct TotalValueRequestTests {
 
     @Test
     func walletBalanceZeroChange() throws {
-        let db = DB.mockAssets()
-        let fiatRateStore = FiatRateStore(db: db)
-        let priceStore = PriceStore(db: db)
-
-        try fiatRateStore.add([FiatRate(symbol: Currency.usd.rawValue, rate: 1)])
-
-        let ethId = AssetId(chain: .ethereum)
-        try priceStore.updatePrice(
-            price: AssetPrice(assetId: ethId, price: 1100, priceChangePercentage24h: 0, updatedAt: .now),
-            currency: Currency.usd.rawValue,
-        )
+        let db = try DB.mockAssetsWithPrice(priceChangePercentage24h: 0)
 
         try db.dbQueue.read { db in
             let result = try TotalValueRequest(walletId: .mock(), type: .wallet).fetch(db)
