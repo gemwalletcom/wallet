@@ -14,11 +14,11 @@ struct AutocloseInput {
     init(type: AutocloseType, takeProfitText: String?, stopLossText: String?) {
         takeProfit = InputValidationViewModel(
             mode: .manual,
-            validators: [AutocloseValidator(type: .takeProfit, marketPrice: type.marketPrice, direction: type.direction)],
+            validators: [AutocloseValidator(type: .takeProfit, direction: type.direction, marketPrice: type.marketPrice)],
         )
         stopLoss = InputValidationViewModel(
             mode: .manual,
-            validators: [AutocloseValidator(type: .stopLoss, marketPrice: type.marketPrice, direction: type.direction)],
+            validators: [AutocloseValidator(type: .stopLoss, direction: type.direction, marketPrice: type.marketPrice)],
         )
 
         takeProfitText.map { takeProfit.text = $0 }

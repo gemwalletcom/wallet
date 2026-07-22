@@ -1,11 +1,11 @@
 package com.gemwallet.android.ui.models.perpetual.autoclose
 
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseError
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.TpslType
+import uniffi.gemstone.AutocloseValidation
 
 data class AutocloseUIModel(
     val position: PerpetualPositionDataAggregate,
@@ -24,8 +24,8 @@ data class AutocloseUIModel(
         val pnlText: String,
         val pnlDirection: ValueDirection,
         val percentSuggestions: List<Int>,
-        val error: AutocloseError?,
+        val validation: AutocloseValidation,
     ) {
-        val showError: Boolean get() = error != null
+        val showError: Boolean get() = validation != AutocloseValidation.VALID
     }
 }

@@ -174,7 +174,7 @@ class AutocloseViewModel @Inject constructor(
             formattedPrice = price?.let {
                 PerpetualFormatter.formatPrice(position.perpetual.provider, it, position.asset.decimals)
             },
-            error = validator.error(price),
+            validation = validator.validate(price),
             orderId = original?.order_id?.toULongOrNull(),
         )
     }
