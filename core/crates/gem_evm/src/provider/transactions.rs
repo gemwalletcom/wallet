@@ -137,7 +137,7 @@ mod tests {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_ethereum_test_client};
-    use chain_traits::{ChainBalances, ChainTransactionBroadcast, ChainTransactions, TransactionsRequest};
+    use chain_traits::{ChainBalances, ChainTransactionBroadcast, ChainTransactions, TransactionIdRequest, TransactionsRequest};
     use num_bigint::BigUint;
     use std::error::Error;
 
