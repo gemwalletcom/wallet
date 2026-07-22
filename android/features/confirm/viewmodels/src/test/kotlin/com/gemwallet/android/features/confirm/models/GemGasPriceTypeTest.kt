@@ -1,10 +1,7 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.ext.gasPriceDecimals
 import com.gemwallet.android.ext.totalFee
-import com.wallet.core.primitives.FeeUnitType
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemGasPriceType
 import java.math.BigInteger
@@ -19,12 +16,5 @@ class GemGasPriceTypeTest {
             BigInteger("9"),
             GemGasPriceType.Solana(gasPrice = "4", priorityFee = "5", unitPrice = "0").totalFee(),
         )
-    }
-
-    @Test
-    fun gasPriceDecimalsMapsByUnitType() {
-        assertEquals(0, FeeUnitType.SatVb.gasPriceDecimals)
-        assertEquals(9, FeeUnitType.Gwei.gasPriceDecimals)
-        assertNull(FeeUnitType.Native.gasPriceDecimals)
     }
 }

@@ -31,12 +31,12 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
             sender_address: sender_address.to_string(),
             destination_address: destination_address.to_string(),
             value: value.to_string(),
-            gas_price: GasPriceType::regular(BigInt::from(1u64)),
+            gas_price: GasPriceType::regular(BigInt::from(10u64)),
             memo: None,
             is_max_value: false,
             metadata,
         },
-        TransactionFee::new_from_fee(BigInt::from(1u64)),
+        TransactionFee::new_from_fee(BigInt::from(10u64)),
     )
 }
 
