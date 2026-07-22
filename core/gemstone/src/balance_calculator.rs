@@ -1,4 +1,4 @@
-use primitives::{AssetFiatValue, BalanceCalculator as PrimitivesBalanceCalculator, TotalFiatValue};
+use primitives::{AssetFiatValue, BalanceCalculator as Calculator, TotalFiatValue};
 
 #[uniffi::remote(Record)]
 pub struct AssetFiatValue {
@@ -31,6 +31,6 @@ impl BalanceCalculator {
     }
 
     pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
-        PrimitivesBalanceCalculator::total_fiat_value(&balances)
+        Calculator::total_fiat_value(&balances)
     }
 }
