@@ -602,7 +602,7 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
         lockPeriod = period
     }
 
-    func togglePrivacyLock(enbaled: Bool) throws {
-        isPrivacyLockEnabled = enbaled
+    func togglePrivacyLock(enabled: Bool) throws {
+        isPrivacyLockEnabled = enabled
     }
 }

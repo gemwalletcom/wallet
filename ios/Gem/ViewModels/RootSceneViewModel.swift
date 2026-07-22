@@ -57,7 +57,7 @@ final class RootSceneViewModel {
         set { walletConnectorPresenter.isPresentingError = newValue }
     }
 
-    var isPresentingConnnectorSheet: WalletConnectorSheetType? {
+    var isPresentingConnectorSheet: WalletConnectorSheetType? {
         get { walletConnectorPresenter.isPresentingSheet }
         set { walletConnectorPresenter.isPresentingSheet = newValue }
     }

@@ -39,11 +39,11 @@ public final class ValidatorSelectSceneViewModel {
     public var list: [ListItemValueSection<DelegationValidator>] {
         switch type {
         case .stake:
-            let recommeneded = recommendedValidators.validatorsSet(chain: chain)
+            let recommended = recommendedValidators.validatorsSet(chain: chain)
             return [
                 listSection(
                     title: Localized.Common.recommended,
-                    validators: validators.filter { recommeneded.contains($0.id) },
+                    validators: validators.filter { recommended.contains($0.id) },
                 ),
                 listSection(
                     title: Localized.Stake.active,

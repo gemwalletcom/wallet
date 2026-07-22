@@ -54,7 +54,7 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
 }
 
 extension NetworkSelectorViewModel: ItemFilterable {
-    public var emptyCotentModel: (any EmptyContentViewable)? {
+    public var emptyContentModel: (any EmptyContentViewable)? {
         EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks))
     }
 
