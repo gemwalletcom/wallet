@@ -11,12 +11,12 @@ use crate::rpc::client::TronClient;
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for TronClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let block_data = self.get_block_tranactions(block).await?;
+        let block_data = self.get_block_transactions(block).await?;
         if block_data.transactions.is_empty() {
             return Ok(vec![]);
         }
 
-        let receipts = self.get_block_tranactions_receipts(block).await?;
+        let receipts = self.get_block_transactions_receipts(block).await?;
         Ok(map_transactions_by_block(self.get_chain(), block_data, receipts))
     }
 

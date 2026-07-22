@@ -102,7 +102,7 @@ extension SecurityViewModel {
     func togglePrivacyLock() {
         guard isPrivacyLockEnabled != service.isPrivacyLockEnabled else { return }
         do {
-            try service.togglePrivacyLock(enbaled: isPrivacyLockEnabled)
+            try service.togglePrivacyLock(enabled: isPrivacyLockEnabled)
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
             isPrivacyLockEnabled.toggle()

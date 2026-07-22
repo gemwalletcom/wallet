@@ -7,7 +7,7 @@ public protocol ItemFilterable {
     var items: [Item] { get }
     func filter(_ item: Item, query: String) -> Bool
 
-    var emptyCotentModel: (any EmptyContentViewable)? { get }
+    var emptyContentModel: (any EmptyContentViewable)? { get }
 }
 
 public extension ItemFilterable {

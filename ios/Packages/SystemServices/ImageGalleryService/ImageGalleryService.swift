@@ -14,7 +14,7 @@ public struct ImageGalleryService: Sendable {
     // MARK: - Public methods
 
     public func saveImageFromURL(_ url: URL) async throws(ImageGalleryServiceError) {
-        try await checkPermitionToPhotos()
+        try await checkPermissionToPhotos()
         let data = try await fetchData(from: url)
         let image = try imageFromData(data)
         await saveImageToPhotos(image: image)
@@ -22,9 +22,9 @@ public struct ImageGalleryService: Sendable {
 
     // MARK: - Private methods
 
-    private func checkPermitionToPhotos() async throws(ImageGalleryServiceError) {
-        let permitionStatus = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
-        switch permitionStatus {
+    private func checkPermissionToPhotos() async throws(ImageGalleryServiceError) {
+        let permissionStatus = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        switch permissionStatus {
         case .restricted, .denied:
             throw ImageGalleryServiceError.permissionDenied
         case .authorized, .limited, .notDetermined:
