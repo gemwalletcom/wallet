@@ -181,7 +181,7 @@ android {
     }
     packaging {
         jniLibs {
-            useLegacyPackaging = false
+            useLegacyPackaging = providers.gradleProperty("useLegacyPackaging").getOrElse("false").toBoolean()
         }
     }
 
