@@ -1,12 +1,13 @@
 use std::{error::Error, str};
 
 use async_trait::async_trait;
+pub use primitives::TransactionIdRequest;
 use primitives::chart::ChartCandleStick;
 use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeCheckReport, NodeCheckRequest, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType, TransactionLoadData,
+    NodeCheckReport, NodeCheckRequest, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData,
     TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
 
@@ -17,7 +18,7 @@ pub mod testkit;
 
 pub enum TransactionsResult {
     Transactions(Vec<Transaction>),
-    TransactionIds(Vec<TransactionId>),
+    TransactionRequests(Vec<TransactionIdRequest>),
 }
 
 pub struct TransactionsRequest {
@@ -130,7 +131,7 @@ pub trait ChainTransactions: Send + Sync {
         Ok(TransactionsResult::Transactions(Vec::new()))
     }
 
-    async fn get_transaction_by_hash(&self, _hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transaction_by_hash(&self, _request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(None)
     }
 

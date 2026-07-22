@@ -114,6 +114,10 @@ public final class SwapSceneViewModel {
         )
     }
 
+    var showsSlippageIndicator: Bool {
+        selectedSlippage.isCustom
+    }
+
     var swapSlippageViewModel: SwapSlippageViewModel {
         SwapSlippageViewModel(
             slippage: selectedSlippage,

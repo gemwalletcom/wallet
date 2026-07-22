@@ -136,7 +136,7 @@ Routine signing runs inside Rust. The decrypted key never crosses the UniFFI/JNI
 Boundaries:
 
 - Raw-key signers are not on the UniFFI surface: `GemChainSigner`, `MessageSigner.sign(private_key)`, and `sign_auth_message_hash` are internal Rust only (used by `GemKeystore` and tests).
-- `private_key`, `export_private_key`, and `export_recovery_phrase` remain for explicit reveal/backup and v3 migration only, never for routine signing.
+- `export_private_key` and `export_recovery_phrase` remain for explicit reveal/backup only, never for routine signing. The raw `private_key` helper is Rust-test-only and is not exported over UniFFI.
 - The signing router (`GemChainSigner`) lives in `gemstone`, over the per-chain `gem_*` signer crates. `gem_keystore` stays storage-only.
 - App-side password bytes are zeroized after each call (Android `withGemKeystore`, iOS `withV4Password`).
 

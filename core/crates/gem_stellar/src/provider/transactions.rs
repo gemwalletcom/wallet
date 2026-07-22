@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -28,7 +28,8 @@ impl<C: Client> ChainTransactions for StellarClient<C> {
         Ok(map_transactions(self.get_chain(), payments))
     }
 
-    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash;
         let payments = self.get_transaction_payments(&hash).await?;
         match payments {
             AccountResult::Found(payments) => Ok(map_transaction_by_hash(self.get_chain(), payments._embedded.records, &hash)),
@@ -84,7 +85,11 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transaction_by_hash() {
         let stellar_client = create_test_client();
-        let transaction = stellar_client.get_transaction_by_hash(TEST_TRANSACTION_ID.to_string()).await.unwrap().unwrap();
+        let transaction = stellar_client
+            .get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Stellar, TEST_TRANSACTION_ID.to_string(), None))
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
     }

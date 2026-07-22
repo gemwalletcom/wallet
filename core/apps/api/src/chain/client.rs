@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use primitives::{Asset, AssetBalance, Chain, ChainAddress, Transaction, TransactionStateRequest, TransactionUpdate};
-use settings_chain::{ChainProviders, TransactionsRequest};
+use settings_chain::{ChainProviders, TransactionIdRequest, TransactionsRequest};
 
 pub struct ChainClient {
     providers: ChainProviders,
@@ -47,8 +47,8 @@ impl ChainClient {
         self.providers.get_staking_apy(chain).await
     }
 
-    pub async fn get_transaction_by_hash(&self, chain: Chain, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
-        self.providers.get_transaction_by_hash(chain, hash).await
+    pub async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
+        self.providers.get_transaction_by_hash(request).await
     }
 
     pub async fn get_transaction_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Send + Sync>> {

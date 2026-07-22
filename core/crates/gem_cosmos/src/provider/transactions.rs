@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, TryStreamExt, stream};
 use std::error::Error;
 
@@ -32,7 +32,8 @@ impl<C: Client> ChainTransactions for CosmosClient<C> {
         Ok(map_transactions(self.chain, receipts))
     }
 
-    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash;
         Ok(map_transactions(self.chain, vec![self.get_transaction(hash).await?]).into_iter().next())
     }
 
@@ -46,7 +47,7 @@ impl<C: Client> ChainTransactions for CosmosClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{TEST_CELESTIA_ADDRESS, TEST_TRANSACTION_ID, create_celestia_test_client, create_cosmos_test_client};
-    use chain_traits::ChainTransactions;
+    use chain_traits::{ChainTransactions, TransactionIdRequest};
 
     #[tokio::test]
     async fn test_celestia_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -59,7 +60,10 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_cosmos_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_cosmos_test_client();
-        let transaction = client.get_transaction_by_hash(TEST_TRANSACTION_ID.to_string()).await?.unwrap();
+        let transaction = client
+            .get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Cosmos, TEST_TRANSACTION_ID.to_string(), None))
+            .await?
+            .unwrap();
 
         assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
         Ok(())

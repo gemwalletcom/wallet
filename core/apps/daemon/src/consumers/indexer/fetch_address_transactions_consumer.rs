@@ -41,7 +41,7 @@ impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsCon
             .await?;
         match transactions_result {
             TransactionsResult::Transactions(transactions) => self.producer.publish_transactions(TransactionsPayload::new(chain, transactions)).await,
-            TransactionsResult::TransactionIds(transaction_ids) => self.producer.publish_fetch_transactions(transaction_ids).await,
+            TransactionsResult::TransactionRequests(transactions) => self.producer.publish_fetch_transactions(transactions).await,
         }
     }
 }
