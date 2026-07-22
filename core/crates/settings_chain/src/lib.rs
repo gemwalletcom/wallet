@@ -4,7 +4,7 @@ mod node_check;
 mod provider_config;
 pub use broadcast_providers::BroadcastProviders;
 pub use chain_providers::ChainProviders;
-pub use chain_traits::{TransactionsRequest, TransactionsResult};
+pub use chain_traits::{TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use gem_algorand::{
     AlgorandClient,
     rpc::{ALGORAND_INDEXER_URL, AlgorandIndexer},
@@ -20,7 +20,7 @@ use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EVMIndexer, EthereumClient, alchemy_url};
+use gem_evm::rpc::{EVMIndexer, EVMIndexerConfig, EthereumClient, alchemy_url};
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_near::rpc::{FASTNEAR_TRANSACTIONS_URL, FASTNEAR_TRANSFERS_URL, NearClient, NearIndexer};
 use gem_polkadot::rpc::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotClient, PolkadotIndexer};
@@ -54,6 +54,7 @@ impl ProviderFactory {
                 ProviderKeyConfig {
                     alchemy: settings.alchemy.key.secret.clone(),
                     ankr: settings.ankr.key.secret.clone(),
+                    blockscout: settings.blockscout.key.secret.clone(),
                     subscan: settings.subscan.key.secret.clone(),
                     trongrid: settings.trongrid.key.secret.clone(),
                 },
@@ -120,12 +121,17 @@ impl ProviderFactory {
             | Chain::XLayer
             | Chain::Robinhood
             | Chain::Stable => {
-                let alchemy_url = alchemy_url(chain, &config.keys.alchemy);
                 let chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
-                let ankr_client = JsonRpcClient::new(ReqwestClient::new(config.ankr_url(), reqwest_client.clone()));
-                let alchemy_client = JsonRpcClient::new(ReqwestClient::new(alchemy_url, reqwest_client.clone()));
-                let indexer = EVMIndexer::new(ankr_client, alchemy_client, chain);
+                let indexer = EVMIndexer::new_reqwest(
+                    gem_client,
+                    chain,
+                    EVMIndexerConfig {
+                        alchemy: config.keys.alchemy,
+                        ankr: config.keys.ankr,
+                        blockscout: config.keys.blockscout,
+                    },
+                );
                 Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer))
             }
             Chain::Cardano => Box::new(CardanoClient::new(gem_client)),

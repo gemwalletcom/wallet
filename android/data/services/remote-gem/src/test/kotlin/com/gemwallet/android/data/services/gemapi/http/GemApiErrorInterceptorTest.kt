@@ -11,6 +11,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -52,6 +53,19 @@ class GemApiErrorInterceptorTest {
 
         assertEquals(200, response.code)
         assertEquals("""{"code":"cryptowallet"}""", response.body.string())
+    }
+
+    @Test
+    fun `websocket upgrade passes without reading body`() {
+        val response = response(
+            code = 101,
+            body = """{"error":{"message":"must not be parsed"}}""",
+        )
+
+        assertSame(
+            response,
+            interceptor.intercept(FakeChain(request = request, response = response)),
+        )
     }
 
     private fun response(

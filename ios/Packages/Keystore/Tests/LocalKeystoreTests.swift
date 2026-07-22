@@ -92,10 +92,8 @@ struct LocalKeystoreTests {
                 isWalletsEmpty: true,
                 source: .import,
             )
-            let exportedKey = try await keystore2.getPrivateKey(wallet: wallet2, chain: .solana)
-            let originalKey = try #require(Data(fromHex: hex))
-
-            #expect(exportedKey == originalKey)
+            let exportedKey = try await keystore2.getPrivateKeyEncoded(wallet: wallet2, chain: .solana)
+            #expect(exportedKey == exported)
         }
     }
 

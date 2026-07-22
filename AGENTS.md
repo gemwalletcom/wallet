@@ -49,6 +49,7 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 ## Working Across the Monorepo
 
 - When two patterns contradict (iOS vs. Android handling of a shared flow, two error-mapping styles in `core/`, parallel provider implementations), do not blend them. Pick the more recent or more tested one, state why, and flag the other for follow-up
+- Never wrap an immutable request client in a shared `Mutex` or hold that client lock across network or database I/O. Use mutexes only for narrowly scoped mutable coordination
 - Use full domain terms in code names: write `transaction`, not `tx`, except when preserving external protocol field names, database columns, or URLs verbatim
 - For multi-step work that crosses Core → bindings → iOS/Android, checkpoint after each step: state what changed, what was verified, what is left. Do not continue from a state you cannot describe back
 - If a regeneration's effect on either app is unclear, stop and restate before adding more changes

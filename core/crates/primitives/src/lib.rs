@@ -5,6 +5,9 @@ pub type UInt64 = u64;
 #[macro_use]
 pub mod string_serde;
 
+mod async_result;
+pub use self::async_result::try_in_order;
+
 pub mod localize;
 pub use self::localize::Localize;
 
@@ -253,6 +256,8 @@ pub use self::json_rpc::JsonRpcResult;
 pub mod node_config;
 pub mod transaction_id;
 pub use self::transaction_id::TransactionId;
+mod transaction_id_request;
+pub use self::transaction_id_request::TransactionIdRequest;
 pub mod asset_address;
 pub use self::asset_address::AssetAddress;
 pub mod graphql;

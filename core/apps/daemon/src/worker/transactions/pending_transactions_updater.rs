@@ -5,7 +5,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use cacher::{CacheKey, CacherClient};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::{Chain, TransactionId, chain_transaction_timeout};
-use settings_chain::ChainProviders;
+use settings_chain::{ChainProviders, TransactionIdRequest};
 use storage::{Database, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
 
@@ -73,7 +73,7 @@ impl PendingTransactionsUpdater {
         }
 
         let start = Instant::now();
-        match self.providers.get_transaction_by_hash(chain, identifier.to_string()).await {
+        match self.providers.get_transaction_by_hash(TransactionIdRequest::new(chain, identifier.to_string(), None)).await {
             Ok(Some(transaction)) => {
                 info_with_fields!(
                     "pending transaction load success",

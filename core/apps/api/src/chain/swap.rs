@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use primitives::{AssetId, swap::SwapResult};
 use rocket::{State, get};
 use swapper::{Options, QuoteRequest, SwapQuotes, SwapperQuoteAsset, config::get_default_slippage, cross_chain::VaultAddresses, swapper::GemSwapper};
@@ -14,13 +12,13 @@ pub async fn get_swap_result(
     provider: SwapProviderParam,
     hash: &str,
     chain: ChainParam,
-    swapper: &State<Arc<GemSwapper>>,
+    swapper: &State<GemSwapper>,
 ) -> Result<ApiResponse<SwapResult>, ApiError> {
     Ok(swapper.get_swap_result(chain.0, provider.0, hash).await?.into())
 }
 
 #[get("/chain/swaps/<provider>/vault_addresses")]
-pub async fn get_vault_addresses(_permission: PermissionChainRead, provider: SwapProviderParam, swapper: &State<Arc<GemSwapper>>) -> Result<ApiResponse<VaultAddresses>, ApiError> {
+pub async fn get_vault_addresses(_permission: PermissionChainRead, provider: SwapProviderParam, swapper: &State<GemSwapper>) -> Result<ApiResponse<VaultAddresses>, ApiError> {
     Ok(swapper.get_vault_addresses(&provider.0, None).await?.into())
 }
 
@@ -32,7 +30,7 @@ pub async fn get_swap_quote(
     value: &str,
     wallet_address: AddressParam,
     destination_address: AddressParam,
-    swapper: &State<Arc<GemSwapper>>,
+    swapper: &State<GemSwapper>,
 ) -> Result<ApiResponse<SwapQuotes>, ApiError> {
     let request = build_quote_request(from_asset.0, to_asset.0, value, wallet_address.0, destination_address.0);
     Ok(swapper.get_quotes(&request).await?.into())

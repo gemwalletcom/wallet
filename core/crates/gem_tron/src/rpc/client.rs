@@ -121,9 +121,11 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
-        let name = self.trigger_constant_contract(&token_id, NAME_SELECTOR, "").await?;
-        let symbol = self.trigger_constant_contract(&token_id, SYMBOL_SELECTOR, "").await?;
-        let decimals = self.trigger_constant_contract(&token_id, DECIMALS_SELECTOR, "").await?;
+        let (name, symbol, decimals) = futures::try_join!(
+            self.trigger_constant_contract(&token_id, NAME_SELECTOR, ""),
+            self.trigger_constant_contract(&token_id, SYMBOL_SELECTOR, ""),
+            self.trigger_constant_contract(&token_id, DECIMALS_SELECTOR, ""),
+        )?;
 
         let name = decode_abi_string(&name)?;
         let symbol = decode_abi_string(&symbol)?;

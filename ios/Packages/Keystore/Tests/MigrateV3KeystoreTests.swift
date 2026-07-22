@@ -149,15 +149,15 @@ struct MigrateV3KeystoreTests {
         #expect(FileManager.default.fileExists(atPath: baseDir.appending(path: "\(keystoreId).json").path))
         #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
 
-        let key = try await keystore.getPrivateKey(wallet: legacy, chain: .ethereum)
-        #expect(key.hex == Self.expectedPrivateKey)
+        let key = try await keystore.getPrivateKeyEncoded(wallet: legacy, chain: .ethereum)
+        #expect(key == "0x\(Self.expectedPrivateKey)")
 
         let passwordReadsBefore = mockPassword.getPasswordCallsCount
         let secondRunFailures = try await keystore.migrateV3Keystores(for: [legacy])
         #expect(secondRunFailures.isEmpty)
         #expect(mockPassword.getPasswordCallsCount == passwordReadsBefore, "an already migrated wallet must not read the password again")
-        let keyAgain = try await keystore.getPrivateKey(wallet: legacy, chain: .ethereum)
-        #expect(keyAgain.hex == Self.expectedPrivateKey)
+        let keyAgain = try await keystore.getPrivateKeyEncoded(wallet: legacy, chain: .ethereum)
+        #expect(keyAgain == "0x\(Self.expectedPrivateKey)")
 
         return keystoreId
     }

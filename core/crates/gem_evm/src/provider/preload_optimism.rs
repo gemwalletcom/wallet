@@ -87,7 +87,10 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
         let data_padding = data.len().div_ceil(32) * 32 - data.len();
         call_data.extend_from_slice(&vec![0u8; data_padding]);
 
-        Ok(BigInt::from_bytes_be(Sign::Plus, &self.client.eth_call(OPTIMISM_GAS_PRICE_ORACLE_CONTRACT, &call_data).await?))
+        Ok(BigInt::from_bytes_be(
+            Sign::Plus,
+            &self.client.eth_call(OPTIMISM_GAS_PRICE_ORACLE_CONTRACT, &call_data).await?,
+        ))
     }
 
     fn encode_transaction_for_l1_fee(

@@ -97,7 +97,7 @@ pub enum EthereumRpc {
     FeeHistory { blocks: u64, reward_percentiles: Vec<u64> },
     GasPrice,
     GetBalance(String, BlockParameter),
-    GetBlockByNumber(u64),
+    GetBlockByNumber(u64, bool),
     GetBlockReceipts(u64),
     GetCode(String, BlockParameter),
     GetTransactionByHash(String),
@@ -118,7 +118,7 @@ impl ToJsonRpcRequest for EthereumRpc {
             Self::FeeHistory { .. } => method::ETH_FEE_HISTORY,
             Self::GasPrice => method::ETH_GAS_PRICE,
             Self::GetBalance(_, _) => method::ETH_GET_BALANCE,
-            Self::GetBlockByNumber(_) => method::ETH_GET_BLOCK_BY_NUMBER,
+            Self::GetBlockByNumber(_, _) => method::ETH_GET_BLOCK_BY_NUMBER,
             Self::GetBlockReceipts(_) => method::ETH_GET_BLOCK_RECEIPTS,
             Self::GetCode(_, _) => method::ETH_GET_CODE,
             Self::GetTransactionByHash(_) => method::ETH_GET_TRANSACTION_BY_HASH,
@@ -141,7 +141,7 @@ impl ToJsonRpcRequest for EthereumRpc {
             Self::GetBalance(address, block) | Self::GetCode(address, block) | Self::GetTransactionCount(address, block) => {
                 json!([address, Value::from(block)])
             }
-            Self::GetBlockByNumber(block_number) => json!([format!("0x{block_number:x}"), true]),
+            Self::GetBlockByNumber(block_number, include_transactions) => json!([format!("0x{block_number:x}"), include_transactions]),
             Self::GetBlockReceipts(block_number) => json!([format!("0x{block_number:x}")]),
             Self::GetTransactionByHash(hash) | Self::GetTransactionReceipt(hash) | Self::SendRawTransaction(hash) => json!([hash]),
             Self::TraceCall(transaction, block) => json!([transaction, ["trace", "stateDiff"], Value::from(block)]),
@@ -195,7 +195,8 @@ mod tests {
 
     #[test]
     fn encodes_block_quantities_as_hex() {
-        assert_request(EthereumRpc::GetBlockByNumber(26), method::ETH_GET_BLOCK_BY_NUMBER, json!(["0x1a", true]));
+        assert_request(EthereumRpc::GetBlockByNumber(26, true), method::ETH_GET_BLOCK_BY_NUMBER, json!(["0x1a", true]));
+        assert_request(EthereumRpc::GetBlockByNumber(26, false), method::ETH_GET_BLOCK_BY_NUMBER, json!(["0x1a", false]));
     }
 
     #[test]

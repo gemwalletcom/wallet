@@ -2,27 +2,20 @@ package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.client.plugins.websocket.webSocket
-import io.ktor.client.request.header
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
-import io.ktor.websocket.send
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ProducerScope
-import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 data class WebSocketRequest(
     val url: String,
@@ -42,25 +35,22 @@ interface WebSocketConnectable {
 
 class WebSocketConnection(
     private val requestProvider: suspend () -> WebSocketRequest,
+    client: OkHttpClient,
     private val reconnection: ExponentialReconnection = ExponentialReconnection(),
     private val pingInterval: Long = PING_INTERVAL_MS,
 ) : WebSocketConnectable {
-    private val client by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { createClient() }
-
-    private val mutex = Mutex()
-    private var sendChannel: SendChannel<String>? = null
+    private val client = client.newBuilder()
+        .pingInterval(pingInterval, TimeUnit.MILLISECONDS)
+        .build()
+    private val activeWebSocket = AtomicReference<WebSocket?>()
 
     override fun connect(): Flow<WebSocketEvent> = channelFlow {
         var reconnectAttempt = 0
         while (isActive) {
             runCatchingCancellable {
-                val request = requestProvider()
-                client.webSocket(
-                    urlString = request.url,
-                    request = { request.headers.forEach { (key, value) -> header(key, value) } },
-                ) {
-                    reconnectAttempt = 0
-                    observeSession(this@channelFlow)
+                observeSession(requestProvider()).collect { event ->
+                    if (event == WebSocketEvent.Connected) reconnectAttempt = 0
+                    send(event)
                 }
             }.onFailure { Log.e(TAG, "Connection error", it) }
             send(WebSocketEvent.Disconnected)
@@ -69,41 +59,49 @@ class WebSocketConnection(
         }
     }
 
-    override suspend fun send(message: String): Boolean = mutex.withLock {
-        sendChannel?.trySend(message)?.isSuccess == true
-    }
+    override suspend fun send(message: String): Boolean = activeWebSocket.get()?.send(message) == true
 
-    private suspend fun DefaultClientWebSocketSession.observeSession(events: ProducerScope<WebSocketEvent>) {
-        val messages = Channel<String>(Channel.UNLIMITED)
-        try {
-            mutex.withLock { sendChannel = messages }
-            launch {
-                for (message in messages) {
-                    runCatchingCancellable { send(message) }
-                        .onFailure { Log.e(TAG, "Send message error", it) }
+    private fun observeSession(request: WebSocketRequest): Flow<WebSocketEvent> = callbackFlow {
+        val webSocket = client.newWebSocket(request.toOkHttpRequest(), object : WebSocketListener() {
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                activeWebSocket.set(webSocket)
+                if (trySend(WebSocketEvent.Connected).isFailure) {
+                    activeWebSocket.compareAndSet(webSocket, null)
+                    webSocket.cancel()
                 }
             }
-            events.send(WebSocketEvent.Connected)
-            for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    events.send(WebSocketEvent.Message(frame.readText()))
-                }
+
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                trySend(WebSocketEvent.Message(text))
             }
-        } finally {
-            withContext(NonCancellable) {
-                mutex.withLock {
-                    if (sendChannel === messages) sendChannel = null
-                }
-                messages.close()
+
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                webSocket.close(code, reason)
             }
+
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                activeWebSocket.compareAndSet(webSocket, null)
+                close()
+            }
+
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                activeWebSocket.compareAndSet(webSocket, null)
+                close(t)
+            }
+        })
+        awaitClose {
+            activeWebSocket.compareAndSet(webSocket, null)
+            webSocket.cancel()
         }
     }
 
-    private fun createClient(): HttpClient = HttpClient(CIO) {
-        install(WebSockets) {
-            pingIntervalMillis = pingInterval
-        }
-    }
+    private fun WebSocketRequest.toOkHttpRequest(): Request =
+        Request.Builder()
+            .url(url)
+            .apply {
+                headers.forEach { (name, value) -> header(name, value) }
+            }
+            .build()
 
     companion object {
         private const val TAG = "WebSocketConnection"

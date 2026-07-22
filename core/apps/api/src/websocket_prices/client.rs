@@ -1,7 +1,3 @@
-use std::collections::{HashMap, HashSet};
-use std::error::Error;
-use std::sync::Arc;
-
 use cacher::CacheKey;
 use pricer::PriceClient;
 use primitives::{AssetId, AssetPrice, AssetPriceInfo, WebSocketPriceAction, WebSocketPriceActionType, WebSocketPricePayload};
@@ -9,9 +5,10 @@ use redis::PushInfo;
 use redis::aio::MultiplexedConnection;
 use rocket::futures::SinkExt;
 use rocket::serde::json::serde_json;
-use rocket::tokio::sync::Mutex;
 use rocket_ws::Message;
 use rocket_ws::stream::DuplexStream;
+use std::collections::{HashMap, HashSet};
+use std::error::Error;
 
 use crate::websocket::decode_push_message;
 
@@ -20,14 +17,14 @@ pub struct PriceObserverConfig {
 }
 
 pub struct PriceObserverClient {
-    price_client: Arc<Mutex<PriceClient>>,
+    price_client: PriceClient,
     assets: HashSet<AssetId>,
     prices_to_publish: HashMap<String, AssetPrice>,
     interval: rocket::tokio::time::Interval,
 }
 
 impl PriceObserverClient {
-    pub fn new(price_client: Arc<Mutex<PriceClient>>) -> Self {
+    pub fn new(price_client: PriceClient) -> Self {
         PriceObserverClient {
             price_client,
             assets: HashSet::new(),
@@ -49,14 +46,14 @@ impl PriceObserverClient {
     }
 
     async fn price_payload(&self, include_rates: bool) -> Result<WebSocketPricePayload, Box<dyn Error + Send + Sync>> {
-        let client = self.price_client.lock().await;
-        let prices = client
+        let prices = self
+            .price_client
             .get_cache_prices(self.assets.iter().cloned().collect())
             .await?
             .into_iter()
             .map(|x| x.as_asset_price_primitive())
             .collect();
-        let rates = if include_rates { client.get_cache_fiat_rates().await? } else { vec![] };
+        let rates = if include_rates { self.price_client.get_cache_fiat_rates().await? } else { vec![] };
         Ok(WebSocketPricePayload { prices, rates })
     }
 
@@ -99,7 +96,7 @@ impl PriceObserverClient {
         };
 
         let observed: Vec<AssetId> = self.assets.iter().cloned().collect();
-        let _ = self.price_client.lock().await.track_observed_assets(&observed).await;
+        let _ = self.price_client.track_observed_assets(&observed).await;
 
         let payload = self.price_payload(needs_rates).await?;
         self.send_payload(stream, payload).await?;
