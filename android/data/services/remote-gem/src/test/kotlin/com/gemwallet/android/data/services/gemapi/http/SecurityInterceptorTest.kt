@@ -2,6 +2,7 @@ package com.gemwallet.android.data.services.gemapi.http
 
 import com.gemwallet.android.testkit.mockMulticoinWalletId
 import com.wallet.core.primitives.WalletId
+import java.security.GeneralSecurityException
 import java.util.concurrent.TimeUnit
 import okhttp3.Call
 import okhttp3.Connection
@@ -44,6 +45,22 @@ class SecurityInterceptorTest {
         assertEquals(walletId.id, signedWalletId)
         assertEquals(body, signedBody!!.toString(Charsets.UTF_8))
         assertNull(signedRequest.header("x-wallet-id"))
+    }
+
+    @Test
+    fun interceptReturnsPeekableResponseWhenSigningFails() {
+        val signer = object : DeviceRequestSigner {
+            override fun sign(method: String, path: String, body: ByteArray?, walletId: String): DeviceSignature =
+                throw GeneralSecurityException("Keystore operation failed")
+        }
+        val request = Request.Builder()
+            .url("https://api.gemwallet.com/v2/devices/rewards")
+            .build()
+
+        val response = SecurityInterceptor(signer).intercept(FakeChain(request))
+
+        assertEquals(503, response.code)
+        assertEquals("", response.peekBody(64L * 1024).string())
     }
 }
 

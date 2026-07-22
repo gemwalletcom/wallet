@@ -20,13 +20,13 @@ class SecurityInterceptor internal constructor(
             it.writeTo(buffer)
             buffer.readByteArray()
         }
-        val signature = signer.sign(
-            method = request.method,
-            path = request.url.encodedPath,
-            body = body,
-            walletId = request.tag(WalletId::class.java)?.id.orEmpty(),
-        )
         return try {
+            val signature = signer.sign(
+                method = request.method,
+                path = request.url.encodedPath,
+                body = body,
+                walletId = request.tag(WalletId::class.java)?.id.orEmpty(),
+            )
             val builder = request.newBuilder()
             signature.toHeaders().forEach { (key, value) -> builder.header(key, value) }
             chain.proceed(builder.build())

@@ -8,7 +8,9 @@ import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.aead.AesGcmKeyManager
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import java.nio.charset.StandardCharsets.UTF_8
+import java.security.GeneralSecurityException
 import java.security.MessageDigest
+import java.security.ProviderException
 import java.util.Base64
 
 internal class TinkEncryptedKeyValueStore(
@@ -85,12 +87,38 @@ internal class TinkAeadProvider(
 
     private fun buildAead(): Aead {
         AeadConfig.register()
-        val keysetHandle = AndroidKeysetManager.Builder()
-            .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
-            .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
-            .withMasterKeyUri("android-keystore://${config.masterKeyAlias}")
-            .build()
-            .keysetHandle
-        return keysetHandle.getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        return retryAeadBuild {
+            AndroidKeysetManager.Builder()
+                .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
+                .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
+                .withMasterKeyUri("android-keystore://${config.masterKeyAlias}")
+                .build()
+                .keysetHandle
+                .getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        }
     }
 }
+
+internal fun retryAeadBuild(
+    maxAttempts: Int = MAX_BUILD_ATTEMPTS,
+    retryDelayMilliseconds: Long = BUILD_RETRY_DELAY_MILLISECONDS,
+    build: () -> Aead,
+): Aead {
+    var lastError: Exception? = null
+    repeat(maxAttempts) { attempt ->
+        try {
+            return build()
+        } catch (error: GeneralSecurityException) {
+            lastError = error
+        } catch (error: ProviderException) {
+            lastError = error
+        }
+        if (attempt < maxAttempts - 1) {
+            Thread.sleep(retryDelayMilliseconds * (attempt + 1))
+        }
+    }
+    throw lastError ?: GeneralSecurityException("Unable to build Aead")
+}
+
+private const val MAX_BUILD_ATTEMPTS = 3
+private const val BUILD_RETRY_DELAY_MILLISECONDS = 50L
