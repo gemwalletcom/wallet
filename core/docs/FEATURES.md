@@ -2,9 +2,16 @@
 
 These tables describe the current implementation, not a product promise. `Address history` means that `get_transactions_by_address` has a chain-specific implementation; it does not imply that every client constructor wires that implementation. `Simulation` means that the chain overrides the default unsupported simulation behavior. `WalletConnect` means that the chain is advertised for sessions and has request handling.
 
-Availability legend used across comparison tables: ✅ = supported; ❌ = not supported; ➖ = not applicable; 🏗️ = TODO.
+Availability legend used across comparison tables:
 
-Use `➖` only when the capability does not apply to the chain or provider. Use `❌` when it applies but is unavailable.
+- ✅ = supported
+- ❌ = not supported
+- ➖ = not applicable
+- 🏗️ = TODO
+- ⚪ = not planned
+- 🪦 = deprecated
+
+Use `➖` only when the capability does not apply to the chain or provider. Use `❌` when it applies but is unavailable. Use `⚪` when support is intentionally not planned. Use `🪦` when the provider has deprecated support.
 
 Review cadence: weekly, and immediately when a referenced Core mapping changes.
 
@@ -240,7 +247,7 @@ These tables compare Core route eligibility with current provider-advertised sup
 | --- | --- | :---: | --- | --- | --- |
 | [NEAR Intents](../crates/swapper/src/near_intents/provider.rs) | Omnichain | 27/54 | NEAR, Ethereum, Bitcoin, Solana, Sui, Arbitrum, Base, Optimism, Avalanche C-Chain, BNB Smart Chain, Polygon, TON, Tron, Dogecoin, XRP Ledger, Cardano, Berachain, Aptos, Zcash, Gnosis, Stellar, Litecoin, Bitcoin Cash, Monad, X Layer, Plasma, Abstract | Missing: HyperCore | <sub>[code](../crates/swapper/src/near_intents/assets.rs) · [live token API](https://1click.chaindefuser.com/v0/tokens) · [chain support](https://docs.near-intents.org/resources/chain-support)</sub> |
 | [Relay](../crates/swapper/src/relay/provider.rs) | Omnichain | 18/54 | Ethereum, BNB Smart Chain, Base, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Linea, ZKsync, Hyperliquid, Sei EVM, Berachain, Manta, Sonic, Abstract, Celo, Stable, Robinhood Chain | Missing: Bitcoin, Solana, TON, Tron, Gnosis, Mantle, Blast, World Chain, Ink, Unichain, Monad, Plasma, HyperCore | <sub>[code](../crates/swapper/src/relay/asset.rs) · [live chains API](https://api.relay.link/chains)</sub> |
-| [Across](../crates/swapper/src/across/provider.rs) | Bridge | 16/54 | Ethereum, Optimism, Polygon, Arbitrum, Base, Hyperliquid, Linea, ZKsync, World Chain, Ink, Unichain, Monad, BNB Smart Chain, Plasma, Robinhood Chain, Tron | Missing: Avalanche C-Chain, Solana, Blast, HyperCore | <sub>[code](../crates/gem_evm/src/across/deployment.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> |
+| [Across](../crates/swapper/src/across/provider.rs) | Bridge | 17/54 | Ethereum, Optimism, Polygon, Arbitrum, Avalanche C-Chain, Base, Hyperliquid, Linea, ZKsync, World Chain, Ink, Unichain, Monad, BNB Smart Chain, Plasma, Robinhood Chain, Tron | Missing: Solana, HyperCore; 🪦 Blast | <sub>[code](../crates/gem_evm/src/across/deployment.rs) · [chains and contracts](https://docs.across.to/chains-and-contracts) · [live chains API](https://app.across.to/api/swap/chains)</sub> |
 | [THORChain](../crates/swapper/src/thorchain/provider.rs) | Omnichain | 14/54 | Dogecoin, THORChain, Ethereum, Cosmos, Bitcoin, Bitcoin Cash, Litecoin, BNB Smart Chain, Avalanche C-Chain, Base, XRP Ledger, Tron, Solana, Zcash | Core-only: Zcash | <sub>[code](../crates/swapper/src/thorchain/chain.rs) · [supported chains](https://dev.thorchain.org/concepts/querying-thorchain.html) · [live inbound-address API](https://gateway.liquify.com/chain/thorchain_api/thorchain/inbound_addresses)</sub> |
 | [Mayan](../crates/swapper/src/mayan/provider.rs) | Cross-chain | 14/54 | Ethereum, Solana, Sui, BNB Smart Chain, Base, Polygon, Avalanche C-Chain, Arbitrum, Optimism, Linea, Unichain, Monad, Hyperliquid, HyperCore | ➖ | <sub>[code](../crates/swapper/src/mayan/asset.rs) · [quote API](https://docs.mayan.finance/integration/quote-api) · [live configuration](https://sia.mayan.finance/v10/init)</sub> |
 | [Squid](../crates/swapper/src/squid/provider.rs) | Cross-chain | 6/54 | Cosmos, Osmosis, Celestia, Injective, Sei, Noble | Missing: Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid, Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[code](../crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/api-and-sdk-integration/key-concepts/get-supported-tokens-and-chains)</sub> |
@@ -327,7 +334,6 @@ This backlog only includes gaps that apply to an existing Gem chain, an active p
 | OKX DEX | Add the TON quote and transaction path | TON | <sub>[Core provider](../crates/swapper/src/okx/provider.rs) · [TON guide](https://web3.okx.com/build/docs/waas/dex-use-swap-ton-quick-start)</sub> | 🏗️ |
 | Relay | Add the missing EVM asset mappings | Gnosis, Mantle, Blast, World Chain, Ink, Unichain, Monad, Plasma | <sub>[Core mapping](../crates/swapper/src/relay/asset.rs) · [live chains API](https://api.relay.link/chains)</sub> | 🏗️ |
 | Relay | Add non-EVM quote and transaction implementations before exposing the remaining provider chains | Bitcoin, Solana, TON, Tron, HyperCore | <sub>[Core EVM-only transaction model](../crates/swapper/src/relay/model.rs) · [live chains API](https://api.relay.link/chains)</sub> | 🏗️ |
-| Across | Add the missing EVM routes | Avalanche C-Chain, Blast | <sub>[Core mapping](../crates/gem_evm/src/across/deployment.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> | 🏗️ |
 | Across | Add non-EVM quote and transaction implementations | Solana, HyperCore | <sub>[Core provider](../crates/swapper/src/across/provider.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> | 🏗️ |
 | Squid | Add an EVM quote and transaction implementation | Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid | <sub>[Core Cosmos transaction path](../crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/api-and-sdk-integration/key-concepts/get-supported-tokens-and-chains)</sub> | 🏗️ |
 | Squid | Add the corresponding non-EVM quote and transaction implementations | Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[Core provider](../crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/api-and-sdk-integration/key-concepts/get-supported-tokens-and-chains)</sub> | 🏗️ |
