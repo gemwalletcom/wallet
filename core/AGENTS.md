@@ -46,6 +46,8 @@ Before finishing a task:
 4. **Run clippy**: `cargo clippy -p <crate> -- -D warnings`
 5. **Format**: `just format`
 
+Regenerate bindings and build iOS or Android only when the change affects UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
+
 ## Localization
 
 Strings live in the `localizer` crate (Fluent `.ftl` + `i18n_embed`), one file per language at `crates/localizer/i18n/<lang>/localizer.ftl`. `en` is the canonical key set and fallback. Maintain translations directly — there is no download step.

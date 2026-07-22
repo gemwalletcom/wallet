@@ -292,32 +292,54 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
 mod swap_integration_tests {
     use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, Swapper, SwapperError, client_factory::create_eth_client, uniswap};
-    use primitives::{AssetId, Chain, asset_constants::ROBINHOOD_USDG_TOKEN_ID};
+    use primitives::{
+        AssetId, Chain,
+        asset_constants::{ETHEREUM_USDC_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID},
+    };
     use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_ethereum_pancakeswap_eth_to_usdc_quote() -> Result<(), SwapperError> {
+        let network_provider = Arc::new(NativeProvider::default());
+        let swap_provider = uniswap::default::boxed_pancakeswap(network_provider.clone());
+        assert_native_to_token_quote(Chain::Ethereum, ETHEREUM_USDC_ASSET_ID.clone(), network_provider, swap_provider).await
+    }
 
     #[tokio::test]
     async fn test_robinhood_eth_to_usdg_quote() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v3(network_provider.clone());
-        assert_robinhood_eth_to_usdg_quote(network_provider, swap_provider).await
+        assert_native_to_token_quote(
+            Chain::Robinhood,
+            AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())),
+            network_provider,
+            swap_provider,
+        )
+        .await
     }
 
     #[tokio::test]
     async fn test_robinhood_pancakeswap_eth_to_usdg_quote() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_pancakeswap(network_provider.clone());
-        assert_robinhood_eth_to_usdg_quote(network_provider, swap_provider).await
+        assert_native_to_token_quote(
+            Chain::Robinhood,
+            AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())),
+            network_provider,
+            swap_provider,
+        )
+        .await
     }
 
-    async fn assert_robinhood_eth_to_usdg_quote(network_provider: Arc<NativeProvider>, swap_provider: Box<dyn Swapper>) -> Result<(), SwapperError> {
+    async fn assert_native_to_token_quote(chain: Chain, to_asset: AssetId, network_provider: Arc<NativeProvider>, swap_provider: Box<dyn Swapper>) -> Result<(), SwapperError> {
         let options = Options {
             slippage: 100.into(),
             use_max_amount: false,
         };
 
         let request = QuoteRequest {
-            from_asset: AssetId::from_chain(Chain::Robinhood).into(),
-            to_asset: AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())).into(),
+            from_asset: AssetId::from_chain(chain).into(),
+            to_asset: to_asset.into(),
             wallet_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
             destination_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
             value: "100000000000000".into(),
@@ -330,7 +352,7 @@ mod swap_integration_tests {
         let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
 
         let estimate_value = format!("0x{:x}", quote_data.value.parse::<u128>().map_err(SwapperError::from)?);
-        let gas = create_eth_client(network_provider.clone(), Chain::Robinhood)?
+        let gas = create_eth_client(network_provider.clone(), chain)?
             .estimate_gas(Some(&request.wallet_address), &quote_data.to, Some(&estimate_value), Some(&quote_data.data))
             .await
             .map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
