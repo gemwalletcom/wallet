@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import GRDB
 import Primitives
 
@@ -13,19 +14,20 @@ public struct TotalValueRequest: DatabaseQueryable, Equatable {
     }
 
     public func fetch(_ db: Database) throws -> TotalFiatValue {
+        let balanceCalculator = BalanceCalculator()
         switch type {
         case .perpetual:
-            return try BalanceCalculator.totalFiatValue([perpetualFiatValue(db)])
+            return try balanceCalculator.totalFiatValue([perpetualFiatValue(db)])
         case .wallet:
             let assets = try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
             }
-            return try BalanceCalculator.totalFiatValue(assets + [perpetualFiatValue(db)])
+            return try balanceCalculator.totalFiatValue(assets + [perpetualFiatValue(db)])
         case .earn:
             let assets = try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)
             }
-            return BalanceCalculator.totalFiatValue(assets)
+            return balanceCalculator.totalFiatValue(assets)
         }
     }
 
