@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use number_formatter::CryptoFiatConverter as NumberFormatterCryptoFiatConverter;
+use number_formatter::CryptoFiatConverter as Converter;
 
 use crate::GemstoneError;
 
@@ -20,10 +20,10 @@ impl CryptoFiatConverter {
     }
 
     pub fn convert_to_fiat(&self, value: BigInt, decimals: u32, price: f64) -> Result<String, GemstoneError> {
-        Ok(NumberFormatterCryptoFiatConverter::convert_to_fiat(&value.to_string(), decimals, price)?)
+        Ok(Converter::convert_to_fiat(&value.to_string(), decimals, price)?)
     }
 
     pub fn convert_to_crypto(&self, fiat_amount: String, decimals: u32, price: f64) -> Result<String, GemstoneError> {
-        Ok(NumberFormatterCryptoFiatConverter::convert_to_crypto(&fiat_amount, decimals, price)?)
+        Ok(Converter::convert_to_crypto(&fiat_amount, decimals, price)?)
     }
 }
