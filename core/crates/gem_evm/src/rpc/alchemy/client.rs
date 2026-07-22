@@ -11,7 +11,7 @@ use super::{
     jsonrpc::AlchemyRpc,
     model::{TokenBalances, Transfer, Transfers},
 };
-use crate::rpc::{EVMIndexerClient, IndexedTransaction};
+use crate::rpc::{EVMIndexerClient, TransactionReference};
 
 pub fn alchemy_url(chain: Chain, base_url: &str, key: &str) -> String {
     let network = match chain {
@@ -51,7 +51,6 @@ pub fn alchemy_url(chain: Chain, base_url: &str, key: &str) -> String {
     format!("{}/v2/{key}", base_url.replace("{network}", network).trim_end_matches('/'))
 }
 
-#[derive(Debug, Clone)]
 pub(crate) struct AlchemyClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
 }
@@ -75,7 +74,7 @@ impl<C: Client + Clone> AlchemyClient<C> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
-    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
         let (outgoing, incoming) = futures::try_join!(
             self.get_asset_transfers("fromAddress", address, limit),
             self.get_asset_transfers("toAddress", address, limit),
@@ -89,7 +88,7 @@ impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
             .filter_map(|transfer| {
                 transaction_ids
                     .insert(transfer.hash.clone())
-                    .then_some(IndexedTransaction::new(transfer.hash, Some(transfer.block_num)))
+                    .then_some(TransactionReference::new(transfer.hash, Some(transfer.block_num)))
             })
             .take(limit)
             .collect())
@@ -135,7 +134,10 @@ mod tests {
 
         assert_eq!(
             transaction_ids,
-            vec![IndexedTransaction::new("0xin".to_string(), Some(3)), IndexedTransaction::new("0xout".to_string(), Some(2))]
+            vec![
+                TransactionReference::new("0xin".to_string(), Some(3)),
+                TransactionReference::new("0xout".to_string(), Some(2))
+            ]
         );
     }
 

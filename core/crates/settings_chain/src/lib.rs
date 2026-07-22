@@ -3,7 +3,7 @@ mod chain_providers;
 mod node_check;
 mod provider_config;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use chain_traits::ChainTraits;
 use gem_algorand::{AlgorandClient, rpc::AlgorandIndexer};
@@ -12,7 +12,7 @@ use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EVMIndexer, EthereumClient, alchemy_url};
+use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, alchemy_url};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_near::rpc::{NearClient, NearIndexer};
@@ -37,28 +37,20 @@ pub use provider_config::ProviderConfig;
 pub struct ProviderFactory {}
 
 impl ProviderFactory {
-    pub fn new_from_settings(chain: Chain, settings: &Settings) -> Box<dyn ChainTraits> {
-        Self::new_from_settings_with_user_agent(chain, settings, "")
-    }
-
     pub fn new_from_settings_with_user_agent(chain: Chain, settings: &Settings, user_agent: &str) -> Box<dyn ChainTraits> {
         let url = Self::get_chain_url(chain, settings);
 
         Self::new_provider(ProviderConfig::from_settings(chain, &url, settings), user_agent)
     }
 
-    pub fn new_providers(settings: &Settings) -> Vec<Box<dyn ChainTraits>> {
-        Chain::all().iter().map(|chain| Self::new_from_settings(*chain, settings)).collect()
-    }
-
-    pub fn new_providers_with_user_agent(settings: &Settings, user_agent: &str) -> Vec<Box<dyn ChainTraits>> {
+    pub(crate) fn new_providers_with_user_agent(settings: &Settings, user_agent: &str) -> Vec<Box<dyn ChainTraits>> {
         Chain::all()
             .iter()
             .map(|chain| Self::new_from_settings_with_user_agent(*chain, settings, user_agent))
             .collect()
     }
 
-    pub fn new_provider(config: ProviderConfig, user_agent: &str) -> Box<dyn ChainTraits> {
+    fn new_provider(config: ProviderConfig, user_agent: &str) -> Box<dyn ChainTraits> {
         let host = config.url.parse::<url::Url>().ok().and_then(|url| url.host_str().map(String::from)).unwrap_or_default();
         let reqwest_client = gem_client::builder().retry(retry_policy(host, 3)).build().expect("Failed to build reqwest client");
         Self::new_provider_with_client(config, user_agent, reqwest_client)
@@ -101,25 +93,35 @@ impl ProviderFactory {
             | Chain::XLayer
             | Chain::Robinhood
             | Chain::Stable => {
-                let chain = EVMChain::from_chain(chain).unwrap();
+                let evm_chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
-                let indexer_client = gem_client;
-                let indexer = EVMIndexer::new(
-                    JsonRpcClient::new(indexer_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
-                        chain.to_chain(),
+                let client = EthereumClient::new(rpc_client, evm_chain);
+                let indexer = EVMIndexer::for_chain(
+                    gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
+                        chain,
                         &config.indexers.alchemy.url,
                         &config.indexers.alchemy.key,
-                    ))),
-                    JsonRpcClient::new(indexer_client.clone().with_request_timeout(config.indexers.ankr.timeout).with_base_url(format!(
+                    )),
+                    gem_client.clone().with_request_timeout(config.indexers.ankr.timeout).with_base_url(format!(
                         "{}/{}",
                         config.indexers.ankr.url.trim_end_matches('/'),
                         config.indexers.ankr.key
-                    ))),
-                    config.indexers.blockscout.configure_client(indexer_client),
+                    )),
+                    config.indexers.blockscout.configure_client(gem_client),
                     config.indexers.blockscout.key,
-                    chain,
+                    evm_chain,
                 );
-                Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer))
+                let provider = if let Some(indexer) = indexer {
+                    let indexer = Arc::new(indexer);
+                    EthereumProvider::new(
+                        client,
+                        Box::new(EVMTransactionsByAddressProvider::new(indexer.clone())),
+                        Box::new(EVMAssetBalanceProvider::new(indexer)),
+                    )
+                } else {
+                    EthereumProvider::new_rpc_only(client)
+                };
+                Box::new(provider)
             }
             Chain::Cardano => Box::new(CardanoClient::new(gem_client)),
             Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Noble | Chain::Sei => {

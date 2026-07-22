@@ -13,22 +13,22 @@ pub struct ChainProviders {
 }
 
 impl ChainProviders {
-    pub fn new(providers: Vec<Box<dyn ChainTraits>>) -> Self {
-        Self { providers }
+    pub fn from_settings(settings: &Settings, user_agent: &str) -> Self {
+        Self {
+            providers: ProviderFactory::new_providers_with_user_agent(settings, user_agent),
+        }
     }
 
-    pub fn from_settings(settings: &Settings, service_name: &str) -> Self {
-        Self::new(ProviderFactory::new_providers_with_user_agent(settings, service_name))
-    }
-
-    pub fn for_chain(chain: Chain, settings: &Settings, service_name: &str) -> Self {
-        Self::new(vec![ProviderFactory::new_from_settings_with_user_agent(chain, settings, service_name)])
+    pub fn for_chain(chain: Chain, settings: &Settings, user_agent: &str) -> Self {
+        Self {
+            providers: vec![ProviderFactory::new_from_settings_with_user_agent(chain, settings, user_agent)],
+        }
     }
 
     fn get_provider(&self, chain: Chain) -> Result<&dyn ChainTraits, Box<dyn Error + Send + Sync>> {
         self.providers
             .iter()
-            .find(|x| x.get_chain() == chain)
+            .find(|provider| provider.get_chain() == chain)
             .map(|provider| provider.as_ref())
             .ok_or_else(|| format!("Provider for chain {} not found", chain.as_ref()).into())
     }

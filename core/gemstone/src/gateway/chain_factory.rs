@@ -7,7 +7,7 @@ use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::client::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::EthereumClient;
+use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_near::rpc::{FASTNEAR_URL, NearClient, NearIndexer};
@@ -120,7 +120,10 @@ impl ChainClientFactory {
             | Chain::Monad
             | Chain::XLayer
             | Chain::Robinhood
-            | Chain::Stable => Ok(Arc::new(EthereumClient::new(JsonRpcClient::new(alien_client), EVMChain::from_chain(chain).unwrap()))),
+            | Chain::Stable => Ok(Arc::new(EthereumProvider::new_rpc_only(EthereumClient::new(
+                JsonRpcClient::new(alien_client),
+                EVMChain::from_chain(chain).unwrap(),
+            )))),
         }
     }
 }

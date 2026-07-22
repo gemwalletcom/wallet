@@ -39,27 +39,27 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Avalanche C-Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
 | Sui | Sui | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | XRP Ledger | XRP | ✅ | ❌ | ➖ | ✅ | ➖ | ❌ | ❌ |
-| opBNB | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
+| opBNB | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Fantom | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Gnosis | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Celestia | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ➖ | ❌ |
 | Injective | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
 | Sei | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
-| Sei EVM | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Manta | EVM | 🏗️ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
+| Sei EVM | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Manta | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Blast | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Noble | Cosmos | ✅ | ❌ | ➖ | ❌ | ➖ | ➖ | ❌ |
 | ZKsync | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
 | Linea | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
-| Mantle | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
+| Mantle | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Celo | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | NEAR | NEAR | ✅ | ❌ | ➖ | ✅ | ❌ | ❌ | ❌ |
 | World Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Stellar | Stellar | ✅ | ❌ | ➖ | ✅ | ➖ | ❌ | ❌ |
-| Sonic | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Sonic | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Algorand | Algorand | ✅ | ❌ | ➖ | ❌ | ❌ | ❌ | ❌ |
 | Polkadot | Polkadot | ✅ | ❌ | ➖ | ❌ | ❌ | ❌ | ❌ |
-| Plasma | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Plasma | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Cardano | Cardano | ✅ | ❌ | ➖ | ✅ | ❌ | ❌ | ❌ |
 | Abstract | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Berachain | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
@@ -70,7 +70,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Monad | EVM | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | X Layer | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Robinhood Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
-| Stable | EVM | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Stable | EVM | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 <sub>Reviewed 2026-07-21. Sources: [chain list](../crates/primitives/src/chain.rs), [feature configuration](../crates/primitives/src/chain_config.rs), [address-history contract](../crates/chain_traits/src/lib.rs), [simulation implementations](../crates/gem_evm/src/provider/simulation.rs), [Solana](../crates/gem_solana/src/provider/simulation.rs), [Sui](../crates/gem_sui/src/provider/simulation.rs), [Tron](../crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
 
@@ -156,7 +156,7 @@ Android's EVM namespace and iOS's all-method list advertise `eth_sendRawTransact
 
 ## Transaction-indexing providers
 
-The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) uses ordered provider lists. Blockscout PRO is first for its 12 supported Gem chains, followed by the existing Ankr or Alchemy route when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) is only called on explicitly supported chains. Other EVM chains are unsupported. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) currently constructs EVM clients without an indexer.
+The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) uses ordered provider lists. Blockscout PRO is first for its 12 supported Gem chains, followed by the existing Ankr or Alchemy route when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) is only called on explicitly supported chains. Other EVM chains return an empty address history. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) composes its raw EVM client with an empty transactions-by-address provider because it does not configure an indexer.
 
 | Gem chain | Providers |
 | --- | --- |
@@ -324,7 +324,6 @@ This backlog only includes gaps that apply to an existing Gem chain, an active p
 
 | Area | Work | Applicable scope | References | Status |
 | --- | --- | --- | --- | :---: |
-| Transaction indexing | Inject an EVM indexer into gemstone or explicitly remove EVM address history from that API surface | All EVM chains created by gemstone | <sub>[factory](../gemstone/src/gateway/chain_factory.rs) · [unsupported default](../crates/gem_evm/src/rpc/client.rs) · [configured backend path](../crates/settings_chain/src/lib.rs)</sub> | 🏗️ |
 | WalletConnect | Align EVM method policy: remove `eth_sendRawTransaction` from platform advertisements or implement it in Core, and explicitly decide whether to support `eth_sign` | EVM chains | <sub>[Core handler](../crates/gem_wallet_connect/src/request_handler/ethereum.rs) · [EVM method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/evm) · [Android](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/bridge/Namespace.kt) · [iOS](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift)</sub> | 🏗️ |
 | WalletConnect | Add the published Bitcoin namespace and request handler | Bitcoin | <sub>[Core dispatcher](../crates/gem_wallet_connect/src/request_handler/mod.rs) · [WalletConnect Bitcoin spec](https://docs.walletconnect.network/wallet-sdk/chain-support/bitcoin)</sub> | 🏗️ |
 | Oku | Add compatible provider deployment mappings not already assigned to the Oku adapter | Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Smart Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[Core deployment](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> | 🏗️ |

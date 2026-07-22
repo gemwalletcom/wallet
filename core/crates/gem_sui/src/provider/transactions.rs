@@ -1,7 +1,7 @@
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use primitives::Transaction;
 
 use crate::provider::transactions_mapper::{map_transaction, map_transaction_blocks};
@@ -9,17 +9,25 @@ use crate::rpc::client::SuiClient;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl ChainTransactions for SuiClient {
+impl ChainBlockTransactions for SuiClient {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
         let transaction_blocks = self.get_checkpoint_transactions(block, None).await?;
         Ok(map_transaction_blocks(transaction_blocks))
     }
+}
 
+#[cfg(feature = "rpc")]
+#[async_trait]
+impl ChainTransaction for SuiClient {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
         let hash = request.hash;
         Ok(map_transaction(self.get_transaction(hash).await?))
     }
+}
 
+#[cfg(feature = "rpc")]
+#[async_trait]
+impl ChainTransactions for SuiClient {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn std::error::Error + Sync + Send>> {
         let transactions = self.indexer.get_transactions_by_address(&request.address, request.limit).await?;
         Ok(TransactionsResult::Transactions(transactions.into_iter().filter_map(map_transaction).collect()))
@@ -29,14 +37,14 @@ impl ChainTransactions for SuiClient {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
+    use chain_traits::{ChainBlockTransactions, ChainState, ChainTransaction, ChainTransactionState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
     use primitives::{TransactionState, TransactionStateRequest};
 
     #[tokio::test]
     async fn test_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
         let latest_block = client.get_block_latest_number().await?;
-        let transactions = ChainTransactions::get_transactions_by_block(&client, latest_block - 1).await?;
+        let transactions = ChainBlockTransactions::get_transactions_by_block(&client, latest_block - 1).await?;
 
         println!("Transactions in block {}: {}", latest_block - 1, transactions.len());
 
@@ -80,7 +88,7 @@ mod chain_integration_tests {
         for block in (latest_block.saturating_sub(20)..latest_block).rev() {
             let transactions = client.get_transactions_by_block(block).await?;
             for digest in transactions.transactions {
-                if let Some(mapped) = ChainTransactions::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Sui, digest.to_string(), None)).await? {
+                if let Some(mapped) = ChainTransaction::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Sui, digest.to_string(), None)).await? {
                     transaction = Some(mapped);
                     transaction_id = Some(digest);
                     transaction_block = Some(block);
