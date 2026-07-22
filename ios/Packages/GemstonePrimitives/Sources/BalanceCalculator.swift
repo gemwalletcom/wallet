@@ -10,9 +10,6 @@ public struct BalanceCalculator: Sendable {
     public init() {}
 
     public func totalFiatValue(_ balances: [Primitives.AssetFiatValue]) -> Primitives.TotalFiatValue {
-        let result = calculator.totalFiatValue(balances: balances.map {
-            Gemstone.AssetFiatValue(amount: $0.amount, price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h)
-        })
-        return Primitives.TotalFiatValue(value: result.value, pnlAmount: result.pnlAmount, pnlPercentage: result.pnlPercentage)
+        calculator.totalFiatValue(balances: balances.map { $0.map() }).map()
     }
 }
