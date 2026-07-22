@@ -3,6 +3,7 @@ pub mod address_formatter;
 pub mod alien;
 pub mod api_client;
 pub mod auth;
+pub mod balance_calculator;
 pub mod block_explorer;
 pub mod config;
 pub mod deeplink;
