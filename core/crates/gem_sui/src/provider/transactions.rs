@@ -1,7 +1,7 @@
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use primitives::Transaction;
 
 use crate::provider::transactions_mapper::{map_transaction, map_transaction_blocks};
@@ -15,7 +15,8 @@ impl ChainTransactions for SuiClient {
         Ok(map_transaction_blocks(transaction_blocks))
     }
 
-    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
+        let hash = request.hash;
         Ok(map_transaction(self.get_transaction(hash).await?))
     }
 
@@ -79,7 +80,7 @@ mod chain_integration_tests {
         for block in (latest_block.saturating_sub(20)..latest_block).rev() {
             let transactions = client.get_transactions_by_block(block).await?;
             for digest in transactions.transactions {
-                if let Some(mapped) = ChainTransactions::get_transaction_by_hash(&client, digest.to_string()).await? {
+                if let Some(mapped) = ChainTransactions::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Sui, digest.to_string(), None)).await? {
                     transaction = Some(mapped);
                     transaction_id = Some(digest);
                     transaction_block = Some(block);

@@ -4,7 +4,7 @@ mod node_check;
 mod provider_config;
 pub use broadcast_providers::BroadcastProviders;
 pub use chain_providers::ChainProviders;
-pub use chain_traits::{TransactionsRequest, TransactionsResult};
+pub use chain_traits::{TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use gem_algorand::{
     AlgorandClient,
     rpc::{ALGORAND_INDEXER_URL, AlgorandIndexer},

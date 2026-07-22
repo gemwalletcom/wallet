@@ -11,8 +11,20 @@ use super::{alchemy::alchemy_url, blockscout::BLOCKSCOUT_URL};
 #[cfg(feature = "reqwest")]
 use gem_client::ReqwestClient;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct IndexedTransaction {
+    pub(crate) hash: String,
+    pub(crate) block_number: Option<u64>,
+}
+
+impl IndexedTransaction {
+    pub(crate) fn new(hash: String, block_number: Option<u64>) -> Self {
+        Self { hash, block_number }
+    }
+}
+
 pub(crate) trait EVMIndexerClient {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>>;
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>>;
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>>;
 }
@@ -32,11 +44,11 @@ enum Provider<C: Client + Clone> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for Provider<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
         match self {
-            Self::Alchemy(client) => client.get_transaction_ids_by_address(address, limit).await,
-            Self::Ankr(client) => client.get_transaction_ids_by_address(address, limit).await,
-            Self::Blockscout(client) => client.get_transaction_ids_by_address(address, limit).await,
+            Self::Alchemy(client) => client.get_transactions_by_address(address, limit).await,
+            Self::Ankr(client) => client.get_transactions_by_address(address, limit).await,
+            Self::Blockscout(client) => client.get_transactions_by_address(address, limit).await,
         }
     }
 
@@ -99,11 +111,11 @@ impl EVMIndexer<ReqwestClient> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for EVMIndexer<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
         let operations = self
             .providers
             .iter()
-            .map(|provider| provider.get_transaction_ids_by_address(address, limit))
+            .map(|provider| provider.get_transactions_by_address(address, limit))
             .collect::<Vec<_>>();
         match try_in_order(operations).await? {
             Some(transaction_ids) => Ok(transaction_ids),
@@ -135,9 +147,9 @@ mod tests {
         let blockscout_client = MockClient::new().with_get(|path| panic!("unexpected Blockscout path: {path}"));
         let indexer = EVMIndexer::new(client.clone(), client, blockscout_client, "key".to_string(), EVMChain::OpBNB);
 
-        let transaction_ids = indexer.get_transaction_ids_by_address("0x123", 25).await.unwrap();
+        let transaction_ids = indexer.get_transactions_by_address("0x123", 25).await.unwrap();
 
-        assert_eq!(transaction_ids, Vec::<String>::new());
+        assert_eq!(transaction_ids, Vec::<IndexedTransaction>::new());
     }
 
     #[tokio::test]
@@ -151,13 +163,13 @@ mod tests {
         let blockscout_client = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: Vec::new() }));
         let indexer = EVMIndexer::new(alchemy_client, ankr_client, blockscout_client, "key".to_string(), EVMChain::Ethereum);
 
-        let transaction_ids = indexer.get_transaction_ids_by_address("0x123", 2).await.unwrap();
+        let transaction_ids = indexer.get_transactions_by_address("0x123", 2).await.unwrap();
 
         assert_eq!(
             transaction_ids,
             vec![
-                "0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7",
-                "0x1111111111111111111111111111111111111111111111111111111111111111"
+                IndexedTransaction::new("0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7".to_string(), None),
+                IndexedTransaction::new("0x1111111111111111111111111111111111111111111111111111111111111111".to_string(), None)
             ]
         );
     }

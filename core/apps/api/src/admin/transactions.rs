@@ -27,6 +27,6 @@ pub async fn add_transaction(
     let transaction_id = transaction_id.into_inner();
     let cache_key = CacheKey::FetchTransaction(transaction_id.chain.as_ref(), &transaction_id.hash).key();
     cacher.delete(&cache_key).await?;
-    stream_producer.publish_fetch_transactions(vec![transaction_id.clone()]).await?;
+    stream_producer.publish_fetch_transactions(vec![transaction_id.clone().into()]).await?;
     Ok(transaction_id.into())
 }

@@ -11,7 +11,7 @@ use super::{
     jsonrpc::AlchemyRpc,
     model::{TokenBalances, Transfer, Transfers},
 };
-use crate::rpc::EVMIndexerClient;
+use crate::rpc::{EVMIndexerClient, IndexedTransaction};
 
 pub fn alchemy_url(chain: Chain, key: &str) -> String {
     let network = match chain {
@@ -75,7 +75,7 @@ impl<C: Client + Clone> AlchemyClient<C> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
         let outgoing = self.get_asset_transfers("fromAddress", address, limit).await?;
         let incoming = self.get_asset_transfers("toAddress", address, limit).await?;
         let mut transfers = outgoing.into_iter().chain(incoming).collect::<Vec<_>>();
@@ -84,7 +84,11 @@ impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
         let mut transaction_ids = HashSet::new();
         Ok(transfers
             .into_iter()
-            .filter_map(|transfer| transaction_ids.insert(transfer.hash.clone()).then_some(transfer.hash))
+            .filter_map(|transfer| {
+                transaction_ids
+                    .insert(transfer.hash.clone())
+                    .then_some(IndexedTransaction::new(transfer.hash, Some(transfer.block_num)))
+            })
             .take(limit)
             .collect())
     }
@@ -125,9 +129,12 @@ mod tests {
         });
         let client = AlchemyClient::new(rpc_client);
 
-        let transaction_ids = client.get_transaction_ids_by_address("0x123", 2).await.unwrap();
+        let transaction_ids = client.get_transactions_by_address("0x123", 2).await.unwrap();
 
-        assert_eq!(transaction_ids, vec!["0xin", "0xout"]);
+        assert_eq!(
+            transaction_ids,
+            vec![IndexedTransaction::new("0xin".to_string(), Some(3)), IndexedTransaction::new("0xout".to_string(), Some(2))]
+        );
     }
 
     #[tokio::test]

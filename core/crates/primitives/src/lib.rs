@@ -256,6 +256,8 @@ pub use self::json_rpc::JsonRpcResult;
 pub mod node_config;
 pub mod transaction_id;
 pub use self::transaction_id::TransactionId;
+mod transaction_id_request;
+pub use self::transaction_id_request::TransactionIdRequest;
 pub mod asset_address;
 pub use self::asset_address::AssetAddress;
 pub mod graphql;

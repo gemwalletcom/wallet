@@ -60,7 +60,11 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn get_block_timestamp(&self, block_number: u64) -> Result<BigUint, JsonRpcError> {
-        Ok(self.client.request::<EthereumRpc, BlockHeader>(EthereumRpc::GetBlockByNumber(block_number, false)).await?.timestamp)
+        Ok(self
+            .client
+            .request::<EthereumRpc, BlockHeader>(EthereumRpc::GetBlockByNumber(block_number, false))
+            .await?
+            .timestamp)
     }
 
     pub async fn get_block_receipts(&self, block_number: u64) -> Result<Vec<TransactionReceipt>, JsonRpcError> {

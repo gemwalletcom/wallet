@@ -5,12 +5,22 @@ use crate::api_clients::PermissionChainRead;
 use crate::params::ChainParam;
 use crate::responders::{ApiError, ApiResponse};
 use primitives::{Transaction, TransactionStateRequest, TransactionUpdate};
+use settings_chain::TransactionIdRequest;
 
 use super::ChainClient;
 
-#[get("/chain/transactions/<chain>/<hash>")]
-pub async fn get_transaction(_permission: PermissionChainRead, chain: ChainParam, hash: &str, client: &State<ChainClient>) -> Result<ApiResponse<Option<Transaction>>, ApiError> {
-    Ok(client.get_transaction_by_hash(chain.0, hash.to_string()).await?.into())
+#[get("/chain/transactions/<chain>/<hash>?<block_number>")]
+pub async fn get_transaction(
+    _permission: PermissionChainRead,
+    chain: ChainParam,
+    hash: &str,
+    block_number: Option<u64>,
+    client: &State<ChainClient>,
+) -> Result<ApiResponse<Option<Transaction>>, ApiError> {
+    Ok(client
+        .get_transaction_by_hash(TransactionIdRequest::new(chain.0, hash.to_string(), block_number))
+        .await?
+        .into())
 }
 
 #[get("/chain/transactions/<chain>/<hash>/status?<sender_address>&<created_at>&<from_timestamp>&<block_number>")]

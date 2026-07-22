@@ -6,7 +6,7 @@ use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
 
 use super::model::{Items, TokenBalance, TokenTransfer, Transaction};
-use crate::rpc::EVMIndexerClient;
+use crate::rpc::{EVMIndexerClient, IndexedTransaction};
 
 #[derive(Debug, Clone)]
 pub(crate) struct BlockscoutClient<C: Client + Clone> {
@@ -26,7 +26,7 @@ impl<C: Client + Clone> BlockscoutClient<C> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for BlockscoutClient<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
         let transactions_path = self.address_path(address, "transactions");
         let token_transfers_path = self.address_path(address, "token-transfers");
         let query = [
@@ -47,7 +47,7 @@ impl<C: Client + Clone> EVMIndexerClient for BlockscoutClient<C> {
             .map(|(block_number, hash)| (Reverse(block_number), hash))
             .collect::<BTreeSet<_>>()
             .into_iter()
-            .map(|(_, hash)| hash)
+            .map(|(Reverse(block_number), hash)| IndexedTransaction::new(hash, Some(block_number)))
             .collect())
     }
 
@@ -80,9 +80,16 @@ mod tests {
         });
         let client = BlockscoutClient::new(client, 1, "key".to_string());
 
-        let transaction_ids = client.get_transaction_ids_by_address("0x123", 3).await.unwrap();
+        let transaction_ids = client.get_transactions_by_address("0x123", 3).await.unwrap();
 
-        assert_eq!(transaction_ids, vec!["0xtoken", "0xnormal", "0xshared"]);
+        assert_eq!(
+            transaction_ids,
+            vec![
+                IndexedTransaction::new("0xtoken".to_string(), Some(11)),
+                IndexedTransaction::new("0xnormal".to_string(), Some(10)),
+                IndexedTransaction::new("0xshared".to_string(), Some(8))
+            ]
+        );
     }
 
     #[tokio::test]

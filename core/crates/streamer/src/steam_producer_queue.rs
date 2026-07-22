@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use primitives::{AssetId, Chain, NFTAssetId, TransactionId};
+use primitives::{AssetId, Chain, NFTAssetId, TransactionIdRequest};
 
 use crate::{
     ChainAddressPayload, ExchangeName, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, InAppNotificationPayload,
@@ -16,7 +16,7 @@ pub trait StreamProducerQueue {
     async fn publish_fetch_prices(&self, payload: FetchPricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_list(&self, payload: FetchListPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_prices_assets(&self, asset_ids: Vec<AssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
-    async fn publish_fetch_transactions(&self, transaction_ids: Vec<TransactionId>) -> Result<usize, Box<dyn Error + Send + Sync>>;
+    async fn publish_fetch_transactions(&self, transactions: Vec<TransactionIdRequest>) -> Result<usize, Box<dyn Error + Send + Sync>>;
     async fn publish_transactions(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>>;
     async fn publish_notifications_transactions(&self, payload: Vec<NotificationsPayload>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_notifications_price_alerts(&self, payload: NotificationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
@@ -71,10 +71,10 @@ impl StreamProducerQueue for StreamProducer {
         Ok(true)
     }
 
-    async fn publish_fetch_transactions(&self, transaction_ids: Vec<TransactionId>) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let count = transaction_ids.len();
-        for transaction_id in transaction_ids {
-            self.publish_with_routing_key(QueueName::FetchTransactions, transaction_id.chain.as_ref(), &transaction_id)
+    async fn publish_fetch_transactions(&self, transactions: Vec<TransactionIdRequest>) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let count = transactions.len();
+        for transaction in transactions {
+            self.publish_with_routing_key(QueueName::FetchTransactions, transaction.chain.as_ref(), &transaction)
                 .await?;
         }
         Ok(count)
