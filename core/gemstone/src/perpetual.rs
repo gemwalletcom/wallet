@@ -3,7 +3,7 @@ use gem_hypercore::{
     perpetual_formatter::PerpetualFormatter,
     provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data},
 };
-use primitives::{AutocloseValidation, AutocloseValidator as PrimitivesAutocloseValidator, PerpetualDirection, PerpetualPosition, PerpetualProvider, TpslType};
+use primitives::{AutocloseValidation, AutocloseValidator as Validator, PerpetualDirection, PerpetualPosition, PerpetualProvider, TpslType};
 
 use crate::models::perpetual::{GemHyperliquidOpenOrder, GemHyperliquidSocketMessage, GemPerpetualSubscription, GemPositionsDiff, GemSubscriptionMethod};
 
@@ -90,7 +90,7 @@ pub enum AutocloseValidation {
 
 #[derive(Debug, uniffi::Object)]
 pub struct AutocloseValidator {
-    inner: PrimitivesAutocloseValidator,
+    inner: Validator,
 }
 
 #[uniffi::export]
@@ -98,7 +98,7 @@ impl AutocloseValidator {
     #[uniffi::constructor]
     pub fn new(trigger_type: TpslType, direction: PerpetualDirection, market_price: f64) -> Self {
         Self {
-            inner: PrimitivesAutocloseValidator::new(trigger_type, direction, market_price),
+            inner: Validator::new(trigger_type, direction, market_price),
         }
     }
 
