@@ -4,6 +4,7 @@ import android.util.Log
 import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.cases.device.SyncSubscription
+import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.WalletId
@@ -24,6 +25,7 @@ class DeleteWalletImpl @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val deleteKeyStoreOperator: DeleteKeyStoreOperator,
     private val syncSubscription: SyncSubscription,
+    private val walletPreferencesFactory: WalletPreferencesFactory,
 ) : DeleteWallet {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> })
@@ -45,6 +47,8 @@ class DeleteWalletImpl @Inject constructor(
             Log.e(TAG, "wallet row removal failed for ${walletId.id}; retry delete to finish")
             return@withContext
         }
+
+        walletPreferencesFactory.create(walletId.id).clear()
 
         scope.launch {
             walletsRepository.getAll().firstOrNull()
