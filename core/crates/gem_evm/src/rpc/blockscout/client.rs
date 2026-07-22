@@ -35,10 +35,8 @@ impl<C: Client + Clone> EVMIndexerClient for BlockscoutClient<C> {
             ("items_count".to_string(), limit.to_string()),
             ("apikey".to_string(), self.api_key.clone()),
         ];
-        let (transactions, token_transfers): (Items<Transaction>, Items<TokenTransfer>) = futures::try_join!(
-            self.client.get_with_query(&transactions_path, &query),
-            self.client.get_with_query(&token_transfers_path, &query)
-        )?;
+        let transactions: Items<Transaction> = self.client.get_with_query(&transactions_path, &query).await?;
+        let token_transfers: Items<TokenTransfer> = self.client.get_with_query(&token_transfers_path, &query).await?;
         Ok(transactions
             .items
             .into_iter()

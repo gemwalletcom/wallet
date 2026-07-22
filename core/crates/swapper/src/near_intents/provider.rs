@@ -58,7 +58,7 @@ where
     client: NearIntentsClient<C>,
     explorer: NearIntentsExplorer<C>,
     supported_assets: Vec<SwapperChainAsset>,
-    sui_client: Arc<SuiClient>,
+    sui_client: SuiClient,
 }
 
 impl<C> std::fmt::Debug for NearIntents<C>
@@ -80,7 +80,7 @@ impl NearIntents<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
         let client = NearIntentsClient::new(RpcClient::new(base_url(), rpc_provider.clone()), None);
         let explorer = NearIntentsExplorer::new(RpcClient::new(explorer_url(), rpc_provider.clone()));
-        let sui_client = Arc::new(create_sui_client(rpc_provider.clone()).expect("failed to create Sui gRPC client"));
+        let sui_client = create_sui_client(rpc_provider.clone()).expect("failed to create Sui gRPC client");
         Self::with_client(client, explorer, sui_client)
     }
 
@@ -93,7 +93,7 @@ impl<C> NearIntents<C>
 where
     C: gem_client::Client + Clone + Send + Sync + Debug + 'static,
 {
-    pub fn with_client(client: NearIntentsClient<C>, explorer: NearIntentsExplorer<C>, sui_client: Arc<SuiClient>) -> Self {
+    pub fn with_client(client: NearIntentsClient<C>, explorer: NearIntentsExplorer<C>, sui_client: SuiClient) -> Self {
         Self {
             provider: ProviderType::new(SwapperProvider::NearIntents),
             client,
@@ -210,7 +210,7 @@ where
             .parse::<u64>()
             .map_err(|_| SwapperError::ComputeQuoteError("Invalid Sui amount provided for deposit".into()))?;
 
-        let message_bytes = build_transfer_message_bytes(self.sui_client.as_ref(), wallet_address, deposit_address, amount, from_asset.asset_id().token_id.as_deref())
+        let message_bytes = build_transfer_message_bytes(&self.sui_client, wallet_address, deposit_address, amount, from_asset.asset_id().token_id.as_deref())
             .await
             .map_err(|err| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {err}")))?;
 

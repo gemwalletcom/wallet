@@ -25,22 +25,18 @@ impl<C: Client + Clone> AnkrClient<C> {
 
 impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
-        let transactions: Transactions = self
-            .client
-            .request(AnkrRpc::TransactionsByAddress {
+        let (transactions, token_transfers): (Transactions, TokenTransfers) = futures::try_join!(
+            self.client.request(AnkrRpc::TransactionsByAddress {
                 address: address.to_string(),
                 chain: self.chain,
                 limit,
-            })
-            .await?;
-        let token_transfers: TokenTransfers = self
-            .client
-            .request(AnkrRpc::TokenTransfers {
+            }),
+            self.client.request(AnkrRpc::TokenTransfers {
                 address: address.to_string(),
                 chain: self.chain,
                 limit,
-            })
-            .await?;
+            }),
+        )?;
 
         let transaction_ids = transactions
             .transactions

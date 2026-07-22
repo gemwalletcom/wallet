@@ -68,7 +68,7 @@ impl ChainProviders {
             TransactionsResult::TransactionRequests(transaction_requests) => {
                 let provider = self.get_provider(chain)?;
                 stream::iter(transaction_requests.into_iter().take(limit))
-                    .filter_map(|request| async move {
+                    .map(|request| async move {
                         match provider.get_transaction_by_hash(request.clone()).await {
                             Ok(Some(transaction)) => Some(transaction),
                             Ok(None) => {
@@ -81,6 +81,8 @@ impl ChainProviders {
                             }
                         }
                     })
+                    .buffer_unordered(5)
+                    .filter_map(|transaction| async move { transaction })
                     .collect()
                     .await
             }

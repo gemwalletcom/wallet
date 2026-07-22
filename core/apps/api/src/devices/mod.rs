@@ -34,7 +34,6 @@ use primitives::{
     WalletId, WalletSubscription, WalletSubscriptionChains,
 };
 use rocket::{FromForm, State, delete, get, post, put};
-use std::sync::Arc;
 use streamer::{StreamProducer, StreamProducerQueue};
 
 use crate::auth::WalletSigned;
@@ -307,12 +306,12 @@ pub async fn delete_device_subscriptions_v2(
 }
 
 #[get("/devices/auth/nonce")]
-pub async fn get_auth_nonce_v2(device: AuthenticatedDevice, client: &State<Arc<AuthClient>>) -> Result<ApiResponse<AuthNonce>, ApiError> {
+pub async fn get_auth_nonce_v2(device: AuthenticatedDevice, client: &State<AuthClient>) -> Result<ApiResponse<AuthNonce>, ApiError> {
     Ok(client.get_nonce(&device.device_row.device_id).await?.into())
 }
 
 #[get("/devices/token")]
-pub async fn get_device_token_v2(device: AuthenticatedDevice, config: &State<AuthConfig>, client: &State<Arc<AuthClient>>) -> Result<ApiResponse<DeviceToken>, ApiError> {
+pub async fn get_device_token_v2(device: AuthenticatedDevice, config: &State<AuthConfig>, client: &State<AuthClient>) -> Result<ApiResponse<DeviceToken>, ApiError> {
     Ok(client.create_device_token(&device.device_row.device_id, &config.jwt.secret, config.jwt.expiry)?.into())
 }
 

@@ -1,11 +1,11 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use bigdecimal::{BigDecimal, Zero};
 use gem_hypercore::{
     core::actions::agent::order::{Builder, PlaceOrder, make_market_order},
     models::{
-        spot::{OrderbookResponse, SpotMarket, SpotMeta},
+        spot::{SpotMarket, SpotMeta},
         token::SpotToken,
     },
     rpc::client::HyperCoreClient,
@@ -42,7 +42,6 @@ fn compute_actual_from(use_max_amount: bool, amount: &str, decimals: u32) -> Res
 pub struct HyperCoreSpot {
     provider: ProviderType,
     rpc_provider: Arc<dyn RpcProvider>,
-    client: Mutex<Option<Arc<HyperCoreClient<RpcClient>>>>,
 }
 
 impl HyperCoreSpot {
@@ -50,29 +49,12 @@ impl HyperCoreSpot {
         Self {
             provider: ProviderType::new(SwapperProvider::Hyperliquid),
             rpc_provider,
-            client: Mutex::new(None),
         }
     }
 
-    fn client(&self) -> Result<Arc<HyperCoreClient<RpcClient>>, SwapperError> {
-        if let Some(client) = self.client.lock().unwrap().as_ref() {
-            return Ok(client.clone());
-        }
-
+    fn client(&self) -> Result<HyperCoreClient<RpcClient>, SwapperError> {
         let endpoint = self.rpc_provider.get_endpoint(Chain::HyperCore)?;
-        let client = Arc::new(HyperCoreClient::new(RpcClient::new(endpoint, self.rpc_provider.clone())));
-        *self.client.lock().unwrap() = Some(client.clone());
-        Ok(client)
-    }
-
-    async fn load_spot_meta(&self) -> Result<SpotMeta, SwapperError> {
-        let client = self.client()?;
-        client.get_spot_meta().await.map_err(SwapperError::compute_quote_error)
-    }
-
-    async fn load_orderbook(&self, coin: &str) -> Result<OrderbookResponse, SwapperError> {
-        let client = self.client()?;
-        client.get_spot_orderbook(coin).await.map_err(SwapperError::compute_quote_error)
+        Ok(HyperCoreClient::new(RpcClient::new(endpoint, self.rpc_provider.clone())))
     }
 
     fn resolve_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
@@ -139,7 +121,7 @@ impl Swapper for HyperCoreSpot {
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let client = self.client()?;
-        let meta = self.load_spot_meta().await?;
+        let meta = client.get_spot_meta().await.map_err(SwapperError::compute_quote_error)?;
         let from_token = self.resolve_token(&meta, &request.from_asset)?;
         let to_token = self.resolve_token(&meta, &request.to_asset)?;
 
@@ -150,7 +132,7 @@ impl Swapper for HyperCoreSpot {
 
         let (market, base_token, _quote_token, side) = self.find_direct_market(&meta, from_token, to_token)?;
         let coin = format!("@{}", market.index);
-        let orderbook = self.load_orderbook(&coin).await?;
+        let orderbook = client.get_spot_orderbook(&coin).await.map_err(SwapperError::compute_quote_error)?;
         if orderbook.levels.len() < 2 {
             return Err(SwapperError::NoQuoteAvailable);
         }

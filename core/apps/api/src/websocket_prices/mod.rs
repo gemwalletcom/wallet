@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use pricer::PriceClient;
 use rocket::State;
 use rocket::http::Status;
@@ -11,7 +9,7 @@ mod stream;
 pub use client::PriceObserverConfig;
 
 #[rocket::get("/prices")]
-pub async fn ws_prices(ws: WebSocket, price_client: &State<PriceClient>, config: &State<Arc<PriceObserverConfig>>) -> Channel<'static> {
+pub async fn ws_prices(ws: WebSocket, price_client: &State<PriceClient>, config: &State<PriceObserverConfig>) -> Channel<'static> {
     let price_client = price_client.inner().clone();
     let redis_url = config.redis_url.clone();
 

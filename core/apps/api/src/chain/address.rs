@@ -15,9 +15,11 @@ pub async fn get_balances(
     client: &State<ChainClient>,
 ) -> Result<ApiResponse<AddressBalances>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
-    let coin = client.get_balances_coin(request.clone()).await?;
-    let staking = client.get_balances_staking(request.clone()).await?;
-    let assets = client.get_balances_assets(request).await?;
+    let (coin, staking, assets) = futures::try_join!(
+        client.get_balances_coin(request.clone()),
+        client.get_balances_staking(request.clone()),
+        client.get_balances_assets(request),
+    )?;
     Ok(AddressBalances { coin, staking, assets }.into())
 }
 

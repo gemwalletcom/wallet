@@ -45,14 +45,15 @@ pub async fn get_assets_search(params: SearchParams<'_>, client: &State<SearchCl
 pub async fn get_search(params: SearchParams<'_>, client: &State<SearchClient>) -> Result<ApiResponse<SearchResponse>, ApiError> {
     let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit.0, params.offset);
 
-    let assets = client.get_assets_search(&request).await?;
-    let lists = if request.should_search_lists() {
-        client.get_asset_lists_search(&request).await?
-    } else {
-        vec![]
+    let lists = async {
+        if request.should_search_lists() {
+            client.get_asset_lists_search(&request).await
+        } else {
+            Ok(vec![])
+        }
     };
-    let perpetuals = client.get_perpetuals_search(&request).await?;
-    let nfts = if request.has_tag_filter() { vec![] } else { client.get_nfts_search(&request).await? };
+    let nfts = async { if request.has_tag_filter() { Ok(vec![]) } else { client.get_nfts_search(&request).await } };
+    let (assets, lists, perpetuals, nfts) = futures::try_join!(client.get_assets_search(&request), lists, client.get_perpetuals_search(&request), nfts,)?;
 
     Ok(SearchResponse { assets, perpetuals, nfts, lists }.into())
 }

@@ -211,7 +211,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let portfolio_client = PortfolioClient::new(database.clone(), price_config);
     let endpoints = ProviderFactory::get_chain_endpoints(&settings);
     let native_provider = Arc::new(swapper::NativeProvider::new_with_endpoints(endpoints));
-    let swapper = Arc::new(GemSwapper::new(native_provider.clone()));
+    let swapper = GemSwapper::new(native_provider.clone());
 
     let retry = streamer::Retry::new(settings.rabbitmq.retry.delay, settings.rabbitmq.retry.timeout);
     let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);
@@ -255,7 +255,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     );
     let defi_client = DefiClient::from_config(database.clone(), defi_config.clone());
     let defi_provider_client = DefiProviderClient::new(defi_config);
-    let auth_client = Arc::new(AuthClient::new(cacher_client.clone()));
+    let auth_client = AuthClient::new(cacher_client.clone());
     let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
     let webhooks_client = WebhooksClient::new(stream_producer.clone(), settings.support.webhook.key.secret.clone());
     let ip_check_providers: Vec<Arc<dyn IpCheckProvider>> = vec![
@@ -338,7 +338,7 @@ async fn rocket_ws_prices(settings: Settings) -> Result<Rocket<Build>, Box<dyn E
     };
     Ok(rocket::build()
         .manage(price_client)
-        .manage(Arc::new(price_observer_config))
+        .manage(price_observer_config)
         .mount("/", routes![websocket_prices::ws_health])
         .mount("/v1/ws", routes![websocket_prices::ws_prices])
         .register("/", catchers![catchers::default_catcher]))
@@ -365,7 +365,7 @@ async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn E
         .manage(auth_config)
         .manage(database)
         .manage(price_client)
-        .manage(Arc::new(stream_observer_config))
+        .manage(stream_observer_config)
         .mount("/v2/devices", routes![websocket_stream::ws_stream])
         .mount("/", routes![websocket_stream::ws_health])
         .register("/", catchers![catchers::default_catcher]))

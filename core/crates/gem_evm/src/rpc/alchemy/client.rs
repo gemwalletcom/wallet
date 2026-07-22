@@ -76,8 +76,10 @@ impl<C: Client + Clone> AlchemyClient<C> {
 
 impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
-        let outgoing = self.get_asset_transfers("fromAddress", address, limit).await?;
-        let incoming = self.get_asset_transfers("toAddress", address, limit).await?;
+        let (outgoing, incoming) = futures::try_join!(
+            self.get_asset_transfers("fromAddress", address, limit),
+            self.get_asset_transfers("toAddress", address, limit),
+        )?;
         let mut transfers = outgoing.into_iter().chain(incoming).collect::<Vec<_>>();
         transfers.sort_by_key(|transfer| std::cmp::Reverse(transfer.block_num));
 
