@@ -25,3 +25,11 @@ Google, Huawei, Samsung, Solana, and Universal flavors exist to satisfy differen
 ## Core source lives in this repository
 
 `core/` is tracked source in this repository, not a Git submodule. Changes to Core and the mobile apps should land together when shared behavior, generated models, or bindings need to stay aligned.
+
+## Number parsing: human input vs machine strings
+
+Amount strings come from two sources that must be parsed differently. Confusing them silently corrupts amounts on locales that group thousands with a dot (de, it, es, nl, pt-BR, da), where `"1.234"` means 1234, not 1.234. Pick the parser by the source of the string, never by convenience.
+
+- **Human input** (text a person typed into a field): parse locale-aware. iOS `ValueFormatter.inputNumber(from:decimals:)`; Android `String.parseInputNumber()`. These interpret the device's grouping/decimal separators.
+- **Machine strings** (QR/payment-link amounts, API/exchange payloads, `Double.description`, anything the app did not get from a keyboard): parse locale-independently. iOS `BigNumberFormatter.standard.number(from:decimals:)` (fixed `en_US`). A machine string always uses `.` as the decimal point, so feeding it to the human-input parser makes a dot-grouping locale read it 1000x too high.
+- **A value the app itself produced** (e.g. a `Decimal` from fiat/crypto conversion): use iOS `ValueFormatter.displayedNumber(from:decimals:)` so the app never re-parses its own formatted output.
