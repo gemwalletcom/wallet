@@ -30,7 +30,7 @@ impl<C: Client> ChainTransactions for AptosClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_aptos_test_client};
-    use chain_traits::{ChainState, ChainTransactions};
+    use chain_traits::{ChainState, ChainTransactions, TransactionIdRequest};
 
     #[tokio::test]
     async fn test_aptos_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

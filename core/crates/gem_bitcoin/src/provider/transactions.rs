@@ -54,7 +54,7 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest};
+    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
     use primitives::{TransactionState, TransactionStateRequest};
 
     #[tokio::test]

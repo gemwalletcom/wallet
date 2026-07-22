@@ -47,7 +47,7 @@ impl<C: Client> ChainTransactions for CosmosClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{TEST_CELESTIA_ADDRESS, TEST_TRANSACTION_ID, create_celestia_test_client, create_cosmos_test_client};
-    use chain_traits::ChainTransactions;
+    use chain_traits::{ChainTransactions, TransactionIdRequest};
 
     #[tokio::test]
     async fn test_celestia_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
