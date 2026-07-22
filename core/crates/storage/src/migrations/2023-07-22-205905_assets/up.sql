@@ -8,7 +8,7 @@ CREATE TABLE assets (
     token_id VARCHAR(128),
     asset_type asset_type NOT NULL,
     name VARCHAR(128) NOT NULL,
-    symbol VARCHAR(32) NOT NULL,
+    symbol VARCHAR(128) NOT NULL,
     decimals INTEGER NOT NULL,
     updated_at timestamp NOT NULL default current_timestamp,
     created_at timestamp NOT NULL default current_timestamp,
