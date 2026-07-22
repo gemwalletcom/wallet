@@ -11,7 +11,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
@@ -32,6 +31,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
+import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
+import uniffi.gemstone.BalanceCalculator as GemBalanceCalculator
+import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
@@ -43,6 +45,8 @@ class GetWalletSummaryImpl(
     private val userConfig: UserConfig,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
+    private val balanceCalculator = GemBalanceCalculator()
+
     private val perpetualCollateral: Flow<PerpetualBalance?> =
         observePerpetualWallet().flatMapLatest { wallet ->
             wallet?.let { perpetualRepository.getBalance(it.id, HypercoreUSDC.id) } ?: flowOf(null)
@@ -57,22 +61,23 @@ class GetWalletSummaryImpl(
             hasMultiSign.hasMultiSign(wallet),
             userConfig.isHideBalances(),
         ) { assets, perpetualBalance, hasMultiSign, hideBalances ->
-            val (assetsValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
-                val currentValue = asset.balance.fiatTotalAmount.toBigDecimal()
-                val changePercentage = asset.price?.price?.priceChangePercentage24h ?: 0.0
-                val currentChangedValue = PriceChangeCalculator.amount(percentage = changePercentage, value = currentValue.toDouble()).toBigDecimal()
-
-                (total + currentValue) to (changed + currentChangedValue)
-            }
-            val perpetualCollateral = perpetualBalance?.let { (it.available + it.reserved).toBigDecimal() } ?: BigDecimal.ZERO
-            val totalValue = assetsValue + perpetualCollateral
+            val balances = assets.map { asset ->
+                GemAssetFiatValue(
+                    amount = asset.balance.fiatTotalAmount,
+                    price = 1.0,
+                    priceChangePercentage24h = asset.price?.price?.priceChangePercentage24h ?: 0.0,
+                )
+            } + listOfNotNull(
+                perpetualBalance?.let {
+                    GemAssetFiatValue(amount = it.available + it.reserved, price = 1.0, priceChangePercentage24h = 0.0)
+                }
+            )
 
             WalletSummaryAggregateImpl(
                 wallet = wallet,
                 displayState = buildWalletSummaryDisplayState(
                     currency = session.currency,
-                    totalValue = totalValue,
-                    totalChangedValue = totalChangedValue,
+                    total = balanceCalculator.totalFiatValue(balances),
                 ),
                 isBalanceHidden = hideBalances,
                 isOperationsAvailable = !hasMultiSign,
@@ -87,10 +92,10 @@ class GetWalletSummaryImpl(
 
 internal fun buildWalletSummaryDisplayState(
     currency: Currency,
-    totalValue: BigDecimal,
-    totalChangedValue: BigDecimal,
+    total: GemTotalFiatValue,
 ): WalletSummaryDisplayState {
     val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
+    val totalValue = total.value.toBigDecimal()
     if (totalValue.compareTo(BigDecimal.ZERO) <= 0) {
         return WalletSummaryDisplayState(
             totalValue = formatter.string(BigDecimal.ZERO),
@@ -101,25 +106,9 @@ internal fun buildWalletSummaryDisplayState(
         totalValue = formatter.string(totalValue),
         changedValue = WalletSummaryEquivalentValue(
             currency = currency,
-            value = totalChangedValue.toDouble(),
-            changePercentage = calculateWalletChangedPercentage(
-                totalValue = totalValue,
-                changedValue = totalChangedValue,
-            ),
+            value = total.pnlAmount,
+            changePercentage = total.pnlPercentage,
         ),
-    )
-}
-
-internal fun calculateWalletChangedPercentage(
-    totalValue: BigDecimal,
-    changedValue: BigDecimal,
-): Double {
-    if (totalValue.compareTo(BigDecimal.ZERO) == 0) {
-        return 0.0
-    }
-    return PriceChangeCalculator.percentage(
-        from = (totalValue - changedValue).toDouble(),
-        to = totalValue.toDouble(),
     )
 }
 
