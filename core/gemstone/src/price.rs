@@ -1,5 +1,13 @@
+use primitives::PriceChangeCalculator as PrimitivesPriceChangeCalculator;
+
 #[derive(Debug, uniffi::Object)]
 pub struct PriceChangeCalculator {}
+
+impl Default for PriceChangeCalculator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[uniffi::export]
 impl PriceChangeCalculator {
@@ -9,10 +17,10 @@ impl PriceChangeCalculator {
     }
 
     pub fn percentage(&self, from: f64, to: f64) -> f64 {
-        primitives::PriceChangeCalculator::percentage(from, to)
+        PrimitivesPriceChangeCalculator::percentage(from, to)
     }
 
     pub fn amount(&self, percentage: f64, value: f64) -> f64 {
-        primitives::PriceChangeCalculator::amount(percentage, value)
+        PrimitivesPriceChangeCalculator::amount(percentage, value)
     }
 }
