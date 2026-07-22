@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -14,7 +14,8 @@ impl<C: Client> ChainTransactions for TonClient<C> {
         Ok(map_trace_transactions(traces.traces))
     }
 
-    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash;
         let traces = self.get_traces_by_hash(hash).await?;
         Ok(map_trace_transactions(traces.traces).into_iter().next())
     }
@@ -57,7 +58,9 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_ton_test_client();
-        let transaction = ChainTransactions::get_transaction_by_hash(&client, TEST_TRANSACTION_ID.to_string()).await?.unwrap();
+        let transaction = ChainTransactions::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Ton, TEST_TRANSACTION_ID.to_string(), None))
+            .await?
+            .unwrap();
 
         assert_eq!(transaction.hash, TEST_TRANSACTION_HEX_HASH);
         Ok(())

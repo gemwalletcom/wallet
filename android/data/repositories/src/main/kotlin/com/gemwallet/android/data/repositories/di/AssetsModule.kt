@@ -39,7 +39,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.ktor.http.HttpMethod
+import okhttp3.OkHttpClient
 import uniffi.gemstone.GemGateway
 import javax.inject.Singleton
 
@@ -152,6 +152,7 @@ object AssetsModule {
         eventHandler: StreamEventHandler,
         syncDeviceInfo: SyncDeviceInfo,
         isDeviceRegistered: IsDeviceRegistered,
+        okHttpClient: OkHttpClient,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
         userConfig = userConfig,
@@ -160,10 +161,11 @@ object AssetsModule {
         subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,
         connection = WebSocketConnection(
+            client = okHttpClient,
             requestProvider = {
                 WebSocketRequest(
                     url = Constants.DEVICE_STREAM_WEBSOCKET_URL,
-                    headers = deviceRequestSigner.sign(HttpMethod.Get.value, Constants.DEVICE_STREAM_PATH).toHeaders(),
+                    headers = deviceRequestSigner.sign("GET", Constants.DEVICE_STREAM_PATH).toHeaders(),
                 )
             },
             reconnection = ExponentialReconnection(maxDelay = 30.0),

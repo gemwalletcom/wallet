@@ -64,6 +64,15 @@ public final class WalletImageViewModel: Sendable {
         EmptyContentTypeViewModel(type: .nfts(action: nil))
     }
 
+    var hasAvatar: Bool {
+        guard let dbWallet else { return false }
+        return WalletViewModel(wallet: dbWallet).hasAvatar
+    }
+
+    func avatarAssetImage(for wallet: Wallet) -> AssetImage {
+        WalletViewModel(wallet: wallet).avatarImage
+    }
+
     func buildNftAssetsItems(from list: [NFTData]) -> [NFTAssetImageItem] {
         list
             .map(\.assets)
@@ -100,7 +109,7 @@ public final class WalletImageViewModel: Sendable {
         }
     }
 
-    public func setDefaultAvatar() {
+    public func onRemoveAvatar() {
         do {
             try avatarService.remove(for: wallet)
         } catch {

@@ -1,4 +1,4 @@
-use primitives::{Transaction, TransactionId};
+use primitives::{Transaction, TransactionIdRequest};
 
 use crate::TransactionsResult;
 
@@ -6,14 +6,14 @@ impl TransactionsResult {
     pub fn transactions(&self) -> Option<&[Transaction]> {
         match self {
             Self::Transactions(transactions) => Some(transactions.as_slice()),
-            Self::TransactionIds(_) => None,
+            Self::TransactionRequests(_) => None,
         }
     }
 
-    pub fn transaction_ids(&self) -> Option<&[TransactionId]> {
+    pub fn transaction_requests(&self) -> Option<&[TransactionIdRequest]> {
         match self {
             Self::Transactions(_) => None,
-            Self::TransactionIds(transaction_ids) => Some(transaction_ids.as_slice()),
+            Self::TransactionRequests(transaction_requests) => Some(transaction_requests.as_slice()),
         }
     }
 }

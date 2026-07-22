@@ -55,9 +55,11 @@ public struct SwapScene: View {
         .navigationTitle(model.title)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("", systemImage: SystemImage.settings) {
-                    isPresentingSlippage = true
-                }
+                IndicatorButton(
+                    systemImage: SystemImage.settings,
+                    showsIndicator: model.showsSlippageIndicator,
+                    action: { isPresentingSlippage = true },
+                )
             }
         }
         .sheet(isPresented: $isPresentingSlippage) {

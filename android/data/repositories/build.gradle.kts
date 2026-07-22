@@ -61,10 +61,7 @@ dependencies {
     implementation(libs.datastore)
     implementation(libs.androidx.security.crypto)
 
-    api(libs.ktor.core)
-    api(libs.ktor.cio)
-    api(libs.ktor.websocket)
-    api(libs.ktor.json)
+    implementation(libs.okhttp)
 
     implementation(libs.ktx.core)
     testImplementation(testFixtures(project(":data:services:store")))

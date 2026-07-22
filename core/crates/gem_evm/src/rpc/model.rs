@@ -14,6 +14,12 @@ pub struct Block {
     pub timestamp: BigUint,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct BlockHeader {
+    #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
+    pub timestamp: BigUint,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {

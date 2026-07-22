@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -21,7 +21,8 @@ impl<C: Client + Clone> ChainTransactions for XrpClient<C> {
         Ok(TransactionsResult::Transactions(map_transactions_by_address(account_ledger)))
     }
 
-    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash;
         let transaction = self.get_transaction(&hash).await?;
         Ok(map_direct_transaction(self.get_chain(), transaction))
     }
@@ -44,7 +45,10 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_xrp_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_xrp_test_client();
-        let transaction = client.get_transaction_by_hash(TEST_TRANSACTION_ID.to_string()).await?.unwrap();
+        let transaction = client
+            .get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Xrp, TEST_TRANSACTION_ID.to_string(), None))
+            .await?
+            .unwrap();
 
         assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
         Ok(())

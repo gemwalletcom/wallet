@@ -23,6 +23,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 import uniffi.gemstone.Hyperliquid
 
@@ -77,12 +78,14 @@ object PerpetualModule {
         eventHandler: HyperliquidEventHandler,
         subscriptionService: HyperliquidSubscriptionService,
         getNodeUrlCase: GetNodeUrlCase,
+        okHttpClient: OkHttpClient,
     ): HyperliquidObserverService = HyperliquidObserverService(
         observePerpetualWallet = observePerpetualWallet,
         syncPerpetualPositions = syncPerpetualPositions,
         eventHandler = eventHandler,
         subscriptionService = subscriptionService,
         connection = WebSocketConnection(
+            client = okHttpClient,
             requestProvider = {
                 val url = getNodeUrlCase.getNodeUrl(Chain.HyperCore)
                 WebSocketRequest(url = url.toWebSocketUrl())

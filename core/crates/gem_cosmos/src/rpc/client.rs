@@ -41,8 +41,12 @@ impl<C: Client> CosmosClient<C> {
             CosmosChain::Thorchain | CosmosChain::Mayachain => return Ok(vec![]),
         };
 
-        let inbound = self.get_transactions_by_query(query_name, &format!("message.sender='{address}'"), limit).await?;
-        let outbound = self.get_transactions_by_query(query_name, &format!("message.recipient='{address}'"), limit).await?;
+        let inbound_query = format!("message.sender='{address}'");
+        let outbound_query = format!("message.recipient='{address}'");
+        let (inbound, outbound) = futures::try_join!(
+            self.get_transactions_by_query(query_name, &inbound_query, limit),
+            self.get_transactions_by_query(query_name, &outbound_query, limit),
+        )?;
         let responses = inbound.tx_responses.into_iter().chain(outbound.tx_responses).collect::<Vec<_>>();
         let txs = inbound.txs.into_iter().chain(outbound.txs).collect::<Vec<_>>();
         Ok(responses

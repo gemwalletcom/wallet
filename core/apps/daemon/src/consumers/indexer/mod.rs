@@ -17,7 +17,7 @@ use cacher::CacherClient;
 use coingecko::CoinGeckoClient;
 use lists::{CoinGeckoListProvider, ListsClient};
 use pricer::PriceClient;
-use primitives::{Chain, NFTChain, TransactionId};
+use primitives::{Chain, NFTChain, TransactionIdRequest};
 use settings::Settings;
 use settings_chain::ProviderFactory;
 use storage::{ConfigCacher, Database};
@@ -282,10 +282,7 @@ async fn run_fetch_nft_assets(
         OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
     );
     let nft_client = NFTClient::from_config(database, nft_config, settings.nft.url.clone());
-    let consumer = FetchNftAssetConsumer {
-        nft_client: Arc::new(tokio::sync::Mutex::new(nft_client)),
-        cacher,
-    };
+    let consumer = FetchNftAssetConsumer { nft_client, cacher };
     run_consumer::<FetchNFTAssetPayload, FetchNftAssetConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter)
         .await
 }
@@ -338,7 +335,7 @@ async fn run_fetch_transactions(
             let stream_reader = runner.stream_reader().await?;
             let stream_producer = runner.stream_producer().await?;
             let consumer = FetchTransactionConsumer::new(chain_providers_for(chain, &runner.settings, &name), stream_producer, runner.cacher);
-            run_consumer::<TransactionId, FetchTransactionConsumer, usize>(
+            run_consumer::<TransactionIdRequest, FetchTransactionConsumer, usize>(
                 &name,
                 stream_reader,
                 queue,

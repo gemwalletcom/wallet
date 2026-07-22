@@ -14,4 +14,5 @@ pub use indexer::EVMIndexer;
 pub(crate) use indexer::EVMIndexerClient;
 #[cfg(feature = "reqwest")]
 pub use indexer::EVMIndexerConfig;
+pub(crate) use indexer::IndexedTransaction;
 pub use mapper::EthereumMapper;

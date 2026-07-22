@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::error::Error;
 
-use crate::rpc::EVMIndexerClient;
+use crate::rpc::{EVMIndexerClient, IndexedTransaction};
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
@@ -24,23 +24,19 @@ impl<C: Client + Clone> AnkrClient<C> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let transactions: Transactions = self
-            .client
-            .request(AnkrRpc::TransactionsByAddress {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
+        let (transactions, token_transfers): (Transactions, TokenTransfers) = futures::try_join!(
+            self.client.request(AnkrRpc::TransactionsByAddress {
                 address: address.to_string(),
                 chain: self.chain,
                 limit,
-            })
-            .await?;
-        let token_transfers: TokenTransfers = self
-            .client
-            .request(AnkrRpc::TokenTransfers {
+            }),
+            self.client.request(AnkrRpc::TokenTransfers {
                 address: address.to_string(),
                 chain: self.chain,
                 limit,
-            })
-            .await?;
+            }),
+        )?;
 
         let transaction_ids = transactions
             .transactions
@@ -49,7 +45,10 @@ impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
             .chain(token_transfers.transfers.into_iter().map(|transfer| transfer.transaction_hash));
 
         let mut seen = HashSet::new();
-        Ok(transaction_ids.filter(|hash| seen.insert(hash.clone())).collect())
+        Ok(transaction_ids
+            .filter(|hash| seen.insert(hash.clone()))
+            .map(|hash| IndexedTransaction::new(hash, None))
+            .collect())
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
@@ -107,13 +106,13 @@ mod tests {
         });
         let client = AnkrClient::new(rpc_client, "bsc");
 
-        let transaction_ids = client.get_transaction_ids_by_address("0x123", 2).await.unwrap();
+        let transaction_ids = client.get_transactions_by_address("0x123", 2).await.unwrap();
 
         assert_eq!(
             transaction_ids,
             vec![
-                "0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7",
-                "0x1111111111111111111111111111111111111111111111111111111111111111"
+                IndexedTransaction::new("0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7".to_string(), None),
+                IndexedTransaction::new("0x1111111111111111111111111111111111111111111111111111111111111111".to_string(), None)
             ]
         );
     }
