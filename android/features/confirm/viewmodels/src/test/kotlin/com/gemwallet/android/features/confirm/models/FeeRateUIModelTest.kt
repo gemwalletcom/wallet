@@ -29,6 +29,7 @@ class FeeRateUIModelTest {
             ),
             feeAsset = assetInfo,
             feeUnitType = FeeUnitType.Gwei,
+            feeRateDecimals = 9,
             selectedRate = selectedRate,
             selectedFeeAmount = BigInteger("1000000000000000000"),
         )
@@ -48,6 +49,7 @@ class FeeRateUIModelTest {
             feeRate = GemFeeRate(priority = priority.string, gasPriceType = GemGasPriceType.Regular(gasPrice = gasPrice)),
             feeAsset = assetInfo,
             feeUnitType = FeeUnitType.Native,
+            feeRateDecimals = assetInfo.asset.decimals,
             selectedRate = selectedRate,
             selectedFeeAmount = BigInteger("110000"),
         )
@@ -65,6 +67,7 @@ class FeeRateUIModelTest {
             ),
             feeAsset = mockAssetInfo(asset = mockAssetEthereum()),
             feeUnitType = FeeUnitType.Native,
+            feeRateDecimals = mockAssetEthereum().decimals,
         )
 
         assertEquals("0.000000000000000001 ETH", model.price)

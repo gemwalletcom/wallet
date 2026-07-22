@@ -83,8 +83,19 @@ public extension Primitives.Chain {
         Int(FeeConfig.config(chain: self).decimals)
     }
 
+    func feeRateDecimals(assetDecimals: Int) -> Int {
+        switch feeUnitType {
+        case .satVb, .gwei: feeUnitDecimals
+        case .native: assetDecimals
+        }
+    }
+
     var maxCustomFeeRateMultiplier: Int {
         Int(FeeConfig.config(chain: self).maxMultiplier)
+    }
+
+    var minimumCustomFeeRate: BigInt? {
+        FeeConfig.config(chain: self).minimumCustomFeeRate.map { BigInt($0) }
     }
 
     var customFeeEnabled: Bool {

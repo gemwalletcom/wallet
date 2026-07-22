@@ -76,7 +76,7 @@ struct NetworkFeeSceneViewModelTests {
 
         model.update(rates: [.defaultRate()], feeAssetPrice: nil)
 
-        #expect(model.selectedFeeRateViewModel?.valueText == "1 sat/vB")
+        #expect(model.selectedFeeRateViewModel?.valueText == "0.1 sat/vB")
     }
 
     @Test
@@ -250,7 +250,7 @@ struct NetworkFeeSceneViewModelTests {
         custom.input = "4"
         custom.confirm()
 
-        #expect(scene.selection == .custom(4))
+        #expect(scene.selection == .custom(40))
         #expect(scene.isCustomSelected)
         #expect(scene.customRowItem.subtitle != nil)
     }
@@ -272,7 +272,7 @@ struct NetworkFeeSceneViewModelTests {
         let selected = scene.customFeeModel()
         selected.input = "20"
         selected.confirm()
-        #expect(scene.selection == .custom(20))
+        #expect(scene.selection == .custom(200))
 
         let reopened = scene.customFeeModel()
         reopened.input = "21"
@@ -296,7 +296,7 @@ struct NetworkFeeSceneViewModelTests {
 
     private func bitcoinScene() -> NetworkFeeSceneViewModel {
         let model = NetworkFeeSceneViewModel.mock(chain: .bitcoin, mode: .custom)
-        model.update(rates: [FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 2))], feeAssetPrice: nil)
+        model.update(rates: [FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20))], feeAssetPrice: nil)
         model.update(feeAmount: BigInt(1000))
         return model
     }

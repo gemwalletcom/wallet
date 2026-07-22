@@ -15,7 +15,9 @@ data class CustomFee(
     val placeholder: String,
     val networkFee: FeeUIModel.FeeInfo,
     val maxRateText: String,
+    val minRateText: String,
     val isOverMax: Boolean,
+    val isBelowMinimum: Boolean,
     val isConfirmEnabled: Boolean,
 ) {
     companion object {
@@ -26,10 +28,12 @@ data class CustomFee(
             selection: FeeSelection,
             decimals: Int,
             maxMultiplier: Int,
+            minimumCustomFeeRate: BigInteger?,
         ): CustomFee {
             val baseTotal = baseTotal(selection, feeRates, currentFee.priority)
             val normalTotal = normalTotal(feeRates) ?: baseTotal
             val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
+            val isBelowMinimum = rate != null && minimumCustomFeeRate != null && rate < minimumCustomFeeRate
 
             val estimate = customFeeEstimate(
                 rate = rate?.toString(),
@@ -44,8 +48,10 @@ data class CustomFee(
                 placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
                 networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeValue), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
                 maxRateText = format(BigInteger(estimate.maxRate), decimals),
+                minRateText = minimumCustomFeeRate?.let { format(it, decimals) } ?: "",
                 isOverMax = estimate.isOverMax,
-                isConfirmEnabled = rate != null && !estimate.isOverMax,
+                isBelowMinimum = isBelowMinimum,
+                isConfirmEnabled = rate != null && !estimate.isOverMax && !isBelowMinimum,
             )
         }
 

@@ -57,8 +57,7 @@ impl SpendRequest {
 }
 
 fn spend_fee_rate(chain: BitcoinChain, input: &SignerInput) -> Result<u64, SignerError> {
-    let minimum_fee_rate = u64::try_from(chain.minimum_byte_fee()).map_err(|_| SignerError::invalid_input(format!("invalid {} minimum fee", chain.get_chain())))?;
-    Ok(input.fee.gas_price_u64()?.max(minimum_fee_rate))
+    Ok(input.fee.gas_price_u64()?.max(u64::from(chain.minimum_custom_fee_rate())))
 }
 
 fn validate_native_chain_asset(chain: BitcoinChain, asset: &Asset, message: &'static str) -> Result<(), SignerError> {
