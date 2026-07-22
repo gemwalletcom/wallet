@@ -7,6 +7,7 @@ edition = { workspace = true }
 serde = { workspace = true }
 config = { workspace = true }
 serde_serializers = { path = "../serde_serializers" }
+gem_client = { path = "../gem_client" }
 
 [features]
 testkit = []

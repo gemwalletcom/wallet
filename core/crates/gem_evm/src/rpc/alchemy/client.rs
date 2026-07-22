@@ -13,7 +13,7 @@ use super::{
 };
 use crate::rpc::{EVMIndexerClient, IndexedTransaction};
 
-pub fn alchemy_url(chain: Chain, key: &str) -> String {
+pub fn alchemy_url(chain: Chain, base_url: &str, key: &str) -> String {
     let network = match chain {
         Chain::Ethereum => "eth-mainnet",
         Chain::SmartChain => "bnb-mainnet",
@@ -48,7 +48,7 @@ pub fn alchemy_url(chain: Chain, key: &str) -> String {
         _ => panic!("Alchemy is not supported for {chain}"),
     };
 
-    format!("https://{network}.g.alchemy.com/v2/{key}")
+    format!("{}/v2/{key}", base_url.replace("{network}", network).trim_end_matches('/'))
 }
 
 #[derive(Debug, Clone)]

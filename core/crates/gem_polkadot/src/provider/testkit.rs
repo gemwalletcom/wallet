@@ -1,5 +1,5 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use crate::rpc::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotClient, PolkadotIndexer};
+use crate::rpc::{PolkadotClient, PolkadotIndexer};
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -15,10 +15,13 @@ pub fn create_polkadot_test_client() -> PolkadotClient<ReqwestClient> {
     let settings = get_test_settings();
     let client = gem_client::reqwest_client();
     let reqwest_client = ReqwestClient::new(settings.chains.polkadot.url, client.clone());
+    let subscan = settings.indexer.subscan.remote_provider_config();
     PolkadotClient::new(
         reqwest_client,
         PolkadotIndexer::new(
-            ReqwestClient::new(POLKADOT_ASSET_HUB_SUBSCAN_URL.to_string(), client).with_default_headers(HashMap::from([("x-api-key".to_string(), settings.subscan.key.secret)])),
+            subscan
+                .configure_client(ReqwestClient::new(String::new(), client))
+                .with_default_headers(HashMap::from([("x-api-key".to_string(), subscan.key)])),
         ),
     )
 }

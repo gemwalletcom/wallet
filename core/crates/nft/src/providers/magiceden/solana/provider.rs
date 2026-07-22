@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use gem_client::Client;
 use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollectionId};
 
 use super::client::MagicEdenSolanaClient;
@@ -7,7 +8,7 @@ use super::mapper::{map_asset, map_assets, map_collection};
 use crate::provider::NFTProvider;
 
 #[async_trait::async_trait]
-impl NFTProvider for MagicEdenSolanaClient {
+impl<C: Client + 'static> NFTProvider for MagicEdenSolanaClient<C> {
     fn name(&self) -> &'static str {
         "MagicEdenSolana"
     }

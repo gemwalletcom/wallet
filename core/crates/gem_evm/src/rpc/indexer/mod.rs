@@ -6,10 +6,6 @@ use num_bigint::BigUint;
 use primitives::{EVMChain, try_in_order};
 
 use super::{alchemy::AlchemyClient, ankr::AnkrClient, blockscout::BlockscoutClient};
-#[cfg(feature = "reqwest")]
-use super::{alchemy::alchemy_url, blockscout::BLOCKSCOUT_URL};
-#[cfg(feature = "reqwest")]
-use gem_client::ReqwestClient;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct IndexedTransaction {
@@ -27,13 +23,6 @@ pub(crate) trait EVMIndexerClient {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>>;
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>>;
-}
-
-#[cfg(feature = "reqwest")]
-pub struct EVMIndexerConfig {
-    pub alchemy: String,
-    pub ankr: String,
-    pub blockscout: String,
 }
 
 #[derive(Clone, Debug)]
@@ -94,19 +83,6 @@ impl<C: Client + Clone> EVMIndexer<C> {
 
     pub(crate) fn unsupported() -> Self {
         Self { providers: Vec::new() }
-    }
-}
-
-#[cfg(feature = "reqwest")]
-impl EVMIndexer<ReqwestClient> {
-    pub fn new_reqwest(client: ReqwestClient, chain: EVMChain, config: EVMIndexerConfig) -> Self {
-        Self::new(
-            JsonRpcClient::new(client.clone().with_base_url(alchemy_url(chain.to_chain(), &config.alchemy))),
-            JsonRpcClient::new(client.clone().with_base_url(format!("https://rpc.ankr.com/multichain/{}", config.ankr))),
-            client.with_base_url(BLOCKSCOUT_URL.to_string()),
-            config.blockscout,
-            chain,
-        )
     }
 }
 

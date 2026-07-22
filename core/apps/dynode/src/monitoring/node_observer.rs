@@ -2,7 +2,7 @@ use std::{str::FromStr, time::Instant};
 
 use primitives::{Chain, NodeCheckRequest, NodeStatusState};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use settings_chain::{ProviderConfig, ProviderFactory, ProviderKeyConfig};
+use settings_chain::{ProviderConfig, ProviderFactory};
 
 use super::switch_reason::CurrentNodeErrorKind;
 use super::sync::NodeStatusObservation;
@@ -20,7 +20,7 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
         Ok(client) => client,
         Err(error) => return observation(NodeStatusState::error(error.to_string())),
     };
-    let config = ProviderConfig::new(chain, &url.url, ProviderKeyConfig::default());
+    let config = ProviderConfig::new(chain, &url.url);
     let provider = ProviderFactory::new_provider_with_client(config, "dynode_get_status", client);
 
     match provider.get_node_status().await {

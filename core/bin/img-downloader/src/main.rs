@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         img_config,
         coingecko_api_key: settings.coingecko.key.secret,
         coinmarketcap_api_key: settings.coinmarketcap.key.secret,
-        jupiter_api_key: settings.defi.jupiter.key.secret,
+        jupiter_api_key: settings.indexer.jupiter.key.secret,
     })?;
 
     downloader.start().await

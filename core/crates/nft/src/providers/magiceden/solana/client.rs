@@ -1,42 +1,27 @@
-use super::model::{Collection, Nft};
 use std::error::Error;
 
-pub struct MagicEdenSolanaClient {
-    client: reqwest::Client,
+use gem_client::{Client, ClientExt};
+
+use super::model::{Collection, Nft};
+
+pub struct MagicEdenSolanaClient<C: Client> {
+    client: C,
 }
 
-impl MagicEdenSolanaClient {
-    pub fn new(client: reqwest::Client) -> Self {
+impl<C: Client> MagicEdenSolanaClient<C> {
+    pub fn new(client: C) -> Self {
         Self { client }
     }
 
     pub async fn get_nfts_by_account(&self, address: &str) -> Result<Vec<Nft>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(format!("{}/v2/wallets/{address}/tokens", super::super::BASE_URL))
-            .send()
-            .await?
-            .json::<Vec<Nft>>()
-            .await?)
+        Ok(self.client.get(&format!("/v2/wallets/{address}/tokens")).await?)
     }
 
     pub async fn get_collection_id(&self, collection_id: &str) -> Result<Collection, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(format!("{}/collections/{collection_id}", super::super::BASE_URL))
-            .send()
-            .await?
-            .json::<Collection>()
-            .await?)
+        Ok(self.client.get(&format!("/collections/{collection_id}")).await?)
     }
 
     pub async fn get_asset_id(&self, token_mint: &str) -> Result<Nft, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(format!("{}/v2/tokens/{token_mint}", super::super::BASE_URL))
-            .send()
-            .await?
-            .json::<Nft>()
-            .await?)
+        Ok(self.client.get(&format!("/v2/tokens/{token_mint}")).await?)
     }
 }

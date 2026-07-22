@@ -1,4 +1,10 @@
+use std::{collections::HashMap, fmt::Debug};
+
+use async_trait::async_trait;
+use serde::{Serialize, de::DeserializeOwned};
+
 mod content_type;
+mod provider_config;
 mod types;
 
 #[cfg(feature = "testkit")]
@@ -16,7 +22,8 @@ pub mod client_config;
 pub mod query;
 
 pub use content_type::{CONTENT_TYPE, ContentType};
-pub use query::build_path_with_query;
+pub use provider_config::{DEFAULT_REQUEST_TIMEOUT, RemoteProviderConfig};
+pub use query::{build_path_with_query, build_request_url};
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response};
 
 #[cfg(feature = "reqwest")]
@@ -27,10 +34,6 @@ pub use retry::{default_should_retry, retry, retry_policy};
 
 #[cfg(feature = "reqwest")]
 pub use client_config::{builder, reqwest_client};
-
-use async_trait::async_trait;
-use serde::{Serialize, de::DeserializeOwned};
-use std::{collections::HashMap, fmt::Debug};
 
 pub const X_CACHE_TTL: &str = "x-gem-cache-ttl";
 

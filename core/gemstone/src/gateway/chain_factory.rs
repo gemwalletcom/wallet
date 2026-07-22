@@ -1,6 +1,5 @@
-use super::{GatewayError, GemPreferences, PreferencesWrapper};
-use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
-use crate::network::JsonRpcClient;
+use std::sync::Arc;
+
 use chain_traits::ChainTraits;
 use gem_algorand::rpc::client::AlgorandClient;
 use gem_algorand::rpc::{ALGORAND_INDEXER_URL, AlgorandIndexer};
@@ -11,7 +10,7 @@ use gem_cosmos::rpc::client::CosmosClient;
 use gem_evm::rpc::EthereumClient;
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
-use gem_near::rpc::{FASTNEAR_TRANSACTIONS_URL, FASTNEAR_TRANSFERS_URL, NearClient, NearIndexer};
+use gem_near::rpc::{FASTNEAR_URL, NearClient, NearIndexer};
 use gem_polkadot::rpc::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotClient, PolkadotIndexer};
 use gem_solana::SolanaClient;
 use gem_stellar::rpc::client::StellarClient;
@@ -20,7 +19,10 @@ use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XrpClient;
 use primitives::{BitcoinChain, Chain, EVMChain, chain_cosmos::CosmosChain};
-use std::sync::Arc;
+
+use super::{GatewayError, GemPreferences, PreferencesWrapper};
+use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
+use crate::network::JsonRpcClient;
 
 pub struct ChainClientFactory {
     alien: Arc<dyn AlienProvider>,
@@ -72,14 +74,10 @@ impl ChainClientFactory {
                 let indexer_client = new_alien_client(ALGORAND_INDEXER_URL.to_string(), self.alien.clone());
                 Ok(Arc::new(AlgorandClient::new(alien_client, AlgorandIndexer::new(indexer_client))))
             }
-            Chain::Near => {
-                let transfers_client = new_alien_client(FASTNEAR_TRANSFERS_URL.to_string(), self.alien.clone());
-                let transactions_client = new_alien_client(FASTNEAR_TRANSACTIONS_URL.to_string(), self.alien.clone());
-                Ok(Arc::new(NearClient::new(
-                    JsonRpcClient::new(alien_client.clone()),
-                    NearIndexer::new(transfers_client, transactions_client),
-                )))
-            }
+            Chain::Near => Ok(Arc::new(NearClient::new(
+                JsonRpcClient::new(alien_client.clone()),
+                NearIndexer::new(alien_client, FASTNEAR_URL.to_string()),
+            ))),
             Chain::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
             Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Sei | Chain::Noble => {
                 Ok(Arc::new(CosmosClient::new(CosmosChain::from_chain(chain).unwrap(), alien_client)))

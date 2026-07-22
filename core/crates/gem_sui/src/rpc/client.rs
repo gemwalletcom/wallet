@@ -75,6 +75,11 @@ impl SuiClient {
         }
     }
 
+    #[cfg(feature = "reqwest")]
+    pub fn new_with_indexer<C: Client + 'static>(endpoint: impl Into<String>, indexer: SuiIndexer<C>) -> Self {
+        Self::new_with_transport(endpoint, Arc::new(ReqwestGrpcTransport::new()), indexer)
+    }
+
     pub fn new_with_transport<C: Client + 'static>(endpoint: impl Into<String>, transport: Arc<dyn GrpcTransport>, indexer: SuiIndexer<C>) -> Self {
         Self {
             endpoint: endpoint.into(),

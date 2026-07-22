@@ -12,7 +12,5 @@ pub use alchemy::alchemy_url;
 pub use client::EthereumClient;
 pub use indexer::EVMIndexer;
 pub(crate) use indexer::EVMIndexerClient;
-#[cfg(feature = "reqwest")]
-pub use indexer::EVMIndexerConfig;
 pub(crate) use indexer::IndexedTransaction;
 pub use mapper::EthereumMapper;
