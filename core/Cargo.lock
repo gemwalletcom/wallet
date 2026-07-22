@@ -7984,6 +7984,7 @@ version = "1.0.0"
 dependencies = [
  "cacher",
  "chrono",
+ "gem_client",
  "hex",
  "hmac 0.13.0",
  "localizer",

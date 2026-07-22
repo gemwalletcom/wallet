@@ -1,6 +1,7 @@
 use crate::codec::Codec;
 use crate::{client::NameClient, model::NameQuery, ton_codec};
 use async_trait::async_trait;
+use gem_client::reqwest_client;
 use primitives::{Chain, NameProvider};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -13,7 +14,7 @@ pub struct TONClient {
 
 impl TONClient {
     pub fn new(url: String) -> Self {
-        let client = Client::new();
+        let client = reqwest_client();
         Self { url, client }
     }
 }

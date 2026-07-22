@@ -28,7 +28,7 @@ impl ReqwestClient {
             base_url: url,
             client,
             default_headers: HashMap::new(),
-            user_agent: Some(user_agent),
+            user_agent: (!user_agent.is_empty()).then_some(user_agent),
         }
     }
 
@@ -174,4 +174,16 @@ pub async fn json_response<T: DeserializeOwned>(response: reqwest::Response) -> 
         .to_vec();
     let response = Response { status: Some(status), data };
     deserialize_response(&response)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ReqwestClient;
+
+    #[test]
+    fn empty_user_agent_override_preserves_client_default() {
+        let client = ReqwestClient::new_with_user_agent("https://example.com".to_string(), crate::reqwest_client(), String::new());
+
+        assert!(client.user_agent.is_none());
+    }
 }
