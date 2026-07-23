@@ -26,7 +26,7 @@ use {
     fee_config::{FeeConfig, get_fee_config},
     fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, select_leverage},
-    public::{ASSETS_URL, PublicUrl, get_public_url},
+    public::{PublicUrl, get_public_url},
     rewards::{RewardsUrl, get_rewards_url},
     search_config::{WalletSearchConfig, get_wallet_search_config},
     social::{SocialUrl, get_social_url, get_social_url_deeplink},
@@ -119,18 +119,6 @@ impl Config {
     fn get_nodes_for_chain(&self, chain: &str) -> Vec<Node> {
         let chain = Chain::from_str(chain).unwrap();
         node_config::get_nodes_for_chain(chain)
-    }
-
-    fn image_formatter_asset_url(&self, chain: &str, token_id: Option<String>) -> String {
-        primitives::ImageFormatter::get_asset_url(ASSETS_URL, chain, token_id.as_deref())
-    }
-
-    fn image_formatter_validator_url(&self, chain: &str, id: &str) -> String {
-        primitives::ImageFormatter::get_validator_url(ASSETS_URL, chain, id)
-    }
-
-    fn image_formatter_nft_asset_url(&self, url: &str, id: &str) -> String {
-        primitives::ImageFormatter::get_nft_asset_url(url, id)
     }
 
     fn get_block_explorers(&self, chain: &str) -> Vec<String> {

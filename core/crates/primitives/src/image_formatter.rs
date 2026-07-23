@@ -29,6 +29,10 @@ impl ImageFormatter {
     pub fn get_nft_collection_url(url: &str, id: &str) -> String {
         format!("{url}/collections/{id}/preview")
     }
+
+    pub fn get_list_url(url: &str, id: &str) -> String {
+        format!("{url}/lists/{id}.png")
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -57,6 +61,11 @@ mod tests {
             ImageFormatter::get_validator_url(URL, Chain::Ethereum.as_ref(), "1"),
             "https://example.com/blockchains/ethereum/validators/1/logo.png"
         );
+    }
+
+    #[test]
+    fn test_get_list_url() {
+        assert_eq!(ImageFormatter::get_list_url(URL, "trending"), "https://example.com/lists/trending.png");
     }
 
     #[test]
