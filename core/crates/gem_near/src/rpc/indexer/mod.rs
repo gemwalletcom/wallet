@@ -8,7 +8,7 @@ use std::{
 };
 
 use futures::future::try_join_all;
-use gem_client::{Client, ClientExt};
+use gem_client::{Client, ClientExt, build_request_url};
 use num_bigint::BigUint;
 use primitives::Transaction;
 use serde::{Deserialize, Serialize};
@@ -16,8 +16,7 @@ use serde_serializers::deserialize_u64_from_str;
 
 use self::mapper::map_transaction;
 
-pub const FASTNEAR_TRANSFERS_URL: &str = "https://transfers.main.fastnear.com";
-pub const FASTNEAR_TRANSACTIONS_URL: &str = "https://tx.main.fastnear.com";
+pub const FASTNEAR_URL: &str = "https://{service}.main.fastnear.com";
 
 const NATIVE_ASSET_ID: &str = "native:near";
 const MAX_TRANSFERS_LIMIT: usize = 100;
@@ -113,16 +112,17 @@ impl FastNearTransaction {
 
 #[derive(Clone, Debug)]
 pub struct NearIndexer<C: Client> {
-    transfers_client: C,
-    transactions_client: C,
+    client: C,
+    url: String,
 }
 
 impl<C: Client> NearIndexer<C> {
-    pub fn new(transfers_client: C, transactions_client: C) -> Self {
-        Self {
-            transfers_client,
-            transactions_client,
-        }
+    pub fn new(client: C, url: String) -> Self {
+        Self { client, url }
+    }
+
+    fn service_url(&self, service: &str, path: &str) -> String {
+        build_request_url(&self.url.replace("{service}", service), path)
     }
 
     async fn get_transfers(
@@ -140,7 +140,7 @@ impl<C: Client> NearIndexer<C> {
             limit: limit.min(MAX_TRANSFERS_LIMIT),
             from_timestamp_ms,
         };
-        let response: TransfersResponse = self.transfers_client.post("/v0/transfers", &request).await?;
+        let response: TransfersResponse = self.client.post(&self.service_url("transfers", "/v0/transfers"), &request).await?;
         Ok(response.transfers)
     }
 
@@ -154,7 +154,7 @@ impl<C: Client> NearIndexer<C> {
             .collect::<Vec<_>>();
         let requests = transaction_ids.chunks(TRANSACTIONS_BATCH_SIZE).map(|transaction_ids| async move {
             let request = TransactionsRequest { tx_hashes: transaction_ids };
-            let response: TransactionsResponse = self.transactions_client.post("/v0/transactions", &request).await?;
+            let response: TransactionsResponse = self.client.post(&self.service_url("tx", "/v0/transactions"), &request).await?;
             response
                 .transactions
                 .into_iter()
@@ -196,17 +196,25 @@ mod tests {
 
     use super::*;
 
-    fn transfers_client(requests: Arc<Mutex<Vec<Value>>>) -> MockClient {
+    fn client(transfer_requests: Arc<Mutex<Vec<Value>>>, transaction_requests: Arc<Mutex<Vec<Value>>>, transactions_response: &'static str) -> MockClient {
         MockClient::new().with_post(move |path, body| {
-            assert_eq!(path, "/v0/transfers");
-            let request: Value = serde_json::from_slice(body).unwrap();
-            let response = match request["direction"].as_str().unwrap() {
-                "sender" => include_str!("../../../testdata/fastnear_sender_transfers.json"),
-                "receiver" => include_str!("../../../testdata/fastnear_receiver_transfers.json"),
-                direction => panic!("unexpected transfer direction: {direction}"),
-            };
-            requests.lock().unwrap().push(request);
-            Ok(response.as_bytes().to_vec())
+            let request = serde_json::from_slice::<Value>(body).unwrap();
+            match path {
+                "https://transfers.main.fastnear.com/v0/transfers" => {
+                    let response = match request["direction"].as_str().unwrap() {
+                        "sender" => include_str!("../../../testdata/fastnear_sender_transfers.json"),
+                        "receiver" => include_str!("../../../testdata/fastnear_receiver_transfers.json"),
+                        direction => panic!("unexpected transfer direction: {direction}"),
+                    };
+                    transfer_requests.lock().unwrap().push(request);
+                    Ok(response.as_bytes().to_vec())
+                }
+                "https://tx.main.fastnear.com/v0/transactions" => {
+                    transaction_requests.lock().unwrap().push(request);
+                    Ok(transactions_response.as_bytes().to_vec())
+                }
+                path => panic!("unexpected path: {path}"),
+            }
         })
     }
 
@@ -214,13 +222,14 @@ mod tests {
     async fn test_get_transactions_by_address() {
         let transfer_requests = Arc::new(Mutex::new(Vec::new()));
         let transaction_requests = Arc::new(Mutex::new(Vec::new()));
-        let transaction_requests_for_client = transaction_requests.clone();
-        let transactions_client = MockClient::new().with_post(move |path, body| {
-            assert_eq!(path, "/v0/transactions");
-            transaction_requests_for_client.lock().unwrap().push(serde_json::from_slice::<Value>(body).unwrap());
-            Ok(include_str!("../../../testdata/fastnear_transactions.json").as_bytes().to_vec())
-        });
-        let indexer = NearIndexer::new(transfers_client(transfer_requests.clone()), transactions_client);
+        let indexer = NearIndexer::new(
+            client(
+                transfer_requests.clone(),
+                transaction_requests.clone(),
+                include_str!("../../../testdata/fastnear_transactions.json"),
+            ),
+            FASTNEAR_URL.to_string(),
+        );
 
         let transactions = indexer.get_transactions_by_address("address.near", 3, Some(1_700_000_000)).await.unwrap();
         let expected_sender_request: Value = serde_json::from_str(include_str!("../../../testdata/fastnear_sender_transfers_request.json")).unwrap();
@@ -242,11 +251,17 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transactions_by_address_missing_details() {
-        let transaction_client = MockClient::new().with_post(|_, _| Ok(include_str!("../../../testdata/fastnear_empty_transactions.json").as_bytes().to_vec()));
-        let error = NearIndexer::new(transfers_client(Arc::new(Mutex::new(Vec::new()))), transaction_client)
-            .get_transactions_by_address("address.near", 3, Some(1_700_000_000))
-            .await
-            .unwrap_err();
+        let error = NearIndexer::new(
+            client(
+                Arc::new(Mutex::new(Vec::new())),
+                Arc::new(Mutex::new(Vec::new())),
+                include_str!("../../../testdata/fastnear_empty_transactions.json"),
+            ),
+            FASTNEAR_URL.to_string(),
+        )
+        .get_transactions_by_address("address.near", 3, Some(1_700_000_000))
+        .await
+        .unwrap_err();
 
         assert_eq!(error.to_string(), "missing FastNear sender transaction details");
     }

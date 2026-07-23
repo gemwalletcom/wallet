@@ -43,7 +43,7 @@ public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & 
                 }
             },
             emptyContent: {
-                if let model = model.emptyCotentModel {
+                if let model = model.emptyContentModel {
                     EmptyContentView(model: model)
                 }
             },

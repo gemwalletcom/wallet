@@ -558,9 +558,11 @@ mod tests {
 
         let usdc_eth: AssetId = ETHEREUM_USDC_ASSET_ID.clone();
         let usdc_arb: AssetId = ARBITRUM_USDC_ASSET_ID.clone();
+        let usdc_avalanche: AssetId = AVALANCHE_USDC_ASSET_ID.clone();
         let usdc_monad: AssetId = MONAD_USDC_ASSET_ID.clone();
         let usdg_robinhood: AssetId = ROBINHOOD_USDG_ASSET_ID.clone();
         let usdt_eth: AssetId = ETHEREUM_USDT_ASSET_ID.clone();
+        let usdt_avalanche: AssetId = AVALANCHE_USDT_ASSET_ID.clone();
         let usdt_monad: AssetId = MONAD_USDT_ASSET_ID.clone();
         let usdt_tron: AssetId = TRON_USDT_ASSET_ID.clone();
 
@@ -569,6 +571,8 @@ mod tests {
         assert!(!Across::is_supported_route(&weth_eth, &weth_blast));
         assert!(!Across::is_supported_route(&weth_blast, &weth_eth));
         assert!(Across::is_supported_route(&usdc_eth, &usdc_arb));
+        assert!(Across::is_supported_route(&usdc_eth, &usdc_avalanche));
+        assert!(Across::is_supported_route(&usdt_avalanche, &usdt_eth));
         assert!(Across::is_supported_route(&usdc_monad, &usdc_eth));
         assert!(Across::is_supported_route(&usdt_monad, &usdt_eth));
         assert!(Across::is_supported_route(&usdt_tron, &usdt_eth));
@@ -780,6 +784,33 @@ mod tests {
 
             let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
             println!("<== quote_data: {:?}", quote_data);
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_across_quote_ethereum_usdc_to_avalanche_usdc() -> Result<(), SwapperError> {
+            let network_provider = Arc::new(NativeProvider::default());
+            let swap_provider = Across::boxed(network_provider);
+            let wallet = "0x9b1fe00135e0ff09389bfaeff0c8f299ec818d4a";
+            let request = QuoteRequest {
+                from_asset: ETHEREUM_USDC_ASSET_ID.clone().into(),
+                to_asset: AVALANCHE_USDC_ASSET_ID.clone().into(),
+                wallet_address: wallet.into(),
+                destination_address: wallet.into(),
+                value: "50000000".into(),
+                options: Options {
+                    slippage: 100.into(),
+                    use_max_amount: false,
+                },
+            };
+
+            let quote = swap_provider.get_quote(&request).await?;
+            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(!quote.data.routes[0].route_data.is_empty());
+
+            let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
 
             Ok(())
         }

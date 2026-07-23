@@ -12,14 +12,13 @@ pub mod fetch_transaction_consumer;
 use std::error::Error;
 use std::sync::Arc;
 
-use ::nft::{NFTClient, NFTProviderConfig, OffchainClientConfig};
+use ::nft::{NFTClient, NFTProviderConfig};
 use cacher::CacherClient;
 use coingecko::CoinGeckoClient;
 use lists::{CoinGeckoListProvider, ListsClient};
 use pricer::PriceClient;
 use primitives::{Chain, NFTChain, TransactionIdRequest};
 use settings::Settings;
-use settings_chain::ProviderFactory;
 use storage::{ConfigCacher, Database};
 use streamer::{
     ChainAddressPayload, ConsumerStatusReporter, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, QueueName, ShutdownReceiver,
@@ -275,12 +274,7 @@ async fn run_fetch_nft_assets(
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
     let cacher = CacherClient::new(&settings.redis.url).await?;
-    let nft_config = NFTProviderConfig::new(
-        settings.nft.opensea.key.secret.clone(),
-        settings.nft.magiceden.key.secret.clone(),
-        ProviderFactory::get_chain_url(Chain::Ton, &settings),
-        OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
-    );
+    let nft_config = NFTProviderConfig::from_settings(&settings);
     let nft_client = NFTClient::from_config(database, nft_config, settings.nft.url.clone());
     let consumer = FetchNftAssetConsumer { nft_client, cacher };
     run_consumer::<FetchNFTAssetPayload, FetchNftAssetConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter)

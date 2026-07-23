@@ -43,6 +43,16 @@ impl BitcoinChain {
         }
     }
 
+    pub fn minimum_custom_fee_rate(&self) -> u32 {
+        match self {
+            BitcoinChain::Bitcoin => 1,
+            BitcoinChain::BitcoinCash => 50,
+            BitcoinChain::Litecoin => 50,
+            BitcoinChain::Doge => 10_000,
+            BitcoinChain::Zcash => 10,
+        }
+    }
+
     pub fn get_blocks_fee_priority(&self) -> BlocksFeePriority {
         match self {
             BitcoinChain::Bitcoin => BlocksFeePriority { slow: 6, normal: 3, fast: 1 },

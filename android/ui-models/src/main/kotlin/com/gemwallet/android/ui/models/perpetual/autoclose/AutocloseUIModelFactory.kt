@@ -2,17 +2,13 @@ package com.gemwallet.android.ui.models.perpetual.autoclose
 
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
+import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
-import com.gemwallet.android.domains.perpetual.formatPnlWithPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.CurrencyFormatter
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
 import uniffi.gemstone.AutocloseValidation
@@ -21,7 +17,6 @@ import kotlin.math.abs
 object AutocloseUIModelFactory {
 
     private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Currency, currency = Currency.USD)
-    private val marginFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
 
     fun create(
         position: PerpetualPositionData,
@@ -37,7 +32,7 @@ object AutocloseUIModelFactory {
             leverage = position.position.leverage,
         )
         return AutocloseUIModel(
-            position = positionSummary(position),
+            position = PerpetualPositionDataAggregateImpl(position),
             marketPriceText = currencyFormatter.string(position.perpetual.price),
             entryPriceText = currencyFormatter.string(position.position.entryPrice),
             takeProfit = createField(takeProfit, estimator, showErrors),
@@ -63,19 +58,6 @@ object AutocloseUIModelFactory {
             percentSuggestions = estimator.percentSuggestions,
             validation = if (showErrors) field.validation else AutocloseValidation.VALID,
         )
-    }
-
-    private fun positionSummary(data: PerpetualPositionData): PerpetualPositionDataAggregate = object : PerpetualPositionDataAggregate {
-        override val positionId: String = data.position.id
-        override val perpetualId: PerpetualId = data.perpetual.id
-        override val asset: Asset = data.asset
-        override val name: String = data.perpetual.name
-        override val direction: PerpetualDirection = data.position.direction
-        override val leverage: Int = data.position.leverage.toInt()
-        override val marginAmount: String = marginFormatter.string(data.position.marginAmount)
-        override val pnlWithPercentage: String =
-            formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
-        override val pnlState: ValueDirection = data.position.pnl.toValueDirection()
     }
 
     private fun pnlText(pnl: Double?, roe: Double?, hasSize: Boolean): String {

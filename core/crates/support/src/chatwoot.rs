@@ -1,4 +1,5 @@
 use chrono::Utc;
+use gem_client::reqwest_client;
 use primitives::{Device, SupportMessage, SupportTypingStatus};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::{Form, Part};
@@ -23,7 +24,7 @@ pub struct ChatwootClient {
 impl ChatwootClient {
     pub fn new(url: String, widget_public_token: String) -> Self {
         Self {
-            client: Client::new(),
+            client: reqwest_client(),
             url: url.trim_end_matches('/').to_string(),
             widget_public_token,
         }

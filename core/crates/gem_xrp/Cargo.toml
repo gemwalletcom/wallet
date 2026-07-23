@@ -33,6 +33,7 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
 
 primitives = { path = "../primitives", features = ["testkit"] }
 settings = { path = "../settings", features = ["testkit"] }

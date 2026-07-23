@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use gem_client::reqwest_client;
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -26,7 +27,7 @@ pub struct LensClient {
 
 impl LensClient {
     pub fn new(api_url: String) -> Self {
-        let client = Client::new();
+        let client = reqwest_client();
         Self { api_url, client }
     }
 }

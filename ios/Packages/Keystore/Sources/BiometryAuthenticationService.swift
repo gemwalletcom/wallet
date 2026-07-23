@@ -25,8 +25,8 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         }
     }
 
-    public func togglePrivacyLock(enbaled: Bool) throws {
-        let status = PrivacyLockStatus(enabled: enbaled)
+    public func togglePrivacyLock(enabled: Bool) throws {
+        let status = PrivacyLockStatus(enabled: enabled)
         try keystorePassword.setPrivacyLockStatus(status)
     }
 

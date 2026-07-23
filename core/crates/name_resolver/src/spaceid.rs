@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use gem_client::reqwest_client;
 use primitives::chain::Chain;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ pub struct SpaceIdClient {
 
 impl SpaceIdClient {
     pub fn new(api_url: String) -> Self {
-        let client = Client::new();
+        let client = reqwest_client();
         Self { api_url, client }
     }
 }

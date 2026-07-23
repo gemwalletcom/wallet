@@ -1,6 +1,7 @@
 package com.gemwallet.android.ext
 
 import com.wallet.core.primitives.FeeUnitType
+import uniffi.gemstone.FeeConfig
 import uniffi.gemstone.GemGasPriceType
 import java.math.BigInteger
 
@@ -10,9 +11,8 @@ fun GemGasPriceType.totalFee(): BigInteger = when (this) {
     is GemGasPriceType.Solana -> gasPrice.toBigInteger() + priorityFee.toBigInteger()
 }
 
-val FeeUnitType.gasPriceDecimals: Int?
-    get() = when (this) {
-        FeeUnitType.SatVb -> 0
-        FeeUnitType.Gwei -> 9
-        FeeUnitType.Native -> null
+fun feeRateDecimals(feeUnitType: FeeUnitType?, feeConfig: FeeConfig, assetDecimals: Int): Int =
+    when (feeUnitType) {
+        FeeUnitType.SatVb, FeeUnitType.Gwei -> feeConfig.decimals.toInt()
+        FeeUnitType.Native, null -> assetDecimals
     }

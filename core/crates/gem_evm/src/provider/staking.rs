@@ -6,12 +6,12 @@ use async_trait::async_trait;
 use chain_traits::ChainStaking;
 use primitives::{DelegationBase, DelegationValidator, EVMChain};
 
-use crate::rpc::client::EthereumClient;
+use crate::rpc::EthereumProvider;
 use gem_client::Client;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl<C: Client + Clone> ChainStaking for EthereumClient<C> {
+impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_staking_apy().await,

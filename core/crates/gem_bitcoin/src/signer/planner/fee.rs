@@ -1,4 +1,4 @@
-use primitives::BitcoinChain;
+use primitives::{BitcoinChain, FeeUnitType};
 
 use super::{PlanInput, PlanOutput};
 use crate::signer::{address::UnlockingScript, encoding::varint_len};
@@ -31,7 +31,8 @@ fn estimate_bitcoin_fee(inputs: &[PlanInput], outputs: &[PlanOutput], fee_rate: 
     let input_weight: u128 = inputs.iter().map(input_weight).sum();
     let output_weight: u128 = outputs.iter().map(|output| output.serialized_len() as u128 * WITNESS_SCALE_FACTOR).sum();
     let weight = transaction_base_weight(inputs.len(), outputs.len(), has_witness) + input_weight + output_weight;
-    weight.div_ceil(WITNESS_SCALE_FACTOR) * fee_rate as u128
+    let scale = FeeUnitType::SatVb.scale_factor() as u128;
+    (weight.div_ceil(WITNESS_SCALE_FACTOR) * fee_rate as u128).div_ceil(scale)
 }
 
 fn transaction_base_weight(input_count: usize, output_count: usize, has_witness: bool) -> u128 {
@@ -68,11 +69,14 @@ mod tests {
             PlanOutput::new(10_000, script_for_public_key_hash(UnlockingScript::P2pkh, [0u8; 20])),
             PlanOutput::new(20_000, script_for_public_key_hash(UnlockingScript::P2pkh, [0u8; 20])),
         ];
-        assert_eq!(estimate_fee(BitcoinChain::Bitcoin, &legacy_inputs, &legacy_outputs, 2), 452);
+        assert_eq!(estimate_fee(BitcoinChain::Bitcoin, &legacy_inputs, &legacy_outputs, 20), 452);
+        assert_eq!(estimate_fee(BitcoinChain::Bitcoin, &legacy_inputs, &legacy_outputs, 1), 23);
 
         let segwit_inputs = vec![PlanInput::mock_with_unlocking_script(UnlockingScript::P2wpkh)];
         let segwit_outputs = vec![PlanOutput::new(10_000, script_for_public_key_hash(UnlockingScript::P2wpkh, [0u8; 20]))];
-        assert_eq!(estimate_fee(BitcoinChain::Bitcoin, &segwit_inputs, &segwit_outputs, 3), 330);
+        assert_eq!(estimate_fee(BitcoinChain::Bitcoin, &segwit_inputs, &segwit_outputs, 30), 330);
+        assert_eq!(estimate_fee(BitcoinChain::Bitcoin, &segwit_inputs, &segwit_outputs, 5), 55);
+        assert_eq!(estimate_fee(BitcoinChain::Bitcoin, &segwit_inputs, &segwit_outputs, 1), 11);
 
         let zcash_outputs = vec![PlanOutput::new(10_000, script_for_public_key_hash(UnlockingScript::P2pkh, [0u8; 20]))];
         assert_eq!(estimate_fee(BitcoinChain::Zcash, &legacy_inputs, &zcash_outputs, 100), 10_000);

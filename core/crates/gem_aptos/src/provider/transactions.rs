@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -11,16 +11,22 @@ use crate::{
 };
 
 #[async_trait]
-impl<C: Client> ChainTransactions for AptosClient<C> {
+impl<C: Client> ChainBlockTransactions for AptosClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(map_transactions(self.get_block_transactions(block).await?.transactions))
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransaction for AptosClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         Ok(map_transaction(self.get_transaction_by_hash(&hash).await?))
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransactions for AptosClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, .. } = request;
         Ok(TransactionsResult::Transactions(map_transactions(self.get_transactions_by_address(address).await?)))
@@ -30,7 +36,7 @@ impl<C: Client> ChainTransactions for AptosClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_aptos_test_client};
-    use chain_traits::{ChainState, ChainTransactions, TransactionIdRequest};
+    use chain_traits::{ChainBlockTransactions, ChainState, ChainTransaction, TransactionIdRequest};
 
     #[tokio::test]
     async fn test_aptos_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -52,7 +58,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_aptos_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_aptos_test_client();
-        let transaction = ChainTransactions::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Aptos, TEST_TRANSACTION_ID.to_string(), None))
+        let transaction = ChainTransaction::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Aptos, TEST_TRANSACTION_ID.to_string(), None))
             .await?
             .unwrap();
 

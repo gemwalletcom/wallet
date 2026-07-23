@@ -41,10 +41,7 @@ public final class NetworkFeeCustomViewModel {
         self.baseTotal = baseTotal
         self.normalTotal = normalTotal
         self.onSelect = onSelect
-        decimals = switch chain.feeUnitType {
-        case .satVb, .gwei: chain.feeUnitDecimals
-        case .native: feeAsset.decimals.asInt
-        }
+        decimals = chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt)
         input = initialRate.map { ValueFormatter.full.string($0, decimals: decimals) } ?? ""
     }
 
@@ -68,13 +65,19 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var errorText: String? {
-        guard let estimate, estimate.isOverMax else { return nil }
-        let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: estimate.maxRate), decimals: decimals, symbol: feeAsset.symbol).value
-        return Localized.Common.maximumValue(maxText)
+        if isBelowMinimum, let minimumRate {
+            let minText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: minimumRate), decimals: decimals, symbol: feeAsset.symbol).value
+            return Localized.Common.minimumValue(minText)
+        }
+        if let estimate, estimate.isOverMax {
+            let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: estimate.maxRate), decimals: decimals, symbol: feeAsset.symbol).value
+            return Localized.Common.maximumValue(maxText)
+        }
+        return nil
     }
 
     public var isConfirmEnabled: Bool {
-        rate != nil && estimate?.isOverMax == false
+        rate != nil && !isBelowMinimum && estimate?.isOverMax == false
     }
 
     public func sanitize(_ text: String) -> String {
@@ -82,8 +85,17 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func confirm() {
-        guard let rate, estimate?.isOverMax == false else { return }
+        guard let rate, !isBelowMinimum, estimate?.isOverMax == false else { return }
         onSelect(rate)
+    }
+
+    private var minimumRate: BigInt? {
+        chain.minimumCustomFeeRate
+    }
+
+    private var isBelowMinimum: Bool {
+        guard let rate, let minimumRate else { return false }
+        return rate < minimumRate
     }
 
     private var rate: BigInt? {

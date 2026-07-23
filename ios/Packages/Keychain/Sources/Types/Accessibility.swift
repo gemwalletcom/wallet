@@ -6,7 +6,7 @@ public enum Accessibility: Sendable {
     /**
      Item data can only be accessed
      while the device is unlocked. This is recommended for items that only
-     need be accesible while the application is in the foreground. Items
+     need be accessible while the application is in the foreground. Items
      with this attribute will migrate to a new device when using encrypted
      backups.
      */
@@ -15,7 +15,7 @@ public enum Accessibility: Sendable {
     /**
      Item data can only be
      accessed once the device has been unlocked after a restart. This is
-     recommended for items that need to be accesible by background
+     recommended for items that need to be accessible by background
      applications. Items with this attribute will migrate to a new device
      when using encrypted backups.
      */
@@ -38,7 +38,7 @@ public enum Accessibility: Sendable {
     /**
      Item data can only
      be accessed while the device is unlocked. This is recommended for items
-     that only need be accesible while the application is in the foreground.
+     that only need be accessible while the application is in the foreground.
      Items with this attribute will never migrate to a new device, so after
      a backup is restored to a new device, these items will be missing.
      */

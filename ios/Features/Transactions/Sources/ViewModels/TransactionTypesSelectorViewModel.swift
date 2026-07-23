@@ -47,7 +47,7 @@ public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
         Localized.Common.done
     }
 
-    public var emptyCotentModel: (any EmptyContentViewable)? {
+    public var emptyContentModel: (any EmptyContentViewable)? {
         .none
     }
 

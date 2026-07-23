@@ -1,11 +1,11 @@
 #![allow(unused)]
 
-use serde::Deserialize;
-use serde_serializers::duration;
-use std::{env, path::PathBuf, time::Duration};
+use std::{collections::HashMap, env, path::PathBuf, time::Duration};
 
 use config::{Config, ConfigError, Environment, File};
-use std::collections::HashMap;
+use gem_client::{DEFAULT_REQUEST_TIMEOUT, RemoteProviderConfig};
+use serde::Deserialize;
+use serde_serializers::duration;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
@@ -39,16 +39,58 @@ pub struct Settings {
     pub pusher: Pusher,
     pub scan: Scan,
     pub support: Support,
-    pub defi: Defi,
     pub nft: NFT,
-    pub alchemy: Alchemy,
-    pub ankr: Ankr,
-    pub blockscout: Blockscout,
-    pub subscan: Subscan,
-    pub trongrid: Trongrid,
+    pub indexer: Indexer,
     pub assets: Assets,
     pub rewards: Rewards,
     pub ip: Ip,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Indexer {
+    pub alchemy: ProviderSettings,
+    pub algorand: ProviderSettings,
+    pub ankr: ProviderSettings,
+    pub blockscout: ProviderSettings,
+    pub fastnear: ProviderSettings,
+    pub jupiter: ProviderSettings,
+    pub magiceden: ProviderSettings,
+    pub opensea: ProviderSettings,
+    pub subscan: ProviderSettings,
+    pub sui: ProviderSettings,
+    pub ton: ProviderSettings,
+    pub trongrid: ProviderSettings,
+    pub zerion: ProviderSettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct RequestSettings {
+    #[serde(deserialize_with = "duration::deserialize")]
+    pub timeout: Duration,
+}
+
+impl Default for RequestSettings {
+    fn default() -> Self {
+        Self { timeout: DEFAULT_REQUEST_TIMEOUT }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ProviderSettings {
+    pub url: String,
+    pub key: KeySecret,
+    #[serde(default)]
+    pub request: RequestSettings,
+}
+
+impl ProviderSettings {
+    pub fn remote_provider_config(&self) -> RemoteProviderConfig {
+        RemoteProviderConfig {
+            url: self.url.clone(),
+            key: self.key.secret.clone(),
+            timeout: self.request.timeout,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -392,8 +434,6 @@ impl Settings {
 pub struct NFT {
     pub url: String,
     pub offchain: NFTOffchain,
-    pub opensea: OpenSea,
-    pub magiceden: MagicEden,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -401,20 +441,6 @@ pub struct NFTOffchain {
     pub timeout: u64,
     pub concurrency: usize,
     pub limit: usize,
-}
-
-pub type Alchemy = SecretKeySettings;
-pub type Ankr = SecretKeySettings;
-pub type Blockscout = SecretKeySettings;
-pub type Subscan = SecretKeySettings;
-pub type Trongrid = SecretKeySettings;
-pub type OpenSea = SecretKeySettings;
-pub type MagicEden = SecretKeySettings;
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Defi {
-    pub zerion: UrlSecretKeySettings,
-    pub jupiter: UrlSecretKeySettings,
 }
 
 pub type Assets = URL;

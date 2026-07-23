@@ -3,7 +3,7 @@ use std::sync::Arc;
 use ::simulation::evm::SimulationClient;
 use chain_traits::ChainSimulation;
 use gem_evm::jsonrpc::TransactionObject;
-use gem_evm::rpc::EthereumClient;
+use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_solana::SolanaClient;
 use gem_sui::rpc::{SUI_GRAPHQL_URL, SuiClient, SuiIndexer};
@@ -97,7 +97,7 @@ impl WalletConnectSimulationClient {
         &self,
         chain: Chain,
         calldata: &[u8],
-        client: &EthereumClient<AlienClient>,
+        client: &EthereumProvider<AlienClient>,
         transaction: &WcEthereumTransactionData,
     ) -> (Result<SimulationResult, GemstoneError>, Result<SimulationResult, GemstoneError>) {
         let calldata_task = async {
@@ -113,7 +113,7 @@ impl WalletConnectSimulationClient {
         futures::join!(calldata_task, self.simulate_ethereum_balance_changes(client, transaction))
     }
 
-    async fn simulate_ethereum_balance_changes(&self, client: &EthereumClient<AlienClient>, transaction: &WcEthereumTransactionData) -> Result<SimulationResult, GemstoneError> {
+    async fn simulate_ethereum_balance_changes(&self, client: &EthereumProvider<AlienClient>, transaction: &WcEthereumTransactionData) -> Result<SimulationResult, GemstoneError> {
         let encoded_transaction = serde_json::to_string(&map_transaction_object(transaction)).map_err(|error| error.to_string())?;
 
         Ok(client.simulate_transaction(SimulationInput::new(encoded_transaction)).await?)
@@ -134,11 +134,11 @@ impl WalletConnectSimulationClient {
         Ok(client.simulate_transaction(SimulationInput::new(data)).await?)
     }
 
-    fn ethereum_client(&self, chain: Chain) -> Option<EthereumClient<AlienClient>> {
+    fn ethereum_client(&self, chain: Chain) -> Option<EthereumProvider<AlienClient>> {
         let chain = EVMChain::from_chain(chain)?;
         let url = self.provider.get_endpoint(chain.to_chain()).ok()?;
         let client = new_alien_client(url, self.provider.clone());
-        Some(EthereumClient::new(JsonRpcClient::new(client), chain))
+        Some(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
     }
 
     fn solana_client(&self) -> Option<SolanaClient<AlienClient>> {

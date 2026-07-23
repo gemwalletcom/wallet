@@ -1,11 +1,17 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
 
 use gem_client::Client;
 
 use crate::rpc::client::NearClient;
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransaction for NearClient<C> {}
+
+#[async_trait]
+impl<C: Client + Clone> ChainBlockTransactions for NearClient<C> {}
 
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for NearClient<C> {

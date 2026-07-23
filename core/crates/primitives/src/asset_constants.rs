@@ -68,6 +68,12 @@ pub static POLYGON_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::
 pub const GNOSIS_USDC_TOKEN_ID: &str = "0x2a22f9c3b484c3629090FeED35F17Ff8F88f76F0";
 pub static GNOSIS_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Gnosis, GNOSIS_USDC_TOKEN_ID));
 
+pub const MANTLE_USDC_TOKEN_ID: &str = "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9";
+pub static MANTLE_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Mantle, MANTLE_USDC_TOKEN_ID));
+
+pub const INK_USDC_TOKEN_ID: &str = "0x2D270e6886d130D724215A266106e6832161EAEd";
+pub static INK_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ink, INK_USDC_TOKEN_ID));
+
 pub const SOLANA_USDC_TOKEN_ID: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 pub static SOLANA_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Solana, SOLANA_USDC_TOKEN_ID));
 
@@ -163,6 +169,9 @@ pub static NEAR_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::fro
 
 pub const INK_USDT_TOKEN_ID: &str = "0x3baD7AD0728f9917d1Bf08af5782dCbD516cDd96";
 pub static INK_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ink, INK_USDT_TOKEN_ID));
+
+pub const INK_USDT0_TOKEN_ID: &str = "0x0200C29006150606B650577BBE7B6248F58470c1";
+pub static INK_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ink, INK_USDT0_TOKEN_ID));
 
 pub const HYPEREVM_USDT_TOKEN_ID: &str = "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb";
 pub static HYPEREVM_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Hyperliquid, HYPEREVM_USDT_TOKEN_ID));

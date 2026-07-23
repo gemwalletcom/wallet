@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
+impl<C: Client + Clone> ChainBlockTransactions for SolanaClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         match self.get_block_transactions(block).await {
             Ok(block_transactions) => Ok(map_block_transactions(&block_transactions)),
@@ -24,7 +24,10 @@ impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
             }
         }
     }
+}
 
+#[async_trait]
+impl<C: Client + Clone> ChainTransaction for SolanaClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         let transaction: Option<SingleTransaction> = self.get_transaction(&hash).await?;
@@ -37,7 +40,10 @@ impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
         };
         Ok(map_transaction(&block_transaction, transaction.block_time))
     }
+}
 
+#[async_trait]
+impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let transaction_ids = self.indexer.get_transaction_ids_by_address(&address, limit).await?;

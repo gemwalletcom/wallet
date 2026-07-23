@@ -10,4 +10,4 @@ source "$script_dir/env.sh"
 touch local.properties
 
 rm -rf "$HOME/.gradle/caches/transforms-"*
-"${GRADLE_COMMAND:-gradle}" --no-daemon --console plain --no-configuration-cache -Pchannel=fdroid :app:assembleFdroidRelease
+"${GRADLE_COMMAND:-gradle}" --no-daemon --console plain --no-configuration-cache -Pchannel=fdroid -PuseLegacyPackaging=true :app:assembleFdroidRelease

@@ -8,10 +8,7 @@ use serde_json::{Value, json};
 use serde_serializers::biguint_from_hex_str;
 use std::str::FromStr;
 
-use super::{
-    EVMIndexer,
-    model::{Block, BlockHeader, TraceCallResult, TransactionReceipt},
-};
+use super::model::{Block, BlockHeader, TraceCallResult, TransactionReceipt};
 use crate::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use crate::models::fee::EthereumFeeHistory;
 #[cfg(feature = "rpc")]
@@ -30,18 +27,13 @@ pub const FUNCTION_ERC20_DECIMALS: &str = "0x313ce567";
 
 #[derive(Debug, Clone)]
 pub struct EthereumClient<C: Client + Clone> {
-    pub chain: EVMChain,
-    pub client: JsonRpcClient<C>,
-    pub(crate) indexer: EVMIndexer<C>,
+    pub(crate) chain: EVMChain,
+    pub(crate) client: JsonRpcClient<C>,
 }
 
 impl<C: Client + Clone> EthereumClient<C> {
     pub fn new(client: JsonRpcClient<C>, chain: EVMChain) -> Self {
-        Self::new_with_indexer(client, chain, EVMIndexer::unsupported())
-    }
-
-    pub fn new_with_indexer(client: JsonRpcClient<C>, chain: EVMChain, indexer: EVMIndexer<C>) -> Self {
-        Self { chain, client, indexer }
+        Self { chain, client }
     }
 
     pub fn get_chain(&self) -> Chain {

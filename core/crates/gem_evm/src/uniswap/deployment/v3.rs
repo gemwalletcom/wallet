@@ -164,6 +164,11 @@ pub fn get_pancakeswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Dep
     // https://developer.pancakeswap.finance/contracts/universal-router/addresses
     // https://docs.pancakeswap.finance/developers/smart-contracts/pancakeswap-exchange/v3-contracts#address
     match chain {
+        Chain::Ethereum => Some(V3Deployment::v2(
+            "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+            "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
+            "0x65b382653f7C31bC0Af67f188122035461ec9C76",
+        )),
         Chain::SmartChain => Some(V3Deployment::v2(
             "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
             "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",

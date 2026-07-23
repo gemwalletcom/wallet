@@ -28,8 +28,8 @@ impl AcrossDeployment {
         let spoke_pool = match chain {
             Chain::Ethereum => ETHEREUM_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Arbitrum => ARBITRUM_ACROSS_SPOKE_POOL_CONTRACT,
+            Chain::AvalancheC => AVALANCHE_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Base => BASE_ACROSS_SPOKE_POOL_CONTRACT,
-            Chain::Blast => BLAST_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Linea => LINEA_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Optimism => OPTIMISM_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Polygon => POLYGON_ACROSS_SPOKE_POOL_CONTRACT,
@@ -46,6 +46,7 @@ impl AcrossDeployment {
             _ => return None,
         };
         let multicall_handler = match chain {
+            Chain::AvalancheC => AVALANCHE_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Linea => LINEA_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::ZkSync => ZKSYNC_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::SmartChain => SMARTCHAIN_ACROSS_MULTICALL_HANDLER_CONTRACT,
@@ -53,7 +54,7 @@ impl AcrossDeployment {
             Chain::Hyperliquid => HYPEREVM_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Plasma => PLASMA_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Robinhood => ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT,
-            Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Blast | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => {
+            Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => {
                 ETHEREUM_ACROSS_MULTICALL_HANDLER_CONTRACT
             }
             _ => return None,
@@ -88,6 +89,7 @@ impl AcrossDeployment {
                 vec![ARBITRUM_USDT_ASSET_ID.clone(), ARBITRUM_USDC_ASSET_ID.clone(), ARBITRUM_WETH_ASSET_ID.clone()],
             ),
             (Chain::Base, vec![BASE_WETH_ASSET_ID.clone(), BASE_USDC_ASSET_ID.clone()]),
+            (Chain::AvalancheC, vec![AVALANCHE_USDC_ASSET_ID.clone(), AVALANCHE_USDT_ASSET_ID.clone()]),
             (Chain::Hyperliquid, vec![HYPEREVM_USDC_ASSET_ID.clone(), HYPEREVM_USDT_ASSET_ID.clone()]),
             (Chain::Linea, vec![LINEA_USDT_ASSET_ID.clone(), LINEA_WETH_ASSET_ID.clone()]),
             (Chain::ZkSync, vec![ZKSYNC_WETH_ASSET_ID.clone(), ZKSYNC_USDT_ASSET_ID.clone()]),
@@ -175,6 +177,7 @@ impl AcrossDeployment {
                 },
                 set: HashSet::from_iter([
                     ARBITRUM_USDC_ASSET_ID.clone(),
+                    AVALANCHE_USDC_ASSET_ID.clone(),
                     BASE_USDC_ASSET_ID.clone(),
                     ETHEREUM_USDC_ASSET_ID.clone(),
                     OPTIMISM_USDC_ASSET_ID.clone(),
@@ -204,6 +207,7 @@ impl AcrossDeployment {
                 },
                 set: HashSet::from_iter([
                     ARBITRUM_USDT_ASSET_ID.clone(),
+                    AVALANCHE_USDT_ASSET_ID.clone(),
                     ETHEREUM_USDT_ASSET_ID.clone(),
                     LINEA_USDT_ASSET_ID.clone(),
                     OPTIMISM_USDT_ASSET_ID.clone(),
