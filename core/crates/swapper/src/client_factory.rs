@@ -4,8 +4,8 @@ use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 #[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]
 use gem_solana::SolanaRpcConfig;
-use gem_sui::rpc::client::SuiClient;
-use gem_tron::rpc::{TronClient, trongrid::client::TronGridClient};
+use gem_sui::rpc::SuiClient;
+use gem_tron::rpc::TronClient;
 use primitives::{Chain, EVMChain};
 use std::sync::Arc;
 
@@ -29,7 +29,7 @@ pub fn create_eth_client(provider: Arc<dyn RpcProvider>, chain: Chain) -> Result
 pub fn create_tron_client(provider: Arc<dyn RpcProvider>) -> Result<TronClient<RpcClient>, SwapperError> {
     let endpoint = provider.get_endpoint(Chain::Tron).map_err(|_| SwapperError::NotSupportedChain)?;
     let client = RpcClient::new(endpoint, provider);
-    Ok(TronClient::new(client.clone(), TronGridClient::new(client, String::new())))
+    Ok(TronClient::new(client))
 }
 
 #[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]

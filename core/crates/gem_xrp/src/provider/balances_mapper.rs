@@ -8,15 +8,13 @@ use primitives::{AssetBalance, AssetId, Balance, Chain};
 use std::{collections::HashMap, error::Error};
 
 pub fn map_balance_coin(account: Option<AccountInfo>, asset_id: AssetId, reserved_amount: u64) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-    let available = if let Some(account) = account {
-        account.balance.saturating_sub(reserved_amount)
-    } else {
-        0
-    };
+    let (available, reserved) = account
+        .map(|account| (account.balance.saturating_sub(reserved_amount), reserved_amount))
+        .unwrap_or_default();
 
     Ok(AssetBalance::new_balance(
         asset_id,
-        Balance::with_reserved(BigUint::from(available), BigUint::from(reserved_amount)),
+        Balance::with_reserved(BigUint::from(available), BigUint::from(reserved)),
     ))
 }
 

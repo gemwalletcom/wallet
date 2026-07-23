@@ -1,5 +1,7 @@
 pub mod client;
 mod indexer;
+mod provider;
 
 pub use client::PolkadotClient;
-pub use indexer::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotIndexer};
+pub use indexer::PolkadotIndexer;
+pub use provider::PolkadotProvider;

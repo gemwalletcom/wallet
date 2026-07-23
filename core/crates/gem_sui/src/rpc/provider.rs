@@ -1,18 +1,9 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 
 use super::SuiClient;
-
-struct EmptyProvider;
-
-#[async_trait]
-impl ChainTransactions for EmptyProvider {
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        Ok(TransactionsResult::Transactions(Vec::new()))
-    }
-}
 
 pub struct SuiProvider {
     client: SuiClient,
@@ -28,7 +19,7 @@ impl SuiProvider {
     }
 
     pub fn new_rpc_only(client: SuiClient) -> Self {
-        Self::new(client, Box::new(EmptyProvider))
+        Self::new(client, Box::new(EmptyTransactionsProvider))
     }
 }
 

@@ -1,24 +1,20 @@
 use std::error::Error;
 
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
-use primitives::Chain;
 
 use crate::models::account::PolkadotAccountBalance;
 use crate::models::block::PolkadotNodeVersion;
 use crate::models::fee::PolkadotEstimateFee;
 use crate::models::rpc::{Block, BlockHeader};
 use crate::models::transaction::{PolkadotTransactionBroadcastResponse, PolkadotTransactionMaterial, PolkadotTransactionPayload};
-use crate::rpc::indexer::PolkadotIndexer;
 
 pub struct PolkadotClient<C: Client> {
     pub client: C,
-    pub(crate) indexer: PolkadotIndexer<C>,
 }
 
 impl<C: Client> PolkadotClient<C> {
-    pub fn new(client: C, indexer: PolkadotIndexer<C>) -> Self {
-        Self { client, indexer }
+    pub fn new(client: C) -> Self {
+        Self { client }
     }
 
     pub async fn get_balance(&self, address: String) -> Result<PolkadotAccountBalance, Box<dyn Error + Send + Sync>> {
@@ -59,15 +55,3 @@ impl<C: Client> PolkadotClient<C> {
         Ok(self.client.get(&format!("/v1/blocks/{}", block_number)).await?)
     }
 }
-
-impl<C: Client> ChainProvider for PolkadotClient<C> {
-    fn get_chain(&self) -> Chain {
-        Chain::Polkadot
-    }
-}
-
-impl<C: Client> ChainTraits for PolkadotClient<C> {}
-impl<C: Client> ChainAccount for PolkadotClient<C> {}
-impl<C: Client> ChainPerpetual for PolkadotClient<C> {}
-impl<C: Client> ChainAddressStatus for PolkadotClient<C> {}
-impl<C: Client> ChainSimulation for PolkadotClient<C> {}

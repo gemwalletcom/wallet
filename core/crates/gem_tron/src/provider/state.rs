@@ -6,10 +6,10 @@ use gem_client::Client;
 use primitives::NodeSyncStatus;
 
 use crate::provider::state_mapper;
-use crate::rpc::client::TronClient;
+use crate::rpc::TronProvider;
 
 #[async_trait]
-impl<C: Client> ChainState for TronClient<C> {
+impl<C: Client> ChainState for TronProvider<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
         Ok("".to_string())
     }

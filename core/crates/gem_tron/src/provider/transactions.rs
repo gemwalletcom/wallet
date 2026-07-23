@@ -1,15 +1,15 @@
 use async_trait::async_trait;
-use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, TransactionIdRequest};
 use std::error::Error;
 
 use gem_client::Client;
 use primitives::Transaction;
 
 use super::transactions_mapper::{map_transaction, map_transactions_by_block};
-use crate::rpc::client::TronClient;
+use crate::rpc::TronProvider;
 
 #[async_trait]
-impl<C: Client + Clone> ChainBlockTransactions for TronClient<C> {
+impl<C: Client> ChainBlockTransactions for TronProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let block_data = self.get_block_transactions(block).await?;
         if block_data.transactions.is_empty() {
@@ -22,7 +22,7 @@ impl<C: Client + Clone> ChainBlockTransactions for TronClient<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransaction for TronClient<C> {
+impl<C: Client> ChainTransaction for TronProvider<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         let Some(receipt) = self.get_transaction_receipt(hash.clone()).await? else {
@@ -32,24 +32,10 @@ impl<C: Client + Clone> ChainTransaction for TronClient<C> {
     }
 }
 
-#[async_trait]
-impl<C: Client + Clone> ChainTransactions for TronClient<C> {
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest { address, limit, .. } = request;
-        let transactions = self.trongrid_client.get_transactions_by_address(&address, limit).await?.data;
-
-        Ok(TransactionsResult::TransactionRequests(
-            transactions
-                .into_iter()
-                .map(|transaction| TransactionIdRequest::new(self.get_chain(), transaction.transaction_id, None))
-                .collect(),
-        ))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chain_traits::{ChainTransactions, TransactionsRequest};
 
     const TRANSACTIONS_RESPONSE: &str = include_str!("../../testdata/transactions_by_address.json");
     const ADDRESS: &str = "TBKwjUtXVsX1r724C1V52nocBgtioDjx9u";
@@ -58,7 +44,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transactions_by_address() {
-        let client = TronClient::mock(|_| Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec()));
+        let client = TronProvider::mock(|_| Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec()));
         let result = client.get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string(), 4)).await.unwrap();
         let transactions = result.transaction_requests().unwrap();
         assert_eq!(transactions.len(), 4);
@@ -71,7 +57,7 @@ mod tests {
 mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_test_client};
-    use chain_traits::ChainState;
+    use chain_traits::{ChainState, ChainTransactions, TransactionsRequest};
 
     #[tokio::test]
     async fn test_get_transactions_by_block() {

@@ -8,11 +8,11 @@ use primitives::Transaction;
 use crate::{
     models::{BlockTransaction, SingleTransaction},
     provider::transaction_mapper::{map_block_transactions, map_transaction},
-    rpc::{client::SolanaClient, constants::MISSING_BLOCKS_ERRORS},
+    rpc::{SolanaIndexer, SolanaProvider, constants::MISSING_BLOCKS_ERRORS},
 };
 
 #[async_trait]
-impl<C: Client + Clone> ChainBlockTransactions for SolanaClient<C> {
+impl<C: Client + Clone> ChainBlockTransactions for SolanaProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         match self.get_block_transactions(block).await {
             Ok(block_transactions) => Ok(map_block_transactions(&block_transactions)),
@@ -27,7 +27,7 @@ impl<C: Client + Clone> ChainBlockTransactions for SolanaClient<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransaction for SolanaClient<C> {
+impl<C: Client + Clone> ChainTransaction for SolanaProvider<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         let transaction: Option<SingleTransaction> = self.get_transaction(&hash).await?;
@@ -43,14 +43,14 @@ impl<C: Client + Clone> ChainTransaction for SolanaClient<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactions for SolanaClient<C> {
+impl<C: Client + Clone> ChainTransactions for SolanaIndexer<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let transaction_ids = self.indexer.get_transaction_ids_by_address(&address, limit).await?;
+        let transaction_ids = self.get_transaction_ids_by_address(&address, limit).await?;
         Ok(TransactionsResult::TransactionRequests(
             transaction_ids
                 .into_iter()
-                .map(|transaction_id| TransactionIdRequest::new(self.get_chain(), transaction_id, None))
+                .map(|transaction_id| TransactionIdRequest::new(primitives::Chain::Solana, transaction_id, None))
                 .collect(),
         ))
     }

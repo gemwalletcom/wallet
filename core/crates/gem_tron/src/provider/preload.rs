@@ -20,12 +20,12 @@ use crate::{
         FEE_LIMIT_BUFFER_PERCENT, FeeEstimateContext, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT, calculate_stake_fee_rate, calculate_token_fee_rate_with_data, map_stake_data,
         native_transfer_fee,
     },
-    rpc::client::TronClient,
+    rpc::{TronClient, TronProvider},
     trc20,
 };
 
 #[async_trait]
-impl<C: Client> ChainTransactionLoad for TronClient<C> {
+impl<C: Client> ChainTransactionLoad for TronProvider<C> {
     async fn get_transaction_preload(&self, _input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
         Ok(TransactionLoadMetadata::None)
     }

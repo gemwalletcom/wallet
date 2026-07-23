@@ -5,9 +5,9 @@ use chain_traits::ChainSimulation;
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
-use gem_solana::SolanaClient;
+use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
-use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
+use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
@@ -141,11 +141,11 @@ impl WalletConnectSimulationClient {
         Some(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
     }
 
-    fn solana_client(&self) -> Option<SolanaClient<AlienClient>> {
+    fn solana_client(&self) -> Option<SolanaProvider<AlienClient>> {
         let url = self.provider.get_endpoint(Chain::Solana).ok()?;
         let client = new_alien_client(url, self.provider.clone());
         let client = JsonRpcClient::new(client);
-        Some(SolanaClient::new(client))
+        Some(SolanaProvider::new_rpc_only(SolanaClient::new(client)))
     }
 
     fn sui_client(&self) -> Option<SuiProvider> {
@@ -154,10 +154,10 @@ impl WalletConnectSimulationClient {
         Some(SuiProvider::new_rpc_only(SuiClient::new_with_transport(url, Arc::new(transport))))
     }
 
-    fn tron_client(&self) -> Option<TronClient<AlienClient>> {
+    fn tron_client(&self) -> Option<TronProvider<AlienClient>> {
         let url = self.provider.get_endpoint(Chain::Tron).ok()?;
         let client = new_alien_client(url, self.provider.clone());
-        Some(TronClient::new(client.clone(), TronGridClient::new(client, String::new())))
+        Some(TronProvider::new_rpc_only(TronClient::new(client)))
     }
 }
 

@@ -6,13 +6,13 @@ use chain_traits::{
 use gem_client::Client;
 use primitives::NodeSyncStatus;
 
-use crate::{SolanaClient, USDC_TOKEN_MINT, method, models::SingleTransaction};
+use crate::{USDC_TOKEN_MINT, method, models::SingleTransaction, rpc::SolanaProvider};
 
 const GET_TOKEN_ACCOUNTS_BY_OWNER_MINT_CHECK: &str = "getTokenAccountsByOwner(mint)";
 const GET_TOKEN_ACCOUNTS_BY_OWNER_PROGRAM_ID_CHECK: &str = "getTokenAccountsByOwner(programId)";
 
 #[async_trait]
-impl<C: Client + Clone> ChainNodeStatus for SolanaClient<C> {
+impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
     async fn get_node_basic_status(&self, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
         record_node_state(self, status, Some(self.get_chain().network_id()), recorder, method::GET_GENESIS_HASH, method::GET_SLOT).await
     }

@@ -10,11 +10,11 @@ use crate::{
         BroadcastProvider,
         transaction_broadcast_mapper::{map_transaction_broadcast_response, map_transaction_broadcast_response_from_str},
     },
-    rpc::client::PolkadotClient,
+    rpc::PolkadotProvider,
 };
 
 #[async_trait]
-impl<C: Client> ChainTransactionBroadcast for PolkadotClient<C> {
+impl<C: Client> ChainTransactionBroadcast for PolkadotProvider<C> {
     async fn transaction_broadcast(&self, data: String, _options: BroadcastOptions) -> Result<String, Box<dyn Error + Sync + Send>> {
         let response = self.broadcast_transaction(data).await?;
         map_transaction_broadcast_response(response)

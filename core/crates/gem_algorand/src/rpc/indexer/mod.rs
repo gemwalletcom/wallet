@@ -10,8 +10,6 @@ pub struct AlgorandIndexer<C: Client> {
     pub client: C,
 }
 
-pub const ALGORAND_INDEXER_URL: &str = "https://mainnet-idx.algonode.cloud";
-
 impl<C: Client> AlgorandIndexer<C> {
     pub fn new(client: C) -> Self {
         Self { client }

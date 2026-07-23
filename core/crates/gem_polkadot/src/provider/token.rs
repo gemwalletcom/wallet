@@ -5,10 +5,10 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::Asset;
 
-use crate::rpc::client::PolkadotClient;
+use crate::rpc::PolkadotProvider;
 
 #[async_trait]
-impl<C: Client> ChainToken for PolkadotClient<C> {
+impl<C: Client> ChainToken for PolkadotProvider<C> {
     async fn get_token_data(&self, _token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         Err("Chain does not support tokens".into())
     }

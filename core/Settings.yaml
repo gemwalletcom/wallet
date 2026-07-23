@@ -328,7 +328,7 @@ indexer:
     key:
       secret: ""
   sui:
-    url: "https://graphql.mainnet.sui.io/graphql"
+    url: "https://graphql.mainnet.sui.io"
     key:
       secret: ""
   ton:

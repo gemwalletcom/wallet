@@ -149,6 +149,21 @@ pub trait ChainTransactions: Send + Sync {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>>;
 }
 
+pub struct EmptyTransactionsProvider;
+
+#[async_trait]
+impl ChainTransactions for EmptyTransactionsProvider {
+    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        Ok(TransactionsResult::Transactions(Vec::new()))
+    }
+}
+
+#[async_trait]
+impl ChainTransaction for EmptyTransactionsProvider {}
+
+#[async_trait]
+impl ChainBlockTransactions for EmptyTransactionsProvider {}
+
 #[async_trait]
 pub trait ChainTransactionState: Send + Sync {
     async fn get_transaction_status(&self, _request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {

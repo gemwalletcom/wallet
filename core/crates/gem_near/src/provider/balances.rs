@@ -7,12 +7,12 @@ use gem_jsonrpc::types::JsonRpcError;
 use primitives::{AssetBalance, Chain};
 
 use super::balances_mapper;
-use crate::rpc::client::NearClient;
+use crate::rpc::NearProvider;
 
 const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = -32000;
 
 #[async_trait]
-impl<C: Client + Clone> ChainBalances for NearClient<C> {
+impl<C: Client + Clone> ChainBalances for NearProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let account = match self.get_account(&address).await {
             Ok(account) => account,

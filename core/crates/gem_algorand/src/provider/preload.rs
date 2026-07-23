@@ -8,10 +8,10 @@ use primitives::{
     FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
 };
 
-use crate::rpc::client::AlgorandClient;
+use crate::rpc::AlgorandProvider;
 
 #[async_trait]
-impl<C: Client> ChainTransactionLoad for AlgorandClient<C> {
+impl<C: Client> ChainTransactionLoad for AlgorandProvider<C> {
     async fn get_transaction_preload(&self, _input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         Ok(TransactionLoadMetadata::None)
     }

@@ -10,10 +10,10 @@ use primitives::{Asset, SimulationBalanceChange, SimulationInput, SimulationResu
 use solana_primitives::VersionedTransaction;
 
 use crate::provider::simulation_mapper::map_simulation_result;
-use crate::rpc::client::SolanaClient;
+use crate::rpc::SolanaProvider;
 
 #[async_trait]
-impl<C: Client + Clone> ChainSimulation for SolanaClient<C> {
+impl<C: Client + Clone> ChainSimulation for SolanaProvider<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let bytes = decode_base64(&input.encoded_transaction)?;
         let transaction = VersionedTransaction::deserialize_with_version(&bytes).map_err(|err| format!("parse transaction: {err}"))?;
@@ -40,7 +40,7 @@ impl<C: Client + Clone> ChainSimulation for SolanaClient<C> {
     }
 }
 
-impl<C: Client + Clone> SolanaClient<C> {
+impl<C: Client + Clone> SolanaProvider<C> {
     async fn get_balance_change_assets(&self, changes: &[SimulationBalanceChange]) -> Vec<(Option<String>, Option<String>)> {
         join_all(changes.iter().map(|change| async move {
             match &change.asset_id.token_id {

@@ -13,31 +13,25 @@ use crate::{
 
 const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = 19;
 
-impl<C: Client + Clone> XrpClient<C> {
-    fn default_if_account_not_found<T: Default>(result: Result<T, Box<dyn Error + Send + Sync>>) -> Result<T, Box<dyn Error + Send + Sync>> {
-        match result {
-            Ok(value) => Ok(value),
-            Err(error) if Self::is_account_not_found(error.as_ref()) => Ok(T::default()),
-            Err(error) => Err(error),
-        }
-    }
-
-    fn is_account_not_found(error: &(dyn Error + Send + Sync + 'static)) -> bool {
-        error.downcast_ref::<JsonRpcError>().is_some_and(|error| error.code == ACCOUNT_NOT_FOUND_ERROR_CODE)
+fn default_if_account_not_found<T: Default>(result: Result<T, Box<dyn Error + Send + Sync>>) -> Result<T, Box<dyn Error + Send + Sync>> {
+    match result {
+        Ok(value) => Ok(value),
+        Err(error) if error.downcast_ref::<JsonRpcError>().is_some_and(|error| error.code == ACCOUNT_NOT_FOUND_ERROR_CODE) => Ok(T::default()),
+        Err(error) => Err(error),
     }
 }
 
 #[async_trait]
 impl<C: Client + Clone> ChainBalances for XrpClient<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-        let account = Self::default_if_account_not_found(self.get_account_info(&address).await)?;
+        let account = default_if_account_not_found(self.get_account_info(&address).await)?;
         let reserved_amount = self.get_chain().account_activation_fee().unwrap_or(0) as u64;
 
         map_balance_coin(account, self.get_chain().as_asset_id(), reserved_amount)
     }
 
     async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        let objects = Self::default_if_account_not_found(self.get_account_objects(&address).await)?;
+        let objects = default_if_account_not_found(self.get_account_objects(&address).await)?;
         Ok(map_balance_tokens(&objects, token_ids, self.get_chain()))
     }
 
@@ -46,7 +40,7 @@ impl<C: Client + Clone> ChainBalances for XrpClient<C> {
     }
 
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        let objects = Self::default_if_account_not_found(self.get_account_objects(&address).await)?;
+        let objects = default_if_account_not_found(self.get_account_objects(&address).await)?;
         Ok(map_balance_assets(&objects, self.get_chain()))
     }
 }
@@ -83,6 +77,7 @@ mod tests {
         let asset_balances = client.get_balance_assets("rMissing".to_string()).await.unwrap();
 
         assert_eq!(coin_balance.balance.available, BigUint::ZERO);
+        assert_eq!(coin_balance.balance.reserved, BigUint::ZERO);
         assert_eq!(token_balances.len(), 1);
         assert_eq!(token_balances[0].asset_id, AssetId::from_token(Chain::Xrp, token_id));
         assert_eq!(token_balances[0].balance.available, BigUint::ZERO);

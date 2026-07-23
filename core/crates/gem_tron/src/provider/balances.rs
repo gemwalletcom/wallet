@@ -10,11 +10,11 @@ use primitives::{AssetBalance, AssetId, Chain, asset_balance::BalanceMetadata};
 use crate::{
     address::TronAddress,
     provider::balances_mapper::{map_balance_staking, map_coin_balance, map_token_balance},
-    rpc::{client::TronClient, trongrid::mapper::TronGridMapper},
+    rpc::{TronProvider, trongrid::mapper::TronGridMapper},
 };
 
 #[async_trait]
-impl<C: Client> ChainBalances for TronClient<C> {
+impl<C: Client> ChainBalances for TronProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let account = self.get_account(&address).await?;
         map_coin_balance(&account)
@@ -54,8 +54,13 @@ impl<C: Client> ChainBalances for TronClient<C> {
     }
 
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        let account = self.trongrid_client.get_accounts_by_address(&address).await?;
-        Ok(account.data.into_iter().next().map(TronGridMapper::map_asset_balances).unwrap_or_default())
+        Ok(self
+            .get_indexer_accounts(&address)
+            .await?
+            .into_iter()
+            .next()
+            .map(TronGridMapper::map_asset_balances)
+            .unwrap_or_default())
     }
 }
 

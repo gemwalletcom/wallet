@@ -8,8 +8,6 @@ use serde::{Deserialize, Serialize};
 
 use self::mapper::map_transaction;
 
-pub const POLKADOT_ASSET_HUB_SUBSCAN_URL: &str = "https://assethub-polkadot.api.subscan.io";
-
 const NATIVE_ASSET_SYMBOL: &str = "DOT";
 const MAX_TRANSFERS_LIMIT: usize = 100;
 

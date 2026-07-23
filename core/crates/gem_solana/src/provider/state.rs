@@ -6,10 +6,10 @@ use gem_client::Client;
 use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
 
 use crate::provider::state_mapper;
-use crate::rpc::client::SolanaClient;
+use crate::rpc::SolanaProvider;
 
 #[async_trait]
-impl<C: Client + Clone> ChainState for SolanaClient<C> {
+impl<C: Client + Clone> ChainState for SolanaProvider<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
         Ok(self.get_genesis_hash().await?)
     }

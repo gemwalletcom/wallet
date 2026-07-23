@@ -156,7 +156,7 @@ Android's EVM namespace and iOS's all-method list advertise `eth_sendRawTransact
 
 ## Transaction-indexing providers
 
-The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) uses ordered provider lists. Blockscout PRO is first for its 12 supported Gem chains, followed by the existing Ankr or Alchemy route when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) is only called on explicitly supported chains. Other EVM chains return an empty address history. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) composes its raw EVM client with an empty transactions-by-address provider because it does not configure an indexer.
+The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) uses ordered provider lists. Blockscout PRO is first for its 12 supported Gem chains, followed by the existing Ankr or Alchemy route when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) is only called on explicitly supported chains. Other EVM chains return an empty address history. Dedicated indexers for Algorand, EVM, NEAR, Polkadot, Solana, Sui, and Tron are composed only by `settings_chain`; [gemstone](../gemstone/src/gateway/chain_factory.rs) uses RPC-only providers, and swapper uses raw RPC clients.
 
 | Gem chain | Providers |
 | --- | --- |

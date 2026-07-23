@@ -7,10 +7,10 @@ use gem_client::Client;
 use primitives::{AssetBalance, AssetId};
 
 use super::balances_mapper::{map_balance_coin, map_balance_tokens};
-use crate::rpc::client::AlgorandClient;
+use crate::rpc::AlgorandProvider;
 
 #[async_trait]
-impl<C: Client> ChainBalances for AlgorandClient<C> {
+impl<C: Client> ChainBalances for AlgorandProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let account = self.get_account(&address).await?;
         Ok(map_balance_coin(&account, self.get_chain()))
