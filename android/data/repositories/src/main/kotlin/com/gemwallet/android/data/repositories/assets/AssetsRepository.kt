@@ -402,6 +402,8 @@ class AssetsRepository @Inject constructor(
 
     suspend fun updateSellAvailable(assets: List<String>) = availabilityService.updateSellAvailable(assets)
 
+    suspend fun updateSwapAvailable(assets: List<String>) = availabilityService.updateSwapAvailable(assets)
+
     fun getAssetLinks(id: AssetId): Flow<List<AssetLink>> {
         return assetsDao.getAssetLinks(id.toIdentifier())
             .toAssetLinksModel()

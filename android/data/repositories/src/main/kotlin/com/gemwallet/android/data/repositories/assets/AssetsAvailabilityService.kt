@@ -30,6 +30,15 @@ class AssetsAvailabilityService @Inject constructor(
         )
     }
 
+    suspend fun updateSwapAvailable(assets: List<String>) {
+        syncAvailability(
+            currentEnabledAssetIds = assetsDao.getSwapAvailableAssetIds(assets),
+            targetEnabledAssetIds = assets,
+            trackedAssetIds = assets,
+            setAvailability = assetsDao::setSwapAvailable,
+        )
+    }
+
     suspend fun syncSwapSupportChains() {
         val nativeAssetIds = Chain.entries.map { it.asset().id.toIdentifier() }
         syncAvailability(
