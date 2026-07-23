@@ -8,13 +8,13 @@ use chain_traits::ChainState;
 use primitives::NodeSyncStatus;
 
 use crate::provider::state_mapper;
-use crate::rpc::SuiProvider;
+use crate::rpc::{SuiClient, SuiProvider};
 
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl ChainState for SuiProvider {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        self.get_chain_id().await
+        SuiClient::get_chain_id(self).await
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
