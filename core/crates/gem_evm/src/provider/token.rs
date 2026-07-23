@@ -1,7 +1,10 @@
 use std::error::Error;
 
 use crate::provider::token_mapper::{map_is_token_address, map_token_data};
-use crate::rpc::client::{EthereumClient, FUNCTION_ERC20_DECIMALS, FUNCTION_ERC20_NAME, FUNCTION_ERC20_SYMBOL};
+use crate::rpc::{
+    EthereumProvider,
+    client::{FUNCTION_ERC20_DECIMALS, FUNCTION_ERC20_NAME, FUNCTION_ERC20_SYMBOL},
+};
 
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
@@ -13,7 +16,7 @@ use gem_client::Client;
 use primitives::Asset;
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl<C: Client + Clone> ChainToken for EthereumClient<C> {
+impl<C: Client + Clone> ChainToken for EthereumProvider<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         let [name, symbol, decimals] = self
             .batch_eth_call(&token_id, [FUNCTION_ERC20_NAME, FUNCTION_ERC20_SYMBOL, FUNCTION_ERC20_DECIMALS])

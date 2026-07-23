@@ -6,12 +6,12 @@ use chain_traits::{
 use gem_client::Client;
 use primitives::NodeSyncStatus;
 
-use crate::{jsonrpc::TransactionObject, method, rpc::EthereumClient};
+use crate::{jsonrpc::TransactionObject, method, rpc::EthereumProvider};
 
 const PARSER_BLOCK_OFFSET: u64 = 10;
 
 #[async_trait]
-impl<C: Client + Clone> ChainNodeStatus for EthereumClient<C> {
+impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
     async fn get_node_basic_status(&self, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
         record_node_state(self, status, Some(self.get_chain().network_id()), recorder, method::ETH_CHAIN_ID, method::ETH_BLOCK_NUMBER).await
     }

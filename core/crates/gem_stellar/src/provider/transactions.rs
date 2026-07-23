@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -12,6 +12,26 @@ use crate::{
 };
 
 #[async_trait]
+impl<C: Client> ChainBlockTransactions for StellarClient<C> {
+    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        let payments = self.get_block_payments_all(block).await?;
+        Ok(map_transactions(self.get_chain(), payments))
+    }
+}
+
+#[async_trait]
+impl<C: Client> ChainTransaction for StellarClient<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash;
+        let payments = self.get_transaction_payments(&hash).await?;
+        match payments {
+            AccountResult::Found(payments) => Ok(map_transaction_by_hash(self.get_chain(), payments._embedded.records, &hash)),
+            AccountResult::NotFound => Ok(None),
+        }
+    }
+}
+
+#[async_trait]
 impl<C: Client> ChainTransactions for StellarClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, .. } = request;
@@ -21,20 +41,6 @@ impl<C: Client> ChainTransactions for StellarClient<C> {
             AccountResult::NotFound => Vec::new(),
         };
         Ok(TransactionsResult::Transactions(transactions))
-    }
-
-    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let payments = self.get_block_payments_all(block).await?;
-        Ok(map_transactions(self.get_chain(), payments))
-    }
-
-    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let hash = request.hash;
-        let payments = self.get_transaction_payments(&hash).await?;
-        match payments {
-            AccountResult::Found(payments) => Ok(map_transaction_by_hash(self.get_chain(), payments._embedded.records, &hash)),
-            AccountResult::NotFound => Ok(None),
-        }
     }
 }
 

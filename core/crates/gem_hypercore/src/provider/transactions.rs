@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -9,6 +9,12 @@ use crate::{
     provider::transactions_mapper::map_user_fills,
     rpc::client::HyperCoreClient,
 };
+
+#[async_trait]
+impl<C: Client> ChainTransaction for HyperCoreClient<C> {}
+
+#[async_trait]
+impl<C: Client> ChainBlockTransactions for HyperCoreClient<C> {}
 
 #[async_trait]
 impl<C: Client> ChainTransactions for HyperCoreClient<C> {

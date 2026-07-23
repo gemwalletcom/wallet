@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -9,22 +9,28 @@ use crate::provider::transactions_mapper::{map_direct_transaction, map_transacti
 use crate::rpc::XrpClient;
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactions for XrpClient<C> {
+impl<C: Client + Clone> ChainBlockTransactions for XrpClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let ledger = self.get_block_transactions(block).await?;
         Ok(map_transactions_by_block(ledger))
     }
+}
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest { address, limit, .. } = request;
-        let account_ledger = self.get_account_transactions(address, limit).await?;
-        Ok(TransactionsResult::Transactions(map_transactions_by_address(account_ledger)))
-    }
-
+#[async_trait]
+impl<C: Client + Clone> ChainTransaction for XrpClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         let transaction = self.get_transaction(&hash).await?;
         Ok(map_direct_transaction(self.get_chain(), transaction))
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransactions for XrpClient<C> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        let TransactionsRequest { address, limit, .. } = request;
+        let account_ledger = self.get_account_transactions(address, limit).await?;
+        Ok(TransactionsResult::Transactions(map_transactions_by_address(account_ledger)))
     }
 }
 

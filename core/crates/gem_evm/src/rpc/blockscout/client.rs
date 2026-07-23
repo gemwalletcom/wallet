@@ -6,9 +6,8 @@ use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
 
 use super::model::{Items, TokenBalance, TokenTransfer, Transaction};
-use crate::rpc::{EVMIndexerClient, IndexedTransaction};
+use crate::rpc::{EVMIndexerClient, TransactionReference};
 
-#[derive(Debug, Clone)]
 pub(crate) struct BlockscoutClient<C: Client + Clone> {
     client: C,
     chain_id: u64,
@@ -26,7 +25,7 @@ impl<C: Client + Clone> BlockscoutClient<C> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for BlockscoutClient<C> {
-    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
         let transactions_path = self.address_path(address, "transactions");
         let token_transfers_path = self.address_path(address, "token-transfers");
         let query = [
@@ -45,7 +44,7 @@ impl<C: Client + Clone> EVMIndexerClient for BlockscoutClient<C> {
             .map(|(block_number, hash)| (Reverse(block_number), hash))
             .collect::<BTreeSet<_>>()
             .into_iter()
-            .map(|(Reverse(block_number), hash)| IndexedTransaction::new(hash, Some(block_number)))
+            .map(|(Reverse(block_number), hash)| TransactionReference::new(hash, Some(block_number)))
             .collect())
     }
 
@@ -83,9 +82,9 @@ mod tests {
         assert_eq!(
             transaction_ids,
             vec![
-                IndexedTransaction::new("0xtoken".to_string(), Some(11)),
-                IndexedTransaction::new("0xnormal".to_string(), Some(10)),
-                IndexedTransaction::new("0xshared".to_string(), Some(8))
+                TransactionReference::new("0xtoken".to_string(), Some(11)),
+                TransactionReference::new("0xnormal".to_string(), Some(10)),
+                TransactionReference::new("0xshared".to_string(), Some(8))
             ]
         );
     }
