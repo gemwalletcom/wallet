@@ -1,6 +1,7 @@
 package com.gemwallet.android.di
 
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
+import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
@@ -50,10 +51,12 @@ object DataModule {
     @Provides
     fun provideSyncService(
         syncFiatAssets: SyncFiatAssets,
+        syncSwapAssets: SyncSwapAssets,
         syncDeviceInfo: SyncDeviceInfo,
     ): SyncService {
         return SyncService(
             syncFiatAssets = syncFiatAssets,
+            syncSwapAssets = syncSwapAssets,
             syncDeviceInfo = syncDeviceInfo,
         )
     }
