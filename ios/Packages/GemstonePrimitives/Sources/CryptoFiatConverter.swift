@@ -8,7 +8,7 @@ public struct CryptoFiatConverter: Sendable {
 
     public init() {}
 
-    public func convertToCrypto(fiatAmount: String, decimals: Int, price: Double) throws -> String {
-        try converter.convertToCrypto(fiatAmount: fiatAmount, decimals: UInt32(decimals), price: price)
+    public func toCrypto(fiatAmount: String, decimals: Int, price: Double) throws -> String {
+        try converter.toCrypto(fiatAmount: fiatAmount, decimals: UInt32(decimals), price: price)
     }
 }

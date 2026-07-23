@@ -19,11 +19,11 @@ impl CryptoFiatConverter {
         Self {}
     }
 
-    pub fn convert_to_fiat(&self, value: BigInt, decimals: u32, price: f64) -> Result<String, GemstoneError> {
-        Ok(Converter::convert_to_fiat(&value.to_string(), decimals, price)?)
+    pub fn to_fiat(&self, value: BigInt, decimals: u32, price: f64) -> Result<String, GemstoneError> {
+        Ok(Converter::to_fiat(&value.to_string(), decimals, price)?)
     }
 
-    pub fn convert_to_crypto(&self, fiat_amount: String, decimals: u32, price: f64) -> Result<String, GemstoneError> {
-        Ok(Converter::convert_to_crypto(&fiat_amount, decimals, price)?)
+    pub fn to_crypto(&self, fiat_amount: String, decimals: u32, price: f64) -> Result<String, GemstoneError> {
+        Ok(Converter::to_crypto(&fiat_amount, decimals, price)?)
     }
 }

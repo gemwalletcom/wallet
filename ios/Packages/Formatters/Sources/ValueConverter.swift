@@ -44,7 +44,7 @@ extension ValueConverter {
         price: AssetPrice,
         decimals: Int,
     ) throws -> Decimal {
-        let value = try converter.convertToCrypto(fiatAmount: "\(fiat)", decimals: decimals, price: price.price)
+        let value = try converter.toCrypto(fiatAmount: "\(fiat)", decimals: decimals, price: price.price)
         guard let amount = Decimal(string: value) else {
             throw AnyError("Invalid amount: \(value)")
         }

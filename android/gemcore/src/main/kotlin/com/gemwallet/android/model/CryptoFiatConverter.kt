@@ -9,7 +9,7 @@ object CryptoFiatConverter {
     private val converter = GemCryptoFiatConverter()
 
     fun toFiat(crypto: Crypto, decimals: Int, price: Double): Fiat =
-        Fiat(BigDecimal(converter.convertToFiat(crypto.atomicValue.toString(), decimals.toUInt(), price)))
+        Fiat(BigDecimal(converter.toFiat(crypto.atomicValue.toString(), decimals.toUInt(), price)))
 
     fun toFiatString(crypto: Crypto, decimals: Int, price: Double, currency: Currency): String =
         CurrencyFormatter(currency = currency).string(toFiat(crypto, decimals, price).atomicValue)
@@ -21,7 +21,7 @@ object CryptoFiatConverter {
         cryptoValue(fiat, decimals, price)?.let { Crypto(ValueFormatter(style = ValueFormatter.Style.Auto).rounded(it), decimals) }
 
     private fun cryptoValue(fiat: Fiat, decimals: Int, price: Double): BigDecimal? = try {
-        BigDecimal(converter.convertToCrypto(fiat.atomicValue.toPlainString(), decimals.toUInt(), price))
+        BigDecimal(converter.toCrypto(fiat.atomicValue.toPlainString(), decimals.toUInt(), price))
     } catch (e: GemstoneException) {
         null
     }
