@@ -59,9 +59,9 @@ public struct NFTStore: Sendable {
                 }
             }
 
-            let deletIds = existingIds.asSet().subtracting(newIds.asSet()).asArray()
+            let deleteIds = existingIds.asSet().subtracting(newIds.asSet()).asArray()
             try assetsAssociationsRequest
-                .filter(deletIds.contains(NFTAssetAssociationRecord.Columns.id))
+                .filter(deleteIds.contains(NFTAssetAssociationRecord.Columns.id))
                 .deleteAll(db)
         }
     }

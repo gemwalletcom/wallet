@@ -35,8 +35,8 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.CustomFee
 import com.gemwallet.android.domains.confirm.FeeRateUIModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
+import com.gemwallet.android.ext.feeRateDecimals
 import com.gemwallet.android.ext.feeUnitType
-import com.gemwallet.android.ext.gasPriceDecimals
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.ui.R
@@ -84,13 +84,14 @@ fun FeeDetails(
     val unitSymbol = unitSuffix.trim()
     val feeConfig = remember(chain) { Config().getFeeConfig(chain.string) }
     val supportsCustomFee = feeConfig.customFeeEnabled && feeRates.size > 1
-    val decimals = feeUnitType?.gasPriceDecimals ?: feeAssetInfo.asset.decimals
+    val decimals = feeRateDecimals(feeUnitType, feeConfig, feeAssetInfo.asset.decimals)
     val maxMultiplier = feeConfig.maxMultiplier.toInt()
+    val minimumCustomFeeRate = feeConfig.minimumCustomFeeRate?.toLong()?.toBigInteger()
 
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
     var showCustom by remember(isVisible) { mutableStateOf(false) }
     val customModel = remember(showCustom) {
-        NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, selectedCustomRate)
+        NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate, selectedCustomRate)
     }
 
     ModalBottomSheet(
@@ -126,6 +127,7 @@ fun FeeDetails(
                 feeRates = feeRates,
                 feeAssetInfo = feeAssetInfo,
                 feeUnitType = feeUnitType,
+                decimals = decimals,
                 unitSymbol = unitSymbol,
                 supportsCustomFee = supportsCustomFee,
                 customRateText = selectedCustomRate?.let { CustomFee.formatRate(it, decimals, unitSymbol) },
@@ -144,6 +146,7 @@ private fun FeeRates(
     feeRates: List<GemFeeRate>,
     feeAssetInfo: AssetInfo,
     feeUnitType: FeeUnitType?,
+    decimals: Int,
     unitSymbol: String,
     supportsCustomFee: Boolean,
     customRateText: String?,
@@ -156,7 +159,7 @@ private fun FeeRates(
         if (feeRates.size > 1) {
             val totalCount = feeRates.size + if (supportsCustomFee) 1 else 0
             itemsPositioned(feeRates, totalCount = totalCount) { position, item ->
-                val feeRate = FeeRateUIModel(item, feeAssetInfo, feeUnitType, selectedRate, currentFee.amount, unitSymbol)
+                val feeRate = FeeRateUIModel(item, feeAssetInfo, feeUnitType, decimals, selectedRate, currentFee.amount, unitSymbol)
                 FeeRow(
                     emoji = feeRate.emoji,
                     title = feeRate.priority.title(),
@@ -225,10 +228,10 @@ private fun ColumnScope.CustomFeeInput(
     }
     Text(
         modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingHalfSmall),
-        text = if (model.isOverMax) {
-            stringResource(R.string.common_maximum_value, "${model.maxRateText} $unitSymbol")
-        } else {
-            ""
+        text = when {
+            model.isOverMax -> stringResource(R.string.common_maximum_value, "${model.maxRateText} $unitSymbol")
+            model.isBelowMinimum -> stringResource(R.string.common_minimum_value, "${model.minRateText} $unitSymbol")
+            else -> ""
         },
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,

@@ -14,7 +14,7 @@ public protocol BiometryAuthenticatable: Sendable {
     @MainActor
     func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws
     func update(period: LockPeriod) throws
-    func togglePrivacyLock(enbaled: Bool) throws
+    func togglePrivacyLock(enabled: Bool) throws
 }
 
 public extension BiometryAuthenticatable {

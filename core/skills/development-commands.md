@@ -54,9 +54,9 @@ just gemstone install-android-targets   # Install Android Rust targets and cargo
 
 Note: Mobile builds require UniFFI bindings generation and platform-specific compilation.
 
-## Generating Bindings (After Core Code Changes)
+## Generating Bindings (When Core Changes Affect Mobile APIs)
 
-> **IMPORTANT**: When you modify code in `gemstone/`, `swapper/`, `signer/`, or any crate that affects the mobile API, you MUST regenerate the platform bindings.
+> **IMPORTANT**: Regenerate platform bindings when a change affects the mobile API or generated models. Internal implementation changes in `gemstone/`, `swapper/`, `signer/`, or other Core crates do not require regeneration when the exposed interfaces and generated outputs are unchanged.
 
 ### Swift Bindings (iOS)
 ```sh
@@ -75,9 +75,9 @@ Generated files: `gemstone/generated/kotlin/` → copied to `gemstone/android/ge
 ### When to Regenerate Bindings
 1. After adding/modifying public functions in `gemstone/src/lib.rs`
 2. After changing any UniFFI-exposed types or interfaces
-3. After modifying `swapper/` or `signer/` crates that are exposed via gemstone
-4. Before committing changes that affect the mobile API surface
-5. When UniFFI schema or configuration changes
+3. After changing TypeShare models consumed by either app
+4. When UniFFI schema or configuration changes
+5. When platform build inputs or app-side integration must change with Core
 
 ## Utilities
 

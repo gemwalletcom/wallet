@@ -255,16 +255,6 @@ support:
       - jpg
       - png
 
-defi:
-  zerion:
-    url: "https://api.zerion.io"
-    key:
-      secret: ""
-  jupiter:
-    url: "https://api.jup.ag"
-    key:
-      secret: ""
-
 parser:
   timeout: 1s
   shutdown:
@@ -300,25 +290,59 @@ api:
       secret: ""
       expiry: 1h
 
-alchemy:
-  key:
-    secret: ""
-
-ankr:
-  key:
-    secret: ""
-
-blockscout:
-  key:
-    secret: ""
-
-subscan:
-  key:
-    secret: ""
-
-trongrid:
-  key:
-    secret: ""
+indexer:
+  alchemy:
+    url: "https://{network}.g.alchemy.com"
+    key:
+      secret: ""
+  algorand:
+    url: "https://mainnet-idx.algonode.cloud"
+    key:
+      secret: ""
+  ankr:
+    url: "https://rpc.ankr.com/multichain"
+    key:
+      secret: ""
+  blockscout:
+    url: "https://api.blockscout.com"
+    key:
+      secret: ""
+  fastnear:
+    url: "https://{service}.main.fastnear.com"
+    key:
+      secret: ""
+  jupiter:
+    url: "https://api.jup.ag"
+    key:
+      secret: ""
+  magiceden:
+    url: "https://api-mainnet.magiceden.dev"
+    key:
+      secret: ""
+  opensea:
+    url: "https://api.opensea.io"
+    key:
+      secret: ""
+  subscan:
+    url: "https://assethub-polkadot.api.subscan.io"
+    key:
+      secret: ""
+  sui:
+    url: "https://graphql.mainnet.sui.io/graphql"
+    key:
+      secret: ""
+  ton:
+    url: "https://toncenter.com"
+    key:
+      secret: ""
+  trongrid:
+    url: "https://api.trongrid.io"
+    key:
+      secret: ""
+  zerion:
+    url: "https://api.zerion.io"
+    key:
+      secret: ""
 
 assets:
   url: "https://raw.githubusercontent.com/gemwalletcom/assets/refs/heads/master"
@@ -329,12 +353,6 @@ nft:
     timeout: 5
     concurrency: 8
     limit: 1048576
-  opensea:
-    key:
-      secret: ""
-  magiceden:
-    key:
-      secret: ""
 
 rewards:
   wallets: {}

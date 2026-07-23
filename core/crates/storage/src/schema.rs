@@ -127,7 +127,7 @@ diesel::table! {
         asset_type -> AssetType,
         #[max_length = 128]
         name -> Varchar,
-        #[max_length = 32]
+        #[max_length = 128]
         symbol -> Varchar,
         decimals -> Int4,
         updated_at -> Timestamp,

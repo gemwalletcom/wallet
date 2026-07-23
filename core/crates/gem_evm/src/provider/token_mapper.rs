@@ -10,12 +10,10 @@ pub fn map_token_data(chain: Chain, token_id: String, name_hex: String, symbol_h
     let decimals = decode_abi_uint8(decimals_hex.trim_start_matches("0x"))?;
     let token_id = ethereum_address_checksum(&token_id)?;
 
-    if name.is_empty() {
-        return Err("Invalid token metadata: name is empty".into());
-    }
     if symbol.is_empty() {
         return Err("Invalid token metadata: symbol is empty".into());
     }
+    let name = if name.is_empty() { symbol.clone() } else { name };
 
     let asset_id = AssetId {
         chain,
@@ -65,13 +63,16 @@ mod tests {
     }
 
     #[test]
-    fn test_map_token_data_invalid_metadata() {
+    fn test_map_token_data_missing_metadata() {
         let token_id = TOKEN_USDC_ADDRESS.to_ascii_lowercase();
         let name_hex = "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000855534420436f696e000000000000000000000000000000000000000000000000".to_string();
         let symbol_hex = "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000045553444300000000000000000000000000000000000000000000000000000000".to_string();
         let decimals_hex = "0x0000000000000000000000000000000000000000000000000000000000000006".to_string();
 
-        assert!(map_token_data(Chain::Ethereum, token_id.clone(), "".to_string(), symbol_hex, decimals_hex.clone()).is_err());
+        let result = map_token_data(Chain::Ethereum, token_id.clone(), "".to_string(), symbol_hex, decimals_hex.clone()).unwrap();
+
+        assert_eq!(result.name, "USDC");
+        assert_eq!(result.symbol, "USDC");
         assert!(map_token_data(Chain::Ethereum, token_id.clone(), name_hex, "".to_string(), decimals_hex.clone()).is_err());
         assert!(map_token_data(Chain::Ethereum, token_id, "".to_string(), "".to_string(), decimals_hex).is_err());
     }

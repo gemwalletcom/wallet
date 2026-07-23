@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, TryStreamExt, stream};
 use std::error::Error;
 
@@ -10,7 +10,7 @@ use super::transactions_mapper::{map_transaction_decode, map_transactions};
 use crate::rpc::client::CosmosClient;
 
 #[async_trait]
-impl<C: Client> ChainTransactions for CosmosClient<C> {
+impl<C: Client> ChainBlockTransactions for CosmosClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let response = self.get_block(block.to_string().as_str()).await?;
         let transaction_ids = response
@@ -31,12 +31,18 @@ impl<C: Client> ChainTransactions for CosmosClient<C> {
 
         Ok(map_transactions(self.chain, receipts))
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransaction for CosmosClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         Ok(map_transactions(self.chain, vec![self.get_transaction(hash).await?]).into_iter().next())
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransactions for CosmosClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let transactions = self.get_transactions_by_address_with_limit(&address, limit).await?;
@@ -47,7 +53,7 @@ impl<C: Client> ChainTransactions for CosmosClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{TEST_CELESTIA_ADDRESS, TEST_TRANSACTION_ID, create_celestia_test_client, create_cosmos_test_client};
-    use chain_traits::{ChainTransactions, TransactionIdRequest};
+    use chain_traits::{ChainTransaction, TransactionIdRequest};
 
     #[tokio::test]
     async fn test_celestia_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

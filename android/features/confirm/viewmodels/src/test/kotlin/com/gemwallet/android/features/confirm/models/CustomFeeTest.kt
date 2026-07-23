@@ -27,25 +27,33 @@ class CustomFeeTest {
         priority = FeePriority.Normal,
     )
 
-    private fun custom(input: String, selection: FeeSelection) =
-        CustomFee.from(input, currentFee, feeRates, selection, decimals = 0, maxMultiplier = 10)
+    private fun custom(input: String, decimals: Int = 0, minimumCustomFeeRate: BigInteger? = null, selection: FeeSelection = FeeSelection.Preset(FeePriority.Normal)) =
+        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier = 10, minimumCustomFeeRate)
 
     @Test
-    fun customFeeComputesRateScalingAndMax() {
-        val valid = custom("4", FeeSelection.Preset(FeePriority.Normal))
-
+    fun customFeeFrom() {
+        val valid = custom("4")
         assertEquals(BigInteger("4"), valid.rate)
-        assertFalse(valid.isOverMax)
-        assertTrue(valid.isConfirmEnabled)
         assertEquals(BigInteger("2000"), valid.networkFee.amount)
+        assertTrue(valid.isConfirmEnabled)
 
-        val aboveMax = custom("21", FeeSelection.Preset(FeePriority.Normal))
+        val fractional = custom("0.1", decimals = 1, minimumCustomFeeRate = BigInteger.ONE)
+        assertEquals(BigInteger("1"), fractional.rate)
+        assertTrue(fractional.isConfirmEnabled)
 
-        assertTrue(aboveMax.isOverMax)
-        assertFalse(aboveMax.isConfirmEnabled)
+        val belowMinimum = custom("0.3", decimals = 1, minimumCustomFeeRate = BigInteger("5"))
+        assertTrue(belowMinimum.isBelowMinimum)
+        assertFalse(belowMinimum.isConfirmEnabled)
 
-        val anchoredToNormal = custom("21", FeeSelection.Custom(BigInteger("20")))
+        val atMinimum = custom("0.5", decimals = 1, minimumCustomFeeRate = BigInteger("5"))
+        assertFalse(atMinimum.isBelowMinimum)
+        assertTrue(atMinimum.isConfirmEnabled)
 
+        val overMax = custom("21")
+        assertTrue(overMax.isOverMax)
+        assertFalse(overMax.isConfirmEnabled)
+
+        val anchoredToNormal = custom("21", selection = FeeSelection.Custom(BigInteger("20")))
         assertTrue(anchoredToNormal.isOverMax)
     }
 }

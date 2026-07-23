@@ -1,18 +1,17 @@
-#[derive(Debug, Clone)]
+use gem_client::RemoteProviderConfig;
+use settings::Settings;
+
+#[derive(Clone)]
 pub struct DefiProviderConfig {
-    pub zerion_url: String,
-    pub zerion_key: String,
-    pub jupiter_url: String,
-    pub jupiter_key: String,
+    pub(crate) zerion: RemoteProviderConfig,
+    pub(crate) jupiter: RemoteProviderConfig,
 }
 
 impl DefiProviderConfig {
-    pub fn new(zerion_url: String, zerion_key: String, jupiter_url: String, jupiter_key: String) -> Self {
+    pub fn from_settings(settings: &Settings) -> Self {
         Self {
-            zerion_url,
-            zerion_key,
-            jupiter_url,
-            jupiter_key,
+            zerion: settings.indexer.zerion.remote_provider_config(),
+            jupiter: settings.indexer.jupiter.remote_provider_config(),
         }
     }
 }

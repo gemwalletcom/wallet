@@ -1,5 +1,13 @@
 use serde::Serialize;
 
+pub fn build_request_url(base_url: &str, path: &str) -> String {
+    if path.starts_with("https://") || path.starts_with("http://") {
+        path.to_string()
+    } else {
+        format!("{}/{}", base_url.trim_end_matches('/'), path.trim_start_matches('/'))
+    }
+}
+
 /// Build a path with query parameters from a serializable struct
 pub fn build_path_with_query<T: Serialize>(path: &str, query: &T) -> Result<String, serde_urlencoded::ser::Error> {
     let query_string = serde_urlencoded::to_string(query)?;
@@ -10,6 +18,13 @@ pub fn build_path_with_query<T: Serialize>(path: &str, query: &T) -> Result<Stri
 mod tests {
     use super::*;
     use serde::Serialize;
+
+    #[test]
+    fn test_build_request_url() {
+        assert_eq!(build_request_url("https://example.com/", "/path"), "https://example.com/path");
+        assert_eq!(build_request_url("https://example.com", "path"), "https://example.com/path");
+        assert_eq!(build_request_url("https://example.com", "https://other.example/path"), "https://other.example/path");
+    }
 
     #[derive(Serialize)]
     struct CoinQuery {

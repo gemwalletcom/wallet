@@ -151,6 +151,25 @@ mod tests {
         planner_mock::{mock_signer_input, mock_signer_input_with, mock_spend_utxos, sum_inputs},
         signer_mock::{TEST_UTXO_TXID, mock_transfer_input_with_utxos, mock_utxo_with},
     };
+    use num_bigint::BigInt;
+    use primitives::{GasPriceType, TransactionFee};
+
+    fn plan_with_fee_rate(value: &str, fee_rate: u64) -> SpendPlan {
+        let mut input = mock_signer_input(value, false);
+        input.input.gas_price = GasPriceType::regular(BigInt::from(fee_rate));
+        input.fee = TransactionFee::new_from_fee(BigInt::from(fee_rate));
+        UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Bitcoin, &input).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn test_plan_applies_fractional_fee_rate_below_one_sat() {
+        let sub_one = plan_with_fee_rate("5000", 1);
+        let one_sat = plan_with_fee_rate("5000", 10);
+
+        assert!(sub_one.fee > 0);
+        assert!(sub_one.fee < one_sat.fee);
+        assert_eq!(sub_one.outputs[0].value.to_sat(), 5_000);
+    }
 
     #[test]
     fn test_plan_transfer() {
@@ -212,10 +231,10 @@ mod tests {
         assert!(plan.outputs[1].script_pubkey.is_op_return());
 
         let selected_amount = sum_inputs(&plan.inputs).unwrap();
-        let fee_without_change = estimate_fee(BitcoinChain::Bitcoin, &plan.inputs, &plan.outputs, 2);
+        let fee_without_change = estimate_fee(BitcoinChain::Bitcoin, &plan.inputs, &plan.outputs, 20);
         let mut outputs_with_change = plan.outputs.clone();
         outputs_with_change.push(PlanOutput::new(0, change_script.clone()));
-        let fee_with_change = estimate_fee(BitcoinChain::Bitcoin, &plan.inputs, &outputs_with_change, 2);
+        let fee_with_change = estimate_fee(BitcoinChain::Bitcoin, &plan.inputs, &outputs_with_change, 20);
         let dust_remainder = selected_amount - plan.outputs[0].value.to_sat() - fee_with_change;
         assert!(dust_remainder > 0);
         assert!(dust_remainder < dust_threshold(BitcoinChain::Bitcoin, &change_script));

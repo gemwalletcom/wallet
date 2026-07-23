@@ -11,7 +11,7 @@ gem_client = { path = "../gem_client", features = ["reqwest"] }
 jupiter = { path = "../jupiter" }
 number_formatter = { path = "../number_formatter" }
 primitives = { path = "../primitives" }
-reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+settings = { path = "../settings" }
 storage = { path = "../storage" }

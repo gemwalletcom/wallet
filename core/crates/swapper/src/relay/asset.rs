@@ -7,8 +7,9 @@ use primitives::{
     AssetId, Chain, ChainType,
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID,
-        HYPEREVM_USDC_ASSET_ID, HYPEREVM_USDT_ASSET_ID, LINEA_USDT_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID,
-        SEIEVM_USDC_ASSET_ID, SEIEVM_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, ZKSYNC_USDT_ASSET_ID,
+        GNOSIS_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, HYPEREVM_USDT_ASSET_ID, INK_USDC_ASSET_ID, INK_USDT0_ASSET_ID, LINEA_USDT_ASSET_ID, MANTLE_USDC_ASSET_ID,
+        MONAD_USDC_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SEIEVM_USDC_ASSET_ID,
+        SEIEVM_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, UNICHAIN_USDC_ASSET_ID, WORLD_USDC_E_ASSET_ID, ZKSYNC_USDT_ASSET_ID,
     },
     contract_constants::EVM_ZERO_ADDRESS,
 };
@@ -54,6 +55,14 @@ pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
         SwapperChainAsset::Assets(Chain::Celo, vec![]),
         SwapperChainAsset::Assets(Chain::Stable, vec![]),
         SwapperChainAsset::Assets(Chain::Robinhood, vec![]),
+        SwapperChainAsset::Assets(Chain::Gnosis, vec![GNOSIS_USDC_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Mantle, vec![MANTLE_USDC_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Blast, vec![]),
+        SwapperChainAsset::Assets(Chain::World, vec![WORLD_USDC_E_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Ink, vec![INK_USDC_ASSET_ID.clone(), INK_USDT0_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Unichain, vec![UNICHAIN_USDC_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Monad, vec![MONAD_USDC_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Plasma, vec![PLASMA_USDT_ASSET_ID.clone()]),
     ]
 });
 

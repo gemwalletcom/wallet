@@ -41,7 +41,7 @@ public struct PerpetualScene: View {
                         case let .error(error):
                             StateEmptyView(
                                 title: error.networkOrNoDataDescription,
-                                image: Images.ErrorConent.error,
+                                image: Images.ErrorContent.error,
                             )
                         }
                     }

@@ -48,6 +48,8 @@ pub trait ChainTraits:
     + ChainBalances
     + ChainStaking
     + ChainTransactionBroadcast
+    + ChainTransaction
+    + ChainBlockTransactions
     + ChainTransactions
     + ChainTransactionState
     + ChainState
@@ -123,23 +125,28 @@ pub trait ChainTransactionDecode: Send + Sync {
 }
 
 #[async_trait]
-pub trait ChainTransactions: Send + Sync {
-    async fn get_transactions_by_block(&self, _block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![])
-    }
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        Ok(TransactionsResult::Transactions(Vec::new()))
-    }
-
+pub trait ChainTransaction: Send + Sync {
     async fn get_transaction_by_hash(&self, _request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(None)
     }
+}
+
+#[async_trait]
+pub trait ChainBlockTransactions: Send + Sync {
+    async fn get_transactions_by_block(&self, _block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        Ok(vec![])
+    }
 
     async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let futures = blocks.into_iter().map(|x| self.get_transactions_by_block(x));
+        let futures = blocks.into_iter().map(|block| self.get_transactions_by_block(block));
         let results = futures::future::try_join_all(futures).await?;
         Ok(results.into_iter().flatten().collect())
     }
+}
+
+#[async_trait]
+pub trait ChainTransactions: Send + Sync {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>>;
 }
 
 #[async_trait]

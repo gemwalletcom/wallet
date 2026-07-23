@@ -3,31 +3,20 @@ use std::error::Error;
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, TransactionIdRequest};
 use gem_client::Client;
 use primitives::Transaction;
 use serde_json::{Value, from_value};
 
 use crate::jsonrpc::EthereumRpc;
 use crate::rpc::{
-    EVMIndexerClient, EthereumMapper,
-    client::EthereumClient,
+    EthereumMapper, EthereumProvider,
     model::{BlockHeader, Transaction as RpcTransaction, TransactionReceipt},
 };
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest { address, limit, .. } = request;
-        let transactions = self.indexer.get_transactions_by_address(&address, limit).await?;
-        let transaction_requests = transactions
-            .into_iter()
-            .map(|transaction| TransactionIdRequest::new(self.get_chain(), transaction.hash, transaction.block_number))
-            .collect();
-        Ok(TransactionsResult::TransactionRequests(transaction_requests))
-    }
-
+impl<C: Client + Clone> ChainBlockTransactions for EthereumProvider<C> {
     async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let block = self.get_block(block_number).await?;
         if block.transactions.is_empty() {
@@ -43,7 +32,11 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
             .filter_map(|(tx, receipt)| EthereumMapper::map_transaction(chain, &tx, &receipt, &block.timestamp))
             .collect())
     }
+}
 
+#[cfg(feature = "rpc")]
+#[async_trait]
+impl<C: Client + Clone> ChainTransaction for EthereumProvider<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let TransactionIdRequest { hash, block_number, .. } = request;
         let (transaction, receipt, timestamp) = match block_number {
@@ -88,16 +81,19 @@ impl<C: Client + Clone> ChainTransactions for EthereumClient<C> {
 
 #[cfg(all(test, feature = "rpc"))]
 mod tests {
-    use chain_traits::{ChainTransactions, TransactionIdRequest};
+    use chain_traits::{ChainTransaction, TransactionIdRequest};
     use gem_client::{ClientError, testkit::MockClient};
     use gem_jsonrpc::JsonRpcClient;
-    use primitives::{EVMChain, testkit::json::load_json_rpc_result};
+    use primitives::{Chain, EVMChain, testkit::json::load_json_rpc_result};
     use serde_json::{Value, json};
 
-    use crate::{method, rpc::EthereumClient};
+    use crate::{
+        method,
+        rpc::{EthereumClient, EthereumProvider},
+    };
 
     #[tokio::test]
-    async fn get_transaction_by_hash_batches_known_block() {
+    async fn test_get_transaction_by_hash_batches_known_block() {
         let transport = MockClient::new().with_post(|_, body| {
             let requests: Vec<Value> = serde_json::from_slice(body).map_err(|error| ClientError::Serialization(error.to_string()))?;
             assert_eq!(
@@ -118,11 +114,11 @@ mod tests {
             )
             .map_err(|error| ClientError::Serialization(error.to_string()))
         });
-        let client = EthereumClient::new(JsonRpcClient::new(transport), EVMChain::Arbitrum);
+        let client = EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(transport), EVMChain::Arbitrum));
 
         let transaction = client
             .get_transaction_by_hash(TransactionIdRequest::new(
-                primitives::Chain::Arbitrum,
+                Chain::Arbitrum,
                 "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06".to_string(),
                 Some(0x150db7d1),
             ))
@@ -136,26 +132,31 @@ mod tests {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_ethereum_test_client};
-    use chain_traits::{ChainBalances, ChainTransactionBroadcast, ChainTransactions, TransactionIdRequest, TransactionsRequest};
+    use crate::provider::testkit::{
+        TEST_ADDRESS, TEST_TRANSACTION_ID, create_ethereum_test_asset_balance_provider, create_ethereum_test_client, create_ethereum_test_transactions_by_address_provider,
+    };
+    use chain_traits::{ChainTransaction, ChainTransactionBroadcast, ChainTransactions, TransactionIdRequest, TransactionsRequest};
     use num_bigint::BigUint;
+    use primitives::{BroadcastOptions, Chain};
     use std::error::Error;
+
+    use crate::rpc::AssetBalanceProvider;
 
     #[tokio::test]
     async fn test_ethereum_get_transactions_by_address() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let client = create_ethereum_test_client();
-        let result = ChainTransactions::get_transactions_by_address(&client, TransactionsRequest::new(TEST_ADDRESS.to_string(), 5)).await?;
+        let transactions_by_address = create_ethereum_test_transactions_by_address_provider();
+        let result = ChainTransactions::get_transactions_by_address(&transactions_by_address, TransactionsRequest::new(TEST_ADDRESS.to_string(), 5)).await?;
         let transaction_requests = result.transaction_requests().unwrap();
         assert!(!transaction_requests.is_empty());
-        assert!(transaction_requests.iter().all(|transaction| transaction.chain == client.get_chain()));
+        assert!(transaction_requests.iter().all(|transaction| transaction.chain == Chain::Ethereum));
 
         Ok(())
     }
 
     #[tokio::test]
     async fn test_ethereum_get_assets_balances() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let client = create_ethereum_test_client();
-        let balances = ChainBalances::get_balance_assets(&client, TEST_ADDRESS.to_string()).await?;
+        let asset_balances = create_ethereum_test_asset_balance_provider();
+        let balances = AssetBalanceProvider::get_asset_balances(&asset_balances, TEST_ADDRESS.to_string()).await?;
 
         println!("Balances: {:#?}", balances);
 
@@ -170,23 +171,10 @@ mod chain_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_ethereum_transaction_broadcast() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_ethereum_test_client();
-        let signed_tx = "0xf86c808502540be40082520894d4e56740f876aef8c010b86a40d5f56745a118d0765af9a146000000808081c0a05e1d3c1b2c3b0f8b7c8e9f0a1b2c3d4e5f6789abcdef0123456789abcdef012345a04f2c3a1b0d8e7f9a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1";
-        let options = primitives::BroadcastOptions::default();
-
-        let result = client.transaction_broadcast(signed_tx.to_string(), options).await;
-
-        assert!(result.is_ok() || result.is_err());
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_ethereum_transaction_broadcast_invalid_data() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn test_ethereum_transaction_broadcast_invalid_data() -> Result<(), Box<dyn Error + Send + Sync>> {
         let client = create_ethereum_test_client();
         let invalid_tx = "0xinvalidtransactiondata";
-        let options = primitives::BroadcastOptions::default();
+        let options = BroadcastOptions::default();
 
         let result = client.transaction_broadcast(invalid_tx.to_string(), options).await;
 
@@ -196,9 +184,9 @@ mod chain_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_ethereum_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn test_ethereum_get_transaction_by_hash() -> Result<(), Box<dyn Error + Send + Sync>> {
         let client = create_ethereum_test_client();
-        let transaction = ChainTransactions::get_transaction_by_hash(&client, TransactionIdRequest::new(client.get_chain(), TEST_TRANSACTION_ID.to_string(), None))
+        let transaction = ChainTransaction::get_transaction_by_hash(&client, TransactionIdRequest::new(client.get_chain(), TEST_TRANSACTION_ID.to_string(), None))
             .await?
             .unwrap();
 

@@ -27,9 +27,14 @@ pub enum FeeUnitType {
 impl FeeUnitType {
     pub fn decimals(&self) -> u32 {
         match self {
-            FeeUnitType::SatVb | FeeUnitType::Native => 0,
+            FeeUnitType::Native => 0,
+            FeeUnitType::SatVb => 1,
             FeeUnitType::Gwei => 9,
         }
+    }
+
+    pub fn scale_factor(&self) -> u64 {
+        10u64.pow(self.decimals())
     }
 }
 

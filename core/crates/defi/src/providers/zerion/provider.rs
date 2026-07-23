@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use async_trait::async_trait;
+use gem_client::Client;
 use primitives::{Chain, DefiPosition};
 
 use crate::provider::DefiProvider as DefiProviderTrait;
@@ -9,7 +10,7 @@ use super::client::ZerionClient;
 use super::mapper::map_positions;
 
 #[async_trait]
-impl DefiProviderTrait for ZerionClient {
+impl<C: Client> DefiProviderTrait for ZerionClient<C> {
     fn chains(&self) -> &'static [Chain] {
         &[
             Chain::Ethereum,
@@ -39,10 +40,11 @@ mod tests {
     use crate::provider::DefiProvider;
 
     use super::ZerionClient;
+    use gem_client::ReqwestClient;
 
     #[test]
     fn test_chains() {
-        let client = ZerionClient::new("https://api.zerion.io".to_string(), "test".to_string());
+        let client = ZerionClient::new(ReqwestClient::new(String::new(), gem_client::reqwest_client()));
 
         assert!(client.chains().contains(&Chain::Ethereum));
         assert!(client.chains().contains(&Chain::Base));

@@ -1,4 +1,4 @@
-use primitives::{Chain, ChainType, FeeUnitType, chain_transaction_timeout};
+use primitives::{BitcoinChain, Chain, ChainType, FeeUnitType, chain_transaction_timeout};
 
 #[derive(uniffi::Record, Debug, Clone, PartialEq)]
 pub struct ChainConfig {
@@ -82,5 +82,12 @@ pub fn custom_fee_enabled(chain: Chain) -> bool {
     match chain.chain_type() {
         ChainType::Bitcoin => true,
         _ => false,
+    }
+}
+
+pub fn minimum_custom_fee_rate(chain: Chain) -> Option<u32> {
+    match chain.chain_type() {
+        ChainType::Bitcoin => BitcoinChain::from_chain(chain).map(|chain| chain.minimum_custom_fee_rate()),
+        _ => None,
     }
 }

@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use primitives::Transaction;
 use std::error::Error;
 
@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[async_trait]
-impl<C: Client> ChainTransactions for BitcoinClient<C> {
+impl<C: Client> ChainBlockTransactions for BitcoinClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let mut transactions = Vec::new();
         let mut page = 1;
@@ -31,7 +31,10 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 
         Ok(transactions)
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransaction for BitcoinClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         let transaction = self.get_transaction(&hash).await?;
@@ -41,7 +44,10 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 
         Ok(map_transaction(self.get_chain(), &transaction))
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransactions for BitcoinClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let address = Address::new(&address, self.get_chain()).full();
@@ -54,7 +60,7 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
+    use chain_traits::{ChainBlockTransactions, ChainState, ChainTransaction, ChainTransactionState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
     use primitives::{TransactionState, TransactionStateRequest};
 
     #[tokio::test]

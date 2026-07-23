@@ -31,7 +31,7 @@ use strum::IntoEnumIterator;
 use ::defi::{DefiClient, DefiProviderClient, DefiProviderConfig};
 use ::fiat::FiatClient;
 use ::fiat::FiatProviderFactory;
-use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig, OffchainClientConfig};
+use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig};
 use api_connector::PusherClient;
 use assets::{AssetsClient, SearchClient};
 use cacher::CacherClient;
@@ -47,7 +47,7 @@ use model::APIService;
 use name_resolver::NameProviderFactory;
 use name_resolver::client::{Client as NameClient, NameConfig};
 use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
-use primitives::{Chain, PriceConfig};
+use primitives::PriceConfig;
 use rocket::{Build, Rocket, catchers, routes};
 use search_index::SearchIndexClient;
 use settings::Settings;
@@ -207,7 +207,8 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let providers = NameProviderFactory::create_providers(settings_clone.clone());
     let name_client = NameClient::new(providers, name_config);
 
-    let chain_client = chain::ChainClient::new(ChainProviders::new(ProviderFactory::new_providers(&settings)));
+    let user_agent = settings::service_user_agent("api", None);
+    let chain_client = chain::ChainClient::new(ChainProviders::from_settings(&settings, &user_agent));
     let portfolio_client = PortfolioClient::new(database.clone(), price_config);
     let endpoints = ProviderFactory::get_chain_endpoints(&settings);
     let native_provider = Arc::new(swapper::NativeProvider::new_with_endpoints(endpoints));
@@ -224,7 +225,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
     let security_providers = ScanProviderFactory::create_providers(&settings_clone);
     let scan_client = ScanClient::new(database.clone(), security_providers);
-    let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::new(ProviderFactory::new_providers(&settings)), cacher_client.clone());
+    let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
     let assets_client = AssetsClient::new(database.clone(), price_config);
     let search_index_client = SearchIndexClient::new(&settings_clone.meilisearch.url.clone(), &settings_clone.meilisearch.key.clone());
     let search_client = SearchClient::new(&search_index_client, price_client.clone());
@@ -239,20 +240,10 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         stream_producer.clone(),
     );
     let fiat_quotes_client = FiatQuotesClient::new(database.clone(), fiat_client);
-    let nft_config = NFTProviderConfig::new(
-        settings.nft.opensea.key.secret.clone(),
-        settings.nft.magiceden.key.secret.clone(),
-        ProviderFactory::get_chain_url(Chain::Ton, &settings),
-        OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
-    );
+    let nft_config = NFTProviderConfig::from_settings(&settings);
     let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());
     let nft_provider_client = NFTProviderClient::new(nft_config);
-    let defi_config = DefiProviderConfig::new(
-        settings.defi.zerion.url.clone(),
-        settings.defi.zerion.key.secret.clone(),
-        settings.defi.jupiter.url.clone(),
-        settings.defi.jupiter.key.secret.clone(),
-    );
+    let defi_config = DefiProviderConfig::from_settings(&settings);
     let defi_client = DefiClient::from_config(database.clone(), defi_config.clone());
     let defi_provider_client = DefiProviderClient::new(defi_config);
     let auth_client = AuthClient::new(cacher_client.clone());

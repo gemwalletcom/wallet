@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -11,18 +11,15 @@ use crate::{
 };
 
 #[async_trait]
-impl<C: Client> ChainTransactions for AlgorandClient<C> {
+impl<C: Client> ChainBlockTransactions for AlgorandClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let block = self.indexer.get_block(block).await?;
         Ok(map_transactions(block.transactions))
     }
+}
 
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest { address, .. } = request;
-        let transactions = self.indexer.get_account_transactions(&address).await?;
-        Ok(TransactionsResult::Transactions(map_transactions(transactions.transactions)))
-    }
-
+#[async_trait]
+impl<C: Client> ChainTransaction for AlgorandClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
         let transaction = self.indexer.get_transaction(&hash).await?;
@@ -30,10 +27,19 @@ impl<C: Client> ChainTransactions for AlgorandClient<C> {
     }
 }
 
+#[async_trait]
+impl<C: Client> ChainTransactions for AlgorandClient<C> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        let TransactionsRequest { address, .. } = request;
+        let transactions = self.indexer.get_account_transactions(&address).await?;
+        Ok(TransactionsResult::Transactions(map_transactions(transactions.transactions)))
+    }
+}
+
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
+    use chain_traits::{ChainBlockTransactions, ChainState, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest};
 
     #[tokio::test]
     async fn test_algorand_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
