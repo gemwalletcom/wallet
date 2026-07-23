@@ -2,20 +2,17 @@
 
 import Foundation
 import Localization
-import Primitives
 
 enum PerpetualError: Equatable {
-    case invalidAutoclose(type: TpslType, direction: PerpetualDirection)
+    case triggerPriceMustBeHigher
+    case triggerPriceMustBeLower
 }
 
 extension PerpetualError: LocalizedError {
     var errorDescription: String? {
         switch self {
-        case let .invalidAutoclose(type, direction):
-            switch (type, direction) {
-            case (.takeProfit, .long), (.stopLoss, .short): Localized.Errors.Perpetual.triggerPriceHigher
-            case (.takeProfit, .short), (.stopLoss, .long): Localized.Errors.Perpetual.triggerPriceLower
-            }
+        case .triggerPriceMustBeHigher: Localized.Errors.Perpetual.triggerPriceHigher
+        case .triggerPriceMustBeLower: Localized.Errors.Perpetual.triggerPriceLower
         }
     }
 }

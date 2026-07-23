@@ -1,22 +1,18 @@
 package com.gemwallet.android.domains.perpetual.autoclose
 
+import com.gemwallet.android.domains.perpetual.toGem
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
+import uniffi.gemstone.AutocloseValidation
+import uniffi.gemstone.AutocloseValidator as GemAutocloseValidator
 
 class AutocloseValidator(
-    private val type: TpslType,
-    private val direction: PerpetualDirection,
-    private val marketPrice: Double,
+    type: TpslType,
+    direction: PerpetualDirection,
+    marketPrice: Double,
 ) {
-    fun error(price: Double?): AutocloseError? {
-        if (price == null) return null
-        if (price <= 0.0) return AutocloseError.InvalidAmount
-        val mustBeAbove = when (type) {
-            TpslType.TakeProfit -> direction == PerpetualDirection.Long
-            TpslType.StopLoss -> direction == PerpetualDirection.Short
-        }
-        val onCorrectSide = if (mustBeAbove) price > marketPrice else price < marketPrice
-        if (onCorrectSide) return null
-        return if (mustBeAbove) AutocloseError.TriggerMustBeHigher else AutocloseError.TriggerMustBeLower
-    }
+    private val validator = GemAutocloseValidator(type.toGem(), direction.toGem(), marketPrice)
+
+    fun validate(price: Double?): AutocloseValidation =
+        price?.let { validator.validate(it) } ?: AutocloseValidation.VALID
 }

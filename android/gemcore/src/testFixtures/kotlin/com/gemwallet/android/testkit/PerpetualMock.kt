@@ -1,6 +1,5 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseError
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -15,6 +14,7 @@ import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.TpslType
+import uniffi.gemstone.AutocloseValidation
 
 fun mockPerpetual(
     id: PerpetualId = PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "TON"),
@@ -103,13 +103,13 @@ fun mockAutocloseField(
     price: Double? = null,
     originalPrice: Double? = null,
     formattedPrice: String? = price?.toString(),
-    error: AutocloseError? = null,
+    validation: AutocloseValidation = AutocloseValidation.VALID,
     orderId: ULong? = null,
 ) = AutocloseField(
     type = type,
     price = price,
     originalPrice = originalPrice,
     formattedPrice = formattedPrice,
-    error = error,
+    validation = validation,
     orderId = orderId,
 )

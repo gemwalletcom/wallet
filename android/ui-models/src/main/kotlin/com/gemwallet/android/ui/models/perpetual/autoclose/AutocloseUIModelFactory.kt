@@ -11,6 +11,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
+import uniffi.gemstone.AutocloseValidation
 import kotlin.math.abs
 
 object AutocloseUIModelFactory {
@@ -45,7 +46,7 @@ object AutocloseUIModelFactory {
         estimator: AutocloseEstimator,
         showErrors: Boolean = true,
     ): AutocloseUIModel.Field {
-        val priceForEstimation = field.price.takeIf { field.error == null }
+        val priceForEstimation = field.price.takeIf { field.validation == AutocloseValidation.VALID }
         val pnl = priceForEstimation?.let(estimator::pnl)
         val roe = priceForEstimation?.let(estimator::roe)
         val isProfit = pnl?.let { it >= 0.0 } ?: (field.type == TpslType.TakeProfit)
@@ -55,7 +56,7 @@ object AutocloseUIModelFactory {
             pnlText = pnlText(pnl, roe, estimator.hasSize),
             pnlDirection = roe?.toValueDirection() ?: ValueDirection.None,
             percentSuggestions = estimator.percentSuggestions,
-            error = if (showErrors) field.error else null,
+            validation = if (showErrors) field.validation else AutocloseValidation.VALID,
         )
     }
 

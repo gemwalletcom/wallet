@@ -282,6 +282,8 @@ pub use self::portfolio::{
 pub use chrono;
 pub mod tpsl_type;
 pub use self::tpsl_type::TpslType;
+pub mod autoclose_validator;
+pub use self::autoclose_validator::{AutocloseValidation, AutocloseValidator};
 pub mod chart;
 pub use self::chart::{ChartCandleStick, ChartDateValue};
 pub mod delegation;
