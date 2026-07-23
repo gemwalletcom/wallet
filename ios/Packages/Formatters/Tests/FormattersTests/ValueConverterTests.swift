@@ -20,7 +20,7 @@ struct ValueConverterTests {
     }
 
     @Test
-    func testConvertToAmount() throws {
+    func convertToAmount() throws {
         let price = AssetPrice.mock(price: 2.5)
         #expect(try converter.convertToDisplayedAmount(fiatValue: "2.5", price: price, decimals: 8) == BigInt(100_000_000))
         #expect(try converter.convertToDisplayedAmount(fiatValue: "1.0", price: price, decimals: 8) == BigInt(40_000_000))
@@ -30,6 +30,16 @@ struct ValueConverterTests {
     @Test
     func convertToFiatWithZeroAmount() throws {
         #expect(try converter.convertToFiat(amount: "0", price: .mock(price: 2.5)) == 0.0)
+    }
+
+    @Test
+    func convertToAmountWithInvalidPrice() {
+        #expect(throws: (any Error).self) {
+            try converter.convertToDisplayedAmount(fiatValue: "10", price: .mock(price: 0), decimals: 8)
+        }
+        #expect(throws: (any Error).self) {
+            try converter.convertToDisplayedAmount(fiatValue: "10", price: .mock(price: -1), decimals: 8)
+        }
     }
 
     @Test
@@ -76,6 +86,6 @@ struct ValueConverterTests {
     func displayedNumberIsIndependentOfFormatterLocale(identifier: String) throws {
         let formatter = ValueFormatter(locale: Locale(identifier: identifier), style: .auto)
         #expect(try formatter.displayedNumber(from: Decimal(1_000_000), decimals: 6) == BigInt(1_000_000) * BigInt(10).power(6))
-        #expect(try formatter.displayedNumber(from: Decimal(string: "1.234")!, decimals: 6) == BigInt(1_230_000))
+        #expect(try formatter.displayedNumber(from: #require(Decimal(string: "1.234")), decimals: 6) == BigInt(1_230_000))
     }
 }

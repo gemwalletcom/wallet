@@ -177,7 +177,7 @@ class FiatViewModel @Inject constructor(
             operation.clearQuotes()
             val amountParsed = amount.parseInputNumber().toDouble()
             val crypto = data.price?.price?.price?.let { price ->
-                CryptoFiatConverter.toCrypto(Fiat(BigDecimal(amountParsed)), data.asset.decimals, price).atomicValue
+                CryptoFiatConverter.toCrypto(Fiat(BigDecimal(amountParsed)), data.asset.decimals, price)?.atomicValue
             } ?: BigInteger.ZERO
             if (currentType == FiatQuoteType.Sell && crypto > data.balance.balance.available.toBigInteger()) {
                 operation.updateState(FiatSceneState.Error(BuyError.InsufficientBalance))
