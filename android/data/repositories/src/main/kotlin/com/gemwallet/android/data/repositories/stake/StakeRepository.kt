@@ -7,7 +7,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
-import com.gemwallet.android.domains.asset.SYSTEM_VALIDATOR_ID
+import com.gemwallet.android.domains.stake.SYSTEM_VALIDATOR_ID
 import com.gemwallet.android.domains.stake.inactiveStakeValidator
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation

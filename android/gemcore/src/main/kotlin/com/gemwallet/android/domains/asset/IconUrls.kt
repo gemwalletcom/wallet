@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.asset
 
+import com.gemwallet.android.domains.stake.SYSTEM_VALIDATOR_ID
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.twoSubtokenIds
@@ -8,16 +9,16 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import uniffi.gemstone.ImageFormatter
 import uniffi.gemstone.SwapperProvider
 
-//fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
+private val imageFormatter = ImageFormatter()
 
 fun Chain.getIconUrl(): String {
     val icon = when (this) {
@@ -44,7 +45,7 @@ fun AssetId.getIconUrl(): String = when {
         Chain.Manta -> "file:///android_asset/chains/icons/${Chain.Ethereum.string}.svg"
         else -> chain.getIconUrl()
     }
-    else -> "${Constants.ASSETS_URL}/blockchains/${chain.string}/assets/${tokenId}/logo.png"
+    else -> imageFormatter.getAssetUrl(chain.string, tokenId)
 }
 
 fun AssetId.getSupportIconUrl(): String? = when (type()) {
@@ -80,12 +81,10 @@ fun Asset.getIconUrl(): String {
 
 fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
 
-const val SYSTEM_VALIDATOR_ID = "system"
-
 fun DelegationValidator.getIconUrl(): String = if (id == SYSTEM_VALIDATOR_ID) {
     chain.getIconUrl()
 } else {
-    "${Constants.ASSETS_URL}/blockchains/${chain.string}/validators/${id}/logo.png"
+    imageFormatter.getValidatorUrl(chain.string, id)
 }
 
 fun FiatProviderName.getFiatProviderIcon(): String = "file:///android_asset/fiat/${string}.svg"
@@ -120,10 +119,10 @@ fun SwapperProvider.getSwapProviderIcon(): String {
     return "file:///android_asset/swap/${iconName.lowercase()}.svg"
 }
 
-fun getListIconUrl(listId: String): String = "${Constants.ASSETS_URL}/lists/$listId.png"
+fun getListIconUrl(listId: String): String = imageFormatter.getListUrl(listId)
 
 fun NFTAsset.getImageUrl(): String = nftImageUrl(id.toIdentifier())
 
 fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId.toIdentifier())
 
-private fun nftImageUrl(assetId: String): String = "${Constants.ASSETS_URL}/nft/assets/$assetId/preview"
+private fun nftImageUrl(assetId: String): String = imageFormatter.getNftAssetUrl(assetId)

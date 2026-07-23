@@ -6,6 +6,8 @@ import com.wallet.core.primitives.StakeProviderType
 import uniffi.gemstone.GemDelegationValidator
 import uniffi.gemstone.GemStakeProviderType
 
+const val SYSTEM_VALIDATOR_ID = "system"
+
 fun inactiveStakeValidator(chain: Chain, id: String, name: String): DelegationValidator {
     return DelegationValidator(
         chain = chain,
