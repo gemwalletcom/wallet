@@ -2,6 +2,7 @@
 
 import Foundation
 import GemAPI
+import GemstonePrimitives
 import Primitives
 import SharedPreferences
 import Style

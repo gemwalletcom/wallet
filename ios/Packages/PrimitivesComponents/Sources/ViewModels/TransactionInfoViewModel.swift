@@ -75,7 +75,7 @@ public struct TransactionInfoViewModel: Sendable {
                 name: name,
                 image: AssetImage(
                     type: "NFT",
-                    imageURL: AssetImageFormatter().getNFTUrl(for: id),
+                    imageURL: AssetImageFormatter.shared.getNFTUrl(for: id),
                     placeholder: .none,
                     chainPlaceholder: .none,
                 ),

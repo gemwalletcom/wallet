@@ -14,7 +14,7 @@ public struct TransactionViewModel: Sendable {
     public let transaction: TransactionExtended
 
     private let explorerService: any ExplorerLinkFetchable
-    private let assetImageFormatter = AssetImageFormatter()
+    private let assetImageFormatter: AssetImageFormatter
     private let currency: String
     private let formatter: ValueFormatter = .short
 
@@ -22,10 +22,12 @@ public struct TransactionViewModel: Sendable {
         explorerService: any ExplorerLinkFetchable,
         transaction: TransactionExtended,
         currency: String,
+        assetImageFormatter: AssetImageFormatter = .shared,
     ) {
         self.transaction = transaction
         self.explorerService = explorerService
         self.currency = currency
+        self.assetImageFormatter = assetImageFormatter
     }
 
     public var assetImage: AssetImage {

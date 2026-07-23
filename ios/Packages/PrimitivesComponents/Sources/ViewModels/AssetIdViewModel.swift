@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Primitives
 import SwiftUI
 
@@ -10,7 +11,7 @@ public struct AssetIdViewModel: Sendable {
 
     public init(
         assetId: AssetId,
-        assetFormatter: AssetImageFormatter = AssetImageFormatter(),
+        assetFormatter: AssetImageFormatter = .shared,
     ) {
         self.assetId = assetId
         self.assetFormatter = assetFormatter

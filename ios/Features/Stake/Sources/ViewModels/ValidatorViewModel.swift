@@ -12,14 +12,16 @@ import SwiftUI
 
 public struct ValidatorViewModel {
     public let validator: DelegationValidator
-    private let imageFormatter = AssetImageFormatter()
+    private let imageFormatter: AssetImageFormatter
     private let exploreService: ExplorerService
 
     public init(
         validator: DelegationValidator,
+        imageFormatter: AssetImageFormatter = .shared,
         exploreService: ExplorerService = .standard,
     ) {
         self.validator = validator
+        self.imageFormatter = imageFormatter
         self.exploreService = exploreService
     }
 
