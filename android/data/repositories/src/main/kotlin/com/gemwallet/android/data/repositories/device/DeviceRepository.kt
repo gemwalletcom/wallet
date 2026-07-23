@@ -14,6 +14,7 @@ import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDeviceInfo
 import com.gemwallet.android.cases.device.SyncSubscription
+import com.gemwallet.android.cases.device.SynchronizeDeviceIfNeeded
 import com.gemwallet.android.data.repositories.config.UserConfig.Keys
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -60,6 +61,7 @@ class DeviceRepository(
     GetPushToken,
     SetPushToken,
     SyncSubscription,
+    SynchronizeDeviceIfNeeded,
     IsDeviceRegistered
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
@@ -69,6 +71,13 @@ class DeviceRepository(
             wallets = loadWallets(),
             shouldInvalidateSubscriptions = false,
         )
+    }
+
+    override suspend fun synchronizeIfNeeded() {
+        if (isDeviceRegistered() && !hasPendingSubscriptionChanges()) {
+            return
+        }
+        syncDeviceInfo()
     }
 
     override suspend fun switchPushEnabled(enabled: Boolean, wallets: List<Wallet>) {
