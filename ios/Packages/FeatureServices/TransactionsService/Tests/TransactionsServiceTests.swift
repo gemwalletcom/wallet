@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import Preferences
 import Primitives
 import PrimitivesTestKit
@@ -10,10 +11,9 @@ import TransactionsServiceTestKit
 struct TransactionsServiceTests {
     @Test
     func updateForAssetAdvancesTimestampOnEmptyResponse() async throws {
-        let walletId = WalletId.mock()
+        let walletId = WalletId.mock(address: UUID().uuidString)
         let assetId = AssetId.mockEthereum()
         let preferences = WalletPreferences(walletId: walletId)
-        preferences.clear()
 
         try await TransactionsService.mock().updateForAsset(walletId: walletId, assetId: assetId)
 

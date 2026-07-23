@@ -29,11 +29,11 @@ impl<C: Client> TronClient<C> {
         Ok(self.client.get("/wallet/getblock").await?)
     }
 
-    pub async fn get_block_tranactions(&self, block: u64) -> Result<BlockTransactions, Box<dyn Error + Send + Sync>> {
+    pub async fn get_block_transactions(&self, block: u64) -> Result<BlockTransactions, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(&format!("/wallet/getblockbynum?num={}", block)).await?)
     }
 
-    pub async fn get_block_tranactions_receipts(&self, block: u64) -> Result<BlockTransactionsInfo, Box<dyn Error + Send + Sync>> {
+    pub async fn get_block_transactions_receipts(&self, block: u64) -> Result<BlockTransactionsInfo, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(&format!("/wallet/gettransactioninfobyblocknum?num={}", block)).await?)
     }
 

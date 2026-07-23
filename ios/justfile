@@ -7,6 +7,7 @@ GEMSTONE_IOS_PROFILE := if XCODE_CONFIGURATION == "Release" { "release" } else {
 DERIVED_DATA := "build/DerivedData"
 SPM_CACHE := "build/SourcePackages"
 FAST_BUILD_FLAGS := "GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone SWIFT_COMPILATION_MODE=incremental ENABLE_TESTABILITY=NO"
+GEMSTONE_LINKER_FLAGS := '"LIBRARY_SEARCH_PATHS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/' + GEMSTONE_IOS_PROFILE + '" "OTHER_LDFLAGS=\$(inherited) -lgemstone"'
 
 default:
     @just --list
@@ -62,15 +63,13 @@ _build action extra_flags="":
     -jobs {{BUILD_THREADS}} \
     -showBuildTimingSummary \
     {{ extra_flags }} \
-    "LIBRARY_SEARCH_PATHS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/{{GEMSTONE_IOS_PROFILE}}" \
-    "OTHER_LDFLAGS=\$(inherited) -lgemstone" \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 # Example: just build
 build: (_build "build" FAST_BUILD_FLAGS)
 
 # Example: just build-for-testing
-build-for-testing: (_build "build-for-testing")
+build-for-testing: (_build "build-for-testing" GEMSTONE_LINKER_FLAGS)
 
 clean:
     @rm -rf {{DERIVED_DATA}}
@@ -114,8 +113,7 @@ _test action target="":
     -parallel-testing-enabled YES \
     -parallelizeTargets \
     -jobs {{ BUILD_THREADS }} \
-    "LIBRARY_SEARCH_PATHS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/{{GEMSTONE_IOS_PROFILE}}" \
-    "OTHER_LDFLAGS=\$(inherited) -lgemstone" \
+    {{ GEMSTONE_LINKER_FLAGS }} \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 test-without-building: (_test "test-without-building")
@@ -137,8 +135,7 @@ _test-integration action:
     -clonedSourcePackagesDirPath {{SPM_CACHE}} \
     -allowProvisioningUpdates \
     -allowProvisioningDeviceRegistration \
-    "LIBRARY_SEARCH_PATHS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/{{GEMSTONE_IOS_PROFILE}}" \
-    "OTHER_LDFLAGS=\$(inherited) -lgemstone" \
+    {{ GEMSTONE_LINKER_FLAGS }} \
     {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
 
 test-integration: reset-simulator (_test-integration "test")

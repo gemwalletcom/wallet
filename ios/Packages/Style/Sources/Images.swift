@@ -212,7 +212,7 @@ public enum Images {
         public static let contacts = Images.System.personBadgePlus
     }
 
-    public enum ErrorConent {
+    public enum ErrorContent {
         public static let error = Image(.error)
     }
 

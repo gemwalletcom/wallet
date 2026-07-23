@@ -2,9 +2,16 @@
 
 These tables describe the current implementation, not a product promise. `Address history` means that `get_transactions_by_address` has a chain-specific implementation; it does not imply that every client constructor wires that implementation. `Simulation` means that the chain overrides the default unsupported simulation behavior. `WalletConnect` means that the chain is advertised for sessions and has request handling.
 
-Availability legend used across comparison tables: ✅ = supported; ❌ = not supported; ➖ = not applicable; 🏗️ = TODO.
+Availability legend used across comparison tables:
 
-Use `➖` only when the capability does not apply to the chain or provider. Use `❌` when it applies but is unavailable.
+- ✅ = supported
+- ❌ = not supported
+- ➖ = not applicable
+- 🏗️ = TODO
+- ⚪ = not planned
+- 🪦 = deprecated
+
+Use `➖` only when the capability does not apply to the chain or provider. Use `❌` when it applies but is unavailable. Use `⚪` when support is intentionally not planned. Use `🪦` when the provider has deprecated support.
 
 Review cadence: weekly, and immediately when a referenced Core mapping changes.
 
@@ -32,27 +39,27 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Avalanche C-Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
 | Sui | Sui | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | XRP Ledger | XRP | ✅ | ❌ | ➖ | ✅ | ➖ | ❌ | ❌ |
-| opBNB | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
+| opBNB | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Fantom | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Gnosis | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Celestia | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ➖ | ❌ |
 | Injective | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
 | Sei | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
-| Sei EVM | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Manta | EVM | 🏗️ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
+| Sei EVM | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Manta | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Blast | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Noble | Cosmos | ✅ | ❌ | ➖ | ❌ | ➖ | ➖ | ❌ |
 | ZKsync | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
 | Linea | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
-| Mantle | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
+| Mantle | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Celo | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | NEAR | NEAR | ✅ | ❌ | ➖ | ✅ | ❌ | ❌ | ❌ |
 | World Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Stellar | Stellar | ✅ | ❌ | ➖ | ✅ | ➖ | ❌ | ❌ |
-| Sonic | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Sonic | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Algorand | Algorand | ✅ | ❌ | ➖ | ❌ | ❌ | ❌ | ❌ |
 | Polkadot | Polkadot | ✅ | ❌ | ➖ | ❌ | ❌ | ❌ | ❌ |
-| Plasma | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Plasma | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Cardano | Cardano | ✅ | ❌ | ➖ | ✅ | ❌ | ❌ | ❌ |
 | Abstract | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Berachain | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
@@ -63,7 +70,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Monad | EVM | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | X Layer | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Robinhood Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
-| Stable | EVM | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Stable | EVM | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 <sub>Reviewed 2026-07-21. Sources: [chain list](../crates/primitives/src/chain.rs), [feature configuration](../crates/primitives/src/chain_config.rs), [address-history contract](../crates/chain_traits/src/lib.rs), [simulation implementations](../crates/gem_evm/src/provider/simulation.rs), [Solana](../crates/gem_solana/src/provider/simulation.rs), [Sui](../crates/gem_sui/src/provider/simulation.rs), [Tron](../crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
 
@@ -149,7 +156,7 @@ Android's EVM namespace and iOS's all-method list advertise `eth_sendRawTransact
 
 ## Transaction-indexing providers
 
-The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) uses ordered provider lists. Blockscout PRO is first for its 12 supported Gem chains, followed by the existing Ankr or Alchemy route when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) is only called on explicitly supported chains. Other EVM chains are unsupported. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) currently constructs EVM clients without an indexer.
+The EVM route configured by [`settings_chain`](../crates/settings_chain/src/lib.rs) uses ordered provider lists. Blockscout PRO is first for its 12 supported Gem chains, followed by the existing Ankr or Alchemy route when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../crates/gem_evm/src/rpc/alchemy/client.rs) is only called on explicitly supported chains. Other EVM chains return an empty address history. The [gemstone chain factory](../gemstone/src/gateway/chain_factory.rs) composes its raw EVM client with an empty transactions-by-address provider because it does not configure an indexer.
 
 | Gem chain | Providers |
 | --- | --- |
@@ -222,7 +229,7 @@ These tables compare Core route eligibility with current provider-advertised sup
 | --- | :---: | --- | --- | --- |
 | [Uniswap v3](../crates/swapper/src/uniswap/v3/provider.rs) | 16/54 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Smart Chain, ZKsync, Celo, Blast, World Chain, Unichain, Monad, X Layer, Stable, Robinhood Chain | Core-only relative to the current official list: Blast, Stable | <sub>[code](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [current deployments](https://developers.uniswap.org/docs/protocols/v3/deployments) · [Blast sunset](https://developers.uniswap.org/docs/changelog/active-notifications/sunset-of-blast-support) · [Stable deployment](https://swap.stable.xyz/deployments)</sub> |
 | [Uniswap v4](../crates/swapper/src/uniswap/v4/provider.rs) | 16/54 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Smart Chain, Blast, Linea, World Chain, Unichain, Celo, Monad, Ink, X Layer, Robinhood Chain | ➖ | <sub>[code](../crates/gem_evm/src/uniswap/deployment/v4.rs) · [deployments](https://github.com/Uniswap/contracts/blob/main/deployments/index.md)</sub> |
-| [PancakeSwap v3](../crates/swapper/src/uniswap/v3/provider.rs) | 8/54 | BNB Smart Chain, opBNB, Arbitrum, Linea, Base, ZKsync, Monad, Robinhood Chain | Missing: Ethereum | <sub>[code](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [v3 router deployments](https://developer.pancakeswap.finance/contracts/universal-router/addresses)</sub> |
+| [PancakeSwap v3](../crates/swapper/src/uniswap/v3/provider.rs) | 9/54 | Ethereum, BNB Smart Chain, opBNB, Arbitrum, Linea, Base, ZKsync, Monad, Robinhood Chain | ➖ | <sub>[code](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [v3 router deployments](https://developer.pancakeswap.finance/contracts/universal-router/addresses)</sub> |
 | [OKX DEX](../crates/swapper/src/okx/provider.rs) | 22/54 | Solana, Tron, Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Avalanche C-Chain, Fantom, Manta, Blast, ZKsync, Linea, Mantle, Plasma, Hyperliquid, Sonic, Unichain, Monad, X Layer, Robinhood Chain | Missing: Sui, TON | <sub>[code](../crates/swapper/src/okx/provider.rs) · [chains API](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-get-aggregator-supported-chains)</sub> |
 | [Oku](../crates/swapper/src/uniswap/v3/provider.rs) | 5/54 | Sonic, Mantle, Gnosis, Plasma, Sei EVM | Not assigned to Oku in Core: Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Smart Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[code](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> |
 | [Wagmi](../crates/swapper/src/uniswap/v3/provider.rs) | 1/54 | Sonic | Missing: Ethereum, BNB Smart Chain, Avalanche C-Chain, Polygon, Fantom, Arbitrum, Optimism, Base | <sub>[code](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [contracts](https://docs.wagmi.com/wagmi/contracts)</sub> |
@@ -239,8 +246,8 @@ These tables compare Core route eligibility with current provider-advertised sup
 | Provider | Mode | Core coverage | Core chains | Coverage difference | References |
 | --- | --- | :---: | --- | --- | --- |
 | [NEAR Intents](../crates/swapper/src/near_intents/provider.rs) | Omnichain | 27/54 | NEAR, Ethereum, Bitcoin, Solana, Sui, Arbitrum, Base, Optimism, Avalanche C-Chain, BNB Smart Chain, Polygon, TON, Tron, Dogecoin, XRP Ledger, Cardano, Berachain, Aptos, Zcash, Gnosis, Stellar, Litecoin, Bitcoin Cash, Monad, X Layer, Plasma, Abstract | Missing: HyperCore | <sub>[code](../crates/swapper/src/near_intents/assets.rs) · [live token API](https://1click.chaindefuser.com/v0/tokens) · [chain support](https://docs.near-intents.org/resources/chain-support)</sub> |
-| [Relay](../crates/swapper/src/relay/provider.rs) | Omnichain | 18/54 | Ethereum, BNB Smart Chain, Base, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Linea, ZKsync, Hyperliquid, Sei EVM, Berachain, Manta, Sonic, Abstract, Celo, Stable, Robinhood Chain | Missing: Bitcoin, Solana, TON, Tron, Gnosis, Mantle, Blast, World Chain, Ink, Unichain, Monad, Plasma, HyperCore | <sub>[code](../crates/swapper/src/relay/asset.rs) · [live chains API](https://api.relay.link/chains)</sub> |
-| [Across](../crates/swapper/src/across/provider.rs) | Bridge | 16/54 | Ethereum, Optimism, Polygon, Arbitrum, Base, Hyperliquid, Linea, ZKsync, World Chain, Ink, Unichain, Monad, BNB Smart Chain, Plasma, Robinhood Chain, Tron | Missing: Avalanche C-Chain, Solana, Blast, HyperCore | <sub>[code](../crates/gem_evm/src/across/deployment.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> |
+| [Relay](../crates/swapper/src/relay/provider.rs) | Omnichain | 26/54 | Ethereum, BNB Smart Chain, Base, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Linea, ZKsync, Hyperliquid, Sei EVM, Berachain, Manta, Sonic, Abstract, Celo, Stable, Robinhood Chain, Gnosis, Mantle, Blast, World Chain, Ink, Unichain, Monad, Plasma | Missing: Bitcoin, Solana, TON, Tron, HyperCore | <sub>[code](../crates/swapper/src/relay/asset.rs) · [live chains API](https://api.relay.link/chains)</sub> |
+| [Across](../crates/swapper/src/across/provider.rs) | Bridge | 17/54 | Ethereum, Optimism, Polygon, Arbitrum, Avalanche C-Chain, Base, Hyperliquid, Linea, ZKsync, World Chain, Ink, Unichain, Monad, BNB Smart Chain, Plasma, Robinhood Chain, Tron | Missing: Solana, HyperCore; 🪦 Blast | <sub>[code](../crates/gem_evm/src/across/deployment.rs) · [chains and contracts](https://docs.across.to/chains-and-contracts) · [live chains API](https://app.across.to/api/swap/chains)</sub> |
 | [THORChain](../crates/swapper/src/thorchain/provider.rs) | Omnichain | 14/54 | Dogecoin, THORChain, Ethereum, Cosmos, Bitcoin, Bitcoin Cash, Litecoin, BNB Smart Chain, Avalanche C-Chain, Base, XRP Ledger, Tron, Solana, Zcash | Core-only: Zcash | <sub>[code](../crates/swapper/src/thorchain/chain.rs) · [supported chains](https://dev.thorchain.org/concepts/querying-thorchain.html) · [live inbound-address API](https://gateway.liquify.com/chain/thorchain_api/thorchain/inbound_addresses)</sub> |
 | [Mayan](../crates/swapper/src/mayan/provider.rs) | Cross-chain | 14/54 | Ethereum, Solana, Sui, BNB Smart Chain, Base, Polygon, Avalanche C-Chain, Arbitrum, Optimism, Linea, Unichain, Monad, Hyperliquid, HyperCore | ➖ | <sub>[code](../crates/swapper/src/mayan/asset.rs) · [quote API](https://docs.mayan.finance/integration/quote-api) · [live configuration](https://sia.mayan.finance/v10/init)</sub> |
 | [Squid](../crates/swapper/src/squid/provider.rs) | Cross-chain | 6/54 | Cosmos, Osmosis, Celestia, Injective, Sei, Noble | Missing: Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid, Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[code](../crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/api-and-sdk-integration/key-concepts/get-supported-tokens-and-chains)</sub> |
@@ -279,7 +286,7 @@ Provider-specific status tracking and vault discovery are `➖` for on-chain rou
 
 `Omnichain` providers may be eligible for selected same-chain routes as well as cross-chain routes. `Bridge` and `Cross-chain` providers require different source and destination chains.
 
-<sub>Reviewed 2026-07-21. Active-provider source of truth: [`GemSwapper::new`](../crates/swapper/src/swapper.rs). `CetusAggregator` and `Orca` remain inactive [`SwapProvider`](../crates/primitives/src/swap_provider.rs) variants.</sub>
+<sub>Reviewed 2026-07-22. Active-provider source of truth: [`GemSwapper::new`](../crates/swapper/src/swapper.rs). `CetusAggregator` and `Orca` remain inactive [`SwapProvider`](../crates/primitives/src/swap_provider.rs) variants.</sub>
 
 ## Fiat providers
 
@@ -317,18 +324,14 @@ This backlog only includes gaps that apply to an existing Gem chain, an active p
 
 | Area | Work | Applicable scope | References | Status |
 | --- | --- | --- | --- | :---: |
-| Transaction indexing | Inject an EVM indexer into gemstone or explicitly remove EVM address history from that API surface | All EVM chains created by gemstone | <sub>[factory](../gemstone/src/gateway/chain_factory.rs) · [unsupported default](../crates/gem_evm/src/rpc/client.rs) · [configured backend path](../crates/settings_chain/src/lib.rs)</sub> | 🏗️ |
 | WalletConnect | Align EVM method policy: remove `eth_sendRawTransaction` from platform advertisements or implement it in Core, and explicitly decide whether to support `eth_sign` | EVM chains | <sub>[Core handler](../crates/gem_wallet_connect/src/request_handler/ethereum.rs) · [EVM method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/evm) · [Android](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/bridge/Namespace.kt) · [iOS](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift)</sub> | 🏗️ |
 | WalletConnect | Add the published Bitcoin namespace and request handler | Bitcoin | <sub>[Core dispatcher](../crates/gem_wallet_connect/src/request_handler/mod.rs) · [WalletConnect Bitcoin spec](https://docs.walletconnect.network/wallet-sdk/chain-support/bitcoin)</sub> | 🏗️ |
-| PancakeSwap v3 | Add the missing v3 router deployment | Ethereum | <sub>[Core deployment](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider deployment](https://developer.pancakeswap.finance/contracts/universal-router/addresses)</sub> | 🏗️ |
 | Oku | Add compatible provider deployment mappings not already assigned to the Oku adapter | Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Smart Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[Core deployment](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> | 🏗️ |
 | Wagmi | Add the remaining documented provider deployments | Ethereum, BNB Smart Chain, Avalanche C-Chain, Polygon, Fantom, Arbitrum, Optimism, Base | <sub>[Core deployment](../crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider contracts](https://docs.wagmi.com/wagmi/contracts)</sub> | 🏗️ |
 | Cetus CLMM | Add an Aptos-specific quote and transaction implementation | Aptos | <sub>[Core Sui provider](../crates/swapper/src/cetus_clmm/provider.rs) · [Cetus chain support](https://cetus-1.gitbook.io/cetus-docs/guides/faq)</sub> | 🏗️ |
 | OKX DEX | Add the Sui quote and transaction path | Sui | <sub>[Core provider](../crates/swapper/src/okx/provider.rs) · [Sui guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-sui-quick-start)</sub> | 🏗️ |
 | OKX DEX | Add the TON quote and transaction path | TON | <sub>[Core provider](../crates/swapper/src/okx/provider.rs) · [TON guide](https://web3.okx.com/build/docs/waas/dex-use-swap-ton-quick-start)</sub> | 🏗️ |
-| Relay | Add the missing EVM asset mappings | Gnosis, Mantle, Blast, World Chain, Ink, Unichain, Monad, Plasma | <sub>[Core mapping](../crates/swapper/src/relay/asset.rs) · [live chains API](https://api.relay.link/chains)</sub> | 🏗️ |
 | Relay | Add non-EVM quote and transaction implementations before exposing the remaining provider chains | Bitcoin, Solana, TON, Tron, HyperCore | <sub>[Core EVM-only transaction model](../crates/swapper/src/relay/model.rs) · [live chains API](https://api.relay.link/chains)</sub> | 🏗️ |
-| Across | Add the missing EVM routes | Avalanche C-Chain, Blast | <sub>[Core mapping](../crates/gem_evm/src/across/deployment.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> | 🏗️ |
 | Across | Add non-EVM quote and transaction implementations | Solana, HyperCore | <sub>[Core provider](../crates/swapper/src/across/provider.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> | 🏗️ |
 | Squid | Add an EVM quote and transaction implementation | Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid | <sub>[Core Cosmos transaction path](../crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/api-and-sdk-integration/key-concepts/get-supported-tokens-and-chains)</sub> | 🏗️ |
 | Squid | Add the corresponding non-EVM quote and transaction implementations | Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[Core provider](../crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/api-and-sdk-integration/key-concepts/get-supported-tokens-and-chains)</sub> | 🏗️ |

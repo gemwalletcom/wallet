@@ -143,7 +143,7 @@ mod chain_integration_tests {
         };
         let result = client.get_transaction_preload(input).await?;
 
-        println!("Tranasction load metadata: {:?}", result);
+        println!("Transaction load metadata: {:?}", result);
 
         assert!(result.get_block_hash()?.len() == 44);
         assert!(result.get_sender_token_address()?.is_none());
@@ -163,7 +163,7 @@ mod chain_integration_tests {
 
         let result = client.get_transaction_preload(input).await?;
 
-        println!("Tranasction load metadata: {:?}", result);
+        println!("Transaction load metadata: {:?}", result);
 
         assert!(result.get_block_hash()?.len() == 44);
         assert!(result.get_sender_token_address()? == Some("HEeranxp3y7kVQKVSLdZW1rUmnbs7bAtUTMu8o88Jash".to_string()));

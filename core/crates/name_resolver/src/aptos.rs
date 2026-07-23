@@ -1,6 +1,7 @@
 use crate::client::NameClient;
 use crate::model::NameQuery;
 use async_trait::async_trait;
+use gem_client::reqwest_client;
 use primitives::{Chain, NameProvider};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -18,7 +19,7 @@ pub struct AptosClient {
 
 impl AptosClient {
     pub fn new(url: String) -> Self {
-        let client = Client::new();
+        let client = reqwest_client();
         Self { url, client }
     }
 

@@ -14,7 +14,7 @@ public extension StateEmptyView where Content == EmptyView {
         StateEmptyView(
             title: Localized.Errors.errorOccurred,
             description: error.localizedDescription,
-            image: Images.ErrorConent.error,
+            image: Images.ErrorContent.error,
         )
     }
 }

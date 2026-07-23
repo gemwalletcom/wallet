@@ -17,7 +17,7 @@ pub struct TonNftProvider<C: Client> {
 }
 
 impl<C: Client> TonNftProvider<C> {
-    pub fn new(client: TonClient<C>, config: OffchainClientConfig) -> Self {
+    pub(crate) fn new(client: TonClient<C>, config: OffchainClientConfig) -> Self {
         let concurrency = config.concurrency;
         Self {
             client,

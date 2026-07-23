@@ -2,91 +2,63 @@ mod broadcast_providers;
 mod chain_providers;
 mod node_check;
 mod provider_config;
-pub use broadcast_providers::BroadcastProviders;
-pub use chain_providers::ChainProviders;
-pub use chain_traits::{TransactionIdRequest, TransactionsRequest, TransactionsResult};
-use gem_algorand::{
-    AlgorandClient,
-    rpc::{ALGORAND_INDEXER_URL, AlgorandIndexer},
-};
-use gem_client::{ReqwestClient, retry_policy};
-use gem_hypercore::rpc::client::HyperCoreClient;
-pub use node_check::node_check_request;
-pub use provider_config::{ProviderConfig, ProviderKeyConfig};
+
+use std::{collections::HashMap, sync::Arc};
 
 use chain_traits::ChainTraits;
-
+use gem_algorand::{AlgorandClient, rpc::AlgorandIndexer};
 use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
+use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EVMIndexer, EVMIndexerConfig, EthereumClient, alchemy_url};
+use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, alchemy_url};
+use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
-use gem_near::rpc::{FASTNEAR_TRANSACTIONS_URL, FASTNEAR_TRANSFERS_URL, NearClient, NearIndexer};
-use gem_polkadot::rpc::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotClient, PolkadotIndexer};
+use gem_near::rpc::{NearClient, NearIndexer};
+use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer};
 use gem_solana::rpc::{SolanaClient, SolanaIndexer};
 use gem_stellar::rpc::client::StellarClient;
-use gem_sui::rpc::SuiClient;
+use gem_sui::rpc::{SuiClient, SuiIndexer};
 use gem_ton::rpc::TonClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XrpClient;
 use reqwest::Client;
 
-use std::collections::HashMap;
-
 use primitives::{Chain, EVMChain, chain_cosmos::CosmosChain};
 use settings::Settings;
+
+pub use broadcast_providers::BroadcastProviders;
+pub use chain_providers::ChainProviders;
+pub use chain_traits::{TransactionIdRequest, TransactionsRequest, TransactionsResult};
+pub use node_check::node_check_request;
+pub use provider_config::ProviderConfig;
 
 pub struct ProviderFactory {}
 
 impl ProviderFactory {
-    pub fn new_from_settings(chain: Chain, settings: &Settings) -> Box<dyn ChainTraits> {
-        Self::new_from_settings_with_user_agent(chain, settings, "")
-    }
-
     pub fn new_from_settings_with_user_agent(chain: Chain, settings: &Settings, user_agent: &str) -> Box<dyn ChainTraits> {
         let url = Self::get_chain_url(chain, settings);
 
-        Self::new_provider(
-            ProviderConfig::new(
-                chain,
-                &url,
-                ProviderKeyConfig {
-                    alchemy: settings.alchemy.key.secret.clone(),
-                    ankr: settings.ankr.key.secret.clone(),
-                    blockscout: settings.blockscout.key.secret.clone(),
-                    subscan: settings.subscan.key.secret.clone(),
-                    trongrid: settings.trongrid.key.secret.clone(),
-                },
-            ),
-            user_agent,
-        )
+        Self::new_provider(ProviderConfig::from_settings(chain, &url, settings), user_agent)
     }
 
-    pub fn new_providers(settings: &Settings) -> Vec<Box<dyn ChainTraits>> {
-        Chain::all().iter().map(|chain| Self::new_from_settings(*chain, settings)).collect()
-    }
-
-    pub fn new_providers_with_user_agent(settings: &Settings, user_agent: &str) -> Vec<Box<dyn ChainTraits>> {
+    pub(crate) fn new_providers_with_user_agent(settings: &Settings, user_agent: &str) -> Vec<Box<dyn ChainTraits>> {
         Chain::all()
             .iter()
             .map(|chain| Self::new_from_settings_with_user_agent(*chain, settings, user_agent))
             .collect()
     }
 
-    pub fn new_provider(config: ProviderConfig, user_agent: &str) -> Box<dyn ChainTraits> {
-        let host = config.url.parse::<url::Url>().ok().and_then(|u| u.host_str().map(String::from)).unwrap_or_default();
-
-        let retry_policy_config = retry_policy(host, 3);
-        let reqwest_client = gem_client::builder().retry(retry_policy_config).build().expect("Failed to build reqwest client");
-
+    fn new_provider(config: ProviderConfig, user_agent: &str) -> Box<dyn ChainTraits> {
+        let host = config.url.parse::<url::Url>().ok().and_then(|url| url.host_str().map(String::from)).unwrap_or_default();
+        let reqwest_client = gem_client::builder().retry(retry_policy(host, 3)).build().expect("Failed to build reqwest client");
         Self::new_provider_with_client(config, user_agent, reqwest_client)
     }
 
     pub fn new_provider_with_client(config: ProviderConfig, user_agent: &str, reqwest_client: Client) -> Box<dyn ChainTraits> {
+        let gem_client = ReqwestClient::new_with_user_agent(config.url.clone(), reqwest_client, user_agent.to_string());
         let chain = config.chain;
-        let url = config.url.clone();
-        let gem_client = ReqwestClient::new_with_user_agent(url.clone(), reqwest_client.clone(), user_agent.to_string());
 
         match chain {
             Chain::Bitcoin | Chain::BitcoinCash | Chain::Litecoin | Chain::Doge | Chain::Zcash => {
@@ -121,54 +93,76 @@ impl ProviderFactory {
             | Chain::XLayer
             | Chain::Robinhood
             | Chain::Stable => {
-                let chain = EVMChain::from_chain(chain).unwrap();
+                let evm_chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
-                let indexer = EVMIndexer::new_reqwest(
-                    gem_client,
-                    chain,
-                    EVMIndexerConfig {
-                        alchemy: config.keys.alchemy,
-                        ankr: config.keys.ankr,
-                        blockscout: config.keys.blockscout,
-                    },
+                let client = EthereumClient::new(rpc_client, evm_chain);
+                let indexer = EVMIndexer::for_chain(
+                    gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
+                        chain,
+                        &config.indexers.alchemy.url,
+                        &config.indexers.alchemy.key,
+                    )),
+                    gem_client.clone().with_request_timeout(config.indexers.ankr.timeout).with_base_url(format!(
+                        "{}/{}",
+                        config.indexers.ankr.url.trim_end_matches('/'),
+                        config.indexers.ankr.key
+                    )),
+                    config.indexers.blockscout.configure_client(gem_client),
+                    config.indexers.blockscout.key,
+                    evm_chain,
                 );
-                Box::new(EthereumClient::new_with_indexer(rpc_client, chain, indexer))
+                let provider = if let Some(indexer) = indexer {
+                    let indexer = Arc::new(indexer);
+                    EthereumProvider::new(
+                        client,
+                        Box::new(EVMTransactionsByAddressProvider::new(indexer.clone())),
+                        Box::new(EVMAssetBalanceProvider::new(indexer)),
+                    )
+                } else {
+                    EthereumProvider::new_rpc_only(client)
+                };
+                Box::new(provider)
             }
             Chain::Cardano => Box::new(CardanoClient::new(gem_client)),
             Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Noble | Chain::Sei => {
                 let chain = CosmosChain::from_chain(chain).unwrap();
-                Box::new(CosmosClient::new(chain, gem_client.clone()))
+                Box::new(CosmosClient::new(chain, gem_client))
             }
-            Chain::Aptos => Box::new(AptosClient::new(gem_client.clone())),
-            Chain::Sui => Box::new(SuiClient::new(url)),
-            Chain::Xrp => Box::new(XrpClient::new(JsonRpcClient::new(gem_client.clone()))),
+            Chain::Aptos => Box::new(AptosClient::new(gem_client)),
+            Chain::Sui => Box::new(SuiClient::new_with_indexer(config.url, SuiIndexer::new(config.indexers.sui.configure_client(gem_client)))),
+            Chain::Xrp => Box::new(XrpClient::new(JsonRpcClient::new(gem_client))),
             Chain::Algorand => {
-                let indexer_client = ReqwestClient::new(ALGORAND_INDEXER_URL.to_string(), reqwest_client.clone());
-                Box::new(AlgorandClient::new(gem_client.clone(), AlgorandIndexer::new(indexer_client)))
+                let indexer_client = config.indexers.algorand.configure_client(gem_client.clone());
+                Box::new(AlgorandClient::new(gem_client, AlgorandIndexer::new(indexer_client)))
             }
-            Chain::Stellar => Box::new(StellarClient::new(gem_client.clone())),
+            Chain::Stellar => Box::new(StellarClient::new(gem_client)),
             Chain::Near => {
-                let transfers_client = ReqwestClient::new(FASTNEAR_TRANSFERS_URL.to_string(), reqwest_client.clone());
-                let transactions_client = ReqwestClient::new(FASTNEAR_TRANSACTIONS_URL.to_string(), reqwest_client.clone());
+                let fastnear_url = config.indexers.fastnear.url.clone();
                 Box::new(NearClient::new(
                     JsonRpcClient::new(gem_client.clone()),
-                    NearIndexer::new(transfers_client, transactions_client),
+                    NearIndexer::new(config.indexers.fastnear.configure_client(gem_client), fastnear_url),
                 ))
             }
             Chain::Polkadot => {
-                let asset_hub_client = ReqwestClient::new(POLKADOT_ASSET_HUB_SUBSCAN_URL.to_string(), reqwest_client.clone())
-                    .with_default_headers(HashMap::from([("x-api-key".to_string(), config.keys.subscan.clone())]));
-                Box::new(PolkadotClient::new(gem_client.clone(), PolkadotIndexer::new(asset_hub_client)))
+                let asset_hub_client = config
+                    .indexers
+                    .subscan
+                    .configure_client(gem_client.clone())
+                    .with_default_headers(HashMap::from([("x-api-key".to_string(), config.indexers.subscan.key)]));
+                Box::new(PolkadotClient::new(gem_client, PolkadotIndexer::new(asset_hub_client)))
             }
             Chain::Solana => {
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
-                let url = alchemy_url(chain, &config.keys.alchemy);
-                let indexer = SolanaIndexer::new(JsonRpcClient::new(ReqwestClient::new(url, reqwest_client.clone())));
+                let url = alchemy_url(chain, &config.indexers.alchemy.url, &config.indexers.alchemy.key);
+                let indexer = SolanaIndexer::new(JsonRpcClient::new(gem_client.with_request_timeout(config.indexers.alchemy.timeout).with_base_url(url)));
                 Box::new(SolanaClient::new_with_indexer(rpc_client, indexer))
             }
-            Chain::Ton => Box::new(TonClient::new(gem_client.clone())),
-            Chain::Tron => Box::new(TronClient::new(gem_client.clone(), TronGridClient::new(gem_client.clone(), config.keys.trongrid.clone()))),
-            Chain::HyperCore => Box::new(HyperCoreClient::new(gem_client.clone())),
+            Chain::Ton => Box::new(TonClient::new(gem_client)),
+            Chain::Tron => Box::new(TronClient::new(
+                gem_client.clone(),
+                TronGridClient::new(config.indexers.trongrid.configure_client(gem_client), config.indexers.trongrid.key),
+            )),
+            Chain::HyperCore => Box::new(HyperCoreClient::new(gem_client)),
         }
     }
 

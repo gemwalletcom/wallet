@@ -1,15 +1,18 @@
-use crate::{CONTENT_TYPE, Client, ClientError, ContentType, Response, deserialize_response, retry_policy};
+use std::{collections::HashMap, str::FromStr, time::Duration};
+
 use async_trait::async_trait;
 use reqwest::RequestBuilder;
 use reqwest::header::USER_AGENT;
 use serde::{Serialize, de::DeserializeOwned};
-use std::{collections::HashMap, str::FromStr, time::Duration};
+
+use crate::{CONTENT_TYPE, Client, ClientError, ContentType, Response, build_request_url, deserialize_response, retry_policy};
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
     base_url: String,
     client: reqwest::Client,
     default_headers: HashMap<String, String>,
+    request_timeout: Option<Duration>,
     user_agent: Option<String>,
 }
 
@@ -19,6 +22,7 @@ impl ReqwestClient {
             base_url: url,
             client,
             default_headers: HashMap::new(),
+            request_timeout: None,
             user_agent: None,
         }
     }
@@ -28,7 +32,8 @@ impl ReqwestClient {
             base_url: url,
             client,
             default_headers: HashMap::new(),
-            user_agent: Some(user_agent),
+            request_timeout: None,
+            user_agent: (!user_agent.is_empty()).then_some(user_agent),
         }
     }
 
@@ -42,6 +47,7 @@ impl ReqwestClient {
             base_url: url,
             client,
             default_headers: HashMap::new(),
+            request_timeout: None,
             user_agent: None,
         }
     }
@@ -54,15 +60,22 @@ impl ReqwestClient {
         Self { base_url, ..self }
     }
 
+    pub fn with_request_timeout(self, request_timeout: Duration) -> Self {
+        Self {
+            request_timeout: Some(request_timeout),
+            ..self
+        }
+    }
+
     pub fn new_test_client(url: String) -> Self {
         Self::new_with_retry(url, 30, 3)
     }
 
-    fn build_url(&self, path: &str) -> String {
-        format!("{}{}", self.base_url.trim_end_matches('/'), path)
-    }
-
     fn build_request(&self, request: RequestBuilder, headers: HashMap<String, String>) -> RequestBuilder {
+        let request = match self.request_timeout {
+            Some(timeout) => request.timeout(timeout),
+            None => request,
+        };
         let request = if let Some(ref user_agent) = self.user_agent {
             request.header(USER_AGENT, user_agent)
         } else {
@@ -108,7 +121,7 @@ impl Client for ReqwestClient {
     where
         R: DeserializeOwned,
     {
-        let url = self.build_url(path);
+        let url = build_request_url(&self.base_url, path);
         let request = self.build_request(self.client.get(&url).query(query), headers);
 
         let response = request.send().await.map_err(Self::map_reqwest_error)?;
@@ -129,7 +142,7 @@ impl Client for ReqwestClient {
         T: Serialize + Send + Sync,
         R: DeserializeOwned,
     {
-        let url = self.build_url(path);
+        let url = build_request_url(&self.base_url, path);
         let headers = if headers.is_empty() {
             HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string())])
         } else {
@@ -174,4 +187,26 @@ pub async fn json_response<T: DeserializeOwned>(response: reqwest::Response) -> 
         .to_vec();
     let response = Response { status: Some(status), data };
     deserialize_response(&response)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ReqwestClient;
+    use std::{collections::HashMap, time::Duration};
+
+    #[test]
+    fn empty_user_agent_override_preserves_client_default() {
+        let client = ReqwestClient::new_with_user_agent("https://example.com".to_string(), crate::reqwest_client(), String::new());
+
+        assert!(client.user_agent.is_none());
+    }
+
+    #[test]
+    fn request_timeout_is_applied() {
+        let timeout = Duration::from_secs(5);
+        let client = ReqwestClient::new("https://example.com".to_string(), crate::reqwest_client()).with_request_timeout(timeout);
+        let request = client.build_request(client.client.get("https://example.com"), HashMap::new()).build().unwrap();
+
+        assert_eq!(request.timeout(), Some(&timeout));
+    }
 }

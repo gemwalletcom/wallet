@@ -34,7 +34,7 @@ struct RootScene: View {
                 await model.handleOpenUrl(url)
             }
         }
-        .sheet(item: $model.isPresentingConnnectorSheet) { type in
+        .sheet(item: $model.isPresentingConnectorSheet) { type in
             WalletConnectorNavigationStack(
                 type: type,
                 presenter: model.walletConnectorPresenter,

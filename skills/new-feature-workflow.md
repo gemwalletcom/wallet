@@ -60,6 +60,6 @@ just build           # builds both platforms end-to-end
 ## Rules
 
 - Always start from Core and work outward — do not stub mobile code before the Rust types exist
-- Regenerate after every Core change — do not manually sync types
+- Regenerate when Core changes mobile interfaces, generated models, platform build inputs, or app-side integration; do not regenerate for internal implementation changes with unchanged mobile contracts, and never manually sync generated types
 - Feature parity: if the feature is user-facing, implement both platforms or explicitly call out the gap
 - Security: if the feature touches keys, signing, or transactions, read `skills/security.md` before starting

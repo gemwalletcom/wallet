@@ -7,7 +7,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use gem_client::ReqwestClient;
-use gem_evm::rpc::EthereumClient;
+use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::JsonRpcClient;
 use gem_rewards::{EvmClientProvider, TransferRedemptionService, WalletConfig};
 use primitives::rewards::RedemptionStatus;
@@ -101,6 +101,6 @@ fn create_evm_client_provider(settings: Settings) -> EvmClientProvider {
         let reqwest_client = gem_client::builder().build().ok()?;
         let client = ReqwestClient::new(ProviderFactory::get_chain_url(chain.to_chain(), &settings), reqwest_client);
         let rpc_client = JsonRpcClient::new(client);
-        Some(EthereumClient::new(rpc_client, chain))
+        Some(EthereumProvider::new_rpc_only(EthereumClient::new(rpc_client, chain)))
     })
 }

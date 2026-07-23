@@ -1,50 +1,39 @@
 use std::error::Error;
 
-use base64::{Engine as _, engine::general_purpose};
+use gem_client::{Client, ClientExt};
 use primitives::Chain;
-use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 
 use super::model::ZerionPositionsResponse;
 
-pub struct ZerionClient {
-    url: String,
-    client: reqwest::Client,
+pub struct ZerionClient<C: Client> {
+    client: C,
 }
 
-impl ZerionClient {
-    pub fn new(url: String, key: String) -> Self {
-        let mut headers = HeaderMap::new();
-        let auth_value = format!("Basic {}", general_purpose::STANDARD.encode(format!("{key}:")));
-        headers.insert(AUTHORIZATION, HeaderValue::from_str(&auth_value).unwrap());
-
-        Self {
-            url,
-            client: gem_client::builder().default_headers(headers).build().unwrap(),
-        }
+pub(super) fn chain_id(chain: &Chain) -> Result<&str, Box<dyn Error + Send + Sync>> {
+    match chain {
+        Chain::SmartChain => Ok("binance-smart-chain"),
+        Chain::AvalancheC => Ok("avalanche"),
+        Chain::Gnosis => Ok("xdai"),
+        Chain::ZkSync => Ok("zksync-era"),
+        Chain::Ethereum | Chain::Polygon | Chain::Arbitrum | Chain::Optimism | Chain::Base | Chain::Fantom | Chain::Linea | Chain::Celo => Ok(chain.as_ref()),
+        _ => Err(format!("Unsupported chain for Zerion: {:?}", chain).into()),
     }
+}
 
-    pub fn chain_id(chain: &Chain) -> Result<&str, Box<dyn Error + Send + Sync>> {
-        match chain {
-            Chain::SmartChain => Ok("binance-smart-chain"),
-            Chain::AvalancheC => Ok("avalanche"),
-            Chain::Gnosis => Ok("xdai"),
-            Chain::ZkSync => Ok("zksync-era"),
-            Chain::Ethereum | Chain::Polygon | Chain::Arbitrum | Chain::Optimism | Chain::Base | Chain::Fantom | Chain::Linea | Chain::Celo => Ok(chain.as_ref()),
-            _ => Err(format!("Unsupported chain for Zerion: {:?}", chain).into()),
-        }
+impl<C: Client> ZerionClient<C> {
+    pub fn new(client: C) -> Self {
+        Self { client }
     }
 
     pub async fn get_wallet_positions(&self, chain: Chain, address: &str) -> Result<ZerionPositionsResponse, Box<dyn Error + Send + Sync>> {
-        let url = format!("{}/v1/wallets/{}/positions/", self.url, address);
-        let chain_id = Self::chain_id(&chain)?;
+        let chain_id = chain_id(&chain)?;
         let query = [
-            ("filter[positions]", "only_complex"),
-            ("filter[chain_ids]", chain_id),
-            ("filter[trash]", "only_non_trash"),
-            ("currency", "usd"),
-            ("sort", "-value"),
+            ("filter[positions]".to_string(), "only_complex".to_string()),
+            ("filter[chain_ids]".to_string(), chain_id.to_string()),
+            ("filter[trash]".to_string(), "only_non_trash".to_string()),
+            ("currency".to_string(), "usd".to_string()),
+            ("sort".to_string(), "-value".to_string()),
         ];
-
-        Ok(self.client.get(url).query(&query).send().await?.error_for_status()?.json().await?)
+        Ok(self.client.get_with_query(&format!("/v1/wallets/{address}/positions/"), &query).await?)
     }
 }

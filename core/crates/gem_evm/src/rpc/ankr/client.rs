@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::error::Error;
 
-use crate::rpc::{EVMIndexerClient, IndexedTransaction};
+use crate::rpc::{EVMIndexerClient, TransactionReference};
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
@@ -11,7 +11,6 @@ use super::{
     model::{TokenBalances, TokenTransfers, Transactions},
 };
 
-#[derive(Debug, Clone)]
 pub(crate) struct AnkrClient<C: Client + Clone> {
     chain: &'static str,
     client: JsonRpcClient<C>,
@@ -24,7 +23,7 @@ impl<C: Client + Clone> AnkrClient<C> {
 }
 
 impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
-    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<IndexedTransaction>, Box<dyn Error + Send + Sync>> {
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
         let (transactions, token_transfers): (Transactions, TokenTransfers) = futures::try_join!(
             self.client.request(AnkrRpc::TransactionsByAddress {
                 address: address.to_string(),
@@ -47,7 +46,7 @@ impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
         let mut seen = HashSet::new();
         Ok(transaction_ids
             .filter(|hash| seen.insert(hash.clone()))
-            .map(|hash| IndexedTransaction::new(hash, None))
+            .map(|hash| TransactionReference::new(hash, None))
             .collect())
     }
 
@@ -111,8 +110,8 @@ mod tests {
         assert_eq!(
             transaction_ids,
             vec![
-                IndexedTransaction::new("0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7".to_string(), None),
-                IndexedTransaction::new("0x1111111111111111111111111111111111111111111111111111111111111111".to_string(), None)
+                TransactionReference::new("0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7".to_string(), None),
+                TransactionReference::new("0x1111111111111111111111111111111111111111111111111111111111111111".to_string(), None)
             ]
         );
     }

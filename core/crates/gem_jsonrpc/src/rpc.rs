@@ -1,7 +1,3 @@
-use async_trait::async_trait;
-use gem_client::{Client, ClientError, ContentType, Response, decode_json_byte_array, deserialize_response};
-use primitives::Chain;
-use serde::{Serialize, de::DeserializeOwned};
 use std::{
     collections::HashMap,
     error::Error,
@@ -9,6 +5,11 @@ use std::{
     str::FromStr,
     sync::Arc,
 };
+
+use async_trait::async_trait;
+use gem_client::{Client, ClientError, ContentType, Response, build_request_url, decode_json_byte_array, deserialize_response};
+use primitives::Chain;
+use serde::{Serialize, de::DeserializeOwned};
 
 pub type RpcResponse = Response;
 
@@ -73,10 +74,6 @@ where
     pub fn new(base_url: String, provider: Arc<dyn RpcProvider<Error = E>>) -> Self {
         Self { base_url, provider }
     }
-
-    fn build_url(&self, path: &str) -> String {
-        format!("{}{}", self.base_url.trim_end_matches('/'), path)
-    }
 }
 
 #[async_trait]
@@ -88,7 +85,7 @@ where
     where
         R: DeserializeOwned,
     {
-        let url = self.build_url(path);
+        let url = build_request_url(&self.base_url, path);
         let target = Target {
             url,
             method: HttpMethod::Get,
@@ -119,7 +116,7 @@ where
         T: Serialize + Send + Sync,
         R: DeserializeOwned,
     {
-        let url = self.build_url(path);
+        let url = build_request_url(&self.base_url, path);
 
         let mut request_headers = HashMap::from([("Content-Type".to_string(), ContentType::ApplicationJson.as_str().to_string())]);
         request_headers.extend(headers);

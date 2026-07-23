@@ -1,5 +1,6 @@
 # Gem Wallet
 
+[![Core CI](https://github.com/gemwalletcom/wallet/actions/workflows/core-ci.yml/badge.svg)](https://github.com/gemwalletcom/wallet/actions/workflows/core-ci.yml)
 [![iOS CI](https://github.com/gemwalletcom/wallet/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/gemwalletcom/wallet/actions/workflows/ios-ci.yml)
 [![Android CI](https://github.com/gemwalletcom/wallet/actions/workflows/android-ci.yml/badge.svg)](https://github.com/gemwalletcom/wallet/actions/workflows/android-ci.yml)
 [![License](https://badgen.net/github/license/gemwalletcom/wallet)](https://github.com/gemwalletcom/wallet/blob/main/LICENSE)

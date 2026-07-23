@@ -10,7 +10,7 @@ public enum Emoji {
     public static let reject = "❌"
     public static let random = "🎲"
     public static let rocket = "🚀"
-    public static let turle = "🐢"
+    public static let turtle = "🐢"
     public static let gem = "💎"
     public static let party = "🎉"
 
@@ -163,7 +163,7 @@ public enum Emoji {
         (Emoji.reject, "Reject"),
         (Emoji.random, "Random"),
         (Emoji.rocket, "Rocket"),
-        (Emoji.turle, "Turle"),
+        (Emoji.turtle, "Turtle"),
         (Emoji.gem, "Gem"),
     ]
 

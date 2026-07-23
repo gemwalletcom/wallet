@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.data.repositories.perpetual.FakePerpetualRepository
+import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import com.gemwallet.android.domains.price.ValueDirection
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

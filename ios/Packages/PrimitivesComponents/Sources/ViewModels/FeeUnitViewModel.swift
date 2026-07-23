@@ -43,9 +43,9 @@ public struct FeeUnitViewModel {
     private var unitValueText: String {
         switch unit.type {
         case .satVb:
-            return IntegerFormatter().string(Int(unit.value))
+            return valueFormatter.string(unit.value, decimals: decimals)
         case .gwei:
-            guard let value = try? ValueFormatter.full.double(from: unit.value, decimals: 9) else {
+            guard let value = try? ValueFormatter.full.double(from: unit.value, decimals: decimals) else {
                 return ""
             }
             return numericFormatter.string(value)

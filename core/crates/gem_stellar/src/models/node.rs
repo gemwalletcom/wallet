@@ -1,6 +1,6 @@
+#[cfg(feature = "rpc")]
 use serde::{Deserialize, Serialize};
 
-// RPC models
 #[cfg(feature = "rpc")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeStatus {
