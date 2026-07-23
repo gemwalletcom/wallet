@@ -7,11 +7,11 @@ use chain_traits::ChainStaking;
 use primitives::{DelegationBase, DelegationValidator};
 
 use crate::provider::staking_mapper;
-use crate::rpc::client::SuiClient;
+use crate::rpc::SuiProvider;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl ChainStaking for SuiClient {
+impl ChainStaking for SuiProvider {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         let validators = self.get_validator_apys().await?;
         let apy = staking_mapper::map_staking_apy(validators)?;

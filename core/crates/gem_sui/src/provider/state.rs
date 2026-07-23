@@ -8,11 +8,11 @@ use chain_traits::ChainState;
 use primitives::NodeSyncStatus;
 
 use crate::provider::state_mapper;
-use crate::rpc::client::SuiClient;
+use crate::rpc::SuiProvider;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl ChainState for SuiClient {
+impl ChainState for SuiProvider {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
         self.get_chain_id().await
     }

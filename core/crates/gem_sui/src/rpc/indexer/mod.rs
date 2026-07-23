@@ -1,20 +1,13 @@
 mod mapper;
 
-#[cfg(feature = "reqwest")]
-use std::sync::Arc;
-use std::{error::Error, fmt::Debug};
+use std::error::Error;
 
-use async_trait::async_trait;
-#[cfg(feature = "reqwest")]
-use gem_client::ReqwestClient;
 use gem_client::{Client, ClientExt};
 use primitives::graphql::GraphqlData;
 use serde::Deserialize;
 
 use self::mapper::{GraphqlTransaction, map_transaction};
 use crate::models::Digest;
-
-pub const SUI_GRAPHQL_URL: &str = "https://graphql.mainnet.sui.io/graphql";
 
 const TRANSACTIONS_BY_ADDRESS_QUERY: &str = "query GetTransactionsByAddress($address: SuiAddress!, $limit: Int!, $before: String) { transactions(last: $limit, before: $before, filter: { affectedAddress: $address }) { nodes { digest effects { status timestamp gasEffects { gasObject { owner { ... on AddressOwner { address { address } } } } gasSummary { computationCost storageCost storageRebate nonRefundableStorageFee } } balanceChanges(first: 50) { nodes { owner { address } coinType { repr } amount } } events(first: 50) { nodes { contents { type { repr } json } transactionModule { package { address } } } } } } pageInfo { hasPreviousPage startCursor } } }";
 const TRANSACTIONS_PAGE_SIZE: usize = 50;
@@ -39,25 +32,18 @@ struct PageInfo {
     start_cursor: Option<String>,
 }
 
-#[async_trait]
-pub(crate) trait SuiIndexerClient: Send + Sync + Debug {
-    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<Digest>, Box<dyn Error + Send + Sync>>;
-}
-
 #[derive(Clone, Debug)]
 pub struct SuiIndexer<C: Client> {
     client: C,
+    url: String,
 }
 
 impl<C: Client> SuiIndexer<C> {
-    pub fn new(client: C) -> Self {
-        Self { client }
+    pub fn new(client: C, url: String) -> Self {
+        Self { client, url }
     }
-}
 
-#[async_trait]
-impl<C: Client> SuiIndexerClient for SuiIndexer<C> {
-    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<Digest>, Box<dyn Error + Send + Sync>> {
+    pub(crate) async fn get_transaction_digests_by_address(&self, address: &str, limit: usize) -> Result<Vec<Digest>, Box<dyn Error + Send + Sync>> {
         let mut transactions = Vec::with_capacity(limit);
         let mut before = None;
 
@@ -72,7 +58,7 @@ impl<C: Client> SuiIndexerClient for SuiIndexer<C> {
                 },
                 "query": TRANSACTIONS_BY_ADDRESS_QUERY,
             });
-            let response: GraphqlData<TransactionsData> = self.client.post("", &request).await?;
+            let response: GraphqlData<TransactionsData> = self.client.post(&self.url, &request).await?;
             if let Some(error) = response.errors.and_then(|errors| errors.into_iter().next()) {
                 return Err(error.message.into());
             }
@@ -88,12 +74,6 @@ impl<C: Client> SuiIndexerClient for SuiIndexer<C> {
     }
 }
 
-#[cfg(feature = "reqwest")]
-pub(super) fn default_indexer() -> Arc<dyn SuiIndexerClient> {
-    let client = ReqwestClient::new(SUI_GRAPHQL_URL.to_string(), gem_client::reqwest_client());
-    Arc::new(SuiIndexer::new(client))
-}
-
 #[cfg(test)]
 mod tests {
     use std::{
@@ -107,6 +87,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transactions_by_address() {
+        let url = "https://example.com/graphql";
         let responses = Arc::new(Mutex::new(VecDeque::from([
             include_str!("../../../testdata/transactions_by_address_page_1.json").as_bytes().to_vec(),
             include_str!("../../../testdata/transactions_by_address_page_2.json").as_bytes().to_vec(),
@@ -115,12 +96,12 @@ mod tests {
         let responses_for_client = responses.clone();
         let requests_for_client = requests.clone();
         let client = MockClient::new().with_post(move |path, body| {
-            assert_eq!(path, "");
+            assert_eq!(path, url);
             requests_for_client.lock().unwrap().push(serde_json::from_slice::<serde_json::Value>(body).unwrap());
             Ok(responses_for_client.lock().unwrap().pop_front().unwrap())
         });
 
-        let transactions = SuiIndexer::new(client).get_transactions_by_address("address", 51).await.unwrap();
+        let transactions = SuiIndexer::new(client, url.to_string()).get_transaction_digests_by_address("address", 51).await.unwrap();
         let requests = requests.lock().unwrap();
 
         assert_eq!(
@@ -143,7 +124,10 @@ mod tests {
     async fn test_get_transactions_by_address_error() {
         let client = MockClient::new().with_post(|_, _| Ok(include_str!("../../../testdata/transactions_by_address_error.json").as_bytes().to_vec()));
 
-        let error = SuiIndexer::new(client).get_transactions_by_address("invalid", 1).await.unwrap_err();
+        let error = SuiIndexer::new(client, "https://example.com/graphql".to_string())
+            .get_transaction_digests_by_address("invalid", 1)
+            .await
+            .unwrap_err();
 
         assert_eq!(error.to_string(), "invalid address");
     }

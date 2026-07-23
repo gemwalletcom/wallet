@@ -19,7 +19,7 @@ use gem_near::rpc::{NearClient, NearIndexer};
 use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer};
 use gem_solana::rpc::{SolanaClient, SolanaIndexer};
 use gem_stellar::rpc::client::StellarClient;
-use gem_sui::rpc::{SuiClient, SuiIndexer};
+use gem_sui::rpc::{SuiClient, SuiIndexer, SuiProvider};
 use gem_ton::rpc::TonClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XrpClient;
@@ -129,7 +129,11 @@ impl ProviderFactory {
                 Box::new(CosmosClient::new(chain, gem_client))
             }
             Chain::Aptos => Box::new(AptosClient::new(gem_client)),
-            Chain::Sui => Box::new(SuiClient::new_with_indexer(config.url, SuiIndexer::new(config.indexers.sui.configure_client(gem_client)))),
+            Chain::Sui => {
+                let client = SuiClient::new(config.url);
+                let indexer = SuiIndexer::new(config.indexers.sui.configure_client(gem_client), config.indexers.sui.url);
+                Box::new(SuiProvider::new(client, Box::new(indexer)))
+            }
             Chain::Xrp => Box::new(XrpClient::new(JsonRpcClient::new(gem_client))),
             Chain::Algorand => {
                 let indexer_client = config.indexers.algorand.configure_client(gem_client.clone());

@@ -4,7 +4,7 @@ use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 #[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]
 use gem_solana::SolanaRpcConfig;
-use gem_sui::rpc::{SUI_GRAPHQL_URL, SuiClient, SuiIndexer};
+use gem_sui::rpc::client::SuiClient;
 use gem_tron::rpc::{TronClient, trongrid::client::TronGridClient};
 use primitives::{Chain, EVMChain};
 use std::sync::Arc;
@@ -17,12 +17,7 @@ pub fn create_client_with_chain(provider: Arc<dyn RpcProvider>, chain: Chain) ->
 
 pub fn create_sui_client(provider: Arc<dyn RpcProvider>) -> Result<SuiClient, SwapperError> {
     let endpoint = provider.get_endpoint(Chain::Sui).map_err(|_| SwapperError::NotSupportedChain)?;
-    let indexer_client = RpcClient::new(SUI_GRAPHQL_URL.to_string(), provider.clone());
-    Ok(SuiClient::new_with_transport(
-        endpoint,
-        Arc::new(AlienGrpcTransport::new(provider)),
-        SuiIndexer::new(indexer_client),
-    ))
+    Ok(SuiClient::new_with_transport(endpoint, Arc::new(AlienGrpcTransport::new(provider))))
 }
 
 pub fn create_eth_client(provider: Arc<dyn RpcProvider>, chain: Chain) -> Result<EthereumClient<RpcClient>, SwapperError> {

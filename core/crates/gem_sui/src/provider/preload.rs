@@ -17,13 +17,13 @@ use crate::{
 };
 use crate::{
     provider::preload_mapper::{map_transaction_data, map_transaction_rate_rates},
-    rpc::client::SuiClient,
+    rpc::{SuiClient, SuiProvider},
     tx_builder::{finish_transaction_json, is_transaction_json},
 };
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl ChainTransactionLoad for SuiClient {
+impl ChainTransactionLoad for SuiProvider {
     async fn get_transaction_preload(&self, _input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         Ok(TransactionLoadMetadata::None)
     }

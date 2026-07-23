@@ -1,6 +1,5 @@
 use std::{error::Error, str::FromStr, sync::Arc};
 
-use gem_client::Client;
 use gem_encoding::decode_base64;
 use gem_encoding::protobuf::{MessageDecode, MessageEncode, decode_grpc_message, encode_grpc_message};
 use gem_jsonrpc::grpc::GrpcTransport;
@@ -11,9 +10,6 @@ use primitives::Chain;
 use serde::de::DeserializeOwned;
 use sui_types::{Address, Digest as SuiDigest};
 
-#[cfg(feature = "reqwest")]
-use super::indexer::default_indexer;
-use super::indexer::{SuiIndexer, SuiIndexerClient};
 use super::mapper::{map_checkpoint, map_executed_transaction, map_inspect_result, map_sui_effects};
 use super::proto::{
     self as proto, BatchGetObjectsRequest, BatchGetObjectsResponse, BatchGetTransactionsRequest, BatchGetTransactionsResponse, ExecuteTransactionRequest,
@@ -62,7 +58,6 @@ const BATCH_GET_TRANSACTIONS_LIMIT: usize = 50;
 pub struct SuiClient {
     endpoint: String,
     transport: Option<Arc<dyn GrpcTransport>>,
-    pub(crate) indexer: Arc<dyn SuiIndexerClient>,
 }
 
 impl SuiClient {
@@ -71,20 +66,13 @@ impl SuiClient {
         Self {
             endpoint: endpoint.into(),
             transport: Some(Arc::new(ReqwestGrpcTransport::new())),
-            indexer: default_indexer(),
         }
     }
 
-    #[cfg(feature = "reqwest")]
-    pub fn new_with_indexer<C: Client + 'static>(endpoint: impl Into<String>, indexer: SuiIndexer<C>) -> Self {
-        Self::new_with_transport(endpoint, Arc::new(ReqwestGrpcTransport::new()), indexer)
-    }
-
-    pub fn new_with_transport<C: Client + 'static>(endpoint: impl Into<String>, transport: Arc<dyn GrpcTransport>, indexer: SuiIndexer<C>) -> Self {
+    pub fn new_with_transport(endpoint: impl Into<String>, transport: Arc<dyn GrpcTransport>) -> Self {
         Self {
             endpoint: endpoint.into(),
             transport: Some(transport),
-            indexer: Arc::new(indexer),
         }
     }
 

@@ -7,12 +7,12 @@ use primitives::{Asset, Chain, SimulationBalanceChange, SimulationInput, Simulat
 
 use crate::decode_transaction;
 use crate::provider::simulation_mapper::map_simulation_result;
-use crate::rpc::client::SuiClient;
+use crate::rpc::SuiProvider;
 use crate::tx_builder::{finish_transaction_json_from_sender, is_transaction_json};
 use gem_encoding::encode_base64;
 
 #[async_trait]
-impl ChainSimulation for SuiClient {
+impl ChainSimulation for SuiProvider {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let encoded_transaction = if is_transaction_json(input.encoded_transaction.as_bytes()) {
             encode_base64(&finish_transaction_json_from_sender(self, &input.encoded_transaction).await?.tx_data)
@@ -40,7 +40,7 @@ impl ChainSimulation for SuiClient {
     }
 }
 
-impl SuiClient {
+impl SuiProvider {
     async fn get_balance_change_assets(&self, changes: &[SimulationBalanceChange]) -> Vec<Option<Asset>> {
         join_all(changes.iter().map(|change| async move {
             match &change.asset_id.token_id {

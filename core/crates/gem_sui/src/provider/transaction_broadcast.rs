@@ -12,11 +12,11 @@ use crate::{
             map_transaction_broadcast_request, map_transaction_broadcast_response, map_transaction_broadcast_response_from_grpc, map_transaction_broadcast_response_from_str,
         },
     },
-    rpc::client::SuiClient,
+    rpc::SuiProvider,
 };
 
 #[async_trait]
-impl ChainTransactionBroadcast for SuiClient {
+impl ChainTransactionBroadcast for SuiProvider {
     async fn transaction_broadcast(&self, data: String, _options: BroadcastOptions) -> Result<String, Box<dyn std::error::Error + Sync + Send>> {
         let (transaction_data, signature) = map_transaction_broadcast_request(&data)?;
         let response = self.broadcast(transaction_data, signature).await?;

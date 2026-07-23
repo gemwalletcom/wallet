@@ -7,11 +7,11 @@ use chain_traits::ChainToken;
 use primitives::{Asset, Chain};
 
 use crate::provider::token_mapper::{map_is_token_address, map_token_data};
-use crate::rpc::client::SuiClient;
+use crate::rpc::SuiProvider;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl ChainToken for SuiClient {
+impl ChainToken for SuiProvider {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         let metadata = self.get_coin_metadata(token_id.clone()).await?;
         Ok(map_token_data(Chain::Sui, &token_id, metadata))

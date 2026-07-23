@@ -6,7 +6,7 @@ use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_solana::SolanaClient;
-use gem_sui::rpc::{SUI_GRAPHQL_URL, SuiClient, SuiIndexer};
+use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
@@ -148,11 +148,10 @@ impl WalletConnectSimulationClient {
         Some(SolanaClient::new(client))
     }
 
-    fn sui_client(&self) -> Option<SuiClient> {
+    fn sui_client(&self) -> Option<SuiProvider> {
         let url = self.provider.get_endpoint(Chain::Sui).ok()?;
         let transport = AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.provider.clone())));
-        let indexer_client = new_alien_client(SUI_GRAPHQL_URL.to_string(), self.provider.clone());
-        Some(SuiClient::new_with_transport(url, Arc::new(transport), SuiIndexer::new(indexer_client)))
+        Some(SuiProvider::new_rpc_only(SuiClient::new_with_transport(url, Arc::new(transport))))
     }
 
     fn tron_client(&self) -> Option<TronClient<AlienClient>> {

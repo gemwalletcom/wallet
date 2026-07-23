@@ -14,7 +14,7 @@ use gem_near::rpc::{FASTNEAR_URL, NearClient, NearIndexer};
 use gem_polkadot::rpc::{POLKADOT_ASSET_HUB_SUBSCAN_URL, PolkadotClient, PolkadotIndexer};
 use gem_solana::SolanaClient;
 use gem_stellar::rpc::client::StellarClient;
-use gem_sui::rpc::{SUI_GRAPHQL_URL, SuiClient, SuiIndexer};
+use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XrpClient;
@@ -61,14 +61,10 @@ impl ChainClientFactory {
             }
             Chain::Cardano => Ok(Arc::new(CardanoClient::new(alien_client))),
             Chain::Stellar => Ok(Arc::new(StellarClient::new(alien_client))),
-            Chain::Sui => {
-                let indexer_client = new_alien_client(SUI_GRAPHQL_URL.to_string(), self.alien.clone());
-                Ok(Arc::new(SuiClient::new_with_transport(
-                    url,
-                    Arc::new(AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.alien.clone())))),
-                    SuiIndexer::new(indexer_client),
-                )))
-            }
+            Chain::Sui => Ok(Arc::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(
+                url,
+                Arc::new(AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.alien.clone())))),
+            )))),
             Chain::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client.clone())))),
             Chain::Algorand => {
                 let indexer_client = new_alien_client(ALGORAND_INDEXER_URL.to_string(), self.alien.clone());
