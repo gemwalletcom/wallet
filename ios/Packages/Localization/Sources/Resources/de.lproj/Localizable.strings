@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Reserviert für Netzwerkgebühr";
 "info.stake.reserved.description" = "Ein kleiner Betrag verbleibt in Ihrem Wallet, um Gebühren für Vorgänge wie das Aufheben der Absteckung oder das Einfordern von Prämien zu decken.";
 "info.stake.apr.description" = "Der effektive Jahreszins (APR) ist der jährliche Belohnungssatz für das Staking Ihrer Kryptowährung.";
+"info.stake_frozen_required_title" = "TRX zum Staking einfrieren";
+"info.stake_frozen_required_description" = "Staking auf TRON erfolgt in zwei Schritten. Friere zuerst TRX ein und stake es dann, um Belohnungen zu verdienen.";
 "info.perpetual.auto_close.description" = "Schließen Sie Ihre Position automatisch bei festgelegten Preisniveaus. Take Profit sichert Gewinne, Stop Loss begrenzt Verluste.";
 "info.fully_diluted_valuation.title" = "Vollständig verwässerte Bewertung";
 "info.fully_diluted_valuation.description" = "Der theoretische Marktwert, wenn alle Münzen im Umlauf wären. Berechnet als Preis multipliziert mit der maximalen Gesamtmenge.";

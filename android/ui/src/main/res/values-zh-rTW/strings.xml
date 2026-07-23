@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">預留網路費用</string>
   <string name="info_stake_reserved_description">您的錢包中會留有少量資金，用於支付取消質押或領取獎勵等操作的費用。</string>
   <string name="info_stake_apr_description">年利率（APR）是質押加密貨幣的年度報酬率。</string>
+  <string name="info_stake_frozen_required_title">凍結 TRX 以質押</string>
+  <string name="info_stake_frozen_required_description">在 TRON 上質押分兩步。先凍結 TRX，然後質押以賺取獎勵。</string>
   <string name="info_perpetual_auto_close_description">以設定的價格自動平倉。止盈鎖定收益，止損限制損失。</string>
   <string name="info_fully_diluted_valuation_title">完全稀釋估值</string>
   <string name="info_fully_diluted_valuation_description">如果所有硬幣都在流通，其理論市場價值為：價格乘以最大供應量。</string>

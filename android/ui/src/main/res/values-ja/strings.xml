@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">ネットワーク料金用に予約</string>
   <string name="info_stake_reserved_description">ステーキング解除や報酬の請求などの操作にかかる手数料をカバーするために、少額がウォレットに残ります。</string>
   <string name="info_stake_apr_description">年率 (APR) は、暗号通貨をステーキングした場合の年間報酬率です。</string>
+  <string name="info_stake_frozen_required_title">ステークするにはTRXをフリーズ</string>
+  <string name="info_stake_frozen_required_description">TRONのステーキングは2ステップです。まずTRXをフリーズし、次にステークして報酬を獲得します。</string>
   <string name="info_perpetual_auto_close_description">設定した価格レベルでポジションを自動的に決済します。テイクプロフィットで利益を確定し、ストップロスで損失を制限します。</string>
   <string name="info_fully_diluted_valuation_title">完全希薄化後評価額</string>
   <string name="info_fully_diluted_valuation_description">すべてのコインが流通している場合の理論上の市場価値。価格に最大供給量を掛けて計算されます。</string>

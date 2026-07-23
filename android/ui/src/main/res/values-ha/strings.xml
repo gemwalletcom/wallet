@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">An tanada don Kudin hanyar sadarwa</string>
   <string name="info_stake_reserved_description">Ƙananan kuɗi yana tsayawa a cikin walat ɗin ku don biyan kuɗi don ayyuka kamar cirewa ko neman lada.</string>
   <string name="info_stake_apr_description">Yawan Kashi na shekara-shekara (APR) shine ƙimar lada na shekara don tara kuɗin cryptocurrency.</string>
+  <string name="info_stake_frozen_required_title">Daskare TRX don saka hannun jari</string>
+  <string name="info_stake_frozen_required_description">Saka hannun jari a TRON yana da matakai biyu. Da farko ka daskare TRX, sannan ka saka shi don samun lada.</string>
   <string name="info_perpetual_auto_close_description">Rufe matsayinka ta atomatik a saita matakan farashi. Ɗauki makullin riba a cikin riba, Dakatar da Asara yana iyakance asara.</string>
   <string name="info_fully_diluted_valuation_title">Kimantawa Mai Cikakken Nauyi</string>
   <string name="info_fully_diluted_valuation_description">Darajar kasuwa ta ka\'ida idan duk tsabar kudi suna yawo. An ƙididdige shi azaman farashi da aka ninka ta hanyar mafi girman wadata.</string>

@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Reserved for Network Fee";
 "info.stake.reserved.description" = "A small amount stays in your wallet to cover fees for operations like unstaking or claiming rewards.";
 "info.stake.apr.description" = "Annual Percentage Rate (APR) is the yearly reward rate for staking your cryptocurrency.";
+"info.stake_frozen_required_title" = "Freeze TRX to Stake";
+"info.stake_frozen_required_description" = "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.";
 "info.perpetual.auto_close.description" = "Automatically close your position at set price levels. Take Profit locks in gains, Stop Loss limits losses.";
 "info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
 "info.fully_diluted_valuation.description" = "The theoretical market value if all coins were in circulation. Calculated as price multiplied by max supply.";

@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Зарезервовано для комісії мережі</string>
   <string name="info_stake_reserved_description">Невелика сума залишається у вашому гаманці для покриття комісій за такі операції, як зняття коштів зі стейкінгу або отримання винагород.</string>
   <string name="info_stake_apr_description">Річна процентна ставка (APR) – це річна ставка винагороди за стейкінг вашої криптовалюти.</string>
+  <string name="info_stake_frozen_required_title">Заморозьте TRX для стейкінгу</string>
+  <string name="info_stake_frozen_required_description">Стейкінг у TRON складається з двох кроків. Спершу заморозьте TRX, а потім застейкайте його, щоб отримувати винагороди.</string>
   <string name="info_perpetual_auto_close_description">Автоматично закривайте свою позицію за встановленими ціновими рівнями. Тейк-профіт фіксує прибутки, а стоп-лос обмежує збитки.</string>
   <string name="info_fully_diluted_valuation_title">Повністю розбавлена оцінка</string>
   <string name="info_fully_diluted_valuation_description">Теоретична ринкова вартість, якби всі монети були в обігу. Розраховується як ціна, помножена на максимальну пропозицію.</string>

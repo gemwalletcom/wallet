@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">نیٹ ورک فیس کے لیے محفوظ ہے</string>
   <string name="info_stake_reserved_description">ایک چھوٹی سی رقم آپ کے والیٹ میں رہ جاتی ہے تاکہ ان کارروائیوں کے لیے فیس کو پورا کیا جا سکے جیسے کہ ان اسٹیکنگ یا انعامات کا دعویٰ کرنا۔</string>
   <string name="info_stake_apr_description">سالانہ فیصدی شرح (APR) آپ کی کریپٹو کرنسی کو اسٹیک کرنے کے لیے سالانہ انعام کی شرح ہے۔</string>
+  <string name="info_stake_frozen_required_title">اسٹیک کرنے کے لیے TRX منجمد کریں</string>
+  <string name="info_stake_frozen_required_description">TRON پر اسٹیکنگ دو مراحل میں ہوتی ہے۔ پہلے TRX منجمد کریں، پھر انعامات کمانے کے لیے اسے اسٹیک کریں۔</string>
   <string name="info_perpetual_auto_close_description">اپنی پوزیشن کو مقررہ قیمت کی سطح پر خودکار طور پر بند کریں۔ ٹیک پرافٹ منافع کو محفوظ کرتا ہے، اسٹاپ لاس نقصان کو محدود کرتا ہے۔</string>
   <string name="info_fully_diluted_valuation_title">مکمل طور پر کمزور تشخیص</string>
   <string name="info_fully_diluted_valuation_description">نظریاتی مارکیٹ کی قیمت اگر تمام سکے گردش میں تھے۔ قیمت کو زیادہ سے زیادہ سپلائی سے ضرب کے حساب سے شمار کیا جاتا ہے۔</string>

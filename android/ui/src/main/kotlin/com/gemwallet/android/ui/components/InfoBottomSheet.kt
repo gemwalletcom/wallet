@@ -40,6 +40,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
+import uniffi.gemstone.GemStakeChain
 
 internal val infoSheetIconSize = 120.dp
 
@@ -135,6 +136,13 @@ sealed class InfoSheetEntity(
         titleArgs = listOf(""),
         description = R.string.info_stake_apr_description,
         infoUrl = { AppUrl.docs(DocsUrl.StakingApr) },
+    )
+
+    class StakeFrozenRequired(icon: Any) : InfoSheetEntity(
+        icon = icon,
+        title = R.string.info_stake_frozen_required_title,
+        description = R.string.info_stake_frozen_required_description,
+        infoUrl = { AppUrl.docs(DocsUrl.Staking(GemStakeChain.TRON)) },
     )
 
     class TransactionInfo(icon: Any, state: TransactionState) : InfoSheetEntity(

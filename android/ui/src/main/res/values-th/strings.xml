@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">สงวนไว้สำหรับค่าธรรมเนียมเครือข่าย</string>
   <string name="info_stake_reserved_description">เงินจำนวนเล็กน้อยจะอยู่ในกระเป๋าเงินของคุณเพื่อชำระค่าธรรมเนียมการดำเนินการ เช่น การเลิกสเตคหรือการรับรางวัล</string>
   <string name="info_stake_apr_description">อัตราเปอร์เซ็นต์ต่อปี (APR) คืออัตราผลตอบแทนรายปีสำหรับการสเตคสกุลเงินดิจิทัลของคุณ</string>
+  <string name="info_stake_frozen_required_title">ฟรีซ TRX เพื่อสเตค</string>
+  <string name="info_stake_frozen_required_description">การสเตคบน TRON มีสองขั้นตอน ก่อนอื่นฟรีซ TRX จากนั้นสเตคเพื่อรับรางวัล</string>
   <string name="info_perpetual_auto_close_description">ปิดสถานะของคุณโดยอัตโนมัติเมื่อถึงระดับราคาที่กำหนด Take Profit ล็อกกำไร Stop Loss จำกัดการขาดทุน</string>
   <string name="info_fully_diluted_valuation_title">การประเมินมูลค่าแบบเจือจางเต็มที่</string>
   <string name="info_fully_diluted_valuation_description">มูลค่าตลาดตามทฤษฎีหากเหรียญทั้งหมดหมุนเวียนอยู่ในระบบ คำนวณจากราคาคูณด้วยจำนวนเหรียญสูงสุดที่มีอยู่</string>

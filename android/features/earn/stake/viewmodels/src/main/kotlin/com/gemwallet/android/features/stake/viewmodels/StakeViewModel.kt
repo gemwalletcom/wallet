@@ -23,10 +23,12 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.getFrozenResourceAmount
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.stake.models.StakeAction
+import com.gemwallet.android.features.stake.models.StakeActionItem
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.WalletType
@@ -89,9 +91,16 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { (walletId, assetId) -> stakeRepository.getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isStakeEnabled = assetId
+    private val isStakeEnabled = assetId
         .flatMapLatest { stakeRepository.getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private val stakeFrozenRequired = assetInfo
+        .mapLatest { assetInfo ->
+            assetInfo?.stakeChain?.freezed() == true
+                && assetInfo.balance.balance.getFrozenResourceAmount() <= BigInteger.ZERO
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val rewardsBalance = delegations
@@ -102,7 +111,9 @@ class StakeViewModel @Inject constructor(
         session.mapLatest { it?.wallet?.type }.filterNotNull(),
         rewardsBalance,
         assetInfo.filterNotNull(),
-    ) { walletType, rewardsBalance, assetInfo ->
+        isStakeEnabled,
+        stakeFrozenRequired,
+    ) { walletType, rewardsBalance, assetInfo, isStakeEnabled, stakeFrozenRequired ->
         if (walletType == WalletType.View) {
             return@combine emptyList()
         }
@@ -118,7 +129,18 @@ class StakeViewModel @Inject constructor(
                             .string(rewardsBalance, assetInfo.asset),
                     )
                 },
-        )
+        ).map { action ->
+            val frozenRequired = action == StakeAction.Stake && stakeFrozenRequired
+            StakeActionItem(
+                action = action,
+                enabled = when {
+                    frozenRequired -> true
+                    action == StakeAction.Stake -> isStakeEnabled
+                    else -> true
+                },
+                frozenRequired = frozenRequired,
+            )
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)

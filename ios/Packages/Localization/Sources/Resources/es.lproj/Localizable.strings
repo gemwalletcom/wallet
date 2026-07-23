@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Reservado para comisión de red";
 "info.stake.reserved.description" = "Una pequeña cantidad permanece en tu billetera para cubrir las tarifas de operaciones como retirar del stake o reclamar recompensas.";
 "info.stake.apr.description" = "La tasa de porcentaje anual (APR) es la tasa de recompensa anual por hacer stake de tu criptomoneda.";
+"info.stake_frozen_required_title" = "Congela TRX para hacer stake";
+"info.stake_frozen_required_description" = "Hacer stake en TRON tiene dos pasos. Primero congela TRX y luego hazle stake para ganar recompensas.";
 "info.perpetual.auto_close.description" = "Cierra tu posición automáticamente a precios establecidos. El Take Profit fija las ganancias y el Stop Loss limita las pérdidas.";
 "info.fully_diluted_valuation.title" = "Valoración totalmente diluida";
 "info.fully_diluted_valuation.description" = "El valor teórico de mercado si todas las monedas estuvieran en circulación. Se calcula multiplicando el precio por la oferta máxima.";
