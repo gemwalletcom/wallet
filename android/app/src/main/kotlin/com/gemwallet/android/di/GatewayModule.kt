@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.Constants
 import com.gemwallet.android.NodeAuthInterceptor
 import com.gemwallet.android.NodeAuthTokenService
+import com.gemwallet.android.blockchain.services.ServiceStatusService
 import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
@@ -21,6 +22,7 @@ import okhttp3.OkHttpClient
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.WalletConnectSimulationClient
 import uniffi.gemstone.WalletConnectSimulationClientInterface
 import javax.inject.Singleton
@@ -78,6 +80,12 @@ object GatewayModule {
     @Singleton
     @Provides
     fun provideNodeAuthInterceptor(preferences: GemPreferences): NodeAuthInterceptor = NodeAuthInterceptor(preferences)
+
+    @Provides
+    @Singleton
+    fun provideServiceStatusService(
+        alienProvider: AlienProvider,
+    ): ServiceStatusService = ServiceStatusService(GemServiceStatus(alienProvider))
 
     @Provides
     @Singleton

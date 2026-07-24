@@ -3,14 +3,14 @@ package com.gemwallet.android.features.settings.networks.presents
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusEndpointType
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusRowUiModel
-import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.ServiceStatusState
+import uniffi.gemstone.GemServiceEndpointType
 
 @Composable
 internal fun ServiceStatusItem(
@@ -42,11 +42,11 @@ internal fun ServiceStatusItem(
 @Composable
 private fun ServiceStatusRowUiModel.title(): String {
     val name = when (type) {
-        ServiceStatusEndpointType.Api -> "API"
-        ServiceStatusEndpointType.GemNode -> stringResource(R.string.nodes_gem_wallet_node)
+        GemServiceEndpointType.API -> "API"
+        GemServiceEndpointType.GEM_NODE -> stringResource(R.string.nodes_gem_wallet_node)
     }
-    return flag?.let { "$name $it" } ?: name
+    return "$name $flag"
 }
 
 private val ServiceStatusState.latency: ULong?
-    get() = (this as? ServiceStatusState.Result)?.latency
+    get() = (this as? ServiceStatusState.Result)?.latencyMilliseconds?.toULong()

@@ -6,14 +6,14 @@ import SwiftUI
 public struct ServiceStatusScene: View {
     @State private var model: ServiceStatusViewModel
 
-    public init(model: ServiceStatusViewModel = ServiceStatusViewModel()) {
+    public init(model: ServiceStatusViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
         List {
             Section {
-                ForEach(model.connectivityModels) { item in
+                ForEach(model.itemModels) { item in
                     ListItemView(
                         title: item.title,
                         titleTag: item.titleTag,

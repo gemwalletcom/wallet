@@ -42,6 +42,7 @@ extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
     @Entry var keystore: any Keystore = AppResolver.main.storages.keystore
     @Entry var nodeService: NodeService = AppResolver.main.services.nodeService
+    @Entry var serviceStatusService: any ServiceStatusServiceable = AppResolver.main.services.serviceStatusService
     @Entry var priceService: PriceService = AppResolver.main.services.priceService
     @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var explorerService: ExplorerService = AppResolver.main.services.explorerService

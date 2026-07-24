@@ -99,6 +99,7 @@ struct ServicesFactory {
         )
         let nativeProvider = NativeProvider(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
         let gatewayService = GatewayService(provider: nativeProvider)
+        let serviceStatusService = ServiceStatusService(provider: nativeProvider)
         let chainServiceFactory = ChainServiceFactory(
             gatewayService: gatewayService,
             requestInterceptor: nodeAuthProvider,
@@ -355,6 +356,7 @@ struct ServicesFactory {
             connectionStatusObserver: connectionStatusObserver,
             deviceService: deviceService,
             nodeService: nodeService,
+            serviceStatusService: serviceStatusService,
             navigationHandler: navigationHandler,
             navigationPresenter: navigationPresenter,
             priceAlertService: priceAlertService,

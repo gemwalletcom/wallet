@@ -47,6 +47,7 @@ extension AppResolver {
         let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: DeviceService
         let nodeService: NodeService
+        let serviceStatusService: any ServiceStatusServiceable
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
         let priceAlertService: PriceAlertService
@@ -101,6 +102,7 @@ extension AppResolver {
             connectionStatusObserver: ConnectionStatusObserver,
             deviceService: DeviceService,
             nodeService: NodeService,
+            serviceStatusService: any ServiceStatusServiceable,
             navigationHandler: NavigationHandler,
             navigationPresenter: NavigationPresenter,
             priceAlertService: PriceAlertService,
@@ -154,6 +156,7 @@ extension AppResolver {
             self.connectionStatusObserver = connectionStatusObserver
             self.deviceService = deviceService
             self.nodeService = nodeService
+            self.serviceStatusService = serviceStatusService
             self.navigationHandler = navigationHandler
             self.navigationPresenter = navigationPresenter
             self.priceAlertService = priceAlertService

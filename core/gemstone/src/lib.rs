@@ -20,6 +20,7 @@ pub mod network;
 pub mod payment;
 pub mod perpetual;
 pub mod price_alert_formatter;
+pub mod service_status;
 pub mod signer;
 pub mod siwe;
 pub mod support;
