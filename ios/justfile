@@ -97,6 +97,21 @@ build-package PACKAGE:
     SWIFT_OPTIMIZATION_LEVEL=-Onone \
     build | xcbeautify {{XCBEAUTIFY_ARGS}}
 
+archive-release:
+    @set -o pipefail && xcodebuild -project Gem.xcodeproj \
+    -scheme Gem \
+    -configuration Release \
+    -sdk iphoneos \
+    -destination "generic/platform=iOS" \
+    -derivedDataPath {{DERIVED_DATA}} \
+    -clonedSourcePackagesDirPath {{SPM_CACHE}} \
+    -archivePath {{DERIVED_DATA}}/Gem.xcarchive \
+    -parallelizeTargets \
+    -jobs {{BUILD_THREADS}} \
+    CODE_SIGNING_ALLOWED=NO \
+    SWIFT_OPTIMIZATION_LEVEL=-Osize \
+    clean archive | xcbeautify {{XCBEAUTIFY_ARGS}}
+
 show-simulator:
     @echo "Destination: {{SIMULATOR_DEST}}"
     @xcrun simctl list devices | grep "iPhone" | head -5 || true

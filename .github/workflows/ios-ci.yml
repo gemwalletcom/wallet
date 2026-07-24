@@ -72,3 +72,11 @@ jobs:
       - name: Unit Tests
         working-directory: ios
         run: just test-without-building
+
+      - name: Build Core for Release
+        working-directory: ios
+        run: BUILD_MODE=release just generate-stone
+
+      - name: Archive App for Release
+        working-directory: ios
+        run: just archive-release

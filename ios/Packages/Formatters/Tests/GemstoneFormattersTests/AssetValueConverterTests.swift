@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-@testable import Formatters
+import Formatters
 import Foundation
+@testable import GemstoneFormatters
 import Primitives
 import PrimitivesTestKit
 import Testing
 
-struct ValueConverterTests {
-    let converter = ValueConverter()
+struct AssetValueConverterTests {
+    let converter = AssetValueConverter()
 
     @Test
     func testConvertToFiat() throws {
@@ -67,13 +68,13 @@ struct ValueConverterTests {
 
     @Test(arguments: ["de_DE", "it_IT", "da_DK", "en_US"])
     func convertToDisplayedAmountWithThreeDecimals(identifier: String) throws {
-        let converter = ValueConverter(formatter: ValueFormatter(locale: Locale(identifier: identifier), style: .auto))
+        let converter = AssetValueConverter(formatter: ValueFormatter(locale: Locale(identifier: identifier), style: .auto))
         #expect(try converter.convertToDisplayedAmount(fiatValue: "1234", price: .mock(price: 1000.0), decimals: 6) == BigInt(1_230_000))
     }
 
     @Test(arguments: ["de_DE", "es_ES", "it_IT", "nl_NL", "pt_BR", "en_US", "fr_FR", "ja_JP"])
     func convertToAmountAboveGroupingThreshold(identifier: String) throws {
-        let converter = ValueConverter(formatter: ValueFormatter(locale: Locale(identifier: identifier), style: .auto))
+        let converter = AssetValueConverter(formatter: ValueFormatter(locale: Locale(identifier: identifier), style: .auto))
         let price = AssetPrice.mock(price: 1.0)
         let unit = BigInt(10).power(6)
 

@@ -3,6 +3,7 @@
 import BigInt
 import Formatters
 import Foundation
+import GemstoneFormatters
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -54,7 +55,7 @@ struct AmountValidatorTests {
         )
         let validator = AmountValidator.fiatAmount(
             formatter: formatter,
-            converter: ValueConverter(),
+            converter: AssetValueConverter(),
             price: price,
             decimals: decimals,
             validators: [PositiveValueValidator<BigInt>()],
@@ -66,7 +67,7 @@ struct AmountValidatorTests {
     func fiatAmountThrowsWhenPriceMissing() {
         let validator = AmountValidator.fiatAmount(
             formatter: formatter,
-            converter: ValueConverter(),
+            converter: AssetValueConverter(),
             price: nil,
             decimals: decimals,
             validators: [],

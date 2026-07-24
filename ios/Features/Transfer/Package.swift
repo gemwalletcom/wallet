@@ -50,6 +50,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Formatters",
+                .product(name: "GemstoneFormatters", package: "Formatters"),
                 "Localization",
                 "Style",
                 "Components",

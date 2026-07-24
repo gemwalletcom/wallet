@@ -130,6 +130,13 @@
     },
     {
       "target" : {
+        "containerPath" : "container:Packages\/Formatters",
+        "identifier" : "GemstoneFormattersTests",
+        "name" : "GemstoneFormattersTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Packages\/Primitives",
         "identifier" : "PrimitivesTests",
         "name" : "PrimitivesTests"

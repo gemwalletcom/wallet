@@ -1,13 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import Formatters
 import Foundation
 import GemstonePrimitives
 import Primitives
 
-public struct ValueConverter: Sendable {
+public struct AssetValueConverter: Sendable {
     private let formatter: ValueFormatter
-    private let converter = CryptoFiatConverter()
+    private let cryptoFiatConverter = CryptoFiatConverter()
 
     public init(formatter: ValueFormatter = .auto) {
         self.formatter = formatter
@@ -38,13 +39,13 @@ public struct ValueConverter: Sendable {
 
 // MARK: - Private
 
-extension ValueConverter {
+extension AssetValueConverter {
     private func calculateAssetAmount(
         fiat: Decimal,
         price: AssetPrice,
         decimals: Int,
     ) throws -> Decimal {
-        let value = try converter.toCrypto(fiatAmount: "\(fiat)", decimals: decimals, price: price.price)
+        let value = try cryptoFiatConverter.toCrypto(fiatAmount: "\(fiat)", decimals: decimals, price: price.price)
         guard let amount = Decimal(string: value) else {
             throw AnyError("Invalid amount: \(value)")
         }
