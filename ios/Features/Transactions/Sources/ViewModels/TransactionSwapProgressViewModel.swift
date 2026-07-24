@@ -35,13 +35,13 @@ extension TransactionSwapProgressViewModel {
             transaction.transaction.type == .swap,
             let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self),
             let providerId = metadata.provider,
-            let swapProvider = SwapProvider(rawValue: providerId),
+            let swapProvider = swapperProviderFromStr(s: providerId),
             let fromAsset = transaction.assets.first(where: { $0.id == metadata.fromAsset })
         else {
             return nil
         }
 
-        let provider = SwapProviderConfig.fromString(id: swapProvider.rawValue).inner()
+        let provider = swapperProviderConfig(provider: swapProvider)
         guard provider.mode.isCrossChain else {
             return nil
         }

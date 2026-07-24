@@ -100,7 +100,7 @@ pub enum WalletConnectTransaction {
         output_type: TransferDataOutputType,
     },
     Ton {
-        messages: String,
+        data: String,
         output_type: TransferDataOutputType,
     },
     Tron {

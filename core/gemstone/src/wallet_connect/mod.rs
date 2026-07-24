@@ -133,7 +133,7 @@ pub enum WalletConnectTransaction {
         output_type: TransferDataOutputType,
     },
     Ton {
-        messages: String,
+        data: String,
         output_type: TransferDataOutputType,
     },
     Tron {
@@ -299,7 +299,7 @@ impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
                 },
                 output_type,
             },
-            WcWalletConnectTransaction::Ton { messages, output_type } => Self::Ton { messages, output_type },
+            WcWalletConnectTransaction::Ton { data, output_type } => Self::Ton { data, output_type },
             WcWalletConnectTransaction::Tron { data, output_type } => Self::Tron { data, output_type },
         }
     }

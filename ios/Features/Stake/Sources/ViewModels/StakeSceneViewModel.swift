@@ -236,7 +236,7 @@ public final class StakeSceneViewModel {
         validators.isNotEmpty && !stakeFrozenRequired
     }
 
-    var stakeInfoAction: (() -> Void)? {
+    var stakeInfoAction: InfoSheetAction? {
         guard stakeFrozenRequired else { return nil }
         return onStakeFrozenInfo
     }

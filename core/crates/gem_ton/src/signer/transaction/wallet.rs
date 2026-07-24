@@ -15,27 +15,6 @@ const WALLET_V4R2_CODE_BOC: &str = include_str!("wallet_v4r2_code.boc.b64");
 
 static WALLET_V4R2_CODE: LazyLock<CellArc> = LazyLock::new(|| BagOfCells::parse_base64(WALLET_V4R2_CODE_BOC.trim()).unwrap().get_single_root().unwrap().clone());
 
-#[derive(Clone)]
-struct StateInit {
-    code: CellArc,
-    data: CellArc,
-}
-
-impl StateInit {
-    fn to_cell(&self) -> Result<Cell, SignerError> {
-        let mut builder = CellBuilder::new();
-        builder
-            .store_bit(false)?
-            .store_bit(false)?
-            .store_bit(true)?
-            .store_bit(true)?
-            .store_bit(false)?
-            .store_reference(&self.code)?
-            .store_reference(&self.data)?;
-        Ok(builder.build()?)
-    }
-}
-
 pub struct WalletV4R2 {
     public_key: [u8; 32],
     pub address: Address,
@@ -43,11 +22,15 @@ pub struct WalletV4R2 {
 
 impl WalletV4R2 {
     pub fn new(public_key: [u8; 32]) -> Result<Self, SignerError> {
-        let state_init = Self::state_init(&public_key)?;
+        let state_init = Self::build_state_init(&public_key)?;
         Ok(Self {
             public_key,
-            address: Address::new(BASE_WORKCHAIN, state_init.to_cell()?.hash),
+            address: Address::new(BASE_WORKCHAIN, state_init.hash),
         })
+    }
+
+    pub fn state_init_base64(&self) -> Result<String, SignerError> {
+        Ok(BagOfCells::from_root(Self::build_state_init(&self.public_key)?).to_base64(true)?)
     }
 
     pub(super) fn build_external_body(&self, expire_at: u32, sequence: u32, messages: &[InternalMessage]) -> Result<Cell, SignerError> {
@@ -72,7 +55,7 @@ impl WalletV4R2 {
             .store_coins(&BigUint::from(0u8))?;
 
         if include_state_init {
-            builder.store_bit(true)?.store_bit(true)?.store_child(Self::state_init(&self.public_key)?.to_cell()?)?;
+            builder.store_bit(true)?.store_bit(true)?.store_child(Self::build_state_init(&self.public_key)?)?;
         } else {
             builder.store_bit(false)?;
         }
@@ -80,13 +63,35 @@ impl WalletV4R2 {
         Ok(builder.build()?)
     }
 
-    fn state_init(public_key: &[u8; 32]) -> Result<StateInit, SignerError> {
+    fn build_state_init(public_key: &[u8; 32]) -> Result<Cell, SignerError> {
         let mut data = CellBuilder::new();
         data.store_u32(32, 0)?.store_i32(32, DEFAULT_WALLET_ID)?.store_slice(public_key)?.store_bit(false)?;
+        let data = data.build()?.into_arc();
 
-        Ok(StateInit {
-            code: WALLET_V4R2_CODE.clone(),
-            data: data.build()?.into_arc(),
-        })
+        let mut state_init = CellBuilder::new();
+        state_init
+            .store_bit(false)?
+            .store_bit(false)?
+            .store_bit(true)?
+            .store_bit(true)?
+            .store_bit(false)?
+            .store_reference(&WALLET_V4R2_CODE)?
+            .store_reference(&data)?;
+        Ok(state_init.build()?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_wallet_state_init() {
+        let public_key = hex::decode("d369452197c2a56481e5e2d3e8bf03de2349f67a63151956822208c2334adee2").unwrap().try_into().unwrap();
+        let wallet = WalletV4R2::new(public_key).unwrap();
+        assert_eq!(wallet.address.encode_non_bounceable(), "UQD-E9MxmtMJhnkRdi0tLoZ_TK0xr2WoxD5g2adbjE0G50Ud");
+
+        let state_init = BagOfCells::parse_base64_root(&wallet.state_init_base64().unwrap()).unwrap();
+        assert_eq!(state_init.hash, *wallet.address.hash_part());
     }
 }

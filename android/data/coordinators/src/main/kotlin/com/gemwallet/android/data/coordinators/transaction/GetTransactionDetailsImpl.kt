@@ -19,7 +19,6 @@ import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
-import com.gemwallet.android.ext.toSwapProvider
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -47,9 +46,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import uniffi.gemstone.Explorer
-import uniffi.gemstone.SwapProviderConfig
 import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
+import uniffi.gemstone.swapperProviderConfig
+import uniffi.gemstone.swapperProviderFromStr
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetTransactionDetailsImpl(
@@ -75,8 +75,8 @@ class GetTransactionDetailsImpl(
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
                     val swapMetadata = data.transaction.getSwapMetadata()
                     val swapProvider = swapMetadata?.provider
-                        ?.toSwapProvider()
-                        ?.let { SwapProviderConfig.fromString(it.string).inner() }
+                        ?.let(::swapperProviderFromStr)
+                        ?.let(::swapperProviderConfig)
                     TransactionDetailsAggregateImpl(
                         data = data,
                         associatedAssets = assets,

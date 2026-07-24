@@ -103,11 +103,7 @@ impl WalletConnectRequestHandler {
                     output_type,
                 })
             }
-            WalletConnectTransactionType::Ton { output_type } => {
-                let json: serde_json::Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                let messages = json.get("messages").ok_or_else(|| "Missing messages field".to_string())?.to_string();
-                Ok(WalletConnectTransaction::Ton { messages, output_type })
-            }
+            WalletConnectTransactionType::Ton { output_type } => Ok(WalletConnectTransaction::Ton { data, output_type }),
             WalletConnectTransactionType::Tron { output_type } => Ok(WalletConnectTransaction::Tron { data, output_type }),
         }
     }
