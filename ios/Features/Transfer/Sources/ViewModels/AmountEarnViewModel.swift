@@ -80,12 +80,12 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         )
     }
 
-    func makeTransferData(value: BigInt) async throws -> TransferData {
+    func makeTransferData(amount: TransferAmountValue) async throws -> TransferData {
         let address = try wallet.account(for: asset.chain).address
         let earnData = try await earnService.getEarnData(
             assetId: asset.id,
             address: address,
-            value: String(value),
+            value: String(amount.value),
             earnType: action,
         )
         return TransferData(
@@ -94,8 +94,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
                 recipient: Recipient(name: provider.name, address: earnData.contractAddress, memo: nil),
                 amount: nil,
             ),
-            value: value,
-            canChangeValue: canChangeValue,
+            amount: amount,
         )
     }
 }

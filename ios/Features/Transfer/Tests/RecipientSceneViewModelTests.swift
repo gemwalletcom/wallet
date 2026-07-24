@@ -110,8 +110,7 @@ struct RecipientSceneViewModelTests {
         switch result {
         case let .transferData(data):
             #expect(data.recipientData.recipient.address == checksummed)
-            #expect(data.canChangeValue == false)
-            #expect(data.value == BigInt("1234000000000000000"))
+            #expect(data.amount == .exact(BigInt("1234000000000000000")))
         case .recipient:
             Issue.record("Expected transferData but got recipient")
         }

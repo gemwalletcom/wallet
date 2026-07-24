@@ -23,6 +23,7 @@ public struct SwapTransferDataFactory: Sendable {
             quote: quote.map(),
             data: quoteData.map(),
         )
+        let value = BigInt(stringLiteral: quote.request.value)
 
         return TransferData(
             type: .swap(
@@ -31,9 +32,8 @@ public struct SwapTransferDataFactory: Sendable {
                 result,
             ),
             recipientData: RecipientData(recipient: recipient, amount: .none),
-            value: BigInt(stringLiteral: quote.request.value),
+            amount: quote.request.options.useMaxAmount ? .max(value) : .exact(value),
             minimumValue: result.quote.minFromValueBigInt,
-            canChangeValue: quote.request.options.useMaxAmount,
         )
     }
 }

@@ -100,6 +100,26 @@ public extension Asset {
         )
     }
 
+    static func mockSolana() -> Asset {
+        .mock(
+            id: AssetId(chain: .solana, tokenId: .none),
+            name: "Solana",
+            symbol: "SOL",
+            decimals: 9,
+            type: .native,
+        )
+    }
+
+    static func mockSolanaUSDC() -> Asset {
+        .mock(
+            id: AssetId(chain: .solana, tokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+            name: "USD Coin",
+            symbol: "USDC",
+            decimals: 6,
+            type: .spl,
+        )
+    }
+
     static func mockHypercore() -> Asset {
         Asset(
             id: AssetId(chain: .hyperCore, tokenId: nil),

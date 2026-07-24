@@ -194,12 +194,11 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         }
     }
 
-    func makeTransferData(value: BigInt) throws -> TransferData {
+    func makeTransferData(amount: TransferAmountValue) throws -> TransferData {
         try TransferData(
             type: .stake(asset, getStakeType()),
             recipientData: recipientData(),
-            value: value,
-            canChangeValue: canChangeValue,
+            amount: amount,
         )
     }
 

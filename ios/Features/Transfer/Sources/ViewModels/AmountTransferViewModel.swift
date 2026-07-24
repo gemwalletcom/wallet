@@ -82,7 +82,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         action.recipient
     }
 
-    func makeTransferData(value: BigInt) throws -> TransferData {
+    func makeTransferData(amount: TransferAmountValue) throws -> TransferData {
         let transferType: TransferDataType = switch action {
         case .send: .transfer(asset)
         case .deposit: .deposit(asset)
@@ -91,8 +91,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         return TransferData(
             type: transferType,
             recipientData: action.recipient,
-            value: value,
-            canChangeValue: true,
+            amount: amount,
         )
     }
 }
