@@ -73,6 +73,10 @@ extension WalletConnectorService: WalletConnectorServiceable {
             group.addTask {
                 await self.handleSessionRequests()
             }
+
+            group.addTask {
+                await self.handleSessionDeletes()
+            }
         }
     }
 
@@ -173,6 +177,12 @@ extension WalletConnectorService {
             } catch {
                 debugLog("Error handling request: \(error)")
             }
+        }
+    }
+
+    private func handleSessionDeletes() async {
+        for await deletion in interactor.sessionDeleteStream {
+            debugLog("Session deleted by peer: topic: \(deletion.topic), reason: \(deletion.message) (code: \(deletion.code))")
         }
     }
 
