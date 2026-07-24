@@ -84,15 +84,7 @@ extension AssetsRequest {
                     )
             }
             return request
-                .filter(
-                    AssetRecord.Columns.symbol.like("%%\(query)%%") ||
-                        AssetRecord.Columns.name.like("%%\(query)%%") ||
-                        AssetRecord.Columns.tokenId.like("%%\(query)%%") ||
-                        (
-                            AssetRecord.Columns.type == AssetType.native.rawValue &&
-                                AssetRecord.Columns.chain.like("%%\(query)%%")
-                        ),
-                )
+                .filter(AssetRecord.textSearchFilter(query: query))
                 .order(
                     AssetRecord.Columns.rank.desc,
                 )
