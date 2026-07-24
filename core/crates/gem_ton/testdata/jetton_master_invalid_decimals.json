@@ -1,0 +1,13 @@
+{
+  "jetton_masters": [
+    {
+      "address": "0:INVALID_DECIMALS",
+      "jetton_content": {
+        "name": "Invalid Decimals",
+        "symbol": "BAD",
+        "decimals": "256"
+      }
+    }
+  ],
+  "metadata": {}
+}

@@ -7,8 +7,8 @@ use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimula
 use gem_client::{Client, ClientExt, build_path_with_query};
 
 use crate::models::{
-    ApiResult, BroadcastTransaction, Chainhead, JettonInfo, JettonOffchainMetadata, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest,
-    RunGetMethodResult, StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
+    ApiResult, BroadcastTransaction, Chainhead, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest, RunGetMethodResult,
+    StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
 };
 
 const TONCENTER_V3_BLOCK_LIMIT: usize = 100;
@@ -29,8 +29,8 @@ impl<C: Client> TonClient<C> {
         Ok(self.client.get("/api/v3/masterchainInfo").await?)
     }
 
-    pub async fn get_token_info(&self, token_id: String) -> Result<ApiResult<JettonInfo>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v2/getTokenData?address={}", token_id)).await?)
+    pub async fn get_token_info(&self, token_id: &str) -> Result<JettonMastersResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(&format!("/api/v3/jetton/masters?address={}", token_id)).await?)
     }
 
     pub async fn get_balance(&self, address: String) -> Result<String, Box<dyn Error + Send + Sync>> {
@@ -144,24 +144,29 @@ impl<C: Client> TonClient<C> {
     }
 
     pub async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
-        let token_info = self.get_token_info(token_id.clone()).await?.result;
-        let data = &token_info.jetton_content.data;
-        let decimals = data.decimals as i32;
+        let response = self.get_token_info(&token_id).await?;
+        let master = response.jetton_masters.first().ok_or("missing jetton master")?;
+        let indexed_info = response
+            .metadata
+            .get(&master.address)
+            .and_then(|metadata| metadata.token_info.iter().find(|info| info.valid));
+        let inline_metadata = master.jetton_content.name.as_ref().zip(master.jetton_content.symbol.as_ref());
+        let indexed_metadata = indexed_info.and_then(|info| info.name.as_ref().zip(info.symbol.as_ref()));
+        let (name, symbol) = inline_metadata.or(indexed_metadata).ok_or("invalid jetton metadata")?;
+        let decimals = master
+            .jetton_content
+            .decimals
+            .or_else(|| indexed_info.and_then(|info| info.extra.as_ref()?.decimals))
+            .unwrap_or(9);
+        let decimals = i32::from(u8::try_from(decimals).map_err(|_| "invalid jetton decimals")?);
 
-        let (name, symbol) = match (&data.name, &data.symbol) {
-            (Some(name), Some(symbol)) => (name.clone(), symbol.clone()),
-            _ => {
-                let uri = data.uri.as_ref().ok_or("missing jetton metadata uri")?;
-                self.get_token_metadata_offchain(uri).await?
-            }
-        };
-
-        Ok(Asset::new(AssetId::from_token(Chain::Ton, &token_id), name, symbol, decimals, AssetType::JETTON))
-    }
-
-    async fn get_token_metadata_offchain(&self, uri: &str) -> Result<(String, String), Box<dyn Error + Send + Sync>> {
-        let metadata: JettonOffchainMetadata = self.client.get_url(uri).await?;
-        Ok((metadata.name, metadata.symbol))
+        Ok(Asset::new(
+            AssetId::from_token(Chain::Ton, &token_id),
+            name.clone(),
+            symbol.clone(),
+            decimals,
+            AssetType::JETTON,
+        ))
     }
 }
 
@@ -174,5 +179,73 @@ impl<C: Client> ChainSimulation for TonClient<C> {}
 impl<C: Client> chain_traits::ChainProvider for TonClient<C> {
     fn get_chain(&self) -> primitives::Chain {
         Chain::Ton
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_client::testkit::MockClient;
+
+    use super::*;
+
+    const DEDUST_TOKEN_ID: &str = "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE";
+
+    fn mock_client(expected_path: &'static str, response: &'static [u8]) -> TonClient<MockClient> {
+        TonClient::new(MockClient::new().with_get(move |path| {
+            assert_eq!(path, expected_path);
+            Ok(response.to_vec())
+        }))
+    }
+
+    #[tokio::test]
+    async fn test_get_token_data_v3() {
+        let client = mock_client(
+            "/api/v3/jetton/masters?address=EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE",
+            include_bytes!("../../testdata/jetton_master_dedust.json"),
+        );
+        let dedust = client.get_token_data(DEDUST_TOKEN_ID.to_string()).await.unwrap();
+        assert_eq!(dedust.name, "DeDust");
+        assert_eq!(dedust.symbol, "DUST");
+        assert_eq!(dedust.decimals, 9);
+
+        let client = mock_client("/api/v3/jetton/masters?address=inline", include_bytes!("../../testdata/jetton_master_inline.json"));
+        let inline = client.get_token_data("inline".to_string()).await.unwrap();
+        assert_eq!(inline.name, "Inline Token");
+        assert_eq!(inline.symbol, "INL");
+        assert_eq!(inline.decimals, 8);
+
+        let client = mock_client(
+            "/api/v3/jetton/masters?address=indexed_decimals",
+            include_bytes!("../../testdata/jetton_master_indexed_decimals.json"),
+        );
+        let indexed_decimals = client.get_token_data("indexed_decimals".to_string()).await.unwrap();
+        assert_eq!(indexed_decimals.name, "Indexed Token");
+        assert_eq!(indexed_decimals.symbol, "IDX");
+        assert_eq!(indexed_decimals.decimals, 6);
+
+        let client = mock_client("/api/v3/jetton/masters?address=missing", include_bytes!("../../testdata/jetton_master_missing.json"));
+        let missing_master = client.get_token_data("missing".to_string()).await.unwrap_err();
+        assert_eq!(missing_master.to_string(), "missing jetton master");
+
+        let client = mock_client(
+            "/api/v3/jetton/masters?address=invalid_token_info",
+            include_bytes!("../../testdata/jetton_master_invalid_token_info.json"),
+        );
+        let invalid_token_info = client.get_token_data("invalid_token_info".to_string()).await.unwrap_err();
+        assert_eq!(invalid_token_info.to_string(), "invalid jetton metadata");
+
+        let client = mock_client(
+            "/api/v3/jetton/masters?address=missing_fields",
+            include_bytes!("../../testdata/jetton_master_missing_fields.json"),
+        );
+        let missing_fields = client.get_token_data("missing_fields".to_string()).await.unwrap_err();
+        assert_eq!(missing_fields.to_string(), "invalid jetton metadata");
+
+        let client = mock_client(
+            "/api/v3/jetton/masters?address=invalid_decimals",
+            include_bytes!("../../testdata/jetton_master_invalid_decimals.json"),
+        );
+        let invalid_decimals = client.get_token_data("invalid_decimals".to_string()).await.unwrap_err();
+        assert_eq!(invalid_decimals.to_string(), "invalid jetton decimals");
     }
 }

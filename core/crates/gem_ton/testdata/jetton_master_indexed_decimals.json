@@ -1,0 +1,26 @@
+{
+  "jetton_masters": [
+    {
+      "address": "0:INDEXED",
+      "jetton_content": {
+        "uri": "https://example.invalid/token.json"
+      }
+    }
+  ],
+  "metadata": {
+    "0:INDEXED": {
+      "is_indexed": true,
+      "token_info": [
+        {
+          "valid": true,
+          "type": "jetton_masters",
+          "name": "Indexed Token",
+          "symbol": "IDX",
+          "extra": {
+            "decimals": "6"
+          }
+        }
+      ]
+    }
+  }
+}

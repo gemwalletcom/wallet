@@ -1,0 +1,26 @@
+{
+  "jetton_masters": [
+    {
+      "address": "0:INVALID",
+      "jetton_content": {
+        "uri": "ipfs://invalid"
+      }
+    }
+  ],
+  "metadata": {
+    "0:INVALID": {
+      "is_indexed": true,
+      "token_info": [
+        {
+          "valid": false,
+          "type": "jetton_masters",
+          "name": "Untrusted Token",
+          "symbol": "BAD",
+          "extra": {
+            "decimals": "9"
+          }
+        }
+      ]
+    }
+  }
+}
