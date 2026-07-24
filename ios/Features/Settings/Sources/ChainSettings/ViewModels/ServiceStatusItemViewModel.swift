@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemServiceEndpoint
 import Localization
 import Primitives
 import Style
 
 struct ServiceStatusItemViewModel: Identifiable {
-    private let endpoint: GemServiceEndpoint
+    private let endpoint: ServiceEndpoint
     private let statusState: ServiceStatusState
 
     init(
-        endpoint: GemServiceEndpoint,
+        endpoint: ServiceEndpoint,
         statusState: ServiceStatusState,
     ) {
         self.endpoint = endpoint
@@ -26,7 +25,7 @@ struct ServiceStatusItemViewModel: Identifiable {
     var titleTagStyle: TextStyle { statusTag.style }
 
     private var name: String {
-        switch endpoint.endpointType {
+        switch endpoint.type {
         case .api: "API"
         case .gemNode: Localized.Nodes.gemWalletNode
         }

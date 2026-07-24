@@ -11,6 +11,7 @@ import BannerService
 import Blockchain
 import ChainService
 import ConnectionsService
+import ConnectionStatusService
 import ContactService
 import DeviceService
 import DiscoverAssetsService
@@ -26,7 +27,6 @@ import GemstonePrimitives
 import Keystore
 import NameService
 import NativeProviderService
-import ConnectionStatusService
 import NFTService
 import NodeService
 import NotificationService
@@ -37,6 +37,7 @@ import PriceService
 import Primitives
 import RewardsService
 import ScanService
+import ServiceStatusService
 import StakeService
 import Store
 import StreamService
@@ -99,7 +100,7 @@ struct ServicesFactory {
         )
         let nativeProvider = NativeProvider(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
         let gatewayService = GatewayService(provider: nativeProvider)
-        let serviceStatusService = ServiceStatusService(provider: nativeProvider)
+        let serviceStatusService = ServiceStatusService(requestInterceptor: nodeAuthProvider)
         let chainServiceFactory = ChainServiceFactory(
             gatewayService: gatewayService,
             requestInterceptor: nodeAuthProvider,

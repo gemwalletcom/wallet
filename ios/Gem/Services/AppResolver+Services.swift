@@ -9,6 +9,7 @@ import BalanceService
 import BannerService
 import ChainService
 import ConnectionsService
+import ConnectionStatusService
 import ContactService
 import DeviceService
 import DiscoverAssetsService
@@ -17,7 +18,6 @@ import ExplorerService
 import FiatService
 import Foundation
 import NameService
-import ConnectionStatusService
 import NFTService
 import NodeService
 import NotificationService
@@ -25,6 +25,7 @@ import PerpetualService
 import PriceAlertService
 import PriceService
 import RewardsService
+import ServiceStatusService
 import ScanService
 import StakeService
 import StreamService

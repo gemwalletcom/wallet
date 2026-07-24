@@ -19,10 +19,12 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPreferences
 import uniffi.gemstone.GemServiceStatus
+import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.WalletConnectSimulationClient
 import uniffi.gemstone.WalletConnectSimulationClientInterface
 import javax.inject.Singleton
@@ -84,8 +86,24 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideServiceStatusService(
-        alienProvider: AlienProvider,
-    ): ServiceStatusService = ServiceStatusService(GemServiceStatus(alienProvider))
+        getNodeUrlCase: GetNodeUrlCase,
+        okHttpClient: OkHttpClient,
+        nodeAuthInterceptor: NodeAuthInterceptor,
+        @ApplicationContext context: Context,
+    ): ServiceStatusService {
+        val httpClient = okHttpClient.newBuilder()
+            .addInterceptor(nodeAuthInterceptor)
+            .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
+            .build()
+        val provider = NativeProvider(
+            getNodeUrlCase = getNodeUrlCase,
+            httpClient = httpClient,
+            config = NativeProviderConfig(
+                networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
+            ),
+        )
+        return ServiceStatusService(GemServiceStatus(provider))
+    }
 
     @Provides
     @Singleton

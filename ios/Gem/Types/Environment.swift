@@ -26,6 +26,7 @@ import PerpetualService
 import PriceAlertService
 import PriceService
 import RewardsService
+import ServiceStatusService
 import ScanService
 import StakeService
 import Store

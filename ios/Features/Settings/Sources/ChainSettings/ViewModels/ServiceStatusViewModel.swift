@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ChainService
 import Foundation
-import struct Gemstone.GemServiceEndpoint
 import Localization
 import Primitives
+import ServiceStatusService
 
 @Observable
 @MainActor
 public final class ServiceStatusViewModel {
     private let serviceStatusService: any ServiceStatusServiceable
-    private let endpoints: [GemServiceEndpoint]
+    private let endpoints: [ServiceEndpoint]
     private var statusStates: [ServiceStatusState]
 
     public init(serviceStatusService: any ServiceStatusServiceable) {

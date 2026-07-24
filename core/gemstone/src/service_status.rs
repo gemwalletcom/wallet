@@ -11,6 +11,13 @@ const FLAG_UNITED_STATES: &str = "🇺🇸";
 const FLAG_JAPAN: &str = "🇯🇵";
 const FLAG_EUROPE: &str = "🇪🇺";
 
+const TIMEOUT_SECONDS: u32 = 10;
+
+#[uniffi::export]
+pub fn service_status_timeout_seconds() -> u32 {
+    TIMEOUT_SECONDS
+}
+
 #[derive(uniffi::Enum, Clone, Debug, PartialEq, Eq)]
 pub enum GemServiceEndpointType {
     Api,
