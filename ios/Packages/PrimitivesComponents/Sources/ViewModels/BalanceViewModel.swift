@@ -86,6 +86,15 @@ public struct BalanceViewModel: Sendable {
         }
     }
 
+    public var hasFrozenResources: Bool {
+        switch StakeChain(rawValue: asset.chain.rawValue) {
+        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
+            false
+        case .tron:
+            !(balance.frozen + balance.locked).isZero
+        }
+    }
+
     public var hasReservedBalance: Bool {
         !balance.reserved.isZero
     }

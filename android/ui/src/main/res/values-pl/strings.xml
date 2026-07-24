@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Zarezerwowane na opłatę sieciową</string>
   <string name="info_stake_reserved_description">Niewielka kwota pozostaje w Twoim portfelu i służy pokryciu opłat za operacje, takie jak anulowanie transakcji lub odbieranie nagród.</string>
   <string name="info_stake_apr_description">Roczna stopa procentowa (APR) to roczna stopa nagrody za stakowanie kryptowaluty.</string>
+  <string name="info_stake_frozen_required_title">Zamroź TRX, aby postawić stawkę</string>
+  <string name="info_stake_frozen_required_description">Staking na TRON składa się z dwóch kroków. Najpierw zamroź TRX, a następnie postaw je, aby zdobyć nagrody.</string>
   <string name="info_perpetual_auto_close_description">Automatycznie zamykaj pozycje po ustalonych cenach. Take Profit zabezpiecza zyski, Stop Loss ogranicza straty.</string>
   <string name="info_fully_diluted_valuation_title">Wycena całkowicie rozwodniona</string>
   <string name="info_fully_diluted_valuation_description">Teoretyczna wartość rynkowa, gdyby wszystkie monety były w obiegu. Obliczona jako iloczyn ceny i maksymalnej podaży.</string>

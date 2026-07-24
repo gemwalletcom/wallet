@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Dành riêng cho Phí mạng";
 "info.stake.reserved.description" = "Một số tiền nhỏ sẽ được giữ lại trong ví của bạn để trang trải phí cho các hoạt động như hủy đặt cọc hoặc nhận phần thưởng.";
 "info.stake.apr.description" = "Tỷ lệ phần trăm hàng năm (APR) là tỷ lệ phần thưởng hàng năm cho việc đặt cược tiền điện tử của bạn.";
+"info.stake_frozen_required_title" = "Đóng băng TRX để đặt cọc";
+"info.stake_frozen_required_description" = "Đặt cọc trên TRON gồm hai bước. Trước tiên hãy đóng băng TRX, sau đó đặt cọc để nhận phần thưởng.";
 "info.perpetual.auto_close.description" = "Tự động đóng vị thế của bạn ở mức giá đã đặt. Chốt lời khóa lợi nhuận, Cắt lỗ hạn chế thua lỗ.";
 "info.fully_diluted_valuation.title" = "Định giá sau khi pha loãng hoàn toàn";
 "info.fully_diluted_valuation.description" = "Giá trị thị trường lý thuyết nếu tất cả các đồng tiền đều được lưu thông. Được tính bằng giá nhân với nguồn cung tối đa.";

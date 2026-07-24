@@ -571,6 +571,10 @@ public enum Localized {
     public static func balanceRequiredTitle(_ p1: Any) -> String {
       return Localized.tr("Localizable", "info.balance_required_title", String(describing: p1), fallback: "%@ required")
     }
+    /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
+    public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
+    /// Freeze TRX to Stake
+    public static let stakeFrozenRequiredTitle = Localized.tr("Localizable", "info.stake_frozen_required_title", fallback: "Freeze TRX to Stake")
     public enum AccountMinimumBalance {
       /// Minimum balance
       public static let title = Localized.tr("Localizable", "info.account_minimum_balance.title", fallback: "Minimum balance")

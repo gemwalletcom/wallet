@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Imehifadhiwa kwa Ada ya Mtandao";
 "info.stake.reserved.description" = "Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kutoweka au kudai zawadi.";
 "info.stake.apr.description" = "Kiwango cha Asilimia cha Mwaka (APR) ni kiwango cha tuzo cha kila mwaka cha kuweka sarafu yako ya cryptocurrency.";
+"info.stake_frozen_required_title" = "Ganda TRX ili kuweka hisa";
+"info.stake_frozen_required_description" = "Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza ganda TRX, kisha uziweke hisa ili kupata zawadi.";
 "info.perpetual.auto_close.description" = "Funga nafasi yako kiotomatiki katika viwango vya bei vilivyowekwa. Take Profit hulinda faida, Stop Loss hupunguza hasara.";
 "info.fully_diluted_valuation.title" = "Thamani Iliyopunguzwa Kikamilifu";
 "info.fully_diluted_valuation.description" = "Thamani ya kinadharia ya soko ikiwa sarafu zote zilikuwa zikitumika. Imehesabiwa kama bei ikizidishwa na usambazaji wa juu zaidi.";

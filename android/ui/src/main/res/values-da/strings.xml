@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Reserveret til netværksgebyr</string>
   <string name="info_stake_reserved_description">Et lille beløb forbliver i din pung til at dække gebyrer for operationer som at fjerne indsatser eller gøre krav på belønninger.</string>
   <string name="info_stake_apr_description">Årlig procentsats (ÅOP) er den årlige belønningssats for at satse din kryptovaluta.</string>
+  <string name="info_stake_frozen_required_title">Frys TRX for at stake</string>
+  <string name="info_stake_frozen_required_description">Staking på TRON sker i to trin. Frys først TRX, og stake det derefter for at tjene belønninger.</string>
   <string name="info_perpetual_auto_close_description">Luk automatisk din position ved fastsatte prisniveauer. Take Profit låser gevinster, Stop Loss begrænser tab.</string>
   <string name="info_fully_diluted_valuation_title">Fuldt udvandet værdiansættelse</string>
   <string name="info_fully_diluted_valuation_description">Den teoretiske markedsværdi, hvis alle mønter var i omløb. Beregnet som prisen ganget med det maksimale udbud.</string>

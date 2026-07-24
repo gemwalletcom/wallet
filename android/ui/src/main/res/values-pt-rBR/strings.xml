@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Reservado para taxa de rede</string>
   <string name="info_stake_reserved_description">Uma pequena quantia fica na sua carteira para cobrir taxas de operações como retirada de stake ou reivindicação de recompensas.</string>
   <string name="info_stake_apr_description">Taxa Percentual Anual (APR) é a taxa de recompensa anual por fazer stake da sua criptomoeda.</string>
+  <string name="info_stake_frozen_required_title">Congele TRX para fazer stake</string>
+  <string name="info_stake_frozen_required_description">Fazer stake na TRON tem duas etapas. Primeiro congele TRX e depois faça stake para ganhar recompensas.</string>
   <string name="info_perpetual_auto_close_description">Feche sua posição automaticamente em níveis de preço definidos. O Take Profit garante os ganhos, o Stop Loss limita as perdas.</string>
   <string name="info_fully_diluted_valuation_title">Avaliação totalmente diluída</string>
   <string name="info_fully_diluted_valuation_description">O valor de mercado teórico se todas as moedas estivessem em circulação. Calculado como o preço multiplicado pela oferta máxima.</string>

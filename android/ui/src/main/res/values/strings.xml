@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Reserved for Network Fee</string>
   <string name="info_stake_reserved_description">A small amount stays in your wallet to cover fees for operations like unstaking or claiming rewards.</string>
   <string name="info_stake_apr_description">Annual Percentage Rate (APR) is the yearly reward rate for staking your cryptocurrency.</string>
+  <string name="info_stake_frozen_required_title">Freeze TRX to Stake</string>
+  <string name="info_stake_frozen_required_description">Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.</string>
   <string name="info_perpetual_auto_close_description">Automatically close your position at set price levels. Take Profit locks in gains, Stop Loss limits losses.</string>
   <string name="info_fully_diluted_valuation_title">Fully Diluted Valuation</string>
   <string name="info_fully_diluted_valuation_description">The theoretical market value if all coins were in circulation. Calculated as price multiplied by max supply.</string>

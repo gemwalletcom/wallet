@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Nakalaan para sa Bayad ng Network";
 "info.stake.reserved.description" = "May maliit na halaga ang nananatili sa iyong wallet para mabayaran ang mga bayarin para sa mga operasyon tulad ng pag-unstaking o pag-claim ng mga reward.";
 "info.stake.apr.description" = "Ang Annual Percentage Rate (APR) ay ang taunang reward rate para sa staking ng iyong cryptocurrency.";
+"info.stake_frozen_required_title" = "I-freeze ang TRX para mag-stake";
+"info.stake_frozen_required_description" = "May dalawang hakbang ang staking sa TRON. Una, i-freeze ang TRX, pagkatapos ay i-stake ito para kumita ng rewards.";
 "info.perpetual.auto_close.description" = "Awtomatikong isara ang iyong posisyon sa nakatakdang antas ng presyo. Pinapanatili ng Take Profit ang mga kita, nililimitahan ng Stop Loss ang mga pagkalugi.";
 "info.fully_diluted_valuation.title" = "Buong Diluted na Halaga (FDV)";
 "info.fully_diluted_valuation.description" = "Ang teoretikal na halaga sa pamilihan kung lahat ng barya ay nasa sirkulasyon. Kinakalkula bilang presyo na pinarami sa pinakamataas na suplay.";

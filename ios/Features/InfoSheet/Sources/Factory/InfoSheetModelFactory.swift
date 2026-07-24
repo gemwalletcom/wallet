@@ -140,6 +140,13 @@ public enum InfoSheetModelFactory {
                 description: Localized.Info.Transaction.Pending.description,
                 image: .image(Images.Logo.logo),
             )
+        case .stakeFrozenRequired:
+            return InfoSheetModel(
+                title: Localized.Info.stakeFrozenRequiredTitle,
+                description: Localized.Info.stakeFrozenRequiredDescription,
+                image: .image(Images.Logo.logo),
+                button: .url(AppUrl.docs(.staking(.tron))),
+            )
         case .fundingApr:
             return InfoSheetModel(
                 title: Localized.Info.Perpetual.FundingApr.title,

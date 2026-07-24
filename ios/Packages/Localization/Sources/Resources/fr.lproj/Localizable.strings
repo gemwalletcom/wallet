@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Réservé aux frais de réseau";
 "info.stake.reserved.description" = "Une petite somme reste dans votre portefeuille pour couvrir les frais d'opérations telles que le déblocage ou la réclamation de récompenses.";
 "info.stake.apr.description" = "Le taux annuel en pourcentage (APR) est le taux de récompense annuel pour le staking de votre crypto-monnaie.";
+"info.stake_frozen_required_title" = "Gelez des TRX pour staker";
+"info.stake_frozen_required_description" = "Le staking sur TRON se fait en deux étapes. Gelez d'abord des TRX, puis stakez-les pour gagner des récompenses.";
 "info.perpetual.auto_close.description" = "Clôturez automatiquement votre position à des niveaux de prix définis. Le Take Profit verrouille vos gains, tandis que le Stop Loss limite vos pertes.";
 "info.fully_diluted_valuation.title" = "Évaluation entièrement diluée";
 "info.fully_diluted_valuation.description" = "Valeur marchande théorique si toutes les pièces étaient en circulation. Calculée en multipliant le prix par l'offre maximale.";

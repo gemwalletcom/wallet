@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Reserviert für Netzwerkgebühr</string>
   <string name="info_stake_reserved_description">Ein kleiner Betrag verbleibt in Ihrem Wallet, um Gebühren für Vorgänge wie das Aufheben der Absteckung oder das Einfordern von Prämien zu decken.</string>
   <string name="info_stake_apr_description">Der effektive Jahreszins (APR) ist der jährliche Belohnungssatz für das Staking Ihrer Kryptowährung.</string>
+  <string name="info_stake_frozen_required_title">TRX zum Staking einfrieren</string>
+  <string name="info_stake_frozen_required_description">Staking auf TRON erfolgt in zwei Schritten. Friere zuerst TRX ein und stake es dann, um Belohnungen zu verdienen.</string>
   <string name="info_perpetual_auto_close_description">Schließen Sie Ihre Position automatisch bei festgelegten Preisniveaus. Take Profit sichert Gewinne, Stop Loss begrenzt Verluste.</string>
   <string name="info_fully_diluted_valuation_title">Vollständig verwässerte Bewertung</string>
   <string name="info_fully_diluted_valuation_description">Der theoretische Marktwert, wenn alle Münzen im Umlauf wären. Berechnet als Preis multipliziert mit der maximalen Gesamtmenge.</string>

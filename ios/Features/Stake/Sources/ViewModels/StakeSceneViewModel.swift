@@ -232,15 +232,13 @@ public final class StakeSceneViewModel {
         balanceModel.hasStakingResources
     }
 
-    var showStake: Bool {
-        if showFreeze {
-            return balanceModel.hasStakingResources
-        }
-        return true
+    var isStakeEnabled: Bool {
+        validators.isNotEmpty && !stakeFrozenRequired
     }
 
-    var isStakeEnabled: Bool {
-        validators.isNotEmpty
+    var stakeInfoAction: (() -> Void)? {
+        guard stakeFrozenRequired else { return nil }
+        return onStakeFrozenInfo
     }
 
     var showTronResources: Bool {
@@ -270,6 +268,10 @@ extension StakeSceneViewModel {
     func onAprInfo() {
         isPresentingInfoSheet = aprInfoSheet
     }
+
+    func onStakeFrozenInfo() {
+        isPresentingInfoSheet = .stakeFrozenRequired
+    }
 }
 
 // MARK: - Private
@@ -288,6 +290,10 @@ extension StakeSceneViewModel {
 
     private var asset: Asset {
         chain.chain.asset
+    }
+
+    private var stakeFrozenRequired: Bool {
+        chain == .tron && !balanceModel.hasFrozenResources
     }
 
     private var balanceModel: BalanceViewModel {
