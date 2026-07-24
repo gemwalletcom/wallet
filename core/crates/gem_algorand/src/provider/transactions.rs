@@ -7,31 +7,31 @@ use primitives::Transaction;
 
 use crate::{
     provider::transactions_mapper::{map_transaction_by_hash, map_transactions},
-    rpc::client::AlgorandClient,
+    rpc::AlgorandIndexer,
 };
 
 #[async_trait]
-impl<C: Client> ChainBlockTransactions for AlgorandClient<C> {
+impl<C: Client> ChainBlockTransactions for AlgorandIndexer<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let block = self.indexer.get_block(block).await?;
+        let block = self.get_block(block).await?;
         Ok(map_transactions(block.transactions))
     }
 }
 
 #[async_trait]
-impl<C: Client> ChainTransaction for AlgorandClient<C> {
+impl<C: Client> ChainTransaction for AlgorandIndexer<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
-        let transaction = self.indexer.get_transaction(&hash).await?;
+        let transaction = self.get_transaction(&hash).await?;
         Ok(map_transaction_by_hash(transaction))
     }
 }
 
 #[async_trait]
-impl<C: Client> ChainTransactions for AlgorandClient<C> {
+impl<C: Client> ChainTransactions for AlgorandIndexer<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, .. } = request;
-        let transactions = self.indexer.get_account_transactions(&address).await?;
+        let transactions = self.get_account_transactions(&address).await?;
         Ok(TransactionsResult::Transactions(map_transactions(transactions.transactions)))
     }
 }

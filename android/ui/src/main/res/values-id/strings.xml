@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Dicadangkan untuk Biaya Jaringan</string>
   <string name="info_stake_reserved_description">Sejumlah kecil dana disimpan di dompet Anda untuk menutupi biaya operasi seperti unstaking atau klaim hadiah.</string>
   <string name="info_stake_apr_description">Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk mempertaruhkan mata uang kripto Anda.</string>
+  <string name="info_stake_frozen_required_title">Bekukan TRX untuk staking</string>
+  <string name="info_stake_frozen_required_description">Staking di TRON dilakukan dalam dua langkah. Bekukan TRX dulu, lalu staking untuk mendapatkan hadiah.</string>
   <string name="info_perpetual_auto_close_description">Tutup posisi Anda secara otomatis pada level harga yang ditentukan. Take Profit mengunci keuntungan, Stop Loss membatasi kerugian.</string>
   <string name="info_fully_diluted_valuation_title">Valuasi Terdilusi Penuh</string>
   <string name="info_fully_diluted_valuation_description">Nilai pasar teoretis jika semua koin beredar. Dihitung sebagai harga dikalikan dengan pasokan maksimum.</string>

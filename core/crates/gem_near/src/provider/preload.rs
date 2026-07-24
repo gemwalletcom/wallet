@@ -12,11 +12,11 @@ use crate::{
         preload_mapper::{address_to_public_key, map_transaction_preload},
         state_mapper::map_gas_price_to_priorities,
     },
-    rpc::client::NearClient,
+    rpc::NearProvider,
 };
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionLoad for NearClient<C> {
+impl<C: Client + Clone> ChainTransactionLoad for NearProvider<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let public_key = address_to_public_key(&input.sender_address)?;
         let (access_key, block) = try_join!(self.get_account_access_key(&input.sender_address, &public_key), self.get_latest_block(),)?;

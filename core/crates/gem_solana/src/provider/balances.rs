@@ -3,13 +3,13 @@ use chain_traits::ChainBalances;
 use std::error::Error;
 
 use crate::provider::balances_mapper::{map_balance_staking, map_coin_balance, map_token_accounts};
-use crate::rpc::client::SolanaClient;
+use crate::rpc::SolanaProvider;
 use gem_client::Client;
 use primitives::AssetBalance;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl<C: Client + Clone> ChainBalances for SolanaClient<C> {
+impl<C: Client + Clone> ChainBalances for SolanaProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let balance = self.get_balance(&address).await?;
         Ok(map_coin_balance(&balance))

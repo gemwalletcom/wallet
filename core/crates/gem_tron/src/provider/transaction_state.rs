@@ -5,10 +5,10 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::{TransactionStateRequest, TransactionUpdate};
 
-use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::TronClient};
+use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::TronProvider};
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionState for TronClient<C> {
+impl<C: Client> ChainTransactionState for TronProvider<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
         let receipt = self.get_transaction_receipt(request.id).await?;
         Ok(map_transaction_status(receipt.as_ref()))

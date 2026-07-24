@@ -1037,6 +1037,10 @@ info_stake_reserved_title = Reserved for Network Fee
 info_stake_reserved_description = A small amount stays in your wallet to cover fees for operations like unstaking or claiming rewards.
 # Used in Info bottom sheets for the stake apr description.
 info_stake_apr_description = Annual Percentage Rate (APR) is the yearly reward rate for staking your cryptocurrency.
+# Used in Info bottom sheets explaining why the stake action is disabled on TRON until funds are frozen.
+info_stake_frozen_required_title = Freeze TRX to Stake
+# Used in Info bottom sheets explaining why the stake action is disabled on TRON until funds are frozen.
+info_stake_frozen_required_description = Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
 # Used in Info bottom sheets for the perpetual auto close description.
 info_perpetual_auto_close_description = Automatically close your position at set price levels. Take Profit locks in gains, Stop Loss limits losses.
 # Used in Info bottom sheets for the fully diluted valuation title.

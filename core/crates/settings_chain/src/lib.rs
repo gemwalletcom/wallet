@@ -6,7 +6,7 @@ mod provider_config;
 use std::{collections::HashMap, sync::Arc};
 
 use chain_traits::ChainTraits;
-use gem_algorand::{AlgorandClient, rpc::AlgorandIndexer};
+use gem_algorand::rpc::{AlgorandClient, AlgorandIndexer, AlgorandProvider};
 use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
@@ -15,13 +15,13 @@ use gem_cosmos::rpc::client::CosmosClient;
 use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, alchemy_url};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
-use gem_near::rpc::{NearClient, NearIndexer};
-use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer};
-use gem_solana::rpc::{SolanaClient, SolanaIndexer};
+use gem_near::rpc::{NearClient, NearIndexer, NearProvider};
+use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer, PolkadotProvider};
+use gem_solana::rpc::{SolanaClient, SolanaIndexer, SolanaProvider};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::{SuiClient, SuiIndexer, SuiProvider};
 use gem_ton::rpc::TonClient;
-use gem_tron::rpc::{client::TronClient, trongrid::client::TronGridClient};
+use gem_tron::rpc::{TronProvider, client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XrpClient;
 use reqwest::Client;
 
@@ -129,43 +129,49 @@ impl ProviderFactory {
                 Box::new(CosmosClient::new(chain, gem_client))
             }
             Chain::Aptos => Box::new(AptosClient::new(gem_client)),
-            Chain::Sui => {
-                let client = SuiClient::new(config.url);
-                let indexer = SuiIndexer::new(config.indexers.sui.configure_client(gem_client), config.indexers.sui.url);
-                Box::new(SuiProvider::new(client, Box::new(indexer)))
-            }
+            Chain::Sui => Box::new(SuiProvider::new(
+                SuiClient::new(config.url),
+                Box::new(SuiIndexer::new(config.indexers.sui.configure_client(gem_client))),
+            )),
             Chain::Xrp => Box::new(XrpClient::new(JsonRpcClient::new(gem_client))),
-            Chain::Algorand => {
-                let indexer_client = config.indexers.algorand.configure_client(gem_client.clone());
-                Box::new(AlgorandClient::new(gem_client, AlgorandIndexer::new(indexer_client)))
-            }
+            Chain::Algorand => Box::new(AlgorandProvider::new(
+                AlgorandClient::new(gem_client.clone()),
+                Box::new(AlgorandIndexer::new(config.indexers.algorand.configure_client(gem_client))),
+            )),
             Chain::Stellar => Box::new(StellarClient::new(gem_client)),
             Chain::Near => {
-                let fastnear_url = config.indexers.fastnear.url.clone();
-                Box::new(NearClient::new(
-                    JsonRpcClient::new(gem_client.clone()),
-                    NearIndexer::new(config.indexers.fastnear.configure_client(gem_client), fastnear_url),
+                let fastnear_client = config.indexers.fastnear.configure_client(gem_client.clone());
+                Box::new(NearProvider::new(
+                    NearClient::new(JsonRpcClient::new(gem_client)),
+                    Box::new(NearIndexer::new(
+                        fastnear_client.clone().with_base_url(config.indexers.fastnear.url.replace("{service}", "transfers")),
+                        fastnear_client.with_base_url(config.indexers.fastnear.url.replace("{service}", "tx")),
+                    )),
                 ))
             }
-            Chain::Polkadot => {
-                let asset_hub_client = config
-                    .indexers
-                    .subscan
-                    .configure_client(gem_client.clone())
-                    .with_default_headers(HashMap::from([("x-api-key".to_string(), config.indexers.subscan.key)]));
-                Box::new(PolkadotClient::new(gem_client, PolkadotIndexer::new(asset_hub_client)))
-            }
-            Chain::Solana => {
-                let rpc_client = JsonRpcClient::new(gem_client.clone());
-                let url = alchemy_url(chain, &config.indexers.alchemy.url, &config.indexers.alchemy.key);
-                let indexer = SolanaIndexer::new(JsonRpcClient::new(gem_client.with_request_timeout(config.indexers.alchemy.timeout).with_base_url(url)));
-                Box::new(SolanaClient::new_with_indexer(rpc_client, indexer))
-            }
-            Chain::Ton => Box::new(TonClient::new(gem_client)),
-            Chain::Tron => Box::new(TronClient::new(
-                gem_client.clone(),
-                TronGridClient::new(config.indexers.trongrid.configure_client(gem_client), config.indexers.trongrid.key),
+            Chain::Polkadot => Box::new(PolkadotProvider::new(
+                PolkadotClient::new(gem_client.clone()),
+                Box::new(PolkadotIndexer::new(
+                    config
+                        .indexers
+                        .subscan
+                        .configure_client(gem_client)
+                        .with_default_headers(HashMap::from([("x-api-key".to_string(), config.indexers.subscan.key)])),
+                )),
             )),
+            Chain::Solana => Box::new(SolanaProvider::new(
+                SolanaClient::new(JsonRpcClient::new(gem_client.clone())),
+                Box::new(SolanaIndexer::new(JsonRpcClient::new(
+                    gem_client
+                        .with_request_timeout(config.indexers.alchemy.timeout)
+                        .with_base_url(alchemy_url(chain, &config.indexers.alchemy.url, &config.indexers.alchemy.key)),
+                ))),
+            )),
+            Chain::Ton => Box::new(TonClient::new(gem_client)),
+            Chain::Tron => {
+                let trongrid = TronGridClient::new(config.indexers.trongrid.configure_client(gem_client.clone()), config.indexers.trongrid.key);
+                Box::new(TronProvider::new(TronClient::new(gem_client), Box::new(trongrid.clone()), Box::new(trongrid)))
+            }
             Chain::HyperCore => Box::new(HyperCoreClient::new(gem_client)),
         }
     }

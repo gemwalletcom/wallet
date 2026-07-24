@@ -7,11 +7,11 @@ use primitives::{DelegationBase, DelegationValidator};
 
 use crate::{
     provider::staking_mapper::{calculate_network_apy, map_staking_delegations, map_staking_validators},
-    rpc::client::SolanaClient,
+    rpc::SolanaProvider,
 };
 
 #[async_trait]
-impl<C: Client + Clone> ChainStaking for SolanaClient<C> {
+impl<C: Client + Clone> ChainStaking for SolanaProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         let (inflation_rate, supply, accounts) = futures::try_join!(self.get_inflation_rate(), self.get_supply(), self.get_vote_accounts(false))?;
         let total_active_stake = accounts.current.iter().map(|validator| validator.activated_stake).sum();

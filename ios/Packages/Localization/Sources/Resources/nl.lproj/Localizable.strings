@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Gereserveerd voor netwerkkosten";
 "info.stake.reserved.description" = "Een klein bedrag blijft in uw portemonnee staan om de kosten voor handelingen zoals unstaking of het claimen van beloningen te dekken.";
 "info.stake.apr.description" = "Jaarlijks percentage (APR) is het jaarlijkse beloningspercentage voor het staken van uw cryptocurrency.";
+"info.stake_frozen_required_title" = "Bevries TRX om te staken";
+"info.stake_frozen_required_description" = "Staken op TRON gaat in twee stappen. Bevries eerst TRX en stake het daarna om beloningen te verdienen.";
 "info.perpetual.auto_close.description" = "Sluit uw positie automatisch op ingestelde prijsniveaus. Take Profit vergrendelt winsten, Stop Loss beperkt verliezen.";
 "info.fully_diluted_valuation.title" = "Volledig verwaterde waardering";
 "info.fully_diluted_valuation.description" = "De theoretische marktwaarde als alle munten in omloop zouden zijn. Berekend als de prijs vermenigvuldigd met het maximale aanbod.";

@@ -1,5 +1,7 @@
 pub mod client;
 mod indexer;
+mod provider;
 
 pub use client::NearClient;
-pub use indexer::{FASTNEAR_URL, NearIndexer};
+pub use indexer::NearIndexer;
+pub use provider::NearProvider;

@@ -6,10 +6,10 @@ use gem_client::Client;
 use primitives::NodeSyncStatus;
 
 use crate::provider::state_mapper;
-use crate::rpc::client::NearClient;
+use crate::rpc::NearProvider;
 
 #[async_trait]
-impl<C: Client + Clone> ChainState for NearClient<C> {
+impl<C: Client + Clone> ChainState for NearProvider<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
         Ok(self.get_status().await?.chain_id)
     }

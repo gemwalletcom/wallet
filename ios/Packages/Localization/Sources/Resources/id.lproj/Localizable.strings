@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "Dicadangkan untuk Biaya Jaringan";
 "info.stake.reserved.description" = "Sejumlah kecil dana disimpan di dompet Anda untuk menutupi biaya operasi seperti unstaking atau klaim hadiah.";
 "info.stake.apr.description" = "Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk mempertaruhkan mata uang kripto Anda.";
+"info.stake_frozen_required_title" = "Bekukan TRX untuk staking";
+"info.stake_frozen_required_description" = "Staking di TRON dilakukan dalam dua langkah. Bekukan TRX dulu, lalu staking untuk mendapatkan hadiah.";
 "info.perpetual.auto_close.description" = "Tutup posisi Anda secara otomatis pada level harga yang ditentukan. Take Profit mengunci keuntungan, Stop Loss membatasi kerugian.";
 "info.fully_diluted_valuation.title" = "Valuasi Terdilusi Penuh";
 "info.fully_diluted_valuation.description" = "Nilai pasar teoretis jika semua koin beredar. Dihitung sebagai harga dikalikan dengan pasokan maksimum.";

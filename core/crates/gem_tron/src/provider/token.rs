@@ -5,10 +5,10 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::Asset;
 
-use crate::rpc::client::TronClient;
+use crate::rpc::TronProvider;
 
 #[async_trait]
-impl<C: Client> ChainToken for TronClient<C> {
+impl<C: Client> ChainToken for TronProvider<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
         Self::get_token_data(self, token_id).await
     }

@@ -1,7 +1,7 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::AssetBalance;
 
@@ -12,17 +12,10 @@ pub trait AssetBalanceProvider: Send + Sync {
     async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>>;
 }
 
-struct EmptyProvider;
+struct EmptyAssetBalanceProvider;
 
 #[async_trait]
-impl ChainTransactions for EmptyProvider {
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        Ok(TransactionsResult::Transactions(Vec::new()))
-    }
-}
-
-#[async_trait]
-impl AssetBalanceProvider for EmptyProvider {
+impl AssetBalanceProvider for EmptyAssetBalanceProvider {
     async fn get_asset_balances(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         Ok(Vec::new())
     }
@@ -44,7 +37,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
     }
 
     pub fn new_rpc_only(client: EthereumClient<C>) -> Self {
-        Self::new(client, Box::new(EmptyProvider), Box::new(EmptyProvider))
+        Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider))
     }
 
     pub(crate) async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {

@@ -5,10 +5,10 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::NodeSyncStatus;
 
-use crate::rpc::client::PolkadotClient;
+use crate::rpc::PolkadotProvider;
 
 #[async_trait]
-impl<C: Client> ChainState for PolkadotClient<C> {
+impl<C: Client> ChainState for PolkadotProvider<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
         Ok(self.get_node_version().await?.chain)
     }
@@ -26,7 +26,7 @@ impl<C: Client> ChainState for PolkadotClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rpc::PolkadotIndexer;
+    use crate::rpc::{PolkadotClient, PolkadotProvider};
     use gem_client::testkit::MockClient;
 
     #[tokio::test]
@@ -35,8 +35,7 @@ mod tests {
             assert_eq!(path, "/v1/blocks/head/header");
             Ok(r#"{"number":"123456"}"#.as_bytes().to_vec())
         });
-        let indexer_client = MockClient::new();
-        let client = PolkadotClient::new(rpc_client, PolkadotIndexer::new(indexer_client));
+        let client = PolkadotProvider::new_rpc_only(PolkadotClient::new(rpc_client));
 
         let status = client.get_node_status().await?;
 

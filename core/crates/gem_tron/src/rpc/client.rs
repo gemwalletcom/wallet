@@ -1,5 +1,3 @@
-use async_trait::async_trait;
-use chain_traits::{ChainAccount, ChainPerpetual, ChainTraits};
 use num_bigint::BigUint;
 use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain};
 use std::{error::Error, str::FromStr};
@@ -10,19 +8,17 @@ use crate::models::{
 };
 use crate::models::{TriggerSmartContractData, TronAccount, TronAccountRequest, TronAccountUsage, TronBlock, TronEmptyAccount, TronReward};
 use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, NAME_SELECTOR, SYMBOL_SELECTOR};
-use crate::rpc::trongrid::client::TronGridClient;
 use gem_client::{Client, ClientExt};
 use gem_evm::contracts::erc20::{decode_abi_string, decode_abi_uint8};
 
 #[derive(Clone)]
 pub struct TronClient<C: Client> {
     pub client: C,
-    pub trongrid_client: TronGridClient<C>,
 }
 
 impl<C: Client> TronClient<C> {
-    pub fn new(client: C, trongrid_client: TronGridClient<C>) -> Self {
-        Self { client, trongrid_client }
+    pub fn new(client: C) -> Self {
+        Self { client }
     }
 
     pub async fn get_block(&self) -> Result<Block, Box<dyn Error + Send + Sync>> {
@@ -205,22 +201,6 @@ impl<C: Client> TronClient<C> {
     }
 }
 
-// Trait implementations required for gateway integration
-#[async_trait]
-impl<C: Client + Clone> ChainTraits for TronClient<C> {}
-
-#[async_trait]
-impl<C: Client + Clone> ChainAccount for TronClient<C> {}
-
-#[async_trait]
-impl<C: Client + Clone> ChainPerpetual for TronClient<C> {}
-
-impl<C: Client + Clone> chain_traits::ChainProvider for TronClient<C> {
-    fn get_chain(&self) -> primitives::Chain {
-        Chain::Tron
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -229,7 +209,7 @@ mod tests {
     #[tokio::test]
     async fn test_estimate_trc20_transfer_gas_uses_total_energy_and_surfaces_errors() {
         let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_with_penalty.json").as_bytes().to_vec()));
-        let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
+        let client = TronClient::new(mock);
         let energy = client
             .estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string())
             .await
@@ -237,7 +217,7 @@ mod tests {
         assert_eq!(energy, 64285);
 
         let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_failed.json").as_bytes().to_vec()));
-        let client = TronClient::new(mock.clone(), TronGridClient::new(mock, String::new()));
+        let client = TronClient::new(mock);
         let error = client
             .estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string())
             .await

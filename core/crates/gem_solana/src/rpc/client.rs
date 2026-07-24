@@ -3,15 +3,10 @@ use crate::models::{
     AccountData, EpochInfo, InflationRate, ResultTokenInfo, Signature, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance,
     blockhash::SolanaBlockhashResult, prioritization_fee::SolanaPrioritizationFee, simulation::SimulateTransactionResult, transaction::BlockTransactions,
 };
-#[cfg(feature = "rpc")]
-use crate::rpc::SolanaIndexer;
 use crate::{
     STAKE_PROGRAM_ID,
     metaplex::{decode_metadata, metadata::Metadata},
 };
-use chain_traits::ChainProvider;
-#[cfg(feature = "rpc")]
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainTraits};
 #[cfg(feature = "rpc")]
 use gem_client::Client;
 use gem_encoding::decode_base64;
@@ -26,22 +21,13 @@ use std::{error::Error, str::FromStr};
 #[cfg(feature = "rpc")]
 pub struct SolanaClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
-    pub(crate) indexer: SolanaIndexer<C>,
     pub chain: Chain,
 }
 
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> SolanaClient<C> {
     pub fn new(client: JsonRpcClient<C>) -> Self {
-        Self::new_with_indexer(client.clone(), SolanaIndexer::new(client))
-    }
-
-    pub fn new_with_indexer(client: JsonRpcClient<C>, indexer: SolanaIndexer<C>) -> Self {
-        Self {
-            client,
-            indexer,
-            chain: Chain::Solana,
-        }
+        Self { client, chain: Chain::Solana }
     }
 
     pub fn get_chain(&self) -> Chain {
@@ -193,26 +179,6 @@ impl<C: Client + Clone> SolanaClient<C> {
             .map(|mint| SolanaRpc::GetTokenAccountsByOwner(address.to_string(), SolanaTokenAccountsFilter::Mint(mint.to_string())))
             .collect();
         Ok(self.client.batch_request(requests).await?.take_all()?)
-    }
-}
-
-#[cfg(feature = "rpc")]
-#[async_trait::async_trait]
-impl<C: Client + Clone> ChainAccount for SolanaClient<C> {}
-
-#[cfg(feature = "rpc")]
-#[async_trait::async_trait]
-impl<C: Client + Clone> ChainPerpetual for SolanaClient<C> {}
-
-#[cfg(feature = "rpc")]
-#[async_trait::async_trait]
-impl<C: Client + Clone> ChainAddressStatus for SolanaClient<C> {}
-
-#[cfg(feature = "rpc")]
-impl<C: Client + Clone> ChainTraits for SolanaClient<C> {}
-impl<C: Client + Clone> ChainProvider for SolanaClient<C> {
-    fn get_chain(&self) -> primitives::Chain {
-        Chain::Solana
     }
 }
 

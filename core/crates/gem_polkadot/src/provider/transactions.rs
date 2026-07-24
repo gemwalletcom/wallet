@@ -1,31 +1,31 @@
 use async_trait::async_trait;
-use chain_traits::{ChainBlockTransactions, ChainProvider, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
+use primitives::{Chain, Transaction};
 use std::error::Error;
 
+use crate::{
+    provider::transactions_mapper,
+    rpc::{PolkadotIndexer, PolkadotProvider},
+};
 use gem_client::Client;
-use primitives::Transaction;
-
-use super::transactions_mapper;
-use crate::rpc::client::PolkadotClient;
 
 #[async_trait]
-impl<C: Client> ChainBlockTransactions for PolkadotClient<C> {
+impl<C: Client> ChainBlockTransactions for PolkadotProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let block_data = self.get_block(block as i64).await?;
-        Ok(transactions_mapper::map_transactions(self.get_chain(), block_data))
+        Ok(transactions_mapper::map_transactions(Chain::Polkadot, block_data))
     }
 }
 
-#[async_trait]
-impl<C: Client> ChainTransaction for PolkadotClient<C> {}
+impl<C: Client> ChainTransaction for PolkadotProvider<C> {}
 
 #[async_trait]
-impl<C: Client> ChainTransactions for PolkadotClient<C> {
+impl<C: Client> ChainTransactions for PolkadotIndexer<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest {
             address, limit, from_timestamp, ..
         } = request;
-        let transactions = self.indexer.get_transactions_by_address(&address, limit, from_timestamp).await?;
+        let transactions = self.get_transactions_by_address(&address, limit, from_timestamp).await?;
         Ok(TransactionsResult::Transactions(transactions))
     }
 }

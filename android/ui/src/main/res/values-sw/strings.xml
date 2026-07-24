@@ -459,6 +459,8 @@
   <string name="info_stake_reserved_title">Imehifadhiwa kwa Ada ya Mtandao</string>
   <string name="info_stake_reserved_description">Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kutoweka au kudai zawadi.</string>
   <string name="info_stake_apr_description">Kiwango cha Asilimia cha Mwaka (APR) ni kiwango cha tuzo cha kila mwaka cha kuweka sarafu yako ya cryptocurrency.</string>
+  <string name="info_stake_frozen_required_title">Ganda TRX ili kuweka hisa</string>
+  <string name="info_stake_frozen_required_description">Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza ganda TRX, kisha uziweke hisa ili kupata zawadi.</string>
   <string name="info_perpetual_auto_close_description">Funga nafasi yako kiotomatiki katika viwango vya bei vilivyowekwa. Take Profit hulinda faida, Stop Loss hupunguza hasara.</string>
   <string name="info_fully_diluted_valuation_title">Thamani Iliyopunguzwa Kikamilifu</string>
   <string name="info_fully_diluted_valuation_description">Thamani ya kinadharia ya soko ikiwa sarafu zote zilikuwa zikitumika. Imehesabiwa kama bei ikizidishwa na usambazaji wa juu zaidi.</string>

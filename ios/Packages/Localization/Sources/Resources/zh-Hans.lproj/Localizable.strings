@@ -444,6 +444,8 @@
 "info.stake.reserved.title" = "预留网络费";
 "info.stake.reserved.description" = "您的钱包中会留有少量资金，用于支付取消质押或领取奖励等操作的费用。";
 "info.stake.apr.description" = "年利率（APR）是质押加密货币的年度回报率。";
+"info.stake_frozen_required_title" = "冻结 TRX 以质押";
+"info.stake_frozen_required_description" = "在 TRON 上质押分两步。先冻结 TRX，然后质押以赚取奖励。";
 "info.perpetual.auto_close.description" = "以设定的价格自动平仓。止盈锁定收益，止损限制损失。";
 "info.fully_diluted_valuation.title" = "完全稀释估值";
 "info.fully_diluted_valuation.description" = "如果所有硬币都在流通，其理论市场价值为：价格乘以最大供应量。";

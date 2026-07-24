@@ -9,10 +9,10 @@ use primitives::{
     FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
 };
 
-use crate::rpc::client::PolkadotClient;
+use crate::rpc::PolkadotProvider;
 
 #[async_trait]
-impl<C: Client> ChainTransactionLoad for PolkadotClient<C> {
+impl<C: Client> ChainTransactionLoad for PolkadotProvider<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let material = self.get_transaction_material().await?;
         let sender_balance = self.get_balance(input.sender_address).await?;

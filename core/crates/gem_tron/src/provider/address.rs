@@ -5,10 +5,10 @@ use primitives::AddressStatus;
 use std::error::Error;
 
 use crate::provider::address_mapper;
-use crate::rpc::client::TronClient;
+use crate::rpc::TronProvider;
 
 #[async_trait]
-impl<C: Client + Clone> ChainAddressStatus for TronClient<C> {
+impl<C: Client> ChainAddressStatus for TronProvider<C> {
     async fn get_address_status(&self, address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Sync + Send>> {
         let account = self.get_account(&address).await?;
         Ok(address_mapper::map_address_status(&account))

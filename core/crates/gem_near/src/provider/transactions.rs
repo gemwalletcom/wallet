@@ -1,25 +1,19 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
 
 use gem_client::Client;
 
-use crate::rpc::client::NearClient;
+use crate::rpc::NearIndexer;
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransaction for NearClient<C> {}
-
-#[async_trait]
-impl<C: Client + Clone> ChainBlockTransactions for NearClient<C> {}
-
-#[async_trait]
-impl<C: Client + Clone> ChainTransactions for NearClient<C> {
+impl<C: Client> ChainTransactions for NearIndexer<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest {
             address, limit, from_timestamp, ..
         } = request;
-        let transactions = self.indexer.get_transactions_by_address(&address, limit, from_timestamp).await?;
+        let transactions = self.get_transactions_by_address(&address, limit, from_timestamp).await?;
         Ok(TransactionsResult::Transactions(transactions))
     }
 }
