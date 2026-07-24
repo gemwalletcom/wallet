@@ -17,7 +17,7 @@ use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_xrp::rpc::XrpClient;
-use primitives::{BitcoinChain, Chain, EVMChain, chain_cosmos::CosmosChain};
+use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosChain};
 
 use super::{GatewayError, GemPreferences, PreferencesWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
@@ -45,8 +45,8 @@ impl ChainClientFactory {
 
     pub async fn create_with_url(&self, chain: Chain, url: String) -> Result<Arc<dyn ChainTraits>, GatewayError> {
         let alien_client = new_alien_client(url.clone(), self.alien.clone());
-        match chain {
-            Chain::HyperCore => {
+        match chain.chain_type() {
+            ChainType::HyperCore => {
                 let preferences = Arc::new(PreferencesWrapper {
                     preferences: self.preferences.clone(),
                 });
@@ -55,58 +55,26 @@ impl ChainClientFactory {
                 });
                 Ok(Arc::new(HyperCoreClient::new_with_preferences(alien_client, preferences, secure_preferences)))
             }
-            Chain::Bitcoin | Chain::BitcoinCash | Chain::Litecoin | Chain::Doge | Chain::Zcash => {
-                Ok(Arc::new(BitcoinClient::new(alien_client, BitcoinChain::from_chain(chain).unwrap())))
-            }
-            Chain::Cardano => Ok(Arc::new(CardanoClient::new(alien_client))),
-            Chain::Stellar => Ok(Arc::new(StellarClient::new(alien_client))),
-            Chain::Sui => Ok(Arc::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(
+            ChainType::Bitcoin => Ok(Arc::new(BitcoinClient::new(alien_client, BitcoinChain::from_chain(chain).unwrap()))),
+            ChainType::Cardano => Ok(Arc::new(CardanoClient::new(alien_client))),
+            ChainType::Stellar => Ok(Arc::new(StellarClient::new(alien_client))),
+            ChainType::Sui => Ok(Arc::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(
                 url,
                 Arc::new(AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.alien.clone())))),
             )))),
-            Chain::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client.clone())))),
-            Chain::Algorand => Ok(Arc::new(AlgorandProvider::new_rpc_only(AlgorandClient::new(alien_client)))),
-            Chain::Near => Ok(Arc::new(NearProvider::new_rpc_only(NearClient::new(JsonRpcClient::new(alien_client))))),
-            Chain::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
-            Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Sei | Chain::Noble => {
-                Ok(Arc::new(CosmosClient::new(CosmosChain::from_chain(chain).unwrap(), alien_client)))
-            }
-            Chain::Ton => Ok(Arc::new(TonClient::new(alien_client))),
-            Chain::Tron => Ok(Arc::new(TronProvider::new_rpc_only(TronClient::new(alien_client)))),
-            Chain::Polkadot => Ok(Arc::new(PolkadotProvider::new_rpc_only(PolkadotClient::new(alien_client)))),
-            Chain::Solana => {
+            ChainType::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client.clone())))),
+            ChainType::Algorand => Ok(Arc::new(AlgorandProvider::new_rpc_only(AlgorandClient::new(alien_client)))),
+            ChainType::Near => Ok(Arc::new(NearProvider::new_rpc_only(NearClient::new(JsonRpcClient::new(alien_client))))),
+            ChainType::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
+            ChainType::Cosmos => Ok(Arc::new(CosmosClient::new(CosmosChain::from_chain(chain).unwrap(), alien_client))),
+            ChainType::Ton => Ok(Arc::new(TonClient::new(alien_client))),
+            ChainType::Tron => Ok(Arc::new(TronProvider::new_rpc_only(TronClient::new(alien_client)))),
+            ChainType::Polkadot => Ok(Arc::new(PolkadotProvider::new_rpc_only(PolkadotClient::new(alien_client)))),
+            ChainType::Solana => {
                 let client = JsonRpcClient::new(alien_client.clone());
                 Ok(Arc::new(SolanaProvider::new_rpc_only(SolanaClient::new(client))))
             }
-            Chain::Ethereum
-            | Chain::Arbitrum
-            | Chain::SmartChain
-            | Chain::Polygon
-            | Chain::Optimism
-            | Chain::Base
-            | Chain::AvalancheC
-            | Chain::OpBNB
-            | Chain::Fantom
-            | Chain::Gnosis
-            | Chain::Manta
-            | Chain::Blast
-            | Chain::ZkSync
-            | Chain::Linea
-            | Chain::Mantle
-            | Chain::Celo
-            | Chain::World
-            | Chain::Sonic
-            | Chain::SeiEvm
-            | Chain::Abstract
-            | Chain::Berachain
-            | Chain::Ink
-            | Chain::Unichain
-            | Chain::Hyperliquid
-            | Chain::Plasma
-            | Chain::Monad
-            | Chain::XLayer
-            | Chain::Robinhood
-            | Chain::Stable => Ok(Arc::new(EthereumProvider::new_rpc_only(EthereumClient::new(
+            ChainType::Ethereum => Ok(Arc::new(EthereumProvider::new_rpc_only(EthereumClient::new(
                 JsonRpcClient::new(alien_client),
                 EVMChain::from_chain(chain).unwrap(),
             )))),

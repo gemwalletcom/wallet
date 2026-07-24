@@ -5,13 +5,13 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client"]
+rpc = ["dep:async-trait", "dep:chrono", "dep:chain_traits", "dep:gem_client"]
 signer = ["dep:hex", "dep:num-traits"]
 reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
 
 [dependencies]
-async-trait = { workspace = true }
+async-trait = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 gem_encoding = { path = "../gem_encoding", features = ["base32"] }

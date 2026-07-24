@@ -504,12 +504,6 @@ pub enum GemTransactionLoadMetadata {
     },
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemSuiCoin {
-    pub coin_type: String,
-    pub balance: String,
-}
-
 impl From<GemTransactionStateRequest> for TransactionStateRequest {
     fn from(value: GemTransactionStateRequest) -> Self {
         TransactionStateRequest {

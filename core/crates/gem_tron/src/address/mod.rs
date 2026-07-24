@@ -49,6 +49,7 @@ impl TronAddress {
         Self::from_hex(topic.get(topic.len().checked_sub(ADDRESS_LEN * 2)?..)?)
     }
 
+    #[cfg(any(test, feature = "rpc", feature = "signer"))]
     pub(crate) fn from_abi_word(word: &[u8]) -> Option<Self> {
         if word.len() != ABI_ADDRESS_PARAMETER_HEX_LEN / 2 {
             return None;

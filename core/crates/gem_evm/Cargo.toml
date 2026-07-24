@@ -5,8 +5,8 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures"]
-reqwest = ["gem_jsonrpc/reqwest", "gem_client/reqwest"]
+rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures", "dep:gem_client", "gem_jsonrpc/client"]
+reqwest = ["rpc", "gem_jsonrpc/reqwest", "gem_client/reqwest"]
 signer = ["dep:alloy-signer-local", "dep:alloy-network", "dep:alloy-consensus"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 testkit = []
@@ -14,8 +14,8 @@ testkit = []
 [dependencies]
 primitives = { path = "../primitives" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
-gem_client = { path = "../gem_client" }
+gem_jsonrpc = { path = "../gem_jsonrpc" }
+gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
 gem_bsc = { path = "../gem_bsc" }
 signer = { path = "../signer" }

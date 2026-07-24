@@ -4,7 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [features]
-default = ["rpc"]
+default = []
 signer = []
 rpc = [
     "dep:serde_json",
@@ -13,6 +13,7 @@ rpc = [
     "dep:gem_client",
     "dep:chain_traits",
     "dep:number_formatter",
+    "dep:rand",
 ]
 reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
@@ -26,7 +27,7 @@ bs58 = { workspace = true }
 gem_hash = { path = "../gem_hash" }
 hex = { workspace = true }
 signer = { path = "../signer" }
-rand = { workspace = true }
+rand = { workspace = true, optional = true }
 
 # Optional RPC dependencies
 serde_json = { workspace = true, optional = true }

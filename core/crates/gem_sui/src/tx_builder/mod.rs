@@ -1,4 +1,5 @@
 pub mod balance;
+#[cfg(any(test, feature = "rpc"))]
 pub(crate) mod gas;
 mod input;
 #[cfg(feature = "rpc")]

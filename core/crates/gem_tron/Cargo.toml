@@ -28,7 +28,7 @@ async-trait = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
 
 [features]
-default = ["rpc"]
+default = []
 signer = [
     "dep:gem_encoding",
     "dep:gem_hash",
