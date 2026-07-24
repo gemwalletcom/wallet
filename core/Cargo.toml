@@ -119,7 +119,7 @@ ring = { version = "0.17.14", features = ["std"] }
 aes-gcm = { version = "0.11.0", default-features = false, features = ["aes", "alloc"] }
 rand = { version = "0.10.2" }
 strum = { version = "0.28.0", features = ["derive"] }
-curve25519-dalek = { version = "4.1.3" }
+curve25519-dalek = { version = "5.0.0" }
 ed25519-dalek = { version = "2", features = ["std"] }
 borsh = { version = "1.6.1", features = ["derive"] }
 bcs = { version = "0.2.1" }
