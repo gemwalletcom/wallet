@@ -66,6 +66,8 @@ class DeviceRepository(
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
+    private val syncCoordinator = DeviceSyncCoordinator()
+
     override suspend fun syncDeviceInfo() {
         synchronizeDevice(
             wallets = loadWallets(),
@@ -119,38 +121,52 @@ class DeviceRepository(
         shouldInvalidateSubscriptions: Boolean,
         pushTokenOverride: String? = null,
     ) {
-        try {
-            if (shouldInvalidateSubscriptions) {
-                invalidateSubscriptions()
-            }
+        syncCoordinator.synchronize {
+            try {
+                reconcileDevice(
+                    wallets = wallets,
+                    shouldInvalidateSubscriptions = shouldInvalidateSubscriptions,
+                    pushTokenOverride = pushTokenOverride,
+                )
+            } catch (_: Throwable) {}
+        }
+    }
 
-            val subscriptionState = getSubscriptionSyncState()
-            val pushState = resolvePushState(
-                wallets = wallets,
-                pushTokenOverride = pushTokenOverride,
-            ) ?: return
-            val localDevice = buildLocalDevice(
-                pushState = pushState,
-                subscriptionsVersion = subscriptionState.version,
-            )
-            val remoteDevice = getOrCreateDevice(localDevice)
-            val didSyncSubscriptions = maybeSyncSubscriptions(
-                wallets = wallets,
-                subscriptionState = subscriptionState,
-                remoteDevice = remoteDevice,
-            )
-            val requestDevice = buildDeviceUpdateRequest(
-                localDevice = localDevice,
-                remoteDevice = remoteDevice,
-                localSubscriptionVersion = subscriptionState.version,
-                didSyncSubscriptions = didSyncSubscriptions,
-            )
+    private suspend fun reconcileDevice(
+        wallets: List<Wallet>,
+        shouldInvalidateSubscriptions: Boolean,
+        pushTokenOverride: String?,
+    ) {
+        if (shouldInvalidateSubscriptions) {
+            invalidateSubscriptions()
+        }
 
-            updateDevice(
-                remote = remoteDevice,
-                request = requestDevice,
-            )
-        } catch (_: Throwable) {}
+        val subscriptionState = getSubscriptionSyncState()
+        val pushState = resolvePushState(
+            wallets = wallets,
+            pushTokenOverride = pushTokenOverride,
+        ) ?: return
+        val localDevice = buildLocalDevice(
+            pushState = pushState,
+            subscriptionsVersion = subscriptionState.version,
+        )
+        val remoteDevice = getOrCreateDevice(localDevice)
+        val didSyncSubscriptions = maybeSyncSubscriptions(
+            wallets = wallets,
+            subscriptionState = subscriptionState,
+            remoteDevice = remoteDevice,
+        )
+        val requestDevice = buildDeviceUpdateRequest(
+            localDevice = localDevice,
+            remoteDevice = remoteDevice,
+            localSubscriptionVersion = subscriptionState.version,
+            didSyncSubscriptions = didSyncSubscriptions,
+        )
+
+        updateDevice(
+            remote = remoteDevice,
+            request = requestDevice,
+        )
     }
 
     private suspend fun loadWallets(): List<Wallet> {
@@ -170,9 +186,9 @@ class DeviceRepository(
             setDeviceRegistered(false)
         }
 
-        val registeredDevice = gemDeviceApiClient.registerDevice(device) ?: device
-        setDeviceRegistered(gemDeviceApiClient.isDeviceRegistered())
-        return registeredDevice
+        val registeredDevice = gemDeviceApiClient.registerDevice(device)
+        setDeviceRegistered(registeredDevice != null)
+        return registeredDevice ?: device
     }
 
     private suspend fun updateDevice(remote: Device, request: Device) {
