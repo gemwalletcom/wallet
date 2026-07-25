@@ -12,9 +12,13 @@ webhook:
   token: ""
 
 monitoring:
-  enabled: false
-  profile: basic
+  enabled: true
+  profile: wallet
   interval: 10m
+  trigger:
+    failures: 15 # consecutive or rate minimum
+    rate: 50 # percent in window
+    window: 1m
 
 request:
   timeout: 3s
@@ -34,7 +38,7 @@ retry:
   enabled: true
   max_attempts: 3
   errors:
-    status_codes: [403, 429, 502, 503, 504]
+    status_codes: [401, 403, 429, 502, 503, 504]
     error_messages:
       - "daily request limit"
       - "rate limit"

@@ -217,7 +217,7 @@ impl ProxyRequestService {
             let response = match request_type {
                 RequestType::JsonRpc(JsonRpcRequest::Single(original_call)) => {
                     let data = cached.to_jsonrpc_response(original_call);
-                    ResponseBuilder::build_with_headers(data, cached.status, &cached.content_type, proxy_headers)
+                    ResponseBuilder::build_with_headers(data, cached.status, &cached.content_type, proxy_headers).map(ProxyResponse::into_cached)
                 }
                 RequestType::Regular { .. } => Ok(ResponseBuilder::build_cached_with_headers(cached.clone(), proxy_headers)),
                 RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => return None,

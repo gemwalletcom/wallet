@@ -1,21 +1,24 @@
 use std::{collections::BTreeMap, fmt::Display};
 
 use async_trait::async_trait;
-use primitives::{NodeCheckReport, NodeCheckRequest, NodeCheckStatus, NodeSyncStatus};
+use primitives::{NodeCheckReport, NodeCheckRequest, NodeCheckStatus, NodeSyncStatus, TransactionIdRequest};
 
-use crate::{ChainBlockTransactions, ChainState};
+use crate::{ChainBalances, ChainBlockTransactions, ChainProvider, ChainState, ChainTransaction};
 
 const MAX_RESULT_LENGTH: usize = 128;
 const PARSER_BLOCK_OFFSET: u64 = 10;
 
-pub(crate) async fn check_node<T: ChainBlockTransactions + ChainState + ?Sized>(state: &T, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
+pub(crate) async fn check_node<T>(state: &T, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport
+where
+    T: ChainBalances + ChainBlockTransactions + ChainProvider + ChainState + ChainTransaction + ?Sized,
+{
     let recorder = record_node_state(state, status, None, NodeCheckRecorder::default(), "chain_id", "latest_block_number").await;
     if recorder.has_failed() {
         return recorder.finish();
     }
     let recorder = match request {
         NodeCheckRequest::Basic => recorder,
-        NodeCheckRequest::Wallet { .. } => recorder.record_error("node_check", "profile not supported"),
+        NodeCheckRequest::Wallet { address, transaction_id } => record_wallet(state, address, transaction_id.as_deref(), recorder).await,
         NodeCheckRequest::Parser => record_parser_block(state, recorder).await,
     };
     recorder.finish()
@@ -55,10 +58,6 @@ impl NodeCheckRecorder {
         self.record_status(method, status)
     }
 
-    fn record_error(self, method: &str, error: impl Display) -> Self {
-        self.record_status(method, NodeCheckStatus::Failed { error: error.to_string() })
-    }
-
     fn has_failed(&self) -> bool {
         self.checks.values().any(|status| matches!(status, NodeCheckStatus::Failed { .. }))
     }
@@ -93,7 +92,7 @@ pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
 
         let recorder = match request {
             NodeCheckRequest::Basic => recorder,
-            NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id, recorder).await,
+            NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id.as_deref(), recorder).await,
             NodeCheckRequest::Parser => record_parser_block(self, recorder).await,
         };
         recorder.finish()
@@ -101,7 +100,25 @@ pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
 
     async fn get_node_basic_status(&self, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
 
-    async fn get_node_wallet_status(&self, address: &str, transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+    async fn get_node_wallet_status(&self, address: &str, transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+}
+
+async fn record_wallet<T>(state: &T, address: &str, transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder
+where
+    T: ChainBalances + ChainProvider + ChainTransaction + ?Sized,
+{
+    let recorder = recorder.record_available("balance", state.get_balance_coin(address.to_string()).await);
+
+    match transaction_id {
+        Some(transaction_id) => {
+            let transaction = state
+                .get_transaction_by_hash(TransactionIdRequest::new(state.get_chain(), transaction_id.to_string(), None))
+                .await
+                .and_then(|transaction| transaction.ok_or_else(|| "returned null".into()));
+            recorder.record_available("transaction", transaction)
+        }
+        None => recorder,
+    }
 }
 
 async fn record_parser_block<T: ChainBlockTransactions + ?Sized>(state: &T, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
@@ -149,19 +166,43 @@ mod tests {
         sync::atomic::{AtomicUsize, Ordering},
     };
 
-    use primitives::Transaction;
+    use primitives::{AssetBalance, Chain, Transaction};
 
     use super::*;
-    use crate::ChainBlockTransactions;
+    use crate::{ChainBalances, ChainBlockTransactions, ChainProvider, ChainTransaction};
 
     #[derive(Default)]
-    struct ParserState {
+    struct TestState {
         latest_block_calls: AtomicUsize,
+        balance_calls: AtomicUsize,
+        transaction_calls: AtomicUsize,
         block_transaction_calls: AtomicUsize,
     }
 
+    impl ChainProvider for TestState {
+        fn get_chain(&self) -> Chain {
+            Chain::Ethereum
+        }
+    }
+
     #[async_trait]
-    impl ChainBlockTransactions for ParserState {
+    impl ChainBalances for TestState {
+        async fn get_balance_coin(&self, _address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
+            self.balance_calls.fetch_add(1, Ordering::Relaxed);
+            Err("balance unavailable".into())
+        }
+    }
+
+    #[async_trait]
+    impl ChainTransaction for TestState {
+        async fn get_transaction_by_hash(&self, _request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+            self.transaction_calls.fetch_add(1, Ordering::Relaxed);
+            Ok(None)
+        }
+    }
+
+    #[async_trait]
+    impl ChainBlockTransactions for TestState {
         async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
             self.block_transaction_calls.fetch_add(1, Ordering::Relaxed);
             assert_eq!(block, 90);
@@ -170,7 +211,7 @@ mod tests {
     }
 
     #[async_trait]
-    impl ChainState for ParserState {
+    impl ChainState for TestState {
         async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
             Ok("chain".to_string())
         }
@@ -183,13 +224,53 @@ mod tests {
 
     #[test]
     fn test_parser_profile_checks_block_transactions() {
-        let state = ParserState::default();
+        let state = TestState::default();
         let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Parser, &NodeSyncStatus::in_sync()));
 
         assert_eq!(report.checks.get("block_transactions"), Some(&NodeCheckStatus::Passed { result: "0".to_string() }));
         assert_eq!(report.checks.len(), 3);
         assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 1);
         assert_eq!(state.block_transaction_calls.load(Ordering::Relaxed), 1);
+    }
+
+    #[test]
+    fn test_wallet_profile_runs_configured_checks() {
+        let state = TestState::default();
+        let request = NodeCheckRequest::Wallet {
+            address: "address".to_string(),
+            transaction_id: Some("transaction".to_string()),
+        };
+        let report = futures::executor::block_on(check_node(&state, &request, &NodeSyncStatus::in_sync()));
+
+        assert_eq!(
+            report.checks.get("balance"),
+            Some(&NodeCheckStatus::Failed {
+                error: "balance unavailable".to_string()
+            })
+        );
+        assert_eq!(
+            report.checks.get("transaction"),
+            Some(&NodeCheckStatus::Failed {
+                error: "returned null".to_string()
+            })
+        );
+        assert_eq!(state.balance_calls.load(Ordering::Relaxed), 1);
+        assert_eq!(state.transaction_calls.load(Ordering::Relaxed), 1);
+    }
+
+    #[test]
+    fn test_wallet_profile_without_transaction_checks_balance() {
+        let state = TestState::default();
+        let request = NodeCheckRequest::Wallet {
+            address: "address".to_string(),
+            transaction_id: None,
+        };
+        let report = futures::executor::block_on(check_node(&state, &request, &NodeSyncStatus::in_sync()));
+
+        assert!(!report.is_healthy());
+        assert_eq!(report.checks.len(), 3);
+        assert_eq!(state.balance_calls.load(Ordering::Relaxed), 1);
+        assert_eq!(state.transaction_calls.load(Ordering::Relaxed), 0);
     }
 
     #[test]

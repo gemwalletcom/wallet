@@ -11,6 +11,17 @@ Dynode monitoring keeps one active RPC URL per chain and moves traffic between c
 - Switching is atomic: the selected URL is installed only if the active URL has not changed since the monitoring cycle started.
 - Request retries and monitoring are separate. Retries select an upstream for one request; monitoring changes the active URL shared by later requests.
 
+## Failure-triggered checks
+
+Dynode also starts a monitoring cycle when the active URL reaches either configured threshold:
+
+- `trigger.failures`: consecutive retryable failures.
+- `trigger.rate`: retryable failure percentage within `trigger.window`, after at least `trigger.failures` failed requests.
+
+Transport errors always count. Responses count only when their HTTP status or JSON-RPC error message matches `retry.errors`. Cache hits and fallback attempts do not count. The window also acts as the cooldown between triggered checks for the active URL.
+
+The rolling rate uses bounded time buckets, so memory use does not grow with request volume.
+
 ## Monitoring cycle
 
 Monitoring runs only for chains with more than one configured URL.
@@ -23,11 +34,11 @@ flowchart TD
     Preferred -- "Yes" --> CheckActive["Observe active URL"]
     CheckActive --> ActiveHealthy{"Healthy and in sync?"}
     ActiveHealthy -- "Yes" --> Keep["Keep active URL"]
-    ActiveHealthy -- "No" --> CheckRemaining["Observe remaining URLs concurrently"]
+    ActiveHealthy -- "No" --> CheckRemaining["Check URLs in priority order until one is usable"]
 
-    Preferred -- "No" --> CheckAll["Observe all URLs concurrently"]
+    Preferred -- "No" --> CheckEarlier["Observe active URL, then check eligible URLs in priority order"]
     CheckRemaining --> Select["Apply ordered selection policy"]
-    CheckAll --> Select
+    CheckEarlier --> Select
 
     Select --> CurrentHealthy{"Active URL healthy and in sync?"}
     CurrentHealthy -- "Yes" --> Earlier["Search only earlier URLs"]
@@ -41,7 +52,7 @@ flowchart TD
     Switch --> Record["Update metrics and log reason"]
 ```
 
-The first-URL fast path avoids unnecessary checks while the preferred node is healthy. When a fallback is active, all URLs are checked so an earlier URL can reclaim priority as soon as it recovers.
+The first-URL fast path avoids unnecessary checks while the preferred node is healthy. Other checks stop at the first usable URL in configuration order. A healthy fallback checks only higher-priority URLs; an unhealthy active URL searches the full list.
 
 ## Observing one URL
 
@@ -66,10 +77,10 @@ flowchart TD
 Every profile verifies the chain identity and latest block number. Additional checks depend on the configured profile:
 
 - `basic` performs no additional checks.
-- `wallet` adds methods needed by wallet clients.
+- `wallet` checks the configured address balance on every chain and adds richer chain-specific checks where available.
 - `parser` verifies the latest block number and that the node can return transactions for a recent block.
 
-Unsupported or failed required checks make the observation unhealthy. Optional checks may be recorded as warnings without rejecting the node.
+Failed required checks make the observation unhealthy. Optional checks may be recorded as warnings without rejecting the node.
 
 ## Ordered selection
 
@@ -93,7 +104,9 @@ This matters for authenticated endpoints where `/v1/key` and `/v1/key/` can have
 
 ## Code map
 
-- [Monitoring worker](../apps/dynode/src/monitoring/worker.rs): schedules checks, controls the fast path, and applies switches.
+- [Monitoring worker](../apps/dynode/src/monitoring/worker.rs): creates one monitor per eligible chain.
+- [Chain monitor](../apps/dynode/src/monitoring/chain_monitor.rs): schedules periodic and failure-triggered checks.
+- [Node health evaluator](../apps/dynode/src/monitoring/evaluator.rs): observes eligible URLs and applies switches.
 - [Node observer](../apps/dynode/src/monitoring/node_observer.rs): creates one chain-provider observation.
 - [Selection policy](../apps/dynode/src/monitoring/selection.rs): applies configured priority and recovery behavior.
 - [Telemetry](../apps/dynode/src/monitoring/telemetry.rs): records observations and switch outcomes.

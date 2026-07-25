@@ -16,7 +16,7 @@ pub enum NodeCheckProfile {
 #[derive(Debug, PartialEq, Eq)]
 pub enum NodeCheckRequest {
     Basic,
-    Wallet { address: String, transaction_id: String },
+    Wallet { address: String, transaction_id: Option<String> },
     Parser,
 }
 

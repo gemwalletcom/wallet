@@ -35,6 +35,30 @@ pub struct NodeMonitoringConfig {
     pub profile: NodeCheckProfile,
     #[serde(deserialize_with = "duration::deserialize")]
     pub interval: Duration,
+    pub trigger: FailureTriggerConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct FailureTriggerConfig {
+    pub failures: usize,
+    pub rate: u8,
+    #[serde(deserialize_with = "duration::deserialize")]
+    pub window: Duration,
+}
+
+impl FailureTriggerConfig {
+    fn validate(&self) -> Result<(), ConfigError> {
+        if self.failures == 0 {
+            return Err(ConfigError::Message("monitoring.trigger.failures must be greater than zero".to_string()));
+        }
+        if !(1..=100).contains(&self.rate) {
+            return Err(ConfigError::Message("monitoring.trigger.rate must be between 1 and 100".to_string()));
+        }
+        if self.window.is_zero() {
+            return Err(ConfigError::Message("monitoring.trigger.window must be greater than zero".to_string()));
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -76,6 +100,8 @@ impl RetryConfig {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::normalize_matcher;
     use crate::testkit::config as testkit;
 
@@ -127,6 +153,25 @@ mod tests {
         let config_limited = testkit::retry_config_with_attempts(true, 3, vec![], vec![]);
         assert_eq!(config_limited.effective_max_attempts(5), 3);
         assert_eq!(config_limited.effective_max_attempts(2), 2);
+    }
+
+    #[test]
+    fn test_failure_trigger_validation() {
+        let mut trigger = testkit::monitoring_config().trigger;
+        assert!(trigger.validate().is_ok());
+
+        trigger.failures = 0;
+        assert!(trigger.validate().is_err());
+        trigger.failures = 1;
+
+        trigger.rate = 0;
+        assert!(trigger.validate().is_err());
+        trigger.rate = 101;
+        assert!(trigger.validate().is_err());
+        trigger.rate = 1;
+
+        trigger.window = Duration::ZERO;
+        assert!(trigger.validate().is_err());
     }
 }
 
@@ -225,6 +270,7 @@ pub fn load_config() -> Result<(NodeConfig, HashMap<Chain, ChainConfig>), Config
         .build()?
         .try_deserialize()?;
     config.normalize();
+    config.monitoring.trigger.validate()?;
 
     let chains = find_chain_files(&base_dir)
         .into_iter()

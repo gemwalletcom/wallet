@@ -11,11 +11,26 @@ pub struct ProxyResponse {
     pub status: u16,
     pub headers: HeaderMap,
     pub body: Vec<u8>,
+    from_cache: bool,
 }
 
 impl ProxyResponse {
     pub fn new(status: u16, headers: HeaderMap, body: Vec<u8>) -> Self {
-        Self { status, headers, body }
+        Self {
+            status,
+            headers,
+            body,
+            from_cache: false,
+        }
+    }
+
+    pub(crate) fn into_cached(mut self) -> Self {
+        self.from_cache = true;
+        self
+    }
+
+    pub(crate) fn is_from_cache(&self) -> bool {
+        self.from_cache
     }
 }
 
@@ -61,7 +76,7 @@ impl ResponseBuilder {
         headers.insert(header::CONTENT_TYPE, content_header);
         headers.extend(additional_headers);
 
-        ProxyResponse::new(cached.status, headers, cached.body)
+        ProxyResponse::new(cached.status, headers, cached.body).into_cached()
     }
 }
 
@@ -76,5 +91,13 @@ mod tests {
         assert_eq!(headers.get("x-request-id").unwrap(), "request-id");
         assert_eq!(headers.get("x-upstream-latency").unwrap(), "42ms");
         assert!(headers.get("x-upstream-host").is_none());
+    }
+
+    #[test]
+    fn test_cached_response_source() {
+        let cached = super::super::CachedResponse::new(Vec::new(), 200, JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
+        let response = ResponseBuilder::build_cached_with_headers(cached, HeaderMap::new());
+
+        assert!(response.is_from_cache());
     }
 }

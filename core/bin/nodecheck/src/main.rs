@@ -24,7 +24,7 @@ struct Args {
 
 impl Args {
     async fn run(&self) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let request = node_check_request(self.chain, self.profile)?;
+        let request = node_check_request(self.chain, self.profile);
         Ok(NodeCheckService::new(request, new_provider(self.chain, &self.url, &self.headers)?).run().await)
     }
 }

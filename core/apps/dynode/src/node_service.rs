@@ -11,9 +11,10 @@ use reqwest::StatusCode;
 use tokio::sync::RwLock;
 
 use crate::cache::RequestCache;
-use crate::config::{CacheConfig, ChainConfig, ChainTypesConfig, ErrorMatcherConfig, HeadersConfig, RetryConfig, Url};
+use crate::config::{CacheConfig, ChainConfig, ChainTypesConfig, ErrorMatcherConfig, HeadersConfig, NodeMonitoringConfig, RetryConfig, Url};
 use crate::jsonrpc_types::{JsonRpcErrorResponse, RequestType};
 use crate::metrics::Metrics;
+use crate::monitoring::NodeMonitor;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_builder::ProxyBuilder;
 use crate::proxy::proxy_request::ProxyRequest;
@@ -27,7 +28,6 @@ use settings_chain::BroadcastProviders;
 
 use self::error::{NodeServiceError, RetryReason};
 
-#[derive(Clone)]
 pub struct NodeService {
     pub chains: HashMap<Chain, ChainConfig>,
     pub nodes: Arc<RwLock<HashMap<Chain, NodeDomain>>>,
@@ -35,6 +35,7 @@ pub struct NodeService {
     chain_types: ChainTypesConfig,
     pub retry_config: RetryConfig,
     proxy_builder: ProxyBuilder,
+    node_monitor: NodeMonitor,
 }
 
 impl NodeService {
@@ -47,6 +48,7 @@ impl NodeService {
         retry_config: RetryConfig,
         headers_config: HeadersConfig,
         broadcast_webhook: DynodeBroadcastWebhookClient,
+        monitoring_config: NodeMonitoringConfig,
     ) -> Self {
         let nodes = chains
             .values()
@@ -56,15 +58,23 @@ impl NodeService {
         let cache = RequestCache::new(cache_config, &chain_types, chains.values());
         let broadcast_providers = Arc::new(BroadcastProviders::from_chains(chains.keys().copied()));
         let proxy_builder = ProxyBuilder::new(metrics.clone(), cache, client, headers_config, broadcast_webhook, broadcast_providers);
+        let nodes = Arc::new(RwLock::new(nodes));
+        let metrics = Arc::new(metrics);
+        let node_monitor = NodeMonitor::new(chains.values().cloned(), Arc::clone(&nodes), Arc::clone(&metrics), monitoring_config);
 
         Self {
             chains,
-            nodes: Arc::new(RwLock::new(nodes)),
-            metrics: Arc::new(metrics),
+            nodes,
+            metrics,
             chain_types,
             retry_config,
             proxy_builder,
+            node_monitor,
         }
+    }
+
+    pub fn start_monitoring(&mut self) {
+        self.node_monitor.start();
     }
 
     pub async fn handle_request(&self, request: ProxyRequest) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
@@ -116,6 +126,9 @@ impl NodeService {
             match self.proxy_builder.handle_request(request.clone(), &node_domain).await {
                 Ok(response) => {
                     let retry_error = self.matches_response_error_signal(&request, &response, &self.retry_config.errors);
+                    if !response.is_from_cache() {
+                        self.report_active_node_outcome(index, request.chain, url, retry_error);
+                    }
                     if !retry_error {
                         return Ok(response);
                     }
@@ -132,6 +145,7 @@ impl NodeService {
                     last_error_data = upstream_data;
                 }
                 Err(e) => {
+                    self.report_active_node_outcome(index, request.chain, url, true);
                     if !retry_enabled {
                         return Err(e);
                     }
@@ -168,6 +182,12 @@ impl NodeService {
             );
         }
         self.log_and_create_error_response(&request, None, NodeServiceError::UpstreamsFailed, last_error_data)
+    }
+
+    fn report_active_node_outcome(&self, attempt_index: usize, chain: Chain, url: &Url, failed: bool) {
+        if attempt_index == 0 {
+            self.node_monitor.report(chain, url, failed);
+        }
     }
 
     fn log_incoming_request(request: &ProxyRequest) {
@@ -359,6 +379,10 @@ mod tests {
                 domains: HashMap::new(),
             },
             broadcast_webhook,
+            NodeMonitoringConfig {
+                enabled: false,
+                ..testkit::monitoring_config()
+            },
         )
     }
 

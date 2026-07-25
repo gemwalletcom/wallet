@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::config::{ErrorMatcherConfig, NodeMonitoringConfig, RetryConfig};
+use crate::config::{ErrorMatcherConfig, FailureTriggerConfig, NodeMonitoringConfig, RetryConfig};
 use primitives::NodeCheckProfile;
 
 pub fn monitoring_config() -> NodeMonitoringConfig {
@@ -8,6 +8,11 @@ pub fn monitoring_config() -> NodeMonitoringConfig {
         enabled: true,
         profile: NodeCheckProfile::Basic,
         interval: Duration::from_secs(600),
+        trigger: FailureTriggerConfig {
+            failures: 15,
+            rate: 50,
+            window: Duration::from_secs(60),
+        },
     }
 }
 

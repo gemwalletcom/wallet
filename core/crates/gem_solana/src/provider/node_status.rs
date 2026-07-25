@@ -24,7 +24,7 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
         record_node_state(self, status, Some(self.get_chain().network_id()), recorder, method::GET_GENESIS_HASH, method::GET_SLOT).await
     }
 
-    async fn get_node_wallet_status(&self, address: &str, _transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+    async fn get_node_wallet_status(&self, address: &str, _transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
         let balance = self.get_balance_coin(address.to_string()).await.map(|result| result.balance.available);
         let recorder = recorder.record(method::GET_BALANCE, balance);
 

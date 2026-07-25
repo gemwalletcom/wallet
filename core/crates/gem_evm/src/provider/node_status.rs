@@ -21,7 +21,10 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
         record_node_state(self, status, Some(self.get_chain().network_id()), recorder, method::ETH_CHAIN_ID, method::ETH_BLOCK_NUMBER).await
     }
 
-    async fn get_node_wallet_status(&self, address: &str, transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+    async fn get_node_wallet_status(&self, address: &str, transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+        let Some(transaction_id) = transaction_id else {
+            return recorder.record("wallet", Err::<&str, _>("missing transaction fixture"));
+        };
         let balance = self.get_balance_coin(address.to_string()).await.map(|result| result.balance.available);
         let recorder = recorder.record(method::ETH_GET_BALANCE, balance);
 

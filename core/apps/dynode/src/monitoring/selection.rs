@@ -15,11 +15,13 @@ impl NodeSelectionPolicy {
     pub(super) fn select_node<'a>(current: &Url, configured_observations: &'a [NodeStatusObservation]) -> Option<NodeSwitchResult<'a>> {
         let current_index = configured_observations.iter().position(|observation| observation.url == *current)?;
         let current_observation = &configured_observations[current_index];
-        let candidates = match &current_observation.state {
-            NodeStatusState::Healthy(status) if status.in_sync => &configured_observations[..current_index],
-            NodeStatusState::Healthy(_) | NodeStatusState::Error { .. } => configured_observations,
+        let candidates = if current_observation.state.is_healthy() {
+            &configured_observations[..current_index]
+        } else {
+            configured_observations
         };
-        let (candidate, candidate_status) = Self::highest_priority_healthy(current, candidates)?;
+        let candidate = candidates.iter().find(|observation| observation.url != *current && observation.state.is_healthy())?;
+        let candidate_status = candidate.state.as_status()?;
         let reason = match &current_observation.state {
             NodeStatusState::Error { message } => NodeSwitchReason::CurrentNodeError {
                 kind: current_observation.error_kind.clone(),
@@ -33,13 +35,6 @@ impl NodeSelectionPolicy {
         };
 
         Some(NodeSwitchResult { observation: candidate, reason })
-    }
-
-    fn highest_priority_healthy<'a>(current: &Url, configured_observations: &'a [NodeStatusObservation]) -> Option<(&'a NodeStatusObservation, &'a NodeSyncStatus)> {
-        configured_observations.iter().find_map(|observation| match &observation.state {
-            NodeStatusState::Healthy(status) if observation.url != *current && status.in_sync => Some((observation, status)),
-            NodeStatusState::Healthy(_) | NodeStatusState::Error { .. } => None,
-        })
     }
 
     fn status_height(status: &NodeSyncStatus) -> u64 {

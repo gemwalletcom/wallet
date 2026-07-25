@@ -6,9 +6,11 @@ use settings_chain::{ProviderConfig, ProviderFactory};
 
 use super::observation::NodeStatusObservation;
 use super::switch_reason::CurrentNodeErrorKind;
+use super::telemetry::NodeTelemetry;
 use crate::config::Url;
 
 pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: Url) -> NodeStatusObservation {
+    NodeTelemetry::log_check_started(chain, &url);
     let started_at = Instant::now();
     let observation = |state| NodeStatusObservation::new(url.clone(), state, started_at.elapsed());
 

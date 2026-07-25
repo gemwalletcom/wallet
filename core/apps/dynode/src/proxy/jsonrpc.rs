@@ -77,7 +77,7 @@ impl JsonRpcHandler {
                 );
 
                 let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
-                return Self::build_json_response(&response, proxy_headers, StatusCode::OK.as_u16());
+                return Self::build_json_response(&response, proxy_headers, StatusCode::OK.as_u16()).map(ProxyResponse::into_cached);
             } else {
                 metrics.add_cache_miss(request.chain.as_ref(), &call.method);
             }
