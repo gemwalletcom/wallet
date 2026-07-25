@@ -22,7 +22,7 @@ fun TransactionDetailsNavScreen(
     val context = LocalContext.current
 
     fun onShare(url: String, name: String) {
-        context.shareText(subject = url, text = url, chooserTitle = name)
+        context.shareText(subject = null, text = url, chooserTitle = name)
     }
 
     val model = transaction
