@@ -43,6 +43,7 @@ impl TransactionsRequest {
     }
 }
 
+#[async_trait]
 pub trait ChainTraits:
     ChainProvider
     + ChainBalances
@@ -60,6 +61,9 @@ pub trait ChainTraits:
     + ChainAddressStatus
     + ChainSimulation
 {
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
+        node_check::check_node(self, request, status).await
+    }
 }
 
 pub trait ChainProvider: Send + Sync {
@@ -178,10 +182,6 @@ pub trait ChainState: Send + Sync {
         Ok(NodeSyncStatus::in_sync())
     }
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>>;
-
-    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-        node_check::check_node(self, request, status).await
-    }
 }
 
 #[async_trait]

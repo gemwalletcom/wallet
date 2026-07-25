@@ -17,7 +17,7 @@ pub enum NodeCheckProfile {
 pub enum NodeCheckRequest {
     Basic,
     Wallet { address: String, transaction_id: String },
-    Parser { address: String, transaction_id: String },
+    Parser,
 }
 
 impl NodeCheckRequest {
@@ -25,7 +25,7 @@ impl NodeCheckRequest {
         match self {
             Self::Basic => NodeCheckProfile::Basic,
             Self::Wallet { .. } => NodeCheckProfile::Wallet,
-            Self::Parser { .. } => NodeCheckProfile::Parser,
+            Self::Parser => NodeCheckProfile::Parser,
         }
     }
 }

@@ -3,12 +3,12 @@ use std::error::Error;
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::{ChainState, node_check::ChainNodeStatus};
+use chain_traits::ChainState;
 
 use crate::rpc::{EthereumClient, EthereumProvider};
 use gem_client::Client;
 #[cfg(feature = "rpc")]
-use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
+use primitives::NodeSyncStatus;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
@@ -25,10 +25,6 @@ impl<C: Client + Clone> ChainState for EthereumProvider<C> {
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
         self.get_latest_block().await
-    }
-
-    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-        ChainNodeStatus::get_node_status(self, request, status).await
     }
 }
 

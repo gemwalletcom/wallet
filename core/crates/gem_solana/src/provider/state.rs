@@ -1,9 +1,9 @@
 use async_trait::async_trait;
-use chain_traits::{ChainState, node_check::ChainNodeStatus};
+use chain_traits::ChainState;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
+use primitives::NodeSyncStatus;
 
 use crate::provider::state_mapper;
 use crate::rpc::SolanaProvider;
@@ -21,10 +21,6 @@ impl<C: Client + Clone> ChainState for SolanaProvider<C> {
     async fn get_node_status(&self) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
         let slot = self.get_slot().await?;
         state_mapper::map_node_status(slot)
-    }
-
-    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-        ChainNodeStatus::get_node_status(self, request, status).await
     }
 }
 

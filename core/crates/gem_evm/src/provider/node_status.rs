@@ -1,14 +1,19 @@
 use async_trait::async_trait;
 use chain_traits::{
-    ChainBalances,
+    ChainBalances, ChainTraits,
     node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
 };
 use gem_client::Client;
-use primitives::NodeSyncStatus;
+use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
 
 use crate::{jsonrpc::TransactionObject, method, rpc::EthereumProvider};
 
-const PARSER_BLOCK_OFFSET: u64 = 10;
+#[async_trait]
+impl<C: Client + Clone> ChainTraits for EthereumProvider<C> {
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
+        ChainNodeStatus::get_node_status(self, request, status).await
+    }
+}
 
 #[async_trait]
 impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
@@ -36,15 +41,5 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
 
         let transaction = TransactionObject::new_call_with_from(address, address, Vec::new());
         recorder.record_optional_available(method::TRACE_CALL, self.trace_call(&transaction).await)
-    }
-
-    async fn get_node_parser_status(&self, _address: &str, _transaction_id: &str, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
-        let Some(latest_block) = status.current_block_number.or(status.latest_block_number) else {
-            return recorder;
-        };
-
-        let block_number = latest_block.saturating_sub(PARSER_BLOCK_OFFSET);
-        let recorder = recorder.record_available(method::ETH_GET_BLOCK_BY_NUMBER, self.get_block(block_number).await);
-        recorder.record_available(method::ETH_GET_BLOCK_RECEIPTS, self.get_block_receipts(block_number).await)
     }
 }

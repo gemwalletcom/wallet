@@ -63,11 +63,11 @@ flowchart TD
 
 `get_node_status` is implemented by each chain provider. For example, an EVM provider may use `eth_blockNumber`, while another chain uses its native status method. If the initial status call fails, profile checks are skipped because the node is already known to be unusable.
 
-The profile is resolved per chain:
+Every profile verifies the chain identity and latest block number. Additional checks depend on the configured profile:
 
-- `basic` verifies the minimum chain identity and node state.
+- `basic` performs no additional checks.
 - `wallet` adds methods needed by wallet clients.
-- `parser` adds methods needed by parser workloads.
+- `parser` verifies the latest block number and that the node can return transactions for a recent block.
 
 Unsupported or failed required checks make the observation unhealthy. Optional checks may be recorded as warnings without rejecting the node.
 

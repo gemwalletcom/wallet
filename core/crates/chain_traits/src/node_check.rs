@@ -3,34 +3,33 @@ use std::{collections::BTreeMap, fmt::Display};
 use async_trait::async_trait;
 use primitives::{NodeCheckReport, NodeCheckRequest, NodeCheckStatus, NodeSyncStatus};
 
-use crate::ChainState;
+use crate::{ChainBlockTransactions, ChainState};
 
 const MAX_RESULT_LENGTH: usize = 128;
+const PARSER_BLOCK_OFFSET: u64 = 10;
 
-pub(crate) async fn check_node<T: ChainState + ?Sized>(state: &T, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-    let recorder = record_node_state(state, status, None, NodeCheckRecorder::new(), "chain_id", "latest_block_number").await;
+pub(crate) async fn check_node<T: ChainBlockTransactions + ChainState + ?Sized>(state: &T, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
+    let recorder = record_node_state(state, status, None, NodeCheckRecorder::default(), "chain_id", "latest_block_number").await;
     if recorder.has_failed() {
         return recorder.finish();
     }
     let recorder = match request {
         NodeCheckRequest::Basic => recorder,
-        NodeCheckRequest::Wallet { .. } | NodeCheckRequest::Parser { .. } => recorder.record_error("node_check", "profile not supported"),
+        NodeCheckRequest::Wallet { .. } => recorder.record_error("node_check", "profile not supported"),
+        NodeCheckRequest::Parser => record_parser_block(state, recorder).await,
     };
     recorder.finish()
 }
 
+#[derive(Default)]
 pub struct NodeCheckRecorder {
     checks: BTreeMap<String, NodeCheckStatus>,
+    block_number: Option<u64>,
 }
 
 impl NodeCheckRecorder {
-    fn new() -> Self {
-        Self { checks: BTreeMap::new() }
-    }
-
     pub fn record<T: Display, E: Display>(self, method: &str, result: Result<T, E>) -> Self {
-        let (recorder, _) = self.record_value(method, result);
-        recorder
+        self.record_value(method, result).0
     }
 
     pub fn record_value<T: Display, E: Display>(self, method: &str, result: Result<T, E>) -> (Self, Option<T>) {
@@ -45,8 +44,7 @@ impl NodeCheckRecorder {
     }
 
     pub fn record_available<T, E: Display>(self, method: &str, result: Result<T, E>) -> Self {
-        let (recorder, _) = self.record_result(method, result.map(|value| (value, "available".to_string())));
-        recorder
+        self.record_result(method, result.map(|value| (value, "available".to_string()))).0
     }
 
     pub fn record_optional_available<T, E: Display>(self, method: &str, result: Result<T, E>) -> Self {
@@ -62,10 +60,7 @@ impl NodeCheckRecorder {
     }
 
     fn has_failed(&self) -> bool {
-        self.checks.values().any(|status| match status {
-            NodeCheckStatus::Passed { .. } | NodeCheckStatus::Warning { .. } => false,
-            NodeCheckStatus::Failed { .. } => true,
-        })
+        self.checks.values().any(|status| matches!(status, NodeCheckStatus::Failed { .. }))
     }
 
     fn finish(self) -> NodeCheckReport {
@@ -81,15 +76,17 @@ impl NodeCheckRecorder {
     }
 
     fn record_status(self, method: &str, status: NodeCheckStatus) -> Self {
-        let checks = self.checks.into_iter().chain([(method.to_string(), status)]).collect();
-        Self { checks }
+        let block_number = self.block_number;
+        let mut checks = self.checks;
+        checks.insert(method.to_string(), status);
+        Self { checks, block_number }
     }
 }
 
 #[async_trait]
-pub trait ChainNodeStatus: ChainState {
+pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
     async fn get_node_status(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-        let recorder = self.get_node_basic_status(status, NodeCheckRecorder::new()).await;
+        let recorder = self.get_node_basic_status(status, NodeCheckRecorder::default()).await;
         if recorder.has_failed() {
             return recorder.finish();
         }
@@ -97,7 +94,7 @@ pub trait ChainNodeStatus: ChainState {
         let recorder = match request {
             NodeCheckRequest::Basic => recorder,
             NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id, recorder).await,
-            NodeCheckRequest::Parser { address, transaction_id } => self.get_node_parser_status(address, transaction_id, status, recorder).await,
+            NodeCheckRequest::Parser => record_parser_block(self, recorder).await,
         };
         recorder.finish()
     }
@@ -105,8 +102,18 @@ pub trait ChainNodeStatus: ChainState {
     async fn get_node_basic_status(&self, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
 
     async fn get_node_wallet_status(&self, address: &str, transaction_id: &str, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+}
 
-    async fn get_node_parser_status(&self, address: &str, transaction_id: &str, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+async fn record_parser_block<T: ChainBlockTransactions + ?Sized>(state: &T, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+    let Some(latest_block) = recorder.block_number else {
+        return recorder;
+    };
+
+    let block_number = latest_block.saturating_sub(PARSER_BLOCK_OFFSET);
+    recorder.record(
+        "block_transactions",
+        state.get_transactions_by_block(block_number).await.map(|transactions| transactions.len()),
+    )
 }
 
 pub async fn record_node_state<T: ChainState + ?Sized>(
@@ -131,16 +138,63 @@ pub async fn record_node_state<T: ChainState + ?Sized>(
         None => state.get_block_latest_number().await.map_err(|error| error.to_string()),
     }
     .and_then(|block_number| if block_number > 0 { Ok(block_number) } else { Err("received zero".to_string()) });
-    recorder.record(block_number_method, block_number)
+    let (recorder, block_number) = recorder.record_value(block_number_method, block_number);
+    NodeCheckRecorder { block_number, ..recorder }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        error::Error,
+        sync::atomic::{AtomicUsize, Ordering},
+    };
+
+    use primitives::Transaction;
+
     use super::*;
+    use crate::ChainBlockTransactions;
+
+    #[derive(Default)]
+    struct ParserState {
+        latest_block_calls: AtomicUsize,
+        block_transaction_calls: AtomicUsize,
+    }
+
+    #[async_trait]
+    impl ChainBlockTransactions for ParserState {
+        async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+            self.block_transaction_calls.fetch_add(1, Ordering::Relaxed);
+            assert_eq!(block, 90);
+            Ok(Vec::new())
+        }
+    }
+
+    #[async_trait]
+    impl ChainState for ParserState {
+        async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
+            Ok("chain".to_string())
+        }
+
+        async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
+            self.latest_block_calls.fetch_add(1, Ordering::Relaxed);
+            Ok(100)
+        }
+    }
+
+    #[test]
+    fn test_parser_profile_checks_block_transactions() {
+        let state = ParserState::default();
+        let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Parser, &NodeSyncStatus::in_sync()));
+
+        assert_eq!(report.checks.get("block_transactions"), Some(&NodeCheckStatus::Passed { result: "0".to_string() }));
+        assert_eq!(report.checks.len(), 3);
+        assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 1);
+        assert_eq!(state.block_transaction_calls.load(Ordering::Relaxed), 1);
+    }
 
     #[test]
     fn hides_large_results() {
-        let recorder = NodeCheckRecorder::new();
+        let recorder = NodeCheckRecorder::default();
         let value = "x".repeat(MAX_RESULT_LENGTH + 1);
         let result: Result<String, &str> = Ok(value.clone());
 
@@ -152,7 +206,7 @@ mod tests {
     #[test]
     fn records_optional_failure_as_warning() {
         let result: Result<(), &str> = Err("method not found");
-        let recorder = NodeCheckRecorder::new().record_optional_available("method", result);
+        let recorder = NodeCheckRecorder::default().record_optional_available("method", result);
 
         assert_eq!(
             recorder.finish().checks.get("method"),

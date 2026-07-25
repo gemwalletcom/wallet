@@ -1,15 +1,22 @@
 use async_trait::async_trait;
 use chain_traits::{
-    ChainBalances, ChainToken,
+    ChainBalances, ChainToken, ChainTraits,
     node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
 };
 use gem_client::Client;
-use primitives::NodeSyncStatus;
+use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
 
-use crate::{USDC_TOKEN_MINT, method, models::SingleTransaction, rpc::SolanaProvider};
+use crate::{USDC_TOKEN_MINT, method, rpc::SolanaProvider};
 
 const GET_TOKEN_ACCOUNTS_BY_OWNER_MINT_CHECK: &str = "getTokenAccountsByOwner(mint)";
 const GET_TOKEN_ACCOUNTS_BY_OWNER_PROGRAM_ID_CHECK: &str = "getTokenAccountsByOwner(programId)";
+
+#[async_trait]
+impl<C: Client + Clone> ChainTraits for SolanaProvider<C> {
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
+        ChainNodeStatus::get_node_status(self, request, status).await
+    }
+}
 
 #[async_trait]
 impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
@@ -47,20 +54,48 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
             self.get_multiple_accounts(vec![USDC_TOKEN_MINT.to_string()]).await.map(|result| result.value.len()),
         )
     }
+}
 
-    async fn get_node_parser_status(&self, address: &str, transaction_id: &str, _status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
-        let signatures = self.get_signatures_for_address(address, 100).await.map(|signatures| signatures.len());
-        let recorder = recorder.record(method::GET_SIGNATURES_FOR_ADDRESS, signatures);
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
 
-        let transaction = self
-            .get_transaction::<SingleTransaction>(transaction_id)
-            .await
-            .map_err(|error| error.to_string())
-            .and_then(|transaction| transaction.ok_or_else(|| "returned null".to_string()))
-            .map(|transaction| transaction.slot);
-        let (recorder, slot) = recorder.record_value(method::GET_TRANSACTION, transaction);
-        let Some(slot) = slot else { return recorder };
+    use chain_traits::ChainTraits;
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use primitives::{NodeCheckReport, NodeCheckRequest, NodeCheckStatus, NodeSyncStatus};
+    use serde_json::json;
 
-        recorder.record_available(method::GET_BLOCK, self.get_block_transactions(slot).await)
+    use super::*;
+    use crate::rpc::SolanaClient;
+
+    #[tokio::test]
+    async fn test_parser_profile_checks_recent_block() {
+        let client = mock_jsonrpc_client(|method, params| match method {
+            method::GET_GENESIS_HASH => Ok(json!("5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d")),
+            method::GET_BLOCK => {
+                assert_eq!(params[0], 990);
+                Ok(json!({ "blockTime": 1_700_000_000, "transactions": [] }))
+            }
+            _ => panic!("unexpected method: {method}"),
+        });
+        let provider = SolanaProvider::new_rpc_only(SolanaClient::new(client));
+
+        let report = ChainTraits::check_node(&provider, &NodeCheckRequest::Parser, &NodeSyncStatus::synced(1_000)).await;
+
+        assert_eq!(
+            report,
+            NodeCheckReport {
+                checks: BTreeMap::from([
+                    ("block_transactions".to_string(), NodeCheckStatus::Passed { result: "0".to_string() }),
+                    (
+                        method::GET_GENESIS_HASH.to_string(),
+                        NodeCheckStatus::Passed {
+                            result: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d".to_string()
+                        }
+                    ),
+                    (method::GET_SLOT.to_string(), NodeCheckStatus::Passed { result: "1000".to_string() }),
+                ])
+            }
+        );
     }
 }

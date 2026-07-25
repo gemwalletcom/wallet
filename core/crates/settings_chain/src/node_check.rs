@@ -5,10 +5,14 @@ const BSC_POLYGON_ADDRESS: &str = "0x2A49C84B7173e21f9116B2798735f87531526b36";
 const ARBITRUM_ROBINHOOD_ADDRESS: &str = "0x00000000000000000000000000000000000a4b05";
 
 pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> Result<NodeCheckRequest, String> {
-    if profile == NodeCheckProfile::Basic {
-        return Ok(NodeCheckRequest::Basic);
+    match profile {
+        NodeCheckProfile::Basic => Ok(NodeCheckRequest::Basic),
+        NodeCheckProfile::Parser => Ok(NodeCheckRequest::Parser),
+        NodeCheckProfile::Wallet => wallet_node_check_request(chain),
     }
+}
 
+fn wallet_node_check_request(chain: Chain) -> Result<NodeCheckRequest, String> {
     let (address, transaction_id) = match chain {
         Chain::Ethereum => (
             "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4",
@@ -108,14 +112,23 @@ pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> Result<Nod
         | Chain::Algorand
         | Chain::Polkadot
         | Chain::Cardano
-        | Chain::HyperCore => return Err(format!("{profile} profile is not supported for {chain}")),
+        | Chain::HyperCore => return Err(format!("{} profile is not supported for {chain}", NodeCheckProfile::Wallet)),
     };
 
-    let address = address.to_string();
-    let transaction_id = transaction_id.to_string();
-    if profile == NodeCheckProfile::Wallet {
-        Ok(NodeCheckRequest::Wallet { address, transaction_id })
-    } else {
-        Ok(NodeCheckRequest::Parser { address, transaction_id })
+    Ok(NodeCheckRequest::Wallet {
+        address: address.to_string(),
+        transaction_id: transaction_id.to_string(),
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parser_profile_supported_for_all_chains() {
+        for chain in Chain::all() {
+            assert_eq!(node_check_request(chain, NodeCheckProfile::Parser), Ok(NodeCheckRequest::Parser));
+        }
     }
 }
