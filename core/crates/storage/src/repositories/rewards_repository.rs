@@ -242,6 +242,7 @@ fn complete_referral(client: &mut DatabaseClient, referred_username: &str) -> Re
 
 pub trait RewardsRepository {
     fn get_reward_by_wallet_id(&mut self, wallet_id: i32) -> Result<Rewards, DatabaseError>;
+    fn get_username_by_wallet_id(&mut self, wallet_id: i32) -> Result<Option<String>, DatabaseError>;
     fn get_reward_events_by_wallet_id(&mut self, wallet_id: i32) -> Result<Vec<RewardEvent>, DatabaseError>;
     fn get_reward_event(&mut self, event_id: i32) -> Result<RewardEvent, DatabaseError>;
     fn get_reward_event_devices(&mut self, event_id: i32) -> Result<Vec<Device>, DatabaseError>;
@@ -286,14 +287,12 @@ impl RewardsRepository for DatabaseClient {
     fn get_reward_by_wallet_id(&mut self, wallet_id: i32) -> Result<Rewards, DatabaseError> {
         let username = ensure_wallet_reward_identity(self, wallet_id)?;
         let rewards = require_rewards(self, &username.username)?;
-        let has_custom_code = username.has_custom_username();
-        let code = if has_custom_code { Some(username.username.clone()) } else { None };
-
+        let code = username.has_custom_username().then(|| username.username.clone());
         let status = *rewards.status;
         let types = [RewardRedemptionType::Asset];
-        let options = RewardsRedemptionsRepository::get_redemption_options(self, &types)?
+        let redemption_options = RewardsRedemptionsRepository::get_redemption_options(self, &types)?
             .into_iter()
-            .filter(|x| x.remaining.unwrap_or_default() > 0)
+            .filter(|option| option.remaining.unwrap_or_default() > 0)
             .collect();
 
         Ok(Rewards {
@@ -305,10 +304,14 @@ impl RewardsRepository for DatabaseClient {
             status,
             created_at: rewards.created_at,
             verify_after: rewards.verify_after.map(|dt| dt.and_utc()),
-            redemption_options: options,
+            redemption_options,
             disable_reason: rewards.disable_reason.clone(),
             referral_allowance: Default::default(),
         })
+    }
+
+    fn get_username_by_wallet_id(&mut self, wallet_id: i32) -> Result<Option<String>, DatabaseError> {
+        Ok(find_username(self, UsernameLookup::WalletId(wallet_id))?.map(|username| username.username))
     }
 
     fn get_reward_events_by_wallet_id(&mut self, wallet_id: i32) -> Result<Vec<RewardEvent>, DatabaseError> {

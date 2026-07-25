@@ -159,6 +159,8 @@ pub mod push_notification;
 pub use self::push_notification::{PushNotification, PushNotificationAsset, PushNotificationReward, PushNotificationSupport, PushNotificationTransaction, PushNotificationTypes};
 pub mod gorush;
 pub use self::gorush::{FailedNotification, GorushNotification, GorushNotifications, PushErrorLog};
+pub mod admin;
+pub use self::admin::{AdminDevice, AdminWalletOverview};
 pub mod scan;
 pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanTransaction, ScanTransactionPayload};
 pub mod hex;

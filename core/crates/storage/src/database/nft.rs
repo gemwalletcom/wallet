@@ -42,6 +42,7 @@ pub(crate) trait NftStore {
     fn set_nft_collection_links(&mut self, collection_id: i32, values: Vec<NftLinkRow>) -> Result<usize, diesel::result::Error>;
     fn add_nft_report(&mut self, report: NewNftReportRow) -> Result<usize, diesel::result::Error>;
     fn get_nft_asset_association_ids_by_filter(&mut self, filters: Vec<NftAssetAssociationFilter>) -> Result<Vec<i32>, diesel::result::Error>;
+    fn count_nft_assets_by_address_ids(&mut self, address_ids: Vec<i32>, chains: Vec<Chain>) -> Result<i64, diesel::result::Error>;
     fn add_nft_asset_associations(&mut self, values: Vec<NewNftAssetAssociationRow>) -> Result<usize, diesel::result::Error>;
     fn delete_nft_asset_associations(&mut self, address_id: i32, asset_ids: Vec<i32>) -> Result<usize, diesel::result::Error>;
 }
@@ -169,6 +170,22 @@ impl NftStore for DatabaseClient {
             }
         }
         query.select(asset_id).load(&mut self.connection)
+    }
+
+    fn count_nft_assets_by_address_ids(&mut self, address_ids: Vec<i32>, chains: Vec<Chain>) -> Result<i64, diesel::result::Error> {
+        use crate::schema::nft_assets::dsl::{chain as asset_chain, id as asset_pk, nft_assets};
+        use crate::schema::nft_assets_associations::dsl::*;
+
+        if address_ids.is_empty() || chains.is_empty() {
+            return Ok(0);
+        }
+
+        nft_assets_associations
+            .inner_join(nft_assets.on(asset_pk.eq(asset_id)))
+            .filter(address_id.eq_any(address_ids))
+            .filter(asset_chain.eq_any(chains.into_iter().map(ChainRow::from).collect::<Vec<_>>()))
+            .select(diesel::dsl::count(asset_id).aggregate_distinct())
+            .first(&mut self.connection)
     }
 
     fn add_nft_asset_associations(&mut self, values: Vec<NewNftAssetAssociationRow>) -> Result<usize, diesel::result::Error> {

@@ -37,6 +37,7 @@ pub(crate) trait TransactionsStore {
         from_datetime: Option<NaiveDateTime>,
         limit: usize,
     ) -> Result<Vec<TransactionRow>, diesel::result::Error>;
+    fn count_transactions_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, diesel::result::Error>;
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, diesel::result::Error>;
     fn delete_transactions_addresses(&mut self, chain_addresses: Vec<AddressChainIdResultRow>) -> Result<Vec<i64>, diesel::result::Error>;
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, diesel::result::Error>;
@@ -170,6 +171,22 @@ impl TransactionsStore for DatabaseClient {
             .select(TransactionRow::as_select())
             .distinct()
             .load(&mut self.connection)
+    }
+
+    fn count_transactions_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, diesel::result::Error> {
+        use crate::schema::transactions::dsl::*;
+
+        if addresses.is_empty() || chains.is_empty() {
+            return Ok(0);
+        }
+
+        transactions
+            .inner_join(transactions_addresses::table)
+            .filter(chain.eq_any(chains))
+            .filter(transactions_addresses::address.eq_any(addresses))
+            .filter(state.ne(TransactionState::InTransit))
+            .select(count(id).aggregate_distinct())
+            .first(&mut self.connection)
     }
 
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, diesel::result::Error> {

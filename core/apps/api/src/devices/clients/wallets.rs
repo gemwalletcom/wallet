@@ -1,10 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
 
-use primitives::{AddressChains, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
+use primitives::{AddressChains, AdminWalletOverview, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
 use storage::models::NewWalletRow;
 use storage::sql_types::WalletType;
-use storage::{Database, DevicesRepository, WalletsRepository};
+use storage::{Database, DevicesRepository, FiatRepository, NftRepository, RewardsRepository, TransactionsRepository, WalletsRepository};
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue};
 
 #[derive(Clone)]
@@ -56,15 +56,61 @@ impl WalletsClient {
 
         Ok(subscriptions
             .into_values()
-            .map(|(wallet_id, source, addresses)| WalletSubscription {
-                wallet_id,
-                source: Some(source),
-                subscriptions: addresses
-                    .into_iter()
-                    .map(|(address, chains)| AddressChains::new(address, chains.into_iter().collect()))
-                    .collect(),
-            })
+            .map(|(wallet_id, source, addresses)| wallet_subscription(wallet_id, source, addresses))
             .collect())
+    }
+
+    pub fn get_wallet_overviews(&self, device_row_id: i32) -> Result<Vec<AdminWalletOverview>, Box<dyn Error + Send + Sync>> {
+        let rows = self.database.wallets()?.get_subscriptions(device_row_id)?;
+
+        rows.into_iter()
+            .fold(BTreeMap::<String, WalletOverviewBuilder>::new(), |mut wallets, (wallet, subscription, address)| {
+                let entry = wallets.entry(wallet.wallet_id.0.id()).or_insert_with(|| WalletOverviewBuilder {
+                    wallet_id: wallet.id,
+                    identifier: wallet.wallet_id.0,
+                    source: wallet.source.0,
+                    addresses: BTreeSet::new(),
+                    address_ids: BTreeSet::new(),
+                    chains: BTreeSet::new(),
+                    subscription_count: 0,
+                });
+                entry.subscription_count += 1;
+                entry.addresses.insert(address.address);
+                entry.address_ids.insert(address.id);
+                entry.chains.insert(subscription.chain.0);
+                wallets
+            })
+            .into_values()
+            .map(|wallet| {
+                let chains = wallet.chains.into_iter().collect::<Vec<_>>();
+                Ok(AdminWalletOverview {
+                    transaction_count: self.database.transactions()?.count_transactions_by_addresses(
+                        wallet.addresses.into_iter().collect(),
+                        chains.iter().map(|chain| chain.as_ref().to_string()).collect(),
+                    )?,
+                    fiat_transaction_count: self.database.fiat()?.count_fiat_transactions_by_device_and_wallet_id(device_row_id, wallet.wallet_id)?,
+                    nft_count: self.database.nft()?.count_nft_assets_by_address_ids(wallet.address_ids.into_iter().collect(), chains.clone())?,
+                    chains,
+                    id: wallet.identifier,
+                    source: wallet.source,
+                    username: self.database.rewards()?.get_username_by_wallet_id(wallet.wallet_id)?,
+                    subscription_count: wallet.subscription_count,
+                })
+            })
+            .collect()
+    }
+
+    pub fn get_wallet_subscription(&self, device_id: &str, wallet_id: &str) -> Result<WalletSubscription, Box<dyn Error + Send + Sync>> {
+        let device_row_id = self.database.devices()?.get_device_row_id(device_id)?;
+        let wallet = self.database.wallets()?.get_wallet_by_device_and_identifier(device_row_id, wallet_id)?;
+        let rows = self.database.wallets()?.get_subscriptions_by_wallet_id(device_row_id, wallet.id)?;
+        let mut addresses = BTreeMap::<String, BTreeSet<Chain>>::new();
+
+        for (subscription, address) in rows {
+            addresses.entry(address.address).or_default().insert(subscription.chain.0);
+        }
+
+        Ok(wallet_subscription(wallet.wallet_id.0, wallet.source.0, addresses))
     }
 
     pub async fn add_subscriptions(&self, device_row_id: i32, wallet_subscriptions: Vec<WalletSubscription>) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -138,4 +184,25 @@ impl WalletsClient {
 
         Ok(count)
     }
+}
+
+fn wallet_subscription(wallet_id: WalletId, source: WalletSource, addresses: BTreeMap<String, BTreeSet<Chain>>) -> WalletSubscription {
+    WalletSubscription {
+        wallet_id,
+        source: Some(source),
+        subscriptions: addresses
+            .into_iter()
+            .map(|(address, chains)| AddressChains::new(address, chains.into_iter().collect()))
+            .collect(),
+    }
+}
+
+struct WalletOverviewBuilder {
+    wallet_id: i32,
+    identifier: WalletId,
+    source: WalletSource,
+    addresses: BTreeSet<String>,
+    address_ids: BTreeSet<i32>,
+    chains: BTreeSet<Chain>,
+    subscription_count: usize,
 }

@@ -6,6 +6,7 @@ use diesel::prelude::*;
 pub(crate) trait PriceAlertsStore {
     fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime) -> Result<Vec<(PriceAlertRow, crate::models::DeviceRow)>, diesel::result::Error>;
     fn get_price_alerts_for_device_id(&mut self, device_id: &str, asset_id: Option<&str>) -> Result<Vec<(PriceAlertRow, crate::models::DeviceRow)>, diesel::result::Error>;
+    fn count_price_alerts_by_device_id(&mut self, device_id: i32) -> Result<i64, diesel::result::Error>;
     fn add_price_alerts(&mut self, values: Vec<NewPriceAlertRow>) -> Result<usize, diesel::result::Error>;
     fn delete_price_alerts(&mut self, device_id: i32, ids: Vec<String>) -> Result<usize, diesel::result::Error>;
     fn update_price_alerts_set_notified_at(&mut self, ids: Vec<String>, last_notified_at: NaiveDateTime) -> Result<usize, diesel::result::Error>;
@@ -40,6 +41,12 @@ impl PriceAlertsStore for DatabaseClient {
         }
 
         query.select((PriceAlertRow::as_select(), crate::models::DeviceRow::as_select())).load(&mut self.connection)
+    }
+
+    fn count_price_alerts_by_device_id(&mut self, _device_id: i32) -> Result<i64, diesel::result::Error> {
+        use crate::schema::price_alerts::dsl::*;
+
+        price_alerts.filter(device_id.eq(_device_id)).count().get_result(&mut self.connection)
     }
 
     fn add_price_alerts(&mut self, values: Vec<NewPriceAlertRow>) -> Result<usize, diesel::result::Error> {

@@ -12,6 +12,7 @@ use crate::repositories::prices_repository::PricesRepository;
 pub trait PriceAlertsRepository {
     fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(PriceAlert, PriceData, Device)>, DatabaseError>;
     fn get_price_alerts_for_device_id(&mut self, device_id: &str, asset_id: Option<&AssetId>) -> Result<Vec<DevicePriceAlert>, DatabaseError>;
+    fn count_price_alerts_for_device_id(&mut self, device_id: i32) -> Result<i64, DatabaseError>;
     fn add_price_alerts(&mut self, device_id: &str, price_alerts: PriceAlerts) -> Result<usize, DatabaseError>;
     fn delete_price_alerts(&mut self, device_id: &str, ids: Vec<String>) -> Result<usize, DatabaseError>;
     fn update_price_alerts_set_notified_at(&mut self, ids: Vec<String>, last_notified_at: NaiveDateTime) -> Result<usize, DatabaseError>;
@@ -54,6 +55,10 @@ impl PriceAlertsRepository for DatabaseClient {
                 price_alert: alert.as_primitive(),
             })
             .collect())
+    }
+
+    fn count_price_alerts_for_device_id(&mut self, device_id: i32) -> Result<i64, DatabaseError> {
+        Ok(PriceAlertsStore::count_price_alerts_by_device_id(self, device_id)?)
     }
 
     fn add_price_alerts(&mut self, device_id: &str, price_alerts: PriceAlerts) -> Result<usize, DatabaseError> {

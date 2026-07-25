@@ -21,6 +21,7 @@ pub trait TransactionsRepository {
         from_datetime: Option<NaiveDateTime>,
         limit: usize,
     ) -> Result<Vec<TransactionRow>, DatabaseError>;
+    fn count_transactions_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError>;
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, DatabaseError>;
     fn delete_transactions_addresses(&mut self, chain_addresses: Vec<AddressChainIdResultRow>) -> Result<Vec<i64>, DatabaseError>;
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError>;
@@ -65,6 +66,10 @@ impl TransactionsRepository for DatabaseClient {
             from_datetime,
             limit,
         )?)
+    }
+
+    fn count_transactions_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError> {
+        Ok(TransactionsStore::count_transactions_by_addresses(self, addresses, chains)?)
     }
 
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, DatabaseError> {

@@ -1,4 +1,4 @@
-use primitives::{Device, FiatTransactionData, TransactionsResponse, WalletSubscription};
+use primitives::{AdminDevice, FiatTransactionData, TransactionsResponse, WalletSubscription};
 use rocket::{State, get};
 
 use crate::api_clients::{PermissionDeviceRead, PermissionDeviceSubscriptionsRead, PermissionDeviceTransactionsRead, PermissionFiatTransactionsRead};
@@ -6,8 +6,13 @@ use crate::devices::{DevicesClient, FiatQuotesClient, TransactionsClient, Wallet
 use crate::responders::{ApiError, ApiResponse};
 
 #[get("/devices/<device_id>")]
-pub async fn get_device(_permission: PermissionDeviceRead, device_id: &str, client: &State<DevicesClient>) -> Result<ApiResponse<Device>, ApiError> {
-    Ok(client.get_device(device_id)?.into())
+pub async fn get_device(
+    _permission: PermissionDeviceRead,
+    device_id: &str,
+    devices: &State<DevicesClient>,
+    wallets: &State<WalletsClient>,
+) -> Result<ApiResponse<AdminDevice>, ApiError> {
+    Ok(devices.get_admin_device(device_id, wallets)?.into())
 }
 
 #[get("/devices/<device_id>/subscriptions")]
@@ -17,6 +22,18 @@ pub async fn get_device_subscriptions(
     client: &State<WalletsClient>,
 ) -> Result<ApiResponse<Vec<WalletSubscription>>, ApiError> {
     Ok(client.get_wallet_subscriptions(device_id)?.into())
+}
+
+#[get("/devices/<device_id>/wallets/<wallet_id>/subscriptions")]
+pub async fn get_device_wallet_subscriptions(
+    _permission: PermissionDeviceSubscriptionsRead,
+    device_id: &str,
+    wallet_id: &str,
+    client: &State<WalletsClient>,
+) -> Result<ApiResponse<WalletSubscription>, ApiError> {
+    Ok(client
+        .get_wallet_subscription(device_id, wallet_id)?
+        .into())
 }
 
 #[get("/devices/<device_id>/transactions")]
