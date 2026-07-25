@@ -1,7 +1,15 @@
 use serde::Serialize;
 
 pub fn build_request_url(base_url: &str, path: &str) -> String {
-    format!("{}/{}", base_url.trim_end_matches('/'), path.trim_start_matches('/'))
+    let base_url = base_url.trim_end_matches('/');
+
+    if path.is_empty() {
+        base_url.to_string()
+    } else if path.starts_with('/') {
+        format!("{base_url}{path}")
+    } else {
+        format!("{base_url}/{path}")
+    }
 }
 
 /// Build a path with query parameters from a serializable struct
@@ -19,6 +27,8 @@ mod tests {
     fn test_build_request_url() {
         assert_eq!(build_request_url("https://example.com/", "/path"), "https://example.com/path");
         assert_eq!(build_request_url("https://example.com", "path"), "https://example.com/path");
+        assert_eq!(build_request_url("https://example.com/rpc-key", ""), "https://example.com/rpc-key");
+        assert_eq!(build_request_url("https://example.com/rpc-key/", ""), "https://example.com/rpc-key");
     }
 
     #[derive(Serialize)]

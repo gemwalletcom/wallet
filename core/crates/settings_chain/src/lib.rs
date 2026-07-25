@@ -53,10 +53,14 @@ impl ProviderFactory {
     fn new_provider(config: ProviderConfig, user_agent: &str) -> Box<dyn ChainTraits> {
         let host = config.url.parse::<url::Url>().ok().and_then(|url| url.host_str().map(String::from)).unwrap_or_default();
         let reqwest_client = gem_client::builder().retry(retry_policy(host, 3)).build().expect("Failed to build reqwest client");
-        Self::new_provider_with_client(config, user_agent, reqwest_client)
+        Self::build_provider(config, user_agent, reqwest_client)
     }
 
-    pub fn new_provider_with_client(config: ProviderConfig, user_agent: &str, reqwest_client: Client) -> Box<dyn ChainTraits> {
+    pub fn new_provider_with_client(config: ProviderConfig, reqwest_client: Client) -> Box<dyn ChainTraits> {
+        Self::build_provider(config, "", reqwest_client)
+    }
+
+    fn build_provider(config: ProviderConfig, user_agent: &str, reqwest_client: Client) -> Box<dyn ChainTraits> {
         let gem_client = ReqwestClient::new_with_user_agent(config.url.clone(), reqwest_client, user_agent.to_string());
         let chain = config.chain;
 
