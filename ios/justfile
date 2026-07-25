@@ -97,7 +97,7 @@ build-package PACKAGE:
     SWIFT_OPTIMIZATION_LEVEL=-Onone \
     build | xcbeautify {{XCBEAUTIFY_ARGS}}
 
-archive-release:
+archive-release: clean
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme Gem \
     -configuration Release \
