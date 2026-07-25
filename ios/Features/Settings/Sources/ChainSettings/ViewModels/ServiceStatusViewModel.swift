@@ -2,39 +2,29 @@
 
 import Foundation
 import Localization
+import Primitives
+import ServiceStatusService
 
 @Observable
 @MainActor
 public final class ServiceStatusViewModel {
-    private let connectivityService: ConnectivityService
-    private let connectivityEndpoints: [ConnectivityEndpoint]
-    private var connectivityStatusByEndpointId: [String: ConnectivityStatusState] = [:]
+    private let serviceStatusService: any ServiceStatusServiceable
+    private let endpoints: [ServiceEndpoint]
+    private var statusStates: [ServiceStatusState]
 
-    public convenience init() {
-        self.init(
-            connectivityService: ConnectivityService(),
-            connectivityEndpoints: ConnectivityEndpoint.defaultEndpoints,
-        )
-    }
-
-    init(
-        connectivityService: ConnectivityService,
-        connectivityEndpoints: [ConnectivityEndpoint],
-    ) {
-        self.connectivityService = connectivityService
-        self.connectivityEndpoints = connectivityEndpoints
+    public init(serviceStatusService: any ServiceStatusServiceable) {
+        self.serviceStatusService = serviceStatusService
+        endpoints = serviceStatusService.endpoints
+        statusStates = Array(repeating: .loading, count: endpoints.count)
     }
 
     var title: String {
         Localized.Transaction.status
     }
 
-    var connectivityModels: [ConnectivityItemViewModel] {
-        connectivityEndpoints.map {
-            ConnectivityItemViewModel(
-                endpoint: $0,
-                statusState: connectivityStatusByEndpointId[$0.id] ?? .none,
-            )
+    var itemModels: [ServiceStatusItemViewModel] {
+        zip(endpoints, statusStates).map {
+            ServiceStatusItemViewModel(endpoint: $0, statusState: $1)
         }
     }
 }
@@ -43,18 +33,23 @@ public final class ServiceStatusViewModel {
 
 extension ServiceStatusViewModel {
     func fetch() async {
-        connectivityStatusByEndpointId = [:]
+        statusStates = Array(repeating: .loading, count: endpoints.count)
 
-        let service = connectivityService
-        await withTaskGroup(of: (String, ConnectivityStatusState).self) { group in
-            for endpoint in connectivityEndpoints {
+        let service = serviceStatusService
+        await withTaskGroup(of: (Int, ServiceStatusState).self) { group in
+            for (index, endpoint) in endpoints.enumerated() {
                 group.addTask {
-                    await (endpoint.id, service.status(for: endpoint))
+                    do {
+                        let milliseconds = try await service.endpointLatency(url: endpoint.url)
+                        return (index, .result(milliseconds))
+                    } catch {
+                        return (index, .error)
+                    }
                 }
             }
 
-            for await (endpointId, status) in group {
-                connectivityStatusByEndpointId[endpointId] = status
+            for await (index, state) in group {
+                statusStates[index] = state
             }
         }
     }

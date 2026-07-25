@@ -34,6 +34,7 @@ struct SettingsNavigationStack: View {
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.priceService) private var priceService
     @Environment(\.nodeService) private var nodeService
+    @Environment(\.serviceStatusService) private var serviceStatusService
     @Environment(\.chainServiceFactory) private var chainServiceFactory
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.releaseService) private var releaseService
@@ -124,7 +125,7 @@ struct SettingsNavigationStack: View {
                 ChainListSettingsScene()
             }
             .navigationDestination(for: Scenes.ServiceStatus.self) { _ in
-                ServiceStatusScene()
+                ServiceStatusScene(model: ServiceStatusViewModel(serviceStatusService: serviceStatusService))
             }
             .navigationDestination(for: Scenes.AboutUs.self) { _ in
                 AboutUsScene(

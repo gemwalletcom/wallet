@@ -43,6 +43,7 @@ let package = Package(
         .library(name: "DeviceService", targets: ["DeviceService"]),
         .library(name: "DeviceServiceTestKit", targets: ["DeviceServiceTestKit"]),
         .library(name: "ConnectionStatusService", targets: ["ConnectionStatusService"]),
+        .library(name: "ServiceStatusService", targets: ["ServiceStatusService"]),
         .library(name: "NotificationService", targets: ["NotificationService"]),
         .library(name: "NotificationServiceTestKit", targets: ["NotificationServiceTestKit"]),
         .library(name: "AddressNameService", targets: ["AddressNameService"]),
@@ -500,6 +501,16 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
             ],
             path: "DeviceService/TestKit",
+        ),
+        .target(
+            name: "ServiceStatusService",
+            dependencies: [
+                "Primitives",
+                "Gemstone",
+                "GemstonePrimitives",
+                "NativeProviderService",
+            ],
+            path: "ServiceStatusService",
         ),
         .target(
             name: "ConnectionStatusService",
