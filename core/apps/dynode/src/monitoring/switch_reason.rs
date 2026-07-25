@@ -3,7 +3,7 @@ use std::{error::Error, fmt};
 use gem_client::ClientError;
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) enum CurrentNodeErrorKind {
+pub(super) enum CurrentNodeErrorKind {
     Timeout,
     Status(u16),
     Serialization(String),
@@ -11,7 +11,7 @@ pub(crate) enum CurrentNodeErrorKind {
 }
 
 impl CurrentNodeErrorKind {
-    pub(crate) fn from_error(error: &(dyn Error + Send + Sync + 'static)) -> Self {
+    pub(super) fn from_error(error: &(dyn Error + Send + Sync + 'static)) -> Self {
         if let Some(error) = error.downcast_ref::<ClientError>() {
             return Self::from_client_error(error);
         }
@@ -54,17 +54,19 @@ impl fmt::Display for CurrentNodeErrorKind {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum NodeSwitchReason {
+#[derive(Debug, PartialEq)]
+pub(super) enum NodeSwitchReason {
     BlockHeight { old_block: u64, new_block: u64 },
     CurrentNodeError { kind: CurrentNodeErrorKind, message: String },
+    PreferredNode,
 }
 
 impl NodeSwitchReason {
-    pub(crate) fn metric_reason(&self) -> String {
+    pub(super) fn metric_reason(&self) -> String {
         match self {
             Self::BlockHeight { .. } => "block_height".to_string(),
             Self::CurrentNodeError { kind, .. } => kind.to_string(),
+            Self::PreferredNode => "preferred_node".to_string(),
         }
     }
 }
@@ -73,7 +75,8 @@ impl fmt::Display for NodeSwitchReason {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BlockHeight { old_block, new_block } => write!(f, "block_behind:{}", new_block.saturating_sub(*old_block)),
-            Self::CurrentNodeError { message, .. } => write!(f, "{}", message),
+            Self::CurrentNodeError { message, .. } => f.write_str(message),
+            Self::PreferredNode => f.write_str("preferred_node"),
         }
     }
 }
@@ -104,6 +107,7 @@ mod tests {
                 expected
             );
         }
+        assert_eq!(NodeSwitchReason::PreferredNode.metric_reason(), "preferred_node");
     }
 
     #[test]

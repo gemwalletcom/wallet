@@ -1,11 +1,8 @@
 mod node_observer;
-mod service;
+pub(crate) mod observation;
+mod selection;
 mod switch_reason;
-mod sync;
 mod telemetry;
 mod worker;
 
-pub use crate::config::NodeResult;
-pub use service::NodeService;
-pub use sync::{NodeStatusObservation, NodeSyncAnalyzer};
 pub use worker::NodeMonitor;

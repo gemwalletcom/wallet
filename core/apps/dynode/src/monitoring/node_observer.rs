@@ -4,8 +4,8 @@ use primitives::{Chain, NodeCheckRequest, NodeStatusState};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use settings_chain::{ProviderConfig, ProviderFactory};
 
+use super::observation::NodeStatusObservation;
 use super::switch_reason::CurrentNodeErrorKind;
-use super::sync::NodeStatusObservation;
 use crate::config::Url;
 
 pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: Url) -> NodeStatusObservation {
@@ -21,7 +21,7 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
         Err(error) => return observation(NodeStatusState::error(error.to_string())),
     };
     let config = ProviderConfig::new(chain, &url.url);
-    let provider = ProviderFactory::new_provider_with_client(config, "dynode_get_status", client);
+    let provider = ProviderFactory::new_provider_with_client(config, client);
 
     match provider.get_node_status().await {
         Ok(status) => {

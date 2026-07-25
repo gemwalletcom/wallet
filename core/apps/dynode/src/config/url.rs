@@ -26,13 +26,6 @@ impl Url {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct NodeResult {
-    pub url: Url,
-    pub block_number: u64,
-    pub latency: u64,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

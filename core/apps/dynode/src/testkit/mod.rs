@@ -1,2 +1,3 @@
 pub mod config;
-pub mod sync;
+#[cfg(test)]
+pub(crate) mod sync;

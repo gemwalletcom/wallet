@@ -15,5 +15,5 @@ pub(crate) fn new_provider(chain: Chain, url: &str, headers: &[String]) -> Resul
         })
         .collect::<Result<HeaderMap, Box<dyn Error + Send + Sync>>>()?;
     let client = builder().default_headers(headers).build()?;
-    Ok(ProviderFactory::new_provider_with_client(ProviderConfig::new(chain, url), "nodecheck", client))
+    Ok(ProviderFactory::new_provider_with_client(ProviderConfig::new(chain, url), client))
 }
