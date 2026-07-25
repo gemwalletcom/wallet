@@ -43,7 +43,7 @@ test-integration:
     @echo "==> Test Android app integration"
     @just android test-integration
 
-generate: generate-models generate-stone
+generate: generate-models generate-stone generate-android-stone
 
 generate-models:
     @just ios generate-models
@@ -51,6 +51,9 @@ generate-models:
 
 generate-stone:
     @just ios generate-stone
+
+generate-android-stone:
+    @just android generate-stone
 
 localize:
     @just ios localize

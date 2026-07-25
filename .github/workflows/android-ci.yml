@@ -6,6 +6,7 @@ on:
     paths:
       - "android/**"
       - "core/**"
+      - "rust-toolchain.toml"
       - "localization/**"
       - ".gitmodules"
       - ".github/actions/**"
@@ -15,6 +16,7 @@ on:
     paths:
       - "android/**"
       - "core/**"
+      - "rust-toolchain.toml"
       - "localization/**"
       - ".gitmodules"
       - ".github/actions/**"

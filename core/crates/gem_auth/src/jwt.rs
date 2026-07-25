@@ -57,6 +57,25 @@ mod tests {
     }
 
     #[test]
+    fn test_hs256_compatibility_vector() {
+        let claims = JwtClaims {
+            sub: "device1".to_string(),
+            exp: 4_102_444_800,
+            iat: 1_700_000_000,
+        };
+        let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(TEST_SECRET.as_bytes())).unwrap();
+
+        assert_eq!(
+            token,
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZXZpY2UxIiwiZXhwIjo0MTAyNDQ0ODAwLCJpYXQiOjE3MDAwMDAwMDB9.2i0jadcYcpDYrMzdGvPb8fJ_EQ3m39oZ5PaZzQlLnxM"
+        );
+        let decoded = verify_device_token(&token, TEST_SECRET).unwrap();
+        assert_eq!(decoded.sub, claims.sub);
+        assert_eq!(decoded.exp, claims.exp);
+        assert_eq!(decoded.iat, claims.iat);
+    }
+
+    #[test]
     fn test_wrong_secret() {
         let (token, _) = create_device_token("device1", TEST_SECRET, Duration::from_secs(3600)).unwrap();
         assert!(verify_device_token(&token, "wrong_secret_key_123456789012345").is_err());

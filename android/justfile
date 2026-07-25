@@ -123,5 +123,9 @@ generate-models: install-typeshare
     @echo "==> Generate typeshare for Android"
     @cd ../core && cargo run --package generate --bin generate android ../android/gemcore/src/main/kotlin/com/wallet/core
 
+generate-stone:
+    @echo "==> Generate Gemstone bindings and native libraries for Android"
+    @./gradlew :gemstone:bindgenKotlin :gemstone:buildCargoNdk --rerun-tasks
+
 bump TARGET="patch":
 	@cd .. && just bump {{TARGET}}

@@ -5,12 +5,14 @@ on:
     branches: ["main"]
     paths:
       - "core/**"
+      - "rust-toolchain.toml"
       - ".github/actions/**"
       - ".github/workflows/core-ci.yml"
   pull_request:
     branches: ["main"]
     paths:
       - "core/**"
+      - "rust-toolchain.toml"
       - ".github/actions/**"
       - ".github/workflows/core-ci.yml"
 

@@ -1,6 +1,6 @@
 use gem_encoding::encode_base64;
 use gem_hash::{keccak::keccak256, sha2::sha256};
-use k256::{PublicKey, elliptic_curve::sec1::ToEncodedPoint};
+use k256::{PublicKey, elliptic_curve::sec1::ToSec1Point};
 use primitives::{ChainSigner, SignerError, SignerInput, TransactionLoadMetadata, chain_cosmos::CosmosChain};
 use signer::{SignatureScheme, Signer};
 
@@ -79,7 +79,7 @@ impl CosmosChainSigner {
 
     fn uncompress_public_key(public_key: &[u8]) -> Result<Vec<u8>, SignerError> {
         let public_key = PublicKey::from_sec1_bytes(public_key).map_err(|_| SignerError::invalid_input("invalid secp256k1 public key"))?;
-        Ok(public_key.to_encoded_point(false).as_bytes().to_vec())
+        Ok(public_key.to_sec1_point(false).as_bytes().to_vec())
     }
 
     fn sign_doc_digest(chain: CosmosChain, sign_doc_bytes: &[u8]) -> [u8; 32] {

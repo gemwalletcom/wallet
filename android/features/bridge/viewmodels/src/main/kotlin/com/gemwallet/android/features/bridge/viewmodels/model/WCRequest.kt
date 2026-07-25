@@ -258,7 +258,7 @@ private fun WalletConnectTransaction.map(
             requestId = request.requestId.toString(),
             asset = asset,
             from = request.account,
-            memo = messages,
+            memo = data,
             name = request.name,
             description = request.description,
             url = request.url,
