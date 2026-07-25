@@ -2,7 +2,6 @@ use primitives::{Chain, NodeCheckProfile, NodeCheckRequest};
 
 const DEFAULT_EVM_ADDRESS: &str = "0xdeaddeaddeaddeaddeaddeaddeaddeaddead0001";
 const BSC_POLYGON_ADDRESS: &str = "0x2A49C84B7173e21f9116B2798735f87531526b36";
-const ARBITRUM_ROBINHOOD_ADDRESS: &str = "0x00000000000000000000000000000000000a4b05";
 
 pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> Result<NodeCheckRequest, String> {
     match profile {
@@ -24,7 +23,7 @@ fn wallet_node_check_request(chain: Chain) -> Result<NodeCheckRequest, String> {
             "0x8192bf75cb263e543c4f2c06edb983139034aa0f",
             "0x6d83a79e228ddaa04107afb03cfd1b1b74b24429d322d8e79d756e559895d3a8",
         ),
-        Chain::Arbitrum => (ARBITRUM_ROBINHOOD_ADDRESS, "0x6a38409d346190d38a28be23db35dcda5dc88df0de99c23049c967c388359857"),
+        Chain::Arbitrum => (DEFAULT_EVM_ADDRESS, "0x6a38409d346190d38a28be23db35dcda5dc88df0de99c23049c967c388359857"),
         Chain::Optimism => (DEFAULT_EVM_ADDRESS, "0xc4edd56597745ae8fc8486b2cdf003ea52d9b37b0f72361eff3b5d73d62ae731"),
         Chain::Base => (DEFAULT_EVM_ADDRESS, "0xb7f529ed53a7f716976cd53520677260b53edf011da7573374ccf8705b6b4a8e"),
         Chain::AvalancheC => (
@@ -80,7 +79,7 @@ fn wallet_node_check_request(chain: Chain) -> Result<NodeCheckRequest, String> {
             "0xae2fe7ab7d6920d84b78126dc2ce82a1e227e4f70bd7f037c3747396d5a73c57",
         ),
         Chain::XLayer => (DEFAULT_EVM_ADDRESS, "0xa6e649c54eaf86b5bb51e0230bf97499ff348e2e5e6527aaddc55183b7ec8211"),
-        Chain::Robinhood => (ARBITRUM_ROBINHOOD_ADDRESS, "0xdd81e20bb08437587dc6f6e2a7f0d43bd96101ca51f051c42806a307636f10db"),
+        Chain::Robinhood => (DEFAULT_EVM_ADDRESS, "0xdd81e20bb08437587dc6f6e2a7f0d43bd96101ca51f051c42806a307636f10db"),
         Chain::Stable => (
             "0x8888888888888888888888888888888888888888",
             "0x312b2a62ab4927fc7805789184f7e87c8e2e1e87c6eaa01706e58a979a54d4df",
