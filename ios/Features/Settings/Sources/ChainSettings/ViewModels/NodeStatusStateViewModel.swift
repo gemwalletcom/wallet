@@ -29,16 +29,6 @@ struct NodeStatusStateViewModel {
     }
 
     private var statusTag: LatencyStatusViewModel {
-        switch nodeStatus {
-        case let .result(nodeStatus):
-            if nodeStatus.latestBlockNumber > 0 {
-                return LatencyStatusViewModel(state: .latency(nodeStatus.latency))
-            }
-            return LatencyStatusViewModel(state: .error)
-        case .error:
-            return LatencyStatusViewModel(state: .error)
-        case .none:
-            return LatencyStatusViewModel(state: .loading)
-        }
+        LatencyStatusViewModel(nodeStatus: nodeStatus)
     }
 }
