@@ -37,8 +37,6 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
             .map(|tokens| tokens.len());
         let recorder = recorder.record(GET_TOKEN_ACCOUNTS_BY_OWNER_MINT_CHECK, tokens);
 
-        let staking_balance = self.get_balance_staking(address.to_string()).await.map(|result| usize::from(result.is_some()));
-        let recorder = recorder.record(method::GET_PROGRAM_ACCOUNTS, staking_balance);
         let recorder = recorder.record(method::GET_LATEST_BLOCKHASH, self.get_latest_blockhash().await.map(|result| result.value.blockhash));
         let recorder = recorder.record(
             method::GET_RECENT_PRIORITIZATION_FEES,
