@@ -53,11 +53,12 @@ class BuildConfirmPropertiesImpl(
                 }
             )
             add(ConfirmProperty.Network(assetInfo.chain.asset()))
-            add(request.memo()?.takeIf {
-                (request is ConfirmParams.TransferParams.Native || request is ConfirmParams.TransferParams.Token)
-                        && assetInfo.asset.isMemoSupport()
-                        && it.isNotEmpty()
-            }?.let { ConfirmProperty.Memo(it) })
+            add(
+                ConfirmProperty.Memo(request.memo().orEmpty()).takeIf {
+                    (request is ConfirmParams.TransferParams.Native || request is ConfirmParams.TransferParams.Token)
+                            && assetInfo.asset.isMemoSupport()
+                }
+            )
         }.filterNotNull()
     }
 
