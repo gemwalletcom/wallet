@@ -11,6 +11,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.BalanceRequirement
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.ConfirmState
+import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
@@ -30,6 +31,7 @@ import com.wallet.core.primitives.Chain
 @Composable
 internal fun ConfirmErrorInfo(
     state: ConfirmState,
+    fee: FeeUIModel.FeeInfo?,
     isShowBottomSheetInfo: Boolean,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
 ) {
@@ -55,7 +57,7 @@ internal fun ConfirmErrorInfo(
             onAcquireAsset(AcquireAssetAction.Buy(amount), asset.id)
         }
     }
-    val infoSheetEntity = message.toInfoSheetEntity(onSelectAcquireAsset)
+    val infoSheetEntity = message.toInfoSheetEntity(fee, onSelectAcquireAsset)
 
     WarningItem(
         title = stringResource(R.string.errors_error_occurred),
@@ -83,7 +85,10 @@ internal fun ConfirmErrorInfo(
 }
 
 @Composable
-private fun ConfirmError.toInfoSheetEntity(onAcquireAsset: (Asset, Int?) -> Unit): InfoSheetEntity? {
+private fun ConfirmError.toInfoSheetEntity(
+    fee: FeeUIModel.FeeInfo?,
+    onAcquireAsset: (Asset, Int?) -> Unit,
+): InfoSheetEntity? {
     return when (this) {
         is ConfirmError.InsufficientBalance -> {
             val formatted = requirement.formatted(asset)
@@ -101,7 +106,7 @@ private fun ConfirmError.toInfoSheetEntity(onAcquireAsset: (Asset, Int?) -> Unit
             val formatted = requirement.formatted(asset)
             NetworkBalanceRequiredInfo(
                 chain = chain,
-                required = formatted.required,
+                required = fee?.cryptoAmountWithFiat ?: formatted.required,
                 available = formatted.available,
                 shortfall = formatted.shortfall,
                 actionLabel = asset.acquireActionLabel(),
