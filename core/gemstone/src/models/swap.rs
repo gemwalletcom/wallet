@@ -1,10 +1,12 @@
 use crate::config::swap_config::get_swap_config;
 use primitives::swap::SwapQuoteDataType;
-pub use primitives::swap::{ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData};
+pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 pub use swapper::SwapperProvider;
 
 pub type GemApprovalData = ApprovalData;
 pub type GemSwapData = SwapData;
+pub type GemSwapPriceImpact = SwapPriceImpact;
+pub type GemSwapPriceImpactType = SwapPriceImpactType;
 pub type GemSwapProviderData = SwapProviderData;
 pub type GemSwapQuote = SwapQuote;
 pub type GemSwapQuoteData = SwapQuoteData;
@@ -61,18 +63,18 @@ pub struct GemSwapProviderData {
     pub protocol_name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum SwapPriceImpactType {
+#[uniffi::remote(Enum)]
+pub enum GemSwapPriceImpactType {
     Positive,
     Low,
     Medium,
     High,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct SwapPriceImpact {
+#[uniffi::remote(Record)]
+pub struct GemSwapPriceImpact {
     pub percentage: f64,
-    pub impact_type: SwapPriceImpactType,
+    pub impact_type: GemSwapPriceImpactType,
     pub is_high: bool,
 }
 
