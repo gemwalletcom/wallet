@@ -108,7 +108,6 @@ archive-release: clean
     -archivePath {{DERIVED_DATA}}/Gem.xcarchive \
     -jobs {{BUILD_THREADS}} \
     CODE_SIGNING_ALLOWED=NO \
-    SWIFT_OPTIMIZATION_LEVEL=-Osize \
     archive | xcbeautify {{XCBEAUTIFY_ARGS}}
 
 show-simulator:
