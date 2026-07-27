@@ -31,7 +31,7 @@ import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
-import com.gemwallet.android.ui.models.swap.SwapRateUIModel
+import com.gemwallet.android.domains.swap.AssetRatePair
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.clearMocks
@@ -472,7 +472,7 @@ class SwapViewModelTest {
                 title = "Uniswap v3",
                 icon = "",
             ),
-            rate = SwapRateUIModel(forward = "1 SOL = 2.5 USDC", reverse = "1 USDC = 0.4 SOL"),
+            rate = AssetRatePair(forward = "1 SOL = 2.5 USDC", reverse = "1 USDC = 0.4 SOL"),
             priceImpact = SwapPriceImpactUIModel(
                 type = SwapPriceImpactType.High,
                 displayText = "-15%",

@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.activities.presents.details.components
+package com.gemwallet.android.ui.components.list_item.property
 
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Icon
@@ -10,22 +10,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
+import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 
 @Composable
-internal fun TransactionRateProperty(
-    property: TransactionDetailsValue.Rate,
-    position: ListPosition,
+fun AssetRatePropertyItem(
+    rate: AssetRatePair,
+    listPosition: ListPosition,
 ) {
     var showReverse by remember { mutableStateOf(false) }
-    val displayedRate = if (showReverse) property.reverse else property.forward
+    val displayedRate = if (showReverse) rate.reverse else rate.forward
 
     PropertyItem(
         modifier = Modifier.clickable { showReverse = !showReverse },
@@ -44,6 +41,6 @@ internal fun TransactionRateProperty(
                 },
             )
         },
-        listPosition = position,
+        listPosition = listPosition,
     )
 }

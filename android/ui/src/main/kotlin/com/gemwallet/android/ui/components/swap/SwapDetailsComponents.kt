@@ -9,17 +9,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -32,20 +26,18 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
-import com.gemwallet.android.ui.models.swap.SwapRateUIModel
 import com.wallet.core.primitives.swap.SwapPriceImpactType
-import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.listItemIconSize
@@ -147,7 +139,7 @@ fun SwapDetailsBottomSheet(
                 }
             }
             item {
-                SwapRatePropertyItem(model.rate, ListPosition.First)
+                AssetRatePropertyItem(model.rate, ListPosition.First)
             }
             model.estimatedTime?.let {
                 item {
@@ -226,32 +218,6 @@ private fun SwapCurrentProviderRow(
             SwapProviderAmounts(provider)
         },
         listPosition = ListPosition.Single,
-    )
-}
-
-@Composable
-private fun SwapRatePropertyItem(rate: SwapRateUIModel, listPosition: ListPosition) {
-    var showReverse by remember { mutableStateOf(false) }
-    val displayedRate = if (showReverse) rate.reverse else rate.forward
-
-    PropertyItem(
-        modifier = Modifier.clickable { showReverse = !showReverse },
-        title = { PropertyTitleText(R.string.buy_rate) },
-        data = {
-            PropertyDataText(
-                text = displayedRate,
-                badge = {
-                    Spacer4()
-                    Icon(
-                        modifier = Modifier.clip(MaterialTheme.shapes.small),
-                        imageVector = AppIcons.SwapVert,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                    )
-                },
-            )
-        },
-        listPosition = listPosition,
     )
 }
 

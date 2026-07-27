@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.transaction.values
 
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
@@ -86,7 +87,7 @@ sealed interface TransactionDetailsValue {
 
     class Status(val data: TransactionState) : TransactionDetailsValue
 
-    class Rate(val forward: String, val reverse: String) : TransactionDetailsValue
+    class Rate(val rate: AssetRatePair) : TransactionDetailsValue
 
     class SwapProgress(
         val fromAsset: Asset,
