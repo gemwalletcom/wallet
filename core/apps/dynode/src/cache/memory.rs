@@ -113,6 +113,7 @@ mod tests {
     use super::*;
     use crate::config::Url;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
+    use primitives::{HOUR, MINUTE};
     use reqwest::StatusCode;
     use std::collections::HashMap;
 
@@ -160,8 +161,8 @@ mod tests {
         let cache = create_test_cache();
         let chain = Chain::Ethereum;
 
-        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
-        cache.set(&chain, "test_key".to_string(), response.clone(), Duration::from_secs(60)).await;
+        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), MINUTE);
+        cache.set(&chain, "test_key".to_string(), response.clone(), MINUTE).await;
 
         let cached = cache.get(&chain, "test_key").await.unwrap();
         assert_eq!(cached.body, response.body);
@@ -174,7 +175,7 @@ mod tests {
         let chain = Chain::Ethereum;
 
         let ttl = cache.should_cache_request(&chain, &regular_request("/api/v1/data", "GET", &[]));
-        assert_eq!(ttl, Some(Duration::from_secs(300)));
+        assert_eq!(ttl, Some(MINUTE * 5));
 
         let ttl = cache.should_cache_request(&chain, &regular_request("/api/v1/data", "POST", &[]));
         assert_eq!(ttl, None);
@@ -224,7 +225,7 @@ mod tests {
         }));
 
         let ttl = cache.should_cache_request(&chain, &request);
-        assert_eq!(ttl, Some(Duration::from_secs(60)));
+        assert_eq!(ttl, Some(MINUTE));
     }
 
     #[test]
@@ -240,7 +241,7 @@ mod tests {
         };
 
         let ttl = cache.should_cache_call(&chain, &call);
-        assert_eq!(ttl, Some(Duration::from_secs(60)));
+        assert_eq!(ttl, Some(MINUTE));
     }
 
     #[test]
@@ -273,7 +274,7 @@ mod tests {
         .to_vec();
 
         let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body1));
-        assert_eq!(ttl, Some(Duration::from_secs(3600)));
+        assert_eq!(ttl, Some(HOUR));
 
         let body2 = r#"{
             "function": "0x1::delegation_pool::operator_commission_percentage",
@@ -284,7 +285,7 @@ mod tests {
         .to_vec();
 
         let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body2));
-        assert_eq!(ttl, Some(Duration::from_secs(3600)));
+        assert_eq!(ttl, Some(HOUR));
 
         let body3 = r#"{
             "function": "0x1::other_module::other_function",
@@ -305,11 +306,11 @@ mod tests {
         let cache = MemoryCache::new(config, &create_test_chain_types(), chains.iter());
         let chain = Chain::Ethereum;
 
-        let response1 = CachedResponse::new(b"first".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
-        cache.set(&chain, "key1".to_string(), response1, Duration::from_secs(60)).await;
+        let response1 = CachedResponse::new(b"first".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), MINUTE);
+        cache.set(&chain, "key1".to_string(), response1, MINUTE).await;
 
-        let response2 = CachedResponse::new(b"second".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
-        cache.set(&chain, "key2".to_string(), response2, Duration::from_secs(60)).await;
+        let response2 = CachedResponse::new(b"second".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), MINUTE);
+        cache.set(&chain, "key2".to_string(), response2, MINUTE).await;
 
         assert!(cache.get(&chain, "key1").await.is_none());
     }

@@ -2,22 +2,17 @@ use std::time::Duration;
 
 use chain_traits::node_check::NodeCheckRecorder;
 use gem_client::Client;
+use primitives::{DAY, MONTH};
 
 use crate::rpc::EthereumProvider;
 
 pub(super) async fn record_receipt_checks<C: Client + Clone>(provider: &EthereumProvider<C>, recorder: NodeCheckRecorder, latest_block: u64) -> NodeCheckRecorder {
     let recorder = recorder
-        .record_timed(
-            "eth_getReceipt(history)",
-            get_receipt_at_age(provider, latest_block, Duration::from_secs(24 * 60 * 60), "1 day"),
-        )
+        .record_timed("eth_getReceipt(history)", get_receipt_at_age(provider, latest_block, DAY, "1 day"))
         .await;
 
     recorder
-        .record_optional_timed(
-            "eth_getReceipt(archive)",
-            get_receipt_at_age(provider, latest_block, Duration::from_secs(90 * 24 * 60 * 60), "3 months"),
-        )
+        .record_optional_timed("eth_getReceipt(archive)", get_receipt_at_age(provider, latest_block, MONTH * 3, "3 months"))
         .await
 }
 

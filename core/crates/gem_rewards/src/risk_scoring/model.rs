@@ -1,6 +1,6 @@
 use gem_hash::sha2::sha256;
 use primitives::rewards::RewardStatus;
-use primitives::{IpUsageType, Platform, PlatformStore};
+use primitives::{IpUsageType, MINUTE, MONTH, Platform, PlatformStore};
 use std::time::Duration;
 
 #[derive(Debug, Clone)]
@@ -84,7 +84,7 @@ impl Default for RiskScoreConfig {
             same_referrer_device_model_penalty: 50,
             device_model_ring_threshold: 2,
             device_model_ring_penalty_per_member: 40,
-            lookback: Duration::from_secs(30 * 86400),
+            lookback: MONTH,
             high_risk_platform_stores: vec![],
             high_risk_platform_store_penalty: 20,
             high_risk_countries: vec![],
@@ -101,7 +101,7 @@ impl Default for RiskScoreConfig {
                 "(?i)insomnia".to_string(),
             ],
             high_risk_user_agent_penalty: 100,
-            velocity_window: Duration::from_secs(300),
+            velocity_window: MINUTE * 5,
             velocity_divisor: 2,
             velocity_penalty: 100,
             referral_per_user_daily: 5,

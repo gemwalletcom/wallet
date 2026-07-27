@@ -48,16 +48,16 @@ impl StoreTransactionsConsumerConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Chain, TransactionType};
+    use primitives::{Chain, DAY, HOUR, MINUTE, TransactionType};
 
     impl StoreTransactionsConsumerConfig {
         fn mock() -> Self {
             Self {
-                swap_outdated_timeout: Duration::from_secs(7_200),
+                swap_outdated_timeout: HOUR * 2,
                 outdated_block_count: 12,
-                outdated_min_timeout: Duration::from_secs(900),
+                outdated_min_timeout: MINUTE * 15,
                 min_amount_usd: 0.01,
-                primary_price_max_age: Duration::from_secs(24 * 60 * 60),
+                primary_price_max_age: DAY,
             }
         }
     }

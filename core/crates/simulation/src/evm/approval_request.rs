@@ -1,6 +1,6 @@
 use num_bigint::BigInt;
 use primitives::{
-    AssetId, Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
+    AssetId, Chain, MONTH, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
     SimulationWarning, SimulationWarningApproval, SimulationWarningType,
 };
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -8,7 +8,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use super::{approval_method::ApprovalMethod, approval_value::ApprovalValue};
 use gem_evm::ethereum_address_checksum;
 
-const EXCESSIVE_EXPIRATION_WINDOW: Duration = Duration::from_secs(60 * 60 * 24 * 30);
+const EXCESSIVE_EXPIRATION_WINDOW: Duration = MONTH;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ApprovalRequest {

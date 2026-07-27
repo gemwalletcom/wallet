@@ -236,6 +236,7 @@ fn resolve_primary<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::HOUR;
 
     fn aged(provider: PriceProvider, seconds_ago: i64) -> PriceRow {
         let mut row = PriceRow::mock(provider, "x");
@@ -250,7 +251,7 @@ mod tests {
             PriceProviderConfigRow::new(PriceProvider::Pyth, true),
             PriceProviderConfigRow::new(PriceProvider::Jupiter, false),
         ];
-        let max_age = Duration::from_secs(3600);
+        let max_age = HOUR;
 
         let fresh = vec![aged(PriceProvider::Coingecko, 60), aged(PriceProvider::Pyth, 60)];
         assert_eq!(resolve_primary(&providers, &fresh, max_age).unwrap().provider.0, PriceProvider::Coingecko);

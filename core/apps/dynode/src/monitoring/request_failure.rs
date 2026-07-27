@@ -98,10 +98,9 @@ impl RequestFailureSignal {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
-
     use super::*;
     use crate::testkit::sync::url;
+    use primitives::MINUTE;
 
     #[tokio::test]
     async fn test_tracks_only_the_active_url() {
@@ -113,7 +112,7 @@ mod tests {
             FailureTriggerConfig {
                 failures: 2,
                 rate: 100,
-                window: Duration::from_secs(60),
+                window: MINUTE,
             },
         );
 

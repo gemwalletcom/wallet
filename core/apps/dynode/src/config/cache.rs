@@ -67,6 +67,7 @@ impl CacheRule {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::MINUTE;
 
     #[test]
     fn test_ttl_default_none() {
@@ -88,6 +89,6 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(rule.ttl, Some(Duration::from_secs(60)));
+        assert_eq!(rule.ttl, Some(MINUTE));
     }
 }
