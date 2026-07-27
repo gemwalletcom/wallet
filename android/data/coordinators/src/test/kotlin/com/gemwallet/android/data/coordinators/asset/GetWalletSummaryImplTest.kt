@@ -9,33 +9,9 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.math.BigDecimal
+import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 class GetWalletSummaryImplTest {
-
-    @Test
-    fun calculateWalletChangedPercentage_isRelativeToBaseNotTotal() {
-        assertEquals(
-            10.0,
-            calculateWalletChangedPercentage(totalValue = BigDecimal("110.0"), changedValue = BigDecimal("10.0")),
-            0.0001,
-        )
-        assertEquals(
-            -50.0,
-            calculateWalletChangedPercentage(totalValue = BigDecimal("50.0"), changedValue = BigDecimal("-50.0")),
-            0.0001,
-        )
-    }
-
-    @Test
-    fun calculateWalletChangedPercentage_withZeroTotal_returnsZero() {
-        val percentage = calculateWalletChangedPercentage(
-            totalValue = BigDecimal.ZERO,
-            changedValue = BigDecimal("-25.0"),
-        )
-
-        assertEquals(0.0, percentage, 0.0)
-    }
 
     @Test
     fun walletSummaryEquivalentValue_formatsNegativePercentWithoutSign() {
@@ -67,8 +43,7 @@ class GetWalletSummaryImplTest {
     fun buildWalletSummaryDisplayState_formatsSmallValuesWithTwoDecimals() {
         val state = buildWalletSummaryDisplayState(
             currency = Currency.USD,
-            totalValue = BigDecimal("0.1041"),
-            totalChangedValue = BigDecimal("0.1041"),
+            total = GemTotalFiatValue(value = 0.1041, pnlAmount = 0.1041, pnlPercentage = 0.0),
         )
 
         assertEquals("\$0.10", state.totalValue)
@@ -79,8 +54,7 @@ class GetWalletSummaryImplTest {
     fun buildWalletSummaryDisplayState_withZeroBalance_showsZeroTotalAndHidesChange() {
         val state = buildWalletSummaryDisplayState(
             currency = Currency.USD,
-            totalValue = BigDecimal.ZERO,
-            totalChangedValue = BigDecimal.ZERO,
+            total = GemTotalFiatValue(value = 0.0, pnlAmount = 0.0, pnlPercentage = 0.0),
         )
 
         assertEquals("\$0.00", state.totalValue)

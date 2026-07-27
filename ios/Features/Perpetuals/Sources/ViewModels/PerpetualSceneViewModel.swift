@@ -27,6 +27,7 @@ public final class PerpetualSceneViewModel {
     private let onTransferData: TransferDataAction
     private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
     private let perpetualOrderFactory = PerpetualOrderFactory()
+    private let balanceCalculator = BalanceCalculator()
 
     public let wallet: Wallet
     public let asset: Asset
@@ -35,7 +36,7 @@ public final class PerpetualSceneViewModel {
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     public let perpetualQuery: ObservableQuery<PerpetualRequest>
-    public let perpetualTotalValueQuery: ObservableQuery<TotalValueRequest>
+    public let perpetualFiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
     public var positions: [PerpetualPositionData] {
@@ -47,7 +48,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var perpetualTotalValue: TotalFiatValue {
-        perpetualTotalValueQuery.value
+        balanceCalculator.totalFiatValue(perpetualFiatValuesQuery.value)
     }
 
     public var transactions: [TransactionExtended] {
@@ -89,7 +90,7 @@ public final class PerpetualSceneViewModel {
 
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
-        perpetualTotalValueQuery = ObservableQuery(TotalValueRequest(walletId: wallet.id, type: .perpetual), initialValue: .zero)
+        perpetualFiatValuesQuery = ObservableQuery(AssetFiatValuesRequest(walletId: wallet.id, type: .perpetual), initialValue: [])
         transactionsQuery = ObservableQuery(
             TransactionsRequest.perpetualScene(
                 walletId: wallet.id,

@@ -76,7 +76,7 @@ struct WalletNavigationStack: View {
             }
             .onChange(of: model.currentWallet, model.onChangeWallet)
             .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
-            .bindQuery(model.assetsQuery, model.bannersQuery, model.totalFiatQuery, model.collectionsModel.query)
+            .bindQuery(model.assetsQuery, model.bannersQuery, model.fiatValuesQuery, model.collectionsModel.query)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !model.isPresentingSearch {
