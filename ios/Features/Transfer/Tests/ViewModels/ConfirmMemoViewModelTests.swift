@@ -40,4 +40,16 @@ struct ConfirmMemoViewModelTests {
         #expect(item.title == Localized.Transfer.memo)
         #expect(item.subtitle == memo)
     }
+
+    @Test
+    func emptyMemo() {
+        let asset = Asset.mock(id: AssetId(chain: .solana, tokenId: nil))
+        let model = ConfirmMemoViewModel(type: .transfer(asset), recipientData: .mock())
+
+        if case let .memo(item) = model.itemModel {
+            #expect(item.subtitle == "-")
+        } else {
+            Issue.record("Expected memo item model for empty memo")
+        }
+    }
 }
