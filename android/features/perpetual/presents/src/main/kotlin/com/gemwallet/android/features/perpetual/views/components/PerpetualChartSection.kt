@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.price.PriceChange
+import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
@@ -89,7 +89,7 @@ internal fun PerpetualChartSection(
         val base = baseCandle ?: return@remember null
         ChartHeaderUIModel.build(
             price = target.close,
-            priceChangePercentage = PriceChange.percentage(from = base.close, to = target.close),
+            priceChangePercentage = PriceChangeCalculator.percentage(from = base.close, to = target.close),
             timestamp = selectedCandle?.date,
             priceFormatter = currencyString,
             dateFormatter = ::getRelativeDate,

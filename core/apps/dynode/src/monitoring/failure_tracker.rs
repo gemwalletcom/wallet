@@ -85,13 +85,15 @@ impl FailureTracker {
 mod tests {
     use std::time::Duration;
 
+    use primitives::MINUTE;
+
     use super::*;
 
     fn trigger_config(failures: usize) -> FailureTriggerConfig {
         FailureTriggerConfig {
             failures,
             rate: 50,
-            window: Duration::from_secs(60),
+            window: MINUTE,
         }
     }
 

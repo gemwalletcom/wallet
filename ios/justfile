@@ -106,11 +106,10 @@ archive-release: clean
     -derivedDataPath {{DERIVED_DATA}} \
     -clonedSourcePackagesDirPath {{SPM_CACHE}} \
     -archivePath {{DERIVED_DATA}}/Gem.xcarchive \
-    -parallelizeTargets \
     -jobs {{BUILD_THREADS}} \
     CODE_SIGNING_ALLOWED=NO \
     SWIFT_OPTIMIZATION_LEVEL=-Osize \
-    clean archive | xcbeautify {{XCBEAUTIFY_ARGS}}
+    archive | xcbeautify {{XCBEAUTIFY_ARGS}}
 
 show-simulator:
     @echo "Destination: {{SIMULATOR_DEST}}"

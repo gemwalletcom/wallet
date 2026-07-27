@@ -1,18 +1,17 @@
-use std::time::Duration;
-
 use crate::devices::auth_config::{AuthConfig, JwtConfig};
+use primitives::MINUTE;
 
 impl JwtConfig {
     pub fn mock() -> Self {
         Self {
             secret: "secret".to_string(),
-            expiry: Duration::from_secs(60),
+            expiry: MINUTE,
         }
     }
 }
 
 impl AuthConfig {
     pub fn mock() -> Self {
-        Self::new(Duration::from_secs(60), JwtConfig::mock())
+        Self::new(MINUTE, JwtConfig::mock())
     }
 }

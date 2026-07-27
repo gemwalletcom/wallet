@@ -54,3 +54,21 @@ struct LatencyStatusViewModel {
         }
     }
 }
+
+extension LatencyStatusViewModel {
+    init(serviceStatus: ServiceStatusState) {
+        switch serviceStatus {
+        case let .result(milliseconds): self.init(state: .latency(.from(duration: Double(milliseconds))))
+        case .error: self.init(state: .error)
+        case .loading: self.init(state: .loading)
+        }
+    }
+
+    init(nodeStatus: NodeStatusState) {
+        switch nodeStatus {
+        case let .result(status): self.init(state: status.latestBlockNumber > 0 ? .latency(status.latency) : .error)
+        case .error: self.init(state: .error)
+        case .none: self.init(state: .loading)
+        }
+    }
+}

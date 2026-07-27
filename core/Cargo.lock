@@ -2833,7 +2833,6 @@ name = "dynode"
 version = "1.0.0"
 dependencies = [
  "config",
- "futures",
  "gem_auth",
  "gem_client",
  "gem_tracing",
@@ -2846,6 +2845,7 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "settings_chain",
+ "strum",
  "tokio",
  "url",
  "uuid",

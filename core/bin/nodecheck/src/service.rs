@@ -1,44 +1,54 @@
-use chain_traits::ChainTraits;
-use gem_tracing::{error_fields, info_with_fields};
-use primitives::{NodeCheckRequest, NodeCheckStatus};
+use std::{sync::Arc, time::Instant};
 
-const METHOD_WIDTH: usize = 30;
+use chain_traits::ChainTraits;
+use primitives::NodeCheckRequest;
+
+use crate::{
+    rate_limit,
+    result_table::{ResultStatus, ResultTable},
+};
 
 pub(crate) struct NodeCheckService {
-    request: NodeCheckRequest,
-    provider: Box<dyn ChainTraits>,
+    request: Arc<NodeCheckRequest>,
+    provider: Arc<dyn ChainTraits>,
 }
 
 impl NodeCheckService {
     pub(crate) fn new(request: NodeCheckRequest, provider: Box<dyn ChainTraits>) -> Self {
-        Self { request, provider }
+        Self {
+            request: Arc::new(request),
+            provider: Arc::from(provider),
+        }
     }
 
     pub(crate) async fn run(&self) -> bool {
-        info_with_fields!(&format!("┌─ {} / {}", self.provider.get_chain(), self.request.profile()));
-        info_with_fields!(&format!("│ status │ {:<METHOD_WIDTH$} │ result", "method"));
+        let title = format!("{} / {}", self.provider.get_chain(), self.request.profile());
+        let table = ResultTable::start(&title, "method", true);
+        let status_started = Instant::now();
         let passed = match self.provider.get_node_status().await {
             Ok(status) => {
-                let report = self.provider.check_node(&self.request, &status).await;
-                for (method, status) in &report.checks {
-                    match status {
-                        NodeCheckStatus::Passed { result } => info_with_fields!(&format!("│ ✅     │ {method:<METHOD_WIDTH$} │ {result}")),
-                        NodeCheckStatus::Warning { warning } => info_with_fields!(&format!("│ ⚠️     │ {method:<METHOD_WIDTH$} │ {warning}")),
-                        NodeCheckStatus::Failed { error } => error_fields!(&format!("│ ❌     │ {method:<METHOD_WIDTH$} │ {error}")),
-                    }
+                let status_latency = status_started.elapsed();
+                let report = self.provider.check_node(self.request.as_ref(), &status, status_latency).await;
+                for check in &report.checks {
+                    table.row((&check.status).into(), &check.method, Some(check.latency_ms), check.status.message());
                 }
                 report.is_healthy()
             }
             Err(error) => {
-                error_fields!(&format!("│ ❌     │ {:<METHOD_WIDTH$} │ {error}", "node_status"));
+                table.row(
+                    ResultStatus::Failed,
+                    "node_status",
+                    status_started.elapsed().as_millis().try_into().ok(),
+                    &error.to_string(),
+                );
                 false
             }
         };
-        if passed {
-            info_with_fields!("└─ passed ✅");
-        } else {
-            error_fields!("└─ failed ❌");
-        }
+        table.finish(passed);
         passed
+    }
+
+    pub(crate) async fn run_rate_limit(&self, profile_runs_per_second: u32) -> bool {
+        rate_limit::run(Arc::clone(&self.request), Arc::clone(&self.provider), profile_runs_per_second).await
     }
 }

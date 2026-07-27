@@ -3,10 +3,14 @@ use std::time::Duration;
 pub const SECONDS_PER_MINUTE: u64 = 60;
 pub const SECONDS_PER_HOUR: u64 = 60 * SECONDS_PER_MINUTE;
 pub const SECONDS_PER_DAY: u64 = 24 * SECONDS_PER_HOUR;
+pub const SECONDS_PER_WEEK: u64 = 7 * SECONDS_PER_DAY;
 
 pub const MINUTE: Duration = Duration::from_secs(SECONDS_PER_MINUTE);
 pub const HOUR: Duration = Duration::from_secs(SECONDS_PER_HOUR);
 pub const DAY: Duration = Duration::from_secs(SECONDS_PER_DAY);
+pub const WEEK: Duration = Duration::from_secs(SECONDS_PER_WEEK);
+/// Fixed 30-day duration. Use calendar date arithmetic for calendar months.
+pub const MONTH: Duration = DAY.saturating_mul(30);
 
 pub fn parse_duration(raw: &str) -> Option<Duration> {
     let value = raw.trim();
@@ -30,9 +34,9 @@ pub fn parse_duration(raw: &str) -> Option<Duration> {
         "us" => Some(Duration::from_micros(amount as u64)),
         "ms" => Some(Duration::from_millis(amount as u64)),
         "s" => Some(Duration::from_secs_f64(amount)),
-        "m" => Some(Duration::from_secs_f64(amount * 60.0)),
-        "h" => Some(Duration::from_secs_f64(amount * 3_600.0)),
-        "d" => Some(Duration::from_secs_f64(amount * 86_400.0)),
+        "m" => Some(Duration::from_secs_f64(amount * SECONDS_PER_MINUTE as f64)),
+        "h" => Some(Duration::from_secs_f64(amount * SECONDS_PER_HOUR as f64)),
+        "d" => Some(Duration::from_secs_f64(amount * SECONDS_PER_DAY as f64)),
         _ => None,
     }
 }

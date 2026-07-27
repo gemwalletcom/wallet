@@ -17,5 +17,4 @@ pub const ETH_GET_TRANSACTION_BY_HASH: &str = "eth_getTransactionByHash";
 pub const ETH_GET_TRANSACTION_COUNT: &str = "eth_getTransactionCount";
 pub const ETH_GET_TRANSACTION_RECEIPT: &str = "eth_getTransactionReceipt";
 pub const ETH_SEND_RAW_TRANSACTION: &str = "eth_sendRawTransaction";
-pub const ETH_SYNCING: &str = "eth_syncing";
 pub const TRACE_CALL: &str = "trace_call";

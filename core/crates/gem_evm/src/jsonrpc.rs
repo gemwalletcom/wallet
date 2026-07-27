@@ -104,7 +104,6 @@ pub enum EthereumRpc {
     GetTransactionCount(String, BlockParameter),
     GetTransactionReceipt(String),
     SendRawTransaction(String),
-    Syncing,
     TraceCall(TransactionObject, BlockParameter),
 }
 
@@ -125,14 +124,13 @@ impl ToJsonRpcRequest for EthereumRpc {
             Self::GetTransactionCount(_, _) => method::ETH_GET_TRANSACTION_COUNT,
             Self::GetTransactionReceipt(_) => method::ETH_GET_TRANSACTION_RECEIPT,
             Self::SendRawTransaction(_) => method::ETH_SEND_RAW_TRANSACTION,
-            Self::Syncing => method::ETH_SYNCING,
             Self::TraceCall(_, _) => method::TRACE_CALL,
         }
     }
 
     fn params(&self) -> Value {
         match self {
-            Self::BlockNumber | Self::ChainId | Self::GasPrice | Self::Syncing => json!([]),
+            Self::BlockNumber | Self::ChainId | Self::GasPrice => json!([]),
             Self::Call(transaction, block) => json!([transaction, Value::from(block)]),
             Self::EstimateGas(transaction, block) => json!([transaction, Value::from(block)]),
             Self::FeeHistory { blocks, reward_percentiles } => {

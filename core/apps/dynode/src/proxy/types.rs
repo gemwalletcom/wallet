@@ -25,16 +25,12 @@ impl CachedResponse {
 mod tests {
     use super::*;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
+    use primitives::MINUTE;
     use reqwest::StatusCode;
 
     #[test]
     fn test_to_jsonrpc_response() {
-        let response = CachedResponse::new(
-            br#"{"value":123}"#.to_vec(),
-            StatusCode::OK.as_u16(),
-            JSON_CONTENT_TYPE.to_string(),
-            Duration::from_secs(60),
-        );
+        let response = CachedResponse::new(br#"{"value":123}"#.to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), MINUTE);
         let call = JsonRpcCall {
             jsonrpc: "2.0".to_string(),
             method: "eth_blockNumber".to_string(),
@@ -50,7 +46,7 @@ mod tests {
 
     #[test]
     fn test_to_jsonrpc_response_invalid_utf8() {
-        let response = CachedResponse::new(vec![0xff, 0xfe], StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
+        let response = CachedResponse::new(vec![0xff, 0xfe], StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), MINUTE);
         let call = JsonRpcCall {
             jsonrpc: "2.0".to_string(),
             method: "test".to_string(),

@@ -31,9 +31,7 @@ pub async fn get_device_wallet_subscriptions(
     wallet_id: &str,
     client: &State<WalletsClient>,
 ) -> Result<ApiResponse<WalletSubscription>, ApiError> {
-    Ok(client
-        .get_wallet_subscription(device_id, wallet_id)?
-        .into())
+    Ok(client.get_wallet_subscription(device_id, wallet_id)?.into())
 }
 
 #[get("/devices/<device_id>/transactions")]

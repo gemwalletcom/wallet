@@ -83,6 +83,7 @@ impl ResponseBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::MINUTE;
 
     #[test]
     fn test_create_proxy_headers() {
@@ -95,7 +96,7 @@ mod tests {
 
     #[test]
     fn test_cached_response_source() {
-        let cached = super::super::CachedResponse::new(Vec::new(), 200, JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
+        let cached = super::super::CachedResponse::new(Vec::new(), 200, JSON_CONTENT_TYPE.to_string(), MINUTE);
         let response = ResponseBuilder::build_cached_with_headers(cached, HeaderMap::new());
 
         assert!(response.is_from_cache());

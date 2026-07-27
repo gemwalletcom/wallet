@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.perpetual.autoclose
 
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
-import com.gemwallet.android.domains.price.PriceChange
+import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
 import kotlin.math.abs
@@ -27,7 +27,7 @@ class AutocloseEstimator(
     }
 
     private fun priceChangePercent(price: Double): Double {
-        val raw = PriceChange.percentage(from = entryPrice, to = price)
+        val raw = PriceChangeCalculator.percentage(from = entryPrice, to = price)
         return if (direction == PerpetualDirection.Short) -raw else raw
     }
 

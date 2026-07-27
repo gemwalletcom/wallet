@@ -2,6 +2,7 @@
 
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -9,6 +10,7 @@ import SwiftUI
 internal import Charts
 
 public struct ChartValuesViewModel: Sendable {
+    private static let priceChangeCalculator = PriceChangeCalculator()
     public let period: ChartPeriod
     public let price: Price?
     public let values: ChartValues
@@ -57,7 +59,7 @@ public struct ChartValuesViewModel: Sendable {
         case .price:
             period == Self.defaultPeriod
                 ? price.priceChangePercentage24h
-                : PriceChangeCalculator.calculate(.percentage(from: values.baseValue, to: price.price))
+                : Self.priceChangeCalculator.percentage(from: values.baseValue, to: price.price)
         }
         return ChartHeaderViewModel(period: period, date: nil, price: price.price, priceChangePercentage: priceChangePercentage, headerValue: headerValue, formatter: formatter, type: type)
     }
@@ -73,7 +75,7 @@ public struct ChartValuesViewModel: Sendable {
         }
         let price = Price(
             price: values.lastValue - values.firstValue,
-            priceChangePercentage24h: PriceChangeCalculator.calculate(.percentage(from: values.firstValue, to: values.lastValue)),
+            priceChangePercentage24h: priceChangeCalculator.percentage(from: values.firstValue, to: values.lastValue),
             updatedAt: .now,
         )
         return ChartValuesViewModel(
@@ -88,7 +90,7 @@ public struct ChartValuesViewModel: Sendable {
 
     func headerViewModel(for element: ChartDateValue) -> ChartHeaderViewModel {
         let base = type == .priceChange ? values.firstValue : values.baseValue
-        let priceChangePercentage = PriceChangeCalculator.calculate(.percentage(from: base, to: element.value))
+        let priceChangePercentage = Self.priceChangeCalculator.percentage(from: base, to: element.value)
         let displayPrice = type == .priceChange ? element.value - base : element.value
         let elementHeaderValue = headerValue != nil ? element.value : nil
         return ChartHeaderViewModel(period: period, date: element.date, price: displayPrice, priceChangePercentage: priceChangePercentage, headerValue: elementHeaderValue, formatter: formatter, type: type)

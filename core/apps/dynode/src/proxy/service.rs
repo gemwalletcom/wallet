@@ -110,13 +110,11 @@ impl ProxyRequestService {
         let url = RequestUrl::from_parts(resolved_url, &request.path_with_query);
         let headers = self.build_headers(url.url.host_str().unwrap_or_default(), &request.headers);
 
-        self.metrics.add_proxy_request(request.chain.as_ref());
-
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);
         let cache_key = cache_ttl.and_then(|_| request_type.cache_key(&request.host, &request.path_with_query));
 
         let methods_for_metrics = request_type.get_methods_for_metrics();
-        self.metrics.add_proxy_request_batch(request.chain.as_ref(), &methods_for_metrics);
+        self.metrics.add_proxy_request(request.chain.as_ref(), &methods_for_metrics);
 
         if let Some(key) = &cache_key
             && let Some(result) = Self::try_cache_hit(&self.cache, key, &request, &url, &self.metrics, request_type, &methods_for_metrics).await

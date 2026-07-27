@@ -26,6 +26,7 @@ public final class WalletSceneViewModel: Sendable {
     private let balanceService: BalanceService
     private let bannerService: BannerService
     private let walletService: WalletService
+    private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
 
@@ -34,7 +35,7 @@ public final class WalletSceneViewModel: Sendable {
     public var wallet: Wallet
 
     // db queries
-    public let totalFiatQuery: ObservableQuery<TotalValueRequest>
+    public let fiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
     public let assetsQuery: ObservableQuery<AssetsRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
 
@@ -68,14 +69,14 @@ public final class WalletSceneViewModel: Sendable {
             wallet: wallet,
         )
 
-        totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.id, type: .wallet), initialValue: .zero)
+        fiatValuesQuery = ObservableQuery(AssetFiatValuesRequest(walletId: wallet.id, type: .wallet), initialValue: [])
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
     
     public var totalFiatValue: TotalFiatValue {
-        totalFiatQuery.value
+        balanceCalculator.totalFiatValue(fiatValuesQuery.value)
     }
 
     public var assets: [AssetData] {
@@ -323,7 +324,7 @@ extension WalletSceneViewModel {
     private func refresh(for newWallet: Wallet) {
         isLoadingAssets = false
         wallet = newWallet
-        totalFiatQuery.request.walletId = newWallet.id
+        fiatValuesQuery.request.walletId = newWallet.id
         assetsQuery.request.walletId = newWallet.id
         bannersQuery.request.walletId = newWallet.id
         collectionsModel.wallet = newWallet

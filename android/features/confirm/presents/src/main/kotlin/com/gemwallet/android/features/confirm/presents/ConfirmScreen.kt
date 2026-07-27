@@ -261,6 +261,7 @@ fun ConfirmScreen(
             item {
                 ConfirmErrorInfo(
                     state = state,
+                    fee = feeModel as? FeeUIModel.FeeInfo,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
                     onAcquireAsset = onAcquireAsset,
                 )

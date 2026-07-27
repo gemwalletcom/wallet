@@ -24,7 +24,7 @@ impl NodeSelectionPolicy {
         let candidate_status = candidate.state.as_status()?;
         let reason = match &current_observation.state {
             NodeStatusState::Error { message } => NodeSwitchReason::CurrentNodeError {
-                kind: current_observation.error_kind.clone(),
+                error: current_observation.monitor_error,
                 message: message.clone(),
             },
             NodeStatusState::Healthy(status) if !status.in_sync => NodeSwitchReason::BlockHeight {
@@ -47,7 +47,7 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    use crate::monitoring::switch_reason::CurrentNodeErrorKind;
+    use crate::monitoring::switch_reason::NodeMonitorError;
     use crate::testkit::sync::{healthy_observation, not_in_sync_observation, url};
 
     fn error_observation(host: &str, message: &str) -> NodeStatusObservation {
@@ -113,7 +113,7 @@ mod tests {
         assert_eq!(
             result.reason,
             NodeSwitchReason::CurrentNodeError {
-                kind: CurrentNodeErrorKind::Unknown,
+                error: NodeMonitorError::Request,
                 message: "connection failed".to_string()
             }
         );

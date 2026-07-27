@@ -660,6 +660,7 @@ impl DatabaseClient {
 mod tests {
     use super::*;
     use crate::models::UsernameRow;
+    use primitives::{DAY, HOUR};
 
     fn username_row(username: &str, wallet_id: i32) -> UsernameRow {
         UsernameRow {
@@ -737,16 +738,13 @@ mod tests {
 
     #[test]
     fn test_compute_verification_delay() {
-        let base = std::time::Duration::from_secs(86400); // 24h
+        let base = DAY;
 
         // Trusted: no delay regardless of multiplier
         assert_eq!(compute_verification_delay(base, 2, &PrimitiveRewardStatus::Trusted), None);
 
         // Verified with multiplier 2: 24h / 2 = 12h
-        assert_eq!(
-            compute_verification_delay(base, 2, &PrimitiveRewardStatus::Verified),
-            Some(std::time::Duration::from_secs(43200))
-        );
+        assert_eq!(compute_verification_delay(base, 2, &PrimitiveRewardStatus::Verified), Some(HOUR * 12));
 
         // Unverified: full delay (multiplier applied as 1 by caller)
         assert_eq!(compute_verification_delay(base, 1, &PrimitiveRewardStatus::Unverified), Some(base));

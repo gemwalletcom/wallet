@@ -125,7 +125,7 @@ class StakeViewModel @Inject constructor(
                 .takeIf { assetInfo.chain.canClaimRewards && rewardsBalance > BigInteger.ZERO }
                 ?.let {
                     StakeAction.Rewards(
-                        data = ValueFormatter(style = ValueFormatter.Style.Full)
+                        data = ValueFormatter(style = ValueFormatter.Style.Auto)
                             .string(rewardsBalance, assetInfo.asset),
                     )
                 },
