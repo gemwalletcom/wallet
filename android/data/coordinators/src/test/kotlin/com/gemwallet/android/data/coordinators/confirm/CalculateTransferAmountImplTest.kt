@@ -9,13 +9,12 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.testkit.mockSwapParams
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.GemTransferAmountException
-import uniffi.gemstone.SwapperProvider
 import java.math.BigInteger
 
 class CalculateTransferAmountImplTest {
@@ -46,24 +45,12 @@ class CalculateTransferAmountImplTest {
         assertEquals("100000000", transfer.feeAssetBalance)
 
         val swap = transferAmountInput(
-            params = ConfirmParams.SwapParams(
+            params = mockSwapParams(
                 from = account,
                 fromAsset = asset,
                 fromAmount = amount,
                 minFromAmount = BigInteger.valueOf(1_000L),
                 toAsset = token,
-                toAmount = BigInteger.ONE,
-                swapData = "",
-                memo = null,
-                providerId = SwapperProvider.HYPERLIQUID,
-                providerName = "Hyperliquid",
-                protocol = "Hyperliquid",
-                protocolId = "hyperliquid",
-                toAddress = account.address,
-                value = "0",
-                slippageBps = 50u,
-                etaInSeconds = null,
-                dataType = GemSwapQuoteDataType.TRANSFER,
             ),
             availableValue = amount,
             feeAssetInfo = feeAssetInfo,

@@ -108,9 +108,17 @@ impl TransferAmountInput {
             (true, true) => &value + &self.fee,
         };
         let should_skip_fee_check = asset.chain == Chain::HyperCore && !spends_balance;
+        let minimum_account_balance = match asset.chain.minimum_account_balance() {
+            Some(minimum) if asset.asset_type == AssetType::NATIVE && !self.is_max_amount && spends_balance => Some(BigInt::from(minimum)),
+            _ => None,
+        };
+        let remaining_balance = &self.available_value - &required;
 
         if required > self.available_value {
-            return Err(TransferAmountError::insufficient_balance(&asset.id, required, self.available_value.clone()));
+            return match &minimum_account_balance {
+                Some(minimum) if value <= self.available_value => Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum.clone(), remaining_balance)),
+                _ => Err(TransferAmountError::insufficient_balance(&asset.id, required, self.available_value.clone())),
+            };
         }
 
         if self.fee_asset_balance < self.fee && !should_skip_fee_check {
@@ -121,18 +129,10 @@ impl TransferAmountInput {
             ));
         }
 
-        let remaining_balance = &self.available_value - &required;
-        if let Some(minimum_account_balance) = asset.chain.minimum_account_balance()
-            && asset.asset_type == AssetType::NATIVE
-            && !self.is_max_amount
-            && spends_balance
-            && remaining_balance < BigInt::from(minimum_account_balance)
+        if let Some(minimum) = &minimum_account_balance
+            && remaining_balance < *minimum
         {
-            return Err(TransferAmountError::minimum_account_balance_too_low(
-                &asset.id,
-                BigInt::from(minimum_account_balance),
-                remaining_balance,
-            ));
+            return Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum.clone(), remaining_balance));
         }
 
         if let Some(minimum_value) = &self.minimum_value
@@ -213,12 +213,13 @@ mod tests {
         assert!(!ok.is_max_amount);
 
         assert_eq!(
-            solana_transfer(10_000_000, 10_000_000).calculate().unwrap_err(),
+            solana_transfer(20_000_000, 10_000_000).calculate().unwrap_err(),
             TransferAmountError::InsufficientBalance {
                 asset_id: Asset::mock_sol().id,
-                required: BigInt::from(10_005_000u64),
+                required: BigInt::from(20_005_000u64),
                 available: BigInt::from(10_000_000u64),
-            }
+            },
+            "sending more than the balance is insufficient balance, not a reserve problem"
         );
 
         let mut insufficient_fee = solana_transfer(10_000_000, 100_000_000);
@@ -240,21 +241,6 @@ mod tests {
                 asset_id: Asset::mock_sol().id,
                 required: BigInt::from(200),
                 available: BigInt::from(100),
-            }
-        );
-
-        let stake_everything = input(
-            TransactionInputType::Stake(Asset::mock_sol(), StakeType::Stake(DelegationValidator::mock())),
-            1_000_000_000,
-            1_000_000_000,
-            1_000_000_000,
-        );
-        assert_eq!(
-            stake_everything.calculate().unwrap_err(),
-            TransferAmountError::InsufficientBalance {
-                asset_id: Asset::mock_sol().id,
-                required: BigInt::from(1_000_005_000u64),
-                available: BigInt::from(1_000_000_000u64),
             }
         );
     }
@@ -289,12 +275,23 @@ mod tests {
     #[test]
     fn test_calculate_minimum_account_balance() {
         assert_eq!(
-            solana_transfer(10_000_000, 10_500_000).calculate().unwrap_err(),
+            solana_transfer(999_000, 1_000_000).calculate().unwrap_err(),
             TransferAmountError::MinimumAccountBalanceTooLow {
                 asset_id: Asset::mock_sol().id,
                 required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
-                available: BigInt::from(495_000),
-            }
+                available: BigInt::from(-4_000),
+            },
+            "sending almost the whole balance is a reserve problem, not insufficient balance"
+        );
+
+        assert_eq!(
+            input(TransactionInputType::Transfer(Asset::mock()), 999_000, 1_000_000, 1_000_000).calculate().unwrap_err(),
+            TransferAmountError::InsufficientBalance {
+                asset_id: Asset::mock().id,
+                required: BigInt::from(1_004_000u64),
+                available: BigInt::from(1_000_000u64),
+            },
+            "a chain without a rent-exempt minimum reports insufficient balance, not a reserve problem"
         );
 
         let exactly_minimum = 10_000_000 + FEE + SOLANA_MINIMUM_ACCOUNT_BALANCE;
@@ -356,6 +353,12 @@ mod tests {
                 required: BigInt::from(FEE),
                 available: BigInt::from(1_000),
             }
+        );
+
+        let below_reserve_unstake = input(TransactionInputType::Stake(Asset::mock_sol(), StakeType::Unstake(Delegation::mock())), 100, 100, 5_000_000);
+        assert!(
+            below_reserve_unstake.calculate().is_ok(),
+            "unstaking never spends the balance, so a delegation below the reserve is still allowed"
         );
 
         let approve = input(TransactionInputType::TokenApprove(Asset::mock_spl_token(), ApprovalData::mock()), 0, 0, 5_000_000);

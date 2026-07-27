@@ -84,10 +84,10 @@ mod tests {
         );
 
         assert_eq!(
-            calculate_transfer_amount(input(10_000_000, 10_000_000, 10_000_000)).unwrap_err(),
+            calculate_transfer_amount(input(20_000_000, 10_000_000, 10_000_000)).unwrap_err(),
             GemTransferAmountError::InsufficientBalance {
                 asset_id: Asset::from_chain(Chain::Solana).id,
-                required: BigInt::from(10_005_000u64),
+                required: BigInt::from(20_005_000u64),
                 available: BigInt::from(10_000_000u64),
             }
         );
