@@ -77,8 +77,8 @@ pub(crate) async fn run(request: Arc<NodeCheckRequest>, provider: Arc<dyn ChainT
                 } else {
                     profile_results.failed += 1;
                 }
-                for (method, result) in report.checks {
-                    method_results.entry(method).or_default().record(result.status);
+                for result in report.checks {
+                    method_results.entry(result.method).or_default().record(result.status);
                 }
             }
             Ok(Err(error)) => {

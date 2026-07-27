@@ -1,3 +1,7 @@
+mod receipt_history;
+
+use std::time::Duration;
+
 use async_trait::async_trait;
 use chain_traits::{
     ChainBalances, ChainTraits,
@@ -5,9 +9,9 @@ use chain_traits::{
 };
 use gem_client::Client;
 use primitives::{Chain, NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
-use std::time::Duration;
 
 use crate::{jsonrpc::TransactionObject, method, rpc::EthereumProvider};
+use receipt_history::record_receipt_checks;
 
 const ETH_CALL_MONAD_DELEGATIONS_CHECK: &str = "eth_call_monad_delegations";
 
@@ -33,24 +37,14 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
         .await
     }
 
-    async fn get_node_wallet_status(&self, address: &str, transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
-        let Some(transaction_id) = transaction_id else {
-            return recorder.record("wallet", Err::<&str, _>("missing transaction fixture"));
-        };
+    async fn get_node_wallet_status(&self, address: &str, _transaction_id: Option<&str>, block_number: u64, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
         let recorder = recorder
             .record_timed(method::ETH_GET_BALANCE, async {
                 self.get_balance_coin(address.to_string()).await.map(|result| result.balance.available)
             })
             .await;
         let recorder = recorder.record_timed(method::ETH_GET_TRANSACTION_COUNT, self.get_transaction_count(address)).await;
-        let recorder = recorder
-            .record_timed(method::ETH_GET_TRANSACTION_RECEIPT, async {
-                self.get_transaction_receipt(transaction_id)
-                    .await
-                    .map_err(|error| error.to_string())
-                    .and_then(|receipt| receipt.map(|receipt| receipt.block_number).ok_or_else(|| "returned null".to_string()))
-            })
-            .await;
+        let recorder = record_receipt_checks(self, recorder, block_number).await;
         let recorder = recorder.record_available_timed(method::ETH_FEE_HISTORY, self.get_fee_history(1, vec![50])).await;
         let recorder = recorder.record_timed(method::ETH_GAS_PRICE, self.get_gas_price()).await;
         let recorder = recorder.record_timed(method::ETH_GET_CODE, self.get_code(address)).await;

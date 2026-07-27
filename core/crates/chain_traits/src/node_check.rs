@@ -1,5 +1,4 @@
 use std::{
-    collections::BTreeMap,
     fmt::Display,
     future::Future,
     time::{Duration, Instant},
@@ -31,7 +30,7 @@ where
 
 #[derive(Default)]
 pub struct NodeCheckRecorder {
-    checks: BTreeMap<String, NodeCheckResult>,
+    checks: Vec<NodeCheckResult>,
     block_number: Option<u64>,
 }
 
@@ -70,6 +69,15 @@ impl NodeCheckRecorder {
         self.record_optional_available_with_latency(method, result, started.elapsed())
     }
 
+    pub async fn record_optional_timed<T: Display, E: Display, F: Future<Output = Result<T, E>>>(self, method: &str, future: F) -> Self {
+        let started = Instant::now();
+        let status = match future.await {
+            Ok(value) => NodeCheckStatus::Passed { result: format_result(&value) },
+            Err(error) => NodeCheckStatus::Warning { warning: error.to_string() },
+        };
+        self.record_status(method, status, started.elapsed())
+    }
+
     pub fn record_optional_available<T, E: Display>(self, method: &str, result: Result<T, E>) -> Self {
         self.record_optional_available_with_latency(method, result, Duration::ZERO)
     }
@@ -83,7 +91,7 @@ impl NodeCheckRecorder {
     }
 
     fn has_failed(&self) -> bool {
-        self.checks.values().any(|result| matches!(result.status, NodeCheckStatus::Failed { .. }))
+        self.checks.iter().any(|result| matches!(result.status, NodeCheckStatus::Failed { .. }))
     }
 
     fn finish(self) -> NodeCheckReport {
@@ -94,8 +102,7 @@ impl NodeCheckRecorder {
         self.record_result(
             method,
             result.map(|value| {
-                let result = value.to_string();
-                let result = if result.len() > MAX_RESULT_LENGTH { "available".to_string() } else { result };
+                let result = format_result(&value);
                 (value, result)
             }),
             latency,
@@ -110,12 +117,15 @@ impl NodeCheckRecorder {
         (self.record_status(method, status, latency), value)
     }
 
-    fn record_status(self, method: &str, status: NodeCheckStatus, latency: Duration) -> Self {
-        let block_number = self.block_number;
-        let mut checks = self.checks;
-        checks.insert(method.to_string(), NodeCheckResult::new(status, latency));
-        Self { checks, block_number }
+    fn record_status(mut self, method: &str, status: NodeCheckStatus, latency: Duration) -> Self {
+        self.checks.push(NodeCheckResult::new(method, status, latency));
+        self
     }
+}
+
+fn format_result(value: &impl Display) -> String {
+    let result = value.to_string();
+    if result.len() > MAX_RESULT_LENGTH { "available".to_string() } else { result }
 }
 
 #[async_trait]
@@ -125,10 +135,13 @@ pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
         if recorder.has_failed() {
             return recorder.finish();
         }
+        let Some(block_number) = recorder.block_number else {
+            return recorder.finish();
+        };
 
         let recorder = match request {
             NodeCheckRequest::Basic => recorder,
-            NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id.as_deref(), recorder).await,
+            NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id.as_deref(), block_number, recorder).await,
             NodeCheckRequest::Parser => record_parser_block(self, recorder).await,
         };
         recorder.finish()
@@ -136,7 +149,7 @@ pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
 
     async fn get_node_basic_status(&self, status: &NodeSyncStatus, status_latency: Duration, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
 
-    async fn get_node_wallet_status(&self, address: &str, transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+    async fn get_node_wallet_status(&self, address: &str, transaction_id: Option<&str>, block_number: u64, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
 }
 
 async fn record_wallet<T>(state: &T, address: &str, transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder
@@ -275,7 +288,7 @@ mod tests {
         let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Parser, &NodeSyncStatus::in_sync(), Duration::ZERO));
 
         assert_eq!(
-            report.checks.get("block_transactions").map(|result| &result.status),
+            report.get("block_transactions").map(|result| &result.status),
             Some(&NodeCheckStatus::Passed { result: "0".to_string() })
         );
         assert_eq!(report.checks.len(), 3);
@@ -289,7 +302,7 @@ mod tests {
         let status_latency = Duration::from_millis(42);
         let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Basic, &NodeSyncStatus::synced(100), status_latency));
 
-        assert_eq!(report.checks["latest_block_number"].latency_ms, 42);
+        assert_eq!(report.get("latest_block_number").unwrap().latency_ms, 42);
         assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 0);
     }
 
@@ -303,13 +316,13 @@ mod tests {
         let report = futures::executor::block_on(check_node(&state, &request, &NodeSyncStatus::in_sync(), Duration::ZERO));
 
         assert_eq!(
-            report.checks.get("balance").map(|result| &result.status),
+            report.get("balance").map(|result| &result.status),
             Some(&NodeCheckStatus::Failed {
                 error: "balance unavailable".to_string()
             })
         );
         assert_eq!(
-            report.checks.get("transaction").map(|result| &result.status),
+            report.get("transaction").map(|result| &result.status),
             Some(&NodeCheckStatus::Failed {
                 error: "returned null".to_string()
             })
@@ -342,7 +355,7 @@ mod tests {
         let (recorder, recorded) = recorder.record_value("method", result);
         assert_eq!(recorded, Some(value));
         assert_eq!(
-            recorder.finish().checks.get("method").map(|result| result.status.clone()),
+            recorder.finish().get("method").map(|result| result.status.clone()),
             Some(NodeCheckStatus::Passed { result: "available".to_string() })
         );
     }
@@ -353,10 +366,30 @@ mod tests {
         let recorder = NodeCheckRecorder::default().record_optional_available("method", result);
 
         assert_eq!(
-            recorder.finish().checks.get("method").map(|result| result.status.clone()),
+            recorder.finish().get("method").map(|result| result.status.clone()),
             Some(NodeCheckStatus::Warning {
                 warning: "method not found".to_string()
             })
+        );
+    }
+
+    #[test]
+    fn records_optional_timed_result() {
+        let recorder = futures::executor::block_on(NodeCheckRecorder::default().record_optional_timed("method", async { Ok::<_, &str>("block 42") }));
+
+        assert_eq!(recorder.finish().get("method").unwrap().status, NodeCheckStatus::Passed { result: "block 42".to_string() });
+    }
+
+    #[test]
+    fn preserves_recording_order() {
+        let report = NodeCheckRecorder::default()
+            .record("second_alphabetically", Ok::<_, &str>("available"))
+            .record("first_alphabetically", Ok::<_, &str>("available"))
+            .finish();
+
+        assert_eq!(
+            report.checks.iter().map(|result| result.method.as_str()).collect::<Vec<_>>(),
+            ["second_alphabetically", "first_alphabetically"]
         );
     }
 }

@@ -29,8 +29,8 @@ impl NodeCheckService {
             Ok(status) => {
                 let status_latency = status_started.elapsed();
                 let report = self.provider.check_node(self.request.as_ref(), &status, status_latency).await;
-                for (method, check) in &report.checks {
-                    table.row((&check.status).into(), method, Some(check.latency_ms), check.status.message());
+                for check in &report.checks {
+                    table.row((&check.status).into(), &check.method, Some(check.latency_ms), check.status.message());
                 }
                 report.is_healthy()
             }

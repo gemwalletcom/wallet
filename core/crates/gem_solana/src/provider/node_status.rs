@@ -34,7 +34,7 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
         .await
     }
 
-    async fn get_node_wallet_status(&self, address: &str, _transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+    async fn get_node_wallet_status(&self, address: &str, _transaction_id: Option<&str>, _block_number: u64, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
         let recorder = recorder
             .record_timed(method::GET_BALANCE, async {
                 self.get_balance_coin(address.to_string()).await.map(|result| result.balance.available)
@@ -112,13 +112,13 @@ mod tests {
         let report = ChainTraits::check_node(&provider, &NodeCheckRequest::Parser, &NodeSyncStatus::synced(1_000), Duration::ZERO).await;
 
         assert_eq!(report.checks.len(), 3);
-        assert_eq!(report.checks["block_transactions"].status, NodeCheckStatus::Passed { result: "0".to_string() });
+        assert_eq!(report.get("block_transactions").unwrap().status, NodeCheckStatus::Passed { result: "0".to_string() });
         assert_eq!(
-            report.checks[method::GET_GENESIS_HASH].status,
+            report.get(method::GET_GENESIS_HASH).unwrap().status,
             NodeCheckStatus::Passed {
                 result: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d".to_string()
             }
         );
-        assert_eq!(report.checks[method::GET_SLOT].status, NodeCheckStatus::Passed { result: "1000".to_string() });
+        assert_eq!(report.get(method::GET_SLOT).unwrap().status, NodeCheckStatus::Passed { result: "1000".to_string() });
     }
 }
