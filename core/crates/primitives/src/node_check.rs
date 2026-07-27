@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
@@ -38,21 +39,47 @@ pub enum NodeCheckStatus {
     Failed { error: String },
 }
 
+impl NodeCheckStatus {
+    pub fn message(&self) -> &str {
+        match self {
+            Self::Passed { result } => result,
+            Self::Warning { warning } => warning,
+            Self::Failed { error } => error,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NodeCheckResult {
+    #[serde(flatten)]
+    pub status: NodeCheckStatus,
+    pub latency_ms: u64,
+}
+
+impl NodeCheckResult {
+    pub fn new(status: NodeCheckStatus, latency: Duration) -> Self {
+        Self {
+            status,
+            latency_ms: latency.as_millis().try_into().unwrap_or(u64::MAX),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NodeCheckReport {
-    pub checks: BTreeMap<String, NodeCheckStatus>,
+    pub checks: BTreeMap<String, NodeCheckResult>,
 }
 
 impl NodeCheckReport {
     pub fn is_healthy(&self) -> bool {
-        self.checks.values().all(|status| match status {
+        self.checks.values().all(|result| match result.status {
             NodeCheckStatus::Passed { .. } | NodeCheckStatus::Warning { .. } => true,
             NodeCheckStatus::Failed { .. } => false,
         })
     }
 
     pub fn error(&self) -> Option<String> {
-        self.checks.iter().find_map(|(method, status)| match status {
+        self.checks.iter().find_map(|(method, result)| match &result.status {
             NodeCheckStatus::Passed { .. } | NodeCheckStatus::Warning { .. } => None,
             NodeCheckStatus::Failed { error } => Some(format!("{method}: {error}")),
         })
@@ -66,7 +93,10 @@ mod tests {
     #[test]
     fn test_node_check_report() {
         let report = NodeCheckReport {
-            checks: BTreeMap::from([("method".to_string(), NodeCheckStatus::Passed { result: "22820942".to_string() })]),
+            checks: BTreeMap::from([(
+                "method".to_string(),
+                NodeCheckResult::new(NodeCheckStatus::Passed { result: "22820942".to_string() }, Duration::from_millis(42)),
+            )]),
         };
         assert!(report.is_healthy());
         assert_eq!(report.error(), None);
@@ -76,7 +106,8 @@ mod tests {
                 "checks": {
                     "method": {
                         "status": "passed",
-                        "result": "22820942"
+                        "result": "22820942",
+                        "latency_ms": 42
                     }
                 }
             })
@@ -85,9 +116,12 @@ mod tests {
         let report = NodeCheckReport {
             checks: BTreeMap::from([(
                 "optional_method".to_string(),
-                NodeCheckStatus::Warning {
-                    warning: "method not found".to_string(),
-                },
+                NodeCheckResult::new(
+                    NodeCheckStatus::Warning {
+                        warning: "method not found".to_string(),
+                    },
+                    Duration::from_millis(7),
+                ),
             )]),
         };
         assert!(report.is_healthy());
@@ -98,7 +132,8 @@ mod tests {
                 "checks": {
                     "optional_method": {
                         "status": "warning",
-                        "warning": "method not found"
+                        "warning": "method not found",
+                        "latency_ms": 7
                     }
                 }
             })
@@ -107,9 +142,12 @@ mod tests {
         let report = NodeCheckReport {
             checks: BTreeMap::from([(
                 "method".to_string(),
-                NodeCheckStatus::Failed {
-                    error: "returned null".to_string(),
-                },
+                NodeCheckResult::new(
+                    NodeCheckStatus::Failed {
+                        error: "returned null".to_string(),
+                    },
+                    Duration::from_millis(3),
+                ),
             )]),
         };
         assert!(!report.is_healthy());

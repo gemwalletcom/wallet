@@ -84,12 +84,15 @@ impl WalletsClient {
             .map(|wallet| {
                 let chains = wallet.chains.into_iter().collect::<Vec<_>>();
                 Ok(AdminWalletOverview {
-                    transaction_count: self.database.transactions()?.count_transactions_by_addresses(
-                        wallet.addresses.into_iter().collect(),
-                        chains.iter().map(|chain| chain.as_ref().to_string()).collect(),
-                    )?,
+                    transaction_count: self
+                        .database
+                        .transactions()?
+                        .count_transactions_by_addresses(wallet.addresses.into_iter().collect(), chains.iter().map(|chain| chain.as_ref().to_string()).collect())?,
                     fiat_transaction_count: self.database.fiat()?.count_fiat_transactions_by_device_and_wallet_id(device_row_id, wallet.wallet_id)?,
-                    nft_count: self.database.nft()?.count_nft_assets_by_address_ids(wallet.address_ids.into_iter().collect(), chains.clone())?,
+                    nft_count: self
+                        .database
+                        .nft()?
+                        .count_nft_assets_by_address_ids(wallet.address_ids.into_iter().collect(), chains.clone())?,
                     chains,
                     id: wallet.identifier,
                     source: wallet.source,

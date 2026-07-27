@@ -4,7 +4,7 @@ use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::types::{ERROR_INTERNAL_ERROR, JsonRpcError};
 
 use num_bigint::{BigInt, BigUint, Sign};
-use serde_json::{Value, json};
+use serde_json::json;
 use serde_serializers::biguint_from_hex_str;
 use std::str::FromStr;
 
@@ -83,10 +83,6 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub async fn get_code(&self, address: &str) -> Result<String, JsonRpcError> {
         self.client.request(EthereumRpc::GetCode(address.to_string(), BlockParameter::Latest)).await
-    }
-
-    pub async fn get_syncing(&self) -> Result<Value, JsonRpcError> {
-        self.client.request(EthereumRpc::Syncing).await
     }
 
     pub async fn get_gas_price(&self) -> Result<BigInt, JsonRpcError> {

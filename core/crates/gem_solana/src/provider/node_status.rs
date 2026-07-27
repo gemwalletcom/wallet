@@ -5,6 +5,7 @@ use chain_traits::{
 };
 use gem_client::Client;
 use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
+use std::time::Duration;
 
 use crate::{USDC_TOKEN_MINT, method, rpc::SolanaProvider};
 
@@ -13,54 +14,84 @@ const GET_TOKEN_ACCOUNTS_BY_OWNER_PROGRAM_ID_CHECK: &str = "getTokenAccountsByOw
 
 #[async_trait]
 impl<C: Client + Clone> ChainTraits for SolanaProvider<C> {
-    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-        ChainNodeStatus::get_node_status(self, request, status).await
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus, status_latency: Duration) -> NodeCheckReport {
+        ChainNodeStatus::get_node_status(self, request, status, status_latency).await
     }
 }
 
 #[async_trait]
 impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
-    async fn get_node_basic_status(&self, status: &NodeSyncStatus, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
-        record_node_state(self, status, Some(self.get_chain().network_id()), recorder, method::GET_GENESIS_HASH, method::GET_SLOT).await
+    async fn get_node_basic_status(&self, status: &NodeSyncStatus, status_latency: Duration, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+        record_node_state(
+            self,
+            status,
+            status_latency,
+            Some(self.get_chain().network_id()),
+            recorder,
+            method::GET_GENESIS_HASH,
+            method::GET_SLOT,
+        )
+        .await
     }
 
     async fn get_node_wallet_status(&self, address: &str, _transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
-        let balance = self.get_balance_coin(address.to_string()).await.map(|result| result.balance.available);
-        let recorder = recorder.record(method::GET_BALANCE, balance);
-
-        let assets = self.get_balance_assets(address.to_string()).await.map(|assets| assets.len());
-        let recorder = recorder.record(GET_TOKEN_ACCOUNTS_BY_OWNER_PROGRAM_ID_CHECK, assets);
-
-        let tokens = self
-            .get_balance_tokens(address.to_string(), vec![USDC_TOKEN_MINT.to_string()])
+        let recorder = recorder
+            .record_timed(method::GET_BALANCE, async {
+                self.get_balance_coin(address.to_string()).await.map(|result| result.balance.available)
+            })
+            .await;
+        let recorder = recorder
+            .record_timed(GET_TOKEN_ACCOUNTS_BY_OWNER_PROGRAM_ID_CHECK, async {
+                self.get_balance_assets(address.to_string()).await.map(|assets| assets.len())
+            })
+            .await;
+        let recorder = recorder
+            .record_timed(GET_TOKEN_ACCOUNTS_BY_OWNER_MINT_CHECK, async {
+                self.get_balance_tokens(address.to_string(), vec![USDC_TOKEN_MINT.to_string()])
+                    .await
+                    .map(|tokens| tokens.len())
+            })
+            .await;
+        let recorder = recorder
+            .record_timed(method::GET_LATEST_BLOCKHASH, async {
+                self.get_latest_blockhash().await.map(|result| result.value.blockhash)
+            })
+            .await;
+        let recorder = recorder
+            .record_timed(method::GET_RECENT_PRIORITIZATION_FEES, async {
+                self.get_recent_prioritization_fees().await.map(|result| result.len())
+            })
+            .await;
+        let recorder = recorder
+            .record_timed(method::GET_EPOCH_INFO, async { self.get_epoch_info().await.map(|result| result.epoch) })
+            .await;
+        let recorder = recorder
+            .record_timed(method::GET_VOTE_ACCOUNTS, async { self.get_vote_accounts(false).await.map(|result| result.current.len()) })
+            .await;
+        let recorder = recorder
+            .record_timed(method::GET_INFLATION_RATE, async { self.get_inflation_rate().await.map(|result| result.validator) })
+            .await;
+        let recorder = recorder
+            .record_timed(method::GET_SUPPLY, async { self.get_supply().await.map(|result| result.value.total) })
+            .await;
+        let recorder = recorder
+            .record_timed(method::GET_ACCOUNT_INFO, async {
+                self.get_token_data(USDC_TOKEN_MINT.to_string()).await.map(|result| result.symbol)
+            })
+            .await;
+        recorder
+            .record_timed(method::GET_MULTIPLE_ACCOUNTS, async {
+                self.get_multiple_accounts(vec![USDC_TOKEN_MINT.to_string()]).await.map(|result| result.value.len())
+            })
             .await
-            .map(|tokens| tokens.len());
-        let recorder = recorder.record(GET_TOKEN_ACCOUNTS_BY_OWNER_MINT_CHECK, tokens);
-
-        let recorder = recorder.record(method::GET_LATEST_BLOCKHASH, self.get_latest_blockhash().await.map(|result| result.value.blockhash));
-        let recorder = recorder.record(
-            method::GET_RECENT_PRIORITIZATION_FEES,
-            self.get_recent_prioritization_fees().await.map(|result| result.len()),
-        );
-        let recorder = recorder.record(method::GET_EPOCH_INFO, self.get_epoch_info().await.map(|result| result.epoch));
-        let recorder = recorder.record(method::GET_VOTE_ACCOUNTS, self.get_vote_accounts(false).await.map(|result| result.current.len()));
-        let recorder = recorder.record(method::GET_INFLATION_RATE, self.get_inflation_rate().await.map(|result| result.validator));
-        let recorder = recorder.record(method::GET_SUPPLY, self.get_supply().await.map(|result| result.value.total));
-        let recorder = recorder.record(method::GET_ACCOUNT_INFO, self.get_token_data(USDC_TOKEN_MINT.to_string()).await.map(|result| result.symbol));
-        recorder.record(
-            method::GET_MULTIPLE_ACCOUNTS,
-            self.get_multiple_accounts(vec![USDC_TOKEN_MINT.to_string()]).await.map(|result| result.value.len()),
-        )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use chain_traits::ChainTraits;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
-    use primitives::{NodeCheckReport, NodeCheckRequest, NodeCheckStatus, NodeSyncStatus};
+    use primitives::{NodeCheckRequest, NodeCheckStatus, NodeSyncStatus};
     use serde_json::json;
 
     use super::*;
@@ -78,22 +109,16 @@ mod tests {
         });
         let provider = SolanaProvider::new_rpc_only(SolanaClient::new(client));
 
-        let report = ChainTraits::check_node(&provider, &NodeCheckRequest::Parser, &NodeSyncStatus::synced(1_000)).await;
+        let report = ChainTraits::check_node(&provider, &NodeCheckRequest::Parser, &NodeSyncStatus::synced(1_000), Duration::ZERO).await;
 
+        assert_eq!(report.checks.len(), 3);
+        assert_eq!(report.checks["block_transactions"].status, NodeCheckStatus::Passed { result: "0".to_string() });
         assert_eq!(
-            report,
-            NodeCheckReport {
-                checks: BTreeMap::from([
-                    ("block_transactions".to_string(), NodeCheckStatus::Passed { result: "0".to_string() }),
-                    (
-                        method::GET_GENESIS_HASH.to_string(),
-                        NodeCheckStatus::Passed {
-                            result: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d".to_string()
-                        }
-                    ),
-                    (method::GET_SLOT.to_string(), NodeCheckStatus::Passed { result: "1000".to_string() }),
-                ])
+            report.checks[method::GET_GENESIS_HASH].status,
+            NodeCheckStatus::Passed {
+                result: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d".to_string()
             }
         );
+        assert_eq!(report.checks[method::GET_SLOT].status, NodeCheckStatus::Passed { result: "1000".to_string() });
     }
 }

@@ -39,7 +39,7 @@ pub use self::name::NameProvider;
 pub mod node;
 pub use self::node::Node;
 pub mod node_check;
-pub use self::node_check::{NodeCheckProfile, NodeCheckReport, NodeCheckRequest, NodeCheckStatus};
+pub use self::node_check::{NodeCheckProfile, NodeCheckReport, NodeCheckRequest, NodeCheckResult, NodeCheckStatus};
 pub mod node_status;
 pub use self::node_status::NodeStatus;
 pub mod node_sync_status;

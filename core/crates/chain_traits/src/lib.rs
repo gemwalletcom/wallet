@@ -1,4 +1,4 @@
-use std::{error::Error, str};
+use std::{error::Error, str, time::Duration};
 
 use async_trait::async_trait;
 pub use primitives::TransactionIdRequest;
@@ -61,8 +61,8 @@ pub trait ChainTraits:
     + ChainAddressStatus
     + ChainSimulation
 {
-    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-        node_check::check_node(self, request, status).await
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus, status_latency: Duration) -> NodeCheckReport {
+        node_check::check_node(self, request, status, status_latency).await
     }
 }
 

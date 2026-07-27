@@ -25,9 +25,10 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
     let config = ProviderConfig::new(chain, &url.url);
     let provider = ProviderFactory::new_provider_with_client(config, client);
 
+    let status_started = Instant::now();
     match provider.get_node_status().await {
         Ok(status) => {
-            let report = provider.check_node(request, &status).await;
+            let report = provider.check_node(request, &status, status_started.elapsed()).await;
             let state = match report.error() {
                 Some(error) => NodeStatusState::error(error),
                 None => NodeStatusState::healthy(status),
