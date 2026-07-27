@@ -102,13 +102,13 @@ jobs:
         working-directory: ios
         run: just install-toolchains
 
-      - name: Resolve SPM Dependencies
-        working-directory: ios
-        run: just spm-resolve
-
       - name: Build Core for Release
         working-directory: ios
         run: BUILD_MODE=release just generate-stone
+
+      - name: Resolve SPM Dependencies
+        working-directory: ios
+        run: just spm-resolve
 
       - name: Archive App for Release
         working-directory: ios
