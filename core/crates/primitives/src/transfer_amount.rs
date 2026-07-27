@@ -126,7 +126,7 @@ impl TransferAmountInput {
             && asset.asset_type == AssetType::NATIVE
             && !self.is_max_amount
             && spends_balance
-            && remaining_balance <= BigInt::from(minimum_account_balance)
+            && remaining_balance < BigInt::from(minimum_account_balance)
         {
             return Err(TransferAmountError::minimum_account_balance_too_low(
                 &asset.id,
@@ -298,16 +298,19 @@ mod tests {
         );
 
         let exactly_minimum = 10_000_000 + FEE + SOLANA_MINIMUM_ACCOUNT_BALANCE;
+        assert!(
+            solana_transfer(10_000_000, exactly_minimum).calculate().is_ok(),
+            "leaving exactly the rent-exempt minimum keeps the account, so it is allowed"
+        );
+
         assert_eq!(
-            solana_transfer(10_000_000, exactly_minimum).calculate().unwrap_err(),
+            solana_transfer(10_000_000, exactly_minimum - 1).calculate().unwrap_err(),
             TransferAmountError::MinimumAccountBalanceTooLow {
                 asset_id: Asset::mock_sol().id,
                 required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
-                available: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
+                available: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE - 1),
             }
         );
-
-        assert!(solana_transfer(10_000_000, exactly_minimum + 1).calculate().is_ok());
 
         let mut max = solana_transfer(1_000_000_000, 1_000_000_000);
         max.is_max_amount = true;
