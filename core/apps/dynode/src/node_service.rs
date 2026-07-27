@@ -12,6 +12,7 @@ use tokio::sync::RwLock;
 
 use crate::cache::RequestCache;
 use crate::config::{CacheConfig, ChainConfig, ChainTypesConfig, ErrorMatcherConfig, HeadersConfig, NodeMonitoringConfig, RetryConfig, Url};
+use crate::failure_reason::FailureReason;
 use crate::jsonrpc_types::{JsonRpcErrorResponse, RequestType};
 use crate::metrics::Metrics;
 use crate::monitoring::NodeMonitor;
@@ -26,7 +27,7 @@ use primitives::{Chain, ResponseError, response::ErrorDetail};
 use serde_json::Value;
 use settings_chain::BroadcastProviders;
 
-use self::error::{NodeServiceError, RetryReason};
+use self::error::NodeServiceError;
 
 pub struct NodeService {
     pub chains: HashMap<Chain, ChainConfig>,
@@ -137,7 +138,7 @@ impl NodeService {
                     if !retry_enabled {
                         return self.log_and_create_error_response(&request, Some(remote_host.as_str()), NodeServiceError::UpstreamStatus(response.status), upstream_data);
                     }
-                    let retry_reason = RetryReason::Status(response.status).to_string();
+                    let retry_reason = FailureReason::Status(response.status).to_string();
                     if index + 1 < max_attempts {
                         self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), &retry_reason);
                     }
@@ -153,7 +154,7 @@ impl NodeService {
                     let request_id = request.id.as_str();
                     let chain = request.chain.as_ref();
                     let latency = DurationMs(request.elapsed());
-                    let retry_reason = RetryReason::from_error(e.as_ref()).to_string();
+                    let retry_reason = FailureReason::from_error(e.as_ref()).to_string();
                     info_with_fields!(
                         "Upstream error",
                         id = request_id,

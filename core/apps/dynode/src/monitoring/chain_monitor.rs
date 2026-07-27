@@ -1,9 +1,17 @@
 use std::time::Duration;
 
+use strum::AsRefStr;
 use tokio::time::{Instant, sleep};
 
 use super::evaluator::NodeHealthEvaluator;
 use super::request_failure::RequestFailureSignal;
+
+#[derive(Clone, Copy, AsRefStr)]
+#[strum(serialize_all = "snake_case")]
+pub(super) enum MonitorCycleSource {
+    Scheduled,
+    FailureTrigger,
+}
 
 pub(super) struct ChainMonitor {
     evaluator: NodeHealthEvaluator,
@@ -24,14 +32,14 @@ impl ChainMonitor {
 
     pub(super) async fn run(self) {
         sleep(self.initial_delay).await;
-        self.check().await;
+        self.check(MonitorCycleSource::Scheduled).await;
 
         let scheduled_check = sleep(self.interval);
         tokio::pin!(scheduled_check);
         loop {
             tokio::select! {
                 _ = &mut scheduled_check => {
-                    self.check().await;
+                    self.check(MonitorCycleSource::Scheduled).await;
                     scheduled_check.as_mut().reset(Instant::now() + self.interval);
                 }
                 url = self.signal.wait() => {
@@ -39,15 +47,15 @@ impl ChainMonitor {
                         continue;
                     }
 
-                    self.check().await;
+                    self.check(MonitorCycleSource::FailureTrigger).await;
                     scheduled_check.as_mut().reset(Instant::now() + self.interval);
                 }
             }
         }
     }
 
-    async fn check(&self) {
-        if let Some(url) = self.evaluator.check().await {
+    async fn check(&self, source: MonitorCycleSource) {
+        if let Some(url) = self.evaluator.check(source).await {
             self.signal.check_completed(&url);
         }
     }

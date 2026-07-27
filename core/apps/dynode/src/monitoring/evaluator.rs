@@ -3,6 +3,7 @@ use std::{collections::HashMap, iter, sync::Arc};
 use primitives::{Chain, NodeCheckRequest};
 use tokio::sync::RwLock;
 
+use super::chain_monitor::MonitorCycleSource;
 use super::node_observer::observe_node;
 use super::observation::NodeStatusObservation;
 use super::selection::NodeSelectionPolicy;
@@ -33,7 +34,9 @@ impl NodeHealthEvaluator {
         self.current_url().await.as_ref() == Some(url)
     }
 
-    pub(super) async fn check(&self) -> Option<Url> {
+    pub(super) async fn check(&self, source: MonitorCycleSource) -> Option<Url> {
+        self.metrics.add_node_monitor_cycle(self.chain_config.chain.as_ref(), source.as_ref());
+
         let current_node = match self.nodes.read().await.get(&self.chain_config.chain).cloned() {
             Some(node) => node,
             None => {
@@ -86,6 +89,8 @@ impl NodeHealthEvaluator {
 
     async fn observe_node(&self, current: &Url, url: Url) -> NodeStatusObservation {
         let observation = observe_node(self.chain_config.chain, &self.request, url).await;
+        self.metrics
+            .record_node_monitor_observation(self.chain_config.chain.as_ref(), &observation.url.host(), &observation.state, observation.latency);
         NodeTelemetry::log_observation(self.chain_config.chain, current, &observation);
         observation
     }

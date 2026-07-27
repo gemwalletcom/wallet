@@ -102,6 +102,12 @@ An empty RPC path uses the configured base endpoint after removing trailing sepa
 
 This matters for authenticated endpoints where `/v1/key` and `/v1/key/` can have different authorization behavior.
 
+## Metrics
+
+Each observed URL publishes its last check success, sync state, latest and current block, check latency, and check timestamp. A cycle counter distinguishes `scheduled` checks from `failure_trigger` checks.
+
+Node-switch metrics use the same stable reasons as request retries: `status=<code>`, `timeout`, `connect_error`, and `request_error`. Profile failures use `request_error`. Error logs separately record the bounded type (`upstream`, `request`, or `node_check`) and raw message for troubleshooting. Raw provider errors are not used as Prometheus labels.
+
 ## Code map
 
 - [Monitoring worker](../apps/dynode/src/monitoring/worker.rs): creates one monitor per eligible chain.

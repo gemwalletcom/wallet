@@ -52,10 +52,6 @@ impl NodeTelemetry {
     pub(super) fn log_missing_current(chain: Chain) {
         error_fields!("Node monitor current missing", chain = chain.as_ref());
     }
-
-    pub(super) fn log_failure_trigger(chain: Chain, url: &Url) {
-        error_fields!("Node check triggered", chain = chain.as_ref(), host = url.host());
-    }
 }
 
 fn log_observation(message: &'static str, chain: &str, observation: &NodeStatusObservation, sink: impl Fn(&'static str, &[(&str, &dyn Display)])) {
@@ -70,8 +66,13 @@ fn log_observation(message: &'static str, chain: &str, observation: &NodeStatusO
             emit_event(message, chain, fields, &latency, status.latest_block_number, current, sink);
         }
         NodeStatusState::Error { message: error } => {
-            let host = observation.url.host();
-            sink(message, &[("chain", &chain), ("host", &host), ("latency", &latency), ("message", error)]);
+            let fields = [
+                ("node_host", observation.url.host()),
+                ("error_type", observation.monitor_error.as_ref().to_string()),
+                ("reason", observation.monitor_error.to_string()),
+                ("error", error.clone()),
+            ];
+            emit_event(message, chain, fields, &latency, None, None, sink);
         }
     }
 }
@@ -97,10 +98,10 @@ fn emit_event<I>(
 
     let mut display: Vec<(&str, &dyn Display)> = Vec::with_capacity(values.len() + 2);
     display.push(("chain", &chain));
+    display.push(("latency", latency));
     for (key, value) in &values {
         display.push((*key, value));
     }
-    display.push(("latency", latency));
 
     sink(message, &display);
 }

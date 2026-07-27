@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use primitives::NodeStatusState;
 
-use super::switch_reason::CurrentNodeErrorKind;
+use super::switch_reason::NodeMonitorError;
 use crate::config::Url;
 
 #[derive(Debug)]
@@ -10,7 +10,7 @@ pub(crate) struct NodeStatusObservation {
     pub(crate) url: Url,
     pub(crate) state: NodeStatusState,
     pub(crate) latency: Duration,
-    pub(super) error_kind: CurrentNodeErrorKind,
+    pub(super) monitor_error: NodeMonitorError,
 }
 
 impl NodeStatusObservation {
@@ -19,11 +19,11 @@ impl NodeStatusObservation {
             url,
             state,
             latency,
-            error_kind: CurrentNodeErrorKind::Unknown,
+            monitor_error: NodeMonitorError::Request,
         }
     }
 
-    pub(super) fn with_error_kind(self, error_kind: CurrentNodeErrorKind) -> Self {
-        Self { error_kind, ..self }
+    pub(super) fn with_monitor_error(self, monitor_error: NodeMonitorError) -> Self {
+        Self { monitor_error, ..self }
     }
 }

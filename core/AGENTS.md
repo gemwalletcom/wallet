@@ -61,7 +61,7 @@ Fluent wraps interpolated args in isolation marks (`\u{2068}…\u{2069}`) — ac
 
 ## Test Rules
 
-- Tests must verify intent, not just behavior. A test that still passes when the function returns a hardcoded constant is a tautology — fix the assertion or the function under test.
+- Tests must protect an independent domain rule, invariant, or failure boundary—not mirror implementation details or serialized output. If the test still passes when the rule flips or the function returns a hardcoded constant, remove or fix it.
 - Do not unit-test static lookup tables, fixture catalogs, enum-to-variant wiring, or literal configuration by copying their values into assertions. Test behavior that consumes the data, a meaningful invariant shared across entries, or a validation/failure boundary; when there is no independent behavior, do not add a test.
 - Do not write tolerance-based assertions against live network values or values recomputed from separate RPC/API calls in integration tests. These tests are flaky and low-signal.
 - For integration tests, assert stable invariants only. For exact numeric behavior, cover the pure calculation in unit tests with deterministic inputs.

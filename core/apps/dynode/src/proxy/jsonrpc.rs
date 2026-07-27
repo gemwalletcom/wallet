@@ -46,8 +46,6 @@ impl JsonRpcHandler {
         broadcast_webhook: &DynodeBroadcastWebhookClient,
         broadcast_providers: &BroadcastProviders,
     ) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
-        metrics.add_proxy_request_by_method(request.chain.as_ref(), &call.method);
-
         let cache_key = call.cache_key(&request.host, &request.path_with_query);
         if let Some(_ttl) = cache.should_cache_call(&request.chain, call) {
             if let Some(cached) = cache.get(&request.chain, &cache_key).await {
@@ -143,7 +141,6 @@ impl JsonRpcHandler {
         forward_headers: &HeaderMap,
     ) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
         for call in calls {
-            metrics.add_proxy_request_by_method(request.chain.as_ref(), &call.method);
             metrics.add_cache_miss(request.chain.as_ref(), &call.method);
         }
 

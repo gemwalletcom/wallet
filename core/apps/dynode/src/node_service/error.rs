@@ -35,35 +35,6 @@ impl fmt::Display for NodeServiceError {
 
 impl Error for NodeServiceError {}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum RetryReason {
-    Status(u16),
-    Timeout,
-    ConnectError,
-    RequestError,
-}
-
-impl RetryReason {
-    pub(super) fn from_error(error: &(dyn Error + Send + Sync + 'static)) -> Self {
-        match error.downcast_ref::<reqwest::Error>() {
-            Some(error) if error.is_timeout() => Self::Timeout,
-            Some(error) if error.is_connect() => Self::ConnectError,
-            Some(_) | None => Self::RequestError,
-        }
-    }
-}
-
-impl fmt::Display for RetryReason {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Status(status) => write!(formatter, "status={status}"),
-            Self::Timeout => formatter.write_str("timeout"),
-            Self::ConnectError => formatter.write_str("connect_error"),
-            Self::RequestError => formatter.write_str("request_error"),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,13 +45,5 @@ mod tests {
         assert_eq!(NodeServiceError::RequestNotAllowed.status(), StatusCode::FORBIDDEN);
         assert_eq!(NodeServiceError::UpstreamsFailed.to_string(), "All upstream URLs failed");
         assert_eq!(NodeServiceError::UpstreamsFailed.status(), StatusCode::INTERNAL_SERVER_ERROR);
-    }
-
-    #[test]
-    fn retry_reasons_define_stable_metric_labels() {
-        assert_eq!(RetryReason::Status(429).to_string(), "status=429");
-        assert_eq!(RetryReason::Timeout.to_string(), "timeout");
-        assert_eq!(RetryReason::ConnectError.to_string(), "connect_error");
-        assert_eq!(RetryReason::RequestError.to_string(), "request_error");
     }
 }

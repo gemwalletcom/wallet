@@ -1,11 +1,9 @@
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use primitives::Chain;
 use tokio::sync::Notify;
 use tokio::time::Instant;
 
 use super::failure_tracker::FailureTracker;
-use super::telemetry::NodeTelemetry;
 use crate::config::{FailureTriggerConfig, Url};
 
 struct RequestFailureState {
@@ -15,7 +13,6 @@ struct RequestFailureState {
 }
 
 struct RequestFailureSignalInner {
-    chain: Chain,
     config: FailureTriggerConfig,
     state: Mutex<RequestFailureState>,
     notify: Notify,
@@ -27,10 +24,9 @@ pub(super) struct RequestFailureSignal {
 }
 
 impl RequestFailureSignal {
-    pub(super) fn new(chain: Chain, active_url: Url, config: FailureTriggerConfig) -> Self {
+    pub(super) fn new(active_url: Url, config: FailureTriggerConfig) -> Self {
         Self {
             inner: Arc::new(RequestFailureSignalInner {
-                chain,
                 config,
                 state: Mutex::new(RequestFailureState {
                     active_url,
@@ -56,7 +52,6 @@ impl RequestFailureSignal {
             }
         };
         if should_notify {
-            NodeTelemetry::log_failure_trigger(self.inner.chain, url);
             self.inner.notify.notify_one();
         }
     }
@@ -107,7 +102,6 @@ mod tests {
         let first = url("https://first");
         let fallback = url("https://fallback");
         let signal = RequestFailureSignal::new(
-            Chain::Ethereum,
             first.clone(),
             FailureTriggerConfig {
                 failures: 2,

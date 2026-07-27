@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod cache;
 pub mod config;
+mod failure_reason;
 pub mod jsonrpc_types;
 pub mod metrics;
 pub mod monitoring;
