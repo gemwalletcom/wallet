@@ -1,4 +1,6 @@
-use crate::ethereum_address_checksum;
+use crate::{ethereum_address_checksum, u256::u256_to_biguint};
+use alloy_primitives::{U256, hex};
+use alloy_sol_types::SolValue;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use primitives::{AssetBalance, AssetId, Balance, Chain};
@@ -7,6 +9,11 @@ use std::error::Error;
 
 pub fn map_balance_coin(balance_hex: String, chain: Chain) -> Result<AssetBalance, Box<dyn Error + Send + Sync>> {
     Ok(AssetBalance::new_balance(chain.as_asset_id(), Balance::coin_balance(biguint_from_hex_str(&balance_hex)?)))
+}
+
+fn decode_token_balance(balance_hex: &str) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
+    let balance = U256::abi_decode(&hex::decode(balance_hex)?)?;
+    Ok(u256_to_biguint(&balance))
 }
 
 pub fn map_balance_tokens(balance_data: Vec<String>, token_ids: Vec<String>, chain: Chain) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
@@ -19,7 +26,7 @@ pub fn map_balance_tokens(balance_data: Vec<String>, token_ids: Vec<String>, cha
         .zip(token_ids)
         .map(|(balance_hex, token_id)| {
             let asset_id = primitives::AssetId { chain, token_id: Some(token_id) };
-            let balance = serde_serializers::biguint_from_hex_str(&balance_hex)?;
+            let balance = decode_token_balance(&balance_hex)?;
             Ok(AssetBalance::new_balance(asset_id, Balance::coin_balance(balance)))
         })
         .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()
@@ -46,10 +53,29 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::Chain;
 
+    const VUSDT_TOKEN_ID: &str = "0xfD5840Cd36d94D7229439859C0112a4185BC0255";
+
     #[test]
     fn test_map_balance_coin() {
         let result = map_balance_coin("0x1c6bf52634000".to_string(), Chain::Ethereum).unwrap();
         assert_eq!(result.asset_id.chain, Chain::Ethereum);
         assert_eq!(result.balance.available, BigUint::from(500000000000000_u64));
+    }
+
+    #[test]
+    fn test_map_token_balance_with_trailing_return_data() {
+        let balance_data = vec![
+            concat!(
+                "0x00000000000000000000000000000000000000000000000000000000017faa89",
+                "0000000000000000000000000000000000000000000000000000000000000000",
+                "0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .to_string(),
+        ];
+        let token_ids = vec![VUSDT_TOKEN_ID.to_string()];
+
+        let result = map_balance_tokens(balance_data, token_ids, Chain::SmartChain).unwrap();
+
+        assert_eq!(result[0].balance.available, BigUint::from(25_143_945_u64));
     }
 }
