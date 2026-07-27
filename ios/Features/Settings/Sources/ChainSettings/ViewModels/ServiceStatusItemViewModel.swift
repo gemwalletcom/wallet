@@ -32,10 +32,6 @@ struct ServiceStatusItemViewModel: Identifiable {
     }
 
     private var statusTag: LatencyStatusViewModel {
-        switch statusState {
-        case let .result(milliseconds): LatencyStatusViewModel(state: .latency(.from(duration: Double(milliseconds))))
-        case .error: LatencyStatusViewModel(state: .error)
-        case .loading: LatencyStatusViewModel(state: .loading)
-        }
+        LatencyStatusViewModel(serviceStatus: statusState)
     }
 }
