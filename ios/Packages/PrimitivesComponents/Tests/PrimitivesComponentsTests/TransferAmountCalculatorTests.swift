@@ -41,7 +41,7 @@ struct TransferAmountCalculatorTests {
     @Test
     func insufficientBalanceReportsSendAsset() {
         let result = service.validate(
-            transferData: .mock(type: .transfer(asset), amount: .exact(BigInt(10_000_000))),
+            transferData: .mock(type: .transfer(asset), amount: .exact(BigInt(20_000_000))),
             availableValue: BigInt(10_000_000),
             assetFeeBalance: BigInt(10_000_000),
             fee: fee,
@@ -49,7 +49,22 @@ struct TransferAmountCalculatorTests {
 
         #expect(result == .failure(.insufficientBalance(
             asset,
-            requirement: BalanceRequirement(required: BigInt(10_005_000), available: BigInt(10_000_000)),
+            requirement: BalanceRequirement(required: BigInt(20_005_000), available: BigInt(10_000_000)),
+        )))
+    }
+
+    @Test
+    func nearMaxReportsMinimumAccountBalance() {
+        let result = service.validate(
+            transferData: .mock(type: .transfer(asset), amount: .exact(BigInt(10_000_000))),
+            availableValue: BigInt(10_000_000),
+            assetFeeBalance: BigInt(10_000_000),
+            fee: fee,
+        )
+
+        #expect(result == .failure(.minimumAccountBalanceTooLow(
+            asset,
+            requirement: BalanceRequirement(required: BigInt(890_880), available: BigInt(-5_000)),
         )))
     }
 
