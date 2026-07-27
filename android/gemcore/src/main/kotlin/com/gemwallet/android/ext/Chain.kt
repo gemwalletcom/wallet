@@ -11,6 +11,7 @@ import com.wallet.core.primitives.EVMChain
 import com.wallet.core.primitives.EncodingType
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
+import uniffi.gemstone.supportsPrivateKeyImport
 import uniffi.gemstone.validateAddress
 import uniffi.gemstone.checksumAddress as gemstoneChecksumAddress
 import java.math.BigInteger
@@ -227,6 +228,8 @@ fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 fun Chain.isValidAddress(address: String): Boolean = validateAddress(checksumAddress(address), string)
 
 fun Chain.checksumAddress(address: String): String = gemstoneChecksumAddress(address = address, chain = string)
+
+fun Chain.isPrivateKeyImportSupported(): Boolean = supportsPrivateKeyImport(string)
 
 fun uniffi.gemstone.Chain.toChain(): Chain? {
     return Chain.entries.firstOrNull { it.string == this }
