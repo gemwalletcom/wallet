@@ -6,11 +6,11 @@ import com.gemwallet.android.domains.asset.getSwapProviderIcon
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
+import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.domains.swap.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
-import java.math.BigDecimal
 import java.math.BigInteger
 import uniffi.gemstone.SwapPriceImpact
 import uniffi.gemstone.SwapperProvider
@@ -77,11 +77,12 @@ object SwapDetailsUIModelFactory {
         input: SwapDetailsUIModelInput,
         priceImpactCalculator: (Double, Double) -> SwapPriceImpact?,
     ): SwapDetailsUIModel? {
-        val rate = estimateSwapRate(
-            payAsset = input.payAsset,
-            receiveAsset = input.receiveAsset,
+        val rate = buildAssetRatePair(
+            fromAsset = input.payAsset.asset,
+            toAsset = input.receiveAsset.asset,
             fromValue = input.fromValue,
             toValue = input.toValue,
+            formatter = rateFormatter,
         ) ?: return null
 
         val slippagePercent = input.slippageBps.toDouble() / 100.0
@@ -117,40 +118,6 @@ object SwapDetailsUIModelFactory {
 
     internal fun minimumReceiveAtomic(atomicValue: BigInteger, slippageBps: UInt): BigInteger =
         atomicValue * (BPS_SCALE - slippageBps.toInt()).toBigInteger() / BPS_SCALE.toBigInteger()
-
-    private fun estimateSwapRate(
-        payAsset: AssetInfo,
-        receiveAsset: AssetInfo,
-        fromValue: String,
-        toValue: String,
-    ): SwapRateUIModel? {
-        return try {
-            val fromAmount = Crypto(fromValue).value(payAsset.asset.decimals)
-            val toAmount = Crypto(toValue).value(receiveAsset.asset.decimals)
-            if (fromAmount.compareTo(BigDecimal.ZERO) == 0 || toAmount.compareTo(BigDecimal.ZERO) == 0) {
-                return null
-            }
-
-            SwapRateUIModel(
-                forward = rateFormatter.format(
-                    fromAsset = payAsset.asset,
-                    toAsset = receiveAsset.asset,
-                    fromAmount = fromAmount,
-                    toAmount = toAmount,
-                    direction = AssetRateFormatter.Direction.Direct,
-                ),
-                reverse = rateFormatter.format(
-                    fromAsset = payAsset.asset,
-                    toAsset = receiveAsset.asset,
-                    fromAmount = fromAmount,
-                    toAmount = toAmount,
-                    direction = AssetRateFormatter.Direction.Inverse,
-                ),
-            )
-        } catch (_: Throwable) {
-            null
-        }
-    }
 }
 
 private fun UInt.formatSwapEta(): String? {
