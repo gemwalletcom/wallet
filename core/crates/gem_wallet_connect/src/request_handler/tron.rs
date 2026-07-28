@@ -1,4 +1,4 @@
-use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
+use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
@@ -47,6 +47,10 @@ impl TronRequestHandler {
             },
             data: params.to_string(),
         })
+    }
+
+    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
+        Ok(WalletConnectTransaction::Tron { data, output_type })
     }
 }
 

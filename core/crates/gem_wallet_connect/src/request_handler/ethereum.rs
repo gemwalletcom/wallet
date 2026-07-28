@@ -1,4 +1,4 @@
-use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
+use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectionMethods};
 use serde_json::Value;
@@ -61,6 +61,15 @@ impl EthereumRequestHandler {
             chain,
             transaction_type: WalletConnectTransactionType::Ethereum,
             data,
+        })
+    }
+
+    pub fn decode_send_transaction(data: String) -> Result<WalletConnectTransaction, String> {
+        let transaction: WCEthereumTransaction = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+        let transaction_type = gem_evm::transaction::decode_transaction_type(transaction.data.as_deref());
+        Ok(WalletConnectTransaction::Ethereum {
+            data: transaction.into(),
+            transaction_type,
         })
     }
 

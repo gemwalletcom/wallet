@@ -4,9 +4,9 @@ mod sui;
 mod ton;
 mod tron;
 
-use crate::actions::{WCSolanaTransactionData, WCSuiTransactionData, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
+use crate::actions::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
 use ethereum::EthereumRequestHandler;
-use primitives::{Chain, ChainType, ValueAccess, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods, hex};
+use primitives::{Chain, ChainType, ValueAccess, WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods, hex};
 use serde_json::Value;
 use solana::SolanaRequestHandler;
 use sui::SuiRequestHandler;
@@ -75,41 +75,11 @@ impl WalletConnectRequestHandler {
 
     pub fn decode_send_transaction(transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, String> {
         match transaction_type {
-            WalletConnectTransactionType::Ethereum => {
-                let tx: WCEthereumTransaction = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                let transaction_type = gem_evm::transaction::decode_transaction_type(tx.data.as_deref());
-                Ok(WalletConnectTransaction::Ethereum {
-                    data: tx.into(),
-                    transaction_type,
-                })
-            }
-            WalletConnectTransactionType::Solana { output_type } => {
-                let json: serde_json::Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                let transaction = json
-                    .get("transaction")
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| "Missing transaction field".to_string())?
-                    .to_string();
-                Ok(WalletConnectTransaction::Solana {
-                    data: WCSolanaTransactionData { transaction },
-                    output_type,
-                })
-            }
-            WalletConnectTransactionType::Sui { output_type } => {
-                let json: serde_json::Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                let transaction = json
-                    .get("transaction")
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| "Missing transaction field".to_string())?
-                    .to_string();
-                let wallet_address = json.get("account").or_else(|| json.get("address")).and_then(|v| v.as_str()).unwrap_or_default().to_string();
-                Ok(WalletConnectTransaction::Sui {
-                    data: WCSuiTransactionData { transaction, wallet_address },
-                    output_type,
-                })
-            }
-            WalletConnectTransactionType::Ton { output_type } => Ok(WalletConnectTransaction::Ton { data, output_type }),
-            WalletConnectTransactionType::Tron { output_type } => Ok(WalletConnectTransaction::Tron { data, output_type }),
+            WalletConnectTransactionType::Ethereum => EthereumRequestHandler::decode_send_transaction(data),
+            WalletConnectTransactionType::Solana { output_type } => SolanaRequestHandler::decode_send_transaction(data, output_type),
+            WalletConnectTransactionType::Sui { output_type } => SuiRequestHandler::decode_send_transaction(data, output_type),
+            WalletConnectTransactionType::Ton { output_type } => TonRequestHandler::decode_send_transaction(data, output_type),
+            WalletConnectTransactionType::Tron { output_type } => TronRequestHandler::decode_send_transaction(data, output_type),
         }
     }
 
