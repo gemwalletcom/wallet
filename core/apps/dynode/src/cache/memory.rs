@@ -330,10 +330,10 @@ mod tests {
                         { "rpc_method": "eth_blockNumber", "ttl": "1m" }
                     ],
                     "contracts": {
-                        "addresses": [CONTRACT],
                         "methods": {
                             SELECTOR: {
-                                "ttl": "30s"
+                                "ttl": "30s",
+                                "addresses": [CONTRACT]
                             }
                         }
                     }

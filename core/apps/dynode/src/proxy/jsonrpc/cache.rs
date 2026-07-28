@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use gem_tracing::{DurationMs, info_with_fields};
 use reqwest::StatusCode;
+use serde_json::Value;
 
 use crate::cache::{CacheProvider, RequestCache};
 use crate::jsonrpc_types::{JsonRpcCall, JsonRpcResponse, JsonRpcResult};
@@ -16,14 +17,12 @@ pub(super) async fn get(call: &JsonRpcCall, request: &ProxyRequest, cache: &Requ
         .and_then(|response| result(call, &response))
 }
 
-pub(super) async fn get_all(calls: &[JsonRpcCall], request: &ProxyRequest, cache: &RequestCache) -> Option<Vec<JsonRpcResult>> {
+pub(super) async fn get_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], request: &ProxyRequest, cache: &RequestCache) -> Vec<Option<JsonRpcResult>> {
     let mut results = Vec::with_capacity(calls.len());
-
-    for call in calls {
-        results.push(get(call, request, cache).await);
+    for (call, ttl) in calls.iter().zip(ttls) {
+        results.push(if ttl.is_some() { get(call, request, cache).await } else { None });
     }
-
-    results.into_iter().collect()
+    results
 }
 
 pub(super) async fn set(
@@ -33,7 +32,11 @@ pub(super) async fn set(
     request: &ProxyRequest,
     cache: &RequestCache,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let result = serde_json::to_vec(&response.result)?;
+    set_result(call, &response.result, ttl, request, cache).await
+}
+
+async fn set_result(call: &JsonRpcCall, result: &Value, ttl: Duration, request: &ProxyRequest, cache: &RequestCache) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let result = serde_json::to_vec(result)?;
     let size = result.len();
     let cached = CachedResponse::new(result, StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string());
     cache.set(&request.chain, call.cache_key(&request.host, &request.path_with_query), cached, ttl).await;
@@ -51,23 +54,27 @@ pub(super) async fn set(
     Ok(())
 }
 
-pub(super) async fn set_all(
+pub(super) async fn set_many(
     calls: &[JsonRpcCall],
-    ttls: &[Duration],
-    results: &[JsonRpcResult],
+    ttls: &[Option<Duration>],
+    responses: &[Value],
     request: &ProxyRequest,
     cache: &RequestCache,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    if calls.len() != ttls.len() || calls.len() != results.len() {
+    if calls.len() != ttls.len() || calls.len() != responses.len() {
         return Ok(());
     }
-    if calls.iter().zip(results).any(|(call, result)| result.id() != Some(call.id)) {
+    if calls
+        .iter()
+        .zip(responses)
+        .any(|(call, response)| response.get("id").and_then(Value::as_u64) != Some(call.id))
+    {
         return Ok(());
     }
 
-    for ((call, ttl), result) in calls.iter().zip(ttls).zip(results) {
-        if let JsonRpcResult::Success(response) = result {
-            set(call, response, *ttl, request, cache).await?;
+    for ((call, ttl), response) in calls.iter().zip(ttls).zip(responses) {
+        if let (Some(ttl), Some(result)) = (ttl, response.get("result")) {
+            set_result(call, result, *ttl, request, cache).await?;
         }
     }
     Ok(())

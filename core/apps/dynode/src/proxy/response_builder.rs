@@ -5,6 +5,24 @@ use super::constants::{JSON_CONTENT_TYPE, JSON_HEADER};
 
 const X_REQUEST_ID: HeaderName = HeaderName::from_static("x-request-id");
 const X_UPSTREAM_LATENCY: HeaderName = HeaderName::from_static("x-upstream-latency");
+const X_CACHE: HeaderName = HeaderName::from_static("x-cache");
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum CacheStatus {
+    Hit,
+    Miss,
+    Partial,
+}
+
+impl CacheStatus {
+    fn value(self) -> HeaderValue {
+        match self {
+            Self::Hit => HeaderValue::from_static("HIT"),
+            Self::Miss => HeaderValue::from_static("MISS"),
+            Self::Partial => HeaderValue::from_static("PARTIAL"),
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ProxyResponse {
@@ -37,10 +55,11 @@ impl ProxyResponse {
 pub struct ResponseBuilder;
 
 impl ResponseBuilder {
-    pub fn create_proxy_headers(request_id: &str, latency: Duration) -> HeaderMap {
+    pub(crate) fn create_proxy_headers(request_id: &str, latency: Duration, cache_status: CacheStatus) -> HeaderMap {
         let mut headers = HeaderMap::new();
 
         headers.insert(X_REQUEST_ID, HeaderValue::from_str(request_id).unwrap_or_else(|_| HeaderValue::from_static("unknown")));
+        headers.insert(X_CACHE, cache_status.value());
         headers.insert(
             X_UPSTREAM_LATENCY,
             HeaderValue::from_str(&format!("{}ms", latency.as_millis())).unwrap_or_else(|_| HeaderValue::from_static("0ms")),
@@ -86,11 +105,14 @@ mod tests {
 
     #[test]
     fn test_create_proxy_headers() {
-        let headers = ResponseBuilder::create_proxy_headers("request-id", Duration::from_millis(42));
+        for (status, value) in [(CacheStatus::Hit, "HIT"), (CacheStatus::Miss, "MISS"), (CacheStatus::Partial, "PARTIAL")] {
+            let headers = ResponseBuilder::create_proxy_headers("request-id", Duration::from_millis(42), status);
 
-        assert_eq!(headers.get("x-request-id").unwrap(), "request-id");
-        assert_eq!(headers.get("x-upstream-latency").unwrap(), "42ms");
-        assert!(headers.get("x-upstream-host").is_none());
+            assert_eq!(headers.get("x-request-id").unwrap(), "request-id");
+            assert_eq!(headers.get("x-upstream-latency").unwrap(), "42ms");
+            assert_eq!(headers.get("x-cache").unwrap(), value);
+            assert!(headers.get("x-upstream-host").is_none());
+        }
     }
 
     #[test]
