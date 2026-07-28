@@ -2836,6 +2836,7 @@ dependencies = [
  "gem_auth",
  "gem_client",
  "gem_tracing",
+ "hex",
  "metrics",
  "primitives",
  "prometheus-client",

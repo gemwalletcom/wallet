@@ -1,4 +1,4 @@
-use crate::config::{CacheConfig, ChainCacheRules, ChainConfig};
+use crate::config::{CacheConfig, ChainCacheRules, ChainConfig, ETH_CALL};
 use crate::jsonrpc_types::{JsonRpcCall, RequestType};
 use crate::proxy::CachedResponse;
 use primitives::Chain;
@@ -13,7 +13,7 @@ use super::types::CacheEntry;
 #[derive(Debug, Clone)]
 pub struct MemoryCache {
     caches: Arc<HashMap<Chain, Arc<RwLock<HashMap<String, CacheEntry>>>>>,
-    max_memory_mb: usize,
+    max_memory: usize,
     rules: Arc<HashMap<Chain, ChainCacheRules>>,
 }
 
@@ -21,22 +21,19 @@ impl MemoryCache {
     pub fn new<'a>(config: CacheConfig, chains: impl IntoIterator<Item = &'a ChainConfig>) -> Self {
         let rules = chains
             .into_iter()
-            .filter_map(|chain_config| {
-                let cache_rules = config.rules(chain_config.chain);
-                (!cache_rules.cache.is_empty() || !cache_rules.evm_calls.is_empty()).then_some((chain_config.chain, cache_rules))
-            })
+            .filter_map(|chain_config| config.rules(chain_config.chain).map(|cache_rules| (chain_config.chain, cache_rules)))
             .collect::<HashMap<_, _>>();
         let caches = rules.keys().copied().map(|chain| (chain, Arc::new(RwLock::new(HashMap::new())))).collect();
         Self {
             caches: Arc::new(caches),
-            max_memory_mb: config.max_memory_mb,
+            max_memory: config.max_memory,
             rules: Arc::new(rules),
         }
     }
 
     fn max_size_per_chain(&self) -> usize {
         let chain_count = self.caches.len().max(1);
-        (self.max_memory_mb * 1_000_000) / chain_count
+        self.max_memory / chain_count
     }
 
     fn evict_if_needed(cache: &mut HashMap<String, CacheEntry>, max_size: usize) {
@@ -104,13 +101,10 @@ impl CacheProvider for MemoryCache {
 
     fn should_cache_call(&self, chain: &Chain, call: &JsonRpcCall) -> Option<Duration> {
         let rules = self.rules.get(chain)?;
-        rules.cache.iter().find(|rule| rule.matches_rpc(&call.method)).and_then(|rule| rule.ttl).or_else(|| {
-            if call.method == crate::config::ETH_CALL {
-                rules.evm_calls.iter().find(|rule| rule.matches(&call.params)).map(|rule| rule.ttl)
-            } else {
-                None
-            }
-        })
+        if call.method == ETH_CALL {
+            return rules.evm_call_ttl(&call.params);
+        }
+        rules.cache.iter().find(|rule| rule.matches_rpc(&call.method)).and_then(|rule| rule.ttl)
     }
 }
 
@@ -123,7 +117,7 @@ mod tests {
     use reqwest::StatusCode;
     fn create_test_cache_config() -> CacheConfig {
         serde_json::from_value(serde_json::json!({
-            "max_memory_mb": 64,
+            "max_memory": "64 MB",
             "chain_types": {
                 "ethereum": [
                     { "path": "/api/v1/data", "method": "GET", "ttl": "5m" },
@@ -188,7 +182,7 @@ mod tests {
     #[test]
     fn test_should_cache_with_params() {
         let config: CacheConfig = serde_json::from_value(serde_json::json!({
-            "max_memory_mb": 64,
+            "max_memory": "64 MB",
             "chain_types": {
                 "ethereum": [
                     {
@@ -236,7 +230,7 @@ mod tests {
     #[test]
     fn test_should_cache_with_function_params() {
         let config: CacheConfig = serde_json::from_value(serde_json::json!({
-            "max_memory_mb": 64,
+            "max_memory": "64 MB",
             "chain_types": {
                 "aptos": [
                     {
@@ -291,7 +285,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_eviction() {
-        let config: CacheConfig = serde_json::from_value(serde_json::json!({ "max_memory_mb": 0 })).unwrap();
+        let config: CacheConfig = serde_json::from_value(serde_json::json!({ "max_memory": "0 B" })).unwrap();
         let chains = [create_chain_config(Chain::Ethereum)];
         let cache = MemoryCache::new(config, chains.iter());
         let chain = Chain::Ethereum;
@@ -311,21 +305,22 @@ mod tests {
         const SELECTOR: &str = "0x1698ee82";
 
         let config: CacheConfig = serde_json::from_value(serde_json::json!({
-            "max_memory_mb": 64,
+            "max_memory": "64 MB",
             "chain_types": {
                 "ethereum": [
                     { "rpc_method": "eth_blockNumber", "ttl": "1m" }
                 ]
             },
-            "evm_calls": [
-                {
-                    "selector": SELECTOR,
-                    "ttl": "30s",
-                    "contracts": {
-                        "ethereum": CONTRACT
+            "evm_calls": {
+                "ethereum": {
+                    "contracts": [CONTRACT],
+                    "selectors": {
+                        SELECTOR: {
+                            "ttl": "30s"
+                        }
                     }
                 }
-            ]
+            }
         }))
         .unwrap();
         let chains = [create_chain_config(Chain::Ethereum)];

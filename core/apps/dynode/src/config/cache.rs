@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use primitives::{Chain, ChainType};
 use serde::Deserialize;
 use serde_json::Value;
-use serde_serializers::duration;
+use serde_serializers::{duration, size};
 
 use super::path_without_query;
 
@@ -12,17 +12,18 @@ pub(crate) const ETH_CALL: &str = "eth_call";
 
 #[derive(Debug, Default, Clone, Deserialize)]
 pub struct CacheConfig {
-    pub max_memory_mb: usize,
+    #[serde(deserialize_with = "size::deserialize")]
+    pub max_memory: usize,
     #[serde(default)]
     chain_types: HashMap<ChainType, Vec<CacheRule>>,
     #[serde(default)]
     chains: HashMap<Chain, Vec<CacheRule>>,
     #[serde(default)]
-    evm_calls: Vec<EvmCallConfig>,
+    evm_calls: HashMap<ChainType, EvmCallConfig>,
 }
 
 impl CacheConfig {
-    pub(crate) fn rules(&self, chain: Chain) -> ChainCacheRules {
+    pub(crate) fn rules(&self, chain: Chain) -> Option<ChainCacheRules> {
         let cache = self
             .chain_types
             .get(&chain.chain_type())
@@ -31,26 +32,30 @@ impl CacheConfig {
             .chain(self.chains.get(&chain).into_iter().flatten())
             .cloned()
             .collect();
-        let evm_calls = self
-            .evm_calls
-            .iter()
-            .filter_map(|config| {
-                config.contracts.get(&chain).map(|contract| EvmCallRule {
-                    contract: contract.clone(),
-                    selector: config.selector.clone(),
-                    ttl: config.ttl,
-                })
-            })
-            .collect();
+        let evm_calls = self.evm_calls.get(&chain.chain_type()).map(EvmCallRules::from).unwrap_or_default();
 
-        ChainCacheRules { cache, evm_calls }
+        let rules = ChainCacheRules { cache, evm_calls };
+        if rules.is_empty() {
+            return None;
+        }
+        Some(rules)
     }
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct ChainCacheRules {
     pub(crate) cache: Vec<CacheRule>,
-    pub(crate) evm_calls: Vec<EvmCallRule>,
+    evm_calls: EvmCallRules,
+}
+
+impl ChainCacheRules {
+    fn is_empty(&self) -> bool {
+        self.cache.is_empty() && self.evm_calls.is_empty()
+    }
+
+    pub(crate) fn evm_call_ttl(&self, params: &Value) -> Option<Duration> {
+        self.evm_calls.ttl_for_params(params)
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -66,17 +71,20 @@ pub(crate) struct CacheRule {
 
 #[derive(Debug, Clone, Deserialize)]
 struct EvmCallConfig {
-    selector: String,
-    #[serde(deserialize_with = "duration::deserialize")]
-    ttl: Duration,
-    contracts: HashMap<Chain, String>,
+    contracts: HashSet<String>,
+    selectors: HashMap<String, EvmSelectorConfig>,
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct EvmCallRule {
-    contract: String,
-    selector: String,
-    pub(crate) ttl: Duration,
+#[derive(Debug, Clone, Deserialize)]
+struct EvmSelectorConfig {
+    #[serde(deserialize_with = "duration::deserialize")]
+    ttl: Duration,
+}
+
+#[derive(Debug, Default, Clone)]
+struct EvmCallRules {
+    contracts: HashSet<[u8; 20]>,
+    selectors: HashMap<[u8; 4], Duration>,
 }
 
 impl CacheRule {
@@ -119,39 +127,49 @@ impl CacheRule {
     }
 }
 
-impl EvmCallRule {
-    pub(crate) fn matches(&self, params: &Value) -> bool {
-        matches_evm_call(params, &self.contract, &self.selector)
+impl From<&EvmCallConfig> for EvmCallRules {
+    fn from(config: &EvmCallConfig) -> Self {
+        Self {
+            contracts: config.contracts.iter().filter_map(|contract| decode_hex(contract)).collect(),
+            selectors: config
+                .selectors
+                .iter()
+                .filter_map(|(selector, config)| decode_hex(selector).map(|selector| (selector, config.ttl)))
+                .collect(),
+        }
     }
 }
 
-fn matches_evm_call(params: &Value, contract: &str, selector: &str) -> bool {
-    if !is_hex(contract, 42) || !is_hex(selector, 10) {
-        return false;
+impl EvmCallRules {
+    fn is_empty(&self) -> bool {
+        self.contracts.is_empty() || self.selectors.is_empty()
     }
-    let Some(params) = params.as_array() else {
-        return false;
-    };
-    if params.len() != 2 || params.get(1).and_then(Value::as_str) != Some("latest") {
-        return false;
+
+    fn ttl_for_params(&self, params: &Value) -> Option<Duration> {
+        let params = params.as_array()?;
+        if params.len() != 2 || params.get(1).and_then(Value::as_str) != Some("latest") {
+            return None;
+        }
+
+        let call = params.first()?.as_object()?;
+        if call.len() != 2 {
+            return None;
+        }
+
+        let contract = decode_hex(call.get("to")?.as_str()?)?;
+        if !self.contracts.contains(&contract) {
+            return None;
+        }
+
+        let selector = decode_hex(call.get("data")?.as_str()?.get(..10)?)?;
+        self.selectors.get(&selector).copied()
     }
-    let Some(call) = params.first().and_then(Value::as_object) else {
-        return false;
-    };
-    let Some(call_contract) = call.get("to").and_then(Value::as_str) else {
-        return false;
-    };
-    let Some(data) = call.get("data").and_then(Value::as_str) else {
-        return false;
-    };
-    let Some(call_selector) = data.get(..10) else {
-        return false;
-    };
-    call.len() == 2 && is_hex(call_contract, 42) && is_hex(call_selector, 10) && call_contract.eq_ignore_ascii_case(contract) && call_selector.eq_ignore_ascii_case(selector)
 }
 
-fn is_hex(value: &str, length: usize) -> bool {
-    value.len() == length && value.starts_with("0x") && value[2..].bytes().all(|byte| byte.is_ascii_hexdigit())
+fn decode_hex<const N: usize>(value: &str) -> Option<[u8; N]> {
+    let mut bytes = [0; N];
+    hex::decode_to_slice(value.strip_prefix("0x")?, &mut bytes).ok()?;
+    Some(bytes)
 }
 
 #[cfg(test)]
@@ -160,14 +178,6 @@ mod tests {
     use primitives::MINUTE;
 
     const CONTRACT: &str = "0x1111111111111111111111111111111111111111";
-
-    fn evm_call_rule(selector: &str) -> EvmCallRule {
-        EvmCallRule {
-            contract: CONTRACT.to_string(),
-            selector: selector.to_string(),
-            ttl: Duration::from_secs(60 * 60),
-        }
-    }
 
     fn eth_call_params(contract: &str, data: &str) -> Value {
         serde_json::json!([{ "to": contract, "data": data }, "latest"])
@@ -198,24 +208,32 @@ mod tests {
 
     #[test]
     fn test_static_evm_call_matching() {
-        let rule = evm_call_rule("0x1698ee82");
+        let rules = EvmCallRules {
+            contracts: HashSet::from([decode_hex(CONTRACT).unwrap()]),
+            selectors: HashMap::from([(decode_hex("0x1698ee82").unwrap(), MINUTE)]),
+        };
         let wrong_block = serde_json::json!([{ "to": CONTRACT, "data": "0x1698ee820000" }, "pending"]);
 
-        assert!(rule.matches(&eth_call_params(CONTRACT, "0x1698ee820000")));
-        assert!(rule.matches(&eth_call_params(&CONTRACT.to_uppercase().replacen("0X", "0x", 1), "0x1698EE820000")));
-        assert!(!rule.matches(&wrong_block));
-        assert!(!rule.matches(&eth_call_params("0x2222222222222222222222222222222222222222", "0x1698ee820000")));
-        assert!(!rule.matches(&eth_call_params(CONTRACT, "0xaa9d21cb0000")));
-        assert!(!rule.matches(&serde_json::json!([
-            {
-                "to": CONTRACT,
-                "data": "0x1698ee82",
-                "value": "0x1"
-            },
-            "latest"
-        ])));
-
-        assert!(!evm_call_rule("0x1698").matches(&eth_call_params(CONTRACT, "0x1698ee82")));
+        assert_eq!(rules.ttl_for_params(&eth_call_params(CONTRACT, "0x1698ee820000")), Some(MINUTE));
+        assert_eq!(
+            rules.ttl_for_params(&eth_call_params(&CONTRACT.to_uppercase().replacen("0X", "0x", 1), "0x1698EE820000")),
+            Some(MINUTE)
+        );
+        assert_eq!(rules.ttl_for_params(&wrong_block), None);
+        assert_eq!(rules.ttl_for_params(&eth_call_params("0x2222222222222222222222222222222222222222", "0x1698ee820000")), None);
+        assert_eq!(rules.ttl_for_params(&eth_call_params(CONTRACT, "0xaa9d21cb0000")), None);
+        assert_eq!(
+            rules.ttl_for_params(&serde_json::json!([
+                {
+                    "to": CONTRACT,
+                    "data": "0x1698ee82",
+                    "value": "0x1"
+                },
+                "latest"
+            ])),
+            None
+        );
+        assert_eq!(decode_hex::<4>("0x1698"), None);
     }
 
     #[test]
@@ -238,23 +256,32 @@ mod tests {
     }
 
     #[test]
-    fn test_evm_call_config_resolves_contract_by_chain() {
+    fn test_evm_call_config_resolves_contract_by_chain_type() {
+        let uppercase_contract = CONTRACT.to_uppercase().replacen("0X", "0x", 1);
         let config: CacheConfig = serde_json::from_value(serde_json::json!({
-            "max_memory_mb": 64,
-            "evm_calls": [{
-                "selector": "0x1698ee82",
-                "ttl": "5m",
-                "contracts": {
-                    "ethereum": CONTRACT
+            "max_memory": "64 MB",
+            "evm_calls": {
+                "ethereum": {
+                    "contracts": [CONTRACT, uppercase_contract],
+                    "selectors": {
+                        "0x1698ee82": {
+                            "ttl": "5m"
+                        }
+                    }
                 }
-            }]
+            }
         }))
         .unwrap();
 
-        let ethereum = config.rules(Chain::Ethereum);
-        assert_eq!(ethereum.evm_calls.len(), 1);
-        assert_eq!(ethereum.evm_calls[0].ttl, MINUTE * 5);
-        assert!(ethereum.evm_calls[0].matches(&eth_call_params(CONTRACT, "0x1698ee82")));
-        assert!(config.rules(Chain::Optimism).evm_calls.is_empty());
+        let ethereum = config.rules(Chain::Ethereum).unwrap();
+        assert_eq!(config.max_memory, 64_000_000);
+        assert_eq!(ethereum.evm_calls.contracts.len(), 1);
+        assert_eq!(ethereum.evm_calls.selectors.len(), 1);
+        assert_eq!(ethereum.evm_call_ttl(&eth_call_params(CONTRACT, "0x1698ee82")), Some(MINUTE * 5));
+        assert_eq!(
+            config.rules(Chain::Optimism).unwrap().evm_call_ttl(&eth_call_params(CONTRACT, "0x1698ee82")),
+            Some(MINUTE * 5)
+        );
+        assert!(config.rules(Chain::Solana).is_none());
     }
 }

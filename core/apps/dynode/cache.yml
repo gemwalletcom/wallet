@@ -1,5 +1,5 @@
 cache:
-  max_memory_mb: 1024
+  max_memory: 1 GB
   chain_types:
     ethereum:
       - rpc_method: eth_chainId
@@ -31,9 +31,10 @@ cache:
         params:
           function: "0x1::delegation_pool::operator_commission_percentage"
   evm_calls:
-    - selector: "0x1698ee82"
-      ttl: 5m
+    ethereum:
       contracts:
-        ethereum: "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-        optimism: "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-        robinhood: "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA"
+        - "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+        - "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA"
+      selectors:
+        "0x1698ee82":
+          ttl: 5m
