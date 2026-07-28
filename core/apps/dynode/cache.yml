@@ -1,5 +1,5 @@
 cache:
-  max_memory: 1GB
+  max_memory: 2GB
   chain_types:
     ethereum:
       rules:
