@@ -9,7 +9,7 @@ use crate::{
         deadline::get_sig_deadline,
         discovery::{PoolDiscovery, candidate_pairs, discover_v3_pools},
         fee_token::is_quote_input_fee_token,
-        quote_result::get_best_quote,
+        quote_result::{QuotePosition, get_best_quote},
         requires_native_wrapping,
         swap_route::{RouteData, build_swap_route},
     },
@@ -164,7 +164,7 @@ impl Swapper for UniswapV3 {
             _ = evm_chain.weth_contract().ok_or(SwapperError::NotSupportedChain)?;
         }
 
-        let client = Arc::new(self.client_for(from_chain)?);
+        let client = self.client_for(from_chain)?;
 
         let fee_tiers = self.provider.get_tiers();
         let use_weth = evm_chain.weth_contract().is_some();
@@ -189,21 +189,22 @@ impl Swapper for UniswapV3 {
         } else {
             paths_array
         };
-        let requests: Vec<_> = paths_array
+        let quote_calls = paths_array
             .iter()
-            .map(|paths| {
-                let client = client.clone();
-                let calls: Vec<EthereumRpc> = paths
-                    .iter()
-                    .map(|path| super::quoter_v2::build_quoter_request(&request.wallet_address, deployment.quoter_v2, quote_amount_in, &path.1))
-                    .collect();
-                async move { client.batch_request(calls).await }
+            .enumerate()
+            .flat_map(|(route_idx, paths)| {
+                paths.iter().enumerate().map(move |(fee_tier_idx, path)| {
+                    (
+                        QuotePosition { route_idx, fee_tier_idx },
+                        super::quoter_v2::build_quoter_request(&request.wallet_address, deployment.quoter_v2, quote_amount_in, &path.1),
+                    )
+                })
             })
-            .collect();
+            .collect::<Vec<_>>();
+        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
+        let results = client.batch_request(calls).await?;
 
-        let batch_results = futures::future::join_all(requests).await;
-
-        let quote_result = get_best_quote(&batch_results, super::quoter_v2::decode_quoter_response)?;
+        let quote_result = get_best_quote(&results, &positions, super::quoter_v2::decode_quoter_response)?;
 
         let to_value = if fee_token_is_input {
             quote_result.amount_out
@@ -213,20 +214,20 @@ impl Swapper for UniswapV3 {
         let to_min_value = apply_slippage_in_bp(&to_value, request.options.slippage.bps);
 
         let fee_tier_idx = quote_result.fee_tier_idx;
-        let batch_idx = quote_result.batch_idx;
+        let route_idx = quote_result.route_idx;
 
         let fee_tier = paths_array
-            .get(batch_idx)
+            .get(route_idx)
             .and_then(|paths| paths.get(fee_tier_idx))
             .and_then(|(pairs, _)| pairs.first())
             .map(|pair| pair.fee_tier as u32)
             .ok_or(SwapperError::InvalidRoute)?;
         let asset_id_in = AssetId::from(from_chain, Some(token_in.to_checksum(None)));
         let asset_id_out = AssetId::from(to_chain, Some(token_out.to_checksum(None)));
-        let asset_id_intermediary: Option<AssetId> = match batch_idx {
+        let asset_id_intermediary: Option<AssetId> = match route_idx {
             0 => None,
             _ => {
-                let first_token_out = &paths_array[batch_idx][0].0[0].token_out;
+                let first_token_out = &paths_array[route_idx][0].0[0].token_out;
                 Some(AssetId::from(to_chain, Some(first_token_out.to_checksum(None))))
             }
         };
