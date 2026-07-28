@@ -6,9 +6,9 @@ import Testing
 struct URLTextValidatorTests {
     @Test
     func validate() {
-        #expect(throws: Never.self) { try URLTextValidator().validate("https://eth.llamarpc.com") }
+        #expect(throws: Never.self) { try URLTextValidator().validate("https://ethereum.publicnode.com") }
         #expect(throws: Never.self) { try URLTextValidator().validate("https://eth-mainnet.rpcfast.com?api_key=test") }
-        #expect(throws: Never.self) { try URLTextValidator().validate("eth.llamarpc.com") }
+        #expect(throws: Never.self) { try URLTextValidator().validate("ethereum.publicnode.com") }
 
         #expect(throws: URLValidationError.self) { try URLTextValidator().validate("http://example.com") }
         #expect(throws: URLValidationError.self) { try URLTextValidator().validate("ws://example.com") }

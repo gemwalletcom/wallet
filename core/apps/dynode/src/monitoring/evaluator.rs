@@ -146,7 +146,6 @@ mod tests {
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,
-            cache: None,
             urls: vec![url("https://a"), url("https://b"), url("https://c")],
         };
         let nodes = Arc::new(RwLock::new(HashMap::from([(chain_config.chain, NodeDomain::new(url("https://a"), chain_config.clone()))])));

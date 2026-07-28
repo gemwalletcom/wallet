@@ -45,40 +45,20 @@ retry:
       - "Exceeded the quota usage"
       - "Unauthorized"
 
-cache:
-  max_memory_mb: 1024
-
 chain_types:
   ethereum:
     allowlist:
       - rpc_method: eth_chainId
       - rpc_method: eth_sendRawTransaction
-    cache:
-      - rpc_method: eth_chainId
-        ttl: 1h
+      - rpc_method: eth_blockNumber
+      - rpc_method: eth_call
   bitcoin:
     allowlist:
       - path: /api/v2/address/**
         method: GET
       - path: /api/v2/sendtx/
         method: POST
-  tron:
-    cache:
-      - path: /wallet/getchainparameters
-        method: GET
-        ttl: 1d
-      - path: /wallet/listwitnesses
-        method: GET
-        ttl: 1d
-  solana:
-    cache:
-      - rpc_method: getVoteAccounts
-        ttl: 1h
   cosmos:
-    cache:
-      - path: /cosmos/staking/v1beta1/validators
-        method: GET
-        ttl: 1d
     chains:
       thorchain:
         allowlist:
@@ -88,10 +68,6 @@ chain_types:
             method: GET
           - path: /thorchain/tx/status/**
             method: GET
-        cache:
-          - path: /thorchain/inbound_addresses
-            method: GET
-            ttl: 10m
       mayachain:
         allowlist:
           - path: /mayachain/inbound_addresses
@@ -100,17 +76,3 @@ chain_types:
             method: GET
           - path: /mayachain/tx/status/**
             method: GET
-  hypercore:
-    cache:
-      - path: /info
-        method: POST
-        ttl: 1h
-        params:
-          type: metaAndAssetCtxs
-  aptos:
-    cache:
-      - path: /v1/view
-        method: POST
-        ttl: 1h
-        params:
-          function: "0x1::delegation_pool::operator_commission_percentage"

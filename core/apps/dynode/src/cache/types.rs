@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_cache_entry_with_ttl() {
-        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), MINUTE);
+        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string());
         let entry = CacheEntry::new(response, MINUTE);
 
         assert!(entry.expires_at.is_some());
@@ -45,7 +45,7 @@ mod tests {
 
     #[test]
     fn test_cache_entry_without_ttl() {
-        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::ZERO);
+        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string());
         let entry = CacheEntry::new(response, Duration::ZERO);
 
         assert!(entry.expires_at.is_none());
@@ -56,7 +56,7 @@ mod tests {
     fn test_cache_entry_size() {
         let body = b"hello world".to_vec();
         let content_type = "application/json".to_string();
-        let response = CachedResponse::new(body.clone(), StatusCode::OK.as_u16(), content_type.clone(), MINUTE);
+        let response = CachedResponse::new(body.clone(), StatusCode::OK.as_u16(), content_type.clone());
         let entry = CacheEntry::new(response, MINUTE);
 
         assert_eq!(entry.size(), body.len() + content_type.len() + 64);

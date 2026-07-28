@@ -1,4 +1,3 @@
-use crate::proxy::constants::JSON_CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -94,13 +93,6 @@ pub enum JsonRpcRequest {
 }
 
 impl JsonRpcRequest {
-    pub fn cache_key(&self, host: &str, path: &str) -> Option<String> {
-        match self {
-            Self::Single(call) => Some(call.cache_key(host, path)),
-            Self::Batch(_) => None,
-        }
-    }
-
     pub fn get_methods_list(&self) -> String {
         self.get_methods_for_metrics().join(",")
     }
@@ -143,11 +135,7 @@ impl RequestType {
         self.get_methods_for_metrics().join(",")
     }
 
-    pub fn content_type(&self) -> &'static str {
-        JSON_CONTENT_TYPE
-    }
-
-    pub fn cache_key(&self, host: &str, path: &str) -> Option<String> {
+    pub fn cache_key(&self, host: &str) -> Option<String> {
         match self {
             Self::Regular { path, method, body } => {
                 let mut key = format!("{}:{}:{}", host, method, path);
@@ -157,7 +145,7 @@ impl RequestType {
                 }
                 Some(key)
             }
-            Self::JsonRpc(json_rpc) => json_rpc.cache_key(host, path),
+            Self::JsonRpc(_) => None,
         }
     }
 }
@@ -166,51 +154,6 @@ impl RequestType {
 mod tests {
     use super::*;
     use serde_json::json;
-
-    #[test]
-    fn test_cache_key_generation() {
-        let call = JsonRpcCall {
-            jsonrpc: "2.0".to_string(),
-            method: "eth_blockNumber".to_string(),
-            params: json!([]),
-            id: 1,
-        };
-
-        let request = JsonRpcRequest::Single(call);
-        let key = request.cache_key("example.com", "/rpc").unwrap();
-
-        assert_eq!(key, "example.com:POST:/rpc:eth_blockNumber:[]");
-    }
-
-    #[test]
-    fn test_cache_key_with_params() {
-        let call = JsonRpcCall {
-            jsonrpc: "2.0".to_string(),
-            method: "eth_getBalance".to_string(),
-            params: json!(["0x123", "latest"]),
-            id: 1,
-        };
-
-        let request = JsonRpcRequest::Single(call);
-        let key = request.cache_key("example.com", "/rpc").unwrap();
-
-        assert_eq!(key, "example.com:POST:/rpc:eth_getBalance:[\"0x123\",\"latest\"]");
-    }
-
-    #[test]
-    fn test_cache_key_null_params() {
-        let call = JsonRpcCall {
-            jsonrpc: "2.0".to_string(),
-            method: "eth_blockNumber".to_string(),
-            params: json!(null),
-            id: 1,
-        };
-
-        let request = JsonRpcRequest::Single(call);
-        let key = request.cache_key("example.com", "/rpc").unwrap();
-
-        assert_eq!(key, "example.com:POST:/rpc:eth_blockNumber");
-    }
 
     #[test]
     fn test_request_parsing_params_serialization() {
@@ -269,26 +212,8 @@ mod tests {
     }
 
     #[test]
-    fn test_batch_cache_key_returns_none() {
-        let calls = vec![JsonRpcCall {
-            jsonrpc: "2.0".to_string(),
-            method: "eth_blockNumber".to_string(),
-            params: json!([]),
-            id: 1,
-        }];
-
-        let request = JsonRpcRequest::Batch(calls);
-        assert!(request.cache_key("example.com", "/rpc").is_none());
-    }
-
-    #[test]
     fn test_jsonrpc_call_cache_key() {
-        let call = JsonRpcCall {
-            jsonrpc: "2.0".to_string(),
-            method: "eth_getBalance".to_string(),
-            params: json!(["0x123", "latest"]),
-            id: 1,
-        };
+        let call = JsonRpcCall::mock_with_params(1, "eth_getBalance", json!(["0x123", "latest"]));
 
         let key = call.cache_key("example.com", "/rpc");
         assert_eq!(key, "example.com:POST:/rpc:eth_getBalance:[\"0x123\",\"latest\"]");
@@ -339,31 +264,6 @@ mod tests {
     }
 
     #[test]
-    fn test_batch_with_duplicate_ids() {
-        let batch_json = r#"[
-            {"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1},
-            {"jsonrpc":"2.0","method":"eth_getBalance","params":["0x123","latest"],"id":1},
-            {"jsonrpc":"2.0","method":"eth_gasPrice","params":[],"id":1}
-        ]"#;
-
-        let body = batch_json.as_bytes().to_vec();
-        let request_type = RequestType::from_request("POST", "/rpc".to_string(), body);
-
-        match request_type {
-            RequestType::JsonRpc(JsonRpcRequest::Batch(calls)) => {
-                assert_eq!(calls.len(), 3);
-                assert_eq!(calls[0].id, 1);
-                assert_eq!(calls[1].id, 1);
-                assert_eq!(calls[2].id, 1);
-                assert_eq!(calls[0].method, "eth_blockNumber");
-                assert_eq!(calls[1].method, "eth_getBalance");
-                assert_eq!(calls[2].method, "eth_gasPrice");
-            }
-            _ => panic!("Expected batch request with duplicate IDs"),
-        }
-    }
-
-    #[test]
     fn test_regular_request_cache_key_with_different_bodies() {
         let body1 = r#"{"type":"metaAndAssetCtxs"}"#.as_bytes().to_vec();
         let body2 = r#"{"type":"spotMeta"}"#.as_bytes().to_vec();
@@ -380,32 +280,11 @@ mod tests {
             body: body2,
         };
 
-        let key1 = request1.cache_key("example.com", "/info").unwrap();
-        let key2 = request2.cache_key("example.com", "/info").unwrap();
+        let key1 = request1.cache_key("example.com").unwrap();
+        let key2 = request2.cache_key("example.com").unwrap();
 
         assert_ne!(key1, key2, "Different request bodies should produce different cache keys");
         assert!(key1.contains(r#"{"type":"metaAndAssetCtxs"}"#));
         assert!(key2.contains(r#"{"type":"spotMeta"}"#));
-    }
-
-    #[test]
-    fn test_batch_positional_mapping() {
-        let calls = [
-            JsonRpcCall {
-                jsonrpc: "2.0".to_string(),
-                method: "method_a".to_string(),
-                params: json!([]),
-                id: 999,
-            },
-            JsonRpcCall {
-                jsonrpc: "2.0".to_string(),
-                method: "method_b".to_string(),
-                params: json!([]),
-                id: 999,
-            },
-        ];
-
-        assert_eq!(calls[0].id, calls[1].id);
-        assert_ne!(calls[0].method, calls[1].method);
     }
 }

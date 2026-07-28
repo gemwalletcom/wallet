@@ -44,4 +44,5 @@ FROM runtime-base AS dynode
 WORKDIR /app
 COPY --from=builder-dynode /app/dynode /app/
 COPY --from=builder-dynode /app/apps/dynode/config.yml /app/
+COPY --from=builder-dynode /app/apps/dynode/cache.yml /app/
 CMD ["/app/dynode"]

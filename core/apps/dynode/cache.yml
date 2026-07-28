@@ -1,0 +1,45 @@
+cache:
+  max_memory: 2GB
+  chain_types:
+    ethereum:
+      rules:
+        - rpc_method: eth_chainId
+          ttl: 1h
+      contracts:
+        addresses:
+          - "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+          - "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA"
+        methods:
+          "0x1698ee82": # Uniswap V3 Factory getPool(address,address,uint24)
+            ttl: 5m
+    tron:
+      rules:
+        - path: /wallet/getchainparameters
+          method: GET
+          ttl: 1d
+        - path: /wallet/listwitnesses
+          method: GET
+          ttl: 1d
+    solana:
+      rules:
+        - rpc_method: getVoteAccounts
+          ttl: 1h
+    cosmos:
+      rules:
+        - path: /cosmos/staking/v1beta1/validators
+          method: GET
+          ttl: 1d
+    hypercore:
+      rules:
+        - path: /info
+          method: POST
+          ttl: 1h
+          params:
+            type: metaAndAssetCtxs
+    aptos:
+      rules:
+        - path: /v1/view
+          method: POST
+          ttl: 1h
+          params:
+            function: "0x1::delegation_pool::operator_commission_percentage"
