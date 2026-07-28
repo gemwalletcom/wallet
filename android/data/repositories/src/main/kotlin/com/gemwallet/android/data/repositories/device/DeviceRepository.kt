@@ -11,10 +11,8 @@ import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.RequestPushToken
 import com.gemwallet.android.cases.device.SetPushToken
-import com.gemwallet.android.cases.device.SynchronizeDeviceIfNeeded
-import com.gemwallet.android.cases.device.SyncSubscription
-import com.gemwallet.android.cases.device.SyncDeviceInfo
 import com.gemwallet.android.cases.device.SwitchPushEnabled
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.config.UserConfig.Keys
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -55,26 +53,18 @@ class DeviceRepository(
     private val getCurrentCurrency: GetCurrentCurrency,
     private val walletsRepository: WalletsRepository,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-) : SyncDeviceInfo,
-    SwitchPushEnabled,
+) : SwitchPushEnabled,
     GetPushEnabled,
     GetPushToken,
     SetPushToken,
-    SyncSubscription,
-    SynchronizeDeviceIfNeeded,
+    SyncDevice,
     IsDeviceRegistered
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
     private val syncCoordinator = DeviceSyncCoordinator(scope)
 
-    override suspend fun syncDeviceInfo() = syncDevice()
-
-    override suspend fun syncSubscription(wallets: List<Wallet>) = syncDevice()
-
-    override suspend fun synchronizeIfNeeded() = syncDevice()
-
-    private suspend fun syncDevice() {
+    override suspend fun syncDevice() {
         repeat(SYNC_ATTEMPTS) {
             if (!needsSynchronization()) {
                 return

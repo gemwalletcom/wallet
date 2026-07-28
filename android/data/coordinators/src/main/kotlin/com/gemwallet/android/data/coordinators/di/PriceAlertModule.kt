@@ -9,7 +9,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAl
 import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceAlertEnabled
 import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.coordinators.pricealerts.ExcludePriceAlertImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetAssetPriceAlertStateImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetPriceAlertsEnabledImpl
@@ -38,13 +38,13 @@ object PriceAlertModule {
         gemDeviceApiClient: GemDeviceApiClient,
         priceAlertRepository: PriceAlertRepository,
         sessionRepository: SessionRepository,
-        syncDeviceInfo: SyncDeviceInfo,
+        syncDevice: SyncDevice,
     ): IncludePriceAlert {
         return IncludePriceAlertImpl(
             gemDeviceApiClient = gemDeviceApiClient,
             priceAlertRepository = priceAlertRepository,
             sessionRepository = sessionRepository,
-            syncDeviceInfo = syncDeviceInfo,
+            syncDevice = syncDevice,
         )
     }
 
@@ -74,11 +74,11 @@ object PriceAlertModule {
     @Singleton
     fun provideSetPriceAlertsEnabled(
         priceAlertRepository: PriceAlertRepository,
-        syncDeviceInfo: SyncDeviceInfo,
+        syncDevice: SyncDevice,
     ): SetPriceAlertsEnabled {
         return SetPriceAlertsEnabledImpl(
             priceAlertRepository = priceAlertRepository,
-            syncDeviceInfo = syncDeviceInfo,
+            syncDevice = syncDevice,
         )
     }
 

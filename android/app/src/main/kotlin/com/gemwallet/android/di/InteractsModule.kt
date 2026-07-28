@@ -25,7 +25,7 @@ import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOper
 import com.gemwallet.android.blockchain.services.GemSignAuthOperator
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
-import com.gemwallet.android.cases.device.SyncSubscription
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
@@ -133,7 +133,7 @@ object InteractsModule {
         phraseValidate: ValidatePhraseOperator,
         addressValidate: ValidateAddressOperator,
         passwordStore: PasswordStore,
-        syncSubscription: SyncSubscription,
+        syncDevice: SyncDevice,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletsRepository = walletsRepository,
@@ -143,7 +143,7 @@ object InteractsModule {
         phraseValidate = phraseValidate,
         addressValidate = addressValidate,
         passwordStore = passwordStore,
-        syncSubscription = syncSubscription,
+        syncDevice = syncDevice,
         walletImportSync = walletImportSync,
     )
 }
