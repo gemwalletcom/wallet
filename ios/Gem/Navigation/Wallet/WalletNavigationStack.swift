@@ -35,7 +35,7 @@ struct WalletNavigationStack: View {
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
     @Environment(\.activityService) private var activityService
     @Environment(\.walletSearchService) private var walletSearchService
-    @Environment(\.assetSearchService) private var assetSearchService
+    @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
     @Environment(\.walletService) private var walletService
@@ -225,13 +225,9 @@ struct WalletNavigationStack: View {
                         WalletsNavigationStack()
                     case let .selectAsset(type):
                         SelectAssetSceneNavigationStack(
-                            model: SelectAssetViewModel(
+                            model: viewModelFactory.selectAssetScene(
                                 wallet: model.wallet,
                                 selectType: type,
-                                searchService: assetSearchService,
-                                assetsEnabler: assetsEnabler,
-                                priceAlertService: priceAlertService,
-                                activityService: activityService,
                             ),
                         )
                     case let .infoSheet(type):

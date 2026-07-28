@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Assets
 import AssetsService
 import Components
 import Localization
@@ -14,11 +13,8 @@ import Transactions
 
 struct TransactionsNavigationStack: View {
     @Environment(\.navigationState) private var navigationState
-    @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.activityService) private var activityService
-    @Environment(\.assetSearchService) private var assetSearchService
+    @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.nftService) private var nftService
@@ -85,13 +81,9 @@ struct TransactionsNavigationStack: View {
                         .presentationBackground(Colors.grayBackground)
                     case let .selectAsset(selectType):
                         SelectAssetSceneNavigationStack(
-                            model: SelectAssetViewModel(
+                            model: viewModelFactory.selectAssetScene(
                                 wallet: model.wallet,
                                 selectType: selectType,
-                                searchService: assetSearchService,
-                                assetsEnabler: assetsEnabler,
-                                priceAlertService: priceAlertService,
-                                activityService: activityService,
                             ),
                         )
                     case let .addContact(action):

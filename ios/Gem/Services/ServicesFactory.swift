@@ -346,6 +346,8 @@ struct ServicesFactory {
             eventPresenterService: eventPresenterService,
             fiatService: fiatService,
             assetsService: assetsService,
+            assetSearchService: assetSearchService,
+            priceAlertService: priceAlertService,
         )
 
         return AppResolver.Services(
