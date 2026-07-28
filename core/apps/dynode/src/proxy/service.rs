@@ -1,6 +1,6 @@
 use crate::cache::{CacheProvider, RequestCache};
 use crate::config::{ChainConfig, HeadersConfig, Url};
-use crate::jsonrpc_types::{JsonRpcRequest, JsonRpcResponse, RequestType};
+use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
 use crate::metrics::Metrics;
 use crate::proxy::CachedResponse;
 use crate::proxy::jsonrpc::JsonRpcHandler;
@@ -27,7 +27,7 @@ struct CacheStoreInfo {
     method: String,
     path: String,
     elapsed: Duration,
-    request_type: RequestType,
+    content_type: String,
 }
 
 #[derive(Clone)]
@@ -110,17 +110,8 @@ impl ProxyRequestService {
         let url = RequestUrl::from_parts(resolved_url, &request.path_with_query);
         let headers = self.build_headers(url.url.host_str().unwrap_or_default(), &request.headers);
 
-        let cache_ttl = self.cache.should_cache_request(&chain, request_type);
-        let cache_key = cache_ttl.and_then(|_| request_type.cache_key(&request.host, &request.path_with_query));
-
         let methods_for_metrics = request_type.get_methods_for_metrics();
         self.metrics.add_proxy_request(request.chain.as_ref(), &methods_for_metrics);
-
-        if let Some(key) = &cache_key
-            && let Some(result) = Self::try_cache_hit(&self.cache, key, &request, &url, &self.metrics, request_type, &methods_for_metrics).await
-        {
-            return result;
-        }
 
         if let RequestType::JsonRpc(rpc_request) = request_type {
             return JsonRpcHandler::handle_request(
@@ -135,6 +126,14 @@ impl ProxyRequestService {
                 &self.broadcast_providers,
             )
             .await;
+        }
+
+        let cache_ttl = self.cache.should_cache_request(&chain, request_type);
+        let cache_key = cache_ttl.and_then(|_| request_type.cache_key(&request.host));
+        if let Some(key) = &cache_key
+            && let Some(result) = Self::try_cache_hit(&self.cache, key, &request, &self.metrics, &methods_for_metrics).await
+        {
+            return result;
         }
 
         let response = match Self::proxy_pass_get_data(request.method.clone(), request.body.clone(), url.clone(), &self.client, headers).await {
@@ -174,13 +173,11 @@ impl ProxyRequestService {
                 method: request.method.to_string(),
                 path: request.path.clone(),
                 elapsed: request.elapsed(),
-                request_type: request_type.clone(),
+                content_type: request_type.content_type().to_string(),
             };
             let cache_clone = self.cache.clone();
             tokio::spawn(async move {
-                if let Err(err) = Self::store_cache(status, ttl, key, body_bytes, store_info, cache_clone).await {
-                    gem_tracing::error_with_fields!("Failed to store cache", err.as_ref(),);
-                }
+                Self::store_cache(status, ttl, key, body_bytes, store_info, cache_clone).await;
             });
         }
 
@@ -191,9 +188,7 @@ impl ProxyRequestService {
         cache: &RequestCache,
         cache_key: &str,
         request: &ProxyRequest,
-        url: &RequestUrl,
         metrics: &Metrics,
-        request_type: &RequestType,
         methods_for_metrics: &[String],
     ) -> Option<Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>>> {
         if let Some(cached) = cache.get(&request.chain, cache_key).await {
@@ -210,20 +205,7 @@ impl ProxyRequestService {
             );
 
             let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
-            let status = cached.status;
-
-            let response = match request_type {
-                RequestType::JsonRpc(JsonRpcRequest::Single(original_call)) => {
-                    let data = cached.to_jsonrpc_response(original_call);
-                    ResponseBuilder::build_with_headers(data, cached.status, &cached.content_type, proxy_headers).map(ProxyResponse::into_cached)
-                }
-                RequestType::Regular { .. } => Ok(ResponseBuilder::build_cached_with_headers(cached.clone(), proxy_headers)),
-                RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => return None,
-            };
-
-            Self::add_proxy_response_metrics(metrics, request, methods_for_metrics, url.url.host_str().unwrap_or_default(), status);
-
-            Some(response)
+            Some(Ok(ResponseBuilder::build_cached_with_headers(cached, proxy_headers)))
         } else {
             for method_name in methods_for_metrics {
                 metrics.add_cache_miss(request.chain.as_ref(), method_name);
@@ -232,41 +214,32 @@ impl ProxyRequestService {
         }
     }
 
-    async fn store_cache(
-        status: u16,
-        cache_ttl: Duration,
-        cache_key: String,
-        body_bytes: Vec<u8>,
-        info: CacheStoreInfo,
-        cache: RequestCache,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let content_type = info.request_type.content_type().to_string();
+    async fn store_cache(status: u16, cache_ttl: Duration, cache_key: String, body_bytes: Vec<u8>, info: CacheStoreInfo, cache: RequestCache) {
+        let CacheStoreInfo {
+            id,
+            chain,
+            host,
+            method,
+            path,
+            elapsed,
+            content_type,
+        } = info;
         let body_size = body_bytes.len();
+        let cached = CachedResponse::new(body_bytes, status, content_type);
 
-        let cached = match &info.request_type {
-            RequestType::JsonRpc(_) => {
-                let json_response = serde_json::from_slice::<JsonRpcResponse>(&body_bytes)?;
-                let result_bytes = serde_json::to_string(&json_response.result).unwrap_or_default().into_bytes();
-                CachedResponse::new(result_bytes, status, content_type, cache_ttl)
-            }
-            RequestType::Regular { .. } => CachedResponse::new(body_bytes, status, content_type, cache_ttl),
-        };
-
-        cache.set(&info.chain, cache_key, cached, cache_ttl).await;
+        cache.set(&chain, cache_key, cached, cache_ttl).await;
 
         info_with_fields!(
             "Cache SET",
-            id = info.id.as_str(),
-            chain = info.chain.as_ref(),
-            host = &info.host,
-            method = info.method.as_str(),
-            path = &info.path,
+            id = id.as_str(),
+            chain = chain.as_ref(),
+            host = &host,
+            method = method.as_str(),
+            path = &path,
             ttl_ms = cache_ttl.as_millis(),
             size_bytes = body_size,
-            latency = DurationMs(info.elapsed),
+            latency = DurationMs(elapsed),
         );
-
-        Ok(())
     }
 
     async fn proxy_pass_response(
@@ -300,7 +273,7 @@ impl ProxyRequestService {
 mod tests {
     use super::*;
     use crate::cache::RequestCache;
-    use crate::config::{CacheConfig, ChainTypesConfig, HeadersConfig, MetricsConfig};
+    use crate::config::{CacheConfig, HeadersConfig, MetricsConfig};
     use crate::metrics::Metrics;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
     use primitives::Chain;
@@ -313,7 +286,7 @@ mod tests {
         let metrics = Metrics::new(MetricsConfig::default());
         ProxyRequestService::new(
             metrics.clone(),
-            RequestCache::new(CacheConfig::default(), &ChainTypesConfig::default(), std::iter::empty()),
+            RequestCache::new(CacheConfig::default(), std::iter::empty()),
             gem_client::reqwest_client(),
             headers_config,
             DynodeBroadcastWebhookClient::disabled(),
