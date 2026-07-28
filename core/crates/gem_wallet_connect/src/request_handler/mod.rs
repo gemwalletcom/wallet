@@ -77,7 +77,11 @@ impl WalletConnectRequestHandler {
         match transaction_type {
             WalletConnectTransactionType::Ethereum => {
                 let tx: WCEthereumTransaction = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                Ok(WalletConnectTransaction::Ethereum { data: tx.into() })
+                let transaction_type = gem_evm::transaction::decode_transaction_type(tx.data.as_deref());
+                Ok(WalletConnectTransaction::Ethereum {
+                    data: tx.into(),
+                    transaction_type,
+                })
             }
             WalletConnectTransactionType::Solana { output_type } => {
                 let json: serde_json::Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
@@ -303,10 +307,33 @@ mod tests {
             .unwrap();
 
             match decoded {
-                WalletConnectTransaction::Ethereum { data } => {
+                WalletConnectTransaction::Ethereum { data, transaction_type } => {
                     assert_eq!(data.chain_id, Some(expected));
                     assert_eq!(data.data, Some("0x1234".to_string()));
+                    assert_eq!(transaction_type, primitives::TransactionType::SmartContractCall);
                 }
+                _ => panic!("Expected Ethereum transaction"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_decode_ethereum_transaction_type_from_payload() {
+        let cases = [
+            (r#""0x095ea7b3abcd""#, primitives::TransactionType::TokenApproval),
+            (r#""0x""#, primitives::TransactionType::Transfer),
+            (r#"null"#, primitives::TransactionType::Transfer),
+            (r#""0xdeadbeef""#, primitives::TransactionType::SmartContractCall),
+        ];
+        for (data, expected) in cases {
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(
+                WalletConnectTransactionType::Ethereum,
+                format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":"0x0"}}"#),
+            )
+            .unwrap();
+
+            match decoded {
+                WalletConnectTransaction::Ethereum { transaction_type, .. } => assert_eq!(transaction_type, expected),
                 _ => panic!("Expected Ethereum transaction"),
             }
         }

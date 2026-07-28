@@ -14,6 +14,7 @@ import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.blockNumber
 import com.gemwallet.android.serializer.jsonEncoder
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
@@ -38,6 +39,7 @@ class ConfirmTransactionImpl(
         session: Session,
         assetInfo: AssetInfo,
         scope: CoroutineScope,
+        transactionAssetId: AssetId?,
     ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
@@ -59,7 +61,7 @@ class ConfirmTransactionImpl(
                 delay(500)
             } else {
                 lastHash = transactionHash
-                addTransaction(transactionHash, signerParams, assetInfo, account, session)
+                addTransaction(transactionHash, signerParams, assetInfo, account, session, transactionAssetId)
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
             }
         }
@@ -88,13 +90,14 @@ class ConfirmTransactionImpl(
         assetInfo: AssetInfo,
         account: Account,
         session: Session,
+        transactionAssetId: AssetId?,
     ) {
         val destinationAddress = signerParams.input.destination()?.address ?: ""
 
         createTransactionsCase.createTransaction(
             hash = transactionHash,
             walletId = session.wallet.id,
-            assetId = assetInfo.id(),
+            assetId = transactionAssetId ?: assetInfo.id(),
             owner = account,
             to = destinationAddress,
             state = TransactionState.Pending,

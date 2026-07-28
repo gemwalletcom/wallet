@@ -44,7 +44,7 @@ pub(super) fn send_transaction_validation_warnings(transaction_type: &WcWalletCo
 pub(super) fn decode_ethereum_transaction(data: &str) -> Result<WcEthereumTransactionData, String> {
     let transaction = WalletConnectRequestHandler::decode_send_transaction(WcWalletConnectTransactionType::Ethereum, data.to_string())?;
     match transaction {
-        WcWalletConnectTransaction::Ethereum { data } => Ok(data),
+        WcWalletConnectTransaction::Ethereum { data, .. } => Ok(data),
         _ => Err("Invalid Ethereum transaction".to_string()),
     }
 }

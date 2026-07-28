@@ -20,7 +20,7 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
         case .transfer: .transfer
         case .deposit: .transfer
         case .withdrawal: .transfer
-        case .generic: .smartContractCall
+        case let .generic(_, _, extra): extra.transactionType
         case .transferNft: .transferNFT
         case .tokenApprove: .tokenApproval
         case .swap: .swap
