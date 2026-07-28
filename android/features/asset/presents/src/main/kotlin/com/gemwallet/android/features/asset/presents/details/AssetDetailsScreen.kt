@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
@@ -26,7 +25,7 @@ fun AssetDetailsScreen(
         AssetDetailsScene(
             uiState = uiModel ?: return,
             transactions = transactions,
-            priceAlertEnabled = priceAlertEnabled is PriceAlertsStateEvent.Enable,
+            priceAlertEnabled = priceAlertEnabled == true,
             priceAlertsCount = priceAlertsCount,
             isRefreshing = isRefreshing,
             isOperationEnabled = isOperationEnabled,
