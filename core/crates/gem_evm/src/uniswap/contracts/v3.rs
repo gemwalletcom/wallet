@@ -2,6 +2,10 @@ use alloy_sol_types::sol;
 
 // https://github.com/Uniswap/v3-periphery/blob/main/contracts/interfaces/IQuoterV2.sol
 sol! {
+    interface IUniswapV3Factory {
+        function getPool(address tokenA, address tokenB, uint24 fee) external view returns (address pool);
+    }
+
     /// @title QuoterV2 Interface
     /// @notice Supports quoting the calculated amounts from exact input or exact output swaps.
     /// @notice For each pool also tells you the number of initialized ticks crossed and the sqrt price of the pool after the swap.

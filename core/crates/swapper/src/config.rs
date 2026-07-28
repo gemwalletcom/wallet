@@ -1,9 +1,23 @@
+use std::time::Duration;
+
+use primitives::{Chain, DAY};
+
 use crate::{SwapperProvider, SwapperSlippage, SwapperSlippageMode};
-use primitives::Chain;
 
 pub const DEFAULT_SLIPPAGE_BPS: u32 = 100;
 
 pub const API_BASE_URL: &str = "https://api.gemwallet.com";
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DiscoveryCacheConfig {
+    pub expiration: Duration,
+}
+
+impl Default for DiscoveryCacheConfig {
+    fn default() -> Self {
+        Self { expiration: DAY }
+    }
+}
 
 pub fn get_swap_provider_url(provider: SwapperProvider) -> String {
     format!("{API_BASE_URL}/v1/swaps/providers/{}", provider.id())

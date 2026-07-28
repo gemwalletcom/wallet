@@ -48,6 +48,13 @@ public final class SwapService: Sendable, SwappableChainsProvider {
         )
     }
 
+    public func preloadRoutes(fromAsset: Asset, toAsset: Asset) async {
+        await swapper.preloadRoutes(
+            fromAsset: fromAsset.id.identifier,
+            toAsset: toAsset.id.identifier,
+        )
+    }
+
     public func getQuotes(fromAsset: Asset, toAsset: Asset, value: String, walletAddress: String, destinationAddress: String, useMaxAmount: Bool, slippage: SwapSlippage) async throws -> [SwapperQuote] {
         let swapRequest = SwapperQuoteRequest(
             fromAsset: SwapperQuoteAsset(asset: fromAsset),

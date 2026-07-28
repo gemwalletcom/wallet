@@ -275,6 +275,8 @@ class RequestSwapQuotesImplTest {
         private val firstRequestStarted = CompletableDeferred<Unit>()
         var requestCount = 0
 
+        override suspend fun preloadRoutes(from: Asset, to: Asset) = Unit
+
         override suspend fun getQuotes(
             ownerAddress: String,
             destination: String,

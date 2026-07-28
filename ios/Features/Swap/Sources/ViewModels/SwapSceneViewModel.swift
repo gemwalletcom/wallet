@@ -160,6 +160,10 @@ public final class SwapSceneViewModel {
         Set([fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self))
     }
 
+    var preloadAssetIds: [AssetId] {
+        [fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self)
+    }
+
     var errorInfoAction: VoidAction {
         guard case let .error(error) = swapState.quotes,
               case .NoQuoteAvailable = error.swapperError
@@ -207,6 +211,11 @@ public final class SwapSceneViewModel {
 // MARK: - Business Logic
 
 extension SwapSceneViewModel {
+    func preloadRoutes() async {
+        guard let fromAsset, let toAsset else { return }
+        await swapQuotesProvider.preloadRoutes(fromAsset: fromAsset.asset, toAsset: toAsset.asset)
+    }
+
     func fetch() async {
         guard !isTransferDataLoading, let currentInput else { return }
         await performFetch(input: currentInput)

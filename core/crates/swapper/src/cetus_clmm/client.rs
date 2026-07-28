@@ -96,6 +96,25 @@ impl CetusClmm {
         Ok(hops)
     }
 
+    pub(super) async fn preload_pair(&self, from: &str, to: &str) {
+        self.discover_direct_pools(from, to, CETUS_ALL_TICK_SPACINGS).await;
+        let discoveries = INTERMEDIATE_COIN_TYPES.iter().filter_map(|raw_intermediate| {
+            let intermediate = full_coin_type(raw_intermediate);
+            if coin_type_matches(from, &intermediate) || coin_type_matches(to, &intermediate) {
+                None
+            } else {
+                Some(async move {
+                    futures::future::join(
+                        self.discover_direct_pools(from, &intermediate, CETUS_ALL_TICK_SPACINGS),
+                        self.discover_direct_pools(&intermediate, to, CETUS_ALL_TICK_SPACINGS),
+                    )
+                    .await
+                })
+            }
+        });
+        futures::future::join_all(discoveries).await;
+    }
+
     async fn try_route_with_ticks(&self, from: &str, to: &str, swap_amount: u64, ticks: &[u32]) -> PhaseResult {
         let direct_candidates: Vec<Vec<DiscoveredPool>> = self.discover_direct_pools(from, to, ticks).await.into_iter().map(|pool| vec![pool]).collect();
         let direct_quotes = self.quote_candidates_batched(direct_candidates, from, swap_amount).await;

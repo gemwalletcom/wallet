@@ -199,6 +199,13 @@ where
     }
 
     async fn discover_and_quote(&self, from_token: &str, to_token: &str, amount: &BigUint, slippage_bps: u32, require_v2: bool) -> Result<SwapSimulation, SwapperError> {
+        let candidates = self.discover_candidates(from_token, to_token, require_v2).await?;
+        let (pool, simulation) = self.quote_best_candidate(candidates, from_token, to_token, amount, slippage_bps).await?;
+        self.route_cache.put_route(from_token, to_token, std::slice::from_ref(&pool));
+        Ok(simulation)
+    }
+
+    async fn discover_candidates(&self, from_token: &str, to_token: &str, require_v2: bool) -> Result<Vec<DiscoveredPool>, SwapperError> {
         let (_, explored) = self.route_cache.get(from_token, to_token);
         let routers = FALLBACK_ROUTERS
             .iter()
@@ -228,18 +235,24 @@ where
             return Err(error);
         }
 
-        match self.quote_best_candidate(candidates.clone(), from_token, to_token, amount, slippage_bps).await {
-            Ok((pool, simulation)) => {
-                self.route_cache.put(from_token, to_token, &candidates, &explored_addresses);
-                self.route_cache.put_route(from_token, to_token, std::slice::from_ref(&pool));
-                Ok(simulation)
-            }
-            Err(err) if is_retryable_get_method_error(&err) => Err(err),
-            Err(err) => {
-                self.route_cache.put(from_token, to_token, &candidates, &explored_addresses);
-                Err(err)
-            }
+        self.route_cache.put(from_token, to_token, &candidates, &explored_addresses);
+        Ok(candidates)
+    }
+
+    async fn preload_pair(&self, from_token: &str, to_token: &str, require_v2: bool) {
+        let (candidates, explored) = self.route_cache.get(from_token, to_token);
+        let has_candidate = static_candidates(from_token, to_token)
+            .iter()
+            .chain(&candidates)
+            .any(|candidate| candidate_has_supported_version(candidate, require_v2));
+        let discovery_complete = FALLBACK_ROUTERS
+            .iter()
+            .filter(|router| !require_v2 || router.is_supported_v2())
+            .all(|router| explored.iter().any(|address| address == router.address));
+        if has_candidate || discovery_complete {
+            return;
         }
+        _ = self.discover_candidates(from_token, to_token, require_v2).await;
     }
 
     async fn discover_candidate(&self, from_token: &str, to_token: &str, router: &RouterInfo) -> Result<DiscoveredPool, SwapperError> {
@@ -418,6 +431,28 @@ where
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
         SwapAmountMode::Fixed
+    }
+
+    async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
+        if from_asset.chain != Chain::Ton || to_asset.chain != Chain::Ton {
+            return;
+        }
+        let from_asset = SwapperQuoteAsset::from(from_asset.clone());
+        let to_asset = SwapperQuoteAsset::from(to_asset.clone());
+        let pairs = std::iter::once((token_address(&from_asset), token_address(&to_asset), false))
+            .chain(
+                Self::intermediary_tokens()
+                    .into_iter()
+                    .filter(|intermediary| intermediary.asset_id() != from_asset.asset_id() && intermediary.asset_id() != to_asset.asset_id())
+                    .flat_map(|intermediary| {
+                        [
+                            (token_address(&from_asset), token_address(&intermediary), true),
+                            (token_address(&intermediary), token_address(&to_asset), true),
+                        ]
+                    }),
+            )
+            .collect::<Vec<_>>();
+        join_all(pairs.iter().map(|(from, to, require_v2)| self.preload_pair(from, to, *require_v2))).await;
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -623,6 +658,27 @@ mod tests {
         F: Fn(&str) -> Vec<u8> + Send + Sync + 'static,
     {
         provider_with_get_method(move |_, address| handler(address))
+    }
+
+    #[tokio::test]
+    async fn test_preload_discovers_once_without_quoting() {
+        let calls = Arc::new(Mutex::new(Vec::<String>::new()));
+        let calls_ref = calls.clone();
+        let provider = provider_with_get_method(move |method, _| {
+            calls_ref.lock().unwrap().push(method.to_string());
+            match method {
+                "get_wallet_address" => cell_response(USDT_WALLET),
+                "get_pool_address" => cell_response(DISCOVERED_POOL),
+                _ => unreachable!("{method}"),
+            }
+        });
+
+        provider.preload_pair("unknown-a", "unknown-b", false).await;
+        assert!(!calls.lock().unwrap().iter().any(|method| method == "get_pool_data"));
+
+        calls.lock().unwrap().clear();
+        provider.preload_pair("unknown-a", "unknown-b", false).await;
+        assert!(calls.lock().unwrap().is_empty());
     }
 
     #[tokio::test]

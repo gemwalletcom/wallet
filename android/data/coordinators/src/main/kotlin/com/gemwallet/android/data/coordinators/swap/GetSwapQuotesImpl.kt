@@ -17,6 +17,13 @@ import java.math.BigInteger
 class GetSwapQuotesImpl(
     private val gemSwapper: GemSwapper,
 ) : GetSwapQuotes {
+    override suspend fun preloadRoutes(from: Asset, to: Asset) {
+        gemSwapper.preloadRoutes(
+            fromAsset = from.id.toIdentifier(),
+            toAsset = to.id.toIdentifier(),
+        )
+    }
+
     override suspend fun getQuotes(
         ownerAddress: String,
         destination: String,
