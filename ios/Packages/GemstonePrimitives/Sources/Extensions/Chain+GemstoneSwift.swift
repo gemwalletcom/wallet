@@ -134,6 +134,10 @@ public extension Primitives.Chain {
         Gemstone.checksumAddress(address: address, chain: rawValue)
     }
 
+    var isPrivateKeyImportSupported: Bool {
+        Gemstone.supportsPrivateKeyImport(chain: rawValue)
+    }
+
     func matches(query: String) -> Bool {
         networkName.localizedCaseInsensitiveContains(query) ||
             rawValue.localizedCaseInsensitiveContains(query) ||
