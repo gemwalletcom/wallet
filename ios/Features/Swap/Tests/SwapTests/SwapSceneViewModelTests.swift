@@ -22,17 +22,15 @@ import Testing
 @MainActor
 struct SwapSceneViewModelTests {
     @Test
-    func assetIdentifiersUseExpectedOrdering() {
+    func assetIdsIgnoresPairOrder() {
         let model = SwapSceneViewModel.mock()
         let assetIds = model.assetIds
-        let preloadAssetIds = model.preloadAssetIds
 
         model.fromAssetQuery.value = .mock(asset: .mockEthereumUSDT())
         model.toAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
 
         #expect(model.assetIds == assetIds)
         #expect(model.assetIds == [AssetId.mockEthereum(), AssetId.mockEthereumUSDT()])
-        #expect(model.preloadAssetIds == Array(preloadAssetIds.reversed()))
     }
 
     @Test

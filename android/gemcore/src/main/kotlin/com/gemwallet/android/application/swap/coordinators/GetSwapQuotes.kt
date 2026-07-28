@@ -4,8 +4,6 @@ import com.wallet.core.primitives.Asset
 import uniffi.gemstone.SwapperQuote
 
 interface GetSwapQuotes {
-    suspend fun preloadRoutes(from: Asset, to: Asset)
-
     suspend fun getQuotes(
         ownerAddress: String,
         destination: String,

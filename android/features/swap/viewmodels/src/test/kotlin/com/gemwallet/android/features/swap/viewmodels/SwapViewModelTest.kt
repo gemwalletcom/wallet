@@ -5,7 +5,6 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.GetSwapQuotes
 import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
 import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
 import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
@@ -105,13 +104,12 @@ class SwapViewModelTest {
         every { swapSlippageBps() } returns flowOf(null)
     }
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
-    private val getSwapQuotes = mockk<GetSwapQuotes>(relaxed = true)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(SwapDetailsUIModelFactory)
-        clearMocks(sessionRepository, assetsRepository, buildSwapConfirmParams, requestSwapQuotes, getSwapQuotes)
+        clearMocks(sessionRepository, assetsRepository, buildSwapConfirmParams, requestSwapQuotes)
         every { sessionRepository.session() } returns MutableStateFlow(null)
         every { assetsRepository.getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { assetsRepository.getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
@@ -132,7 +130,6 @@ class SwapViewModelTest {
         buildSwapConfirmParams = buildSwapConfirmParams,
         userConfig = userConfig,
         requestSwapQuotes = requestSwapQuotes,
-        getSwapQuotes = getSwapQuotes,
         savedStateHandle = savedStateHandle,
     )
 
@@ -145,14 +142,6 @@ class SwapViewModelTest {
             RouteArgument.ToAssetId.key to to,
         )
     )
-
-    @Test
-    fun `selected pair preloads routes`() = runTest(testDispatcher) {
-        createViewModel(swapSavedState())
-        advanceUntilIdle()
-
-        coVerify(exactly = 1) { getSwapQuotes.preloadRoutes(solAsset, usdcAsset) }
-    }
 
     @Test
     fun `setSlippage persists user preference`() = runTest(testDispatcher) {

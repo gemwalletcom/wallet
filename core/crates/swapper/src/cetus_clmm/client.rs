@@ -1,5 +1,4 @@
 use super::{
-    cache::PoolCache,
     constants::{CETUS_ALL_TICK_SPACINGS, CETUS_PRIMARY_TICK_SPACINGS, KNOWN_POOLS},
     model::{DiscoveredPool, Hop, INTERMEDIATE_COIN_TYPES},
     tx_builder,
@@ -8,13 +7,11 @@ use crate::{
     ProviderType, RpcProvider, SwapperError, SwapperProvider,
     client_factory::create_sui_client,
     fees::{ReferralFee, default_referral_fees},
+    route_cache::RouteCache,
 };
 use gem_sui::{EMPTY_ADDRESS, SUI_COIN_TYPE, SuiClient, coin_type_matches, full_coin_type, models::InspectResult, tx_builder::ObjectResolver};
 use primitives::AssetId;
-use std::{
-    collections::{HashMap, HashSet},
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub(super) struct QuoteResult {
@@ -35,7 +32,7 @@ struct PhaseResult {
 pub struct CetusClmm {
     pub(super) provider: ProviderType,
     pub(super) sui_client: SuiClient,
-    pool_cache: PoolCache,
+    route_cache: RouteCache<DiscoveredPool, u32>,
 }
 
 impl std::fmt::Debug for CetusClmm {
@@ -54,7 +51,7 @@ impl CetusClmm {
         Self {
             provider: ProviderType::new(SwapperProvider::CetusClmm),
             sui_client,
-            pool_cache: PoolCache::default(),
+            route_cache: RouteCache::default(),
         }
     }
 
@@ -67,7 +64,7 @@ impl CetusClmm {
     }
 
     pub(super) async fn find_route_hops(&self, from: &str, to: &str, swap_amount: u64) -> Result<Vec<Hop>, SwapperError> {
-        if let Some(cached_route) = self.pool_cache.get_route(from, to) {
+        if let Some(cached_route) = self.route_cache.get_route(from, to) {
             let quotes = self.quote_candidates_batched(vec![cached_route], from, swap_amount).await;
             if let Some((hops, _)) = quotes.into_iter().flatten().next() {
                 return Ok(hops);
@@ -166,7 +163,7 @@ impl CetusClmm {
                 coin_b: hop.coin_b.clone(),
             })
             .collect();
-        self.pool_cache.put_route(from, to, &route);
+        self.route_cache.record_route(from, to, &route);
     }
 
     fn known_pools(from: &str, to: &str) -> Vec<DiscoveredPool> {
@@ -189,51 +186,51 @@ impl CetusClmm {
         if !known.is_empty() {
             return known;
         }
-        let (cached_pools, explored) = self.pool_cache.get(from, to);
-        let missing: Vec<u32> = ticks.iter().filter(|t| !explored.contains(t)).copied().collect();
+        let (cached_pools, _) = self.route_cache.get_discovery(from, to);
+        let missing = self.route_cache.missing_probes(from, to, ticks);
         if missing.is_empty() {
             return cached_pools;
         }
-        let Some(new_pools) = self.query_direct_pools(from, to, &missing).await else {
+        let Some(discoveries) = self.query_direct_pools(from, to, &missing).await else {
             return cached_pools;
         };
-        self.pool_cache.put(from, to, &new_pools, &missing);
-        self.pool_cache.get(from, to).0
+        self.route_cache.record_discovery(from, to, discoveries);
+        self.route_cache.get_discovery(from, to).0
     }
 
-    async fn query_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Option<Vec<DiscoveredPool>> {
+    async fn query_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Option<Vec<(u32, Option<DiscoveredPool>)>> {
         let (coin_a, coin_b) = canonical_pair_order(from, to);
-        let inspects = ticks.iter().map(|tick| self.inspect_pool_id(coin_a, coin_b, *tick));
-        let results = futures::future::join_all(inspects).await;
-        let mut candidates: Vec<(String, String, String)> = Vec::new();
-        let mut seen: HashSet<String> = HashSet::new();
-        for result in results {
-            match result {
-                Ok(Some(pool_id)) => {
-                    if seen.insert(pool_id.clone()) {
-                        candidates.push((pool_id, coin_a.to_string(), coin_b.to_string()));
-                    }
-                }
-                Ok(None) => {}
-                Err(_) => return None,
-            }
+        let inspects = ticks
+            .iter()
+            .map(|tick| async move { self.inspect_pool_id(coin_a, coin_b, *tick).await.map(|pool_id| (*tick, pool_id)) });
+        let results = futures::future::join_all(inspects).await.into_iter().collect::<Result<Vec<_>, _>>().ok()?;
+        let pool_ids = results.iter().filter_map(|(_, pool_id)| pool_id.clone()).collect::<Vec<_>>();
+        let pool_ids = pool_ids
+            .iter()
+            .enumerate()
+            .filter(|(index, pool_id)| !pool_ids[..*index].contains(pool_id))
+            .map(|(_, pool_id)| pool_id.clone())
+            .collect::<Vec<_>>();
+        if pool_ids.is_empty() {
+            return Some(results.into_iter().map(|(tick, _)| (tick, None)).collect());
         }
-        if candidates.is_empty() {
-            return Some(Vec::new());
-        }
-        let pool_ids: Vec<String> = candidates.iter().map(|(id, _, _)| id.clone()).collect();
         let resolver = ObjectResolver::prefetch(&self.sui_client, pool_ids, &HashMap::new()).await.ok()?;
         Some(
-            candidates
+            results
                 .into_iter()
-                .filter_map(|(pool_id, coin_a, coin_b)| {
-                    let pool_init_version = resolver.initial_shared_version(&pool_id)?;
-                    Some(DiscoveredPool {
-                        pool_id,
-                        pool_init_version,
-                        coin_a,
-                        coin_b,
-                    })
+                .filter_map(|(tick, pool_id)| match pool_id {
+                    Some(pool_id) => resolver.initial_shared_version(&pool_id).map(|pool_init_version| {
+                        (
+                            tick,
+                            Some(DiscoveredPool {
+                                pool_id,
+                                pool_init_version,
+                                coin_a: coin_a.to_string(),
+                                coin_b: coin_b.to_string(),
+                            }),
+                        )
+                    }),
+                    None => Some((tick, None)),
                 })
                 .collect(),
         )

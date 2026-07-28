@@ -72,9 +72,6 @@ public struct SwapScene: View {
         .debouncedTask(id: model.fetchTrigger) {
             await model.fetch()
         }
-        .task(id: model.preloadAssetIds) {
-            await model.preloadRoutes()
-        }
         .debounce(
             value: model.assetIds,
             initial: true,

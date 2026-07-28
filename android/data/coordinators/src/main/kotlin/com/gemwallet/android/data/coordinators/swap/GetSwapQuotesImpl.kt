@@ -17,13 +17,6 @@ import java.math.BigInteger
 class GetSwapQuotesImpl(
     private val gemSwapper: GemSwapper,
 ) : GetSwapQuotes {
-    override suspend fun preloadRoutes(from: Asset, to: Asset) {
-        gemSwapper.preloadRoutes(
-            fromAsset = from.id.toIdentifier(),
-            toAsset = to.id.toIdentifier(),
-        )
-    }
-
     override suspend fun getQuotes(
         ownerAddress: String,
         destination: String,
@@ -53,6 +46,10 @@ class GetSwapQuotesImpl(
                 slippage = slippage,
                 useMaxAmount = useMaxAmount,
             )
+        )
+        gemSwapper.preloadRoutes(
+            fromAsset = from.id.toIdentifier(),
+            toAsset = to.id.toIdentifier(),
         )
         return gemSwapper.getQuote(swapRequest)
             .sortedByDescending { BigInteger(it.toValue) }

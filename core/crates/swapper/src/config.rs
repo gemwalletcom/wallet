@@ -9,11 +9,11 @@ pub const DEFAULT_SLIPPAGE_BPS: u32 = 100;
 pub const API_BASE_URL: &str = "https://api.gemwallet.com";
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct DiscoveryCacheConfig {
+pub(crate) struct RouteCacheConfig {
     pub expiration: Duration,
 }
 
-impl Default for DiscoveryCacheConfig {
+impl Default for RouteCacheConfig {
     fn default() -> Self {
         Self { expiration: DAY }
     }

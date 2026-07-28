@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.GetSwapQuotes
 import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
 import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
 import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
@@ -85,7 +84,6 @@ class SwapViewModel @Inject constructor(
     private val buildSwapConfirmParams: BuildSwapConfirmParams,
     private val userConfig: UserConfig,
     requestSwapQuotes: RequestSwapQuotes,
-    private val getSwapQuotes: GetSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -249,14 +247,6 @@ class SwapViewModel @Inject constructor(
         viewModelScope.launch {
             selectedSlippageBps.value = userConfig.swapSlippageBps().firstOrNull()
         }
-        combine(payAsset, receiveAsset) { pay, receive -> pay?.asset to receive?.asset }
-            .distinctUntilChangedBy { it.first?.id to it.second?.id }
-            .mapLatest { (pay, receive) ->
-                if (pay != null && receive != null) {
-                    getSwapQuotes.preloadRoutes(pay, receive)
-                }
-            }
-            .launchIn(viewModelScope)
         matchedQuoteResults
             .onEach(::onQuoteResults)
             .launchIn(viewModelScope)

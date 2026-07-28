@@ -7,7 +7,6 @@ import Primitives
 
 public protocol SwapQuotesProvidable: Sendable {
     func supportedAssets(for assetId: AssetId) -> ([Primitives.Chain], [Primitives.AssetId])
-    func preloadRoutes(fromAsset: Asset, toAsset: Asset) async
     func fetchQuotes(wallet: Wallet, fromAsset: Asset, toAsset: Asset, amount: BigInt, useMaxAmount: Bool, slippage: SwapSlippage) async throws -> [Gemstone.SwapperQuote]
 }
 
@@ -20,10 +19,6 @@ public struct SwapQuotesProvider: SwapQuotesProvidable {
 
     public func supportedAssets(for assetId: AssetId) -> ([Primitives.Chain], [Primitives.AssetId]) {
         swapService.supportedAssets(for: assetId)
-    }
-
-    public func preloadRoutes(fromAsset: Asset, toAsset: Asset) async {
-        await swapService.preloadRoutes(fromAsset: fromAsset, toAsset: toAsset)
     }
 
     public func fetchQuotes(wallet: Wallet, fromAsset: Asset, toAsset: Asset, amount: BigInt, useMaxAmount: Bool, slippage: SwapSlippage) async throws -> [Gemstone.SwapperQuote] {

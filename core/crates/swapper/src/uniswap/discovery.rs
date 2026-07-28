@@ -1,4 +1,4 @@
-use crate::{RpcClient, SwapperError, route_cache::DiscoveryCache};
+use crate::{RpcClient, SwapperError, route_cache::RouteCache};
 use alloy_primitives::{Address, B256, hex::decode as hex_decode};
 use alloy_sol_types::SolCall;
 use gem_evm::{
@@ -15,7 +15,7 @@ use std::collections::BTreeSet;
 
 #[derive(Debug, Default)]
 pub(super) struct PoolDiscovery {
-    cache: DiscoveryCache<FeeTier, FeeTier>,
+    cache: RouteCache<FeeTier, FeeTier>,
 }
 
 impl PoolDiscovery {
@@ -26,23 +26,21 @@ impl PoolDiscovery {
     pub fn missing_fee_tiers(&self, chain: Chain, token_a: Address, token_b: Address, fee_tiers: &[FeeTier]) -> Vec<FeeTier> {
         let from = Self::asset_key(chain, token_a);
         let to = Self::asset_key(chain, token_b);
-        let (_, explored) = self.cache.get(&from, &to);
-        fee_tiers.iter().filter(|tier| !explored.contains(tier)).copied().collect()
+        self.cache.missing_probes(&from, &to, fee_tiers)
     }
 
     pub fn record_fee_tiers(&self, chain: Chain, token_a: Address, token_b: Address, discovered: &[(FeeTier, bool)]) {
         let from = Self::asset_key(chain, token_a);
         let to = Self::asset_key(chain, token_b);
-        let candidates = discovered.iter().filter(|(_, exists)| *exists).map(|(tier, _)| *tier).collect::<Vec<_>>();
-        let explored = discovered.iter().map(|(tier, _)| *tier).collect::<Vec<_>>();
-        self.cache.put(&from, &to, &candidates, &explored);
+        self.cache
+            .record_discovery(&from, &to, discovered.iter().map(|(tier, exists)| (*tier, exists.then_some(*tier))));
     }
 
     pub fn path_exists(&self, chain: Chain, pairs: &[TokenPair]) -> bool {
         pairs.iter().all(|pair| {
             let from = Self::asset_key(chain, pair.token_in);
             let to = Self::asset_key(chain, pair.token_out);
-            self.cache.contains_candidate(&from, &to, &pair.fee_tier)
+            self.cache.has_candidate(&from, &to, &pair.fee_tier)
         })
     }
 }
