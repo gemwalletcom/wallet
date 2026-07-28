@@ -1,4 +1,4 @@
-use crate::config::{CacheConfig, ChainCacheRules, ChainConfig, ETH_CALL};
+use crate::config::{CacheConfig, ChainCacheRules, ChainConfig};
 use crate::jsonrpc_types::{JsonRpcCall, RequestType};
 use crate::proxy::CachedResponse;
 use primitives::Chain;
@@ -101,8 +101,8 @@ impl CacheProvider for MemoryCache {
 
     fn should_cache_call(&self, chain: &Chain, call: &JsonRpcCall) -> Option<Duration> {
         let rules = self.rules.get(chain)?;
-        if call.method == ETH_CALL {
-            return rules.evm_call_ttl(&call.params);
+        if let Some(ttl) = rules.ttl(call) {
+            return Some(ttl);
         }
         rules.cache.iter().find(|rule| rule.matches_rpc(&call.method)).and_then(|rule| rule.ttl)
     }
@@ -119,10 +119,12 @@ mod tests {
         serde_json::from_value(serde_json::json!({
             "max_memory": "64 MB",
             "chain_types": {
-                "ethereum": [
-                    { "path": "/api/v1/data", "method": "GET", "ttl": "5m" },
-                    { "rpc_method": "eth_blockNumber", "ttl": "1m" }
-                ]
+                "ethereum": {
+                    "rules": [
+                        { "path": "/api/v1/data", "method": "GET", "ttl": "5m" },
+                        { "rpc_method": "eth_blockNumber", "ttl": "1m" }
+                    ]
+                }
             }
         }))
         .unwrap()
@@ -184,16 +186,18 @@ mod tests {
         let config: CacheConfig = serde_json::from_value(serde_json::json!({
             "max_memory": "64 MB",
             "chain_types": {
-                "ethereum": [
-                    {
-                        "path": "/info",
-                        "method": "POST",
-                        "ttl": "200s",
-                        "params": {
-                            "type": "metaAndAssetCtxs"
+                "ethereum": {
+                    "rules": [
+                        {
+                            "path": "/info",
+                            "method": "POST",
+                            "ttl": "200s",
+                            "params": {
+                                "type": "metaAndAssetCtxs"
+                            }
                         }
-                    }
-                ]
+                    ]
+                }
             }
         }))
         .unwrap();
@@ -232,16 +236,18 @@ mod tests {
         let config: CacheConfig = serde_json::from_value(serde_json::json!({
             "max_memory": "64 MB",
             "chain_types": {
-                "aptos": [
-                    {
-                        "path": "/v1/view",
-                        "method": "POST",
-                        "ttl": "1h",
-                        "params": {
-                            "function": "0x1::delegation_pool::operator_commission_percentage"
+                "aptos": {
+                    "rules": [
+                        {
+                            "path": "/v1/view",
+                            "method": "POST",
+                            "ttl": "1h",
+                            "params": {
+                                "function": "0x1::delegation_pool::operator_commission_percentage"
+                            }
                         }
-                    }
-                ]
+                    ]
+                }
             }
         }))
         .unwrap();
@@ -307,16 +313,16 @@ mod tests {
         let config: CacheConfig = serde_json::from_value(serde_json::json!({
             "max_memory": "64 MB",
             "chain_types": {
-                "ethereum": [
-                    { "rpc_method": "eth_blockNumber", "ttl": "1m" }
-                ]
-            },
-            "evm_calls": {
                 "ethereum": {
-                    "contracts": [CONTRACT],
-                    "selectors": {
-                        SELECTOR: {
-                            "ttl": "30s"
+                    "rules": [
+                        { "rpc_method": "eth_blockNumber", "ttl": "1m" }
+                    ],
+                    "contracts": {
+                        "addresses": [CONTRACT],
+                        "methods": {
+                            SELECTOR: {
+                                "ttl": "30s"
+                            }
                         }
                     }
                 }
