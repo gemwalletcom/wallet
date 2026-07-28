@@ -213,13 +213,6 @@ impl JsonRpcHandler {
         let (body, status) = Self::fetch(call, &request.method, url, client, forward_headers).await?;
 
         let result: JsonRpcResult = serde_json::from_slice(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
-        let version = match &result {
-            JsonRpcResult::Success(response) => response.jsonrpc.as_str(),
-            JsonRpcResult::Error(response) => response.jsonrpc.as_str(),
-        };
-        if result.id() != Some(call.id) || version != call.jsonrpc {
-            return Err(format!("invalid JSON-RPC response correlation for request {}", call.id).into());
-        }
 
         if status == StatusCode::OK.as_u16()
             && let (JsonRpcResult::Success(success), Some(ttl)) = (&result, cache_ttl)

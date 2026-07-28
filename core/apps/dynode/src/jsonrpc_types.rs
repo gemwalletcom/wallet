@@ -241,6 +241,27 @@ mod tests {
     }
 
     #[test]
+    fn test_jsonrpc_result_without_envelope() {
+        let response = r#"{
+            "result": {
+                "ledger_current_index": 105917398,
+                "status": "success"
+            },
+            "status": "success",
+            "type": "response"
+        }"#;
+
+        let result: JsonRpcResult = serde_json::from_str(response).unwrap();
+        let JsonRpcResult::Success(response) = result else {
+            panic!("Expected success response");
+        };
+
+        assert_eq!(response.jsonrpc, "2.0");
+        assert_eq!(response.id, None);
+        assert_eq!(response.result["ledger_current_index"], 105917398);
+    }
+
+    #[test]
     fn test_solana_block_cleaned_up_error() {
         let response = r#"{
             "jsonrpc": "2.0",
