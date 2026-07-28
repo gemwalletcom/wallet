@@ -13,6 +13,12 @@ struct WalletSearchTagTests {
         #expect(WalletSearchTag.list("stocks").isList)
         #expect(WalletSearchTag.all.isList == false)
         #expect(WalletSearchTag.filter(.stablecoins).isList == false)
+
+        #expect(WalletSearchTag.chain(.ethereum).includesPerpetuals == false)
+        #expect(WalletSearchTag.chain(.ethereum).isList == false)
+        #expect(WalletSearchTag.chain(.ethereum).isAll == false)
+        #expect(WalletSearchTag.chain(.ethereum).chain == .ethereum)
+        #expect(WalletSearchTag.all.chain == nil)
     }
 
     @Test
@@ -28,5 +34,6 @@ struct WalletSearchTagTests {
         #expect(WalletSearchTag.all.apiTag == nil)
         #expect(WalletSearchTag.filter(.stablecoins).apiTag == "stablecoins")
         #expect(WalletSearchTag.list("stocks").apiTag == "stocks")
+        #expect(WalletSearchTag.chain(.ethereum).apiTag == nil)
     }
 }

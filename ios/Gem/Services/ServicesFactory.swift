@@ -348,6 +348,8 @@ struct ServicesFactory {
             assetsService: assetsService,
             assetSearchService: assetSearchService,
             priceAlertService: priceAlertService,
+            walletSearchService: walletSearchService,
+            perpetualService: perpetualService,
         )
 
         return AppResolver.Services(

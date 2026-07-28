@@ -61,7 +61,7 @@ extension WalletSearchRequest {
 
     private func fetchAssets(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [AssetData] {
         let hasPriority = try hasPriority(db, searchKey: searchKey, column: SearchRecord.Columns.assetId)
-        guard hasPriority || scope.isAll else { return [] }
+        guard hasPriority || scope.isAll || scope.chain != nil else { return [] }
 
         let balanceAlias = TableAlias(name: BalanceRecord.databaseTableName)
         let priceAlias = TableAlias(name: PriceRecord.databaseTableName)
@@ -74,6 +74,13 @@ extension WalletSearchRequest {
             .including(optional: AssetRecord.price)
             .joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
             .filter(TableAlias(name: AccountRecord.databaseTableName)[AccountRecord.Columns.walletId] == walletId.id)
+
+        if let chain = scope.chain {
+            request = request
+                .filter(AssetRecord.Columns.chain == chain.rawValue)
+                .filter(AssetRecord.Columns.type != AssetType.native.rawValue)
+                .filter(balanceAlias[BalanceRecord.Columns.isEnabled] == true)
+        }
 
         if hasPriority {
             request = request

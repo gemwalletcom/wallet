@@ -88,6 +88,11 @@ public struct AssetScene: View {
                         value: Scenes.Asset(asset: model.assetModel.asset.chain.asset),
                         label: { networkView },
                     )
+                } else if model.showNetworkAssets {
+                    NavigationLink(
+                        value: model.networkAssetsDestination,
+                        label: { networkView },
+                    )
                 } else {
                     networkView
                 }

@@ -45,6 +45,7 @@ public struct AssetsResultsScene: View {
             }
         }
         .listSectionSpacing(.compact)
+        .contentMargins([.top], .small, for: .scrollContent)
         .refreshable {
             await model.refresh()
         }

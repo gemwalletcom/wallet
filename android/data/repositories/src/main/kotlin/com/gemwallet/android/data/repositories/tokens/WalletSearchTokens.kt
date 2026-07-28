@@ -41,7 +41,7 @@ class WalletSearchTokens(
         searchScope(query, currency, chains, scope)
 
     private suspend fun searchScope(query: String, currency: Currency, scopeChains: List<Chain>, scope: WalletSearchTag): Boolean = withContext(Dispatchers.IO) {
-        if (scope.isAll && query.isEmpty()) {
+        if (scope is WalletSearchTag.Chain || (scope.isAll && query.isEmpty())) {
             return@withContext false
         }
         val chains = if (scope.isAll) scopeChains.ifEmpty { Chain.entries.toList() } else emptyList()
@@ -92,7 +92,7 @@ class WalletSearchTokens(
 }
 
 private fun WalletSearchTag.searchKey(query: String): String = when (this) {
-    WalletSearchTag.All -> emptyList<AssetTag>().toPriorityQuery(query)
+    WalletSearchTag.All, is WalletSearchTag.Chain -> emptyList<AssetTag>().toPriorityQuery(query)
     is WalletSearchTag.Filter -> listOf(tag).toPriorityQuery(query)
     is WalletSearchTag.List -> listPriorityQuery(id)
 }

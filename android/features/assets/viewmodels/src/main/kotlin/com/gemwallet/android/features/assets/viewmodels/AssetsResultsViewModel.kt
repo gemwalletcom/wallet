@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
@@ -25,6 +26,7 @@ import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.search.walletSearchTagOf
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
+import com.gemwallet.android.features.asset_select.viewmodels.models.ChainSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.ListSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
@@ -57,6 +59,7 @@ class AssetsResultsViewModel @Inject constructor(
     private val getSession: GetSession,
     searchSelectAssets: SearchSelectAssets,
     searchListAssets: SearchListAssets,
+    getChainAssets: GetChainAssets,
     getRecentAssets: GetRecentAssets,
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
@@ -75,7 +78,7 @@ class AssetsResultsViewModel @Inject constructor(
     switchAssetVisibility,
     toggleAssetPin,
     searchTokensCase,
-    resolveSearch(savedStateHandle, searchSelectAssets, searchListAssets),
+    resolveSearch(savedStateHandle, searchSelectAssets, searchListAssets, getChainAssets),
     remoteSearch = false,
 ) {
 
@@ -103,7 +106,7 @@ class AssetsResultsViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-        WalletSearchTag.All, is WalletSearchTag.Filter ->
+        WalletSearchTag.All, is WalletSearchTag.Filter, is WalletSearchTag.Chain ->
             MutableStateFlow(emptyList<PerpetualDataAggregate>())
     }
 
@@ -121,7 +124,7 @@ class AssetsResultsViewModel @Inject constructor(
     init {
         when (scope) {
             is WalletSearchTag.Filter -> selectedTag.value = scope.tag
-            WalletSearchTag.All, is WalletSearchTag.List -> Unit
+            WalletSearchTag.All, is WalletSearchTag.List, is WalletSearchTag.Chain -> Unit
         }
         queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())
         fetch(pull = false)
@@ -161,9 +164,11 @@ private fun resolveSearch(
     savedStateHandle: SavedStateHandle,
     searchSelectAssets: SearchSelectAssets,
     searchListAssets: SearchListAssets,
+    getChainAssets: GetChainAssets,
 ): SelectSearch {
     return when (val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
         is WalletSearchTag.List -> ListSelectSearch(searchListAssets, scope.id)
+        is WalletSearchTag.Chain -> ChainSelectSearch(getChainAssets, scope.chain)
         WalletSearchTag.All, is WalletSearchTag.Filter -> BaseSelectSearch(searchSelectAssets)
     }
 }

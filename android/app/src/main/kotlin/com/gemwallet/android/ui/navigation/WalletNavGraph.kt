@@ -18,6 +18,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.cases.wallet.WalletImportResult
+import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
@@ -120,6 +121,7 @@ fun WalletNavGraph(
                         is AssetDetailsAction.OpenTransaction -> navigator.openTransaction(action.transactionId)
                         is AssetDetailsAction.OpenChart -> navigator.openAssetChart(action.assetId)
                         is AssetDetailsAction.OpenNetwork -> navigator.openAsset(action.assetId)
+                        is AssetDetailsAction.OpenNetworkAssets -> navigator.openAssetsResults("", WalletSearchTag.Chain(action.chain))
                         is AssetDetailsAction.Stake -> navigator.openStake(action.assetId)
                         is AssetDetailsAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
                         is AssetDetailsAction.Confirm -> navigator.openConfirm(action.params)
