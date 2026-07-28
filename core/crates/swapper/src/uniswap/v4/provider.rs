@@ -32,7 +32,7 @@ use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
 use super::{
     DEFAULT_SWAP_GAS_LIMIT,
     commands::build_commands,
-    path::{build_pool_keys, build_quote_exact_params, get_intermediary_token},
+    path::{build_pool_key, build_pool_keys, build_quote_exact_params, get_intermediary_token},
     quoter::{build_quote_exact_requests, build_quote_exact_single_request},
 };
 
@@ -103,28 +103,20 @@ impl UniswapV4 {
         let client = self.client_for(chain)?;
         let fee_tiers = self.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
-        let discoveries = pairs.into_iter().map(|(token_a, token_b)| {
-            let missing = self.pool_discovery.missing_fee_tiers(chain, token_a, token_b, &fee_tiers);
-            let client = client.clone();
-            async move {
-                if missing.is_empty() {
-                    return Ok::<(), SwapperError>(());
-                }
-                let pools = missing
-                    .iter()
-                    .copied()
-                    .zip(
-                        build_pool_keys(&token_a, &token_b, &missing)
-                            .iter()
-                            .map(|(_, pool_key)| B256::from(keccak256(&pool_key.abi_encode()))),
-                    )
-                    .collect::<Vec<_>>();
-                let discovered = discover_v4_pools(&client, deployment.state_view, &pools).await?;
-                self.pool_discovery.record_fee_tiers(chain, token_a, token_b, &discovered);
-                Ok(())
-            }
-        });
-        futures::future::join_all(discoveries).await.into_iter().collect::<Result<Vec<_>, _>>()?;
+        let pools = self
+            .pool_discovery
+            .missing_pools(chain, &pairs, &fee_tiers)
+            .into_iter()
+            .map(|pool| {
+                let (pool_key, _) = build_pool_key(&pool.token_in, &pool.token_out, &pool.fee_tier);
+                (pool, B256::from(keccak256(&pool_key.abi_encode())))
+            })
+            .collect::<Vec<_>>();
+        if pools.is_empty() {
+            return Ok(());
+        }
+        let discovered = discover_v4_pools(&client, deployment.state_view, &pools).await?;
+        self.pool_discovery.record_pools(chain, &discovered);
         Ok(())
     }
 }

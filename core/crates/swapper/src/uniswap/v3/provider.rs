@@ -77,19 +77,13 @@ impl UniswapV3 {
         let client = self.client_for(chain)?;
         let fee_tiers = self.provider.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, crate::uniswap::swap_route::get_intermediaries(&token_in, &token_out, &base_pair));
-        let discoveries = pairs.into_iter().map(|(token_a, token_b)| {
-            let missing = self.pool_discovery.missing_fee_tiers(chain, token_a, token_b, &fee_tiers);
-            let client = client.clone();
-            async move {
-                if missing.is_empty() {
-                    return Ok::<(), SwapperError>(());
-                }
-                let discovered = discover_v3_pools(&client, deployment.factory, token_a, token_b, &missing).await?;
-                self.pool_discovery.record_fee_tiers(chain, token_a, token_b, &discovered);
-                Ok(())
-            }
-        });
-        futures::future::join_all(discoveries).await.into_iter().collect::<Result<Vec<_>, _>>().map(|_| ())
+        let pools = self.pool_discovery.missing_pools(chain, &pairs, &fee_tiers);
+        if pools.is_empty() {
+            return Ok(());
+        }
+        let discovered = discover_v3_pools(&client, deployment.factory, &pools).await?;
+        self.pool_discovery.record_pools(chain, &discovered);
+        Ok(())
     }
 
     async fn check_erc20_approval(
