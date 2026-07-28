@@ -12,9 +12,7 @@ import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.RequestPushToken
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
-import com.gemwallet.android.cases.device.SyncDeviceInfo
-import com.gemwallet.android.cases.device.SyncSubscription
-import com.gemwallet.android.cases.device.SynchronizeDeviceIfNeeded
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.config.UserConfig.Keys
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -24,6 +22,7 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
 import com.gemwallet.android.model.NotificationsAvailable
+import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AddressChains
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Device
@@ -34,14 +33,12 @@ import com.wallet.core.primitives.WalletSubscription
 import com.wallet.core.primitives.WalletSubscriptionChains
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Locale
-import kotlin.collections.firstOrNull
-import kotlin.collections.map
-import kotlin.collections.plus
 
 class DeviceRepository(
     private val context: Context,
@@ -55,31 +52,25 @@ class DeviceRepository(
     private val priceAlertRepository: PriceAlertRepository,
     private val getCurrentCurrency: GetCurrentCurrency,
     private val walletsRepository: WalletsRepository,
-) : SyncDeviceInfo,
-    SwitchPushEnabled,
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+) : SwitchPushEnabled,
     GetPushEnabled,
     GetPushToken,
     SetPushToken,
-    SyncSubscription,
-    SynchronizeDeviceIfNeeded,
+    SyncDevice,
     IsDeviceRegistered
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
-    private val syncCoordinator = DeviceSyncCoordinator()
+    private val syncCoordinator = DeviceSyncCoordinator(scope)
 
-    override suspend fun syncDeviceInfo() {
-        synchronizeDevice(
-            wallets = loadWallets(),
-            shouldInvalidateSubscriptions = false,
-        )
-    }
-
-    override suspend fun synchronizeIfNeeded() {
-        if (isDeviceRegistered() && !hasPendingSubscriptionChanges()) {
-            return
+    override suspend fun syncDevice() {
+        repeat(SYNC_ATTEMPTS) {
+            if (!needsSynchronization()) {
+                return
+            }
+            syncCoordinator.synchronize { reconcileDevice() }
         }
-        syncDeviceInfo()
     }
 
     override suspend fun switchPushEnabled(enabled: Boolean, wallets: List<Wallet>) {
@@ -87,7 +78,7 @@ class DeviceRepository(
             preferences[Key.PushEnabled] = enabled && notificationsAvailable
         }
         try {
-            syncDeviceInfo()
+            syncDevice()
         } catch (_: Throwable) {}
     }
 
@@ -106,67 +97,48 @@ class DeviceRepository(
         }
     }
 
-    override suspend fun syncSubscription(wallets: List<Wallet>) {
-        synchronizeDevice(
-            wallets = walletsForSubscriptionSync(
-                storedWallets = loadWallets(),
-                requestedWallets = wallets,
-            ),
-            shouldInvalidateSubscriptions = true,
+    private suspend fun needsSynchronization(): Boolean {
+        if (!isDeviceRegistered()) {
+            return true
+        }
+        val pushedDevice = pushedDevice() ?: return true
+        val localDevice = buildDevice(
+            pushToken = getPushToken(),
+            pushEnabled = getPushEnabled().firstOrNull() ?: false,
+            subscriptionsVersion = getSubscriptionVersion(),
         )
+
+        return localDevice.hasChanges(pushedDevice)
+            || loadWallets().subscriptionSignature() != pushedSubscriptionSignature()
     }
 
-    private suspend fun synchronizeDevice(
-        wallets: List<Wallet>,
-        shouldInvalidateSubscriptions: Boolean,
-        pushTokenOverride: String? = null,
-    ) {
-        syncCoordinator.synchronize {
-            try {
-                reconcileDevice(
-                    wallets = wallets,
-                    shouldInvalidateSubscriptions = shouldInvalidateSubscriptions,
-                    pushTokenOverride = pushTokenOverride,
-                )
-            } catch (_: Throwable) {}
-        }
-    }
-
-    private suspend fun reconcileDevice(
-        wallets: List<Wallet>,
-        shouldInvalidateSubscriptions: Boolean,
-        pushTokenOverride: String?,
-    ) {
-        if (shouldInvalidateSubscriptions) {
-            invalidateSubscriptions()
-        }
-
-        val subscriptionState = getSubscriptionSyncState()
-        val pushState = resolvePushState(
-            wallets = wallets,
-            pushTokenOverride = pushTokenOverride,
-        ) ?: return
-        val localDevice = buildLocalDevice(
-            pushState = pushState,
-            subscriptionsVersion = subscriptionState.version,
+    private suspend fun reconcileDevice() {
+        val wallets = loadWallets()
+        val pushState = resolvePushState() ?: return
+        val signature = wallets.subscriptionSignature()
+        var version = getSubscriptionVersion()
+        val localDevice = buildDevice(
+            pushToken = pushState.token,
+            pushEnabled = pushState.enabled,
+            subscriptionsVersion = version,
         )
         val remoteDevice = getOrCreateDevice(localDevice)
-        val didSyncSubscriptions = maybeSyncSubscriptions(
-            wallets = wallets,
-            subscriptionState = subscriptionState,
-            remoteDevice = remoteDevice,
-        )
-        val requestDevice = buildDeviceUpdateRequest(
-            localDevice = localDevice,
-            remoteDevice = remoteDevice,
-            localSubscriptionVersion = subscriptionState.version,
-            didSyncSubscriptions = didSyncSubscriptions,
-        )
 
-        updateDevice(
-            remote = remoteDevice,
-            request = requestDevice,
-        )
+        val signatureChanged = signature != pushedSubscriptionSignature()
+        if (signatureChanged || remoteDevice.subscriptionsVersion != version) {
+            reconcileSubscriptions(wallets)
+            if (signatureChanged) {
+                version += 1
+                setSubscriptionVersion(version)
+            }
+        }
+
+        val requestDevice = localDevice.copy(subscriptionsVersion = version)
+        if (remoteDevice.hasChanges(requestDevice)) {
+            gemDeviceApiClient.updateDevice(request = requestDevice)
+            setDeviceRegistered(true)
+        }
+        recordPushedState(requestDevice, signature)
     }
 
     private suspend fun loadWallets(): List<Wallet> {
@@ -191,56 +163,31 @@ class DeviceRepository(
         return registeredDevice ?: device
     }
 
-    private suspend fun updateDevice(remote: Device, request: Device) {
-        if (!remote.hasChanges(request)) {
-            return
-        }
-
-        gemDeviceApiClient.updateDevice(request = request)
-        setDeviceRegistered(true)
-    }
-
     private suspend fun setDeviceRegistered(isRegistered: Boolean = true) {
         context.dataStore.edit { it[Key.DeviceRegistered] = isRegistered }
     }
 
-    private suspend fun reconcileSubscriptions(wallets: List<Wallet>): Boolean {
-        return try {
-            val remoteSubscriptions = gemDeviceApiClient.getSubscriptions() ?: emptyList()
-            val (toAdd, toRemove) = wallets.subscriptionsDiff(remoteSubscriptions)
+    private suspend fun reconcileSubscriptions(wallets: List<Wallet>) {
+        val remoteSubscriptions = gemDeviceApiClient.getSubscriptions() ?: emptyList()
+        val (toAdd, toRemove) = wallets.subscriptionsDiff(remoteSubscriptions)
 
-            if (toAdd.isNotEmpty()) {
-                gemDeviceApiClient.addSubscriptions(toAdd)
-            }
+        if (toAdd.isNotEmpty()) {
+            gemDeviceApiClient.addSubscriptions(toAdd)
+        }
 
-            if (toRemove.isNotEmpty()) {
-                gemDeviceApiClient.deleteSubscriptions(toRemove)
-            }
-
-            setSubscriptionVersionHasChange(false)
-            true
-        } catch (_: Throwable) {
-            false
+        if (toRemove.isNotEmpty()) {
+            gemDeviceApiClient.deleteSubscriptions(toRemove)
         }
     }
 
-    private suspend fun resolvePushState(
-        wallets: List<Wallet>,
-        pushTokenOverride: String?,
-    ): PushState? {
+    private suspend fun resolvePushState(): PushState? {
         val pushEnabled = getPushEnabled().firstOrNull() ?: false
-        val pushToken = if (pushEnabled) pushTokenOverride ?: getPushToken() else ""
+        val pushToken = if (pushEnabled) getPushToken() else ""
 
-        if (pushEnabled && pushToken.isEmpty() && pushTokenOverride == null) {
+        if (pushEnabled && pushToken.isEmpty()) {
             requestPushToken.requestToken { token ->
                 setPushToken(token)
-                CoroutineScope(Dispatchers.IO).launch {
-                    synchronizeDevice(
-                        wallets = wallets,
-                        shouldInvalidateSubscriptions = false,
-                        pushTokenOverride = token,
-                    )
-                }
+                scope.launch { syncDevice() }
             }
             return null
         }
@@ -248,51 +195,6 @@ class DeviceRepository(
         return PushState(
             enabled = pushEnabled,
             token = pushToken,
-        )
-    }
-
-    private suspend fun buildLocalDevice(
-        pushState: PushState,
-        subscriptionsVersion: Int,
-    ): Device {
-        return buildDevice(
-            pushToken = pushState.token,
-            pushEnabled = pushState.enabled,
-            subscriptionsVersion = subscriptionsVersion,
-        )
-    }
-
-    private suspend fun maybeSyncSubscriptions(
-        wallets: List<Wallet>,
-        subscriptionState: SubscriptionSyncState,
-        remoteDevice: Device,
-    ): Boolean {
-        if (!subscriptionState.shouldSync(remoteDevice.subscriptionsVersion)) {
-            return false
-        }
-
-        return reconcileSubscriptions(wallets)
-    }
-
-    private fun buildDeviceUpdateRequest(
-        localDevice: Device,
-        remoteDevice: Device,
-        localSubscriptionVersion: Int,
-        didSyncSubscriptions: Boolean,
-    ): Device {
-        return localDevice.copy(
-            subscriptionsVersion = subscriptionVersionForDeviceUpdate(
-                localVersion = localSubscriptionVersion,
-                remoteVersion = remoteDevice.subscriptionsVersion,
-                useLocalVersion = didSyncSubscriptions,
-            )
-        )
-    }
-
-    private fun getSubscriptionSyncState(): SubscriptionSyncState {
-        return SubscriptionSyncState(
-            version = getSubscriptionVersion(),
-            hasPendingChanges = hasPendingSubscriptionChanges(),
         )
     }
 
@@ -307,18 +209,21 @@ class DeviceRepository(
         )
     }
 
-    private fun hasPendingSubscriptionChanges(): Boolean {
-        return configStore.getBoolean(Keys.SubscriptionVersionHasChange.string)
+    private fun pushedDevice(): Device? {
+        val raw = configStore.getString(ConfigKey.PushedDevice.string)
+        if (raw.isEmpty()) {
+            return null
+        }
+        return runCatching { jsonEncoder.decodeFromString(Device.serializer(), raw) }.getOrNull()
     }
 
-    private fun setSubscriptionVersionHasChange(hasChange: Boolean) {
-        configStore.putBoolean(Keys.SubscriptionVersionHasChange.string, hasChange)
+    private fun pushedSubscriptionSignature(): String {
+        return configStore.getString(ConfigKey.PushedSubscriptions.string)
     }
 
-    private fun invalidateSubscriptions() {
-        val invalidatedState = getSubscriptionSyncState().invalidate()
-        setSubscriptionVersion(invalidatedState.version)
-        setSubscriptionVersionHasChange(invalidatedState.hasPendingChanges)
+    private fun recordPushedState(device: Device, subscriptionSignature: String) {
+        configStore.putString(ConfigKey.PushedDevice.string, jsonEncoder.encodeToString(Device.serializer(), device))
+        configStore.putString(ConfigKey.PushedSubscriptions.string, subscriptionSignature)
     }
 
     private suspend fun buildDevice(
@@ -346,6 +251,8 @@ class DeviceRepository(
 
     internal enum class ConfigKey(val string: String) {
         PushToken("push_token"),
+        PushedDevice("pushed_device"),
+        PushedSubscriptions("pushed_subscriptions"),
         ;
     }
 
@@ -355,6 +262,8 @@ class DeviceRepository(
     }
 
     companion object {
+        private const val SYNC_ATTEMPTS = 2
+
         fun getLocale(locale: Locale): String {
             val tag = locale.toLanguageTag()
             if (tag == "pt-BR" || tag == "pt_BR") {
@@ -373,38 +282,6 @@ private data class PushState(
     val token: String,
 )
 
-internal data class SubscriptionSyncState(
-    val version: Int,
-    val hasPendingChanges: Boolean,
-) {
-    fun invalidate(): SubscriptionSyncState {
-        return if (hasPendingChanges) {
-            this
-        } else {
-            copy(
-                version = version + 1,
-                hasPendingChanges = true,
-            )
-        }
-    }
-
-    fun shouldSync(remoteVersion: Int): Boolean {
-        return hasPendingChanges || remoteVersion != version
-    }
-}
-
-internal fun subscriptionVersionForDeviceUpdate(
-    localVersion: Int,
-    remoteVersion: Int?,
-    useLocalVersion: Boolean,
-): Int {
-    return if (useLocalVersion || remoteVersion == null) {
-        localVersion
-    } else {
-        remoteVersion
-    }
-}
-
 internal fun deviceHasChanges(current: Device, other: Device): Boolean {
     return current.id != other.id
             || current.token != other.token
@@ -416,17 +293,12 @@ internal fun deviceHasChanges(current: Device, other: Device): Boolean {
             || current.subscriptionsVersion != other.subscriptionsVersion
 }
 
-internal fun walletsForSubscriptionSync(
-    storedWallets: List<Wallet>,
-    requestedWallets: List<Wallet>,
-): List<Wallet> {
-    if (storedWallets.isEmpty()) return requestedWallets
-    if (requestedWallets.isEmpty()) return storedWallets
-
-    return (storedWallets + requestedWallets)
-        .associateBy { it.id }
-        .values
-        .toList()
+internal fun List<Wallet>.subscriptionSignature(): String {
+    return flatMap { wallet ->
+        wallet.accounts.map { account -> "${wallet.id.id}/${account.chain.string}/${account.address}" }
+    }
+        .sorted()
+        .joinToString(";")
 }
 
 // TODO: Temp solution. Move to App Layer with subscriptions subsystem when will prepared.

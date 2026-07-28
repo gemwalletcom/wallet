@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.session.coordinators.SetCurrentCurrency
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.coordinators.session.GetSessionImpl
 import com.gemwallet.android.data.coordinators.session.SetCurrentCurrencyImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -26,11 +26,11 @@ object SessionModule {
     @Singleton
     fun provideSetCurrentCurrency(
         sessionRepository: SessionRepository,
-        syncDeviceInfo: SyncDeviceInfo,
+        syncDevice: SyncDevice,
     ): SetCurrentCurrency {
         return SetCurrentCurrencyImpl(
             sessionRepository = sessionRepository,
-            syncDeviceInfo = syncDeviceInfo,
+            syncDevice = syncDevice,
         )
     }
 }

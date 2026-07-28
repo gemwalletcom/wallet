@@ -56,7 +56,7 @@ impl NodeService {
             .filter_map(|config| config.urls.first().cloned().map(|url| (config.chain, NodeDomain::new(url, config.clone()))))
             .collect();
 
-        let cache = RequestCache::new(cache_config, &chain_types, chains.values());
+        let cache = RequestCache::new(cache_config, chains.values());
         let broadcast_providers = Arc::new(BroadcastProviders::from_chains(chains.keys().copied()));
         let proxy_builder = ProxyBuilder::new(metrics.clone(), cache, client, headers_config, broadcast_webhook, broadcast_providers);
         let nodes = Arc::new(RwLock::new(nodes));
@@ -393,7 +393,6 @@ mod tests {
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,
-            cache: None,
             urls: vec![Url {
                 url: url.to_string(),
                 headers: None,

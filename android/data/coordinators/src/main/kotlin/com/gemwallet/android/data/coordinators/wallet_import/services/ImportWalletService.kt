@@ -6,7 +6,7 @@ import com.gemwallet.android.application.wallet_import.coordinators.GetImportWal
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
-import com.gemwallet.android.cases.device.SyncSubscription
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -37,7 +37,7 @@ class ImportWalletService(
     private val getAvailableAssetIds: GetAvailableAssetIds,
     private val searchTokensCase: SearchTokensCase,
     private val assetsRepository: AssetsRepository,
-    private val syncSubscription: SyncSubscription,
+    private val syncDevice: SyncDevice,
     private val syncTransactions: SyncTransactions,
     private val syncNfts: SyncNfts,
     private val walletConfigurationSync: SyncWalletConfiguration,
@@ -58,7 +58,7 @@ class ImportWalletService(
     }
 
     private suspend fun syncWallet(wallet: Wallet) {
-        syncSubscription.syncSubscription(listOf(wallet))
+        syncDevice.syncDevice()
         supervisorScope {
             launch { walletConfigurationSync.sync(wallet.id) }
             launch { discoverAssets(wallet) }

@@ -3,8 +3,7 @@ package com.gemwallet.android.data.repositories.stream
 import android.util.Log
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.cases.device.IsDeviceRegistered
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.hasPerpetualsSupport
@@ -31,8 +30,7 @@ class StreamObserverService(
     private val subscriptionService: StreamSubscriptionService,
     private val eventHandler: StreamEventHandler,
     private val connection: WebSocketConnectable,
-    private val syncDeviceInfo: SyncDeviceInfo,
-    private val isDeviceRegistered: IsDeviceRegistered,
+    private val syncDevice: SyncDevice,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
     private var connectionJob: Job? = null
@@ -61,9 +59,8 @@ class StreamObserverService(
         if (sessionRepository.session().value?.wallet == null) return
 
         connectionJob = scope.launch {
-            if (!isDeviceRegistered.isDeviceRegistered()) {
-                registerDevice()
-            }
+            runCatching { syncDevice.syncDevice() }
+                .onFailure { Log.e(TAG, "Device synchronization error", it) }
             launch {
                 for (message in subscriptionService.messages) {
                     connection.send(message.toJson())
@@ -77,11 +74,6 @@ class StreamObserverService(
                 }
             }
         }
-    }
-
-    private suspend fun registerDevice() {
-        runCatching { syncDeviceInfo.syncDeviceInfo() }
-            .onFailure { Log.e(TAG, "Device registration error", it) }
     }
 
     fun stop() {

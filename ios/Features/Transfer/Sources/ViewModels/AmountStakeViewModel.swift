@@ -3,7 +3,6 @@
 import BigInt
 import Formatters
 import Foundation
-import Gemstone
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -142,9 +141,10 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     var reserveForFee: BigInt {
-        switch action {
+        guard let stakeChain = asset.chain.stakeChain else { return .zero }
+        return switch action {
         case .stake where asset.chain != .tron, .freeze:
-            BigInt(Gemstone.Config.shared.getStakeConfig(chain: asset.chain.rawValue).reservedForFees)
+            BigInt(StakeConfig.config(chain: stakeChain).reservedForFees)
         default:
             .zero
         }

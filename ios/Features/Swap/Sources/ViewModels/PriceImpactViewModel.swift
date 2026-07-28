@@ -2,7 +2,6 @@
 
 import BigInt
 import Formatters
-import Gemstone
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -39,7 +38,7 @@ struct PriceImpactViewModel {
         guard let swapPriceImpact else { return nil }
 
         return PriceImpactValue(
-            type: swapPriceImpact.impactType.map(),
+            type: swapPriceImpact.impactType,
             value: percentFormatter.string(swapPriceImpact.percentage),
         )
     }
@@ -70,7 +69,7 @@ extension PriceImpactViewModel {
         swapPriceImpact?.isHigh == true
     }
 
-    private var swapPriceImpact: Gemstone.SwapPriceImpact? {
+    private var swapPriceImpact: Primitives.SwapPriceImpact? {
         guard
             let fromAmount = getSwapAmount(value: fromValue, decimals: fromAssetPrice.asset.decimals.asInt),
             let toAmount = getSwapAmount(value: toValue, decimals: toAssetPrice.asset.decimals.asInt),

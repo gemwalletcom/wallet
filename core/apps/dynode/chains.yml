@@ -6,8 +6,7 @@ chains:
         url: https://public-eth.nownodes.io
     urls:
       - url: https://rpc.ankr.com/eth
-      - url: https://eth.llamarpc.com
-      - url: https://rpc.ankr.com/eth
+      - url: https://ethereum-rpc.publicnode.com
 
   # Optimism
   - chain: optimism
@@ -39,7 +38,6 @@ chains:
   # TON
   - chain: ton
     urls:
-      - url: https://toncenter.com
       - url: https://toncenter.com
 
   # Tron

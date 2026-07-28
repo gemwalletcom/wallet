@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
@@ -17,7 +17,7 @@ class IncludePriceAlertImpl(
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val sessionRepository: SessionRepository,
     private val priceAlertRepository: PriceAlertRepository,
-    private val syncDeviceInfo: SyncDeviceInfo,
+    private val syncDevice: SyncDevice,
 ) : IncludePriceAlert {
 
     override suspend fun invoke(
@@ -54,7 +54,7 @@ class IncludePriceAlertImpl(
 
         priceAlertRepository.togglePriceAlerts(true)
         try {
-            syncDeviceInfo.syncDeviceInfo()
+            syncDevice.syncDevice()
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
         }

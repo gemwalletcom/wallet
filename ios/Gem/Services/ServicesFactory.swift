@@ -22,7 +22,6 @@ import FiatService
 import Foundation
 import GemAPI
 import GemAPIDevice
-import Gemstone
 import GemstonePrimitives
 import Keystore
 import NameService
