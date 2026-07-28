@@ -8,7 +8,7 @@ use crate::proxy::jsonrpc::JsonRpcHandler;
 use crate::proxy::proxy_request::ProxyRequest;
 use crate::proxy::request_builder::RequestBuilder;
 use crate::proxy::request_url::RequestUrl;
-use crate::proxy::response_builder::{ProxyResponse, ResponseBuilder};
+use crate::proxy::response_builder::{CacheStatus, ProxyResponse, ResponseBuilder};
 use crate::webhook::DynodeBroadcastWebhookClient;
 use gem_tracing::{DurationMs, info_with_fields};
 use reqwest::StatusCode;
@@ -124,7 +124,7 @@ impl ProxyRequestService {
         let response_headers = response.headers().clone();
         let body = response.bytes().await?.to_vec();
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
         let mut headers = RequestBuilder::filter_headers(&response_headers, &self.forward_headers);
         headers.extend(proxy_headers);
 
@@ -191,7 +191,7 @@ impl ProxyRequestService {
                 method = &methods_for_metrics.join(",")
             );
 
-            let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+            let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Hit);
             Some(ResponseBuilder::build_cached_with_headers(cached, proxy_headers))
         } else {
             for method_name in methods_for_metrics {

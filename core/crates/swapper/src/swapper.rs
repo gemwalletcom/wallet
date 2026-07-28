@@ -32,10 +32,10 @@ impl GemSwapper {
         supported_chains.contains(&from_chain) && supported_chains.contains(&to_chain)
     }
 
-    fn filter_supported_assets(supported_assets: Vec<SwapperChainAsset>, asset_id: AssetId) -> bool {
-        supported_assets.into_iter().any(|x| match x {
-            SwapperChainAsset::All(chain) => chain == asset_id.chain,
-            SwapperChainAsset::Assets(chain, assets) => chain == asset_id.chain && asset_id.is_native() || assets.contains(&asset_id),
+    fn supports_asset(supported_assets: &[SwapperChainAsset], asset_id: &AssetId) -> bool {
+        supported_assets.iter().any(|x| match x {
+            SwapperChainAsset::All(chain) => *chain == asset_id.chain,
+            SwapperChainAsset::Assets(chain, assets) => *chain == asset_id.chain && (asset_id.is_native() || assets.contains(asset_id)),
         })
     }
 
@@ -105,10 +105,11 @@ impl GemSwapper {
         let mut asset_ids: Vec<AssetId> = Vec::new();
 
         for provider in &self.swappers {
-            if !Self::filter_supported_assets(provider.supported_assets(), asset_id.clone()) {
+            let supported_assets = provider.supported_assets();
+            if !Self::supports_asset(&supported_assets, asset_id) {
                 continue;
             }
-            provider.supported_assets().into_iter().for_each(|x| match x {
+            supported_assets.into_iter().for_each(|x| match x {
                 SwapperChainAsset::All(_) => {}
                 SwapperChainAsset::Assets(chain, assets) => {
                     asset_ids.push(chain.as_asset_id());
@@ -140,6 +141,22 @@ impl GemSwapper {
             return Err(SwapperError::NoAvailableProvider);
         }
         Ok(providers)
+    }
+
+    pub async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
+        if from_asset == to_asset {
+            return;
+        }
+        let preloads = self
+            .swappers
+            .iter()
+            .filter(|provider| Self::filter_by_provider_mode(&provider.provider().mode, from_asset.chain, to_asset.chain))
+            .filter(|provider| {
+                let supported_assets = provider.supported_assets();
+                Self::supports_asset(&supported_assets, from_asset) && Self::supports_asset(&supported_assets, to_asset)
+            })
+            .map(|provider| provider.preload_routes(from_asset, to_asset));
+        futures::future::join_all(preloads).await;
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<Vec<Quote>, SwapperError> {
@@ -345,18 +362,18 @@ mod tests {
     }
 
     #[test]
-    fn test_filter_supported_assets() {
+    fn test_supports_asset() {
         let asset_id = AssetId::from_chain(Chain::Ethereum);
         let asset_id_usdt: AssetId = ETHEREUM_USDT_ASSET_ID.clone();
         let supported_assets_all = vec![SwapperChainAsset::All(Chain::Ethereum)];
-        assert!(GemSwapper::filter_supported_assets(supported_assets_all, asset_id.clone()));
-        assert!(GemSwapper::filter_supported_assets(
-            vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])],
-            AssetId::from_chain(Chain::Cardano)
+        assert!(GemSwapper::supports_asset(&supported_assets_all, &asset_id));
+        assert!(GemSwapper::supports_asset(
+            &[SwapperChainAsset::Assets(Chain::Cardano, vec![])],
+            &AssetId::from_chain(Chain::Cardano)
         ));
-        assert!(!GemSwapper::filter_supported_assets(
-            vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])],
-            AssetId::from_token(Chain::Cardano, "policy.asset")
+        assert!(!GemSwapper::supports_asset(
+            &[SwapperChainAsset::Assets(Chain::Cardano, vec![])],
+            &AssetId::from_token(Chain::Cardano, "policy.asset")
         ));
 
         let supported_assets = vec![
@@ -364,8 +381,8 @@ mod tests {
             SwapperChainAsset::Assets(Chain::Ethereum, vec![AssetId::from_token(Chain::Ethereum, &asset_id_usdt.clone().token_id.unwrap())]),
         ];
 
-        assert!(GemSwapper::filter_supported_assets(supported_assets.clone(), asset_id_usdt.clone()));
-        assert!(GemSwapper::filter_supported_assets(supported_assets, asset_id));
+        assert!(GemSwapper::supports_asset(&supported_assets, &asset_id_usdt));
+        assert!(GemSwapper::supports_asset(&supported_assets, &asset_id));
     }
 
     #[tokio::test]

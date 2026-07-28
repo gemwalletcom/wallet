@@ -6,7 +6,7 @@ use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_request::ProxyRequest;
 use crate::proxy::request_builder::RequestBuilder;
 use crate::proxy::request_url::RequestUrl;
-use crate::proxy::response_builder::ResponseBuilder;
+use crate::proxy::response_builder::{CacheStatus, ResponseBuilder};
 use crate::webhook::DynodeBroadcastWebhookClient;
 use gem_tracing::{DurationMs, info_with_fields};
 use reqwest::header::HeaderMap;
@@ -62,7 +62,7 @@ impl JsonRpcHandler {
                 method = call.method.as_str()
             );
 
-            let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+            let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Hit);
             let body = serde_json::to_vec(&response)?;
             return ResponseBuilder::build_with_headers(body, StatusCode::OK.as_u16(), JSON_CONTENT_TYPE, proxy_headers).map(ProxyResponse::into_cached);
         }
@@ -114,7 +114,7 @@ impl JsonRpcHandler {
 
         broadcast_webhook.notify_broadcast(request, response_status, &response_body, broadcast_providers);
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
         ResponseBuilder::build_with_headers(response_body, response_status, JSON_CONTENT_TYPE, proxy_headers)
     }
 
@@ -127,11 +127,16 @@ impl JsonRpcHandler {
         client: &reqwest::Client,
         forward_headers: &HeaderMap,
     ) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let cache_ttls = calls.iter().map(|call| cache.should_cache_call(&request.chain, call)).collect::<Option<Vec<_>>>();
-        let cached_results = if cache_ttls.is_some() { cache::get_all(calls, request, cache).await } else { None };
-        if cache_ttls.is_some() {
-            for call in calls {
-                if cached_results.is_some() {
+        let request_ids = calls.iter().map(|call| call.id).collect::<HashSet<_>>();
+        let cache_ttls = if request_ids.len() == calls.len() {
+            calls.iter().map(|call| cache.should_cache_call(&request.chain, call)).collect::<Vec<_>>()
+        } else {
+            vec![None; calls.len()]
+        };
+        let cached_results = cache::get_many(calls, &cache_ttls, request, cache).await;
+        for ((call, ttl), result) in calls.iter().zip(&cache_ttls).zip(&cached_results) {
+            if ttl.is_some() {
+                if result.is_some() {
                     metrics.add_cache_hit(request.chain.as_ref(), &call.method);
                 } else {
                     metrics.add_cache_miss(request.chain.as_ref(), &call.method);
@@ -139,33 +144,66 @@ impl JsonRpcHandler {
             }
         }
 
-        let (response_body, response_status, from_cache) = if let Some(results) = cached_results {
-            (serde_json::to_vec(&results)?, StatusCode::OK.as_u16(), true)
-        } else {
-            let (body, status) = Self::fetch(calls, &request.method, url, client, forward_headers).await?;
-            let response = serde_json::from_slice::<serde_json::Value>(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
-            let body = if response.is_array() {
-                serde_json::to_vec(&Self::order_batch(calls, response)?)?
-            } else {
-                body
-            };
-            let results = serde_json::from_slice::<Vec<JsonRpcResult>>(&body);
-            if status == StatusCode::OK.as_u16()
-                && let (Some(ttls), Ok(results)) = (cache_ttls.as_deref(), results.as_ref())
-            {
-                cache::set_all(calls, ttls, results, request, cache).await?;
-            }
+        let cache_hits = cached_results.iter().filter(|result| result.is_some()).count();
+        let missing_calls = calls
+            .iter()
+            .zip(&cached_results)
+            .filter(|(_, result)| result.is_none())
+            .map(|(call, _)| call.clone())
+            .collect::<Vec<_>>();
+        let missing_ttls = cache_ttls
+            .iter()
+            .zip(&cached_results)
+            .filter(|(_, result)| result.is_none())
+            .map(|(ttl, _)| *ttl)
+            .collect::<Vec<_>>();
 
-            for call in calls {
+        let (response_body, response_status, cache_status) = if missing_calls.is_empty() {
+            let results = cached_results.into_iter().flatten().collect::<Vec<_>>();
+            (serde_json::to_vec(&results)?, StatusCode::OK.as_u16(), CacheStatus::Hit)
+        } else {
+            let (body, missing_status) = Self::fetch(&missing_calls, &request.method, url, client, forward_headers).await?;
+            let response = serde_json::from_slice::<serde_json::Value>(&body).map_err(|error| Self::format_parse_error(missing_status, &body, error))?;
+            let (body, status, cache_status) = if response.is_array() {
+                let ordered = Self::order_batch(&missing_calls, response)?;
+                let results = ordered.as_array().cloned().ok_or("invalid JSON-RPC batch response")?;
+                if missing_status == StatusCode::OK.as_u16() {
+                    cache::set_many(&missing_calls, &missing_ttls, &results, request, cache).await?;
+                }
+                let cache_status = if cache_hits == 0 { CacheStatus::Miss } else { CacheStatus::Partial };
+                (serde_json::to_vec(&Self::merge_batch_results(cached_results, results)?)?, missing_status, cache_status)
+            } else if cache_hits > 0 {
+                let (body, status) = Self::fetch(calls, &request.method, url, client, forward_headers).await?;
+                let response = serde_json::from_slice::<serde_json::Value>(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
+                let body = if response.is_array() {
+                    serde_json::to_vec(&Self::order_batch(calls, response)?)?
+                } else {
+                    body
+                };
+                for call in calls {
+                    metrics.add_proxy_upstream_response(
+                        request.chain.as_ref(),
+                        &call.method,
+                        url.url.host_str().unwrap_or_default(),
+                        status,
+                        request.elapsed().as_millis(),
+                    );
+                }
+                (body, status, CacheStatus::Miss)
+            } else {
+                (body, missing_status, CacheStatus::Miss)
+            };
+
+            for call in &missing_calls {
                 metrics.add_proxy_upstream_response(
                     request.chain.as_ref(),
                     &call.method,
                     url.url.host_str().unwrap_or_default(),
-                    status,
+                    missing_status,
                     request.elapsed().as_millis(),
                 );
             }
-            (body, status, false)
+            (body, status, cache_status)
         };
 
         let rpc_methods = request.request_type().get_methods_list();
@@ -182,9 +220,9 @@ impl JsonRpcHandler {
             latency = DurationMs(request.elapsed()),
         );
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), cache_status);
         let response = ResponseBuilder::build_with_headers(response_body, response_status, JSON_CONTENT_TYPE, proxy_headers)?;
-        Ok(if from_cache { response.into_cached() } else { response })
+        Ok(if cache_status == CacheStatus::Hit { response.into_cached() } else { response })
     }
 
     async fn fetch<T: serde::Serialize + ?Sized>(
@@ -246,6 +284,26 @@ impl JsonRpcHandler {
 
         let ordered = calls.iter().filter_map(|call| results_by_id.get(&call.id).cloned()).collect();
         Ok(serde_json::Value::Array(ordered))
+    }
+
+    fn merge_batch_results(
+        cached_results: Vec<Option<JsonRpcResult>>,
+        upstream_results: Vec<serde_json::Value>,
+    ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error + Send + Sync>> {
+        let mut upstream_results = upstream_results.into_iter();
+        let results = cached_results
+            .into_iter()
+            .map(|result| -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
+                match result {
+                    Some(result) => Ok(serde_json::to_value(result)?),
+                    None => upstream_results.next().ok_or_else(|| "invalid JSON-RPC partial batch response length".into()),
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        if upstream_results.next().is_some() {
+            return Err("invalid JSON-RPC partial batch response length".into());
+        }
+        Ok(results)
     }
 
     fn format_parse_error(status: u16, body: &[u8], error: serde_json::Error) -> String {
@@ -333,5 +391,44 @@ mod tests {
             { "jsonrpc": "2.0", "result": "second", "id": 7 }
         ]);
         assert!(JsonRpcHandler::order_batch(&calls, duplicate).is_err());
+    }
+
+    #[test]
+    fn test_merge_batch_results_preserves_request_order() {
+        let cached = serde_json::from_value(json!({
+            "jsonrpc": "2.0",
+            "result": "cached",
+            "id": 1
+        }))
+        .unwrap();
+        let upstream = serde_json::from_value(json!({
+            "jsonrpc": "2.0",
+            "error": {
+                "code": -32000,
+                "message": "upstream",
+                "data": { "retry": true }
+            },
+            "id": 2
+        }))
+        .unwrap();
+
+        let merged = JsonRpcHandler::merge_batch_results(vec![Some(cached), None], vec![upstream]).unwrap();
+
+        assert_eq!(
+            serde_json::to_value(merged).unwrap(),
+            json!([
+                { "jsonrpc": "2.0", "result": "cached", "id": 1 },
+                {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32000,
+                        "message": "upstream",
+                        "data": { "retry": true }
+                    },
+                    "id": 2
+                }
+            ])
+        );
+        assert!(JsonRpcHandler::merge_batch_results(vec![None], Vec::new()).is_err());
     }
 }

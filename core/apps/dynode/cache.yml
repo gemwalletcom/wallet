@@ -6,12 +6,12 @@ cache:
         - rpc_method: eth_chainId
           ttl: 1h
       contracts:
-        addresses:
-          - "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-          - "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA"
         methods:
           "0x1698ee82": # Uniswap V3 Factory getPool(address,address,uint24)
             ttl: 5m
+            addresses:
+              - "0x1F98431c8aD98523631AE4a59f267346ea31F984" # Uniswap: Ethereum, Optimism, Arbitrum, Polygon
+              - "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA" # Uniswap: Robinhood
     tron:
       rules:
         - path: /wallet/getchainparameters

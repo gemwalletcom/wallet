@@ -1,6 +1,7 @@
-use alloy_primitives::{Address, U256, hex::encode_prefixed as HexEncode};
+use alloy_primitives::{Address, B256, U256, hex::encode_prefixed as HexEncode};
+use alloy_sol_types::SolValue;
 use async_trait::async_trait;
-use std::{collections::HashSet, fmt, str::FromStr, sync::Arc, vec};
+use std::{collections::HashSet, fmt, iter, str::FromStr, sync::Arc, vec};
 
 use crate::{
     FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
@@ -12,37 +13,33 @@ use crate::{
     fees::{apply_slippage_in_bp, default_referral_fees},
     uniswap::{
         deadline::get_sig_deadline,
+        discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
         is_native_erc20,
-        quote_result::get_best_quote,
+        quote_result::{QuotePosition, get_best_quote},
         requires_native_wrapping,
         swap_route::{RouteData, build_swap_route, get_intermediaries},
     },
 };
-use futures::future::{BoxFuture, join_all};
 use gem_evm::{
     jsonrpc::EthereumRpc,
-    uniswap::{
-        FeeTier,
-        command::encode_commands,
-        contracts::v4::IV4Quoter::QuoteExactParams,
-        deployment::v4::get_uniswap_deployment_by_chain,
-        path::{TokenPair, get_base_pair},
-    },
+    uniswap::{FeeTier, command::encode_commands, deployment::v4::get_uniswap_deployment_by_chain, path::get_base_pair},
 };
+use gem_hash::keccak::keccak256;
 use gem_jsonrpc::client::JsonRpcClient;
 use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
 
 use super::{
     DEFAULT_SWAP_GAS_LIMIT,
     commands::build_commands,
-    path::{build_pool_keys, build_quote_exact_params, get_intermediary_token},
+    path::{build_pool_key, build_pool_keys, build_quote_exact_params, get_intermediary_token},
     quoter::{build_quote_exact_requests, build_quote_exact_single_request},
 };
 
 pub struct UniswapV4 {
     pub provider: ProviderType,
     rpc_provider: Arc<dyn RpcProvider>,
+    pool_discovery: PoolDiscovery,
 }
 
 impl UniswapV4 {
@@ -50,6 +47,7 @@ impl UniswapV4 {
         Self {
             provider: ProviderType::new(SwapperProvider::UniswapV4),
             rpc_provider,
+            pool_discovery: PoolDiscovery::default(),
         }
     }
 
@@ -72,22 +70,54 @@ impl UniswapV4 {
         base_set.contains(token_in) || base_set.contains(token_out)
     }
 
-    fn parse_asset_address(asset_id: &str, evm_chain: EVMChain) -> Result<Address, SwapperError> {
-        let asset_id = AssetId::new(asset_id).ok_or(SwapperError::NotSupportedAsset)?;
-        if requires_native_wrapping(&asset_id) {
+    fn parse_asset_address(asset_id: &AssetId, evm_chain: EVMChain) -> Result<Address, SwapperError> {
+        if requires_native_wrapping(asset_id) {
             Ok(Address::ZERO)
         } else {
-            eth_address::parse_or_weth_address(&asset_id, evm_chain)
+            eth_address::parse_or_weth_address(asset_id, evm_chain)
         }
     }
 
-    fn parse_request(request: &QuoteRequest) -> Result<(EVMChain, Address, Address, u128), SwapperError> {
-        let evm_chain = EVMChain::from_chain(request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
-        let token_in = Self::parse_asset_address(&request.from_asset.id, evm_chain)?;
-        let token_out = Self::parse_asset_address(&request.to_asset.id, evm_chain)?;
-        let amount_in = u128::from_str(&request.value).map_err(SwapperError::from)?;
+    fn parse_assets(from_asset: &AssetId, to_asset: &AssetId) -> Result<(EVMChain, Address, Address), SwapperError> {
+        if from_asset.chain != to_asset.chain {
+            return Err(SwapperError::NotSupportedChain);
+        }
+        let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
+        Ok((
+            evm_chain,
+            Self::parse_asset_address(from_asset, evm_chain)?,
+            Self::parse_asset_address(to_asset, evm_chain)?,
+        ))
+    }
 
+    fn parse_request(request: &QuoteRequest) -> Result<(EVMChain, Address, Address, u128), SwapperError> {
+        let (evm_chain, token_in, token_out) = Self::parse_assets(&request.from_asset.asset_id(), &request.to_asset.asset_id())?;
+        let amount_in = u128::from_str(&request.value).map_err(SwapperError::from)?;
         Ok((evm_chain, token_in, token_out, amount_in))
+    }
+
+    async fn preload_pool_candidates(&self, chain: Chain, token_in: Address, token_out: Address) -> Result<(), SwapperError> {
+        let deployment = get_uniswap_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
+        let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
+        let base_pair = get_base_pair(&evm_chain, is_native_erc20(chain)).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let client = self.client_for(chain)?;
+        let fee_tiers = self.get_tiers();
+        let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
+        let pools = self
+            .pool_discovery
+            .missing_pools(chain, &pairs, &fee_tiers)
+            .into_iter()
+            .map(|pool| {
+                let (pool_key, _) = build_pool_key(&pool.token_in, &pool.token_out, &pool.fee_tier);
+                (pool, B256::from(keccak256(&pool_key.abi_encode())))
+            })
+            .collect::<Vec<_>>();
+        if pools.is_empty() {
+            return Ok(());
+        }
+        let discovered = discover_v4_pools(&client, deployment.state_view, &pools).await?;
+        self.pool_discovery.record_pools(chain, &discovered);
+        Ok(())
     }
 }
 
@@ -111,6 +141,13 @@ impl Swapper for UniswapV4 {
         SwapAmountMode::Fixed
     }
 
+    async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
+        let Ok((_, token_in, token_out)) = Self::parse_assets(from_asset, to_asset) else {
+            return;
+        };
+        _ = self.preload_pool_candidates(from_asset.chain, token_in, token_out).await;
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_chain = request.from_asset.chain();
         let to_chain = request.to_asset.chain();
@@ -126,36 +163,47 @@ impl Swapper for UniswapV4 {
             from_value
         };
 
+        let discovery_available = self.preload_pool_candidates(from_chain, token_in, token_out).await.is_ok();
         let pool_keys = build_pool_keys(&token_in, &token_out, &fee_tiers);
-        let client = Arc::new(self.client_for(from_chain)?);
-
-        let mut requests: Vec<BoxFuture<'static, _>> = Vec::new();
-        let initial_client = Arc::clone(&client);
-        let direct_calls: Vec<EthereumRpc> = pool_keys
+        let pool_keys = if discovery_available {
+            pool_keys.into_iter().filter(|(pairs, _)| self.pool_discovery.path_exists(from_chain, pairs)).collect()
+        } else {
+            pool_keys
+        };
+        let quote_exact_params = if !Self::is_base_pair(&token_in, &token_out, &evm_chain) {
+            let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
+            let params = build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries);
+            if discovery_available {
+                params
+                    .into_iter()
+                    .map(|paths| paths.into_iter().filter(|(pairs, _)| self.pool_discovery.path_exists(from_chain, pairs)).collect())
+                    .collect()
+            } else {
+                params
+            }
+        } else {
+            Vec::new()
+        };
+        let direct_calls = pool_keys
             .iter()
             .map(|pool_key| build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key.1))
             .collect();
-        requests.push(Box::pin(async move { initial_client.batch_request(direct_calls).await }));
-
-        let quote_exact_params: Vec<Vec<(Vec<TokenPair>, QuoteExactParams)>>;
-        if !Self::is_base_pair(&token_in, &token_out, &evm_chain) {
-            let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
-            quote_exact_params = build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries);
-            build_quote_exact_requests(deployment.quoter, &quote_exact_params).iter().for_each(|call_array| {
-                let client = Arc::clone(&client);
-                let calls = call_array.clone();
-                requests.push(Box::pin(async move { client.batch_request(calls).await }));
-            });
-        } else {
-            quote_exact_params = vec![];
-        }
-
-        let batch_results = join_all(requests).await;
-
-        let quote_result = get_best_quote(&batch_results, super::quoter::decode_quoter_response)?;
+        let quote_calls = iter::once(direct_calls)
+            .chain(build_quote_exact_requests(deployment.quoter, &quote_exact_params))
+            .enumerate()
+            .flat_map(|(route_idx, calls)| {
+                calls
+                    .into_iter()
+                    .enumerate()
+                    .map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call))
+            })
+            .collect::<Vec<_>>();
+        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
+        let results = self.client_for(from_chain)?.batch_request(calls).await?;
+        let quote_result = get_best_quote(&results, &positions, super::quoter::decode_quoter_response)?;
 
         let fee_tier_idx = quote_result.fee_tier_idx;
-        let batch_idx = quote_result.batch_idx;
+        let route_idx = quote_result.route_idx;
 
         let to_value = if fee_token_is_input {
             quote_result.amount_out
@@ -164,10 +212,19 @@ impl Swapper for UniswapV4 {
         };
         let to_min_value = apply_slippage_in_bp(&to_value, request.options.slippage.bps);
 
-        let fee_tier: u32 = fee_tiers[fee_tier_idx % fee_tiers.len()] as u32;
+        let fee_tier = if route_idx == 0 {
+            pool_keys.get(fee_tier_idx).and_then(|(pairs, _)| pairs.first()).map(|pair| pair.fee_tier as u32)
+        } else {
+            quote_exact_params
+                .get(route_idx - 1)
+                .and_then(|params| params.get(fee_tier_idx))
+                .and_then(|(pairs, _)| pairs.first())
+                .map(|pair| pair.fee_tier as u32)
+        }
+        .ok_or(SwapperError::InvalidRoute)?;
         let asset_id_in = AssetId::from(from_chain, Some(token_in.to_checksum(None)));
         let asset_id_out = AssetId::from(to_chain, Some(token_out.to_checksum(None)));
-        let asset_id_intermediary: Option<AssetId> = get_intermediary_token(&quote_exact_params, batch_idx).map(|token| AssetId::from(to_chain, Some(token.to_checksum(None))));
+        let asset_id_intermediary: Option<AssetId> = get_intermediary_token(&quote_exact_params, route_idx).map(|token| AssetId::from(to_chain, Some(token.to_checksum(None))));
         let route_data = RouteData {
             fee_tier: fee_tier.to_string(),
             min_amount_out: to_min_value.to_string(),

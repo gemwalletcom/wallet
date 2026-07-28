@@ -1,5 +1,5 @@
 use super::{constants::RouterInfo, quote::PoolData};
-use crate::{Quote, SwapperError, route_cache::ValueCache, static_read_cache_headers};
+use crate::{Quote, SwapperError, route_cache::Cache, static_read_cache_headers};
 use gem_client::Client;
 use gem_ton::{
     address::Address,
@@ -22,7 +22,7 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     ton_client: TonClient<C>,
-    jetton_wallet_cache: ValueCache<(String, String), String>,
+    jetton_wallet_cache: Cache<(String, String), String>,
 }
 
 impl<C> StonfiClient<C>
@@ -32,7 +32,7 @@ where
     pub(super) fn new(ton_client: TonClient<C>) -> Self {
         Self {
             ton_client,
-            jetton_wallet_cache: ValueCache::default(),
+            jetton_wallet_cache: Cache::default(),
         }
     }
 
