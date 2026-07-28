@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.cases.device.SynchronizeDeviceIfNeeded
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.service.store.WalletPreferences
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
@@ -18,7 +18,7 @@ class DeviceAssetsSyncServiceTest {
         every { create(any()) } returns walletPreferences
     }
     private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
-    private val synchronizeDeviceIfNeeded = mockk<SynchronizeDeviceIfNeeded>(relaxed = true)
+    private val syncDevice = mockk<SyncDevice>(relaxed = true)
 
     private val subject = DeviceAssetsSyncService(
         walletPreferencesFactory = walletPreferencesFactory,
@@ -28,7 +28,7 @@ class DeviceAssetsSyncServiceTest {
         enableAsset = mockk(relaxed = true),
         assetsRepository = mockk(relaxed = true),
         walletsRepository = mockk(relaxed = true),
-        synchronizeDeviceIfNeeded = synchronizeDeviceIfNeeded,
+        syncDevice = syncDevice,
     )
 
     @Test
@@ -38,7 +38,7 @@ class DeviceAssetsSyncServiceTest {
         subject.sync("wallet-1")
 
         coVerifyOrder {
-            synchronizeDeviceIfNeeded.synchronizeIfNeeded()
+            syncDevice.syncDevice()
             gemDeviceApiClient.getAssets(any(), any())
         }
     }

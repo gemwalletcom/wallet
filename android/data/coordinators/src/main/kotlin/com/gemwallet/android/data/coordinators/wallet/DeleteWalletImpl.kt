@@ -3,18 +3,13 @@ package com.gemwallet.android.data.coordinators.wallet
 import android.util.Log
 import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
-import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,11 +19,8 @@ class DeleteWalletImpl @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val walletsRepository: WalletsRepository,
     private val deleteKeyStoreOperator: DeleteKeyStoreOperator,
-    private val syncSubscription: SyncSubscription,
     private val walletPreferencesFactory: WalletPreferencesFactory,
 ) : DeleteWallet {
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> })
 
     override suspend fun deleteWallet(
         walletId: WalletId,
@@ -49,11 +41,6 @@ class DeleteWalletImpl @Inject constructor(
         }
 
         walletPreferencesFactory.create(walletId.id).clear()
-
-        scope.launch {
-            walletsRepository.getAll().firstOrNull()
-                ?.let { syncSubscription.syncSubscription(it) }
-        }
 
         val callback: () -> Unit = if (currentWalletId == walletId) {
             val nextWallet = walletsRepository.getAll().firstOrNull()
