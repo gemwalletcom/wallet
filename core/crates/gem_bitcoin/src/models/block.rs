@@ -30,18 +30,6 @@ pub struct Consensus {
     pub chaintip: String,
 }
 
-// RPC models
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Status {
-    pub blockbook: Blockbook,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Blockbook {
-    #[serde(rename = "bestHeight")]
-    pub best_height: i64,
-}
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Block {
