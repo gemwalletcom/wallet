@@ -13,7 +13,7 @@ pub struct BitcoinNodeInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BitcoinBlockbook {
-    pub network: Option<String>,
+    pub coin: String,
     pub in_sync: bool,
     pub best_height: Int,
 }
