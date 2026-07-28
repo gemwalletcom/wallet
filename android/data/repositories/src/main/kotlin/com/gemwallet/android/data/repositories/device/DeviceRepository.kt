@@ -34,6 +34,7 @@ import com.wallet.core.primitives.WalletSubscription
 import com.wallet.core.primitives.WalletSubscriptionChains
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -55,6 +56,7 @@ class DeviceRepository(
     private val priceAlertRepository: PriceAlertRepository,
     private val getCurrentCurrency: GetCurrentCurrency,
     private val walletsRepository: WalletsRepository,
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : SyncDeviceInfo,
     SwitchPushEnabled,
     GetPushEnabled,
@@ -66,7 +68,7 @@ class DeviceRepository(
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
-    private val syncCoordinator = DeviceSyncCoordinator()
+    private val syncCoordinator = DeviceSyncCoordinator(scope)
 
     override suspend fun syncDeviceInfo() {
         synchronizeDevice(
