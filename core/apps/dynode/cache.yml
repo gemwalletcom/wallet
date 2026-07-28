@@ -1,5 +1,5 @@
 cache:
-  max_memory: 1 GB
+  max_memory: 1GB
   chain_types:
     ethereum:
       rules:
@@ -10,6 +10,7 @@ cache:
           - "0x1F98431c8aD98523631AE4a59f267346ea31F984"
           - "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA"
         methods:
+          # Uniswap V3 Factory getPool(address,address,uint24)
           "0x1698ee82":
             ttl: 5m
     tron:
