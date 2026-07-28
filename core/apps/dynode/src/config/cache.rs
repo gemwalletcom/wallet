@@ -17,18 +17,40 @@ pub struct CacheConfig {
     chain_types: HashMap<ChainType, Vec<CacheRule>>,
     #[serde(default)]
     chains: HashMap<Chain, Vec<CacheRule>>,
+    #[serde(default)]
+    evm_calls: Vec<EvmCallConfig>,
 }
 
 impl CacheConfig {
-    pub(crate) fn rules(&self, chain: Chain) -> Vec<CacheRule> {
-        self.chain_types
+    pub(crate) fn rules(&self, chain: Chain) -> ChainCacheRules {
+        let cache = self
+            .chain_types
             .get(&chain.chain_type())
             .into_iter()
             .flatten()
             .chain(self.chains.get(&chain).into_iter().flatten())
             .cloned()
-            .collect()
+            .collect();
+        let evm_calls = self
+            .evm_calls
+            .iter()
+            .filter_map(|config| {
+                config.contracts.get(&chain).map(|contract| EvmCallRule {
+                    contract: contract.clone(),
+                    selector: config.selector.clone(),
+                    ttl: config.ttl,
+                })
+            })
+            .collect();
+
+        ChainCacheRules { cache, evm_calls }
     }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct ChainCacheRules {
+    pub(crate) cache: Vec<CacheRule>,
+    pub(crate) evm_calls: Vec<EvmCallRule>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -36,12 +58,25 @@ pub(crate) struct CacheRule {
     pub(crate) path: Option<String>,
     pub(crate) method: Option<String>,
     pub(crate) rpc_method: Option<String>,
-    pub(crate) contract: Option<String>,
-    pub(crate) selector: Option<String>,
     #[serde(default, alias = "ttl_seconds", deserialize_with = "duration::deserialize_option")]
     pub(crate) ttl: Option<Duration>,
     #[serde(default)]
     pub(crate) params: HashMap<String, Value>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct EvmCallConfig {
+    selector: String,
+    #[serde(deserialize_with = "duration::deserialize")]
+    ttl: Duration,
+    contracts: HashMap<Chain, String>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct EvmCallRule {
+    contract: String,
+    selector: String,
+    pub(crate) ttl: Duration,
 }
 
 impl CacheRule {
@@ -59,18 +94,8 @@ impl CacheRule {
         path_without_query(path) == rule_path && self.matches_body(body)
     }
 
-    pub(crate) fn matches_rpc(&self, rpc_method: &str, params: &Value) -> bool {
-        if self.rpc_method.as_deref() != Some(rpc_method) {
-            return false;
-        }
-        if rpc_method != ETH_CALL {
-            return true;
-        }
-
-        let (Some(contract), Some(selector)) = (&self.contract, &self.selector) else {
-            return false;
-        };
-        matches_evm_call(params, contract, selector)
+    pub(crate) fn matches_rpc(&self, rpc_method: &str) -> bool {
+        rpc_method != ETH_CALL && self.rpc_method.as_deref() == Some(rpc_method)
     }
 
     fn matches_body(&self, body: Option<&[u8]>) -> bool {
@@ -91,6 +116,12 @@ impl CacheRule {
         };
 
         self.params.iter().all(|(key, expected)| object.get(key) == Some(expected))
+    }
+}
+
+impl EvmCallRule {
+    pub(crate) fn matches(&self, params: &Value) -> bool {
+        matches_evm_call(params, &self.contract, &self.selector)
     }
 }
 
@@ -130,14 +161,12 @@ mod tests {
 
     const CONTRACT: &str = "0x1111111111111111111111111111111111111111";
 
-    fn evm_call_rule(selector: &str) -> CacheRule {
-        serde_json::from_value(serde_json::json!({
-            "rpc_method": "eth_call",
-            "contract": CONTRACT,
-            "selector": selector,
-            "ttl": "1h"
-        }))
-        .unwrap()
+    fn evm_call_rule(selector: &str) -> EvmCallRule {
+        EvmCallRule {
+            contract: CONTRACT.to_string(),
+            selector: selector.to_string(),
+            ttl: Duration::from_secs(60 * 60),
+        }
     }
 
     fn eth_call_params(contract: &str, data: &str) -> Value {
@@ -172,40 +201,21 @@ mod tests {
         let rule = evm_call_rule("0x1698ee82");
         let wrong_block = serde_json::json!([{ "to": CONTRACT, "data": "0x1698ee820000" }, "pending"]);
 
-        assert!(rule.matches_rpc(ETH_CALL, &eth_call_params(CONTRACT, "0x1698ee820000")));
-        assert!(rule.matches_rpc(ETH_CALL, &eth_call_params(&CONTRACT.to_uppercase().replacen("0X", "0x", 1), "0x1698EE820000")));
-        assert!(!rule.matches_rpc("eth_estimateGas", &eth_call_params(CONTRACT, "0x1698ee820000")));
-        assert!(!rule.matches_rpc(ETH_CALL, &wrong_block));
-        assert!(!rule.matches_rpc(ETH_CALL, &eth_call_params("0x2222222222222222222222222222222222222222", "0x1698ee820000")));
-        assert!(!rule.matches_rpc(ETH_CALL, &eth_call_params(CONTRACT, "0xaa9d21cb0000")));
-        assert!(!rule.matches_rpc(
-            ETH_CALL,
-            &serde_json::json!([
-                {
-                    "to": CONTRACT,
-                    "data": "0x1698ee82",
-                    "value": "0x1"
-                },
-                "latest"
-            ])
-        ));
+        assert!(rule.matches(&eth_call_params(CONTRACT, "0x1698ee820000")));
+        assert!(rule.matches(&eth_call_params(&CONTRACT.to_uppercase().replacen("0X", "0x", 1), "0x1698EE820000")));
+        assert!(!rule.matches(&wrong_block));
+        assert!(!rule.matches(&eth_call_params("0x2222222222222222222222222222222222222222", "0x1698ee820000")));
+        assert!(!rule.matches(&eth_call_params(CONTRACT, "0xaa9d21cb0000")));
+        assert!(!rule.matches(&serde_json::json!([
+            {
+                "to": CONTRACT,
+                "data": "0x1698ee82",
+                "value": "0x1"
+            },
+            "latest"
+        ])));
 
-        let method_only: CacheRule = serde_json::from_value(serde_json::json!({
-            "rpc_method": "eth_call",
-            "ttl": "1h"
-        }))
-        .unwrap();
-        let params = eth_call_params(CONTRACT, "0x1698ee82");
-
-        assert!(!method_only.matches_rpc(ETH_CALL, &params));
-        let invalid_selector: CacheRule = serde_json::from_value(serde_json::json!({
-            "rpc_method": "eth_call",
-            "contract": CONTRACT,
-            "selector": "0x1698",
-            "ttl": "1h"
-        }))
-        .unwrap();
-        assert!(!invalid_selector.matches_rpc(ETH_CALL, &params));
+        assert!(!evm_call_rule("0x1698").matches(&eth_call_params(CONTRACT, "0x1698ee82")));
     }
 
     #[test]
@@ -216,7 +226,35 @@ mod tests {
         }))
         .unwrap();
 
-        assert!(rule.matches_rpc("eth_chainId", &Value::Null));
-        assert!(!rule.matches_rpc("eth_blockNumber", &Value::Null));
+        assert!(rule.matches_rpc("eth_chainId"));
+        assert!(!rule.matches_rpc("eth_blockNumber"));
+
+        let broad_evm_rule: CacheRule = serde_json::from_value(serde_json::json!({
+            "rpc_method": "eth_call",
+            "ttl": "1h"
+        }))
+        .unwrap();
+        assert!(!broad_evm_rule.matches_rpc(ETH_CALL));
+    }
+
+    #[test]
+    fn test_evm_call_config_resolves_contract_by_chain() {
+        let config: CacheConfig = serde_json::from_value(serde_json::json!({
+            "max_memory_mb": 64,
+            "evm_calls": [{
+                "selector": "0x1698ee82",
+                "ttl": "5m",
+                "contracts": {
+                    "ethereum": CONTRACT
+                }
+            }]
+        }))
+        .unwrap();
+
+        let ethereum = config.rules(Chain::Ethereum);
+        assert_eq!(ethereum.evm_calls.len(), 1);
+        assert_eq!(ethereum.evm_calls[0].ttl, MINUTE * 5);
+        assert!(ethereum.evm_calls[0].matches(&eth_call_params(CONTRACT, "0x1698ee82")));
+        assert!(config.rules(Chain::Optimism).evm_calls.is_empty());
     }
 }

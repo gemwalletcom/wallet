@@ -30,19 +30,10 @@ cache:
         ttl: 1h
         params:
           function: "0x1::delegation_pool::operator_commission_percentage"
-  chains:
-    ethereum:
-      - rpc_method: eth_call
-        contract: "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-        selector: "0x1698ee82"
-        ttl: 5m
-    optimism:
-      - rpc_method: eth_call
-        contract: "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-        selector: "0x1698ee82"
-        ttl: 5m
-    robinhood:
-      - rpc_method: eth_call
-        contract: "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA"
-        selector: "0x1698ee82"
-        ttl: 5m
+  evm_calls:
+    - selector: "0x1698ee82"
+      ttl: 5m
+      contracts:
+        ethereum: "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+        optimism: "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+        robinhood: "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA"

@@ -1,4 +1,4 @@
-use crate::config::{CacheConfig, CacheRule, ChainConfig};
+use crate::config::{CacheConfig, ChainCacheRules, ChainConfig};
 use crate::jsonrpc_types::{JsonRpcCall, RequestType};
 use crate::proxy::CachedResponse;
 use primitives::Chain;
@@ -14,7 +14,7 @@ use super::types::CacheEntry;
 pub struct MemoryCache {
     caches: Arc<HashMap<Chain, Arc<RwLock<HashMap<String, CacheEntry>>>>>,
     max_memory_mb: usize,
-    rules: Arc<HashMap<Chain, Vec<CacheRule>>>,
+    rules: Arc<HashMap<Chain, ChainCacheRules>>,
 }
 
 impl MemoryCache {
@@ -23,7 +23,7 @@ impl MemoryCache {
             .into_iter()
             .filter_map(|chain_config| {
                 let cache_rules = config.rules(chain_config.chain);
-                (!cache_rules.is_empty()).then_some((chain_config.chain, cache_rules))
+                (!cache_rules.cache.is_empty() || !cache_rules.evm_calls.is_empty()).then_some((chain_config.chain, cache_rules))
             })
             .collect::<HashMap<_, _>>();
         let caches = rules.keys().copied().map(|chain| (chain, Arc::new(RwLock::new(HashMap::new())))).collect();
@@ -96,17 +96,21 @@ impl CacheProvider for MemoryCache {
         };
         self.rules
             .get(chain)?
+            .cache
             .iter()
             .find(|rule| rule.matches_path_request(path, method, Some(body)))
             .and_then(|rule| rule.ttl)
     }
 
     fn should_cache_call(&self, chain: &Chain, call: &JsonRpcCall) -> Option<Duration> {
-        self.rules
-            .get(chain)?
-            .iter()
-            .find(|rule| rule.matches_rpc(&call.method, &call.params))
-            .and_then(|rule| rule.ttl)
+        let rules = self.rules.get(chain)?;
+        rules.cache.iter().find(|rule| rule.matches_rpc(&call.method)).and_then(|rule| rule.ttl).or_else(|| {
+            if call.method == crate::config::ETH_CALL {
+                rules.evm_calls.iter().find(|rule| rule.matches(&call.params)).map(|rule| rule.ttl)
+            } else {
+                None
+            }
+        })
     }
 }
 
@@ -313,16 +317,15 @@ mod tests {
                     { "rpc_method": "eth_blockNumber", "ttl": "1m" }
                 ]
             },
-            "chains": {
-                "ethereum": [
-                    {
-                        "rpc_method": "eth_call",
-                        "contract": CONTRACT,
-                        "selector": SELECTOR,
-                        "ttl": "30s"
+            "evm_calls": [
+                {
+                    "selector": SELECTOR,
+                    "ttl": "30s",
+                    "contracts": {
+                        "ethereum": CONTRACT
                     }
-                ]
-            }
+                }
+            ]
         }))
         .unwrap();
         let chains = [create_chain_config(Chain::Ethereum)];

@@ -19,7 +19,7 @@ mod url;
 
 pub use allowlist::AllowlistConfig;
 pub use cache::CacheConfig;
-pub(crate) use cache::CacheRule;
+pub(crate) use cache::{ChainCacheRules, ETH_CALL};
 pub use chain_types::ChainTypesConfig;
 pub use domain::ChainConfig;
 pub use metrics::MetricsConfig;
