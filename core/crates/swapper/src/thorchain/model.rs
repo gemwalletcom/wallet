@@ -185,8 +185,34 @@ pub struct InboundAddress {
     pub chain: String,
     pub address: String,
     pub router: Option<String>,
+    pub halted: bool,
+    pub global_trading_paused: bool,
+    pub chain_trading_paused: bool,
     #[serde(deserialize_with = "deserialize_bigint_from_str")]
     pub dust_threshold: BigInt,
+}
+
+impl InboundAddress {
+    pub(crate) fn is_swap_available(&self) -> bool {
+        !self.halted && !self.global_trading_paused && !self.chain_trading_paused
+    }
+}
+
+pub(crate) trait InboundAddressesExt {
+    fn inbound_address_for_asset(&self, network: THORChainNetwork, asset: &THORChainAsset) -> Result<Option<&InboundAddress>, SwapperError>;
+}
+
+impl InboundAddressesExt for [InboundAddress] {
+    fn inbound_address_for_asset(&self, network: THORChainNetwork, asset: &THORChainAsset) -> Result<Option<&InboundAddress>, SwapperError> {
+        if network == THORChainNetwork::Thorchain && asset.chain.chain() == Chain::Thorchain {
+            return Ok(None);
+        }
+
+        self.iter()
+            .find(|address| address.chain == asset.chain.long_name())
+            .map(Some)
+            .ok_or(SwapperError::InvalidRoute)
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -279,6 +305,28 @@ mod tests {
         let status: TransactionStatus = serde_json::from_str(include_str!("testdata/transaction_status_mayachain_refund.json")).unwrap();
         assert_eq!(status.swap_status(), SwapStatus::Failed);
         assert!(status.destination_coin().is_none());
+    }
+
+    #[test]
+    fn test_inbound_addresses() {
+        let inbound_addresses: Vec<InboundAddress> = serde_json::from_str(include_str!("testdata/inbound_addresses_bsc_halted.json")).unwrap();
+        let bsc = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::SmartChain.as_ref()).unwrap();
+        let bitcoin = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Bitcoin.as_ref()).unwrap();
+        let rune = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Thorchain.as_ref()).unwrap();
+        let ethereum = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Ethereum.as_ref()).unwrap();
+
+        let bsc_address = inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &bsc).unwrap().unwrap();
+        let bitcoin_address = inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &bitcoin).unwrap().unwrap();
+
+        assert_eq!(bsc_address.chain, "BSC");
+        assert_eq!(bsc_address.is_swap_available(), false);
+        assert_eq!(bitcoin_address.chain, "BTC");
+        assert_eq!(bitcoin_address.is_swap_available(), true);
+        assert!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &rune).unwrap().is_none());
+        assert_eq!(
+            inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &ethereum).unwrap_err(),
+            SwapperError::InvalidRoute
+        );
     }
 
     #[test]
