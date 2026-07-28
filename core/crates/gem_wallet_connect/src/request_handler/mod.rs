@@ -20,9 +20,10 @@ impl WalletConnectRequestHandler {
         let WalletConnectRequest {
             method, params, chain_id, domain, ..
         } = request;
-        let method = match serde_json::from_value::<WalletConnectionMethods>(serde_json::Value::String(method.clone())) {
+        let method_name = method;
+        let method = match serde_json::from_value::<WalletConnectionMethods>(serde_json::Value::String(method_name.clone())) {
             Ok(m) => m,
-            Err(_) => return Ok(WalletConnectAction::Unsupported { method }),
+            Err(_) => return Ok(WalletConnectAction::Unsupported { method: method_name }),
         };
         let params = serde_json::from_str::<Value>(&params).map_err(|e| format!("Failed to parse params: {}", e))?;
         let params = match params {
@@ -38,7 +39,7 @@ impl WalletConnectRequestHandler {
             | WalletConnectionMethods::EthSendTransaction) => {
                 EthereumRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ethereum)?, params, &domain)
             }
-            WalletConnectionMethods::EthSendRawTransaction => Err("Method not supported".to_string()),
+            WalletConnectionMethods::EthSendRawTransaction => Ok(WalletConnectAction::Unsupported { method: method_name }),
             WalletConnectionMethods::EthChainId => Ok(WalletConnectAction::ChainOperation {
                 operation: WalletConnectChainOperation::GetChainId,
             }),
@@ -134,15 +135,12 @@ mod tests {
     use primitives::TransferDataOutputType;
 
     #[test]
-    fn test_unsupported_method() {
-        let request = WalletConnectRequest::mock("unknown_method", "{}", None);
-        let action = WalletConnectRequestHandler::parse_request(request).unwrap();
-        assert_eq!(
-            action,
-            WalletConnectAction::Unsupported {
-                method: "unknown_method".to_string()
-            }
-        );
+    fn test_unsupported_methods() {
+        for method in ["unknown_method", "eth_sign", "eth_sendRawTransaction"] {
+            let request = WalletConnectRequest::mock(method, "{}", None);
+            let action = WalletConnectRequestHandler::parse_request(request).unwrap();
+            assert_eq!(action, WalletConnectAction::Unsupported { method: method.to_string() });
+        }
     }
 
     #[test]
