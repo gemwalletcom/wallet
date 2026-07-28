@@ -1,4 +1,3 @@
-internal import func Gemstone.supportsPrivateKeyImport
 import Components
 import Foundation
 import GemstonePrimitives
@@ -89,7 +88,7 @@ final class ImportWalletSceneViewModel {
         case .multicoin:
             return [.phrase]
         case let .chain(chain):
-            if supportsPrivateKeyImport(chain: chain.rawValue) {
+            if chain.isPrivateKeyImportSupported {
                 return [.phrase, .privateKey, .address]
             }
             return [.phrase, .address]

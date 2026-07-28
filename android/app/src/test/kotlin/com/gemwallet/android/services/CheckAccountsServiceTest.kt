@@ -2,7 +2,6 @@ package com.gemwallet.android.services
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.AddAccountsOperator
-import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.available
@@ -29,14 +28,12 @@ class CheckAccountsServiceTest {
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val addAccountsOperator = mockk<AddAccountsOperator>(relaxed = true)
     private val passwordStore = mockk<PasswordStore>(relaxed = true)
-    private val syncSubscription = mockk<SyncSubscription>(relaxed = true)
 
     private val subject = CheckAccountsService(
         walletsRepository = walletsRepository,
         assetsRepository = assetsRepository,
         addAccountsOperator = addAccountsOperator,
         passwordStore = passwordStore,
-        syncSubscription = syncSubscription,
     )
 
     @After
@@ -60,7 +57,6 @@ class CheckAccountsServiceTest {
         every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
         coJustRun { assetsRepository.updateNativeAssetRanks() }
         every { assetsRepository.invalidateDefault(wallet) } returns Job()
-        coJustRun { syncSubscription.syncSubscription(any()) }
         coJustRun { walletsRepository.updateWallet(any()) }
         coJustRun { walletsRepository.updateAccounts(any()) }
         coEvery { assetsRepository.getNativeAssets(wallet) } returns nativeAssets
@@ -75,7 +71,6 @@ class CheckAccountsServiceTest {
         coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
-        coVerify(exactly = 0) { syncSubscription.syncSubscription(any()) }
     }
 
     @Test
@@ -104,6 +99,5 @@ class CheckAccountsServiceTest {
         coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
-        coVerify(exactly = 0) { syncSubscription.syncSubscription(any()) }
     }
 }

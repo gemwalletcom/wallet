@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.model.PriceAlertInfo
 import com.wallet.core.primitives.AssetId
@@ -17,35 +17,35 @@ class SetPriceAlertsEnabledImplTest {
     @Test
     fun enable_whenAlreadyEnabled_skipsToggleAndDeviceSync() = runBlocking {
         val repository = FakePriceAlertRepository(enabled = true)
-        val syncDeviceInfo = RecordingSyncDeviceInfo()
+        val syncDevice = RecordingSyncDevice()
 
-        SetPriceAlertsEnabledImpl(repository, syncDeviceInfo).invoke(true)
+        SetPriceAlertsEnabledImpl(repository, syncDevice).invoke(true)
 
         assertEquals(0, repository.toggleCalls)
-        assertEquals(0, syncDeviceInfo.calls)
+        assertEquals(0, syncDevice.calls)
         assertEquals(true, repository.enabled.value)
     }
 
     @Test
     fun enable_whenDisabled_togglesAndSyncsDevice() = runBlocking {
         val repository = FakePriceAlertRepository(enabled = false)
-        val syncDeviceInfo = RecordingSyncDeviceInfo()
+        val syncDevice = RecordingSyncDevice()
 
-        SetPriceAlertsEnabledImpl(repository, syncDeviceInfo).invoke(true)
+        SetPriceAlertsEnabledImpl(repository, syncDevice).invoke(true)
 
         assertEquals(1, repository.toggleCalls)
-        assertEquals(1, syncDeviceInfo.calls)
+        assertEquals(1, syncDevice.calls)
         assertEquals(true, repository.enabled.value)
     }
 
     @Test
     fun disable_togglesAndSyncsDeviceEvenWhenAlreadyDisabled() = runBlocking {
         val enabledRepository = FakePriceAlertRepository(enabled = true)
-        val enabledSync = RecordingSyncDeviceInfo()
+        val enabledSync = RecordingSyncDevice()
         SetPriceAlertsEnabledImpl(enabledRepository, enabledSync).invoke(false)
 
         val disabledRepository = FakePriceAlertRepository(enabled = false)
-        val disabledSync = RecordingSyncDeviceInfo()
+        val disabledSync = RecordingSyncDevice()
         SetPriceAlertsEnabledImpl(disabledRepository, disabledSync).invoke(false)
 
         assertEquals(1, enabledRepository.toggleCalls)
@@ -56,10 +56,10 @@ class SetPriceAlertsEnabledImplTest {
         assertEquals(false, disabledRepository.enabled.value)
     }
 
-    private class RecordingSyncDeviceInfo : SyncDeviceInfo {
+    private class RecordingSyncDevice : SyncDevice {
         var calls = 0
 
-        override suspend fun syncDeviceInfo() {
+        override suspend fun syncDevice() {
             calls += 1
         }
     }

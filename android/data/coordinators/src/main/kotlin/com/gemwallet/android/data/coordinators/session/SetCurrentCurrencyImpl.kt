@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.session
 
 import com.gemwallet.android.application.session.coordinators.SetCurrentCurrency
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.CoroutineScope
@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 
 class SetCurrentCurrencyImpl(
     private val sessionRepository: SessionRepository,
-    private val syncDeviceInfo: SyncDeviceInfo,
+    private val syncDevice: SyncDevice,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : SetCurrentCurrency {
 
@@ -22,7 +22,7 @@ class SetCurrentCurrencyImpl(
             }
 
             sessionRepository.setCurrency(currency)
-            syncDeviceInfo.syncDeviceInfo()
+            syncDevice.syncDevice()
         }
     }
 }

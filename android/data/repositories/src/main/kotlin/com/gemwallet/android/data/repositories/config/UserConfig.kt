@@ -237,7 +237,6 @@ class UserConfig(
         DevelopEnabled("develop_enabled"),
         PerpetualChartPeriod("perpetual_chart_period"),
         SubscriptionVersion("subscription_version"),
-        SubscriptionVersionHasChange("subscription_version_has_change"),
         LaunchNumber("launch_number"),
         ;
 

@@ -13,13 +13,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ext.isPrivateKeyImportSupported
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.alpha10
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 
 internal fun importWalletTabs(chain: Chain?): List<WalletType> {
-    if (chain != null && uniffi.gemstone.supportsPrivateKeyImport(chain.string)) {
+    if (chain != null && chain.isPrivateKeyImportSupported()) {
         return listOf(WalletType.Single, WalletType.PrivateKey, WalletType.View)
     }
     return listOf(WalletType.Single, WalletType.View)

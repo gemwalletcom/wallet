@@ -19,3 +19,10 @@ enum class SwapPriceImpactType(val string: String) {
 	High("high"),
 }
 
+@Serializable
+data class SwapPriceImpact (
+	val percentage: Double,
+	val impactType: SwapPriceImpactType,
+	val isHigh: Boolean
+)
+

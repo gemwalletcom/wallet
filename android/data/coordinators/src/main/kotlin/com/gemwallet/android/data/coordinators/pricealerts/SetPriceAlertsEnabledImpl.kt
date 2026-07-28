@@ -1,13 +1,13 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import kotlinx.coroutines.flow.firstOrNull
 
 class SetPriceAlertsEnabledImpl(
     private val priceAlertRepository: PriceAlertRepository,
-    private val syncDeviceInfo: SyncDeviceInfo,
+    private val syncDevice: SyncDevice,
 ) : SetPriceAlertsEnabled {
 
     override suspend fun invoke(enabled: Boolean) {
@@ -16,6 +16,6 @@ class SetPriceAlertsEnabledImpl(
         }
 
         priceAlertRepository.togglePriceAlerts(enabled)
-        syncDeviceInfo.syncDeviceInfo()
+        syncDevice.syncDevice()
     }
 }

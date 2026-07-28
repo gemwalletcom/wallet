@@ -13,7 +13,6 @@ import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses
-import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.coordinators.wallet.DeleteWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.GetAllWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
@@ -94,10 +93,9 @@ object WalletModule {
         sessionRepository: SessionRepository,
         walletsRepository: WalletsRepository,
         deleteKeyStoreOperator: DeleteKeyStoreOperator,
-        syncSubscription: SyncSubscription,
         walletPreferencesFactory: WalletPreferencesFactory,
     ): DeleteWallet {
-        return DeleteWalletImpl(sessionRepository, walletsRepository, deleteKeyStoreOperator, syncSubscription, walletPreferencesFactory)
+        return DeleteWalletImpl(sessionRepository, walletsRepository, deleteKeyStoreOperator, walletPreferencesFactory)
     }
 
     @Provides

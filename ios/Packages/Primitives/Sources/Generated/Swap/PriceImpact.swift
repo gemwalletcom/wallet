@@ -10,3 +10,15 @@ public enum SwapPriceImpactType: String, Codable, Equatable, Hashable, Sendable 
 	case medium
 	case high
 }
+
+public struct SwapPriceImpact: Codable, Equatable, Hashable, Sendable {
+	public let percentage: Double
+	public let impactType: SwapPriceImpactType
+	public let isHigh: Bool
+
+	public init(percentage: Double, impactType: SwapPriceImpactType, isHigh: Bool) {
+		self.percentage = percentage
+		self.impactType = impactType
+		self.isHigh = isHigh
+	}
+}
