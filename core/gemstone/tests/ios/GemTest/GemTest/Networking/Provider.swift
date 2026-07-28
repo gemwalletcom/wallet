@@ -10,14 +10,14 @@ public actor NativeProvider {
 
     init(session: URLSession = .shared) {
         self.nodeConfig = [
-            "ethereum": URL(string: "https://eth.llamarpc.com")!,
-            "optimism": URL(string: "https://optimism.llamarpc.com")!,
+            "ethereum": URL(string: "https://ethereum.publicnode.com")!,
+            "optimism": URL(string: "https://mainnet.optimism.io")!,
             "thorchain": URL(string: "https://thornode.ninerealms.com")!,
             "solana": URL(string: "https://solana-rpc.publicnode.com")!,
-            "smartchain": URL(string: "https://binance.llamarpc.com")!,
-            "arbitrum": URL(string: "https://arbitrum.llamarpc.com")!,
-            "base": URL(string: "https://base.llamarpc.com")!,
-            "polygon": URL(string: "https://polygon.llamarpc.com")!,
+            "smartchain": URL(string: "https://bsc-dataseed.bnbchain.org")!,
+            "arbitrum": URL(string: "https://arb1.arbitrum.io/rpc")!,
+            "base": URL(string: "https://mainnet.base.org")!,
+            "polygon": URL(string: "https://polygon.drpc.org")!,
             "sui": URL(string: "https://fullnode.mainnet.sui.io")!,
             "abstract": URL(string: "https://api.mainnet.abs.xyz")!,
             "unichain": URL(string: "https://mainnet.unichain.org")!,

@@ -1,4 +1,3 @@
-use crate::proxy::constants::JSON_CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -136,10 +135,6 @@ impl RequestType {
         self.get_methods_for_metrics().join(",")
     }
 
-    pub fn content_type(&self) -> &'static str {
-        JSON_CONTENT_TYPE
-    }
-
     pub fn cache_key(&self, host: &str) -> Option<String> {
         match self {
             Self::Regular { path, method, body } => {
@@ -218,12 +213,7 @@ mod tests {
 
     #[test]
     fn test_jsonrpc_call_cache_key() {
-        let call = JsonRpcCall {
-            jsonrpc: "2.0".to_string(),
-            method: "eth_getBalance".to_string(),
-            params: json!(["0x123", "latest"]),
-            id: 1,
-        };
+        let call = JsonRpcCall::mock_with_params(1, "eth_getBalance", json!(["0x123", "latest"]));
 
         let key = call.cache_key("example.com", "/rpc");
         assert_eq!(key, "example.com:POST:/rpc:eth_getBalance:[\"0x123\",\"latest\"]");

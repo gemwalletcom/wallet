@@ -10,29 +10,42 @@ use tokio::sync::RwLock;
 use super::CacheProvider;
 use super::types::CacheEntry;
 
+#[derive(Debug)]
+struct ChainCache {
+    entries: RwLock<HashMap<String, CacheEntry>>,
+    rules: ChainCacheRules,
+}
+
 #[derive(Debug, Clone)]
 pub struct MemoryCache {
-    caches: Arc<HashMap<Chain, Arc<RwLock<HashMap<String, CacheEntry>>>>>,
+    chains: Arc<HashMap<Chain, ChainCache>>,
     max_memory: usize,
-    rules: Arc<HashMap<Chain, ChainCacheRules>>,
 }
 
 impl MemoryCache {
     pub fn new<'a>(config: CacheConfig, chains: impl IntoIterator<Item = &'a ChainConfig>) -> Self {
-        let rules = chains
+        let chains = chains
             .into_iter()
-            .filter_map(|chain_config| config.rules(chain_config.chain).map(|cache_rules| (chain_config.chain, cache_rules)))
+            .filter_map(|chain_config| {
+                config.rules(chain_config.chain).map(|rules| {
+                    (
+                        chain_config.chain,
+                        ChainCache {
+                            entries: RwLock::new(HashMap::new()),
+                            rules,
+                        },
+                    )
+                })
+            })
             .collect::<HashMap<_, _>>();
-        let caches = rules.keys().copied().map(|chain| (chain, Arc::new(RwLock::new(HashMap::new())))).collect();
         Self {
-            caches: Arc::new(caches),
+            chains: Arc::new(chains),
             max_memory: config.max_memory,
-            rules: Arc::new(rules),
         }
     }
 
     fn max_size_per_chain(&self) -> usize {
-        let chain_count = self.caches.len().max(1);
+        let chain_count = self.chains.len().max(1);
         self.max_memory / chain_count
     }
 
@@ -67,21 +80,24 @@ impl MemoryCache {
 
 impl CacheProvider for MemoryCache {
     async fn get(&self, chain: &Chain, key: &str) -> Option<CachedResponse> {
-        let cache = self.caches.get(chain)?;
-        let read_guard = cache.read().await;
+        let cache = self.chains.get(chain)?;
+        let read_guard = cache.entries.read().await;
         let entry = read_guard.get(key)?;
         if entry.is_expired() {
             drop(read_guard);
-            cache.write().await.remove(key);
+            let mut write_guard = cache.entries.write().await;
+            if write_guard.get(key).is_some_and(CacheEntry::is_expired) {
+                write_guard.remove(key);
+            }
             return None;
         }
         Some(entry.response.clone())
     }
 
     async fn set(&self, chain: &Chain, key: String, response: CachedResponse, ttl: Duration) {
-        if let Some(cache) = self.caches.get(chain) {
+        if let Some(cache) = self.chains.get(chain) {
             let entry = CacheEntry::new(response, ttl);
-            let mut guard = cache.write().await;
+            let mut guard = cache.entries.write().await;
             guard.insert(key, entry);
             Self::evict_if_needed(&mut guard, self.max_size_per_chain());
         }
@@ -91,8 +107,9 @@ impl CacheProvider for MemoryCache {
         let RequestType::Regular { path, method, body } = request_type else {
             return None;
         };
-        self.rules
+        self.chains
             .get(chain)?
+            .rules
             .cache
             .iter()
             .find(|rule| rule.matches_path_request(path, method, Some(body)))
@@ -100,7 +117,7 @@ impl CacheProvider for MemoryCache {
     }
 
     fn should_cache_call(&self, chain: &Chain, call: &JsonRpcCall) -> Option<Duration> {
-        let rules = self.rules.get(chain)?;
+        let rules = &self.chains.get(chain)?.rules;
         if let Some(ttl) = rules.ttl(call) {
             return Some(ttl);
         }
@@ -220,12 +237,7 @@ mod tests {
         let cache = create_test_cache();
         let chain = Chain::Ethereum;
 
-        let call = JsonRpcCall {
-            jsonrpc: "2.0".to_string(),
-            method: "eth_blockNumber".to_string(),
-            params: serde_json::json!([]),
-            id: 1,
-        };
+        let call = JsonRpcCall::mock(1, "eth_blockNumber");
 
         let ttl = cache.should_cache_call(&chain, &call);
         assert_eq!(ttl, Some(MINUTE));
@@ -333,32 +345,23 @@ mod tests {
         let cache = MemoryCache::new(config, chains.iter());
 
         assert_eq!(
-            cache.should_cache_call(
-                &Chain::Ethereum,
-                &JsonRpcCall {
-                    jsonrpc: "2.0".to_string(),
-                    method: "eth_blockNumber".to_string(),
-                    params: serde_json::json!([]),
-                    id: 1,
-                }
-            ),
+            cache.should_cache_call(&Chain::Ethereum, &JsonRpcCall::mock(1, "eth_blockNumber")),
             Some(Duration::from_secs(60))
         );
         assert_eq!(
             cache.should_cache_call(
                 &Chain::Ethereum,
-                &JsonRpcCall {
-                    jsonrpc: "2.0".to_string(),
-                    method: "eth_call".to_string(),
-                    params: serde_json::json!([
+                &JsonRpcCall::mock_with_params(
+                    1,
+                    "eth_call",
+                    serde_json::json!([
                         {
                             "to": CONTRACT,
                             "data": SELECTOR
                         },
                         "latest"
-                    ]),
-                    id: 1,
-                }
+                    ])
+                )
             ),
             Some(Duration::from_secs(30))
         );

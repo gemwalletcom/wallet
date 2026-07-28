@@ -50,6 +50,8 @@ chain_types:
     allowlist:
       - rpc_method: eth_chainId
       - rpc_method: eth_sendRawTransaction
+      - rpc_method: eth_blockNumber
+      - rpc_method: eth_call
   bitcoin:
     allowlist:
       - path: /api/v2/address/**

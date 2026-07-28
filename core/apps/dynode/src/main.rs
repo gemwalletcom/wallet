@@ -139,7 +139,14 @@ fn resolve_chain(path: &str) -> Option<Chain> {
 
 #[rocket::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let (config, chains) = load_config()?;
+    let selected_chain = std::env::args()
+        .nth(1)
+        .map(|value| Chain::from_str(&value).unwrap_or_else(|_| panic!("Invalid chain: {value}")));
+    let (config, mut chains) = load_config()?;
+    if let Some(chain) = selected_chain {
+        assert!(chains.contains_key(&chain), "Chain is not configured: {chain}");
+        chains.retain(|configured, _| *configured == chain);
+    }
 
     let node_address = IpAddr::from_str(config.address.as_str())?;
     let metrics = Metrics::new(config.metrics.clone());
@@ -158,15 +165,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     );
     node_service.start_monitoring();
 
-    info_with_fields!("Server started", node_address = &format!("{}:{}", node_address, config.port), metrics_path = "/metrics",);
-
     let proxy_server = rocket::custom(Config::figment().merge(("address", node_address)).merge(("port", config.port)))
         .manage(node_service)
         .manage(metrics.clone())
         .manage(config.jwt)
         .mount("/", proxy_routes())
-        .mount("/", rocket::routes![health_endpoint, root_endpoint, auth_endpoint, metrics_endpoint]);
+        .mount("/", rocket::routes![health_endpoint, root_endpoint, auth_endpoint, metrics_endpoint])
+        .ignite()
+        .await?;
 
+    info_with_fields!(
+        "Server started",
+        chain = selected_chain.as_ref().map_or("all", AsRef::as_ref),
+        node_address = &format!("{}:{}", node_address, config.port),
+        metrics_path = "/metrics",
+    );
     proxy_server.launch().await?;
 
     Ok(())

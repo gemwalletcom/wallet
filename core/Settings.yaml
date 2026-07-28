@@ -79,7 +79,7 @@ charter:
 name:
   max_name_length: 20
   ens:
-    url: https://eth.llamarpc.com
+    url: https://ethereum.publicnode.com
   ud:
     url: https://api.unstoppabledomains.com
     key:
