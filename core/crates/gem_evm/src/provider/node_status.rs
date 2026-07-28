@@ -56,7 +56,9 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
         } else {
             recorder
         };
-        let recorder = recorder.record_timed(method::ETH_ESTIMATE_GAS, self.estimate_gas(None, address, None, Some("0x"))).await;
+        let recorder = recorder
+            .record_timed(method::ETH_ESTIMATE_GAS, self.estimate_gas(Some(address), address, None, Some("0x")))
+            .await;
 
         let transaction = TransactionObject::new_call_with_from(address, address, Vec::new());
         recorder.record_optional_available_timed(method::TRACE_CALL, self.trace_call(&transaction)).await

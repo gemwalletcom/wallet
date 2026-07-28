@@ -7,6 +7,7 @@ use crate::config::Url;
 
 use super::observation::NodeStatusObservation;
 use super::selection::NodeSwitchResult;
+use super::switch_reason::NodeSwitchReason;
 
 pub(super) struct NodeTelemetry;
 
@@ -33,11 +34,15 @@ impl NodeTelemetry {
             NodeStatusState::Healthy(status) => (status.latest_block_number, if status.in_sync { None } else { status.current_block_number }),
             NodeStatusState::Error { .. } => (None, None),
         };
+        let reason = match &switch.reason {
+            NodeSwitchReason::CurrentNodeError { error, message } => format!("{error}: {message}"),
+            reason => reason.metric_reason(),
+        };
 
         emit_event(
             "Node switch",
             chain,
-            [("new_host", observation.url.host()), ("old_host", previous.host()), ("reason", switch.reason.to_string())],
+            [("new_host", observation.url.host()), ("old_host", previous.host()), ("reason", reason)],
             &latency,
             latest,
             current,
@@ -69,8 +74,7 @@ fn log_observation(message: &'static str, chain: &str, observation: &NodeStatusO
             let fields = [
                 ("node_host", observation.url.host()),
                 ("error_type", observation.monitor_error.as_ref().to_string()),
-                ("reason", observation.monitor_error.to_string()),
-                ("error", error.clone()),
+                ("error", format!("{}: {error}", observation.monitor_error)),
             ];
             emit_event(message, chain, fields, &latency, None, None, sink);
         }
@@ -88,13 +92,14 @@ fn emit_event<I>(
 ) where
     I: IntoIterator<Item = (&'static str, String)>,
 {
-    let mut values: Vec<(&'static str, String)> = fields.into_iter().collect();
+    let mut values = Vec::new();
     if let Some(latest) = latest {
         values.push(("latest_block", latest.to_string()));
     }
     if let Some(current) = current {
         values.push(("current_block", current.to_string()));
     }
+    values.extend(fields);
 
     let mut display: Vec<(&str, &dyn Display)> = Vec::with_capacity(values.len() + 2);
     display.push(("chain", &chain));
