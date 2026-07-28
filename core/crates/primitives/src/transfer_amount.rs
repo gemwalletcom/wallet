@@ -222,6 +222,17 @@ mod tests {
             "sending more than the balance is insufficient balance, not a reserve problem"
         );
 
+        let full_balance_payment = input(TransactionInputType::Transfer(Asset::mock_btc()), 100_000_000, 100_000_000, 100_000_000);
+        assert_eq!(
+            full_balance_payment.calculate().unwrap_err(),
+            TransferAmountError::InsufficientBalance {
+                asset_id: Asset::mock_btc().id,
+                required: BigInt::from(100_005_000u64),
+                available: BigInt::from(100_000_000u64),
+            },
+            "a fixed amount equal to the whole balance is not treated as max, so the fee on top makes it insufficient"
+        );
+
         let mut insufficient_fee = solana_transfer(10_000_000, 100_000_000);
         insufficient_fee.fee_asset_balance = BigInt::from(1_000);
         assert_eq!(
