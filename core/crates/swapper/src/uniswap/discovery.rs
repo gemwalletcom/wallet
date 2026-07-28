@@ -15,33 +15,23 @@ use std::collections::BTreeSet;
 
 #[derive(Debug, Default)]
 pub(super) struct PoolDiscovery {
-    cache: RouteCache<FeeTier, FeeTier>,
+    cache: RouteCache<FeeTier, FeeTier, (Chain, Address)>,
 }
 
 impl PoolDiscovery {
-    fn asset_key(chain: Chain, token: Address) -> String {
-        format!("{}:{}", chain, token)
-    }
-
     pub fn missing_fee_tiers(&self, chain: Chain, token_a: Address, token_b: Address, fee_tiers: &[FeeTier]) -> Vec<FeeTier> {
-        let from = Self::asset_key(chain, token_a);
-        let to = Self::asset_key(chain, token_b);
-        self.cache.missing_probes(&from, &to, fee_tiers)
+        self.cache.missing_probes((chain, token_a), (chain, token_b), fee_tiers)
     }
 
     pub fn record_fee_tiers(&self, chain: Chain, token_a: Address, token_b: Address, discovered: &[(FeeTier, bool)]) {
-        let from = Self::asset_key(chain, token_a);
-        let to = Self::asset_key(chain, token_b);
         self.cache
-            .record_discovery(&from, &to, discovered.iter().map(|(tier, exists)| (*tier, exists.then_some(*tier))));
+            .record_discovery((chain, token_a), (chain, token_b), discovered.iter().map(|(tier, exists)| (*tier, exists.then_some(*tier))));
     }
 
     pub fn path_exists(&self, chain: Chain, pairs: &[TokenPair]) -> bool {
-        pairs.iter().all(|pair| {
-            let from = Self::asset_key(chain, pair.token_in);
-            let to = Self::asset_key(chain, pair.token_out);
-            self.cache.has_candidate(&from, &to, &pair.fee_tier)
-        })
+        pairs
+            .iter()
+            .all(|pair| self.cache.get_discovery((chain, pair.token_in), (chain, pair.token_out)).0.contains(&pair.fee_tier))
     }
 }
 

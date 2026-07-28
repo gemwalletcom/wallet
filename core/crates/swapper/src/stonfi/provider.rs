@@ -245,13 +245,7 @@ where
             .iter()
             .chain(&candidates)
             .any(|candidate| candidate_has_supported_version(candidate, require_v2));
-        let probes = FALLBACK_ROUTERS
-            .iter()
-            .filter(|router| !require_v2 || router.is_supported_v2())
-            .map(|router| router.address.to_string())
-            .collect::<Vec<_>>();
-        let discovery_complete = self.route_cache.missing_probes(from_token, to_token, &probes).is_empty();
-        if has_candidate || discovery_complete {
+        if has_candidate {
             return;
         }
         _ = self.discover_candidates(from_token, to_token, require_v2).await;
@@ -441,20 +435,18 @@ where
         }
         let from_asset = SwapperQuoteAsset::from(from_asset.clone());
         let to_asset = SwapperQuoteAsset::from(to_asset.clone());
-        let pairs = std::iter::once((token_address(&from_asset), token_address(&to_asset), false))
-            .chain(
-                Self::intermediary_tokens()
-                    .into_iter()
-                    .filter(|intermediary| intermediary.asset_id() != from_asset.asset_id() && intermediary.asset_id() != to_asset.asset_id())
-                    .flat_map(|intermediary| {
-                        [
-                            (token_address(&from_asset), token_address(&intermediary), true),
-                            (token_address(&intermediary), token_address(&to_asset), true),
-                        ]
-                    }),
-            )
-            .collect::<Vec<_>>();
-        join_all(pairs.iter().map(|(from, to, require_v2)| self.preload_pair(from, to, *require_v2))).await;
+        let from_token = token_address(&from_asset);
+        let to_token = token_address(&to_asset);
+        let pairs = std::iter::once((from_token.clone(), to_token.clone(), false)).chain(
+            Self::intermediary_tokens()
+                .into_iter()
+                .filter(|intermediary| intermediary.asset_id() != from_asset.asset_id() && intermediary.asset_id() != to_asset.asset_id())
+                .flat_map(|intermediary| {
+                    let intermediary = token_address(&intermediary);
+                    [(from_token.clone(), intermediary.clone(), true), (intermediary, to_token.clone(), true)]
+                }),
+        );
+        join_all(pairs.map(|(from, to, require_v2)| async move { self.preload_pair(&from, &to, require_v2).await })).await;
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
