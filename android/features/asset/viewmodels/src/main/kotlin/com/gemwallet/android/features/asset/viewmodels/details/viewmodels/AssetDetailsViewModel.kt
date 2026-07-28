@@ -7,9 +7,10 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsStateCoordinator
+import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceAlertEnabled
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
@@ -18,7 +19,6 @@ import com.gemwallet.android.application.transactions.coordinators.TransactionsR
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -55,7 +56,8 @@ class AssetDetailsViewModel @Inject constructor(
     private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
-    private val priceAlertsStateCoordinator: PriceAlertsStateCoordinator,
+    private val getAssetPriceAlertState: GetAssetPriceAlertState,
+    private val setAssetPriceAlertEnabled: SetAssetPriceAlertEnabled,
     private val hasAssetPriceAlerts: HasAssetPriceAlerts,
     private val updatePriceAlerts: UpdatePriceAlerts,
     private val getPriceAlerts: GetPriceAlerts,
@@ -71,10 +73,12 @@ class AssetDetailsViewModel @Inject constructor(
 
     private val assetId = savedStateHandle.requireAssetId()
 
+    private val observedPriceAlertAssetId = MutableStateFlow<AssetId?>(null)
+
     private val chainAssetInfo = getChainAssetInfo(assetId)
         .onStart {
             val wallet = session.value?.wallet ?: return@onStart
-            priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(assetId))
+            observedPriceAlertAssetId.value = assetId
             syncAssetDetails(wallet, assetId, shouldRefreshPriceAlerts = true)
         }
         .filterNotNull()
@@ -95,7 +99,13 @@ class AssetDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val priceAlertEnabled = priceAlertsStateCoordinator.priceAlertState
+    val priceAlertEnabled = observedPriceAlertAssetId.flatMapLatest { observedAssetId ->
+        if (observedAssetId == null) {
+            flowOf<Boolean?>(null)
+        } else {
+            getAssetPriceAlertState.isAssetPriceAlertEnabled(observedAssetId)
+        }
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val priceAlertsCount = getPriceAlerts(assetId)
@@ -165,12 +175,8 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     fun enablePriceAlert(assetId: AssetId) = viewModelScope.launch {
-        val event = when (priceAlertEnabled.value) {
-            is PriceAlertsStateEvent.Disable -> PriceAlertsStateEvent.Enable(assetId)
-            is PriceAlertsStateEvent.Enable -> PriceAlertsStateEvent.Disable(assetId)
-            else -> return@launch
-        }
-        priceAlertsStateCoordinator.priceAlertState(event)
+        val enabled = priceAlertEnabled.value ?: return@launch
+        setAssetPriceAlertEnabled(assetId, !enabled)
     }
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {

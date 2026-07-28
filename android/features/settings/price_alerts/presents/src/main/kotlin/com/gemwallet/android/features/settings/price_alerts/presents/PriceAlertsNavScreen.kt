@@ -11,7 +11,6 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
@@ -40,7 +39,7 @@ fun PriceAlertsNavScreen(
 
     val data by viewModel.data.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
-    val priceAlertState by viewModel.priceAlertState.collectAsStateWithLifecycle()
+    val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
@@ -60,7 +59,7 @@ fun PriceAlertsNavScreen(
             false -> PriceAlertScene(
                 assetInfo = assetInfo,
                 data = data,
-                enabled = priceAlertState is PriceAlertsStateEvent.Enable,
+                enabled = priceAlertEnabled == true,
                 syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),
                 snackbar = snackbar,
