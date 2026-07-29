@@ -30,6 +30,15 @@ Read the relevant platform guide(s) before editing code in that area:
 
 If a task spans multiple platforms, read every affected guide. Do not treat every `core/` edit as a cross-platform build change. Regenerate and verify the apps only when Core changes UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. For internal Core implementation changes that preserve those contracts, run the relevant Core verification without building iOS or Android.
 
+## Design Docs
+
+Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
+
+- [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
+- [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
+
+Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are documented in [core/docs/](core/docs).
+
 ## Security
 
 This is a crypto wallet. Treat security-sensitive changes as high risk by default.
