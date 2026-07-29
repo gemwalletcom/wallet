@@ -1,4 +1,4 @@
-use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
+use crate::actions::{WCSuiTransactionData, WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
@@ -47,6 +47,20 @@ impl SuiRequestHandler {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
             data: params.to_string(),
+        })
+    }
+
+    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
+        let json: Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+        let transaction = json
+            .get("transaction")
+            .and_then(|value| value.as_str())
+            .ok_or_else(|| "Missing transaction field".to_string())?
+            .to_string();
+        let wallet_address = json.get("account").or_else(|| json.get("address")).and_then(|value| value.as_str()).unwrap_or_default().to_string();
+        Ok(WalletConnectTransaction::Sui {
+            data: WCSuiTransactionData { transaction, wallet_address },
+            output_type,
         })
     }
 }

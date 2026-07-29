@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 
 public enum WalletConnectorTransaction {
-    case ethereum(WCEthereumTransaction)
+    case ethereum(WCEthereumTransaction, TransactionType)
     case solana(String, TransferDataOutputType)
     case sui(String, TransferDataOutputType)
     case ton(String, TransferDataOutputType)
