@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.swap
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.swap.coordinators.GetSwapAssets
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.wallet.core.primitives.AssetId
@@ -27,6 +28,7 @@ class SyncSwapAssetsImplTest {
     private val getRemoteConfig = mockk<GetRemoteConfig>()
     private val getSwapAssets = mockk<GetSwapAssets>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
+    private val availabilityService = mockk<AssetsAvailabilityService>(relaxed = true)
     private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
 
     private val subject = SyncSwapAssetsImpl(
@@ -34,6 +36,7 @@ class SyncSwapAssetsImplTest {
         getRemoteConfig = getRemoteConfig,
         getSwapAssets = getSwapAssets,
         assetsRepository = assetsRepository,
+        availabilityService = availabilityService,
         prefetchAssets = prefetchAssets,
     )
 
@@ -47,7 +50,7 @@ class SyncSwapAssetsImplTest {
         subject()
 
         coVerify { prefetchAssets.prefetchAssets(listOf(AssetId(Chain.Bitcoin), AssetId(Chain.Ethereum))) }
-        coVerify { assetsRepository.updateSwapAvailable(listOf("bitcoin", "ethereum")) }
+        coVerify { availabilityService.updateSwapAvailable(listOf("bitcoin", "ethereum")) }
         verify { configStore.putInt(SWAP_ASSETS_VERSION, 495776, "") }
     }
 
@@ -60,7 +63,7 @@ class SyncSwapAssetsImplTest {
 
         coVerify(exactly = 0) { getSwapAssets() }
         coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
-        coVerify(exactly = 0) { assetsRepository.updateSwapAvailable(any()) }
+        coVerify(exactly = 0) { availabilityService.updateSwapAvailable(any()) }
         verify(exactly = 0) { configStore.putInt(SWAP_ASSETS_VERSION, any(), any()) }
     }
 
@@ -78,7 +81,7 @@ class SyncSwapAssetsImplTest {
         subject()
 
         coVerify { prefetchAssets.prefetchAssets(capture(prefetched)) }
-        coVerify { assetsRepository.updateSwapAvailable(capture(marked)) }
+        coVerify { availabilityService.updateSwapAvailable(capture(marked)) }
 
         assertTrue(prefetched.all { it.size <= SQLITE_VARIABLE_LIMIT })
         assertTrue(marked.all { it.size <= SQLITE_VARIABLE_LIMIT })
@@ -93,7 +96,7 @@ class SyncSwapAssetsImplTest {
 
         subject()
 
-        coVerify(exactly = 0) { assetsRepository.updateSwapAvailable(any()) }
+        coVerify(exactly = 0) { availabilityService.updateSwapAvailable(any()) }
         verify(exactly = 0) { configStore.putInt(SWAP_ASSETS_VERSION, any(), any()) }
     }
 
@@ -106,7 +109,7 @@ class SyncSwapAssetsImplTest {
 
         subject()
 
-        coVerify { assetsRepository.updateSwapAvailable(listOf("bitcoin", "ethereum")) }
+        coVerify { availabilityService.updateSwapAvailable(listOf("bitcoin", "ethereum")) }
         verify(exactly = 0) { configStore.putInt(SWAP_ASSETS_VERSION, any(), any()) }
     }
 

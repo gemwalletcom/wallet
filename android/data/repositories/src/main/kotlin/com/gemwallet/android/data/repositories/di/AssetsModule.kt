@@ -13,9 +13,7 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
-import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
@@ -57,8 +55,6 @@ object AssetsModule {
         streamSubscriptionService: StreamSubscriptionService,
         availabilityService: AssetsAvailabilityService,
         currencyRatesService: CurrencyRatesService,
-        searchService: AssetsSearchService,
-        recentAssetsService: RecentAssetsService,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
@@ -69,8 +65,6 @@ object AssetsModule {
         streamSubscriptionService = streamSubscriptionService,
         availabilityService = availabilityService,
         currencyRatesService = currencyRatesService,
-        searchService = searchService,
-        recentAssetsService = recentAssetsService,
     )
 
     @Provides

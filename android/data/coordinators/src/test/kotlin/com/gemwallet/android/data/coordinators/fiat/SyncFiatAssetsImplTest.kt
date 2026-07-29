@@ -4,7 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -26,7 +26,7 @@ class SyncFiatAssetsImplTest {
     private val getRemoteConfig = mockk<GetRemoteConfig>()
     private val getBuyableFiatAssets = mockk<GetBuyableFiatAssets>()
     private val getSellableFiatAssets = mockk<GetSellableFiatAssets>()
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
+    private val availabilityService = mockk<AssetsAvailabilityService>(relaxed = true)
     private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
 
     private val subject = SyncFiatAssetsImpl(
@@ -34,7 +34,7 @@ class SyncFiatAssetsImplTest {
         getRemoteConfig = getRemoteConfig,
         getBuyableFiatAssets = getBuyableFiatAssets,
         getSellableFiatAssets = getSellableFiatAssets,
-        assetsRepository = assetsRepository,
+        availabilityService = availabilityService,
         prefetchAssets = prefetchAssets,
     )
 
@@ -60,8 +60,8 @@ class SyncFiatAssetsImplTest {
                 )
             )
         }
-        coVerify { assetsRepository.updateBuyAvailable(listOf("bitcoin")) }
-        coVerify { assetsRepository.updateSellAvailable(listOf("ethereum")) }
+        coVerify { availabilityService.updateBuyAvailable(listOf("bitcoin")) }
+        coVerify { availabilityService.updateSellAvailable(listOf("ethereum")) }
         verify { configStore.putInt("fiat-on-ramp-assets-version", 5, "") }
         verify { configStore.putInt("fiat-off-ramp-assets-version", 7, "") }
     }
@@ -80,8 +80,8 @@ class SyncFiatAssetsImplTest {
         coVerify(exactly = 0) { getBuyableFiatAssets() }
         coVerify(exactly = 0) { getSellableFiatAssets() }
         coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
-        coVerify(exactly = 0) { assetsRepository.updateBuyAvailable(any()) }
-        coVerify(exactly = 0) { assetsRepository.updateSellAvailable(any()) }
+        coVerify(exactly = 0) { availabilityService.updateBuyAvailable(any()) }
+        coVerify(exactly = 0) { availabilityService.updateSellAvailable(any()) }
     }
 
     @Test
@@ -98,8 +98,8 @@ class SyncFiatAssetsImplTest {
         subject()
 
         coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
-        coVerify { assetsRepository.updateBuyAvailable(emptyList()) }
-        coVerify { assetsRepository.updateSellAvailable(emptyList()) }
+        coVerify { availabilityService.updateBuyAvailable(emptyList()) }
+        coVerify { availabilityService.updateSellAvailable(emptyList()) }
         verify { configStore.putInt("fiat-on-ramp-assets-version", 5, "") }
         verify { configStore.putInt("fiat-off-ramp-assets-version", 7, "") }
     }

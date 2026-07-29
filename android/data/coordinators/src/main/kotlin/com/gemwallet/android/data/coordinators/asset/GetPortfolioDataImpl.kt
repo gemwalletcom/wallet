@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
 import com.gemwallet.android.application.assets.coordinators.walletChartPeriods
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.hyperliquidAccount
@@ -28,6 +29,7 @@ import java.math.BigInteger
 class GetPortfolioDataImpl(
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val assetsRepository: AssetsRepository,
+    private val currencyRatesService: CurrencyRatesService,
     private val perpetualService: PerpetualService,
     private val sessionRepository: SessionRepository,
 ) : GetPortfolioData {
@@ -42,7 +44,7 @@ class GetPortfolioDataImpl(
     }
 
     private suspend fun getWalletData(period: ChartPeriod, currency: Currency): PortfolioData {
-        val rate = checkNotNull(assetsRepository.getCurrencyRate(currency).firstOrNull()?.rate) {
+        val rate = checkNotNull(currencyRatesService.getCurrencyRate(currency).firstOrNull()?.rate) {
             "Missing currency rate for ${currency.string}"
         }
         val assets = assetsRepository.getAssetsInfo().firstOrNull().orEmpty()

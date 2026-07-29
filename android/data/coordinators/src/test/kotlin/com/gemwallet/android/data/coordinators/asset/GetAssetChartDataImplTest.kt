@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetMarket
@@ -23,10 +24,12 @@ class GetAssetChartDataImplTest {
 
     private val gemApiClient = mockk<GemApiClient>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
+    private val currencyRatesService = mockk<CurrencyRatesService>(relaxed = true)
 
     private val subject = GetAssetChartDataImpl(
         gemApiClient = gemApiClient,
         assetsRepository = assetsRepository,
+        currencyRatesService = currencyRatesService,
     )
 
     @Test
@@ -43,7 +46,7 @@ class GetAssetChartDataImplTest {
             totalVolumes = emptyList(),
         )
         coEvery { gemApiClient.getChart("bitcoin", "day") } returns chart
-        every { assetsRepository.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
 
         val result = subject.getAssetChartData(
             assetId = asset.id,
@@ -64,7 +67,7 @@ class GetAssetChartDataImplTest {
             totalVolumes = emptyList(),
         )
         coEvery { gemApiClient.getChart("bitcoin", "day") } returns chart
-        every { assetsRepository.getCurrencyRate(Currency.EUR) } returns flowOf(null)
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(null)
 
         val result = subject.getAssetChartData(
             assetId = asset.id,

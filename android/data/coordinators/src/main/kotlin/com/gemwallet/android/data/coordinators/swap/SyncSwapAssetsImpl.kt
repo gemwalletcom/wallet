@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.swap.coordinators.GetSwapAssets
 import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.ext.toAssetId
@@ -15,6 +16,7 @@ class SyncSwapAssetsImpl(
     private val getRemoteConfig: GetRemoteConfig,
     private val getSwapAssets: GetSwapAssets,
     private val assetsRepository: AssetsRepository,
+    private val availabilityService: AssetsAvailabilityService,
     private val prefetchAssets: PrefetchAssets,
 ) : SyncSwapAssets {
 
@@ -28,7 +30,7 @@ class SyncSwapAssetsImpl(
             val synced = swapAssets.assetIds.distinct().chunked(ASSET_BATCH_SIZE).map { batch ->
                 val assetIds = batch.mapNotNull(String::toAssetId)
                 prefetchAssets.prefetchAssets(assetIds)
-                assetsRepository.updateSwapAvailable(batch)
+                availabilityService.updateSwapAvailable(batch)
                 assetsRepository.hasAssets(assetIds).size == assetIds.size
             }
             if (synced.all { it }) {

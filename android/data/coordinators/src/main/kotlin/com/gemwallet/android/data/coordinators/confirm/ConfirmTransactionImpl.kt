@@ -5,7 +5,7 @@ import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -31,7 +31,7 @@ class ConfirmTransactionImpl(
     private val signTransactionOperator: GemSignTransactionOperator,
     private val broadcastService: BroadcastService,
     private val createTransactionsCase: CreateTransaction,
-    private val assetsRepository: AssetsRepository,
+    private val recentAssetsService: RecentAssetsService,
 ) : ConfirmTransaction {
 
     override suspend fun invoke(
@@ -128,7 +128,7 @@ class ConfirmTransactionImpl(
             null
         }
         try {
-            assetsRepository.addRecentActivity(assetInfo.id(), walletId, type, toAssetId)
+            recentAssetsService.addRecentActivity(assetInfo.id(), walletId, type, toAssetId)
         } catch (_: Throwable) {}
     }
 

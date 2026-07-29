@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.model.AssetBalance
@@ -33,12 +34,14 @@ class GetPortfolioDataImplTest {
 
     private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
+    private val currencyRatesService = mockk<CurrencyRatesService>(relaxed = true)
     private val perpetualService = mockk<PerpetualService>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>(relaxed = true)
 
     private val subject = GetPortfolioDataImpl(
         gemDeviceApiClient = gemDeviceApiClient,
         assetsRepository = assetsRepository,
+        currencyRatesService = currencyRatesService,
         perpetualService = perpetualService,
         sessionRepository = sessionRepository,
     )
@@ -64,7 +67,7 @@ class GetPortfolioDataImplTest {
         val held = mockAssetInfo(asset = bitcoin, balance = AssetBalance.create(bitcoin, available = "1000"))
         val empty = mockAssetInfo(asset = ethereum, balance = AssetBalance.create(ethereum))
         every { assetsRepository.getAssetsInfo() } returns flowOf(listOf(held, empty))
-        every { assetsRepository.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
         coEvery { gemDeviceApiClient.getPortfolioAssets("day", any()) } returns portfolio()
 
         val result = subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.EUR)
@@ -85,7 +88,7 @@ class GetPortfolioDataImplTest {
         val bitcoin = mockAsset()
         every { assetsRepository.getAssetsInfo() } returns
             flowOf(listOf(mockAssetInfo(asset = bitcoin, balance = AssetBalance.create(bitcoin, available = "1"))))
-        every { assetsRepository.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
         val allTimeHigh = ChartValuePercentage(date = 10L, value = 99f, percentage = 5f)
         val allTimeLow = ChartValuePercentage(date = 20L, value = 10f, percentage = -3f)
         coEvery { gemDeviceApiClient.getPortfolioAssets(any(), any()) } returns
@@ -111,7 +114,7 @@ class GetPortfolioDataImplTest {
 
     @Test(expected = IllegalStateException::class)
     fun getPortfolioData_throwsWhenRateMissing() = runTest {
-        every { assetsRepository.getCurrencyRate(Currency.EUR) } returns flowOf(null)
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(null)
 
         subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.EUR)
     }
