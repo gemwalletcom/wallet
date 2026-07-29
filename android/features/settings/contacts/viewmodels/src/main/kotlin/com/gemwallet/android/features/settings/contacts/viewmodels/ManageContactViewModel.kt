@@ -98,6 +98,7 @@ class ManageContactViewModel @Inject constructor(
                         isEdit = true,
                         name = data.contact.name,
                         description = data.contact.description ?: "",
+                        avatar = data.contact.avatar,
                         addresses = data.addresses,
                     )
                 }
@@ -109,6 +110,12 @@ class ManageContactViewModel @Inject constructor(
     fun setName(value: String) = state.update { it.copy(name = value) }
 
     fun setDescription(value: String) = state.update { it.copy(description = value) }
+
+    fun selectAvatar() = state.update { it.copy(page = ManageContactPage.Avatar) }
+
+    fun cancelAvatar() = state.update { it.copy(page = ManageContactPage.Form) }
+
+    fun setAvatar(emoji: String) = state.update { it.copy(avatar = emoji, page = ManageContactPage.Form) }
 
     fun deleteAddress(address: ContactAddress) = state.update {
         it.copy(addresses = it.addresses.filterNot { item -> item.id == address.id })
@@ -216,6 +223,7 @@ class ManageContactViewModel @Inject constructor(
             id = contactId,
             name = current.name.trim(),
             description = current.description.ifBlank { null },
+            avatar = current.avatar,
             createdAt = createdAt ?: now,
             updatedAt = now,
         )

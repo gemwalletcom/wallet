@@ -27,6 +27,7 @@ public struct ContactStore: Sendable {
                 .updateAll(db, [
                     ContactRecord.Columns.name.set(to: contact.name),
                     ContactRecord.Columns.description.set(to: contact.description),
+                    ContactRecord.Columns.avatar.set(to: contact.avatar),
                     ContactRecord.Columns.updatedAt.set(to: contact.updatedAt),
                 ])
 

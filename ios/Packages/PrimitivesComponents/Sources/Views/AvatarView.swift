@@ -1,17 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Foundation
 import Primitives
-import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct AvatarView: View {
-    let avatarImage: AssetImage
-    let size: CGFloat
-    let action: VoidAction
-    let removeAction: VoidAction
+    private let avatarImage: AssetImage
+    private let size: CGFloat
+    private let action: VoidAction
+    private let removeAction: VoidAction
 
     public init(
         avatarImage: AssetImage,

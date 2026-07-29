@@ -24,11 +24,13 @@ public struct ManageContactScene: View {
 
     public var body: some View {
         List {
+            avatarSection
             contactSection
             addressesSection
         }
         .listStyle(.insetGrouped)
         .listSectionSpacing(.compact)
+        .contentMargins(.top, .scene.top, for: .scrollContent)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -51,6 +53,15 @@ public struct ManageContactScene: View {
                     .toolbarDismissItem(type: .close, placement: .cancellationAction)
             }
         }
+        .sheet(isPresented: $model.isPresentingAvatar) {
+            NavigationStack {
+                EmojiSelectorView(emojis: model.emojiList, onSelect: model.onSelectAvatar)
+                    .navigationTitle(Localized.Common.emoji)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbarDismissItem(type: .close, placement: .cancellationAction)
+                    .background(Colors.grayBackground)
+            }
+        }
     }
 
     private func contactAddressScene(mode: ManageContactAddressViewModel.Mode) -> some View {
@@ -68,6 +79,19 @@ public struct ManageContactScene: View {
 // MARK: - UI Components
 
 extension ManageContactScene {
+    private var avatarSection: some View {
+        Section {
+            AvatarView(
+                avatarImage: model.avatarImage,
+                size: model.avatarSize,
+                action: onSelectAvatar,
+                removeAction: model.onClearAvatar,
+            )
+            .frame(maxWidth: .infinity, alignment: .center)
+            .listRowBackground(Color.clear)
+        }
+    }
+
     private var contactSection: some View {
         Section {
             InputValidationField(
@@ -114,6 +138,11 @@ extension ManageContactScene {
     private func onAddAddress() {
         focusedField = .none
         model.isPresentingAddress = .add
+    }
+
+    private func onSelectAvatar() {
+        focusedField = .none
+        model.isPresentingAvatar = true
     }
 
     private func onSave() {

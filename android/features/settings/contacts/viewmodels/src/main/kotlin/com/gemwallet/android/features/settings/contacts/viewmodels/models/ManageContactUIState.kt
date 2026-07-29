@@ -10,12 +10,14 @@ enum class ManageContactPage {
     Form,
     Address,
     SelectChain,
+    Avatar,
 }
 
 data class ManageContactUIState(
     val isEdit: Boolean = false,
     val name: String = "",
     val description: String = "",
+    val avatar: String? = null,
     val addresses: List<ContactAddress> = emptyList(),
     val page: ManageContactPage = ManageContactPage.Form,
     val addressInput: ContactAddressInput? = null,

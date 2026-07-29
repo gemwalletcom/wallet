@@ -3,14 +3,26 @@
 import Style
 import SwiftUI
 
+public enum AssetImageType: Sendable, Equatable, Hashable {
+    case text(String)
+    case emoji(String)
+
+    public var value: String {
+        switch self {
+        case let .text(value), let .emoji(value):
+            value
+        }
+    }
+}
+
 public struct AssetImage: Sendable, Equatable {
-    public let type: String?
+    public let type: AssetImageType?
     public let imageURL: URL?
     public let placeholder: Image?
     public let chainPlaceholder: Image?
 
     public init(
-        type: String? = .none,
+        type: AssetImageType? = .none,
         imageURL: URL? = .none,
         placeholder: Image? = .none,
         chainPlaceholder: Image? = .none,

@@ -513,6 +513,12 @@ struct Migrations {
             }
         }
 
+        migrator.registerMigration("Add avatar to \(ContactRecord.databaseTableName)") { db in
+            try? db.alter(table: ContactRecord.databaseTableName) {
+                $0.add(column: ContactRecord.Columns.avatar.name, .text)
+            }
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

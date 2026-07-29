@@ -52,7 +52,7 @@ public struct WalletViewModel: Sendable {
 
     public var avatarImage: AssetImage {
         AssetImage(
-            type: wallet.name,
+            type: .text(wallet.name),
             imageURL: imageUrl(),
             placeholder: image,
             chainPlaceholder: subImage,

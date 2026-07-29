@@ -75,7 +75,7 @@ public final class AddAssetSceneViewModel {
 
     var warningImageStyle: ListItemImageStyle? {
         ListItemImageStyle(
-            assetImage: AssetImage(type: Emoji.WalletAvatar.warning.rawValue),
+            assetImage: AssetImage(type: .emoji(Emoji.WalletAvatar.warning.rawValue)),
             imageSize: .image.semiMedium,
             alignment: .top,
             cornerRadiusType: .none,

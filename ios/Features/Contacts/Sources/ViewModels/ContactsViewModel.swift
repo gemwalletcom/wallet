@@ -64,7 +64,7 @@ public final class ContactsViewModel {
             titleExtra: contact.contact.description,
             titleStyleExtra: .calloutSecondary,
             titleExtraLineLimit: 1,
-            imageStyle: .asset(assetImage: AssetImage(type: String(contact.contact.name.prefix(2)))),
+            imageStyle: .asset(assetImage: contact.contact.avatarImage),
         )
     }
 

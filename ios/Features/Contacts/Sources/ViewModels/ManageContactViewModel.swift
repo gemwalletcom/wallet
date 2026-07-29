@@ -35,8 +35,12 @@ public final class ManageContactViewModel {
 
     var nameInputModel: InputValidationViewModel
     var description: String = ""
+    var avatar: String?
     var addresses: [ContactAddress] = []
     var isPresentingAddress: ManageContactAddressViewModel.Mode?
+    var isPresentingAvatar: Bool = false
+
+    let emojiList: [EmojiValue] = Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) }
 
     public init(
         service: ContactService,
@@ -62,6 +66,7 @@ public final class ManageContactViewModel {
             contactId = contactData.contact.id
             nameInputModel.text = contactData.contact.name
             description = contactData.contact.description ?? ""
+            avatar = contactData.contact.avatar
             addresses = contactData.addresses
         }
     }
@@ -107,13 +112,33 @@ public final class ManageContactViewModel {
         return .normal
     }
 
+    let avatarSize: CGFloat = .image.extraLarge
+
+    var avatarImage: AssetImage {
+        currentContact.avatarImage
+    }
+
+    var hasAvatar: Bool {
+        avatar != nil
+    }
+
+    var onClearAvatar: VoidAction {
+        hasAvatar ? { [weak self] in self?.avatar = nil } : nil
+    }
+
     private var currentContact: Contact {
         Contact.new(
             id: contactId,
             name: nameInputModel.text.trim(),
             description: description.isEmpty ? nil : description,
+            avatar: avatar,
             createdAt: mode.contact?.createdAt ?? .now,
         )
+    }
+
+    func onSelectAvatar(_ value: EmojiValue) {
+        avatar = value.emoji
+        isPresentingAvatar = false
     }
 
     func listItemModel(for address: ContactAddress) -> ListItemModel {

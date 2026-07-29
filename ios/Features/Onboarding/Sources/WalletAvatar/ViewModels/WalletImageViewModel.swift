@@ -78,7 +78,7 @@ public final class WalletImageViewModel: Sendable {
                 NFTAssetImageItem(
                     id: $0.id.identifier,
                     assetImage: AssetImage(
-                        type: $0.name,
+                        type: .text($0.name),
                         imageURL: $0.images.preview.url.asURL,
                         placeholder: nil,
                         chainPlaceholder: nil,
@@ -87,13 +87,8 @@ public final class WalletImageViewModel: Sendable {
             }
     }
 
-    func getColumns(for tab: WalletImageScene.Tab) -> [GridItem] {
-        switch tab {
-        case .emoji:
-            Array(repeating: GridItem(.flexible(), spacing: .medium), count: 4)
-        case .collections:
-            Array(repeating: GridItem(spacing: .medium), count: 2)
-        }
+    var nftColumns: [GridItem] {
+        Array(repeating: GridItem(spacing: .medium), count: 2)
     }
 
     // MARK: - Public methods

@@ -128,7 +128,7 @@ extension ListAssetItemView {
                 name: "Bitcoin",
                 symbol: "BTC",
                 assetImage: AssetImage(
-                    type: "ERC20",
+                    type: .text("ERC20"),
                     imageURL: URL(string: "https://assets.gemwallet.com/blockchains/bitcoin/info/logo.png")!,
                     placeholder: .none,
                     chainPlaceholder: .none,
