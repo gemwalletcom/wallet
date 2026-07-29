@@ -12,6 +12,8 @@ use number_formatter::BigNumberFormatter;
 use primitives::Chain;
 use std::{fmt::Debug, sync::Arc};
 
+const MAX_HOPS: u8 = 2;
+
 #[derive(Debug)]
 pub struct Panora<C>
 where
@@ -52,6 +54,7 @@ where
             slippage_percentage: bps_to_percent_string(request.options.slippage.bps)?,
             integrator_fee_percentage: bps_to_percent_string(referral.bps)?,
             integrator_fee_address: referral.address,
+            max_hops: MAX_HOPS,
         })
     }
 }
@@ -161,6 +164,7 @@ mod tests {
         assert_eq!(built.slippage_percentage, "1");
         assert_eq!(built.integrator_fee_percentage, "0.5");
         assert_eq!(built.integrator_fee_address, referral.address);
+        assert_eq!(built.max_hops, 2);
     }
 
     #[test]
