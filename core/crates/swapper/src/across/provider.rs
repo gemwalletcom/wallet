@@ -342,20 +342,20 @@ impl Swapper for Across {
         }
 
         // Prepare data for lp fee calculation (token config, utilization, current time)
-        let token_config_req = config_client.fetch_config(&mainnet_token);
-        let mut calls = vec![
+        let gas_price_call = (!original_output_asset.is_native()).then(|| {
+            ChainlinkPriceFeed::new_usd_feed_for_chain(request.to_asset.chain())
+                .unwrap_or_else(ChainlinkPriceFeed::new_eth_usd_feed)
+                .latest_round_call3()
+        });
+        let calls = vec![
             hubpool_client.utilization_call3(&mainnet_token, U256::from(0)),
             hubpool_client.utilization_call3(&mainnet_token, from_amount),
             hubpool_client.get_current_time(),
-        ];
-
-        if !original_output_asset.is_native() {
-            let gas_price_feed = ChainlinkPriceFeed::new_usd_feed_for_chain(request.to_asset.chain()).unwrap_or_else(ChainlinkPriceFeed::new_eth_usd_feed);
-            calls.push(gas_price_feed.latest_round_call3());
-        }
-
-        let multicall_results = self.multicall3(Chain::Ethereum, calls).await?;
-        let token_config = token_config_req.await?;
+        ]
+        .into_iter()
+        .chain(gas_price_call)
+        .collect();
+        let (token_config, multicall_results) = futures::try_join!(config_client.get_config(&mainnet_token), self.multicall3(Chain::Ethereum, calls))?;
 
         let util_before = hubpool_client.decoded_utilization_call3(&multicall_results[0])?;
         let util_after = hubpool_client.decoded_utilization_call3(&multicall_results[1])?;
