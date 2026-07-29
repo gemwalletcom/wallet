@@ -11,7 +11,7 @@ import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
 import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
 import com.gemwallet.android.data.coordinators.confirm.ValidateBalanceImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import dagger.Module
 import dagger.Provides
@@ -34,13 +34,13 @@ object ConfirmModule {
         signTransactionOperator: GemSignTransactionOperator,
         broadcastService: BroadcastService,
         createTransactionsCase: CreateTransaction,
-        assetsRepository: AssetsRepository,
+        recentAssetsService: RecentAssetsService,
     ): ConfirmTransaction = ConfirmTransactionImpl(
         passwordStore,
         signTransactionOperator,
         broadcastService,
         createTransactionsCase,
-        assetsRepository,
+        recentAssetsService,
     )
 
     @Provides

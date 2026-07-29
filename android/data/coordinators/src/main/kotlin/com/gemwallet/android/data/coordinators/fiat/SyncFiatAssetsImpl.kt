@@ -5,7 +5,7 @@ import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.ext.toAssetId
 import kotlinx.coroutines.currentCoroutineContext
@@ -16,7 +16,7 @@ class SyncFiatAssetsImpl(
     private val getRemoteConfig: GetRemoteConfig,
     private val getBuyableFiatAssets: GetBuyableFiatAssets,
     private val getSellableFiatAssets: GetSellableFiatAssets,
-    private val assetsRepository: AssetsRepository,
+    private val availabilityService: AssetsAvailabilityService,
     private val prefetchAssets: PrefetchAssets,
 ) : SyncFiatAssets {
 
@@ -47,11 +47,11 @@ class SyncFiatAssetsImpl(
             }
 
             buyAssets?.let {
-                assetsRepository.updateBuyAvailable(it.assetIds)
+                availabilityService.updateBuyAvailable(it.assetIds)
                 configStore.putInt(FIAT_ON_RAMP_ASSETS_VERSION, it.version.toInt())
             }
             sellAssets?.let {
-                assetsRepository.updateSellAvailable(it.assetIds)
+                availabilityService.updateSellAvailable(it.assetIds)
                 configStore.putInt(FIAT_OFF_RAMP_ASSETS_VERSION, it.version.toInt())
             }
         } catch (_: Exception) {

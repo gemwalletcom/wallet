@@ -16,6 +16,8 @@ import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsIm
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
 import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
@@ -30,14 +32,14 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideSearchSelectAssets(
-        assetsRepository: AssetsRepository,
-    ): SearchSelectAssets = SearchSelectAssetsImpl(assetsRepository)
+        searchService: AssetsSearchService,
+    ): SearchSelectAssets = SearchSelectAssetsImpl(searchService)
 
     @Provides
     @Singleton
     fun provideSearchListAssets(
-        assetsRepository: AssetsRepository,
-    ): SearchListAssets = SearchListAssetsImpl(assetsRepository)
+        searchService: AssetsSearchService,
+    ): SearchListAssets = SearchListAssetsImpl(searchService)
 
     @Provides
     @Singleton
@@ -48,8 +50,8 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideGetRecentAssets(
-        assetsRepository: AssetsRepository,
-    ): GetRecentAssets = GetRecentAssetsImpl(assetsRepository)
+        recentAssetsService: RecentAssetsService,
+    ): GetRecentAssets = GetRecentAssetsImpl(recentAssetsService)
 
     @Provides
     @Singleton
@@ -62,13 +64,13 @@ object AssetSelectModule {
     @Singleton
     fun provideUpdateRecentAsset(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): UpdateRecentAsset = UpdateRecentAssetImpl(sessionRepository, assetsRepository)
+        recentAssetsService: RecentAssetsService,
+    ): UpdateRecentAsset = UpdateRecentAssetImpl(sessionRepository, recentAssetsService)
 
     @Provides
     @Singleton
     fun provideClearRecentAssets(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): ClearRecentAssets = ClearRecentAssetsImpl(sessionRepository, assetsRepository)
+        recentAssetsService: RecentAssetsService,
+    ): ClearRecentAssets = ClearRecentAssetsImpl(sessionRepository, recentAssetsService)
 }

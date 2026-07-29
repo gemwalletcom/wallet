@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.application.swap.coordinators.GetSwapSupported
 import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toAssetId
@@ -23,7 +23,7 @@ import uniffi.gemstone.SwapperAssetList
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchSwapAssetsImpl(
-    private val assetsRepository: AssetsRepository,
+    private val searchService: AssetsSearchService,
     private val getSwapSupported: GetSwapSupported,
 ) : SearchSwapAssets {
 
@@ -49,7 +49,7 @@ class SearchSwapAssetsImpl(
             }
         }
         .flatMapLatest { supported ->
-            assetsRepository.swapSearch(
+            searchService.swapSearch(
                 wallet,
                 query,
                 supported.chains.mapNotNull { it.toChain() },

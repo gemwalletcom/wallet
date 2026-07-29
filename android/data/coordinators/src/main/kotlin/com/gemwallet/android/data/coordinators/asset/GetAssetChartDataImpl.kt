@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.firstOrNull
 class GetAssetChartDataImpl(
     private val gemApiClient: GemApiClient,
     private val assetsRepository: AssetsRepository,
+    private val currencyRatesService: CurrencyRatesService,
 ) : GetAssetChartData {
 
     override suspend fun getAssetChartData(
@@ -25,7 +27,7 @@ class GetAssetChartDataImpl(
             assetsRepository.updateAssetMarket(assetId, it, currency)
         }
 
-        val rate = assetsRepository.getCurrencyRate(currency).firstOrNull()?.rate?.toFloat() ?: return emptyList()
+        val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull()?.rate?.toFloat() ?: return emptyList()
         return chart.prices
             .map { it.copy(value = it.value * rate) }
             .sortedBy { it.timestamp }
