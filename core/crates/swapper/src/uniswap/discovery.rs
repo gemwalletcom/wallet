@@ -1,5 +1,5 @@
 use crate::{RpcClient, SwapperError, route_cache::DiscoveryCache};
-use alloy_primitives::{Address, B256, hex::decode as hex_decode};
+use alloy_primitives::{Address, B256};
 use alloy_sol_types::SolCall;
 use gem_evm::{
     jsonrpc::{BlockParameter, EthereumRpc, TransactionObject},
@@ -9,8 +9,8 @@ use gem_evm::{
         path::TokenPair,
     },
 };
-use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
-use primitives::Chain;
+use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResults};
+use primitives::{Chain, decode_hex};
 use std::collections::BTreeSet;
 
 #[derive(Debug, Default)]
@@ -19,7 +19,7 @@ pub(super) struct PoolDiscovery {
 }
 
 impl PoolDiscovery {
-    pub fn missing_pools(&self, chain: Chain, pairs: &[(Address, Address)], fee_tiers: &[FeeTier]) -> Vec<TokenPair> {
+    pub(super) fn missing_pools(&self, chain: Chain, pairs: &[(Address, Address)], fee_tiers: &[FeeTier]) -> Vec<TokenPair> {
         pairs
             .iter()
             .flat_map(|(token_in, token_out)| {
@@ -35,18 +35,21 @@ impl PoolDiscovery {
             .collect()
     }
 
-    pub fn record_pools(&self, chain: Chain, discovered: &[(TokenPair, bool)]) {
+    pub(super) fn record_pools(&self, chain: Chain, discovered: &[(TokenPair, bool)]) {
         discovered.iter().for_each(|(pair, exists)| {
             self.cache
                 .record_discovery((chain, pair.token_in), (chain, pair.token_out), [(pair.fee_tier, exists.then_some(pair.fee_tier))]);
         });
     }
 
-    pub fn path_exists(&self, chain: Chain, pairs: &[TokenPair]) -> bool {
+    pub(super) fn path_may_exist(&self, chain: Chain, pairs: &[TokenPair]) -> bool {
         pairs.iter().all(|pair| {
-            self.cache
-                .candidates_for_probes((chain, pair.token_in), (chain, pair.token_out), std::slice::from_ref(&pair.fee_tier))
-                .contains(&pair.fee_tier)
+            let probes = std::slice::from_ref(&pair.fee_tier);
+            let exists = self
+                .cache
+                .candidates_for_probes((chain, pair.token_in), (chain, pair.token_out), probes)
+                .contains(&pair.fee_tier);
+            exists || !self.cache.missing_probes((chain, pair.token_in), (chain, pair.token_out), probes).is_empty()
         })
     }
 }
@@ -70,16 +73,16 @@ pub(super) async fn discover_v3_pools(client: &JsonRpcClient<RpcClient>, factory
         EthereumRpc::Call(TransactionObject::new_call(factory, data), BlockParameter::Latest)
     });
     let responses = client.batch_request::<_, String>(requests.collect()).await?;
-    pools
+    Ok(pools
         .iter()
         .zip(responses)
-        .map(|(pool, response)| {
-            let result = response.take()?;
-            let bytes = hex_decode(result)?;
-            let address = IUniswapV3Factory::getPoolCall::abi_decode_returns(&bytes)?;
-            Ok((pool.clone(), address != Address::ZERO))
+        .filter_map(|(pool, response)| {
+            let result = response.take().ok()?;
+            let bytes = decode_hex(&result).ok()?;
+            let address = IUniswapV3Factory::getPoolCall::abi_decode_returns(&bytes).ok()?;
+            Some((pool.clone(), address != Address::ZERO))
         })
-        .collect()
+        .collect())
 }
 
 pub(super) async fn discover_v4_pools(client: &JsonRpcClient<RpcClient>, state_view: &str, pools: &[(TokenPair, B256)]) -> Result<Vec<(TokenPair, bool)>, SwapperError> {
@@ -88,16 +91,18 @@ pub(super) async fn discover_v4_pools(client: &JsonRpcClient<RpcClient>, state_v
         EthereumRpc::Call(TransactionObject::new_call(state_view, data), BlockParameter::Latest)
     });
     let responses = client.batch_request::<_, String>(requests.collect()).await?;
+    Ok(decode_v4_discoveries(pools, responses))
+}
+
+fn decode_v4_discoveries(pools: &[(TokenPair, B256)], responses: JsonRpcResults<String>) -> Vec<(TokenPair, bool)> {
     pools
         .iter()
         .zip(responses)
-        .map(|((pool, _), response)| match response {
-            JsonRpcResult::Value(response) => {
-                let bytes = hex_decode(response.result)?;
-                let slot = IUniswapV4StateView::getSlot0Call::abi_decode_returns(&bytes)?;
-                Ok((pool.clone(), !slot.sqrtPriceX96.is_zero()))
-            }
-            JsonRpcResult::Error(error) => Err(SwapperError::from(error.error)),
+        .filter_map(|((pool, _), response)| {
+            let result = response.take().ok()?;
+            let bytes = decode_hex(&result).ok()?;
+            let slot = IUniswapV4StateView::getSlot0Call::abi_decode_returns(&bytes).ok()?;
+            Some((pool.clone(), !slot.sqrtPriceX96.is_zero()))
         })
         .collect()
 }
@@ -105,6 +110,10 @@ pub(super) async fn discover_v4_pools(client: &JsonRpcClient<RpcClient>, state_v
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloy_primitives::U256;
+    use alloy_sol_types::SolValue;
+    use gem_jsonrpc::types::{JsonRpcError, JsonRpcErrorResponse, JsonRpcResponse, JsonRpcResult};
+    use primitives::hex::encode_with_0x;
 
     #[test]
     fn test_pool_discovery() {
@@ -121,7 +130,59 @@ mod tests {
         discovery.record_pools(Chain::Ethereum, &[(pools[0].clone(), true), (pools[1].clone(), false)]);
 
         assert_eq!(discovery.missing_pools(Chain::Ethereum, &pairs, &fee_tiers), pools[2..]);
-        assert!(discovery.path_exists(Chain::Ethereum, &[pools[0].clone()]));
-        assert!(!discovery.path_exists(Chain::Ethereum, &[pools[1].clone()]));
+        assert!(discovery.path_may_exist(Chain::Ethereum, &[pools[0].clone()]));
+        assert!(!discovery.path_may_exist(Chain::Ethereum, &[pools[1].clone()]));
+        assert!(discovery.path_may_exist(Chain::Ethereum, &[pools[2].clone()]));
+    }
+
+    #[test]
+    fn test_v4_discovery_preserves_successful_responses() {
+        let pools = [
+            (
+                TokenPair {
+                    token_in: Address::from([1; 20]),
+                    token_out: Address::from([2; 20]),
+                    fee_tier: FeeTier::FiveHundred,
+                },
+                B256::ZERO,
+            ),
+            (
+                TokenPair {
+                    token_in: Address::from([1; 20]),
+                    token_out: Address::from([3; 20]),
+                    fee_tier: FeeTier::ThreeThousand,
+                },
+                B256::ZERO,
+            ),
+        ];
+        let slot = (U256::from(1), 0i32, 0u32, 0u32).abi_encode();
+        let responses = vec![
+            JsonRpcResult::Value(JsonRpcResponse {
+                id: Some(1),
+                result: encode_with_0x(&slot),
+            }),
+            JsonRpcResult::Error(JsonRpcErrorResponse {
+                id: Some(2),
+                error: JsonRpcError {
+                    code: -32000,
+                    message: "upstream unavailable".into(),
+                },
+            }),
+        ]
+        .into();
+
+        let discovered = decode_v4_discoveries(&pools, responses);
+        let discovery = PoolDiscovery::default();
+        discovery.record_pools(Chain::Ethereum, &discovered);
+
+        assert_eq!(discovered, vec![(pools[0].0.clone(), true)]);
+        assert_eq!(
+            discovery.missing_pools(Chain::Ethereum, &[(pools[0].0.token_in, pools[0].0.token_out)], std::slice::from_ref(&pools[0].0.fee_tier)),
+            vec![]
+        );
+        assert_eq!(
+            discovery.missing_pools(Chain::Ethereum, &[(pools[1].0.token_in, pools[1].0.token_out)], std::slice::from_ref(&pools[1].0.fee_tier)),
+            vec![pools[1].0.clone()]
+        );
     }
 }

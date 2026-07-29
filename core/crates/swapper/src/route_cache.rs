@@ -33,7 +33,7 @@ impl<Key, Value> Default for Cache<Key, Value> {
 }
 
 impl<Key, Value> Cache<Key, Value> {
-    fn new(ttl: Duration) -> Self {
+    pub(crate) fn new(ttl: Duration) -> Self {
         Self {
             values: Mutex::new(HashMap::new()),
             ttl,

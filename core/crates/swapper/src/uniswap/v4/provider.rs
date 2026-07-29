@@ -163,24 +163,23 @@ impl Swapper for UniswapV4 {
             from_value
         };
 
-        let discovery_available = self.preload_pool_candidates(from_chain, token_in, token_out).await.is_ok();
+        _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
         let pool_keys = build_pool_keys(&token_in, &token_out, &fee_tiers);
-        let pool_keys = if discovery_available {
-            pool_keys.into_iter().filter(|(pairs, _)| self.pool_discovery.path_exists(from_chain, pairs)).collect()
-        } else {
-            pool_keys
-        };
+        let pool_keys = pool_keys
+            .into_iter()
+            .filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs))
+            .collect::<Vec<_>>();
         let quote_exact_params = if !Self::is_base_pair(&token_in, &token_out, &evm_chain) {
             let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
-            let params = build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries);
-            if discovery_available {
-                params
-                    .into_iter()
-                    .map(|paths| paths.into_iter().filter(|(pairs, _)| self.pool_discovery.path_exists(from_chain, pairs)).collect())
-                    .collect()
-            } else {
-                params
-            }
+            build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries)
+                .into_iter()
+                .map(|paths| {
+                    paths
+                        .into_iter()
+                        .filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs))
+                        .collect::<Vec<_>>()
+                })
+                .collect()
         } else {
             Vec::new()
         };
@@ -237,7 +236,7 @@ impl Swapper for UniswapV4 {
             to_value: to_value.to_string(),
             data: ProviderData {
                 provider: self.provider().clone(),
-                routes: routes.clone(),
+                routes,
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
@@ -273,7 +272,8 @@ impl Swapper for UniswapV4 {
         let from_asset = request.from_asset.asset_id();
         let (_, token_in, token_out, amount_in) = Self::parse_request(request)?;
         let deployment = get_uniswap_deployment_by_chain(&from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-        let route_data: RouteData = serde_json::from_str(&quote.data.routes.first().unwrap().route_data).map_err(|_| SwapperError::InvalidRoute)?;
+        let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
+        let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let to_amount = u128::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?;
 
         let client = self.client_for(from_asset.chain)?;

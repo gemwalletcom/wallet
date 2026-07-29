@@ -13,10 +13,11 @@ use crate::{
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{default_referral_address, default_referral_fees},
+    route_cache::Cache,
 };
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{Chain, ChainType};
+use primitives::{Chain, ChainType, HOUR};
 use std::{collections::BTreeSet, fmt::Debug, sync::Arc};
 
 #[derive(Debug)]
@@ -28,6 +29,7 @@ where
     price_client: MayanClient<C>,
     explorer_client: MayanClient<C>,
     rpc_provider: Arc<dyn RpcProvider>,
+    sui_package_id_cache: Cache<&'static str, String>,
 }
 
 impl Mayan<RpcClient> {
@@ -50,6 +52,7 @@ where
             price_client,
             explorer_client,
             rpc_provider,
+            sui_package_id_cache: Cache::new(HOUR),
         }
     }
 
@@ -154,7 +157,7 @@ where
             (ChainType::Solana, MayanQuote::Swift(route)) => swift::solana::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Solana, MayanQuote::Mctp(route)) => mctp::solana::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Solana, MayanQuote::FastMctp(route)) => fast_mctp::solana::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
-            (ChainType::Sui, MayanQuote::Mctp(route)) => mctp::sui::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
+            (ChainType::Sui, MayanQuote::Mctp(route)) => mctp::sui::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone(), &self.sui_package_id_cache).await,
             (ChainType::Solana, MayanQuote::MonoChain(_)) | (ChainType::Sui, MayanQuote::Swift(_) | MayanQuote::FastMctp(_) | MayanQuote::MonoChain(_)) => {
                 Err(SwapperError::InvalidRoute)
             }

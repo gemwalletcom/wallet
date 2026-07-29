@@ -173,16 +173,17 @@ impl Swapper for UniswapV3 {
             from_value
         };
 
-        let discovery_available = self.preload_pool_candidates(from_chain, token_in, token_out).await.is_ok();
+        _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
         let paths_array = super::path::build_paths(&token_in, &token_out, &fee_tiers, &base_pair);
-        let paths_array = if discovery_available {
-            paths_array
-                .into_iter()
-                .map(|paths| paths.into_iter().filter(|(pairs, _)| self.pool_discovery.path_exists(from_chain, pairs)).collect())
-                .collect()
-        } else {
-            paths_array
-        };
+        let paths_array = paths_array
+            .into_iter()
+            .map(|paths| {
+                paths
+                    .into_iter()
+                    .filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs))
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
         let quote_calls = paths_array
             .iter()
             .enumerate()
@@ -237,7 +238,7 @@ impl Swapper for UniswapV3 {
             to_value: to_value.to_string(),
             data: ProviderData {
                 provider: self.provider().clone(),
-                routes: routes.clone(),
+                routes,
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
@@ -265,7 +266,8 @@ impl Swapper for UniswapV3 {
 
         let client = self.client_for(from_chain)?;
 
-        let route_data: RouteData = serde_json::from_str(&quote.data.routes.first().unwrap().route_data).map_err(|_| SwapperError::InvalidRoute)?;
+        let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
+        let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let to_amount = U256::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?;
 
         let wallet_address = eth_address::parse_str(&request.wallet_address)?;

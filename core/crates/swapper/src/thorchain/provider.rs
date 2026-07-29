@@ -76,7 +76,7 @@ where
         let to_asset = THORChainAsset::from_asset_id(self.network, &request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
 
         let value = super::asset::value_from(&request.value, from_asset.decimals as i32);
-        let inbound_addresses = self.client.get_inbound_addresses().await?;
+        let inbound_addresses = self.get_inbound_addresses().await?;
         let from_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &from_asset)?;
         let to_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &to_asset)?;
 
@@ -130,7 +130,7 @@ where
                 routes: vec![Route {
                     input: request.from_asset.asset_id(),
                     output: request.to_asset.asset_id(),
-                    route_data: serde_json::to_string(&route_data).unwrap_or_default(),
+                    route_data: serde_json::to_string(&route_data)?,
                 }],
                 slippage_bps: request.options.slippage.bps,
             },
@@ -161,16 +161,18 @@ where
             fee.bps,
         );
 
-        let route_data: RouteData = serde_json::from_str(&quote.data.routes.first().unwrap().route_data).map_err(|_| SwapperError::InvalidRoute)?;
+        let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
+        let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let value = quote.from_value.clone();
 
         let approval: Option<ApprovalData> = {
             if from_asset.use_evm_router() {
                 let router_address = route_data.router_address.clone().ok_or(SwapperError::InvalidRoute)?;
                 let from_amount: U256 = value.to_string().parse().map_err(SwapperError::from)?;
+                let token_id = from_asset.token_id.clone().ok_or(SwapperError::NotSupportedAsset)?;
                 check_approval_erc20(
                     quote.request.wallet_address.clone(),
-                    from_asset.token_id.clone().unwrap(),
+                    token_id,
                     router_address,
                     from_amount,
                     self.rpc_provider.clone(),
@@ -183,7 +185,7 @@ where
             }
         };
 
-        let data = quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id.clone(), value, memo, approval);
+        let data = quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id, value, memo, approval);
 
         Ok(data)
     }
@@ -201,24 +203,15 @@ fn min_value(dust_threshold: &BigInt) -> BigInt {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
 
     use super::*;
-    use crate::{Options, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_bitcoin_max_quote, testkit::mock_quote, thorchain::client::ThorChainSwapClient};
+    use crate::{Options, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_bitcoin_max_quote, testkit::mock_quote};
     use gem_client::testkit::MockClient;
     use primitives::asset_constants::{ARBITRUM_USDC_ASSET_ID, THORCHAIN_TCY_ASSET_ID};
-
-    fn swapper_with_halted_bsc() -> ThorChain<MockClient> {
-        let client = MockClient::new().with_get(|path| {
-            assert_eq!(path, "/thorchain/inbound_addresses");
-            Ok(include_str!("testdata/inbound_addresses_bsc_halted.json").as_bytes().to_vec())
-        });
-        ThorChain::with_client(
-            ThorChainSwapClient::new(client, THORChainNetwork::Thorchain),
-            Arc::new(ProviderMock::new(String::new())),
-            THORChainNetwork::Thorchain,
-        )
-    }
 
     #[test]
     fn test_min_value() {
@@ -277,7 +270,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_quote_rejects_halted_source_and_destination_chains() {
-        let swapper = swapper_with_halted_bsc();
+        let inbound_address_calls = Arc::new(AtomicUsize::new(0));
+        let calls = inbound_address_calls.clone();
+        let client = MockClient::new().with_get(move |path| {
+            calls.fetch_add(1, Ordering::Relaxed);
+            assert_eq!(path, "/thorchain/inbound_addresses");
+            Ok(include_str!("testdata/inbound_addresses_bsc_halted.json").as_bytes().to_vec())
+        });
+        let swapper = ThorChain::with_client(
+            ThorChainSwapClient::new(client, THORChainNetwork::Thorchain),
+            Arc::new(ProviderMock::new(String::new())),
+            THORChainNetwork::Thorchain,
+        );
         let bsc = SwapperQuoteAsset::from(Chain::SmartChain.as_asset_id());
         let bitcoin = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
 
@@ -286,6 +290,7 @@ mod tests {
 
         assert_eq!(source_error, SwapperError::NoQuoteAvailable);
         assert_eq!(destination_error, SwapperError::NoQuoteAvailable);
+        assert_eq!(inbound_address_calls.load(Ordering::Relaxed), 1);
     }
 
     #[tokio::test]

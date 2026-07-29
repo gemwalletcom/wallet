@@ -8,8 +8,8 @@ mod provider;
 mod quote_data_mapper;
 mod swap_mapper;
 
-use primitives::Chain;
-use std::sync::Arc;
+use primitives::{Chain, MINUTE};
+use std::{sync::Arc, time::Duration};
 
 use crate::alien::RpcProvider;
 use asset::value_to;
@@ -17,13 +17,14 @@ use chain::ChainName;
 use gem_client::Client;
 use strum::Display;
 
-use super::{ProviderType, SwapperError, SwapperProvider};
+use super::{ProviderType, SwapperError, SwapperProvider, route_cache::Cache};
 
 const QUOTE_MINIMUM: i64 = 0;
 const QUOTE_INTERVAL: i64 = 1;
 const QUOTE_QUANTITY: i64 = 0;
 const DUST_THRESHOLD_MULTIPLIER: i64 = 2;
 const OUTBOUND_DELAY_SECONDS: u32 = 60;
+const INBOUND_ADDRESS_CACHE_TTL: Duration = MINUTE.saturating_mul(10);
 
 // FIXME: estimate gas limit with memo x bytes
 const DEFAULT_DEPOSIT_GAS_LIMIT: u64 = 90_000;
@@ -72,6 +73,7 @@ where
     pub rpc_provider: Arc<dyn RpcProvider>,
     pub(crate) network: THORChainNetwork,
     pub(crate) client: client::ThorChainSwapClient<C>,
+    inbound_address_cache: Cache<(), Vec<model::InboundAddress>>,
 }
 
 impl<C> ThorChain<C>
@@ -84,7 +86,17 @@ where
             rpc_provider,
             network,
             client: swap_client,
+            inbound_address_cache: Cache::new(INBOUND_ADDRESS_CACHE_TTL),
         }
+    }
+
+    async fn get_inbound_addresses(&self) -> Result<Vec<model::InboundAddress>, SwapperError> {
+        if let Some(addresses) = self.inbound_address_cache.get(&()) {
+            return Ok(addresses);
+        }
+        let addresses = self.client.get_inbound_addresses().await?;
+        self.inbound_address_cache.put((), addresses.clone());
+        Ok(addresses)
     }
 
     fn get_eta_in_seconds(&self, destination_chain: Chain, total_swap_seconds: Option<u32>) -> u32 {

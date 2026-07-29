@@ -13,7 +13,7 @@ use gem_hypercore::{
 use num_bigint::BigUint;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::{
-    Chain,
+    Chain, HOUR,
     known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_HYPE, HYPERCORE_SPOT_UBTC, HYPERCORE_SPOT_USDC},
 };
 
@@ -22,6 +22,7 @@ use crate::{
     SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     error::INVALID_AMOUNT,
+    route_cache::Cache,
 };
 
 use super::{
@@ -42,6 +43,7 @@ fn compute_actual_from(use_max_amount: bool, amount: &str, decimals: u32) -> Res
 pub struct HyperCoreSpot {
     provider: ProviderType,
     rpc_provider: Arc<dyn RpcProvider>,
+    spot_meta_cache: Cache<(), SpotMeta>,
 }
 
 impl HyperCoreSpot {
@@ -49,12 +51,22 @@ impl HyperCoreSpot {
         Self {
             provider: ProviderType::new(SwapperProvider::Hyperliquid),
             rpc_provider,
+            spot_meta_cache: Cache::new(HOUR),
         }
     }
 
     fn client(&self) -> Result<HyperCoreClient<RpcClient>, SwapperError> {
         let endpoint = self.rpc_provider.get_endpoint(Chain::HyperCore)?;
         Ok(HyperCoreClient::new(RpcClient::new(endpoint, self.rpc_provider.clone())))
+    }
+
+    async fn get_spot_meta(&self, client: &HyperCoreClient<RpcClient>) -> Result<SpotMeta, SwapperError> {
+        if let Some(meta) = self.spot_meta_cache.get(&()) {
+            return Ok(meta);
+        }
+        let meta = client.get_spot_meta().await.map_err(SwapperError::compute_quote_error)?;
+        self.spot_meta_cache.put((), meta.clone());
+        Ok(meta)
     }
 
     fn resolve_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
@@ -121,7 +133,7 @@ impl Swapper for HyperCoreSpot {
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let client = self.client()?;
-        let meta = client.get_spot_meta().await.map_err(SwapperError::compute_quote_error)?;
+        let meta = self.get_spot_meta(&client).await?;
         let from_token = self.resolve_token(&meta, &request.from_asset)?;
         let to_token = self.resolve_token(&meta, &request.to_asset)?;
 
@@ -233,7 +245,56 @@ impl Swapper for HyperCoreSpot {
         let order: PlaceOrder = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let order_json = serde_json::to_string(&order).map_err(SwapperError::transaction_error)?;
 
-        Ok(SwapperQuoteData::new_contract("".to_string(), quote.request.value.clone(), order_json, None, None))
+        Ok(SwapperQuoteData::new_contract("".to_string(), quote.from_value.clone(), order_json, None, None))
+    }
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use std::{
+        sync::atomic::{AtomicUsize, Ordering},
+        time::Duration,
+    };
+
+    use crate::alien::mock::{MockFn, ProviderMock};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_spot_meta_cache() {
+        let requests = Arc::new(AtomicUsize::new(0));
+        let requests_ref = requests.clone();
+        let provider = Arc::new(ProviderMock {
+            response: MockFn(Box::new(move |_| {
+                requests_ref.fetch_add(1, Ordering::Relaxed);
+                include_str!("../../../../../gem_hypercore/testdata/spot_meta_spot_swap.json").to_string()
+            })),
+            timeout: Duration::ZERO,
+        });
+        let spot = HyperCoreSpot::new(provider);
+        let client = spot.client().unwrap();
+
+        spot.get_spot_meta(&client).await.unwrap();
+        spot.get_spot_meta(&client).await.unwrap();
+
+        assert_eq!(requests.load(Ordering::Relaxed), 1);
+    }
+
+    #[tokio::test]
+    async fn test_quote_data_uses_adjusted_from_value() {
+        let spot = HyperCoreSpot::new(Arc::new(ProviderMock::new(String::new())));
+        let mut quote = Quote::mock(Chain::HyperCore, None);
+        quote.request.value = "11000000".to_string();
+        quote.from_value = "10000000".to_string();
+        quote.data.routes = vec![Route {
+            input: quote.request.from_asset.asset_id(),
+            output: quote.request.to_asset.asset_id(),
+            route_data: serde_json::to_string(&make_market_order(10_001, false, "1", "1", false, None)).unwrap(),
+        }];
+
+        let data = spot.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+
+        assert_eq!(data.value, quote.from_value);
     }
 }
 

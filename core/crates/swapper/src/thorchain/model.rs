@@ -319,9 +319,9 @@ mod tests {
         let bitcoin_address = inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &bitcoin).unwrap().unwrap();
 
         assert_eq!(bsc_address.chain, "BSC");
-        assert_eq!(bsc_address.is_swap_available(), false);
+        assert!(!bsc_address.is_swap_available());
         assert_eq!(bitcoin_address.chain, "BTC");
-        assert_eq!(bitcoin_address.is_swap_available(), true);
+        assert!(bitcoin_address.is_swap_available());
         assert!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &rune).unwrap().is_none());
         assert_eq!(
             inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &ethereum).unwrap_err(),

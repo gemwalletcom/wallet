@@ -140,9 +140,9 @@ impl CetusClmm {
     }
 
     fn route_discovery_complete(&self, from: &str, to: &str) -> bool {
-        discovery_pairs(from, to).into_iter().all(|(pair_from, pair_to)| {
-            !Self::known_pools(&pair_from, &pair_to).is_empty() || self.discovery_cache.missing_probes(pair_from, pair_to, CETUS_ALL_TICK_SPACINGS).is_empty()
-        })
+        discovery_pairs(from, to)
+            .into_iter()
+            .all(|(pair_from, pair_to)| self.discovery_cache.missing_probes(pair_from, pair_to, CETUS_ALL_TICK_SPACINGS).is_empty())
     }
 
     fn known_pools(from: &str, to: &str) -> Vec<DiscoveredPool> {
@@ -160,29 +160,36 @@ impl CetusClmm {
             .collect()
     }
 
-    async fn discover_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Vec<DiscoveredPool> {
+    fn discovered_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Vec<DiscoveredPool> {
         let known = Self::known_pools(from, to);
-        if !known.is_empty() {
-            return known;
-        }
-        let cached_pools = self.discovery_cache.candidates_for_probes(from, to, ticks);
-        let missing = self.discovery_cache.missing_probes(from, to, ticks);
-        if missing.is_empty() {
-            return cached_pools;
-        }
-        let Some(discoveries) = self.query_direct_pools(from, to, &missing).await else {
-            return cached_pools;
-        };
-        self.discovery_cache.record_discovery(from, to, discoveries);
-        self.discovery_cache.candidates_for_probes(from, to, ticks)
+        known
+            .iter()
+            .cloned()
+            .chain(
+                self.discovery_cache
+                    .candidates_for_probes(from, to, ticks)
+                    .into_iter()
+                    .filter(|candidate| known.iter().all(|pool| pool.pool_id != candidate.pool_id)),
+            )
+            .collect()
     }
 
-    async fn query_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Option<Vec<(u32, Option<DiscoveredPool>)>> {
+    async fn discover_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Vec<DiscoveredPool> {
+        let missing = self.discovery_cache.missing_probes(from, to, ticks);
+        if missing.is_empty() {
+            return self.discovered_pools(from, to, ticks);
+        }
+        let discoveries = self.query_direct_pools(from, to, &missing).await;
+        self.discovery_cache.record_discovery(from, to, discoveries);
+        self.discovered_pools(from, to, ticks)
+    }
+
+    async fn query_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Vec<(u32, Option<DiscoveredPool>)> {
         let (coin_a, coin_b) = canonical_pair_order(from, to);
         let inspects = ticks
             .iter()
             .map(|tick| async move { self.inspect_pool_id(coin_a, coin_b, *tick).await.map(|pool_id| (*tick, pool_id)) });
-        let results = futures::future::join_all(inspects).await.into_iter().collect::<Result<Vec<_>, _>>().ok()?;
+        let results = futures::future::join_all(inspects).await.into_iter().filter_map(Result::ok).collect::<Vec<_>>();
         let pool_ids = results.iter().filter_map(|(_, pool_id)| pool_id.clone()).collect::<Vec<_>>();
         let pool_ids = pool_ids
             .iter()
@@ -191,28 +198,28 @@ impl CetusClmm {
             .map(|(_, pool_id)| pool_id.clone())
             .collect::<Vec<_>>();
         if pool_ids.is_empty() {
-            return Some(results.into_iter().map(|(tick, _)| (tick, None)).collect());
+            return results.into_iter().map(|(tick, _)| (tick, None)).collect();
         }
-        let resolver = ObjectResolver::prefetch(&self.sui_client, pool_ids, &HashMap::new()).await.ok()?;
-        Some(
-            results
-                .into_iter()
-                .filter_map(|(tick, pool_id)| match pool_id {
-                    Some(pool_id) => resolver.initial_shared_version(&pool_id).map(|pool_init_version| {
-                        (
-                            tick,
-                            Some(DiscoveredPool {
-                                pool_id,
-                                pool_init_version,
-                                coin_a: coin_a.to_string(),
-                                coin_b: coin_b.to_string(),
-                            }),
-                        )
-                    }),
-                    None => Some((tick, None)),
-                })
-                .collect(),
-        )
+        let Ok(resolver) = ObjectResolver::prefetch(&self.sui_client, pool_ids, &HashMap::new()).await else {
+            return results.into_iter().filter_map(|(tick, pool_id)| pool_id.is_none().then_some((tick, None))).collect();
+        };
+        results
+            .into_iter()
+            .filter_map(|(tick, pool_id)| match pool_id {
+                Some(pool_id) => resolver.initial_shared_version(&pool_id).map(|pool_init_version| {
+                    (
+                        tick,
+                        Some(DiscoveredPool {
+                            pool_id,
+                            pool_init_version,
+                            coin_a: coin_a.to_string(),
+                            coin_b: coin_b.to_string(),
+                        }),
+                    )
+                }),
+                None => Some((tick, None)),
+            })
+            .collect()
     }
 
     async fn quote_candidates_batched(&self, candidates: Vec<Vec<DiscoveredPool>>, from: &str, swap_amount: u64) -> Vec<Option<(Vec<Hop>, u32)>> {
@@ -293,9 +300,18 @@ impl CetusClmm {
 
     async fn inspect_pool_id(&self, coin_a: &str, coin_b: &str, tick_spacing: u32) -> Result<Option<String>, SwapperError> {
         let transaction = tx_builder::build_pool_id_inspect(coin_a, coin_b, tick_spacing)?;
-        let Some(result) = self.run_inspect(transaction).await? else {
-            return Ok(None);
-        };
+        let result = self
+            .sui_client
+            .inspect_transaction_block(EMPTY_ADDRESS, &transaction, None)
+            .await
+            .map_err(SwapperError::compute_quote_error)?;
+        if let Some(error) = result.error.as_deref() {
+            return if is_missing_pool_error(error) {
+                Ok(None)
+            } else {
+                Err(SwapperError::ComputeQuoteError(format!("Cetus CLMM pool discovery failed: {error}")))
+            };
+        }
         let bytes = result
             .results
             .last()
@@ -312,10 +328,7 @@ impl CetusClmm {
         if quotes.is_empty() {
             return Ok(Vec::new());
         }
-        let result = self
-            .run_inspect(tx_builder::build_batch_quote_inspect(quotes)?)
-            .await?
-            .ok_or(SwapperError::NoQuoteAvailable)?;
+        let result = self.inspect_quote(tx_builder::build_batch_quote_inspect(quotes)?).await?;
         Ok((0..quotes.len()).map(|i| quote_result_at(&result, i)).collect())
     }
 
@@ -323,23 +336,20 @@ impl CetusClmm {
         if routes.is_empty() {
             return Ok(Vec::new());
         }
-        let result = self
-            .run_inspect(tx_builder::build_batch_multi_hop_quote_inspect(routes)?)
-            .await?
-            .ok_or(SwapperError::NoQuoteAvailable)?;
+        let result = self.inspect_quote(tx_builder::build_batch_multi_hop_quote_inspect(routes)?).await?;
         Ok((0..routes.len()).map(|i| (quote_result_at(&result, i * 3), quote_result_at(&result, i * 3 + 2))).collect())
     }
 
-    async fn run_inspect(&self, transaction: Vec<u8>) -> Result<Option<InspectResult>, SwapperError> {
+    async fn inspect_quote(&self, transaction: Vec<u8>) -> Result<InspectResult, SwapperError> {
         let result = self
             .sui_client
             .inspect_transaction_block(EMPTY_ADDRESS, &transaction, None)
             .await
             .map_err(SwapperError::compute_quote_error)?;
-        if result.error.is_some() {
-            return Ok(None);
+        if let Some(error) = result.error.as_deref() {
+            return Err(SwapperError::ComputeQuoteError(format!("Cetus CLMM quote simulation failed: {error}")));
         }
-        Ok(Some(result))
+        Ok(result)
     }
 }
 
@@ -357,6 +367,14 @@ fn discovery_pairs(from: &str, to: &str) -> Vec<(String, String)> {
 
 fn canonical_pair_order<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
     if a > b { (a, b) } else { (b, a) }
+}
+
+fn is_missing_pool_error(error: &str) -> bool {
+    let error = error.to_ascii_lowercase();
+    error.contains("moveabort")
+        && error.contains("factory")
+        && error.contains("pool_simple_info")
+        && (error.contains(", 10)") || error.contains("abort code 10") || error.contains("abort_code: 10"))
 }
 
 fn decode_quote_result_bytes(bytes: &[u8]) -> Result<QuoteResult, SwapperError> {
@@ -409,7 +427,9 @@ fn quote_result_at(result: &InspectResult, cmd_idx: usize) -> Option<QuoteResult
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::alien::mock::ProviderMock;
     use primitives::asset_constants::SUI_USDC_TOKEN_ID;
+    use std::sync::Arc;
 
     fn inspect_result_many(per_command: Vec<Vec<u8>>) -> InspectResult {
         InspectResult {
@@ -477,6 +497,33 @@ mod tests {
         assert_eq!(discovery_pairs(sui, usdc), vec![(sui.to_string(), usdc.to_string())]);
         assert_eq!(discovery_pairs(sui, blue).len(), 3);
         assert_eq!(discovery_pairs(blue, other).len(), 5);
+    }
+
+    #[test]
+    fn test_known_pools_do_not_suppress_discovery() {
+        let provider = CetusClmm::new(Arc::new(ProviderMock::new(String::new())));
+
+        assert!(!provider.route_discovery_complete(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL));
+
+        provider
+            .discovery_cache
+            .record_discovery(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL, CETUS_ALL_TICK_SPACINGS.iter().map(|tick| (*tick, None)));
+
+        assert!(provider.route_discovery_complete(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL));
+        assert_eq!(
+            provider.discovered_pools(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL, CETUS_ALL_TICK_SPACINGS),
+            CetusClmm::known_pools(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL)
+        );
+    }
+
+    #[test]
+    fn test_missing_pool_error_requires_exact_cetus_abort() {
+        let missing = r#"MoveAbort(MoveLocation { module: ModuleId { name: Identifier("factory") }, function_name: Some("pool_simple_info") }, 10) in command 1"#;
+
+        assert!(is_missing_pool_error(missing));
+        assert!(!is_missing_pool_error(&missing.replace(", 10)", ", 11)")));
+        assert!(!is_missing_pool_error(&missing.replace("pool_simple_info", "pool_id")));
+        assert!(!is_missing_pool_error("RPC timeout"));
     }
 
     #[test]

@@ -12,7 +12,7 @@ impl ChainflipProvider<RpcClient, RpcClient> {
         let broker_url = get_swap_proxy_url("chainflip-broker/rpc");
 
         let api_client = RpcClient::new(api_url, rpc_provider.clone());
-        let chainflip_client = ChainflipClient::new(api_client.clone());
+        let chainflip_client = ChainflipClient::new(api_client);
 
         let broker_client = BrokerClient::new(JsonRpcClient::new(RpcClient::new(broker_url, rpc_provider.clone())));
 
