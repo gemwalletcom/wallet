@@ -7,7 +7,7 @@ pub mod deployment;
 pub mod path;
 
 // hundredths of bps (e.g. 0.3% is 3000)
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(u32)]
 pub enum FeeTier {
     Hundred = 100,

@@ -57,7 +57,14 @@ where
     }
 
     pub(super) async fn get_pool_data(&self, pool_address: &str) -> Result<PoolData, SwapperError> {
-        let result = self.run_get_method(pool_address, GET_POOL_DATA_METHOD, Vec::new()).await?;
+        let result = self
+            .ton_client
+            .run_get_method(pool_address, GET_POOL_DATA_METHOD, Vec::new())
+            .await
+            .map_err(SwapperError::compute_quote_error)?;
+        if result.exit_code != 0 {
+            return Err(SwapperError::NoQuoteAvailable);
+        }
         parse_pool_data(&result)
     }
 
@@ -81,11 +88,6 @@ where
         let wallet = stack_cell_address(&result.stack, 0)?;
         self.jetton_wallet_cache.put(key, wallet.clone());
         Ok(wallet)
-    }
-
-    async fn run_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, SwapperError> {
-        let result = self.ton_client.run_get_method(address, method, stack).await.map_err(SwapperError::compute_quote_error)?;
-        validate_run_get_method(method, result)
     }
 
     async fn run_static_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, SwapperError> {

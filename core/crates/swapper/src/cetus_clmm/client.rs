@@ -7,7 +7,7 @@ use crate::{
     ProviderType, RpcProvider, SwapperError, SwapperProvider,
     client_factory::create_sui_client,
     fees::{ReferralFee, default_referral_fees},
-    route_cache::RouteCache,
+    route_cache::DiscoveryCache,
 };
 use gem_sui::{EMPTY_ADDRESS, SUI_COIN_TYPE, SuiClient, coin_type_matches, full_coin_type, models::InspectResult, tx_builder::ObjectResolver};
 use primitives::AssetId;
@@ -32,7 +32,7 @@ struct PhaseResult {
 pub struct CetusClmm {
     pub(super) provider: ProviderType,
     pub(super) sui_client: SuiClient,
-    route_cache: RouteCache<DiscoveredPool, u32>,
+    discovery_cache: DiscoveryCache<DiscoveredPool, u32>,
 }
 
 impl std::fmt::Debug for CetusClmm {
@@ -51,7 +51,7 @@ impl CetusClmm {
         Self {
             provider: ProviderType::new(SwapperProvider::CetusClmm),
             sui_client,
-            route_cache: RouteCache::default(),
+            discovery_cache: DiscoveryCache::default(),
         }
     }
 
@@ -64,51 +64,33 @@ impl CetusClmm {
     }
 
     pub(super) async fn find_route_hops(&self, from: &str, to: &str, swap_amount: u64) -> Result<Vec<Hop>, SwapperError> {
-        if let Some(cached_route) = self.route_cache.get_route(from, to) {
-            let quotes = self.quote_candidates_batched(vec![cached_route], from, swap_amount).await;
-            if let Some((hops, _)) = quotes.into_iter().flatten().next() {
-                return Ok(hops);
-            }
-        }
-
-        let primary = self.try_route_with_ticks(from, to, swap_amount, CETUS_PRIMARY_TICK_SPACINGS).await;
-        if let Some((hops, _)) = primary.acceptable_direct {
-            self.cache_winning_route(from, to, &hops);
+        let discovery_complete = self.route_discovery_complete(from, to);
+        let initial_ticks = if discovery_complete { CETUS_ALL_TICK_SPACINGS } else { CETUS_PRIMARY_TICK_SPACINGS };
+        let PhaseResult { acceptable_direct, best_route } = self.try_route_with_ticks(from, to, swap_amount, initial_ticks).await;
+        if let Some((hops, _)) = acceptable_direct {
             return Ok(hops);
         }
-        if let Some((hops, impact)) = &primary.best_route
-            && *impact <= DIRECT_PRICE_IMPACT_THRESHOLD_BPS
-        {
-            self.cache_winning_route(from, to, hops);
-            return Ok(hops.clone());
+        if discovery_complete {
+            return best_route.map(|(hops, _)| hops).ok_or(SwapperError::NoQuoteAvailable);
         }
-
-        let expanded = self.try_route_with_ticks(from, to, swap_amount, CETUS_ALL_TICK_SPACINGS).await;
-        let (hops, _) = expanded
-            .acceptable_direct
-            .or(expanded.best_route)
-            .or(primary.best_route)
-            .ok_or(SwapperError::NoQuoteAvailable)?;
-        self.cache_winning_route(from, to, &hops);
-        Ok(hops)
+        match best_route {
+            Some((hops, impact)) if impact <= DIRECT_PRICE_IMPACT_THRESHOLD_BPS => Ok(hops),
+            best_route => {
+                let expanded = self.try_route_with_ticks(from, to, swap_amount, CETUS_ALL_TICK_SPACINGS).await;
+                expanded
+                    .acceptable_direct
+                    .or(expanded.best_route)
+                    .or(best_route)
+                    .map(|(hops, _)| hops)
+                    .ok_or(SwapperError::NoQuoteAvailable)
+            }
+        }
     }
 
     pub(super) async fn preload_pair(&self, from: &str, to: &str) {
-        self.discover_direct_pools(from, to, CETUS_ALL_TICK_SPACINGS).await;
-        let discoveries = INTERMEDIATE_COIN_TYPES.iter().filter_map(|raw_intermediate| {
-            let intermediate = full_coin_type(raw_intermediate);
-            if coin_type_matches(from, &intermediate) || coin_type_matches(to, &intermediate) {
-                None
-            } else {
-                Some(async move {
-                    futures::future::join(
-                        self.discover_direct_pools(from, &intermediate, CETUS_ALL_TICK_SPACINGS),
-                        self.discover_direct_pools(&intermediate, to, CETUS_ALL_TICK_SPACINGS),
-                    )
-                    .await
-                })
-            }
-        });
+        let discoveries = discovery_pairs(from, to)
+            .into_iter()
+            .map(|(pair_from, pair_to)| async move { self.discover_direct_pools(&pair_from, &pair_to, CETUS_ALL_TICK_SPACINGS).await });
         futures::future::join_all(discoveries).await;
     }
 
@@ -128,19 +110,23 @@ impl CetusClmm {
             };
         }
 
-        let mut multi_hop_candidates: Vec<Vec<DiscoveredPool>> = Vec::new();
-        for raw_intermediate in INTERMEDIATE_COIN_TYPES {
+        let multi_hop_discoveries = INTERMEDIATE_COIN_TYPES.iter().filter_map(|raw_intermediate| {
             let intermediate = full_coin_type(raw_intermediate);
             if coin_type_matches(from, &intermediate) || coin_type_matches(to, &intermediate) {
-                continue;
+                None
+            } else {
+                Some(async move { futures::future::join(self.discover_direct_pools(from, &intermediate, ticks), self.discover_direct_pools(&intermediate, to, ticks)).await })
             }
-            let (firsts, seconds) = futures::future::join(self.discover_direct_pools(from, &intermediate, ticks), self.discover_direct_pools(&intermediate, to, ticks)).await;
-            for first in &firsts {
-                for second in &seconds {
-                    multi_hop_candidates.push(vec![first.clone(), second.clone()]);
-                }
-            }
-        }
+        });
+        let multi_hop_candidates = futures::future::join_all(multi_hop_discoveries)
+            .await
+            .into_iter()
+            .flat_map(|(firsts, seconds)| {
+                firsts
+                    .into_iter()
+                    .flat_map(move |first| seconds.clone().into_iter().map(move |second| vec![first.clone(), second]))
+            })
+            .collect();
         let multi_hop_quotes = self.quote_candidates_batched(multi_hop_candidates, from, swap_amount).await;
         let best_route = direct_quotes
             .into_iter()
@@ -153,17 +139,10 @@ impl CetusClmm {
         }
     }
 
-    fn cache_winning_route(&self, from: &str, to: &str, hops: &[Hop]) {
-        let route: Vec<DiscoveredPool> = hops
-            .iter()
-            .map(|hop| DiscoveredPool {
-                pool_id: hop.pool_id.clone(),
-                pool_init_version: hop.pool_init_version,
-                coin_a: hop.coin_a.clone(),
-                coin_b: hop.coin_b.clone(),
-            })
-            .collect();
-        self.route_cache.record_route(from, to, &route);
+    fn route_discovery_complete(&self, from: &str, to: &str) -> bool {
+        discovery_pairs(from, to).into_iter().all(|(pair_from, pair_to)| {
+            !Self::known_pools(&pair_from, &pair_to).is_empty() || self.discovery_cache.missing_probes(pair_from, pair_to, CETUS_ALL_TICK_SPACINGS).is_empty()
+        })
     }
 
     fn known_pools(from: &str, to: &str) -> Vec<DiscoveredPool> {
@@ -186,16 +165,16 @@ impl CetusClmm {
         if !known.is_empty() {
             return known;
         }
-        let (cached_pools, _) = self.route_cache.get_discovery(from, to);
-        let missing = self.route_cache.missing_probes(from, to, ticks);
+        let cached_pools = self.discovery_cache.candidates_for_probes(from, to, ticks);
+        let missing = self.discovery_cache.missing_probes(from, to, ticks);
         if missing.is_empty() {
             return cached_pools;
         }
         let Some(discoveries) = self.query_direct_pools(from, to, &missing).await else {
             return cached_pools;
         };
-        self.route_cache.record_discovery(from, to, discoveries);
-        self.route_cache.get_discovery(from, to).0
+        self.discovery_cache.record_discovery(from, to, discoveries);
+        self.discovery_cache.candidates_for_probes(from, to, ticks)
     }
 
     async fn query_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Option<Vec<(u32, Option<DiscoveredPool>)>> {
@@ -254,14 +233,17 @@ impl CetusClmm {
 
         hops.into_iter()
             .zip(quote_results)
-            .map(|(mut hop, quote)| {
+            .map(|(hop, quote)| {
                 let q = quote?;
                 if q.amount_out == 0 || q.is_exceed {
                     return None;
                 }
-                hop.amount_out = q.amount_out;
-                hop.after_sqrt_price = q.after_sqrt_price;
                 let impact = price_impact_bps(q.current_sqrt_price, q.after_sqrt_price);
+                let hop = Hop {
+                    amount_out: q.amount_out,
+                    after_sqrt_price: q.after_sqrt_price,
+                    ..hop
+                };
                 Some((vec![hop], impact))
             })
             .collect()
@@ -283,7 +265,7 @@ impl CetusClmm {
         hop_pairs
             .into_iter()
             .zip(fused_results)
-            .map(|((mut hop1, mut hop2), (q1, q2))| {
+            .map(|((hop1, hop2), (q1, q2))| {
                 let q1 = q1?;
                 if q1.amount_out == 0 || q1.is_exceed {
                     return None;
@@ -292,12 +274,18 @@ impl CetusClmm {
                 if q2.amount_out == 0 || q2.is_exceed {
                     return None;
                 }
-                hop1.amount_out = q1.amount_out;
-                hop1.after_sqrt_price = q1.after_sqrt_price;
-                hop2.amount_in = q1.amount_out;
-                hop2.amount_out = q2.amount_out;
-                hop2.after_sqrt_price = q2.after_sqrt_price;
                 let max_impact = price_impact_bps(q1.current_sqrt_price, q1.after_sqrt_price).max(price_impact_bps(q2.current_sqrt_price, q2.after_sqrt_price));
+                let hop1 = Hop {
+                    amount_out: q1.amount_out,
+                    after_sqrt_price: q1.after_sqrt_price,
+                    ..hop1
+                };
+                let hop2 = Hop {
+                    amount_in: q1.amount_out,
+                    amount_out: q2.amount_out,
+                    after_sqrt_price: q2.after_sqrt_price,
+                    ..hop2
+                };
                 Some((vec![hop1, hop2], max_impact))
             })
             .collect()
@@ -355,6 +343,18 @@ impl CetusClmm {
     }
 }
 
+fn discovery_pairs(from: &str, to: &str) -> Vec<(String, String)> {
+    std::iter::once((from.to_string(), to.to_string()))
+        .chain(
+            INTERMEDIATE_COIN_TYPES
+                .iter()
+                .map(|raw_intermediate| full_coin_type(raw_intermediate))
+                .filter(|intermediate| !coin_type_matches(from, intermediate) && !coin_type_matches(to, intermediate))
+                .flat_map(|intermediate| [(from.to_string(), intermediate.clone()), (intermediate, to.to_string())]),
+        )
+        .collect()
+}
+
 fn canonical_pair_order<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
     if a > b { (a, b) } else { (b, a) }
 }
@@ -409,6 +409,7 @@ fn quote_result_at(result: &InspectResult, cmd_idx: usize) -> Option<QuoteResult
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::asset_constants::SUI_USDC_TOKEN_ID;
 
     fn inspect_result_many(per_command: Vec<Vec<u8>>) -> InspectResult {
         InspectResult {
@@ -464,6 +465,18 @@ mod tests {
         assert_eq!(canonical_pair_order(sui, blue), (blue, sui));
         assert_eq!(canonical_pair_order(blue, usdc), (blue, usdc));
         assert_eq!(canonical_pair_order(usdc, blue), (blue, usdc));
+    }
+
+    #[test]
+    fn test_discovery_pairs() {
+        let sui = gem_sui::SUI_COIN_TYPE_FULL;
+        let usdc = SUI_USDC_TOKEN_ID;
+        let blue = "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE";
+        let other = "0x123::coin::COIN";
+
+        assert_eq!(discovery_pairs(sui, usdc), vec![(sui.to_string(), usdc.to_string())]);
+        assert_eq!(discovery_pairs(sui, blue).len(), 3);
+        assert_eq!(discovery_pairs(blue, other).len(), 5);
     }
 
     #[test]

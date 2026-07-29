@@ -1,4 +1,4 @@
-use crate::{RpcClient, SwapperError, route_cache::RouteCache};
+use crate::{RpcClient, SwapperError, route_cache::DiscoveryCache};
 use alloy_primitives::{Address, B256, hex::decode as hex_decode};
 use alloy_sol_types::SolCall;
 use gem_evm::{
@@ -15,7 +15,7 @@ use std::collections::BTreeSet;
 
 #[derive(Debug, Default)]
 pub(super) struct PoolDiscovery {
-    cache: RouteCache<FeeTier, FeeTier, (Chain, Address)>,
+    cache: DiscoveryCache<FeeTier, FeeTier, (Chain, Address)>,
 }
 
 impl PoolDiscovery {
@@ -43,9 +43,11 @@ impl PoolDiscovery {
     }
 
     pub fn path_exists(&self, chain: Chain, pairs: &[TokenPair]) -> bool {
-        pairs
-            .iter()
-            .all(|pair| self.cache.get_discovery((chain, pair.token_in), (chain, pair.token_out)).0.contains(&pair.fee_tier))
+        pairs.iter().all(|pair| {
+            self.cache
+                .candidates_for_probes((chain, pair.token_in), (chain, pair.token_out), std::slice::from_ref(&pair.fee_tier))
+                .contains(&pair.fee_tier)
+        })
     }
 }
 
@@ -119,7 +121,7 @@ mod tests {
         discovery.record_pools(Chain::Ethereum, &[(pools[0].clone(), true), (pools[1].clone(), false)]);
 
         assert_eq!(discovery.missing_pools(Chain::Ethereum, &pairs, &fee_tiers), pools[2..]);
-        assert_eq!(discovery.path_exists(Chain::Ethereum, &[pools[0].clone()]), true);
-        assert_eq!(discovery.path_exists(Chain::Ethereum, &[pools[1].clone()]), false);
+        assert!(discovery.path_exists(Chain::Ethereum, &[pools[0].clone()]));
+        assert!(!discovery.path_exists(Chain::Ethereum, &[pools[1].clone()]));
     }
 }
