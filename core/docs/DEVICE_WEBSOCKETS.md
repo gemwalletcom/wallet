@@ -114,6 +114,7 @@ Transaction updates include affected assets. Separate `balances` events remain t
 ## Notes
 
 - Authentication happens once during WebSocket upgrade
+- Reconnects replay at most the configured history limit (`DeviceStreamHistoryLimit`, default `25`)
 - Price updates are batched every 5 seconds
 - Run as separate service: `api websocket_stream`
 
