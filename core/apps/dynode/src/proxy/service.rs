@@ -148,10 +148,16 @@ impl ProxyRequestService {
         );
 
         if status == StatusCode::OK.as_u16()
+            && !body.is_empty()
             && let (Some(ttl), Some(key)) = (cache_ttl, cache_key)
         {
             let cache = self.cache.clone();
-            let cached = CachedResponse::new(body.clone(), status, JSON_CONTENT_TYPE.to_string());
+            let content_type = response_headers
+                .get(reqwest::header::CONTENT_TYPE)
+                .and_then(|value| value.to_str().ok())
+                .unwrap_or(JSON_CONTENT_TYPE)
+                .to_string();
+            let cached = CachedResponse::new(body.clone(), status, content_type);
             let size = cached.body.len();
             let id = request.id.clone();
             let host = request.host.clone();

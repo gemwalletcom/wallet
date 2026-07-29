@@ -7,9 +7,8 @@ use serde_json::Value;
 use serde_serializers::{duration, size};
 
 use super::path_without_query;
+use crate::cache::decoder::{ContractCall, ContractRequest, ETH_CALL, decode_contract_calls};
 use crate::jsonrpc_types::JsonRpcCall;
-
-pub(crate) const ETH_CALL: &str = "eth_call";
 
 #[derive(Debug, Default, Clone, Deserialize)]
 pub struct CacheConfig {
@@ -31,7 +30,7 @@ impl CacheConfig {
             .chain(self.chains.get(&chain).into_iter().flatten())
             .cloned()
             .collect();
-        let contracts = chain_type_config.and_then(|config| config.contracts.clone()).filter(|contracts| !contracts.is_empty());
+        let contracts = chain_type_config.map(|config| config.contracts.clone()).unwrap_or_default();
 
         let rules = ChainCacheRules { cache, contracts };
         if rules.is_empty() {
@@ -43,17 +42,34 @@ impl CacheConfig {
 
 #[derive(Debug, Clone)]
 pub(crate) struct ChainCacheRules {
-    pub(crate) cache: Vec<CacheRule>,
-    contracts: Option<Contracts>,
+    cache: Vec<CacheRule>,
+    contracts: ContractCacheConfig,
 }
 
 impl ChainCacheRules {
     fn is_empty(&self) -> bool {
-        self.cache.is_empty() && self.contracts.is_none()
+        self.cache.is_empty() && self.contracts.is_empty()
     }
 
-    pub(crate) fn ttl(&self, call: &JsonRpcCall) -> Option<Duration> {
-        self.contracts.as_ref()?.ttl(call)
+    pub(crate) fn call_ttl(&self, chain_type: &ChainType, call: &JsonRpcCall) -> Option<Duration> {
+        self.contracts.ttl(chain_type, ContractRequest::JsonRpc(call))
+    }
+
+    pub(crate) fn request_ttl(&self, chain_type: &ChainType, path: &str, method: &str, body: &[u8]) -> Option<Duration> {
+        self.contracts
+            .ttl(
+                chain_type,
+                ContractRequest::Http {
+                    path: path_without_query(path),
+                    method,
+                    body,
+                },
+            )
+            .or_else(|| self.cache.iter().find(|rule| rule.matches_path_request(path, method, Some(body))).and_then(|rule| rule.ttl))
+    }
+
+    pub(crate) fn rpc_ttl(&self, method: &str) -> Option<Duration> {
+        self.cache.iter().find(|rule| rule.matches_rpc(method)).and_then(|rule| rule.ttl)
     }
 }
 
@@ -61,7 +77,8 @@ impl ChainCacheRules {
 struct ChainTypeCacheConfig {
     #[serde(default)]
     rules: Vec<CacheRule>,
-    contracts: Option<Contracts>,
+    #[serde(default)]
+    contracts: ContractCacheConfig,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -75,16 +92,18 @@ pub(crate) struct CacheRule {
     pub(crate) params: HashMap<String, Value>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-struct Contracts {
-    methods: HashMap<String, Method>,
+#[derive(Debug, Clone, Default, Deserialize)]
+struct ContractCacheConfig {
+    #[serde(default)]
+    methods: Vec<ContractMethodRule>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct Method {
+struct ContractMethodRule {
+    addresses: HashSet<String>,
+    identifiers: Vec<String>,
     #[serde(deserialize_with = "duration::deserialize")]
     ttl: Duration,
-    addresses: HashSet<String>,
 }
 
 impl CacheRule {
@@ -127,30 +146,35 @@ impl CacheRule {
     }
 }
 
-impl Contracts {
+impl ContractCacheConfig {
     fn is_empty(&self) -> bool {
-        self.methods.values().all(|method| method.addresses.is_empty())
+        self.methods.iter().all(|method| method.addresses.is_empty() || method.identifiers.is_empty())
     }
 
-    fn ttl(&self, call: &JsonRpcCall) -> Option<Duration> {
-        if call.method != ETH_CALL {
-            return None;
-        }
+    fn ttl(&self, chain_type: &ChainType, request: ContractRequest<'_>) -> Option<Duration> {
+        let calls = decode_contract_calls(chain_type, request)?;
+        self.ttl_for_calls(chain_type, &calls)
+    }
 
-        let params = call.params.as_array()?;
-        if params.len() != 2 || params.get(1).and_then(Value::as_str) != Some("latest") {
-            return None;
-        }
+    fn ttl_for_calls(&self, chain_type: &ChainType, calls: &[ContractCall]) -> Option<Duration> {
+        self.methods.iter().find_map(|method| method.matches(chain_type, calls).then_some(method.ttl))
+    }
+}
 
-        let call = params.first()?.as_object()?;
-        if call.len() != 2 {
-            return None;
-        }
-
-        let address = call.get("to")?.as_str()?;
-        let selector = call.get("data")?.as_str()?.get(..10)?;
-        let method = self.methods.iter().find(|(configured, _)| configured.eq_ignore_ascii_case(selector))?.1;
-        method.addresses.iter().any(|configured| configured.eq_ignore_ascii_case(address)).then_some(method.ttl)
+impl ContractMethodRule {
+    fn matches(&self, chain_type: &ChainType, calls: &[ContractCall]) -> bool {
+        !calls.is_empty()
+            && !self.identifiers.is_empty()
+            && calls.len().is_multiple_of(self.identifiers.len())
+            && calls.chunks_exact(self.identifiers.len()).all(|chunk| {
+                chunk.iter().zip(&self.identifiers).all(|(call, identifier)| {
+                    self.addresses.iter().any(|address| address.eq_ignore_ascii_case(&call.address))
+                        && match chain_type {
+                            ChainType::Ethereum => identifier.eq_ignore_ascii_case(&call.identifier),
+                            _ => identifier == &call.identifier,
+                        }
+                })
+            })
     }
 }
 
@@ -189,52 +213,28 @@ mod tests {
     }
 
     #[test]
-    fn test_contract_call_matching() {
-        let rules = Contracts {
-            methods: HashMap::from([(
-                "0x1698ee82".to_string(),
-                Method {
-                    ttl: MINUTE,
-                    addresses: HashSet::from([CONTRACT.to_string()]),
-                },
-            )]),
+    fn test_contract_method_sequence_matching() {
+        let rule = ContractMethodRule {
+            addresses: HashSet::from(["0x25eb".to_string()]),
+            identifiers: ["factory::new_pool_key", "factory::pool_simple_info", "factory::pool_id"].map(str::to_string).to_vec(),
+            ttl: MINUTE,
         };
-        let wrong_block = serde_json::json!([{ "to": CONTRACT, "data": "0x1698ee820000" }, "pending"]);
+        let calls = ["factory::new_pool_key", "factory::pool_simple_info", "factory::pool_id"]
+            .map(|identifier| ContractCall {
+                address: "0x25eb".to_string(),
+                identifier: identifier.to_string(),
+            })
+            .to_vec();
 
-        assert_eq!(
-            rules.ttl(&JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee820000"))),
-            Some(MINUTE)
-        );
-        assert_eq!(
-            rules.ttl(&JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(&CONTRACT.to_uppercase(), "0x1698EE820000"))),
-            Some(MINUTE)
-        );
-        assert_eq!(rules.ttl(&JsonRpcCall::mock_with_params(1, ETH_CALL, wrong_block)), None);
-        assert_eq!(
-            rules.ttl(&JsonRpcCall::mock_with_params(
-                1,
-                ETH_CALL,
-                eth_call_params("0x2222222222222222222222222222222222222222", "0x1698ee820000")
-            )),
-            None
-        );
-        assert_eq!(rules.ttl(&JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0xaa9d21cb0000"))), None);
-        assert_eq!(
-            rules.ttl(&JsonRpcCall::mock_with_params(
-                1,
-                ETH_CALL,
-                serde_json::json!([
-                    {
-                        "to": CONTRACT,
-                        "data": "0x1698ee82",
-                        "value": "0x1"
-                    },
-                    "latest"
-                ])
-            )),
-            None
-        );
-        assert_eq!(rules.ttl(&JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698"))), None);
+        assert!(rule.matches(&ChainType::Sui, &calls));
+        assert!(rule.matches(&ChainType::Sui, &[calls.clone(), calls].concat()));
+        assert!(!rule.matches(
+            &ChainType::Sui,
+            &[ContractCall {
+                address: "0x25eb".to_string(),
+                identifier: "pool::calculate_swap_result".to_string(),
+            }]
+        ));
     }
 
     #[test]
@@ -263,12 +263,11 @@ mod tests {
             "chain_types": {
                 "ethereum": {
                     "contracts": {
-                        "methods": {
-                            "0x1698ee82": {
+                        "methods": [{
+                                "identifiers": ["0x1698ee82"],
                                 "ttl": "5m",
                                 "addresses": [CONTRACT]
-                            }
-                        }
+                        }]
                     }
                 }
             }
@@ -277,16 +276,16 @@ mod tests {
 
         let ethereum = config.rules(Chain::Ethereum).unwrap();
         assert_eq!(config.max_memory, 64_000_000);
-        assert_eq!(ethereum.contracts.as_ref().unwrap().methods.len(), 1);
+        assert_eq!(ethereum.contracts.methods.len(), 1);
         assert_eq!(
-            ethereum.ttl(&JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
+            ethereum.call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
             Some(MINUTE * 5)
         );
         assert_eq!(
             config
                 .rules(Chain::Optimism)
                 .unwrap()
-                .ttl(&JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
+                .call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
             Some(MINUTE * 5)
         );
         assert!(config.rules(Chain::Solana).is_none());

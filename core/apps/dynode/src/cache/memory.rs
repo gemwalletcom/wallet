@@ -107,21 +107,15 @@ impl CacheProvider for MemoryCache {
         let RequestType::Regular { path, method, body } = request_type else {
             return None;
         };
-        self.chains
-            .get(chain)?
-            .rules
-            .cache
-            .iter()
-            .find(|rule| rule.matches_path_request(path, method, Some(body)))
-            .and_then(|rule| rule.ttl)
+        self.chains.get(chain)?.rules.request_ttl(&chain.chain_type(), path, method, body)
     }
 
     fn should_cache_call(&self, chain: &Chain, call: &JsonRpcCall) -> Option<Duration> {
         let rules = &self.chains.get(chain)?.rules;
-        if let Some(ttl) = rules.ttl(call) {
+        if let Some(ttl) = rules.call_ttl(&chain.chain_type(), call) {
             return Some(ttl);
         }
-        rules.cache.iter().find(|rule| rule.matches_rpc(&call.method)).and_then(|rule| rule.ttl)
+        rules.rpc_ttl(&call.method)
     }
 }
 
@@ -330,12 +324,11 @@ mod tests {
                         { "rpc_method": "eth_blockNumber", "ttl": "1m" }
                     ],
                     "contracts": {
-                        "methods": {
-                            SELECTOR: {
-                                "ttl": "30s",
-                                "addresses": [CONTRACT]
-                            }
-                        }
+                        "methods": [{
+                            "addresses": [CONTRACT],
+                            "identifiers": [SELECTOR],
+                            "ttl": "30s"
+                        }]
                     }
                 }
             }

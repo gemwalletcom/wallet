@@ -1,3 +1,4 @@
+use gem_encoding::encode_base64_url;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -137,14 +138,7 @@ impl RequestType {
 
     pub fn cache_key(&self, host: &str) -> Option<String> {
         match self {
-            Self::Regular { path, method, body } => {
-                let mut key = format!("{}:{}:{}", host, method, path);
-                if let Ok(body_str) = std::str::from_utf8(body) {
-                    key.push(':');
-                    key.push_str(body_str);
-                }
-                Some(key)
-            }
+            Self::Regular { path, method, body } => Some(format!("{}:{}:{}:{}", host, method, path, encode_base64_url(body))),
             Self::JsonRpc(_) => None,
         }
     }
@@ -305,7 +299,16 @@ mod tests {
         let key2 = request2.cache_key("example.com").unwrap();
 
         assert_ne!(key1, key2, "Different request bodies should produce different cache keys");
-        assert!(key1.contains(r#"{"type":"metaAndAssetCtxs"}"#));
-        assert!(key2.contains(r#"{"type":"spotMeta"}"#));
+    }
+
+    #[test]
+    fn test_regular_request_cache_key_with_binary_bodies() {
+        let request = |body| RequestType::Regular {
+            path: "/sui.rpc.v2.TransactionExecutionService/SimulateTransaction".to_string(),
+            method: "POST".to_string(),
+            body,
+        };
+
+        assert_ne!(request(vec![0, 1, 255]).cache_key("example.com"), request(vec![0, 2, 255]).cache_key("example.com"));
     }
 }

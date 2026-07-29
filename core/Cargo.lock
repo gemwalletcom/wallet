@@ -2835,6 +2835,7 @@ dependencies = [
  "config",
  "gem_auth",
  "gem_client",
+ "gem_encoding",
  "gem_tracing",
  "metrics",
  "primitives",
