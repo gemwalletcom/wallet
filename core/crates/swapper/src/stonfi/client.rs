@@ -1,5 +1,5 @@
 use super::{constants::RouterInfo, quote::PoolData};
-use crate::{Quote, SwapperError, route_cache::ValueCache, static_read_cache_headers};
+use crate::{Quote, SwapperError, route_cache::Cache, static_read_cache_headers};
 use gem_client::Client;
 use gem_ton::{
     address::Address,
@@ -22,7 +22,7 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     ton_client: TonClient<C>,
-    jetton_wallet_cache: ValueCache<(String, String), String>,
+    jetton_wallet_cache: Cache<(String, String), String>,
 }
 
 impl<C> StonfiClient<C>
@@ -32,7 +32,7 @@ where
     pub(super) fn new(ton_client: TonClient<C>) -> Self {
         Self {
             ton_client,
-            jetton_wallet_cache: ValueCache::default(),
+            jetton_wallet_cache: Cache::default(),
         }
     }
 
@@ -57,7 +57,14 @@ where
     }
 
     pub(super) async fn get_pool_data(&self, pool_address: &str) -> Result<PoolData, SwapperError> {
-        let result = self.run_get_method(pool_address, GET_POOL_DATA_METHOD, Vec::new()).await?;
+        let result = self
+            .ton_client
+            .run_get_method(pool_address, GET_POOL_DATA_METHOD, Vec::new())
+            .await
+            .map_err(SwapperError::compute_quote_error)?;
+        if result.exit_code != 0 {
+            return Err(SwapperError::NoQuoteAvailable);
+        }
         parse_pool_data(&result)
     }
 
@@ -81,11 +88,6 @@ where
         let wallet = stack_cell_address(&result.stack, 0)?;
         self.jetton_wallet_cache.put(key, wallet.clone());
         Ok(wallet)
-    }
-
-    async fn run_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, SwapperError> {
-        let result = self.ton_client.run_get_method(address, method, stack).await.map_err(SwapperError::compute_quote_error)?;
-        validate_run_get_method(method, result)
     }
 
     async fn run_static_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, SwapperError> {

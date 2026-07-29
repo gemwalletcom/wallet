@@ -12,7 +12,9 @@ just localize           # update localization for both platforms
 just run-ios            # build, install, and run iOS
 just start-emulator     # start the Android emulator
 just run-android        # build, install, and run Android
-just bump patch         # bump the repo version
+just bump patch         # bump the repo patch version
+just bump minor         # bump the repo minor version
+just bump major         # bump the repo major version
 ```
 
 ## Platform Entry Points

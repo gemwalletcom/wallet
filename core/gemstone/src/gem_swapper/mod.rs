@@ -41,6 +41,10 @@ impl GemSwapper {
         self.inner.get_providers_for_request(request)
     }
 
+    pub async fn preload_routes(&self, from_asset: AssetId, to_asset: AssetId) {
+        self.inner.preload_routes(&from_asset, &to_asset).await
+    }
+
     pub async fn get_quote(&self, request: &SwapperQuoteRequest) -> Result<Vec<SwapperQuote>, SwapperError> {
         self.inner.get_quote(request).await
     }

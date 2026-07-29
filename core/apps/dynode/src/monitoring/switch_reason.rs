@@ -36,7 +36,7 @@ impl fmt::Display for NodeMonitorError {
 
 #[derive(Debug, PartialEq)]
 pub(super) enum NodeSwitchReason {
-    BlockHeight { old_block: u64, new_block: u64 },
+    BlockHeight,
     CurrentNodeError { error: NodeMonitorError, message: String },
     PreferredNode,
 }
@@ -44,19 +44,9 @@ pub(super) enum NodeSwitchReason {
 impl NodeSwitchReason {
     pub(super) fn metric_reason(&self) -> String {
         match self {
-            Self::BlockHeight { .. } => "block_height".to_string(),
+            Self::BlockHeight => "block_height".to_string(),
             Self::CurrentNodeError { error, .. } => error.to_string(),
             Self::PreferredNode => "preferred_node".to_string(),
-        }
-    }
-}
-
-impl fmt::Display for NodeSwitchReason {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::BlockHeight { old_block, new_block } => write!(f, "block_behind:{}", new_block.saturating_sub(*old_block)),
-            Self::CurrentNodeError { message, .. } => f.write_str(message),
-            Self::PreferredNode => f.write_str("preferred_node"),
         }
     }
 }

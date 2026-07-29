@@ -89,9 +89,7 @@ impl FiatProvider for TransakClient {
             }
         };
 
-        let redirect_url = self
-            .redirect_url(transak_quote, data.wallet_address, data.quote.quote_type, data.quote.fiat_amount, &data.ip_address)
-            .await?;
+        let redirect_url = self.redirect_url(transak_quote, &data).await?;
 
         Ok(FiatQuoteUrl {
             redirect_url,

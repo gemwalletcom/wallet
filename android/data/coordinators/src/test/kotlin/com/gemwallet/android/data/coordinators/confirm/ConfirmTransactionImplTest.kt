@@ -4,7 +4,7 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
@@ -72,7 +72,7 @@ class ConfirmTransactionImplTest {
             signTransactionOperator = signer,
             broadcastService = broadcastService,
             createTransactionsCase = createTransaction,
-            assetsRepository = mockk<AssetsRepository>(relaxed = true),
+            recentAssetsService = mockk<RecentAssetsService>(relaxed = true),
         ).invoke(
             signerParams = SignerParams(
                 input = ConfirmParams.SwapParams(

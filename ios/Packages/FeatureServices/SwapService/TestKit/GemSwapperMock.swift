@@ -90,4 +90,6 @@ public final class GemSwapperMock: GemSwapperProtocol {
     public func getSwapResult(chain _: Chain, provider _: SwapperProvider, transactionHash _: String) async throws -> SwapperSwapResult {
         swapResult
     }
+
+    public func preloadRoutes(fromAsset _: AssetId, toAsset _: AssetId) async {}
 }

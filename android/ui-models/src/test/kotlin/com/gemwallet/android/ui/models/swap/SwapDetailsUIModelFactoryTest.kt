@@ -9,8 +9,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.SwapPriceImpact
-import uniffi.gemstone.SwapPriceImpactType
+import com.wallet.core.primitives.swap.SwapPriceImpact
+import com.wallet.core.primitives.swap.SwapPriceImpactType
 import uniffi.gemstone.SwapperProvider
 
 class SwapDetailsUIModelFactoryTest {
@@ -25,7 +25,7 @@ class SwapDetailsUIModelFactoryTest {
             etaInSeconds = 30u,
             priceImpact = SwapPriceImpact(
                 percentage = -1.0,
-                impactType = SwapPriceImpactType.LOW,
+                impactType = SwapPriceImpactType.Low,
                 isHigh = false,
             ),
         )
@@ -48,7 +48,7 @@ class SwapDetailsUIModelFactoryTest {
             isProviderSelectable = true,
             priceImpact = SwapPriceImpact(
                 percentage = -5.0,
-                impactType = SwapPriceImpactType.MEDIUM,
+                impactType = SwapPriceImpactType.Medium,
                 isHigh = false,
             ),
         )
@@ -66,7 +66,7 @@ class SwapDetailsUIModelFactoryTest {
             toValue = DEFAULT_TO_VALUE,
             priceImpact = SwapPriceImpact(
                 percentage = 2.345,
-                impactType = SwapPriceImpactType.POSITIVE,
+                impactType = SwapPriceImpactType.Positive,
                 isHigh = false,
             ),
         )

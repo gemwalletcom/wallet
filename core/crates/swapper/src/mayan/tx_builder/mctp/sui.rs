@@ -9,13 +9,19 @@ use crate::mayan::{
     tx_builder::route::quote_destination_address,
     wormhole_chain::{self, WormholeChain},
 };
-use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::create_sui_client, fees::default_referral_address};
+use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::create_sui_client, fees::default_referral_address, route_cache::Cache};
 use futures::try_join;
 use gem_sui::tx_builder::prepare_transaction_json_replay;
 use gem_sui::{ESTIMATION_GAS_BUDGET, gas_budget::GAS_BUDGET_MULTIPLIER};
 use std::{fmt::Debug, fmt::Display, sync::Arc};
 
-pub async fn build_quote_data<C>(client: &MayanClient<C>, quote: &Quote, route: &MayanMctpQuote, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError>
+pub async fn build_quote_data<C>(
+    client: &MayanClient<C>,
+    quote: &Quote,
+    route: &MayanMctpQuote,
+    rpc_provider: Arc<dyn RpcProvider>,
+    package_id_cache: &Cache<&'static str, String>,
+) -> Result<SwapperQuoteData, SwapperError>
 where
     C: gem_client::Client + Clone + Send + Sync + Debug + 'static,
 {
@@ -27,7 +33,7 @@ where
         .ok()
         .map(default_referral_address)
         .filter(|address| !address.is_empty());
-    let prefetched = PrefetchedSuiData::prefetch(&sui_client, sender, route, ESTIMATION_GAS_BUDGET);
+    let prefetched = PrefetchedSuiData::prefetch(&sui_client, sender, route, ESTIMATION_GAS_BUDGET, package_id_cache);
     let swap = async {
         let swap = get_swap_transaction(client, quote, route, mctp_input_contract, referrer_address).await?;
         let swap_replay = match &swap {

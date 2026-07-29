@@ -1,5 +1,6 @@
 {
   "blockbook": {
+    "coin": "Zcash",
     "network": "ZEC",
     "inSync": true,
     "bestHeight": 2700000

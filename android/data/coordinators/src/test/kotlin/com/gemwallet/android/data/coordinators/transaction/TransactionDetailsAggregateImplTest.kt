@@ -808,8 +808,8 @@ class TransactionDetailsAggregateImplTest {
 
         val rate = swapAggregate.rate
         Assert.assertNotNull(rate)
-        Assert.assertTrue(rate!!.forward.startsWith("1 ETH"))
-        Assert.assertTrue(rate.reverse.startsWith("1 USDT"))
+        Assert.assertTrue(rate!!.rate.forward.startsWith("1 ETH"))
+        Assert.assertTrue(rate.rate.reverse.startsWith("1 USDT"))
 
         Assert.assertNull(createAggregate(createTransactionExtended(createTransaction())).rate)
     }

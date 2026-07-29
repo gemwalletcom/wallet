@@ -19,6 +19,7 @@ pub struct StreamObserverConfig {
     pub redis_url: String,
     pub cacher_client: CacherClient,
     pub retention: Duration,
+    pub history_limit: usize,
 }
 
 pub struct StreamObserverClient {

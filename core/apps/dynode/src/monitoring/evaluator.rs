@@ -89,8 +89,6 @@ impl NodeHealthEvaluator {
 
     async fn observe_node(&self, current: &Url, url: Url) -> NodeStatusObservation {
         let observation = observe_node(self.chain_config.chain, &self.request, url).await;
-        self.metrics
-            .record_node_monitor_observation(self.chain_config.chain.as_ref(), &observation.url.host(), &observation.state, observation.latency);
         NodeTelemetry::log_observation(self.chain_config.chain, current, &observation);
         observation
     }
@@ -111,7 +109,6 @@ impl NodeHealthEvaluator {
             (old_host, new_host)
         };
 
-        self.metrics.move_node_host_current(self.chain_config.chain.as_ref(), &old_host, &new_host);
         self.metrics
             .add_node_switch(self.chain_config.chain.as_ref(), &old_host, &new_host, &reason.metric_reason());
         true
@@ -149,7 +146,6 @@ mod tests {
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,
-            cache: None,
             urls: vec![url("https://a"), url("https://b"), url("https://c")],
         };
         let nodes = Arc::new(RwLock::new(HashMap::from([(chain_config.chain, NodeDomain::new(url("https://a"), chain_config.clone()))])));

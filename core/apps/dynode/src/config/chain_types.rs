@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use crate::jsonrpc_types::RequestType;
 
-use super::{AllowlistConfig, CacheRule, ChainConfig};
+use super::{AllowlistConfig, ChainConfig};
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(transparent)]
@@ -20,14 +20,6 @@ impl ChainTypesConfig {
         }
 
         self.chain_type_config(chain_config).is_none_or(|config| config.allows(chain_config.chain, request_type))
-    }
-
-    pub fn cache_rules(&self, chain_config: &ChainConfig) -> Vec<CacheRule> {
-        if let Some(rules) = chain_config.cache.as_ref() {
-            return rules.clone();
-        }
-
-        self.chain_type_config(chain_config).map(|config| config.cache(chain_config.chain)).unwrap_or_default()
     }
 
     fn chain_type_config(&self, chain_config: &ChainConfig) -> Option<&ChainTypeConfig> {
@@ -60,20 +52,11 @@ impl ChainTypeConfig {
 
         !has_rules
     }
-
-    fn cache(&self, chain: Chain) -> Vec<CacheRule> {
-        let mut rules = self.policy.cache.clone().unwrap_or_default();
-        if let Some(chain_rules) = self.chains.get(&chain).and_then(|config| config.cache.as_ref()) {
-            rules.extend(chain_rules.clone());
-        }
-        rules
-    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
 struct ChainPolicyConfig {
     allowlist: Option<AllowlistConfig>,
-    cache: Option<Vec<CacheRule>>,
 }
 
 #[cfg(test)]
@@ -103,7 +86,6 @@ mod tests {
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,
-            cache: None,
             urls: vec![Url {
                 url: "https://example.com".to_string(),
                 headers: None,
@@ -162,29 +144,5 @@ mod tests {
         assert!(config.allows(&chain_config(Chain::Thorchain), &balance));
         assert!(config.allows(&chain_config(Chain::Thorchain), &quote));
         assert!(!config.allows(&chain_config(Chain::Thorchain), &denied));
-    }
-
-    #[test]
-    fn test_chain_cache_extends_chain_type_cache() {
-        let config: ChainTypesConfig = serde_json::from_value(json!({
-            "cosmos": {
-                "cache": [
-                    { "path": "/cosmos/staking/v1beta1/validators", "method": "GET", "ttl": "1d" }
-                ],
-                "chains": {
-                    "thorchain": {
-                        "cache": [
-                            { "path": "/thorchain/inbound_addresses", "method": "GET", "ttl": "10m" }
-                        ]
-                    }
-                }
-            }
-        }))
-        .unwrap();
-
-        let rules = config.cache_rules(&chain_config(Chain::Thorchain));
-        assert_eq!(rules.len(), 2);
-        assert_eq!(rules[0].path.as_deref(), Some("/cosmos/staking/v1beta1/validators"));
-        assert_eq!(rules[1].path.as_deref(), Some("/thorchain/inbound_addresses"));
     }
 }

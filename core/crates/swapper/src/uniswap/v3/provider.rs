@@ -7,8 +7,9 @@ use crate::{
     models::*,
     uniswap::{
         deadline::get_sig_deadline,
+        discovery::{PoolDiscovery, candidate_pairs, discover_v3_pools},
         fee_token::is_quote_input_fee_token,
-        quote_result::get_best_quote,
+        quote_result::{QuotePosition, get_best_quote},
         requires_native_wrapping,
         swap_route::{RouteData, build_swap_route},
     },
@@ -28,11 +29,16 @@ use super::{DEFAULT_SWAP_GAS_LIMIT, UniversalRouterProvider, commands::build_com
 pub struct UniswapV3 {
     provider: Box<dyn UniversalRouterProvider>,
     rpc_provider: Arc<dyn RpcProvider>,
+    pool_discovery: PoolDiscovery,
 }
 
 impl UniswapV3 {
     pub fn new(provider: Box<dyn UniversalRouterProvider>, rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self { provider, rpc_provider }
+        Self {
+            provider,
+            rpc_provider,
+            pool_discovery: PoolDiscovery::default(),
+        }
     }
 
     pub fn support_chain(&self, chain: &Chain) -> bool {
@@ -45,18 +51,39 @@ impl UniswapV3 {
         Ok(JsonRpcClient::new(client))
     }
 
-    fn get_asset_address(asset_id: &str, evm_chain: EVMChain) -> Result<Address, SwapperError> {
-        let asset_id = AssetId::new(asset_id).ok_or(SwapperError::NotSupportedAsset)?;
-        eth_address::parse_or_weth_address(&asset_id, evm_chain)
+    fn parse_assets(from_asset: &AssetId, to_asset: &AssetId) -> Result<(EVMChain, Address, Address), SwapperError> {
+        if from_asset.chain != to_asset.chain {
+            return Err(SwapperError::NotSupportedChain);
+        }
+        let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
+        Ok((
+            evm_chain,
+            eth_address::parse_or_weth_address(from_asset, evm_chain)?,
+            eth_address::parse_or_weth_address(to_asset, evm_chain)?,
+        ))
     }
 
     fn parse_request(request: &QuoteRequest) -> Result<(EVMChain, Address, Address, U256), SwapperError> {
-        let evm_chain = EVMChain::from_chain(request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
-        let token_in = Self::get_asset_address(&request.from_asset.id, evm_chain)?;
-        let token_out = Self::get_asset_address(&request.to_asset.id, evm_chain)?;
+        let (evm_chain, token_in, token_out) = Self::parse_assets(&request.from_asset.asset_id(), &request.to_asset.asset_id())?;
         let amount_in = U256::from_str(&request.value).map_err(SwapperError::from)?;
-
         Ok((evm_chain, token_in, token_out, amount_in))
+    }
+
+    async fn preload_pool_candidates(&self, chain: Chain, token_in: Address, token_out: Address) -> Result<(), SwapperError> {
+        let deployment = self.provider.get_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
+        let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
+        let use_weth = evm_chain.weth_contract().is_some();
+        let base_pair = get_base_pair(&evm_chain, use_weth).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let client = self.client_for(chain)?;
+        let fee_tiers = self.provider.get_tiers();
+        let pairs = candidate_pairs(token_in, token_out, crate::uniswap::swap_route::get_intermediaries(&token_in, &token_out, &base_pair));
+        let pools = self.pool_discovery.missing_pools(chain, &pairs, &fee_tiers);
+        if pools.is_empty() {
+            return Ok(());
+        }
+        let discovered = discover_v3_pools(&client, deployment.factory, &pools).await?;
+        self.pool_discovery.record_pools(chain, &discovered);
+        Ok(())
     }
 
     async fn check_erc20_approval(
@@ -115,6 +142,13 @@ impl Swapper for UniswapV3 {
         SwapAmountMode::Fixed
     }
 
+    async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
+        let Ok((_, token_in, token_out)) = Self::parse_assets(from_asset, to_asset) else {
+            return;
+        };
+        _ = self.preload_pool_candidates(from_asset.chain, token_in, token_out).await;
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_chain = request.from_asset.chain();
         let to_chain = request.to_asset.chain();
@@ -124,7 +158,7 @@ impl Swapper for UniswapV3 {
             _ = evm_chain.weth_contract().ok_or(SwapperError::NotSupportedChain)?;
         }
 
-        let client = Arc::new(self.client_for(from_chain)?);
+        let client = self.client_for(from_chain)?;
 
         let fee_tiers = self.provider.get_tiers();
         let use_weth = evm_chain.weth_contract().is_some();
@@ -139,22 +173,33 @@ impl Swapper for UniswapV3 {
             from_value
         };
 
+        _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
         let paths_array = super::path::build_paths(&token_in, &token_out, &fee_tiers, &base_pair);
-        let requests: Vec<_> = paths_array
-            .iter()
+        let paths_array = paths_array
+            .into_iter()
             .map(|paths| {
-                let client = client.clone();
-                let calls: Vec<EthereumRpc> = paths
-                    .iter()
-                    .map(|path| super::quoter_v2::build_quoter_request(&request.wallet_address, deployment.quoter_v2, quote_amount_in, &path.1))
-                    .collect();
-                async move { client.batch_request(calls).await }
+                paths
+                    .into_iter()
+                    .filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs))
+                    .collect::<Vec<_>>()
             })
-            .collect();
+            .collect::<Vec<_>>();
+        let quote_calls = paths_array
+            .iter()
+            .enumerate()
+            .flat_map(|(route_idx, paths)| {
+                paths.iter().enumerate().map(move |(fee_tier_idx, path)| {
+                    (
+                        QuotePosition { route_idx, fee_tier_idx },
+                        super::quoter_v2::build_quoter_request(&request.wallet_address, deployment.quoter_v2, quote_amount_in, &path.1),
+                    )
+                })
+            })
+            .collect::<Vec<_>>();
+        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
+        let results = client.batch_request(calls).await?;
 
-        let batch_results = futures::future::join_all(requests).await;
-
-        let quote_result = get_best_quote(&batch_results, super::quoter_v2::decode_quoter_response)?;
+        let quote_result = get_best_quote(&results, &positions, super::quoter_v2::decode_quoter_response)?;
 
         let to_value = if fee_token_is_input {
             quote_result.amount_out
@@ -164,15 +209,20 @@ impl Swapper for UniswapV3 {
         let to_min_value = apply_slippage_in_bp(&to_value, request.options.slippage.bps);
 
         let fee_tier_idx = quote_result.fee_tier_idx;
-        let batch_idx = quote_result.batch_idx;
+        let route_idx = quote_result.route_idx;
 
-        let fee_tier: u32 = fee_tiers[fee_tier_idx % fee_tiers.len()] as u32;
+        let fee_tier = paths_array
+            .get(route_idx)
+            .and_then(|paths| paths.get(fee_tier_idx))
+            .and_then(|(pairs, _)| pairs.first())
+            .map(|pair| pair.fee_tier as u32)
+            .ok_or(SwapperError::InvalidRoute)?;
         let asset_id_in = AssetId::from(from_chain, Some(token_in.to_checksum(None)));
         let asset_id_out = AssetId::from(to_chain, Some(token_out.to_checksum(None)));
-        let asset_id_intermediary: Option<AssetId> = match batch_idx {
+        let asset_id_intermediary: Option<AssetId> = match route_idx {
             0 => None,
             _ => {
-                let first_token_out = &paths_array[batch_idx][0].0[0].token_out;
+                let first_token_out = &paths_array[route_idx][0].0[0].token_out;
                 Some(AssetId::from(to_chain, Some(first_token_out.to_checksum(None))))
             }
         };
@@ -188,7 +238,7 @@ impl Swapper for UniswapV3 {
             to_value: to_value.to_string(),
             data: ProviderData {
                 provider: self.provider().clone(),
-                routes: routes.clone(),
+                routes,
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
@@ -216,7 +266,8 @@ impl Swapper for UniswapV3 {
 
         let client = self.client_for(from_chain)?;
 
-        let route_data: RouteData = serde_json::from_str(&quote.data.routes.first().unwrap().route_data).map_err(|_| SwapperError::InvalidRoute)?;
+        let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
+        let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let to_amount = U256::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?;
 
         let wallet_address = eth_address::parse_str(&request.wallet_address)?;

@@ -70,6 +70,7 @@ public struct ConfirmService: Sendable {
             wallet: request.wallet,
             transactionData: transactionData,
             amount: amount,
+            simulation: request.simulation,
             delegate: request.delegate,
         )
         try await transferExecutor.execute(input: input)

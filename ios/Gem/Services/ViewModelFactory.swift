@@ -14,6 +14,7 @@ import Foundation
 import Keystore
 import NameService
 import Preferences
+import PriceAlertService
 import PriceService
 import Primitives
 import PrimitivesComponents
@@ -49,6 +50,8 @@ public struct ViewModelFactory: Sendable {
     let eventPresenterService: EventPresenterService
     let fiatService: FiatService
     let assetsService: AssetsService
+    let assetSearchService: AssetSearchService
+    let priceAlertService: PriceAlertService
 
     public init(
         keystore: any Keystore,
@@ -70,6 +73,8 @@ public struct ViewModelFactory: Sendable {
         eventPresenterService: EventPresenterService,
         fiatService: FiatService,
         assetsService: AssetsService,
+        assetSearchService: AssetSearchService,
+        priceAlertService: PriceAlertService,
     ) {
         self.keystore = keystore
         self.chainServiceFactory = chainServiceFactory
@@ -90,6 +95,25 @@ public struct ViewModelFactory: Sendable {
         self.eventPresenterService = eventPresenterService
         self.fiatService = fiatService
         self.assetsService = assetsService
+        self.assetSearchService = assetSearchService
+        self.priceAlertService = priceAlertService
+    }
+
+    @MainActor
+    public func selectAssetScene(
+        wallet: Wallet,
+        selectType: SelectAssetType,
+        selectAssetAction: AssetAction = .none,
+    ) -> SelectAssetViewModel {
+        SelectAssetViewModel(
+            wallet: wallet,
+            selectType: selectType,
+            searchService: assetSearchService,
+            assetsEnabler: assetsEnabler,
+            priceAlertService: priceAlertService,
+            activityService: activityService,
+            selectAssetAction: selectAssetAction,
+        )
     }
 
     @MainActor

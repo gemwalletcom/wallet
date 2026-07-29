@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Assets
-import AssetsService
 import Components
 import InfoSheet
 import Primitives
@@ -10,10 +8,7 @@ import Swap
 import SwiftUI
 
 struct SwapNavigationView: View {
-    @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.activityService) private var activityService
-    @Environment(\.assetSearchService) private var assetSearchService
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.viewModelFactory) private var viewModelFactory
 
     @State private var model: SwapSceneViewModel
 
@@ -29,13 +24,9 @@ struct SwapNavigationView: View {
                     InfoSheetScene(type: type)
                 case let .selectAsset(type):
                     SelectAssetSceneNavigationStack(
-                        model: SelectAssetViewModel(
+                        model: viewModelFactory.selectAssetScene(
                             wallet: model.wallet,
                             selectType: .swap(type),
-                            searchService: assetSearchService,
-                            assetsEnabler: assetsEnabler,
-                            priceAlertService: priceAlertService,
-                            activityService: activityService,
                             selectAssetAction: model.onFinishAssetSelection,
                         ),
                     )

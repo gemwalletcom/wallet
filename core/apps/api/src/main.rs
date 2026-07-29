@@ -345,6 +345,7 @@ async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn E
         redis_url: settings.redis.url.clone(),
         cacher_client,
         retention: config_cacher.get_duration(primitives::ConfigKey::DeviceStreamRetention)?,
+        history_limit: config_cacher.get_usize(primitives::ConfigKey::DeviceStreamHistoryLimit)?,
     };
 
     let jwt_config = devices::auth_config::JwtConfig {

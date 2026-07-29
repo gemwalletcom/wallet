@@ -93,7 +93,7 @@ public struct TransactionViewModel: Sendable {
     public var titleTextValue: TextValue {
         let title: String = {
             switch transaction.transaction.type {
-            case .transfer, .transferNFT, .smartContractCall:
+            case .transfer, .transferNFT:
                 switch transaction.transaction.state {
                 case .confirmed:
                     switch transaction.transaction.direction {
@@ -105,6 +105,8 @@ public struct TransactionViewModel: Sendable {
                 case .failed, .pending, .reverted, .inTransit:
                     return Localized.Transfer.title
                 }
+            case .smartContractCall:
+                return Localized.Transfer.SmartContract.title
             case .swap:
                 return Localized.Wallet.swap
             case .tokenApproval:

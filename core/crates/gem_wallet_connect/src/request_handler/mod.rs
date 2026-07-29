@@ -4,9 +4,9 @@ mod sui;
 mod ton;
 mod tron;
 
-use crate::actions::{WCSolanaTransactionData, WCSuiTransactionData, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
+use crate::actions::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
 use ethereum::EthereumRequestHandler;
-use primitives::{Chain, ChainType, ValueAccess, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods, hex};
+use primitives::{Chain, ChainType, ValueAccess, WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods, hex};
 use serde_json::Value;
 use solana::SolanaRequestHandler;
 use sui::SuiRequestHandler;
@@ -20,9 +20,10 @@ impl WalletConnectRequestHandler {
         let WalletConnectRequest {
             method, params, chain_id, domain, ..
         } = request;
-        let method = match serde_json::from_value::<WalletConnectionMethods>(serde_json::Value::String(method.clone())) {
+        let method_name = method;
+        let method = match serde_json::from_value::<WalletConnectionMethods>(serde_json::Value::String(method_name.clone())) {
             Ok(m) => m,
-            Err(_) => return Ok(WalletConnectAction::Unsupported { method }),
+            Err(_) => return Ok(WalletConnectAction::Unsupported { method: method_name }),
         };
         let params = serde_json::from_str::<Value>(&params).map_err(|e| format!("Failed to parse params: {}", e))?;
         let params = match params {
@@ -38,7 +39,7 @@ impl WalletConnectRequestHandler {
             | WalletConnectionMethods::EthSendTransaction) => {
                 EthereumRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ethereum)?, params, &domain)
             }
-            WalletConnectionMethods::EthSendRawTransaction => Err("Method not supported".to_string()),
+            WalletConnectionMethods::EthSendRawTransaction => Ok(WalletConnectAction::Unsupported { method: method_name }),
             WalletConnectionMethods::EthChainId => Ok(WalletConnectAction::ChainOperation {
                 operation: WalletConnectChainOperation::GetChainId,
             }),
@@ -74,37 +75,11 @@ impl WalletConnectRequestHandler {
 
     pub fn decode_send_transaction(transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, String> {
         match transaction_type {
-            WalletConnectTransactionType::Ethereum => {
-                let tx: WCEthereumTransaction = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                Ok(WalletConnectTransaction::Ethereum { data: tx.into() })
-            }
-            WalletConnectTransactionType::Solana { output_type } => {
-                let json: serde_json::Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                let transaction = json
-                    .get("transaction")
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| "Missing transaction field".to_string())?
-                    .to_string();
-                Ok(WalletConnectTransaction::Solana {
-                    data: WCSolanaTransactionData { transaction },
-                    output_type,
-                })
-            }
-            WalletConnectTransactionType::Sui { output_type } => {
-                let json: serde_json::Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-                let transaction = json
-                    .get("transaction")
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| "Missing transaction field".to_string())?
-                    .to_string();
-                let wallet_address = json.get("account").or_else(|| json.get("address")).and_then(|v| v.as_str()).unwrap_or_default().to_string();
-                Ok(WalletConnectTransaction::Sui {
-                    data: WCSuiTransactionData { transaction, wallet_address },
-                    output_type,
-                })
-            }
-            WalletConnectTransactionType::Ton { output_type } => Ok(WalletConnectTransaction::Ton { data, output_type }),
-            WalletConnectTransactionType::Tron { output_type } => Ok(WalletConnectTransaction::Tron { data, output_type }),
+            WalletConnectTransactionType::Ethereum => EthereumRequestHandler::decode_send_transaction(data),
+            WalletConnectTransactionType::Solana { output_type } => SolanaRequestHandler::decode_send_transaction(data, output_type),
+            WalletConnectTransactionType::Sui { output_type } => SuiRequestHandler::decode_send_transaction(data, output_type),
+            WalletConnectTransactionType::Ton { output_type } => TonRequestHandler::decode_send_transaction(data, output_type),
+            WalletConnectTransactionType::Tron { output_type } => TronRequestHandler::decode_send_transaction(data, output_type),
         }
     }
 
@@ -134,15 +109,12 @@ mod tests {
     use primitives::TransferDataOutputType;
 
     #[test]
-    fn test_unsupported_method() {
-        let request = WalletConnectRequest::mock("unknown_method", "{}", None);
-        let action = WalletConnectRequestHandler::parse_request(request).unwrap();
-        assert_eq!(
-            action,
-            WalletConnectAction::Unsupported {
-                method: "unknown_method".to_string()
-            }
-        );
+    fn test_unsupported_methods() {
+        for method in ["unknown_method", "eth_sign", "eth_sendRawTransaction"] {
+            let request = WalletConnectRequest::mock(method, "{}", None);
+            let action = WalletConnectRequestHandler::parse_request(request).unwrap();
+            assert_eq!(action, WalletConnectAction::Unsupported { method: method.to_string() });
+        }
     }
 
     #[test]
@@ -305,10 +277,33 @@ mod tests {
             .unwrap();
 
             match decoded {
-                WalletConnectTransaction::Ethereum { data } => {
+                WalletConnectTransaction::Ethereum { data, transaction_type } => {
                     assert_eq!(data.chain_id, Some(expected));
                     assert_eq!(data.data, Some("0x1234".to_string()));
+                    assert_eq!(transaction_type, primitives::TransactionType::SmartContractCall);
                 }
+                _ => panic!("Expected Ethereum transaction"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_decode_ethereum_transaction_type_from_payload() {
+        let cases = [
+            (r#""0x095ea7b3abcd""#, primitives::TransactionType::TokenApproval),
+            (r#""0x""#, primitives::TransactionType::Transfer),
+            (r#"null"#, primitives::TransactionType::Transfer),
+            (r#""0xdeadbeef""#, primitives::TransactionType::SmartContractCall),
+        ];
+        for (data, expected) in cases {
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(
+                WalletConnectTransactionType::Ethereum,
+                format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":"0x0"}}"#),
+            )
+            .unwrap();
+
+            match decoded {
+                WalletConnectTransaction::Ethereum { transaction_type, .. } => assert_eq!(transaction_type, expected),
                 _ => panic!("Expected Ethereum transaction"),
             }
         }

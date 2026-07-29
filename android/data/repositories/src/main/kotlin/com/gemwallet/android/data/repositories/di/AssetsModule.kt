@@ -7,16 +7,13 @@ import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.blockchain.services.PerpetualService
-import com.gemwallet.android.cases.device.IsDeviceRegistered
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
-import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
@@ -58,8 +55,6 @@ object AssetsModule {
         streamSubscriptionService: StreamSubscriptionService,
         availabilityService: AssetsAvailabilityService,
         currencyRatesService: CurrencyRatesService,
-        searchService: AssetsSearchService,
-        recentAssetsService: RecentAssetsService,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
@@ -70,8 +65,6 @@ object AssetsModule {
         streamSubscriptionService = streamSubscriptionService,
         availabilityService = availabilityService,
         currencyRatesService = currencyRatesService,
-        searchService = searchService,
-        recentAssetsService = recentAssetsService,
     )
 
     @Provides
@@ -150,8 +143,7 @@ object AssetsModule {
         deviceRequestSigner: DeviceRequestSigner,
         streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
-        syncDeviceInfo: SyncDeviceInfo,
-        isDeviceRegistered: IsDeviceRegistered,
+        syncDevice: SyncDevice,
         okHttpClient: OkHttpClient,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
@@ -170,8 +162,7 @@ object AssetsModule {
             },
             reconnection = ExponentialReconnection(maxDelay = 30.0),
         ),
-        syncDeviceInfo = syncDeviceInfo,
-        isDeviceRegistered = isDeviceRegistered,
+        syncDevice = syncDevice,
     )
 
     @Provides

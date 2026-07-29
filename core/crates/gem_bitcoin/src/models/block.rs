@@ -13,7 +13,7 @@ pub struct BitcoinNodeInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BitcoinBlockbook {
-    pub network: Option<String>,
+    pub coin: String,
     pub in_sync: bool,
     pub best_height: Int,
 }
@@ -28,18 +28,6 @@ pub struct BitcoinBackend {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Consensus {
     pub chaintip: String,
-}
-
-// RPC models
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Status {
-    pub blockbook: Blockbook,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Blockbook {
-    #[serde(rename = "bestHeight")]
-    pub best_height: i64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

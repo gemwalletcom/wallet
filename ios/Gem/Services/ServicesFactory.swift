@@ -22,7 +22,6 @@ import FiatService
 import Foundation
 import GemAPI
 import GemAPIDevice
-import Gemstone
 import GemstonePrimitives
 import Keystore
 import NameService
@@ -346,6 +345,8 @@ struct ServicesFactory {
             eventPresenterService: eventPresenterService,
             fiatService: fiatService,
             assetsService: assetsService,
+            assetSearchService: assetSearchService,
+            priceAlertService: priceAlertService,
         )
 
         return AppResolver.Services(

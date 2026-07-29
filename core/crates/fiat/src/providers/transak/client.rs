@@ -1,5 +1,5 @@
 use super::models::{Asset, CachedToken, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, Response, TokenResponse, TransakQuote, TransakResponse};
-use primitives::{FiatProviderName, FiatQuoteType};
+use primitives::{FiatProviderName, FiatQuoteType, FiatQuoteUrlData};
 use reqwest::Client;
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -121,28 +121,35 @@ impl TransakClient {
         Ok(response.data.widget_url)
     }
 
-    pub async fn redirect_url(&self, quote: TransakQuote, address: String, quote_type: FiatQuoteType, fiat_amount: f64, ip_address: &str) -> Result<String, reqwest::Error> {
+    fn build_widget_params(&self, quote: TransakQuote, data: &FiatQuoteUrlData) -> HashMap<String, Value> {
+        let sell_crypto_amount = quote.sell_crypto_amount(data.quote.fiat_amount);
+
         let mut params: HashMap<String, Value> = HashMap::new();
         params.insert("apiKey".to_string(), json!(self.api_key));
         params.insert("referrerDomain".to_string(), json!(self.referrer_domain));
+        params.insert("partnerOrderId".to_string(), json!(data.quote.id));
         params.insert("fiatCurrency".to_string(), json!(quote.fiat_currency));
         params.insert("cryptoCurrencyCode".to_string(), json!(quote.crypto_currency));
         params.insert("network".to_string(), json!(quote.network));
         params.insert("disableWalletAddressForm".to_string(), json!(true));
-        params.insert("walletAddress".to_string(), json!(address));
+        params.insert("walletAddress".to_string(), json!(data.wallet_address));
 
-        match quote_type {
+        match &data.quote.quote_type {
             FiatQuoteType::Buy => {
                 params.insert("productsAvailed".to_string(), json!("BUY"));
-                params.insert("fiatAmount".to_string(), json!(fiat_amount));
+                params.insert("fiatAmount".to_string(), json!(data.quote.fiat_amount));
             }
             FiatQuoteType::Sell => {
                 params.insert("productsAvailed".to_string(), json!("SELL"));
-                params.insert("cryptoAmount".to_string(), json!(quote.sell_crypto_amount(fiat_amount)));
+                params.insert("cryptoAmount".to_string(), json!(sell_crypto_amount));
             }
         }
 
-        self.create_widget_url(params, ip_address).await
+        params
+    }
+
+    pub async fn redirect_url(&self, quote: TransakQuote, data: &FiatQuoteUrlData) -> Result<String, reqwest::Error> {
+        self.create_widget_url(self.build_widget_params(quote, data), &data.ip_address).await
     }
 
     pub async fn get_supported_assets(&self) -> Result<Response<Vec<Asset>>, reqwest::Error> {
@@ -193,5 +200,51 @@ impl TransakClient {
             .json()
             .await?;
         Ok(response.data.access_token)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::{Asset, Chain, FiatAssetSymbol, FiatProvider, FiatQuote};
+
+    #[test]
+    fn test_build_widget_params_uses_stored_quote_id_as_partner_order_id() {
+        let client = TransakClient::new_with_access_token("access_token");
+        let data = FiatQuoteUrlData {
+            quote: FiatQuote {
+                id: "stored_quote_id".to_string(),
+                asset: Asset::from_chain(Chain::Ethereum),
+                provider: FiatProvider::mock(FiatProviderName::Transak),
+                quote_type: FiatQuoteType::Buy,
+                fiat_amount: 100.0,
+                fiat_currency: "USD".to_string(),
+                crypto_amount: 0.03,
+                value: "30000000000000000".to_string(),
+                latency: 0,
+                payment_methods: vec![],
+            },
+            asset_symbol: FiatAssetSymbol {
+                symbol: "ETH".to_string(),
+                network: Some("ethereum".to_string()),
+            },
+            wallet_address: "0x123".to_string(),
+            ip_address: "192.0.2.1".to_string(),
+            locale: "en".to_string(),
+        };
+        let quote = TransakQuote {
+            quote_id: "provider_quote_id".to_string(),
+            fiat_amount: 100.0,
+            fiat_currency: "USD".to_string(),
+            crypto_currency: "ETH".to_string(),
+            crypto_amount: 0.03,
+            network: "ethereum".to_string(),
+            conversion_price: 0.0003,
+            total_fee: 1.0,
+        };
+
+        let params = client.build_widget_params(quote, &data);
+
+        assert_eq!(params.get("partnerOrderId"), Some(&json!("stored_quote_id")));
     }
 }

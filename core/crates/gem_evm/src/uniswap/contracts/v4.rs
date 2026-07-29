@@ -1,6 +1,13 @@
 use alloy_sol_types::sol;
 
 sol! {
+    interface IUniswapV4StateView {
+        function getSlot0(bytes32 poolId)
+            external
+            view
+            returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee);
+    }
+
     type Currency is address;
     // https://github.com/Uniswap/v4-core/blob/main/src/types/PoolKey.sol
     #[derive(Debug, PartialEq)]

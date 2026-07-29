@@ -18,7 +18,8 @@ mod metrics;
 mod url;
 
 pub use allowlist::AllowlistConfig;
-pub use cache::{CacheConfig, CacheRule};
+pub use cache::CacheConfig;
+pub(crate) use cache::ChainCacheRules;
 pub use chain_types::ChainTypesConfig;
 pub use domain::ChainConfig;
 pub use metrics::MetricsConfig;
@@ -211,7 +212,6 @@ pub struct NodeConfig {
     pub port: u16,
     pub address: String,
     pub metrics: MetricsConfig,
-    #[serde(default)]
     pub cache: CacheConfig,
     #[serde(default)]
     pub chain_types: ChainTypesConfig,
@@ -266,6 +266,7 @@ pub fn load_config() -> Result<(NodeConfig, HashMap<Chain, ChainConfig>), Config
 
     let mut config: NodeConfig = Config::builder()
         .add_source(File::from(base_dir.join("config.yml")))
+        .add_source(File::from(base_dir.join("cache.yml")))
         .add_source(Environment::default().separator("_"))
         .build()?
         .try_deserialize()?;

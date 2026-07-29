@@ -278,8 +278,8 @@ extension WalletConnectorService {
             let accounts = try signer.getAccounts(sessionId: sessionId, chain: chain.map())
             let response = walletConnect.encodeGetAccounts(chain: chain, accounts: accounts.map { $0.mapToGem() })
             return .response(response.map())
-        case let .unsupported(method):
-            throw WalletConnectorServiceError.unresolvedMethod(method)
+        case .unsupported:
+            return .error(.methodNotFound)
         }
     }
 

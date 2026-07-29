@@ -1,0 +1,58 @@
+{
+  "assets": [
+    {
+      "enabled": true,
+      "id": "eth.eth",
+      "direction": "both",
+      "ticker": "ETH",
+      "name": "Ethereum",
+      "network": "Ethereum",
+      "networkLogo": "/networks/eth/logo.svg",
+      "assetLogo": "/assets/eth.eth/logo.svg",
+      "decimals": 18,
+      "minimalAmount": 0.01,
+      "minimalAmountNative": "10000000000000000",
+      "usdPrice": 1904.2148188667,
+      "usdPriceNative": "1904214818",
+      "platforms": [
+        "chainflip"
+      ]
+    },
+    {
+      "enabled": true,
+      "id": "trx.tron",
+      "direction": "both",
+      "ticker": "TRX",
+      "name": "Tron",
+      "network": "Tron",
+      "networkLogo": "/networks/tron/logo.svg",
+      "assetLogo": "/assets/trx.tron/logo.svg",
+      "decimals": 6,
+      "minimalAmount": 30,
+      "minimalAmountNative": "30000000",
+      "usdPrice": 0.32701662815,
+      "usdPriceNative": "327016",
+      "platforms": [
+        "chainflip"
+      ]
+    },
+    {
+      "enabled": true,
+      "id": "sol.sol",
+      "direction": "both",
+      "ticker": "SOL",
+      "name": "Solana",
+      "network": "Solana",
+      "networkLogo": "/networks/sol/logo.svg",
+      "assetLogo": "/assets/sol.sol/logo.svg",
+      "decimals": 9,
+      "minimalAmount": 0.068,
+      "minimalAmountNative": "68000000",
+      "usdPrice": 73.11912646695,
+      "usdPriceNative": "73119126",
+      "platforms": [
+        "chainflip"
+      ]
+    }
+  ]
+}

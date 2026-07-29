@@ -11,6 +11,7 @@ pub struct QuoteRequest {
     pub slippage_percentage: String,
     pub integrator_fee_percentage: String,
     pub integrator_fee_address: String,
+    pub max_hops: u8,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

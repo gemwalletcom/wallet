@@ -3,7 +3,7 @@ pub const APTOS_TRANSFER_FUNCTION: &str = "0x1::aptos_account::transfer";
 pub const ENTRY_FUNCTION_PAYLOAD_TYPE: &str = "entry_function_payload";
 pub const NO_ACCOUNT_SIGNATURE_TYPE: &str = "no_account_signature";
 pub const DEFAULT_MAX_GAS_AMOUNT: u64 = 1500;
-pub const DEFAULT_SWAP_MAX_GAS_AMOUNT: u64 = 20000;
+pub const DEFAULT_SWAP_MAX_GAS_AMOUNT: u64 = 30000;
 
 pub const STAKE_WITHDRAW_EVENT: &str = "0x1::coin::WithdrawEvent";
 pub const STAKE_DEPOSIT_EVENT: &str = "0x1::coin::DepositEvent";

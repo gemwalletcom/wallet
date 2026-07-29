@@ -19,7 +19,7 @@ use crate::monitoring::NodeMonitor;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_builder::ProxyBuilder;
 use crate::proxy::proxy_request::ProxyRequest;
-use crate::proxy::response_builder::ResponseBuilder;
+use crate::proxy::response_builder::{CacheStatus, ResponseBuilder};
 use crate::proxy::{NodeDomain, ProxyResponse};
 use crate::webhook::DynodeBroadcastWebhookClient;
 use gem_tracing::{DurationMs, info_with_fields};
@@ -56,7 +56,7 @@ impl NodeService {
             .filter_map(|config| config.urls.first().cloned().map(|url| (config.chain, NodeDomain::new(url, config.clone()))))
             .collect();
 
-        let cache = RequestCache::new(cache_config, &chain_types, chains.values());
+        let cache = RequestCache::new(cache_config, chains.values());
         let broadcast_providers = Arc::new(BroadcastProviders::from_chains(chains.keys().copied()));
         let proxy_builder = ProxyBuilder::new(metrics.clone(), cache, client, headers_config, broadcast_webhook, broadcast_providers);
         let nodes = Arc::new(RwLock::new(nodes));
@@ -259,7 +259,7 @@ impl NodeService {
             "code": status.as_u16()
         }))?;
 
-        let headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        let headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
         ResponseBuilder::build_with_headers(body, status.as_u16(), JSON_CONTENT_TYPE, headers)
     }
 
@@ -330,7 +330,7 @@ impl NodeService {
             latency = latency,
         );
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
 
         let response = match request.request_type() {
             RequestType::JsonRpc(_) => serde_json::to_value(JsonRpcErrorResponse::new(&error_message))?,
@@ -393,7 +393,6 @@ mod tests {
             poll_interval_seconds: None,
             overrides: None,
             allowlist: None,
-            cache: None,
             urls: vec![Url {
                 url: url.to_string(),
                 headers: None,

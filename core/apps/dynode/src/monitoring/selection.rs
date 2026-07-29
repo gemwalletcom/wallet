@@ -1,7 +1,7 @@
 use super::observation::NodeStatusObservation;
 use super::switch_reason::NodeSwitchReason;
 use crate::config::Url;
-use primitives::{NodeStatusState, NodeSyncStatus};
+use primitives::NodeStatusState;
 
 #[derive(Debug)]
 pub(super) struct NodeSwitchResult<'a> {
@@ -21,24 +21,16 @@ impl NodeSelectionPolicy {
             configured_observations
         };
         let candidate = candidates.iter().find(|observation| observation.url != *current && observation.state.is_healthy())?;
-        let candidate_status = candidate.state.as_status()?;
         let reason = match &current_observation.state {
             NodeStatusState::Error { message } => NodeSwitchReason::CurrentNodeError {
                 error: current_observation.monitor_error,
                 message: message.clone(),
             },
-            NodeStatusState::Healthy(status) if !status.in_sync => NodeSwitchReason::BlockHeight {
-                old_block: Self::status_height(status),
-                new_block: Self::status_height(candidate_status),
-            },
+            NodeStatusState::Healthy(status) if !status.in_sync => NodeSwitchReason::BlockHeight,
             NodeStatusState::Healthy(_) => NodeSwitchReason::PreferredNode,
         };
 
         Some(NodeSwitchResult { observation: candidate, reason })
-    }
-
-    fn status_height(status: &NodeSyncStatus) -> u64 {
-        status.current_block_number.or(status.latest_block_number).unwrap_or_default()
     }
 }
 
@@ -103,7 +95,7 @@ mod tests {
             healthy_observation("https://b", Some(110), Some(110), 500),
         ];
         let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured).unwrap();
-        assert_eq!(result.reason, NodeSwitchReason::BlockHeight { old_block: 90, new_block: 110 });
+        assert_eq!(result.reason, NodeSwitchReason::BlockHeight);
 
         let configured = vec![
             error_observation("https://a", "connection failed"),

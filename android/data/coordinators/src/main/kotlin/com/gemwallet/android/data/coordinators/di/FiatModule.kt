@@ -23,6 +23,7 @@ import com.gemwallet.android.data.coordinators.fiat.GetSellableFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.ConfigStore
@@ -105,7 +106,7 @@ object FiatModule {
         getRemoteConfig: GetRemoteConfig,
         getBuyableFiatAssets: GetBuyableFiatAssets,
         getSellableFiatAssets: GetSellableFiatAssets,
-        assetsRepository: AssetsRepository,
+        availabilityService: AssetsAvailabilityService,
         prefetchAssets: PrefetchAssets,
     ): SyncFiatAssets {
         return SyncFiatAssetsImpl(
@@ -113,7 +114,7 @@ object FiatModule {
             getRemoteConfig = getRemoteConfig,
             getBuyableFiatAssets = getBuyableFiatAssets,
             getSellableFiatAssets = getSellableFiatAssets,
-            assetsRepository = assetsRepository,
+            availabilityService = availabilityService,
             prefetchAssets = prefetchAssets,
         )
     }

@@ -21,7 +21,9 @@ import com.gemwallet.android.data.coordinators.swap.GetSwapSupportedImpl
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
 import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl
 import com.gemwallet.android.data.coordinators.swap.SyncSwapAssetsImpl
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.services.gemapi.GemApiClient
@@ -106,10 +108,10 @@ object SwapModule {
     @Singleton
     @Provides
     fun provideSearchSwapAssets(
-        assetsRepository: AssetsRepository,
+        searchService: AssetsSearchService,
         getSwapSupported: GetSwapSupported,
     ): SearchSwapAssets = SearchSwapAssetsImpl(
-        assetsRepository = assetsRepository,
+        searchService = searchService,
         getSwapSupported = getSwapSupported,
     )
 
@@ -128,12 +130,14 @@ object SwapModule {
         getRemoteConfig: GetRemoteConfig,
         getSwapAssets: GetSwapAssets,
         assetsRepository: AssetsRepository,
+        availabilityService: AssetsAvailabilityService,
         prefetchAssets: PrefetchAssets,
     ): SyncSwapAssets = SyncSwapAssetsImpl(
         configStore = configStore,
         getRemoteConfig = getRemoteConfig,
         getSwapAssets = getSwapAssets,
         assetsRepository = assetsRepository,
+        availabilityService = availabilityService,
         prefetchAssets = prefetchAssets,
     )
 }

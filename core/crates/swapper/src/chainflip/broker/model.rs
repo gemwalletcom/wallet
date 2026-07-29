@@ -28,7 +28,6 @@ pub enum VaultSwapExtras {
     Evm(VaultSwapChainExtras),
     Tron(VaultSwapChainExtras),
     Solana(VaultSwapSolanaExtras),
-    None,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

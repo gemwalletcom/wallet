@@ -1,8 +1,7 @@
 use crate::types::{ERROR_CLIENT_ERROR, ERROR_INTERNAL_ERROR, JsonRpcError, JsonRpcRequest, JsonRpcResult, JsonRpcResults, ToJsonRpcRequest};
 use gem_client::{Client, ClientError, ClientExt};
 use serde::de::DeserializeOwned;
-use std::collections::HashMap;
-use std::time::SystemTime;
+use std::{collections::HashMap, time::SystemTime};
 
 #[derive(Clone, Debug)]
 pub struct JsonRpcClient<C: Client + Clone> {
@@ -39,10 +38,12 @@ impl<C: Client + Clone> JsonRpcClient<C> {
             return Ok(Default::default());
         }
 
-        let results: Vec<JsonRpcResult<U>> = self.client.post("", &requests).await?;
-        if results.len() != requests.len() {
+        let mut results: Vec<JsonRpcResult<U>> = self.client.post("", &requests).await?;
+        results.sort_by_key(JsonRpcResult::id);
+
+        if results.len() != requests.len() || results.iter().enumerate().any(|(index, result)| result.id() != Some(index as u64 + 1)) {
             return Err(JsonRpcError {
-                message: "Batch call response length mismatch".into(),
+                message: "Invalid batch response IDs".into(),
                 code: ERROR_INTERNAL_ERROR,
             });
         }
