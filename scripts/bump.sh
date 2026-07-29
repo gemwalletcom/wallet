@@ -79,6 +79,7 @@ sed -i '' "s/CURRENT_PROJECT_VERSION = $current_ios_build;/CURRENT_PROJECT_VERSI
 sed -i '' "s/versionName = \"$current_version\"/versionName = \"$new_version\"/" "$ANDROID_FILE"
 sed -i '' "s/versionCode = $current_android_build/versionCode = $new_android_build/" "$ANDROID_FILE"
 sed -i '' "s/^version = \"$current_core_version\"/version = \"$new_core_version\"/" "$CORE_FILE"
+cargo metadata --manifest-path "$CORE_FILE" --format-version 1 >/dev/null
 core_versions="$(cargo metadata --manifest-path "$CORE_FILE" --format-version 1 --no-deps | grep -oE '"version":"[^"]+"' | sort -u)"
 [[ "$core_versions" == "\"version\":\"$new_core_version\"" ]] || fail "Core workspace packages do not all use version $new_core_version: $core_versions"
 
