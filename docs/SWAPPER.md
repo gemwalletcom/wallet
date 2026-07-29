@@ -18,6 +18,8 @@ The current providers preload:
 - Uniswap V3 and V4 pool existence.
 - Cetus pool IDs and shared-object versions.
 - STON.fi routers, pools, and jetton wallets.
+- Chainflip broker asset minimums.
+- THORChain and MayaChain inbound addresses.
 
 ## Shared cache
 

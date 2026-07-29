@@ -4,12 +4,13 @@ use gem_client::Client;
 use gem_evm::contracts::IERC20;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::Arc, time::Duration};
 
 use super::{
     ChainflipRouteData,
     broker::{
-        BrokerClient, ChainflipAsset, DcaParameters, RefundParameters, TronVaultSwapResponse, VaultSwapChainExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras,
+        AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, RefundParameters, TronVaultSwapResponse, VaultSwapChainExtras, VaultSwapExtras, VaultSwapResponse,
+        VaultSwapSolanaExtras,
     },
     capitalize::capitalize_first_letter,
     client::{ChainflipClient, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, SUPPORTED_ASSETS, map_swap_result},
@@ -25,10 +26,11 @@ use crate::{
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     cross_chain::VaultAddresses,
     fees::DEFAULT_CHAINFLIP_FEE_BPS as DEFAULT_FEE_BPS,
+    route_cache::Cache,
     solana::DEFAULT_SWAP_GAS_LIMIT,
 };
 use primitives::{
-    Asset, AssetId, ChainType,
+    Asset, AssetId, ChainType, MINUTE,
     chain::Chain,
     hex::{decode_hex, encode_with_0x},
     swap::QuoteAsset,
@@ -37,6 +39,7 @@ use primitives::{
 const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
 const EVM_REFUND_RETRY_BLOCKS: u32 = 150;
 const DEFAULT_REFUND_RETRY_BLOCKS: u32 = 10;
+const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
 
 const VAULT_ETH: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const VAULT_ARB: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
@@ -53,6 +56,7 @@ where
     chainflip_client: ChainflipClient<CX>,
     broker_client: BrokerClient<BR>,
     rpc_provider: Arc<dyn RpcProvider>,
+    assets_cache: Cache<(), AssetsResponse>,
 }
 
 impl<CX, BR> ChainflipProvider<CX, BR>
@@ -66,7 +70,17 @@ where
             chainflip_client,
             broker_client,
             rpc_provider,
+            assets_cache: Cache::new(ASSETS_CACHE_TTL),
         }
+    }
+
+    async fn get_assets(&self) -> Result<AssetsResponse, SwapperError> {
+        if let Some(assets) = self.assets_cache.get(&()) {
+            return Ok(assets);
+        }
+        let assets = self.broker_client.get_assets().await?;
+        self.assets_cache.put((), assets.clone());
+        Ok(assets)
     }
 }
 
@@ -126,7 +140,7 @@ fn get_best_quote(mut quotes: Vec<QuoteResponse>, fee_bps: u32) -> (BigUint, u32
             (
                 boost_quote.egress_amount.clone(),
                 boost_quote.slippage_bps(),
-                boost_quote.estimated_duration_seconds as u32,
+                boost_quote.estimated_duration_seconds.ceil() as u32,
                 Some(boost_quote.estimated_boost_fee_bps),
                 boost_quote.estimated_price.clone(),
                 boost_quote.dca_params.as_ref().map(|dca| DcaParameters {
@@ -140,7 +154,7 @@ fn get_best_quote(mut quotes: Vec<QuoteResponse>, fee_bps: u32) -> (BigUint, u32
             (
                 quote.egress_amount.clone(),
                 quote.slippage_bps(),
-                quote.estimated_duration_seconds as u32,
+                quote.estimated_duration_seconds.ceil() as u32,
                 None,
                 quote.estimated_price.clone(),
                 quote.dca_params.as_ref().map(|dca| DcaParameters {
@@ -202,6 +216,18 @@ fn parse_min_amount(message: &str, decimals: u32) -> Option<String> {
     amount_to_value(token, decimals)
 }
 
+fn validate_minimum_amount(from_value: &str, minimum_amount: Option<&BigUint>) -> Result<(), SwapperError> {
+    let from_value = from_value.parse::<BigUint>()?;
+    if let Some(minimum_amount) = minimum_amount
+        && from_value < *minimum_amount
+    {
+        return Err(SwapperError::InputAmountError {
+            min_amount: Some(minimum_amount.to_string()),
+        });
+    }
+    Ok(())
+}
+
 fn tron_trc20_transfer_value(calldata: &str) -> Result<String, SwapperError> {
     let data = decode_hex(calldata).map_err(|_| SwapperError::TransactionError("invalid Tron token transfer calldata".to_string()))?;
     IERC20::transferCall::abi_decode(&data)
@@ -248,9 +274,27 @@ where
         SwapAmountMode::Fixed
     }
 
+    async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {
+        _ = self.get_assets().await;
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let fee_bps = DEFAULT_FEE_BPS;
         let quote_request_data = build_quote_request(request)?;
+        let source_asset = ChainflipAsset {
+            chain: quote_request_data.quote_request.src_chain.clone(),
+            asset: quote_request_data.quote_request.src_asset.clone(),
+        };
+        let destination_asset = ChainflipAsset {
+            chain: quote_request_data.quote_request.dest_chain.clone(),
+            asset: quote_request_data.quote_request.dest_asset.clone(),
+        };
+        let minimum_amount = self
+            .get_assets()
+            .await?
+            .minimum_amount(&source_asset, &destination_asset)
+            .ok_or(SwapperError::NoQuoteAvailable)?;
+        validate_minimum_amount(&quote_request_data.from_value, Some(&minimum_amount))?;
 
         let quotes = match self.chainflip_client.get_quote(&quote_request_data.quote_request).await {
             Ok(quotes) => quotes,
@@ -263,7 +307,7 @@ where
         let (egress_amount, slippage_bps, eta_in_seconds, route_data) = get_best_quote(quotes, fee_bps);
 
         Ok(Quote {
-            min_from_value: None,
+            min_from_value: Some(minimum_amount.to_string()),
             from_value: quote_request_data.from_value,
             to_value: egress_amount.to_string(),
             data: ProviderData {
@@ -393,8 +437,8 @@ mod tests {
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
-    use gem_jsonrpc::client::JsonRpcClient;
     use primitives::AssetId;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[cfg(feature = "swap_integration_tests")]
     use crate::{NativeProvider, Options};
@@ -420,6 +464,62 @@ mod tests {
                 min_amount: Some("1230000".into())
             }
         );
+    }
+
+    #[test]
+    fn test_validate_minimum_amount() {
+        let minimum_amount = BigUint::from(68_000_000u32);
+
+        assert_eq!(
+            validate_minimum_amount("1000000", Some(&minimum_amount)),
+            Err(SwapperError::InputAmountError {
+                min_amount: Some("68000000".to_string())
+            })
+        );
+        assert_eq!(validate_minimum_amount("68000000", Some(&minimum_amount)), Ok(()));
+        assert_eq!(validate_minimum_amount("68000001", Some(&minimum_amount)), Ok(()));
+        assert_eq!(validate_minimum_amount("1", None), Ok(()));
+    }
+
+    #[tokio::test]
+    async fn test_chainflip_preload_caches_minimum_amount() {
+        let assets_requests = Arc::new(AtomicUsize::new(0));
+        let quote_requests = Arc::new(AtomicUsize::new(0));
+        let assets_counter = assets_requests.clone();
+        let quote_counter = quote_requests.clone();
+        let assets_client = MockClient::new().with_get(move |path| {
+            assert_eq!(path, "/assets");
+            assets_counter.fetch_add(1, Ordering::Relaxed);
+            Ok(include_str!("./broker/test/assets.json").as_bytes().to_vec())
+        });
+        let quote_client = MockClient::new().with_get(move |_| {
+            quote_counter.fetch_add(1, Ordering::Relaxed);
+            Ok(
+                br#"[{"egressAmount":"1","recommendedSlippageTolerancePercent":1,"estimatedDurationSeconds":60,"type":"REGULAR","depositAmount":"68000000","isVaultSwap":true,"estimatedPrice":"1"}]"#
+                    .to_vec(),
+            )
+        });
+        let provider = ChainflipProvider::with_clients(
+            ChainflipClient::new(quote_client),
+            BrokerClient::new(assets_client),
+            Arc::new(ProviderMock::new(String::new())),
+        );
+        let mut request = QuoteRequest::mock(Chain::Solana, None);
+        provider.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
+
+        let error = provider.get_quote(&request).await.unwrap_err();
+        assert_eq!(
+            error,
+            SwapperError::InputAmountError {
+                min_amount: Some("68000000".to_string())
+            }
+        );
+
+        request.value = "68000000".to_string();
+        let quote = provider.get_quote(&request).await.unwrap();
+        assert_eq!(quote.min_from_value, Some("68000000".to_string()));
+        assert_eq!(assets_requests.load(Ordering::Relaxed), 1);
+        assert_eq!(quote_requests.load(Ordering::Relaxed), 1);
     }
 
     #[test]
@@ -485,7 +585,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_quote_data_rejects_wrong_chain_response() {
-        let broker = MockClient::new().with_post(|_, _| {
+        let broker = MockClient::new().with_post(|path, _| {
+            assert_eq!(path, "/rpc");
             Ok(serde_json::to_vec(&serde_json::json!({
                 "jsonrpc": "2.0",
                 "id": 1,
@@ -499,7 +600,7 @@ mod tests {
         });
         let provider = ChainflipProvider::with_clients(
             ChainflipClient::new(MockClient::new()),
-            BrokerClient::new(JsonRpcClient::new(broker)),
+            BrokerClient::new(broker),
             Arc::new(ProviderMock::new(String::new())),
         );
         let mut quote = Quote::mock(Chain::Tron, None);
@@ -528,7 +629,7 @@ mod tests {
 
         assert_eq!(egress_amount.to_string(), "145118751424");
         assert_eq!(slippage_bps, 250);
-        assert_eq!(eta_in_seconds, 192);
+        assert_eq!(eta_in_seconds, 193);
         assert_eq!(
             route_data,
             ChainflipRouteData {
@@ -540,6 +641,22 @@ mod tests {
                 retry_duration_blocks: Some(50),
             }
         );
+    }
+
+    #[test]
+    fn test_fractional_estimated_duration_rounds_up() {
+        let quotes = serde_json::from_value::<Vec<QuoteResponse>>(serde_json::json!([{
+            "egressAmount": "1",
+            "recommendedSlippageTolerancePercent": 1,
+            "estimatedDurationSeconds": 163.5,
+            "type": "REGULAR",
+            "depositAmount": "1",
+            "isVaultSwap": true,
+            "estimatedPrice": "1"
+        }]))
+        .unwrap();
+
+        assert_eq!(get_best_quote(quotes, DEFAULT_FEE_BPS).2, 164);
     }
 
     #[test]

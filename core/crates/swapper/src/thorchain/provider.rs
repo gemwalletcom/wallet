@@ -1,24 +1,70 @@
-use std::collections::HashSet;
-use std::sync::Arc;
+use std::{collections::HashSet, fmt::Debug, sync::Arc, time::Duration};
 
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{Chain, ChainType, swap::ApprovalData};
+use primitives::{AssetId, Chain, ChainType, MINUTE, swap::ApprovalData};
 
 use num_bigint::BigInt;
 
 use super::{
-    DUST_THRESHOLD_MULTIPLIER, QUOTE_INTERVAL, QUOTE_MINIMUM, QUOTE_QUANTITY, THORChainNetwork, ThorChain,
+    DUST_THRESHOLD_MULTIPLIER, QUOTE_INTERVAL, QUOTE_MINIMUM, QUOTE_QUANTITY, THORChainNetwork,
     asset::{THORChainAsset, value_to},
     chain::ChainName,
-    model::{AsgardVault, InboundAddressesExt, RouteData},
-    quote_data_mapper, swap_mapper,
+    model::{AsgardVault, InboundAddress, InboundAddressesExt, RouteData},
+    quote_data_mapper, quote_mapper, swap_mapper,
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperQuoteData, approval::check_approval_erc20, cross_chain::VaultAddresses, fees::default_referral_fees, thorchain::client::ThorChainSwapClient,
+    SwapperQuoteData, approval::check_approval_erc20, cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
 };
+
+const INBOUND_ADDRESS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
+
+#[derive(Debug)]
+pub struct ThorChain<C>
+where
+    C: Client + Clone + Send + Sync + Debug + 'static,
+{
+    provider: ProviderType,
+    rpc_provider: Arc<dyn RpcProvider>,
+    network: THORChainNetwork,
+    client: ThorChainSwapClient<C>,
+    inbound_address_cache: Cache<(), Vec<InboundAddress>>,
+}
+
+impl<C> ThorChain<C>
+where
+    C: Client + Clone + Send + Sync + Debug + 'static,
+{
+    pub fn with_client(swap_client: ThorChainSwapClient<C>, rpc_provider: Arc<dyn RpcProvider>, network: THORChainNetwork) -> Self {
+        Self {
+            provider: ProviderType::new(network.provider()),
+            rpc_provider,
+            network,
+            client: swap_client,
+            inbound_address_cache: Cache::new(INBOUND_ADDRESS_CACHE_TTL),
+        }
+    }
+
+    async fn get_inbound_addresses(&self) -> Result<Vec<InboundAddress>, SwapperError> {
+        if let Some(addresses) = self.inbound_address_cache.get(&()) {
+            return Ok(addresses);
+        }
+        let addresses = self.client.get_inbound_addresses().await?;
+        self.inbound_address_cache.put((), addresses.clone());
+        Ok(addresses)
+    }
+
+    fn map_quote_error(&self, error: SwapperError, decimals: i32) -> SwapperError {
+        match error {
+            SwapperError::InputAmountError { min_amount: Some(min) } => SwapperError::InputAmountError {
+                min_amount: Some(value_to(&min, decimals).to_string()),
+            },
+            other => other,
+        }
+    }
+}
 
 impl ThorChain<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
@@ -58,6 +104,10 @@ where
             ChainType::Ethereum => SwapAmountMode::Fixed,
             _ => SwapAmountMode::Flexible,
         }
+    }
+
+    async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {
+        _ = self.get_inbound_addresses().await;
     }
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
@@ -135,7 +185,7 @@ where
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
-            eta_in_seconds: Some(self.get_eta_in_seconds(request.to_asset.chain(), quote.total_swap_seconds)),
+            eta_in_seconds: Some(quote_mapper::map_eta_in_seconds(request.to_asset.chain(), quote.total_swap_seconds)),
         };
 
         Ok(quote)
@@ -213,6 +263,38 @@ mod tests {
     use gem_client::testkit::MockClient;
     use primitives::asset_constants::{ARBITRUM_USDC_ASSET_ID, THORCHAIN_TCY_ASSET_ID};
 
+    fn thorchain() -> ThorChain<MockClient> {
+        ThorChain::with_client(
+            ThorChainSwapClient::new(MockClient::new(), THORChainNetwork::Thorchain),
+            Arc::new(ProviderMock::new(String::new())),
+            THORChainNetwork::Thorchain,
+        )
+    }
+
+    #[test]
+    fn test_map_quote_error() {
+        let thorchain = thorchain();
+        let cases = [(18, "6614750000000000"), (8, "661475"), (6, "6614")];
+
+        for (decimals, expected) in cases {
+            let error = SwapperError::InputAmountError {
+                min_amount: Some("661475".to_string()),
+            };
+            assert_eq!(
+                thorchain.map_quote_error(error, decimals),
+                SwapperError::InputAmountError {
+                    min_amount: Some(expected.to_string())
+                }
+            );
+        }
+
+        assert_eq!(
+            thorchain.map_quote_error(SwapperError::InputAmountError { min_amount: None }, 18),
+            SwapperError::InputAmountError { min_amount: None }
+        );
+        assert_eq!(thorchain.map_quote_error(SwapperError::NotSupportedAsset, 18), SwapperError::NotSupportedAsset);
+    }
+
     #[test]
     fn test_min_value() {
         assert_eq!(min_value(&BigInt::from(10000)), BigInt::from(20000));
@@ -284,6 +366,7 @@ mod tests {
         );
         let bsc = SwapperQuoteAsset::from(Chain::SmartChain.as_asset_id());
         let bitcoin = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
+        swapper.preload_routes(&bsc.asset_id(), &bitcoin.asset_id()).await;
 
         let source_error = swapper.get_quote(&mock_quote(bsc.clone(), bitcoin.clone())).await.unwrap_err();
         let destination_error = swapper.get_quote(&mock_quote(bitcoin, bsc)).await.unwrap_err();

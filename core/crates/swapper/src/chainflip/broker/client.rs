@@ -1,11 +1,11 @@
 use super::{
-    VaultSwapExtras, VaultSwapResponse,
+    AssetsResponse, VaultSwapExtras, VaultSwapResponse,
     jsonrpc::RequestSwapParameterEncoding,
     model::{ChainflipAsset, DcaParameters},
 };
 use crate::SwapperError;
-use gem_client::Client;
-use gem_jsonrpc::client::JsonRpcClient;
+use gem_client::{Client, ClientExt};
+use gem_jsonrpc::types::{JsonRpcResult, ToJsonRpcRequest};
 use serde_json::{Value, json};
 use std::fmt::Debug;
 
@@ -14,15 +14,19 @@ pub struct BrokerClient<C>
 where
     C: Client + Clone + Debug,
 {
-    client: JsonRpcClient<C>,
+    client: C,
 }
 
 impl<C> BrokerClient<C>
 where
     C: Client + Clone + Debug,
 {
-    pub fn new(client: JsonRpcClient<C>) -> Self {
+    pub fn new(client: C) -> Self {
         Self { client }
+    }
+
+    pub async fn get_assets(&self) -> Result<AssetsResponse, SwapperError> {
+        self.client.get("/assets").await.map_err(SwapperError::from)
     }
 
     pub async fn encode_vault_swap(
@@ -53,6 +57,8 @@ where
             dca_params,
         ]);
 
-        self.client.request(RequestSwapParameterEncoding(params)).await.map_err(SwapperError::from)
+        let request = RequestSwapParameterEncoding(params).to_jsonrpc_request(1);
+        let response: JsonRpcResult<VaultSwapResponse> = self.client.post("/rpc", &request).await?;
+        response.take().map_err(SwapperError::from)
     }
 }
