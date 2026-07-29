@@ -57,7 +57,12 @@ impl SuiRequestHandler {
             .and_then(|value| value.as_str())
             .ok_or_else(|| "Missing transaction field".to_string())?
             .to_string();
-        let wallet_address = json.get("account").or_else(|| json.get("address")).and_then(|value| value.as_str()).unwrap_or_default().to_string();
+        let wallet_address = json
+            .get("account")
+            .or_else(|| json.get("address"))
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string();
         Ok(WalletConnectTransaction::Sui {
             data: WCSuiTransactionData { transaction, wallet_address },
             output_type,
