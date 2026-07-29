@@ -75,6 +75,8 @@ just build
 just generate
 just localize
 just bump patch
+just bump minor
+just bump major
 just ios bootstrap
 just ios build
 just ios build-for-testing

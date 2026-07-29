@@ -37,34 +37,35 @@ verify_clean_latest_branch() {
 
 resolve_version() {
   local input="$1"
-  local major release
+  local major minor patch
 
-  if [[ "$input" =~ ^[0-9]+\.[0-9]+$ ]]; then
+  if [[ "$input" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "$input"
     return
   fi
 
-  IFS="." read -r major release <<< "$current_version"
+  IFS="." read -r major minor patch <<< "$current_version"
   case "$input" in
-    major) echo "$((major + 1)).0" ;;
-    patch) echo "${major}.$((release + 1))" ;;
-    *) fail "Invalid bump target: $input. Use patch, major, or an explicit X.Y version." ;;
+    major) echo "$((major + 1)).0.0" ;;
+    minor) echo "${major}.$((minor + 1)).0" ;;
+    patch) echo "${major}.${minor}.$((patch + 1))" ;;
+    *) fail "Invalid bump target: $input. Use patch, minor, major, or an explicit X.Y.Z version." ;;
   esac
 }
 
 verify_clean_latest_branch
 
-current_ios_version=$(grep -oE "MARKETING_VERSION = [0-9]+\.[0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+\.[0-9]+")
+current_ios_version=$(grep -oE "MARKETING_VERSION = [0-9]+\.[0-9]+\.[0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
 current_android_version=$(grep 'versionName = "' "$ANDROID_FILE" | sed 's/.*versionName = "//' | sed 's/".*//')
 current_core_version=$(grep -oE '^version = "[0-9]+\.[0-9]+\.[0-9]+"' "$CORE_FILE" | head -n1 | sed 's/version = "//; s/"//')
 
 [[ -n "$current_ios_version" && -n "$current_android_version" && -n "$current_core_version" ]] || fail "Unable to read current versions from iOS, Android, or Core."
 [[ "$current_ios_version" == "$current_android_version" ]] || fail "iOS version ($current_ios_version) and Android version ($current_android_version) differ."
-[[ "$current_core_version" == "$current_ios_version.0" ]] || fail "Core version ($current_core_version) and app version ($current_ios_version) differ."
+[[ "$current_core_version" == "$current_ios_version" ]] || fail "Core version ($current_core_version) and app version ($current_ios_version) differ."
 
 current_version="$current_ios_version"
 new_version="$(resolve_version "$TARGET")"
-new_core_version="$new_version.0"
+new_core_version="$new_version"
 
 current_ios_build=$(grep -oE "CURRENT_PROJECT_VERSION = [0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+")
 current_android_build=$(grep "versionCode = " "$ANDROID_FILE" | sed 's/.*versionCode = //' | sed 's/[^0-9].*//')
