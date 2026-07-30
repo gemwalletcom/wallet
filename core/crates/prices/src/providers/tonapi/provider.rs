@@ -51,7 +51,7 @@ impl PriceAssetsProvider for TonApiProvider {
     async fn get_assets(&self, limit: usize) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
         let mappings = self
             .stonfi_client
-            .get_assets(limit)
+            .get_assets(limit.saturating_mul(5))
             .await?
             .asset_list
             .into_iter()
@@ -61,6 +61,7 @@ impl PriceAssetsProvider for TonApiProvider {
             .prices_for_mappings(mappings)
             .await?
             .into_iter()
+            .take(limit)
             .map(|price| PriceProviderAsset::with_price(price.mapping, None, Some(price.price.price), Some(price.price.price_change_percentage_24h)))
             .collect())
     }
