@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Скасувати
+common_hidden = Приховані
 common_done = Готово
 common_maximum_value = Максимальне значення %@
 common_minimum_value = Мінімальне значення %@

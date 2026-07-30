@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Ophæve
+common_hidden = Skjulte
 common_done = Færdig
 common_maximum_value = Maksimal værdi er %@
 common_minimum_value = Minimumsværdi er %@

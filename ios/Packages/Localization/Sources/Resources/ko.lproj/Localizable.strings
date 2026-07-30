@@ -1,4 +1,5 @@
 "common.cancel" = "취소";
+"common.hidden" = "숨김";
 "common.done" = "완료";
 "common.maximum_value" = "최대값은 %@입니다";
 "common.minimum_value" = "최소값은 %@입니다";

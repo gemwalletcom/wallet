@@ -1,4 +1,5 @@
 "common.cancel" = "Annuleren";
+"common.hidden" = "Verborgen";
 "common.done" = "Klaar";
 "common.maximum_value" = "Maximale waarde is %@";
 "common.minimum_value" = "Minimale waarde is %@";

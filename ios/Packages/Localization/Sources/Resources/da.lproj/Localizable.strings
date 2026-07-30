@@ -1,4 +1,5 @@
 "common.cancel" = "Ophæve";
+"common.hidden" = "Skjulte";
 "common.done" = "Færdig";
 "common.maximum_value" = "Maksimal værdi er %@";
 "common.minimum_value" = "Minimumsværdi er %@";

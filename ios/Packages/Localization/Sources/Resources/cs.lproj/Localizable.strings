@@ -1,4 +1,5 @@
 "common.cancel" = "Zrušit";
+"common.hidden" = "Skryté";
 "common.done" = "Hotovo";
 "common.maximum_value" = "Maximální hodnota je %@";
 "common.minimum_value" = "Minimální hodnota je %@";

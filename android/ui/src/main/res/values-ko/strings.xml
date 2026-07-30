@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">취소</string>
+  <string name="common_hidden">숨김</string>
   <string name="common_done">완료</string>
   <string name="common_maximum_value">최대값은 %1$s입니다</string>
   <string name="common_minimum_value">최소값은 %1$s입니다</string>

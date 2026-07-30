@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Soke
+common_hidden = Ɓoyayye
 common_done = Anyi
 common_maximum_value = Matsakaicin ƙima shine %@
 common_minimum_value = Mafi ƙarancin ƙima shine %@

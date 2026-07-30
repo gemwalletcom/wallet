@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">يلغي</string>
+  <string name="common_hidden">مخفية</string>
   <string name="common_done">تم</string>
   <string name="common_maximum_value">القيمة القصوى هي %1$s</string>
   <string name="common_minimum_value">القيمة الدنيا هي %1$s</string>

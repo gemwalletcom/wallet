@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Zrušit</string>
+  <string name="common_hidden">Skryté</string>
   <string name="common_done">Hotovo</string>
   <string name="common_maximum_value">Maximální hodnota je %1$s</string>
   <string name="common_minimum_value">Minimální hodnota je %1$s</string>

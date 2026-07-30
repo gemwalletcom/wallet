@@ -1,4 +1,5 @@
 "common.cancel" = "Hủy bỏ";
+"common.hidden" = "Đã ẩn";
 "common.done" = "Xong";
 "common.maximum_value" = "Giá trị tối đa là %@";
 "common.minimum_value" = "Giá trị tối thiểu là %@";

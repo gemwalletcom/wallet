@@ -1,4 +1,5 @@
 "common.cancel" = "İptal";
+"common.hidden" = "Gizli";
 "common.done" = "Tamam";
 "common.maximum_value" = "Maksimum değer %@";
 "common.minimum_value" = "Minimum değer %@";

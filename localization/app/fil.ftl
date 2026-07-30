@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Kanselahin
+common_hidden = Nakatago
 common_done = Tapos na
 common_maximum_value = Ang maximum na halaga ay %@
 common_minimum_value = Ang minimum na halaga ay %@

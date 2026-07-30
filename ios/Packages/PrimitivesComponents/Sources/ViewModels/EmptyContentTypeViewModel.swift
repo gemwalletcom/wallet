@@ -40,6 +40,7 @@ public struct EmptyContentTypeViewModel: EmptyContentViewable {
             case .activity: Localized.Activity.State.Empty.searchTitle
             case .perpetuals: Localized.Perpetuals.EmptyState.noMarketsFound
             }
+        case .networkAssets: Localized.Assets.noAssetsFound
         case .recents: Localized.RecentActivity.State.Empty.title
         case .contacts: Localized.Contacts.State.Empty.title
         }
@@ -69,6 +70,7 @@ public struct EmptyContentTypeViewModel: EmptyContentViewable {
             case .activity: Localized.Activity.State.Empty.searchDescription
             }
         case .markets: .none
+        case .networkAssets: .none
         case .recents: Localized.RecentActivity.State.Empty.description
         case .notifications: Localized.Notifications.Inapp.State.Empty.description
         case .contacts: Localized.Contacts.State.Empty.description
@@ -79,7 +81,7 @@ public struct EmptyContentTypeViewModel: EmptyContentViewable {
         switch type {
         case .nfts: Images.EmptyContent.nft
         case .priceAlerts: Images.EmptyContent.priceAlerts
-        case .asset, .activity: Images.EmptyContent.activity
+        case .asset, .activity, .networkAssets: Images.EmptyContent.activity
         case .stake: Images.EmptyContent.stake
         case .earn: Images.EmptyContent.stake
         case .walletConnect: Images.EmptyContent.walletConnect
@@ -94,6 +96,8 @@ public struct EmptyContentTypeViewModel: EmptyContentViewable {
         let actions: [EmptyAction] = switch type {
         case .priceAlerts, .stake, .earn, .walletConnect, .markets, .notifications, .recents, .contacts:
             []
+        case let .networkAssets(action):
+            [EmptyAction(title: Localized.Wallet.manageTokenList, action: action)]
         case let .asset(_, buy, swap, isViewOnly):
             switch isViewOnly {
             case true: []

@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = לְבַטֵל
+common_hidden = מוסתרים
 common_done = בוצע
 common_maximum_value = הערך המקסימלי הוא %@
 common_minimum_value = הערך המינימלי הוא %@

@@ -126,7 +126,7 @@ extension WalletScene {
         ListButton(
             title: model.manageTokenTitle,
             image: model.manageImage,
-            action: model.onSelectManage,
+            action: { model.onSelectManage() },
         )
         .accessibilityIdentifier("manage")
         .padding(.medium)

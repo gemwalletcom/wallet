@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.models.navigation
 
 enum class RouteArgument(val key: String) {
     AssetId("assetId"),
+    Chain("chain"),
     Code("code"),
     ConnectionId("connectionId"),
     ContactId("contactId"),

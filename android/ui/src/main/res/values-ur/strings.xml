@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">منسوخ کریں۔</string>
+  <string name="common_hidden">پوشیدہ</string>
   <string name="common_done">ہو گیا</string>
   <string name="common_maximum_value">زیادہ سے زیادہ قدر %1$s ہے</string>
   <string name="common_minimum_value">کم از کم قدر %1$s ہے</string>

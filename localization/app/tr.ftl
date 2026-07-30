@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = İptal
+common_hidden = Gizli
 common_done = Tamam
 common_maximum_value = Maksimum değer %@
 common_minimum_value = Minimum değer %@

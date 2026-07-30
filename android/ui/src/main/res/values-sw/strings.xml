@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Ghairi</string>
+  <string name="common_hidden">Zilizofichwa</string>
   <string name="common_done">Imekamilika</string>
   <string name="common_maximum_value">Thamani ya juu ni %1$s</string>
   <string name="common_minimum_value">Thamani ya chini ni %1$s</string>

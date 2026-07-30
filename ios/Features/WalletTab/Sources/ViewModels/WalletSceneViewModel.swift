@@ -179,8 +179,8 @@ public extension WalletSceneViewModel {
         isPresentingSheet = .wallets
     }
 
-    func onSelectManage() {
-        isPresentingSheet = .selectAsset(.manage)
+    func onSelectManage(chains: [Chain] = []) {
+        isPresentingSheet = .selectAsset(.manage, chains: chains)
     }
 
     func onToggleSearch() {
@@ -197,9 +197,9 @@ public extension WalletSceneViewModel {
 
     internal func onHeaderAction(type: HeaderButtonType) {
         switch type {
-        case .buy: isPresentingSheet = .selectAsset(.buy)
-        case .send: isPresentingSheet = .selectAsset(.send)
-        case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
+        case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
+        case .send: isPresentingSheet = .selectAsset(.send, chains: [])
+        case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
         case .sell, .swap, .more, .stake, .deposit, .withdraw: break
         }
     }
@@ -220,8 +220,8 @@ public extension WalletSceneViewModel {
             }
         case let .button(bannerButton):
             switch bannerButton {
-            case .buy: isPresentingSheet = .selectAsset(.buy)
-            case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
+            case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
+            case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
             }
         }
         isPresentingUrl = action.url

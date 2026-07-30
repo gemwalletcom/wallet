@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Ghairi
+common_hidden = Zilizofichwa
 common_done = Imekamilika
 common_maximum_value = Thamani ya juu ni %@
 common_minimum_value = Thamani ya chini ni %@

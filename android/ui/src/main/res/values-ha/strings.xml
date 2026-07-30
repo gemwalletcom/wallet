@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Soke</string>
+  <string name="common_hidden">Ɓoyayye</string>
   <string name="common_done">Anyi</string>
   <string name="common_maximum_value">Matsakaicin ƙima shine %1$s</string>
   <string name="common_minimum_value">Mafi ƙarancin ƙima shine %1$s</string>

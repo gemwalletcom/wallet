@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">キャンセル</string>
+  <string name="common_hidden">非表示</string>
   <string name="common_done">完了</string>
   <string name="common_maximum_value">最大値は %1$s です</string>
   <string name="common_minimum_value">最小値は %1$s です</string>

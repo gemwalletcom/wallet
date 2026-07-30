@@ -131,6 +131,14 @@ public enum Scenes {
         }
     }
 
+    public struct NetworkAssets: Hashable, Codable {
+        public let chain: Primitives.Chain
+
+        public init(chain: Primitives.Chain) {
+            self.chain = chain
+        }
+    }
+
     public struct Collections: Hashable, Codable, Sendable {
         public init() {}
     }

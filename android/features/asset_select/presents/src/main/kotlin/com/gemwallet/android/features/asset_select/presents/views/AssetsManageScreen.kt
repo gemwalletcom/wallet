@@ -5,6 +5,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,6 +22,7 @@ import com.wallet.core.primitives.Asset
 import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
+import com.wallet.core.primitives.Chain
 import kotlinx.collections.immutable.toImmutableList
 
 @Composable
@@ -28,8 +30,13 @@ fun AssetsManageScreen(
     onAddAsset: () -> Unit,
     onAssetClick: (AssetId) -> Unit,
     onCancel: () -> Unit,
+    chain: Chain? = null,
     viewModel: AssetSelectViewModel = hiltViewModel(),
 ) {
+    LaunchedEffect(chain) {
+        viewModel.setChainFilter(listOfNotNull(chain))
+    }
+
     val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()

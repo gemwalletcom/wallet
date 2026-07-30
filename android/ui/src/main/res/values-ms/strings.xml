@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Batal</string>
+  <string name="common_hidden">Tersembunyi</string>
   <string name="common_done">Selesai</string>
   <string name="common_maximum_value">Nilai maksimum ialah %1$s</string>
   <string name="common_minimum_value">Nilai minimum ialah %1$s</string>

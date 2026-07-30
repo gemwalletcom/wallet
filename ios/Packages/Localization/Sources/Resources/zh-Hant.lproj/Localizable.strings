@@ -1,4 +1,5 @@
 "common.cancel" = "取消";
+"common.hidden" = "已隱藏";
 "common.done" = "完畢";
 "common.maximum_value" = "最大值為 %@";
 "common.minimum_value" = "最小值為 %@";

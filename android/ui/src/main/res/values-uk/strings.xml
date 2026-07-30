@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Скасувати</string>
+  <string name="common_hidden">Приховані</string>
   <string name="common_done">Готово</string>
   <string name="common_maximum_value">Максимальне значення %1$s</string>
   <string name="common_minimum_value">Мінімальне значення %1$s</string>

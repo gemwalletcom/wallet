@@ -74,7 +74,7 @@ public final class AssetSceneViewModel: Sendable {
         transactionsQuery = ObservableQuery(input.transactionsRequest, initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
-    
+
     public var chainAssetData: ChainAssetData {
         assetQuery.value
     }
@@ -125,6 +125,14 @@ public final class AssetSceneViewModel: Sendable {
 
     var canOpenNetwork: Bool {
         assetDataModel.asset.type != .native
+    }
+
+    var showNetworkAssets: Bool {
+        asset.type == .native && AssetConfiguration.supportedChainsWithTokens.contains(asset.chain)
+    }
+
+    var networkAssetsDestination: Scenes.NetworkAssets {
+        Scenes.NetworkAssets(chain: asset.chain)
     }
 
     var showBalances: Bool {
