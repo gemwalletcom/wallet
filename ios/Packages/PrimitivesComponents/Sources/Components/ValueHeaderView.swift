@@ -91,7 +91,7 @@ public struct ValueHeaderView: View {
             }
             titleView
                 .numericTransition(for: model.title)
-                .minimumScaleFactor(0.5)
+                .minimumScaleFactor(0.35)
                 .font(.app.largeTitle)
                 .foregroundStyle(Colors.black)
                 .lineLimit(1)

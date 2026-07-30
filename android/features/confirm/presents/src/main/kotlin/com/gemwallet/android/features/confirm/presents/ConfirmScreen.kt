@@ -100,8 +100,10 @@ fun ConfirmScreen(
     val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
+    val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val isWalletConnect = params is ConfirmParams.TransferParams.Generic
+    val isTokenApproval = amountModel?.transactionType == TransactionType.TokenApproval
     val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
@@ -153,7 +155,7 @@ fun ConfirmScreen(
                             stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
                         } else {
                             simulation.headerValue?.toBigIntegerOrNull()
-                                ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: ""
+                                ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: asset.symbol
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
@@ -223,6 +225,7 @@ fun ConfirmScreen(
             simulationWarningsContent(simulation.warnings)
             simulationPayloadFieldsContent(
                 fields = simulation.primaryPayloadFields,
+                addressNames = payloadAddressNames,
                 onDetailsClick = simulation.secondaryPayloadFields
                     .takeIf { it.isNotEmpty() }
                     ?.let { { showWalletConnectDetails = true } },
@@ -285,10 +288,18 @@ fun ConfirmScreen(
             title = stringResource(R.string.common_details),
         ) {
             LazyColumn {
-                simulationPayloadDetailsContent(
-                    primaryFields = simulation.primaryPayloadFields,
-                    secondaryFields = simulation.secondaryPayloadFields,
-                )
+                if (isTokenApproval) {
+                    simulationPayloadFieldsContent(
+                        fields = simulation.secondaryPayloadFields,
+                        addressNames = payloadAddressNames,
+                    )
+                } else {
+                    simulationPayloadDetailsContent(
+                        primaryFields = simulation.primaryPayloadFields,
+                        secondaryFields = simulation.secondaryPayloadFields,
+                        addressNames = payloadAddressNames,
+                    )
+                }
             }
         }
 
@@ -402,7 +413,11 @@ private fun confirmTitle(
     transactionType: TransactionType?,
     perpetualType: PerpetualType?,
 ): String = when {
-    isWalletConnect -> stringResource(R.string.transfer_review_request)
+    isWalletConnect -> when (transactionType) {
+        TransactionType.TokenApproval -> stringResource(R.string.transfer_approve_title)
+        TransactionType.Transfer -> stringResource(R.string.transfer_send_title)
+        else -> stringResource(R.string.transfer_review_request)
+    }
     perpetualType != null -> perpetualType.title()
     else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
 }

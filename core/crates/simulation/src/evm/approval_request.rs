@@ -201,13 +201,13 @@ impl ApprovalRequest {
                 SimulationPayloadFieldKind::Contract,
                 &self.contract_address,
                 SimulationPayloadFieldType::Address,
-                SimulationPayloadFieldDisplay::Primary,
+                SimulationPayloadFieldDisplay::Secondary,
             ),
             SimulationPayloadField::standard(
                 SimulationPayloadFieldKind::Method,
                 self.method.to_string(),
                 SimulationPayloadFieldType::Text,
-                SimulationPayloadFieldDisplay::Primary,
+                SimulationPayloadFieldDisplay::Secondary,
             ),
         ];
 
@@ -224,7 +224,7 @@ impl ApprovalRequest {
             SimulationPayloadFieldKind::Spender,
             &self.spender_address,
             SimulationPayloadFieldType::Address,
-            SimulationPayloadFieldDisplay::Primary,
+            SimulationPayloadFieldDisplay::Secondary,
         ));
 
         if self.method.supports_value_display()

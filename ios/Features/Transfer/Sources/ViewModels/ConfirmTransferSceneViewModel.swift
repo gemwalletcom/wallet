@@ -152,7 +152,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ListSection(type: .header, [.header]),
             ListSection(type: .details, detailItems),
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
-            primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
+            (primaryPayloadFields.isEmpty && !hasPayloadDetails) ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
             ListSection(type: .fee, [.networkFee]),
             ListSection(type: .error, [.error]),
