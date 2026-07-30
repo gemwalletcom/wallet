@@ -2,17 +2,6 @@
 
 import Foundation
 import Primitives
-import SwiftHTTPClient
-
-public enum ProviderFactory {
-    public static func create<T: TargetType>(options: ProviderOptions<T>) -> Provider<T> {
-        Provider<T>(options: options)
-    }
-
-    public static func create<T: TargetType>(with baseUrl: URL) -> Provider<T> {
-        Provider<T>(options: ProviderOptions(baseUrl: baseUrl))
-    }
-}
 
 public extension Chain {
     var defaultBaseUrl: URL {
