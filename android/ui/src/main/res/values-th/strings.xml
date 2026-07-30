@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">ยกเลิก</string>
+  <string name="common_hidden">ที่ซ่อนไว้</string>
   <string name="common_done">เสร็จแล้ว</string>
   <string name="common_maximum_value">ค่าสูงสุดคือ %1$s</string>
   <string name="common_minimum_value">ค่าต่ำสุดคือ %1$s</string>

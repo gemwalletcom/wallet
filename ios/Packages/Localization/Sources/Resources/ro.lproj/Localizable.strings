@@ -1,4 +1,5 @@
 "common.cancel" = "Anula";
+"common.hidden" = "Ascunse";
 "common.done" = "Gata";
 "common.maximum_value" = "Valoarea maximă este %@";
 "common.minimum_value" = "Valoarea minimă este %@";

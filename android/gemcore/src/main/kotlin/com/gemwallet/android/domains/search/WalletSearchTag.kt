@@ -15,21 +15,18 @@ sealed interface WalletSearchTag {
 
     @Serializable
     data class List(val id: String) : WalletSearchTag
-
-    @Serializable
-    data class Chain(val chain: com.wallet.core.primitives.Chain) : WalletSearchTag
 }
 
 val WalletSearchTag.apiTag: String?
     get() = when (this) {
-        WalletSearchTag.All, is WalletSearchTag.Chain -> null
+        WalletSearchTag.All -> null
         is WalletSearchTag.Filter -> tag.string
         is WalletSearchTag.List -> id
     }
 
 val WalletSearchTag.includesPerpetuals: Boolean
     get() = when (this) {
-        is WalletSearchTag.Filter, is WalletSearchTag.Chain -> false
+        is WalletSearchTag.Filter -> false
         WalletSearchTag.All, is WalletSearchTag.List -> true
     }
 

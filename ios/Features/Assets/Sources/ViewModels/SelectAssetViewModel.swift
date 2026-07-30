@@ -61,6 +61,7 @@ public final class SelectAssetViewModel {
         priceAlertService: PriceAlertService,
         activityService: ActivityService,
         selectAssetAction: AssetAction = .none,
+        chains: [Chain] = [],
     ) {
         self.preferences = preferences
         self.wallet = wallet
@@ -75,6 +76,7 @@ public final class SelectAssetViewModel {
             type: selectType,
             model: ChainsFilterViewModel(
                 chains: wallet.chains,
+                selected: chains,
             ),
         )
         filterModel = filter

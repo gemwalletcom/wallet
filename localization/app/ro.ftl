@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Anula
+common_hidden = Ascunse
 common_done = Gata
 common_maximum_value = Valoarea maximă este %@
 common_minimum_value = Valoarea minimă este %@

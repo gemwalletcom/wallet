@@ -29,6 +29,7 @@ import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.toRoute
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
+import com.gemwallet.android.ui.navigation.routes.NetworkAssetsRoute
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
@@ -79,6 +80,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
@@ -175,7 +177,7 @@ class WalletNavigator(
 
     fun openWallets() = push(WalletsRoute)
     fun openAcceptTerms(destination: AcceptTermsDestination) = push(AcceptTermsRoute(destination))
-    fun openAssetsManage() = push(AssetsManageRoute)
+    fun openAssetsManage(chain: Chain? = null) = push(AssetsManageRoute(chain))
     fun openAssetsSearch() = push(WalletSearchRoute)
     fun openAssetsResults(query: String, scope: WalletSearchTag) = push(AssetsResultsRoute(query, scope))
     fun openAssetsResultsList(listId: String, title: String) = push(AssetsResultsRoute(query = "", scope = WalletSearchTag.List(listId), title = title))
@@ -192,6 +194,7 @@ class WalletNavigator(
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = push(AssetRoute(assetId))
+    fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openAssetChart(assetId: AssetId) = push(AssetChartRoute(assetId))
     fun openPortfolioChart(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioChartRoute(type))
     fun openTransaction(transactionId: TransactionId) = push(TransactionDetailsRoute(transactionId))

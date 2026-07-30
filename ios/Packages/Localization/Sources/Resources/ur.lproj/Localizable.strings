@@ -1,4 +1,5 @@
 "common.cancel" = "منسوخ کریں۔";
+"common.hidden" = "پوشیدہ";
 "common.done" = "ہو گیا";
 "common.maximum_value" = "زیادہ سے زیادہ قدر %@ ہے";
 "common.minimum_value" = "کم از کم قدر %@ ہے";

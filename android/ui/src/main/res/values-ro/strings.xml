@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Anula</string>
+  <string name="common_hidden">Ascunse</string>
   <string name="common_done">Gata</string>
   <string name="common_maximum_value">Valoarea maximă este %1$s</string>
   <string name="common_minimum_value">Valoarea minimă este %1$s</string>

@@ -9,6 +9,7 @@ public enum AssetsRequestFilter {
     case swappable
     case stakeable
     case enabledBalance
+    case disabledBalance
     case hasBalance
     // include all assets of these chains
     case chains([String])

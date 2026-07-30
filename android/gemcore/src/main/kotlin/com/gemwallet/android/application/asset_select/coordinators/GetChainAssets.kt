@@ -6,4 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface GetChainAssets {
     operator fun invoke(chain: Chain): Flow<List<AssetInfo>>
+
+    fun hidden(chain: Chain): Flow<List<AssetInfo>>
+
+    suspend fun updateBalances(chain: Chain)
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">לְבַטֵל</string>
+  <string name="common_hidden">מוסתרים</string>
   <string name="common_done">בוצע</string>
   <string name="common_maximum_value">הערך המקסימלי הוא %1$s</string>
   <string name="common_minimum_value">הערך המינימלי הוא %1$s</string>

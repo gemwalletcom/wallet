@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = يلغي
+common_hidden = مخفية
 common_done = تم
 common_maximum_value = القيمة القصوى هي %@
 common_minimum_value = القيمة الدنيا هي %@

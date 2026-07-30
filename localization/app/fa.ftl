@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = لغو کردن
+common_hidden = مخفی
 common_done = انجام شد
 common_maximum_value = حداکثر مقدار %@ است
 common_minimum_value = حداقل مقدار %@ است

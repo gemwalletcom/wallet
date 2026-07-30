@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Zrušit
+common_hidden = Skryté
 common_done = Hotovo
 common_maximum_value = Maximální hodnota je %@
 common_minimum_value = Minimální hodnota je %@

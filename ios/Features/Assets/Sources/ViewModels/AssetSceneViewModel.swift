@@ -131,8 +131,8 @@ public final class AssetSceneViewModel: Sendable {
         asset.type == .native && AssetConfiguration.supportedChainsWithTokens.contains(asset.chain)
     }
 
-    var networkAssetsDestination: Scenes.AssetsResults {
-        Scenes.AssetsResults(searchQuery: "", scope: .chain(asset.chain))
+    var networkAssetsDestination: Scenes.NetworkAssets {
+        Scenes.NetworkAssets(chain: asset.chain)
     }
 
     var showBalances: Bool {

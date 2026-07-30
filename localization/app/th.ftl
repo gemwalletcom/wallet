@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = ยกเลิก
+common_hidden = ที่ซ่อนไว้
 common_done = เสร็จแล้ว
 common_maximum_value = ค่าสูงสุดคือ %@
 common_minimum_value = ค่าต่ำสุดคือ %@

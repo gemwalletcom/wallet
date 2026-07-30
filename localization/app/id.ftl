@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Batalkan
+common_hidden = Tersembunyi
 common_done = Selesai
 common_maximum_value = Nilai maksimum adalah %@
 common_minimum_value = Nilai minimum adalah %@

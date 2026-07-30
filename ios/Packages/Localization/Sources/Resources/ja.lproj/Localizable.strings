@@ -1,4 +1,5 @@
 "common.cancel" = "キャンセル";
+"common.hidden" = "非表示";
 "common.done" = "完了";
 "common.maximum_value" = "最大値は %@ です";
 "common.minimum_value" = "最小値は %@ です";

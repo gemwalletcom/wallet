@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Hủy bỏ
+common_hidden = Đã ẩn
 common_done = Xong
 common_maximum_value = Giá trị tối đa là %@
 common_minimum_value = Giá trị tối thiểu là %@

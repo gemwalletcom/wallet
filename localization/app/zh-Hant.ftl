@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = 取消
+common_hidden = 已隱藏
 common_done = 完畢
 common_maximum_value = 最大值為 %@
 common_minimum_value = 最小值為 %@

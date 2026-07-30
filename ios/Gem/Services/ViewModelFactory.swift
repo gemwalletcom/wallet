@@ -113,6 +113,7 @@ public struct ViewModelFactory: Sendable {
         wallet: Wallet,
         selectType: SelectAssetType,
         selectAssetAction: AssetAction = .none,
+        chains: [Chain] = [],
     ) -> SelectAssetViewModel {
         SelectAssetViewModel(
             wallet: wallet,
@@ -122,6 +123,7 @@ public struct ViewModelFactory: Sendable {
             priceAlertService: priceAlertService,
             activityService: activityService,
             selectAssetAction: selectAssetAction,
+            chains: chains,
         )
     }
 

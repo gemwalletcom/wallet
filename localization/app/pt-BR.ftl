@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Cancelar
+common_hidden = Ocultos
 common_done = Feito
 common_maximum_value = O valor máximo é %@
 common_minimum_value = O valor mínimo é %@

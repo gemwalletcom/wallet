@@ -1,4 +1,5 @@
 "common.cancel" = "Скасувати";
+"common.hidden" = "Приховані";
 "common.done" = "Готово";
 "common.maximum_value" = "Максимальне значення %@";
 "common.minimum_value" = "Мінімальне значення %@";

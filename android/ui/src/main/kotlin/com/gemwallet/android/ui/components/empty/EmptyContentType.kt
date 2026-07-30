@@ -14,6 +14,7 @@ sealed interface EmptyContentType {
         val isViewOnly: Boolean = false,
     ) : EmptyContentType
     data class SearchAssets(val onAddCustomToken: (() -> Unit)? = null) : EmptyContentType
+    data class NetworkAssets(val onManageAssets: (() -> Unit)? = null) : EmptyContentType
     data class SearchActivity(val onClearFilters: (() -> Unit)? = null) : EmptyContentType
     data object SearchNetworks : EmptyContentType
     data object SearchPerpetuals : EmptyContentType

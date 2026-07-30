@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">取消</string>
+  <string name="common_hidden">已隐藏</string>
   <string name="common_done">完成</string>
   <string name="common_maximum_value">最大值为 %1$s</string>
   <string name="common_minimum_value">最小值为 %1$s</string>

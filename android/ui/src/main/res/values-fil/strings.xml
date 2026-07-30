@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Kanselahin</string>
+  <string name="common_hidden">Nakatago</string>
   <string name="common_done">Tapos na</string>
   <string name="common_maximum_value">Ang maximum na halaga ay %1$s</string>
   <string name="common_minimum_value">Ang minimum na halaga ay %1$s</string>
