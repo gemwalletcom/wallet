@@ -71,10 +71,4 @@ Keep this document current in the same change when the sync triggers, the reconc
 
 - [iOS device sync](../ios/Packages/FeatureServices/DeviceService/DeviceService.swift)
 - [iOS subscriptions](../ios/Packages/FeatureServices/DeviceService/SubscriptionService.swift)
-- [iOS observer](../ios/Packages/FeatureServices/DeviceService/DeviceObserverService.swift)
-- [iOS mutation sites](../ios/Packages/FeatureServices/WalletService/WalletService.swift)
 - [Android device sync and subscriptions](../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/device/DeviceRepository.kt)
-- [Android sync coordinator](../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/device/DeviceSyncCoordinator.kt)
-- [Android observer](../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/device/DeviceObserverService.kt)
-- [Device authentication](../core/docs/DEVICE_AUTHENTICATION.md)
-- [Device WebSockets](../core/docs/DEVICE_WEBSOCKETS.md)
