@@ -5870,9 +5870,9 @@ dependencies = [
 
 [[package]]
 name = "oxipng"
-version = "9.1.5"
+version = "10.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26c613f0f566526a647c7473f6a8556dbce22c91b13485ee4b4ec7ab648e4973"
+checksum = "85eaaaa67c73558edaf5270e28abdf8d0663d88e8e7570cf894eff25305f4ed2"
 dependencies = [
  "bitvec",
  "indexmap 2.14.0",
