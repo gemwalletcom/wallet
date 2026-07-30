@@ -80,6 +80,7 @@ pub enum GemPriceProvider {
     Pyth,
     Jupiter,
     DefiLlama,
+    TonApi,
 }
 
 #[uniffi::remote(Record)]

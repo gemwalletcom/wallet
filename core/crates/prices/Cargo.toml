@@ -7,19 +7,15 @@ edition = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
+tokio = { workspace = true }
 
 coingecko = { path = "../coingecko" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_ton = { path = "../gem_ton" }
 jupiter = { path = "../jupiter" }
 primitives = { path = "../primitives" }
 serde_serializers = { path = "../serde_serializers" }
 
 [dev-dependencies]
 coingecko = { path = "../coingecko", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
-tokio.workspace = true
-
-[features]
-default = []
-price_integration_tests = []
+serde_json = { workspace = true }

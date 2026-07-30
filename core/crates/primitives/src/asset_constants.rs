@@ -164,6 +164,12 @@ pub static TRON_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::fro
 pub const TON_USDT_TOKEN_ID: &str = "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs";
 pub static TON_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID));
 
+pub const TON_STON_TOKEN_ID: &str = "EQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T6bO";
+pub static TON_STON_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ton, TON_STON_TOKEN_ID));
+
+pub const TON_DUST_TOKEN_ID: &str = "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE";
+pub static TON_DUST_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ton, TON_DUST_TOKEN_ID));
+
 pub const NEAR_USDT_TOKEN_ID: &str = "usdt.tether-token.near";
 pub static NEAR_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Near, NEAR_USDT_TOKEN_ID));
 

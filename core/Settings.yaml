@@ -65,15 +65,29 @@ flashnet:
     key:
       secret: ""
 prices:
+  coingecko:
+    key:
+      secret: ""
   pyth:
     url: "https://hermes.pyth.network"
-    timer: 60
+    key:
+      secret: ""
   jupiter:
     url: "https://lite-api.jup.ag"
-    timer: 60
+    key:
+      secret: ""
   defillama:
     url: "https://coins.llama.fi"
-    timer: 60
+    key:
+      secret: ""
+  tonapi:
+    url: "https://tonapi.io"
+    key:
+      secret: ""
+  stonfi:
+    url: "https://api.ston.fi"
+    key:
+      secret: ""
 charter:
   timer: 60
 name:

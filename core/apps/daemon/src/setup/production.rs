@@ -25,7 +25,7 @@ pub async fn run_setup(settings: Settings) -> Result<(), Box<dyn std::error::Err
     Ok(())
 }
 
-fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub(super) fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let chains = Chain::all();
     info_with_fields!("setup", step = "chains", chains = format!("{:?}", chains));
 
@@ -70,7 +70,7 @@ fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error +
     info_with_fields!("setup", step = "prices providers");
     let providers = PriceProvider::all()
         .into_iter()
-        .map(|p| storage::models::PriceProviderConfigRow::new(p, p == PriceProvider::primary()))
+        .map(|provider| storage::models::PriceProviderConfigRow::new(provider, true))
         .collect::<Vec<_>>();
     let _ = database.prices_providers()?.add_prices_providers(providers);
 

@@ -1,10 +1,12 @@
 use super::api_clients::{SETUP_DEV_API_CLIENT_NAME, SETUP_DEV_API_CLIENT_SECRET, api_client_access_grants};
 use super::database::run_migrations;
+use super::production::setup_database;
 use chrono::Utc;
 use gem_tracing::info_with_fields;
 use primitives::{
-    Asset, AssetId, Chain, ChartTimeframe, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionStatus, NotificationType, PriceAlert, PriceAlertDirection, PriceId,
-    PriceProvider,
+    Asset, AssetId, AssetType, Chain, ChartTimeframe, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionStatus, NotificationType, PriceAlert, PriceAlertDirection,
+    PriceId, PriceProvider,
+    asset_constants::{TON_DUST_ASSET_ID, TON_DUST_TOKEN_ID, TON_STON_ASSET_ID, TON_STON_TOKEN_ID, TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID},
 };
 use settings::Settings;
 use storage::models::{ChartRow, FiatAssetRow, FiatProviderCountryRow, FiatRateRow, NewFiatTransactionRow, PriceAssetRow, UpdateDeviceRow, price::NewPriceRow};
@@ -19,6 +21,7 @@ pub async fn run_setup_dev(settings: Settings) -> Result<(), Box<dyn std::error:
 
     let database = Database::new(&settings.postgres.url, settings.postgres.pool);
     run_migrations(&database, "setup_dev")?;
+    setup_database(&database)?;
 
     setup_dev_currency(&database)?;
     setup_dev_api_clients(&database)?;
@@ -256,8 +259,15 @@ fn setup_dev_fiat_transactions(database: &Database, device_id: i32, wallet_id: i
 fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     info_with_fields!("setup_dev", step = "add assets");
 
-    let assets = Chain::all().into_iter().map(|x| Asset::from_chain(x).as_basic_primitive()).collect::<Vec<_>>();
-    let _ = database.assets()?.add_assets(assets);
+    let ton_assets = [
+        Asset::new(TON_USDT_ASSET_ID.clone(), "Tether USD".to_string(), "USD₮".to_string(), 6, AssetType::JETTON),
+        Asset::new(TON_STON_ASSET_ID.clone(), "STON".to_string(), "STON".to_string(), 9, AssetType::JETTON),
+        Asset::new(TON_DUST_ASSET_ID.clone(), "DeDust".to_string(), "DUST".to_string(), 9, AssetType::JETTON),
+    ]
+    .into_iter()
+    .map(|asset| asset.as_basic_primitive())
+    .collect::<Vec<_>>();
+    let _ = database.assets()?.add_assets(ton_assets);
 
     info_with_fields!("setup_dev", step = "add fiat assets");
 
@@ -313,19 +323,24 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
 
     info_with_fields!("setup_dev", step = "add prices and charts");
     let now = chrono::Utc::now().naive_utc();
-    let coins: Vec<(&str, &AssetId, f64)> = vec![
-        (Chain::Bitcoin.as_ref(), &bitcoin_asset_id, 60000.0),
-        (Chain::Ethereum.as_ref(), &ethereum_asset_id, 2000.0),
+    let ton_native_price_id = Asset::from_chain(Chain::Ton).symbol.to_lowercase();
+    let coins = [
+        (PriceProvider::primary(), Chain::Bitcoin.as_ref(), bitcoin_asset_id, 60000.0),
+        (PriceProvider::primary(), Chain::Ethereum.as_ref(), ethereum_asset_id, 2000.0),
+        (PriceProvider::TonApi, ton_native_price_id.as_str(), AssetId::from_chain(Chain::Ton), 1.42),
+        (PriceProvider::TonApi, TON_USDT_TOKEN_ID, TON_USDT_ASSET_ID.clone(), 1.0),
+        (PriceProvider::TonApi, TON_STON_TOKEN_ID, TON_STON_ASSET_ID.clone(), 0.47),
+        (PriceProvider::TonApi, TON_DUST_TOKEN_ID, TON_DUST_ASSET_ID.clone(), 0.64),
     ];
 
     let prices: Vec<NewPriceRow> = coins
         .iter()
-        .map(|(coin_id, _, base_price)| NewPriceRow::with_market_data(PriceProvider::primary(), coin_id.to_string(), None, Some(*base_price), None))
+        .map(|(provider, coin_id, _, base_price)| NewPriceRow::with_market_data(*provider, coin_id.to_string(), None, Some(*base_price), None))
         .collect();
 
     let price_assets: Vec<PriceAssetRow> = coins
         .iter()
-        .map(|(coin_id, asset_id, _)| PriceAssetRow::new((*asset_id).clone(), PriceProvider::primary(), coin_id))
+        .map(|(provider, coin_id, asset_id, _)| PriceAssetRow::new(asset_id.clone(), *provider, coin_id))
         .collect();
 
     let result = database.prices()?.add_prices(prices)?;
@@ -334,10 +349,10 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
     let result = database.prices()?.set_prices_assets(price_assets)?;
     info_with_fields!("setup_dev", step = "prices_assets added", count = result);
 
-    for (idx, (coin_id, _, base_price)) in coins.iter().enumerate() {
+    for (idx, (provider, coin_id, _, base_price)) in coins.iter().enumerate() {
         let seed = (idx + 1) as f64;
         let gen_price = |i: f64, scale: f64| (base_price + ((i * 0.3 + seed * 7.0).sin() + (i * 0.07).cos()) * base_price * scale).max(base_price * 0.1);
-        let price_id = PriceId::id_for(PriceProvider::primary(), coin_id);
+        let price_id = PriceId::id_for(*provider, coin_id);
 
         let hourly: Vec<ChartRow> = (0i64..720)
             .map(|h| ChartRow::new(price_id.clone(), gen_price(h as f64, 0.1), now - chrono::Duration::hours(h)))

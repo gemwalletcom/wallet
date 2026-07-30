@@ -185,10 +185,9 @@ impl<C: Client> chain_traits::ChainProvider for TonClient<C> {
 #[cfg(test)]
 mod tests {
     use gem_client::testkit::MockClient;
+    use primitives::asset_constants::TON_DUST_TOKEN_ID;
 
     use super::*;
-
-    const DEDUST_TOKEN_ID: &str = "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE";
 
     fn mock_client(expected_path: &'static str, response: &'static [u8]) -> TonClient<MockClient> {
         TonClient::new(MockClient::new().with_get(move |path| {
@@ -203,7 +202,7 @@ mod tests {
             "/api/v3/jetton/masters?address=EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE",
             include_bytes!("../../testdata/jetton_master_dedust.json"),
         );
-        let dedust = client.get_token_data(DEDUST_TOKEN_ID.to_string()).await.unwrap();
+        let dedust = client.get_token_data(TON_DUST_TOKEN_ID.to_string()).await.unwrap();
         assert_eq!(dedust.name, "DeDust");
         assert_eq!(dedust.symbol, "DUST");
         assert_eq!(dedust.decimals, 9);

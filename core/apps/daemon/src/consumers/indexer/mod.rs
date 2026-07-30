@@ -17,7 +17,7 @@ use cacher::CacherClient;
 use coingecko::CoinGeckoClient;
 use lists::{CoinGeckoListProvider, ListsClient};
 use pricer::PriceClient;
-use primitives::{Chain, NFTChain, TransactionIdRequest};
+use primitives::{Chain, NFTChain, PriceProvider, TransactionIdRequest};
 use settings::Settings;
 use storage::{ConfigCacher, Database};
 use streamer::{
@@ -175,7 +175,7 @@ async fn run_fetch_prices(
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
     let cacher = CacherClient::new(&settings.redis.url).await?;
     let price_client = PriceClient::new(database, cacher);
-    let providers = crate::worker::prices::price_providers(&settings);
+    let providers = crate::worker::prices::price_providers(&settings, PriceProvider::all());
     let consumer = FetchPricesConsumer { price_client, providers };
     run_consumer::<FetchPricesPayload, FetchPricesConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }

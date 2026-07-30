@@ -21,6 +21,7 @@ impl<C: Client> ChainToken for TonClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
+    use primitives::asset_constants::TON_DUST_TOKEN_ID;
 
     #[tokio::test]
     async fn test_ton_get_token_data() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -37,7 +38,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_ton_get_token_data_indexed_metadata() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_ton_test_client();
-        let token_data = client.get_token_data("EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE".to_string()).await?;
+        let token_data = client.get_token_data(TON_DUST_TOKEN_ID.to_string()).await?;
 
         assert_eq!(token_data.name, "DeDust");
         assert_eq!(token_data.symbol, "DUST");

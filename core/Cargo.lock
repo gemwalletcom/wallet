@@ -6321,12 +6321,12 @@ dependencies = [
  "chrono",
  "coingecko",
  "gem_client",
+ "gem_ton",
  "jupiter",
  "primitives",
  "serde",
  "serde_json",
  "serde_serializers",
- "settings",
  "tokio",
 ]
 
