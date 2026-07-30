@@ -15,8 +15,8 @@ use crate::models::{
     TransactionSignature, TransactionSimulation, ValidatorSet,
 };
 use crate::provider::payload_builder::{
-    build_stake_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload, build_unstake_transaction_payload,
-    build_withdraw_transaction_payload,
+    build_stake_transaction_payload, build_swap_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload,
+    build_unstake_transaction_payload, build_withdraw_transaction_payload,
 };
 use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT};
 
@@ -99,10 +99,10 @@ impl<C: Client> AptosClient<C> {
                 self.simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string())
                     .await
             }
-            TransactionInputType::Swap(_, _, swap_data) => match &swap_data.data.gas_limit {
+            TransactionInputType::Swap(asset, _, swap_data) => match &swap_data.data.gas_limit {
                 Some(gas_limit) => gas_limit.parse::<u64>().map_err(|_| "Invalid Aptos gas limit".into()),
                 None => {
-                    let payload: TransactionPayload = serde_json::from_str(&swap_data.data.data)?;
+                    let payload = build_swap_transaction_payload(&asset.id.token_id, &swap_data.data)?;
                     Ok(self
                         .simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string())
                         .await
