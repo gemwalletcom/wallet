@@ -41,14 +41,8 @@ public struct SimulationPayloadDetailsScene: View {
             }
 
             if !secondaryFields.isEmpty {
-                if primaryFields.isEmpty {
-                    Section {
-                        fieldsView(secondaryFields)
-                    }
-                } else {
-                    Section(Localized.Common.details) {
-                        fieldsView(secondaryFields)
-                    }
+                Section(Localized.Common.details) {
+                    fieldsView(secondaryFields)
                 }
             }
 
