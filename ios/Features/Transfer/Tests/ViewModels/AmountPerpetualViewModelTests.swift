@@ -100,9 +100,9 @@ struct AmountPerpetualViewModelTests {
 
     @Test
     func makeTransferData() throws {
-        let open = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .open(.mock()))).makeTransferData(value: 100)
-        let increase = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .increase(.mock()))).makeTransferData(value: 200)
-        let reduce = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .reduce(.mock(), available: 1000, positionDirection: .long))).makeTransferData(value: 300)
+        let open = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .open(.mock()))).makeTransferData(amount: .exact(100))
+        let increase = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .increase(.mock()))).makeTransferData(amount: .exact(200))
+        let reduce = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .reduce(.mock(), available: 1000, positionDirection: .long))).makeTransferData(amount: .exact(300))
 
         #expect(open.type.transactionType == .perpetualOpenPosition)
         #expect(increase.type.transactionType == .perpetualOpenPosition)

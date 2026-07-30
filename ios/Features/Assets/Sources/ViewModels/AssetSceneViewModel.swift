@@ -379,7 +379,7 @@ public extension AssetSceneViewModel {
                             ),
                             amount: .none,
                         ),
-                        value: 0,
+                        amount: .exact(0),
                     ),
                 )
             case .enableNotifications,

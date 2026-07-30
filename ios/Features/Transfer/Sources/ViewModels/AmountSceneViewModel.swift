@@ -247,7 +247,9 @@ private extension AmountSceneViewModel {
     func fetch() async {
         do {
             transferState = .loading
-            let transfer = try await provider.makeTransferData(value: amountTransferValue)
+            let value = try amountTransferValue
+            let amount: TransferAmountValue = value == provider.maxValue(from: assetData) ? .max(value) : .exact(value)
+            let transfer = try await provider.makeTransferData(amount: amount)
             transferState = .noData
             onTransferAction?(transfer)
         } catch {

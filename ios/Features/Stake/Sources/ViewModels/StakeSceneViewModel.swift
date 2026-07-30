@@ -146,7 +146,7 @@ public final class StakeSceneViewModel {
                     recipient: Recipient(name: delegation.validatorText, address: delegation.delegation.validator.id, memo: ""),
                     amount: .none,
                 ),
-                value: delegation.delegation.base.balanceValue,
+                amount: .exact(delegation.delegation.base.balanceValue),
             )
         case .active, .pending, .inactive, .activating, .deactivating:
             delegation.delegation
@@ -198,7 +198,7 @@ public final class StakeSceneViewModel {
                     recipient: recipient,
                     amount: .none,
                 ),
-                value: rewardsValue,
+                amount: .exact(rewardsValue),
             )
         }
         return AmountInput(

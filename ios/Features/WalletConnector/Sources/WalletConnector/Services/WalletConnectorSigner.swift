@@ -141,7 +141,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 recipient: Recipient(name: .none, address: "", memo: .none),
                 amount: .none,
             ),
-            value: .zero,
+            amount: .exact(.zero),
         )
     }
 
@@ -215,7 +215,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                     recipient: Recipient(name: .none, address: address, memo: .none),
                     amount: .none,
                 ),
-                value: value,
+                amount: .exact(value),
             )
 
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
