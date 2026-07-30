@@ -19,3 +19,8 @@ serde_serializers = { path = "../serde_serializers" }
 [dev-dependencies]
 coingecko = { path = "../coingecko", features = ["testkit"] }
 serde_json = { workspace = true }
+settings = { path = "../settings", features = ["testkit"] }
+
+[features]
+default = []
+price_integration_tests = []

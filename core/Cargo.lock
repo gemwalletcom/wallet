@@ -6327,6 +6327,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_serializers",
+ "settings",
  "tokio",
 ]
 

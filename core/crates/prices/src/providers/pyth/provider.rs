@@ -83,3 +83,36 @@ impl PriceAssetsProvider for PythProvider {
             .collect())
     }
 }
+
+#[cfg(all(test, feature = "price_integration_tests"))]
+mod price_integration_tests {
+    use std::error::Error;
+
+    use primitives::Chain;
+
+    use crate::{AssetPriceMapping, PriceAssetsProvider, PriceProvider};
+
+    use super::super::{mapper::price_feed_id_for_chain, testkit::create_pyth_test_provider};
+
+    const ASSET_LIMIT: usize = 10;
+
+    #[tokio::test]
+    async fn test_pyth_provider_basic() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let provider = create_pyth_test_provider();
+        assert_eq!(provider.provider(), PriceProvider::Pyth);
+
+        let assets = provider.get_assets(ASSET_LIMIT).await?;
+        assert_eq!(assets.len(), ASSET_LIMIT);
+        for asset in assets {
+            assert_ne!(asset.mapping.provider_price_id, "");
+        }
+
+        let feed_id = price_feed_id_for_chain(Chain::Bitcoin).unwrap();
+        let mapping = AssetPriceMapping::new(Chain::Bitcoin.as_asset_id(), feed_id.to_string());
+        let prices = provider.get_prices(vec![mapping]).await?;
+        assert_eq!(prices.len(), 1);
+        assert!(prices[0].price.price.is_finite());
+        assert!(prices[0].price.price > 0.0);
+        Ok(())
+    }
+}

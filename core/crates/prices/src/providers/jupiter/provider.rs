@@ -60,3 +60,27 @@ impl PriceAssetsProvider for JupiterProvider {
             .collect())
     }
 }
+
+#[cfg(all(test, feature = "price_integration_tests"))]
+mod price_integration_tests {
+    use std::error::Error;
+
+    use crate::{PriceAssetsProvider, PriceProvider};
+
+    use super::super::testkit::create_jupiter_test_provider;
+
+    const ASSET_LIMIT: usize = 10;
+
+    #[tokio::test]
+    async fn test_jupiter_provider_basic() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let provider = create_jupiter_test_provider();
+        assert_eq!(provider.provider(), PriceProvider::Jupiter);
+
+        let assets = provider.get_assets(ASSET_LIMIT).await?;
+        assert_eq!(assets.len(), ASSET_LIMIT);
+        for asset in assets {
+            assert_ne!(asset.mapping.provider_price_id, "");
+        }
+        Ok(())
+    }
+}
