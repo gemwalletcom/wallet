@@ -58,16 +58,18 @@ public struct AssetFull: Codable, Sendable {
 	public let score: AssetScore
 	public let tags: [String]
 	public let links: [AssetLink]
+	public let associations: [AssetAssociation]
 	public let perpetuals: [PerpetualBasic]
 	public let price: Price?
 	public let market: AssetMarket?
 
-	public init(asset: Asset, properties: AssetProperties, score: AssetScore, tags: [String], links: [AssetLink], perpetuals: [PerpetualBasic], price: Price?, market: AssetMarket?) {
+	public init(asset: Asset, properties: AssetProperties, score: AssetScore, tags: [String], links: [AssetLink], associations: [AssetAssociation], perpetuals: [PerpetualBasic], price: Price?, market: AssetMarket?) {
 		self.asset = asset
 		self.properties = properties
 		self.score = score
 		self.tags = tags
 		self.links = links
+		self.associations = associations
 		self.perpetuals = perpetuals
 		self.price = price
 		self.market = market

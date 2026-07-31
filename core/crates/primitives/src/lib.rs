@@ -62,6 +62,8 @@ pub mod price_id;
 mod provider_scoped_id;
 pub use self::price_id::PriceId;
 pub mod asset;
+pub mod asset_association;
+pub use self::asset_association::{AssetAssociation, AssetAssociationType};
 pub mod config;
 pub use self::config::{ConfigResponse, ConfigVersions, Release, SwapConfig};
 pub mod config_key;

@@ -14,6 +14,10 @@ pub mod sql_types {
     pub struct AssetType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "asset_association_type"))]
+    pub struct AssetAssociationType;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "fiat_transaction_status"))]
     pub struct FiatTransactionStatus;
 
@@ -146,6 +150,19 @@ diesel::table! {
         circulating_supply -> Nullable<Float8>,
         total_supply -> Nullable<Float8>,
         max_supply -> Nullable<Float8>,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::AssetAssociationType;
+
+    assets_associations (asset_id, associated_asset_id) {
+        #[max_length = 128]
+        asset_id -> Varchar,
+        #[max_length = 128]
+        associated_asset_id -> Varchar,
+        association_type -> AssetAssociationType,
     }
 }
 
@@ -1022,6 +1039,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     api_client_scopes,
     api_clients,
     assets,
+    assets_associations,
     assets_addresses,
     assets_links,
     assets_tags,

@@ -10,12 +10,12 @@ use primitives::rewards::{
 };
 use primitives::scan::AddressType as PrimitiveAddressType;
 use primitives::{
-    AssetType as PrimitiveAssetType, Chain, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
-    FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId,
-    NotificationType as PrimitiveNotificationType, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore,
-    PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, TagVisibility as PrimitiveTagVisibility,
-    TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource,
-    WalletType as PrimitiveWalletType,
+    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, FiatProviderName as PrimitiveFiatProviderName,
+    FiatQuoteType as PrimitiveFiatQuoteType, FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType,
+    ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform,
+    PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider,
+    TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus,
+    WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -24,11 +24,11 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 use crate::schema::sql_types::{
-    AddressType as AddressTypeSql, AssetType as AssetTypeSql, FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql,
-    IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql, Platform as PlatformSql,
-    PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql,
-    RewardStatus as RewardStatusSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql,
-    UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
+    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, FiatTransactionStatus as FiatTransactionStatusSql,
+    FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql,
+    Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql,
+    RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql,
+    TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
@@ -141,6 +141,8 @@ diesel_enum!(
     AssetTypeSql,
     [NATIVE, ERC20, BEP20, SPL, SPL2022, TRC20, TIP20, TOKEN, IBC, JETTON, SYNTH, ASA, PERPETUAL, SPOT]
 );
+
+diesel_enum!(AssetAssociationType, PrimitiveAssetAssociationType, AssetAssociationTypeSql, [Official, Bridged, Wrapped]);
 
 diesel_enum!(AddressType, PrimitiveAddressType, AddressTypeSql, [Address, Contract, Validator, InternalWallet]);
 

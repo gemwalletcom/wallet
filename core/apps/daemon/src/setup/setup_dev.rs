@@ -4,9 +4,14 @@ use super::production::setup_database;
 use chrono::Utc;
 use gem_tracing::info_with_fields;
 use primitives::{
-    Asset, AssetId, AssetType, Chain, ChartTimeframe, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionStatus, NotificationType, PriceAlert, PriceAlertDirection,
-    PriceId, PriceProvider,
-    asset_constants::{TON_DUST_ASSET_ID, TON_DUST_TOKEN_ID, TON_STON_ASSET_ID, TON_STON_TOKEN_ID, TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID},
+    Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionStatus,
+    NotificationType, PriceAlert, PriceAlertDirection, PriceId, PriceProvider,
+    asset_constants::{
+        ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID,
+        SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TON_DUST_ASSET_ID, TON_DUST_TOKEN_ID, TON_STON_ASSET_ID, TON_STON_TOKEN_ID, TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID,
+        TRON_USDT_ASSET_ID,
+    },
+    known_assets::{ARBITRUM_USDC, ARBITRUM_USDT, BASE_USDC, ETHEREUM_USDC, ETHEREUM_USDT, POLYGON_USDC, SMARTCHAIN_USDT, SOLANA_USDC, SOLANA_USDT, TRON_USDT},
 };
 use settings::Settings;
 use storage::models::{ChartRow, FiatAssetRow, FiatProviderCountryRow, FiatRateRow, NewFiatTransactionRow, PriceAssetRow, UpdateDeviceRow, price::NewPriceRow};
@@ -259,15 +264,46 @@ fn setup_dev_fiat_transactions(database: &Database, device_id: i32, wallet_id: i
 fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     info_with_fields!("setup_dev", step = "add assets");
 
-    let ton_assets = [
+    let assets = [
         Asset::new(TON_USDT_ASSET_ID.clone(), "Tether USD".to_string(), "USD₮".to_string(), 6, AssetType::JETTON),
         Asset::new(TON_STON_ASSET_ID.clone(), "STON".to_string(), "STON".to_string(), 9, AssetType::JETTON),
         Asset::new(TON_DUST_ASSET_ID.clone(), "DeDust".to_string(), "DUST".to_string(), 9, AssetType::JETTON),
+        (*ETHEREUM_USDC).clone(),
+        (*ARBITRUM_USDC).clone(),
+        (*BASE_USDC).clone(),
+        (*POLYGON_USDC).clone(),
+        (*SOLANA_USDC).clone(),
+        (*ETHEREUM_USDT).clone(),
+        (*ARBITRUM_USDT).clone(),
+        (*SMARTCHAIN_USDT).clone(),
+        (*SOLANA_USDT).clone(),
+        (*TRON_USDT).clone(),
     ]
     .into_iter()
     .map(|asset| asset.as_basic_primitive())
     .collect::<Vec<_>>();
-    let _ = database.assets()?.add_assets(ton_assets);
+    database.assets()?.add_assets(assets)?;
+
+    setup_dev_asset_associations(
+        database,
+        &[
+            (ETHEREUM_USDC_ASSET_ID.clone(), AssetAssociationType::Official),
+            (ARBITRUM_USDC_ASSET_ID.clone(), AssetAssociationType::Official),
+            (BASE_USDC_ASSET_ID.clone(), AssetAssociationType::Official),
+            (POLYGON_USDC_ASSET_ID.clone(), AssetAssociationType::Official),
+            (SOLANA_USDC_ASSET_ID.clone(), AssetAssociationType::Official),
+        ],
+    )?;
+    setup_dev_asset_associations(
+        database,
+        &[
+            (ETHEREUM_USDT_ASSET_ID.clone(), AssetAssociationType::Official),
+            (TRON_USDT_ASSET_ID.clone(), AssetAssociationType::Official),
+            (SOLANA_USDT_ASSET_ID.clone(), AssetAssociationType::Official),
+            (SMARTCHAIN_USDT_ASSET_ID.clone(), AssetAssociationType::Official),
+            (ARBITRUM_USDT_ASSET_ID.clone(), AssetAssociationType::Bridged),
+        ],
+    )?;
 
     info_with_fields!("setup_dev", step = "add fiat assets");
 
@@ -366,6 +402,22 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
         database.charts()?.add_charts(ChartTimeframe::Daily, daily)?;
     }
     info_with_fields!("setup_dev", step = "charts added");
+
+    Ok(())
+}
+
+fn setup_dev_asset_associations(database: &Database, assets: &[(AssetId, AssetAssociationType)]) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    for (asset_id, _) in assets {
+        let associations = assets
+            .iter()
+            .filter(|(associated_asset_id, _)| associated_asset_id != asset_id)
+            .map(|(associated_asset_id, association_type)| AssetAssociation {
+                asset_id: associated_asset_id.clone(),
+                association_type: association_type.clone(),
+            })
+            .collect();
+        database.assets()?.upsert_asset_associations(asset_id, associations)?;
+    }
 
     Ok(())
 }

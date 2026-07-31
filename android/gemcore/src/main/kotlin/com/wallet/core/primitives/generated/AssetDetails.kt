@@ -41,6 +41,7 @@ data class AssetFull (
 	val score: AssetScore,
 	val tags: List<String>,
 	val links: List<AssetLink>,
+	val associations: List<AssetAssociation>,
 	val perpetuals: List<PerpetualBasic>,
 	val price: Price? = null,
 	val market: AssetMarket? = null

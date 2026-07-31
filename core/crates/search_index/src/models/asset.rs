@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetMarket, AssetProperties, AssetScore, AssetType, ChainAsset};
+use primitives::{Asset, AssetAssociation, AssetMarket, AssetProperties, AssetScore, AssetType, ChainAsset};
 use serde::{Deserialize, Serialize};
 
 pub const ASSETS_INDEX_NAME: &str = "assets";
@@ -48,6 +48,7 @@ pub const ASSETS_SORTS: &[&str] = &["score.rank"];
 pub struct AssetDocument {
     pub id: String,
     pub asset: Asset,
+    pub associations: Vec<AssetAssociation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub aliases: Option<Vec<String>>,
     pub properties: AssetProperties,

@@ -1,6 +1,7 @@
 pub mod api_clients;
 pub mod assets;
 pub mod assets_addresses;
+pub mod assets_associations;
 pub mod assets_links;
 pub mod assets_usage_ranks;
 
