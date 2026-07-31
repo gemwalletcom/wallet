@@ -99,8 +99,13 @@ class ConfirmViewModel @Inject constructor(
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val simulationAssets = combine(simulationResult, request) { simulationResult, params ->
-        (simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params?.approvalAssetId())).distinct()
+    private val approvalAssetId = request
+        .map { it.approvalAssetId() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val simulationAssets = combine(simulationResult, approvalAssetId) { simulationResult, approvalAssetId ->
+        (simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(approvalAssetId)).distinct()
     }
         .distinctUntilChanged()
         .flatMapLatest { assetIds ->
@@ -109,7 +114,7 @@ class ConfirmViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    val simulation = combine(simulationResult, simulationAssets, request) { simulationResult, simulationAssets, params ->
+    val simulation = combine(simulationResult, simulationAssets, approvalAssetId, request) { simulationResult, simulationAssets, approvalAssetId, params ->
         val chain = params?.assetId?.chain
         val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
         val simulation = simulationResult?.toSimulation(simulationAssets, chain, explorerName) ?: Simulation()
@@ -119,7 +124,7 @@ class ConfirmViewModel @Inject constructor(
             headerAssetId == params.assetId -> params.asset
             else -> simulationAssets[headerAssetId]
         }
-        simulation.copy(headerAsset = asset ?: params?.approvalAssetId()?.let { simulationAssets[it] })
+        simulation.copy(headerAsset = asset ?: approvalAssetId?.let { simulationAssets[it] })
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
 
     val payloadAddressNames = simulation
@@ -413,10 +418,10 @@ class ConfirmViewModel @Inject constructor(
 private fun SimulationResult.simulationAssetIds(): List<AssetId> =
     (balanceChanges.map { it.assetId } + listOfNotNull(header?.assetId)).distinct()
 
-private fun ConfirmParams.approvalAssetId(): AssetId? {
-    val generic = this as? ConfirmParams.TransferParams.Generic ?: return null
-    if (generic.getTransactionType() != TransactionType.TokenApproval) return null
-    val tokenAddress = generic.destination().address
-    if (tokenAddress.isEmpty()) return null
-    return AssetId(generic.assetId.chain, tokenId = tokenAddress)
-}
+private fun ConfirmParams?.approvalAssetId(): AssetId? =
+    (this as? ConfirmParams.TransferParams.Generic)
+        ?.takeIf { it.getTransactionType() == TransactionType.TokenApproval }
+        ?.let { generic ->
+            val tokenAddress = generic.destination().address
+            AssetId(generic.assetId.chain, tokenId = tokenAddress).takeIf { tokenAddress.isNotEmpty() }
+        }
