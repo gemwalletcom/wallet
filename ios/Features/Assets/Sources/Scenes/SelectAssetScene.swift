@@ -76,15 +76,10 @@ public struct SelectAssetScene: View {
                     models: model.recentModels,
                     onSelectRecents: model.onSelectRecents,
                 ) { assetModel in
-                    switch model.selectType {
-                    case .send, .receive, .buy, .swap:
-                        Button {
-                            model.onSelectRecent(assetModel.asset)
-                        } label: {
-                            AssetChipView(model: assetModel)
-                        }
-                    case .manage, .priceAlert, .deposit, .withdraw:
-                        EmptyView()
+                    Button {
+                        model.onSelectRecent(assetModel.asset)
+                    } label: {
+                        AssetChipView(model: assetModel)
                     }
                 }
             }
@@ -125,34 +120,21 @@ public struct SelectAssetScene: View {
 
     func assetsList(assets: [AssetData]) -> some View {
         ForEach(assets) { assetData in
-            switch model.selectType {
-            case .buy, .receive, .send, .deposit, .withdraw:
-                NavigationCustomLink(
-                    with: ListAssetItemSelectionView(
-                        assetData: model.displayAssetData(assetData),
-                        currencyCode: model.currencyCode,
-                        type: model.selectType.listType,
-                        action: model.onAssetAction,
-                    ),
-                ) {
+            let itemView = ListAssetItemSelectionView(
+                assetData: model.displayAssetData(assetData),
+                currencyCode: model.currencyCode,
+                type: model.flow.listType,
+                action: model.onAssetAction,
+            )
+            switch model.flow.rowSelection {
+            case .navigate:
+                NavigationCustomLink(with: itemView) {
                     model.onSelectAsset(assetData)
                 }
-            case .manage:
-                ListAssetItemSelectionView(
-                    assetData: assetData,
-                    currencyCode: model.currencyCode,
-                    type: model.selectType.listType,
-                    action: model.onAssetAction,
-                )
-            case .swap, .priceAlert:
-                NavigationCustomLink(
-                    with: ListAssetItemSelectionView(
-                        assetData: assetData,
-                        currencyCode: model.currencyCode,
-                        type: model.selectType.listType,
-                        action: model.onAssetAction,
-                    ),
-                ) {
+            case .toggle:
+                itemView
+            case .select:
+                NavigationCustomLink(with: itemView) {
                     model.selectAsset(asset: assetData.asset)
                 }
             }
