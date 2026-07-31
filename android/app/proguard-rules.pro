@@ -23,14 +23,13 @@
 # Allow optimization while preserving stack traces.
 -optimizations !code/allocation/variable
 -optimizations !class/unboxing/enum
--keep,allowshrinking,allowoptimization class * { <methods>; }
 -keepattributes Signature
 
 -dontwarn com.google.firebase.analytics.connector.AnalyticsConnector
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
 
--keep class com.gemwallet.android.** { *; }
+-keep,allowshrinking,allowoptimization class com.gemwallet.android.model.ConfirmParams$**
 -keep class com.sun.jna.** { *; }
 -keep class * extends com.sun.jna.Structure { *; }
 -keepattributes *Annotation*,InnerClasses,EnclosingMethod,Signature
