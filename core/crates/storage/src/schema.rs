@@ -10,12 +10,12 @@ pub mod sql_types {
     pub struct ApiClientScope;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "asset_type"))]
-    pub struct AssetType;
-
-    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "asset_association_type"))]
     pub struct AssetAssociationType;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "asset_type"))]
+    pub struct AssetType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "fiat_transaction_status"))]
@@ -154,19 +154,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::AssetAssociationType;
-
-    assets_associations (asset_id, associated_asset_id) {
-        #[max_length = 128]
-        asset_id -> Varchar,
-        #[max_length = 128]
-        associated_asset_id -> Varchar,
-        association_type -> AssetAssociationType,
-    }
-}
-
-diesel::table! {
     assets_addresses (id) {
         id -> Int4,
         #[max_length = 32]
@@ -179,6 +166,19 @@ diesel::table! {
         value -> Nullable<Varchar>,
         updated_at -> Timestamp,
         created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::AssetAssociationType;
+
+    assets_associations (asset_id, associated_asset_id) {
+        #[max_length = 128]
+        asset_id -> Varchar,
+        #[max_length = 128]
+        associated_asset_id -> Varchar,
+        association_type -> AssetAssociationType,
     }
 }
 
@@ -1039,8 +1039,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     api_client_scopes,
     api_clients,
     assets,
-    assets_associations,
     assets_addresses,
+    assets_associations,
     assets_links,
     assets_tags,
     assets_usage_ranks,
