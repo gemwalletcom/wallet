@@ -18,8 +18,7 @@ pub trait AssetsRepository {
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError>;
     fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_asset(&mut self, asset_id: &AssetId) -> Result<Asset, DatabaseError>;
-    fn upsert_asset_associations(&mut self, asset_id: &AssetId, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
-    fn get_assets_associations(&mut self) -> Result<HashMap<AssetId, Vec<AssetAssociation>>, DatabaseError>;
+    fn upsert_asset_associations(&mut self, id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
     fn get_asset_full(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<AssetFull, DatabaseError>;
     fn get_assets(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
     fn get_assets_rows(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetRow>, DatabaseError>;
@@ -65,20 +64,11 @@ impl AssetsRepository for DatabaseClient {
         Ok(AssetsStore::get_asset(self, &id).or_not_found(id.clone())?.as_primitive())
     }
 
-    fn upsert_asset_associations(&mut self, asset_id: &AssetId, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError> {
+    fn upsert_asset_associations(&mut self, id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError> {
         Ok(AssetsAssociationsStore::upsert_asset_associations(
             self,
-            values.into_iter().map(|value| AssetAssociationRow::from_primitive(asset_id, value)).collect(),
+            values.into_iter().map(|value| AssetAssociationRow::from_primitive(id, value)).collect(),
         )?)
-    }
-
-    fn get_assets_associations(&mut self) -> Result<HashMap<AssetId, Vec<AssetAssociation>>, DatabaseError> {
-        let rows = AssetsAssociationsStore::get_assets_associations(self)?;
-
-        Ok(rows.into_iter().fold(HashMap::new(), |mut associations, row| {
-            associations.entry(row.asset_id.clone().into()).or_default().push(row.as_primitive());
-            associations
-        }))
     }
 
     fn get_asset_full(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<AssetFull, DatabaseError> {

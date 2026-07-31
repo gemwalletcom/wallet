@@ -173,11 +173,11 @@ diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::AssetAssociationType;
 
-    assets_associations (asset_id, associated_asset_id) {
+    assets_associations (asset_id) {
         #[max_length = 128]
         asset_id -> Varchar,
-        #[max_length = 128]
-        associated_asset_id -> Varchar,
+        #[max_length = 64]
+        id -> Varchar,
         association_type -> AssetAssociationType,
     }
 }
@@ -967,6 +967,7 @@ diesel::joinable!(api_client_scopes -> api_clients (client_id));
 diesel::joinable!(assets -> chains (chain));
 diesel::joinable!(assets_addresses -> assets (asset_id));
 diesel::joinable!(assets_addresses -> chains (chain));
+diesel::joinable!(assets_associations -> assets (asset_id));
 diesel::joinable!(assets_links -> assets (asset_id));
 diesel::joinable!(assets_tags -> assets (asset_id));
 diesel::joinable!(assets_tags -> tags (tag_id));

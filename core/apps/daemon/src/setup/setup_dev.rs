@@ -286,6 +286,7 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
 
     setup_dev_asset_associations(
         database,
+        "usdc",
         &[
             (ETHEREUM_USDC_ASSET_ID.clone(), AssetAssociationType::Official),
             (ARBITRUM_USDC_ASSET_ID.clone(), AssetAssociationType::Official),
@@ -296,6 +297,7 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
     )?;
     setup_dev_asset_associations(
         database,
+        "usdt",
         &[
             (ETHEREUM_USDT_ASSET_ID.clone(), AssetAssociationType::Official),
             (TRON_USDT_ASSET_ID.clone(), AssetAssociationType::Official),
@@ -406,18 +408,15 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
     Ok(())
 }
 
-fn setup_dev_asset_associations(database: &Database, assets: &[(AssetId, AssetAssociationType)]) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    for (asset_id, _) in assets {
-        let associations = assets
-            .iter()
-            .filter(|(associated_asset_id, _)| associated_asset_id != asset_id)
-            .map(|(associated_asset_id, association_type)| AssetAssociation {
-                asset_id: associated_asset_id.clone(),
-                association_type: association_type.clone(),
-            })
-            .collect();
-        database.assets()?.upsert_asset_associations(asset_id, associations)?;
-    }
+fn setup_dev_asset_associations(database: &Database, id: &str, assets: &[(AssetId, AssetAssociationType)]) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let associations = assets
+        .iter()
+        .map(|(asset_id, association_type)| AssetAssociation {
+            asset_id: asset_id.clone(),
+            association_type: association_type.clone(),
+        })
+        .collect();
 
+    database.assets()?.upsert_asset_associations(id, associations)?;
     Ok(())
 }
