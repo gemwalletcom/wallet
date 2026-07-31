@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
 
@@ -20,6 +21,7 @@ fun AssetDetailsScreen(
     val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val isOperationEnabled by viewModel.isOperationEnabled.collectAsStateWithLifecycle()
+    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = viewModel::onPushNotificationGranted)
 
     if (uiModel != null) {
         AssetDetailsScene(
@@ -29,6 +31,7 @@ fun AssetDetailsScreen(
             priceAlertsCount = priceAlertsCount,
             isRefreshing = isRefreshing,
             isOperationEnabled = isOperationEnabled,
+            requestNotificationPermission = requestNotificationPermission,
             onAction = { action ->
                 when (action) {
                     AssetDetailsAction.Refresh -> viewModel.refresh()

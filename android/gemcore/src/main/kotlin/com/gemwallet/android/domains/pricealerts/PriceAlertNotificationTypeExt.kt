@@ -10,8 +10,12 @@ fun PriceAlertNotificationType.direction(
     inputValue: Double,
     selectedDirection: PriceAlertDirection,
 ): PriceAlertDirection? = when (this) {
-    PriceAlertNotificationType.Price ->
-        if (currentPrice > inputValue) PriceAlertDirection.Down else PriceAlertDirection.Up
+    PriceAlertNotificationType.Price -> when {
+        currentPrice <= 0.0 -> null
+        inputValue > currentPrice -> PriceAlertDirection.Up
+        inputValue < currentPrice -> PriceAlertDirection.Down
+        else -> null
+    }
     PriceAlertNotificationType.PricePercentChange -> selectedDirection
     PriceAlertNotificationType.Auto -> null
 }

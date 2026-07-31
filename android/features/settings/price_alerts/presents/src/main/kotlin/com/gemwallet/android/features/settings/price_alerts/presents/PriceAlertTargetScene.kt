@@ -69,8 +69,8 @@ fun PriceAlertTargetScene(
     value: TextFieldState = rememberTextFieldState(),
     type: PriceAlertNotificationType,
     direction: PriceAlertDirection,
+    resolvedDirection: PriceAlertDirection?,
     currency: Currency,
-    currentPriceValue: Double,
     currentPriceFormatted: String,
     priceSuggestions: List<Pair<String, String>> = emptyList(),
     percentageSuggestions: List<Int> = listOf(5, 10, 15),
@@ -153,16 +153,10 @@ fun PriceAlertTargetScene(
                 Text(
                     text = when (type) {
                         PriceAlertNotificationType.Auto -> ""
-                        PriceAlertNotificationType.Price -> {
-                            val inputPrice = try {
-                                value.text.toString().toDouble()
-                            } catch (_: Throwable) { 0.0 }
-                            when {
-                                inputPrice == 0.0 -> stringResource(R.string.price_alerts_set_alert_set_target_price)
-                                inputPrice < currentPriceValue -> stringResource(R.string.price_alerts_set_alert_price_under)
-                                inputPrice > currentPriceValue -> stringResource(R.string.price_alerts_set_alert_price_over)
-                                else -> stringResource(R.string.price_alerts_set_alert_set_target_price)
-                            }
+                        PriceAlertNotificationType.Price -> when (resolvedDirection) {
+                            null -> stringResource(R.string.price_alerts_set_alert_set_target_price)
+                            PriceAlertDirection.Down -> stringResource(R.string.price_alerts_set_alert_price_under)
+                            PriceAlertDirection.Up -> stringResource(R.string.price_alerts_set_alert_price_over)
                         }
 
                         PriceAlertNotificationType.PricePercentChange -> when (direction) {
@@ -219,7 +213,7 @@ fun PriceAlertTargetScene(
                             textAlign = TextAlign.Center,
                             color = if (value.text.isEmpty()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface
                         ),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                         interactionSource = interactionSource,
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         outputTransformation = OutputTransformation {
@@ -276,7 +270,7 @@ fun PriceAlertTargetScenePricePreview() {
             type = PriceAlertNotificationType.Price,
             currency = Currency.USD,
             currentPriceFormatted = "$901.80",
-            currentPriceValue = 901.8,
+            resolvedDirection = PriceAlertDirection.Up,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
             error = null,
@@ -299,7 +293,7 @@ fun PriceAlertTargetScenePercentagePreview() {
             type = PriceAlertNotificationType.PricePercentChange,
             currency = Currency.USD,
             currentPriceFormatted = "$901.80",
-            currentPriceValue = 901.8,
+            resolvedDirection = PriceAlertDirection.Up,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
             error = null,

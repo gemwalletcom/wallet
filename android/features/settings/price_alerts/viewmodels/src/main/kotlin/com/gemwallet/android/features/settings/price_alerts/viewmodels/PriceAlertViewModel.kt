@@ -3,6 +3,7 @@ package com.gemwallet.android.features.settings.price_alerts.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.device.coordinators.EnableDevicePush
 import com.gemwallet.android.application.pricealerts.coordinators.ExcludePriceAlert
 import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
@@ -41,6 +42,7 @@ class PriceAlertViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val includePriceAlert: IncludePriceAlert,
     private val excludePriceAlert: ExcludePriceAlert,
+    private val enableDevicePush: EnableDevicePush,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -106,6 +108,10 @@ class PriceAlertViewModel @Inject constructor(
         viewModelScope.launch {
             setPriceAlertsEnabled(enable)
         }
+    }
+
+    fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
+        enableDevicePush()
     }
 
     fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
