@@ -14,15 +14,14 @@ use gem_client::Client;
 use gem_encoding::encode_base64;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
 use gem_solana::{
-    SolanaAccountEncoding, SolanaRpc, SolanaRpcConfig, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS, get_pubkey_by_str,
-    models::{AccountData, SimulateTransactionResult, ValueResult, blockhash::SolanaBlockhashResult},
+    SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS, get_pubkey_by_str,
+    models::{AccountData, SimulateTransactionResult, ValueResult},
     token_account::get_token_account,
-    try_decode_blockhash,
 };
 use primitives::{AssetId, Chain};
 use std::collections::HashSet;
 
-const MAX_ACCOUNT_ATTEMPTS: [u8; 5] = [64, 60, 56, 52, 48];
+const MAX_ACCOUNTS: u8 = 64;
 
 #[derive(Debug)]
 pub struct Jupiter<C, R>
@@ -109,35 +108,33 @@ where
             return Err(SwapperError::compute_quote_error("Jupiter referral fee account is unavailable"));
         }
 
-        for max_accounts in MAX_ACCOUNT_ATTEMPTS {
-            let build = self
-                .http_client
-                .get_build(BuildRequest {
-                    input_mint: input_mint.to_string(),
-                    output_mint: output_mint.to_string(),
-                    amount: request.value.clone(),
-                    taker: request.wallet_address.clone(),
-                    slippage_bps: request.options.slippage.bps,
-                    platform_fee_bps: fee.bps,
-                    fee_account: fee_account.to_string(),
-                    max_accounts,
-                })
-                .await?;
-            build.validate(
-                input_mint,
-                output_mint,
-                &request.value,
-                &request.wallet_address,
-                request.options.slippage.bps,
-                fee.bps,
-                fee_account,
-            )?;
-            let transaction = build.transaction_bytes(&request.wallet_address, MAX_COMPUTE_UNIT_LIMIT)?;
-            if transaction.len() <= MAX_TRANSACTION_SIZE {
-                return Ok(build);
-            }
+        let build = self
+            .http_client
+            .get_build(BuildRequest {
+                input_mint: input_mint.to_string(),
+                output_mint: output_mint.to_string(),
+                amount: request.value.clone(),
+                taker: request.wallet_address.clone(),
+                slippage_bps: request.options.slippage.bps,
+                platform_fee_bps: fee.bps,
+                fee_account: fee_account.to_string(),
+                max_accounts: MAX_ACCOUNTS,
+            })
+            .await?;
+        build.validate(
+            input_mint,
+            output_mint,
+            &request.value,
+            &request.wallet_address,
+            request.options.slippage.bps,
+            fee.bps,
+            fee_account,
+        )?;
+        let transaction = build.transaction_bytes(&request.wallet_address, MAX_COMPUTE_UNIT_LIMIT)?;
+        if transaction.len() > MAX_TRANSACTION_SIZE {
+            return Err(SwapperError::compute_quote_error("Jupiter transaction exceeds Solana's size limit"));
         }
-        Err(SwapperError::compute_quote_error("Jupiter could not build a transaction within Solana's size limit"))
+        Ok(build)
     }
 
     async fn simulate(&self, build: &BuildResponse, wallet_address: &str) -> Result<u32, SwapperError> {
@@ -156,17 +153,6 @@ where
             .units_consumed
             .ok_or_else(|| SwapperError::transaction_error("Solana simulation did not return consumed compute units"))?;
         buffered_compute_unit_limit(units_consumed)
-    }
-
-    async fn refresh_blockhash(&self, build: &mut BuildResponse) -> Result<(), SwapperError> {
-        let response: SolanaBlockhashResult = self
-            .rpc_client
-            .request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Confirmed))
-            .await
-            .map_err(SwapperError::transaction_error)?;
-        let blockhash = try_decode_blockhash(&response.value.blockhash).ok_or_else(|| SwapperError::transaction_error("Invalid Solana blockhash"))?;
-        build.blockhash_with_metadata.blockhash = blockhash.to_vec();
-        Ok(())
     }
 }
 
@@ -218,7 +204,7 @@ where
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let input_mint = route.input.token_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
         let output_mint = route.output.token_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
-        let mut build: BuildResponse = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
+        let build: BuildResponse = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let fee = default_referral_fees().solana;
         let fee_account = self.fetch_fee_account(input_mint, output_mint).await?;
         build.validate(
@@ -230,8 +216,6 @@ where
             fee.bps,
             &fee_account,
         )?;
-        self.refresh_blockhash(&mut build).await?;
-
         let gas_limit = self.simulate(&build, &quote.request.wallet_address).await?;
         let transaction = build.transaction_bytes(&quote.request.wallet_address, gas_limit)?;
         if transaction.len() > MAX_TRANSACTION_SIZE {
