@@ -44,6 +44,12 @@ pub struct InflationResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnnualProvisionsResponse {
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub annual_provisions: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SupplyResponse {
     pub amount: SupplyAmount,
 }
