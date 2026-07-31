@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Localization
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -55,6 +56,20 @@ public struct ReceiveScene: View {
             }
             .frame(maxWidth: .scene.button.maxWidth)
 
+            if model.showNetworkSelector {
+                Button(action: model.onSelectNetwork) {
+                    HStack {
+                        ChainView(model: ChainViewModel(chain: model.assetModel.asset.chain))
+                        Spacer()
+                        Text(Localized.Transfer.network)
+                            .textStyle(.calloutSecondary)
+                        Images.System.chevronRight
+                    }
+                }
+                .buttonStyle(.listStyleColor(paddingVertical: .small, cornerRadius: .large, glassEffect: .disabled))
+                .frame(maxWidth: .scene.button.maxWidth)
+            }
+
             StateButton(
                 text: model.copyTitle,
                 image: Images.System.copy,
@@ -73,8 +88,20 @@ public struct ReceiveScene: View {
                 }
             }
         }
-        .sheet(isPresented: $model.isPresentingShareSheet) {
-            ShareSheet(activityItems: model.activityItems(qrImage: model.renderedImage))
+        .sheet(item: $model.isPresentingSheet) { type in
+            switch type {
+            case .share:
+                ShareSheet(activityItems: model.activityItems(qrImage: model.renderedImage))
+            case .networkSelector:
+                SelectableListNavigationStack(
+                    model: model.networkSelectorModel,
+                    onFinishSelection: model.onFinishNetworkSelection,
+                    listContent: { ChainView(model: ChainViewModel(chain: $0.chain)) },
+                )
+                .presentationDetents([.large])
+            case .copy:
+                EmptyView()
+            }
         }
         .copyToast(
             model: model.copyModel,

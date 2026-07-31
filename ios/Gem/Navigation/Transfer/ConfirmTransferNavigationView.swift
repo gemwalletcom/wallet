@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AssetsService
 import BalanceService
 import Components
 import FiatConnect
@@ -16,6 +17,7 @@ import Transfer
 struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.assetsService) private var assetsService
 
     @State var model: ConfirmTransferSceneViewModel
 
@@ -55,6 +57,7 @@ struct ConfirmTransferNavigationView: View {
                         model: model,
                         viewModelFactory: viewModelFactory,
                         assetsEnabler: assetsEnabler,
+                        assetsService: assetsService,
                     )
                 case let .selectedAsset(input, wallet):
                     SelectedAssetNavigationStack(
@@ -91,6 +94,7 @@ private struct GetAssetNavigationStack: View {
     let model: ConfirmTransferSceneViewModel
     let viewModelFactory: ViewModelFactory
     let assetsEnabler: any AssetsEnabler
+    let assetsService: AssetsService
 
     @State private var selectedAction: GetAssetAction?
     @State private var actionNavigationPath = NavigationPath()
@@ -155,10 +159,10 @@ private struct GetAssetNavigationStack: View {
         case .receive:
             ReceiveScene(
                 model: ReceiveViewModel(
-                    assetModel: AssetViewModel(asset: asset),
+                    assetAddress: model.assetAddress(asset),
                     wallet: model.assetAcquisitionWallet,
-                    address: model.assetAddress(asset).address,
                     assetsEnabler: assetsEnabler,
+                    assetsService: assetsService,
                 ),
             )
         }

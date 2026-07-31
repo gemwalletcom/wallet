@@ -353,7 +353,7 @@ public extension AssetSceneViewModel {
         }
         isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
             type: selectType,
-            assetAddress: assetData.assetAddress,
+            assetData: assetData,
         )
     }
 
@@ -410,7 +410,7 @@ public extension AssetSceneViewModel {
     internal func onSelectEarn() {
         isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
             type: .earn(assetData.asset),
-            assetAddress: assetData.assetAddress,
+            assetData: assetData,
         )
     }
 
@@ -548,11 +548,23 @@ extension AssetSceneViewModel {
     }
 
     private func updateAssetData() async {
+        let associations: [AssetAssociation]
         do {
-            try await assetsService.updateAsset(assetId: assetModel.asset.id, currency: preferences.preferences.currency)
+            let asset = try await assetsService.updateAsset(
+                assetId: assetModel.asset.id,
+                currency: preferences.preferences.currency,
+            )
+            associations = asset.associations
         } catch {
             // TODO: - handle updateAsset error
             debugLog("asset scene: updateAsset error \(error)")
+            return
+        }
+
+        do {
+            try await assetsService.prefetchAssets(assetIds: associations.map(\.assetId))
+        } catch {
+            debugLog("asset scene: prefetch associations error \(error)")
         }
     }
 

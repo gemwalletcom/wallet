@@ -40,10 +40,17 @@ public struct AssetData: Codable, Equatable, Hashable, Sendable {
     }
 
     public static func with(asset: Asset) -> AssetData {
+        with(
+            asset: asset,
+            account: Account(chain: asset.chain, address: "", derivationPath: "", extendedPublicKey: nil),
+        )
+    }
+
+    public static func with(asset: Asset, account: Account) -> AssetData {
         AssetData(
             asset: asset,
             balance: .zero,
-            account: Account(chain: asset.chain, address: "", derivationPath: "", extendedPublicKey: nil),
+            account: account,
             price: nil,
             priceAlerts: [],
             metadata: AssetMetaData(

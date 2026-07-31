@@ -4,11 +4,11 @@ import Foundation
 
 public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     public let type: SelectedAssetType
-    public let assetAddress: AssetAddress
+    public let assetData: AssetData
 
-    public init(type: SelectedAssetType, assetAddress: AssetAddress) {
+    public init(type: SelectedAssetType, assetData: AssetData) {
         self.type = type
-        self.assetAddress = assetAddress
+        self.assetData = assetData
     }
 
     public var id: String {
@@ -16,10 +16,10 @@ public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     }
 
     public var asset: Asset {
-        assetAddress.asset
+        assetData.asset
     }
 
-    public var address: String {
-        assetAddress.address
+    public var assetAddress: AssetAddress {
+        assetData.assetAddress
     }
 }

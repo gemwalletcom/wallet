@@ -284,7 +284,7 @@ extension SelectAssetViewModel {
     }
 
     func onSelectAsset(_ assetData: AssetData) {
-        assetSelection = .regular(SelectAssetInput(type: selectType, assetAddress: assetData.assetAddress))
+        assetSelection = .regular(SelectAssetInput(type: selectType, assetData: assetData))
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
@@ -303,7 +303,7 @@ extension SelectAssetViewModel {
     public func onSelectRecent(_ asset: Asset) {
         switch flow.rowSelection {
         case .navigate:
-            assetSelection = .recent(SelectAssetInput(type: selectType, assetAddress: assetAddress(for: asset)))
+            assetSelection = .recent(SelectAssetInput(type: selectType, assetData: assetData(for: asset)))
         case .select:
             onSelectAssetAction?(asset)
         case .toggle:
@@ -320,16 +320,14 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
-    private func assetAddress(for asset: Asset) -> AssetAddress {
-        let address: String = {
-            do {
-                return try wallet.account(for: asset.chain).address
-            } catch {
-                debugLog(error.localizedDescription)
-                return ""
-            }
-        }()
-        return AssetAddress(asset: asset, address: address)
+    private func assetData(for asset: Asset) -> AssetData {
+        if let assetData = assets.first(where: { $0.asset.id == asset.id }) {
+            return assetData
+        }
+        guard let account = try? wallet.account(for: asset.chain) else {
+            return .with(asset: asset)
+        }
+        return .with(asset: asset, account: account)
     }
 
     private func searchAssets(

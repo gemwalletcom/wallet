@@ -106,7 +106,8 @@ public final class AssetsService: Sendable {
         try balanceStore.setIsEnabled(walletId: walletId, assetIds: assetIds, value: enabled)
     }
 
-    public func updateAsset(assetId: AssetId, currency: String) async throws {
+    @discardableResult
+    public func updateAsset(assetId: AssetId, currency: String) async throws -> AssetFull {
         let asset = try await getAsset(assetId: assetId)
         try assetStore.add(assets: [asset.basic])
         try assetStore.updateLinks(assetId: assetId, asset.links)
@@ -121,6 +122,7 @@ public final class AssetsService: Sendable {
                 rate: rate,
             )
         }
+        return asset
     }
 
     public func addAssets(assetIds: [AssetId]) async throws {
