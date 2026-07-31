@@ -34,6 +34,7 @@ fun RowScope.AssetDetailsMenu(
     uiState: AssetInfoUIModel,
     priceAlertEnabled: Boolean,
     snackBar: SnackbarHostState,
+    requestNotificationPermission: (() -> Unit) -> Unit,
     onPriceAlert: (AssetId) -> Unit,
 ) {
     val context = LocalContext.current
@@ -53,10 +54,18 @@ fun RowScope.AssetDetailsMenu(
         context.shareText(subject = subject, text = shareUrl, chooserTitle = shareTitle)
     }
 
+    val enablePriceAlert = fun () {
+        onPriceAlert(uiState.asset.id)
+        scope.launch { snackBar.showSnackbar(priceAlertToastMessage, R.drawable.ic_notifications) }
+    }
+
     IconButton(
         onClick = {
-            onPriceAlert(uiState.asset.id)
-            scope.launch { snackBar.showSnackbar(priceAlertToastMessage, R.drawable.ic_notifications) }
+            if (priceAlertEnabled) {
+                enablePriceAlert()
+            } else {
+                requestNotificationPermission(enablePriceAlert)
+            }
         }
     ) {
         if (priceAlertEnabled) {

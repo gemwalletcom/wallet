@@ -7,6 +7,7 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.device.coordinators.EnableDevicePush
 import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
@@ -61,6 +62,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val hasAssetPriceAlerts: HasAssetPriceAlerts,
     private val updatePriceAlerts: UpdatePriceAlerts,
     private val getPriceAlerts: GetPriceAlerts,
+    private val enableDevicePush: EnableDevicePush,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val hasMultiSign: HasMultiSign,
     private val syncAssetTransactions: SyncAssetTransactions,
@@ -177,6 +179,10 @@ class AssetDetailsViewModel @Inject constructor(
     fun enablePriceAlert(assetId: AssetId) = viewModelScope.launch {
         val enabled = priceAlertEnabled.value ?: return@launch
         setAssetPriceAlertEnabled(assetId, !enabled)
+    }
+
+    fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
+        enableDevicePush()
     }
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {

@@ -51,6 +51,7 @@ internal fun AssetDetailsScene(
     transactions: List<TransactionDataAggregate>,
     priceAlertEnabled: Boolean,
     priceAlertsCount: Int,
+    requestNotificationPermission: (() -> Unit) -> Unit,
     isRefreshing: Boolean,
     isOperationEnabled: Boolean,
     onAction: (AssetDetailsAction) -> Unit,
@@ -88,6 +89,7 @@ internal fun AssetDetailsScene(
                 uiState = uiState,
                 priceAlertEnabled = priceAlertEnabled,
                 snackBar = snackBar,
+                requestNotificationPermission = requestNotificationPermission,
                 onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },
             )
         },
