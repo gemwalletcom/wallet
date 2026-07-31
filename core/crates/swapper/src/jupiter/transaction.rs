@@ -47,12 +47,6 @@ impl BuildResponse {
 
     pub(super) fn transaction_bytes(&self, payer: &str, compute_unit_limit: u32) -> Result<Vec<u8>, SwapperError> {
         let payer = Pubkey::from_base58(payer).map_err(SwapperError::transaction_error)?;
-        let blockhash: [u8; 32] = self
-            .blockhash_with_metadata
-            .blockhash
-            .clone()
-            .try_into()
-            .map_err(|_| SwapperError::transaction_error("Invalid Jupiter blockhash"))?;
 
         let mut instructions = vec![set_compute_unit_limit(compute_unit_limit)];
         instructions.extend(instructions_from_primitives(self.compute_budget_instructions.clone()).map_err(SwapperError::transaction_error)?);
@@ -69,17 +63,11 @@ impl BuildResponse {
             .as_ref()
             .into_iter()
             .flatten()
-            .map(|(key, addresses)| {
-                let key = Pubkey::from_base58(key).map_err(SwapperError::transaction_error)?;
-                let addresses = addresses
-                    .iter()
-                    .map(|address| Pubkey::from_base58(address).map_err(SwapperError::transaction_error))
-                    .collect::<Result<Vec<_>, SwapperError>>()?;
-                Ok(AddressLookupTableAccount::new(key, addresses))
-            })
-            .collect::<Result<Vec<_>, SwapperError>>()?;
+            .map(|(key, addresses)| AddressLookupTableAccount::new(*key, addresses.clone()))
+            .collect::<Vec<_>>();
 
-        let transaction = TransactionBuilder::build_v0_transaction(payer, blockhash, &instructions, &lookup_tables).map_err(SwapperError::transaction_error)?;
+        let transaction =
+            TransactionBuilder::build_v0_transaction(payer, self.blockhash_with_metadata.blockhash, &instructions, &lookup_tables).map_err(SwapperError::transaction_error)?;
         if transaction.num_required_signatures() != 1 {
             return Err(SwapperError::transaction_error("Jupiter transaction requires more than one signer"));
         }
@@ -135,7 +123,7 @@ mod tests {
             other_instructions: Vec::new(),
             tip_instruction: None,
             addresses_by_lookup_table_address: Some(BTreeMap::new()),
-            blockhash_with_metadata: BlockhashWithMetadata { blockhash: vec![0; 32] },
+            blockhash_with_metadata: BlockhashWithMetadata { blockhash: [0; 32] },
         }
     }
 

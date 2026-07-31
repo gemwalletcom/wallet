@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use primitives::SolanaInstruction;
 use serde::{Deserialize, Serialize};
+use solana_primitives::Pubkey;
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -32,12 +33,12 @@ pub struct BuildResponse {
     pub cleanup_instruction: Option<SolanaInstruction>,
     pub other_instructions: Vec<SolanaInstruction>,
     pub tip_instruction: Option<SolanaInstruction>,
-    pub addresses_by_lookup_table_address: Option<BTreeMap<String, Vec<String>>>,
+    pub addresses_by_lookup_table_address: Option<BTreeMap<Pubkey, Vec<Pubkey>>>,
     pub blockhash_with_metadata: BlockhashWithMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BlockhashWithMetadata {
-    pub blockhash: Vec<u8>,
+    pub blockhash: [u8; 32],
 }
