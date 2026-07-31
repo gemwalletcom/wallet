@@ -216,7 +216,6 @@ mod tests {
             &HashSet::new(),
             SimulateTransactionResult {
                 err: Some(serde_json::json!({"InstructionError":[1, "InvalidArgument"]})),
-                units_consumed: None,
                 pre_balances: vec![],
                 post_balances: vec![],
                 pre_token_balances: None,

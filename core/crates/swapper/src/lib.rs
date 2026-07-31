@@ -29,7 +29,6 @@ pub mod permit2_data;
 pub mod proxy;
 pub mod relay;
 mod route_cache;
-mod solana;
 pub mod squid;
 pub mod stonfi;
 pub mod swapper;

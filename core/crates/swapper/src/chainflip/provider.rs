@@ -2,6 +2,7 @@ use alloy_sol_types::SolCall;
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::contracts::IERC20;
+use gem_solana::DEFAULT_SWAP_GAS_LIMIT;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 use std::{fmt::Debug, sync::Arc, time::Duration};
@@ -27,7 +28,6 @@ use crate::{
     cross_chain::VaultAddresses,
     fees::DEFAULT_CHAINFLIP_FEE_BPS as DEFAULT_FEE_BPS,
     route_cache::Cache,
-    solana::DEFAULT_SWAP_GAS_LIMIT,
 };
 use primitives::{
     Asset, AssetId, ChainType, MINUTE,

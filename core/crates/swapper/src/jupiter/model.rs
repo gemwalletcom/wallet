@@ -4,9 +4,9 @@ use primitives::SolanaInstruction;
 use serde::{Deserialize, Serialize};
 use solana_primitives::Pubkey;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BuildRequest {
+pub(super) struct BuildRequest {
     pub input_mint: String,
     pub output_mint: String,
     pub amount: String,
@@ -17,15 +17,10 @@ pub struct BuildRequest {
     pub max_accounts: u8,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BuildResponse {
-    pub input_mint: String,
-    pub output_mint: String,
-    pub in_amount: String,
+pub(super) struct BuildResponse {
     pub out_amount: String,
-    pub other_amount_threshold: String,
-    pub swap_mode: String,
     pub slippage_bps: u32,
     pub compute_budget_instructions: Vec<SolanaInstruction>,
     pub setup_instructions: Vec<SolanaInstruction>,
@@ -37,8 +32,8 @@ pub struct BuildResponse {
     pub blockhash_with_metadata: BlockhashWithMetadata,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BlockhashWithMetadata {
+pub(super) struct BlockhashWithMetadata {
     pub blockhash: [u8; 32],
 }
