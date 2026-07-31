@@ -1,10 +1,8 @@
 use super::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
-#[cfg(test)]
-use crate::solana::gas_limit_from_transaction;
-use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain, solana};
+use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain};
 
 use gem_encoding::encode_base64;
-use gem_solana::{SolanaClient, try_decode_blockhash};
+use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, SolanaClient, try_decode_blockhash};
 use gem_tron::address::TronAddress;
 use primitives::{
     Chain,
@@ -54,7 +52,7 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
     let instruction = InstructionBuilder::new(program_id).accounts(accounts).data(data).build();
 
     let mut transaction_builder = TransactionBuilder::new(fee_payer, blockhash);
-    transaction_builder.add_instruction(set_compute_unit_limit(solana::DEFAULT_SWAP_GAS_LIMIT));
+    transaction_builder.add_instruction(set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT));
     transaction_builder.add_instruction(instruction);
 
     let transaction = transaction_builder.build().map_err(SwapperError::transaction_error)?;
@@ -136,10 +134,6 @@ mod tests {
 
         let tx_b64 = build_solana_transaction(wallet_address, &response.result, blockhash)?;
 
-        assert_eq!(
-            gas_limit_from_transaction(&tx_b64).map_err(SwapperError::transaction_error)?,
-            u64::from(solana::DEFAULT_SWAP_GAS_LIMIT)
-        );
         assert_eq!(
             tx_b64,
             "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAQIhfupPuKcYE+oWKNRaIwBKQhB6vsZxjpwpHXTx7w7758q21EdC4D4NruUv9F26xeVqhYm0WXVWkSIjeQIxD3II9tUC6aOjrGBy017zEItREWS3QDEQI/vMhwSVTo/1e2664X/uFi6gx6sRwFnSAPu1ODmcAsu2sf8IuwYArWOf4gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAiKB2TmOdpVByNvc2jO/SqWcRJnwnp6i4PhwcXOdR2sf+adsEMvxMdgZ9RYJ0BKLVq++GfFFu+oFIYBJkEkLMJpzwID++OVGHruXrGUzSEC5Cyny69vOfFr8T0fbCq+HOAgUABQKgaAYABwYGAQADAgS2AaMmXOLzaY3EgB0sBAAAAAAEAAAAFAAAAFFLyx+aq7kE5hBr0QUrZtJwbbu3BwAAAABsAAAAAAoAAACF+6k+4pxgT6hYo1FojAEpCEHq+xnGOnCkddPHvDvvn8qhRbbz/dR46Sb6cwLQdTEAAAAAAAAAAAAAAAAAAAAAAAAeg9KXLT3KOjMNYMJ3fuW40laDxj+jWRFphWCYMPQgVAUABAAtEQAAADiSTMM0VhiQ46gZQHNTcQ4J"
