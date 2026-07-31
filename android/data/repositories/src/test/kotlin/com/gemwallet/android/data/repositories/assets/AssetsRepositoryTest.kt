@@ -206,6 +206,84 @@ class AssetsRepositoryTest {
     }
 
     @Test
+    fun ensureDefaultAssets_addsTronUSDT() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Tron)),
+        )
+        coEvery {
+            assetsDao.getWalletAssetIds(wallet.id.id, listOf(tronUSDT.id.toIdentifier()))
+        } returns emptyList()
+        coEvery {
+            assetsDao.getAssetIds(listOf(tronUSDT.id.toIdentifier()))
+        } returns emptyList()
+
+        val subject = createSubject()
+        subject.ensureDefaultAssets(wallet)
+
+        coVerify { assetsDao.insert(match<DbAsset> { it.id == tronUSDT.id.toIdentifier() }) }
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = wallet.id.id,
+                assetId = tronUSDT.id.toIdentifier(),
+                isVisible = true,
+            )
+        }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(tronUSDT.id)) }
+    }
+
+    @Test
+    fun ensureDefaultAssets_linksStoredTronUSDT() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Tron)),
+        )
+        coEvery {
+            assetsDao.getWalletAssetIds(wallet.id.id, listOf(tronUSDT.id.toIdentifier()))
+        } returns emptyList()
+        coEvery {
+            assetsDao.getAssetIds(listOf(tronUSDT.id.toIdentifier()))
+        } returns listOf(tronUSDT.id.toIdentifier())
+
+        val subject = createSubject()
+        subject.ensureDefaultAssets(wallet)
+
+        coVerify(exactly = 0) { assetsDao.insert(any<DbAsset>()) }
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = wallet.id.id,
+                assetId = tronUSDT.id.toIdentifier(),
+                isVisible = true,
+            )
+        }
+    }
+
+    @Test
+    fun ensureDefaultAssets_preservesExistingVisibility() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Tron)),
+        )
+        coEvery {
+            assetsDao.getWalletAssetIds(wallet.id.id, listOf(tronUSDT.id.toIdentifier()))
+        } returns listOf(tronUSDT.id.toIdentifier())
+
+        val subject = createSubject()
+        subject.ensureDefaultAssets(wallet)
+
+        coVerify(exactly = 0) {
+            assetsDao.setWalletAssetVisibility(
+                walletId = any(),
+                assetId = tronUSDT.id.toIdentifier(),
+                isVisible = any(),
+            )
+        }
+    }
+
+    @Test
     fun saveAssetMetadata_persistsUnknownAssetAndMarketInOneAtomicCall() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
 

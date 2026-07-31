@@ -27,5 +27,6 @@ public struct AssetConfiguration: Sendable {
         AssetId(chain: .solana),
         AssetId(chain: .smartChain),
         AssetId(chain: .tron),
+        Asset.tronUSDT().id,
     ]
 }

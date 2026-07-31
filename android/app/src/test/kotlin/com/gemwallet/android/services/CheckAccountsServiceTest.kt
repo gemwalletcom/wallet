@@ -67,6 +67,7 @@ class CheckAccountsServiceTest {
         verify(exactly = 1) { walletsRepository.getAll() }
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
+        coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
         verify(exactly = 0) { passwordStore.getPassword(any()) }
         coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
@@ -95,6 +96,7 @@ class CheckAccountsServiceTest {
 
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 0) { assetsRepository.invalidateDefault(any()) }
+        coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
         verify(exactly = 0) { passwordStore.getPassword(any()) }
         coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }

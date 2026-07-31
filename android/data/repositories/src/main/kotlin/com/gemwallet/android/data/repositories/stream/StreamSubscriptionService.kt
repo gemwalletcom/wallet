@@ -59,7 +59,7 @@ class StreamSubscriptionService(
         val priceAlerts = priceAlertsDao.getAlerts().firstOrNull()
             ?.mapNotNull { it.assetId.toAssetId() } ?: emptyList()
         return (ids + priceAlerts).takeIf { it.isNotEmpty() }
-            ?: visibleByDefault.map { AssetId(it) }
+            ?: visibleByDefault
     }
 
     companion object {

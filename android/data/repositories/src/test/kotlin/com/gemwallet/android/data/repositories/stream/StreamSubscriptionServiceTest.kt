@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.stream
 
+import com.gemwallet.android.data.repositories.assets.visibleByDefault
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.wallet.core.primitives.AssetId
@@ -34,6 +35,18 @@ class StreamSubscriptionServiceTest {
 
         val subscribe = service.messages.receive() as StreamMessage.SubscribePrices
         assertEquals(listOf(Chain.Bitcoin), subscribe.data.assets.map { it.chain })
+    }
+
+    @Test
+    fun `setupAssets falls back to default assets`() = runTest {
+        coEvery { assetsDao.getAssetsPriceUpdate("wallet-1") } returns emptyList()
+        every { priceAlertsDao.getAlerts() } returns flowOf(emptyList())
+        val service = service()
+
+        service.setupAssets(WalletId("wallet-1"))
+
+        val subscribe = service.messages.receive() as StreamMessage.SubscribePrices
+        assertEquals(visibleByDefault, subscribe.data.assets)
     }
 
     @Test

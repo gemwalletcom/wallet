@@ -116,6 +116,10 @@ public extension Primitives.Chain {
 
     var defaultAssets: [Asset] {
         switch self {
+        case .tron:
+            [
+                .tronUSDT(),
+            ]
         case .hyperCore:
             [
                 .hypercoreUSDC(),

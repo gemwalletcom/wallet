@@ -138,6 +138,24 @@ class AssetsRepository @Inject constructor(
         if (assetIds.isNotEmpty()) {
             streamSubscriptionService.addAssetIds(assetIds)
         }
+        ensureDefaultAssets(wallet)
+    }
+
+    suspend fun ensureDefaultAssets(wallet: Wallet) {
+        val assets = defaultTokenAssets.filter { asset ->
+            wallet.accounts.any { account -> account.chain == asset.id.chain }
+        }
+        val existing = hasWalletAssets(wallet.id.id, assets.map { it.id })
+        val missing = assets.filterNot { existing.contains(it.id) }
+        val stored = hasAssets(missing.map { it.id })
+
+        missing.forEach { asset ->
+            if (stored.contains(asset.id)) {
+                linkAssetToWallet(wallet.id.id, asset.id, true)
+            } else {
+                add(wallet.id.id, asset, true)
+            }
+        }
     }
 
     suspend fun getNativeAssets(wallet: Wallet): List<Asset> = withContext(Dispatchers.IO) {
@@ -401,7 +419,7 @@ class AssetsRepository @Inject constructor(
     }
 
     private fun Account.isVisibleByDefault(type: WalletType): Boolean {
-        return visibleByDefault.contains(chain) || type != WalletType.Multicoin
+        return visibleByDefault.contains(AssetId(chain)) || type != WalletType.Multicoin
     }
 
     private suspend fun List<AssetInfo>.refreshBalances(): List<Deferred<List<AssetBalance>>> = withContext(Dispatchers.IO) {

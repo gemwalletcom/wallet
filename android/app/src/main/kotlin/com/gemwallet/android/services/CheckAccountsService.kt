@@ -34,6 +34,7 @@ class CheckAccountsService @Inject constructor(
                 if (nativeAssets.isEmpty()) {
                     assetsRepository.invalidateDefault(wallet)
                 }
+                assetsRepository.ensureDefaultAssets(wallet)
                 return@forEach
             }
 
@@ -53,6 +54,7 @@ class CheckAccountsService @Inject constructor(
                 if (newAccounts.isNotEmpty()) {
                     assetsRepository.invalidateDefault(newWallet)
                 }
+                assetsRepository.ensureDefaultAssets(newWallet)
                 return@forEach
             }
 
@@ -61,6 +63,7 @@ class CheckAccountsService @Inject constructor(
             if (missingNativeAssetIds.isNotEmpty()) {
                 assetsRepository.invalidateDefault(wallet)
             }
+            assetsRepository.ensureDefaultAssets(wallet)
         }
     }
 }
