@@ -1,6 +1,5 @@
 use super::model::*;
-use gem_client::{CONTENT_TYPE, Client, ClientError, ClientExt};
-use std::collections::HashMap;
+use gem_client::{Client, ClientError, ClientExt};
 
 #[derive(Clone, Debug)]
 pub struct JupiterClient<C>
@@ -18,14 +17,9 @@ where
         Self { client }
     }
 
-    pub async fn get_swap_quote(&self, request: QuoteRequest) -> Result<QuoteResponse, ClientError> {
+    pub async fn get_build(&self, request: BuildRequest) -> Result<BuildResponse, ClientError> {
         let query_string = serde_urlencoded::to_string(&request).map_err(|e| ClientError::Serialization(e.to_string()))?;
-        let path = format!("/swap/v1/quote?{}", query_string);
+        let path = format!("/swap/v2/build?{}", query_string);
         self.client.get(&path).await
-    }
-
-    pub async fn get_swap_quote_data(&self, request: &QuoteDataRequest) -> Result<QuoteDataResponse, ClientError> {
-        let headers = HashMap::from([(CONTENT_TYPE.to_string(), "application/json".into())]);
-        self.client.post_with_headers("/swap/v1/swap", request, headers).await
     }
 }

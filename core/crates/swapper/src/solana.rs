@@ -1,8 +1,11 @@
+#[cfg(test)]
 use crate::SwapperError;
+#[cfg(test)]
 use gem_solana::decode_transaction;
 
 pub use gem_solana::DEFAULT_SWAP_GAS_LIMIT;
 
+#[cfg(test)]
 pub fn gas_limit_from_transaction(transaction_base64: &str) -> Result<u64, SwapperError> {
     let transaction = decode_transaction(transaction_base64).map_err(SwapperError::TransactionError)?;
 

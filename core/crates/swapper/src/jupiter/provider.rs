@@ -1,25 +1,28 @@
 use super::{
     PROGRAM_ADDRESS,
     client::JupiterClient,
-    model::{QuoteDataRequest, QuoteRequest as JupiterRequest, QuoteResponse},
+    model::{BuildRequest, BuildResponse},
+    transaction::{MAX_COMPUTE_UNIT_LIMIT, MAX_TRANSACTION_SIZE, buffered_compute_unit_limit},
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
-    error::INVALID_ADDRESS, fees::default_referral_fees, solana,
+    error::INVALID_ADDRESS, fees::default_referral_fees,
 };
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
+use gem_encoding::encode_base64;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
 use gem_solana::{
-    SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS, get_pubkey_by_str,
-    models::{AccountData, ValueResult},
+    SolanaAccountEncoding, SolanaRpc, SolanaRpcConfig, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS, get_pubkey_by_str,
+    models::{AccountData, SimulateTransactionResult, ValueResult, blockhash::SolanaBlockhashResult},
     token_account::get_token_account,
+    try_decode_blockhash,
 };
 use primitives::{AssetId, Chain};
 use std::collections::HashSet;
 
-const INSTRUCTION_VERSION: &str = "V2";
+const MAX_ACCOUNT_ATTEMPTS: [u8; 5] = [64, 60, 56, 52, 48];
 
 #[derive(Debug)]
 pub struct Jupiter<C, R>
@@ -49,7 +52,7 @@ where
 
     pub fn get_asset_address(&self, asset_id: &str) -> Result<String, SwapperError> {
         get_pubkey_by_str(asset_id)
-            .map(|x| x.to_string())
+            .map(|address| address.to_string())
             .ok_or_else(|| SwapperError::ComputeQuoteError(format!("{}: {asset_id}", INVALID_ADDRESS)))
     }
 
@@ -60,13 +63,12 @@ where
         input.to_string()
     }
 
-    fn get_fee_token_account(&self, mint: &str, token_program: &str) -> Result<Option<String>, SwapperError> {
+    fn get_fee_token_account(&self, mint: &str, token_program: &str) -> Result<String, SwapperError> {
         let fee = default_referral_fees().solana;
         if fee.address.is_empty() {
-            return Ok(None);
+            return Ok(String::new());
         }
-        let fee_account = get_token_account(&fee.address, mint, token_program)?;
-        Ok(Some(fee_account))
+        get_token_account(&fee.address, mint, token_program).map_err(SwapperError::from)
     }
 
     async fn fetch_token_program(&self, mint: &str) -> Result<String, SwapperError> {
@@ -74,30 +76,97 @@ where
         let rpc_result: JsonRpcResult<ValueResult<Option<AccountData>>> = self.rpc_client.request_with_cache(&request, Some(u64::MAX)).await.map_err(SwapperError::from)?;
         let value = rpc_result.take()?;
 
-        value.value.map(|x| x.owner).ok_or_else(|| SwapperError::compute_quote_error("fetch_token_program error"))
+        value
+            .value
+            .map(|account| account.owner)
+            .ok_or_else(|| SwapperError::compute_quote_error("Unable to fetch the fee token program"))
     }
 
     async fn fetch_fee_account(&self, input_mint: &str, output_mint: &str) -> Result<String, SwapperError> {
         let fee_mint = self.get_fee_mint(input_mint, output_mint);
-        // if fee_mint is in preset, no need to fetch token program
-        let token_program = if self.fee_mints.contains(fee_mint.as_str()) {
-            return Ok(self.get_fee_token_account(fee_mint.as_str(), TOKEN_PROGRAM)?.unwrap_or_default());
-        } else {
-            self.fetch_token_program(&fee_mint).await?
-        };
+        if self.fee_mints.contains(fee_mint.as_str()) {
+            return self.get_fee_token_account(&fee_mint, TOKEN_PROGRAM);
+        }
 
-        let mut fee_account = self.get_fee_token_account(&fee_mint, &token_program)?.unwrap_or_default();
+        let token_program = self.fetch_token_program(&fee_mint).await?;
+        let fee_account = self.get_fee_token_account(&fee_mint, &token_program)?;
         if fee_account.is_empty() {
             return Ok(fee_account);
         }
 
-        // check fee token account exists, if not, set fee_account to empty string
         let request = SolanaRpc::GetAccountInfo(fee_account.clone(), SolanaAccountEncoding::Base64);
         let rpc_result: JsonRpcResult<ValueResult<Option<AccountData>>> = self.rpc_client.request_with_cache(&request, None).await.map_err(SwapperError::from)?;
-        if matches!(rpc_result, JsonRpcResult::Error(_)) || matches!(rpc_result, JsonRpcResult::Value(ref resp) if resp.result.value.is_none()) {
-            fee_account = String::from("");
+        let exists = match rpc_result {
+            JsonRpcResult::Value(response) => response.result.value.is_some(),
+            JsonRpcResult::Error(_) => false,
+        };
+        if exists { Ok(fee_account) } else { Ok(String::new()) }
+    }
+
+    async fn get_build(&self, request: &QuoteRequest, input_mint: &str, output_mint: &str, fee_account: &str) -> Result<BuildResponse, SwapperError> {
+        let fee = default_referral_fees().solana;
+        if fee.bps > 0 && fee_account.is_empty() {
+            return Err(SwapperError::compute_quote_error("Jupiter referral fee account is unavailable"));
         }
-        Ok(fee_account)
+
+        for max_accounts in MAX_ACCOUNT_ATTEMPTS {
+            let build = self
+                .http_client
+                .get_build(BuildRequest {
+                    input_mint: input_mint.to_string(),
+                    output_mint: output_mint.to_string(),
+                    amount: request.value.clone(),
+                    taker: request.wallet_address.clone(),
+                    slippage_bps: request.options.slippage.bps,
+                    platform_fee_bps: fee.bps,
+                    fee_account: fee_account.to_string(),
+                    max_accounts,
+                })
+                .await?;
+            build.validate(
+                input_mint,
+                output_mint,
+                &request.value,
+                &request.wallet_address,
+                request.options.slippage.bps,
+                fee.bps,
+                fee_account,
+            )?;
+            let transaction = build.transaction_bytes(&request.wallet_address, MAX_COMPUTE_UNIT_LIMIT)?;
+            if transaction.len() <= MAX_TRANSACTION_SIZE {
+                return Ok(build);
+            }
+        }
+        Err(SwapperError::compute_quote_error("Jupiter could not build a transaction within Solana's size limit"))
+    }
+
+    async fn simulate(&self, build: &BuildResponse, wallet_address: &str) -> Result<u32, SwapperError> {
+        let transaction = build.transaction_bytes(wallet_address, MAX_COMPUTE_UNIT_LIMIT)?;
+        if transaction.len() > MAX_TRANSACTION_SIZE {
+            return Err(SwapperError::transaction_error("Jupiter transaction exceeds Solana's size limit"));
+        }
+
+        let request = SolanaRpc::SimulateTransaction(encode_base64(&transaction));
+        let response: ValueResult<SimulateTransactionResult> = self.rpc_client.request(request).await.map_err(SwapperError::transaction_error)?;
+        if let Some(error) = response.value.err {
+            return Err(SwapperError::transaction_error(error));
+        }
+        let units_consumed = response
+            .value
+            .units_consumed
+            .ok_or_else(|| SwapperError::transaction_error("Solana simulation did not return consumed compute units"))?;
+        buffered_compute_unit_limit(units_consumed)
+    }
+
+    async fn refresh_blockhash(&self, build: &mut BuildResponse) -> Result<(), SwapperError> {
+        let response: SolanaBlockhashResult = self
+            .rpc_client
+            .request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Confirmed))
+            .await
+            .map_err(SwapperError::transaction_error)?;
+        let blockhash = try_decode_blockhash(&response.value.blockhash).ok_or_else(|| SwapperError::transaction_error("Invalid Solana blockhash"))?;
+        build.blockhash_with_metadata.blockhash = blockhash.to_vec();
+        Ok(())
     }
 }
 
@@ -122,24 +191,12 @@ where
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let input_mint = self.get_asset_address(&request.from_asset.id)?;
         let output_mint = self.get_asset_address(&request.to_asset.id)?;
-        let slippage_bps = request.options.slippage.bps;
-        let platform_fee_bps = default_referral_fees().solana.bps;
+        let fee_account = self.fetch_fee_account(&input_mint, &output_mint).await?;
+        let build = self.get_build(request, &input_mint, &output_mint, &fee_account).await?;
+        let out_amount = build.out_amount.parse::<U256>().map_err(SwapperError::compute_quote_error)?;
+        let route_data = serde_json::to_string(&build).map_err(SwapperError::compute_quote_error)?;
 
-        let quote_request = JupiterRequest {
-            input_mint: input_mint.clone(),
-            output_mint: output_mint.clone(),
-            amount: request.value.clone(),
-            platform_fee_bps,
-            slippage_bps,
-            instruction_version: INSTRUCTION_VERSION.to_string(),
-        };
-        let swap_quote = self.http_client.get_swap_quote(quote_request).await?;
-
-        // Updated docs: https://dev.jup.ag/docs/swap/v1/get-quote
-        // The value includes platform fees and DEX fees, excluding slippage.
-        let out_amount: U256 = swap_quote.out_amount.parse().map_err(SwapperError::from)?;
-
-        let quote = Quote {
+        Ok(Quote {
             from_value: request.value.clone(),
             min_from_value: None,
             to_value: out_amount.to_string(),
@@ -148,45 +205,43 @@ where
                 routes: vec![Route {
                     input: AssetId::from(Chain::Solana, Some(input_mint)),
                     output: AssetId::from(Chain::Solana, Some(output_mint)),
-                    route_data: serde_json::to_string(&swap_quote).unwrap_or_default(),
+                    route_data,
                 }],
-                slippage_bps: swap_quote.slippage_bps,
+                slippage_bps: build.slippage_bps,
             },
             request: request.clone(),
             eta_in_seconds: None,
-        };
-        Ok(quote)
+        })
     }
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
-        if quote.data.routes.is_empty() {
-            return Err(SwapperError::InvalidRoute);
+        let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
+        let input_mint = route.input.token_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
+        let output_mint = route.output.token_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
+        let mut build: BuildResponse = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
+        let fee = default_referral_fees().solana;
+        let fee_account = self.fetch_fee_account(input_mint, output_mint).await?;
+        build.validate(
+            input_mint,
+            output_mint,
+            &quote.request.value,
+            &quote.request.wallet_address,
+            quote.request.options.slippage.bps,
+            fee.bps,
+            &fee_account,
+        )?;
+        self.refresh_blockhash(&mut build).await?;
+
+        let gas_limit = self.simulate(&build, &quote.request.wallet_address).await?;
+        let transaction = build.transaction_bytes(&quote.request.wallet_address, gas_limit)?;
+        if transaction.len() > MAX_TRANSACTION_SIZE {
+            return Err(SwapperError::transaction_error("Jupiter transaction exceeds Solana's size limit"));
         }
-        let route = &quote.data.routes[0];
-        let input_mint = route.input.token_id.clone().unwrap();
-        let output_mint = route.output.token_id.clone().unwrap();
 
-        let quote_response: QuoteResponse = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
-        let fee_account = self.fetch_fee_account(&input_mint, &output_mint).await?;
-
-        let request = QuoteDataRequest {
-            user_public_key: quote.request.wallet_address.clone(),
-            fee_account,
-            quote_response,
-            prioritization_fee_lamports: 500_000,
-        };
-
-        let quote_data = self.http_client.get_swap_quote_data(&request).await?;
-
-        if let Some(simulation_error) = quote_data.simulation_error {
-            return Err(SwapperError::TransactionError(simulation_error.error));
-        }
-
-        let gas_limit = solana::gas_limit_from_transaction(&quote_data.swap_transaction)?;
         Ok(SwapperQuoteData::new_contract(
             PROGRAM_ADDRESS.to_string(),
-            "".to_string(),
-            quote_data.swap_transaction,
+            String::new(),
+            encode_base64(&transaction),
             None,
             Some(gas_limit.to_string()),
         ))
@@ -197,6 +252,7 @@ where
 mod swap_integration_tests {
     use super::*;
     use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
+    use gem_encoding::decode_base64;
     use primitives::AssetId;
     use std::sync::Arc;
 
@@ -205,15 +261,13 @@ mod swap_integration_tests {
         let rpc_provider = Arc::new(NativeProvider::default());
         let provider = Jupiter::new(rpc_provider);
 
-        let options = Options::new_with_slippage(100.into());
-
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Solana, Some(USDC_TOKEN_MINT.to_string()))),
-            wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
-            destination_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
+            wallet_address: "5fmLrs2GuhfDP1B51ziV5Kd1xtAr9rw1jf3aQ4ihZ2gy".to_string(),
+            destination_address: "5fmLrs2GuhfDP1B51ziV5Kd1xtAr9rw1jf3aQ4ihZ2gy".to_string(),
             value: "1000000000".to_string(),
-            options,
+            options: Options::new_with_slippage(100.into()),
         };
 
         let quote = provider.get_quote(&request).await?;
@@ -226,15 +280,14 @@ mod swap_integration_tests {
         let route = &quote.data.routes[0];
         assert_eq!(route.input, AssetId::from(Chain::Solana, Some(WSOL_TOKEN_ADDRESS.to_string())));
         assert_eq!(route.output, AssetId::from(Chain::Solana, Some(USDC_TOKEN_MINT.to_string())));
-        assert!(!route.route_data.is_empty());
 
-        let quote_response: QuoteResponse = serde_json::from_str(&route.route_data)?;
-        assert_eq!(quote_response.input_mint, WSOL_TOKEN_ADDRESS);
-        assert_eq!(quote_response.output_mint, USDC_TOKEN_MINT);
+        let build: BuildResponse = serde_json::from_str(&route.route_data)?;
+        assert_eq!(build.input_mint, WSOL_TOKEN_ADDRESS);
+        assert_eq!(build.output_mint, USDC_TOKEN_MINT);
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert_eq!(quote_data.to, PROGRAM_ADDRESS);
-        assert!(!quote_data.data.is_empty());
+        assert!(decode_base64(&quote_data.data).unwrap().len() <= MAX_TRANSACTION_SIZE);
 
         Ok(())
     }
