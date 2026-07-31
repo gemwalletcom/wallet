@@ -1,8 +1,10 @@
 package com.gemwallet.android.data.services.gemapi
 
 import com.wallet.core.primitives.TransactionsResponse
+import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AuthNonce
 import com.wallet.core.primitives.AuthenticatedRequest
+import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.Device
 import com.wallet.core.primitives.FiatQuoteUrl
 import com.wallet.core.primitives.FiatQuotes
@@ -45,6 +47,9 @@ interface GemDeviceApiClient {
     // Name resolve
     @GET("/v2/devices/name/resolve/{name}")
     suspend fun resolve(@Path("name") name: String, @Query("chain") chain: String): NameRecord
+
+    @POST("/v2/devices/address_names")
+    suspend fun getAddressNames(@Body requests: List<ChainAddress>): List<AddressName>
 
     // Device manage
     @GET("/v2/devices")

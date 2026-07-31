@@ -100,6 +100,7 @@ fun ConfirmScreen(
     val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
+    val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val isWalletConnect = params is ConfirmParams.TransferParams.Generic
     val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
@@ -153,7 +154,7 @@ fun ConfirmScreen(
                             stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
                         } else {
                             simulation.headerValue?.toBigIntegerOrNull()
-                                ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: ""
+                                ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: asset.symbol
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
@@ -223,6 +224,7 @@ fun ConfirmScreen(
             simulationWarningsContent(simulation.warnings)
             simulationPayloadFieldsContent(
                 fields = simulation.primaryPayloadFields,
+                addressNames = payloadAddressNames,
                 onDetailsClick = simulation.secondaryPayloadFields
                     .takeIf { it.isNotEmpty() }
                     ?.let { { showWalletConnectDetails = true } },
@@ -288,6 +290,7 @@ fun ConfirmScreen(
                 simulationPayloadDetailsContent(
                     primaryFields = simulation.primaryPayloadFields,
                     secondaryFields = simulation.secondaryPayloadFields,
+                    addressNames = payloadAddressNames,
                 )
             }
         }

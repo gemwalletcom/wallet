@@ -8,6 +8,7 @@ import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProper
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
 import com.gemwallet.android.cases.addresses.GetAddressName
+import com.gemwallet.android.cases.addresses.GetAddressNames
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -37,9 +38,12 @@ import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.SimulationPayloadFieldType
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -74,6 +78,7 @@ class ConfirmViewModel @Inject constructor(
     private val buildConfirmProperties: BuildConfirmProperties,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val getAddressName: GetAddressName,
+    private val getAddressNames: GetAddressNames,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -94,8 +99,14 @@ class ConfirmViewModel @Inject constructor(
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val simulationAssets = simulationResult
-        .map { it?.simulationAssetIds().orEmpty() }
+    private val approvalAssetId = request
+        .map { it.approvalAssetId() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val simulationAssets = combine(simulationResult, approvalAssetId) { simulationResult, approvalAssetId ->
+        (simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(approvalAssetId)).distinct()
+    }
         .distinctUntilChanged()
         .flatMapLatest { assetIds ->
             assetsRepository.getTokensInfo(assetIds.map { it.toIdentifier() })
@@ -103,7 +114,7 @@ class ConfirmViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    val simulation = combine(simulationResult, simulationAssets, request) { simulationResult, simulationAssets, params ->
+    val simulation = combine(simulationResult, simulationAssets, approvalAssetId, request) { simulationResult, simulationAssets, approvalAssetId, params ->
         val chain = params?.assetId?.chain
         val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
         val simulation = simulationResult?.toSimulation(simulationAssets, chain, explorerName) ?: Simulation()
@@ -113,8 +124,27 @@ class ConfirmViewModel @Inject constructor(
             headerAssetId == params.assetId -> params.asset
             else -> simulationAssets[headerAssetId]
         }
-        simulation.copy(headerAsset = asset)
+        simulation.copy(headerAsset = asset ?: approvalAssetId?.let { simulationAssets[it] })
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
+
+    val payloadAddressNames = simulation
+        .map { it.primaryPayloadFields + it.secondaryPayloadFields }
+        .distinctUntilChanged()
+        .map { fields ->
+            val requests = fields
+                .filter { it.field.fieldType == SimulationPayloadFieldType.Address }
+                .mapNotNull { payload -> payload.chain?.let { ChainAddress(it, payload.field.value) } }
+                .distinct()
+            if (requests.isEmpty()) {
+                emptyMap()
+            } else {
+                getAddressNames.getAddressNames(requests)
+                    .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
+                    .associate { it.address.lowercase() to it.name }
+            }
+        }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     val buttonState = combine(state, simulation) { state, simulation ->
         buttonState(
@@ -266,7 +296,8 @@ class ConfirmViewModel @Inject constructor(
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
         viewModelScope.launch(Dispatchers.IO) {
-            prefetchAssets.prefetchAssets(simulationResult?.simulationAssetIds().orEmpty())
+            val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId())
+            prefetchAssets.prefetchAssets(assetIds.distinct())
         }
         viewModelScope.launch(Dispatchers.IO) {
             val pack = params.pack()
@@ -386,3 +417,11 @@ class ConfirmViewModel @Inject constructor(
 
 private fun SimulationResult.simulationAssetIds(): List<AssetId> =
     (balanceChanges.map { it.assetId } + listOfNotNull(header?.assetId)).distinct()
+
+private fun ConfirmParams?.approvalAssetId(): AssetId? =
+    (this as? ConfirmParams.TransferParams.Generic)
+        ?.takeIf { it.getTransactionType() == TransactionType.TokenApproval }
+        ?.let { generic ->
+            val tokenAddress = generic.destination().address
+            AssetId(generic.assetId.chain, tokenId = tokenAddress).takeIf { tokenAddress.isNotEmpty() }
+        }
