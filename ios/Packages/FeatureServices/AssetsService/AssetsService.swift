@@ -110,6 +110,7 @@ public final class AssetsService: Sendable {
         let asset = try await getAsset(assetId: assetId)
         try assetStore.add(assets: [asset.basic])
         try assetStore.updateLinks(assetId: assetId, asset.links)
+        try assetStore.updateAssociations(assetId: assetId, associations: asset.associations)
         let price = asset.price?.mapToAssetPrice(assetId: assetId) ?? .empty(assetId: assetId)
         try priceStore.updatePrice(price: price, currency: currency)
         if let market = asset.market {

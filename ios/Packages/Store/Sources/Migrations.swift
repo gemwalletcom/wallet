@@ -499,6 +499,14 @@ struct Migrations {
             try SupportMessageRecord.create(db: db)
         }
 
+        migrator.registerMigration("Add associations to \(AssetRecord.databaseTableName)") { db in
+            try db.alter(table: AssetRecord.databaseTableName) {
+                $0.add(column: AssetRecord.Columns.associations.name, .jsonText)
+                    .notNull()
+                    .defaults(to: "[]")
+            }
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

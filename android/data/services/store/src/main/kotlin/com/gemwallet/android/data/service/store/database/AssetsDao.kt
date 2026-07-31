@@ -34,6 +34,7 @@ private const val ASSET_INFO_COLUMNS = """
     asset.staking_apr AS stakingApr,
     asset.rank AS assetRank,
     asset.chain AS chain,
+    asset.associations AS associations,
     accounts.address AS address,
     accounts.derivation_path AS derivationPath,
     accounts.extendedPublicKey AS extendedPublicKey,

@@ -10,6 +10,7 @@ public extension AssetData {
         account: Account = .mock(),
         price: Price? = nil,
         priceAlerts: [PriceAlert] = [],
+        associations: [AssetAssociation] = [],
         metadata: AssetMetaData = AssetMetaData(
             isEnabled: true,
             isBalanceEnabled: true,
@@ -32,6 +33,7 @@ public extension AssetData {
             price: price,
             priceAlerts: priceAlerts,
             metadata: metadata,
+            associations: associations,
         )
     }
 }

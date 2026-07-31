@@ -26,6 +26,21 @@ struct AssetsRequestTests {
         }
     }
 
+    @Test func assetDataIncludesAssociations() throws {
+        let asset = AssetBasic.mock()
+        let db = DB.mockAssets(assets: [asset])
+        let store = AssetStore(db: db)
+        let associations = [AssetAssociation(assetId: AssetId(chain: .ethereum), type: .official)]
+
+        try store.updateAssociations(assetId: asset.asset.id, associations: associations)
+        try store.add(assets: [asset])
+
+        let storedAsset = try db.dbQueue.read { db in
+            try AssetRequest(walletId: .mock(), assetId: asset.asset.id).fetch(db)
+        }
+        #expect(storedAsset.associations == associations)
+    }
+
     @Test func pinned() throws {
         let db = DB.mockAssets()
         let balanceStore = BalanceStore(db: db)

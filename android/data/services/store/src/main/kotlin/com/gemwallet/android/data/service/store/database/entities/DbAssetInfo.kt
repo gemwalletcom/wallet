@@ -8,6 +8,7 @@ import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.Balance
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetType
@@ -34,6 +35,7 @@ data class DbAssetInfo(
     val isStakeEnabled: Boolean,
     val stakingApr: Double?,
     val assetRank: Int,
+    val associations: List<AssetAssociation>,
     // account
     val address: String?,
     val walletId: String?,
@@ -173,5 +175,6 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
         stakeApr = entity.stakingApr,
         position = entity.listPosition ?: 0,
         walletId = walletId?.let(::WalletId),
+        associations = entity.associations,
     )
 }

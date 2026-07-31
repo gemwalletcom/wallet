@@ -296,6 +296,7 @@ extension SelectAssetViewModel {
             price: assetData.price,
             priceAlerts: assetData.priceAlerts,
             metadata: assetData.metadata,
+            associations: assetData.associations,
         )
     }
 

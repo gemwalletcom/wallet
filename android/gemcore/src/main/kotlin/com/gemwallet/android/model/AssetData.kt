@@ -2,6 +2,7 @@ package com.gemwallet.android.model
 
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
@@ -20,6 +21,7 @@ data class AssetData(
     val walletId: WalletId,
     val price: AssetPriceInfo? = null,
     val metadata: AssetMetaData? = null,
+    val associations: List<AssetAssociation> = emptyList(),
 ) {
     fun toAssetInfo(): AssetInfo = AssetInfo(
         owner = account,
@@ -28,6 +30,7 @@ data class AssetData(
         walletId = walletId,
         price = price,
         metadata = metadata,
+        associations = associations,
     )
 
     companion object {
@@ -38,6 +41,7 @@ data class AssetData(
             balance = assetInfo.balance,
             price = assetInfo.price,
             metadata = assetInfo.metadata,
+            associations = assetInfo.associations,
         )
     }
 }

@@ -2,6 +2,7 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
@@ -84,6 +85,7 @@ fun mockDbAssetInfo(
     bandwidthTotal: Long? = null,
     assetIsActive: Boolean? = true,
     balanceUpdatedAt: Long? = null,
+    associations: List<AssetAssociation> = emptyList(),
 ) = DbAssetInfo(
     id = id,
     name = name,
@@ -99,6 +101,7 @@ fun mockDbAssetInfo(
     isStakeEnabled = isStakeEnabled,
     stakingApr = stakingApr,
     assetRank = assetRank,
+    associations = associations,
     address = address,
     walletId = walletId,
     derivationPath = derivationPath,

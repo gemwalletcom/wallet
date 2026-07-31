@@ -10,6 +10,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.RecentType
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
@@ -37,6 +38,7 @@ data class DbAsset(
     @ColumnInfo("staking_apr") val stakingApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
     @ColumnInfo("updated_at") val updatedAt: Long = 0,
+    @ColumnInfo("associations", defaultValue = "[]") val associations: List<AssetAssociation> = emptyList(),
 )
 
 data class DbAssetBasicUpdate(
@@ -151,6 +153,7 @@ fun AssetFull.toRecord() = DbAsset(
     isSwapEnabled = properties.isSwapable,
     stakingApr = properties.stakingApr,
     rank = score.rank,
+    associations = associations,
 )
 
 fun Asset.toRecord(updatedAt: Long = System.currentTimeMillis()) = DbAsset(
