@@ -7,7 +7,9 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.LifecycleDestroyedException
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withResumed
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.model.requiresConfirmation
@@ -28,6 +30,7 @@ internal class SystemAuthenticator(
     private lateinit var biometricPrompt: BiometricPrompt
     private var initialAuthRetry: Job? = null
     private var activeAuthTimeout: Job? = null
+    private var pendingAuthenticate: Job? = null
 
     val enrollmentMissing = _enrollmentMissing.asStateFlow()
 
@@ -54,7 +57,15 @@ internal class SystemAuthenticator(
     }
 
     fun authenticate() {
-        biometricPrompt.authenticate(buildPrompt(authRequests.activeRequiresConfirmation()))
+        pendingAuthenticate?.cancel()
+        pendingAuthenticate = activity.lifecycleScope.launch {
+            try {
+                activity.lifecycle.withResumed {
+                    biometricPrompt.authenticate(buildPrompt(authRequests.activeRequiresConfirmation()))
+                }
+            } catch (_: LifecycleDestroyedException) {
+            }
+        }
     }
 
     private fun buildPrompt(requiresConfirmation: Boolean): BiometricPrompt.PromptInfo =
@@ -101,6 +112,7 @@ internal class SystemAuthenticator(
     fun cancel() {
         initialAuthRetry?.cancel()
         activeAuthTimeout?.cancel()
+        pendingAuthenticate?.cancel()
         runCatching { biometricPrompt.cancelAuthentication() }
     }
 
