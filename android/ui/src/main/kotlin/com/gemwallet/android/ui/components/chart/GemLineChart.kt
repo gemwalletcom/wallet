@@ -1,21 +1,13 @@
 package com.gemwallet.android.ui.components.chart
 
-import android.os.Build
-import android.view.HapticFeedbackConstants
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,10 +22,8 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -70,8 +60,6 @@ private object Metrics {
     const val FLAT_LINE_PADDING = 0.01f
     const val FLAT_LINE_MIN_RANGE = 0.01f
     const val RANGE_PADDING = 0.05f
-    const val FADE_IN_MS = 150
-    const val FADE_OUT_MS = 200
 }
 
 private object Alpha {
@@ -97,7 +85,6 @@ fun GemLineChart(
     if (points.size < 2) return
 
     val density = LocalDensity.current
-    val view = LocalView.current
     val textMeasurer = rememberTextMeasurer()
     val isDark = isSystemInDarkTheme()
 
@@ -124,17 +111,7 @@ fun GemLineChart(
     }
 
     var chartSize by remember { mutableStateOf(IntSize.Zero) }
-    var lastHapticIndex by remember { mutableIntStateOf(-1) }
-
-    val selectionAlpha = remember { Animatable(0f) }
-    LaunchedEffect(selectedIndex) {
-        if (selectedIndex != null) {
-            selectionAlpha.animateTo(1f, animationSpec = tween(Metrics.FADE_IN_MS))
-        } else {
-            selectionAlpha.animateTo(0f, animationSpec = tween(Metrics.FADE_OUT_MS))
-            lastHapticIndex = -1
-        }
-    }
+    val selection = rememberChartSelection(selectedIndex)
 
     val labelStyle = TextStyle(
         color = MaterialTheme.colorScheme.secondary,
@@ -162,34 +139,12 @@ fun GemLineChart(
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(points) {
-                        detectTapGestures(onPress = { touch ->
-                            findClosestIndex(points, touch.x, curveLeft, curveWidth)?.let { index ->
-                                if (index != lastHapticIndex) { haptic(view); lastHapticIndex = index }
-                                onSelectionChanged(index)
-                            }
-                            tryAwaitRelease()
-                            onSelectionChanged(null)
-                        })
-                    }
-                    .pointerInput(points) {
-                        detectDragGestures(
-                            onDragStart = { touch ->
-                                findClosestIndex(points, touch.x, curveLeft, curveWidth)?.let { index ->
-                                    haptic(view); lastHapticIndex = index; onSelectionChanged(index)
-                                }
-                            },
-                            onDrag = { change, _ ->
-                                change.consume()
-                                findClosestIndex(points, change.position.x, curveLeft, curveWidth)?.let { index ->
-                                    if (index != lastHapticIndex) { haptic(view); lastHapticIndex = index }
-                                    onSelectionChanged(index)
-                                }
-                            },
-                            onDragEnd = { onSelectionChanged(null) },
-                            onDragCancel = { onSelectionChanged(null) },
-                        )
-                    }
+                    .chartSelection(
+                        selection = selection,
+                        points,
+                        indexAt = { touchX -> findClosestIndex(points, touchX, curveLeft, curveWidth) },
+                        onSelectionChanged = onSelectionChanged,
+                    )
             ) {
                 val screenPoints = renderPoints.map { point ->
                     Offset(renderScreenX(point.x), valueToScreenY(point.y))
@@ -212,7 +167,7 @@ fun GemLineChart(
                 if (selectedIndex != null && selectedIndex in points.indices) {
                     drawSelectionIndicator(
                         Offset(curveScreenX(selectedIndex, points.size), valueToScreenY(points[selectedIndex].y)),
-                        canvasHeight, selectionAlpha.value, lineColor, lineWidthPx, selectionDotRadiusPx, dashLengthPx, glowExtraPx,
+                        canvasHeight, selection.alpha, lineColor, lineWidthPx, selectionDotRadiusPx, dashLengthPx, glowExtraPx,
                     )
                 }
             }
@@ -412,10 +367,3 @@ private fun findClosestIndex(points: List<ChartPoint>, touchX: Float, curveLeft:
     points.indices.minByOrNull { index ->
         abs(curveLeft + indexToX(index, points.size, curveWidth) - touchX)
     }
-
-private fun haptic(view: android.view.View) {
-    view.performHapticFeedback(
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) HapticFeedbackConstants.CLOCK_TICK
-        else HapticFeedbackConstants.VIRTUAL_KEY
-    )
-}
