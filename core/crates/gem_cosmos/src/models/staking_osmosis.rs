@@ -12,6 +12,12 @@ pub struct OsmosisMintParams {
     pub distribution_proportions: OsmosisDistributionProportions,
 }
 
+impl OsmosisMintParams {
+    pub fn epochs_per_year(&self) -> f64 {
+        if self.epoch_identifier == "day" { 365.0 } else { 52.0 }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OsmosisDistributionProportions {
     #[serde(deserialize_with = "deserialize_f64_from_str")]

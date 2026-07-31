@@ -5,8 +5,8 @@ use crate::models::account::Balances;
 use crate::models::staking::{Delegations, Rewards, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
 use crate::models::{
-    BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, StakingPoolResponse, SupplyResponse, TransactionResponse, TransactionsResponse,
-    ValidatorsResponse,
+    AnnualProvisionsResponse, BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, StakingPoolResponse, SupplyResponse,
+    TransactionResponse, TransactionsResponse, ValidatorsResponse,
 };
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
@@ -78,6 +78,10 @@ impl<C: Client> CosmosClient<C> {
 
     pub async fn get_inflation(&self) -> Result<InflationResponse, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get("/cosmos/mint/v1beta1/inflation").await?)
+    }
+
+    pub async fn get_celestia_annual_provisions(&self) -> Result<AnnualProvisionsResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get("/cosmos/mint/v1beta1/annual_provisions").await?)
     }
 
     pub async fn get_supply_by_denom(&self, denom: &str) -> Result<SupplyResponse, Box<dyn Error + Send + Sync>> {

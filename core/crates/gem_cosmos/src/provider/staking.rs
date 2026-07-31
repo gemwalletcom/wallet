@@ -7,7 +7,7 @@ use gem_client::Client;
 use primitives::{DelegationBase, DelegationValidator, chain_cosmos::CosmosChain};
 
 use crate::{
-    provider::staking_mapper::{calculate_network_apy_cosmos, calculate_network_apy_osmosis, map_staking_delegations, map_staking_validators},
+    provider::staking_mapper::{calculate_network_apy, map_staking_delegations, map_staking_validators},
     rpc::client::CosmosClient,
 };
 
@@ -20,14 +20,20 @@ impl<C: Client> ChainStaking for CosmosClient<C> {
             CosmosChain::Cosmos | CosmosChain::Injective => {
                 let denom = chain.denom();
                 let (inflation, supply, staking_pool) = try_join!(self.get_inflation(), self.get_supply_by_denom(denom.as_ref()), self.get_staking_pool())?;
-                Ok(calculate_network_apy_cosmos(inflation, supply, staking_pool))
+                let annual_rewards = inflation.inflation * supply.amount.amount;
+
+                Ok(Some(calculate_network_apy(annual_rewards, staking_pool.pool.bonded_tokens)))
             }
             CosmosChain::Osmosis => {
                 let (mint_params, epoch_provisions, staking_pool) = try_join!(self.get_osmosis_mint_params(), self.get_osmosis_epoch_provisions(), self.get_staking_pool())?;
+                let annual_rewards = epoch_provisions.epoch_provisions * mint_params.params.epochs_per_year() * mint_params.params.distribution_proportions.staking;
 
-                Ok(calculate_network_apy_osmosis(mint_params, epoch_provisions, staking_pool))
+                Ok(Some(calculate_network_apy(annual_rewards, staking_pool.pool.bonded_tokens)))
             }
-            CosmosChain::Celestia => Ok(Some(10.55)),
+            CosmosChain::Celestia => {
+                let (annual_provisions, staking_pool) = try_join!(self.get_celestia_annual_provisions(), self.get_staking_pool())?;
+                Ok(Some(calculate_network_apy(annual_provisions.annual_provisions, staking_pool.pool.bonded_tokens)))
+            }
             CosmosChain::Sei => Ok(Some(5.62)),
         }
     }
@@ -75,8 +81,18 @@ impl<C: Client> ChainStaking for CosmosClient<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::{create_cosmos_test_client, create_osmosis_test_client};
+    use crate::provider::testkit::{create_celestia_test_client, create_cosmos_test_client, create_osmosis_test_client};
     use chain_traits::ChainStaking;
+
+    #[tokio::test]
+    async fn test_get_celestia_staking_apy() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_celestia_test_client();
+        let apy = client.get_staking_apy().await?.unwrap();
+
+        assert!(apy > 0.0 && apy < 100.0);
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_get_osmosis_staking_apy() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

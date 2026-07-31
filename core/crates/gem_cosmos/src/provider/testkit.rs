@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::models::TransactionResponse;
+use crate::models::{StakingPool, StakingPoolResponse, TransactionResponse};
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::CosmosClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -25,6 +25,22 @@ impl TransactionResponse {
 
     pub fn mock_reverted_transfer_spam() -> Self {
         serde_json::from_str(include_str!("../../testdata/reverted_transfer_spam.json")).unwrap()
+    }
+}
+
+#[cfg(test)]
+impl StakingPoolResponse {
+    pub fn mock() -> Self {
+        Self::mock_with_bonded_tokens(100.0)
+    }
+
+    pub fn mock_with_bonded_tokens(bonded_tokens: f64) -> Self {
+        Self {
+            pool: StakingPool {
+                bonded_tokens,
+                not_bonded_tokens: 0.0,
+            },
+        }
     }
 }
 
