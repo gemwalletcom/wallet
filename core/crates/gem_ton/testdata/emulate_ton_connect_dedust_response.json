@@ -1,0 +1,64 @@
+{
+  "actions": [
+    {
+      "success": true,
+      "type": "jetton_swap",
+      "details": {
+        "dex": "dedust",
+        "sender": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+        "asset_in": null,
+        "asset_out": "0:65AAC9B5E380EAE928DB3C8E238D9BC0D61A9320FDC2BC7A2F6C87D6FEDF9208",
+        "dex_incoming_transfer": {
+          "amount": "1000000000"
+        },
+        "dex_outgoing_transfer": {
+          "amount": "2228076648"
+        }
+      }
+    }
+  ],
+  "transactions": {
+    "root": {
+      "account": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+      "description": {
+        "aborted": false,
+        "compute_ph": {
+          "success": true,
+          "exit_code": 0
+        },
+        "action": {
+          "success": true,
+          "no_funds": false,
+          "result_code": 0
+        }
+      },
+      "account_state_before": {
+        "balance": "84733394029"
+      },
+      "account_state_after": {
+        "balance": "83482872833"
+      }
+    },
+    "excess": {
+      "account": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+      "description": {
+        "aborted": false,
+        "compute_ph": {
+          "success": true,
+          "exit_code": 0
+        },
+        "action": {
+          "success": true,
+          "no_funds": false,
+          "result_code": 0
+        }
+      },
+      "account_state_before": {
+        "balance": "83482872833"
+      },
+      "account_state_after": {
+        "balance": "83718750529"
+      }
+    }
+  }
+}

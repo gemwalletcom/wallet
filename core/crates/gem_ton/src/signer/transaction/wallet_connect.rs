@@ -1,9 +1,7 @@
-use std::collections::HashMap;
 use std::str::FromStr;
 
 use num_bigint::BigUint;
 use primitives::{Chain, SignerError, SignerInput, TransferDataOutputType, WalletConnectCAIP2, unix_timestamp};
-use serde::Deserialize;
 
 use super::{
     message::DEFAULT_SEND_MODE,
@@ -11,29 +9,10 @@ use super::{
 };
 use crate::{
     address::Address,
+    models::wallet_connect::{TonConnectMessage, TonConnectRequest},
     signer::TonSigner,
     tvm::{BagOfCells, CellArc},
 };
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct WalletConnectRequest {
-    #[serde(rename = "valid_until")]
-    valid_until: Option<u64>,
-    network: Option<String>,
-    from: Option<String>,
-    messages: Vec<WalletConnectMessage>,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct WalletConnectMessage {
-    address: String,
-    amount: String,
-    payload: Option<String>,
-    state_init: Option<String>,
-    extra_currency: Option<HashMap<String, String>>,
-}
 
 impl TonSigner {
     pub(crate) fn sign_wallet_connect(&self, input: &SignerInput) -> Result<String, SignerError> {
@@ -45,7 +24,7 @@ impl TonSigner {
             .data
             .as_ref()
             .ok_or_else(|| SignerError::invalid_input("missing TON WalletConnect transaction data"))?;
-        let request: WalletConnectRequest = serde_json::from_slice(data).map_err(|error| SignerError::invalid_input(format!("invalid TON WalletConnect request: {error}")))?;
+        let request: TonConnectRequest = serde_json::from_slice(data).map_err(|error| SignerError::invalid_input(format!("invalid TON WalletConnect request: {error}")))?;
 
         if Address::parse(&input.sender_address)? != *self.address() {
             return SignerError::invalid_input_err("TON sender does not match signing key");
@@ -59,7 +38,7 @@ impl TonSigner {
         }
 
         let expire_at = request.valid_until.map(parse_expire_at).transpose()?;
-        let [message]: [WalletConnectMessage; 1] = request
+        let [message]: [TonConnectMessage; 1] = request
             .messages
             .try_into()
             .map_err(|_| SignerError::invalid_input("TON WalletConnect requires exactly one message"))?;
@@ -71,7 +50,7 @@ impl TonSigner {
     }
 }
 
-impl WalletConnectMessage {
+impl TonConnectMessage {
     fn into_request(self) -> Result<TransferRequest, SignerError> {
         if self.extra_currency.as_ref().is_some_and(|currencies| !currencies.is_empty()) {
             return SignerError::invalid_input_err("TON extra currencies are not supported");

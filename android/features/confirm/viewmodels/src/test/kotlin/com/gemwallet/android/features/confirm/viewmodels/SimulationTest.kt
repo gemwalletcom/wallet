@@ -1,9 +1,11 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationBalanceChange
 import com.wallet.core.primitives.SimulationResult
@@ -19,7 +21,7 @@ class SimulationTest {
     }
 
     @Test
-    fun balanceChanges_formatSignedAssetDeltasWithDirection() {
+    fun balanceChanges_skipUnresolvedAssets() {
         val solana = mockAssetSolana()
         val usdc = mockAssetSolanaUSDC()
         val unknownAssetId = AssetId(Chain.Solana, "UnknownMint11111111111111111111111111111111")
@@ -32,19 +34,38 @@ class SimulationTest {
             ),
             payload = emptyList(),
             header = null,
-        ).toSimulation()
+        ).toSimulation(assets = listOf(solana, usdc).associateBy { it.id })
 
         assertEquals(
-            listOf("-0.100005 SOL", "+0.75 USDC", "-0.42"),
+            listOf("-0.100005 SOL", "+0.75 USDC"),
             simulation.balanceChanges.map { it.formattedValue() },
         )
         assertEquals(
-            listOf(ValueDirection.Down, ValueDirection.Up, ValueDirection.Down),
+            listOf(ValueDirection.Down, ValueDirection.Up),
             simulation.balanceChanges.map { it.valueDirection() },
         )
-        assertEquals(
-            listOf(false, false, true),
-            simulation.balanceChanges.map { it.isUnknown },
+    }
+
+    @Test
+    fun balanceChanges_useResolvedAssetMetadata() {
+        val dust = mockAsset(
+            chain = Chain.Ton,
+            tokenId = "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE",
+            name = "DeDust",
+            symbol = "DUST",
+            decimals = 9,
+            type = AssetType.JETTON,
         )
+        val simulation = SimulationResult(
+            warnings = emptyList(),
+            balanceChanges = listOf(
+                SimulationBalanceChange(assetId = dust.id, value = "2244508455", decimals = 0, name = null, symbol = null),
+            ),
+            payload = emptyList(),
+            header = null,
+        ).toSimulation(assets = mapOf(dust.id to dust))
+
+        assertEquals("+2.244508455 DUST", simulation.balanceChanges.single().formattedValue())
+        assertEquals(dust, simulation.balanceChanges.single().asset)
     }
 }

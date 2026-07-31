@@ -29,7 +29,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Cosmos | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ❌ | ❌ |
 | Osmosis | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
 | Arbitrum | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
-| TON | TON | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| TON | TON | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 | Tron | Tron | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Dogecoin | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |
 | Zcash | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |
@@ -72,7 +72,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Robinhood Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Stable | EVM | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-<sub>Reviewed 2026-07-21. Sources: [chain list](../crates/primitives/src/chain.rs), [feature configuration](../crates/primitives/src/chain_config.rs), [address-history contract](../crates/chain_traits/src/lib.rs), [simulation implementations](../crates/gem_evm/src/provider/simulation.rs), [Solana](../crates/gem_solana/src/provider/simulation.rs), [Sui](../crates/gem_sui/src/provider/simulation.rs), [Tron](../crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
+<sub>Reviewed 2026-07-21. Sources: [chain list](../crates/primitives/src/chain.rs), [feature configuration](../crates/primitives/src/chain_config.rs), [address-history contract](../crates/chain_traits/src/lib.rs), [simulation implementations](../crates/gem_evm/src/provider/simulation.rs), [Solana](../crates/gem_solana/src/provider/simulation.rs), [Sui](../crates/gem_sui/src/provider/simulation.rs), [TON](../crates/gem_ton/src/provider/simulation.rs), [Tron](../crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
 
 ## WalletConnect
 

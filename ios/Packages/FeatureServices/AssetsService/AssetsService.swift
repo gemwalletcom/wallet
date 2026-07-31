@@ -82,6 +82,8 @@ public final class AssetsService: Sendable {
 
     @discardableResult
     public func prefetchAssets(assetIds: [AssetId]) async throws -> [AssetId] {
+        guard !assetIds.isEmpty else { return [] }
+
         let assets = try getAssets(for: assetIds).map(\.id).asSet()
         let missingAssetIds = assetIds.asSet().subtracting(assets)
 

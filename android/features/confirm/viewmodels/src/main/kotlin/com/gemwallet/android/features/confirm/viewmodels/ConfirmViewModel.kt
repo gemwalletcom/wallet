@@ -3,6 +3,7 @@ package com.gemwallet.android.features.confirm.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
@@ -46,14 +47,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -67,6 +66,7 @@ import javax.inject.Inject
 class ConfirmViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
+    private val prefetchAssets: PrefetchAssets,
     private val signerPreload: SignerPreloaderProxy,
     private val transactionBalanceService: TransactionBalanceService,
     private val calculateTransferAmount: CalculateTransferAmount,
@@ -94,24 +94,24 @@ class ConfirmViewModel @Inject constructor(
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val headerAssetInfo = simulationResult
-        .map { it?.header?.assetId }
+    private val simulationAssets = simulationResult
+        .map { it?.simulationAssetIds().orEmpty() }
         .distinctUntilChanged()
-        .flatMapLatest { assetId ->
-            if (assetId == null) return@flatMapLatest flowOf(null)
-            assetInfo(assetId)
+        .flatMapLatest { assetIds ->
+            assetsRepository.getTokensInfo(assetIds.map { it.toIdentifier() })
+                .map { assets -> assets.associate { it.asset.id to it.asset } }
         }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    val simulation = combine(simulationResult, headerAssetInfo, request) { simulationResult, headerAssetInfo, params ->
+    val simulation = combine(simulationResult, simulationAssets, request) { simulationResult, simulationAssets, params ->
         val chain = params?.assetId?.chain
         val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
-        val simulation = simulationResult?.toSimulation(chain, explorerName) ?: Simulation()
+        val simulation = simulationResult?.toSimulation(simulationAssets, chain, explorerName) ?: Simulation()
         val headerAssetId = simulationResult?.header?.assetId
         val asset = when {
             headerAssetId == null || params == null -> null
             headerAssetId == params.assetId -> params.asset
-            else -> headerAssetInfo?.asset
+            else -> simulationAssets[headerAssetId]
         }
         simulation.copy(headerAsset = asset)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
@@ -264,8 +264,11 @@ class ConfirmViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
+        this.simulationResult.value = simulationResult
         viewModelScope.launch(Dispatchers.IO) {
-            this@ConfirmViewModel.simulationResult.value = simulationResult
+            prefetchAssets.prefetchAssets(simulationResult?.simulationAssetIds().orEmpty())
+        }
+        viewModelScope.launch(Dispatchers.IO) {
             val pack = params.pack()
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
@@ -330,14 +333,6 @@ class ConfirmViewModel @Inject constructor(
         return firstOrNull { it.id().toIdentifier() == str }
     }
 
-    private fun assetInfo(assetId: AssetId) = flow {
-        val current = assetsRepository.getTokenInfo(assetId).firstOrNull()
-        if (current == null && assetId.tokenId != null) {
-            assetsRepository.searchToken(assetId, sessionRepository.getCurrentCurrency())
-        }
-        emitAll(assetsRepository.getTokenInfo(assetId))
-    }
-
     private fun buildDetailElements(
         request: ConfirmParams?,
         assetsInfo: List<AssetInfo>?,
@@ -388,3 +383,6 @@ class ConfirmViewModel @Inject constructor(
         return ConfirmDetailElement.SwapDetails(model)
     }
 }
+
+private fun SimulationResult.simulationAssetIds(): List<AssetId> =
+    (balanceChanges.map { it.assetId } + listOfNotNull(header?.assetId)).distinct()

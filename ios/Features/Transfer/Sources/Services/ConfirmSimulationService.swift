@@ -19,26 +19,32 @@ public struct ConfirmSimulationService: Sendable {
     }
 
     func makeState(data: TransferData, simulation: SimulationResult?) -> ConfirmSimulationState {
-        buildState(
+        let assets = simulationAssets(simulation)
+        return buildState(
             simulation: simulation,
             payload: payloadFields(for: data.type, simulation: simulation),
             payloadAddressNames: [:],
-            headerData: cachedHeaderData(data: data, simulation: simulation),
-            balanceChanges: balanceChanges(simulation: simulation),
+            headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),
+            balanceChanges: balanceChanges(simulation: simulation, assets: assets),
         )
     }
 
     func updateState(data: TransferData, simulation: SimulationResult?) async -> ConfirmSimulationState {
         let payload = payloadFields(for: data.type, simulation: simulation)
         async let names = payloadAddressNames(chain: data.chain, payload: payload)
-        async let headerData = headerData(data: data, simulation: simulation)
+        do {
+            try await assetsService.prefetchAssets(assetIds: simulation?.simulationAssetIds ?? [])
+        } catch {
+            debugLog("simulation asset prefetch error: \(error)")
+        }
 
+        let assets = simulationAssets(simulation)
         return await buildState(
             simulation: simulation,
             payload: payload,
             payloadAddressNames: names,
-            headerData: headerData,
-            balanceChanges: balanceChanges(simulation: simulation),
+            headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),
+            balanceChanges: balanceChanges(simulation: simulation, assets: assets),
         )
     }
 }
@@ -87,7 +93,11 @@ private extension ConfirmSimulationService {
         return AssetValueHeaderData(asset: asset, value: value)
     }
 
-    func cachedHeaderData(data: TransferData, simulation: SimulationResult?) -> AssetValueHeaderData? {
+    func cachedHeaderData(
+        data: TransferData,
+        simulation: SimulationResult?,
+        assets: [AssetId: Asset],
+    ) -> AssetValueHeaderData? {
         if let headerData = approvalHeaderData(for: data.type) {
             return headerData
         }
@@ -98,52 +108,36 @@ private extension ConfirmSimulationService {
             return nil
         }
 
-        do {
-            if let asset = try assetsService.getAssets(for: [headerValue.assetId]).first {
-                return AssetValueHeaderData(asset: asset, value: headerValue.value)
-            }
-        } catch {
+        guard let asset = assets[headerValue.assetId] else {
             return nil
         }
-
-        return nil
+        return AssetValueHeaderData(asset: asset, value: headerValue.value)
     }
 
-    func headerData(data: TransferData, simulation: SimulationResult?) async -> AssetValueHeaderData? {
-        if let headerData = cachedHeaderData(data: data, simulation: simulation) {
-            return headerData
-        }
-
-        guard case .generic = data.type,
-              let headerValue = simulationHeaderValue(simulation)
-        else {
-            return nil
-        }
-
-        do {
-            let asset = try await assetsService.getOrFetchTokenAsset(for: headerValue.assetId)
-            return AssetValueHeaderData(asset: asset, value: headerValue.value)
-        } catch {
-            if !error.isCancelled {
-                debugLog("simulation header asset error: \(error)")
-            }
-            return nil
-        }
-    }
-
-    func balanceChanges(simulation: SimulationResult?) -> [SimulationAssetChange] {
+    func balanceChanges(
+        simulation: SimulationResult?,
+        assets: [AssetId: Asset],
+    ) -> [SimulationAssetChange] {
         (simulation?.balanceChanges ?? []).compactMap { change in
-            guard let value = BigInt(change.value, radix: 10), value != .zero else {
+            guard let value = BigInt(change.value, radix: 10),
+                  value != .zero,
+                  let asset = assets[change.assetId]
+            else {
                 return nil
             }
             return SimulationAssetChange(
-                assetId: change.assetId,
+                asset: asset,
                 value: value,
-                decimals: change.decimals,
-                name: change.name,
-                symbol: change.symbol,
             )
         }
+    }
+
+    func simulationAssets(_ simulation: SimulationResult?) -> [AssetId: Asset] {
+        guard let simulation else {
+            return [:]
+        }
+        let assets = (try? assetsService.getAssets(for: simulation.simulationAssetIds)) ?? []
+        return Dictionary(uniqueKeysWithValues: assets.map { ($0.id, $0) })
     }
 
     func payloadAddressNames(chain: Chain, payload: [SimulationPayloadField]) async -> [ChainAddress: AddressName] {
@@ -183,5 +177,11 @@ private extension ConfirmSimulationService {
             return nil
         }
         return (header.assetId, value)
+    }
+}
+
+private extension SimulationResult {
+    var simulationAssetIds: [AssetId] {
+        balanceChanges.map(\.assetId) + [header?.assetId].compactMap(\.self)
     }
 }
