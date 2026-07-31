@@ -10,6 +10,21 @@ public enum TransferAmountCalculatorError: Equatable {
     case insufficientBalance(Asset, requirement: BalanceRequirement)
     case insufficientNetworkFee(Asset, requirement: BalanceRequirement?)
     case minimumAccountBalanceTooLow(Asset, requirement: BalanceRequirement)
+
+    public init(_ error: TransferAmountError, asset: Asset, assetFee: Asset) {
+        switch error {
+        case let .insufficientBalance(assetId, requirement):
+            self = .insufficientBalance(Self.asset(assetId, asset: asset, assetFee: assetFee), requirement: requirement)
+        case let .insufficientNetworkFee(assetId, requirement):
+            self = .insufficientNetworkFee(Self.asset(assetId, asset: asset, assetFee: assetFee), requirement: requirement)
+        case let .minimumAccountBalanceTooLow(assetId, requirement):
+            self = .minimumAccountBalanceTooLow(Self.asset(assetId, asset: asset, assetFee: assetFee), requirement: requirement)
+        }
+    }
+
+    private static func asset(_ assetId: AssetId, asset: Asset, assetFee: Asset) -> Asset {
+        asset.id == assetId ? asset : assetFee
+    }
 }
 
 extension TransferAmountCalculatorError: LocalizedError {

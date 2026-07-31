@@ -24,32 +24,28 @@ public struct ConfirmTransferInputProvider: Sendable {
                 selection: selection,
                 available: metadata.available,
             )
-            let transferAmountInput = TransferAmountInput(
-                asset: request.data.type.asset,
-                assetBalance: metadata.assetBalance,
-                value: request.data.value,
-                availableValue: request.data.availableValue(metadata: metadata),
-                assetFee: request.data.type.asset.feeAsset,
-                assetFeeBalance: metadata.assetFeeBalance,
-                fee: transactionData.transactionData.fee.fee,
-                transferData: request.data,
-            )
             return ConfirmTransferInput(
                 transactionData: transactionData.transactionData,
                 feeRates: transactionData.rates,
-                transferAmount: TransferAmountCalculator().validate(input: transferAmountInput),
+                transferAmount: TransferAmountCalculator().validate(
+                    transferData: request.data,
+                    availableValue: request.data.availableValue(metadata: metadata),
+                    assetFeeBalance: metadata.assetFeeBalance.available,
+                    fee: transactionData.transactionData.fee.fee,
+                ),
             )
         } catch {
-            throw insufficientNetworkFeeError(metadata: metadata) ?? error
+            throw preloadFailureError(metadata: metadata) ?? error
         }
     }
 
-    private func insufficientNetworkFeeError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {
-        do {
-            try TransferAmountCalculator().validateNetworkFee(metadata.feeAvailable, feeAssetId: metadata.feeAssetId)
+    private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {
+        if [Chain.hyperCore, Chain.tron].contains(metadata.feeAssetId.chain) {
             return nil
-        } catch {
-            return error
         }
+        guard metadata.feeAvailable.isZero, metadata.feeAssetId.type == .native else {
+            return nil
+        }
+        return .insufficientNetworkFee(metadata.feeAssetId.chain.asset, requirement: nil)
     }
 }

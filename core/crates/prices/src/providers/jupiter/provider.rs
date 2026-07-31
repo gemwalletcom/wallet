@@ -32,8 +32,8 @@ impl PriceAssetsProvider for JupiterProvider {
         PriceProvider::Jupiter
     }
 
-    async fn get_assets(&self) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
-        Ok(self.verified_tokens().await?.into_iter().map(map_token_asset).collect())
+    async fn get_assets(&self, limit: usize) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
+        Ok(self.verified_tokens().await?.into_iter().take(limit).map(map_token_asset).collect())
     }
 
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
@@ -62,19 +62,25 @@ impl PriceAssetsProvider for JupiterProvider {
 }
 
 #[cfg(all(test, feature = "price_integration_tests"))]
-mod integration_tests {
-    use super::super::testkit::create_jupiter_test_provider;
+mod price_integration_tests {
+    use std::error::Error;
+
     use crate::{PriceAssetsProvider, PriceProvider};
 
+    use super::super::testkit::create_jupiter_test_provider;
+
+    const ASSET_LIMIT: usize = 10;
+
     #[tokio::test]
-    async fn test_jupiter_provider_basic() {
+    async fn test_jupiter_provider_basic() -> Result<(), Box<dyn Error + Send + Sync>> {
         let provider = create_jupiter_test_provider();
         assert_eq!(provider.provider(), PriceProvider::Jupiter);
 
-        let supported = provider.get_assets().await.unwrap();
-        assert!(!supported.is_empty());
-        for asset in &supported {
-            assert!(!asset.mapping.provider_price_id.is_empty());
+        let assets = provider.get_assets(ASSET_LIMIT).await?;
+        assert_eq!(assets.len(), ASSET_LIMIT);
+        for asset in assets {
+            assert_ne!(asset.mapping.provider_price_id, "");
         }
+        Ok(())
     }
 }

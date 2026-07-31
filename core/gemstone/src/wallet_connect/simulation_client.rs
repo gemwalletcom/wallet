@@ -7,6 +7,7 @@ use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
+use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
@@ -58,8 +59,8 @@ impl WalletConnectSimulationClient {
         let simulation = match &transaction_type {
             WcWalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
             WcWalletConnectTransactionType::Solana { .. } | WcWalletConnectTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
-            WcWalletConnectTransactionType::Tron { .. } => self.simulate_tron_transaction(&data).await,
-            _ => Ok(SimulationResult::default()),
+            WcWalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, SimulationInput::new(&data)).await,
+            WcWalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, SimulationInput::new(&data)).await,
         }
         .unwrap_or_default();
 
@@ -69,20 +70,20 @@ impl WalletConnectSimulationClient {
 
 impl WalletConnectSimulationClient {
     async fn simulate_eip712_message(&self, chain: Chain, message: &gem_evm::eip712::EIP712Message) -> Result<SimulationResult, GemstoneError> {
-        let client = self.ethereum_client(chain).ok_or("No RPC client available")?;
-        Ok(SimulationClient::new(&client).simulate_eip712_message(chain, message).await?)
+        let provider = self.ethereum_provider(chain)?;
+        Ok(SimulationClient::new(&provider).simulate_eip712_message(chain, message).await?)
     }
 
     async fn simulate_ethereum_transaction(&self, chain: Chain, data: &str) -> Result<SimulationResult, GemstoneError> {
         let transaction = simulation::decode_ethereum_transaction(data)?;
         let calldata = simulation::decode_ethereum_calldata(&transaction);
-        let client = self.ethereum_client(chain).ok_or("No RPC client available")?;
+        let provider = self.ethereum_provider(chain)?;
 
         if ::simulation::evm::is_approval(chain, &calldata, &transaction.to) {
-            return Ok(SimulationClient::new(&client).simulate_evm_calldata(chain, &calldata, &transaction.to).await?);
+            return Ok(SimulationClient::new(&provider).simulate_evm_calldata(chain, &calldata, &transaction.to).await?);
         }
 
-        let (calldata_result, balance_result) = self.simulate_calldata_and_balance_changes(chain, &calldata, &client, &transaction).await;
+        let (calldata_result, balance_result) = self.simulate_calldata_and_balance_changes(chain, &calldata, &provider, &transaction).await;
         let calldata_result = calldata_result?;
         let balance_result = balance_result.unwrap_or_default();
 
@@ -97,67 +98,66 @@ impl WalletConnectSimulationClient {
         &self,
         chain: Chain,
         calldata: &[u8],
-        client: &EthereumProvider<AlienClient>,
+        provider: &EthereumProvider<AlienClient>,
         transaction: &WcEthereumTransactionData,
     ) -> (Result<SimulationResult, GemstoneError>, Result<SimulationResult, GemstoneError>) {
         let calldata_task = async {
             if calldata.is_empty() {
                 Ok(SimulationResult::default())
             } else {
-                SimulationClient::new(client)
+                SimulationClient::new(provider)
                     .simulate_evm_calldata(chain, calldata, &transaction.to)
                     .await
                     .map_err(GemstoneError::from)
             }
         };
-        futures::join!(calldata_task, self.simulate_ethereum_balance_changes(client, transaction))
+        futures::join!(calldata_task, self.simulate_ethereum_balance_changes(provider, transaction))
     }
 
-    async fn simulate_ethereum_balance_changes(&self, client: &EthereumProvider<AlienClient>, transaction: &WcEthereumTransactionData) -> Result<SimulationResult, GemstoneError> {
+    async fn simulate_ethereum_balance_changes(
+        &self,
+        provider: &EthereumProvider<AlienClient>,
+        transaction: &WcEthereumTransactionData,
+    ) -> Result<SimulationResult, GemstoneError> {
         let encoded_transaction = serde_json::to_string(&map_transaction_object(transaction)).map_err(|error| error.to_string())?;
 
-        Ok(client.simulate_transaction(SimulationInput::new(encoded_transaction)).await?)
+        Ok(provider.simulate_transaction(SimulationInput::new(encoded_transaction)).await?)
     }
 
     async fn simulate_encoded_transaction(&self, transaction_type: &WcWalletConnectTransactionType, data: &str) -> Result<SimulationResult, GemstoneError> {
-        let input: SimulationInput = serde_json::from_str(data).map_err(|error| error.to_string())?;
-        let client: Box<dyn ChainSimulation> = match transaction_type {
-            WcWalletConnectTransactionType::Solana { .. } => Box::new(self.solana_client().ok_or("No RPC client available")?),
-            WcWalletConnectTransactionType::Sui { .. } => Box::new(self.sui_client().ok_or("No RPC client available")?),
+        let chain = match transaction_type {
+            WcWalletConnectTransactionType::Solana { .. } => Chain::Solana,
+            WcWalletConnectTransactionType::Sui { .. } => Chain::Sui,
             _ => return Err("Chain does not use encoded transaction simulation".into()),
         };
-        Ok(client.simulate_transaction(input).await?)
+        let input: SimulationInput = serde_json::from_str(data).map_err(|error| error.to_string())?;
+        self.simulate_chain_transaction(chain, input).await
     }
 
-    async fn simulate_tron_transaction(&self, data: &str) -> Result<SimulationResult, GemstoneError> {
-        let client = self.tron_client().ok_or("No RPC client available")?;
-        Ok(client.simulate_transaction(SimulationInput::new(data)).await?)
+    async fn simulate_chain_transaction(&self, chain: Chain, input: SimulationInput) -> Result<SimulationResult, GemstoneError> {
+        Ok(self.simulation_client(chain)?.simulate_transaction(input).await?)
     }
 
-    fn ethereum_client(&self, chain: Chain) -> Option<EthereumProvider<AlienClient>> {
-        let chain = EVMChain::from_chain(chain)?;
-        let url = self.provider.get_endpoint(chain.to_chain()).ok()?;
+    fn ethereum_provider(&self, chain: Chain) -> Result<EthereumProvider<AlienClient>, GemstoneError> {
+        let chain = EVMChain::from_chain(chain).ok_or_else(|| format!("{chain} is not an EVM chain"))?;
+        let url = self.provider.get_endpoint(chain.to_chain())?;
         let client = new_alien_client(url, self.provider.clone());
-        Some(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
+        Ok(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
     }
 
-    fn solana_client(&self) -> Option<SolanaProvider<AlienClient>> {
-        let url = self.provider.get_endpoint(Chain::Solana).ok()?;
-        let client = new_alien_client(url, self.provider.clone());
-        let client = JsonRpcClient::new(client);
-        Some(SolanaProvider::new_rpc_only(SolanaClient::new(client)))
-    }
-
-    fn sui_client(&self) -> Option<SuiProvider> {
-        let url = self.provider.get_endpoint(Chain::Sui).ok()?;
-        let transport = AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.provider.clone())));
-        Some(SuiProvider::new_rpc_only(SuiClient::new_with_transport(url, Arc::new(transport))))
-    }
-
-    fn tron_client(&self) -> Option<TronProvider<AlienClient>> {
-        let url = self.provider.get_endpoint(Chain::Tron).ok()?;
-        let client = new_alien_client(url, self.provider.clone());
-        Some(TronProvider::new_rpc_only(TronClient::new(client)))
+    fn simulation_client(&self, chain: Chain) -> Result<Box<dyn ChainSimulation>, GemstoneError> {
+        let url = self.provider.get_endpoint(chain)?;
+        let new_client = || new_alien_client(url.clone(), self.provider.clone());
+        match chain {
+            Chain::Solana => Ok(Box::new(SolanaProvider::new_rpc_only(SolanaClient::new(JsonRpcClient::new(new_client()))))),
+            Chain::Sui => {
+                let transport = AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.provider.clone())));
+                Ok(Box::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(url, Arc::new(transport)))))
+            }
+            Chain::Ton => Ok(Box::new(TonClient::new(new_client()))),
+            Chain::Tron => Ok(Box::new(TronProvider::new_rpc_only(TronClient::new(new_client())))),
+            _ => Err(format!("{chain} does not support WalletConnect transaction simulation").into()),
+        }
     }
 }
 

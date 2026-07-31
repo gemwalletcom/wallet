@@ -10,6 +10,7 @@ pub enum PriceProvider {
     Pyth,
     Jupiter,
     DefiLlama,
+    TonApi,
 }
 
 impl PriceProvider {
@@ -30,13 +31,14 @@ impl PriceProvider {
             Self::Coingecko => 0,
             Self::Pyth => 1,
             Self::Jupiter => 2,
-            Self::DefiLlama => 3,
+            Self::DefiLlama => 4,
+            Self::TonApi => 3,
         }
     }
 
     pub fn supports_price_change_24h(&self) -> bool {
         match self {
-            Self::Coingecko | Self::Jupiter => true,
+            Self::Coingecko | Self::Jupiter | Self::TonApi => true,
             Self::Pyth | Self::DefiLlama => false,
         }
     }

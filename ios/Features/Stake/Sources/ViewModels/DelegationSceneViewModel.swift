@@ -186,7 +186,7 @@ extension DelegationSceneViewModel {
                 recipient: Recipient(name: providerText, address: model.delegation.validator.id, memo: ""),
                 amount: .none,
             ),
-            value: model.delegation.base.balanceValue,
+            amount: .exact(model.delegation.base.balanceValue),
         )
     }
 
@@ -197,7 +197,7 @@ extension DelegationSceneViewModel {
                 recipient: Recipient(name: model.delegation.validator.name, address: model.delegation.validator.id, memo: .none),
                 amount: .none,
             ),
-            value: model.delegation.base.rewardsValue,
+            amount: .exact(model.delegation.base.rewardsValue),
         )
     }
 

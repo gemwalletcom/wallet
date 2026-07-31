@@ -1,7 +1,6 @@
-use crate::PriceProviders;
 use cacher::{CacheError, CacheKey, CacherClient};
 use gem_tracing::error_with_fields;
-use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider};
+use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
 use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, PriceData, PriceId, PriceProvider};
 use std::collections::HashSet;
 use std::error::Error;

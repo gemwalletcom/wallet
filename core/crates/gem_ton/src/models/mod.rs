@@ -3,7 +3,11 @@ pub mod balance;
 pub mod block;
 pub mod nft;
 pub mod rpc;
+#[cfg(feature = "rpc")]
+pub(crate) mod simulation;
 pub mod transaction;
+#[cfg(any(feature = "rpc", feature = "signer"))]
+pub(crate) mod wallet_connect;
 
 pub use account::*;
 pub use balance::*;

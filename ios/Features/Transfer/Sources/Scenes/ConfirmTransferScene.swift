@@ -88,19 +88,11 @@ extension ConfirmTransferScene {
         case let .warnings(warnings):
             SimulationWarningsContent(warnings: warnings)
         case let .balanceChange(model):
-            let row = ListItemView(
+            ListItemView(
                 title: TextValue(text: model.assetTitle, style: .body, lineLimit: 1, truncationMode: .tail),
                 subtitle: model.amount,
                 imageStyle: .list(assetImage: model.assetImage, cornerRadiusType: .rounded),
             )
-            if model.isUnknown, let url = model.explorerTokenURL {
-                NavigationCustomLink(
-                    with: row,
-                    action: { self.model.onSelectUnknownBalanceChange(url) },
-                )
-            } else {
-                row
-            }
         case let .payload(fields):
             Group {
                 SimulationPayloadFieldsContent(

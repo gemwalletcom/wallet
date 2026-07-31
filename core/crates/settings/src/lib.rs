@@ -209,15 +209,12 @@ pub struct UrlKeySettings {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Prices {
-    pub pyth: PriceProviderEndpoint,
-    pub jupiter: PriceProviderEndpoint,
-    pub defillama: PriceProviderEndpoint,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct PriceProviderEndpoint {
-    pub url: String,
-    pub timer: u64,
+    pub coingecko: CoinGecko,
+    pub pyth: ProviderSettings,
+    pub jupiter: ProviderSettings,
+    pub defillama: ProviderSettings,
+    pub tonapi: ProviderSettings,
+    pub stonfi: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]

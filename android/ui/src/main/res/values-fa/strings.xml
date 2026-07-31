@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">لغو کردن</string>
+  <string name="common_hidden">مخفی</string>
   <string name="common_done">انجام شد</string>
   <string name="common_maximum_value">حداکثر مقدار %1$s است</string>
   <string name="common_minimum_value">حداقل مقدار %1$s است</string>

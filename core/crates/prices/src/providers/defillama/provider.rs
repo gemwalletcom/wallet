@@ -29,7 +29,7 @@ impl PriceAssetsProvider for DefiLlamaProvider {
         PriceProvider::DefiLlama
     }
 
-    async fn get_assets(&self) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
+    async fn get_assets(&self, _limit: usize) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
         Ok(vec![])
     }
 

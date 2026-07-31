@@ -74,8 +74,8 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.recipientData()
     }
 
-    func makeTransferData(value: BigInt) async throws -> TransferData {
-        try await provider.makeTransferData(value: value)
+    func makeTransferData(amount: TransferAmountValue) async throws -> TransferData {
+        try await provider.makeTransferData(amount: amount)
     }
 }
 

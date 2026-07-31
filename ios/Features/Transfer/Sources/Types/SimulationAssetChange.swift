@@ -4,9 +4,6 @@ import BigInt
 import Primitives
 
 struct SimulationAssetChange: Equatable {
-    let assetId: AssetId
+    let asset: Asset
     let value: BigInt
-    let decimals: Int32
-    let name: String?
-    let symbol: String?
 }

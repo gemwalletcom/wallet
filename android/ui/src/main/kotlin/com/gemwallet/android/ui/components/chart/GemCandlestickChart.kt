@@ -1,19 +1,11 @@
 package com.gemwallet.android.ui.components.chart
 
-import android.os.Build
-import android.view.HapticFeedbackConstants
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,10 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -79,8 +69,6 @@ private object CandlestickMetrics {
     val axisLabelSize = 11.sp
 
     const val SELECTION_LINE_ALPHA = 0.50f
-    const val FADE_IN_MS = 150
-    const val FADE_OUT_MS = 200
 }
 
 @Composable
@@ -93,7 +81,6 @@ fun GemCandlestickChart(
     if (model.candles.isEmpty()) return
 
     val density = LocalDensity.current
-    val view = LocalView.current
     val textMeasurer = rememberTextMeasurer()
 
     val upColor = ValueDirection.Up.color()
@@ -135,17 +122,7 @@ fun GemCandlestickChart(
     val rightAxisWidthPx = with(density) { CandlestickMetrics.rightAxisWidth.toPx() }
 
     var chartSize by remember { mutableStateOf(IntSize.Zero) }
-    var lastHapticIndex by remember { mutableIntStateOf(-1) }
-
-    val selectionAlpha = remember { Animatable(0f) }
-    LaunchedEffect(selectedIndex) {
-        if (selectedIndex != null) {
-            selectionAlpha.animateTo(1f, animationSpec = tween(CandlestickMetrics.FADE_IN_MS))
-        } else {
-            selectionAlpha.animateTo(0f, animationSpec = tween(CandlestickMetrics.FADE_OUT_MS))
-            lastHapticIndex = -1
-        }
-    }
+    val selection = rememberChartSelection(selectedIndex)
 
     Box(modifier = modifier.fillMaxSize().onSizeChanged { chartSize = it }) {
         if (chartSize.width <= 0 || chartSize.height <= 0) return@Box
@@ -176,34 +153,13 @@ fun GemCandlestickChart(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(chartSize, model.candles.size) {
-                    detectTapGestures(onPress = { touch ->
-                        touchToIndex(touch.x)?.let { index ->
-                            if (index != lastHapticIndex) { haptic(view); lastHapticIndex = index }
-                            onSelectionChanged(index)
-                        }
-                        tryAwaitRelease()
-                        onSelectionChanged(null)
-                    })
-                }
-                .pointerInput(chartSize, model.candles.size) {
-                    detectDragGestures(
-                        onDragStart = { touch ->
-                            touchToIndex(touch.x)?.let { index ->
-                                haptic(view); lastHapticIndex = index; onSelectionChanged(index)
-                            }
-                        },
-                        onDrag = { change, _ ->
-                            change.consume()
-                            touchToIndex(change.position.x)?.let { index ->
-                                if (index != lastHapticIndex) { haptic(view); lastHapticIndex = index }
-                                onSelectionChanged(index)
-                            }
-                        },
-                        onDragEnd = { onSelectionChanged(null) },
-                        onDragCancel = { onSelectionChanged(null) },
-                    )
-                },
+                .chartSelection(
+                    selection = selection,
+                    chartSize,
+                    model.candles.size,
+                    indexAt = ::touchToIndex,
+                    onSelectionChanged = onSelectionChanged,
+                ),
         ) {
             drawYAxis(model.yTicks, plotLeft, plotRight, plotTop, plotBottom, gridGuidelineColor, gridDashEffect, textMeasurer, axisLabelStyle, labelPaddingPx)
             drawXAxisGridlines(model.xGridlineFractions, plotLeft, plotRight, plotTop, plotBottom, gridGuidelineColor, gridDashEffect)
@@ -245,7 +201,7 @@ fun GemCandlestickChart(
             )
             drawSelection(
                 selectedIndex = selectedIndex,
-                selectionAlpha = selectionAlpha.value,
+                selectionAlpha = selection.alpha,
                 candles = model.candles,
                 slotCenter = ::slotCenter,
                 valueToY = ::valueToY,
@@ -511,12 +467,5 @@ private fun DrawScope.drawBadgeLabel(
     drawText(
         textLayoutResult = measured,
         topLeft = Offset(anchorX + horizontalPaddingPx, topY + verticalPaddingPx),
-    )
-}
-
-private fun haptic(view: android.view.View) {
-    view.performHapticFeedback(
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) HapticFeedbackConstants.CLOCK_TICK
-        else HapticFeedbackConstants.VIRTUAL_KEY,
     )
 }

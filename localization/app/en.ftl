@@ -4,6 +4,7 @@
 
 # Used in shared app UI for the cancel label.
 common_cancel = Cancel
+common_hidden = Hidden
 # Used in shared app UI for the done label.
 common_done = Done
 # Generic validation error for a value above the allowed maximum. Contains 1 string placeholder.

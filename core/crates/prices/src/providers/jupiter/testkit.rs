@@ -1,9 +1,7 @@
-#[cfg(feature = "price_integration_tests")]
-use crate::JupiterProvider;
-#[cfg(feature = "price_integration_tests")]
 use gem_client::ReqwestClient;
 
-#[cfg(feature = "price_integration_tests")]
+use crate::JupiterProvider;
+
 pub fn create_jupiter_test_provider() -> JupiterProvider {
     let settings = settings::testkit::get_test_settings();
     JupiterProvider::new(ReqwestClient::new_test_client(settings.prices.jupiter.url))

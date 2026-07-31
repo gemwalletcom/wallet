@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">İptal</string>
+  <string name="common_hidden">Gizli</string>
   <string name="common_done">Tamam</string>
   <string name="common_maximum_value">Maksimum değer %1$s</string>
   <string name="common_minimum_value">Minimum değer %1$s</string>

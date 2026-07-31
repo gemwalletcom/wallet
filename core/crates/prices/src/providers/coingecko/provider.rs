@@ -11,8 +11,6 @@ use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvide
 
 use super::mapper::{map_coin_info_metadata, map_coin_mappings, map_coin_markets, map_coins_to_assets, map_coins_to_mappings, map_market_chart};
 
-const MAX_RANKED_PAGES: usize = 20;
-
 pub struct CoinGeckoPricesProvider {
     client: CoinGeckoClient<ReqwestClient>,
 }
@@ -31,12 +29,13 @@ impl PriceAssetsProvider for CoinGeckoPricesProvider {
         PriceProvider::Coingecko
     }
 
-    async fn get_assets(&self) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
+    async fn get_assets(&self, limit: usize) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
         let mut markets_by_id: HashMap<String, _> = self
             .client
-            .get_all_coin_markets(None, MAX_MARKETS_PER_PAGE, MAX_RANKED_PAGES)
+            .get_all_coin_markets(None, MAX_MARKETS_PER_PAGE, limit.div_ceil(MAX_MARKETS_PER_PAGE))
             .await?
             .into_iter()
+            .take(limit)
             .map(|m| (m.id.clone(), m))
             .collect();
 

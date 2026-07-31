@@ -1,0 +1,22 @@
+{
+  "actions": [],
+  "transactions": {
+    "root": {
+      "account": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+      "description": {
+        "aborted": true,
+        "compute_ph": {
+          "success": false,
+          "exit_code": 32
+        },
+        "action": null
+      },
+      "account_state_before": {
+        "balance": "1000000000"
+      },
+      "account_state_after": {
+        "balance": "1000000000"
+      }
+    }
+  }
+}

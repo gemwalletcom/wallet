@@ -3,17 +3,19 @@ use std::{collections::HashMap, error::Error};
 use primitives::{Asset, AssetId, AssetType, chain::Chain};
 use serde::Serialize;
 
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainStaking, ChainTraits};
+use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainStaking, ChainTraits};
 use gem_client::{Client, ClientExt, build_path_with_query};
 
 use crate::models::{
     ApiResult, BroadcastTransaction, Chainhead, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest, RunGetMethodResult,
     StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
+    simulation::{TonEmulationRequest, TonEmulationResponse},
 };
 
 const TONCENTER_V3_BLOCK_LIMIT: usize = 100;
 const TONCENTER_SORT_DESC: &str = "desc";
 const TONCENTER_SORT_ASC: &str = "asc";
+const TONCENTER_ACTIONS_VERSION: &str = "5";
 
 #[derive(Debug)]
 pub struct TonClient<C: Client> {
@@ -46,6 +48,11 @@ impl<C: Client> TonClient<C> {
     pub async fn broadcast_transaction(&self, data: String) -> Result<ApiResult<BroadcastTransaction>, Box<dyn Error + Send + Sync>> {
         let body = serde_json::json!({ "boc": data });
         Ok(self.client.post("/api/v2/sendBocReturnHash", &body).await?)
+    }
+
+    pub(crate) async fn emulate_ton_connect(&self, request: &TonEmulationRequest<'_>) -> Result<TonEmulationResponse, Box<dyn Error + Send + Sync>> {
+        let headers = HashMap::from([("X-Actions-Version".to_string(), TONCENTER_ACTIONS_VERSION.to_string())]);
+        Ok(self.client.post_with_headers("/api/emulate/v1/emulateTonConnect", request, headers).await?)
     }
 
     pub async fn run_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, Box<dyn Error + Send + Sync>> {
@@ -175,7 +182,6 @@ impl<C: Client> ChainAccount for TonClient<C> {}
 impl<C: Client> ChainPerpetual for TonClient<C> {}
 impl<C: Client> ChainAddressStatus for TonClient<C> {}
 impl<C: Client> ChainStaking for TonClient<C> {}
-impl<C: Client> ChainSimulation for TonClient<C> {}
 impl<C: Client> chain_traits::ChainProvider for TonClient<C> {
     fn get_chain(&self) -> primitives::Chain {
         Chain::Ton
@@ -185,10 +191,9 @@ impl<C: Client> chain_traits::ChainProvider for TonClient<C> {
 #[cfg(test)]
 mod tests {
     use gem_client::testkit::MockClient;
+    use primitives::asset_constants::TON_DUST_TOKEN_ID;
 
     use super::*;
-
-    const DEDUST_TOKEN_ID: &str = "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE";
 
     fn mock_client(expected_path: &'static str, response: &'static [u8]) -> TonClient<MockClient> {
         TonClient::new(MockClient::new().with_get(move |path| {
@@ -203,7 +208,7 @@ mod tests {
             "/api/v3/jetton/masters?address=EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE",
             include_bytes!("../../testdata/jetton_master_dedust.json"),
         );
-        let dedust = client.get_token_data(DEDUST_TOKEN_ID.to_string()).await.unwrap();
+        let dedust = client.get_token_data(TON_DUST_TOKEN_ID.to_string()).await.unwrap();
         assert_eq!(dedust.name, "DeDust");
         assert_eq!(dedust.symbol, "DUST");
         assert_eq!(dedust.decimals, 9);

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Cancellare</string>
+  <string name="common_hidden">Nascosti</string>
   <string name="common_done">Fatto</string>
   <string name="common_maximum_value">Il valore massimo è %1$s</string>
   <string name="common_minimum_value">Il valore minimo è %1$s</string>

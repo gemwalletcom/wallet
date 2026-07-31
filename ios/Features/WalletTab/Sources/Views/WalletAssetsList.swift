@@ -13,6 +13,7 @@ struct WalletAssetsList: View {
     let currencyCode: String
     let onHideAsset: AssetIdAction
     let onPinAsset: AssetBoolAction
+    let onAddToWallet: AssetIdAction
     let onCopyAddress: ((String) -> Void)?
 
     @Binding var showBalancePrivacy: Bool
@@ -22,6 +23,7 @@ struct WalletAssetsList: View {
         currencyCode: String,
         onHideAsset: AssetIdAction,
         onPinAsset: AssetBoolAction,
+        onAddToWallet: AssetIdAction = nil,
         onCopyAddress: ((String) -> Void)? = nil,
         showBalancePrivacy: Binding<Bool>,
     ) {
@@ -29,6 +31,7 @@ struct WalletAssetsList: View {
         self.currencyCode = currencyCode
         self.onHideAsset = onHideAsset
         self.onPinAsset = onPinAsset
+        self.onAddToWallet = onAddToWallet
         self.onCopyAddress = onCopyAddress
         _showBalancePrivacy = showBalancePrivacy
     }
@@ -49,7 +52,8 @@ struct WalletAssetsList: View {
                         for: asset,
                         onCopy: { onCopyAddress?(CopyTypeViewModel(type: .address(asset.asset, address: $0), copyValue: $0).message) },
                         onPin: { onPinAsset?(asset.asset, !asset.metadata.isPinned) },
-                        onHide: { onHideAsset?(asset.asset.id) },
+                        onHide: asset.metadata.isBalanceEnabled ? { onHideAsset?(asset.asset.id) } : nil,
+                        onAddToWallet: onAddToWallet.map { action in { action(asset.asset.id) } },
                     ),
                 )
                 .swipeActions(edge: .trailing) {

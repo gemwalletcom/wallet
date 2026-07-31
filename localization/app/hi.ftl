@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = रद्द करना
+common_hidden = छिपाए गए
 common_done = हो गया
 common_maximum_value = अधिकतम मान %@ है
 common_minimum_value = न्यूनतम मान %@ है

@@ -28,8 +28,11 @@ impl PricesUpdater {
         }
     }
 
-    pub async fn update_assets(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        self.save_assets(self.provider.get_assets().await?).await
+    pub async fn update_assets(&self, limit: usize) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+        if limit == 0 {
+            return Ok(0);
+        }
+        self.save_assets(self.provider.get_assets(limit).await?).await
     }
 
     pub async fn update_assets_new(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {

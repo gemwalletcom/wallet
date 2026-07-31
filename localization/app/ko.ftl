@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = 취소
+common_hidden = 숨김
 common_done = 완료
 common_maximum_value = 최대값은 %@입니다
 common_minimum_value = 최소값은 %@입니다

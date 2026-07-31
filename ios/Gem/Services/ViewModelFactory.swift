@@ -13,6 +13,7 @@ import FiatService
 import Foundation
 import Keystore
 import NameService
+import PerpetualService
 import Preferences
 import PriceAlertService
 import PriceService
@@ -21,6 +22,7 @@ import PrimitivesComponents
 import ScanService
 import Stake
 import StakeService
+import Store
 import Swap
 import SwapService
 import SwiftUI
@@ -29,6 +31,7 @@ import Transfer
 import WalletConnector
 import WalletConnectorService
 import WalletService
+import WalletTab
 
 public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
@@ -52,6 +55,8 @@ public struct ViewModelFactory: Sendable {
     let assetsService: AssetsService
     let assetSearchService: AssetSearchService
     let priceAlertService: PriceAlertService
+    let walletSearchService: WalletSearchService
+    let perpetualService: PerpetualService
 
     public init(
         keystore: any Keystore,
@@ -75,6 +80,8 @@ public struct ViewModelFactory: Sendable {
         assetsService: AssetsService,
         assetSearchService: AssetSearchService,
         priceAlertService: PriceAlertService,
+        walletSearchService: WalletSearchService,
+        perpetualService: PerpetualService,
     ) {
         self.keystore = keystore
         self.chainServiceFactory = chainServiceFactory
@@ -97,6 +104,8 @@ public struct ViewModelFactory: Sendable {
         self.assetsService = assetsService
         self.assetSearchService = assetSearchService
         self.priceAlertService = priceAlertService
+        self.walletSearchService = walletSearchService
+        self.perpetualService = perpetualService
     }
 
     @MainActor
@@ -104,6 +113,7 @@ public struct ViewModelFactory: Sendable {
         wallet: Wallet,
         selectType: SelectAssetType,
         selectAssetAction: AssetAction = .none,
+        chains: [Chain] = [],
     ) -> SelectAssetViewModel {
         SelectAssetViewModel(
             wallet: wallet,
@@ -113,6 +123,28 @@ public struct ViewModelFactory: Sendable {
             priceAlertService: priceAlertService,
             activityService: activityService,
             selectAssetAction: selectAssetAction,
+            chains: chains,
+        )
+    }
+
+    @MainActor
+    public func assetsResultsScene(
+        wallet: Wallet,
+        request: WalletSearchRequest,
+        title: String,
+        onSelectAsset: @escaping (Asset) -> Void,
+    ) -> AssetsResultsSceneViewModel {
+        AssetsResultsSceneViewModel(
+            wallet: wallet,
+            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
+            preferences: Preferences.standard,
+            searchService: walletSearchService,
+            perpetualService: perpetualService,
+            activityService: activityService,
+            request: request,
+            title: title,
+            onSelectAsset: onSelectAsset,
         )
     }
 

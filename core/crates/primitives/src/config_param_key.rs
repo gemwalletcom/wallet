@@ -6,6 +6,7 @@ use strum::AsRefStr;
 pub enum ConfigParamKey {
     TransactionsRequestLimit(Chain),
     SwapperVaultAddresses(SwapProvider),
+    PriceProviderAssetsLimit(PriceProvider),
     PriceProviderAssetsDuration(PriceProvider),
     PriceProviderAssetsNewDuration(PriceProvider),
     PriceProviderAssetsMetadataDuration(PriceProvider),
@@ -20,6 +21,7 @@ impl ConfigParamKey {
     pub fn all() -> Vec<Self> {
         let transactions = Chain::all().into_iter().map(Self::TransactionsRequestLimit);
         let swapper = SwapProvider::cross_chain_providers().into_iter().map(Self::SwapperVaultAddresses);
+        let assets_limit = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsLimit);
         let assets = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsDuration);
         let assets_new = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsNewDuration);
         let assets_metadata = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsMetadataDuration);
@@ -30,6 +32,7 @@ impl ConfigParamKey {
         let lists = ListProviderName::all().into_iter().map(Self::ListProviderUpdateDuration);
         transactions
             .chain(swapper)
+            .chain(assets_limit)
             .chain(assets)
             .chain(assets_new)
             .chain(assets_metadata)
@@ -45,6 +48,7 @@ impl ConfigParamKey {
         match self {
             Self::TransactionsRequestLimit(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
             Self::SwapperVaultAddresses(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
+            Self::PriceProviderAssetsLimit(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsNewDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsMetadataDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
@@ -60,6 +64,8 @@ impl ConfigParamKey {
         match self {
             Self::TransactionsRequestLimit(_) => "100",
             Self::SwapperVaultAddresses(_) => "5m",
+            Self::PriceProviderAssetsLimit(PriceProvider::TonApi) => "1000",
+            Self::PriceProviderAssetsLimit(_) => "5000",
             Self::PriceProviderAssetsDuration(_) => "1d",
             Self::PriceProviderAssetsNewDuration(_) => "15m",
             Self::PriceProviderAssetsMetadataDuration(_) => "30d",
@@ -69,5 +75,20 @@ impl ConfigParamKey {
             Self::PriceProviderCleanOutdatedDuration(_) => "1d",
             Self::ListProviderUpdateDuration(_) => "1d",
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_price_provider_assets_limit() {
+        let tonapi = ConfigParamKey::PriceProviderAssetsLimit(PriceProvider::TonApi);
+        let coingecko = ConfigParamKey::PriceProviderAssetsLimit(PriceProvider::Coingecko);
+
+        assert_eq!(tonapi.key(), "priceProviderAssetsLimit.tonapi");
+        assert_eq!(tonapi.default_value(), "1000");
+        assert_eq!(coingecko.default_value(), "5000");
     }
 }

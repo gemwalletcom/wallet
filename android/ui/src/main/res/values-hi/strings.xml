@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">रद्द करना</string>
+  <string name="common_hidden">छिपाए गए</string>
   <string name="common_done">हो गया</string>
   <string name="common_maximum_value">अधिकतम मान %1$s है</string>
   <string name="common_minimum_value">न्यूनतम मान %1$s है</string>

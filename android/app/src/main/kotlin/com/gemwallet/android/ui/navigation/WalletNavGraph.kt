@@ -36,6 +36,7 @@ import com.gemwallet.android.ui.navigation.routes.addAssetScreen
 import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetChartScreen
 import com.gemwallet.android.ui.navigation.routes.assetScreen
+import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
 import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.confirm
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
@@ -120,11 +121,17 @@ fun WalletNavGraph(
                         is AssetDetailsAction.OpenTransaction -> navigator.openTransaction(action.transactionId)
                         is AssetDetailsAction.OpenChart -> navigator.openAssetChart(action.assetId)
                         is AssetDetailsAction.OpenNetwork -> navigator.openAsset(action.assetId)
+                        is AssetDetailsAction.OpenNetworkAssets -> navigator.openNetworkAssets(action.chain)
                         is AssetDetailsAction.Stake -> navigator.openStake(action.assetId)
                         is AssetDetailsAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
                         is AssetDetailsAction.Confirm -> navigator.openConfirm(action.params)
                     }
                 },
+            )
+            networkAssetsScreen(
+                onSelectAsset = navigator::openAsset,
+                onManageAssets = { navigator.openAssetsManage(it) },
+                onCancel = onCancel,
             )
 
             assetChartScreen(

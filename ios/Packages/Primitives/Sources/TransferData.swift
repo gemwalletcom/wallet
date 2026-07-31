@@ -6,22 +6,23 @@ import Foundation
 public struct TransferData: Identifiable, Sendable, Hashable {
     public let type: TransferDataType
     public let recipientData: RecipientData
-    public let value: BigInt
+    public let amount: TransferAmountValue
     public let minimumValue: BigInt?
-    public let canChangeValue: Bool
 
     public init(
         type: TransferDataType,
         recipientData: RecipientData,
-        value: BigInt,
+        amount: TransferAmountValue,
         minimumValue: BigInt? = nil,
-        canChangeValue: Bool = true,
     ) {
         self.type = type
         self.recipientData = recipientData
-        self.value = value
+        self.amount = amount
         self.minimumValue = minimumValue
-        self.canChangeValue = canChangeValue
+    }
+
+    public var value: BigInt {
+        amount.value
     }
 
     public var id: String {

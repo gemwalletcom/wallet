@@ -2,6 +2,8 @@ pub mod balances;
 pub mod balances_mapper;
 pub mod preload;
 pub mod request_classifier;
+pub mod simulation;
+pub mod simulation_mapper;
 pub mod state;
 pub mod state_mapper;
 pub mod testkit;

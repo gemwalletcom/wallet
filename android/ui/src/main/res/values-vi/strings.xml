@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Hủy bỏ</string>
+  <string name="common_hidden">Đã ẩn</string>
   <string name="common_done">Xong</string>
   <string name="common_maximum_value">Giá trị tối đa là %1$s</string>
   <string name="common_minimum_value">Giá trị tối thiểu là %1$s</string>

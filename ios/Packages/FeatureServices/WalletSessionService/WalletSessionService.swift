@@ -19,7 +19,7 @@ public struct WalletSessionService: WalletSessionManageable {
 
     public var currentWallet: Wallet? {
         guard let currentWalletId else { return nil }
-        return wallets.first(where: { $0.id == currentWalletId })
+        return try? walletStore.getWallet(id: currentWalletId)
     }
 
     public var currentWalletId: Primitives.WalletId? {

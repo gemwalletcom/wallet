@@ -112,6 +112,18 @@ struct WalletNavigationStack: View {
                     ),
                 )
             }
+            .navigationDestination(for: Scenes.NetworkAssets.self) { destination in
+                NetworkAssetsScene(
+                    model: NetworkAssetsSceneViewModel(
+                        wallet: model.wallet,
+                        chain: destination.chain,
+                        balanceService: balanceService,
+                        assetsEnabler: assetsEnabler,
+                        preferences: preferences.preferences,
+                        onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
+                    ),
+                )
+            }
             .navigationDestination(for: Scenes.Transaction.self) {
                 TransactionNavigationView(
                     model: TransactionSceneViewModel(
@@ -173,21 +185,15 @@ struct WalletNavigationStack: View {
                     perpetualService: perpetualService,
                     observerService: hyperliquidObserverService,
                     activityService: activityService,
-                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0) },
+                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
                     onSelectAsset: navigationState.openAsset,
                     onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
                 )
             }
             .navigationDestination(for: Scenes.AssetsResults.self) { destination in
                 AssetsResultsScene(
-                    model: AssetsResultsSceneViewModel(
+                    model: viewModelFactory.assetsResultsScene(
                         wallet: model.wallet,
-                        assetsEnabler: assetsEnabler,
-                        balanceService: balanceService,
-                        preferences: preferences.preferences,
-                        searchService: walletSearchService,
-                        perpetualService: perpetualService,
-                        activityService: activityService,
                         request: WalletSearchRequest(
                             walletId: model.wallet.id,
                             searchBy: destination.searchQuery,
@@ -223,11 +229,12 @@ struct WalletNavigationStack: View {
                     switch sheet {
                     case .wallets:
                         WalletsNavigationStack()
-                    case let .selectAsset(type):
+                    case let .selectAsset(type, chains):
                         SelectAssetSceneNavigationStack(
                             model: viewModelFactory.selectAssetScene(
                                 wallet: model.wallet,
                                 selectType: type,
+                                chains: chains,
                             ),
                         )
                     case let .infoSheet(type):

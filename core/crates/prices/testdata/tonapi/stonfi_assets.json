@@ -1,0 +1,43 @@
+{
+  "asset_list": [
+    {
+      "contract_address": "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c",
+      "kind": "Ton",
+      "meta": {
+        "symbol": "GRAM",
+        "display_name": "Gram",
+        "image_url": "https://asset.ston.fi/img/EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c/7e9ffa3a3fc433184f7f2dd80b2bb9bfb4371f9d505f33cae81a41b5e0a50107",
+        "decimals": 9
+      },
+      "pair_priority": 95,
+      "popularity_index": 1.7976931348623157E+308,
+      "tags": [
+        "asset:default_symbol",
+        "asset:essential",
+        "default_symbol"
+      ],
+      "dex_price_usd": "1.4299999999999999378275106209912337362766265869140625"
+    },
+    {
+      "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+      "kind": "Jetton",
+      "meta": {
+        "symbol": "USD₮",
+        "display_name": "Tether USD",
+        "image_url": "https://asset.ston.fi/img/EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs/1a87edfee9a28b05578853952e5effb8cc30af1e0fb90043aa2ce19dce490849",
+        "decimals": 6
+      },
+      "pair_priority": 100,
+      "popularity_index": 13.46548582699395,
+      "tags": [
+        "asset:essential",
+        "asset:liquidity:very_high",
+        "asset:popular",
+        "default_symbol",
+        "asset:default_symbol",
+        "high_liquidity"
+      ],
+      "dex_price_usd": "0.99930799999999997407229557211394421756267547607421875"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Ophæve</string>
+  <string name="common_hidden">Skjulte</string>
   <string name="common_done">Færdig</string>
   <string name="common_maximum_value">Maksimal værdi er %1$s</string>
   <string name="common_minimum_value">Minimumsværdi er %1$s</string>

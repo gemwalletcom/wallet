@@ -1,4 +1,5 @@
 "common.cancel" = "لغو کردن";
+"common.hidden" = "مخفی";
 "common.done" = "انجام شد";
 "common.maximum_value" = "حداکثر مقدار %@ است";
 "common.minimum_value" = "حداقل مقدار %@ است";

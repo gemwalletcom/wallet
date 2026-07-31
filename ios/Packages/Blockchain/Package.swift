@@ -17,7 +17,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Keychain", path: "../Keychain"),
@@ -27,7 +26,6 @@ let package = Package(
         .target(
             name: "Blockchain",
             dependencies: [
-                "SwiftHTTPClient",
                 "Primitives",
                 "Gemstone",
                 "GemstonePrimitives",
