@@ -12,15 +12,10 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +35,7 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
@@ -95,7 +91,6 @@ fun NftListNavScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NftListScene(
     items: List<NftItemUIModel>,
@@ -109,8 +104,6 @@ internal fun NftListScene(
     listState: LazyGridState = rememberLazyGridState(),
     onAction: (NftListAction) -> Unit,
 ) {
-    val pullToRefreshState = rememberPullToRefreshState()
-
     Scene(
         title = title,
         navigationBarPadding = false,
@@ -134,15 +127,6 @@ internal fun NftListScene(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,
             onRefresh = { onAction(NftListAction.Refresh) },
-            state = pullToRefreshState,
-            indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = isRefreshing,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background,
-                )
-            },
         ) {
             val currentError = error
             if (currentError != null) {
