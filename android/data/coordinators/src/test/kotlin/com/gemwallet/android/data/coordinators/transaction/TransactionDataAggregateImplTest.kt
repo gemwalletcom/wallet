@@ -434,6 +434,19 @@ class TransactionDataAggregateImplTest {
     }
 
     @Test
+    fun testValue_malformedTransferValue() {
+        val transaction = createTransaction(
+            type = TransactionType.Transfer,
+            direction = TransactionDirection.Outgoing,
+            value = "54.108086",
+        )
+        val extended = createTransactionExtended(transaction, asset = btcAsset)
+        val aggregate = createAggregate(extended)
+
+        assertEquals("", aggregate.value)
+    }
+
+    @Test
     fun testValue_smallAmount() {
         val transaction = createTransaction(
             type = TransactionType.Transfer,
