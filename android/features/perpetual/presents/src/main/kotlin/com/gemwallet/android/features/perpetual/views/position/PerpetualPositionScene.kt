@@ -2,16 +2,11 @@ package com.gemwallet.android.features.perpetual.views.position
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +22,7 @@ import com.gemwallet.android.features.perpetual.views.components.perpetualInfo
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -53,7 +49,6 @@ internal fun PerpetualPositionScene(
     onAction: (PerpetualDetailsAction) -> Unit,
 ) {
     var showModifyDialog by remember { mutableStateOf(false) }
-    val pullToRefreshState = rememberPullToRefreshState()
 
     Scene(
         title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
@@ -62,15 +57,6 @@ internal fun PerpetualPositionScene(
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualDetailsAction.Refresh) },
-            state = pullToRefreshState,
-            indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = isRefreshing,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background,
-                )
-            },
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()

@@ -14,11 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -47,6 +43,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -66,7 +63,6 @@ internal fun StakeScene(
     amountAction: AmountTransactionAction,
     onAction: (StakeSceneAction) -> Unit,
 ) {
-    val pullToRefreshState = rememberPullToRefreshState()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -82,18 +78,8 @@ internal fun StakeScene(
         },
     ) {
         PullToRefreshBox(
-            modifier = Modifier,
             isRefreshing = inSync,
             onRefresh = { onAction(StakeSceneAction.Refresh) },
-            state = pullToRefreshState,
-            indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = inSync,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            }
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
