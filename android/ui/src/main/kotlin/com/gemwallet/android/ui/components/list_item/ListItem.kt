@@ -40,6 +40,7 @@ fun ListItem(
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
     minHeight: Dp = Dp.Unspecified,
+    paddingHorizontal: Dp? = null,
     contentPadding: Dp = paddingMiddle,
     titleSubtitleSpacing: Dp = space2,
     trailingContentEndPadding: Dp? = null,
@@ -48,7 +49,7 @@ fun ListItem(
     subtitle: (@Composable () -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    val sidePadding = adaptivePadding(default = paddingDefault, compact = paddingSmall)
+    val sidePadding = paddingHorizontal ?: adaptivePadding(default = paddingDefault, compact = paddingSmall)
     val contentSpacing = ListItemDefaults.contentSpacing
     val trailingEndPadding = trailingContentEndPadding ?: contentSpacing
     val resolvedMinHeight = minHeight.takeOrElse {

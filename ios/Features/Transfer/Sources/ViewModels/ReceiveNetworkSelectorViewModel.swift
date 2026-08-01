@@ -19,13 +19,9 @@ struct ReceiveNetworkSelectorViewModel: SelectableListAdoptable, SelectableListN
         Localized.Common.done
     }
 
-    init(assetIds: [AssetId], selectedAssetId: AssetId) {
+    init(assetIds: [AssetId]) {
         let items = assetIds.map(ReceiveNetworkItem.init)
-        self.init(
-            state: .data(.plain(items)),
-            selectedItems: items.filter { $0.assetId == selectedAssetId },
-            selectionType: .checkmark,
-        )
+        self.init(state: .data(.plain(items)))
     }
 
     init(

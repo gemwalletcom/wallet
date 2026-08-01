@@ -217,10 +217,12 @@ object AssetModule {
         gemApiClient: GemApiClient,
         assetsRepository: AssetsRepository,
         streamSubscriptionService: StreamSubscriptionService,
+        prefetchAssets: PrefetchAssets,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         gemApiClient = gemApiClient,
         assetsRepository = assetsRepository,
         streamSubscriptionService = streamSubscriptionService,
+        prefetchAssets = prefetchAssets,
     )
 
     @Provides

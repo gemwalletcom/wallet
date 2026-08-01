@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
@@ -9,15 +10,16 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SyncAssetInfoImpl(
     private val gemApiClient: GemApiClient,
     private val assetsRepository: AssetsRepository,
     private val streamSubscriptionService: StreamSubscriptionService,
+    private val prefetchAssets: PrefetchAssets,
 ) : SyncAssetInfo {
 
     override suspend fun syncAssetInfo(assetId: AssetId, wallet: Wallet): Unit = withContext(Dispatchers.IO) {
@@ -26,16 +28,17 @@ class SyncAssetInfoImpl(
         streamSubscriptionService.addAssetIds(listOf(assetId))
 
         coroutineScope {
-            async {
+            launch {
                 ensureWalletAsset(
                     walletId = wallet.id.id,
                     assetId = assetId,
                 )
             }
-            async { assetsRepository.updateBalances(assetId) }
-            async {
-                val assetFull = loadAssetMetadata(assetId) ?: return@async
+            launch { assetsRepository.updateBalances(assetId) }
+            launch {
+                val assetFull = loadAssetMetadata(assetId) ?: return@launch
                 assetsRepository.saveAssetMetadata(assetFull)
+                prefetchAssets.prefetchAssets(assetFull.associations.map { it.assetId })
             }
         }
     }

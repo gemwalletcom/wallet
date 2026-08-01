@@ -18,7 +18,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,28 +39,32 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.ext.isMemoSupport
+import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
+import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.subtitleSymbol
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
+import com.gemwallet.android.ui.components.list_item.ChainItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
-import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Chain
 
 private val qrSize = 300.dp
 private val qrSizeCompact = 220.dp
@@ -66,10 +74,29 @@ private val qrMinSize = 100.dp
 fun ReceiveScreen(onCancel: () -> Unit) {
     val viewModel: ReceiveViewModel = hiltViewModel()
     val assetInfo by viewModel.asset.collectAsStateWithLifecycle()
+    val networkAssetIds by viewModel.networkAssetIds.collectAsStateWithLifecycle()
+    var isShowingNetworkSelector by remember { mutableStateOf(false) }
     val info = assetInfo
 
     if (info != null) {
-        ReceiveScene(info, viewModel::setVisible, onCancel)
+        LaunchedEffect(info.asset.id) {
+            viewModel.setVisible()
+        }
+        ReceiveScene(
+            assetInfo = info,
+            onSelectNetwork = if (networkAssetIds.size > 1) {
+                { isShowingNetworkSelector = true }
+            } else {
+                null
+            },
+            onCancel = onCancel,
+        )
+        ReceiveNetworkSelector(
+            isVisible = isShowingNetworkSelector,
+            assetIds = networkAssetIds,
+            onSelect = viewModel::selectAsset,
+            onDismiss = { isShowingNetworkSelector = false },
+        )
     } else {
         LoadingScene(title = stringResource(R.string.wallet_receive), onCancel)
     }
@@ -78,7 +105,7 @@ fun ReceiveScreen(onCancel: () -> Unit) {
 @Composable
 private fun ReceiveScene(
     assetInfo: AssetInfo,
-    onCopy: () -> Unit,
+    onSelectNetwork: (() -> Unit)?,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -94,7 +121,6 @@ private fun ReceiveScene(
     }
 
     val onCopyClick = fun () {
-        onCopy()
         clipboardManager.setPlainText(context, assetInfo.owner?.address ?: "")
     }
 
@@ -107,13 +133,27 @@ private fun ReceiveScene(
             }
         },
         mainAction = {
-            MainActionButton(onClick = onCopyClick) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall)
-                ) {
-                    Icon(AppIcons.ContentCopy, "copy")
-                    Text(stringResource(R.string.common_copy))
+            Column {
+                onSelectNetwork?.let {
+                    ChainItem(
+                        title = assetInfo.asset.id.chain.networkName(),
+                        icon = assetInfo.asset.id.chain,
+                        subtitle = assetInfo.asset.type.string,
+                        listPosition = ListPosition.Single,
+                        paddingHorizontal = 0.dp,
+                        trailing = { DataBadgeChevron() },
+                        onClick = it,
+                    )
+                    Spacer(modifier = Modifier.size(paddingDefault))
+                }
+                MainActionButton(onClick = onCopyClick) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall)
+                    ) {
+                        Icon(AppIcons.ContentCopy, "copy")
+                        Text(stringResource(R.string.common_copy))
+                    }
                 }
             }
         }

@@ -8,8 +8,4 @@ struct ReceiveNetworkItem: Hashable, Identifiable, Sendable {
     var id: String {
         assetId.identifier
     }
-
-    var chain: Chain {
-        assetId.chain
-    }
 }

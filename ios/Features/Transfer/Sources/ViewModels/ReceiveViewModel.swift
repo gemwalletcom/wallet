@@ -122,7 +122,6 @@ public final class ReceiveViewModel: Sendable {
     var networkSelectorModel: ReceiveNetworkSelectorViewModel {
         ReceiveNetworkSelectorViewModel(
             assetIds: networkAssetIds,
-            selectedAssetId: assetModel.asset.id,
         )
     }
 

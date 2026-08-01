@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -59,10 +58,13 @@ public struct ReceiveScene: View {
             if model.showNetworkSelector {
                 Button(action: model.onSelectNetwork) {
                     HStack {
-                        ChainView(model: ChainViewModel(chain: model.assetModel.asset.chain))
+                        ChainView(
+                            model: ChainViewModel(
+                                chain: model.assetModel.asset.chain,
+                                assetType: model.assetModel.asset.type,
+                            ),
+                        )
                         Spacer()
-                        Text(Localized.Transfer.network)
-                            .textStyle(.calloutSecondary)
                         Images.System.chevronRight
                     }
                 }
@@ -96,7 +98,14 @@ public struct ReceiveScene: View {
                 SelectableListNavigationStack(
                     model: model.networkSelectorModel,
                     onFinishSelection: model.onFinishNetworkSelection,
-                    listContent: { ChainView(model: ChainViewModel(chain: $0.chain)) },
+                    listContent: {
+                        ChainView(
+                            model: ChainViewModel(
+                                chain: $0.assetId.chain,
+                                assetType: $0.assetId.assetType,
+                            ),
+                        )
+                    },
                 )
                 .presentationDetents([.large])
             case .copy:

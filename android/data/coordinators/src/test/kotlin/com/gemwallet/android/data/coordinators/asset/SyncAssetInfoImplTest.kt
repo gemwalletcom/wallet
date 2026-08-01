@@ -1,15 +1,19 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
+import com.wallet.core.primitives.AssetAssociation
+import com.wallet.core.primitives.AssetAssociationType
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Chain
@@ -26,11 +30,13 @@ class SyncAssetInfoImplTest {
     private val gemApiClient = mockk<GemApiClient>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
+    private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
 
     private val subject = SyncAssetInfoImpl(
         gemApiClient = gemApiClient,
         assetsRepository = assetsRepository,
         streamSubscriptionService = streamSubscriptionService,
+        prefetchAssets = prefetchAssets,
     )
 
     private val asset = mockAsset()
@@ -117,5 +123,25 @@ class SyncAssetInfoImplTest {
         coVerify { assetsRepository.updateBalances(asset.id) }
         coVerify { assetsRepository.saveAssetMetadata(assetFull) }
         coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+    }
+
+    @Test
+    fun syncAssetInfo_prefetchesAssociatedAssets() = runTest {
+        val associatedAssetId = mockAssetEthereum().id
+        val assetFull = assetFull.copy(
+            associations = listOf(
+                AssetAssociation(associatedAssetId, AssetAssociationType.Official),
+            ),
+        )
+        val wallet = mockWallet(
+            accounts = listOf(mockAccount(chain = Chain.Bitcoin)),
+        )
+
+        every { assetsRepository.getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+        coEvery { gemApiClient.getAsset("bitcoin") } returns assetFull
+
+        subject.syncAssetInfo(asset.id, wallet)
+
+        coVerify { prefetchAssets.prefetchAssets(listOf(associatedAssetId)) }
     }
 }
