@@ -16,7 +16,7 @@ import WalletService
 public final class TransactionsViewModel {
     public let explorerService: any ExplorerLinkFetchable = ExplorerService.standard
     public let transactionsService: TransactionsService
-    public let preferences: Preferences
+    public let preferences: ObservablePreferences
 
     private let walletService: WalletService
     private let type: TransactionsRequestType
@@ -37,7 +37,7 @@ public final class TransactionsViewModel {
         walletService: WalletService,
         wallet: Wallet,
         type: TransactionsRequestType,
-        preferences: Preferences = .standard,
+        preferences: ObservablePreferences = .default,
     ) {
         self.walletService = walletService
         self.transactionsService = transactionsService
@@ -61,7 +61,11 @@ public final class TransactionsViewModel {
     }
 
     public var currency: String {
-        preferences.currency
+        preferences.preferences.currency
+    }
+
+    public var hideBalance: Bool {
+        preferences.isHideBalanceEnabled
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {

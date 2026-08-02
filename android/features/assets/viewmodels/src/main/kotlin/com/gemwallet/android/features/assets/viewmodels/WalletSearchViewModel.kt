@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.assets.coordinators.GetSearchLists
@@ -58,6 +59,7 @@ class WalletSearchViewModel @Inject constructor(
     getNftCollections: GetNftCollections,
     getSearchLists: GetSearchLists,
     userConfig: UserConfig,
+    getHideBalancesState: GetHideBalancesState,
     private val togglePerpetualPin: TogglePerpetualPin,
 ) : BaseAssetSelectViewModel(
     getSession,
@@ -67,6 +69,7 @@ class WalletSearchViewModel @Inject constructor(
     toggleAssetPin,
     searchTokensCase,
     BaseSelectSearch(searchSelectAssets),
+    hideBalance = getHideBalancesState(),
 ) {
 
     private val showPerpetuals = userConfig.showPerpetuals(getSession())

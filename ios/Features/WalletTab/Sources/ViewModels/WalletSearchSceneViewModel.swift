@@ -132,6 +132,10 @@ public final class WalletSearchSceneViewModel: Sendable {
         preferences.preferences.currency
     }
 
+    var hideBalance: Bool {
+        preferences.isHideBalanceEnabled
+    }
+
     var showTags: Bool {
         searchModel.searchableQuery.isEmpty
     }

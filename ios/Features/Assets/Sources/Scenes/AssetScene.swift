@@ -185,6 +185,7 @@ public struct AssetScene: View {
                     explorerService: model.explorerService,
                     model.transactions,
                     currency: model.assetDataModel.currencyCode,
+                    hideBalance: model.hideBalance,
                 )
                 .listRowInsets(.assetListRowInsets)
             } else {

@@ -6,6 +6,7 @@ import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
+import com.gemwallet.android.model.maskedOrNull
 import com.gemwallet.android.ui.components.chart.ChartPoint
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
@@ -25,13 +26,18 @@ data class ChartUIModel(
     internal val priceFormatter: (Double) -> String = { "" },
     internal val priceChangeFormatter: (Double) -> String = { "" },
     internal val showHeaderValue: Boolean = true,
+    internal val hideBalance: Boolean = false,
 ) {
     val renderPoints: List<ChartPoint> by lazy {
         chartPoints.mapIndexed { index, point -> ChartPoint(x = index.toFloat(), y = point.y) }
     }
 
-    val minLabel: String? by lazy { chartPoints.minByOrNull { it.y }?.price?.let(priceFormatter) }
-    val maxLabel: String? by lazy { chartPoints.maxByOrNull { it.y }?.price?.let(priceFormatter) }
+    val minLabel: String? by lazy {
+        chartPoints.minByOrNull { it.y }?.price?.let(priceFormatter).maskedOrNull(hideBalance)
+    }
+    val maxLabel: String? by lazy {
+        chartPoints.maxByOrNull { it.y }?.price?.let(priceFormatter).maskedOrNull(hideBalance)
+    }
 
     companion object {}
 
@@ -88,6 +94,7 @@ internal fun ChartUIModel.Companion.from(
     period: ChartPeriod,
     currency: Currency,
     showHeaderValue: Boolean,
+    hideBalance: Boolean = false,
 ): ChartUIModel {
     val basePrice = values.firstOrNull()?.value ?: 0.0
     val currencyFormatter = CurrencyFormatter(currency = currency)
@@ -105,6 +112,7 @@ internal fun ChartUIModel.Companion.from(
         priceFormatter = currencyFormatter::string,
         priceChangeFormatter = PriceChangeFormatter(currencyFormatter)::string,
         showHeaderValue = showHeaderValue,
+        hideBalance = hideBalance,
     )
 }
 
@@ -131,5 +139,6 @@ fun portfolioChartHeader(uiModel: ChartUIModel, selectedPoint: PricePoint?): Cha
         priceFormatter = uiModel.priceFormatter,
         priceChangeFormatter = uiModel.priceChangeFormatter,
         dateFormatter = ::getRelativeDate,
+        hideBalance = uiModel.hideBalance,
     )
 }

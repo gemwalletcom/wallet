@@ -7,6 +7,7 @@ import com.gemwallet.android.domains.asset.aggregates.AssetPriceDataAggregate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.masked
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -30,20 +31,14 @@ internal fun AssetInfo.toAssetInfoDataAggregate(
     val priceValue = assetPrice?.price?.takeIf(Double::isFinite)
     val changePercentage = assetPrice?.priceChangePercentage24h?.takeIf(Double::isFinite)
     val assetBalance = balance
-    val formattedBalance = if (hideBalance) {
-        "*****"
-    } else {
-        ValueFormatter(style = ValueFormatter.Style.Short)
-            .string(BigDecimal.valueOf(assetBalance.totalAmount), asset.symbol)
-    }
-    val balanceEquivalent = if (hideBalance) {
-        "*****"
-    } else {
-        priceValue
-            ?.takeUnless { it == 0.0 }
-            ?.let { CurrencyFormatter(currency = currency).string(assetBalance.totalAmount * it) }
-            .orEmpty()
-    }
+    val formattedBalance = ValueFormatter(style = ValueFormatter.Style.Short)
+        .string(BigDecimal.valueOf(assetBalance.totalAmount), asset.symbol)
+        .masked(hideBalance)
+    val balanceEquivalent = priceValue
+        ?.takeUnless { it == 0.0 }
+        ?.let { CurrencyFormatter(currency = currency).string(assetBalance.totalAmount * it) }
+        .orEmpty()
+        .masked(hideBalance)
     val price = assetPrice?.let {
         AssetPriceDataAggregate(
             currency = currency,

@@ -9,6 +9,7 @@ public struct TransactionsList: View {
     let showSections: Bool
     let explorerService: any ExplorerLinkFetchable
     let currency: String
+    let hideBalance: Bool
 
     private var sections: [ListSection<Primitives.TransactionExtended>] {
         DateSectionBuilder(items: transactions, dateKeyPath: \.transaction.createdAt).build()
@@ -19,11 +20,13 @@ public struct TransactionsList: View {
         _ transactions: [Primitives.TransactionExtended],
         currency: String,
         showSections: Bool = true,
+        hideBalance: Bool = false,
     ) {
         self.explorerService = explorerService
         self.transactions = transactions
         self.currency = currency
         self.showSections = showSections
+        self.hideBalance = hideBalance
     }
 
     public var body: some View {
@@ -34,6 +37,7 @@ public struct TransactionsList: View {
                         explorerService: explorerService,
                         transactions: section.values,
                         currency: currency,
+                        hideBalance: hideBalance,
                     )
                 } header: {
                     section.title.map { Text($0) }
@@ -44,6 +48,7 @@ public struct TransactionsList: View {
                 explorerService: explorerService,
                 transactions: transactions,
                 currency: currency,
+                hideBalance: hideBalance,
             )
         }
     }
@@ -53,14 +58,17 @@ private struct TransactionsListView: View {
     let transactions: [Primitives.TransactionExtended]
     let explorerService: any ExplorerLinkFetchable
     let currency: String
+    let hideBalance: Bool
 
     init(explorerService: any ExplorerLinkFetchable,
          transactions: [Primitives.TransactionExtended],
-         currency: String)
+         currency: String,
+         hideBalance: Bool)
     {
         self.explorerService = explorerService
         self.transactions = transactions
         self.currency = currency
+        self.hideBalance = hideBalance
     }
 
     var body: some View {
@@ -71,6 +79,7 @@ private struct TransactionsListView: View {
                         explorerService: explorerService,
                         transaction: transaction,
                         currency: currency,
+                        hideBalance: hideBalance,
                     ),
                 )
             }

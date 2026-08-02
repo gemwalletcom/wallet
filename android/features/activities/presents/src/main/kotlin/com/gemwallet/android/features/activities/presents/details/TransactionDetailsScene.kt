@@ -38,6 +38,7 @@ import com.wallet.core.primitives.TransactionType
 @Composable
 internal fun TransactionDetailsScene(
     data: TransactionDetailsAggregate,
+    hideBalance: Boolean,
     onAction: (TransactionDetailsAction) -> Unit,
 ) {
     Scene(
@@ -72,6 +73,7 @@ internal fun TransactionDetailsScene(
                             toAsset = item.toAsset,
                             toValue = item.toValue,
                             currency = item.currency,
+                            hideBalance = hideBalance,
                             onSwapClick = {
                                 onAction(
                                     TransactionDetailsAction.OpenSwap(
@@ -107,7 +109,7 @@ internal fun TransactionDetailsScene(
                         is TransactionDetailsValue.Price -> PropertyItem(R.string.asset_price, item.data, listPosition = position)
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
                         is TransactionDetailsValue.Rate -> AssetRatePropertyItem(item.rate, position)
-                        is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item)
+                        is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item, hideBalance)
                         is TransactionDetailsValue.SwapAgain -> MainActionButton(
                             title = stringResource(R.string.transaction_swap_again),
                             modifier = Modifier.padding(horizontal = padding16, vertical = paddingSmall),

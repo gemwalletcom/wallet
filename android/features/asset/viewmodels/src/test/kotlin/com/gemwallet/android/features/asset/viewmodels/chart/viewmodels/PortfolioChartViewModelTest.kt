@@ -2,6 +2,7 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
@@ -49,6 +50,9 @@ class PortfolioChartViewModelTest {
     }
     private val observePerpetualWallet = mockk<ObservePerpetualWallet>(relaxed = true)
     private val getPortfolioData = mockk<GetPortfolioData>(relaxed = true)
+    private val getHideBalancesState = mockk<GetHideBalancesState>(relaxed = true) {
+        every { invoke() } returns flowOf(false)
+    }
 
     @Before
     fun setUp() {
@@ -196,6 +200,7 @@ class PortfolioChartViewModelTest {
         getCurrentCurrency = getCurrentCurrency,
         observePerpetualWallet = observePerpetualWallet,
         getPortfolioData = getPortfolioData,
+        getHideBalancesState = getHideBalancesState,
         initialType = initialType,
     ).also(viewModels::add)
 }

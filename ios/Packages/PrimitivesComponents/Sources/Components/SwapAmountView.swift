@@ -28,10 +28,11 @@ struct SwapAmountView: View {
     let from: SwapAmountField
     let to: SwapAmountField
     let action: TransactionHeaderActionHandler?
+    let hideBalance: Bool
 
     var body: some View {
         VStack(spacing: 0) {
-            SwapAmountSingleView(field: from, action: action)
+            SwapAmountSingleView(field: from, action: action, hideBalance: hideBalance)
             Images.Actions.receive
                 .resizable()
                 .colorMultiply(Colors.black)
@@ -39,7 +40,7 @@ struct SwapAmountView: View {
                 .scaledToFit()
                 .padding(.bottom, .small)
                 .offset(y: -.small)
-            SwapAmountSingleView(field: to, action: action)
+            SwapAmountSingleView(field: to, action: action, hideBalance: hideBalance)
         }
     }
 }
@@ -47,6 +48,7 @@ struct SwapAmountView: View {
 struct SwapAmountSingleView: View {
     let field: SwapAmountField
     let action: TransactionHeaderActionHandler?
+    let hideBalance: Bool
 
     var body: some View {
         HStack(spacing: 0) {
@@ -68,13 +70,13 @@ struct SwapAmountSingleView: View {
 
     private var textContent: some View {
         VStack(alignment: .leading) {
-            Text(field.amount)
+            Text(field.amount.masked(if: hideBalance))
                 .foregroundStyle(Colors.black)
                 .font(.app.title2)
                 .truncationMode(.middle)
                 .lineLimit(1)
             if let fiatAmount = field.fiatAmount {
-                Text(fiatAmount)
+                Text(fiatAmount.masked(if: hideBalance))
                     .font(.app.footnote)
                     .foregroundStyle(Colors.gray)
             }

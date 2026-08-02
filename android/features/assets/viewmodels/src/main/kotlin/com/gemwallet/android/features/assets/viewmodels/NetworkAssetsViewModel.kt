@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.session.coordinators.GetSession
@@ -35,6 +36,7 @@ class NetworkAssetsViewModel @Inject constructor(
     private val hideAsset: HideAsset,
     private val toggleAssetPin: ToggleAssetPin,
     private val switchAssetVisibility: SwitchAssetVisibility,
+    getHideBalancesState: GetHideBalancesState,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -43,20 +45,25 @@ class NetworkAssetsViewModel @Inject constructor(
 
     val title: String = context.getString(R.string.assets_title)
 
+    private val hideBalance = getHideBalancesState()
+
     private val activeAssets = getChainAssets(chain)
         .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE } }
         .flowOn(Dispatchers.IO)
 
-    val pinned: StateFlow<List<AssetItemUIModel>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned == true }.map { AssetInfoUIModel(it) } }
+    val pinned: StateFlow<List<AssetItemUIModel>> = combine(activeAssets, hideBalance) { assets, hide ->
+        assets.filter { it.metadata?.isPinned == true }.map { AssetInfoUIModel(it, hideBalances = hide) }
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val unpinned: StateFlow<List<AssetItemUIModel>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned != true }.map { AssetInfoUIModel(it) } }
+    val unpinned: StateFlow<List<AssetItemUIModel>> = combine(activeAssets, hideBalance) { assets, hide ->
+        assets.filter { it.metadata?.isPinned != true }.map { AssetInfoUIModel(it, hideBalances = hide) }
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val hidden: StateFlow<List<AssetItemUIModel>> = getChainAssets.hidden(chain)
-        .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE }.map { AssetInfoUIModel(it) } }
+    val hidden: StateFlow<List<AssetItemUIModel>> = combine(getChainAssets.hidden(chain), hideBalance) { assets, hide ->
+        assets.filter { it.asset.type != AssetType.NATIVE }.map { AssetInfoUIModel(it, hideBalances = hide) }
+    }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

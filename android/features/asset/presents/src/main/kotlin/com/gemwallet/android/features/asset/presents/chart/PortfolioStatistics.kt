@@ -16,11 +16,11 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PortfolioMarginUsage
 import com.wallet.core.primitives.PortfolioStatistic
 
-internal fun LazyListScope.portfolioStatistics(currency: Currency, statistics: List<PortfolioStatistic>) {
+internal fun LazyListScope.portfolioStatistics(currency: Currency, statistics: List<PortfolioStatistic>, hideBalance: Boolean = false) {
     if (statistics.isEmpty()) return
     item { SubheaderItem(R.string.common_info) }
     val (allTime, perpetual) = statistics.partition { it.asAllTimeUIModel() != null }
-    allTimeProperties(currency, allTime.mapNotNull(PortfolioStatistic::asAllTimeUIModel))
+    allTimeProperties(currency, allTime.mapNotNull(PortfolioStatistic::asAllTimeUIModel), hideBalance)
     perpetualStatistics(currency, perpetual)
 }
 

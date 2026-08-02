@@ -4,6 +4,8 @@ import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.model.masked
+import com.gemwallet.android.model.maskedOrNull
 
 enum class ChartValueType { Price, PriceChange }
 
@@ -25,11 +27,12 @@ data class ChartHeaderUIModel(
             priceFormatter: (Double) -> String,
             priceChangeFormatter: (Double) -> String = priceFormatter,
             dateFormatter: (Long) -> String = { "" },
+            hideBalance: Boolean = false,
         ): ChartHeaderUIModel = ChartHeaderUIModel(
             priceText = when (type) {
                 ChartValueType.Price -> priceFormatter(price)
                 ChartValueType.PriceChange -> priceChangeFormatter(price)
-            },
+            }.masked(hideBalance),
             changeText = when (type) {
                 ChartValueType.Price -> priceChangePercentage.formatAsPercentage()
                 ChartValueType.PriceChange ->
@@ -41,7 +44,7 @@ data class ChartHeaderUIModel(
             },
             direction = (if (type == ChartValueType.PriceChange) price else priceChangePercentage).toValueDirection(),
             dateText = timestamp?.let(dateFormatter),
-            headerValueText = headerValue?.let(priceFormatter),
+            headerValueText = headerValue?.let(priceFormatter).maskedOrNull(hideBalance),
             type = type,
         )
     }

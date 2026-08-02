@@ -20,6 +20,8 @@ import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
+import com.gemwallet.android.model.masked
+import com.gemwallet.android.model.maskedOrNull
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
@@ -52,14 +54,16 @@ class GetTransactionsImpl(
 
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
+        hideBalance: Boolean,
     ): Flow<List<TransactionDataAggregate>> = transactionsRepository.getTransactions(filters)
-        .map { items -> items.map { TransactionDataAggregateImpl(it) } }
+        .map { items -> items.map { TransactionDataAggregateImpl(it, hideBalance) } }
         .flowOn(Dispatchers.IO)
 }
 
 @Stable
 class TransactionDataAggregateImpl(
     private val data: TransactionExtended,
+    private val hideBalance: Boolean = false,
 ) : TransactionDataAggregate {
 
     override val id: TransactionId = data.transaction.id
@@ -105,7 +109,12 @@ class TransactionDataAggregateImpl(
             -> ""
     }
 
-    override val value: String get() = when (data.transaction.type) {
+    override val value: String get() = rawValue.let {
+        val isAmount = data.transaction.type != TransactionType.TokenApproval
+        it.masked(hideBalance && isAmount && it.isNotEmpty())
+    }
+
+    private val rawValue: String get() = when (data.transaction.type) {
         TransactionType.Swap -> {
             getSwapValue(true)?.let { (value, asset) ->
                 AmountSign.Incoming.format(formatter.string(value, asset))
@@ -135,7 +144,9 @@ class TransactionDataAggregateImpl(
             -> ""
     }
 
-    override val equivalentValue: String? get() = when (data.transaction.type) {
+    override val equivalentValue: String? get() = rawEquivalentValue.maskedOrNull(hideBalance)
+
+    private val rawEquivalentValue: String? get() = when (data.transaction.type) {
         TransactionType.Swap -> getSwapValue(false)?.let { (value, asset) ->
             AmountSign.Outgoing.format(formatter.string(value, asset))
         }

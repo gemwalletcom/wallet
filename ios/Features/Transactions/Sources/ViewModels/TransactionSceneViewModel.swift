@@ -15,7 +15,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class TransactionSceneViewModel {
-    private let preferences: Preferences
+    private let preferences: ObservablePreferences
     private let explorerService: ExplorerService
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
@@ -31,7 +31,7 @@ public final class TransactionSceneViewModel {
     public init(
         transaction: TransactionExtended,
         walletId: WalletId,
-        preferences: Preferences = Preferences.standard,
+        preferences: ObservablePreferences = .default,
         explorerService: ExplorerService = ExplorerService.standard,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
@@ -55,6 +55,10 @@ public final class TransactionSceneViewModel {
         guard onHeaderAction != nil, headerAction != nil else { return nil }
         return { [weak self] tap in self?.handleHeaderTap(tap) }
     }
+
+    var hideBalance: Bool {
+        preferences.isHideBalanceEnabled
+    }
 }
 
 // MARK: - ListSectionProvideable
@@ -74,7 +78,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
         switch item {
         case .header: headerViewModel
-        case .swapProgress: TransactionSwapProgressViewModel(transaction: transactionExtended)
+        case .swapProgress: TransactionSwapProgressViewModel(transaction: transactionExtended, hideBalance: hideBalance)
         case .swapButton: TransactionSwapButtonViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), state: model.transaction.transaction.state)
         case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
@@ -148,7 +152,7 @@ extension TransactionSceneViewModel {
         TransactionViewModel(
             explorerService: explorerService,
             transaction: transactionExtended,
-            currency: preferences.currency,
+            currency: preferences.preferences.currency,
         )
     }
 
@@ -203,7 +207,7 @@ extension TransactionSceneViewModel {
             chain: model.transaction.transaction.assetId.chain,
             feeAsset: model.transaction.feeAsset,
             priority: .normal,
-            currency: Currency(rawValue: preferences.currency) ?? .usd,
+            currency: Currency(rawValue: preferences.preferences.currency) ?? .usd,
             feeAmount: BigInt(model.transaction.transaction.fee),
         )
         viewModel.update(rates: [], feeAssetPrice: model.transaction.feePrice)

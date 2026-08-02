@@ -16,16 +16,19 @@ public struct TransactionViewModel: Sendable {
     private let explorerService: any ExplorerLinkFetchable
     private let assetImageFormatter = AssetImageFormatter()
     private let currency: String
+    private let hideBalance: Bool
     private let formatter: ValueFormatter = .short
 
     public init(
         explorerService: any ExplorerLinkFetchable,
         transaction: TransactionExtended,
         currency: String,
+        hideBalance: Bool = false,
     ) {
         self.transaction = transaction
         self.explorerService = explorerService
         self.currency = currency
+        self.hideBalance = hideBalance
     }
 
     public var assetImage: AssetImage {
@@ -226,6 +229,11 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var subtitleTextValue: TextValue? {
+        let isAmount = transaction.transaction.type != .tokenApproval
+        return rawSubtitleTextValue.masked(if: hideBalance && isAmount)
+    }
+
+    private var rawSubtitleTextValue: TextValue? {
         switch transaction.transaction.type {
         case .transfer,
              .smartContractCall,
@@ -272,6 +280,10 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var subtitleExtraTextValue: TextValue? {
+        rawSubtitleExtraTextValue.masked(if: hideBalance)
+    }
+
+    private var rawSubtitleExtraTextValue: TextValue? {
         switch transaction.transaction.type {
         case .transfer,
              .transferNFT,

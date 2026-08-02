@@ -73,7 +73,7 @@ public struct NetworkAssetsScene: View {
             onPinAsset: model.onPinAsset,
             onAddToWallet: onAddToWallet,
             onCopyAddress: model.onCopyAddress,
-            showBalancePrivacy: .constant(false),
+            showBalancePrivacy: .constant(model.hideBalance),
         )
     }
 }

@@ -2,6 +2,7 @@ package com.gemwallet.android.features.activities.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
@@ -32,6 +33,7 @@ import javax.inject.Inject
 class TransactionsViewModel @Inject constructor(
     sessionRepository: SessionRepository,
     getTransactions: GetTransactions,
+    getHideBalancesState: GetHideBalancesState,
     private val syncTransactions: SyncTransactions,
 ) : ViewModel() {
 
@@ -54,14 +56,16 @@ class TransactionsViewModel @Inject constructor(
     val transactions = combine(
         chainsFilter,
         typeFilter,
-    ) { chains, types ->
-        buildList<TransactionsRequestFilter> {
+        getHideBalancesState(),
+    ) { chains, types, hideBalance ->
+        val filters = buildList<TransactionsRequestFilter> {
             if (chains.isNotEmpty()) add(TransactionsRequestFilter.Chains(chains))
             val allowedTypes = types.flatMap { it.types }
             if (allowedTypes.isNotEmpty()) add(TransactionsRequestFilter.Types(allowedTypes))
         }
+        filters to hideBalance
     }
-    .flatMapLatest { filters -> getTransactions.getTransactions(filters) }
+    .flatMapLatest { (filters, hideBalance) -> getTransactions.getTransactions(filters, hideBalance) }
     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,

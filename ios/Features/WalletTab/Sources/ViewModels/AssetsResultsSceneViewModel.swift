@@ -66,6 +66,10 @@ public final class AssetsResultsSceneViewModel {
         preferences.currency
     }
 
+    var hideBalance: Bool {
+        preferences.isHideBalanceEnabled
+    }
+
     var sections: WalletSearchSections {
         .from(searchResult)
     }

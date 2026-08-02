@@ -22,6 +22,7 @@ public struct TransactionsScene: View {
                     explorerService: model.explorerService,
                     model.transactions,
                     currency: model.currency,
+                    hideBalance: model.hideBalance,
                 )
                 .listRowInsets(.assetListRowInsets)
             }

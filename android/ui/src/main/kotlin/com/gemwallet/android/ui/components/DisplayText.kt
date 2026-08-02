@@ -20,20 +20,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gemwallet.android.model.masked
 import com.gemwallet.android.ui.theme.paddingDefault
 
-private const val BALANCE_MASK = "✱✱✱✱✱"
 private val balanceTextLineHeight = 44.sp
 private val balanceTextHeight = 52.dp
 
 data class HideToggle(
     val hidden: Boolean,
-    val onToggle: () -> Unit,
+    val onToggle: (() -> Unit)? = null,
 )
 
 internal val HideToggle?.isHidden: Boolean get() = this?.hidden == true
 
-internal fun HideToggle?.mask(text: String): String = if (isHidden) BALANCE_MASK else text
+internal fun HideToggle?.mask(text: String): String = text.masked(isHidden)
 
 @Composable
 fun DisplayText(
@@ -78,12 +78,12 @@ fun DisplayText(
                 autoSize = balanceAutoSize,
             )
         }
-        hideToggle?.let { toggle ->
+        hideToggle?.onToggle?.let { onToggle ->
             val haptic = LocalHapticFeedback.current
             Surface(
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    toggle.onToggle()
+                    onToggle()
                 },
                 shape = CircleShape,
                 color = if (hidden) MaterialTheme.colorScheme.background else Color.Transparent,

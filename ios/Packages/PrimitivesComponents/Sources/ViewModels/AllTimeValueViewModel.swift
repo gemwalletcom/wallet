@@ -10,10 +10,12 @@ import Style
 public struct AllTimeValueViewModel: Sendable {
     private let priceFormatter: CurrencyFormatter
     private let percentFormatter: PercentFormatter
+    private let hideBalance: Bool
 
-    public init(priceFormatter: CurrencyFormatter, percentFormatter: PercentFormatter) {
+    public init(priceFormatter: CurrencyFormatter, percentFormatter: PercentFormatter, hideBalance: Bool = false) {
         self.priceFormatter = priceFormatter
         self.percentFormatter = percentFormatter
+        self.hideBalance = hideBalance
     }
 
     public func allTimeHigh(chartValue: ChartValuePercentage) -> ListItemModel {
@@ -29,7 +31,7 @@ public struct AllTimeValueViewModel: Sendable {
         return ListItemModel(
             title: title,
             titleExtra: TransactionDateFormatter(date: chartValue.date).section,
-            subtitle: priceFormatter.string(Double(chartValue.value)),
+            subtitle: priceFormatter.string(Double(chartValue.value)).masked(if: hideBalance),
             subtitleExtra: percentFormatter.string(percentage),
             subtitleStyleExtra: TextStyle(font: .callout, color: PriceViewModel.priceChangeTextColor(value: percentage)),
         )

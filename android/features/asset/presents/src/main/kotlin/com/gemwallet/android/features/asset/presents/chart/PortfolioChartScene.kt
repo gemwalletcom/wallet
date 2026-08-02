@@ -41,6 +41,7 @@ fun PortfolioChartScene(
 ) {
     val statistics by viewModel.statistics.collectAsStateWithLifecycle()
     val currency by viewModel.currency.collectAsStateWithLifecycle()
+    val hideBalance by viewModel.hideBalance.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val selectedType by viewModel.selectedType.collectAsStateWithLifecycle()
     val showSegmentedControl by viewModel.showSegmentedControl.collectAsStateWithLifecycle()
@@ -79,7 +80,7 @@ fun PortfolioChartScene(
             LazyColumn {
                 item { PortfolioChart(viewModel) }
                 if (state.chart is StateViewType.Data || state.chart == StateViewType.NoData) {
-                    portfolioStatistics(currency, statistics)
+                    portfolioStatistics(currency, statistics, hideBalance)
                 }
             }
         }

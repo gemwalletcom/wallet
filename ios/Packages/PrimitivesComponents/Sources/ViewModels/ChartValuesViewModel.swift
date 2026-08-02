@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Formatters
 import Foundation
 import GemstonePrimitives
@@ -18,6 +19,7 @@ public struct ChartValuesViewModel: Sendable {
     public let formatter: CurrencyFormatter
     public let type: ChartValueType
     public let headerValue: Double?
+    public let hideBalance: Bool
 
     public static let defaultPeriod = ChartPeriod.day
 
@@ -29,6 +31,7 @@ public struct ChartValuesViewModel: Sendable {
         formatter: CurrencyFormatter,
         type: ChartValueType = .price,
         headerValue: Double? = nil,
+        hideBalance: Bool = false,
     ) {
         self.period = period
         self.price = price
@@ -37,6 +40,7 @@ public struct ChartValuesViewModel: Sendable {
         self.formatter = formatter
         self.type = type
         self.headerValue = headerValue
+        self.hideBalance = hideBalance
     }
 
     var charts: [ChartDateValue] {
@@ -44,11 +48,11 @@ public struct ChartValuesViewModel: Sendable {
     }
 
     var lowerBoundValueText: String {
-        formatter.string(values.lowerBoundValue)
+        formatter.string(values.lowerBoundValue).masked(if: hideBalance)
     }
 
     var upperBoundValueText: String {
-        formatter.string(values.upperBoundValue)
+        formatter.string(values.upperBoundValue).masked(if: hideBalance)
     }
 
     var chartHeaderViewModel: ChartHeaderViewModel? {
@@ -61,7 +65,7 @@ public struct ChartValuesViewModel: Sendable {
                 ? price.priceChangePercentage24h
                 : Self.priceChangeCalculator.percentage(from: values.baseValue, to: price.price)
         }
-        return ChartHeaderViewModel(period: period, date: nil, price: price.price, priceChangePercentage: priceChangePercentage, headerValue: headerValue, formatter: formatter, type: type)
+        return ChartHeaderViewModel(period: period, date: nil, price: price.price, priceChangePercentage: priceChangePercentage, headerValue: headerValue, formatter: formatter, type: type, hideBalance: hideBalance)
     }
 
     public static func priceChange(
@@ -69,6 +73,7 @@ public struct ChartValuesViewModel: Sendable {
         period: ChartPeriod,
         formatter: CurrencyFormatter,
         showHeaderValue: Bool = false,
+        hideBalance: Bool = false,
     ) -> ChartValuesViewModel? {
         guard let values = try? ChartValues.from(charts: charts), values.hasVariation else {
             return nil
@@ -85,6 +90,7 @@ public struct ChartValuesViewModel: Sendable {
             formatter: formatter,
             type: .priceChange,
             headerValue: showHeaderValue ? values.lastValue : nil,
+            hideBalance: hideBalance,
         )
     }
 
@@ -93,6 +99,6 @@ public struct ChartValuesViewModel: Sendable {
         let priceChangePercentage = Self.priceChangeCalculator.percentage(from: base, to: element.value)
         let displayPrice = type == .priceChange ? element.value - base : element.value
         let elementHeaderValue = headerValue != nil ? element.value : nil
-        return ChartHeaderViewModel(period: period, date: element.date, price: displayPrice, priceChangePercentage: priceChangePercentage, headerValue: elementHeaderValue, formatter: formatter, type: type)
+        return ChartHeaderViewModel(period: period, date: element.date, price: displayPrice, priceChangePercentage: priceChangePercentage, headerValue: elementHeaderValue, formatter: formatter, type: type, hideBalance: hideBalance)
     }
 }

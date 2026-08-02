@@ -19,6 +19,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.masked
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -37,6 +38,7 @@ fun SwapListHead(
     toAsset: AssetInfo?,
     toValue: String,
     currency: Currency? = null,
+    hideBalance: Boolean = false,
     onSwapClick: (() -> Unit)? = null,
     onAssetClick: ((AssetId) -> Unit)? = null,
 ) {
@@ -55,6 +57,7 @@ fun SwapListHead(
                 assetInfo = fromAsset,
                 value = fromValue,
                 currency = currency,
+                hideBalance = hideBalance,
                 onSwapClick = onSwapClick,
                 onAssetClick = onAssetClick,
             )
@@ -72,6 +75,7 @@ fun SwapListHead(
                 assetInfo = toAsset,
                 value = toValue,
                 currency = currency,
+                hideBalance = hideBalance,
                 onSwapClick = onSwapClick,
                 onAssetClick = onAssetClick,
             )
@@ -84,6 +88,7 @@ private fun SwapItem(
     assetInfo: AssetInfo,
     value: String,
     currency: Currency?,
+    hideBalance: Boolean,
     onSwapClick: (() -> Unit)?,
     onAssetClick: ((AssetId) -> Unit)?,
 ) {
@@ -105,7 +110,7 @@ private fun SwapItem(
                 ),
         ) {
             Text(
-                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value.toBigInteger(), asset),
+                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value.toBigInteger(), asset).masked(hideBalance),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
@@ -117,7 +122,7 @@ private fun SwapItem(
                 Text(
                     text = CryptoFiatConverter.toFiatString(
                         Crypto(value), decimals, assetInfo.price?.price?.price ?: 0.0, currency
-                    ),
+                    ).masked(hideBalance),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Start

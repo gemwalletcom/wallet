@@ -153,6 +153,7 @@ public struct WalletSearchScene: View {
             currencyCode: model.currencyCode,
             contextMenuItems: model.contextMenuItems,
             onSelect: model.onSelectAsset,
+            hideBalance: model.hideBalance,
         )
     }
 

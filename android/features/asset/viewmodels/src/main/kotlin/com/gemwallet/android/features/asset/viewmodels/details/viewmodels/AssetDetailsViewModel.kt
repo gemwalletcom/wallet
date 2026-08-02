@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
@@ -34,6 +35,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -52,6 +54,7 @@ class AssetDetailsViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     private val getChainAssetInfo: GetChainAssetInfo,
+    private val getHideBalancesState: GetHideBalancesState,
     private val toggleAssetPin: ToggleAssetPin,
     private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
@@ -112,13 +115,17 @@ class AssetDetailsViewModel @Inject constructor(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    val transactions = getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(assetId)))
+    private val hideBalance = getHideBalancesState()
+
+    val transactions = hideBalance.flatMapLatest { hide ->
+        getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(assetId)), hide)
+    }
         .map { it.toImmutableList() }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val uiModel = model.map { current ->
-        current?.let { AssetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName) }
+    val uiModel = combine(model, hideBalance) { current, hide ->
+        current?.let { AssetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName, hide) }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

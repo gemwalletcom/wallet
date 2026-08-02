@@ -4,6 +4,7 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.AssetPriceInfo
+import com.gemwallet.android.model.HIDDEN_BALANCE_MASK
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -77,7 +78,7 @@ class AssetInfoDataAggregateImplTest {
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = true)
 
-        assertEquals("*****", aggregate.balance)
+        assertEquals(HIDDEN_BALANCE_MASK, aggregate.balance)
     }
 
     @Test
@@ -110,7 +111,7 @@ class AssetInfoDataAggregateImplTest {
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = true)
 
-        assertEquals("*****", aggregate.balanceEquivalent)
+        assertEquals(HIDDEN_BALANCE_MASK, aggregate.balanceEquivalent)
     }
 
     @Test

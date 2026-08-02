@@ -8,6 +8,7 @@ import com.gemwallet.android.application.asset_select.coordinators.GetRecentAsse
 import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
@@ -65,6 +66,7 @@ class AssetsResultsViewModel @Inject constructor(
     private val searchScopeCase: WalletSearchScopeCase,
     getPerpetuals: GetPerpetuals,
     userConfig: UserConfig,
+    getHideBalancesState: GetHideBalancesState,
     private val togglePerpetualPin: TogglePerpetualPin,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
@@ -77,6 +79,7 @@ class AssetsResultsViewModel @Inject constructor(
     searchTokensCase,
     resolveSearch(savedStateHandle, searchSelectAssets, searchListAssets),
     remoteSearch = false,
+    hideBalance = getHideBalancesState(),
 ) {
 
     private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))

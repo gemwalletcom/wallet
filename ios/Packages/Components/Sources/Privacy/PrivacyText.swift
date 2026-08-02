@@ -4,6 +4,8 @@ import Style
 import SwiftUI
 
 public struct PrivacyText: View {
+    public static let placeholder = "∗∗∗∗∗"
+
     @Binding private var isEnabled: Bool
 
     private let text: String
@@ -12,7 +14,7 @@ public struct PrivacyText: View {
     public init(
         _ text: String,
         isEnabled: Binding<Bool>,
-        placeholder: String = "∗∗∗∗∗",
+        placeholder: String = PrivacyText.placeholder,
     ) {
         self.text = text
         self.placeholder = placeholder

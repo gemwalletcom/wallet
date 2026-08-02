@@ -17,6 +17,7 @@ public struct ChartHeaderViewModel {
 
     private let formatter: CurrencyFormatter
     private let dateFormatter: ChartDateFormatter
+    private let hideBalance: Bool
 
     public init(
         period: ChartPeriod,
@@ -27,6 +28,7 @@ public struct ChartHeaderViewModel {
         formatter: CurrencyFormatter,
         dateFormatter: ChartDateFormatter = ChartDateFormatter(),
         type: ChartValueType = .price,
+        hideBalance: Bool = false,
     ) {
         self.period = period
         self.date = date
@@ -36,6 +38,7 @@ public struct ChartHeaderViewModel {
         self.type = type
         self.formatter = formatter
         self.dateFormatter = dateFormatter
+        self.hideBalance = hideBalance
     }
 
     private var valueChange: PriceChangeViewModel? {
@@ -47,11 +50,12 @@ public struct ChartHeaderViewModel {
     }
 
     public var headerValueText: String? {
-        headerValue.map { formatter.string($0) }
+        guard let headerValue else { return nil }
+        return formatter.string(headerValue).masked(if: hideBalance)
     }
 
     public var priceText: String {
-        valueChange?.text ?? formatter.string(price)
+        (valueChange?.text ?? formatter.string(price)).masked(if: hideBalance)
     }
 
     public var priceColor: Color {

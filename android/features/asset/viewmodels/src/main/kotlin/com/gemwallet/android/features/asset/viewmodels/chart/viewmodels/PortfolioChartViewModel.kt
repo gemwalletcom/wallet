@@ -3,6 +3,7 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
 import com.gemwallet.android.application.assets.coordinators.walletChartPeriods
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
@@ -42,8 +43,11 @@ class PortfolioChartViewModel internal constructor(
     getCurrentCurrency: GetCurrentCurrency,
     observePerpetualWallet: ObservePerpetualWallet,
     private val getPortfolioData: GetPortfolioData,
+    getHideBalancesState: GetHideBalancesState,
     initialType: PortfolioType,
 ) : ViewModel() {
+    val hideBalance = getHideBalancesState()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), false)
     private val _selectedType = MutableStateFlow(initialType)
     val selectedType = _selectedType.asStateFlow()
 
@@ -89,7 +93,7 @@ class PortfolioChartViewModel internal constructor(
             PortfolioState(initialType, selectedPeriod.value, Currency.USD),
         )
 
-    val chartUIState = combine(portfolio, selectedChartType) { state, chartType ->
+    val chartUIState = combine(portfolio, selectedChartType, hideBalance) { state, chartType, hide ->
         ChartUIModel.State(
             period = state.period,
             chart = state.data.flatMap { data ->
@@ -101,6 +105,7 @@ class PortfolioChartViewModel internal constructor(
                             period = state.period,
                             currency = state.displayCurrency(),
                             showHeaderValue = state.type == PortfolioType.Wallet || chartType == PortfolioChartType.Value,
+                            hideBalance = hide,
                         ),
                     )
                 } else {
@@ -143,11 +148,13 @@ class PortfolioChartViewModel internal constructor(
         getCurrentCurrency: GetCurrentCurrency,
         observePerpetualWallet: ObservePerpetualWallet,
         getPortfolioData: GetPortfolioData,
+        getHideBalancesState: GetHideBalancesState,
         savedStateHandle: SavedStateHandle,
     ) : this(
         getCurrentCurrency = getCurrentCurrency,
         observePerpetualWallet = observePerpetualWallet,
         getPortfolioData = getPortfolioData,
+        getHideBalancesState = getHideBalancesState,
         initialType = savedStateHandle.portfolioType(),
     )
 }

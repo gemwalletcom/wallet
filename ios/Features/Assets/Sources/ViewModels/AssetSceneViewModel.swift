@@ -218,11 +218,16 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
+    var hideBalance: Bool {
+        preferences.isHideBalanceEnabled
+    }
+
     var assetDataModel: AssetDataViewModel {
         AssetDataViewModel(
             assetData: assetData,
             formatter: .auto,
             currencyCode: preferences.preferences.currency,
+            hideBalance: hideBalance,
         )
     }
 

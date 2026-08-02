@@ -119,7 +119,7 @@ struct WalletNavigationStack: View {
                         chain: destination.chain,
                         balanceService: balanceService,
                         assetsEnabler: assetsEnabler,
-                        preferences: preferences.preferences,
+                        preferences: preferences,
                         onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
                     ),
                 )

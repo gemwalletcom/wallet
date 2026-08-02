@@ -64,6 +64,7 @@ public struct AssetsResultsScene: View {
             currencyCode: model.currencyCode,
             contextMenuItems: model.contextMenuItems,
             onSelect: { model.onSelectAsset($0) },
+            hideBalance: model.hideBalance,
         )
     }
 }

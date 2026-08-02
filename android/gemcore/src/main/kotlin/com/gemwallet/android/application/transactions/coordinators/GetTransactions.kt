@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface GetTransactions {
     fun getTransactions(
         filters: List<TransactionsRequestFilter> = emptyList(),
+        hideBalance: Boolean = false,
     ): Flow<List<TransactionDataAggregate>>
 
     fun transactions(): StateFlow<List<TransactionDataAggregate>>

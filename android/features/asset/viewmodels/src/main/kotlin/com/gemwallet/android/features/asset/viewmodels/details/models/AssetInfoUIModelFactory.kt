@@ -14,6 +14,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.getStackedAmount
 import com.gemwallet.android.model.getTotalAmount
+import com.gemwallet.android.model.masked
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
@@ -23,7 +24,7 @@ import uniffi.gemstone.Explorer
 
 object AssetInfoUIModelFactory {
 
-    fun create(chainAssetInfo: ChainAssetInfo, explorerName: String): AssetInfoUIModel {
+    fun create(chainAssetInfo: ChainAssetInfo, explorerName: String, hideBalance: Boolean = false): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
         val asset = assetInfo.asset
@@ -32,7 +33,11 @@ object AssetInfoUIModelFactory {
         val currency = assetInfo.price?.currency ?: Currency.USD
         val currencyFormatter = CurrencyFormatter(currency = currency)
         val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
-        val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
+        val fiatTotal = if (balances.fiatTotalAmount == 0.0) {
+            ""
+        } else {
+            currencyFormatter.string(balances.fiatTotalAmount).masked(hideBalance)
+        }
 
         return AssetInfoUIModel(
             assetInfo = assetInfo,
@@ -53,14 +58,14 @@ object AssetInfoUIModelFactory {
             },
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 walletType = assetInfo.walletType,
-                totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
+                totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset).masked(hideBalance),
                 totalFiat = fiatTotal,
                 owner = assetInfo.owner?.address ?: "",
                 balanceMetadata = feeAssetInfo.balance.metadata,
                 hasBalanceDetails = StakeChain.isStaked(asset.id.chain) || balances.balanceAmount.reserved != 0.0,
-                available = formatAvailable(assetInfo, valueFormatter),
-                stake = formatStake(assetInfo, valueFormatter),
-                reserved = formatReserved(assetInfo, valueFormatter),
+                available = formatAvailable(assetInfo, valueFormatter, hideBalance),
+                stake = formatStake(assetInfo, valueFormatter, hideBalance),
+                reserved = formatReserved(assetInfo, valueFormatter, hideBalance),
             ),
         )
     }
@@ -68,16 +73,16 @@ object AssetInfoUIModelFactory {
     private fun assetName(asset: Asset): String =
         if (asset.type == AssetType.NATIVE) asset.id.chain.asset().name else asset.name
 
-    private fun formatAvailable(assetInfo: AssetInfo, formatter: ValueFormatter): String {
+    private fun formatAvailable(assetInfo: AssetInfo, formatter: ValueFormatter, hideBalance: Boolean): String {
         val balances = assetInfo.balance
         return if (balances.balanceAmount.available != balances.totalAmount) {
-            formatter.string(balances.balance.available.toBigInteger(), balances.asset)
+            formatter.string(balances.balance.available.toBigInteger(), balances.asset).masked(hideBalance)
         } else {
             ""
         }
     }
 
-    private fun formatStake(assetInfo: AssetInfo, formatter: ValueFormatter): String {
+    private fun formatStake(assetInfo: AssetInfo, formatter: ValueFormatter, hideBalance: Boolean): String {
         val asset = assetInfo.asset
         if (asset.id.type() != AssetSubtype.NATIVE || !StakeChain.isStaked(asset.id.chain)) {
             return ""
@@ -86,14 +91,14 @@ object AssetInfoUIModelFactory {
         return if (balances.balanceAmount.getStackedAmount() == 0.0) {
             "APR ${(assetInfo.stakeApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
         } else {
-            formatter.string(balances.balance.getStackedAmount(), balances.asset)
+            formatter.string(balances.balance.getStackedAmount(), balances.asset).masked(hideBalance)
         }
     }
 
-    private fun formatReserved(assetInfo: AssetInfo, formatter: ValueFormatter): String {
+    private fun formatReserved(assetInfo: AssetInfo, formatter: ValueFormatter, hideBalance: Boolean): String {
         val balances = assetInfo.balance
         return if (balances.balanceAmount.reserved != 0.0) {
-            formatter.string(balances.balance.reserved.toBigInteger(), balances.asset)
+            formatter.string(balances.balance.reserved.toBigInteger(), balances.asset).masked(hideBalance)
         } else {
             ""
         }

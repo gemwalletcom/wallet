@@ -44,8 +44,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -62,6 +64,7 @@ open class BaseAssetSelectViewModel(
     private val searchTokensCase: SearchTokensCase,
     val search: SelectSearch,
     private val remoteSearch: Boolean = true,
+    protected val hideBalance: Flow<Boolean> = flowOf(false),
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
     val queryState = TextFieldState()
@@ -99,7 +102,8 @@ open class BaseAssetSelectViewModel(
     private val assetsContent = combine(
         filters,
         search.items(filters),
-    ) { filters, items ->
+        hideBalance,
+    ) { filters, items, hide ->
         val chainFilter = filters?.chainFilter.orEmpty()
         val balanceFilter = filters?.hasBalance == true
         val wallet = session.value?.wallet
@@ -107,7 +111,7 @@ open class BaseAssetSelectViewModel(
             .filter { (chainFilter.isEmpty() || it.id().chain in chainFilter) && (!balanceFilter || it.balance.totalAmount > 0.0) }
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
-                AssetInfoUIModel(if (item.owner == owner) item else item.copy(owner = owner))
+                AssetInfoUIModel(if (item.owner == owner) item else item.copy(owner = owner), hideBalances = hide)
             }
     }
     .flowOn(Dispatchers.IO)

@@ -164,11 +164,12 @@ extension PortfolioSceneViewModel {
             period: selectedPeriod,
             formatter: chartFormatter,
             showHeaderValue: state.selectedType == .wallet || state.selectedChartType == .value,
+            hideBalance: preferences.isHideBalanceEnabled,
         )
     }
 
     private func allTimeModel(title: String, chartValue: ChartValuePercentage) -> ListItemModel {
-        AllTimeValueViewModel(priceFormatter: priceFormatter, percentFormatter: percentFormatter)
+        AllTimeValueViewModel(priceFormatter: priceFormatter, percentFormatter: percentFormatter, hideBalance: preferences.isHideBalanceEnabled)
             .model(title: title, chartValue: chartValue)
     }
 

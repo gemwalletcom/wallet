@@ -48,7 +48,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferences: .mock(),
             onHeaderAction: { selectedAction = $0 },
         )
 
@@ -69,7 +69,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferences: .mock(),
         )
 
         #expect(model.onTransactionHeaderTap == nil)
@@ -274,7 +274,7 @@ struct TransactionSceneViewModelTests {
         let modelWithAddresses = TransactionSceneViewModel(
             transaction: transaction,
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferences: .mock(),
         )
 
         if case let .participant(item) = modelWithAddresses.item(for: TransactionItem.participant) {
@@ -425,7 +425,7 @@ extension TransactionSceneViewModel {
                 assets: assets,
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferences: .mock(),
         )
     }
 

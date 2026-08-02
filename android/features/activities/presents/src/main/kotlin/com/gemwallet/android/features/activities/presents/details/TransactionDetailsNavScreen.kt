@@ -18,6 +18,7 @@ fun TransactionDetailsNavScreen(
     viewModel: TransactionDetailsViewModel = hiltViewModel(),
 ) {
     val transaction by viewModel.data.collectAsStateWithLifecycle()
+    val hideBalance by viewModel.hideBalance.collectAsStateWithLifecycle()
     var isShowFeeDetails by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -36,6 +37,7 @@ fun TransactionDetailsNavScreen(
 
     TransactionDetailsScene(
         data = model,
+        hideBalance = hideBalance,
         onAction = {
             when (it) {
                 TransactionDetailsAction.Share -> onShare(model.explorer.url, model.explorer.name)

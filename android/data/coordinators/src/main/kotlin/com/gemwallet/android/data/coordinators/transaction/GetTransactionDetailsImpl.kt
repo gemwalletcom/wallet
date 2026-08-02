@@ -26,6 +26,8 @@ import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.masked
+import com.gemwallet.android.model.maskedOrNull
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
@@ -60,7 +62,7 @@ class GetTransactionDetailsImpl(
     private val createExplorer: (String) -> Explorer = ::Explorer,
 ) : GetTransactionDetails {
 
-    override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> {
+    override fun getTransactionDetails(id: TransactionId, hideBalance: Boolean): Flow<TransactionDetailsAggregate?> {
         return combine(
             sessionRepository.session().filterNotNull(),
             transactionRepository.getTransaction(id),
@@ -82,6 +84,7 @@ class GetTransactionDetailsImpl(
                         associatedAssets = assets,
                         explorer = explorerInfo,
                         currency = session.currency,
+                        hideBalance = hideBalance,
                         swapProvider = swapProvider,
                         swapMetadata = swapMetadata,
                         senderExplorerLink = BlockExplorerLink(
@@ -106,6 +109,7 @@ class TransactionDetailsAggregateImpl(
     swapMetadata: TransactionSwapMetadata? = null,
     override val explorer: TransactionDetailsValue.Explorer,
     override val currency: Currency,
+    private val hideBalance: Boolean = false,
     private val swapProvider: SwapperProviderType? = null,
     private val senderExplorerLink: BlockExplorerLink? = null,
     private val recipientExplorerLink: BlockExplorerLink? = null,
@@ -177,7 +181,12 @@ class TransactionDetailsAggregateImpl(
                         TransactionType.PerpetualModifyPosition,
                         TransactionType.TokenApproval -> Pair(data.asset.symbol, null)
                     }
-                    TransactionDetailsValue.Amount.Plain(data.asset, amount, equivalent)
+                    val isAmount = data.transaction.type != TransactionType.TokenApproval
+                    TransactionDetailsValue.Amount.Plain(
+                        data.asset,
+                        amount.masked(hideBalance && isAmount),
+                        equivalent.maskedOrNull(hideBalance && isAmount),
+                    )
                 }
             }
         }

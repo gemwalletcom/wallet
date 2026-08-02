@@ -9,24 +9,29 @@ public struct TransactionHeaderListItemView: View {
     private let headerType: TransactionHeaderType
     private let showClearHeader: Bool
     private let action: TransactionHeaderActionHandler?
+    private let hideBalance: Bool
 
     public init(
         headerType: TransactionHeaderType,
         showClearHeader: Bool,
         action: TransactionHeaderActionHandler? = nil,
+        hideBalance: Bool = false,
     ) {
         self.headerType = headerType
         self.showClearHeader = showClearHeader
         self.action = action
+        self.hideBalance = hideBalance
     }
 
     public init(
         model: TransactionHeaderItemModel,
         action: TransactionHeaderActionHandler? = nil,
+        hideBalance: Bool = false,
     ) {
         headerType = model.headerType
         showClearHeader = model.showClearHeader
         self.action = action
+        self.hideBalance = hideBalance
     }
 
     public var body: some View {
@@ -46,14 +51,14 @@ public struct TransactionHeaderListItemView: View {
         switch headerType {
         case .swap:
             // Swap row has two distinct tap regions; SwapAmountView wires Buttons internally.
-            TransactionHeaderView(type: headerType, action: action)
+            TransactionHeaderView(type: headerType, action: action, hideBalance: hideBalance)
         case .amount, .nft, .asset, .assetValue:
             if let action {
                 Button { action(.header) } label: {
-                    TransactionHeaderView(type: headerType)
+                    TransactionHeaderView(type: headerType, hideBalance: hideBalance)
                 }
             } else {
-                TransactionHeaderView(type: headerType)
+                TransactionHeaderView(type: headerType, hideBalance: hideBalance)
             }
         }
     }

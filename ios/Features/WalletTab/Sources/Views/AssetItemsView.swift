@@ -10,13 +10,14 @@ struct AssetItemsView: View {
     let currencyCode: String
     let contextMenuItems: (AssetData) -> [ContextMenuItemType]
     let onSelect: (Asset) -> Void
+    var hideBalance: Bool = false
 
     var body: some View {
         ForEach(items) { assetData in
             NavigationCustomLink(
                 with: ListAssetItemView(
                     model: ListAssetItemViewModel(
-                        showBalancePrivacy: .constant(false),
+                        showBalancePrivacy: .constant(hideBalance),
                         assetData: assetData,
                         formatter: .short,
                         currencyCode: currencyCode,

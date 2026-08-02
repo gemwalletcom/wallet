@@ -11,6 +11,7 @@ import SwiftUI
 public struct AssetDataViewModel: Sendable {
     private let assetData: AssetData
     private let balanceViewModel: BalanceViewModel
+    private let hideBalance: Bool
 
     public let priceViewModel: PriceViewModel
     public let currencyCode: String
@@ -20,6 +21,7 @@ public struct AssetDataViewModel: Sendable {
         formatter: ValueFormatter,
         currencyCode: String,
         currencyFormatterType: CurrencyFormatterType = .currency,
+        hideBalance: Bool = false,
     ) {
         self.assetData = assetData
         priceViewModel = PriceViewModel(
@@ -33,6 +35,7 @@ public struct AssetDataViewModel: Sendable {
             formatter: formatter,
         )
         self.currencyCode = currencyCode
+        self.hideBalance = hideBalance
     }
 
     public var availableBalanceTitle: String {
@@ -94,15 +97,15 @@ public struct AssetDataViewModel: Sendable {
     }
 
     public var totalBalanceTextWithSymbol: String {
-        balanceViewModel.totalBalanceTextWithSymbol
+        balanceViewModel.totalBalanceTextWithSymbol.masked(if: hideBalance)
     }
 
     public var availableBalanceTextWithSymbol: String {
-        balanceViewModel.availableBalanceTextWithSymbol
+        balanceViewModel.availableBalanceTextWithSymbol.masked(if: hideBalance)
     }
 
     public func balanceTextWithSymbol(for type: StakeProviderType) -> String {
-        balanceViewModel.balanceTextWithSymbol(for: type)
+        balanceViewModel.balanceTextWithSymbol(for: type).masked(if: hideBalance)
     }
 
     public var hasReservedBalance: Bool {
@@ -118,11 +121,11 @@ public struct AssetDataViewModel: Sendable {
     }
 
     public var reservedBalanceTextWithSymbol: String {
-        balanceViewModel.reservedBalanceTextWithSymbol
+        balanceViewModel.reservedBalanceTextWithSymbol.masked(if: hideBalance)
     }
 
     public var pendingUnconfirmedBalanceTextWithSymbol: String {
-        balanceViewModel.pendingUnconfirmedBalanceTextWithSymbol
+        balanceViewModel.pendingUnconfirmedBalanceTextWithSymbol.masked(if: hideBalance)
     }
 
     public var balanceTextColor: Color {
@@ -148,7 +151,7 @@ public struct AssetDataViewModel: Sendable {
         return CurrencyFormatter(
             type: .currency,
             currencyCode: currencyCode,
-        ).string(value)
+        ).string(value).masked(if: hideBalance)
     }
 
     public var isEnabled: Bool {

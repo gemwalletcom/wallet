@@ -38,6 +38,7 @@ public struct TransactionScene: View {
             TransactionHeaderListItemView(
                 model: model,
                 action: self.model.onTransactionHeaderTap,
+                hideBalance: self.model.hideBalance,
             )
         case let .swapProgress(model):
             TransactionSwapProgressView(model: model)

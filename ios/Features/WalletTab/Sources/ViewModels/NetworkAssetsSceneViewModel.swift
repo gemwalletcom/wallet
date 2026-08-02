@@ -16,7 +16,7 @@ import SwiftUI
 public final class NetworkAssetsSceneViewModel {
     private let balanceService: BalanceService
     private let assetsEnabler: any AssetsEnabler
-    private let preferences: Preferences
+    private let preferences: ObservablePreferences
     private let wallet: Wallet
     private let onManageAssetsAction: () -> Void
 
@@ -30,7 +30,7 @@ public final class NetworkAssetsSceneViewModel {
         chain: Chain,
         balanceService: BalanceService,
         assetsEnabler: any AssetsEnabler,
-        preferences: Preferences = .standard,
+        preferences: ObservablePreferences = .default,
         onManageAssets: @escaping () -> Void,
     ) {
         self.wallet = wallet
@@ -61,7 +61,11 @@ public final class NetworkAssetsSceneViewModel {
     }
 
     var currencyCode: String {
-        preferences.currency
+        preferences.preferences.currency
+    }
+
+    var hideBalance: Bool {
+        preferences.isHideBalanceEnabled
     }
 
     var active: [AssetData] {

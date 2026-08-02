@@ -10,9 +10,11 @@ import Primitives
 
 struct TransactionSwapProgressViewModel {
     private let transaction: TransactionExtended
+    private let hideBalance: Bool
 
-    init(transaction: TransactionExtended) {
+    init(transaction: TransactionExtended, hideBalance: Bool = false) {
         self.transaction = transaction
+        self.hideBalance = hideBalance
     }
 }
 
@@ -49,7 +51,7 @@ extension TransactionSwapProgressViewModel {
         let transferTitle = Localized.Transfer.title
         let chainName = fromAsset.id.chain.networkName
         let amount = ValueFormatter.auto.string(BigInt.fromString(metadata.fromValue), asset: fromAsset)
-        let transferSubtitle = "\(amount) (\(chainName))"
+        let transferSubtitle = "\(amount.masked(if: hideBalance)) (\(chainName))"
         let swapTitle = Localized.Wallet.swap
         let swapSubtitle = provider.name
 

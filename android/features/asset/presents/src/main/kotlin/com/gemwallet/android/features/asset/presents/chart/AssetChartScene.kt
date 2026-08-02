@@ -27,6 +27,7 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.masked
 import java.math.BigDecimal
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -317,7 +318,7 @@ private fun LazyListScope.marketProperties(asset: Asset, items: List<MarketInfoU
     }
 }
 
-internal fun LazyListScope.allTimeProperties(currency: Currency, items: List<AllTimeUIModel>) {
+internal fun LazyListScope.allTimeProperties(currency: Currency, items: List<AllTimeUIModel>, hideBalance: Boolean = false) {
     val dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM)
 
     itemsPositioned(items) { position, item ->
@@ -332,7 +333,8 @@ internal fun LazyListScope.allTimeProperties(currency: Currency, items: List<All
             trailing = {
                 val rowScope = this
                 Column(horizontalAlignment = Alignment.End) {
-                    with(rowScope) { PropertyDataText(CurrencyFormatter(currency = currency).string(item.value)) }
+                    val value = CurrencyFormatter(currency = currency).string(item.value).masked(hideBalance)
+                    with(rowScope) { PropertyDataText(value) }
                     ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toValueDirection().color())
                 }
             },

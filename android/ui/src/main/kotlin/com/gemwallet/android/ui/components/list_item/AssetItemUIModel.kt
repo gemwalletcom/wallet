@@ -5,6 +5,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.subtype
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.masked
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.gemwallet.android.ui.models.PriceUIModel
@@ -47,7 +48,7 @@ open class AssetInfoUIModel(
         get() = assetInfo.balance.totalAmount
 
     override val cryptoFormatted: String
-        get() = if (hideBalances) "*****" else super.cryptoFormatted
+        get() = super.cryptoFormatted.masked(hideBalances)
 
     override val fiat: Double? by lazy {
         val price = assetInfo.price?.price?.price ?: 0.0
@@ -55,7 +56,7 @@ open class AssetInfoUIModel(
     }
 
     override val fiatFormatted: String
-        get() = if (hideBalances) "*****" else super.fiatFormatted
+        get() = super.fiatFormatted.masked(hideBalances)
 
     override val price: PriceUIModel by lazy {
         AssetPriceUIModel(currency, assetInfo.price?.price)
