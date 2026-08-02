@@ -32,16 +32,6 @@ android {
         consumerProguardFiles(gemstoneRoot.resolve("android/gemstone/consumer-rules.pro"))
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                gemstoneRoot.resolve("android/gemstone/proguard-rules.pro")
-            )
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
