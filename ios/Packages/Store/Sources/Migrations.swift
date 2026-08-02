@@ -500,7 +500,7 @@ struct Migrations {
         }
 
         migrator.registerMigration("Add associations to \(AssetRecord.databaseTableName)") { db in
-            try db.alter(table: AssetRecord.databaseTableName) {
+            try? db.alter(table: AssetRecord.databaseTableName) {
                 $0.add(column: AssetRecord.Columns.associations.name, .jsonText)
                     .notNull()
                     .defaults(to: "[]")
