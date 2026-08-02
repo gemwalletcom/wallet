@@ -116,9 +116,11 @@ fun ConfirmScreen(
     }
 
     LaunchedEffect(params, simulationResult) {
-        if (params != null) {
-            viewModel.init(params, simulationResult)
+        if (params == null) {
+            cancelAction()
+            return@LaunchedEffect
         }
+        viewModel.init(params, simulationResult)
     }
 
     BackHandler(handleSystemBack) {

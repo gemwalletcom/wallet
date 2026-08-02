@@ -29,7 +29,6 @@
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
 
--keep,allowshrinking,allowoptimization class com.gemwallet.android.model.ConfirmParams$**
 -keep class com.sun.jna.** { *; }
 -keep class * extends com.sun.jna.Structure { *; }
 -keepattributes *Annotation*,InnerClasses,EnclosingMethod,Signature
