@@ -193,7 +193,7 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
             asset_id,
             from: parse_address(&out_message.source)?,
             to,
-            value: out_message.value.clone().unwrap_or_else(|| "0".to_string()),
+            value: parse_ton_value(&out_message.value),
             transaction_type: TransactionType::Transfer,
             memo: extract_memo(out_message),
             metadata: None,
@@ -218,6 +218,14 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
     }
 
     None
+}
+
+fn parse_ton_value(value: &Option<String>) -> String {
+    value
+        .as_deref()
+        .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))
+        .unwrap_or("0")
+        .to_string()
 }
 
 fn parse_address(address: &str) -> Option<String> {
@@ -358,6 +366,14 @@ mod tests {
         assert_eq!(transaction.out_msgs[0].destination, None);
 
         assert_eq!(transaction.out_msgs[1].value, Some("137245095".to_string()));
+    }
+
+    #[test]
+    fn test_parse_ton_value() {
+        assert_eq!(parse_ton_value(&Some("137245095".to_string())), "137245095");
+        assert_eq!(parse_ton_value(&None), "0");
+        assert_eq!(parse_ton_value(&Some("".to_string())), "0");
+        assert_eq!(parse_ton_value(&Some("54.108086".to_string())), "0");
     }
 
     #[test]
