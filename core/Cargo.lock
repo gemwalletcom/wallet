@@ -6322,6 +6322,7 @@ dependencies = [
  "coingecko",
  "gem_client",
  "gem_ton",
+ "gem_tracing",
  "jupiter",
  "primitives",
  "serde",

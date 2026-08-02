@@ -52,7 +52,7 @@ impl<C: Client> CoinGeckoClient<C> {
                 let response: CoinGeckoResponse<T> = self.client.get(path).await.map_err(|e| -> Box<dyn Error + Send + Sync> { Box::new(e) })?;
                 match response {
                     CoinGeckoResponse::Success(data) => Ok(data),
-                    CoinGeckoResponse::Error(error) => Err(error.error.into()),
+                    CoinGeckoResponse::Error(error) => Err(error.into()),
                 }
             },
             3,

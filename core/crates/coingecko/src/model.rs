@@ -204,6 +204,20 @@ pub struct CoinGeckoErrorResponse {
     pub error: String,
 }
 
+impl CoinGeckoErrorResponse {
+    pub fn is_coin_not_found(&self) -> bool {
+        self.error.eq_ignore_ascii_case("coin not found")
+    }
+}
+
+impl std::fmt::Display for CoinGeckoErrorResponse {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.error)
+    }
+}
+
+impl std::error::Error for CoinGeckoErrorResponse {}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum CoinGeckoResponse<T> {
