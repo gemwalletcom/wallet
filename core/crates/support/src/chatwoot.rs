@@ -35,10 +35,18 @@ impl ChatwootClient {
             .json(self.with_widget_public_token(self.client.post(self.widget_url(PATH_CONFIG))).send().await?)
             .await?;
 
+        self.set_contact(device, &response.website_channel_config.auth_token).await
+    }
+
+    pub async fn update_contact(&self, session: &ChatwootSession, device: &Device) -> Result<ChatwootSession, Box<dyn Error + Send + Sync>> {
+        self.set_contact(device, &session.auth_token).await
+    }
+
+    async fn set_contact(&self, device: &Device, auth_token: &str) -> Result<ChatwootSession, Box<dyn Error + Send + Sync>> {
         let update = ChatwootContactUpdate::new(device);
         let contact: ChatwootContactResponse = self
             .json(
-                self.authenticated(self.client.patch(self.widget_url(PATH_CONTACT_SET_USER)), &response.website_channel_config.auth_token)?
+                self.authenticated(self.client.patch(self.widget_url(PATH_CONTACT_SET_USER)), auth_token)?
                     .json(&update)
                     .send()
                     .await?,
@@ -46,7 +54,7 @@ impl ChatwootClient {
             .await?;
 
         Ok(ChatwootSession {
-            auth_token: contact.widget_auth_token.unwrap_or(response.website_channel_config.auth_token),
+            auth_token: contact.widget_auth_token.unwrap_or_else(|| auth_token.to_string()),
         })
     }
 

@@ -11,6 +11,7 @@ use crate::params::{
     AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, QueryLimitParam, TransactionIdParam, UserAgent,
 };
 use crate::responders::{ApiError, ApiResponse};
+use crate::support::SupportApiClient;
 use auth_config::AuthConfig;
 use body::DeviceJson;
 pub use client::DevicesClient;
@@ -208,12 +209,19 @@ pub async fn redeem_device_rewards_v2(
 }
 
 #[put("/devices", format = "json", data = "<device_input>")]
-pub async fn update_device_v2(device: AuthenticatedDevice, device_input: DeviceJson<Device>, client: &State<DevicesClient>) -> Result<ApiResponse<Device>, ApiError> {
+pub async fn update_device_v2(
+    device: AuthenticatedDevice,
+    device_input: DeviceJson<Device>,
+    client: &State<DevicesClient>,
+    support_client: &State<SupportApiClient>,
+) -> Result<ApiResponse<Device>, ApiError> {
     let device_input = device_input.into_inner();
     if device_input.id != device.device_row.device_id {
         return Err(ApiError::BadRequest("Device id mismatch".to_string()));
     }
-    Ok(client.update_device(device_input)?.into())
+    support_client.update_contact(device.device_row.id, &device_input).await?;
+    let updated_device = client.update_device(device_input)?;
+    Ok(updated_device.into())
 }
 
 #[post("/devices/push-notification")]
