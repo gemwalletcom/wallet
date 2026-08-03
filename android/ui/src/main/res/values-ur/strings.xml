@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">اجازتیں</string>
   <string name="wallet_connect_permissions_view_balance">اپنا توازن اور سرگرمی دیکھیں</string>
   <string name="wallet_connect_permissions_approval_requests">منظوری کی درخواستیں بھیجیں۔</string>
+  <string name="errors_payment_expired">ادائیگی کی میعاد ختم ہو گئی</string>
+  <string name="errors_payment_not_allowed">ادائیگی کی اجازت نہیں</string>
+  <string name="transfer_payment_expires_in">ادائیگی ختم ہونے میں</string>
+  <string name="transfer_pay_with">اس سے ادائیگی کریں</string>
+  <string name="transfer_payment_title">ادائیگی</string>
+  <string name="transfer_merchant">تاجر</string>
   <string name="swap_you_pay">آپ ادا کرتے ہیں</string>
   <string name="swap_you_receive">آپ وصول کرتے ہیں</string>
   <string name="swap_price_impact">قیمت کا اثر</string>

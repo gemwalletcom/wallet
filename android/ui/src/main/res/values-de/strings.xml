@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Berechtigungen</string>
   <string name="wallet_connect_permissions_view_balance">Sehen Sie Ihren Kontostand und Ihre Aktivitäten ein.</string>
   <string name="wallet_connect_permissions_approval_requests">Genehmigungsanfragen senden</string>
+  <string name="errors_payment_expired">Zahlung abgelaufen</string>
+  <string name="errors_payment_not_allowed">Zahlung nicht zulässig</string>
+  <string name="transfer_payment_expires_in">Zahlung läuft ab in</string>
+  <string name="transfer_pay_with">Bezahlen mit</string>
+  <string name="transfer_payment_title">Zahlung</string>
+  <string name="transfer_merchant">Händler</string>
   <string name="swap_you_pay">Sie bezahlen</string>
   <string name="swap_you_receive">Sie erhalten</string>
   <string name="swap_price_impact">Preisauswirkungen</string>

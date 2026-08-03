@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Quyền hạn</string>
   <string name="wallet_connect_permissions_view_balance">Xem số dư và hoạt động của bạn</string>
   <string name="wallet_connect_permissions_approval_requests">Gửi yêu cầu phê duyệt</string>
+  <string name="errors_payment_expired">Thanh toán đã hết hạn</string>
+  <string name="errors_payment_not_allowed">Thanh toán không được phép</string>
+  <string name="transfer_payment_expires_in">Thanh toán hết hạn sau</string>
+  <string name="transfer_pay_with">Thanh toán bằng</string>
+  <string name="transfer_payment_title">Thanh toán</string>
+  <string name="transfer_merchant">Người bán</string>
   <string name="swap_you_pay">Bạn trả</string>
   <string name="swap_you_receive">Bạn nhận được</string>
   <string name="swap_price_impact">Tác động giá</string>

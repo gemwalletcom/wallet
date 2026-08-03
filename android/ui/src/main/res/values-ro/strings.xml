@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Permisiuni</string>
   <string name="wallet_connect_permissions_view_balance">Vizualizați soldul și activitatea dvs.</string>
   <string name="wallet_connect_permissions_approval_requests">Trimiteți cereri de aprobare</string>
+  <string name="errors_payment_expired">Plată expirată</string>
+  <string name="errors_payment_not_allowed">Plată nepermisă</string>
+  <string name="transfer_payment_expires_in">Plata expiră în</string>
+  <string name="transfer_pay_with">Plătește cu</string>
+  <string name="transfer_payment_title">Plată</string>
+  <string name="transfer_merchant">Comerciant</string>
   <string name="swap_you_pay">Tu plătești</string>
   <string name="swap_you_receive">Tu Primești</string>
   <string name="swap_price_impact">Impactul prețului</string>

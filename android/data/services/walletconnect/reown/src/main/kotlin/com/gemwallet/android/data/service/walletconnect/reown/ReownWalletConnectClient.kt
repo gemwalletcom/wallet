@@ -23,7 +23,7 @@ import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.WalletConnectAppMetadata
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.net.URI
 import kotlinx.coroutines.channels.BufferOverflow
@@ -294,14 +294,14 @@ private fun Wallet.Model.Session.toWalletConnectSession(): WalletConnectSession 
     return WalletConnectSession(
         topic = topic,
         expiry = expiry,
-        metadata = metaData?.toWalletConnectionSessionAppMetadata(),
+        metadata = metaData?.toWalletConnectAppMetadata(),
         namespaces = namespaces.mapValues { it.value.toWalletConnectSessionNamespace() },
         redirect = redirect,
     )
 }
 
-private fun Core.Model.AppMetaData.toWalletConnectionSessionAppMetadata(): WalletConnectionSessionAppMetadata {
-    return WalletConnectionSessionAppMetadata(
+private fun Core.Model.AppMetaData.toWalletConnectAppMetadata(): WalletConnectAppMetadata {
+    return WalletConnectAppMetadata(
         name = name,
         description = description,
         url = url,
@@ -359,7 +359,7 @@ private fun Wallet.Model.SessionRequest.toWalletConnectSessionRequest(): WalletC
 private fun Wallet.Model.SessionAuthenticate.toWalletConnectAuthenticationRequest(): WalletConnectAuthenticationRequest {
     return WalletConnectAuthenticationRequest(
         id = id,
-        metadata = participant.metadata?.toWalletConnectionSessionAppMetadata(),
+        metadata = participant.metadata?.toWalletConnectAppMetadata(),
         payloadParams = payloadParams.toWalletConnectAuthPayloadParams(),
     )
 }

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.bridge
 
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.WalletConnectAppMetadata
 import kotlinx.coroutines.flow.Flow
 
 interface WalletConnectClient {
@@ -54,7 +54,7 @@ sealed interface WalletConnectEvent {
 data class WalletConnectSession(
     val topic: String,
     val expiry: Long,
-    val metadata: WalletConnectionSessionAppMetadata?,
+    val metadata: WalletConnectAppMetadata?,
     val namespaces: Map<String, WalletConnectSessionNamespace>,
     val redirect: String?,
 )
@@ -95,7 +95,7 @@ data class WalletConnectSessionRequest(
 
 data class WalletConnectAuthenticationRequest(
     val id: Long,
-    val metadata: WalletConnectionSessionAppMetadata?,
+    val metadata: WalletConnectAppMetadata?,
     val payloadParams: WalletConnectAuthPayloadParams,
 )
 

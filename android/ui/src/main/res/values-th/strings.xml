@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">สิทธิ์การเข้าถึง</string>
   <string name="wallet_connect_permissions_view_balance">ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ</string>
   <string name="wallet_connect_permissions_approval_requests">ส่งคำขออนุมัติ</string>
+  <string name="errors_payment_expired">การชำระเงินหมดอายุ</string>
+  <string name="errors_payment_not_allowed">ไม่อนุญาตให้ชำระเงิน</string>
+  <string name="transfer_payment_expires_in">การชำระเงินหมดอายุใน</string>
+  <string name="transfer_pay_with">ชำระด้วย</string>
+  <string name="transfer_payment_title">การชำระเงิน</string>
+  <string name="transfer_merchant">ร้านค้า</string>
   <string name="swap_you_pay">คุณจ่าย</string>
   <string name="swap_you_receive">คุณได้รับ</string>
   <string name="swap_price_impact">ผลกระทบต่อราคา</string>

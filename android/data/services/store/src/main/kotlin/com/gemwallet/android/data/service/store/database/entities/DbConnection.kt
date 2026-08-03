@@ -8,8 +8,8 @@ import androidx.room.PrimaryKey
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
-import com.wallet.core.primitives.WalletConnectionSession
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.WalletConnectSession
+import com.wallet.core.primitives.WalletConnectAppMetadata
 import com.wallet.core.primitives.WalletConnectionState
 
 @Entity(
@@ -38,14 +38,14 @@ data class DbConnection(
 fun DbConnection.toDTO(wallet: Wallet): WalletConnection {
     return WalletConnection(
         wallet = wallet,
-        session = WalletConnectionSession(
+        session = WalletConnectSession(
             id = id,
             sessionId = sessionId,
             state = state,
             createdAt = createdAt,
             expireAt = expireAt,
             chains = chains,
-            metadata = WalletConnectionSessionAppMetadata(
+            metadata = WalletConnectAppMetadata(
                 name = appName,
                 description = appDescription,
                 icon = appIcon,

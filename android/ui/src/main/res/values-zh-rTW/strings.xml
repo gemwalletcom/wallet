@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">權限</string>
   <string name="wallet_connect_permissions_view_balance">查看您的餘額和活動</string>
   <string name="wallet_connect_permissions_approval_requests">發送審批請求</string>
+  <string name="errors_payment_expired">付款已過期</string>
+  <string name="errors_payment_not_allowed">不允許付款</string>
+  <string name="transfer_payment_expires_in">付款將於以下時間過期</string>
+  <string name="transfer_pay_with">付款方式</string>
+  <string name="transfer_payment_title">付款</string>
+  <string name="transfer_merchant">商戶</string>
   <string name="swap_you_pay">將支付</string>
   <string name="swap_you_receive">將收到</string>
   <string name="swap_price_impact">價格影響</string>

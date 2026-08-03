@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">권한</string>
   <string name="wallet_connect_permissions_view_balance">잔액과 활동 내역을 확인하세요</string>
   <string name="wallet_connect_permissions_approval_requests">승인 요청 보내기</string>
+  <string name="errors_payment_expired">결제 만료됨</string>
+  <string name="errors_payment_not_allowed">결제가 허용되지 않음</string>
+  <string name="transfer_payment_expires_in">결제 만료까지</string>
+  <string name="transfer_pay_with">결제 수단</string>
+  <string name="transfer_payment_title">결제</string>
+  <string name="transfer_merchant">가맹점</string>
   <string name="swap_you_pay">지불 금액</string>
   <string name="swap_you_receive">수령 금액</string>
   <string name="swap_price_impact">가격 영향</string>

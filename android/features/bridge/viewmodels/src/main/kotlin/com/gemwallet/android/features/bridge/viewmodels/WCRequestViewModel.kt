@@ -25,8 +25,8 @@ import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnection
-import com.wallet.core.primitives.WalletConnectionSession
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.WalletConnectSession
+import com.wallet.core.primitives.WalletConnectAppMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -189,7 +189,7 @@ class WCRequestViewModel @Inject constructor(
         action: WalletConnectAction,
         sessionRequest: WalletConnectSessionRequest,
         account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
+        appMetadata: WalletConnectAppMetadata,
         chain: Chain,
         sessionDomain: String,
     ): WCRequest = when (action) {
@@ -354,7 +354,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { RequestViewModelState() }
     }
 
-    private fun validateChain(chain: Chain, session: WalletConnectionSession) {
+    private fun validateChain(chain: Chain, session: WalletConnectSession) {
         if (!session.chains.contains(chain)) {
             throw BridgeRequestError.UnresolvedChainId
         }

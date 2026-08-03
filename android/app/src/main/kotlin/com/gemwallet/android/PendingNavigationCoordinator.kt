@@ -56,6 +56,7 @@ class PendingNavigationCoordinator @Inject constructor(
                     return
                 }
             }
+            is UrlAction.Payment -> Unit
             null -> Unit
         }
 
