@@ -15,3 +15,10 @@
 -keepclassmembers class androidx.appcompat.app.AppCompatDelegateImpl$AppCompatWindowCallback {
     *;
 }
+
+# Room resolves its generated Database/Dao implementations by class name at runtime;
+# keep them and the annotated declarations they're generated from intact.
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Dao class * { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep class com.gemwallet.android.data.service.store.database.** { *; }
