@@ -25,6 +25,8 @@ let package = Package(
         .library(name: "PriceAlertService", targets: ["PriceAlertService"]),
         .library(name: "PriceAlertServiceTestKit", targets: ["PriceAlertServiceTestKit"]),
         .library(name: "TransactionStateService", targets: ["TransactionStateService"]),
+        .library(name: "TransferService", targets: ["TransferService"]),
+        .library(name: "TransferServiceTestKit", targets: ["TransferServiceTestKit"]),
         .library(name: "TransactionStateServiceTestKit", targets: ["TransactionStateServiceTestKit"]),
         .library(name: "TransactionsService", targets: ["TransactionsService"]),
         .library(name: "TransactionsServiceTestKit", targets: ["TransactionsServiceTestKit"]),
@@ -73,6 +75,7 @@ let package = Package(
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "Signer", path: "../Signer"),
+        .package(name: "Validators", path: "../Validators"),
         .package(name: "Keystore", path: "../Keystore"),
         .package(name: "Formatters", path: "../Formatters"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
@@ -266,8 +269,30 @@ let package = Package(
             path: "PriceAlertService/TestKit",
         ),
         .target(
+            name: "TransferService",
+            dependencies: [
+                .product(name: "PaymentService", package: "ChainServices"),
+                .product(name: "ScanService", package: "ChainServices"),
+                .product(name: "Validators", package: "Validators"),
+                "Primitives",
+                "Blockchain",
+                "Signer",
+                "BalanceService",
+                "TransactionStateService",
+                "GemstonePrimitives",
+            ],
+            path: "TransferService",
+            exclude: ["TestKit", "Tests"],
+        ),
+        .target(
+            name: "TransferServiceTestKit",
+            dependencies: ["TransferService"],
+            path: "TransferService/TestKit",
+        ),
+        .target(
             name: "TransactionStateService",
             dependencies: [
+                .product(name: "PaymentService", package: "ChainServices"),
                 "Primitives",
                 "Store",
                 "Blockchain",
@@ -283,6 +308,8 @@ let package = Package(
         .target(
             name: "TransactionStateServiceTestKit",
             dependencies: [
+                .product(name: "PaymentServiceTestKit", package: "ChainServices"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "StakeServiceTestKit", package: "ChainServices"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
@@ -723,8 +750,23 @@ let package = Package(
             path: "AssetsService/Tests",
         ),
         .testTarget(
+            name: "TransferServiceTests",
+            dependencies: [
+                "TransferService",
+                "TransferServiceTestKit",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "BlockchainTestKit", package: "Blockchain"),
+                .product(name: "ChainServiceTestKit", package: "ChainServices"),
+                .product(name: "SignerTestKit", package: "Signer"),
+                "TransactionStateServiceTestKit",
+                "GemstonePrimitives",
+            ],
+            path: "TransferService/Tests",
+        ),
+        .testTarget(
             name: "TransactionStateServiceTests",
             dependencies: [
+                .product(name: "PaymentServiceTestKit", package: "ChainServices"),
                 "TransactionStateService",
                 "TransactionStateServiceTestKit",
                 "BalanceServiceTestKit",

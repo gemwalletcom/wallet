@@ -23,7 +23,7 @@ public extension ConfirmAppViewModel {
 
         return .app(
             ListItemModel(
-                title: Localized.WalletConnect.app,
+                title: title,
                 subtitle: name,
                 imageStyle: .list(assetImage: assetImage),
             ),
@@ -34,6 +34,13 @@ public extension ConfirmAppViewModel {
 // MARK: - Private
 
 extension ConfirmAppViewModel {
+    private var title: String {
+        switch type {
+        case .payment: Localized.Transfer.merchant
+        default: Localized.WalletConnect.app
+        }
+    }
+
     private var appValue: String? {
         switch type {
         case .transfer,
@@ -46,8 +53,10 @@ extension ConfirmAppViewModel {
              .account,
              .perpetual,
              .earn: .none
-        case let .generic(_, metadata, _):
-            metadata.shortName
+        case let .generic(_, app, _):
+            app.shortName
+        case let .payment(_, payment, _):
+            payment.merchant.name
         }
     }
 
@@ -64,8 +73,10 @@ extension ConfirmAppViewModel {
              .perpetual,
              .earn:
             .none
-        case let .generic(_, session, _):
-            AssetImage(imageURL: session.icon.asURL)
+        case let .generic(_, app, _):
+            AssetImage(imageURL: app.icon?.asURL)
+        case let .payment(_, payment, _):
+            AssetImage(imageURL: payment.merchant.iconUrl?.asURL)
         }
     }
 }

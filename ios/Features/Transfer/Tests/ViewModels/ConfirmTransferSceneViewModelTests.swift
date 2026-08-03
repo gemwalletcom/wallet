@@ -25,6 +25,7 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import ScanServiceTestKit
+import SigningRequestServiceTestKit
 import Store
 import Testing
 import TransactionStateServiceTestKit
@@ -71,7 +72,7 @@ struct ConfirmTransferSceneViewModelTests {
         }
 
         let modelWithWebsite = ConfirmTransferSceneViewModel.mock(
-            data: .mock(type: .generic(asset: .mock(), metadata: .mock(name: "Gem Wallet", url: "https://example.com"), extra: .mock())),
+            data: .mock(type: .generic(asset: .mock(), appMetadata: .mock(name: "Gem Wallet", url: "https://example.com"), extra: .mock())),
         )
         let appItemWithWebsite = modelWithWebsite.itemModel(for: .app) as? ConfirmAppViewModel
 
@@ -87,8 +88,8 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mock()))).title == Localized.Transfer.Send.title)
         // #expect(ConfirmTransferViewModel.mock(data: .mock(type: .transferNft(.mock()))).title == Localized.Transfer.Send.title)
         #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .swap(.mock(), .mock(), .mock()))).title == Localized.Wallet.swap)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .tokenApprove(.mock(), .mock()))).title == Localized.Wallet.swap)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock()))).title == Localized.Transfer.reviewRequest)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .tokenApprove(.mock(), .mock()))).title == Localized.Transfer.Approve.title)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .generic(asset: .mock(), appMetadata: .mock(), extra: .mock()))).title == Localized.Transfer.reviewRequest)
     }
 
     @Test
@@ -190,7 +191,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected network item model for USDT")
         }
 
-        let genericEthModel = ConfirmTransferSceneViewModel.mock(data: .mock(type: .generic(asset: .mockEthereum(), metadata: .mock(), extra: .mock())))
+        let genericEthModel = ConfirmTransferSceneViewModel.mock(data: .mock(type: .generic(asset: .mockEthereum(), appMetadata: .mock(), extra: .mock())))
         let genericEthNetworkItem = genericEthModel.itemModel(for: .network) as? ConfirmNetworkViewModel
 
         if case let .network(listItem) = genericEthNetworkItem?.itemModel {
@@ -199,7 +200,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected network item model for generic ETH")
         }
 
-        let genericUsdtModel = ConfirmTransferSceneViewModel.mock(data: .mock(type: .generic(asset: .mockEthereumUSDT(), metadata: .mock(), extra: .mock())))
+        let genericUsdtModel = ConfirmTransferSceneViewModel.mock(data: .mock(type: .generic(asset: .mockEthereumUSDT(), appMetadata: .mock(), extra: .mock())))
         let genericUsdtNetworkItem = genericUsdtModel.itemModel(for: .network) as? ConfirmNetworkViewModel
 
         if case let .network(listItem) = genericUsdtNetworkItem?.itemModel {
@@ -326,7 +327,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func walletConnectSectionsStructure() {
         let model = ConfirmTransferSceneViewModel.mock(
-            data: .mock(type: .generic(asset: .mockEthereum(), metadata: .mock(), extra: .mock(to: "0x1111111111111111111111111111111111111111"))),
+            data: .mock(type: .generic(asset: .mockEthereum(), appMetadata: .mock(), extra: .mock(to: "0x1111111111111111111111111111111111111111"))),
             simulation: .mock(
                 warnings: [SimulationWarning(
                     severity: .warning,
@@ -605,6 +606,19 @@ struct ConfirmTransferSceneViewModelTests {
         if case .empty = model.itemModel {
             Issue.record("Expected non-empty model")
         }
+    }
+
+    @Test
+    func confirmIsDisabledOnceThePaymentQuoteExpires() async {
+        let model = ConfirmTransferSceneViewModel.mock(
+            data: .mock(type: .payment(asset: .mock(), payment: .mock(expiresAt: .now), extra: .mock())),
+        )
+
+        #expect(model.isButtonDisabled == false)
+
+        await model.paymentExpiry.start()
+
+        #expect(model.isButtonDisabled)
     }
 }
 

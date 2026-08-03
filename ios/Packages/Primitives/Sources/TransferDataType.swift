@@ -15,6 +15,14 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
     case earn(Asset, EarnType, ContractCallData)
     case generic(asset: Asset, metadata: WalletConnectionSessionAppMetadata, extra: TransferDataExtra)
 
+    public var payment: PaymentData? {
+        switch self {
+        case let .payment(_, payment, _): payment
+        case .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove,
+             .stake, .account, .perpetual, .earn, .generic: .none
+        }
+    }
+
     public var transactionType: TransactionType {
         switch self {
         case .transfer: .transfer

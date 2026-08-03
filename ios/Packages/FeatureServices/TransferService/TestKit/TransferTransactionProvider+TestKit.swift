@@ -3,7 +3,7 @@
 import BigInt
 import Foundation
 import Primitives
-import Transfer
+import TransferService
 
 public struct TransferTransactionProviderMock: TransferTransactionProvidable {
     public var result: Result<TransferTransactionData, Error>

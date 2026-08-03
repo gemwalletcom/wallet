@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import PaymentService
 import Primitives
-import WalletConnector
 
 public struct TransferConfirmationInput: Sendable {
     public let data: TransferData
@@ -10,7 +10,7 @@ public struct TransferConfirmationInput: Sendable {
     public let transactionData: TransactionData
     public let amount: TransferAmount
     public let simulation: SimulationResult?
-    public let delegate: TransferDataCallback.ConfirmTransferDelegate?
+    public let delegate: StringResultAction?
 
     public init(
         data: TransferData,
@@ -18,7 +18,7 @@ public struct TransferConfirmationInput: Sendable {
         transactionData: TransactionData,
         amount: TransferAmount,
         simulation: SimulationResult? = nil,
-        delegate: TransferDataCallback.ConfirmTransferDelegate?,
+        delegate: StringResultAction?,
     ) {
         self.data = data
         self.wallet = wallet

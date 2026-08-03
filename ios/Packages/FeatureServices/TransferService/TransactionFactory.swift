@@ -3,8 +3,8 @@
 import Foundation
 import Primitives
 
-enum TransactionFactory {
-    static func makePendingTransaction(
+public enum TransactionFactory {
+    public static func makePendingTransaction(
         wallet: Wallet,
         transferData: TransferData,
         transactionData: TransactionData,

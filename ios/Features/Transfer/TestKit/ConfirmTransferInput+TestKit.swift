@@ -3,6 +3,7 @@
 import BigInt
 import Foundation
 import Primitives
+import TransferServiceTestKit
 import PrimitivesComponents
 import Transfer
 import Validators

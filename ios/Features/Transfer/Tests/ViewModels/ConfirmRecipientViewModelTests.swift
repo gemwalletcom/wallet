@@ -52,7 +52,7 @@ struct ConfirmRecipientViewModelTests {
     @Test
     func genericSend() {
         let model = ConfirmRecipientViewModel(
-            model: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .send))),
+            model: .mock(type: .generic(asset: .mock(), appMetadata: .mock(), extra: .mock(outputAction: .send))),
             addressName: nil,
             addressLink: .mock(),
         )
@@ -64,7 +64,7 @@ struct ConfirmRecipientViewModelTests {
     @Test
     func genericSign() {
         let model = ConfirmRecipientViewModel(
-            model: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .sign))),
+            model: .mock(type: .generic(asset: .mock(), appMetadata: .mock(), extra: .mock(outputAction: .sign))),
             addressName: nil,
             addressLink: .mock(),
         )

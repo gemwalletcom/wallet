@@ -3,6 +3,7 @@
 import Blockchain
 import Foundation
 import Primitives
+import TransferService
 import Validators
 
 enum ConfirmTransferError {

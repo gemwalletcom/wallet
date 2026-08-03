@@ -11,11 +11,11 @@ import TransferTestKit
 struct ConfirmAppViewModelTests {
     @Test
     func generic() {
-        let metadata = WalletConnectionSessionAppMetadata.mock(
+        let appMetadata = TransactionAppMetadata.mock(
             name: "PancakeSwap - Trade",
             url: "https://pancakeswap.finance/swap",
         )
-        let model = ConfirmAppViewModel(type: .generic(asset: .mock(), metadata: metadata, extra: .mock()))
+        let model = ConfirmAppViewModel(type: .generic(asset: .mock(), appMetadata: appMetadata, extra: .mock()))
 
         guard case let .app(item) = model.itemModel else { return }
         #expect(item.title == Localized.WalletConnect.app)

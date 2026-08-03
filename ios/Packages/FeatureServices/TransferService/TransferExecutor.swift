@@ -8,7 +8,8 @@ import Signer
 import TransactionStateService
 
 public protocol TransferExecutable: Sendable {
-    func execute(input: TransferConfirmationInput) async throws
+    @discardableResult
+    func execute(input: TransferConfirmationInput) async throws -> [String]
 }
 
 public struct TransferExecutor: TransferExecutable {
@@ -33,8 +34,10 @@ public struct TransferExecutor: TransferExecutable {
         self.transactionStateScheduler = transactionStateScheduler
     }
 
-    public func execute(input: TransferConfirmationInput) async throws {
+    @discardableResult
+    public func execute(input: TransferConfirmationInput) async throws -> [String] {
         let signedData = try await sign(input: input)
+        var results: [String] = []
 
         for (index, transactionData) in signedData.enumerated() {
             debugLog("TransferExecutor data \(transactionData)")
@@ -42,15 +45,17 @@ public struct TransferExecutor: TransferExecutable {
             switch input.data.type.outputAction {
             case .sign:
                 input.delegate?(.success(transactionData))
+                results.append(transactionData)
             case .send:
-                try await send(
+                try await results.append(send(
                     input: input,
                     transactionData: transactionData,
                     transactionIndex: index,
                     totalTransactions: signedData.count,
-                )
+                ))
             }
         }
+        return results
     }
 }
 
@@ -62,7 +67,7 @@ extension TransferExecutor {
         transactionData: String,
         transactionIndex: Int,
         totalTransactions: Int,
-    ) async throws {
+    ) async throws -> String {
         let hash = try await chainService.broadcast(data: transactionData, options: broadcastOptions(data: input.data))
 
         debugLog("TransferExecutor broadcast response hash \(hash)")
@@ -98,6 +103,7 @@ extension TransferExecutor {
         if totalTransactions > 1, transactionIndex < totalTransactions - 1 {
             try await Task.sleep(for: transactionDelay(for: input.data.chain.type))
         }
+        return hash
     }
 
     private func sign(input: TransferConfirmationInput) async throws -> [String] {
@@ -131,7 +137,7 @@ extension TransferExecutor {
                 && data.quote.providerData.provider == .hyperliquid
                 && transactionIndex < totalTransactions - 1:
                 return []
-            case .stake, .perpetual, .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove, .generic, .account, .earn:
+            case .stake, .perpetual, .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove, .generic, .payment, .account, .earn:
                 break
             }
         default:
@@ -152,7 +158,7 @@ extension TransferExecutor {
             case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .tokenApprove, .perpetual, .earn: BroadcastOptions(
                     skipPreflight: false,
                 )
-            case .swap, .generic: BroadcastOptions(skipPreflight: true)
+            case .swap, .generic, .payment: BroadcastOptions(skipPreflight: true)
             }
         default: BroadcastOptions(skipPreflight: false)
         }

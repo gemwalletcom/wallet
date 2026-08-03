@@ -2,6 +2,7 @@
 
 import Blockchain
 import Foundation
+import PaymentService
 import Primitives
 import Store
 
@@ -26,16 +27,19 @@ public struct TransactionStateService: Sendable {
     private let transactionStore: TransactionStore
     private let postProcessingService: TransactionPostProcessingService
     private let statusService: any TransactionStatusServiceable
+    private let paymentStatusService: any PaymentStatusServiceable
 
     public init(
         transactionStore: TransactionStore,
         gatewayService: GatewayService,
         postProcessingService: TransactionPostProcessingService,
+        paymentStatusService: any PaymentStatusServiceable,
     ) {
         self.init(
             transactionStore: transactionStore,
             postProcessingService: postProcessingService,
             statusService: gatewayService,
+            paymentStatusService: paymentStatusService,
         )
     }
 
@@ -43,10 +47,12 @@ public struct TransactionStateService: Sendable {
         transactionStore: TransactionStore,
         postProcessingService: TransactionPostProcessingService,
         statusService: any TransactionStatusServiceable,
+        paymentStatusService: any PaymentStatusServiceable,
     ) {
         self.transactionStore = transactionStore
         self.postProcessingService = postProcessingService
         self.statusService = statusService
+        self.paymentStatusService = paymentStatusService
     }
 
     func update(for transaction: Transaction) async -> TransactionStateUpdateResult {
@@ -77,6 +83,9 @@ public struct TransactionStateService: Sendable {
 
 extension TransactionStateService {
     private func fetchStateChanges(for transaction: Transaction) async throws -> TransactionChanges {
+        if let payment = transaction.paymentMetadata, paymentStatusService.hasStatus(provider: payment.provider) {
+            return try await paymentStateChanges(payment: payment, transaction: transaction)
+        }
         let request = transactionStateRequest(for: transaction)
         if let swapRequest = transactionSwapStateRequest(for: transaction, transactionRequest: request) {
             return try await statusService.transactionSwapStatus(
@@ -91,6 +100,21 @@ extension TransactionStateService {
             chain: transaction.assetId.chain,
             request: request,
         )
+    }
+
+    private func paymentStateChanges(payment: TransactionPaymentMetadata, transaction: Transaction) async throws -> TransactionChanges {
+        let result = try await paymentStatusService.getPaymentStatus(provider: payment.provider, paymentId: payment.paymentId)
+        switch result.status {
+        case .succeeded:
+            guard let hash = result.transactionId, transaction.isAwaitingPaymentHash else {
+                return TransactionChanges(state: .confirmed)
+            }
+            return TransactionChanges(state: .confirmed, changes: [.hashChange(old: transaction.id.hash, new: hash)])
+        case .failed, .expired, .cancelled:
+            return TransactionChanges(state: .failed)
+        case .processing, .requiresAction:
+            return TransactionChanges(state: transaction.state)
+        }
     }
 
     private func transactionStateRequest(for transaction: Transaction) -> TransactionStateRequest {

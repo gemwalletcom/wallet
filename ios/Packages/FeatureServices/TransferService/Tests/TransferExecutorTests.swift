@@ -11,7 +11,8 @@ import StoreTestKit
 import Testing
 import TransactionStateService
 import TransactionStateServiceTestKit
-@testable import Transfer
+import TransferServiceTestKit
+@testable import TransferService
 
 struct TransferExecutorTests {
     @Test

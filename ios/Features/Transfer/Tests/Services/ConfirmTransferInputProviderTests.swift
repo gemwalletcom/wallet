@@ -5,6 +5,8 @@ import Foundation
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
+import TransferService
+import TransferServiceTestKit
 import TransferTestKit
 import Validators
 

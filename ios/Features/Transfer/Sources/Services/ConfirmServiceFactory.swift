@@ -11,6 +11,7 @@ import Foundation
 import Keystore
 import PriceService
 import Primitives
+import TransferService
 import ScanService
 import Signer
 import TransactionStateService

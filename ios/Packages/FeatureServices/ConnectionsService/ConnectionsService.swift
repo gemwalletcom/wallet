@@ -63,7 +63,7 @@ public extension ConnectionsService {
         try await connector.pair(uri: uri)
     }
 
-    func disconnect(session: WalletConnectionSession) async throws {
+    func disconnect(session: WalletConnectSession) async throws {
         try await disconnect(sessionId: session.sessionId)
     }
 

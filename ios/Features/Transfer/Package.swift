@@ -34,7 +34,6 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
 
         .package(name: "Stake", path: "../Stake"),
-        .package(name: "WalletConnector", path: "../WalletConnector"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
         .package(name: "Swap", path: "../Swap"),
         .package(name: "Perpetuals", path: "../Perpetuals"),
@@ -63,16 +62,17 @@ let package = Package(
                 "Validators",
 
                 "Stake",
-                "WalletConnector",
                 "InfoSheet",
                 "Swap",
                 "Perpetuals",
                 "EventPresenterService",
 
                 .product(name: "ChainService", package: "ChainServices"),
+                .product(name: "PaymentService", package: "ChainServices"),
                 .product(name: "WalletService", package: "FeatureServices"),
                 .product(name: "NodeService", package: "ChainServices"),
                 .product(name: "TransactionStateService", package: "FeatureServices"),
+                .product(name: "TransferService", package: "FeatureServices"),
                 .product(name: "ScanService", package: "ChainServices"),
                 .product(name: "BalanceService", package: "FeatureServices"),
                 .product(name: "AssetsService", package: "FeatureServices"),
@@ -91,6 +91,7 @@ let package = Package(
             name: "TransferTestKit",
             dependencies: [
                 "Transfer",
+                .product(name: "TransferServiceTestKit", package: "FeatureServices"),
                 "Primitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
@@ -101,10 +102,12 @@ let package = Package(
             dependencies: [
                 "Transfer",
                 "TransferTestKit",
+                .product(name: "TransferServiceTestKit", package: "FeatureServices"),
                 "GemstonePrimitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "BlockchainTestKit", package: "Blockchain"),
                 .product(name: "ScanServiceTestKit", package: "ChainServices"),
+                .product(name: "SigningRequestServiceTestKit", package: "ChainServices"),
                 .product(name: "SwapServiceTestKit", package: "FeatureServices"),
                 .product(name: "KeystoreTestKit", package: "Keystore"),
                 .product(name: "WalletServiceTestKit", package: "FeatureServices"),

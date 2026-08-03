@@ -30,6 +30,7 @@ public struct ConfirmTransferScene: View {
         .task(id: model.feeModel.selection) {
             await model.fetch()
         }
+        .task { await model.paymentExpiry.start() }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .activityIndicator(isLoading: model.isConfirming, message: model.progressMessage)
@@ -49,6 +50,8 @@ extension ConfirmTransferScene {
                 headerType: model.headerType,
                 showClearHeader: model.showClearHeader,
             )
+        case let .paymentExpiry(title, expiresAt):
+            ListItemExpiryView(title: title, expiresAt: expiresAt)
         case let .app(model):
             ListItemImageView(model: model)
                 .contextMenu(

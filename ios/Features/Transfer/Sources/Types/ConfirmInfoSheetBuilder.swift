@@ -5,6 +5,7 @@ import Foundation
 import GemstonePrimitives
 import InfoSheet
 import Primitives
+import TransferService
 import PrimitivesComponents
 import Validators
 

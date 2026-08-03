@@ -8,6 +8,8 @@ import Foundation
 import NativeProviderService
 import NFTService
 import NFTServiceTestKit
+import PaymentService
+import PaymentServiceTestKit
 import Primitives
 import StakeService
 import StakeServiceTestKit
@@ -22,6 +24,7 @@ public extension TransactionStateScheduler {
         stakeService: StakeService = .mock(),
         earnService: EarnService = .mock(),
         nftService: NFTService = .mock(),
+        paymentStatusService: any PaymentStatusServiceable = PaymentStatusServiceableMock(),
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,
@@ -34,6 +37,7 @@ public extension TransactionStateScheduler {
             transactionStore: transactionStore,
             gatewayService: gatewayService,
             postProcessingService: postProcessingService,
+            paymentStatusService: paymentStatusService,
         )
         return TransactionStateScheduler(
             transactionStore: transactionStore,

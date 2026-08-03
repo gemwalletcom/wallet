@@ -8,6 +8,7 @@ import EventPresenterService
 import ExplorerService
 import Keystore
 import Primitives
+import TransferService
 
 public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable

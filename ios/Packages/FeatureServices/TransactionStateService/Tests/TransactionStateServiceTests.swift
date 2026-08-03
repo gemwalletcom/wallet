@@ -5,11 +5,13 @@ import EarnService
 import Foundation
 import GemAPITestKit
 import NFTServiceTestKit
+import PaymentService
 import Primitives
 import PrimitivesTestKit
 import StakeServiceTestKit
 import Store
 import StoreTestKit
+import PaymentServiceTestKit
 import Testing
 @testable import TransactionStateService
 import TransactionStateServiceTestKit
@@ -216,6 +218,54 @@ struct TransactionStateServiceTests {
     }
 
     @Test
+    func paymentSettlesWithGatewayTransactionHash() async throws {
+        let statusService = TransactionStatusServiceMock(stateChanges: TransactionChanges(state: .confirmed))
+        let paymentStatusService = PaymentStatusServiceableMock(result: .mock(status: .succeeded, transactionId: "0xsettled"))
+        let fixture = try makeFixture(
+            statusService: statusService,
+            paymentStatusService: paymentStatusService,
+            transaction: makePaymentTransaction(paymentId: "pay_1"),
+        )
+
+        let status = await fixture.service.update(for: fixture.transaction).status
+
+        expectComplete(status)
+        #expect(await paymentStatusService.paymentIds() == ["pay_1"])
+        #expect(await statusService.regularRequestCount() == 0)
+        let saved = try #require(fixture.store.getTransactions(states: [.confirmed]).first)
+        #expect(saved.id.hash == "0xsettled")
+    }
+
+    @Test
+    func paymentKeepsPendingWhileGatewayProcesses() async throws {
+        let fixture = try makeFixture(
+            statusService: TransactionStatusServiceMock(stateChanges: TransactionChanges(state: .confirmed)),
+            paymentStatusService: PaymentStatusServiceableMock(result: .mock(status: .processing)),
+            transaction: makePaymentTransaction(paymentId: "pay_1"),
+        )
+
+        let status = await fixture.service.update(for: fixture.transaction).status
+
+        expectRetry(status)
+        let saved = try #require(fixture.store.getTransactions(states: [.pending]).first)
+        #expect(saved.id.hash == "pay_1")
+    }
+
+    @Test
+    func paymentFailsWhenGatewayExpiresIt() async throws {
+        let fixture = try makeFixture(
+            statusService: TransactionStatusServiceMock(stateChanges: TransactionChanges(state: .confirmed)),
+            paymentStatusService: PaymentStatusServiceableMock(result: .mock(status: .expired)),
+            transaction: makePaymentTransaction(paymentId: "pay_1"),
+        )
+
+        let status = await fixture.service.update(for: fixture.transaction).status
+
+        expectComplete(status)
+        #expect(try fixture.store.getTransactions(states: [.failed]).count == 1)
+    }
+
+    @Test
     func postProcessingRefreshesSwapBalances() async throws {
         let fromAsset = AssetId.mock(.bitcoin)
         let toAsset = AssetId.mock(.ethereum)
@@ -297,6 +347,8 @@ private extension TransactionStateServiceTests {
         state: TransactionState = .pending,
         provider: SwapProvider? = .thorchain,
         statusService: any TransactionStatusServiceable,
+        paymentStatusService: any PaymentStatusServiceable = PaymentStatusServiceableMock(),
+        transaction: Transaction? = .none,
     ) throws -> Fixture {
         let fromAsset = AssetId.mock(.bitcoin)
         let toAsset = AssetId.mock(.ethereum)
@@ -307,7 +359,7 @@ private extension TransactionStateServiceTests {
         let store = TransactionStore.mock(db: db)
         let wallet = Wallet.mock()
         let walletId = wallet.id
-        let transaction = try makeSwapTransaction(
+        let transaction = try transaction ?? makeSwapTransaction(
             fromAsset: fromAsset,
             toAsset: toAsset,
             state: state,
@@ -326,6 +378,7 @@ private extension TransactionStateServiceTests {
             transactionStore: store,
             postProcessingService: postProcessingService,
             statusService: statusService,
+            paymentStatusService: paymentStatusService,
         )
         return Fixture(store: store, walletId: walletId, wallet: wallet, transaction: transaction, service: service)
     }
@@ -357,6 +410,31 @@ private extension TransactionStateServiceTests {
             fee: "1",
             feeAssetId: fromAsset,
             value: "100000000",
+            memo: nil,
+            direction: .outgoing,
+            utxoInputs: [],
+            utxoOutputs: [],
+            metadata: metadata,
+            createdAt: Date(timeIntervalSince1970: 1234),
+        )
+    }
+
+    func makePaymentTransaction(paymentId: String) -> Transaction {
+        let assetId = AssetId.mock(.ethereum)
+        let metadata = AnyCodableValue.encode(TransactionPaymentMetadata(paymentId: paymentId, merchant: .mock(), provider: .walletConnectPay))
+        return Transaction(
+            id: TransactionId(chain: assetId.chain, hash: paymentId),
+            assetId: assetId,
+            from: "sender",
+            to: .empty,
+            contract: nil,
+            type: .transfer,
+            state: .pending,
+            blockNumber: nil,
+            sequence: nil,
+            fee: .zero,
+            feeAssetId: assetId.chain.assetId,
+            value: "10000",
             memo: nil,
             direction: .outgoing,
             utxoInputs: [],

@@ -3,7 +3,8 @@
 import Blockchain
 import Primitives
 import Testing
-@testable import Transfer
+import TransferServiceTestKit
+@testable import TransferService
 
 struct TransferTransactionProviderTests {
     @Test

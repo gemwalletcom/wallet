@@ -182,18 +182,7 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    // TODO: Add unit tests, will be added once moved to package
-    private func paymentScan(string: String) throws -> PaymentScanResult {
-        let payment = try PaymentURLDecoder.decode(string)
-
-        return PaymentScanResult(
-            address: payment.address,
-            amount: payment.amount,
-            memo: payment.memo,
-        )
-    }
-
-    func getRecipientScanResult(payment: PaymentScanResult) throws -> RecipientScanResult {
+    func getRecipientScanResult(payment: PaymentRequest) throws -> RecipientScanResult {
         let address = asset.chain.checksumAddress(payment.address)
         if let amount = payment.amount, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
            asset.chain.isValidAddress(address)
@@ -252,17 +241,21 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        let payment = try paymentScan(string: string)
-        let scanResult = try getRecipientScanResult(payment: payment)
-        switch scanResult {
-        case let .transferData(data):
-            handle(transferData: data)
-        case let .recipient(address, memo, amount):
-            // TODO: - open if all fields filled
-            addressInputModel.update(text: address)
+        let type = try PaymentURLDecoder.decode(string)
+        switch type {
+        case let .request(payment):
+            let scanResult = try getRecipientScanResult(payment: payment)
+            switch scanResult {
+            case let .transferData(data):
+                handle(transferData: data)
+            case let .recipient(address, memo, amount):
+                // TODO: - open if all fields filled
+                addressInputModel.update(text: address)
 
-            if let memo { self.memo = memo }
-            if let amount { self.amount = amount }
+                if let memo { self.memo = memo }
+                if let amount { self.amount = amount }
+            }
+        case .link: throw AnyError(Localized.Errors.notSupported)
         }
     }
 
