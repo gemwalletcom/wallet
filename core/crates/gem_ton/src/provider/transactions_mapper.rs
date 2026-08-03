@@ -6,6 +6,7 @@ use crate::models::{
 };
 use chrono::DateTime;
 use gem_encoding::decode_base64;
+use num_bigint::BigUint;
 use primitives::{AssetId, NFTAssetId, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
 use std::error::Error;
 
@@ -221,11 +222,7 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
 }
 
 fn parse_ton_value(value: &Option<String>) -> String {
-    value
-        .as_deref()
-        .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))
-        .unwrap_or("0")
-        .to_string()
+    value.as_deref().and_then(|value| value.parse::<BigUint>().ok()).unwrap_or_default().to_string()
 }
 
 fn parse_address(address: &str) -> Option<String> {
