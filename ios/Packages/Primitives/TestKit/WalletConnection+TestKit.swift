@@ -4,7 +4,7 @@ import Primitives
 
 public extension WalletConnection {
     static func mock(
-        session: WalletConnectionSession = .mock(),
+        session: WalletConnectSession = .mock(),
         wallet: Wallet = .mock(),
     ) -> WalletConnection {
         WalletConnection(

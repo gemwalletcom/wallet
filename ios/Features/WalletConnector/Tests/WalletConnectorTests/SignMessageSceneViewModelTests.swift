@@ -4,9 +4,13 @@ import AddressNameServiceTestKit
 import Foundation
 import struct Gemstone.SignMessage
 import KeystoreTestKit
+import PaymentService
 import Primitives
+import SigningRequestService
 import PrimitivesComponents
 import PrimitivesTestKit
+import PaymentServiceTestKit
+import SigningRequestServiceTestKit
 import Testing
 @testable import WalletConnector
 import WalletConnectorService
@@ -17,9 +21,9 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func walletTextDisplaysPayloadWallet() throws {
         let wallet = Wallet.mock(name: "My Secure Wallet")
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: wallet,
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(),
@@ -37,36 +41,12 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
-    func connectionViewModelUsesPayloadWallet() throws {
-        let wallet = Wallet.mock(id: .multicoin(address: "0xspecific"), name: "Test Wallet")
-        let session = WalletConnectionSession.mock(sessionId: "test-session")
-        let payload = try SignMessagePayload(
-            chain: .ethereum,
-            session: session,
-            wallet: wallet,
-            message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
-            simulation: .mock(),
-        )
-
-        let viewModel = SignMessageSceneViewModel(
-            keystore: KeystoreMock(),
-            addressNameService: .mock(),
-            payload: payload,
-            confirmTransferDelegate: { _ in },
-        )
-
-        #expect(viewModel.connectionViewModel.connection.wallet.id == .multicoin(address: "0xspecific"))
-        #expect(viewModel.connectionViewModel.connection.wallet.name == "Test Wallet")
-    }
-
-    @Test
-    @MainActor
     func appTextUsesShortNameWithoutDomain() {
         let payload = SignMessagePayload.mock(
-            session: .mock(metadata: .mock(
+            appMetadata: .mock(
                 name: "PancakeSwap - Trade",
                 url: "https://pancakeswap.finance/swap",
-            )),
+            ),
         )
 
         let viewModel = SignMessageSceneViewModel(
@@ -82,9 +62,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func titleUsesReviewRequest() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(),
@@ -103,9 +83,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func payloadStoresValidatedChainNotMessageChain() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "bitcoin", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(),
@@ -118,9 +98,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func networkTextUsesPayloadChain() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "bitcoin", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(),
@@ -139,9 +119,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func contextRowsProvideWalletAndNetworkImages() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(),
@@ -160,10 +140,32 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
+    func buttonDisabledOnceThePaymentQuoteExpires() async throws {
+        let payload = try SignMessagePayload.mock(
+            message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
+            payment: .mock(expiresAt: Date(timeIntervalSinceNow: 0.2)),
+        )
+
+        let viewModel = SignMessageSceneViewModel(
+            keystore: KeystoreMock(),
+            addressNameService: .mock(),
+            payload: payload,
+            confirmTransferDelegate: { _ in },
+        )
+
+        #expect(!viewModel.isButtonDisabled)
+
+        await viewModel.paymentExpiry.start()
+
+        #expect(viewModel.isButtonDisabled)
+    }
+
+    @Test
+    @MainActor
     func buttonEnabledWithNoWarnings() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(),
@@ -182,9 +184,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func buttonEnabledWithNonCriticalWarnings() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(warnings: [SimulationWarning(
@@ -207,9 +209,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func simulationWarningsPassThroughUnlimitedAndFiniteApprovals() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(warnings: [
@@ -240,9 +242,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func buttonDisabledWithCriticalWarnings() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(warnings: [SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil)]),
@@ -261,9 +263,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func simulationWarningsPassThroughExternallyOwnedSpenderWarnings() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(warnings: [
@@ -335,9 +337,9 @@ struct SignMessageSceneViewModelTests {
           }
         }
         """
-        let payload = SignMessagePayload(
+        let payload = SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip712, data: Data(message.utf8)),
             simulation: .mock(
@@ -367,9 +369,9 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func simulationWarningsPassThroughValidationWarnings() throws {
-        let payload = try SignMessagePayload(
+        let payload = try SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: #require("test".data(using: .utf8))),
             simulation: .mock(warnings: [
@@ -414,9 +416,9 @@ struct SignMessageSceneViewModelTests {
         ]
         .joined(separator: "\n")
 
-        let payload = SignMessagePayload(
+        let payload = SignMessagePayload.mock(
             chain: .ethereum,
-            session: .mock(),
+            appMetadata: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: Data(message.utf8)),
             simulation: .mock(warnings: [

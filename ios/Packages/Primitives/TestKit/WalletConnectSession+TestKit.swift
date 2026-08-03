@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-public extension WalletConnectionSession {
+public extension WalletConnectSession {
     static func mock(
         id: String = .empty,
         sessionId: String = .empty,
@@ -11,9 +11,9 @@ public extension WalletConnectionSession {
         chains: [Chain] = [.ethereum],
         createdAt: Date = .now,
         expireAt: Date = .distantFuture,
-        metadata: WalletConnectionSessionAppMetadata = .mock(),
-    ) -> WalletConnectionSession {
-        WalletConnectionSession(
+        metadata: WalletConnectAppMetadata = .mock(),
+    ) -> WalletConnectSession {
+        WalletConnectSession(
             id: id,
             sessionId: sessionId,
             state: state,
@@ -25,14 +25,14 @@ public extension WalletConnectionSession {
     }
 }
 
-public extension WalletConnectionSessionAppMetadata {
+public extension WalletConnectAppMetadata {
     static func mock(
         name: String = "",
         description: String = "",
         url: String = "",
         icon: String = "",
-    ) -> WalletConnectionSessionAppMetadata {
-        WalletConnectionSessionAppMetadata(
+    ) -> WalletConnectAppMetadata {
+        WalletConnectAppMetadata(
             name: name,
             description: description,
             url: url,

@@ -83,7 +83,7 @@ public struct SelectableSheet<ViewModel: SelectableSheetViewable, Content: View>
                         }
                         .bold()
                     }
-                case .navigationLink, .checkmark:
+                case .checkmark, .navigationLink:
                     cancelToolbarItem()
                 }
             }

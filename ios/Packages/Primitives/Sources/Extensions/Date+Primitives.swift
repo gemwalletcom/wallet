@@ -25,4 +25,12 @@ public extension Date {
     var millisecondsSince1970: Int64 {
         Int64(timeIntervalSince1970 * 1000)
     }
+
+    func sleepUntil() async {
+        let remaining = timeIntervalSinceNow
+        guard remaining > 0 else {
+            return
+        }
+        try? await Task.sleep(for: .seconds(remaining))
+    }
 }

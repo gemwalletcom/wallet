@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Style
 import SwiftUI
 
 public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & ItemFilterable, Content: View>: View {

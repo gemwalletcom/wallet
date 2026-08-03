@@ -2,13 +2,13 @@
 
 import Primitives
 
-public extension WalletConnectionSessionProposal {
+public extension WalletConnectSessionProposal {
     static func mock(
         defaultWallet: Wallet = .mock(),
         wallets: [Wallet] = [.mock()],
-        metadata: WalletConnectionSessionAppMetadata = .mock(),
-    ) -> WalletConnectionSessionProposal {
-        WalletConnectionSessionProposal(
+        metadata: WalletConnectAppMetadata = .mock(),
+    ) -> WalletConnectSessionProposal {
+        WalletConnectSessionProposal(
             defaultWallet: defaultWallet,
             wallets: wallets,
             metadata: metadata,

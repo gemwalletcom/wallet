@@ -5,7 +5,7 @@ import Primitives
 public extension WCPairingProposal {
     static func mock(
         pairingId: String = "pairing-id",
-        proposal: WalletConnectionSessionProposal = .mock(),
+        proposal: WalletConnectSessionProposal = .mock(),
         verificationStatus: WalletConnectionVerificationStatus = .verified,
     ) -> WCPairingProposal {
         WCPairingProposal(

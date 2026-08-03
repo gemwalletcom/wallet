@@ -5,12 +5,12 @@ import Primitives
 import ReownWalletKit
 
 extension Session {
-    var asSession: Primitives.WalletConnectionSession {
+    var asSession: Primitives.WalletConnectSession {
         let sessionChains = namespaces.values
             .flatMap(\.accounts)
             .compactMap(\.chain)
 
-        return WalletConnectionSession(
+        return WalletConnectSession(
             id: topic,
             sessionId: topic,
             state: .active,

@@ -12,13 +12,7 @@ public struct WalletConnectionViewModel: Sendable {
     }
 
     var imageUrl: URL? {
-        if let url = URL(string: connection.session.metadata.icon) {
-            if url.host() == nil {
-                return URL(string: connection.session.metadata.url + connection.session.metadata.icon)
-            }
-            return url
-        }
-        return .none
+        connection.session.metadata.transactionAppMetadata.iconURL
     }
 
     var hostText: String? {

@@ -178,6 +178,9 @@ public struct TransactionViewModel: Sendable {
             let chain = assetId.chain
             switch transaction.transaction.type {
             case .transfer, .transferNFT, .tokenApproval, .smartContractCall:
+                if let merchant = paymentMerchantName {
+                    return String(format: "%@ %@", Localized.Transfer.to, merchant)
+                }
                 switch transaction.transaction.direction {
                 case .incoming:
                     return participantTitle(prefix: Localized.Transfer.from, address: transaction.transaction.from, chain: chain)
@@ -348,6 +351,10 @@ public struct TransactionViewModel: Sendable {
         let value = getDisplayName(address: address, chain: chain)
         guard value.isNotEmpty else { return nil }
         return String(format: "%@ %@", prefix, value)
+    }
+
+    private var paymentMerchantName: String? {
+        transaction.transaction.paymentMetadata?.merchant.name
     }
 
     private func getResourceTitle() -> String? {

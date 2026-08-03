@@ -2,7 +2,7 @@
 
 import Foundation
 
-extension WalletConnectionSessionProposal: Identifiable {
+extension WalletConnectSessionProposal: Identifiable {
     public var id: String {
         metadata.url
     }

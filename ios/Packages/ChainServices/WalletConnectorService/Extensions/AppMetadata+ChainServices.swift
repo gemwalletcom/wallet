@@ -5,8 +5,8 @@ import Primitives
 import ReownWalletKit
 
 extension AppMetadata {
-    var metadata: WalletConnectionSessionAppMetadata {
-        WalletConnectionSessionAppMetadata(
+    var metadata: WalletConnectAppMetadata {
+        WalletConnectAppMetadata(
             name: name,
             description: description,
             url: url,

@@ -25,7 +25,7 @@ extension TransactionParticipantViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
         switch transactionViewModel.transaction.transaction.type {
         case .stakeFreeze, .stakeUnfreeze: resourceItemModel
-        case .earnDeposit, .earnWithdraw, .transfer, .transferNFT, .tokenApproval, .smartContractCall, .stakeDelegate: participantItemModel
+        case .earnDeposit, .earnWithdraw, .transfer, .transferNFT, .tokenApproval, .smartContractCall, .stakeDelegate: merchantItemModel ?? participantItemModel
         case .swap, .stakeUndelegate, .stakeRedelegate, .stakeRewards, .stakeWithdraw, .assetActivation, .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition: .empty
         }
     }
@@ -67,6 +67,13 @@ extension TransactionParticipantViewModel {
         guard addressName == nil else { return false }
         let type = transactionViewModel.transaction.transaction.type
         return type == .transfer || type == .transferNFT
+    }
+
+    private var merchantItemModel: TransactionItemModel? {
+        guard let merchant = transactionViewModel.transaction.transaction.paymentMetadata?.merchant else {
+            return .none
+        }
+        return .listItem(ListItemModel(title: Localized.Transaction.recipient, subtitle: merchant.name))
     }
 
     private var resourceItemModel: TransactionItemModel {

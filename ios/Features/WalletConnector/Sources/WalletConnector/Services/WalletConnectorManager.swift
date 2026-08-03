@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Primitives
+import SigningRequestService
 import SwiftUI
 import WalletConnectorService
 
@@ -16,7 +17,7 @@ public final class WalletConnectorManager {
 
 extension WalletConnectorManager: WalletConnectorInteractable {
     public func sessionReject(error: any Error) async {
-        if let error = error as? ConnectionsError, case .userCancelled = error {
+        if let error = error as? SigningRequestError, case .userCancelled = error {
             return
         }
         await MainActor.run { [weak self] in
@@ -34,15 +35,15 @@ extension WalletConnectorManager: WalletConnectorInteractable {
         try await presentSheet(payload: payload, sheetType: { .signMessage($0) })
     }
 
-    public func sendTransaction(transferData: WCTransferData) async throws -> String {
+    public func sendTransaction(transferData: SigningTransferData) async throws -> String {
         try await presentSheet(payload: transferData, sheetType: { .transferData($0) })
     }
 
-    public func signTransaction(transferData: WCTransferData) async throws -> String {
+    public func signTransaction(transferData: SigningTransferData) async throws -> String {
         try await presentSheet(payload: transferData, sheetType: { .transferData($0) })
     }
 
-    public func sendRawTransaction(transferData _: WCTransferData) async throws -> String {
+    public func sendRawTransaction(transferData _: SigningTransferData) async throws -> String {
         throw AnyError.notImplemented
     }
 
@@ -50,22 +51,27 @@ extension WalletConnectorManager: WalletConnectorInteractable {
 
     private func presentSheet<T: Identifiable & Sendable>(
         payload: T,
-        sheetType: @Sendable @escaping (TransferDataCallback<T>) -> WalletConnectorSheetType,
+        sheetType: @Sendable @escaping (SigningRequestCallback<T>) -> WalletConnectorSheetType,
     ) async throws -> String {
         let (stream, continuation) = AsyncThrowingStream.makeStream(of: String.self)
 
-        let callback = TransferDataCallback(payload: payload) {
+        let callback = SigningRequestCallback(payload: payload) {
             continuation.yield(with: $0)
             continuation.finish()
         }
 
-        await MainActor.run { [weak self] in
-            self?.presenter.isPresentingSheet = sheetType(callback)
-        }
+        await presenter.present(sheet: sheetType(callback))
 
-        for try await value in stream {
-            return value
+        do {
+            for try await value in stream {
+                await presenter.dismissPresentedSheet()
+                return value
+            }
+        } catch {
+            await presenter.dismissPresentedSheet()
+            throw error
         }
-        throw ConnectionsError.userCancelled
+        await presenter.dismissPresentedSheet()
+        throw SigningRequestError.userCancelled
     }
 }

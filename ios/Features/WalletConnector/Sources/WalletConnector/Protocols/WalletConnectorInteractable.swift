@@ -2,14 +2,10 @@
 
 import Foundation
 import Primitives
-import WalletConnectorService
+import SigningRequestService
 
-public protocol WalletConnectorInteractable: Sendable {
+public protocol WalletConnectorInteractable: SigningRequestInteractable {
     func sessionReject(error: any Error) async
     func sessionApproval(payload: WCPairingProposal) async throws -> WalletId
-    func signMessage(payload: SignMessagePayload) async throws -> String
-
-    func signTransaction(transferData: WCTransferData) async throws -> String
-    func sendTransaction(transferData: WCTransferData) async throws -> String
-    func sendRawTransaction(transferData: WCTransferData) async throws -> String
+    func sendRawTransaction(transferData: SigningTransferData) async throws -> String
 }
