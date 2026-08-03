@@ -12,6 +12,7 @@ import Localization
 import LockManager
 import NameService
 import Onboarding
+import Payments
 import Preferences
 import Primitives
 import SwiftUI
@@ -37,9 +38,11 @@ final class RootSceneViewModel {
     let observablePreferences: ObservablePreferences
     let walletSetupService: WalletSetupService
     let walletService: WalletService
+    let payService: any PaymentLinkPayable
     let nameService: NameService
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
+    let paymentSheetPresenter: PaymentSheetPresenter
     let lockManager: any LockWindowManageable
     var currentWallet: Wallet? {
         walletService.currentWallet
@@ -62,6 +65,11 @@ final class RootSceneViewModel {
         set { walletConnectorPresenter.isPresentingSheet = newValue }
     }
 
+    var isPresentingPaymentSheet: PaymentSheetType? {
+        get { paymentSheetPresenter.isPresentingSheet }
+        set { paymentSheetPresenter.isPresentingSheet = newValue }
+    }
+
     var isPresentingConnectorBar: Bool {
         get { walletConnectorPresenter.isPresentingConnectionBar }
         set { walletConnectorPresenter.isPresentingConnectionBar = newValue }
@@ -77,6 +85,7 @@ final class RootSceneViewModel {
     init(
         observablePreferences: ObservablePreferences,
         walletConnectorPresenter: WalletConnectorPresenter,
+        paymentSheetPresenter: PaymentSheetPresenter,
         onstartService: OnstartService,
         onstartWalletService: OnstartWalletService,
         transactionStateScheduler: TransactionStateScheduler,
@@ -85,6 +94,7 @@ final class RootSceneViewModel {
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
         walletService: WalletService,
+        payService: any PaymentLinkPayable,
         walletSetupService: WalletSetupService,
         nameService: NameService,
         releaseAlertService: ReleaseAlertService,
@@ -95,6 +105,7 @@ final class RootSceneViewModel {
     ) {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
+        self.paymentSheetPresenter = paymentSheetPresenter
         self.onstartService = onstartService
         self.onstartWalletService = onstartWalletService
         self.transactionStateScheduler = transactionStateScheduler
@@ -103,6 +114,7 @@ final class RootSceneViewModel {
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
         self.walletService = walletService
+        self.payService = payService
         self.walletSetupService = walletSetupService
         self.nameService = nameService
         self.releaseAlertService = releaseAlertService
@@ -155,6 +167,8 @@ extension RootSceneViewModel {
             switch action {
             case let .walletConnect(walletConnectAction):
                 try await handleWalletConnect(walletConnectAction)
+            case let .payment(link):
+                await handlePayment(link)
             case .deeplink:
                 await navigationHandler.handle(action)
             }
@@ -225,6 +239,13 @@ extension RootSceneViewModel {
             message: Localized.UpdateApp.description(release.version),
             actions: actions,
         )
+    }
+
+    private func handlePayment(_ link: PaymentLink) async {
+        guard let wallet = currentWallet else {
+            return
+        }
+        await payService.pay(link: link, wallet: wallet)
     }
 
     private func handleWalletConnect(_ action: WalletConnectAction) async throws {

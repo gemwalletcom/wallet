@@ -12,6 +12,7 @@ import PriceAlerts
 import PriceService
 import Primitives
 import PrimitivesComponents
+import QRScanner
 import StakeService
 import Store
 import SwiftUI
@@ -87,12 +88,22 @@ struct WalletNavigationStack: View {
                         )
                         .liquidGlass()
                     }
+                    if model.showScanner {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: model.onSelectScanner) {
+                                model.scannerImage
+                            }
+                        }
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: model.onToggleSearch) {
                             model.searchImage
                         }
                     }
                 }
+            }
+            .sheet(isPresented: $model.isPresentingScanner) {
+                ScanQRCodeNavigationStack(action: model.onHandleScan)
             }
             .navigationDestination(for: Scenes.Asset.self) {
                 AssetNavigationView(
@@ -109,6 +120,18 @@ struct WalletNavigationStack: View {
                             asset: $0.asset,
                         ),
                         isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
+                    ),
+                )
+            }
+            .navigationDestination(for: Scenes.NetworkAssets.self) { destination in
+                NetworkAssetsScene(
+                    model: NetworkAssetsSceneViewModel(
+                        wallet: model.wallet,
+                        chain: destination.chain,
+                        balanceService: balanceService,
+                        assetsEnabler: assetsEnabler,
+                        preferences: preferences.preferences,
+                        onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
                     ),
                 )
             }

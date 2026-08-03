@@ -4,6 +4,7 @@ import Foundation
 import Gemstone
 import Localization
 import Primitives
+import WalletConnector
 
 extension Gemstone.GatewayError: @retroactive LocalizedError {
     public var errorDescription: String? {
@@ -31,6 +32,24 @@ extension Gemstone.SwapperError: @retroactive LocalizedError {
              .ComputeQuoteError, .TransactionError:
             Localized.Errors.Swap.noQuoteAvailable
         case .InputAmountError: Localized.Errors.Swap.amountTooSmall
+        }
+    }
+}
+
+extension Gemstone.PaymentError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .PaymentExpired, .QuoteExpired:
+            return Localized.Errors.paymentExpired
+        case .Rejected:
+            return Localized.Errors.paymentNotAllowed
+        case .PaymentNotFound, .RateLimited:
+            return Localized.Transaction.Status.failed
+        case .NoPaymentOptions, .UnsupportedAccounts, .NotSupported:
+            return Localized.Errors.notSupported
+        case let .InvalidRequest(message), let .Network(message):
+            debugLog("PaymentError \(message)")
+            return Localized.Errors.errorOccurred
         }
     }
 }

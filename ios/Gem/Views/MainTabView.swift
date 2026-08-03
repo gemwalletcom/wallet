@@ -18,6 +18,7 @@ struct MainTabView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.nftService) private var nftService
+    @Environment(\.payService) private var payService
     @Environment(\.priceService) private var priceService
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.walletService) private var walletService
@@ -46,6 +47,7 @@ struct MainTabView: View {
                     balanceService: balanceService,
                     bannerService: bannerService,
                     walletService: walletService,
+                    payService: payService,
                     nftService: nftService,
                     observablePreferences: observablePreferences,
                     wallet: model.wallet,

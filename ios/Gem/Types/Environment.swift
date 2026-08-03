@@ -25,6 +25,7 @@ import NotificationService
 import PerpetualService
 import PriceAlertService
 import PriceService
+import Primitives
 import RewardsService
 import ServiceStatusService
 import ScanService
@@ -49,6 +50,7 @@ extension EnvironmentValues {
     @Entry var explorerService: ExplorerService = AppResolver.main.services.explorerService
     @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
     @Entry var assetDiscoveryService: any AssetDiscoverable = AppResolver.main.services.assetDiscoveryService
+    @Entry var payService: any PaymentLinkPayable = AppResolver.main.services.paymentLinkManager
     @Entry var walletService: WalletService = AppResolver.main.services.walletService
     @Entry var walletSessionService: any WalletSessionManageable = AppResolver.main.services.walletSessionService
     @Entry var priceAlertService: PriceAlertService = AppResolver.main.services.priceAlertService
