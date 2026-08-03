@@ -7,8 +7,10 @@ import Onboarding
 import Payments
 import PriceService
 import Primitives
+import SigningRequestService
 import Style
 import SwiftUI
+import WalletConnector
 
 struct RootScene: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -35,16 +37,22 @@ struct RootScene: View {
                 await model.handleOpenUrl(url)
             }
         }
-        .sheet(item: $model.isPresentingConnectorSheet, onDismiss: model.walletConnectorPresenter.onSheetDismiss) { type in
-            WalletConnectorNavigationStack(
+        .sheet(item: $model.isPresentingConnectorSheet, onDismiss: model.walletConnectorPresenter.sheets.onSheetDismiss) { type in
+            ConnectionProposalNavigationStack(
                 type: type,
-                presenter: model.walletConnectorPresenter,
+                presenter: model.walletConnectorPresenter.sheets,
             )
         }
-        .sheet(item: $model.isPresentingPaymentSheet, onDismiss: model.paymentSheetPresenter.onSheetDismiss) { type in
+        .sheet(item: $model.isPresentingSigningRequestSheet, onDismiss: model.signingRequestPresenter.sheets.onSheetDismiss) { type in
+            SigningRequestNavigationStack(
+                type: type,
+                presenter: model.signingRequestPresenter.sheets,
+            )
+        }
+        .sheet(item: $model.isPresentingPaymentSheet, onDismiss: model.paymentSheetPresenter.sheets.onSheetDismiss) { type in
             PaymentNavigationStack(
                 type: type,
-                presenter: model.paymentSheetPresenter,
+                presenter: model.paymentSheetPresenter.sheets,
             )
         }
         .sheet(isPresented: $model.isPresentingCreateWalletSheet) {

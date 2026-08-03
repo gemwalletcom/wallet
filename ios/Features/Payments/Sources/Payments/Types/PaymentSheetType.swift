@@ -23,3 +23,7 @@ public enum PaymentSheetType: Sendable, Identifiable {
         }
     }
 }
+
+// MARK: - SigningRequestRejectable
+
+extension PaymentSheetType: SigningRequestRejectable {}

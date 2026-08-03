@@ -4,13 +4,13 @@ import SigningRequestService
 import Style
 import SwiftUI
 
-public struct PaymentNavigationStack: View {
-    private let type: PaymentSheetType
-    private let presenter: SheetPresenter<PaymentSheetType>
+public struct ConnectionProposalNavigationStack: View {
+    private let type: WalletConnectorSheetType
+    private let presenter: SheetPresenter<WalletConnectorSheetType>
 
     public init(
-        type: PaymentSheetType,
-        presenter: SheetPresenter<PaymentSheetType>,
+        type: WalletConnectorSheetType,
+        presenter: SheetPresenter<WalletConnectorSheetType>,
     ) {
         self.type = type
         self.presenter = presenter
@@ -20,17 +20,12 @@ public struct PaymentNavigationStack: View {
         NavigationStack {
             Group {
                 switch type {
-                case let .quotes(data):
-                    PaymentQuotesScene(
-                        model: PaymentQuotesSceneViewModel(
-                            request: data.payload,
+                case let .connectionProposal(data):
+                    ConnectionProposalScene(
+                        model: ConnectionProposalViewModel(
                             confirmTransferDelegate: data.delegate,
+                            pairingProposal: data.payload,
                         ),
-                        onComplete: { presenter.complete(type: type) },
-                    )
-                case let .dataCollection(data):
-                    PaymentDataCollectionScene(
-                        callback: data,
                         onComplete: { presenter.complete(type: type) },
                     )
                 }

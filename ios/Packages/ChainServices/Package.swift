@@ -117,7 +117,16 @@ let package = Package(
                 .product(name: "Localization", package: "Localization"),
             ],
             path: "SigningRequestService",
-            exclude: ["TestKit"],
+            exclude: ["TestKit", "Tests"],
+        ),
+        .testTarget(
+            name: "SigningRequestServiceTests",
+            dependencies: [
+                "SigningRequestService",
+                "SigningRequestServiceTestKit",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "SigningRequestService/Tests",
         ),
         .target(
             name: "SigningRequestServiceTestKit",

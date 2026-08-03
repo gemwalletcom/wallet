@@ -6,8 +6,6 @@ import SigningRequestService
 import WalletConnectorService
 
 public enum WalletConnectorSheetType: Sendable, Identifiable {
-    case transferData(SigningRequestCallback<SigningTransferData>)
-    case signMessage(SigningRequestCallback<SignMessagePayload>)
     case connectionProposal(SigningRequestCallback<WCPairingProposal>)
 
     public var id: String {
@@ -20,9 +18,11 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
 
     private var callback: any SigningRequestRejectable {
         switch self {
-        case let .transferData(callback): callback
-        case let .signMessage(callback): callback
         case let .connectionProposal(callback): callback
         }
     }
 }
+
+// MARK: - SigningRequestRejectable
+
+extension WalletConnectorSheetType: SigningRequestRejectable {}

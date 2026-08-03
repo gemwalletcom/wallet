@@ -8,6 +8,7 @@ import LockManager
 import NodeService
 import Preferences
 import Primitives
+import SigningRequestService
 import Store
 import Style
 import SwiftUI
@@ -30,6 +31,7 @@ struct GemApp: App {
                     observablePreferences: resolver.storages.observablePreferences,
                     walletConnectorPresenter: resolver.services.walletConnectorManager.presenter,
                     paymentSheetPresenter: resolver.services.paymentSheetPresenter,
+                    signingRequestPresenter: resolver.services.signingRequestPresenter,
                     onstartService: resolver.services.onstartService,
                     onstartWalletService: resolver.services.onstartWalletService,
                     transactionStateScheduler: resolver.services.transactionStateScheduler,

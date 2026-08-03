@@ -28,6 +28,7 @@ import PriceService
 import RewardsService
 import ServiceStatusService
 import ScanService
+import SigningRequestService
 import StakeService
 import StreamService
 import SupportChatService
@@ -80,6 +81,7 @@ extension AppResolver {
         let walletConnectorManager: WalletConnectorManager
         let paymentLinkManager: PaymentLinkManager
         let paymentSheetPresenter: PaymentSheetPresenter
+        let signingRequestPresenter: SigningRequestPresenter
         let perpetualService: PerpetualService
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: NameService
@@ -137,6 +139,7 @@ extension AppResolver {
             walletConnectorManager: WalletConnectorManager,
             paymentLinkManager: PaymentLinkManager,
             paymentSheetPresenter: PaymentSheetPresenter,
+            signingRequestPresenter: SigningRequestPresenter,
             perpetualService: PerpetualService,
             hyperliquidObserverService: any PerpetualObservable,
             nameService: NameService,
@@ -194,6 +197,7 @@ extension AppResolver {
             self.walletConnectorManager = walletConnectorManager
             self.paymentLinkManager = paymentLinkManager
             self.paymentSheetPresenter = paymentSheetPresenter
+            self.signingRequestPresenter = signingRequestPresenter
             self.perpetualService = perpetualService
             self.hyperliquidObserverService = hyperliquidObserverService
             self.nameService = nameService

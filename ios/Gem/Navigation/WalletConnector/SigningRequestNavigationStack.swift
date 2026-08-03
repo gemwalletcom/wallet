@@ -3,21 +3,22 @@
 import ExplorerService
 import Primitives
 import Signer
+import SigningRequestService
 import Style
 import SwiftUI
 import TransactionStateService
 import Transfer
 import WalletConnector
 
-struct WalletConnectorNavigationStack: View {
+struct SigningRequestNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
 
-    private let type: WalletConnectorSheetType
-    private let presenter: WalletConnectorPresenter
+    private let type: SigningRequestSheetType
+    private let presenter: SheetPresenter<SigningRequestSheetType>
 
     init(
-        type: WalletConnectorSheetType,
-        presenter: WalletConnectorPresenter,
+        type: SigningRequestSheetType,
+        presenter: SheetPresenter<SigningRequestSheetType>,
     ) {
         self.type = type
         self.presenter = presenter
@@ -42,14 +43,6 @@ struct WalletConnectorNavigationStack: View {
                         model: viewModelFactory.signMessageScene(
                             payload: data.payload,
                             confirmTransferDelegate: data.delegate,
-                        ),
-                        onComplete: { presenter.complete(type: type) },
-                    )
-                case let .connectionProposal(data):
-                    ConnectionProposalScene(
-                        model: ConnectionProposalViewModel(
-                            confirmTransferDelegate: data.delegate,
-                            pairingProposal: data.payload,
                         ),
                         onComplete: { presenter.complete(type: type) },
                     )

@@ -6,7 +6,6 @@ import class Gemstone.MessageSigner
 import struct Gemstone.SignMessage
 import GemstonePrimitives
 import Preferences
-import PaymentService
 import Primitives
 import SigningRequestService
 import Store
@@ -17,15 +16,18 @@ import WalletSessionService
 public final class WalletConnectorSigner: WalletConnectorSignable {
     private let connectionsStore: ConnectionsStore
     private let walletConnectorInteractor: any WalletConnectorInteractable
+    private let signingInteractor: any SigningRequestInteractable
     private let walletSessionService: any WalletSessionManageable
 
     public init(
         connectionsStore: ConnectionsStore,
         walletSessionService: any WalletSessionManageable,
         walletConnectorInteractor: any WalletConnectorInteractable,
+        signingInteractor: any SigningRequestInteractable,
     ) {
         self.connectionsStore = connectionsStore
         self.walletConnectorInteractor = walletConnectorInteractor
+        self.signingInteractor = signingInteractor
         self.walletSessionService = walletSessionService
     }
 
@@ -97,7 +99,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             message: message,
             simulation: simulation,
         )
-        return try await walletConnectorInteractor.signMessage(payload: payload)
+        return try await signingInteractor.signMessage(payload: payload)
     }
 
     public func updateSessions(sessions: [WalletConnectSession]) throws {
@@ -136,7 +138,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 transaction: transaction,
                 outputAction: .sign,
             )
-            return try await walletConnectorInteractor.signTransaction(transferData: SigningTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
+            return try await signingInteractor.signTransaction(transferData: SigningTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
         }
     }
 
@@ -151,7 +153,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             transaction: transaction,
             outputAction: .send,
         )
-        return try await walletConnectorInteractor.sendTransaction(transferData: SigningTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
+        return try await signingInteractor.sendTransaction(transferData: SigningTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
     }
 
     public func sendRawTransaction(sessionId: String, chain: Chain, transaction: String) async throws -> String {

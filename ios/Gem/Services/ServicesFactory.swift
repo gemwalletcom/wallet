@@ -240,10 +240,12 @@ struct ServicesFactory {
 
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)
+        let signingRequestPresenter = SigningRequestPresenter()
         let connectionsService = Self.makeConnectionsService(
             connectionsStore: storeManager.connectionsStore,
             walletSessionService: walletSessionService,
             interactor: walletConnectorManager,
+            signingInteractor: signingRequestPresenter,
             nodeProvider: nodeProvider,
             requestInterceptor: nodeAuthProvider,
         )
@@ -343,7 +345,7 @@ struct ServicesFactory {
             paymentManager: PaymentManager(
                 service: paymentService,
                 executor: PaymentActionExecutor(
-                    interactor: walletConnectorManager,
+                    interactor: signingRequestPresenter,
                     simulator: SigningSimulator(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider),
                     approvalExecutor: PaymentApprovalExecutor(
                         keystore: storages.keystore,
@@ -428,6 +430,7 @@ struct ServicesFactory {
             walletConnectorManager: walletConnectorManager,
             paymentLinkManager: paymentLinkManager,
             paymentSheetPresenter: paymentSheetPresenter,
+            signingRequestPresenter: signingRequestPresenter,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
             nameService: nameService,
@@ -622,6 +625,7 @@ extension ServicesFactory {
         connectionsStore: ConnectionsStore,
         walletSessionService: WalletSessionService,
         interactor: any WalletConnectorInteractable,
+        signingInteractor: any SigningRequestInteractable,
         nodeProvider: any NodeURLFetchable,
         requestInterceptor: any RequestInterceptable,
     ) -> ConnectionsService {
@@ -631,6 +635,7 @@ extension ServicesFactory {
                 connectionsStore: connectionsStore,
                 walletSessionService: walletSessionService,
                 walletConnectorInteractor: interactor,
+                signingInteractor: signingInteractor,
             ),
             nodeProvider: nodeProvider,
             requestInterceptor: requestInterceptor,

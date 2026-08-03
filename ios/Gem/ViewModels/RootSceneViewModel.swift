@@ -15,6 +15,7 @@ import Onboarding
 import Payments
 import Preferences
 import Primitives
+import SigningRequestService
 import SwiftUI
 import TransactionsService
 import TransactionStateService
@@ -43,6 +44,7 @@ final class RootSceneViewModel {
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
     let paymentSheetPresenter: PaymentSheetPresenter
+    let signingRequestPresenter: SigningRequestPresenter
     let lockManager: any LockWindowManageable
     var currentWallet: Wallet? {
         walletService.currentWallet
@@ -61,13 +63,18 @@ final class RootSceneViewModel {
     }
 
     var isPresentingConnectorSheet: WalletConnectorSheetType? {
-        get { walletConnectorPresenter.isPresentingSheet }
-        set { walletConnectorPresenter.isPresentingSheet = newValue }
+        get { walletConnectorPresenter.sheets.isPresentingSheet }
+        set { walletConnectorPresenter.sheets.isPresentingSheet = newValue }
+    }
+
+    var isPresentingSigningRequestSheet: SigningRequestSheetType? {
+        get { signingRequestPresenter.sheets.isPresentingSheet }
+        set { signingRequestPresenter.sheets.isPresentingSheet = newValue }
     }
 
     var isPresentingPaymentSheet: PaymentSheetType? {
-        get { paymentSheetPresenter.isPresentingSheet }
-        set { paymentSheetPresenter.isPresentingSheet = newValue }
+        get { paymentSheetPresenter.sheets.isPresentingSheet }
+        set { paymentSheetPresenter.sheets.isPresentingSheet = newValue }
     }
 
     var isPresentingConnectorBar: Bool {
@@ -86,6 +93,7 @@ final class RootSceneViewModel {
         observablePreferences: ObservablePreferences,
         walletConnectorPresenter: WalletConnectorPresenter,
         paymentSheetPresenter: PaymentSheetPresenter,
+        signingRequestPresenter: SigningRequestPresenter,
         onstartService: OnstartService,
         onstartWalletService: OnstartWalletService,
         transactionStateScheduler: TransactionStateScheduler,
@@ -106,6 +114,7 @@ final class RootSceneViewModel {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
         self.paymentSheetPresenter = paymentSheetPresenter
+        self.signingRequestPresenter = signingRequestPresenter
         self.onstartService = onstartService
         self.onstartWalletService = onstartWalletService
         self.transactionStateScheduler = transactionStateScheduler
