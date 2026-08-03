@@ -184,6 +184,13 @@
     },
     {
       "target" : {
+        "containerPath" : "container:Features\/Payments",
+        "identifier" : "PaymentsTests",
+        "name" : "PaymentsTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Packages\/GemAPI",
         "identifier" : "GemAPITests",
         "name" : "GemAPITests"
