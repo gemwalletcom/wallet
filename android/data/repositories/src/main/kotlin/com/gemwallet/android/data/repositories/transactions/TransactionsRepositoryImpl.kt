@@ -9,7 +9,6 @@ import com.gemwallet.android.blockchain.model.ServiceUnavailable
 import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.cases.transactions.GetTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.TransactionsDao
@@ -68,7 +67,6 @@ class TransactionsRepositoryImpl(
 ) : TransactionRepository,
     GetChangedTransactions,
     GetPendingTransactionsCount,
-    GetTransaction,
     CreateTransaction,
     SaveTransactions,
     ClearPendingTransactions {
