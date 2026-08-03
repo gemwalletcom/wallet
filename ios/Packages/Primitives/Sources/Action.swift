@@ -4,6 +4,7 @@ import Foundation
 
 public typealias VoidAction = (() -> Void)?
 public typealias StringAction = ((String) -> Void)?
+public typealias StringResultAction = @Sendable (Result<String, any Error>) -> Void
 public typealias AssetAction = ((Asset) -> Void)?
 public typealias AssetIdAction = ((AssetId) -> Void)?
 public typealias AssetBoolAction = ((Asset, Bool) -> Void)?

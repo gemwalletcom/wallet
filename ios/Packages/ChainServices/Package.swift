@@ -15,6 +15,8 @@ let package = Package(
         .library(name: "StakeServiceTestKit", targets: ["StakeServiceTestKit"]),
         .library(name: "NodeService", targets: ["NodeService"]),
         .library(name: "NodeServiceTestKit", targets: ["NodeServiceTestKit"]),
+        .library(name: "SigningRequestService", targets: ["SigningRequestService"]),
+        .library(name: "SigningRequestServiceTestKit", targets: ["SigningRequestServiceTestKit"]),
         .library(name: "WalletConnectorService", targets: ["WalletConnectorService"]),
         .library(name: "WalletConnectorServiceTestKit", targets: ["WalletConnectorServiceTestKit"]),
         .library(name: "ScanService", targets: ["ScanService"]),
@@ -25,6 +27,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "Localization", path: "../Localization"),
         .package(name: "GemAPI", path: "../GemAPI"),
         .package(name: "Store", path: "../Store"),
         .package(name: "Blockchain", path: "../Blockchain"),
@@ -103,9 +106,30 @@ let package = Package(
             path: "NodeService/Tests",
         ),
         .target(
+            name: "SigningRequestService",
+            dependencies: [
+                "Primitives",
+                "Gemstone",
+                "GemstonePrimitives",
+                "NativeProviderService",
+                .product(name: "Localization", package: "Localization"),
+            ],
+            path: "SigningRequestService",
+            exclude: ["TestKit"],
+        ),
+        .target(
+            name: "SigningRequestServiceTestKit",
+            dependencies: [
+                "SigningRequestService",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "SigningRequestService/TestKit",
+        ),
+        .target(
             name: "WalletConnectorService",
             dependencies: [
                 "Primitives",
+                "SigningRequestService",
                 "Gemstone",
                 "GemstonePrimitives",
                 "NativeProviderService",
@@ -120,6 +144,7 @@ let package = Package(
             name: "WalletConnectorServiceTestKit",
             dependencies: [
                 "WalletConnectorService",
+                "SigningRequestService",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "WalletConnectorService/TestKit",
