@@ -183,6 +183,8 @@ pub mod wallet_connect_namespace;
 pub use self::wallet_connect_namespace::WalletConnectCAIP2;
 pub mod wallet_connect;
 pub use self::wallet_connect::{WCEthereumTransaction, WCTonMessage, WalletConnectLink, WalletConnectRequest};
+pub mod signing;
+pub use self::signing::{EthereumTransactionData, SignDigestType, SignMessage, SignableTransaction, SignableTransactionType, SolanaTransactionData, SuiTransactionData};
 pub mod account;
 pub use self::account::Account;
 pub mod wallet;

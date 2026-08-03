@@ -1,6 +1,7 @@
-use crate::actions::{WCSolanaTransactionData, WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
-use crate::sign_type::SignDigestType;
+use crate::actions::WalletConnectAction;
+use primitives::SignDigestType;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
+use primitives::{SignableTransaction, SignableTransactionType, SolanaTransactionData};
 use serde_json::Value;
 
 pub struct SolanaRequestHandler;
@@ -31,7 +32,7 @@ impl SolanaRequestHandler {
 
         Ok(WalletConnectAction::SignTransaction {
             chain: Chain::Solana,
-            transaction_type: WalletConnectTransactionType::Solana {
+            transaction_type: SignableTransactionType::Solana {
                 output_type: TransferDataOutputType::Signature,
             },
             data: params.to_string(),
@@ -43,22 +44,22 @@ impl SolanaRequestHandler {
 
         Ok(WalletConnectAction::SendTransaction {
             chain: Chain::Solana,
-            transaction_type: WalletConnectTransactionType::Solana {
+            transaction_type: SignableTransactionType::Solana {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
             data: params.to_string(),
         })
     }
 
-    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
+    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<SignableTransaction, String> {
         let json: Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
         let transaction = json
             .get("transaction")
             .and_then(|value| value.as_str())
             .ok_or_else(|| "Missing transaction field".to_string())?
             .to_string();
-        Ok(WalletConnectTransaction::Solana {
-            data: WCSolanaTransactionData { transaction },
+        Ok(SignableTransaction::Solana {
+            data: SolanaTransactionData { transaction },
             output_type,
         })
     }
@@ -79,7 +80,7 @@ impl SolanaRequestHandler {
 
         Ok(WalletConnectAction::SignAllTransactions {
             chain: Chain::Solana,
-            transaction_type: WalletConnectTransactionType::Solana {
+            transaction_type: SignableTransactionType::Solana {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
             transactions,
@@ -112,7 +113,7 @@ mod tests {
             SolanaRequestHandler::parse_sign_transaction(Chain::Solana, params).unwrap(),
             WalletConnectAction::SignTransaction {
                 chain: Chain::Solana,
-                transaction_type: WalletConnectTransactionType::Solana {
+                transaction_type: SignableTransactionType::Solana {
                     output_type: TransferDataOutputType::Signature,
                 },
                 data: expected_data,

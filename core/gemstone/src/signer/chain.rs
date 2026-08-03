@@ -208,8 +208,8 @@ mod tests {
     use super::*;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY};
     use primitives::{
-        DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputType,
-        WalletConnectionSessionAppMetadata, contract_call_data::ContractCallData, nft::NFTAsset,
+        DelegationValidator, StakeType, SwapProvider, TransactionAppMetadata, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
+        TransferDataOutputType, contract_call_data::ContractCallData, nft::NFTAsset,
     };
 
     #[test]
@@ -226,13 +226,13 @@ mod tests {
     fn test_sign_input_ton_wallet_connect() {
         let request = include_str!("../../../crates/gem_ton/testdata/wallet_connect_dedust_send_message.json");
         let transaction = gem_wallet_connect::WalletConnectRequestHandler::decode_send_transaction(
-            gem_wallet_connect::WalletConnectTransactionType::Ton {
+            primitives::SignableTransactionType::Ton {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
             request.to_string(),
         )
         .unwrap();
-        let gem_wallet_connect::WalletConnectTransaction::Ton { data, .. } = transaction else {
+        let primitives::SignableTransaction::Ton { data, .. } = transaction else {
             panic!("expected TON transaction");
         };
         let private_key = hex::decode("1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34").unwrap();
@@ -265,18 +265,14 @@ mod tests {
         assert_eq!(sign_one(token.clone()), vec![signer.sign_token_transfer(token, key.clone()).unwrap()]);
 
         // TokenApprove must route to sign_token_approval, not sign_token_transfer (the resolved iOS divergence).
-        let approve: GemSignerInput = SignerInput::mock_evm(TransactionInputType::TokenApprove(Asset::mock(), primitives::swap::ApprovalData::mock()), "0", 65000).into();
+        let approve: GemSignerInput = SignerInput::mock_evm(TransactionInputType::TokenApprove(Asset::mock(), primitives::ApprovalData::mock()), "0", 65000).into();
         assert_eq!(sign_one(approve.clone()), vec![signer.sign_token_approval(approve, key.clone()).unwrap()]);
 
         let nft: GemSignerInput = SignerInput::mock_evm(TransactionInputType::TransferNft(Asset::mock(), NFTAsset::mock()), "0", 100000).into();
         assert_eq!(sign_one(nft.clone()), vec![signer.sign_nft_transfer(nft, key.clone()).unwrap()]);
 
         let generic: GemSignerInput = SignerInput::mock_evm(
-            TransactionInputType::Generic(
-                Asset::mock(),
-                WalletConnectionSessionAppMetadata::mock(),
-                TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]),
-            ),
+            TransactionInputType::Generic(Asset::mock(), TransactionAppMetadata::mock(), TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd])),
             "0",
             100000,
         )

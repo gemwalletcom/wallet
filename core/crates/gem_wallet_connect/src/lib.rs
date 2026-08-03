@@ -4,8 +4,6 @@ pub mod actions;
 pub mod decode;
 #[cfg(feature = "request")]
 pub mod request_handler;
-#[cfg(feature = "request")]
-pub mod sign_type;
 
 #[cfg(feature = "session")]
 pub mod accounts;
@@ -27,8 +25,6 @@ pub use actions::*;
 pub use decode::decode_sign_message;
 #[cfg(feature = "request")]
 pub use request_handler::WalletConnectRequestHandler;
-#[cfg(feature = "request")]
-pub use sign_type::{SignDigestType, SignMessage};
 
 #[cfg(feature = "session")]
 pub use response_handler::WalletConnectResponseHandler;

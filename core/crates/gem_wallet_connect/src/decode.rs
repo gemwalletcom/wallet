@@ -2,7 +2,7 @@ use gem_evm::siwe::SiweMessage;
 use hex::FromHex;
 use primitives::Chain;
 
-use crate::sign_type::{SignDigestType, SignMessage};
+use primitives::{SignDigestType, SignMessage};
 
 pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
     let mut utf8_value = None;

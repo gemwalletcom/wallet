@@ -13,7 +13,7 @@ import com.gemwallet.android.ui.models.withExplorerLinks
 import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.WalletConnectAppMetadata
 import uniffi.gemstone.MessageSigner
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.gemstone.toGem
@@ -23,14 +23,14 @@ import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
 import uniffi.gemstone.WalletConnectResponseType
-import uniffi.gemstone.WalletConnectTransaction
-import uniffi.gemstone.WalletConnectTransactionType
+import uniffi.gemstone.SignableTransaction
+import uniffi.gemstone.SignableTransactionType
 import java.math.BigInteger
 
 sealed class WCRequest(
     internal val sessionRequest: WalletConnectSessionRequest,
     internal val account: Account,
-    private val appMetadata: WalletConnectionSessionAppMetadata,
+    private val appMetadata: WalletConnectAppMetadata,
 ) {
     internal val walletConnect = WalletConnect()
 
@@ -49,7 +49,7 @@ sealed class WCRequest(
     class SignMessage(
         sessionRequest: WalletConnectSessionRequest,
         account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
+        appMetadata: WalletConnectAppMetadata,
         val action: WalletConnectAction.SignMessage,
         val simulation: SimulationResult,
         private val explorerName: String?,
@@ -100,10 +100,10 @@ sealed class WCRequest(
     abstract class Transaction(
         sessionRequest: WalletConnectSessionRequest,
         account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
+        appMetadata: WalletConnectAppMetadata,
         val isSendable: Boolean,
         val inputType: ConfirmParams.TransferParams.InputType,
-        val transactionType: WalletConnectTransactionType,
+        val transactionType: SignableTransactionType,
         val data: String,
         val simulation: SimulationResult,
     ) : WCRequest(sessionRequest, account, appMetadata) {
@@ -116,8 +116,8 @@ sealed class WCRequest(
         abstract class Signing(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
-            transactionType: WalletConnectTransactionType,
+            appMetadata: WalletConnectAppMetadata,
+            transactionType: SignableTransactionType,
             data: String,
             simulation: SimulationResult,
         ) : Transaction(
@@ -134,7 +134,7 @@ sealed class WCRequest(
         class SignTransaction(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
+            appMetadata: WalletConnectAppMetadata,
             val action: WalletConnectAction.SignTransaction,
             simulation: SimulationResult,
         ) : Signing(
@@ -153,8 +153,8 @@ sealed class WCRequest(
         class SignAllTransactions(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
-            transactionType: WalletConnectTransactionType,
+            appMetadata: WalletConnectAppMetadata,
+            transactionType: SignableTransactionType,
             data: String,
             simulation: SimulationResult,
         ) : Signing(
@@ -173,7 +173,7 @@ sealed class WCRequest(
         class SendTransaction(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
+            appMetadata: WalletConnectAppMetadata,
             val action: WalletConnectAction.SendTransaction,
             simulation: SimulationResult,
         ) : Transaction(
@@ -198,13 +198,13 @@ internal fun WalletConnectResponseType.payload(): String = when (this) {
     is WalletConnectResponseType.String -> value
 }
 
-private fun WalletConnectTransaction.map(
+private fun SignableTransaction.map(
     request: WCRequest.Transaction,
     isSendable: Boolean,
 ): Generic {
     val asset = request.chain.asset()
     return when (this) {
-        is WalletConnectTransaction.Ethereum -> Generic(
+        is SignableTransaction.Ethereum -> Generic(
             requestId = request.requestId.toString(),
             asset = asset,
             from = request.account,
@@ -220,7 +220,7 @@ private fun WalletConnectTransaction.map(
             isSendable = isSendable,
             decodedTransactionType = transactionType.toPrimitives(),
         )
-        is WalletConnectTransaction.Solana -> Generic(
+        is SignableTransaction.Solana -> Generic(
             requestId = request.requestId.toString(),
             asset = asset,
             from = request.account,
@@ -238,7 +238,7 @@ private fun WalletConnectTransaction.map(
             amount = BigInteger.ZERO,
             isSendable = isSendable,
         )
-        is WalletConnectTransaction.Sui -> Generic(
+        is SignableTransaction.Sui -> Generic(
             requestId = request.requestId.toString(),
             asset = asset,
             from = request.account,
@@ -256,7 +256,7 @@ private fun WalletConnectTransaction.map(
             amount = BigInteger.ZERO,
             isSendable = isSendable,
         )
-        is WalletConnectTransaction.Ton -> Generic(
+        is SignableTransaction.Ton -> Generic(
             requestId = request.requestId.toString(),
             asset = asset,
             from = request.account,
@@ -274,7 +274,7 @@ private fun WalletConnectTransaction.map(
             amount = BigInteger.ZERO,
             isSendable = isSendable,
         )
-        is WalletConnectTransaction.Tron -> Generic(
+        is SignableTransaction.Tron -> Generic(
             requestId = request.requestId.toString(),
             asset = asset,
             memo = data,
