@@ -1,8 +1,8 @@
-#[cfg(feature = "rpc")]
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_serializers::deserialize_biguint_from_str;
 #[cfg(feature = "rpc")]
-use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str};
+use serde_serializers::deserialize_option_biguint_from_str;
 
 #[cfg(feature = "rpc")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,15 +59,18 @@ pub struct SuiValidator {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventStake {
-    pub amount: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount: BigUint,
     pub staker_address: String,
     pub validator_address: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventUnstake {
-    pub principal_amount: String,
-    pub reward_amount: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub principal_amount: BigUint,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub reward_amount: BigUint,
     pub staker_address: String,
     pub validator_address: String,
 }

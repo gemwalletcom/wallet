@@ -1,6 +1,7 @@
 use crate::{FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, NO_ACCOUNT_SIGNATURE_TYPE, STAKE_DEPOSIT_EVENT, STAKE_WITHDRAW_EVENT};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use serde_serializers::{deserialize_option_u64_from_str, deserialize_u64_from_str};
+use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_option_u64_from_str, deserialize_u64_from_str};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transaction {
@@ -30,19 +31,22 @@ pub struct Event {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AmountData {
-    pub amount: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub amount: Option<BigUint>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DelegationPoolAddStakeData {
     pub pool_address: String,
-    pub amount_added: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount_added: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DelegationPoolUnlockStakeData {
     pub pool_address: String,
-    pub amount_unlocked: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount_unlocked: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,7 +58,9 @@ impl Event {
     pub fn get_amount(&self) -> Option<String> {
         let data = self.data.clone()?;
         match self.event_type.as_str() {
-            STAKE_WITHDRAW_EVENT | STAKE_DEPOSIT_EVENT | FUNGIBLE_ASSET_WITHDRAW_EVENT | FUNGIBLE_ASSET_DEPOSIT_EVENT => serde_json::from_value::<AmountData>(data).ok()?.amount,
+            STAKE_WITHDRAW_EVENT | STAKE_DEPOSIT_EVENT | FUNGIBLE_ASSET_WITHDRAW_EVENT | FUNGIBLE_ASSET_DEPOSIT_EVENT => {
+                serde_json::from_value::<AmountData>(data).ok()?.amount.map(|amount| amount.to_string())
+            }
             _ => None,
         }
     }

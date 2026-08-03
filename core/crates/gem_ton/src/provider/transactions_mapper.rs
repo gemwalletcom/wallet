@@ -6,6 +6,7 @@ use crate::models::{
 };
 use chrono::DateTime;
 use gem_encoding::decode_base64;
+use num_bigint::BigUint;
 use primitives::{AssetId, NFTAssetId, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
 use std::error::Error;
 
@@ -193,7 +194,7 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
             asset_id,
             from: parse_address(&out_message.source)?,
             to,
-            value: out_message.value.clone().unwrap_or_else(|| "0".to_string()),
+            value: parse_ton_value(&out_message.value)?,
             transaction_type: TransactionType::Transfer,
             memo: extract_memo(out_message),
             metadata: None,
@@ -218,6 +219,13 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
     }
 
     None
+}
+
+fn parse_ton_value(value: &Option<String>) -> Option<String> {
+    match value.as_deref() {
+        None => Some("0".to_string()),
+        Some(raw) => raw.parse::<BigUint>().ok().map(|value| value.to_string()),
+    }
 }
 
 fn parse_address(address: &str) -> Option<String> {
@@ -358,6 +366,14 @@ mod tests {
         assert_eq!(transaction.out_msgs[0].destination, None);
 
         assert_eq!(transaction.out_msgs[1].value, Some("137245095".to_string()));
+    }
+
+    #[test]
+    fn test_parse_ton_value() {
+        assert_eq!(parse_ton_value(&Some("137245095".to_string())), Some("137245095".to_string()));
+        assert_eq!(parse_ton_value(&None), Some("0".to_string()));
+        assert_eq!(parse_ton_value(&Some("".to_string())), None);
+        assert_eq!(parse_ton_value(&Some("54.108086".to_string())), None);
     }
 
     #[test]

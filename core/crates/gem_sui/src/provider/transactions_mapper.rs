@@ -89,7 +89,7 @@ fn map_transaction_type(
             stake.staker_address,
             stake.validator_address,
             TransactionType::StakeDelegate,
-            stake.amount,
+            stake.amount.to_string(),
             None,
         ));
     }
@@ -126,7 +126,7 @@ fn map_transaction_type(
             stake.staker_address,
             stake.validator_address,
             TransactionType::StakeUndelegate,
-            stake.principal_amount,
+            stake.principal_amount.to_string(),
             None,
         ));
     }
@@ -247,7 +247,7 @@ mod tests {
     use super::*;
     use crate::models::{Effect, GasObject, Owner, OwnerObject, Status};
     use crate::provider::testkit::TEST_TRANSACTION_ID;
-    use crate::{SUI_COIN_TYPE_FULL, SUI_UNSTAKE_EVENT};
+    use crate::{SUI_COIN_TYPE_FULL, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT};
     use num_bigint::{BigInt, BigUint};
     use serde_json::json;
 
@@ -428,5 +428,35 @@ mod tests {
         assert_eq!(unstake.value, "3000000000");
         assert_eq!(unstake.from, OWNER_ADDRESS);
         assert_eq!(unstake.to, VALIDATOR_ADDRESS);
+    }
+
+    #[test]
+    fn test_map_transaction_rejects_non_integer_stake_amount() {
+        let malformed_stake = map_transaction(make_digest(
+            vec![event(
+                full_coin_type(SUI_STAKE_EVENT),
+                json!({
+                    "amount": "54.108086",
+                    "staker_address": OWNER_ADDRESS,
+                    "validator_address": VALIDATOR_ADDRESS,
+                }),
+            )],
+            vec![balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -3000000000)],
+        ));
+        assert!(malformed_stake.is_none());
+
+        let malformed_unstake = map_transaction(make_digest(
+            vec![event(
+                full_coin_type(SUI_UNSTAKE_EVENT),
+                json!({
+                    "principal_amount": "",
+                    "reward_amount": "42",
+                    "staker_address": OWNER_ADDRESS,
+                    "validator_address": VALIDATOR_ADDRESS,
+                }),
+            )],
+            vec![balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, 3000000000)],
+        ));
+        assert!(malformed_unstake.is_none());
     }
 }
