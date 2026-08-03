@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{AssetId, NFTAssetId, PerpetualDirection, PerpetualProvider, stake_type::Resource};
+use crate::{AssetId, NFTAssetId, PaymentMerchant, PaymentProviderName, PerpetualDirection, PerpetualProvider, stake_type::Resource};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Sendable")]
@@ -24,6 +24,15 @@ pub struct TransactionSwapMetadata {
     pub to_asset: AssetId,
     pub to_value: String,
     pub provider: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionPaymentMetadata {
+    pub payment_id: String,
+    pub merchant: PaymentMerchant,
+    pub provider: PaymentProviderName,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

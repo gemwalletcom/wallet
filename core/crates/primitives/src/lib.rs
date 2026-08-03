@@ -119,6 +119,12 @@ pub mod platform;
 pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
+pub mod payment;
+pub use self::payment::{
+    Payment, PaymentAmount, PaymentLink, PaymentMerchant, PaymentOptions, PaymentOutcome, PaymentPrice, PaymentProviderName, PaymentQuote, PaymentQuotes, PaymentRequest,
+    PaymentStatus,
+};
+
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
@@ -177,14 +183,17 @@ pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
 pub use self::transaction_metadata_types::{
-    TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata,
+    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata,
+    TransactionSwapMetadata,
 };
+pub mod transaction_app_metadata;
+pub use self::transaction_app_metadata::TransactionAppMetadata;
 pub mod wallet_connect_namespace;
-pub use self::wallet_connect_namespace::WalletConnectCAIP2;
-pub mod wallet_connect;
-pub use self::wallet_connect::{WCEthereumTransaction, WCTonMessage, WalletConnectLink, WalletConnectRequest};
+pub use self::wallet_connect_namespace::{WalletConnectCAIP2, WalletConnectCAIP19};
 pub mod signing;
 pub use self::signing::{EthereumTransactionData, SignDigestType, SignMessage, SignableTransaction, SignableTransactionType, SolanaTransactionData, SuiTransactionData};
+pub mod wallet_connect;
+pub use self::wallet_connect::{WCEthereumTransaction, WCTonMessage, WalletConnectLink, WalletConnectRequest};
 pub mod account;
 pub use self::account::Account;
 pub mod wallet;
@@ -201,8 +210,8 @@ pub mod wallet_import;
 pub use self::wallet_import::WalletImport;
 pub mod wallet_connector;
 pub use self::wallet_connector::{
-    WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionAppMetadata,
-    WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus,
+    WCPairingProposal, WalletConnectAppMetadata, WalletConnectSession, WalletConnectSessionProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods,
+    WalletConnectionState, WalletConnectionVerificationStatus,
 };
 pub mod nft;
 pub use self::nft::{NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};
@@ -215,7 +224,7 @@ pub use self::tag::AssetTag;
 pub mod chain_cosmos;
 pub use self::chain_cosmos::CosmosDenom;
 pub mod payment_decoder;
-pub use self::payment_decoder::{DecodedLinkType, PaymentURLDecoder};
+pub use self::payment_decoder::PaymentURLDecoder;
 
 pub const DEFAULT_FIAT_CURRENCY: &str = "USD";
 pub mod image_formatter;

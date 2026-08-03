@@ -6,7 +6,7 @@ use typeshare::typeshare;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 pub struct WalletConnection {
-    pub session: WalletConnectionSession,
+    pub session: WalletConnectSession,
     pub wallet: Wallet,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,20 +83,20 @@ pub enum WalletConnectionEvents {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
-pub struct WalletConnectionSession {
+pub struct WalletConnectSession {
     pub id: String,
     pub session_id: String,
     pub state: WalletConnectionState,
     pub chains: Vec<Chain>,
     pub created_at: DateTime<Utc>,
     pub expire_at: DateTime<Utc>,
-    pub metadata: WalletConnectionSessionAppMetadata,
+    pub metadata: WalletConnectAppMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
-pub struct WalletConnectionSessionAppMetadata {
+pub struct WalletConnectAppMetadata {
     pub name: String,
     pub description: String,
     pub url: String,
@@ -106,9 +106,15 @@ pub struct WalletConnectionSessionAppMetadata {
 const SHORT_NAME_SEPARATORS: [char; 3] = ['-', ':', '|'];
 const SHORT_NAME_MAX_LENGTH: usize = 80;
 
-impl WalletConnectionSessionAppMetadata {
+impl WalletConnectAppMetadata {
     pub fn short_name(&self) -> String {
-        let name = self.name.trim();
+        short_name(&self.name)
+    }
+}
+
+pub fn short_name(name: &str) -> String {
+    {
+        let name = name.trim();
         for sep in SHORT_NAME_SEPARATORS {
             if let Some(idx) = name.find(sep) {
                 return name[..idx].trim().to_string();
@@ -124,10 +130,10 @@ impl WalletConnectionSessionAppMetadata {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
-pub struct WalletConnectionSessionProposal {
+pub struct WalletConnectSessionProposal {
     pub default_wallet: Wallet,
     pub wallets: Vec<Wallet>,
-    pub metadata: WalletConnectionSessionAppMetadata,
+    pub metadata: WalletConnectAppMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -145,6 +151,6 @@ pub enum WalletConnectionVerificationStatus {
 #[serde(rename_all = "camelCase")]
 pub struct WCPairingProposal {
     pub pairing_id: String,
-    pub proposal: WalletConnectionSessionProposal,
+    pub proposal: WalletConnectSessionProposal,
     pub verification_status: WalletConnectionVerificationStatus,
 }

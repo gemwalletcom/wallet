@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class WalletConnectionSessionAppMetadata (
+data class WalletConnectAppMetadata (
 	val name: String,
 	val description: String,
 	val url: String,
@@ -16,10 +16,10 @@ data class WalletConnectionSessionAppMetadata (
 )
 
 @Serializable
-data class WalletConnectionSessionProposal (
+data class WalletConnectSessionProposal (
 	val defaultWallet: Wallet,
 	val wallets: List<Wallet>,
-	val metadata: WalletConnectionSessionAppMetadata
+	val metadata: WalletConnectAppMetadata
 )
 
 @Serializable
@@ -37,7 +37,7 @@ enum class WalletConnectionVerificationStatus(val string: String) {
 @Serializable
 data class WCPairingProposal (
 	val pairingId: String,
-	val proposal: WalletConnectionSessionProposal,
+	val proposal: WalletConnectSessionProposal,
 	val verificationStatus: WalletConnectionVerificationStatus
 )
 
@@ -52,19 +52,19 @@ enum class WalletConnectionState(val string: String) {
 }
 
 @Serializable
-data class WalletConnectionSession (
+data class WalletConnectSession (
 	val id: String,
 	val sessionId: String,
 	val state: WalletConnectionState,
 	val chains: List<Chain>,
 	val createdAt: SerializedDate,
 	val expireAt: SerializedDate,
-	val metadata: WalletConnectionSessionAppMetadata
+	val metadata: WalletConnectAppMetadata
 )
 
 @Serializable
 data class WalletConnection (
-	val session: WalletConnectionSession,
+	val session: WalletConnectSession,
 	val wallet: Wallet
 )
 

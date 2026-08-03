@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct WalletConnectionSessionAppMetadata: Codable, Equatable, Hashable, Sendable {
+public struct WalletConnectAppMetadata: Codable, Equatable, Hashable, Sendable {
 	public let name: String
 	public let description: String
 	public let url: String
@@ -18,12 +18,12 @@ public struct WalletConnectionSessionAppMetadata: Codable, Equatable, Hashable, 
 	}
 }
 
-public struct WalletConnectionSessionProposal: Codable, Equatable, Hashable, Sendable {
+public struct WalletConnectSessionProposal: Codable, Equatable, Hashable, Sendable {
 	public let defaultWallet: Wallet
 	public let wallets: [Wallet]
-	public let metadata: WalletConnectionSessionAppMetadata
+	public let metadata: WalletConnectAppMetadata
 
-	public init(defaultWallet: Wallet, wallets: [Wallet], metadata: WalletConnectionSessionAppMetadata) {
+	public init(defaultWallet: Wallet, wallets: [Wallet], metadata: WalletConnectAppMetadata) {
 		self.defaultWallet = defaultWallet
 		self.wallets = wallets
 		self.metadata = metadata
@@ -39,10 +39,10 @@ public enum WalletConnectionVerificationStatus: String, Codable, Hashable, Senda
 
 public struct WCPairingProposal: Codable, Sendable {
 	public let pairingId: String
-	public let proposal: WalletConnectionSessionProposal
+	public let proposal: WalletConnectSessionProposal
 	public let verificationStatus: WalletConnectionVerificationStatus
 
-	public init(pairingId: String, proposal: WalletConnectionSessionProposal, verificationStatus: WalletConnectionVerificationStatus) {
+	public init(pairingId: String, proposal: WalletConnectSessionProposal, verificationStatus: WalletConnectionVerificationStatus) {
 		self.pairingId = pairingId
 		self.proposal = proposal
 		self.verificationStatus = verificationStatus
@@ -55,16 +55,16 @@ public enum WalletConnectionState: String, Codable, Hashable, Sendable {
 	case expired
 }
 
-public struct WalletConnectionSession: Codable, Equatable, Hashable, Sendable {
+public struct WalletConnectSession: Codable, Equatable, Hashable, Sendable {
 	public let id: String
 	public let sessionId: String
 	public let state: WalletConnectionState
 	public let chains: [Chain]
 	public let createdAt: Date
 	public let expireAt: Date
-	public let metadata: WalletConnectionSessionAppMetadata
+	public let metadata: WalletConnectAppMetadata
 
-	public init(id: String, sessionId: String, state: WalletConnectionState, chains: [Chain], createdAt: Date, expireAt: Date, metadata: WalletConnectionSessionAppMetadata) {
+	public init(id: String, sessionId: String, state: WalletConnectionState, chains: [Chain], createdAt: Date, expireAt: Date, metadata: WalletConnectAppMetadata) {
 		self.id = id
 		self.sessionId = sessionId
 		self.state = state
@@ -76,10 +76,10 @@ public struct WalletConnectionSession: Codable, Equatable, Hashable, Sendable {
 }
 
 public struct WalletConnection: Codable, Equatable, Hashable, Sendable {
-	public let session: WalletConnectionSession
+	public let session: WalletConnectSession
 	public let wallet: Wallet
 
-	public init(session: WalletConnectionSession, wallet: Wallet) {
+	public init(session: WalletConnectSession, wallet: Wallet) {
 		self.session = session
 		self.wallet = wallet
 	}

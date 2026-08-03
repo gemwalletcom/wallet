@@ -14,6 +14,13 @@ data class TransactionNFTTransferMetadata (
 )
 
 @Serializable
+data class TransactionPaymentMetadata (
+	val paymentId: String,
+	val merchant: PaymentMerchant,
+	val provider: PaymentProviderName
+)
+
+@Serializable
 data class TransactionPerpetualMetadata (
 	val pnl: Double,
 	val price: Double,
