@@ -1,0 +1,16 @@
+{
+  "actions": [
+    {
+      "type": "walletRpc",
+      "data": {
+        "chain_id": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "method": "solana_signTransaction",
+        "params": [
+          {
+            "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        ]
+      }
+    }
+  ]
+}
