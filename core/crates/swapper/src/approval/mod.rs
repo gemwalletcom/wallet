@@ -2,7 +2,7 @@ pub mod evm;
 pub mod tron;
 
 pub use evm::*;
-use primitives::swap::ApprovalData;
+use primitives::ApprovalData;
 pub use tron::*;
 
 pub const DEFAULT_EVM_SWAP_GAS_LIMIT: u64 = 750_000;

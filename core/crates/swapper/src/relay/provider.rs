@@ -3,7 +3,7 @@ use std::sync::Arc;
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{AssetId, Chain, ChainType, EVMChain, swap::ApprovalData};
+use primitives::{ApprovalData, AssetId, Chain, ChainType, EVMChain};
 
 use super::{
     asset::{SUPPORTED_CHAINS, asset_to_currency},

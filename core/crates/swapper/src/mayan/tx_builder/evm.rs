@@ -6,7 +6,7 @@ use crate::{
 use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::{SolCall, sol};
 use futures::try_join;
-use primitives::{AssetId, ChainType, decode_hex, hex, swap::ApprovalData};
+use primitives::{ApprovalData, AssetId, ChainType, decode_hex, hex};
 use std::{future::Future, str::FromStr, sync::Arc};
 
 sol! {

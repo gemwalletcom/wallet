@@ -17,7 +17,7 @@ use gem_evm::{
     jsonrpc::{BlockParameter, EthereumRpc, TransactionObject},
     permit2::IAllowanceTransfer,
 };
-use primitives::{Chain, swap::ApprovalData};
+use primitives::{ApprovalData, Chain};
 use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},

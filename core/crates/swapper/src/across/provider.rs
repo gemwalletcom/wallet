@@ -35,7 +35,7 @@ use gem_evm::{
     weth::WETH9,
 };
 use num_bigint::{BigInt, Sign};
-use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
+use primitives::{ApprovalData, AssetId, Chain, EVMChain};
 use serde_serializers::biguint_from_hex_str;
 use std::{fmt::Debug, str::FromStr, sync::Arc};
 

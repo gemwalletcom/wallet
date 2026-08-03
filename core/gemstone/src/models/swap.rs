@@ -1,9 +1,9 @@
 use crate::config::swap_config::get_swap_config;
+use crate::models::approval::GemApprovalData;
 use primitives::swap::SwapQuoteDataType;
-pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
+pub use primitives::swap::{SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 pub use swapper::SwapperProvider;
 
-pub type GemApprovalData = ApprovalData;
 pub type GemSwapData = SwapData;
 pub type GemSwapPriceImpact = SwapPriceImpact;
 pub type GemSwapPriceImpactType = SwapPriceImpactType;
@@ -11,14 +11,6 @@ pub type GemSwapProviderData = SwapProviderData;
 pub type GemSwapQuote = SwapQuote;
 pub type GemSwapQuoteData = SwapQuoteData;
 pub type GemSwapQuoteDataType = SwapQuoteDataType;
-
-#[uniffi::remote(Record)]
-pub struct GemApprovalData {
-    pub token: String,
-    pub spender: String,
-    pub value: String,
-    pub is_unlimited: bool,
-}
 
 #[uniffi::remote(Enum)]
 pub enum GemSwapQuoteDataType {

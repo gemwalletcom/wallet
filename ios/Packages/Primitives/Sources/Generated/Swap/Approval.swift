@@ -4,20 +4,6 @@
 
 import Foundation
 
-public struct ApprovalData: Codable, Equatable, Hashable, Sendable {
-	public let token: String
-	public let spender: String
-	public let value: String
-	public let isUnlimited: Bool
-
-	public init(token: String, spender: String, value: String, isUnlimited: Bool) {
-		self.token = token
-		self.spender = spender
-		self.value = value
-		self.isUnlimited = isUnlimited
-	}
-}
-
 public struct SwapProviderData: Codable, Equatable, Hashable, Sendable {
 	public let provider: SwapProvider
 	public let name: String

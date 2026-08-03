@@ -1,4 +1,4 @@
-use primitives::{TransactionSwapMetadata, swap::ApprovalData};
+use primitives::{ApprovalData, TransactionSwapMetadata};
 
 use super::{
     asset::map_currency_to_asset_id,

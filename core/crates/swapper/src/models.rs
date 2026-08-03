@@ -1,9 +1,10 @@
 use super::permit2_data::Permit2Data;
 use crate::{SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
+pub use primitives::ApprovalData;
 pub use primitives::swap::SwapResult;
 use primitives::{
     AssetId, Chain,
-    swap::{ApprovalData, SlippageMode, SwapProviderMode},
+    swap::{SlippageMode, SwapProviderMode},
 };
 use serde::Serialize;
 use std::fmt::Debug;

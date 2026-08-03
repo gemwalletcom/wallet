@@ -8,14 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class ApprovalData (
-	val token: String,
-	val spender: String,
-	val value: String,
-	val isUnlimited: Boolean
-)
-
-@Serializable
 data class SwapProviderData (
 	val provider: SwapProvider,
 	val name: String,

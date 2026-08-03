@@ -45,10 +45,10 @@ mod tests {
     use gem_hash::sha2::sha256;
     use num_bigint::BigInt;
     use primitives::{
-        Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, Resource, SignerInput, StakeType, SwapProvider, TransactionFee,
-        TransactionInputType, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote,
-        WalletConnectionSessionAppMetadata, decode_hex,
-        swap::{ApprovalData, SwapData, SwapQuote, SwapQuoteData},
+        ApprovalData, Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, Resource, SignerInput, StakeType, SwapProvider,
+        TransactionAppMetadata, TransactionFee, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData,
+        TronUnfreeze, TronVote, decode_hex,
+        swap::{SwapData, SwapQuote, SwapQuoteData},
     };
     use serde_json::{Value, json};
 
@@ -655,12 +655,7 @@ mod tests {
         SignerInput::mock_tron(
             TransactionInputType::Generic(
                 Asset::from_chain(Chain::Tron),
-                WalletConnectionSessionAppMetadata {
-                    name: "Test".to_string(),
-                    description: "Test".to_string(),
-                    url: "https://example.com".to_string(),
-                    icon: "https://example.com/icon.png".to_string(),
-                },
+                TransactionAppMetadata::mock(),
                 TransferDataExtra {
                     data: Some(payload),
                     output_type,

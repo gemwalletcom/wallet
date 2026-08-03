@@ -21,7 +21,7 @@ use gem_evm::{
     uniswap::{command::encode_commands, path::get_base_pair},
 };
 use gem_jsonrpc::client::JsonRpcClient;
-use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
+use primitives::{ApprovalData, AssetId, Chain, EVMChain};
 use std::{fmt, str::FromStr, sync::Arc};
 
 use super::{DEFAULT_SWAP_GAS_LIMIT, UniversalRouterProvider, commands::build_commands, path::build_paths_with_routes};

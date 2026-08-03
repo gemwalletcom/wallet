@@ -152,7 +152,7 @@ impl TransferAmountInput {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AccountDataType, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, nft::NFTAsset, swap::ApprovalData};
+    use crate::{AccountDataType, ApprovalData, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, nft::NFTAsset};
 
     const SOLANA_MINIMUM_ACCOUNT_BALANCE: u64 = 890_880;
     const FEE: u64 = 5_000;

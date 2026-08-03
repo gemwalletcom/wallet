@@ -1,7 +1,7 @@
 use gem_hash::sha2::sha256;
 use primitives::{
-    SignerError, SignerInput, StakeType, TransactionLoadMetadata, TronStakeData, decode_hex,
-    swap::{ApprovalData, SwapQuoteData, SwapQuoteDataType},
+    ApprovalData, SignerError, SignerInput, StakeType, TransactionLoadMetadata, TronStakeData, decode_hex,
+    swap::{SwapQuoteData, SwapQuoteDataType},
 };
 use signer::{SignatureScheme, Signer};
 

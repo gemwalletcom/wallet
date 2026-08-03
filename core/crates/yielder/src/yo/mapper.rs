@@ -2,7 +2,7 @@ use alloy_primitives::U256;
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
-use primitives::swap::ApprovalData;
+use primitives::ApprovalData;
 use primitives::{AssetBalance, AssetId, Chain, ContractCallData, DelegationBase, DelegationState, DelegationValidator, StakeProviderType, YieldProvider};
 
 use super::assets::YoAsset;

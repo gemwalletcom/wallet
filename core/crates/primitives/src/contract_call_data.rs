@@ -1,4 +1,4 @@
-use crate::swap::ApprovalData;
+use crate::ApprovalData;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 

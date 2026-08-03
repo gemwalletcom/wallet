@@ -3,7 +3,7 @@ use std::{collections::HashSet, fmt::Debug, sync::Arc, time::Duration};
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{AssetId, Chain, ChainType, MINUTE, swap::ApprovalData};
+use primitives::{ApprovalData, AssetId, Chain, ChainType, MINUTE};
 
 use num_bigint::BigInt;
 

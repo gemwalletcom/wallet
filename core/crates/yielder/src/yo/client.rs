@@ -6,7 +6,7 @@ use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::multicall3::{create_call3, decode_call3_return};
 use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::alien::RpcClient;
-use primitives::swap::ApprovalData;
+use primitives::ApprovalData;
 
 use super::assets::YoAsset;
 use super::contract::IYoGateway;

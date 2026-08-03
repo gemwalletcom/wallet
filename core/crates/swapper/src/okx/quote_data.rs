@@ -14,8 +14,8 @@ use gem_encoding::encode_base64;
 use gem_evm::provider::preload_mapper::calculate_gas_limit_with_increase;
 use num_bigint::BigInt;
 use primitives::{
-    Chain, ChainType,
-    swap::{ApprovalData, QuoteAsset, SwapQuoteData},
+    ApprovalData, Chain, ChainType,
+    swap::{QuoteAsset, SwapQuoteData},
 };
 use std::{str::FromStr, sync::Arc};
 

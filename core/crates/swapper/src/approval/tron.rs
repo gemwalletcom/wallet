@@ -3,7 +3,7 @@ use std::sync::Arc;
 use alloy_primitives::U256;
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
-use primitives::swap::ApprovalData;
+use primitives::ApprovalData;
 use serde_serializers::biguint_from_hex_str;
 
 use crate::{SwapperError, alien::RpcProvider, client_factory::create_tron_client, models::ApprovalType};

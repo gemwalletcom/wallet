@@ -172,7 +172,7 @@ fn sign_contract_call(
     call_data: Vec<u8>,
     gas_limit: u64,
     value: U256,
-    approval: Option<&primitives::swap::ApprovalData>,
+    approval: Option<&primitives::ApprovalData>,
     private_key: &[u8],
 ) -> Result<Vec<String>, SignerError> {
     let params = TransactionParams::from_input(input)?;
@@ -200,8 +200,8 @@ mod tests {
     use super::*;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
-        Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, WalletConnectionSessionAppMetadata,
-        contract_call_data::ContractCallData, nft::NFTAsset, swap::*,
+        ApprovalData, Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionAppMetadata, TransactionInputType, TransactionLoadMetadata,
+        TransferDataExtra, contract_call_data::ContractCallData, nft::NFTAsset, swap::*,
     };
 
     #[test]
@@ -338,7 +338,7 @@ mod tests {
         let signer = EvmChainSigner;
         let extra = TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]);
         let input = SignerInput::mock_evm(
-            TransactionInputType::Generic(Asset::from_chain(Chain::Ethereum), WalletConnectionSessionAppMetadata::mock(), extra),
+            TransactionInputType::Generic(Asset::from_chain(Chain::Ethereum), TransactionAppMetadata::mock(), extra),
             "0",
             100000,
         );

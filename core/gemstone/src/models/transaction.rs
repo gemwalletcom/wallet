@@ -1,17 +1,18 @@
 use crate::address::checksum_address;
 use crate::models::*;
+use approval::GemApprovalData;
 use chrono::{DateTime, Utc};
 use num_bigint::BigInt;
 use primitives::contract_call_data::ContractCallData;
 use primitives::{
     AccountDataType, Asset, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider,
-    PerpetualType, Resource, SignerInput, StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata,
-    TransactionPerpetualMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, TransferDataExtra,
-    TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64, WalletConnectionSessionAppMetadata,
+    PerpetualType, Resource, SignerInput, StakeType, TransactionAppMetadata, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType,
+    TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64, WalletConnectAppMetadata,
     perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData},
 };
 use std::collections::HashMap;
-use swap::{GemApprovalData, GemSwapData};
+use swap::GemSwapData;
 use swapper::SwapperProvider;
 
 pub type GemPerpetualDirection = PerpetualDirection;
@@ -202,14 +203,24 @@ pub enum GemEarnType {
     Withdraw(GemDelegation),
 }
 
-pub type GemWalletConnectionSessionAppMetadata = WalletConnectionSessionAppMetadata;
+pub type GemWalletConnectAppMetadata = WalletConnectAppMetadata;
 
 #[uniffi::remote(Record)]
-pub struct GemWalletConnectionSessionAppMetadata {
+pub struct GemWalletConnectAppMetadata {
     pub name: String,
     pub description: String,
     pub url: String,
     pub icon: String,
+}
+
+pub type GemTransactionAppMetadata = TransactionAppMetadata;
+
+#[uniffi::remote(Record)]
+pub struct GemTransactionAppMetadata {
+    pub name: String,
+    pub description: Option<String>,
+    pub url: Option<String>,
+    pub icon: Option<String>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -310,7 +321,7 @@ pub enum GemTransactionInputType {
     },
     Generic {
         asset: GemAsset,
-        metadata: GemWalletConnectionSessionAppMetadata,
+        app_metadata: GemTransactionAppMetadata,
         extra: GemTransferDataExtra,
     },
     TransferNft {
@@ -573,9 +584,9 @@ impl From<TransactionInputType> for GemTransactionInputType {
                 stake_type: stake_type.into(),
             },
             TransactionInputType::TokenApprove(asset, approval_data) => GemTransactionInputType::TokenApprove { asset, approval_data },
-            TransactionInputType::Generic(asset, metadata, extra) => GemTransactionInputType::Generic {
+            TransactionInputType::Generic(asset, app_metadata, extra) => GemTransactionInputType::Generic {
                 asset,
-                metadata,
+                app_metadata,
                 extra: extra.into(),
             },
             TransactionInputType::TransferNft(asset, nft_asset) => GemTransactionInputType::TransferNft { asset, nft_asset },
@@ -727,7 +738,7 @@ impl From<GemTransactionInputType> for TransactionInputType {
                     is_unlimited: approval_data.is_unlimited,
                 },
             ),
-            GemTransactionInputType::Generic { asset, metadata, extra } => TransactionInputType::Generic(asset, metadata, extra.into()),
+            GemTransactionInputType::Generic { asset, app_metadata, extra } => TransactionInputType::Generic(asset, app_metadata, extra.into()),
             GemTransactionInputType::TransferNft { asset, nft_asset } => TransactionInputType::TransferNft(asset, nft_asset),
             GemTransactionInputType::Account { asset, account_type } => TransactionInputType::Account(asset, account_type),
             GemTransactionInputType::Perpetual { asset, perpetual_type } => TransactionInputType::Perpetual(asset, perpetual_type),

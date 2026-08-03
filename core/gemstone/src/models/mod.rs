@@ -1,3 +1,4 @@
+pub mod approval;
 pub mod asset;
 pub mod balance;
 pub mod chain_address;
@@ -15,6 +16,7 @@ pub mod swap;
 pub mod token;
 pub mod transaction;
 
+pub use approval::*;
 pub use asset::*;
 pub use balance::*;
 pub use chain_address::*;

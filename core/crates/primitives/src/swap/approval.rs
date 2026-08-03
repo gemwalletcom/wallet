@@ -1,17 +1,7 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{SwapProvider, TransactionState};
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[serde(rename_all = "camelCase")]
-pub struct ApprovalData {
-    pub token: String,
-    pub spender: String,
-    pub value: String,
-    pub is_unlimited: bool,
-}
+use crate::{ApprovalData, SwapProvider, TransactionState};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]

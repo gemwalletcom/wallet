@@ -27,7 +27,7 @@ use gem_evm::{
 };
 use gem_hash::keccak::keccak256;
 use gem_jsonrpc::client::JsonRpcClient;
-use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
+use primitives::{ApprovalData, AssetId, Chain, EVMChain};
 
 use super::{
     DEFAULT_SWAP_GAS_LIMIT,

@@ -1,8 +1,8 @@
 use super::signer_mock::TEST_EVM_RECIPIENT;
 use crate::{
-    SwapProvider,
+    ApprovalData, SwapProvider,
     asset_constants::ETHEREUM_USDT_TOKEN_ID,
-    swap::{ApprovalData, Slippage, SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
+    swap::{Slippage, SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
 };
 
 impl Slippage {
