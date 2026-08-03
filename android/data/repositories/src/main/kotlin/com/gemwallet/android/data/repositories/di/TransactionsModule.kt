@@ -5,7 +5,6 @@ import com.gemwallet.android.application.transactions.coordinators.GetPendingTra
 import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.cases.transactions.GetTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
@@ -51,12 +50,6 @@ object TransactionsModule {
     @Singleton
     @Provides
     fun provideGetPendingTransactionsCount(transactionsRepository: TransactionsRepositoryImpl): GetPendingTransactionsCount {
-        return transactionsRepository
-    }
-
-    @Singleton
-    @Provides
-    fun provideGetTransactionCase(transactionsRepository: TransactionsRepositoryImpl): GetTransaction {
         return transactionsRepository
     }
 

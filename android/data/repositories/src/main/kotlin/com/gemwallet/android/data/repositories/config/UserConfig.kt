@@ -10,10 +10,6 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.cases.config.GetLockInterval
-import com.gemwallet.android.cases.config.HideWelcomeBanner
-import com.gemwallet.android.cases.config.IsWelcomeBannerHidden
-import com.gemwallet.android.cases.config.SetLockInterval
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.AppUpdateInfo
 import com.wallet.core.primitives.ChartPeriod
@@ -22,11 +18,7 @@ import kotlinx.coroutines.flow.map
 
 class UserConfig(
     private val context: Context,
-) : GetLockInterval,
-        SetLockInterval,
-        IsWelcomeBannerHidden,
-        HideWelcomeBanner
-{
+) {
 
     private lateinit var store: SharedPreferences
     private val Context.dataStore by preferencesDataStore(name = "user_config")
@@ -154,19 +146,19 @@ class UserConfig(
         }
     }
 
-    override fun getLockInterval(): Flow<Int> = context.dataStore.data
+    fun getLockInterval(): Flow<Int> = context.dataStore.data
     .map { preferences -> preferences[Key.LockInterval] ?: 1 }
 
-    override suspend fun setLockInterval(minutes: Int) {
+    suspend fun setLockInterval(minutes: Int) {
         context.dataStore.edit { preferences ->
             preferences[Key.LockInterval] = minutes
         }
     }
 
-    override fun isWelcomeBannerHidden(walletId: String): Flow<Boolean> = context.dataStore.data
+    fun isWelcomeBannerHidden(walletId: String): Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Key.IsWelcomeBannerHidden]?.contains(walletId) ?: false }
 
-    override suspend fun hideWelcomeBanner(walletId: String) {
+    suspend fun hideWelcomeBanner(walletId: String) {
         context.dataStore.edit { preferences ->
             val value = preferences[Key.IsWelcomeBannerHidden]?.let {
                 it.toMutableSet().apply { add(walletId) }

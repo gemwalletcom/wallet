@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
 import android.util.Log
-import com.gemwallet.android.blockchain.operators.GetAsset
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -78,8 +77,7 @@ class AssetsRepository @Inject constructor(
     private val currencyRatesService: CurrencyRatesService,
     private val updateBalances: UpdateBalances = UpdateBalances(balancesDao, balancesService),
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-) : GetAsset {
-
+) {
 
     init {
         scope.launch(Dispatchers.IO) {
@@ -163,10 +161,6 @@ class AssetsRepository @Inject constructor(
             .firstOrNull()
             ?.toDTO()
             ?: emptyList()
-    }
-
-    override suspend fun getAsset(assetId: AssetId): Asset? = withContext(Dispatchers.IO) {
-        getAssetInfo(assetId).firstOrNull()?.asset
     }
 
     suspend fun hasAssets(assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
