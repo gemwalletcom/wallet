@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Дозволи";
 "wallet_connect.permissions.view_balance" = "Перегляд вашого балансу та активності";
 "wallet_connect.permissions.approval_requests" = "Надсилати запити на схвалення";
+"errors.payment_expired" = "Термін платежу минув";
+"errors.payment_not_allowed" = "Платіж не дозволено";
+"transfer.payment_expires_in" = "Платіж спливає через";
+"transfer.pay_with" = "Оплатити за допомогою";
+"transfer.payment_title" = "Платіж";
+"transfer.merchant" = "Продавець";
 "swap.you_pay" = "Ви платите";
 "swap.you_receive" = "Ви отримуєте";
 "swap.price_impact" = "Вплив ціни";

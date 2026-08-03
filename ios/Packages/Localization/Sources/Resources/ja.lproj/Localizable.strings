@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "権限";
 "wallet_connect.permissions.view_balance" = "残高とアクティビティを確認する";
 "wallet_connect.permissions.approval_requests" = "承認依頼を送信する";
+"errors.payment_expired" = "支払いの期限切れ";
+"errors.payment_not_allowed" = "支払いは許可されていません";
+"transfer.payment_expires_in" = "支払い期限まで";
+"transfer.pay_with" = "支払い方法";
+"transfer.payment_title" = "支払い";
+"transfer.merchant" = "加盟店";
 "swap.you_pay" = "あなたが支払う";
 "swap.you_receive" = "受け取るもの";
 "swap.price_impact" = "価格の影響";

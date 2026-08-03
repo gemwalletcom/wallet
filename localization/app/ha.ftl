@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Izini
 wallet_connect_permissions_view_balance = Duba ma'aunin ku da ayyukan ku
 wallet_connect_permissions_approval_requests = Aika buƙatun amincewa
 
+# Payment
+
+errors_payment_expired = Biyan ya ƙare
+errors_payment_not_allowed = Ba a yarda da biyan ba
+transfer_payment_expires_in = Biyan zai ƙare cikin
+transfer_pay_with = Biya da
+transfer_payment_title = Biya
+transfer_merchant = Ɗan kasuwa
+
 # Swap
 
 swap_you_pay = Kuna Biya

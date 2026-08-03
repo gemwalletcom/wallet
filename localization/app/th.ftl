@@ -355,6 +355,15 @@ wallet_connect_permissions_title = สิทธิ์การเข้าถึ
 wallet_connect_permissions_view_balance = ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ
 wallet_connect_permissions_approval_requests = ส่งคำขออนุมัติ
 
+# Payment
+
+errors_payment_expired = การชำระเงินหมดอายุ
+errors_payment_not_allowed = ไม่อนุญาตให้ชำระเงิน
+transfer_payment_expires_in = การชำระเงินหมดอายุใน
+transfer_pay_with = ชำระด้วย
+transfer_payment_title = การชำระเงิน
+transfer_merchant = ร้านค้า
+
 # Swap
 
 swap_you_pay = คุณจ่าย

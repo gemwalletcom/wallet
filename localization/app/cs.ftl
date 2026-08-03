@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Oprávnění
 wallet_connect_permissions_view_balance = Zobrazení zůstatku a aktivity
 wallet_connect_permissions_approval_requests = Odeslat žádosti o schválení
 
+# Payment
+
+errors_payment_expired = Platba vypršela
+errors_payment_not_allowed = Platba není povolena
+transfer_payment_expires_in = Platba vyprší za
+transfer_pay_with = Zaplatit pomocí
+transfer_payment_title = Platba
+transfer_merchant = Obchodník
+
 # Swap
 
 swap_you_pay = Vy platíte

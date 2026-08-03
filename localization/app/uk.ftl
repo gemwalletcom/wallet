@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Дозволи
 wallet_connect_permissions_view_balance = Перегляд вашого балансу та активності
 wallet_connect_permissions_approval_requests = Надсилати запити на схвалення
 
+# Payment
+
+errors_payment_expired = Термін платежу минув
+errors_payment_not_allowed = Платіж не дозволено
+transfer_payment_expires_in = Платіж спливає через
+transfer_pay_with = Оплатити за допомогою
+transfer_payment_title = Платіж
+transfer_merchant = Продавець
+
 # Swap
 
 swap_you_pay = Ви платите

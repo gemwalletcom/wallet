@@ -355,6 +355,15 @@ wallet_connect_permissions_title = 權限
 wallet_connect_permissions_view_balance = 查看您的餘額和活動
 wallet_connect_permissions_approval_requests = 發送審批請求
 
+# Payment
+
+errors_payment_expired = 付款已過期
+errors_payment_not_allowed = 不允許付款
+transfer_payment_expires_in = 付款將於以下時間過期
+transfer_pay_with = 付款方式
+transfer_payment_title = 付款
+transfer_merchant = 商戶
+
 # Swap
 
 swap_you_pay = 將支付

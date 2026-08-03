@@ -355,6 +355,15 @@ wallet_connect_permissions_title = अनुमतियां
 wallet_connect_permissions_view_balance = अपना बैलेंस और गतिविधि देखें
 wallet_connect_permissions_approval_requests = अनुमोदन अनुरोध भेजें
 
+# Payment
+
+errors_payment_expired = भुगतान समाप्त
+errors_payment_not_allowed = भुगतान की अनुमति नहीं है
+transfer_payment_expires_in = भुगतान समाप्त होने में
+transfer_pay_with = इससे भुगतान करें
+transfer_payment_title = भुगतान
+transfer_merchant = व्यापारी
+
 # Swap
 
 swap_you_pay = आप भुगतान करें

@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Permisiuni
 wallet_connect_permissions_view_balance = Vizualizați soldul și activitatea dvs.
 wallet_connect_permissions_approval_requests = Trimiteți cereri de aprobare
 
+# Payment
+
+errors_payment_expired = Plată expirată
+errors_payment_not_allowed = Plată nepermisă
+transfer_payment_expires_in = Plata expiră în
+transfer_pay_with = Plătește cu
+transfer_payment_title = Plată
+transfer_merchant = Comerciant
+
 # Swap
 
 swap_you_pay = Tu plătești

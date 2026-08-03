@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Kebenaran
 wallet_connect_permissions_view_balance = Lihat baki dan aktiviti anda
 wallet_connect_permissions_approval_requests = Hantar permintaan kelulusan
 
+# Payment
+
+errors_payment_expired = Pembayaran tamat tempoh
+errors_payment_not_allowed = Pembayaran tidak dibenarkan
+transfer_payment_expires_in = Pembayaran tamat tempoh dalam
+transfer_pay_with = Bayar dengan
+transfer_payment_title = Pembayaran
+transfer_merchant = Peniaga
+
 # Swap
 
 swap_you_pay = Anda Bayar

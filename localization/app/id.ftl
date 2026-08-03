@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Izin
 wallet_connect_permissions_view_balance = Lihat saldo dan aktivitas Anda
 wallet_connect_permissions_approval_requests = Kirim permintaan persetujuan
 
+# Payment
+
+errors_payment_expired = Pembayaran kedaluwarsa
+errors_payment_not_allowed = Pembayaran tidak diizinkan
+transfer_payment_expires_in = Pembayaran kedaluwarsa dalam
+transfer_pay_with = Bayar dengan
+transfer_payment_title = Pembayaran
+transfer_merchant = Pedagang
+
 # Swap
 
 swap_you_pay = Kamu Membayar

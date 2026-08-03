@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "اجازتیں";
 "wallet_connect.permissions.view_balance" = "اپنا توازن اور سرگرمی دیکھیں";
 "wallet_connect.permissions.approval_requests" = "منظوری کی درخواستیں بھیجیں۔";
+"errors.payment_expired" = "ادائیگی کی میعاد ختم ہو گئی";
+"errors.payment_not_allowed" = "ادائیگی کی اجازت نہیں";
+"transfer.payment_expires_in" = "ادائیگی ختم ہونے میں";
+"transfer.pay_with" = "اس سے ادائیگی کریں";
+"transfer.payment_title" = "ادائیگی";
+"transfer.merchant" = "تاجر";
 "swap.you_pay" = "آپ ادا کرتے ہیں";
 "swap.you_receive" = "آپ وصول کرتے ہیں";
 "swap.price_impact" = "قیمت کا اثر";

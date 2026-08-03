@@ -441,6 +441,10 @@ public enum Localized {
     public static let notSupported = Localized.tr("Localizable", "errors.not_supported", fallback: "Not Supported")
     /// This device does not support QR code scanning. You can only select QR code image from library.
     public static let notSupportedQr = Localized.tr("Localizable", "errors.not_supported_qr", fallback: "This device does not support QR code scanning. You can only select QR code image from library.")
+    /// Payment Expired
+    public static let paymentExpired = Localized.tr("Localizable", "errors.payment_expired", fallback: "Payment Expired")
+    /// Payment not allowed
+    public static let paymentNotAllowed = Localized.tr("Localizable", "errors.payment_not_allowed", fallback: "Payment not allowed")
     /// Permissions Not Granted
     public static let permissionsNotGranted = Localized.tr("Localizable", "errors.permissions_not_granted", fallback: "Permissions Not Granted")
     /// %@ is required
@@ -1476,6 +1480,8 @@ public enum Localized {
     }
     /// Memo
     public static let memo = Localized.tr("Localizable", "transfer.memo", fallback: "Memo")
+    /// Merchant
+    public static let merchant = Localized.tr("Localizable", "transfer.merchant", fallback: "Merchant")
     /// A minimum %@ balance must remain after this, unless you're using your full balance.
     public static func minimumAccountBalance(_ p1: Any) -> String {
       return Localized.tr("Localizable", "transfer.minimum_account_balance", String(describing: p1), fallback: "A minimum %@ balance must remain after this, unless you're using your full balance.")
@@ -1488,6 +1494,12 @@ public enum Localized {
     public static let network = Localized.tr("Localizable", "transfer.network", fallback: "Network")
     /// Network Fee
     public static let networkFee = Localized.tr("Localizable", "transfer.network_fee", fallback: "Network Fee")
+    /// Pay with
+    public static let payWith = Localized.tr("Localizable", "transfer.pay_with", fallback: "Pay with")
+    /// Payment expires in
+    public static let paymentExpiresIn = Localized.tr("Localizable", "transfer.payment_expires_in", fallback: "Payment expires in")
+    /// Payment
+    public static let paymentTitle = Localized.tr("Localizable", "transfer.payment_title", fallback: "Payment")
     /// We've left %@ in your balance to cover future network fees.
     public static func reservedFees(_ p1: Any) -> String {
       return Localized.tr("Localizable", "transfer.reserved_fees", String(describing: p1), fallback: "We've left %@ in your balance to cover future network fees.")

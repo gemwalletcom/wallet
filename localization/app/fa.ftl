@@ -355,6 +355,15 @@ wallet_connect_permissions_title = مجوزها
 wallet_connect_permissions_view_balance = مشاهده موجودی و فعالیت خود
 wallet_connect_permissions_approval_requests = ارسال درخواست‌های تأیید
 
+# Payment
+
+errors_payment_expired = پرداخت منقضی شد
+errors_payment_not_allowed = پرداخت مجاز نیست
+transfer_payment_expires_in = انقضای پرداخت تا
+transfer_pay_with = پرداخت با
+transfer_payment_title = پرداخت
+transfer_merchant = فروشنده
+
 # Swap
 
 swap_you_pay = شما پرداخت میکنید

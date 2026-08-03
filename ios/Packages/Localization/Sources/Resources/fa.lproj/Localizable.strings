@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "مجوزها";
 "wallet_connect.permissions.view_balance" = "مشاهده موجودی و فعالیت خود";
 "wallet_connect.permissions.approval_requests" = "ارسال درخواست‌های تأیید";
+"errors.payment_expired" = "پرداخت منقضی شد";
+"errors.payment_not_allowed" = "پرداخت مجاز نیست";
+"transfer.payment_expires_in" = "انقضای پرداخت تا";
+"transfer.pay_with" = "پرداخت با";
+"transfer.payment_title" = "پرداخت";
+"transfer.merchant" = "فروشنده";
 "swap.you_pay" = "شما پرداخت میکنید";
 "swap.you_receive" = "شما دریافت میکنید";
 "swap.price_impact" = "تاثیر قیمت";

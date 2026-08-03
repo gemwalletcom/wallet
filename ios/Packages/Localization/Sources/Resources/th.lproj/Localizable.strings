@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "สิทธิ์การเข้าถึง";
 "wallet_connect.permissions.view_balance" = "ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ";
 "wallet_connect.permissions.approval_requests" = "ส่งคำขออนุมัติ";
+"errors.payment_expired" = "การชำระเงินหมดอายุ";
+"errors.payment_not_allowed" = "ไม่อนุญาตให้ชำระเงิน";
+"transfer.payment_expires_in" = "การชำระเงินหมดอายุใน";
+"transfer.pay_with" = "ชำระด้วย";
+"transfer.payment_title" = "การชำระเงิน";
+"transfer.merchant" = "ร้านค้า";
 "swap.you_pay" = "คุณจ่าย";
 "swap.you_receive" = "คุณได้รับ";
 "swap.price_impact" = "ผลกระทบต่อราคา";

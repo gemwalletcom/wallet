@@ -355,6 +355,15 @@ wallet_connect_permissions_title = 권한
 wallet_connect_permissions_view_balance = 잔액과 활동 내역을 확인하세요
 wallet_connect_permissions_approval_requests = 승인 요청 보내기
 
+# Payment
+
+errors_payment_expired = 결제 만료됨
+errors_payment_not_allowed = 결제가 허용되지 않음
+transfer_payment_expires_in = 결제 만료까지
+transfer_pay_with = 결제 수단
+transfer_payment_title = 결제
+transfer_merchant = 가맹점
+
 # Swap
 
 swap_you_pay = 지불 금액

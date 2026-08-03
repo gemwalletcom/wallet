@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "权限";
 "wallet_connect.permissions.view_balance" = "查看您的余额和活动";
 "wallet_connect.permissions.approval_requests" = "发送审批请求";
+"errors.payment_expired" = "支付已过期";
+"errors.payment_not_allowed" = "不允许支付";
+"transfer.payment_expires_in" = "支付将于以下时间过期";
+"transfer.pay_with" = "支付方式";
+"transfer.payment_title" = "支付";
+"transfer.merchant" = "商户";
 "swap.you_pay" = "将支付";
 "swap.you_receive" = "将收到";
 "swap.price_impact" = "价格影响";

@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Quyền hạn";
 "wallet_connect.permissions.view_balance" = "Xem số dư và hoạt động của bạn";
 "wallet_connect.permissions.approval_requests" = "Gửi yêu cầu phê duyệt";
+"errors.payment_expired" = "Thanh toán đã hết hạn";
+"errors.payment_not_allowed" = "Thanh toán không được phép";
+"transfer.payment_expires_in" = "Thanh toán hết hạn sau";
+"transfer.pay_with" = "Thanh toán bằng";
+"transfer.payment_title" = "Thanh toán";
+"transfer.merchant" = "Người bán";
 "swap.you_pay" = "Bạn trả";
 "swap.you_receive" = "Bạn nhận được";
 "swap.price_impact" = "Tác động giá";

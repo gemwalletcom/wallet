@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Uprawnienia";
 "wallet_connect.permissions.view_balance" = "Wyświetl swoje saldo i aktywność";
 "wallet_connect.permissions.approval_requests" = "Wyślij prośby o zatwierdzenie";
+"errors.payment_expired" = "Płatność wygasła";
+"errors.payment_not_allowed" = "Płatność niedozwolona";
+"transfer.payment_expires_in" = "Płatność wygasa za";
+"transfer.pay_with" = "Zapłać za pomocą";
+"transfer.payment_title" = "Płatność";
+"transfer.merchant" = "Sprzedawca";
 "swap.you_pay" = "Ty płacisz";
 "swap.you_receive" = "Otrzymujesz";
 "swap.price_impact" = "Wpływ na cenę";

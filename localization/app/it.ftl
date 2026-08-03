@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Autorizzazioni
 wallet_connect_permissions_view_balance = Visualizza il tuo saldo e la tua attività
 wallet_connect_permissions_approval_requests = Invia richieste di approvazione
 
+# Payment
+
+errors_payment_expired = Pagamento scaduto
+errors_payment_not_allowed = Pagamento non consentito
+transfer_payment_expires_in = Il pagamento scade tra
+transfer_pay_with = Paga con
+transfer_payment_title = Pagamento
+transfer_merchant = Esercente
+
 # Swap
 
 swap_you_pay = Paghi tu
