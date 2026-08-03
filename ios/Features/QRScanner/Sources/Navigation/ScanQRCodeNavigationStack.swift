@@ -7,6 +7,8 @@ import SwiftUI
 public struct ScanQRCodeNavigationStack: View {
     private let resources: any QRScannerResources
 
+    @State private var scanned: String?
+
     let action: (String) -> Void
 
     public init(action: @escaping (String) -> Void) {
@@ -16,9 +18,13 @@ public struct ScanQRCodeNavigationStack: View {
 
     public var body: some View {
         NavigationStack {
-            QRScannerScene(resources: resources, action: action)
+            QRScannerScene(resources: resources, action: { scanned = $0 })
                 .navigationTitle(Localized.Wallet.scanQrCode)
                 .navigationBarTitleDisplayMode(.inline)
+        }
+        .onDisappear {
+            guard let scanned else { return }
+            action(scanned)
         }
     }
 }

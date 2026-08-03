@@ -26,6 +26,7 @@ public final class WalletSceneViewModel: Sendable {
     private let balanceService: BalanceService
     private let bannerService: BannerService
     private let walletService: WalletService
+    private let payService: any PaymentLinkPayable
     private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
@@ -42,6 +43,7 @@ public final class WalletSceneViewModel: Sendable {
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingSheet: WalletSheetType?
     public var isPresentingSearch = false
+    public var isPresentingScanner = false
     public var isPresentingUrl: URL?
     public var isPresentingToastMessage: ToastMessage?
 
@@ -52,6 +54,7 @@ public final class WalletSceneViewModel: Sendable {
         balanceService: BalanceService,
         bannerService: BannerService,
         walletService: WalletService,
+        payService: any PaymentLinkPayable,
         nftService: NFTService,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
@@ -62,8 +65,9 @@ public final class WalletSceneViewModel: Sendable {
         self.balanceService = balanceService
         self.bannerService = bannerService
         self.walletService = walletService
+        self.payService = payService
         self.observablePreferences = observablePreferences
-        self.collectionsModel = CollectionsViewModel(
+        collectionsModel = CollectionsViewModel(
             nftService: nftService,
             walletService: walletService,
             wallet: wallet,
@@ -74,7 +78,7 @@ public final class WalletSceneViewModel: Sendable {
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
-    
+
     public var totalFiatValue: TotalFiatValue {
         balanceCalculator.totalFiatValue(fiatValuesQuery.value)
     }
@@ -109,6 +113,14 @@ public final class WalletSceneViewModel: Sendable {
 
     public var searchImage: Image {
         Images.System.search
+    }
+
+    public var scannerImage: Image {
+        Images.System.qrCodeViewfinder
+    }
+
+    public var showScanner: Bool {
+        observablePreferences.isDeveloperEnabled
     }
 
     public var manageImage: Image {
@@ -185,6 +197,22 @@ public extension WalletSceneViewModel {
 
     func onToggleSearch() {
         isPresentingSearch.toggle()
+    }
+
+    func onSelectScanner() {
+        isPresentingScanner = true
+    }
+
+    func onHandleScan(_ result: String) {
+        guard let action = try? URLParser.from(string: result) else {
+            return isPresentingToastMessage = .error(Localized.Errors.notSupported)
+        }
+        switch action {
+        case .deeplink, .walletConnect:
+            isPresentingToastMessage = .error(Localized.Errors.notSupported)
+        case let .payment(link):
+            Task { await payService.pay(link: link, wallet: wallet) }
+        }
     }
 
     func onSelectAddCustomToken() {

@@ -14,7 +14,7 @@ public struct ScanService: Sendable {
         let originAssetId = input.inputType.assetIds.first ?? input.inputType.chain.assetId
         let targetAssetId = input.inputType.assetIds.last ?? originAssetId
         let website: String? = switch input.inputType {
-        case let .generic(_, metadata, _): metadata.url
+        case let .generic(_, app, _): app.url
         default: nil
         }
         let payload = ScanTransactionPayload(

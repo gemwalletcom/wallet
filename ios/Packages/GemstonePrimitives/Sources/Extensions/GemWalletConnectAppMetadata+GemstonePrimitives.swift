@@ -4,9 +4,9 @@ import Foundation
 import Gemstone
 import Primitives
 
-public extension GemWalletConnectionSessionAppMetadata {
-    func map() -> WalletConnectionSessionAppMetadata {
-        WalletConnectionSessionAppMetadata(
+public extension GemWalletConnectAppMetadata {
+    func map() -> WalletConnectAppMetadata {
+        WalletConnectAppMetadata(
             name: name,
             description: description,
             url: url,
@@ -15,9 +15,9 @@ public extension GemWalletConnectionSessionAppMetadata {
     }
 }
 
-public extension WalletConnectionSessionAppMetadata {
-    func map() -> GemWalletConnectionSessionAppMetadata {
-        GemWalletConnectionSessionAppMetadata(
+public extension WalletConnectAppMetadata {
+    func map() -> GemWalletConnectAppMetadata {
+        GemWalletConnectAppMetadata(
             name: name,
             description: description,
             url: url,
@@ -26,6 +26,6 @@ public extension WalletConnectionSessionAppMetadata {
     }
 
     var shortName: String {
-        Gemstone.walletConnectAppShortName(metadata: map())
+        Gemstone.walletConnectAppShortName(name: name)
     }
 }

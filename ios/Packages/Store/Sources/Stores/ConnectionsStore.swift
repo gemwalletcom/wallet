@@ -35,7 +35,7 @@ public struct ConnectionsStore: Sendable {
         }
     }
 
-    public func getSessions() throws -> [WalletConnectionSession] {
+    public func getSessions() throws -> [WalletConnectSession] {
         try db.read { db in
             try WalletConnectionRecord
                 .fetchAll(db)
@@ -43,7 +43,7 @@ public struct ConnectionsStore: Sendable {
         }
     }
 
-    public func updateConnectionSession(_ session: WalletConnectionSession) throws {
+    public func updateConnectionSession(_ session: WalletConnectSession) throws {
         let connection = try getConnection(id: session.id).update(with: session)
         try db.write { db in
             try connection.upsert(db)

@@ -1,8 +1,8 @@
-use crate::WalletConnectionSessionAppMetadata;
+use crate::WalletConnectAppMetadata;
 
-impl WalletConnectionSessionAppMetadata {
+impl WalletConnectAppMetadata {
     pub fn mock() -> Self {
-        WalletConnectionSessionAppMetadata {
+        WalletConnectAppMetadata {
             name: "Test Dapp".to_string(),
             description: "Test Dapp".to_string(),
             url: "https://example.com".to_string(),

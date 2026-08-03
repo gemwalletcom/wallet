@@ -87,15 +87,15 @@ extension WalletConnection {
 }
 
 extension WalletConnectionRecord {
-    var session: WalletConnectionSession {
-        WalletConnectionSession(
+    var session: WalletConnectSession {
+        WalletConnectSession(
             id: sessionId,
             sessionId: sessionId,
             state: state,
             chains: chains ?? [],
             createdAt: createdAt,
             expireAt: expireAt,
-            metadata: WalletConnectionSessionAppMetadata(
+            metadata: WalletConnectAppMetadata(
                 name: appName,
                 description: appDescription,
                 url: appLink,
@@ -104,7 +104,7 @@ extension WalletConnectionRecord {
         )
     }
 
-    func update(with session: WalletConnectionSession) -> WalletConnectionRecord {
+    func update(with session: WalletConnectSession) -> WalletConnectionRecord {
         WalletConnectionRecord(
             id: session.sessionId,
             sessionId: session.sessionId,

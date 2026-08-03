@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER};
 use crate::{
-    Asset, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction,
-    TransferDataOutputType, WalletConnectionSessionAppMetadata,
+    Asset, Chain, GasPriceType, SignerInput, TransactionAppMetadata, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
+    TransferDataOutputAction, TransferDataOutputType,
 };
 use num_bigint::BigInt;
 use std::collections::HashMap;
@@ -208,7 +208,7 @@ impl TransactionLoadInput {
         TransactionLoadInput {
             input_type: TransactionInputType::Generic(
                 Asset::from_chain(chain),
-                WalletConnectionSessionAppMetadata::mock(),
+                TransactionAppMetadata::mock(),
                 TransferDataExtra {
                     data: Some(data.as_bytes().to_vec()),
                     output_type,
