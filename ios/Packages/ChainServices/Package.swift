@@ -17,6 +17,8 @@ let package = Package(
         .library(name: "NodeServiceTestKit", targets: ["NodeServiceTestKit"]),
         .library(name: "SigningRequestService", targets: ["SigningRequestService"]),
         .library(name: "SigningRequestServiceTestKit", targets: ["SigningRequestServiceTestKit"]),
+        .library(name: "PaymentService", targets: ["PaymentService"]),
+        .library(name: "PaymentServiceTestKit", targets: ["PaymentServiceTestKit"]),
         .library(name: "WalletConnectorService", targets: ["WalletConnectorService"]),
         .library(name: "WalletConnectorServiceTestKit", targets: ["WalletConnectorServiceTestKit"]),
         .library(name: "ScanService", targets: ["ScanService"]),
@@ -124,6 +126,29 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "SigningRequestService/TestKit",
+        ),
+        .target(
+            name: "PaymentService",
+            dependencies: [
+                "SigningRequestService",
+                "Primitives",
+                "Store",
+                .product(name: "Localization", package: "Localization"),
+                "Gemstone",
+                "GemstonePrimitives",
+                "NativeProviderService",
+            ],
+            path: "PaymentService",
+            exclude: ["TestKit"],
+        ),
+        .target(
+            name: "PaymentServiceTestKit",
+            dependencies: [
+                "PaymentService",
+                "SigningRequestServiceTestKit",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "PaymentService/TestKit",
         ),
         .target(
             name: "WalletConnectorService",
