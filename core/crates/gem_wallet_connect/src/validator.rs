@@ -1,10 +1,9 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::actions::WalletConnectTransactionType;
-use crate::sign_type::SignDigestType;
 use gem_evm::domain::host_only;
 use gem_evm::siwe::SiweMessage;
 use primitives::Chain;
+use primitives::{SignDigestType, SignableTransactionType};
 
 pub struct SignMessageValidation<'a> {
     pub chain: Chain,
@@ -65,8 +64,8 @@ fn validate_session_domain(message: &SiweMessage, session_domain: &str) -> Resul
     Ok(())
 }
 
-pub fn validate_send_transaction(transaction_type: &WalletConnectTransactionType, data: &str) -> Result<(), String> {
-    let WalletConnectTransactionType::Ton { .. } = transaction_type else {
+pub fn validate_send_transaction(transaction_type: &SignableTransactionType, data: &str) -> Result<(), String> {
+    let SignableTransactionType::Ton { .. } = transaction_type else {
         return Ok(());
     };
 
@@ -135,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_validate_ton_send_transaction_expired() {
-        let ton_type = WalletConnectTransactionType::Ton {
+        let ton_type = SignableTransactionType::Ton {
             output_type: TransferDataOutputType::EncodedTransaction,
         };
         assert!(validate_send_transaction(&ton_type, r#"{"valid_until": 1234567890, "messages": []}"#).is_err());
@@ -143,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_validate_ton_send_transaction_valid() {
-        let ton_type = WalletConnectTransactionType::Ton {
+        let ton_type = SignableTransactionType::Ton {
             output_type: TransferDataOutputType::EncodedTransaction,
         };
         assert!(validate_send_transaction(&ton_type, r#"{"valid_until": 9999999999, "messages": []}"#).is_ok());
@@ -151,12 +150,12 @@ mod tests {
 
     #[test]
     fn test_validate_ethereum_send_transaction_always_ok() {
-        assert!(validate_send_transaction(&WalletConnectTransactionType::Ethereum, "{}").is_ok());
+        assert!(validate_send_transaction(&SignableTransactionType::Ethereum, "{}").is_ok());
     }
 
     #[test]
     fn test_validate_ton_send_transaction_no_expiry() {
-        let ton_type = WalletConnectTransactionType::Ton {
+        let ton_type = SignableTransactionType::Ton {
             output_type: TransferDataOutputType::EncodedTransaction,
         };
         assert!(validate_send_transaction(&ton_type, r#"{"messages": []}"#).is_ok());

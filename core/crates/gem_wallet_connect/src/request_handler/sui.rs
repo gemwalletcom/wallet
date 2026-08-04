@@ -1,6 +1,7 @@
-use crate::actions::{WCSuiTransactionData, WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
-use crate::sign_type::SignDigestType;
+use crate::actions::WalletConnectAction;
+use primitives::SignDigestType;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
+use primitives::{SignableTransaction, SignableTransactionType, SuiTransactionData};
 use serde_json::Value;
 
 pub struct SuiRequestHandler;
@@ -31,7 +32,7 @@ impl SuiRequestHandler {
 
         Ok(WalletConnectAction::SignTransaction {
             chain: Chain::Sui,
-            transaction_type: WalletConnectTransactionType::Sui {
+            transaction_type: SignableTransactionType::Sui {
                 output_type: TransferDataOutputType::Signature,
             },
             data: params.to_string(),
@@ -43,14 +44,14 @@ impl SuiRequestHandler {
 
         Ok(WalletConnectAction::SendTransaction {
             chain: Chain::Sui,
-            transaction_type: WalletConnectTransactionType::Sui {
+            transaction_type: SignableTransactionType::Sui {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
             data: params.to_string(),
         })
     }
 
-    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
+    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<SignableTransaction, String> {
         let json: Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
         let transaction = json
             .get("transaction")
@@ -63,8 +64,8 @@ impl SuiRequestHandler {
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string();
-        Ok(WalletConnectTransaction::Sui {
-            data: WCSuiTransactionData { transaction, wallet_address },
+        Ok(SignableTransaction::Sui {
+            data: SuiTransactionData { transaction, wallet_address },
             output_type,
         })
     }
@@ -95,7 +96,7 @@ mod tests {
             SuiRequestHandler::parse_sign_transaction(Chain::Sui, params).unwrap(),
             WalletConnectAction::SignTransaction {
                 chain: Chain::Sui,
-                transaction_type: WalletConnectTransactionType::Sui {
+                transaction_type: SignableTransactionType::Sui {
                     output_type: TransferDataOutputType::Signature,
                 },
                 data: expected_data,
@@ -111,7 +112,7 @@ mod tests {
             SuiRequestHandler::parse_send_transaction(Chain::Sui, params).unwrap(),
             WalletConnectAction::SendTransaction {
                 chain: Chain::Sui,
-                transaction_type: WalletConnectTransactionType::Sui {
+                transaction_type: SignableTransactionType::Sui {
                     output_type: TransferDataOutputType::EncodedTransaction,
                 },
                 data: expected_data,

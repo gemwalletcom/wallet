@@ -1,6 +1,7 @@
-use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
-use crate::sign_type::SignDigestType;
+use crate::actions::WalletConnectAction;
+use primitives::SignDigestType;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
+use primitives::{SignableTransaction, SignableTransactionType};
 use serde_json::Value;
 
 pub struct TronRequestHandler;
@@ -30,7 +31,7 @@ impl TronRequestHandler {
 
         Ok(WalletConnectAction::SignTransaction {
             chain: Chain::Tron,
-            transaction_type: WalletConnectTransactionType::Tron {
+            transaction_type: SignableTransactionType::Tron {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
             data: params.to_string(),
@@ -42,15 +43,15 @@ impl TronRequestHandler {
 
         Ok(WalletConnectAction::SendTransaction {
             chain: Chain::Tron,
-            transaction_type: WalletConnectTransactionType::Tron {
+            transaction_type: SignableTransactionType::Tron {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
             data: params.to_string(),
         })
     }
 
-    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
-        Ok(WalletConnectTransaction::Tron { data, output_type })
+    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<SignableTransaction, String> {
+        Ok(SignableTransaction::Tron { data, output_type })
     }
 }
 
@@ -79,7 +80,7 @@ mod tests {
             TronRequestHandler::parse_sign_transaction(Chain::Tron, params).unwrap(),
             WalletConnectAction::SignTransaction {
                 chain: Chain::Tron,
-                transaction_type: WalletConnectTransactionType::Tron {
+                transaction_type: SignableTransactionType::Tron {
                     output_type: TransferDataOutputType::EncodedTransaction,
                 },
                 data: expected_data,
@@ -95,7 +96,7 @@ mod tests {
             TronRequestHandler::parse_send_transaction(Chain::Tron, params).unwrap(),
             WalletConnectAction::SendTransaction {
                 chain: Chain::Tron,
-                transaction_type: WalletConnectTransactionType::Tron {
+                transaction_type: SignableTransactionType::Tron {
                     output_type: TransferDataOutputType::EncodedTransaction,
                 },
                 data: expected_data,
@@ -118,7 +119,7 @@ mod tests {
             action,
             WalletConnectAction::SendTransaction {
                 chain: Chain::Tron,
-                transaction_type: WalletConnectTransactionType::Tron {
+                transaction_type: SignableTransactionType::Tron {
                     output_type: TransferDataOutputType::EncodedTransaction,
                 },
                 data: expected_data,

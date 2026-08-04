@@ -4,9 +4,10 @@ mod sui;
 mod ton;
 mod tron;
 
-use crate::actions::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
+use crate::actions::{WalletConnectAction, WalletConnectChainOperation};
 use ethereum::EthereumRequestHandler;
 use primitives::{Chain, ChainType, ValueAccess, WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods, hex};
+use primitives::{SignableTransaction, SignableTransactionType};
 use serde_json::Value;
 use solana::SolanaRequestHandler;
 use sui::SuiRequestHandler;
@@ -20,6 +21,10 @@ impl WalletConnectRequestHandler {
         let WalletConnectRequest {
             method, params, chain_id, domain, ..
         } = request;
+        Self::parse_action(method, params, chain_id, domain)
+    }
+
+    pub fn parse_action(method: String, params: String, chain_id: Option<String>, domain: String) -> Result<WalletConnectAction, String> {
         let method_name = method;
         let method = match serde_json::from_value::<WalletConnectionMethods>(serde_json::Value::String(method_name.clone())) {
             Ok(m) => m,
@@ -73,13 +78,13 @@ impl WalletConnectRequestHandler {
         }
     }
 
-    pub fn decode_send_transaction(transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, String> {
+    pub fn decode_send_transaction(transaction_type: SignableTransactionType, data: String) -> Result<SignableTransaction, String> {
         match transaction_type {
-            WalletConnectTransactionType::Ethereum => EthereumRequestHandler::decode_send_transaction(data),
-            WalletConnectTransactionType::Solana { output_type } => SolanaRequestHandler::decode_send_transaction(data, output_type),
-            WalletConnectTransactionType::Sui { output_type } => SuiRequestHandler::decode_send_transaction(data, output_type),
-            WalletConnectTransactionType::Ton { output_type } => TonRequestHandler::decode_send_transaction(data, output_type),
-            WalletConnectTransactionType::Tron { output_type } => TronRequestHandler::decode_send_transaction(data, output_type),
+            SignableTransactionType::Ethereum => EthereumRequestHandler::decode_send_transaction(data),
+            SignableTransactionType::Solana { output_type } => SolanaRequestHandler::decode_send_transaction(data, output_type),
+            SignableTransactionType::Sui { output_type } => SuiRequestHandler::decode_send_transaction(data, output_type),
+            SignableTransactionType::Ton { output_type } => TonRequestHandler::decode_send_transaction(data, output_type),
+            SignableTransactionType::Tron { output_type } => TronRequestHandler::decode_send_transaction(data, output_type),
         }
     }
 
@@ -104,8 +109,8 @@ impl WalletConnectRequestHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sign_type::SignDigestType;
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
+    use primitives::SignDigestType;
     use primitives::TransferDataOutputType;
 
     #[test]
@@ -256,7 +261,7 @@ mod tests {
                 assert_eq!(transactions.len(), 1);
                 let decoded = WalletConnectRequestHandler::decode_send_transaction(transaction_type.clone(), transactions[0].clone()).unwrap();
                 match decoded {
-                    WalletConnectTransaction::Solana { data, output_type } => {
+                    SignableTransaction::Solana { data, output_type } => {
                         assert!(data.transaction.starts_with("AQAAAAAAAAA"));
                         assert_eq!(output_type, TransferDataOutputType::EncodedTransaction);
                     }
@@ -271,13 +276,13 @@ mod tests {
     fn test_decode_ethereum_transaction_accepts_numeric_and_hex_string_chain_id() {
         for (chain_id, expected) in [(r#"4663"#, 4663), (r#""0x1237""#, 4663)] {
             let decoded = WalletConnectRequestHandler::decode_send_transaction(
-                WalletConnectTransactionType::Ethereum,
+                SignableTransactionType::Ethereum,
                 format!(r#"{{"chainId":{chain_id},"from":"0xsender","to":"0xrouter","data":"0x1234","value":"0x0"}}"#),
             )
             .unwrap();
 
             match decoded {
-                WalletConnectTransaction::Ethereum { data, transaction_type } => {
+                SignableTransaction::Ethereum { data, transaction_type } => {
                     assert_eq!(data.chain_id, Some(expected));
                     assert_eq!(data.data, Some("0x1234".to_string()));
                     assert_eq!(transaction_type, primitives::TransactionType::SmartContractCall);
@@ -297,13 +302,13 @@ mod tests {
         ];
         for (data, expected) in cases {
             let decoded = WalletConnectRequestHandler::decode_send_transaction(
-                WalletConnectTransactionType::Ethereum,
+                SignableTransactionType::Ethereum,
                 format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":"0x0"}}"#),
             )
             .unwrap();
 
             match decoded {
-                WalletConnectTransaction::Ethereum { transaction_type, .. } => assert_eq!(transaction_type, expected),
+                SignableTransaction::Ethereum { transaction_type, .. } => assert_eq!(transaction_type, expected),
                 _ => panic!("Expected Ethereum transaction"),
             }
         }

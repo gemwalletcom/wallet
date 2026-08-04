@@ -1,6 +1,7 @@
-use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
-use crate::sign_type::SignDigestType;
+use crate::actions::WalletConnectAction;
+use primitives::SignDigestType;
 use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectionMethods};
+use primitives::{SignableTransaction, SignableTransactionType};
 use serde_json::Value;
 
 pub struct EthereumRequestHandler;
@@ -49,7 +50,7 @@ impl EthereumRequestHandler {
 
         Ok(WalletConnectAction::SignTransaction {
             chain,
-            transaction_type: WalletConnectTransactionType::Ethereum,
+            transaction_type: SignableTransactionType::Ethereum,
             data,
         })
     }
@@ -59,15 +60,15 @@ impl EthereumRequestHandler {
 
         Ok(WalletConnectAction::SendTransaction {
             chain,
-            transaction_type: WalletConnectTransactionType::Ethereum,
+            transaction_type: SignableTransactionType::Ethereum,
             data,
         })
     }
 
-    pub fn decode_send_transaction(data: String) -> Result<WalletConnectTransaction, String> {
+    pub fn decode_send_transaction(data: String) -> Result<SignableTransaction, String> {
         let transaction: WCEthereumTransaction = serde_json::from_str(&data).map_err(|e| e.to_string())?;
         let transaction_type = gem_evm::transaction::decode_transaction_type(transaction.data.as_deref());
-        Ok(WalletConnectTransaction::Ethereum {
+        Ok(SignableTransaction::Ethereum {
             data: transaction.into(),
             transaction_type,
         })
@@ -199,7 +200,7 @@ mod tests {
             WalletConnectAction::SendTransaction { chain, transaction_type, data } => {
                 let transaction: Value = serde_json::from_str(&data).unwrap();
                 assert_eq!(chain, Chain::Ethereum);
-                assert_eq!(transaction_type, WalletConnectTransactionType::Ethereum);
+                assert_eq!(transaction_type, SignableTransactionType::Ethereum);
                 assert_eq!(transaction["from"], "0xsender");
                 assert_eq!(transaction["chainId"], "0x1");
             }
