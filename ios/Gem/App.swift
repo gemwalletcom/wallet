@@ -12,6 +12,7 @@ import Store
 import Style
 import SwiftUI
 import WalletService
+import SigningRequestService
 
 @main
 struct GemApp: App {
@@ -29,6 +30,7 @@ struct GemApp: App {
                 model: RootSceneViewModel(
                     observablePreferences: resolver.storages.observablePreferences,
                     walletConnectorPresenter: resolver.services.walletConnectorManager.presenter,
+                    paymentSheetPresenter: resolver.services.paymentSheetPresenter,
                     onstartService: resolver.services.onstartService,
                     onstartWalletService: resolver.services.onstartWalletService,
                     transactionStateScheduler: resolver.services.transactionStateScheduler,
@@ -38,6 +40,7 @@ struct GemApp: App {
                     lockWindowManager: LockWindowManager(lockModel: LockSceneViewModel()),
                     walletService: resolver.services.walletService,
                     walletSessionService: resolver.services.walletSessionService,
+                    payService: resolver.services.paymentLinkManager,
                     walletSetupService: resolver.services.walletSetupService,
                     nameService: resolver.services.nameService,
                     releaseAlertService: resolver.services.releaseAlertService,

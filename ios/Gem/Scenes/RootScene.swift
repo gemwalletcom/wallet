@@ -4,10 +4,13 @@ import Components
 import GemstonePrimitives
 import Localization
 import Onboarding
+import Payments
 import PriceService
 import Primitives
+import SigningRequestService
 import Style
 import SwiftUI
+import WalletConnector
 
 struct RootScene: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -34,10 +37,16 @@ struct RootScene: View {
                 await model.handleOpenUrl(url)
             }
         }
-        .sheet(item: $model.isPresentingConnectorSheet) { type in
+        .sheet(item: $model.isPresentingConnectorSheet, onDismiss: model.walletConnectorPresenter.onSheetDismiss) { type in
             WalletConnectorNavigationStack(
                 type: type,
                 presenter: model.walletConnectorPresenter,
+            )
+        }
+        .sheet(item: $model.isPresentingPaymentSheet, onDismiss: model.paymentSheetPresenter.onSheetDismiss) { type in
+            PaymentNavigationStack(
+                type: type,
+                presenter: model.paymentSheetPresenter,
             )
         }
         .sheet(isPresented: $model.isPresentingCreateWalletSheet) {

@@ -19,6 +19,7 @@ import Transactions
 import Transfer
 import WalletSessionService
 import WalletTab
+import QRScanner
 
 struct WalletNavigationStack: View {
     @Environment(\.assetsEnabler) private var assetsEnabler
@@ -81,6 +82,14 @@ struct WalletNavigationStack: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !model.isPresentingSearch {
+                    if model.showScanner {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: model.onSelectScanner) {
+                                model.scannerImage
+                            }
+                            .accessibilityIdentifier("scan")
+                        }
+                    }
                     ToolbarItem(placement: .principal) {
                         WalletBarView(
                             model: model.walletBarModel,
@@ -224,6 +233,9 @@ struct WalletNavigationStack: View {
                         asset: $0.asset,
                     ),
                 )
+            }
+            .sheet(isPresented: $model.isPresentingScanner) {
+                ScanQRCodeNavigationStack(action: model.onHandleScan(_:))
             }
             .sheet(item: $model.isPresentingSheet) { sheet in
                 Group {

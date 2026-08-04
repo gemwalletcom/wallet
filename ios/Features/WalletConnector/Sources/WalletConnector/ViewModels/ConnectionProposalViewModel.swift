@@ -10,13 +10,13 @@ import SwiftUI
 import WalletConnectorService
 
 public struct ConnectionProposalViewModel {
-    private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
+    private let confirmTransferDelegate: StringResultAction
     private let pairingProposal: WCPairingProposal
 
     var walletSelectorModel: SelectWalletViewModel
 
     public init(
-        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
+        confirmTransferDelegate: @escaping StringResultAction,
         pairingProposal: WCPairingProposal,
     ) {
         self.confirmTransferDelegate = confirmTransferDelegate

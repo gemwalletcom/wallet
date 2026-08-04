@@ -37,7 +37,11 @@ struct TransactionExplorerViewModel {
 
 extension TransactionExplorerViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        .explorer(
+        guard !transactionViewModel.transaction.transaction.isAwaitingPaymentHash else {
+            return .empty
+        }
+
+        return .explorer(
             url: transactionLink.url,
             text: Localized.Transaction.viewOn(transactionLink.name),
         )

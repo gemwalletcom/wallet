@@ -4,11 +4,14 @@ import AddressNameService
 import Components
 import ExplorerService
 import Foundation
+import Formatters
+import BigInt
 import class Gemstone.MessageSigner
-import GemstonePrimitives
 import Keystore
 import Localization
+import Preferences
 import Primitives
+import SigningRequestService
 import PrimitivesComponents
 import Style
 import WalletConnectorService
@@ -16,28 +19,34 @@ import WalletConnectorService
 @Observable
 @MainActor
 public final class SignMessageSceneViewModel {
+    private static let priceFormatter = ValueFormatter(style: .full)
+    private static let feeFormatter = ValueFormatter(style: .auto)
+    private static let amountFormatter = ValueFormatter(style: .auto)
+
     private let explorerService: ExplorerService = .standard
     private let keystore: any Keystore
     private let addressNameService: AddressNameService
     private let payload: SignMessagePayload
-    private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
+    private let confirmTransferDelegate: StringResultAction
     private let signer: MessageSigner
     private let plainMessage: String
     public let messageDisplayType: SignMessageDisplayType
 
     public var isPresentingUrl: URL?
     public var isPresentingPayloadDetails: Bool = false
+    public let expiryCountdown: ExpiryCountdown
     private var payloadAddressNames: [ChainAddress: AddressName] = [:]
 
     public init(
         keystore: any Keystore,
         addressNameService: AddressNameService,
         payload: SignMessagePayload,
-        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
+        confirmTransferDelegate: @escaping StringResultAction,
     ) {
         self.keystore = keystore
         self.addressNameService = addressNameService
         self.payload = payload
+        expiryCountdown = ExpiryCountdown(expiresAt: payload.expiresAt)
         let signer = MessageSigner(message: payload.message)
         self.signer = signer
         let plainMessage = signer.plainPreview()
@@ -56,12 +65,31 @@ public final class SignMessageSceneViewModel {
         self.confirmTransferDelegate = confirmTransferDelegate
     }
 
+    public var priceText: String? {
+        guard let price = payload.payment?.price, let value = BigInt(price.value) else {
+            return .none
+        }
+        return Self.priceFormatter.string(value, decimals: price.decimals.asInt, currency: price.symbol)
+    }
+
+    public var expiresAt: Date? {
+        payload.expiresAt
+    }
+
+    public var expiresTitle: String {
+        Localized.Transfer.paymentExpiresIn
+    }
+
+    public var selectedQuoteItem: PaymentQuoteItem? {
+        payload.payment.map { PaymentQuoteItem(quote: $0.quote, formatter: Self.amountFormatter) }
+    }
+
     public var networkText: String {
         payload.chain.networkName
     }
 
     public var title: String {
-        Localized.Transfer.reviewRequest
+        isPayment ? Localized.Transfer.paymentTitle : Localized.Transfer.reviewRequest
     }
 
     public var walletText: String {
@@ -72,20 +100,24 @@ public final class SignMessageSceneViewModel {
         Localized.Transfer.confirm
     }
 
-    public var connectionViewModel: WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: WalletConnection(session: payload.session, wallet: payload.wallet))
-    }
-
     public var appName: String {
-        payload.session.metadata.shortName
+        payload.appMetadata.shortName
     }
 
     public var appUrl: URL? {
-        payload.session.metadata.url.asURL
+        payload.appMetadata.url?.asURL
     }
 
     public var appAssetImage: AssetImage {
-        AssetImage(imageURL: connectionViewModel.imageUrl)
+        AssetImage(imageURL: payload.appMetadata.iconURL)
+    }
+
+    public var merchantTitle: String {
+        Localized.Transfer.merchant
+    }
+
+    public var merchantText: String? {
+        isPayment ? appName : .none
     }
 
     public var walletAssetImage: AssetImage {
@@ -101,10 +133,17 @@ public final class SignMessageSceneViewModel {
     }
 
     public var appPreview: AppPreviewModel {
-        AppPreviewModel(
-            assetImage: appAssetImage,
-            name: appName,
-            subtitleSymbol: connectionViewModel.hostText,
+        guard let quote = selectedQuoteItem else {
+            return AppPreviewModel(
+                assetImage: appAssetImage,
+                name: appName,
+                subtitleSymbol: appUrl?.cleanHost(),
+            )
+        }
+        return AppPreviewModel(
+            assetImage: quote.assetImage,
+            name: quote.amountText,
+            subtitleSymbol: priceText,
         )
     }
 
@@ -138,12 +177,20 @@ public final class SignMessageSceneViewModel {
         !payloadFields.isEmpty
     }
 
+    public var showsPayload: Bool {
+        hasPayload && !isPayment
+    }
+
+    public var isPayment: Bool {
+        payload.payment != nil
+    }
+
     public var hasWarnings: Bool {
         !simulationWarnings.isEmpty
     }
 
     public var isButtonDisabled: Bool {
-        simulationWarnings.contains(where: { $0.severity == .critical })
+        expiryCountdown.isExpired || simulationWarnings.contains(where: { $0.severity == .critical })
     }
 
     public var buttonType: ButtonType {

@@ -13,6 +13,7 @@ import WalletConnectorService
 import WalletConnectSign
 import WalletSessionService
 import WalletSessionServiceTestKit
+import SigningRequestService
 
 struct WalletConnectorSignerTests {
     @Test
@@ -217,6 +218,7 @@ extension WalletConnectorSigner {
             connectionsStore: connectionsStore,
             walletSessionService: walletSessionService,
             walletConnectorInteractor: WalletConnectorManager(presenter: WalletConnectorPresenter()),
+            signingInteractor: WalletConnectorPresenter(),
         )
     }
 

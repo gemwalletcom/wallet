@@ -24,6 +24,13 @@ public struct SignMessageScene: View {
             ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
 
             Section {
+                if let merchant = model.merchantText {
+                    ListItemImageView(
+                        title: model.merchantTitle,
+                        subtitle: merchant,
+                        assetImage: model.appAssetImage,
+                    )
+                }
                 ListItemImageView(
                     title: Localized.Common.wallet,
                     subtitle: model.walletText,
@@ -36,13 +43,22 @@ public struct SignMessageScene: View {
                 )
             }
 
+            if let expiresAt = model.expiresAt {
+                Section {
+                    ListItemExpiryView(
+                        title: model.expiresTitle,
+                        expiresAt: expiresAt,
+                    )
+                }
+            }
+
             if model.hasWarnings {
                 Section {
                     SimulationWarningsContent(warnings: model.simulationWarnings)
                 }
             }
 
-            if model.hasPayload {
+            if model.showsPayload {
                 Section {
                     SimulationPayloadFieldsContent(
                         fields: model.primaryPayloadFields,
@@ -63,6 +79,7 @@ public struct SignMessageScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .taskOnce { model.fetch() }
+        .task { await model.expiryCountdown.start() }
         .safeAreaButton {
             StateButton(
                 text: model.buttonTitle,
