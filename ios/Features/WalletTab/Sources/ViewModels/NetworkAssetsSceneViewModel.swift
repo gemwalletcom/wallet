@@ -13,11 +13,11 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class NetworkAssetsSceneViewModel {
-    private let balanceService: BalanceService
-    private let assetsEnabler: any AssetsEnabler
+public final class NetworkAssetsSceneViewModel: AssetBalanceActions, AssetEnableActions {
+    let balanceService: BalanceService
+    let assetsEnabler: any AssetsEnabler
     private let preferences: Preferences
-    private let wallet: Wallet
+    let wallet: Wallet
     private let onManageAssetsAction: () -> Void
 
     public var isPresentingToastMessage: ToastMessage?
@@ -110,34 +110,6 @@ public final class NetworkAssetsSceneViewModel {
 
     func updateBalances() async {
         await balanceService.updateBalance(for: wallet, assetIds: assetIds)
-    }
-
-    func onHideAsset(_ assetId: AssetId) {
-        do {
-            try balanceService.hideAsset(walletId: wallet.id, assetId: assetId)
-        } catch {
-            debugLog("NetworkAssetsSceneViewModel hide asset error: \(error)")
-        }
-    }
-
-    func onPinAsset(_ asset: Asset, value: Bool) {
-        do {
-            try balanceService.setPinned(value, walletId: wallet.id, assetId: asset.id)
-            isPresentingToastMessage = .pin(asset.name, pinned: value)
-        } catch {
-            debugLog("NetworkAssetsSceneViewModel pin asset error: \(error)")
-        }
-    }
-
-    func onAddToWallet(_ assetId: AssetId) {
-        Task {
-            do {
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetId], enabled: true)
-                isPresentingToastMessage = .addedToWallet()
-            } catch {
-                debugLog("NetworkAssetsSceneViewModel add asset error: \(error)")
-            }
-        }
     }
 
     func onCopyAddress(_ message: String) {

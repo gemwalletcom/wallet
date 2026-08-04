@@ -18,15 +18,15 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class WalletSearchSceneViewModel: Sendable {
+public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, AssetEnableActions, PerpetualPinActions {
     private let searchService: WalletSearchService
     private let activityService: ActivityService
-    private let assetsEnabler: any AssetsEnabler
-    private let balanceService: BalanceService
-    private let perpetualService: PerpetualService
+    let assetsEnabler: any AssetsEnabler
+    let balanceService: BalanceService
+    let perpetualService: PerpetualService
     private let preferences: ObservablePreferences
 
-    private let wallet: Wallet
+    let wallet: Wallet
     private let onDismissSearch: VoidAction
     private let onAddToken: VoidAction
 
@@ -240,7 +240,7 @@ public final class WalletSearchSceneViewModel: Sendable {
                 self?.onSelectPinAsset(assetData, value: !assetData.metadata.isPinned)
             },
             onAddToWallet: { [weak self] in
-                self?.onSelectAddToWallet(assetData.asset)
+                self?.onAddToWallet(assetData.asset.id)
             },
         )
     }
@@ -290,30 +290,11 @@ extension WalletSearchSceneViewModel {
         onAddToken?()
     }
 
-    func onSelectAddToWallet(_ asset: Asset) {
-        enableAsset(asset.id)
-        isPresentingToastMessage = .addedToWallet()
-    }
-
     func onSelectPinAsset(_ assetData: AssetData, value: Bool) {
-        do {
-            try balanceService.setPinned(value, walletId: wallet.id, assetId: assetData.asset.id)
-            isPresentingToastMessage = .pin(assetData.asset.name, pinned: value)
-            if value, !assetData.metadata.isBalanceEnabled {
-                enableAsset(assetData.asset.id)
-            }
-        } catch {
-            debugLog("WalletSearchSceneViewModel pin asset error: \(error)")
-        }
-    }
+        onPinAsset(assetData.asset, value: value)
 
-    func onSelectPinPerpetual(_ perpetualData: PerpetualData) {
-        let pinned = !perpetualData.metadata.isPinned
-        do {
-            try perpetualService.setPinned(pinned, perpetualId: perpetualData.perpetual.id)
-            isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: pinned)
-        } catch {
-            debugLog("WalletSearchSceneViewModel pin perpetual error: \(error)")
+        if value, !assetData.metadata.isBalanceEnabled {
+            onAddToWallet(assetData.asset.id)
         }
     }
 
@@ -346,16 +327,6 @@ extension WalletSearchSceneViewModel {
 extension WalletSearchSceneViewModel {
     private var assetsPreviewLimit: Int {
         searchModel.assetsLimit(scope: searchQuery.request.scope)
-    }
-
-    private func enableAsset(_ assetId: AssetId) {
-        Task {
-            do {
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetId], enabled: true)
-            } catch {
-                debugLog("WalletSearchSceneViewModel enable asset error: \(error)")
-            }
-        }
     }
 
     private func updateRecent(_ asset: Asset) {

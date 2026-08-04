@@ -16,16 +16,16 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class AssetsResultsSceneViewModel {
+public final class AssetsResultsSceneViewModel: AssetBalanceActions, AssetEnableActions, PerpetualPinActions {
     public static let defaultLimit = 100
 
-    private let assetsEnabler: any AssetsEnabler
-    private let balanceService: BalanceService
+    let assetsEnabler: any AssetsEnabler
+    let balanceService: BalanceService
     private let preferences: Preferences
     private let searchService: WalletSearchService
-    private let perpetualService: PerpetualService
+    let perpetualService: PerpetualService
     private let activityService: ActivityService
-    private let wallet: Wallet
+    let wallet: Wallet
 
     let title: String
     let onSelectAssetAction: AssetAction
@@ -108,10 +108,10 @@ public final class AssetsResultsSceneViewModel {
                 )
             },
             onPin: { [weak self] in
-                self?.onPinAsset(assetData, value: !assetData.metadata.isPinned)
+                self?.onPinAsset(assetData.asset, value: !assetData.metadata.isPinned)
             },
             onAddToWallet: { [weak self] in
-                self?.onAddToWallet(assetData.asset)
+                self?.onAddToWallet(assetData.asset.id)
             },
         )
     }
@@ -144,36 +144,6 @@ extension AssetsResultsSceneViewModel {
             try activityService.updateRecent(data: .search(asset), walletId: wallet.id)
         } catch {
             debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
-        }
-    }
-
-    func onSelectPinPerpetual(_ perpetualData: PerpetualData) {
-        let pinned = !perpetualData.metadata.isPinned
-        do {
-            try perpetualService.setPinned(pinned, perpetualId: perpetualData.perpetual.id)
-            isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: pinned)
-        } catch {
-            debugLog("AssetsResultsSceneViewModel pin perpetual error: \(error)")
-        }
-    }
-
-    private func onAddToWallet(_ asset: Asset) {
-        Task {
-            do {
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
-                isPresentingToastMessage = .addedToWallet()
-            } catch {
-                debugLog("AssetsResultsSceneViewModel add to wallet error: \(error)")
-            }
-        }
-    }
-
-    private func onPinAsset(_ assetData: AssetData, value: Bool) {
-        do {
-            try balanceService.setPinned(value, walletId: wallet.id, assetId: assetData.asset.id)
-            isPresentingToastMessage = .pin(assetData.asset.name, pinned: value)
-        } catch {
-            debugLog("AssetsResultsSceneViewModel pin asset error: \(error)")
         }
     }
 }

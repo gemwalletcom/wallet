@@ -21,9 +21,9 @@ import WalletService
 
 @Observable
 @MainActor
-public final class WalletSceneViewModel: Sendable {
+public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     private let assetDiscoveryService: any AssetDiscoverable
-    private let balanceService: BalanceService
+    let balanceService: BalanceService
     private let bannerService: BannerService
     private let walletService: WalletService
     private let balanceCalculator = BalanceCalculator()
@@ -225,23 +225,6 @@ public extension WalletSceneViewModel {
             }
         }
         isPresentingUrl = action.url
-    }
-
-    internal func onHideAsset(_ assetId: AssetId) {
-        do {
-            try balanceService.hideAsset(walletId: wallet.id, assetId: assetId)
-        } catch {
-            debugLog("WalletSceneViewModel hide Asset error: \(error)")
-        }
-    }
-
-    internal func onPinAsset(_ asset: Asset, value: Bool) {
-        do {
-            try balanceService.setPinned(value, walletId: wallet.id, assetId: asset.id)
-            isPresentingToastMessage = .pin(asset.name, pinned: value)
-        } catch {
-            debugLog("WalletSceneViewModel pin asset error: \(error)")
-        }
     }
 
     internal func onCopyAddress(_ message: String) {
