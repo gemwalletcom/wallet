@@ -29,7 +29,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "Localization", path: "../Localization"),
         .package(name: "GemAPI", path: "../GemAPI"),
         .package(name: "Store", path: "../Store"),
         .package(name: "Blockchain", path: "../Blockchain"),
@@ -114,7 +113,6 @@ let package = Package(
                 "Gemstone",
                 "GemstonePrimitives",
                 "NativeProviderService",
-                .product(name: "Localization", package: "Localization"),
             ],
             path: "SigningRequestService",
             exclude: ["TestKit", "Tests"],
@@ -142,7 +140,6 @@ let package = Package(
                 "SigningRequestService",
                 "Primitives",
                 "Store",
-                .product(name: "Localization", package: "Localization"),
                 "Gemstone",
                 "GemstonePrimitives",
                 "NativeProviderService",
