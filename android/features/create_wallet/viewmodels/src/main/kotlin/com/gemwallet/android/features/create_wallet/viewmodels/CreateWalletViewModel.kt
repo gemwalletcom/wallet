@@ -9,9 +9,7 @@ import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,8 +23,7 @@ class CreateWalletViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val state = MutableStateFlow(CreateWalletViewModelState())
-    val uiState = state.map { it.toUIState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, CreateWalletUIState())
+    val uiState = state.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -80,34 +77,11 @@ class CreateWalletViewModel @Inject constructor(
 
 data class CreateWalletViewModelState(
     val loading: Boolean = false,
-    val error: String = "",
     val generatedNameIndex: Int = 0,
     val name: String = "",
-    val nameError: String = "",
     val data: List<String> = emptyList(),
     val dataError: String = "",
     val isShowSafeMessage: Boolean = false,
 ) {
     fun isExistingWallets() = generatedNameIndex > 1
-
-    fun toUIState() = CreateWalletUIState(
-        loading = loading,
-        name = name,
-        generatedNameIndex = generatedNameIndex,
-        nameError = nameError,
-        data = data,
-        dataError = dataError,
-        isShowSafeMessage = isShowSafeMessage,
-    )
 }
-
-data class CreateWalletUIState(
-    val loading: Boolean = false,
-    val error: String = "",
-    val generatedNameIndex: Int = 0,
-    val name: String = "",
-    val nameError: String = "",
-    val data: List<String> = emptyList(),
-    val dataError: String = "",
-    val isShowSafeMessage: Boolean = false,
-)
