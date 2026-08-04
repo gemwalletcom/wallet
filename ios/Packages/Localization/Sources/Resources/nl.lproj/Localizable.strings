@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Toestemmingen";
 "wallet_connect.permissions.view_balance" = "Bekijk je saldo en activiteit";
 "wallet_connect.permissions.approval_requests" = "Verzoeken om goedkeuring verzenden";
+"errors.payment_expired" = "Betaling verlopen";
+"errors.payment_not_allowed" = "Betaling niet toegestaan";
+"transfer.payment_expires_in" = "Betaling verloopt over";
+"transfer.pay_with" = "Betalen met";
+"transfer.payment_title" = "Betaling";
+"transfer.merchant" = "Verkoper";
 "swap.you_pay" = "Jij betaalt";
 "swap.you_receive" = "Jij ontvangt";
 "swap.price_impact" = "Prijsimpact";

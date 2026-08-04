@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Permisiuni";
 "wallet_connect.permissions.view_balance" = "Vizualizați soldul și activitatea dvs.";
 "wallet_connect.permissions.approval_requests" = "Trimiteți cereri de aprobare";
+"errors.payment_expired" = "Plată expirată";
+"errors.payment_not_allowed" = "Plată nepermisă";
+"transfer.payment_expires_in" = "Plata expiră în";
+"transfer.pay_with" = "Plătește cu";
+"transfer.payment_title" = "Plată";
+"transfer.merchant" = "Comerciant";
 "swap.you_pay" = "Tu plătești";
 "swap.you_receive" = "Tu Primești";
 "swap.price_impact" = "Impactul prețului";

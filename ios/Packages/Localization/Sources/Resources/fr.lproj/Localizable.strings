@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Autorisations";
 "wallet_connect.permissions.view_balance" = "Consultez votre solde et votre activité";
 "wallet_connect.permissions.approval_requests" = "Envoyer les demandes d'approbation";
+"errors.payment_expired" = "Paiement expiré";
+"errors.payment_not_allowed" = "Paiement non autorisé";
+"transfer.payment_expires_in" = "Le paiement expire dans";
+"transfer.pay_with" = "Payer avec";
+"transfer.payment_title" = "Paiement";
+"transfer.merchant" = "Marchand";
 "swap.you_pay" = "Vous payez";
 "swap.you_receive" = "Vous recevez";
 "swap.price_impact" = "Impact sur les prix";

@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Permisos";
 "wallet_connect.permissions.view_balance" = "Consulta tu saldo y actividad.";
 "wallet_connect.permissions.approval_requests" = "Enviar solicitudes de aprobación";
+"errors.payment_expired" = "Pago caducado";
+"errors.payment_not_allowed" = "Pago no permitido";
+"transfer.payment_expires_in" = "El pago caduca en";
+"transfer.pay_with" = "Pagar con";
+"transfer.payment_title" = "Pago";
+"transfer.merchant" = "Comercio";
 "swap.you_pay" = "Tu pagas";
 "swap.you_receive" = "Recibes";
 "swap.price_impact" = "Impacto en el precio";

@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Ruhusa";
 "wallet_connect.permissions.view_balance" = "Tazama salio na shughuli zako";
 "wallet_connect.permissions.approval_requests" = "Tuma maombi ya idhini";
+"errors.payment_expired" = "Malipo yamekwisha muda";
+"errors.payment_not_allowed" = "Malipo hayaruhusiwi";
+"transfer.payment_expires_in" = "Malipo yataisha baada ya";
+"transfer.pay_with" = "Lipa kwa";
+"transfer.payment_title" = "Malipo";
+"transfer.merchant" = "Mfanyabiashara";
 "swap.you_pay" = "Unalipa";
 "swap.you_receive" = "Unapokea";
 "swap.price_impact" = "Athari ya Bei";

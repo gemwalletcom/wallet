@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Permisos</string>
   <string name="wallet_connect_permissions_view_balance">Consulta tu saldo y actividad.</string>
   <string name="wallet_connect_permissions_approval_requests">Enviar solicitudes de aprobación</string>
+  <string name="errors_payment_expired">Pago caducado</string>
+  <string name="errors_payment_not_allowed">Pago no permitido</string>
+  <string name="transfer_payment_expires_in">El pago caduca en</string>
+  <string name="transfer_pay_with">Pagar con</string>
+  <string name="transfer_payment_title">Pago</string>
+  <string name="transfer_merchant">Comercio</string>
   <string name="swap_you_pay">Tu pagas</string>
   <string name="swap_you_receive">Recibes</string>
   <string name="swap_price_impact">Impacto en el precio</string>

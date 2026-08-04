@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">অনুমতি</string>
   <string name="wallet_connect_permissions_view_balance">আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন</string>
   <string name="wallet_connect_permissions_approval_requests">অনুমোদনের অনুরোধ পাঠান</string>
+  <string name="errors_payment_expired">পেমেন্টের মেয়াদ শেষ</string>
+  <string name="errors_payment_not_allowed">পেমেন্ট অনুমোদিত নয়</string>
+  <string name="transfer_payment_expires_in">পেমেন্টের মেয়াদ শেষ হবে</string>
+  <string name="transfer_pay_with">যা দিয়ে পরিশোধ করবেন</string>
+  <string name="transfer_payment_title">পেমেন্ট</string>
+  <string name="transfer_merchant">বিক্রেতা</string>
   <string name="swap_you_pay">আপনি পরিশোধ করেন</string>
   <string name="swap_you_receive">আপনি পাবেন</string>
   <string name="swap_price_impact">দামের প্রভাব</string>

@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "권한";
 "wallet_connect.permissions.view_balance" = "잔액과 활동 내역을 확인하세요";
 "wallet_connect.permissions.approval_requests" = "승인 요청 보내기";
+"errors.payment_expired" = "결제 만료됨";
+"errors.payment_not_allowed" = "결제가 허용되지 않음";
+"transfer.payment_expires_in" = "결제 만료까지";
+"transfer.pay_with" = "결제 수단";
+"transfer.payment_title" = "결제";
+"transfer.merchant" = "가맹점";
 "swap.you_pay" = "지불 금액";
 "swap.you_receive" = "수령 금액";
 "swap.price_impact" = "가격 영향";

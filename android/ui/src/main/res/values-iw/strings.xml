@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">הרשאות</string>
   <string name="wallet_connect_permissions_view_balance">צפה ביתרה ובפעילות שלך</string>
   <string name="wallet_connect_permissions_approval_requests">שלח בקשות אישור</string>
+  <string name="errors_payment_expired">התשלום פג תוקף</string>
+  <string name="errors_payment_not_allowed">התשלום אינו מורשה</string>
+  <string name="transfer_payment_expires_in">התשלום יפוג בעוד</string>
+  <string name="transfer_pay_with">שלם באמצעות</string>
+  <string name="transfer_payment_title">תשלום</string>
+  <string name="transfer_merchant">בית עסק</string>
   <string name="swap_you_pay">אתה משלם</string>
   <string name="swap_you_receive">אתה מקבל</string>
   <string name="swap_price_impact">השפעת המחיר</string>

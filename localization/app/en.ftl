@@ -669,6 +669,21 @@ wallet_connect_permissions_view_balance = View your balance and activity
 # Used in WalletConnect connection and request screens for the permissions approval requests label.
 wallet_connect_permissions_approval_requests = Send approval requests
 
+# Payment
+
+# Used in payment link flow when the payment or its quote is no longer valid.
+errors_payment_expired = Payment Expired
+# Used in payment link flow when the gateway refuses the payment.
+errors_payment_not_allowed = Payment not allowed
+# Used in payment confirmation as the label before the expiry countdown.
+transfer_payment_expires_in = Payment expires in
+# Used in payment confirmation as the label for the asset the payment is made with.
+transfer_pay_with = Pay with
+# Used in payment confirmation as the screen title.
+transfer_payment_title = Payment
+# Used in payment confirmation as the label for the merchant being paid.
+transfer_merchant = Merchant
+
 # Swap
 
 # Used in Swap flow and swap details screen for the you pay label.

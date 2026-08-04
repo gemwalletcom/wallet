@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">مجوزها</string>
   <string name="wallet_connect_permissions_view_balance">مشاهده موجودی و فعالیت خود</string>
   <string name="wallet_connect_permissions_approval_requests">ارسال درخواست‌های تأیید</string>
+  <string name="errors_payment_expired">پرداخت منقضی شد</string>
+  <string name="errors_payment_not_allowed">پرداخت مجاز نیست</string>
+  <string name="transfer_payment_expires_in">انقضای پرداخت تا</string>
+  <string name="transfer_pay_with">پرداخت با</string>
+  <string name="transfer_payment_title">پرداخت</string>
+  <string name="transfer_merchant">فروشنده</string>
   <string name="swap_you_pay">شما پرداخت میکنید</string>
   <string name="swap_you_receive">شما دریافت میکنید</string>
   <string name="swap_price_impact">تاثیر قیمت</string>

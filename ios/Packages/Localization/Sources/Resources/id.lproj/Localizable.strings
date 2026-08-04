@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Izin";
 "wallet_connect.permissions.view_balance" = "Lihat saldo dan aktivitas Anda";
 "wallet_connect.permissions.approval_requests" = "Kirim permintaan persetujuan";
+"errors.payment_expired" = "Pembayaran kedaluwarsa";
+"errors.payment_not_allowed" = "Pembayaran tidak diizinkan";
+"transfer.payment_expires_in" = "Pembayaran kedaluwarsa dalam";
+"transfer.pay_with" = "Bayar dengan";
+"transfer.payment_title" = "Pembayaran";
+"transfer.merchant" = "Pedagang";
 "swap.you_pay" = "Kamu Membayar";
 "swap.you_receive" = "Kamu Menerima";
 "swap.price_impact" = "Dampak Harga";

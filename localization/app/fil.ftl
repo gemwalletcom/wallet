@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Mga Pahintulot
 wallet_connect_permissions_view_balance = Tingnan ang iyong balanse at aktibidad
 wallet_connect_permissions_approval_requests = Magpadala ng mga kahilingan sa pag-apruba
 
+# Payment
+
+errors_payment_expired = Nag-expire ang bayad
+errors_payment_not_allowed = Hindi pinapayagan ang bayad
+transfer_payment_expires_in = Mag-e-expire ang bayad sa
+transfer_pay_with = Bayaran gamit ang
+transfer_payment_title = Bayad
+transfer_merchant = Merchant
+
 # Swap
 
 swap_you_pay = Babayaran Mo

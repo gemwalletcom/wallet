@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Toestemmingen</string>
   <string name="wallet_connect_permissions_view_balance">Bekijk je saldo en activiteit</string>
   <string name="wallet_connect_permissions_approval_requests">Verzoeken om goedkeuring verzenden</string>
+  <string name="errors_payment_expired">Betaling verlopen</string>
+  <string name="errors_payment_not_allowed">Betaling niet toegestaan</string>
+  <string name="transfer_payment_expires_in">Betaling verloopt over</string>
+  <string name="transfer_pay_with">Betalen met</string>
+  <string name="transfer_payment_title">Betaling</string>
+  <string name="transfer_merchant">Verkoper</string>
   <string name="swap_you_pay">Jij betaalt</string>
   <string name="swap_you_receive">Jij ontvangt</string>
   <string name="swap_price_impact">Prijsimpact</string>

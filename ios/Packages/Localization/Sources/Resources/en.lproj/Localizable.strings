@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Permissions";
 "wallet_connect.permissions.view_balance" = "View your balance and activity";
 "wallet_connect.permissions.approval_requests" = "Send approval requests";
+"errors.payment_expired" = "Payment Expired";
+"errors.payment_not_allowed" = "Payment not allowed";
+"transfer.payment_expires_in" = "Payment expires in";
+"transfer.pay_with" = "Pay with";
+"transfer.payment_title" = "Payment";
+"transfer.merchant" = "Merchant";
 "swap.you_pay" = "You Pay";
 "swap.you_receive" = "You Receive";
 "swap.price_impact" = "Price Impact";

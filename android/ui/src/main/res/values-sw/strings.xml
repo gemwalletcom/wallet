@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Ruhusa</string>
   <string name="wallet_connect_permissions_view_balance">Tazama salio na shughuli zako</string>
   <string name="wallet_connect_permissions_approval_requests">Tuma maombi ya idhini</string>
+  <string name="errors_payment_expired">Malipo yamekwisha muda</string>
+  <string name="errors_payment_not_allowed">Malipo hayaruhusiwi</string>
+  <string name="transfer_payment_expires_in">Malipo yataisha baada ya</string>
+  <string name="transfer_pay_with">Lipa kwa</string>
+  <string name="transfer_payment_title">Malipo</string>
+  <string name="transfer_merchant">Mfanyabiashara</string>
   <string name="swap_you_pay">Unalipa</string>
   <string name="swap_you_receive">Unapokea</string>
   <string name="swap_price_impact">Athari ya Bei</string>

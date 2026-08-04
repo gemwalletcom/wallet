@@ -355,6 +355,15 @@ wallet_connect_permissions_title = İzinler
 wallet_connect_permissions_view_balance = Bakiyenizi ve işlemlerinizi görüntüleyin.
 wallet_connect_permissions_approval_requests = Onay isteklerini gönderin
 
+# Payment
+
+errors_payment_expired = Ödeme süresi doldu
+errors_payment_not_allowed = Ödemeye izin verilmiyor
+transfer_payment_expires_in = Ödemenin süresi doluyor
+transfer_pay_with = Şununla öde
+transfer_payment_title = Ödeme
+transfer_merchant = Satıcı
+
 # Swap
 
 swap_you_pay = Öde

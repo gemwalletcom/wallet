@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Izini</string>
   <string name="wallet_connect_permissions_view_balance">Duba ma\'aunin ku da ayyukan ku</string>
   <string name="wallet_connect_permissions_approval_requests">Aika buƙatun amincewa</string>
+  <string name="errors_payment_expired">Biyan ya ƙare</string>
+  <string name="errors_payment_not_allowed">Ba a yarda da biyan ba</string>
+  <string name="transfer_payment_expires_in">Biyan zai ƙare cikin</string>
+  <string name="transfer_pay_with">Biya da</string>
+  <string name="transfer_payment_title">Biya</string>
+  <string name="transfer_merchant">Ɗan kasuwa</string>
   <string name="swap_you_pay">Kuna Biya</string>
   <string name="swap_you_receive">Kuna karba</string>
   <string name="swap_price_impact">Tasirin Farashin</string>

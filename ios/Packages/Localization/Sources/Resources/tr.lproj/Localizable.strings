@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "İzinler";
 "wallet_connect.permissions.view_balance" = "Bakiyenizi ve işlemlerinizi görüntüleyin.";
 "wallet_connect.permissions.approval_requests" = "Onay isteklerini gönderin";
+"errors.payment_expired" = "Ödeme süresi doldu";
+"errors.payment_not_allowed" = "Ödemeye izin verilmiyor";
+"transfer.payment_expires_in" = "Ödemenin süresi doluyor";
+"transfer.pay_with" = "Şununla öde";
+"transfer.payment_title" = "Ödeme";
+"transfer.merchant" = "Satıcı";
 "swap.you_pay" = "Öde";
 "swap.you_receive" = "Alacağın";
 "swap.price_impact" = "Fiyat Etkisi";

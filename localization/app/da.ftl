@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Tilladelser
 wallet_connect_permissions_view_balance = Se din saldo og aktivitet
 wallet_connect_permissions_approval_requests = Send godkendelsesanmodninger
 
+# Payment
+
+errors_payment_expired = Betaling udløbet
+errors_payment_not_allowed = Betaling ikke tilladt
+transfer_payment_expires_in = Betaling udløber om
+transfer_pay_with = Betal med
+transfer_payment_title = Betaling
+transfer_merchant = Forhandler
+
 # Swap
 
 swap_you_pay = Du betaler

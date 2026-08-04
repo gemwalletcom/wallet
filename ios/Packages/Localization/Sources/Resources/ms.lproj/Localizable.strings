@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Kebenaran";
 "wallet_connect.permissions.view_balance" = "Lihat baki dan aktiviti anda";
 "wallet_connect.permissions.approval_requests" = "Hantar permintaan kelulusan";
+"errors.payment_expired" = "Pembayaran tamat tempoh";
+"errors.payment_not_allowed" = "Pembayaran tidak dibenarkan";
+"transfer.payment_expires_in" = "Pembayaran tamat tempoh dalam";
+"transfer.pay_with" = "Bayar dengan";
+"transfer.payment_title" = "Pembayaran";
+"transfer.merchant" = "Peniaga";
 "swap.you_pay" = "Anda Bayar";
 "swap.you_receive" = "Anda Terima";
 "swap.price_impact" = "Kesan Harga";

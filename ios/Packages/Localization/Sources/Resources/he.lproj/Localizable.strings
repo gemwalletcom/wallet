@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "הרשאות";
 "wallet_connect.permissions.view_balance" = "צפה ביתרה ובפעילות שלך";
 "wallet_connect.permissions.approval_requests" = "שלח בקשות אישור";
+"errors.payment_expired" = "התשלום פג תוקף";
+"errors.payment_not_allowed" = "התשלום אינו מורשה";
+"transfer.payment_expires_in" = "התשלום יפוג בעוד";
+"transfer.pay_with" = "שלם באמצעות";
+"transfer.payment_title" = "תשלום";
+"transfer.merchant" = "בית עסק";
 "swap.you_pay" = "אתה משלם";
 "swap.you_receive" = "אתה מקבל";
 "swap.price_impact" = "השפעת המחיר";

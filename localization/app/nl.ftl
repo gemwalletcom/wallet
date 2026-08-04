@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Toestemmingen
 wallet_connect_permissions_view_balance = Bekijk je saldo en activiteit
 wallet_connect_permissions_approval_requests = Verzoeken om goedkeuring verzenden
 
+# Payment
+
+errors_payment_expired = Betaling verlopen
+errors_payment_not_allowed = Betaling niet toegestaan
+transfer_payment_expires_in = Betaling verloopt over
+transfer_pay_with = Betalen met
+transfer_payment_title = Betaling
+transfer_merchant = Verkoper
+
 # Swap
 
 swap_you_pay = Jij betaalt

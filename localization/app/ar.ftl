@@ -355,6 +355,15 @@ wallet_connect_permissions_title = الأذونات
 wallet_connect_permissions_view_balance = اطلع على رصيدك ونشاطك
 wallet_connect_permissions_approval_requests = إرسال طلبات الموافقة
 
+# Payment
+
+errors_payment_expired = انتهت صلاحية الدفعة
+errors_payment_not_allowed = الدفع غير مسموح به
+transfer_payment_expires_in = تنتهي صلاحية الدفعة خلال
+transfer_pay_with = ادفع بواسطة
+transfer_payment_title = الدفع
+transfer_merchant = التاجر
+
 # Swap
 
 swap_you_pay = انت تدفع

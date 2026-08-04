@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "الأذونات";
 "wallet_connect.permissions.view_balance" = "اطلع على رصيدك ونشاطك";
 "wallet_connect.permissions.approval_requests" = "إرسال طلبات الموافقة";
+"errors.payment_expired" = "انتهت صلاحية الدفعة";
+"errors.payment_not_allowed" = "الدفع غير مسموح به";
+"transfer.payment_expires_in" = "تنتهي صلاحية الدفعة خلال";
+"transfer.pay_with" = "ادفع بواسطة";
+"transfer.payment_title" = "الدفع";
+"transfer.merchant" = "التاجر";
 "swap.you_pay" = "انت تدفع";
 "swap.you_receive" = "انت تستقبل";
 "swap.price_impact" = "تأثير السعر";

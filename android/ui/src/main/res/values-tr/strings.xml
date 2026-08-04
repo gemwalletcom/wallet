@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">İzinler</string>
   <string name="wallet_connect_permissions_view_balance">Bakiyenizi ve işlemlerinizi görüntüleyin.</string>
   <string name="wallet_connect_permissions_approval_requests">Onay isteklerini gönderin</string>
+  <string name="errors_payment_expired">Ödeme süresi doldu</string>
+  <string name="errors_payment_not_allowed">Ödemeye izin verilmiyor</string>
+  <string name="transfer_payment_expires_in">Ödemenin süresi doluyor</string>
+  <string name="transfer_pay_with">Şununla öde</string>
+  <string name="transfer_payment_title">Ödeme</string>
+  <string name="transfer_merchant">Satıcı</string>
   <string name="swap_you_pay">Öde</string>
   <string name="swap_you_receive">Alacağın</string>
   <string name="swap_price_impact">Fiyat Etkisi</string>

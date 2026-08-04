@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Quyền hạn
 wallet_connect_permissions_view_balance = Xem số dư và hoạt động của bạn
 wallet_connect_permissions_approval_requests = Gửi yêu cầu phê duyệt
 
+# Payment
+
+errors_payment_expired = Thanh toán đã hết hạn
+errors_payment_not_allowed = Thanh toán không được phép
+transfer_payment_expires_in = Thanh toán hết hạn sau
+transfer_pay_with = Thanh toán bằng
+transfer_payment_title = Thanh toán
+transfer_merchant = Người bán
+
 # Swap
 
 swap_you_pay = Bạn trả

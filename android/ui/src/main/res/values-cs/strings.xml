@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Oprávnění</string>
   <string name="wallet_connect_permissions_view_balance">Zobrazení zůstatku a aktivity</string>
   <string name="wallet_connect_permissions_approval_requests">Odeslat žádosti o schválení</string>
+  <string name="errors_payment_expired">Platba vypršela</string>
+  <string name="errors_payment_not_allowed">Platba není povolena</string>
+  <string name="transfer_payment_expires_in">Platba vyprší za</string>
+  <string name="transfer_pay_with">Zaplatit pomocí</string>
+  <string name="transfer_payment_title">Platba</string>
+  <string name="transfer_merchant">Obchodník</string>
   <string name="swap_you_pay">Vy platíte</string>
   <string name="swap_you_receive">Přijímáte</string>
   <string name="swap_price_impact">Vliv ceny</string>

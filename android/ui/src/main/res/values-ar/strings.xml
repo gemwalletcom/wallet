@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">الأذونات</string>
   <string name="wallet_connect_permissions_view_balance">اطلع على رصيدك ونشاطك</string>
   <string name="wallet_connect_permissions_approval_requests">إرسال طلبات الموافقة</string>
+  <string name="errors_payment_expired">انتهت صلاحية الدفعة</string>
+  <string name="errors_payment_not_allowed">الدفع غير مسموح به</string>
+  <string name="transfer_payment_expires_in">تنتهي صلاحية الدفعة خلال</string>
+  <string name="transfer_pay_with">ادفع بواسطة</string>
+  <string name="transfer_payment_title">الدفع</string>
+  <string name="transfer_merchant">التاجر</string>
   <string name="swap_you_pay">انت تدفع</string>
   <string name="swap_you_receive">انت تستقبل</string>
   <string name="swap_price_impact">تأثير السعر</string>

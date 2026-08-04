@@ -355,6 +355,15 @@ wallet_connect_permissions_title = Ruhusa
 wallet_connect_permissions_view_balance = Tazama salio na shughuli zako
 wallet_connect_permissions_approval_requests = Tuma maombi ya idhini
 
+# Payment
+
+errors_payment_expired = Malipo yamekwisha muda
+errors_payment_not_allowed = Malipo hayaruhusiwi
+transfer_payment_expires_in = Malipo yataisha baada ya
+transfer_pay_with = Lipa kwa
+transfer_payment_title = Malipo
+transfer_merchant = Mfanyabiashara
+
 # Swap
 
 swap_you_pay = Unalipa

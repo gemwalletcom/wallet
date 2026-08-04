@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">権限</string>
   <string name="wallet_connect_permissions_view_balance">残高とアクティビティを確認する</string>
   <string name="wallet_connect_permissions_approval_requests">承認依頼を送信する</string>
+  <string name="errors_payment_expired">支払いの期限切れ</string>
+  <string name="errors_payment_not_allowed">支払いは許可されていません</string>
+  <string name="transfer_payment_expires_in">支払い期限まで</string>
+  <string name="transfer_pay_with">支払い方法</string>
+  <string name="transfer_payment_title">支払い</string>
+  <string name="transfer_merchant">加盟店</string>
   <string name="swap_you_pay">あなたが支払う</string>
   <string name="swap_you_receive">受け取るもの</string>
   <string name="swap_price_impact">価格の影響</string>

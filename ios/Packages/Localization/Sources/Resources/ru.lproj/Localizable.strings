@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Разрешения";
 "wallet_connect.permissions.view_balance" = "Просматривать баланс и активность";
 "wallet_connect.permissions.approval_requests" = "Отправлять запросы на подтверждение";
+"errors.payment_expired" = "Срок платежа истёк";
+"errors.payment_not_allowed" = "Платёж не разрешён";
+"transfer.payment_expires_in" = "Платёж истекает через";
+"transfer.pay_with" = "Оплатить с помощью";
+"transfer.payment_title" = "Платёж";
+"transfer.merchant" = "Продавец";
 "swap.you_pay" = "Вы платите";
 "swap.you_receive" = "Вы получаете";
 "swap.price_impact" = "Влияние цены";

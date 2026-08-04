@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Permissions</string>
   <string name="wallet_connect_permissions_view_balance">View your balance and activity</string>
   <string name="wallet_connect_permissions_approval_requests">Send approval requests</string>
+  <string name="errors_payment_expired">Payment Expired</string>
+  <string name="errors_payment_not_allowed">Payment not allowed</string>
+  <string name="transfer_payment_expires_in">Payment expires in</string>
+  <string name="transfer_pay_with">Pay with</string>
+  <string name="transfer_payment_title">Payment</string>
+  <string name="transfer_merchant">Merchant</string>
   <string name="swap_you_pay">You Pay</string>
   <string name="swap_you_receive">You Receive</string>
   <string name="swap_price_impact">Price Impact</string>

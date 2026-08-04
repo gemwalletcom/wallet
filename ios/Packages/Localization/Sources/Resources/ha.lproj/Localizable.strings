@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Izini";
 "wallet_connect.permissions.view_balance" = "Duba ma'aunin ku da ayyukan ku";
 "wallet_connect.permissions.approval_requests" = "Aika buƙatun amincewa";
+"errors.payment_expired" = "Biyan ya ƙare";
+"errors.payment_not_allowed" = "Ba a yarda da biyan ba";
+"transfer.payment_expires_in" = "Biyan zai ƙare cikin";
+"transfer.pay_with" = "Biya da";
+"transfer.payment_title" = "Biya";
+"transfer.merchant" = "Ɗan kasuwa";
 "swap.you_pay" = "Kuna Biya";
 "swap.you_receive" = "Kuna karba";
 "swap.price_impact" = "Tasirin Farashin";

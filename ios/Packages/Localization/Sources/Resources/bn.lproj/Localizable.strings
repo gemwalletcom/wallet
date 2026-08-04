@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "অনুমতি";
 "wallet_connect.permissions.view_balance" = "আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন";
 "wallet_connect.permissions.approval_requests" = "অনুমোদনের অনুরোধ পাঠান";
+"errors.payment_expired" = "পেমেন্টের মেয়াদ শেষ";
+"errors.payment_not_allowed" = "পেমেন্ট অনুমোদিত নয়";
+"transfer.payment_expires_in" = "পেমেন্টের মেয়াদ শেষ হবে";
+"transfer.pay_with" = "যা দিয়ে পরিশোধ করবেন";
+"transfer.payment_title" = "পেমেন্ট";
+"transfer.merchant" = "বিক্রেতা";
 "swap.you_pay" = "আপনি পরিশোধ করেন";
 "swap.you_receive" = "আপনি পাবেন";
 "swap.price_impact" = "দামের প্রভাব";

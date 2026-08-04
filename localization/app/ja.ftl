@@ -355,6 +355,15 @@ wallet_connect_permissions_title = 権限
 wallet_connect_permissions_view_balance = 残高とアクティビティを確認する
 wallet_connect_permissions_approval_requests = 承認依頼を送信する
 
+# Payment
+
+errors_payment_expired = 支払いの期限切れ
+errors_payment_not_allowed = 支払いは許可されていません
+transfer_payment_expires_in = 支払い期限まで
+transfer_pay_with = 支払い方法
+transfer_payment_title = 支払い
+transfer_merchant = 加盟店
+
 # Swap
 
 swap_you_pay = あなたが支払う

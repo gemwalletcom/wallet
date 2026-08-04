@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Izin</string>
   <string name="wallet_connect_permissions_view_balance">Lihat saldo dan aktivitas Anda</string>
   <string name="wallet_connect_permissions_approval_requests">Kirim permintaan persetujuan</string>
+  <string name="errors_payment_expired">Pembayaran kedaluwarsa</string>
+  <string name="errors_payment_not_allowed">Pembayaran tidak diizinkan</string>
+  <string name="transfer_payment_expires_in">Pembayaran kedaluwarsa dalam</string>
+  <string name="transfer_pay_with">Bayar dengan</string>
+  <string name="transfer_payment_title">Pembayaran</string>
+  <string name="transfer_merchant">Pedagang</string>
   <string name="swap_you_pay">Kamu Membayar</string>
   <string name="swap_you_receive">Kamu Menerima</string>
   <string name="swap_price_impact">Dampak Harga</string>

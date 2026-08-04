@@ -303,6 +303,12 @@
   <string name="wallet_connect_permissions_title">Tilladelser</string>
   <string name="wallet_connect_permissions_view_balance">Se din saldo og aktivitet</string>
   <string name="wallet_connect_permissions_approval_requests">Send godkendelsesanmodninger</string>
+  <string name="errors_payment_expired">Betaling udløbet</string>
+  <string name="errors_payment_not_allowed">Betaling ikke tilladt</string>
+  <string name="transfer_payment_expires_in">Betaling udløber om</string>
+  <string name="transfer_pay_with">Betal med</string>
+  <string name="transfer_payment_title">Betaling</string>
+  <string name="transfer_merchant">Forhandler</string>
   <string name="swap_you_pay">Du betaler</string>
   <string name="swap_you_receive">Du modtager</string>
   <string name="swap_price_impact">Prispåvirkning</string>

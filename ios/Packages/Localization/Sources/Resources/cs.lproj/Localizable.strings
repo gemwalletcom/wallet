@@ -288,6 +288,12 @@
 "wallet_connect.permissions.title" = "Oprávnění";
 "wallet_connect.permissions.view_balance" = "Zobrazení zůstatku a aktivity";
 "wallet_connect.permissions.approval_requests" = "Odeslat žádosti o schválení";
+"errors.payment_expired" = "Platba vypršela";
+"errors.payment_not_allowed" = "Platba není povolena";
+"transfer.payment_expires_in" = "Platba vyprší za";
+"transfer.pay_with" = "Zaplatit pomocí";
+"transfer.payment_title" = "Platba";
+"transfer.merchant" = "Obchodník";
 "swap.you_pay" = "Vy platíte";
 "swap.you_receive" = "Přijímáte";
 "swap.price_impact" = "Vliv ceny";

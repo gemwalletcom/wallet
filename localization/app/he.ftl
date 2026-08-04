@@ -355,6 +355,15 @@ wallet_connect_permissions_title = הרשאות
 wallet_connect_permissions_view_balance = צפה ביתרה ובפעילות שלך
 wallet_connect_permissions_approval_requests = שלח בקשות אישור
 
+# Payment
+
+errors_payment_expired = התשלום פג תוקף
+errors_payment_not_allowed = התשלום אינו מורשה
+transfer_payment_expires_in = התשלום יפוג בעוד
+transfer_pay_with = שלם באמצעות
+transfer_payment_title = תשלום
+transfer_merchant = בית עסק
+
 # Swap
 
 swap_you_pay = אתה משלם
