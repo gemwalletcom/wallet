@@ -4,30 +4,33 @@ import Foundation
 import struct Gemstone.SignMessage
 import Primitives
 
-public struct SignMessagePayload: Sendable {
+public struct SignMessagePayload: Sendable, Identifiable {
+    public let id: String
     public let chain: Chain
-    public let session: WalletConnectionSession
+    public let appMetadata: TransactionAppMetadata
     public let wallet: Wallet
     public let message: SignMessage
     public let simulation: SimulationResult
+    public let payment: PaymentData?
+    public let expiresAt: Date?
 
     public init(
+        id: String,
         chain: Chain,
-        session: WalletConnectionSession,
+        appMetadata: TransactionAppMetadata,
         wallet: Wallet,
         message: SignMessage,
         simulation: SimulationResult,
+        payment: PaymentData? = .none,
+        expiresAt: Date? = .none,
     ) {
+        self.id = id
         self.chain = chain
+        self.appMetadata = appMetadata
         self.wallet = wallet
-        self.session = session
         self.message = message
         self.simulation = simulation
-    }
-}
-
-extension SignMessagePayload: Identifiable {
-    public var id: String {
-        session.id
+        self.payment = payment
+        self.expiresAt = expiresAt
     }
 }

@@ -1,14 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.WalletConnectTransaction
-import struct Gemstone.WcEthereumTransactionData
-import struct Gemstone.WcSolanaTransactionData
-import struct Gemstone.WcSuiTransactionData
+import Gemstone
 import Primitives
 
-extension WalletConnectTransaction {
-    func map() -> WalletConnectorTransaction {
+public extension Gemstone.SignableTransaction {
+    func map() -> SignableTransaction {
         switch self {
         case let .ethereum(data, transactionType): .ethereum(data.map(), transactionType.map())
         case let .solana(data, outputType): .solana(data.transaction, outputType.map())
@@ -19,9 +16,9 @@ extension WalletConnectTransaction {
     }
 }
 
-extension WcEthereumTransactionData {
-    func map() -> WCEthereumTransaction {
-        WCEthereumTransaction(
+extension Gemstone.EthereumTransactionData {
+    func map() -> Primitives.EthereumTransactionData {
+        Primitives.EthereumTransactionData(
             chainId: chainId,
             from: from,
             to: to,

@@ -3,6 +3,7 @@
 import Foundation
 import struct Gemstone.SignMessage
 import Primitives
+import SigningRequestService
 import WalletConnectorService
 import WalletConnectSign
 
@@ -51,11 +52,11 @@ public struct WalletConnectorSignableMock: WalletConnectorSignable {
         ""
     }
 
-    public func signTransaction(sessionId _: String, chain _: Chain, transaction _: WalletConnectorTransaction, simulation _: SimulationResult) async throws -> String {
+    public func signTransaction(sessionId _: String, chain _: Chain, transaction _: SignableTransaction, simulation _: SimulationResult) async throws -> String {
         ""
     }
 
-    public func sendTransaction(sessionId _: String, chain _: Chain, transaction _: WalletConnectorTransaction, simulation _: SimulationResult) async throws -> String {
+    public func sendTransaction(sessionId _: String, chain _: Chain, transaction _: SignableTransaction, simulation _: SimulationResult) async throws -> String {
         ""
     }
 

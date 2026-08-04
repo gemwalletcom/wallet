@@ -9,11 +9,12 @@ import enum Gemstone.WalletConnectAction
 import enum Gemstone.WalletConnectChainOperation
 import enum Gemstone.WalletConnectResponseType
 import class Gemstone.WalletConnectSimulationClient
-import enum Gemstone.WalletConnectTransaction
-import enum Gemstone.WalletConnectTransactionType
+import enum Gemstone.SignableTransaction
+import enum Gemstone.SignableTransactionType
 import GemstonePrimitives
 import NativeProviderService
 import Primitives
+import SigningRequestService
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
 
@@ -22,7 +23,7 @@ public final class WalletConnectorService {
     private let signer: WalletConnectorSignable
     private let messageTracker = MessageTracker()
     private let walletConnect = WalletConnect()
-    private let simulationClient: WalletConnectSimulationClient
+    private let simulator: SigningSimulator
 
     public init(
         signer: WalletConnectorSignable,
@@ -30,7 +31,7 @@ public final class WalletConnectorService {
         requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
     ) {
         self.signer = signer
-        simulationClient = WalletConnectSimulationClient(provider: NativeProvider(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor))
+        simulator = SigningSimulator(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor)
     }
 }
 
@@ -98,19 +99,15 @@ extension WalletConnectorService: WalletConnectorServiceable {
 
 extension WalletConnectorService {
     private func simulateSignMessage(chain: Gemstone.Chain, signType: SignDigestType, data: String, sessionDomain: String) async throws -> Primitives.SimulationResult {
-        try await simulationClient
-            .simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
-            .map()
+        try await simulator.simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
     }
 
     private func simulateSendTransaction(
         chain: Gemstone.Chain,
-        transactionType: WalletConnectTransactionType,
+        transactionType: SignableTransactionType,
         data: String,
     ) async throws -> Primitives.SimulationResult {
-        try await simulationClient
-            .simulateSendTransaction(chain: chain, transactionType: transactionType, data: data)
-            .map()
+        try await simulator.simulateSendTransaction(chain: chain, transactionType: transactionType, data: data)
     }
 
     private func handleSessions() async {
