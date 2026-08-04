@@ -1,11 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
-import com.gemwallet.android.application.swap.coordinators.getQuote
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import uniffi.gemstone.SwapperProvider
 
 sealed interface SwapActionState {
     data object None : SwapActionState
@@ -75,51 +71,26 @@ data class SwapUiState(
         get() = SwapItemInteraction.receive(isQuoteInteractionEnabled)
 }
 
-internal data class TransferQuoteSnapshot(
-    val quotes: SwapQuotesResult,
-    val selectedProvider: SwapperProvider?,
-    val quote: QuoteState,
-) {
-    val requestKey: SwapQuoteRequestKey
-        get() = quotes.requestKey
+internal fun createSwapUiState(session: SwapQuoteSession): SwapUiState {
+    val quotePhase = session.quotePhase
+    val transferPhase = session.transferPhase
+    val displayedQuote = session.quote
+    val validationError = displayedQuote?.validationError
 
-    val providerId: SwapperProvider
-        get() = quote.quote.data.provider.id
-
-    companion object
-}
-
-internal fun TransferQuoteSnapshot.Companion.create(
-    quotes: SwapQuotesResult,
-    selectedProvider: SwapperProvider?,
-): TransferQuoteSnapshot? {
-    val quote = quotes.getQuote(selectedProvider)?.let { QuoteState(it, quotes.pay, quotes.receive) } ?: return null
-    return TransferQuoteSnapshot(
-        quotes = quotes,
-        selectedProvider = selectedProvider,
-        quote = quote,
-    )
-}
-
-internal fun createSwapUiState(
-    quoteState: QuoteUiState,
-    transferState: TransferDataUiState,
-    displayedQuote: QuoteState?,
-): SwapUiState {
     val action = when {
-        transferState is TransferDataUiState.Loading -> SwapActionState.TransferLoading
-        transferState is TransferDataUiState.Error -> SwapActionState.TransferError(transferState.error)
-        quoteState is QuoteUiState.Loading -> SwapActionState.QuoteLoading
-        quoteState is QuoteUiState.Error -> SwapActionState.QuoteError(quoteState.error)
-        displayedQuote?.validationError != null -> SwapActionState.QuoteError(displayedQuote.validationError!!)
+        transferPhase is SwapTransferPhase.Loading -> SwapActionState.TransferLoading
+        transferPhase is SwapTransferPhase.Failed -> SwapActionState.TransferError(transferPhase.error)
+        quotePhase is SwapQuotePhase.Loading -> SwapActionState.QuoteLoading
+        quotePhase is SwapQuotePhase.Failed -> SwapActionState.QuoteError(quotePhase.error)
+        validationError != null -> SwapActionState.QuoteError(validationError)
         displayedQuote != null -> SwapActionState.Ready
         else -> SwapActionState.None
     }
 
     return SwapUiState(
         action = action,
-        isQuoteLoading = quoteState is QuoteUiState.Loading,
-        isTransferLoading = transferState is TransferDataUiState.Loading,
-        isInputEmpty = quoteState is QuoteUiState.NoInput,
+        isQuoteLoading = quotePhase is SwapQuotePhase.Loading,
+        isTransferLoading = transferPhase is SwapTransferPhase.Loading,
+        isInputEmpty = quotePhase is SwapQuotePhase.NoInput,
     )
 }
