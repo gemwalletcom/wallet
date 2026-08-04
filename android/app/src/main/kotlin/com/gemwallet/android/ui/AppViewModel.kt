@@ -47,8 +47,7 @@ class AppViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val state = MutableStateFlow(AppState())
-    val uiState = state.map { it.toUIState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AppUIState())
+    val uiState = state.asStateFlow()
     private val startDestination = MutableStateFlow<NavKey?>(null)
     val startDestinationState = startDestination.asStateFlow()
     private val walletReadyState = getWalletSummary.getWalletSummary()
@@ -206,18 +205,6 @@ class AppViewModel @Inject constructor(
 }
 
 data class AppState(
-    val session: Session? = null,
-    val intent: AppIntent = AppIntent.None,
-    val update: AppUpdateInfo? = null,
-) {
-    fun toUIState() = AppUIState(
-        session = session,
-        intent = intent,
-        update = update,
-    )
-}
-
-data class AppUIState(
     val session: Session? = null,
     val intent: AppIntent = AppIntent.None,
     val update: AppUpdateInfo? = null,

@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -36,8 +37,7 @@ class SettingsViewModel @Inject constructor(
     private val session = sessionRepository.session()
     private val wallets = walletsRepository.getAll()
     private val state = MutableStateFlow(SettingsViewModelState())
-    val uiState = state.map { it.toUIState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUIState.General())
+    val uiState = state.asStateFlow()
 
     val isRewardsAvailable = wallets
         .map { items ->
@@ -131,19 +131,4 @@ class SettingsViewModel @Inject constructor(
 data class SettingsViewModelState(
     val currency: Currency = Currency.USD,
     val developEnabled: Boolean = false,
-) {
-    fun toUIState(): SettingsUIState.General {
-        return SettingsUIState.General(
-            currency = currency,
-            developEnabled = developEnabled,
-        )
-    }
-}
-
-sealed interface SettingsUIState {
-
-    data class General(
-        val currency: Currency = Currency.USD,
-        val developEnabled: Boolean = false,
-    ) : SettingsUIState
-}
+)
