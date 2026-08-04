@@ -38,9 +38,10 @@ gem_cardano = { path = "../crates/gem_cardano", features = ["rpc", "signer"] }
 gem_algorand = { path = "../crates/gem_algorand", features = ["rpc", "signer"] }
 gem_stellar = { path = "../crates/gem_stellar", features = ["rpc", "signer"] }
 gem_xrp = { path = "../crates/gem_xrp", features = ["rpc", "signer"] }
+payment = { path = "../crates/payment" }
 gem_near = { path = "../crates/gem_near", features = ["rpc", "signer"] }
 gem_polkadot = { path = "../crates/gem_polkadot", features = ["rpc", "signer"] }
-gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
+gem_wallet_connect = { path = "../crates/gem_wallet_connect", features = ["session"] }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
 gem_derivation = { path = "../crates/gem_derivation" }
 gem_crypto = { path = "../crates/gem_crypto", features = ["random"] }

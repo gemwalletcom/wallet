@@ -9,10 +9,8 @@ use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
-use gem_wallet_connect::{
-    SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
-};
 use primitives::{Chain, EVMChain, SimulationInput, SimulationResult};
+use primitives::{EthereumTransactionData as CoreEthereumTransactionData, SignDigestType as CoreSignDigestType, SignableTransactionType as CoreSignableTransactionType};
 
 use crate::{
     GemstoneError,
@@ -21,7 +19,7 @@ use crate::{
     network::JsonRpcClient,
 };
 
-use super::{WalletConnectTransactionType, simulation};
+use super::{SignableTransactionType, simulation};
 
 #[derive(uniffi::Object)]
 pub struct WalletConnectSimulationClient {
@@ -38,11 +36,11 @@ impl WalletConnectSimulationClient {
     }
 
     pub async fn simulate_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String, session_domain: String) -> Result<SimulationResult, GemstoneError> {
-        let sign_type: WcSignDigestType = sign_type.into();
+        let sign_type: CoreSignDigestType = sign_type.into();
         let validation_warnings = simulation::sign_message_validation_warnings(chain, &sign_type, &data, &session_domain);
 
         let simulation = match sign_type {
-            WcSignDigestType::Eip712 => match simulation::parse_eip712_message(&data) {
+            CoreSignDigestType::Eip712 => match simulation::parse_eip712_message(&data) {
                 Some(message) => self.simulate_eip712_message(chain, &message).await?,
                 None => SimulationResult::default(),
             },
@@ -52,15 +50,15 @@ impl WalletConnectSimulationClient {
         Ok(simulation.prepend_warnings(validation_warnings))
     }
 
-    pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<SimulationResult, GemstoneError> {
-        let transaction_type: WcWalletConnectTransactionType = transaction_type.into();
+    pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: SignableTransactionType, data: String) -> Result<SimulationResult, GemstoneError> {
+        let transaction_type: CoreSignableTransactionType = transaction_type.into();
         let validation_warnings = simulation::send_transaction_validation_warnings(&transaction_type, &data);
 
         let simulation = match &transaction_type {
-            WcWalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
-            WcWalletConnectTransactionType::Solana { .. } | WcWalletConnectTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
-            WcWalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, SimulationInput::new(&data)).await,
-            WcWalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, SimulationInput::new(&data)).await,
+            CoreSignableTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
+            CoreSignableTransactionType::Solana { .. } | CoreSignableTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
+            CoreSignableTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, SimulationInput::new(&data)).await,
+            CoreSignableTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, SimulationInput::new(&data)).await,
         }
         .unwrap_or_default();
 
@@ -99,7 +97,7 @@ impl WalletConnectSimulationClient {
         chain: Chain,
         calldata: &[u8],
         provider: &EthereumProvider<AlienClient>,
-        transaction: &WcEthereumTransactionData,
+        transaction: &CoreEthereumTransactionData,
     ) -> (Result<SimulationResult, GemstoneError>, Result<SimulationResult, GemstoneError>) {
         let calldata_task = async {
             if calldata.is_empty() {
@@ -117,17 +115,17 @@ impl WalletConnectSimulationClient {
     async fn simulate_ethereum_balance_changes(
         &self,
         provider: &EthereumProvider<AlienClient>,
-        transaction: &WcEthereumTransactionData,
+        transaction: &CoreEthereumTransactionData,
     ) -> Result<SimulationResult, GemstoneError> {
         let encoded_transaction = serde_json::to_string(&map_transaction_object(transaction)).map_err(|error| error.to_string())?;
 
         Ok(provider.simulate_transaction(SimulationInput::new(encoded_transaction)).await?)
     }
 
-    async fn simulate_encoded_transaction(&self, transaction_type: &WcWalletConnectTransactionType, data: &str) -> Result<SimulationResult, GemstoneError> {
+    async fn simulate_encoded_transaction(&self, transaction_type: &CoreSignableTransactionType, data: &str) -> Result<SimulationResult, GemstoneError> {
         let chain = match transaction_type {
-            WcWalletConnectTransactionType::Solana { .. } => Chain::Solana,
-            WcWalletConnectTransactionType::Sui { .. } => Chain::Sui,
+            CoreSignableTransactionType::Solana { .. } => Chain::Solana,
+            CoreSignableTransactionType::Sui { .. } => Chain::Sui,
             _ => return Err("Chain does not use encoded transaction simulation".into()),
         };
         let input: SimulationInput = serde_json::from_str(data).map_err(|error| error.to_string())?;
@@ -162,7 +160,7 @@ impl WalletConnectSimulationClient {
 }
 
 /// Keeps the gas limit so out-of-gas failures surface, but omits fee prices - they make the trace charge gas and leak fee accounting into the signer's balance diff.
-fn map_transaction_object(transaction: &WcEthereumTransactionData) -> TransactionObject {
+fn map_transaction_object(transaction: &CoreEthereumTransactionData) -> TransactionObject {
     TransactionObject {
         from: Some(transaction.from.clone()),
         to: transaction.to.clone(),
@@ -180,8 +178,8 @@ mod tests {
     use super::*;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
 
-    fn mock_wc_transaction() -> WcEthereumTransactionData {
-        WcEthereumTransactionData {
+    fn mock_wc_transaction() -> CoreEthereumTransactionData {
+        CoreEthereumTransactionData {
             chain_id: None,
             from: TEST_EVM_SENDER.to_string(),
             to: TEST_EVM_RECIPIENT.to_string(),
@@ -205,7 +203,7 @@ mod tests {
 
     #[test]
     fn test_map_transaction_object_passes_gas_limit_and_omits_fee_prices() {
-        let transaction = WcEthereumTransactionData {
+        let transaction = CoreEthereumTransactionData {
             gas_limit: Some("0x5208".to_string()),
             gas_price: Some("0x9502f900".to_string()),
             max_fee_per_gas: Some("0x59682f10".to_string()),

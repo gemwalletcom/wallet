@@ -1,12 +1,14 @@
 use gem_wallet_connect::{
-    SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectAction as WcWalletConnectAction,
-    WalletConnectChainOperation as WcWalletConnectChainOperation, WalletConnectRequestHandler, WalletConnectResponseHandler,
-    WalletConnectResponseType as WcWalletConnectResponseType, WalletConnectTransaction as WcWalletConnectTransaction,
-    WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
+    WalletConnectAction as WcWalletConnectAction, WalletConnectChainOperation as WcWalletConnectChainOperation, WalletConnectRequestHandler, WalletConnectResponseHandler,
+    WalletConnectResponseType as WcWalletConnectResponseType, WalletConnectVerifier, config_session_properties,
 };
 use primitives::{
     Account, Chain, ChainAddress, TransactionType, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest,
-    WalletConnectionVerificationStatus,
+    WalletConnectionVerificationStatus, wallet_connector::short_name,
+};
+use primitives::{
+    EthereumTransactionData as CoreEthereumTransactionData, SignDigestType as CoreSignDigestType, SignMessage as CoreSignMessage, SignableTransaction as CoreSignableTransaction,
+    SignableTransactionType as CoreSignableTransactionType,
 };
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -37,7 +39,7 @@ pub enum WalletConnectLink {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
-pub struct WCEthereumTransactionData {
+pub struct EthereumTransactionData {
     pub chain_id: Option<u64>,
     pub from: String,
     pub to: String,
@@ -60,12 +62,12 @@ pub struct Account {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
-pub struct WCSolanaTransactionData {
+pub struct SolanaTransactionData {
     pub transaction: String,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
-pub struct WCSuiTransactionData {
+pub struct SuiTransactionData {
     pub transaction: String,
     pub wallet_address: String,
 }
@@ -79,17 +81,17 @@ pub enum WalletConnectAction {
     },
     SignTransaction {
         chain: Chain,
-        transaction_type: WalletConnectTransactionType,
+        transaction_type: SignableTransactionType,
         data: String,
     },
     SignAllTransactions {
         chain: Chain,
-        transaction_type: WalletConnectTransactionType,
+        transaction_type: SignableTransactionType,
         transactions: Vec<String>,
     },
     SendTransaction {
         chain: Chain,
-        transaction_type: WalletConnectTransactionType,
+        transaction_type: SignableTransactionType,
         data: String,
     },
     ChainOperation {
@@ -104,7 +106,7 @@ pub enum WalletConnectAction {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum WalletConnectTransactionType {
+pub enum SignableTransactionType {
     Ethereum,
     Solana { output_type: TransferDataOutputType },
     Sui { output_type: TransferDataOutputType },
@@ -121,17 +123,17 @@ pub enum WalletConnectChainOperation {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
-pub enum WalletConnectTransaction {
+pub enum SignableTransaction {
     Ethereum {
-        data: WCEthereumTransactionData,
+        data: EthereumTransactionData,
         transaction_type: TransactionType,
     },
     Solana {
-        data: WCSolanaTransactionData,
+        data: SolanaTransactionData,
         output_type: TransferDataOutputType,
     },
     Sui {
-        data: WCSuiTransactionData,
+        data: SuiTransactionData,
         output_type: TransferDataOutputType,
     },
     Ton {
@@ -152,7 +154,7 @@ pub enum WalletConnectResponseType {
 
 // From conversions: primitives -> UniFFI
 
-impl From<WCEthereumTransaction> for WCEthereumTransactionData {
+impl From<WCEthereumTransaction> for EthereumTransactionData {
     fn from(transaction: WCEthereumTransaction) -> Self {
         Self {
             chain_id: transaction.chain_id,
@@ -172,21 +174,31 @@ impl From<WCEthereumTransaction> for WCEthereumTransactionData {
 
 // From conversions: gem_wallet_connect -> UniFFI
 
-impl From<WcSignDigestType> for SignDigestType {
-    fn from(t: WcSignDigestType) -> Self {
-        match t {
-            WcSignDigestType::Eip191 => Self::Eip191,
-            WcSignDigestType::Eip712 => Self::Eip712,
-            WcSignDigestType::Base58 => Self::Base58,
-            WcSignDigestType::SuiPersonal => Self::SuiPersonal,
-            WcSignDigestType::Siwe => Self::Siwe,
-            WcSignDigestType::TonPersonal => Self::TonPersonal,
-            WcSignDigestType::TronPersonal => Self::TronPersonal,
+impl From<CoreSignMessage> for SignMessage {
+    fn from(message: CoreSignMessage) -> Self {
+        Self {
+            chain: message.chain,
+            sign_type: message.sign_type.into(),
+            data: message.data,
         }
     }
 }
 
-impl From<SignDigestType> for WcSignDigestType {
+impl From<CoreSignDigestType> for SignDigestType {
+    fn from(t: CoreSignDigestType) -> Self {
+        match t {
+            CoreSignDigestType::Eip191 => Self::Eip191,
+            CoreSignDigestType::Eip712 => Self::Eip712,
+            CoreSignDigestType::Base58 => Self::Base58,
+            CoreSignDigestType::SuiPersonal => Self::SuiPersonal,
+            CoreSignDigestType::Siwe => Self::Siwe,
+            CoreSignDigestType::TonPersonal => Self::TonPersonal,
+            CoreSignDigestType::TronPersonal => Self::TronPersonal,
+        }
+    }
+}
+
+impl From<SignDigestType> for CoreSignDigestType {
     fn from(t: SignDigestType) -> Self {
         match t {
             SignDigestType::Eip191 => Self::Eip191,
@@ -200,26 +212,26 @@ impl From<SignDigestType> for WcSignDigestType {
     }
 }
 
-impl From<WcWalletConnectTransactionType> for WalletConnectTransactionType {
-    fn from(t: WcWalletConnectTransactionType) -> Self {
+impl From<CoreSignableTransactionType> for SignableTransactionType {
+    fn from(t: CoreSignableTransactionType) -> Self {
         match t {
-            WcWalletConnectTransactionType::Ethereum => Self::Ethereum,
-            WcWalletConnectTransactionType::Solana { output_type } => Self::Solana { output_type },
-            WcWalletConnectTransactionType::Sui { output_type } => Self::Sui { output_type },
-            WcWalletConnectTransactionType::Ton { output_type } => Self::Ton { output_type },
-            WcWalletConnectTransactionType::Tron { output_type } => Self::Tron { output_type },
+            CoreSignableTransactionType::Ethereum => Self::Ethereum,
+            CoreSignableTransactionType::Solana { output_type } => Self::Solana { output_type },
+            CoreSignableTransactionType::Sui { output_type } => Self::Sui { output_type },
+            CoreSignableTransactionType::Ton { output_type } => Self::Ton { output_type },
+            CoreSignableTransactionType::Tron { output_type } => Self::Tron { output_type },
         }
     }
 }
 
-impl From<WalletConnectTransactionType> for WcWalletConnectTransactionType {
-    fn from(t: WalletConnectTransactionType) -> Self {
+impl From<SignableTransactionType> for CoreSignableTransactionType {
+    fn from(t: SignableTransactionType) -> Self {
         match t {
-            WalletConnectTransactionType::Ethereum => Self::Ethereum,
-            WalletConnectTransactionType::Solana { output_type } => Self::Solana { output_type },
-            WalletConnectTransactionType::Sui { output_type } => Self::Sui { output_type },
-            WalletConnectTransactionType::Ton { output_type } => Self::Ton { output_type },
-            WalletConnectTransactionType::Tron { output_type } => Self::Tron { output_type },
+            SignableTransactionType::Ethereum => Self::Ethereum,
+            SignableTransactionType::Solana { output_type } => Self::Solana { output_type },
+            SignableTransactionType::Sui { output_type } => Self::Sui { output_type },
+            SignableTransactionType::Ton { output_type } => Self::Ton { output_type },
+            SignableTransactionType::Tron { output_type } => Self::Tron { output_type },
         }
     }
 }
@@ -268,8 +280,8 @@ impl From<WcWalletConnectAction> for WalletConnectAction {
     }
 }
 
-impl From<WcEthereumTransactionData> for WCEthereumTransactionData {
-    fn from(d: WcEthereumTransactionData) -> Self {
+impl From<CoreEthereumTransactionData> for EthereumTransactionData {
+    fn from(d: CoreEthereumTransactionData) -> Self {
         Self {
             chain_id: d.chain_id,
             from: d.from,
@@ -286,26 +298,26 @@ impl From<WcEthereumTransactionData> for WCEthereumTransactionData {
     }
 }
 
-impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
-    fn from(t: WcWalletConnectTransaction) -> Self {
+impl From<CoreSignableTransaction> for SignableTransaction {
+    fn from(t: CoreSignableTransaction) -> Self {
         match t {
-            WcWalletConnectTransaction::Ethereum { data, transaction_type } => Self::Ethereum {
+            CoreSignableTransaction::Ethereum { data, transaction_type } => Self::Ethereum {
                 data: data.into(),
                 transaction_type,
             },
-            WcWalletConnectTransaction::Solana { data, output_type } => Self::Solana {
-                data: WCSolanaTransactionData { transaction: data.transaction },
+            CoreSignableTransaction::Solana { data, output_type } => Self::Solana {
+                data: SolanaTransactionData { transaction: data.transaction },
                 output_type,
             },
-            WcWalletConnectTransaction::Sui { data, output_type } => Self::Sui {
-                data: WCSuiTransactionData {
+            CoreSignableTransaction::Sui { data, output_type } => Self::Sui {
+                data: SuiTransactionData {
                     transaction: data.transaction,
                     wallet_address: data.wallet_address,
                 },
                 output_type,
             },
-            WcWalletConnectTransaction::Ton { data, output_type } => Self::Ton { data, output_type },
-            WcWalletConnectTransaction::Tron { data, output_type } => Self::Tron { data, output_type },
+            CoreSignableTransaction::Ton { data, output_type } => Self::Ton { data, output_type },
+            CoreSignableTransaction::Tron { data, output_type } => Self::Tron { data, output_type },
         }
     }
 }
@@ -403,16 +415,16 @@ impl WalletConnect {
         config_session_properties(properties, &chains, &accounts)
     }
 
-    pub fn decode_send_transaction(&self, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {
-        let wc_type: WcWalletConnectTransactionType = transaction_type.into();
+    pub fn decode_send_transaction(&self, transaction_type: SignableTransactionType, data: String) -> Result<SignableTransaction, GemstoneError> {
+        let wc_type: CoreSignableTransactionType = transaction_type.into();
         let wc_result = WalletConnectRequestHandler::decode_send_transaction(wc_type, data).map_err(|e| GemstoneError::AnyError { msg: e })?;
         Ok(wc_result.into())
     }
 }
 
 #[uniffi::export]
-pub fn wallet_connect_app_short_name(metadata: primitives::WalletConnectionSessionAppMetadata) -> String {
-    metadata.short_name()
+pub fn wallet_connect_app_short_name(name: String) -> String {
+    short_name(&name)
 }
 
 #[cfg(test)]
