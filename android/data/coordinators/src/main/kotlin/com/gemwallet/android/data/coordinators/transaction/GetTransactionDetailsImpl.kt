@@ -50,6 +50,7 @@ import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
 import uniffi.gemstone.swapperProviderConfig
 import uniffi.gemstone.swapperProviderFromStr
+import com.gemwallet.android.ext.getPaymentMetadata
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetTransactionDetailsImpl(
@@ -259,7 +260,9 @@ class TransactionDetailsAggregateImpl(
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(
+            TransactionDirection.Outgoing -> data.transaction.getPaymentMetadata()?.merchant?.name?.let {
+                TransactionDetailsValue.Destination.Merchant(it)
+            } ?: TransactionDetailsValue.Destination.Recipient(
                 data = data.transaction.to,
                 chain = data.asset.chain,
                 name = data.toAddress?.name,
