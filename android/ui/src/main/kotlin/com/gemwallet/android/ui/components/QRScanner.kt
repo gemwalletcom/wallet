@@ -132,16 +132,19 @@ fun QRScannerScene(
     val coroutineScope = rememberCoroutineScope()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageResult by remember { mutableStateOf("") }
+    var imagePreview by remember { mutableStateOf("") }
     var imageError by remember { mutableStateOf("") }
     val galleryLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
         imageUri = uri
         imageResult = ""
+        imagePreview = ""
         imageError = ""
     }
     val cancel = {
         imageUri = null
         imageError = ""
         imageResult = ""
+        imagePreview = ""
     }
     LaunchedEffect(imageUri) {
         val image = imageUri ?: return@LaunchedEffect
@@ -163,10 +166,12 @@ fun QRScannerScene(
                         mapOf(DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE))
                     )
                 }.decode(binaryBmp)
-                imageResult = paymentDecodeUrl(result.text).toPrimitives().request?.address.orEmpty()
-                if (imageResult.isEmpty()) {
+                val preview = paymentDecodeUrl(result.text).toPrimitives().request?.address ?: result.text
+                if (preview.isEmpty()) {
                     throw Exception()
                 }
+                imageResult = result.text
+                imagePreview = preview
             } catch (e: Exception) {
                 imageError = e.message ?: "Unknown error"
             }
@@ -212,7 +217,7 @@ fun QRScannerScene(
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize(),
                     )
-                    if (imageResult.isNotEmpty()) {
+                    if (imagePreview.isNotEmpty()) {
                         Column(
                             modifier = Modifier
                                 .padding(40.dp)
@@ -224,7 +229,7 @@ fun QRScannerScene(
                                     .defaultPadding()
                                     .background(Color.Black, MaterialTheme.shapes.medium)
                                     .defaultPadding(),
-                                text = imageResult,
+                                text = imagePreview,
                                 color = Color.White,
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W300)
