@@ -135,18 +135,6 @@ struct WalletNavigationStack: View {
                     ),
                 )
             }
-            .navigationDestination(for: Scenes.NetworkAssets.self) { destination in
-                NetworkAssetsScene(
-                    model: NetworkAssetsSceneViewModel(
-                        wallet: model.wallet,
-                        chain: destination.chain,
-                        balanceService: balanceService,
-                        assetsEnabler: assetsEnabler,
-                        preferences: preferences.preferences,
-                        onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
-                    ),
-                )
-            }
             .navigationDestination(for: Scenes.Transaction.self) {
                 TransactionNavigationView(
                     model: TransactionSceneViewModel(
