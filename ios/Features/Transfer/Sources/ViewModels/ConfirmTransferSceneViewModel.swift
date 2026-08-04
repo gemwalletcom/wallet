@@ -14,7 +14,6 @@ import Store
 import Swap
 import SwiftUI
 import Validators
-import WalletConnector
 
 @Observable
 @MainActor
@@ -25,6 +24,8 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     public var isPresentingSheet: ConfirmTransferSheetType?
+
+    public let expiryCountdown: ExpiryCountdown
 
     public var isPresentingAlertMessage: AlertMessage? {
         get {
@@ -55,6 +56,7 @@ public final class ConfirmTransferSceneViewModel {
         self.request = request
         self.confirmService = confirmService
         self.onComplete = onComplete
+        expiryCountdown = ExpiryCountdown(expiresAt: request.data.type.payment?.expiresAt)
 
         let currency = Currency(rawValue: Preferences.standard.currency) ?? .usd
         self.currency = currency
@@ -123,7 +125,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var isButtonDisabled: Bool {
-        simulationWarnings.contains(where: { $0.severity == .critical })
+        expiryCountdown.isExpired || simulationWarnings.contains(where: { $0.severity == .critical })
     }
 
     var confirmButtonModel: ConfirmButtonViewModel {
@@ -146,11 +148,21 @@ public final class ConfirmTransferSceneViewModel {
 
 // MARK: - ListSectionProvideable
 
+extension ConfirmTransferSceneViewModel {
+    private var paymentExpiryItemModel: ConfirmTransferItemModel {
+        guard let expiresAt = request.data.type.payment?.expiresAt else {
+            return .empty
+        }
+        return .paymentExpiry(title: Localized.Transfer.paymentExpiresIn, expiresAt: expiresAt)
+    }
+}
+
 extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public var sections: [ListSection<ConfirmTransferItem>] {
         [
             ListSection(type: .header, [.header]),
             ListSection(type: .details, detailItems),
+            paymentItems.isEmpty ? nil : ListSection(type: .paymentExpiry, paymentItems),
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
             primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
@@ -163,7 +175,17 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         if case .generic = request.data.type {
             return [.app, .sender, .network]
         }
+        if case .payment = request.data.type {
+            return [.app, .sender, .recipient, .network]
+        }
         return [.app, .sender, .recipient, .network, .memo, .details]
+    }
+
+    private var paymentItems: [ConfirmTransferItem] {
+        guard request.data.type.payment != nil else {
+            return []
+        }
+        return [.paymentExpiry]
     }
 
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
@@ -172,6 +194,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmHeaderViewModel(request: request, state: state)
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
+        case .paymentExpiry:
+            paymentExpiryItemModel
         case .app:
             ConfirmAppViewModel(type: request.data.type)
         case .sender:

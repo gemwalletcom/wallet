@@ -4,20 +4,20 @@ import Blockchain
 import Foundation
 import Primitives
 
-protocol FeeRateProviding: Sendable {
+public protocol FeeRateProviding: Sendable {
     func rates(for type: TransferDataType) async throws -> [FeeRate]
 }
 
-struct FeeRateService: FeeRateProviding {
+public struct FeeRateService: FeeRateProviding {
     private let service: any ChainFeeRateFetchable
 
-    init(
+    public init(
         service: any ChainFeeRateFetchable,
     ) {
         self.service = service
     }
 
-    func rates(for type: TransferDataType) async throws -> [FeeRate] {
+    public func rates(for type: TransferDataType) async throws -> [FeeRate] {
         try await service.feeRates(type: type)
     }
 }

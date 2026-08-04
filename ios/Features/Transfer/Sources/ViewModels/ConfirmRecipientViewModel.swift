@@ -67,7 +67,7 @@ extension ConfirmRecipientViewModel {
             case .stake, .unstake, .redelegate, .rewards, .withdraw: Localized.Stake.validator
             case .freeze, .unfreeze: Localized.Stake.resource
             }
-        case .generic:
+        case .generic, .payment:
             switch model.type.outputAction {
             case .sign: Localized.Asset.contract
             case .send: Localized.Transfer.Recipient.title
@@ -90,7 +90,7 @@ extension ConfirmRecipientViewModel {
              .swap,
              .perpetual: false
         case .earn: true
-        case .generic:
+        case .generic, .payment:
             switch model.type.outputAction {
             case .sign: false
             case .send: true

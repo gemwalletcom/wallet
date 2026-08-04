@@ -5,14 +5,18 @@ import Transfer
 
 public struct TransferExecutorMock: TransferExecutable {
     public var error: Error?
+    public var results: [String]
 
-    public init(error: Error? = nil) {
+    public init(error: Error? = nil, results: [String] = ["1"]) {
         self.error = error
+        self.results = results
     }
 
-    public func execute(input _: TransferConfirmationInput) async throws {
+    @discardableResult
+    public func execute(input _: TransferConfirmationInput) async throws -> [String] {
         if let error {
             throw error
         }
+        return results
     }
 }

@@ -13,6 +13,7 @@ extension TransferData {
              .swap,
              .tokenApprove,
              .generic,
+             .payment,
              .transferNft,
              .perpetual,
              .account(_, .activate),

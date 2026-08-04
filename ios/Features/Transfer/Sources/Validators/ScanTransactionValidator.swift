@@ -4,8 +4,8 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 
-enum ScanTransactionValidator {
-    static func validate(
+public enum ScanTransactionValidator {
+    public static func validate(
         transaction: ScanTransaction,
         asset: Asset,
         memo: String?,

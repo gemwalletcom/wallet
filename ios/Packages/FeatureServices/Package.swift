@@ -268,6 +268,7 @@ let package = Package(
         .target(
             name: "TransactionStateService",
             dependencies: [
+                .product(name: "PaymentService", package: "ChainServices"),
                 "Primitives",
                 "Store",
                 "Blockchain",
@@ -283,6 +284,8 @@ let package = Package(
         .target(
             name: "TransactionStateServiceTestKit",
             dependencies: [
+                .product(name: "PaymentServiceTestKit", package: "ChainServices"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "StakeServiceTestKit", package: "ChainServices"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
@@ -723,6 +726,7 @@ let package = Package(
         .testTarget(
             name: "TransactionStateServiceTests",
             dependencies: [
+                .product(name: "PaymentServiceTestKit", package: "ChainServices"),
                 "TransactionStateService",
                 "TransactionStateServiceTestKit",
                 "BalanceServiceTestKit",

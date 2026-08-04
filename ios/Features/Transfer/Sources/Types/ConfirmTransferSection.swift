@@ -11,6 +11,7 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case header
     case warnings
     case details
+    case paymentExpiry
     case balanceChanges
     case payload
     case fee
@@ -30,6 +31,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case recipient
     case memo
     case details
+    case paymentExpiry
     case balanceChange(Int)
     case payload
     case networkFee
@@ -47,6 +49,7 @@ public enum ConfirmTransferItemModel {
     case recipient(AddressListItemViewModel)
     case network(ListItemModel)
     case memo(ListItemModel)
+    case paymentExpiry(title: String, expiresAt: Date)
     case swapDetails(SwapDetailsViewModel)
     case networkFee(ListItemModel, selectable: Bool)
     case perpetualDetails(PerpetualDetailsViewModel)

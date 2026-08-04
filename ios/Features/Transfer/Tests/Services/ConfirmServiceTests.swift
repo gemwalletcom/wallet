@@ -53,7 +53,7 @@ struct ConfirmServiceTests {
         )
 
         let state = await service.updateState(
-            data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
+            data: TransferData.mock(type: .generic(asset: .mockBNB(), appMetadata: .mock(), extra: .mock())),
             simulation: SimulationResult.mock(header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true)),
         )
 
@@ -71,7 +71,7 @@ struct ConfirmServiceTests {
         )
 
         let state = service.makeState(
-            data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
+            data: TransferData.mock(type: .generic(asset: .mockBNB(), appMetadata: .mock(), extra: .mock())),
             simulation: SimulationResult.mock(
                 payload: [
                     SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
@@ -153,7 +153,7 @@ struct ConfirmServiceTests {
         )
 
         let state = await service.updateState(
-            data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
+            data: TransferData.mock(type: .generic(asset: .mockBNB(), appMetadata: .mock(), extra: .mock())),
             simulation: SimulationResult.mock(payload: [
                 SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
             ]),

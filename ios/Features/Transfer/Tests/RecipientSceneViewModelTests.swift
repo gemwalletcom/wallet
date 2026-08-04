@@ -94,16 +94,26 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
+    func onHandleScan_paymentLink_keepsAddress() {
+        let model = RecipientSceneViewModel.mock()
+        let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
+        model.addressInputModel.update(text: address)
+
+        model.onHandleScan("https://pay.walletconnect.com/?pid=pay_123", for: .address)
+
+        #expect(model.addressInputModel.text == address)
+    }
+
+    @Test
     func getRecipientScanResult_transferData() throws {
         let asset = Asset.mockEthereum()
         let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
         let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
         let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
 
-        let payment = PaymentScanResult(
+        let payment = PaymentRequest.mock(
             address: " \n\(address)\r ",
             amount: "1.234",
-            memo: nil,
         )
 
         let result = try model.getRecipientScanResult(payment: payment)
@@ -121,9 +131,8 @@ struct RecipientSceneViewModelTests {
     func getRecipientScanResult_recipient() throws {
         let model = RecipientSceneViewModel.mock()
 
-        let payment = PaymentScanResult(
+        let payment = PaymentRequest.mock(
             address: "0x123",
-            amount: nil,
             memo: "test memo",
         )
 
