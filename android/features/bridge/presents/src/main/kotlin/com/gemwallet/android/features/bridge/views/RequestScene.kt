@@ -32,6 +32,10 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.message.SignMessageFullMessageSheet
+import com.gemwallet.android.ui.components.message.SignMessageSheetType
+import com.gemwallet.android.ui.components.message.SignMessagePayloadDetailsSheet
+import com.gemwallet.android.ui.components.message.signMessageText
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.models.ListPosition
@@ -155,13 +159,13 @@ private fun SignMessageScene(
             }
 
             if (!request.hasPayload) {
-                walletConnectTextMessage(request.plainMessage)
+                signMessageText(request.plainMessage)
             }
         }
 
         when (sheetType) {
             SignMessageSheetType.Details -> {
-                WalletConnectPayloadDetailsSheet(
+                SignMessagePayloadDetailsSheet(
                     primaryFields = request.primaryPayloadFields,
                     secondaryFields = request.secondaryPayloadFields,
                     onViewFullMessage = { sheetType = SignMessageSheetType.FullMessage },
@@ -170,7 +174,7 @@ private fun SignMessageScene(
             }
 
             SignMessageSheetType.FullMessage -> {
-                WalletConnectFullMessageSheet(
+                SignMessageFullMessageSheet(
                     message = request.plainMessage,
                     onDismissRequest = { sheetType = null },
                 )
@@ -181,7 +185,3 @@ private fun SignMessageScene(
     }
 }
 
-private enum class SignMessageSheetType {
-    Details,
-    FullMessage,
-}
