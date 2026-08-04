@@ -17,6 +17,7 @@ import EventPresenterService
 import ExplorerService
 import FiatService
 import Foundation
+import Payments
 import NameService
 import NFTService
 import NodeService
@@ -27,6 +28,7 @@ import PriceService
 import RewardsService
 import ServiceStatusService
 import ScanService
+import SigningRequestService
 import StakeService
 import StreamService
 import SupportChatService
@@ -36,6 +38,7 @@ import TransactionStateService
 import WalletConnector
 import WalletService
 import WalletSessionService
+import Primitives
 
 extension AppResolver {
     struct Services {
@@ -77,6 +80,8 @@ extension AppResolver {
         let onstartAsyncService: OnstartAsyncService
         let onstartWalletService: OnstartWalletService
         let walletConnectorManager: WalletConnectorManager
+        let paymentLinkManager: PaymentLinkManager
+        let paymentSheetPresenter: PaymentSheetPresenter
         let perpetualService: PerpetualService
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: NameService
@@ -132,6 +137,8 @@ extension AppResolver {
             onstartAsyncService: OnstartAsyncService,
             onstartWalletService: OnstartWalletService,
             walletConnectorManager: WalletConnectorManager,
+            paymentLinkManager: PaymentLinkManager,
+            paymentSheetPresenter: PaymentSheetPresenter,
             perpetualService: PerpetualService,
             hyperliquidObserverService: any PerpetualObservable,
             nameService: NameService,
@@ -187,6 +194,8 @@ extension AppResolver {
             self.onstartAsyncService = onstartAsyncService
             self.onstartWalletService = onstartWalletService
             self.walletConnectorManager = walletConnectorManager
+            self.paymentLinkManager = paymentLinkManager
+            self.paymentSheetPresenter = paymentSheetPresenter
             self.perpetualService = perpetualService
             self.hyperliquidObserverService = hyperliquidObserverService
             self.nameService = nameService

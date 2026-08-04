@@ -29,6 +29,8 @@ import NativeProviderService
 import NFTService
 import NodeService
 import NotificationService
+import PaymentService
+import Payments
 import PerpetualService
 import Preferences
 import PriceAlertService
@@ -37,6 +39,7 @@ import Primitives
 import RewardsService
 import ScanService
 import ServiceStatusService
+import SigningRequestService
 import StakeService
 import Store
 import StreamService
@@ -148,6 +151,11 @@ struct ServicesFactory {
             assetsService: assetsService,
             addressStore: storeManager.addressStore,
         )
+        let paymentService = PaymentService(
+            provider: nativeProvider,
+            appId: Constants.WalletConnect.projectId,
+            clientId: (try? securePreferences.getDeviceId()) ?? .empty,
+        )
         let transactionStateScheduler = Self.makeTransactionService(
             transactionStore: storeManager.transactionStore,
             gatewayService: gatewayService,
@@ -155,6 +163,7 @@ struct ServicesFactory {
             earnService: earnService,
             nftService: nftService,
             balanceService: balanceService,
+            paymentStatusService: paymentService,
         )
 
         let preferences = storages.observablePreferences.preferences
@@ -233,6 +242,7 @@ struct ServicesFactory {
             connectionsStore: storeManager.connectionsStore,
             walletSessionService: walletSessionService,
             interactor: walletConnectorManager,
+            signingInteractor: presenter,
             nodeProvider: nodeProvider,
             requestInterceptor: nodeAuthProvider,
         )
@@ -295,6 +305,23 @@ struct ServicesFactory {
         let authService = AuthService(apiService: apiService, keystore: storages.keystore)
         let rewardsService = RewardsService(apiService: apiService, authService: authService)
         let eventPresenterService = EventPresenterService()
+        let paymentAssetsProvider = PaymentAssetsProvider(assetStore: storeManager.assetStore)
+        let paymentSheetPresenter = PaymentSheetPresenter()
+        let paymentLinkManager = PaymentLinkManager(
+            paymentManager: PaymentManager(
+                service: paymentService,
+                executor: PaymentActionExecutor(
+                    interactor: paymentSheetPresenter,
+                    simulator: SigningSimulator(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider),
+                    approvalExecutor: PaymentApprovalExecutor(chainServiceFactory: chainServiceFactory),
+                    assetsProvider: paymentAssetsProvider,
+                ),
+                presenter: paymentSheetPresenter,
+                assetsProvider: paymentAssetsProvider,
+                transactionStateScheduler: transactionStateScheduler,
+            ),
+            eventPresenterService: eventPresenterService,
+        )
         let walletSearchService = WalletSearchService(
             assetsService: assetsService,
             searchStore: storeManager.searchStore,
@@ -388,6 +415,8 @@ struct ServicesFactory {
             onstartAsyncService: onstartAsyncService,
             onstartWalletService: onstartWalletService,
             walletConnectorManager: walletConnectorManager,
+            paymentLinkManager: paymentLinkManager,
+            paymentSheetPresenter: paymentSheetPresenter,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
             nameService: nameService,
@@ -440,6 +469,7 @@ extension ServicesFactory {
         earnService: EarnService,
         nftService: NFTService,
         balanceService: BalanceService,
+        paymentStatusService: any PaymentStatusServiceable,
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,
@@ -452,6 +482,7 @@ extension ServicesFactory {
             transactionStore: transactionStore,
             gatewayService: gatewayService,
             postProcessingService: postProcessingService,
+            paymentStatusService: paymentStatusService,
         )
         return TransactionStateScheduler(
             transactionStore: transactionStore,
@@ -480,6 +511,7 @@ extension ServicesFactory {
         connectionsStore: ConnectionsStore,
         walletSessionService: WalletSessionService,
         interactor: any WalletConnectorInteractable,
+        signingInteractor: any SigningRequestInteractable,
         nodeProvider: any NodeURLFetchable,
         requestInterceptor: any RequestInterceptable,
     ) -> ConnectionsService {
@@ -489,6 +521,7 @@ extension ServicesFactory {
                 connectionsStore: connectionsStore,
                 walletSessionService: walletSessionService,
                 walletConnectorInteractor: interactor,
+                signingInteractor: signingInteractor,
             ),
             nodeProvider: nodeProvider,
             requestInterceptor: requestInterceptor,

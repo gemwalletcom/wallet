@@ -17,7 +17,10 @@
 		8327CBF12DF9E088000BF1E1 /* Validators in Frameworks */ = {isa = PBXBuildFile; productRef = 8327CBF02DF9E088000BF1E1 /* Validators */; };
 		832AD1A72DEF9AED00096469 /* Assets in Frameworks */ = {isa = PBXBuildFile; productRef = 832AD1A62DEF9AED00096469 /* Assets */; };
 		833809D02D273E450055D91F /* WalletConnectorService in Frameworks */ = {isa = PBXBuildFile; productRef = 83385DDD2D27147900D76803 /* WalletConnectorService */; };
+		0A11FA0000000000000000A1 /* PaymentService in Frameworks */ = {isa = PBXBuildFile; productRef = 0A11FA0000000000000000A2 /* PaymentService */; };
+		0A11FA0000000000000000E1 /* SigningRequestService in Frameworks */ = {isa = PBXBuildFile; productRef = 0A11FA0000000000000000E2 /* SigningRequestService */; };
 		833809D12D273E450055D91F /* WalletConnector in Frameworks */ = {isa = PBXBuildFile; productRef = 83FE37B32D273CC80048D54C /* WalletConnector */; };
+		0A11FA0000000000000000B1 /* Payments in Frameworks */ = {isa = PBXBuildFile; productRef = 0A11FA0000000000000000B2 /* Payments */; };
 		833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A42D2D5B1D0063BB6A /* PriceAlerts */; };
 		833931A82D2D663C0063BB6A /* PriceService in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A72D2D663C0063BB6A /* PriceService */; };
 		833CDFD02D10622D00DAABEE /* ServicesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */; };
@@ -35,6 +38,7 @@
 		836281B02DEF34DC00CA5C75 /* Assets in Frameworks */ = {isa = PBXBuildFile; productRef = 836281AF2DEF34DC00CA5C75 /* Assets */; };
 		837A1E6B2D0B029200733AC1 /* AppResolver+ViewInjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837A1E6A2D0B029200733AC1 /* AppResolver+ViewInjection.swift */; };
 		837A1E6D2D0B096600733AC1 /* WalletConnectorNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837A1E6C2D0B096600733AC1 /* WalletConnectorNavigationStack.swift */; };
+		83AA01012E4A000100000001 /* PaymentNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AA01022E4A000100000002 /* PaymentNavigationStack.swift */; };
 		83863EE72D19B93E005048A7 /* NodeService in Frameworks */ = {isa = PBXBuildFile; productRef = 83863EE62D19B93E005048A7 /* NodeService */; };
 		839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 839C794A2D1C42A500E32072 /* PrimitivesComponents */; };
 		83B08BDB2D0B4AE200CA1B33 /* AppResolver+Storages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B08BDA2D0B4AE200CA1B33 /* AppResolver+Storages.swift */; };
@@ -215,6 +219,7 @@
 		836281AD2DEF32F600CA5C75 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Assets; sourceTree = "<group>"; };
 		837A1E6A2D0B029200733AC1 /* AppResolver+ViewInjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppResolver+ViewInjection.swift"; sourceTree = "<group>"; };
 		837A1E6C2D0B096600733AC1 /* WalletConnectorNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectorNavigationStack.swift; sourceTree = "<group>"; };
+		83AA01022E4A000100000002 /* PaymentNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentNavigationStack.swift; sourceTree = "<group>"; };
 		837D7DE62E005D2800BBBDDA /* Formatters */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Formatters; sourceTree = "<group>"; };
 		838383112D5E677A00D1CAF2 /* WalletTab */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WalletTab; sourceTree = "<group>"; };
 		838B9B9C2F0C120100380F29 /* Recents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Recents; sourceTree = "<group>"; };
@@ -226,6 +231,7 @@
 		83E041572D0AFCB10031D4BC /* RootScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootScene.swift; sourceTree = "<group>"; };
 		83E041592D0AFCB80031D4BC /* RootSceneViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootSceneViewModel.swift; sourceTree = "<group>"; };
 		83FE37B22D2715BF0048D54C /* WalletConnector */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WalletConnector; sourceTree = "<group>"; };
+		0A11FA0000000000000000B3 /* Payments */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Payments; sourceTree = "<group>"; };
 		B604C2E72F3F537800CBAFDC /* Contacts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Contacts; sourceTree = "<group>"; };
 		B67B3EEE2EFD25A6007AFA9C /* EventPresenterService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = EventPresenterService; sourceTree = "<group>"; };
 		B67ED5462DDB5DCC009F74E6 /* NavigationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationHandler.swift; sourceTree = "<group>"; };
@@ -324,7 +330,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				833809D12D273E450055D91F /* WalletConnector in Frameworks */,
+				0A11FA0000000000000000B1 /* Payments in Frameworks */,
 				833809D02D273E450055D91F /* WalletConnectorService in Frameworks */,
+				0A11FA0000000000000000A1 /* PaymentService in Frameworks */,
+				0A11FA0000000000000000E1 /* SigningRequestService in Frameworks */,
 				C3D1C4E22A2A9485006E8EEA /* Signer in Frameworks */,
 				D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */,
 				8361BB6D2D400E4F008D89CF /* AssetsService in Frameworks */,
@@ -475,6 +484,14 @@
 			path = Transactions;
 			sourceTree = "<group>";
 		};
+		83AA01032E4A000100000003 /* Payments */ = {
+			isa = PBXGroup;
+			children = (
+				83AA01022E4A000100000002 /* PaymentNavigationStack.swift */,
+			);
+			path = Payments;
+			sourceTree = "<group>";
+		};
 		8361BB6F2D402C63008D89CF /* WalletConnector */ = {
 			isa = PBXGroup;
 			children = (
@@ -486,6 +503,7 @@
 		8361BB702D402C9D008D89CF /* Navigation */ = {
 			isa = PBXGroup;
 			children = (
+				83AA01032E4A000100000003 /* Payments */,
 				83A35C612DF2054B00360060 /* Transfer */,
 				836281B22DEF423400CA5C75 /* Assets */,
 				83ACA9792DEE01F00085B133 /* Swap */,
@@ -712,6 +730,7 @@
 				833931A32D2D54060063BB6A /* PriceAlerts */,
 				D9F015752F10654000000001 /* InAppNotifications */,
 				83FE37B22D2715BF0048D54C /* WalletConnector */,
+				0A11FA0000000000000000B3 /* Payments */,
 				D8D83C822CECF90A0083AA53 /* Swap */,
 				8393897A2CCA8F0000735088 /* InfoSheet */,
 				E1B4C7082E85B00000EARN01 /* Stake */,
@@ -855,7 +874,10 @@
 				833931A72D2D663C0063BB6A /* PriceService */,
 				B6STREAM02F5000000000002 /* StreamService */,
 				83385DDD2D27147900D76803 /* WalletConnectorService */,
+				0A11FA0000000000000000A2 /* PaymentService */,
+				0A11FA0000000000000000E2 /* SigningRequestService */,
 				83FE37B32D273CC80048D54C /* WalletConnector */,
+				0A11FA0000000000000000B2 /* Payments */,
 				83EB5E2F2D2ECF00006A7CFB /* Onboarding */,
 				8352C8D42D393E05000DEDD9 /* ExplorerService */,
 				07A9FE3C2D3565CD00ACDB94 /* NFTService */,
@@ -1180,6 +1202,7 @@
 				B67ED5482DDB5DCD009F74E6 /* NavigationPresenter.swift in Sources */,
 				C366790A2A0B7E5800F1D74D /* Environment.swift in Sources */,
 				837A1E6D2D0B096600733AC1 /* WalletConnectorNavigationStack.swift in Sources */,
+				83AA01012E4A000100000001 /* PaymentNavigationStack.swift in Sources */,
 				D8D5C1D12E6CAC16007628A1 /* Errors.swift in Sources */,
 				D8C4A3762C8CF956006FABE8 /* StakeNavigationView.swift in Sources */,
 				D8C4A3772C8CF957006FABE8 /* EarnNavigationView.swift in Sources */,
@@ -1999,6 +2022,18 @@
 		83FE37B32D273CC80048D54C /* WalletConnector */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WalletConnector;
+		};
+		0A11FA0000000000000000A2 /* PaymentService */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PaymentService;
+		};
+		0A11FA0000000000000000E2 /* SigningRequestService */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SigningRequestService;
+		};
+		0A11FA0000000000000000B2 /* Payments */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Payments;
 		};
 		AA0000022F26000000000002 /* ConnectionsService */ = {
 			isa = XCSwiftPackageProductDependency;

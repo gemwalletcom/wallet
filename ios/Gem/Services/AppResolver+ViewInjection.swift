@@ -14,6 +14,7 @@ extension View {
     private func inject(services: AppResolver.Services) -> some View {
         environment(\.nodeService, services.nodeService)
             .environment(\.serviceStatusService, services.serviceStatusService)
+            .environment(\.payService, services.paymentLinkManager)
             .environment(\.walletService, services.walletService)
             .environment(\.walletSessionService, services.walletSessionService)
             .environment(\.assetsEnabler, services.assetsEnabler)

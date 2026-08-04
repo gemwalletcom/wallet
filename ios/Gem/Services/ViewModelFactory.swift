@@ -17,7 +17,9 @@ import PerpetualService
 import Preferences
 import PriceAlertService
 import PriceService
+import PaymentService
 import Primitives
+import SigningRequestService
 import PrimitivesComponents
 import ScanService
 import Stake
@@ -152,7 +154,7 @@ public struct ViewModelFactory: Sendable {
     public func confirmTransferScene(
         wallet: Wallet,
         data: TransferData,
-        confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate? = nil,
+        confirmTransferDelegate: StringResultAction? = nil,
         simulation: SimulationResult? = nil,
         onComplete: VoidAction,
     ) -> ConfirmTransferSceneViewModel {
@@ -295,7 +297,7 @@ public struct ViewModelFactory: Sendable {
     @MainActor
     public func signMessageScene(
         payload: SignMessagePayload,
-        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
+        confirmTransferDelegate: @escaping StringResultAction,
     ) -> SignMessageSceneViewModel {
         SignMessageSceneViewModel(
             keystore: keystore,

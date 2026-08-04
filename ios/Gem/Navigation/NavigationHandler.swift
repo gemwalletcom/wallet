@@ -57,7 +57,7 @@ final class NavigationHandler: Sendable {
         guard let action = try? URLParser.from(url: url) else { return false }
 
         switch action {
-        case .walletConnect:
+        case .payment, .walletConnect:
             return false
         case .deeplink:
             Task { await handle(action) }
@@ -72,7 +72,7 @@ final class NavigationHandler: Sendable {
 extension NavigationHandler {
     private func handleURLAction(_ action: URLAction) async throws {
         switch action {
-        case .walletConnect: break
+        case .payment, .walletConnect: break
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
         }
     }
