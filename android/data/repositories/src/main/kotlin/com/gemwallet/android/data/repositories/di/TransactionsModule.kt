@@ -9,6 +9,7 @@ import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
+import uniffi.gemstone.GemPaymentService
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import dagger.Module
 import dagger.Provides
@@ -27,12 +28,14 @@ object TransactionsModule {
         sessionRepository: SessionRepository,
         transactionsDao: TransactionsDao,
         gateway: GemGateway,
+        paymentService: GemPaymentService,
     ): TransactionsRepositoryImpl = TransactionsRepositoryImpl(
         sessionRepository = sessionRepository,
         transactionsDao = transactionsDao,
         transactionStatusService = TransactionStatusService(
             gateway = gateway,
         ),
+        paymentService = paymentService,
     )
 
     @Singleton

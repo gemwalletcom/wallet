@@ -17,6 +17,11 @@ import com.gemwallet.android.data.service.store.database.entities.DbTransactionE
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.getTransactionPaymentMetadata
+import com.gemwallet.android.ext.toGem
+import com.wallet.core.primitives.TransactionPaymentMetadata
+import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentStatus
 import com.gemwallet.android.ext.getTransactionSwapMetadata
 import com.gemwallet.android.ext.isCompleted
 import com.gemwallet.android.ext.toIdentifier
@@ -44,6 +49,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -63,6 +69,7 @@ class TransactionsRepositoryImpl(
     private val sessionRepository: SessionRepository,
     private val transactionsDao: TransactionsDao,
     private val transactionStatusService: TransactionStatusService,
+    private val paymentService: GemPaymentService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : TransactionRepository,
     GetChangedTransactions,
@@ -258,9 +265,59 @@ class TransactionsRepositoryImpl(
         return ((sourceTimeout + destinationTimeout) * 3).coerceAtLeast(DateUtils.DAY_IN_MILLIS)
     }
 
+    private suspend fun checkPayment(
+        transaction: DbTransactionExtended,
+        metadata: TransactionPaymentMetadata,
+    ): DbTransactionExtended? {
+        val outcome = try {
+            paymentService.getPaymentStatus(metadata.provider.toGem(), metadata.paymentId)
+        } catch (_: Throwable) {
+            return transaction.copy(transaction = transaction.transaction.copy(updatedAt = System.currentTimeMillis()))
+        }
+        val state = when (outcome.status) {
+            GemPaymentStatus.SUCCEEDED -> TransactionState.Confirmed
+            GemPaymentStatus.FAILED, GemPaymentStatus.EXPIRED, GemPaymentStatus.CANCELLED -> TransactionState.Failed
+            GemPaymentStatus.PROCESSING, GemPaymentStatus.REQUIRES_ACTION -> return transaction.copy(
+                transaction = transaction.transaction.copy(updatedAt = System.currentTimeMillis()),
+            )
+        }
+        val isAwaitingPaymentHash = transaction.transaction.hash == metadata.paymentId
+        if (state == TransactionState.Confirmed && isAwaitingPaymentHash) {
+            val settledHash = outcome.transactionId
+                ?: return transaction.copy(transaction = transaction.transaction.copy(updatedAt = System.currentTimeMillis()))
+            val walletId = transaction.transaction.walletId
+            val settledId = TransactionId(transaction.transaction.assetId.chain, settledHash)
+            if (transactionsDao.getTransactionState(settledId, walletId) != null) {
+                transactionsDao.delete(transaction.transaction.id, walletId)
+                return transactionsDao.getExtendedTransaction(walletId, settledId).firstOrNull()
+            }
+            transactionsDao.updateTransactionId(
+                oldId = transaction.transaction.id,
+                newId = settledId,
+                walletId = walletId,
+                hash = settledHash,
+            )
+            return transaction.copy(
+                transaction = transaction.transaction.copy(
+                    id = settledId,
+                    hash = settledHash,
+                    state = state,
+                    updatedAt = System.currentTimeMillis(),
+                ),
+            )
+        }
+        return transaction.copy(
+            transaction = transaction.transaction.copy(state = state, updatedAt = System.currentTimeMillis()),
+        )
+    }
+
     private suspend fun checkTransaction(transaction: DbTransactionExtended): DbTransactionExtended? {
         val transactionRecord = transaction.transaction
         val chain = transactionRecord.assetId.chain
+        val paymentMetadata = getTransactionPaymentMetadata(transactionRecord.type, transactionRecord.metadata)
+        if (paymentMetadata != null) {
+            return checkPayment(transaction, paymentMetadata)
+        }
         val swapMetadata = getTransactionSwapMetadata(transactionRecord.type, transactionRecord.metadata)
         val swapProvider = swapMetadata?.provider?.toSwapProvider()
         if (transactionRecord.type == TransactionType.Swap && transactionRecord.state == TransactionState.InTransit && swapProvider == null) {
