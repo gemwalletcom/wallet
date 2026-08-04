@@ -35,5 +35,10 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
             data = { PropertyDataText(text = property.data) },
             listPosition = listPosition,
         )
+        is TransactionDetailsValue.Destination.Merchant -> PropertyItem(
+            title = { PropertyTitleText(R.string.transaction_recipient) },
+            data = { PropertyDataText(text = property.data) },
+            listPosition = listPosition,
+        )
     }
 }

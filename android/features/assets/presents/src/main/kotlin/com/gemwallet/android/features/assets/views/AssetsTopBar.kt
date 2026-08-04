@@ -31,6 +31,7 @@ internal fun AssetsTopBar(
     walletSummary: WalletSummaryAggregate?,
     onShowWallets: () -> Unit,
     onSearch: () -> Unit,
+    onScan: (() -> Unit)?,
 ) {
     val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletIcon?.imageUrl)
         ?: walletSummary?.walletIcon?.placeholder
@@ -58,6 +59,20 @@ internal fun AssetsTopBar(
                         imageVector = AppIcons.ExpandMore,
                         tint = MaterialTheme.colorScheme.onSurface,
                         contentDescription = "select_wallet",
+                    )
+                }
+            }
+        },
+        navigationIcon = {
+            if (onScan != null) {
+                IconButton(
+                    onClick = onScan,
+                    Modifier.testTag("assetsScanAction")
+                ) {
+                    Icon(
+                        imageVector = AppIcons.QrCodeScanner,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        contentDescription = "scan_payment",
                     )
                 }
             }

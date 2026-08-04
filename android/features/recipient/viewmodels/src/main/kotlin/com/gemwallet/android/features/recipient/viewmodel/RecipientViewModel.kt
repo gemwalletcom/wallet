@@ -17,6 +17,8 @@ import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.mutableStateIn
+import com.gemwallet.android.ext.request
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
@@ -223,15 +225,15 @@ class RecipientViewModel @Inject constructor(
     }
 
     fun setQrData(type: RecipientType, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
-        val paymentWrapper = uniffi.gemstone.paymentDecodeUrl(data)
+        val request = uniffi.gemstone.paymentDecodeUrl(data).toPrimitives().request ?: return
         val amount = try {
-            BigInteger(paymentWrapper.amount ?: throw IllegalArgumentException())
+            BigInteger(request.amount ?: throw IllegalArgumentException())
         } catch (_: Throwable) {
             null
         }
         val assetInfo = type.assetInfo
-        val address = assetInfo.asset.chain.checksumAddress(paymentWrapper.address)
-        val memo = paymentWrapper.memo
+        val address = assetInfo.asset.chain.checksumAddress(request.address)
+        val memo = request.memo
 
         val owner = assetInfo.owner
         if (
@@ -253,7 +255,7 @@ class RecipientViewModel @Inject constructor(
             }
             QrScanField.Memo -> {
                 _address.value = address.ifEmpty { _address.value }
-                _memo.value = paymentWrapper.memo ?: data
+                _memo.value = request.memo ?: data
             }
         }
     }

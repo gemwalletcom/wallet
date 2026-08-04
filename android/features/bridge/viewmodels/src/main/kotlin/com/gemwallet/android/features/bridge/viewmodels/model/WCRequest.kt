@@ -4,6 +4,8 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.SigningRequestApp
+import com.gemwallet.android.ext.toConfirmParams
 import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
@@ -23,8 +25,8 @@ import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
 import uniffi.gemstone.WalletConnectResponseType
-import uniffi.gemstone.WalletConnectTransaction
-import uniffi.gemstone.WalletConnectTransactionType
+import uniffi.gemstone.SignableTransaction
+import uniffi.gemstone.SignableTransactionType
 import java.math.BigInteger
 
 sealed class WCRequest(
@@ -103,7 +105,7 @@ sealed class WCRequest(
         appMetadata: WalletConnectionSessionAppMetadata,
         val isSendable: Boolean,
         val inputType: ConfirmParams.TransferParams.InputType,
-        val transactionType: WalletConnectTransactionType,
+        val transactionType: SignableTransactionType,
         val data: String,
         val simulation: SimulationResult,
     ) : WCRequest(sessionRequest, account, appMetadata) {
@@ -117,7 +119,7 @@ sealed class WCRequest(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
             appMetadata: WalletConnectionSessionAppMetadata,
-            transactionType: WalletConnectTransactionType,
+            transactionType: SignableTransactionType,
             data: String,
             simulation: SimulationResult,
         ) : Transaction(
@@ -154,7 +156,7 @@ sealed class WCRequest(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
             appMetadata: WalletConnectionSessionAppMetadata,
-            transactionType: WalletConnectTransactionType,
+            transactionType: SignableTransactionType,
             data: String,
             simulation: SimulationResult,
         ) : Signing(
@@ -198,99 +200,18 @@ internal fun WalletConnectResponseType.payload(): String = when (this) {
     is WalletConnectResponseType.String -> value
 }
 
-private fun WalletConnectTransaction.map(
+private fun SignableTransaction.map(
     request: WCRequest.Transaction,
     isSendable: Boolean,
-): Generic {
-    val asset = request.chain.asset()
-    return when (this) {
-        is WalletConnectTransaction.Ethereum -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data.data,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = data.gasLimit,
-            inputType = request.inputType,
-            destination = DestinationAddress(data.to),
-            amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
-            isSendable = isSendable,
-            decodedTransactionType = transactionType.toPrimitives(),
-        )
-        is WalletConnectTransaction.Solana -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data.transaction,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
-        is WalletConnectTransaction.Sui -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data.transaction,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
-        is WalletConnectTransaction.Ton -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
-        is WalletConnectTransaction.Tron -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            memo = data,
-            from = request.account,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
-    }
-}
+): Generic = toConfirmParams(
+    requestId = request.requestId.toString(),
+    account = request.account,
+    app = SigningRequestApp(
+        name = request.name,
+        description = request.description,
+        url = request.url,
+        icon = request.icon,
+    ),
+    isSendable = isSendable,
+    inputType = request.inputType,
+)

@@ -22,10 +22,15 @@ import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPaymentConfig
 import uniffi.gemstone.GemPreferences
 import uniffi.gemstone.GemServiceStatus
+import uniffi.gemstone.GemWalletConnectPayAuth
 import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.WalletConnectSimulationClient
+import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.WalletConnectSimulationClientInterface
 import javax.inject.Singleton
 
@@ -104,6 +109,21 @@ object GatewayModule {
         )
         return ServiceStatusService(GemServiceStatus(provider))
     }
+
+    @Provides
+    @Singleton
+    fun provideGemPaymentService(
+        alienProvider: AlienProvider,
+        getDeviceId: GetDeviceId,
+    ): GemPaymentService = GemPaymentService(
+        provider = alienProvider,
+        config = GemPaymentConfig(
+            walletConnectPay = GemWalletConnectPayAuth(
+                appId = Constants.WALLET_CONNECT_PROJECT_ID,
+                clientId = runBlocking { getDeviceId.getDeviceId() },
+            ),
+        ),
+    )
 
     @Provides
     @Singleton

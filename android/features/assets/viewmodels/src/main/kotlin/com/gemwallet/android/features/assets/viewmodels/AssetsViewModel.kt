@@ -18,6 +18,7 @@ import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
 import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.gemwallet.android.ext.isNftSupported
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -44,7 +45,10 @@ class AssetsViewModel @Inject constructor(
     getHideBalancesState: GetHideBalancesState,
     getShowWelcomeBanner: GetShowWelcomeBanner,
     getSession: GetSession,
+    userConfig: UserConfig,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
+
+    val showScanner: Boolean = userConfig.developEnabled()
 
     val currentWalletId = getSession()
         .map { it?.wallet?.id }

@@ -8,6 +8,8 @@ import com.gemwallet.android.cases.contacts.AddContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact
 import com.gemwallet.android.cases.name.ResolveName
+import com.gemwallet.android.ext.request
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.recipient.viewmodel.NameRecordState
 import com.gemwallet.android.features.recipient.viewmodel.NameResolveController
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
@@ -124,9 +126,9 @@ class ManageContactViewModel @Inject constructor(
 
     private fun applyExternalAddress(data: String) {
         resolver.reset()
-        val decoded = runCatching { uniffi.gemstone.paymentDecodeUrl(data) }.getOrNull()
-        val address = (decoded?.address?.ifBlank { null } ?: data).trim()
-        val memo = decoded?.memo
+        val request = runCatching { uniffi.gemstone.paymentDecodeUrl(data).toPrimitives() }.getOrNull()?.request
+        val address = (request?.address?.ifBlank { null } ?: data).trim()
+        val memo = request?.memo
         state.update {
             val input = it.addressInput ?: return@update it
             it.copy(

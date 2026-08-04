@@ -22,6 +22,9 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.message.SignMessageFullMessageSheet
+import com.gemwallet.android.ui.components.message.SignMessagePayloadDetailsSheet
+import com.gemwallet.android.ui.components.message.signMessageText
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
@@ -163,14 +166,14 @@ private fun AuthRequestContent(
                     onDetailsClick = { sheetType = AuthRequestSheetType.Details },
                 )
             } else {
-                walletConnectTextMessage(state.approval.message)
+                signMessageText(state.approval.message)
             }
         }
     }
 
     when (sheetType) {
         AuthRequestSheetType.Details -> {
-            WalletConnectPayloadDetailsSheet(
+            SignMessagePayloadDetailsSheet(
                 primaryFields = state.approval.primaryPayloadFields,
                 secondaryFields = state.approval.secondaryPayloadFields,
                 onViewFullMessage = { sheetType = AuthRequestSheetType.FullMessage },
@@ -178,7 +181,7 @@ private fun AuthRequestContent(
             )
         }
         AuthRequestSheetType.FullMessage -> {
-            WalletConnectFullMessageSheet(
+            SignMessageFullMessageSheet(
                 message = state.approval.message,
                 onDismissRequest = { sheetType = null },
             )
