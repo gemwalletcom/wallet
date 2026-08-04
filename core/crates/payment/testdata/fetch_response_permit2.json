@@ -1,0 +1,30 @@
+{
+  "actions": [
+    {
+      "type": "walletRpc",
+      "data": {
+        "chain_id": "eip155:137",
+        "method": "eth_sendTransaction",
+        "params": [
+          {
+            "from": "0x1085c5f70F7F7591D97da281A64688385455c2bD",
+            "to": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+            "value": "0x0",
+            "data": "0x095ea7b3000000000000000000000000000000000022d473030f116ddee9f6b43ac78ba3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        ]
+      }
+    },
+    {
+      "type": "walletRpc",
+      "data": {
+        "chain_id": "eip155:137",
+        "method": "eth_signTypedData_v4",
+        "params": [
+          "0x1085c5f70F7F7591D97da281A64688385455c2bD",
+          "{\"domain\":{\"name\":\"Permit2\",\"chainId\":\"0x89\",\"verifyingContract\":\"0x000000000022d473030f116ddee9f6b43ac78ba3\"},\"types\":{\"PermitTransferFrom\":[{\"name\":\"permitted\",\"type\":\"TokenPermissions\"},{\"name\":\"spender\",\"type\":\"address\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint256\"}],\"TokenPermissions\":[{\"name\":\"token\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"}]},\"primaryType\":\"PermitTransferFrom\",\"message\":{\"permitted\":{\"token\":\"0xc2132d05d31c914a87c6611c10748aeb04b58e8f\",\"amount\":\"1000000\"},\"spender\":\"0x0000000000a84d1a9b0063a910315c7ffa9cd248\",\"nonce\":\"0x08fda2bbc9b3fcd08a09d38f61b4c56a80a3a5a7e0a050e3a5f9c012b3c60a11\",\"deadline\":\"1785175272\"}}"
+        ]
+      }
+    }
+  ]
+}

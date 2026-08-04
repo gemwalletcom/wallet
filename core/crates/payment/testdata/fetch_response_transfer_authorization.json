@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "type": "walletRpc",
+      "data": {
+        "chain_id": "eip155:1",
+        "method": "eth_signTypedData_v4",
+        "params": [
+          "0x1085c5f70F7F7591D97da281A64688385455c2bD",
+          "{\"domain\":{\"name\":\"USD Coin\",\"version\":\"2\",\"chainId\":\"0x1\",\"verifyingContract\":\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\"},\"types\":{\"EIP712Domain\":[{\"type\":\"string\",\"name\":\"name\"},{\"type\":\"string\",\"name\":\"version\"},{\"type\":\"uint256\",\"name\":\"chainId\"},{\"type\":\"address\",\"name\":\"verifyingContract\"}],\"ReceiveWithAuthorization\":[{\"type\":\"address\",\"name\":\"from\"},{\"type\":\"address\",\"name\":\"to\"},{\"type\":\"uint256\",\"name\":\"value\"},{\"type\":\"uint256\",\"name\":\"validAfter\"},{\"type\":\"uint256\",\"name\":\"validBefore\"},{\"type\":\"bytes32\",\"name\":\"nonce\"}]},\"primaryType\":\"ReceiveWithAuthorization\",\"message\":{\"from\":\"0x1085c5f70F7F7591D97da281A64688385455c2bD\",\"nonce\":\"0x1111111111111111111111111111111111111111111111111111111111111111\",\"to\":\"0x2222222222222222222222222222222222222222\",\"validAfter\":\"0x0\",\"validBefore\":\"0x699cb700\",\"value\":\"0x2faf080\"}}"
+        ]
+      }
+    }
+  ]
+}

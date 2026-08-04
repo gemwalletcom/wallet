@@ -1,0 +1,16 @@
+{
+  "status": "succeeded",
+  "isFinal": true,
+  "info": {
+    "txId": "test:pay_b9a2ecc101KYJAYCGQZ9E0K6NY7SR7YVV4",
+    "optionAmount": {
+      "unit": "caip19/eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "value": "50000000",
+      "display": {
+        "assetSymbol": "USDC",
+        "assetName": "USD Coin",
+        "decimals": 6
+      }
+    }
+  }
+}

@@ -31,6 +31,7 @@ members = [
     "crates/lists",
     "crates/settings",
     "crates/settings_chain",
+    "crates/payment",
     "crates/pricer",
     "crates/chain_primitives",
     "crates/chain_traits",
