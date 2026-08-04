@@ -27,7 +27,7 @@ public extension SelectableListAdoptable {
     var shouldResetOnToggle: Bool {
         switch selectionType {
         case .multiSelection: false
-        case .navigationLink, .checkmark: true
+        case .checkmark, .navigationLink: true
         }
     }
 
@@ -60,7 +60,7 @@ public extension SelectableListAdoptable {
 
         return switch selectionType {
         case .multiSelection: nil
-        case .navigationLink, .checkmark: Array(selectedItems)
+        case .checkmark, .navigationLink: Array(selectedItems)
         }
     }
 }

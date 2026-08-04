@@ -38,8 +38,8 @@ public extension GemTransactionInputType {
             try TransferDataType.stake(asset.map(), type.map())
         case let .tokenApprove(asset, approvalData):
             try TransferDataType.tokenApprove(asset.map(), approvalData.map())
-        case let .generic(asset, metadata, extra):
-            try TransferDataType.generic(asset: asset.map(), metadata: metadata.map(), extra: extra.map())
+        case let .generic(asset, appMetadata, extra):
+            try TransferDataType.generic(asset: asset.map(), appMetadata: appMetadata.map(), extra: extra.map())
         case let .account(asset, accountType):
             try TransferDataType.account(asset.map(), accountType.map())
         case let .perpetual(asset: asset, perpetualType: perpetualType):
@@ -67,8 +67,10 @@ public extension TransferDataType {
             return .stake(asset: asset.map(), stakeType: stakeType.map())
         case let .tokenApprove(asset, approvalData):
             return .tokenApprove(asset: asset.map(), approvalData: approvalData.map())
-        case let .generic(asset, metadata, extra):
-            return .generic(asset: asset.map(), metadata: metadata.map(), extra: extra.map())
+        case let .generic(asset, appMetadata, extra):
+            return .generic(asset: asset.map(), appMetadata: appMetadata.map(), extra: extra.map())
+        case let .payment(asset, payment, extra):
+            return .generic(asset: asset.map(), appMetadata: TransactionAppMetadata(merchant: payment.merchant).map(), extra: extra.map())
         case let .withdrawal(asset):
             if asset.chain == .hyperCore {
                 return .withdrawal(asset: asset.map())

@@ -7,3 +7,9 @@ extension Account: Identifiable {
         "\(chain)\(address)"
     }
 }
+
+public extension Account {
+    var chainAddress: ChainAddress {
+        ChainAddress(chain: chain, address: address)
+    }
+}

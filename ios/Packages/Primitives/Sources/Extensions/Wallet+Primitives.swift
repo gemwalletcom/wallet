@@ -17,6 +17,10 @@ public extension Wallet {
         type == .multicoin
     }
 
+    var chainAddresses: [ChainAddress] {
+        accounts.map(\.chainAddress)
+    }
+
     var addressChains: [AddressChains] {
         Dictionary(grouping: accounts, by: \.address)
             .map { AddressChains(address: $0.key, chains: Set($0.value.map(\.chain)).sorted()) }

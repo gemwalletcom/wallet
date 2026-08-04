@@ -5,6 +5,7 @@ import Primitives
 
 public extension Transaction {
     static func mock(
+        hash: String = "1",
         type: TransactionType = .transfer,
         state: TransactionState = .confirmed,
         direction: TransactionDirection = .incoming,
@@ -16,7 +17,7 @@ public extension Transaction {
         metadata: AnyCodableValue? = nil,
     ) -> Transaction {
         Transaction(
-            id: TransactionId(chain: .ethereum, hash: "1"),
+            id: TransactionId(chain: .ethereum, hash: hash),
             assetId: assetId,
             from: from,
             to: to,

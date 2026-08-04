@@ -51,6 +51,17 @@ public extension Transaction {
     var swapProvider: String? {
         metadata?.decode(TransactionSwapMetadata.self)?.provider
     }
+
+    var paymentMetadata: TransactionPaymentMetadata? {
+        metadata?.decode(TransactionPaymentMetadata.self)
+    }
+
+    var isAwaitingPaymentHash: Bool {
+        guard let paymentMetadata else {
+            return false
+        }
+        return id.hash == paymentMetadata.paymentId
+    }
 }
 
 extension Transaction: Identifiable {}

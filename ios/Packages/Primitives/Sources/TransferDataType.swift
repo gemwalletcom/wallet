@@ -13,14 +13,23 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
     case account(Asset, AccountDataType)
     case perpetual(Asset, PerpetualType)
     case earn(Asset, EarnType, ContractCallData)
-    case generic(asset: Asset, metadata: WalletConnectionSessionAppMetadata, extra: TransferDataExtra)
+    case generic(asset: Asset, appMetadata: TransactionAppMetadata, extra: TransferDataExtra)
+    case payment(asset: Asset, payment: PaymentData, extra: TransferDataExtra)
+
+    public var payment: PaymentData? {
+        switch self {
+        case let .payment(_, payment, _): payment
+        case .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove,
+             .stake, .account, .perpetual, .earn, .generic: .none
+        }
+    }
 
     public var transactionType: TransactionType {
         switch self {
         case .transfer: .transfer
         case .deposit: .transfer
         case .withdrawal: .transfer
-        case let .generic(_, _, extra): extra.transactionType
+        case let .generic(_, _, extra), let .payment(_, _, extra): extra.transactionType
         case .transferNft: .transferNFT
         case .tokenApprove: .tokenApproval
         case .swap: .swap
@@ -60,7 +69,8 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
              let .perpetual(asset, _),
              let .earn(asset, _, _),
              let .tokenApprove(asset, _),
-             let .generic(asset, _, _): asset.chain
+             let .generic(asset, _, _),
+             let .payment(asset, _, _): asset.chain
         case let .transferNft(asset): asset.chain
         }
     }
@@ -91,6 +101,8 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
             }
         case let .generic(_, _, extra):
             return .encode(TransactionWalletConnectMetadata(outputAction: extra.outputAction))
+        case let .payment(_, payment, _):
+            return .encode(TransactionPaymentMetadata(paymentId: payment.quote.paymentId, merchant: payment.merchant, provider: payment.provider))
         case .transfer,
              .deposit,
              .withdrawal,
@@ -109,6 +121,7 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
              let .tokenApprove(asset, _),
              let .stake(asset, _),
              let .generic(asset, _, _),
+             let .payment(asset, _, _),
              let .account(asset, _),
              let .perpetual(asset, _),
              let .earn(asset, _, _): [asset.id]
@@ -119,14 +132,14 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
 
     public var outputType: TransferDataOutputType {
         switch self {
-        case let .generic(_, _, extra): extra.outputType
+        case let .generic(_, _, extra), let .payment(_, _, extra): extra.outputType
         default: .encodedTransaction
         }
     }
 
     public var outputAction: TransferDataOutputAction {
         switch self {
-        case let .generic(_, _, extra): extra.outputAction
+        case let .generic(_, _, extra), let .payment(_, _, extra): extra.outputAction
         default: .send
         }
     }
@@ -148,7 +161,7 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
     public var shouldIgnoreValueCheck: Bool {
         switch self {
         case .transferNft, .stake, .account, .tokenApprove, .perpetual, .earn: true
-        case .transfer, .deposit, .withdrawal, .swap, .generic: false
+        case .transfer, .deposit, .withdrawal, .swap, .generic, .payment: false
         }
     }
 
