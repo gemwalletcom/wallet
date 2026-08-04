@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import android.util.Log
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.ext.toGemNetworkError
 import com.gemwallet.android.model.GemPlatformErrors
@@ -12,8 +13,10 @@ internal fun Throwable.toPreloadConfirmError(chain: Chain): ConfirmError {
     }
     return toGemNetworkError()
         ?.let { ConfirmError.NetworkError(it) }
-        ?: ConfirmError.PreloadError
+        ?: ConfirmError.PreloadError.also { Log.e(TAG, "Preload failed on $chain", this) }
 }
+
+private const val TAG = "ConfirmPreload"
 
 internal fun Throwable.toBroadcastConfirmError(): ConfirmError = when (this) {
     is ConfirmError -> this
