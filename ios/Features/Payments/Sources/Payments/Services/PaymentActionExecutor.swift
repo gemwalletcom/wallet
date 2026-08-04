@@ -2,7 +2,6 @@
 
 import BigInt
 import Foundation
-import GemstonePrimitives
 import PaymentService
 import Primitives
 import SigningRequestService

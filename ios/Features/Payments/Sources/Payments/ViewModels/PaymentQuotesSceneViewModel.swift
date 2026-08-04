@@ -8,7 +8,6 @@ import Style
 import Localization
 import PaymentService
 import Primitives
-import SigningRequestService
 import PrimitivesComponents
 
 @Observable

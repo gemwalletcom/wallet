@@ -5,7 +5,6 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import QRScanner
-import Store
 import Style
 import SwiftUI
 

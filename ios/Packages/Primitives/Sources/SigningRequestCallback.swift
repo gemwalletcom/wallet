@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 
 public protocol SigningRequestRejectable: Sendable {
     var id: String { get }

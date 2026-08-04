@@ -3,7 +3,6 @@
 import Foundation
 import PaymentService
 import Primitives
-import SigningRequestService
 import TransactionStateService
 
 public final class PaymentManager: Sendable {

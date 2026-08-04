@@ -2,7 +2,6 @@
 
 import Foundation
 import Primitives
-import SigningRequestService
 import WalletConnectorService
 
 public enum WalletConnectorSheetType: Sendable, Identifiable {

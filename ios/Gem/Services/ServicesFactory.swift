@@ -240,7 +240,7 @@ struct ServicesFactory {
 
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)
-        let signingRequestPresenter = SigningRequestPresenter()
+        let signingRequestPresenter = SheetPresenter<SigningRequestSheetType>()
         let connectionsService = Self.makeConnectionsService(
             connectionsStore: storeManager.connectionsStore,
             walletSessionService: walletSessionService,
@@ -307,7 +307,6 @@ struct ServicesFactory {
         let activityService = ActivityService(store: storeManager.recentActivityStore)
         let authService = AuthService(apiService: apiService, keystore: storages.keystore)
         let rewardsService = RewardsService(apiService: apiService, authService: authService)
-        let eventPresenterService = EventPresenterService()
         let walletSearchService = WalletSearchService(
             assetsService: assetsService,
             searchStore: storeManager.searchStore,
@@ -339,8 +338,9 @@ struct ServicesFactory {
         )
 
         let paymentAssetsProvider = PaymentAssetsProvider(assetStore: storeManager.assetStore)
-        let paymentSheetPresenter = PaymentSheetPresenter()
+        let paymentSheetPresenter = SheetPresenter<PaymentSheetType>()
 
+        let eventPresenterService = EventPresenterService()
         let paymentLinkManager = PaymentLinkManager(
             paymentManager: PaymentManager(
                 service: paymentService,

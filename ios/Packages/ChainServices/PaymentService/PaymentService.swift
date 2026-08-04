@@ -4,7 +4,18 @@ import Foundation
 import Gemstone
 import NativeProviderService
 import Primitives
-import SigningRequestService
+
+public protocol PaymentStatusServiceable: Sendable {
+    func hasStatus(provider: PaymentProviderName) -> Bool
+    func getPaymentStatus(provider: PaymentProviderName, paymentId: String) async throws -> PaymentOutcome
+}
+
+public protocol PaymentServiceable: PaymentStatusServiceable {
+    func getPaymentOptions(link: PaymentLink, wallet: Wallet) async throws -> PaymentOptions
+    func getPreparedPayment(provider: PaymentProviderName, quotes: PaymentQuotes, quote: PaymentQuote, wallet: Wallet) async throws -> PreparedPayment
+    func confirmPayment(provider: PaymentProviderName, quote: PaymentQuote, actionResults: [String]) async throws -> PaymentOutcome
+    func cancelPayment(provider: PaymentProviderName, paymentId: String) async throws
+}
 
 public final class PaymentService: PaymentServiceable {
     private let service: Gemstone.GemPaymentService

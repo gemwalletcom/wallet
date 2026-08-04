@@ -3,20 +3,16 @@
 import Foundation
 import Primitives
 
-public final class SigningRequestPresenter: SigningRequestInteractable, Sendable {
-    public let sheets = SheetPresenter<SigningRequestSheetType>()
-
-    public init() {}
-
+extension SheetPresenter: SigningRequestInteractable where Sheet == SigningRequestSheetType {
     public func signMessage(payload: SignMessagePayload) async throws -> String {
-        try await sheets.present(payload: payload, sheet: { .signMessage($0) })
+        try await present(payload: payload, sheet: { .signMessage($0) })
     }
 
     public func signTransaction(transferData: SigningTransferData) async throws -> String {
-        try await sheets.present(payload: transferData, sheet: { .transferData($0) })
+        try await present(payload: transferData, sheet: { .transferData($0) })
     }
 
     public func sendTransaction(transferData: SigningTransferData) async throws -> String {
-        try await sheets.present(payload: transferData, sheet: { .transferData($0) })
+        try await present(payload: transferData, sheet: { .transferData($0) })
     }
 }

@@ -3,9 +3,7 @@
 import Components
 import Foundation
 import Localization
-import PaymentService
 import Primitives
-import SigningRequestService
 import PrimitivesComponents
 import Style
 import SwiftUI

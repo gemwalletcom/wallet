@@ -38,6 +38,7 @@ import TransactionStateService
 import WalletConnector
 import WalletService
 import WalletSessionService
+import Primitives
 
 extension AppResolver {
     struct Services {
@@ -80,8 +81,8 @@ extension AppResolver {
         let onstartWalletService: OnstartWalletService
         let walletConnectorManager: WalletConnectorManager
         let paymentLinkManager: PaymentLinkManager
-        let paymentSheetPresenter: PaymentSheetPresenter
-        let signingRequestPresenter: SigningRequestPresenter
+        let paymentSheetPresenter: SheetPresenter<PaymentSheetType>
+        let signingRequestPresenter: SheetPresenter<SigningRequestSheetType>
         let perpetualService: PerpetualService
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: NameService
@@ -138,8 +139,8 @@ extension AppResolver {
             onstartWalletService: OnstartWalletService,
             walletConnectorManager: WalletConnectorManager,
             paymentLinkManager: PaymentLinkManager,
-            paymentSheetPresenter: PaymentSheetPresenter,
-            signingRequestPresenter: SigningRequestPresenter,
+            paymentSheetPresenter: SheetPresenter<PaymentSheetType>,
+            signingRequestPresenter: SheetPresenter<SigningRequestSheetType>,
             perpetualService: PerpetualService,
             hyperliquidObserverService: any PerpetualObservable,
             nameService: NameService,

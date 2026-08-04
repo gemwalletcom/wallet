@@ -2,9 +2,7 @@
 
 import Foundation
 import enum Gemstone.PaymentAction
-import GemstonePrimitives
 import Primitives
-import SigningRequestService
 
 typealias GemPaymentAction = Gemstone.PaymentAction
 

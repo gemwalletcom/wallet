@@ -2,7 +2,6 @@
 
 import Primitives
 import SigningRequestService
-import SwiftUI
 import WalletConnectorService
 
 public final class WalletConnectorManager {

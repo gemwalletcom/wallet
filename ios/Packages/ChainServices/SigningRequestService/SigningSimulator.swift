@@ -7,8 +7,8 @@ import struct Gemstone.SignMessage
 import class Gemstone.WalletConnectSimulationClient
 import enum Gemstone.SignableTransactionType
 import NativeProviderService
-import GemstonePrimitives
 import Primitives
+import GemstonePrimitives
 
 public protocol SigningSimulatable: Sendable {
     func simulateSignMessage(chain: Gemstone.Chain, signType: SignDigestType, data: String, sessionDomain: String) async throws -> SimulationResult

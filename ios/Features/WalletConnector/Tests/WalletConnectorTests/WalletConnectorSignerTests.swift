@@ -218,7 +218,7 @@ extension WalletConnectorSigner {
             connectionsStore: connectionsStore,
             walletSessionService: walletSessionService,
             walletConnectorInteractor: WalletConnectorManager(presenter: WalletConnectorPresenter()),
-            signingInteractor: SigningRequestPresenter(),
+            signingInteractor: SheetPresenter<SigningRequestSheetType>(),
         )
     }
 

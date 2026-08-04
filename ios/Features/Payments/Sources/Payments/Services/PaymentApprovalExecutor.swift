@@ -2,11 +2,9 @@
 
 import AssetsService
 import BigInt
-import Blockchain
 import ChainService
 import BalanceService
 import Foundation
-import GemstonePrimitives
 import Keystore
 import PaymentService
 import Primitives
@@ -14,6 +12,7 @@ import ScanService
 import Signer
 import TransactionStateService
 import TransferService
+import Blockchain
 
 public struct PaymentApprovalExecutor: PaymentApprovalExecutable {
     private static let confirmationTimeout: Duration = .seconds(120)

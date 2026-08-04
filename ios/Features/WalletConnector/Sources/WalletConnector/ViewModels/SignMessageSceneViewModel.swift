@@ -7,7 +7,6 @@ import Foundation
 import Formatters
 import BigInt
 import class Gemstone.MessageSigner
-import GemstonePrimitives
 import Keystore
 import Localization
 import Preferences

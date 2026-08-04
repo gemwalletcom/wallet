@@ -2,18 +2,19 @@
 
 import Foundation
 import PaymentService
-import SigningRequestService
+import Primitives
 
-public final class PaymentSheetPresenter: PaymentSheetPresentable, Sendable {
-    public let sheets = SheetPresenter<PaymentSheetType>()
+public protocol PaymentSheetPresentable: Sendable {
+    func collectPaymentData(request: PaymentDataCollectionRequest) async throws -> String
+    func selectPaymentQuote(request: PaymentQuotesRequest) async throws -> String
+}
 
-    public init() {}
-
+extension SheetPresenter: PaymentSheetPresentable where Sheet == PaymentSheetType {
     public func selectPaymentQuote(request: PaymentQuotesRequest) async throws -> String {
-        try await sheets.present(payload: request, sheet: { .quotes($0) })
+        try await present(payload: request, sheet: { .quotes($0) })
     }
 
     public func collectPaymentData(request: PaymentDataCollectionRequest) async throws -> String {
-        try await sheets.present(payload: request, sheet: { .dataCollection($0) })
+        try await present(payload: request, sheet: { .dataCollection($0) })
     }
 }

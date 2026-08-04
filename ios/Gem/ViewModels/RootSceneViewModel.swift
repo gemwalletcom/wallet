@@ -43,8 +43,8 @@ final class RootSceneViewModel {
     let nameService: NameService
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
-    let paymentSheetPresenter: PaymentSheetPresenter
-    let signingRequestPresenter: SigningRequestPresenter
+    let paymentSheetPresenter: SheetPresenter<PaymentSheetType>
+    let signingRequestPresenter: SheetPresenter<SigningRequestSheetType>
     let lockManager: any LockWindowManageable
     var currentWallet: Wallet? {
         walletService.currentWallet
@@ -68,13 +68,13 @@ final class RootSceneViewModel {
     }
 
     var isPresentingSigningRequestSheet: SigningRequestSheetType? {
-        get { signingRequestPresenter.sheets.isPresentingSheet }
-        set { signingRequestPresenter.sheets.isPresentingSheet = newValue }
+        get { signingRequestPresenter.isPresentingSheet }
+        set { signingRequestPresenter.isPresentingSheet = newValue }
     }
 
     var isPresentingPaymentSheet: PaymentSheetType? {
-        get { paymentSheetPresenter.sheets.isPresentingSheet }
-        set { paymentSheetPresenter.sheets.isPresentingSheet = newValue }
+        get { paymentSheetPresenter.isPresentingSheet }
+        set { paymentSheetPresenter.isPresentingSheet = newValue }
     }
 
     var isPresentingConnectorBar: Bool {
@@ -92,8 +92,8 @@ final class RootSceneViewModel {
     init(
         observablePreferences: ObservablePreferences,
         walletConnectorPresenter: WalletConnectorPresenter,
-        paymentSheetPresenter: PaymentSheetPresenter,
-        signingRequestPresenter: SigningRequestPresenter,
+        paymentSheetPresenter: SheetPresenter<PaymentSheetType>,
+        signingRequestPresenter: SheetPresenter<SigningRequestSheetType>,
         onstartService: OnstartService,
         onstartWalletService: OnstartWalletService,
         transactionStateScheduler: TransactionStateScheduler,

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SigningRequestService
 import Style
 import SwiftUI
+import Primitives
 
 public struct ConnectionProposalNavigationStack: View {
     private let type: WalletConnectorSheetType

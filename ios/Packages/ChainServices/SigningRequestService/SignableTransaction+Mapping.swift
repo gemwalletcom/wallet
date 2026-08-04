@@ -4,10 +4,7 @@ import Foundation
 import Gemstone
 import Primitives
 
-typealias GemSignableTransaction = Gemstone.SignableTransaction
-typealias GemEthereumTransactionData = Gemstone.EthereumTransactionData
-
-public extension GemSignableTransaction {
+public extension Gemstone.SignableTransaction {
     func map() -> SignableTransaction {
         switch self {
         case let .ethereum(data, transactionType): .ethereum(data.map(), transactionType.map())
@@ -19,7 +16,7 @@ public extension GemSignableTransaction {
     }
 }
 
-extension GemEthereumTransactionData {
+extension Gemstone.EthereumTransactionData {
     func map() -> Primitives.EthereumTransactionData {
         Primitives.EthereumTransactionData(
             chainId: chainId,

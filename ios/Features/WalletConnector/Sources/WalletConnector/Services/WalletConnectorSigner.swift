@@ -4,7 +4,6 @@ import Foundation
 import class Gemstone.Config
 import class Gemstone.MessageSigner
 import struct Gemstone.SignMessage
-import GemstonePrimitives
 import Preferences
 import Primitives
 import SigningRequestService

@@ -8,7 +8,6 @@ import LockManager
 import NodeService
 import Preferences
 import Primitives
-import SigningRequestService
 import Store
 import Style
 import SwiftUI

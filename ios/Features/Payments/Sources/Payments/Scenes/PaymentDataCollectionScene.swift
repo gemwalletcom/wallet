@@ -5,7 +5,6 @@ import Foundation
 import Localization
 import PaymentService
 import Primitives
-import SigningRequestService
 import SwiftUI
 
 public struct PaymentDataCollectionScene: View {
