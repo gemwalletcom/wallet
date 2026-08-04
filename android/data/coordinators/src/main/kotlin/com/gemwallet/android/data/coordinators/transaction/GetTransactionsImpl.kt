@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
+import com.gemwallet.android.ext.getPaymentMetadata
 
 class GetTransactionsImpl(
     private val transactionsRepository: TransactionRepository,
@@ -66,7 +67,7 @@ class TransactionDataAggregateImpl(
 
     override val asset: Asset = data.asset
 
-    override val addressName: String? = when (data.transaction.type) {
+    override val addressName: String? = data.transaction.getPaymentMetadata()?.merchant?.name ?: when (data.transaction.type) {
         TransactionType.StakeDelegate,
         TransactionType.StakeUndelegate,
         TransactionType.StakeRedelegate,

@@ -23,7 +23,7 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.swap.ApprovalData
+import com.wallet.core.primitives.ApprovalData
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemAccountDataType
 import uniffi.gemstone.GemApprovalData
@@ -33,7 +33,7 @@ import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
-import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
+import uniffi.gemstone.GemTransactionAppMetadata
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransferDataOutputAction
 import uniffi.gemstone.TransferDataOutputType
@@ -195,7 +195,7 @@ sealed class ConfirmParams() {
                 val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }
                 return Generic(
                 asset = asset.toGem(),
-                metadata = GemWalletConnectionSessionAppMetadata(
+                appMetadata = GemTransactionAppMetadata(
                     name = name,
                     description = description,
                     url = url,

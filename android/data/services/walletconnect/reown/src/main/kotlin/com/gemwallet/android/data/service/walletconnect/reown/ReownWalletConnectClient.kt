@@ -3,6 +3,7 @@ package com.gemwallet.android.data.service.walletconnect.reown
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import com.gemwallet.android.Constants
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthObject
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
@@ -50,7 +51,7 @@ class ReownWalletConnectClient @Inject constructor(
     override fun initialize(onSuccess: () -> Unit, onError: (String) -> Unit) {
         CoreClient.initialize(
             application = context as Application,
-            projectId = PROJECT_ID,
+            projectId = Constants.WALLET_CONNECT_PROJECT_ID,
             metaData = Core.Model.AppMetaData(
                 name = "Gem Wallet",
                 description = "Gem Web3 Wallet",
@@ -286,7 +287,6 @@ class ReownWalletConnectClient @Inject constructor(
 
     private companion object {
         const val TAG = "WalletConnect"
-        const val PROJECT_ID = "3bc07cd7179d11ea65335fb9377702b6"
     }
 }
 

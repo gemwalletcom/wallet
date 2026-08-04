@@ -2,15 +2,7 @@ package com.gemwallet.android.ext
 
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
-import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
 import uniffi.gemstone.walletConnectAppShortName
-
-fun WalletConnectionSessionAppMetadata.toGem() = GemWalletConnectionSessionAppMetadata(
-    name = name,
-    description = description,
-    url = url,
-    icon = icon,
-)
 
 fun Account.toGem() = uniffi.gemstone.Account(
     chain = chain.string,
@@ -20,7 +12,7 @@ fun Account.toGem() = uniffi.gemstone.Account(
 )
 
 val WalletConnectionSessionAppMetadata.shortName: String
-    get() = walletConnectAppShortName(toGem())
+    get() = walletConnectAppShortName(name)
 
 fun List<String>?.walletConnectIcon(): String {
     return this?.firstOrNull { it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }
