@@ -284,7 +284,7 @@ class ReownWalletConnectClient @Inject constructor(
 
     private data class ReownAuthObject(val value: Wallet.Model.Cacao) : WalletConnectAuthObject
 
-    private companion object {
+    companion object {
         const val TAG = "WalletConnect"
         const val PROJECT_ID = "3bc07cd7179d11ea65335fb9377702b6"
     }

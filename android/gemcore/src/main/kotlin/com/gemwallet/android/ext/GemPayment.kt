@@ -30,3 +30,8 @@ fun GemPaymentProviderName.toPrimitives(): PaymentProviderName = when (this) {
     GemPaymentProviderName.SOLANA_PAY -> PaymentProviderName.SolanaPay
     GemPaymentProviderName.WALLET_CONNECT_PAY -> PaymentProviderName.WalletConnectPay
 }
+
+fun PaymentProviderName.toGem(): GemPaymentProviderName = when (this) {
+    PaymentProviderName.SolanaPay -> GemPaymentProviderName.SOLANA_PAY
+    PaymentProviderName.WalletConnectPay -> GemPaymentProviderName.WALLET_CONNECT_PAY
+}

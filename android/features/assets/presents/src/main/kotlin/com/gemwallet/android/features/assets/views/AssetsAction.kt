@@ -7,6 +7,7 @@ sealed interface AssetsAction {
     data object ShowWallets : AssetsAction
     data object Manage : AssetsAction
     data object Search : AssetsAction
+    data object Scan : AssetsAction
     data object Send : AssetsAction
     data object Receive : AssetsAction
     data object Buy : AssetsAction

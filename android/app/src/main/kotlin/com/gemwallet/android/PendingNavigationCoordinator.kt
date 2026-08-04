@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.gemwallet.android.ui.navigation.routes.PaymentRoute
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 import uniffi.gemstone.urlAction
@@ -56,7 +57,10 @@ class PendingNavigationCoordinator @Inject constructor(
                     return
                 }
             }
-            is UrlAction.Payment -> Unit
+            is UrlAction.Payment -> {
+                replace(pendingIntent, PendingNavigation.Route(PaymentRoute(action.link.provider.name, action.link.id)))
+                return
+            }
             null -> Unit
         }
 

@@ -55,6 +55,11 @@ import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.gemwallet.android.ui.navigation.routes.transactionsRoute
 import com.gemwallet.android.ui.theme.alpha10
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.gemwallet.android.ui.components.QrCodeScannerModal
+import uniffi.gemstone.UrlAction
+import uniffi.gemstone.urlAction
 
 @Composable
 fun MainScreen(
@@ -66,6 +71,18 @@ fun MainScreen(
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
+    var isPresentingScanner by remember { mutableStateOf(false) }
+
+    QrCodeScannerModal(
+        isVisible = isPresentingScanner,
+        onDismissRequest = { isPresentingScanner = false },
+        onResult = { scanned ->
+            isPresentingScanner = false
+            (runCatching { urlAction(scanned) }.getOrNull() as? UrlAction.Payment)?.let {
+                navigator.openPayment(it.link)
+            }
+        },
+    )
 
     BackHandler(isRootRouteActive && currentTab.value != assetsRoute) {
         currentTab.value = assetsRoute
@@ -185,6 +202,7 @@ fun MainScreen(
                                     AssetsAction.ShowWallets -> navigator.openWallets()
                                     AssetsAction.Manage -> navigator.openAssetsManage()
                                     AssetsAction.Search -> navigator.openAssetsSearch()
+                                    AssetsAction.Scan -> isPresentingScanner = true
                                     AssetsAction.Send -> navigator.openRecipient()
                                     AssetsAction.Receive -> navigator.openReceive()
                                     AssetsAction.Buy -> navigator.openBuy()

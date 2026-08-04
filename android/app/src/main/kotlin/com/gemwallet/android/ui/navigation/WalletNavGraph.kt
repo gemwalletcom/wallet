@@ -39,6 +39,7 @@ import com.gemwallet.android.ui.navigation.routes.assetScreen
 import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
 import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.confirm
+import com.gemwallet.android.ui.navigation.routes.payment
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.nftCollection
 import com.gemwallet.android.ui.navigation.routes.perpetualScreen
@@ -171,6 +172,8 @@ fun WalletNavGraph(
                 onAcquireAsset = navigator::openAcquireAsset,
                 cancelAction = onCancel,
             )
+
+            payment(cancelAction = onCancel)
 
             nftCollection(
                 cancelAction = onCancel,

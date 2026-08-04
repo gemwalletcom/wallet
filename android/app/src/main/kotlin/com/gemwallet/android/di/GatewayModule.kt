@@ -26,6 +26,10 @@ import uniffi.gemstone.GemPreferences
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.WalletConnectSimulationClient
+import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import com.gemwallet.android.data.service.walletconnect.reown.ReownWalletConnectClient
+import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.WalletConnectSimulationClientInterface
 import javax.inject.Singleton
 
@@ -104,6 +108,17 @@ object GatewayModule {
         )
         return ServiceStatusService(GemServiceStatus(provider))
     }
+
+    @Provides
+    @Singleton
+    fun provideGemPaymentService(
+        alienProvider: AlienProvider,
+        getDeviceId: GetDeviceId,
+    ): GemPaymentService = GemPaymentService(
+        provider = alienProvider,
+        appId = ReownWalletConnectClient.PROJECT_ID,
+        clientId = runBlocking { getDeviceId.getDeviceId() },
+    )
 
     @Provides
     @Singleton

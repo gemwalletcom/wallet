@@ -65,6 +65,14 @@
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/join/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/tokens/" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="pay.walletconnect.com" />
+            </intent-filter>
         </activity>
         <provider
             android:name="androidx.core.content.FileProvider"
