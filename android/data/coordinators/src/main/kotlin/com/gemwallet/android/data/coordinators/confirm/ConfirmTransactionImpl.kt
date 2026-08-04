@@ -14,17 +14,20 @@ import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.blockNumber
 import com.gemwallet.android.serializer.jsonEncoder
+import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.TransactionSwapMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemSignerError
+import uniffi.gemstone.GemstoneException
 
 class ConfirmTransactionImpl(
     private val passwordStore: PasswordStore,
@@ -79,6 +82,8 @@ class ConfirmTransactionImpl(
                 signerParams,
                 passwordStore.getPassword(session.wallet.id.id),
             )
+        } catch (error: GemstoneException.SignerException) {
+            throw error.error.toConfirmError(signerParams.input.assetId.chain)
         } catch (_: Throwable) {
             throw ConfirmError.SignFail
         }
@@ -135,6 +140,14 @@ class ConfirmTransactionImpl(
     private fun assembleMetadata(signerParams: SignerParams) =
         signerParams.input.toTransactionMetadataJson()
 
+}
+
+internal fun GemSignerError.toConfirmError(chain: Chain): ConfirmError = when (this) {
+    GemSignerError.DustThreshold -> ConfirmError.DustThreshold(chain)
+    is GemSignerError.InvalidInput,
+    is GemSignerError.SigningError,
+    GemSignerError.InsufficientFunds,
+    GemSignerError.SwapValueBelowMinimum -> ConfirmError.SignFail
 }
 
 internal fun ConfirmParams.toTransactionMetadataJson(): String? = when (this) {

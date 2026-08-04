@@ -48,6 +48,7 @@ let package = Package(
             dependencies: [
                 "Blockchain",
                 "BlockchainTestKit",
+                "GemstonePrimitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
         ),
