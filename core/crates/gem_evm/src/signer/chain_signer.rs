@@ -200,7 +200,7 @@ mod tests {
     use super::*;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
-        Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, WalletConnectionSessionAppMetadata,
+        Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionAppMetadata, TransactionInputType, TransactionLoadMetadata, TransferDataExtra,
         contract_call_data::ContractCallData, nft::NFTAsset, swap::*,
     };
 
@@ -338,7 +338,7 @@ mod tests {
         let signer = EvmChainSigner;
         let extra = TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]);
         let input = SignerInput::mock_evm(
-            TransactionInputType::Generic(Asset::from_chain(Chain::Ethereum), WalletConnectionSessionAppMetadata::mock(), extra),
+            TransactionInputType::Generic(Asset::from_chain(Chain::Ethereum), TransactionAppMetadata::mock(), extra),
             "0",
             100000,
         );

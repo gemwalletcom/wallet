@@ -108,17 +108,21 @@ const SHORT_NAME_MAX_LENGTH: usize = 80;
 
 impl WalletConnectionSessionAppMetadata {
     pub fn short_name(&self) -> String {
-        let name = self.name.trim();
-        for sep in SHORT_NAME_SEPARATORS {
-            if let Some(idx) = name.find(sep) {
-                return name[..idx].trim().to_string();
-            }
-        }
-        if name.len() > SHORT_NAME_MAX_LENGTH {
-            return name[..SHORT_NAME_MAX_LENGTH].to_string();
-        }
-        name.to_string()
+        short_name(&self.name)
     }
+}
+
+pub fn short_name(name: &str) -> String {
+    let name = name.trim();
+    for sep in SHORT_NAME_SEPARATORS {
+        if let Some(idx) = name.find(sep) {
+            return name[..idx].trim().to_string();
+        }
+    }
+    if name.len() > SHORT_NAME_MAX_LENGTH {
+        return name[..SHORT_NAME_MAX_LENGTH].to_string();
+    }
+    name.to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

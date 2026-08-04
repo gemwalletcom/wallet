@@ -14,6 +14,18 @@ public struct TransactionNFTTransferMetadata: Codable, Sendable {
 	}
 }
 
+public struct TransactionPaymentMetadata: Codable, Equatable, Hashable, Sendable {
+	public let paymentId: String
+	public let merchant: PaymentMerchant
+	public let provider: PaymentProviderName
+
+	public init(paymentId: String, merchant: PaymentMerchant, provider: PaymentProviderName) {
+		self.paymentId = paymentId
+		self.merchant = merchant
+		self.provider = provider
+	}
+}
+
 public struct TransactionPerpetualMetadata: Codable, Sendable {
 	public let pnl: Double
 	public let price: Double

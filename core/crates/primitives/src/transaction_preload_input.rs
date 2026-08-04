@@ -19,7 +19,7 @@ impl TransactionPreloadInput {
 
     pub fn get_website(&self) -> Option<String> {
         match &self.input_type {
-            TransactionInputType::Generic(_, app_metadata, _) => Some(app_metadata.url.clone()),
+            TransactionInputType::Generic(_, app, _) => app.url.clone(),
             _ => None,
         }
     }

@@ -1,4 +1,4 @@
-use crate::{Chain, ChainAddress, ChainType};
+use crate::{AssetId, Chain, ChainAddress, ChainType};
 use serde::Serialize;
 use std::str::FromStr;
 use strum::{AsRefStr, EnumString};
@@ -168,5 +168,46 @@ mod tests {
         assert_eq!(WalletConnectCAIP2::parse_account("eip155:8453:".to_string()), None);
         assert_eq!(WalletConnectCAIP2::parse_account("eip155:8453:0x1:extra".to_string()), None);
         assert_eq!(WalletConnectCAIP2::parse_account("eip155:99999:0x1".to_string()), None);
+    }
+}
+
+const SLIP44_NAMESPACE: &str = "slip44";
+
+pub struct WalletConnectCAIP19;
+
+impl WalletConnectCAIP19 {
+    pub fn get_asset_id(asset: &str) -> Option<AssetId> {
+        let (chain_id, asset) = match asset.split_once('/') {
+            Some((chain_id, asset)) => (chain_id, Some(asset)),
+            None => (asset, None),
+        };
+        let chain = WalletConnectCAIP2::get_chain_from_id(Some(chain_id.to_string())).ok()?;
+        let Some(asset) = asset else {
+            return Some(AssetId::from(chain, None));
+        };
+        match asset.split_once(':')? {
+            (SLIP44_NAMESPACE, _) => Some(AssetId::from(chain, None)),
+            (_, token_id) => Some(AssetId::from_token(chain, token_id)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod caip19_tests {
+    use super::*;
+
+    #[test]
+    fn test_get_asset_id() {
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:1/slip44:60"), Some(AssetId::from(Chain::Ethereum, None)));
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:1"), Some(AssetId::from(Chain::Ethereum, None)));
+        assert_eq!(
+            WalletConnectCAIP19::get_asset_id("eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"),
+            Some(AssetId::from_token(Chain::Base, "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"))
+        );
+        assert_eq!(
+            WalletConnectCAIP19::get_asset_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+            Some(AssetId::from_token(Chain::Solana, "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"))
+        );
+        assert_eq!(WalletConnectCAIP19::get_asset_id("bitcoin:000000000019d6689c085ae165831e93"), None);
     }
 }

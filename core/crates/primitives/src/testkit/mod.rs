@@ -17,6 +17,7 @@ pub mod signer_mock;
 pub mod simulation_mock;
 pub mod subscription_mock;
 pub mod swap_mock;
+pub mod transaction_app_metadata_mock;
 pub mod transaction_fee_mock;
 pub mod transaction_load_input_mock;
 pub mod transaction_load_metadata_mock;
