@@ -5,7 +5,7 @@ import Primitives
 import SigningRequestService
 
 @Observable
-public final class WalletConnectorPresenter: SigningRequestInteractable, Sendable {
+public final class WalletConnectorPresenter: SigningRequestSheetPresentable, Sendable {
     public let sheets = SheetPresenter<WalletConnectorSheetType>()
 
     @MainActor
@@ -15,36 +15,11 @@ public final class WalletConnectorPresenter: SigningRequestInteractable, Sendabl
 
     public init() {}
 
-    @MainActor
-    public var isPresentingSheet: WalletConnectorSheetType? {
-        get { sheets.isPresentingSheet }
-        set { sheets.isPresentingSheet = newValue }
+    public static func signMessageSheet(_ callback: SigningRequestCallback<SignMessagePayload>) -> WalletConnectorSheetType {
+        .signMessage(callback)
     }
 
-    @MainActor
-    public func complete(type: WalletConnectorSheetType) {
-        sheets.complete(type: type)
-    }
-
-    @MainActor
-    public func cancelSheet(type: WalletConnectorSheetType) {
-        sheets.cancelSheet(type: type)
-    }
-
-    @MainActor
-    public func onSheetDismiss() {
-        sheets.onSheetDismiss()
-    }
-
-    public func signMessage(payload: SignMessagePayload) async throws -> String {
-        try await sheets.present(payload: payload, sheet: { .signMessage($0) })
-    }
-
-    public func signTransaction(transferData: SigningTransferData) async throws -> String {
-        try await sheets.present(payload: transferData, sheet: { .transferData($0) })
-    }
-
-    public func sendTransaction(transferData: SigningTransferData) async throws -> String {
-        try await sheets.present(payload: transferData, sheet: { .transferData($0) })
+    public static func transferSheet(_ callback: SigningRequestCallback<SigningTransferData>) -> WalletConnectorSheetType {
+        .transferData(callback)
     }
 }
