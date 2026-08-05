@@ -20,11 +20,11 @@ pub struct Balances {
 }
 
 impl Balances {
-    pub fn available_after_maintenance(&self, token: u32) -> Option<f64> {
+    pub fn available_after_maintenance(&self, token: u32) -> Option<&str> {
         self.token_to_available_after_maintenance
             .iter()
             .find(|(index, _)| *index == token)
-            .and_then(|(_, amount)| amount.parse().ok())
+            .map(|(_, amount)| amount.as_str())
     }
 }
 

@@ -1,20 +1,25 @@
 use crate::models::{
-    balance::{Balances, StakeBalance},
+    balance::{Balance as SpotBalance, Balances, StakeBalance},
     token::SpotToken,
 };
-use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{Asset, AssetBalance, AssetId, Balance, Chain};
 use std::error::Error;
 
-pub fn map_balance_coin(balance: String, chain: Chain) -> AssetBalance {
-    AssetBalance::new(chain.as_asset_id(), balance.parse::<BigUint>().unwrap_or_default())
-}
+pub fn map_balance_token(asset_id: AssetId, balance: &SpotBalance, available_after_maintenance: Option<&str>, decimals: i32) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
+    let decimals = decimals as u32;
+    let total = BigNumberFormatter::value_from_amount_biguint(&balance.total, decimals)?;
+    let available = match available_after_maintenance {
+        Some(amount) => BigNumberFormatter::value_from_amount_biguint(amount, decimals)?,
+        None => {
+            let hold = BigNumberFormatter::value_from_amount_biguint(&balance.hold, decimals)?;
+            total.clone() - hold.min(total.clone())
+        }
+    };
+    let available = available.min(total.clone());
+    let reserved = total - available.clone();
 
-pub fn map_balance_token(asset_id: AssetId, balance: String, decimals: i32) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-    let available = BigNumberFormatter::value_from_amount_biguint(&balance, decimals as u32)?;
-
-    Ok(AssetBalance::new(asset_id, available))
+    Ok(AssetBalance::new_balance(asset_id, Balance::with_reserved(available, reserved)))
 }
 
 pub fn map_balance_assets(spot_balances: &Balances, spot_tokens: &[SpotToken], chain: Chain) -> Vec<AssetBalance> {
@@ -23,7 +28,7 @@ pub fn map_balance_assets(spot_balances: &Balances, spot_tokens: &[SpotToken], c
         .iter()
         .filter_map(|x| {
             let token = spot_tokens.iter().find(|t| t.index as u32 == x.token)?;
-            map_balance_token(token.asset_id(chain), x.total.clone(), token.wei_decimals).ok()
+            map_balance_token(token.asset_id(chain), x, spot_balances.available_after_maintenance(x.token), token.wei_decimals).ok()
         })
         .collect()
 }
@@ -37,7 +42,7 @@ pub fn map_balance_tokens(spot_balances: &Balances, spot_tokens: &[SpotToken], t
             let token = spot_tokens.iter().find(|t| &t.name == symbol)?;
             let asset_id = AssetId::from(chain, Some(token_id.clone()));
             if let Some(balance) = spot_balances.balances.iter().find(|b| b.token == token.index as u32) {
-                map_balance_token(asset_id, balance.total.clone(), token.wei_decimals).ok()
+                map_balance_token(asset_id, balance, spot_balances.available_after_maintenance(balance.token), token.wei_decimals).ok()
             } else {
                 Some(AssetBalance::new_zero_balance(asset_id))
             }
@@ -60,25 +65,29 @@ pub fn map_balance_staking(balance: &StakeBalance, chain: Chain) -> Result<Asset
 mod tests {
     use super::*;
     use crate::models::balance::Balance;
+    use num_bigint::BigUint;
     use primitives::{Chain, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID};
-
-    #[test]
-    fn test_map_balance_coin() {
-        let balance = "1000000000000000000".to_string();
-        let result = map_balance_coin(balance, Chain::SmartChain);
-
-        assert_eq!(result.balance.available, BigUint::from(1000000000000000000_u64));
-        assert_eq!(result.asset_id.chain, Chain::SmartChain);
-    }
 
     #[test]
     fn test_map_balance_token() {
         let asset_id = AssetId::from(Chain::HyperCore, Some("USDC::0".to_string()));
-        let result = map_balance_token(asset_id, "56003537".to_string(), 8).unwrap();
+        let balance = SpotBalance {
+            coin: "USDC".to_string(),
+            token: 0,
+            total: "12.89353003".to_string(),
+            hold: "2.020032".to_string(),
+        };
 
-        assert_eq!(result.balance.available, "5600353700000000".parse::<BigUint>().unwrap());
-        assert_eq!(result.asset_id.chain, Chain::HyperCore);
+        let result = map_balance_token(asset_id.clone(), &balance, None, 8).unwrap();
+
+        assert_eq!(result.balance.available, "1087349803".parse::<BigUint>().unwrap());
+        assert_eq!(result.balance.reserved, "202003200".parse::<BigUint>().unwrap());
         assert_eq!(result.asset_id.token_id, Some("USDC::0".to_string()));
+
+        let result = map_balance_token(asset_id, &balance, Some("12.69152703"), 8).unwrap();
+
+        assert_eq!(result.balance.available, "1269152703".parse::<BigUint>().unwrap());
+        assert_eq!(result.balance.reserved, "20200300".parse::<BigUint>().unwrap());
     }
 
     #[test]

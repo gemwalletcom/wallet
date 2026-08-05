@@ -56,7 +56,11 @@ pub fn map_perpetual_balance_from_spot(balances: &Balances) -> PerpetualBalance 
         };
     };
     let total = f64::max(collateral.total.parse().unwrap_or(0.0), 0.0);
-    let available = balances.available_after_maintenance(collateral.token).map(|value| value.clamp(0.0, total)).unwrap_or(total);
+    let available = balances
+        .available_after_maintenance(collateral.token)
+        .and_then(|value| value.parse::<f64>().ok())
+        .map(|value| value.clamp(0.0, total))
+        .unwrap_or(total);
 
     PerpetualBalance {
         available,
