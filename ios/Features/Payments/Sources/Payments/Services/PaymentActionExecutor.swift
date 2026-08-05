@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import PaymentService
 import Primitives
@@ -13,18 +12,15 @@ public struct PaymentActionResults: Sendable {
 
 public struct PaymentActionExecutor: Sendable {
     private let interactor: any SigningRequestInteractable
-    private let approvalExecutor: any PaymentApprovalExecutable
     private let simulator: any SigningSimulatable
     private let assetsProvider: any PaymentAssetsProvidable
 
     public init(
         interactor: any SigningRequestInteractable,
         simulator: any SigningSimulatable,
-        approvalExecutor: any PaymentApprovalExecutable,
         assetsProvider: any PaymentAssetsProvidable,
     ) {
         self.interactor = interactor
-        self.approvalExecutor = approvalExecutor
         self.simulator = simulator
         self.assetsProvider = assetsProvider
     }
@@ -40,7 +36,6 @@ public struct PaymentActionExecutor: Sendable {
     ) async throws -> PaymentActionResults {
         var results = [String](repeating: "", count: actions.count)
         var transactionHash: String?
-        var approvals: [String] = []
         for (index, action) in actions.enumerated() {
             let value = try await perform(
                 action: action,
@@ -51,19 +46,11 @@ public struct PaymentActionExecutor: Sendable {
             )
             results[index] = value
 
-            switch action {
-            case .sendTransaction:
+            if case .sendTransaction = action {
                 transactionHash = value
-            case .approveToken:
-                approvals.append(value)
-            case .signMessage, .signTransaction:
-                break
             }
         }
         onSubmitted()
-        for hash in approvals {
-            try await approvalExecutor.waitForApproval(hash: hash, assetId: payment.quote.amount.assetId, wallet: wallet)
-        }
         return PaymentActionResults(results: results, transactionHash: transactionHash)
     }
 }

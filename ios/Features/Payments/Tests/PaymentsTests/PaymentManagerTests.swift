@@ -24,7 +24,7 @@ struct PaymentManagerTests {
     ) -> PaymentManager {
         PaymentManager(
             service: service,
-            executor: PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), approvalExecutor: PaymentApprovalExecutableMock(), assetsProvider: PaymentAssetsProvidableMock()),
+            executor: PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock()),
             presenter: presenter,
             assetsProvider: PaymentAssetsProvidableMock(),
             transactionStateScheduler: .mock(

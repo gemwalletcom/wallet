@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import PaymentService
 import Primitives
@@ -18,7 +17,7 @@ struct PaymentActionExecutorTests {
         let interactor = SigningRequestInteractableMock()
         interactor.transactionHash = "transaction-hash"
 
-        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), approvalExecutor: PaymentApprovalExecutableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [PaymentAction.sendTransaction(chain: .ethereum, transaction: .sui("transaction", .encodedTransaction))],
             paymentId: "pay_1",
             appMetadata: .mock(),
@@ -34,9 +33,8 @@ struct PaymentActionExecutorTests {
     func relayedPaymentHasNoTransactionOfItsOwn() async throws {
         let interactor = SigningRequestInteractableMock()
         interactor.signature = "permit-signature"
-        let executor = PaymentApprovalExecutableMock()
 
-        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), approvalExecutor: executor, assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [
                 .approveToken(chain: .ethereum, approval: ApprovalData(token: "0xtoken", spender: "0xspender", value: "1", isUnlimited: true)),
                 .mockSignMessage(data: Data("permit".utf8)),
@@ -49,7 +47,6 @@ struct PaymentActionExecutorTests {
 
         #expect(results.results == ["1", "permit-signature"])
         #expect(results.transactionHash == nil)
-        #expect(executor.confirmedHashes == ["1"])
     }
 
     @Test
@@ -58,7 +55,7 @@ struct PaymentActionExecutorTests {
         interactor.signature = "permit-signature"
         interactor.transactionHash = "approval-hash"
 
-        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), approvalExecutor: PaymentApprovalExecutableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [
                 .sendTransaction(chain: .ethereum, transaction: .sui("approval", .encodedTransaction)),
                 .mockSignMessage(data: Data("permit".utf8)),
@@ -78,7 +75,7 @@ struct PaymentActionExecutorTests {
         let interactor = SigningRequestInteractableMock()
         let payment = PaymentData.mock(quote: .mock(amount: .mock(value: "25000", symbol: "USDT")))
 
-        _ = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), approvalExecutor: PaymentApprovalExecutableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        _ = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [PaymentAction.mockSignMessage(data: Data("pay".utf8))],
             paymentId: "pay_1",
             appMetadata: .mock(),
@@ -90,16 +87,14 @@ struct PaymentActionExecutorTests {
     }
 
     @Test
-    func paymentIsRecordedAfterTheApprovalIsBroadcastAndBeforeItIsMined() async throws {
+    func paymentIsRecordedOnlyAfterEveryActionIsSubmitted() async throws {
         let interactor = SigningRequestInteractableMock()
-        let executor = PaymentApprovalExecutableMock()
         var approvalsWhenRecorded: Int?
-        var confirmationsWhenRecorded: Int?
+        var signaturesWhenRecorded: Int?
 
         _ = try await PaymentActionExecutor(
             interactor: interactor,
             simulator: SigningSimulatableMock(),
-            approvalExecutor: executor,
             assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()]),
         ).perform(
             actions: [
@@ -112,13 +107,12 @@ struct PaymentActionExecutorTests {
             wallet: .mock(),
             onSubmitted: {
                 approvalsWhenRecorded = interactor.sentTransferData.count
-                confirmationsWhenRecorded = executor.confirmedHashes.count
+                signaturesWhenRecorded = interactor.signMessagePayloads.count
             },
         )
 
         #expect(approvalsWhenRecorded == 1)
-        #expect(confirmationsWhenRecorded == 0)
-        #expect(executor.confirmedHashes == ["1"])
+        #expect(signaturesWhenRecorded == 1)
     }
 
     @Test
@@ -129,7 +123,7 @@ struct PaymentActionExecutorTests {
             result: SimulationResult(warnings: [warning], balanceChanges: [], payload: [], header: .none),
         )
 
-        _ = try await PaymentActionExecutor(interactor: interactor, simulator: simulator, approvalExecutor: PaymentApprovalExecutableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        _ = try await PaymentActionExecutor(interactor: interactor, simulator: simulator, assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [PaymentAction.mockSignMessage(data: Data("{}".utf8))],
             paymentId: "pay_1",
             appMetadata: .mock(),

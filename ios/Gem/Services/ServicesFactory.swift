@@ -313,7 +313,6 @@ struct ServicesFactory {
                 executor: PaymentActionExecutor(
                     interactor: paymentSheetPresenter,
                     simulator: SigningSimulator(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider),
-                    approvalExecutor: PaymentApprovalExecutor(chainServiceFactory: chainServiceFactory),
                     assetsProvider: paymentAssetsProvider,
                 ),
                 presenter: paymentSheetPresenter,
