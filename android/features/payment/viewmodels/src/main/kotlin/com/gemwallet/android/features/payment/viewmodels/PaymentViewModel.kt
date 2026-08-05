@@ -7,16 +7,14 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
+import com.gemwallet.android.blockchain.services.PaymentService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.gemChainAddresses
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.SigningRequestApp
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toAppMetadata
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toConfirmParams
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIModel
 import com.gemwallet.android.features.payment.viewmodels.model.toPriceText
 import com.gemwallet.android.features.payment.viewmodels.model.toUIModel
@@ -27,6 +25,11 @@ import com.gemwallet.android.ui.models.withExplorerLinks
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.PaymentLink
+import com.wallet.core.primitives.PaymentOptions
+import com.wallet.core.primitives.PaymentProviderName
+import com.wallet.core.primitives.PaymentQuote
+import com.wallet.core.primitives.PaymentQuotes
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,12 +43,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import uniffi.gemstone.GemPaymentLink
-import uniffi.gemstone.GemPaymentOptions
-import uniffi.gemstone.GemPaymentProviderName
-import uniffi.gemstone.GemPaymentQuote
-import uniffi.gemstone.GemPaymentQuotes
-import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.PaymentAction
 import uniffi.gemstone.PaymentException
@@ -53,7 +50,7 @@ import uniffi.gemstone.SignableTransaction
 
 @HiltViewModel
 class PaymentViewModel @Inject constructor(
-    private val paymentService: GemPaymentService,
+    private val paymentService: PaymentService,
     private val sessionRepository: SessionRepository,
     private val signMessageOperator: GemSignMessageOperator,
     private val passwordStore: PasswordStore,
@@ -69,17 +66,17 @@ class PaymentViewModel @Inject constructor(
     private val lock = Mutex()
     private var expiryJob: Job? = null
 
-    fun onPayment(provider: GemPaymentProviderName, paymentId: String) {
-        val link = GemPaymentLink(provider = provider, id = paymentId)
+    fun onPayment(provider: PaymentProviderName, paymentId: String) {
+        val link = PaymentLink(provider = provider, id = paymentId)
         state.value = PaymentSceneState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             val wallet = wallet() ?: return@launch
-            val options = runGateway { paymentService.getPaymentOptions(link, wallet.gemChainAddresses()) } ?: return@launch
+            val options = runGateway { paymentService.getPaymentOptions(link, wallet) } ?: return@launch
             when (options) {
-                is GemPaymentOptions.Outcome -> state.value = PaymentSceneState.Outcome(options.v1.status.toUIModel())
-                is GemPaymentOptions.Quotes -> {
-                    payment.value = ActivePayment(link.provider, options.v1, wallet)
-                    val quotes = options.v1
+                is PaymentOptions.Outcome -> state.value = PaymentSceneState.Outcome(options.content.status.toUIModel())
+                is PaymentOptions.Quotes -> {
+                    val quotes = options.content
+                    payment.value = ActivePayment(link.provider, quotes, wallet)
                     if (quotes.quotes.size > 1) {
                         state.value = quotes.toSceneState(wallet)
                         watchExpiry(quotes)
@@ -100,7 +97,7 @@ class PaymentViewModel @Inject constructor(
         val selected = (state.value as? PaymentSceneState.Quotes)?.selected ?: return
         val quote = payment.value?.quotes?.quotes?.firstOrNull { it.id == selected }
         if (quote == null) {
-            state.value = failure(PaymentError.QuoteUnavailable, "confirm: quote $selected is gone")
+            state.value = failure(PaymentLinkError.QuoteUnavailable, "confirm: quote $selected is gone")
             return
         }
         expiryJob?.cancel()
@@ -116,7 +113,7 @@ class PaymentViewModel @Inject constructor(
 
     fun onDataCollectionError(message: String?) {
         Log.e(TAG, "Payment data collection failed: $message")
-        state.value = PaymentSceneState.Error(PaymentError.DataCollection)
+        state.value = PaymentSceneState.Error(PaymentLinkError.DataCollection)
     }
 
     fun onActionResult(result: String) {
@@ -144,22 +141,22 @@ class PaymentViewModel @Inject constructor(
         }
     }
 
-    private suspend fun GemPaymentQuotes.toSceneState(wallet: Wallet) = PaymentSceneState.Quotes(
+    private suspend fun PaymentQuotes.toSceneState(wallet: Wallet) = PaymentSceneState.Quotes(
         merchant = merchant.toUIModel(),
         walletName = wallet.name,
         walletType = wallet.type,
         walletChain = wallet.accounts.firstOrNull()?.chain,
         price = price?.toPriceText(),
-        quotes = quotes.map { it.toUIModel(it.amount.assetId.toAssetId()?.let { id -> assetInfo(id) }) },
+        quotes = quotes.map { it.toUIModel(assetInfo(it.amount.assetId)) },
         selected = quotes.firstOrNull()?.id,
-        expiresAt = expiresAt?.times(1000),
+        expiresAt = expiresAt,
         expired = false,
     )
 
-    private fun watchExpiry(quotes: GemPaymentQuotes) {
+    private fun watchExpiry(quotes: PaymentQuotes) {
         val expiresAt = quotes.expiresAt ?: return
         expiryJob = viewModelScope.launch(Dispatchers.IO) {
-            delay((expiresAt * 1000 - System.currentTimeMillis()).coerceAtLeast(0))
+            delay((expiresAt - System.currentTimeMillis()).coerceAtLeast(0))
             val current = state.value
             if (current is PaymentSceneState.Quotes) {
                 state.value = current.copy(expired = true)
@@ -167,9 +164,9 @@ class PaymentViewModel @Inject constructor(
         }
     }
 
-    private suspend fun select(quote: GemPaymentQuote?) {
+    private suspend fun select(quote: PaymentQuote?) {
         if (quote == null) {
-            state.value = PaymentSceneState.Error(PaymentError.NoQuotes)
+            state.value = PaymentSceneState.Error(PaymentLinkError.NoQuotes)
             return
         }
         val collectDataUrl = quote.collectDataUrl
@@ -181,12 +178,12 @@ class PaymentViewModel @Inject constructor(
         state.value = PaymentSceneState.CollectData(collectDataUrl)
     }
 
-    private suspend fun prepare(quote: GemPaymentQuote) {
+    private suspend fun prepare(quote: PaymentQuote) {
         val current = payment.value ?: return
         val prepared = runGateway {
-            paymentService.getPreparedPayment(current.provider, current.quotes, quote, current.wallet.gemChainAddresses())
+            paymentService.getPreparedPayment(current.provider, current.quotes, quote, current.wallet)
         } ?: return
-        payment.value = current.prepared(prepared.quote, prepared.actions)
+        payment.value = current.prepared(prepared)
         advance()
     }
 
@@ -196,7 +193,7 @@ class PaymentViewModel @Inject constructor(
         if (step == null) {
             val quote = current.quote ?: return
             if (current.isRelayed) {
-                recordPayment(current.paymentMetadata(quote), quote, current.wallet)
+                recordPayment.recordPayment(current.paymentMetadata(quote), quote, current.wallet)
             }
             val settled = runCatchingCancellable {
                 paymentService.confirmPayment(current.provider, quote, current.results)
@@ -216,7 +213,7 @@ class PaymentViewModel @Inject constructor(
         action: PaymentAction.SignMessage,
         current: ActivePayment,
     ): PaymentSceneState {
-        val chain = action.message.chain.toChain() ?: return PaymentSceneState.Error(PaymentError.NoAccount)
+        val chain = action.message.chain.toChain() ?: return PaymentSceneState.Error(PaymentLinkError.NoAccount)
         val signer = runCatching { MessageSigner(action.message) }.getOrNull()
         val preview = signer?.let { runCatching { it.payloadPreview(emptyList()) }.getOrNull() }
         return PaymentSceneState.SignMessage(
@@ -225,7 +222,7 @@ class PaymentViewModel @Inject constructor(
             walletName = current.wallet.name,
             quote = current.quote?.toUIModel(),
             price = current.quotes.price?.toPriceText(),
-            expiresAt = current.quotes.expiresAt?.times(1000),
+            expiresAt = current.quotes.expiresAt,
             plainMessage = signer?.let { runCatching { it.plainPreview() }.getOrNull() }.orEmpty(),
             primaryPayloadFields = preview?.primary?.map { it.toPrimitives() }.orEmpty()
                 .withExplorerLinks(chain, null),
@@ -238,10 +235,9 @@ class PaymentViewModel @Inject constructor(
         action: PaymentAction.ApproveToken,
         current: ActivePayment,
     ): PaymentSceneState {
-        val account = current.account(action.chain) ?: return failure(PaymentError.NoAccount, "approval: no ${action.chain} account")
-        val assetId = current.quote?.amount?.assetId?.toAssetId()
-            ?: return failure(PaymentError.UnknownAsset, "approval: bad quote asset ${current.quote?.amount?.assetId}")
-        val asset = asset(assetId) ?: return failure(PaymentError.UnknownAsset, "approval: unresolved asset ${action.approval.token}")
+        val account = current.account(action.chain) ?: return failure(PaymentLinkError.NoAccount, "approval: no ${action.chain} account")
+        val assetId = current.quote?.amount?.assetId ?: return failure(PaymentLinkError.QuoteUnavailable, "approval: no prepared quote")
+        val asset = asset(assetId) ?: return failure(PaymentLinkError.UnknownAsset, "approval: unresolved asset ${action.approval.token}")
         return PaymentSceneState.Approve(
             ConfirmParams.TokenApprovalParams(
                 asset = asset,
@@ -260,17 +256,12 @@ class PaymentViewModel @Inject constructor(
         isSendable: Boolean,
         current: ActivePayment,
     ): PaymentSceneState {
-        val account = current.account(chain) ?: return PaymentSceneState.Error(PaymentError.NoAccount)
+        val account = current.account(chain) ?: return PaymentSceneState.Error(PaymentLinkError.NoAccount)
         return PaymentSceneState.Confirm(
             transaction.toConfirmParams(
                 requestId = current.quote?.paymentId.orEmpty(),
                 account = account,
-                app = SigningRequestApp(
-                    name = current.quotes.merchant.name,
-                    description = current.quotes.merchant.name,
-                    url = "",
-                    icon = current.quotes.merchant.iconUrl.orEmpty(),
-                ),
+                appMetadata = current.quotes.merchant.toAppMetadata(),
                 isSendable = isSendable,
                 payment = current.quote?.let(current::paymentMetadata),
                 inputType = if (isSendable) {
@@ -282,7 +273,7 @@ class PaymentViewModel @Inject constructor(
         )
     }
 
-    private fun failure(error: PaymentError, reason: String): PaymentSceneState {
+    private fun failure(error: PaymentLinkError, reason: String): PaymentSceneState {
         Log.e(TAG, reason)
         return PaymentSceneState.Error(error)
     }
@@ -300,11 +291,11 @@ class PaymentViewModel @Inject constructor(
     private suspend fun wallet(): Wallet? {
         val wallet = sessionRepository.session().firstOrNull()?.wallet
         if (wallet == null) {
-            state.value = PaymentSceneState.Error(PaymentError.NoWallet)
+            state.value = PaymentSceneState.Error(PaymentLinkError.NoWallet)
             return null
         }
         if (wallet.type == WalletType.View) {
-            state.value = PaymentSceneState.Error(PaymentError.WatchWallet)
+            state.value = PaymentSceneState.Error(PaymentLinkError.WatchWallet)
             return null
         }
         return wallet
@@ -313,7 +304,7 @@ class PaymentViewModel @Inject constructor(
     private suspend fun <T> runGateway(block: suspend () -> T): T? = runCatchingCancellable(block)
         .onFailure { err ->
             Log.e(TAG, "Payment gateway request failed", err)
-            state.value = PaymentSceneState.Error(PaymentError.Gateway(err as? PaymentException))
+            state.value = PaymentSceneState.Error(PaymentLinkError.Gateway(err as? PaymentException))
         }
         .getOrNull()
 

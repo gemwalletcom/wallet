@@ -53,14 +53,13 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    api(project(":data:repositories"))
+    implementation(project(":gemcore"))
     implementation(project(":features:payment:viewmodels"))
     implementation(project(":features:confirm:presents"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
-
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)

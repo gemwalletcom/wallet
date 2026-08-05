@@ -57,6 +57,7 @@ import com.gemwallet.android.ui.theme.alpha10
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.urlAction
@@ -79,7 +80,7 @@ fun MainScreen(
         onResult = { scanned ->
             isPresentingScanner = false
             (runCatching { urlAction(scanned) }.getOrNull() as? UrlAction.Payment)?.let {
-                navigator.openPayment(it.link)
+                navigator.openPayment(it.link.toPrimitives())
             }
         },
     )

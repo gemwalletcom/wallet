@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentRoute
-import uniffi.gemstone.GemPaymentLink
+import com.wallet.core.primitives.PaymentLink
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
 import com.gemwallet.android.ui.navigation.routes.EditContactRoute
@@ -281,7 +281,7 @@ class WalletNavigator(
         val pack = params.pack() ?: return
         push(ConfirmRoute(pack))
     }
-    fun openPayment(link: GemPaymentLink) = push(PaymentRoute(link.provider.name, link.id))
+    fun openPayment(link: PaymentLink) = push(PaymentRoute(link.provider, link.id))
     fun openNftList() = push(NftListRoute)
     fun openNftCollection(nftCollectionId: String) = push(NftCollectionRoute(nftCollectionId))
     fun openNftUnverifiedCollections() = push(NftUnverifiedCollectionsRoute)

@@ -23,6 +23,7 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionPaymentMetadata
+import com.wallet.core.primitives.TransactionAppMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.ApprovalData
 import kotlinx.serialization.Serializable
@@ -185,10 +186,7 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean = false,
             override val inputType: InputType? = null,
             val isSendable: Boolean,
-            val name: String,
-            val description: String,
-            val url: String,
-            val icon: String,
+            val appMetadata: TransactionAppMetadata,
             val gasLimit: String?,
             val decodedTransactionType: TransactionType = TransactionType.SmartContractCall,
             val payment: TransactionPaymentMetadata? = null,
@@ -198,10 +196,10 @@ sealed class ConfirmParams() {
                 return Generic(
                 asset = asset.toGem(),
                 appMetadata = GemTransactionAppMetadata(
-                    name = name,
-                    description = description,
-                    url = url,
-                    icon = icon,
+                    name = appMetadata.name,
+                    description = appMetadata.description,
+                    url = appMetadata.url,
+                    icon = appMetadata.icon,
                 ),
                 extra = GemTransferDataExtra(
                     gasLimit = null,
@@ -235,10 +233,8 @@ sealed class ConfirmParams() {
                 result = 31 * result + destination.hashCode()
                 result = 31 * result + memo.hashCode()
                 result = 31 * result + useMaxAmount.hashCode()
-                result = 31 * result + name.hashCode()
+                result = 31 * result + appMetadata.hashCode()
                 result = 31 * result + destination.hashCode()
-                result = 31 * result + url.hashCode()
-                result = 31 * result + icon.hashCode()
                 result = 31 * result + (gasLimit?.hashCode() ?: 0)
                 result = 31 * result + decodedTransactionType.hashCode()
                 return result

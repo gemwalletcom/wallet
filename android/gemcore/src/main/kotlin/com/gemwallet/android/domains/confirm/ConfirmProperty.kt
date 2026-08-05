@@ -53,7 +53,7 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.TransferParams.Native -> params.destination()?.let {
                     Transfer(domain = it.name ?: addressName?.name, address = it.address, chain = params.assetId.chain)
                 } ?: throw ConfirmError.RecipientEmpty
-                is ConfirmParams.TransferParams.Generic -> Generic(params.name)
+                is ConfirmParams.TransferParams.Generic -> Generic(params.appMetadata.name)
             }
         }
     }

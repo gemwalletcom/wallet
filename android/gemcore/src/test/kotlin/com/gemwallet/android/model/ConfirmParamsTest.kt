@@ -15,6 +15,7 @@ import com.gemwallet.android.testkit.mockSwapParams
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
+import com.wallet.core.primitives.TransactionAppMetadata
 import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -52,10 +53,12 @@ class ConfirmParamsTest {
                 memo = "0x01",
                 inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
                 isSendable = true,
-                name = "App",
-                description = "Description",
-                url = "https://example.com",
-                icon = "https://example.com/icon.png",
+                appMetadata = TransactionAppMetadata(
+                    name = "App",
+                    description = "Description",
+                    url = "https://example.com",
+                    icon = "https://example.com/icon.png",
+                ),
                 gasLimit = "21000",
                 decodedTransactionType = TransactionType.SmartContractCall,
             ),

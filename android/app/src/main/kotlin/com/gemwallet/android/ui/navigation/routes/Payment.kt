@@ -6,11 +6,11 @@ import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.payment.presents.PaymentScene
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.PaymentProviderName
 import kotlinx.serialization.Serializable
-import uniffi.gemstone.GemPaymentProviderName
 
 @Serializable
-data class PaymentRoute(val provider: String, val paymentId: String) : NavKey
+data class PaymentRoute(val provider: PaymentProviderName, val paymentId: String) : NavKey
 
 fun EntryProviderScope<NavKey>.payment(
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
@@ -18,7 +18,7 @@ fun EntryProviderScope<NavKey>.payment(
 ) {
     entry<PaymentRoute> { key ->
         PaymentScene(
-            provider = GemPaymentProviderName.valueOf(key.provider),
+            provider = key.provider,
             paymentId = key.paymentId,
             onAcquireAsset = onAcquireAsset,
             onCancel = { cancelAction() },

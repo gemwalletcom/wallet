@@ -4,22 +4,18 @@ import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.TransactionAppMetadata
 import com.wallet.core.primitives.TransactionPaymentMetadata
+import com.wallet.core.primitives.TransactionType
 import uniffi.gemstone.SignableTransaction
 import uniffi.gemstone.TransferDataOutputType
 import java.math.BigInteger
 
-data class SigningRequestApp(
-    val name: String,
-    val description: String,
-    val url: String,
-    val icon: String,
-)
-
 fun SignableTransaction.toConfirmParams(
     requestId: String,
     account: Account,
-    app: SigningRequestApp,
+    appMetadata: TransactionAppMetadata,
     isSendable: Boolean,
     inputType: ConfirmParams.TransferParams.InputType?,
     payment: TransactionPaymentMetadata? = null,
@@ -30,7 +26,7 @@ fun SignableTransaction.toConfirmParams(
             requestId = requestId,
             asset = asset,
             account = account,
-            app = app,
+            appMetadata = appMetadata,
             memo = data.data,
             gasLimit = data.gasLimit,
             inputType = inputType,
@@ -40,18 +36,18 @@ fun SignableTransaction.toConfirmParams(
             transactionType = transactionType.toPrimitives(),
             payment = payment,
         )
-        is SignableTransaction.Solana -> encoded(requestId, asset, account, app, data.transaction, outputType, isSendable, payment)
-        is SignableTransaction.Sui -> encoded(requestId, asset, account, app, data.transaction, outputType, isSendable, payment)
-        is SignableTransaction.Ton -> encoded(requestId, asset, account, app, data, outputType, isSendable, payment)
-        is SignableTransaction.Tron -> encoded(requestId, asset, account, app, data, outputType, isSendable, payment)
+        is SignableTransaction.Solana -> encoded(requestId, asset, account, appMetadata, data.transaction, outputType, isSendable, payment)
+        is SignableTransaction.Sui -> encoded(requestId, asset, account, appMetadata, data.transaction, outputType, isSendable, payment)
+        is SignableTransaction.Ton -> encoded(requestId, asset, account, appMetadata, data, outputType, isSendable, payment)
+        is SignableTransaction.Tron -> encoded(requestId, asset, account, appMetadata, data, outputType, isSendable, payment)
     }
 }
 
 private fun encoded(
     requestId: String,
-    asset: com.wallet.core.primitives.Asset,
+    asset: Asset,
     account: Account,
-    app: SigningRequestApp,
+    appMetadata: TransactionAppMetadata,
     payload: String,
     outputType: TransferDataOutputType,
     isSendable: Boolean,
@@ -60,7 +56,7 @@ private fun encoded(
     requestId = requestId,
     asset = asset,
     account = account,
-    app = app,
+    appMetadata = appMetadata,
     memo = payload,
     gasLimit = "",
     inputType = when (outputType) {
@@ -75,26 +71,23 @@ private fun encoded(
 
 private fun generic(
     requestId: String,
-    asset: com.wallet.core.primitives.Asset,
+    asset: Asset,
     account: Account,
-    app: SigningRequestApp,
+    appMetadata: TransactionAppMetadata,
     memo: String?,
     gasLimit: String?,
     inputType: ConfirmParams.TransferParams.InputType?,
     destination: DestinationAddress,
     amount: BigInteger,
     isSendable: Boolean,
-    transactionType: com.wallet.core.primitives.TransactionType = com.wallet.core.primitives.TransactionType.SmartContractCall,
+    transactionType: TransactionType = TransactionType.SmartContractCall,
     payment: TransactionPaymentMetadata? = null,
 ) = ConfirmParams.TransferParams.Generic(
     requestId = requestId,
     asset = asset,
     from = account,
     memo = memo,
-    name = app.name,
-    description = app.description,
-    url = app.url,
-    icon = app.icon,
+    appMetadata = appMetadata,
     gasLimit = gasLimit,
     inputType = inputType,
     destination = destination,

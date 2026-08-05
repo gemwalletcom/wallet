@@ -4,7 +4,6 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.SigningRequestApp
 import com.gemwallet.android.ext.toConfirmParams
 import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
@@ -21,6 +20,7 @@ import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.gemstone.toGem
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.wallet.core.primitives.SimulationResult
+import com.wallet.core.primitives.TransactionAppMetadata
 import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
@@ -206,7 +206,7 @@ private fun SignableTransaction.map(
 ): Generic = toConfirmParams(
     requestId = request.requestId.toString(),
     account = request.account,
-    app = SigningRequestApp(
+    appMetadata = TransactionAppMetadata(
         name = request.name,
         description = request.description,
         url = request.url,

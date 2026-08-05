@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
+import com.gemwallet.android.blockchain.services.PaymentService
 import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
@@ -9,7 +10,6 @@ import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
-import uniffi.gemstone.GemPaymentService
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import dagger.Module
 import dagger.Provides
@@ -28,7 +28,7 @@ object TransactionsModule {
         sessionRepository: SessionRepository,
         transactionsDao: TransactionsDao,
         gateway: GemGateway,
-        paymentService: GemPaymentService,
+        paymentService: PaymentService,
     ): TransactionsRepositoryImpl = TransactionsRepositoryImpl(
         sessionRepository = sessionRepository,
         transactionsDao = transactionsDao,

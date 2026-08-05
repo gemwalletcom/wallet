@@ -23,13 +23,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
-import com.gemwallet.android.features.payment.viewmodels.PaymentError
+import com.gemwallet.android.features.payment.viewmodels.PaymentLinkError
 import com.gemwallet.android.features.payment.viewmodels.PaymentSceneState
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentQuoteUIModel
 import com.gemwallet.android.features.payment.viewmodels.PaymentViewModel
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIModel
 import com.gemwallet.android.model.AuthRequest
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.PaymentProviderName
 import com.gemwallet.android.ui.R
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -62,12 +63,11 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import uniffi.gemstone.GemPaymentProviderName
 import uniffi.gemstone.PaymentException
 
 @Composable
 fun PaymentScene(
-    provider: GemPaymentProviderName,
+    provider: PaymentProviderName,
     paymentId: String,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
     onCancel: () -> Unit,
@@ -340,15 +340,15 @@ private fun PaymentToastEffect(
     }
 }
 
-private fun PaymentError.messageRes(): Int = when (this) {
-    PaymentError.NoWallet,
-    PaymentError.NoQuotes,
-    PaymentError.QuoteUnavailable,
-    PaymentError.NoAccount -> R.string.errors_not_supported
-    PaymentError.WatchWallet -> R.string.wallet_watch_tooltip_title
-    PaymentError.DataCollection -> R.string.errors_error_occurred
-    PaymentError.UnknownAsset -> R.string.errors_error_occurred
-    is PaymentError.Gateway -> error.messageRes()
+private fun PaymentLinkError.messageRes(): Int = when (this) {
+    PaymentLinkError.NoWallet,
+    PaymentLinkError.NoQuotes,
+    PaymentLinkError.QuoteUnavailable,
+    PaymentLinkError.NoAccount -> R.string.errors_not_supported
+    PaymentLinkError.WatchWallet -> R.string.wallet_watch_tooltip_title
+    PaymentLinkError.DataCollection -> R.string.errors_error_occurred
+    PaymentLinkError.UnknownAsset -> R.string.errors_error_occurred
+    is PaymentLinkError.Gateway -> error.messageRes()
 }
 
 private fun PaymentException?.messageRes(): Int = when (this) {

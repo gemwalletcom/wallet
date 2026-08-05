@@ -1,15 +1,18 @@
 package com.gemwallet.android.features.payment.viewmodels
 
+import com.gemwallet.android.model.PreparedPayment
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PaymentAmount
+import com.wallet.core.primitives.PaymentMerchant
+import com.wallet.core.primitives.PaymentProviderName
+import com.wallet.core.primitives.PaymentQuote
+import com.wallet.core.primitives.PaymentQuotes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemApprovalData
-import uniffi.gemstone.GemPaymentAmount
-import uniffi.gemstone.GemPaymentMerchant
-import uniffi.gemstone.GemPaymentProviderName
-import uniffi.gemstone.GemPaymentQuote
-import uniffi.gemstone.GemPaymentQuotes
 import uniffi.gemstone.PaymentAction
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
@@ -40,23 +43,23 @@ class ActivePaymentTest {
 
     private fun payment(actions: List<PaymentAction>): ActivePayment =
         ActivePayment(
-            provider = GemPaymentProviderName.WALLET_CONNECT_PAY,
+            provider = PaymentProviderName.WalletConnectPay,
             quotes = quotes(),
             wallet = mockWallet(),
-        ).prepared(quote(), actions)
+        ).prepared(PreparedPayment(quotes(), quote(), actions, isRelayed = true))
 
-    private fun quotes() = GemPaymentQuotes(
-        merchant = GemPaymentMerchant(name = "Gem Wallet Test Merchant", iconUrl = null),
+    private fun quotes() = PaymentQuotes(
+        merchant = PaymentMerchant(name = "Gem Wallet Test Merchant", iconUrl = null),
         price = null,
         expiresAt = null,
         quotes = listOf(quote()),
     )
 
-    private fun quote() = GemPaymentQuote(
+    private fun quote() = PaymentQuote(
         id = "opt_1",
         paymentId = "pay_1",
-        amount = GemPaymentAmount(
-            assetId = "ethereum",
+        amount = PaymentAmount(
+            assetId = AssetId(Chain.Ethereum),
             value = "1",
             symbol = "USDT",
             decimals = 6,

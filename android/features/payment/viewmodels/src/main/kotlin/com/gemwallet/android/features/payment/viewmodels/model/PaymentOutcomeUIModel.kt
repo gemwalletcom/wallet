@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.payment.viewmodels.model
 
-import uniffi.gemstone.GemPaymentStatus
+import com.wallet.core.primitives.PaymentStatus
 
 enum class PaymentOutcomeUIModel {
     Success,
@@ -10,11 +10,11 @@ enum class PaymentOutcomeUIModel {
     Failed,
 }
 
-fun GemPaymentStatus.toUIModel() = when (this) {
-    GemPaymentStatus.SUCCEEDED -> PaymentOutcomeUIModel.Success
-    GemPaymentStatus.PROCESSING -> PaymentOutcomeUIModel.Pending
-    GemPaymentStatus.CANCELLED -> PaymentOutcomeUIModel.Cancelled
-    GemPaymentStatus.EXPIRED -> PaymentOutcomeUIModel.Expired
-    GemPaymentStatus.FAILED,
-    GemPaymentStatus.REQUIRES_ACTION -> PaymentOutcomeUIModel.Failed
+fun PaymentStatus.toUIModel() = when (this) {
+    PaymentStatus.Succeeded -> PaymentOutcomeUIModel.Success
+    PaymentStatus.Processing -> PaymentOutcomeUIModel.Pending
+    PaymentStatus.Cancelled -> PaymentOutcomeUIModel.Cancelled
+    PaymentStatus.Expired -> PaymentOutcomeUIModel.Expired
+    PaymentStatus.Failed,
+    PaymentStatus.RequiresAction -> PaymentOutcomeUIModel.Failed
 }

@@ -2,33 +2,28 @@ package com.gemwallet.android.features.payment.viewmodels
 
 import android.util.Log
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.PaymentQuote
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionPaymentMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.GemPaymentQuote
 import java.math.BigInteger
 import javax.inject.Inject
 
 class RecordPayment @Inject constructor(
     private val createTransaction: CreateTransaction,
 ) {
-    suspend operator fun invoke(
+    suspend fun recordPayment(
         payment: TransactionPaymentMetadata,
-        quote: GemPaymentQuote,
+        quote: PaymentQuote,
         wallet: Wallet,
     ) {
-        val assetId = quote.amount.assetId.toAssetId()
-        if (assetId == null) {
-            Log.e(TAG, "Record payment: bad asset ${quote.amount.assetId}")
-            return
-        }
+        val assetId = quote.amount.assetId
         val account = wallet.accounts.firstOrNull { it.chain == assetId.chain }
         if (account == null) {
             Log.e(TAG, "Record payment: no ${assetId.chain} account")

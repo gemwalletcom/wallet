@@ -1,40 +1,42 @@
 package com.gemwallet.android.features.payment.viewmodels
 
-import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.PreparedPayment
+import com.wallet.core.primitives.PaymentProviderName
+import com.wallet.core.primitives.PaymentQuote
+import com.wallet.core.primitives.PaymentQuotes
 import com.wallet.core.primitives.TransactionPaymentMetadata
 import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.GemPaymentProviderName
-import uniffi.gemstone.GemPaymentQuote
-import uniffi.gemstone.GemPaymentQuotes
 import uniffi.gemstone.PaymentAction
 
 internal data class ActivePayment(
-    val provider: GemPaymentProviderName,
-    val quotes: GemPaymentQuotes,
+    val provider: PaymentProviderName,
+    val quotes: PaymentQuotes,
     val wallet: Wallet,
-    val quote: GemPaymentQuote? = null,
-    val collecting: GemPaymentQuote? = null,
+    val quote: PaymentQuote? = null,
+    val collecting: PaymentQuote? = null,
     val actions: List<PaymentAction> = emptyList(),
     val results: List<String> = emptyList(),
     val completed: Int = 0,
+    val isRelayed: Boolean = false,
 ) {
     val step: Step?
         get() = actions.getOrNull(completed)?.let { Step(it, completed) }
 
-    fun paymentMetadata(quote: GemPaymentQuote) = TransactionPaymentMetadata(
+    fun paymentMetadata(quote: PaymentQuote) = TransactionPaymentMetadata(
         paymentId = quote.paymentId,
-        merchant = quotes.merchant.toPrimitives(),
-        provider = provider.toPrimitives(),
+        merchant = quotes.merchant,
+        provider = provider,
     )
 
-    fun collecting(quote: GemPaymentQuote) = copy(collecting = quote)
+    fun collecting(quote: PaymentQuote) = copy(collecting = quote)
 
-    fun prepared(quote: GemPaymentQuote, actions: List<PaymentAction>) = copy(
-        quote = quote,
+    fun prepared(payment: PreparedPayment) = copy(
+        quote = payment.quote,
         collecting = null,
-        actions = actions,
-        results = List(actions.size) { "" },
+        actions = payment.actions,
+        results = List(payment.actions.size) { "" },
         completed = 0,
+        isRelayed = payment.isRelayed,
     )
 
     fun completing(result: String): ActivePayment {
@@ -44,9 +46,6 @@ internal data class ActivePayment(
             completed = completed + 1,
         )
     }
-
-    val isRelayed: Boolean
-        get() = actions.none { it is PaymentAction.SendTransaction }
 
     data class Step(val action: PaymentAction, val index: Int)
 }

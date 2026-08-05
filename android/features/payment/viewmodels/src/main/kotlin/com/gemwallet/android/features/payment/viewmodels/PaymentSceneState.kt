@@ -54,16 +54,16 @@ sealed interface PaymentSceneState {
 
     data class Outcome(val outcome: PaymentOutcomeUIModel) : PaymentSceneState
 
-    data class Error(val error: PaymentError) : PaymentSceneState
+    data class Error(val error: PaymentLinkError) : PaymentSceneState
 }
 
-sealed interface PaymentError {
-    data object NoWallet : PaymentError
-    data object WatchWallet : PaymentError
-    data object NoQuotes : PaymentError
-    data object QuoteUnavailable : PaymentError
-    data object NoAccount : PaymentError
-    data object DataCollection : PaymentError
-    data object UnknownAsset : PaymentError
-    data class Gateway(val error: PaymentException?) : PaymentError
+sealed interface PaymentLinkError {
+    data object NoWallet : PaymentLinkError
+    data object WatchWallet : PaymentLinkError
+    data object NoQuotes : PaymentLinkError
+    data object QuoteUnavailable : PaymentLinkError
+    data object NoAccount : PaymentLinkError
+    data object DataCollection : PaymentLinkError
+    data object UnknownAsset : PaymentLinkError
+    data class Gateway(val error: PaymentException?) : PaymentLinkError
 }

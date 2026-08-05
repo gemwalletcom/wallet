@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.Constants
 import com.gemwallet.android.NodeAuthInterceptor
 import com.gemwallet.android.NodeAuthTokenService
+import com.gemwallet.android.blockchain.services.PaymentService
 import com.gemwallet.android.blockchain.services.ServiceStatusService
 import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
@@ -111,14 +112,16 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemPaymentService(
+    fun providePaymentService(
         alienProvider: AlienProvider,
-    ): GemPaymentService = GemPaymentService(
-        provider = alienProvider,
-        config = GemPaymentConfig(
-            walletConnectPay = GemWalletConnectPayAuth(
-                appId = Constants.WALLET_CONNECT_PROJECT_ID,
-                clientId = UUID.randomUUID().toString(),
+    ): PaymentService = PaymentService(
+        GemPaymentService(
+            provider = alienProvider,
+            config = GemPaymentConfig(
+                walletConnectPay = GemWalletConnectPayAuth(
+                    appId = Constants.WALLET_CONNECT_PROJECT_ID,
+                    clientId = UUID.randomUUID().toString(),
+                ),
             ),
         ),
     )
