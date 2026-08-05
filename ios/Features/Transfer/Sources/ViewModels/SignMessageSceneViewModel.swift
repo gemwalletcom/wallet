@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AddressNameService
 import Components
+import AddressNameService
 import ExplorerService
 import Foundation
 import Formatters
@@ -9,7 +9,6 @@ import BigInt
 import class Gemstone.MessageSigner
 import Keystore
 import Localization
-import Preferences
 import Primitives
 import SigningRequestService
 import PrimitivesComponents

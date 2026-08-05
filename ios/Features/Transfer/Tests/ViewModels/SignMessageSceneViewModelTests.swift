@@ -1,18 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AddressNameServiceTestKit
 import Foundation
 import struct Gemstone.SignMessage
 import KeystoreTestKit
 import Primitives
-import SigningRequestService
 import PrimitivesComponents
+import SigningRequestService
 import PrimitivesTestKit
 import SigningRequestServiceTestKit
 import Testing
-@testable import WalletConnector
-import WalletConnectorService
-import WalletConnectorServiceTestKit
+@testable import Transfer
 
 struct SignMessageSceneViewModelTests {
     @Test
