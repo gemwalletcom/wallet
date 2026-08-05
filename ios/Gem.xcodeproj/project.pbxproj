@@ -39,6 +39,7 @@
 		837A1E6B2D0B029200733AC1 /* AppResolver+ViewInjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837A1E6A2D0B029200733AC1 /* AppResolver+ViewInjection.swift */; };
 		837A1E6D2D0B096600733AC1 /* WalletConnectorNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837A1E6C2D0B096600733AC1 /* WalletConnectorNavigationStack.swift */; };
 		83AA01012E4A000100000001 /* PaymentNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AA01022E4A000100000002 /* PaymentNavigationStack.swift */; };
+		83AA01042E4A000100000004 /* SigningRequestSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AA01052E4A000100000005 /* SigningRequestSheetView.swift */; };
 		83863EE72D19B93E005048A7 /* NodeService in Frameworks */ = {isa = PBXBuildFile; productRef = 83863EE62D19B93E005048A7 /* NodeService */; };
 		839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 839C794A2D1C42A500E32072 /* PrimitivesComponents */; };
 		83B08BDB2D0B4AE200CA1B33 /* AppResolver+Storages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B08BDA2D0B4AE200CA1B33 /* AppResolver+Storages.swift */; };
@@ -220,6 +221,7 @@
 		837A1E6A2D0B029200733AC1 /* AppResolver+ViewInjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppResolver+ViewInjection.swift"; sourceTree = "<group>"; };
 		837A1E6C2D0B096600733AC1 /* WalletConnectorNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectorNavigationStack.swift; sourceTree = "<group>"; };
 		83AA01022E4A000100000002 /* PaymentNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentNavigationStack.swift; sourceTree = "<group>"; };
+		83AA01052E4A000100000005 /* SigningRequestSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningRequestSheetView.swift; sourceTree = "<group>"; };
 		837D7DE62E005D2800BBBDDA /* Formatters */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Formatters; sourceTree = "<group>"; };
 		838383112D5E677A00D1CAF2 /* WalletTab */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WalletTab; sourceTree = "<group>"; };
 		838B9B9C2F0C120100380F29 /* Recents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Recents; sourceTree = "<group>"; };
@@ -503,6 +505,7 @@
 		8361BB702D402C9D008D89CF /* Navigation */ = {
 			isa = PBXGroup;
 			children = (
+				83AA01052E4A000100000005 /* SigningRequestSheetView.swift */,
 				83AA01032E4A000100000003 /* Payments */,
 				83A35C612DF2054B00360060 /* Transfer */,
 				836281B22DEF423400CA5C75 /* Assets */,
@@ -1203,6 +1206,7 @@
 				C366790A2A0B7E5800F1D74D /* Environment.swift in Sources */,
 				837A1E6D2D0B096600733AC1 /* WalletConnectorNavigationStack.swift in Sources */,
 				83AA01012E4A000100000001 /* PaymentNavigationStack.swift in Sources */,
+				83AA01042E4A000100000004 /* SigningRequestSheetView.swift in Sources */,
 				D8D5C1D12E6CAC16007628A1 /* Errors.swift in Sources */,
 				D8C4A3762C8CF956006FABE8 /* StakeNavigationView.swift in Sources */,
 				D8C4A3772C8CF957006FABE8 /* EarnNavigationView.swift in Sources */,
