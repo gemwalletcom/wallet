@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
+import com.gemwallet.android.blockchain.gemstone.toGem
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.services.PaymentService
+import com.gemwallet.android.blockchain.services.WalletConnectSimulationService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
@@ -47,10 +49,12 @@ import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.PaymentAction
 import uniffi.gemstone.PaymentException
 import uniffi.gemstone.SignableTransaction
+import uniffi.gemstone.paymentWalletConnectUrl
 
 @HiltViewModel
 class PaymentViewModel @Inject constructor(
     private val paymentService: PaymentService,
+    private val simulationService: WalletConnectSimulationService,
     private val sessionRepository: SessionRepository,
     private val signMessageOperator: GemSignMessageOperator,
     private val passwordStore: PasswordStore,
@@ -155,11 +159,13 @@ class PaymentViewModel @Inject constructor(
 
     private fun watchExpiry(quotes: PaymentQuotes) {
         val expiresAt = quotes.expiresAt ?: return
+        expiryJob?.cancel()
         expiryJob = viewModelScope.launch(Dispatchers.IO) {
             delay((expiresAt - System.currentTimeMillis()).coerceAtLeast(0))
-            val current = state.value
-            if (current is PaymentSceneState.Quotes) {
-                state.value = current.copy(expired = true)
+            state.value = when (val current = state.value) {
+                is PaymentSceneState.Quotes -> current.copy(expired = true)
+                is PaymentSceneState.SignMessage -> current.copy(expired = true)
+                else -> current
             }
         }
     }
@@ -201,21 +207,28 @@ class PaymentViewModel @Inject constructor(
             state.value = PaymentSceneState.Outcome(settled?.status?.toUIModel() ?: PaymentOutcomeUIModel.Pending)
             return
         }
-        state.value = when (val action = step.action) {
+        val next = when (val action = step.action) {
             is PaymentAction.SignMessage -> signMessageState(action, current)
             is PaymentAction.SendTransaction -> confirmState(action.chain, action.transaction, true, current)
             is PaymentAction.SignTransaction -> confirmState(action.chain, action.transaction, false, current)
             is PaymentAction.ApproveToken -> approvalState(action, current)
         }
+        state.value = next
+        if (next is PaymentSceneState.SignMessage) {
+            watchExpiry(current.quotes)
+        }
     }
 
-    private fun signMessageState(
+    private suspend fun signMessageState(
         action: PaymentAction.SignMessage,
         current: ActivePayment,
     ): PaymentSceneState {
         val chain = action.message.chain.toChain() ?: return PaymentSceneState.Error(PaymentLinkError.NoAccount)
+        val simulation = runCatchingCancellable {
+            simulationService.simulateSignMessage(action.message, paymentWalletConnectUrl())
+        }.getOrNull()
         val signer = runCatching { MessageSigner(action.message) }.getOrNull()
-        val preview = signer?.let { runCatching { it.payloadPreview(emptyList()) }.getOrNull() }
+        val preview = signer?.let { runCatching { it.payloadPreview(simulation?.payload.orEmpty().map { field -> field.toGem() }) }.getOrNull() }
         return PaymentSceneState.SignMessage(
             merchant = current.quotes.merchant.toUIModel(),
             chain = chain,
@@ -228,6 +241,8 @@ class PaymentViewModel @Inject constructor(
                 .withExplorerLinks(chain, null),
             secondaryPayloadFields = preview?.secondary?.map { it.toPrimitives() }.orEmpty()
                 .withExplorerLinks(chain, null),
+            warnings = simulation?.warnings.orEmpty(),
+            expired = false,
         )
     }
 

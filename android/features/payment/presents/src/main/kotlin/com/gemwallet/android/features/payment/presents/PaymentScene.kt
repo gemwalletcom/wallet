@@ -58,7 +58,10 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
+import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -269,7 +272,10 @@ private fun PaymentSignMessageScene(
         closeIcon = true,
         onClose = { onAction(PaymentSceneAction.Cancel) },
         mainAction = {
-            MainActionButton(title = stringResource(R.string.transfer_confirm)) {
+            MainActionButton(
+                title = stringResource(R.string.transfer_confirm),
+                state = buttonState(enabled = !state.expired && !state.warnings.hasCriticalWarning()),
+            ) {
                 context.requestAuth(AuthRequest.Confirmation) { onAction(PaymentSceneAction.Sign) }
             }
         },
@@ -304,6 +310,7 @@ private fun PaymentSignMessageScene(
                     )
                 }
             }
+            simulationWarningsContent(state.warnings)
             if (state.quote == null) {
                 if (state.hasPayload) {
                     simulationPayloadFieldsContent(

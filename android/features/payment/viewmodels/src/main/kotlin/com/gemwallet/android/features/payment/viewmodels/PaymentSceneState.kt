@@ -5,6 +5,7 @@ import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIM
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentQuoteUIModel
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.models.PayloadField
+import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.PaymentException
@@ -47,6 +48,8 @@ sealed interface PaymentSceneState {
         val plainMessage: String,
         val primaryPayloadFields: List<PayloadField>,
         val secondaryPayloadFields: List<PayloadField>,
+        val warnings: List<SimulationWarning>,
+        val expired: Boolean,
     ) : PaymentSceneState {
         val hasPayload: Boolean
             get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
