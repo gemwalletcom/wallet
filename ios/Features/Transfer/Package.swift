@@ -68,7 +68,7 @@ let package = Package(
                 "EventPresenterService",
 
                 .product(name: "ChainService", package: "ChainServices"),
-                .product(name: "PaymentService", package: "ChainServices"),
+                .product(name: "PaymentService", package: "FeatureServices"),
                 .product(name: "WalletSessionService", package: "FeatureServices"),
                 .product(name: "NodeService", package: "ChainServices"),
                 .product(name: "TransactionStateService", package: "FeatureServices"),
