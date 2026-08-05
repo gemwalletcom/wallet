@@ -8,12 +8,12 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
 public final class CollectionsViewModel: CollectionsViewable, Sendable {
-    private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
     private let nftService: NFTService
 
     public let query: ObservableQuery<NFTRequest>
@@ -27,11 +27,11 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     public init(
         nftService: NFTService,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         wallet: Wallet,
     ) {
         self.nftService = nftService
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.wallet = wallet
         query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
@@ -41,7 +41,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     public var currentWallet: Wallet? {
-        walletService.currentWallet
+        walletSessionService.currentWallet
     }
 
     public var content: CollectionsContent {

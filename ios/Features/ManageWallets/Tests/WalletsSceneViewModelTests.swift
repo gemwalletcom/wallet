@@ -9,14 +9,24 @@ import SwiftUI
 import Testing
 import WalletService
 import WalletServiceTestKit
+import WalletSessionService
+import WalletSessionServiceTestKit
 
 @MainActor
 struct WalletsSceneViewModelTests {
     @Test
     func onDeleteConfirmed() async throws {
-        let service: WalletService = try .mockWallets()
-        let model = WalletsSceneViewModel.mock(walletService: service)
-        model.walletsQuery.value = service.wallets
+        let walletStore = WalletStore.mock(db: .mock())
+        for address in ["0x1", "0x2", "0x3"] {
+            try walletStore.addWallet(.mock(id: .multicoin(address: address)))
+        }
+
+        let walletSessionService = WalletSessionService.mock(store: walletStore)
+        let service = WalletService.mock(walletStore: walletStore, walletSessionService: walletSessionService)
+        walletSessionService.setCurrent(walletId: .multicoin(address: "0x1"))
+
+        let model = WalletsSceneViewModel.mock(walletService: service, walletSessionService: walletSessionService)
+        model.walletsQuery.value = walletSessionService.wallets
 
         #expect(model.currentWalletId == .multicoin(address: "0x1"))
 
@@ -40,31 +50,16 @@ extension WalletsSceneViewModel {
     static func mock(
         navigationPath: Binding<NavigationPath> = .constant(NavigationPath()),
         walletService: WalletService = .mock(),
+        walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
         isPresentingCreateWalletSheet: Binding<Bool> = .constant(false),
         isPresentingImportWalletSheet: Binding<Bool> = .constant(false),
     ) -> WalletsSceneViewModel {
         WalletsSceneViewModel(
             navigationPath: navigationPath,
             walletService: walletService,
+            walletSessionService: walletSessionService,
             isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
             isPresentingImportWalletSheet: isPresentingImportWalletSheet,
         )
-    }
-}
-
-extension WalletService {
-    static func mockWallets() throws -> Self {
-        let walletStore = WalletStore.mock(db: .mock())
-        let wallet1 = Wallet.mock(id: .multicoin(address: "0x1"))
-        let wallet2 = Wallet.mock(id: .multicoin(address: "0x2"))
-        let wallet3 = Wallet.mock(id: .multicoin(address: "0x3"))
-        try walletStore.addWallet(wallet1)
-        try walletStore.addWallet(wallet2)
-        try walletStore.addWallet(wallet3)
-
-        let service = WalletService.mock(walletStore: walletStore)
-        service.setCurrent(for: wallet1.id)
-
-        return service
     }
 }

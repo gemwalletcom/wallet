@@ -7,6 +7,8 @@ import Preferences
 import StoreTestKit
 import Testing
 import WalletServiceTestKit
+import WalletSessionService
+import WalletSessionServiceTestKit
 
 @MainActor
 struct CreateWalletModelTests {
@@ -14,6 +16,7 @@ struct CreateWalletModelTests {
     func createWalletSetsWalletConfiguration() async throws {
         let model = CreateWalletModel(
             walletService: .mock(keystore: KeystoreMock()),
+            walletSessionService: WalletSessionService.mock(),
             avatarService: .init(store: .mock()),
             onComplete: nil,
         )
@@ -33,6 +36,7 @@ struct CreateWalletModelTests {
     func generateSecretPhraseReturnsGeneratedWords() {
         let model = CreateWalletModel(
             walletService: .mock(keystore: KeystoreMock()),
+            walletSessionService: WalletSessionService.mock(),
             avatarService: .init(store: .mock()),
             onComplete: nil,
         )

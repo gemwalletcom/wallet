@@ -6,9 +6,11 @@ import Onboarding
 import Primitives
 import Style
 import SwiftUI
+import WalletSessionService
 
 struct WalletsNavigationStack: View {
     @Environment(\.walletService) private var walletService
+    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nameService) private var nameService
     @Environment(\.dismiss) private var dismiss
@@ -24,6 +26,7 @@ struct WalletsNavigationStack: View {
                 model: WalletsSceneViewModel(
                     navigationPath: $navigationPath,
                     walletService: walletService,
+                    walletSessionService: walletSessionService,
                     isPresentingCreateWalletSheet: $isPresentingCreateWalletSheet,
                     isPresentingImportWalletSheet: $isPresentingImportWalletSheet,
                 ),
@@ -47,6 +50,7 @@ struct WalletsNavigationStack: View {
                 CreateWalletNavigationStack(
                     model: CreateWalletModel(
                         walletService: walletService,
+                        walletSessionService: walletSessionService,
                         avatarService: avatarService,
                         onComplete: { dismiss() },
                     ),
@@ -56,6 +60,7 @@ struct WalletsNavigationStack: View {
                 ImportWalletNavigationStack(
                     model: ImportWalletViewModel(
                         walletService: walletService,
+                        walletSessionService: walletSessionService,
                         avatarService: avatarService,
                         nameService: nameService,
                         onComplete: { dismiss() },

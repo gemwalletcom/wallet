@@ -29,32 +29,12 @@ public struct WalletService: Sendable {
         self.preferences = preferences
     }
 
-    public var currentWalletId: WalletId? {
-        walletSessionService.currentWalletId
-    }
-
-    public var currentWallet: Wallet? {
-        walletSessionService.currentWallet
-    }
-
-    public var wallets: [Wallet] {
-        walletSessionService.wallets
-    }
-
     public var isAcceptTermsCompleted: Bool {
         preferences.isAcceptTermsCompleted
     }
 
     public func nextWalletIndex() throws -> Int {
         try walletStore.nextWalletIndex()
-    }
-
-    public func setCurrent(for walletId: WalletId) {
-        walletSessionService.setCurrent(walletId: walletId)
-    }
-
-    public func getWallet(walletId: WalletId) throws -> Wallet {
-        try walletSessionService.getWallet(walletId: walletId)
     }
 
     public func acceptTerms() {
@@ -65,14 +45,6 @@ public struct WalletService: Sendable {
         try keystore.createWallet()
     }
 
-    @discardableResult
-    public func setCurrent(wallet: Wallet) async throws -> Wallet {
-        await MainActor.run {
-            walletSessionService.setCurrent(walletId: wallet.id)
-        }
-        return wallet
-    }
-
     public func loadOrCreateWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
         if let existing = try await existingWallet(type: type) {
             return .existing(existing)
@@ -80,7 +52,7 @@ public struct WalletService: Sendable {
         let wallet = try await keystore.importWallet(
             name: name,
             type: type,
-            isWalletsEmpty: wallets.isEmpty,
+            isWalletsEmpty: walletSessionService.wallets.isEmpty,
             source: source,
         )
         try walletStore.addWallet(wallet)
@@ -90,7 +62,7 @@ public struct WalletService: Sendable {
 
     private func existingWallet(type: KeystoreImportType) async throws -> Wallet? {
         let preview = try await keystore.previewImport(type: type)
-        return wallets.first { wallet in
+        return walletSessionService.wallets.first { wallet in
             wallet.id == preview.walletId && wallet.type == preview.walletType
         }
     }
@@ -102,12 +74,12 @@ public struct WalletService: Sendable {
         WalletPreferences(walletId: wallet.id).clear()
 
         await MainActor.run {
-            if currentWalletId == wallet.id {
-                walletSessionService.setCurrent(walletId: wallets.first?.id)
+            if walletSessionService.currentWalletId == wallet.id {
+                walletSessionService.setCurrent(walletId: walletSessionService.wallets.first?.id)
             }
         }
 
-        if wallets.isEmpty {
+        if walletSessionService.wallets.isEmpty {
             preferences.preferences.clear()
             preferences.preferences.subscriptionsVersionHasChange = false
         }

@@ -9,6 +9,7 @@ import Style
 import SwiftUI
 import Transactions
 import TransactionsService
+import WalletSessionService
 import WalletTab
 
 struct MainTabView: View {
@@ -20,7 +21,7 @@ struct MainTabView: View {
     @Environment(\.nftService) private var nftService
     @Environment(\.priceService) private var priceService
     @Environment(\.observablePreferences) private var observablePreferences
-    @Environment(\.walletService) private var walletService
+    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.transactionsService) private var transactionsService
@@ -45,7 +46,7 @@ struct MainTabView: View {
                     assetDiscoveryService: assetDiscoveryService,
                     balanceService: balanceService,
                     bannerService: bannerService,
-                    walletService: walletService,
+                    walletSessionService: walletSessionService,
                     nftService: nftService,
                     observablePreferences: observablePreferences,
                     wallet: model.wallet,
@@ -68,7 +69,7 @@ struct MainTabView: View {
             TransactionsNavigationStack(
                 model: TransactionsViewModel(
                     transactionsService: transactionsService,
-                    walletService: walletService,
+                    walletSessionService: walletSessionService,
                     wallet: model.wallet,
                     type: .all,
                 ),
@@ -109,7 +110,7 @@ struct MainTabView: View {
         }
         .toast(message: $model.isPresentingToastMessage)
         .bindQuery(model.transactionsQuery)
-        .onChange(of: walletService.currentWallet, model.onChangeWallet)
+        .onChange(of: walletSessionService.currentWallet, model.onChangeWallet)
         .connectionStatusBanner()
     }
 }

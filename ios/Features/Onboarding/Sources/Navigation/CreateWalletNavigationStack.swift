@@ -114,11 +114,7 @@ extension CreateWalletNavigationStack {
 
     func onSetupWalletComplete(wallet: Wallet) {
         Task {
-            do {
-                try await model.setupWalletComplete(wallet: wallet)
-            } catch {
-                debugLog("Failed to setup wallet: \(error)")
-            }
+            await model.setupWalletComplete(wallet: wallet)
         }
     }
 }

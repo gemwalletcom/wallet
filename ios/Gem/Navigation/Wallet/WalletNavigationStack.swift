@@ -17,6 +17,7 @@ import Store
 import SwiftUI
 import Transactions
 import Transfer
+import WalletSessionService
 import WalletTab
 
 struct WalletNavigationStack: View {
@@ -38,7 +39,7 @@ struct WalletNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
-    @Environment(\.walletService) private var walletService
+    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.observablePreferences) private var preferences
 
     @State private var model: WalletSceneViewModel
@@ -149,7 +150,7 @@ struct WalletNavigationStack: View {
                 CollectionsSceneNavigationView(
                     model: CollectionsViewModel(
                         nftService: nftService,
-                        walletService: walletService,
+                        walletSessionService: walletSessionService,
                         wallet: model.wallet,
                     ),
                 )

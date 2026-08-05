@@ -30,7 +30,7 @@ import TransactionStateService
 import Transfer
 import WalletConnector
 import WalletConnectorService
-import WalletService
+import WalletSessionService
 import WalletTab
 
 public struct ViewModelFactory: Sendable {
@@ -40,7 +40,7 @@ public struct ViewModelFactory: Sendable {
     let swapService: SwapService
     let assetsEnabler: any AssetsEnabler
     let priceUpdater: any PriceUpdater
-    let walletService: WalletService
+    let walletSessionService: any WalletSessionManageable
     let stakeService: StakeService
     let earnService: EarnService
     let amountService: AmountService
@@ -65,7 +65,7 @@ public struct ViewModelFactory: Sendable {
         swapService: SwapService,
         assetsEnabler: any AssetsEnabler,
         priceUpdater: any PriceUpdater,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         stakeService: StakeService,
         earnService: EarnService,
         amountService: AmountService,
@@ -89,7 +89,7 @@ public struct ViewModelFactory: Sendable {
         self.swapService = swapService
         self.assetsEnabler = assetsEnabler
         self.priceUpdater = priceUpdater
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.stakeService = stakeService
         self.earnService = earnService
         self.amountService = amountService
@@ -192,7 +192,7 @@ public struct ViewModelFactory: Sendable {
         RecipientSceneViewModel(
             wallet: wallet,
             asset: asset,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
             nameService: nameService,
             type: type,
             onRecipientDataAction: onRecipientDataAction,

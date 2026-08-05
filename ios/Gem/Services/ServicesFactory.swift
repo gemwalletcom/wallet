@@ -170,7 +170,7 @@ struct ServicesFactory {
             presenter: navigationPresenter,
             assetsService: assetsService,
             transactionsService: transactionsService,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
         )
 
         let priceService = PriceService(
@@ -309,7 +309,6 @@ struct ServicesFactory {
         )
         let inAppNotificationService = InAppNotificationService(
             apiService: apiService,
-            walletService: walletService,
             store: storeManager.inAppNotificationStore,
         )
 
@@ -332,7 +331,7 @@ struct ServicesFactory {
             swapService: swapService,
             assetsEnabler: assetsEnabler,
             priceUpdater: streamSubscriptionService,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
             stakeService: stakeService,
             earnService: earnService,
             amountService: AmountService(earnDataProvider: earnService),

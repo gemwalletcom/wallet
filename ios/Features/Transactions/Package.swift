@@ -42,7 +42,7 @@ let package = Package(
                 "PrimitivesComponents",
                 .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "TransactionsService", package: "FeatureServices"),
-                .product(name: "WalletService", package: "FeatureServices"),
+                .product(name: "WalletSessionService", package: "FeatureServices"),
                 "Preferences",
                 "InfoSheet",
             ],

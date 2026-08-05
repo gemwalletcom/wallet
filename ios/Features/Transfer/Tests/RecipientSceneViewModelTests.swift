@@ -8,7 +8,8 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import WalletServiceTestKit
+import WalletSessionService
+import WalletSessionServiceTestKit
 
 @MainActor
 struct RecipientSceneViewModelTests {
@@ -159,7 +160,7 @@ extension RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: wallet,
             asset: asset,
-            walletService: .mock(),
+            walletSessionService: WalletSessionService.mock(),
             nameService: .mock(),
             type: type,
             onRecipientDataAction: onRecipientDataAction,

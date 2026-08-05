@@ -44,6 +44,7 @@ struct RootScene: View {
             CreateWalletNavigationStack(
                 model: CreateWalletModel(
                     walletService: model.walletService,
+                    walletSessionService: model.walletSessionService,
                     avatarService: model.avatarService,
                     onComplete: model.dismissCreateWallet,
                 ),
@@ -53,6 +54,7 @@ struct RootScene: View {
             ImportWalletNavigationStack(
                 model: ImportWalletViewModel(
                     walletService: model.walletService,
+                    walletSessionService: model.walletSessionService,
                     avatarService: model.avatarService,
                     nameService: model.nameService,
                     onComplete: model.dismissImportWallet,

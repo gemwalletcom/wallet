@@ -8,7 +8,8 @@ import NFTServiceTestKit
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
-import WalletServiceTestKit
+import WalletSessionService
+import WalletSessionServiceTestKit
 import WalletTab
 
 public extension WalletSceneViewModel {
@@ -17,7 +18,7 @@ public extension WalletSceneViewModel {
             assetDiscoveryService: .mock(),
             balanceService: .mock(),
             bannerService: .mock(),
-            walletService: .mock(),
+            walletSessionService: WalletSessionService.mock(),
             nftService: .mock(),
             observablePreferences: .mock(),
             wallet: wallet,
