@@ -75,7 +75,11 @@ public struct PaymentQuotesScene: View {
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
     }
+}
 
+// MARK: - Actions
+
+extension PaymentQuotesScene {
     private func confirm() {
         model.onConfirm()
         onComplete()

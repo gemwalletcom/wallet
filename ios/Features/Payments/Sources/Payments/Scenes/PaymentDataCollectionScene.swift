@@ -34,7 +34,11 @@ public struct PaymentDataCollectionScene: View {
         )
         .ignoresSafeArea(edges: .bottom)
     }
+}
 
+// MARK: - Actions
+
+extension PaymentDataCollectionScene {
     private func onMessage(_ payload: [String: Any]) {
         switch payload[Self.messageTypeKey] as? String {
         case Self.completeMessageType:

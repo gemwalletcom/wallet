@@ -3,7 +3,7 @@
 import Foundation
 import Localization
 
-public enum PaymentLinkError: Error, Equatable {
+enum PaymentLinkError: Error, Equatable {
     case noQuotes
     case quoteUnavailable
     case invalidDataCollectionUrl

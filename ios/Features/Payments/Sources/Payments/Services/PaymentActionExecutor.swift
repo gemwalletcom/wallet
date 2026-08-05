@@ -5,11 +5,6 @@ import PaymentService
 import Primitives
 import SimulationService
 
-public struct PaymentActionResults: Sendable {
-    public let results: [String]
-    public let transactionHash: String?
-}
-
 public protocol PaymentActionExecutable: Sendable {
     @MainActor
     func execute(
@@ -46,7 +41,7 @@ public struct PaymentActionExecutor: PaymentActionExecutable {
         wallet: Wallet,
         onSubmitted: @MainActor () -> Void = {},
     ) async throws -> PaymentActionResults {
-        var results = [String](repeating: "", count: actions.count)
+        var results: [String] = []
         var transactionHash: String?
         for (index, action) in actions.enumerated() {
             let value = try await execute(
@@ -56,7 +51,7 @@ public struct PaymentActionExecutor: PaymentActionExecutable {
                 payment: payment,
                 wallet: wallet,
             )
-            results[index] = value
+            results.append(value)
 
             if case .sendTransaction = action {
                 transactionHash = value

@@ -28,14 +28,6 @@ public struct PaymentManager: Sendable {
     }
 
     public func pay(link: PaymentLink, wallet: Wallet) async throws -> PaymentOutcome {
-        try await perform(link: link, wallet: wallet)
-    }
-}
-
-// MARK: - Private
-
-extension PaymentManager {
-    private func perform(link: PaymentLink, wallet: Wallet) async throws -> PaymentOutcome {
         do {
             let quotes: PaymentQuotes
             switch try await service.getPaymentOptions(link: link, wallet: wallet) {
@@ -50,7 +42,11 @@ extension PaymentManager {
             return PaymentOutcome(status: .cancelled, transactionId: .none)
         }
     }
+}
 
+// MARK: - Private
+
+extension PaymentManager {
     private func select(quotes: PaymentQuotes, wallet: Wallet) async throws -> PaymentQuote {
         guard let first = quotes.quotes.first else {
             throw PaymentLinkError.noQuotes
@@ -88,7 +84,7 @@ extension PaymentManager {
                 guard payment.isRelayed else {
                     return
                 }
-                save(provider: provider, payment: payment, wallet: wallet)
+                addPendingPayment(provider: provider, payment: payment, wallet: wallet)
             },
         )
         do {
@@ -106,7 +102,7 @@ extension PaymentManager {
         _ = try await presenter.collectPaymentData(request: PaymentDataCollectionRequest(id: paymentId, url: url))
     }
 
-    private func save(provider: PaymentProviderName, payment: PreparedPayment, wallet: Wallet) {
+    private func addPendingPayment(provider: PaymentProviderName, payment: PreparedPayment, wallet: Wallet) {
         do {
             let transaction = try PaymentTransactionFactory.makePendingPayment(
                 provider: provider,

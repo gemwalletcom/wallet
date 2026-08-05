@@ -6,11 +6,6 @@ import GemstonePrimitives
 import NativeProviderService
 import Primitives
 
-public protocol PaymentStatusServiceable: Sendable {
-    func hasStatus(provider: PaymentProviderName) -> Bool
-    func getPaymentStatus(provider: PaymentProviderName, paymentId: String) async throws -> PaymentOutcome
-}
-
 public protocol PaymentServiceable: PaymentStatusServiceable {
     func getPaymentOptions(link: PaymentLink, wallet: Wallet) async throws -> PaymentOptions
     func getPreparedPayment(provider: PaymentProviderName, quotes: PaymentQuotes, quote: PaymentQuote, wallet: Wallet) async throws -> PreparedPayment
