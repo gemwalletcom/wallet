@@ -32,13 +32,13 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.open
 import org.json.JSONObject
+import uniffi.gemstone.paymentWalletConnectHost
 
 private const val MESSAGE_HANDLER = "payDataCollectionComplete"
 private const val MESSAGE_TYPE_KEY = "type"
 private const val MESSAGE_ERROR_KEY = "error"
 private const val COMPLETE = "IC_COMPLETE"
 private const val ERROR = "IC_ERROR"
-private const val ALLOWED_HOST = "walletconnect.com"
 private const val TAG = "PaymentDataCollection"
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -102,11 +102,13 @@ private class AllowedHostWebViewClient(
     private val context: Context,
     private val uriHandler: UriHandler,
 ) : WebViewClient() {
+    private val allowedHost = paymentWalletConnectHost()
+
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         val uri = request?.url ?: return true
         if (uri.scheme != "https" && uri.scheme != "http") return true
         val host = uri.host?.lowercase() ?: return true
-        if (uri.scheme == "https" && (host == ALLOWED_HOST || host.endsWith(".$ALLOWED_HOST"))) return false
+        if (uri.scheme == "https" && (host == allowedHost || host.endsWith(".$allowedHost"))) return false
         uriHandler.open(context, uri.toString())
         return true
     }
