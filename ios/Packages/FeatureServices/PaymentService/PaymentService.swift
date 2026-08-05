@@ -15,7 +15,6 @@ public protocol PaymentServiceable: PaymentStatusServiceable {
     func getPaymentOptions(link: PaymentLink, wallet: Wallet) async throws -> PaymentOptions
     func getPreparedPayment(provider: PaymentProviderName, quotes: PaymentQuotes, quote: PaymentQuote, wallet: Wallet) async throws -> PreparedPayment
     func confirmPayment(provider: PaymentProviderName, quote: PaymentQuote, actionResults: [String]) async throws -> PaymentOutcome
-    func cancelPayment(provider: PaymentProviderName, paymentId: String) async throws
 }
 
 public final class PaymentService: PaymentServiceable {
@@ -43,6 +42,7 @@ public final class PaymentService: PaymentServiceable {
             quotes: payment.quotes.map(),
             quote: payment.quote.map(),
             actions: payment.actions.map { try $0.map() },
+            isRelayed: payment.isRelayed,
         )
     }
 
@@ -50,15 +50,8 @@ public final class PaymentService: PaymentServiceable {
         try await service.confirmPayment(provider: provider.map(), quote: quote.map(), actionResults: actionResults).map()
     }
 
-    public func cancelPayment(provider: PaymentProviderName, paymentId: String) async throws {
-        try await service.cancelPayment(provider: provider.map(), paymentId: paymentId)
-    }
-
     public func hasStatus(provider: PaymentProviderName) -> Bool {
-        switch provider {
-        case .walletConnectPay: true
-        case .solanaPay: false
-        }
+        Gemstone.paymentProviderHasStatus(provider: provider.map())
     }
 
     public func getPaymentStatus(provider: PaymentProviderName, paymentId: String) async throws -> PaymentOutcome {

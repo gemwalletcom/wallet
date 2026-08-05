@@ -8,23 +8,25 @@ import PrimitivesTestKit
 public actor PaymentServiceableMock: PaymentServiceable {
     private var options: [PaymentOptions]
     private let actions: [PaymentAction]
+    private let isRelayed: Bool
     private let confirmOutcome: PaymentOutcome
     private let confirmError: (any Error)?
     private let statusOutcome: PaymentOutcome
 
-    public private(set) var cancelledPaymentIds: [String] = []
     public private(set) var confirmedResults: [[String]] = []
     public private(set) var requestedQuotes: [PaymentQuote] = []
 
     public init(
         options: [PaymentOptions],
         actions: [PaymentAction] = [],
+        isRelayed: Bool = true,
         confirmOutcome: PaymentOutcome = .mock(),
         confirmError: (any Error)? = .none,
         statusOutcome: PaymentOutcome = .mock(),
     ) {
         self.options = options
         self.actions = actions
+        self.isRelayed = isRelayed
         self.confirmOutcome = confirmOutcome
         self.confirmError = confirmError
         self.statusOutcome = statusOutcome
@@ -39,7 +41,12 @@ public actor PaymentServiceableMock: PaymentServiceable {
 
     public func getPreparedPayment(provider _: PaymentProviderName, quotes: PaymentQuotes, quote: PaymentQuote, wallet _: Wallet) async throws -> PreparedPayment {
         requestedQuotes.append(quote)
-        return PreparedPayment(quotes: quotes, quote: quote, actions: actions)
+        return PreparedPayment(
+            quotes: quotes,
+            quote: quote,
+            actions: actions,
+            isRelayed: isRelayed,
+        )
     }
 
     public func confirmPayment(provider _: PaymentProviderName, quote _: PaymentQuote, actionResults: [String]) async throws -> PaymentOutcome {
@@ -48,10 +55,6 @@ public actor PaymentServiceableMock: PaymentServiceable {
             throw confirmError
         }
         return confirmOutcome
-    }
-
-    public func cancelPayment(provider _: PaymentProviderName, paymentId: String) async throws {
-        cancelledPaymentIds.append(paymentId)
     }
 
     public nonisolated func hasStatus(provider _: PaymentProviderName) -> Bool {
