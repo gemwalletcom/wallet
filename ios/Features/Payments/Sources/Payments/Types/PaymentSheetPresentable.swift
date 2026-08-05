@@ -2,7 +2,7 @@
 
 import Foundation
 import PaymentService
-import Primitives
+import PrimitivesComponents
 import SigningRequestService
 
 public protocol PaymentSheetPresentable: SigningRequestInteractable {
@@ -11,24 +11,28 @@ public protocol PaymentSheetPresentable: SigningRequestInteractable {
 }
 
 @Observable
-public final class PaymentSheetPresenter: PaymentSheetPresentable, SigningRequestSheetPresentable, Sendable {
+public final class PaymentSheetPresenter: PaymentSheetPresentable, SheetPresenting, Sendable {
     public let sheets = SheetPresenter<PaymentSheetType>()
 
     public init() {}
 
-    public static func signMessageSheet(_ callback: SigningRequestCallback<SignMessagePayload>) -> PaymentSheetType {
-        .signMessage(callback)
+    public func signMessage(payload: SignMessagePayload) async throws -> String {
+        try await present(payload: payload) { .signMessage($0) }
     }
 
-    public static func transferSheet(_ callback: SigningRequestCallback<SigningTransferData>) -> PaymentSheetType {
-        .confirm(callback)
+    public func signTransaction(transferData: SigningTransferData) async throws -> String {
+        try await present(payload: transferData) { .confirm($0) }
+    }
+
+    public func sendTransaction(transferData: SigningTransferData) async throws -> String {
+        try await present(payload: transferData) { .confirm($0) }
     }
 
     public func selectPaymentQuote(request: PaymentQuotesRequest) async throws -> String {
-        try await sheets.present(payload: request, sheet: { .quotes($0) })
+        try await present(payload: request) { .quotes($0) }
     }
 
     public func collectPaymentData(request: PaymentDataCollectionRequest) async throws -> String {
-        try await sheets.present(payload: request, sheet: { .dataCollection($0) })
+        try await present(payload: request) { .dataCollection($0) }
     }
 }

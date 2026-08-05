@@ -4,6 +4,7 @@ import SigningRequestService
 import Style
 import SwiftUI
 import Transfer
+import PrimitivesComponents
 
 struct SigningRequestSheetView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -44,8 +45,8 @@ struct SigningRequestSheetView: View {
 }
 
 enum SigningRequestSheetContent {
-    case transfer(SigningRequestCallback<SigningTransferData>)
-    case signMessage(SigningRequestCallback<SignMessagePayload>)
+    case transfer(SheetCallback<SigningTransferData>)
+    case signMessage(SheetCallback<SignMessagePayload>)
 }
 
 // MARK: - Chrome

@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
+import PrimitivesComponents
 import SigningRequestService
 
 @Observable
-public final class WalletConnectorPresenter: SigningRequestSheetPresentable, Sendable {
+public final class WalletConnectorPresenter: SheetPresenting, SigningRequestInteractable, Sendable {
     public let sheets = SheetPresenter<WalletConnectorSheetType>()
 
     @MainActor
@@ -15,11 +15,15 @@ public final class WalletConnectorPresenter: SigningRequestSheetPresentable, Sen
 
     public init() {}
 
-    public static func signMessageSheet(_ callback: SigningRequestCallback<SignMessagePayload>) -> WalletConnectorSheetType {
-        .signMessage(callback)
+    public func signMessage(payload: SignMessagePayload) async throws -> String {
+        try await present(payload: payload) { .signMessage($0) }
     }
 
-    public static func transferSheet(_ callback: SigningRequestCallback<SigningTransferData>) -> WalletConnectorSheetType {
-        .transferData(callback)
+    public func signTransaction(transferData: SigningTransferData) async throws -> String {
+        try await present(payload: transferData) { .transferData($0) }
+    }
+
+    public func sendTransaction(transferData: SigningTransferData) async throws -> String {
+        try await present(payload: transferData) { .transferData($0) }
     }
 }

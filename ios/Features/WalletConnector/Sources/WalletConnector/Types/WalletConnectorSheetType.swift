@@ -3,12 +3,12 @@
 import Foundation
 import Primitives
 import SigningRequestService
-import WalletConnectorService
+import PrimitivesComponents
 
 public enum WalletConnectorSheetType: Sendable, Identifiable {
-    case connectionProposal(SigningRequestCallback<WCPairingProposal>)
-    case transferData(SigningRequestCallback<SigningTransferData>)
-    case signMessage(SigningRequestCallback<SignMessagePayload>)
+    case connectionProposal(SheetCallback<WCPairingProposal>)
+    case transferData(SheetCallback<SigningTransferData>)
+    case signMessage(SheetCallback<SignMessagePayload>)
 
     public var id: String {
         callback.id
@@ -18,7 +18,7 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
         callback.reject(error)
     }
 
-    private var callback: any SigningRequestRejectable {
+    private var callback: any SheetRejectable {
         switch self {
         case let .connectionProposal(callback): callback
         case let .transferData(callback): callback
@@ -27,6 +27,6 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
     }
 }
 
-// MARK: - SigningRequestRejectable
+// MARK: - SheetRejectable
 
-extension WalletConnectorSheetType: SigningRequestRejectable {}
+extension WalletConnectorSheetType: SheetRejectable {}

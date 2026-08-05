@@ -26,7 +26,7 @@ extension WalletConnectorManager: WalletConnectorInteractable {
     }
 
     public func sessionApproval(payload: WCPairingProposal) async throws -> WalletId {
-        let value = try await presenter.sheets.present(payload: payload, sheet: { .connectionProposal($0) })
+        let value = try await presenter.present(payload: payload) { .connectionProposal($0) }
         return try WalletId.from(id: value)
     }
 

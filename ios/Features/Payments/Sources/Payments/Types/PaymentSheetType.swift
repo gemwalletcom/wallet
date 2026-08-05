@@ -2,14 +2,14 @@
 
 import Foundation
 import PaymentService
-import Primitives
 import SigningRequestService
+import PrimitivesComponents
 
 public enum PaymentSheetType: Sendable, Identifiable {
-    case quotes(SigningRequestCallback<PaymentQuotesRequest>)
-    case dataCollection(SigningRequestCallback<PaymentDataCollectionRequest>)
-    case confirm(SigningRequestCallback<SigningTransferData>)
-    case signMessage(SigningRequestCallback<SignMessagePayload>)
+    case quotes(SheetCallback<PaymentQuotesRequest>)
+    case dataCollection(SheetCallback<PaymentDataCollectionRequest>)
+    case confirm(SheetCallback<SigningTransferData>)
+    case signMessage(SheetCallback<SignMessagePayload>)
 
     public var id: String {
         callback.id
@@ -19,7 +19,7 @@ public enum PaymentSheetType: Sendable, Identifiable {
         callback.reject(error)
     }
 
-    private var callback: any SigningRequestRejectable {
+    private var callback: any SheetRejectable {
         switch self {
         case let .quotes(callback): callback
         case let .dataCollection(callback): callback
@@ -29,6 +29,6 @@ public enum PaymentSheetType: Sendable, Identifiable {
     }
 }
 
-// MARK: - SigningRequestRejectable
+// MARK: - SheetRejectable
 
-extension PaymentSheetType: SigningRequestRejectable {}
+extension PaymentSheetType: SheetRejectable {}

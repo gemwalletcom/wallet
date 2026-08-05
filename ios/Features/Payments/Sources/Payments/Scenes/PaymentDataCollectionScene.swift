@@ -6,7 +6,7 @@ import Localization
 import PaymentService
 import Primitives
 import SwiftUI
-import SigningRequestService
+import PrimitivesComponents
 
 public struct PaymentDataCollectionScene: View {
     private static let messageHandlerName = "payDataCollectionComplete"
@@ -15,11 +15,11 @@ public struct PaymentDataCollectionScene: View {
     private static let messageTypeKey = "type"
     private static let messageErrorKey = "error"
 
-    private let callback: SigningRequestCallback<PaymentDataCollectionRequest>
+    private let callback: SheetCallback<PaymentDataCollectionRequest>
     private let onComplete: () -> Void
 
     public init(
-        callback: SigningRequestCallback<PaymentDataCollectionRequest>,
+        callback: SheetCallback<PaymentDataCollectionRequest>,
         onComplete: @escaping () -> Void,
     ) {
         self.callback = callback

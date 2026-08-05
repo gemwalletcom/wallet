@@ -115,16 +115,7 @@ let package = Package(
                 "NativeProviderService",
             ],
             path: "SigningRequestService",
-            exclude: ["TestKit", "Tests"],
-        ),
-        .testTarget(
-            name: "SigningRequestServiceTests",
-            dependencies: [
-                "SigningRequestService",
-                "SigningRequestServiceTestKit",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ],
-            path: "SigningRequestService/Tests",
+            exclude: ["TestKit"],
         ),
         .target(
             name: "SigningRequestServiceTestKit",

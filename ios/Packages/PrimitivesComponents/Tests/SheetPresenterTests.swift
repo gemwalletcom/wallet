@@ -2,39 +2,37 @@
 
 import Foundation
 import Primitives
-import PrimitivesTestKit
-@testable import SigningRequestService
-import SigningRequestServiceTestKit
+@testable import PrimitivesComponents
 import Testing
 
 struct SheetPresenterTests {
     @Test
     @MainActor
     func completeDismissesThePresentedSheet() {
-        let presenter = SheetPresenter<TestSheetType>()
-        let type = Self.sheet(id: "request")
+        let presenter = TestPresenter()
+        let type = TestSheetType.request(SheetCallback(payload: TestPayload(id: "request"), delegate: { _ in }))
 
-        presenter.isPresentingSheet = type
+        presenter.sheets.isPresentingSheet = type
         presenter.complete(type: type)
 
-        #expect(presenter.isPresentingSheet == nil)
+        #expect(presenter.sheets.isPresentingSheet == nil)
     }
 
     @Test
     @MainActor
     func presentReturnsTheAnswerOnlyAfterTheSheetReportsItClosed() async throws {
-        let presenter = SheetPresenter<TestSheetType>()
+        let presenter = TestPresenter()
         let answer = Task { @MainActor in
-            try await presenter.present(payload: SignMessagePayload.mock(id: "request"), sheet: { .signMessage($0) })
+            try await presenter.present(payload: TestPayload(id: "request")) { .request($0) }
         }
-        try await Self.wait { presenter.isPresentingSheet != nil }
+        try await Self.wait { presenter.sheets.isPresentingSheet != nil }
 
-        guard case let .signMessage(callback) = presenter.isPresentingSheet else {
+        guard case let .request(callback) = presenter.sheets.isPresentingSheet else {
             Issue.record("sheet is not presented")
             return
         }
         callback.delegate(.success("signature"))
-        try await Self.wait { presenter.isPresentingSheet == nil }
+        try await Self.wait { presenter.sheets.isPresentingSheet == nil }
         presenter.onSheetDismiss()
 
         #expect(try await answer.value == "signature")
@@ -43,30 +41,30 @@ struct SheetPresenterTests {
     @Test
     @MainActor
     func presentQueuesBehindTheSheetThatIsStillClosing() async throws {
-        let presenter = SheetPresenter<TestSheetType>()
+        let presenter = TestPresenter()
         let first = Task { @MainActor in
-            try await presenter.present(payload: SignMessagePayload.mock(id: "first"), sheet: { .signMessage($0) })
+            try await presenter.present(payload: TestPayload(id: "first")) { .request($0) }
         }
-        try await Self.wait { presenter.isPresentingSheet?.id == "first" }
+        try await Self.wait { presenter.sheets.isPresentingSheet?.id == "first" }
 
-        guard case let .signMessage(callback) = presenter.isPresentingSheet else {
+        guard case let .request(callback) = presenter.sheets.isPresentingSheet else {
             Issue.record("sheet is not presented")
             return
         }
         let second = Task { @MainActor in
-            try await presenter.present(payload: SignMessagePayload.mock(id: "second"), sheet: { .signMessage($0) })
+            try await presenter.present(payload: TestPayload(id: "second")) { .request($0) }
         }
         callback.delegate(.success("signature"))
-        try await Self.wait { presenter.isPresentingSheet == nil }
+        try await Self.wait { presenter.sheets.isPresentingSheet == nil }
 
-        #expect(presenter.isPresentingSheet == nil)
+        #expect(presenter.sheets.isPresentingSheet == nil)
 
         presenter.onSheetDismiss()
-        try await Self.wait { presenter.isPresentingSheet?.id == "second" }
+        try await Self.wait { presenter.sheets.isPresentingSheet?.id == "second" }
 
         #expect(try await first.value == "signature")
 
-        guard let sheet = presenter.isPresentingSheet else {
+        guard let sheet = presenter.sheets.isPresentingSheet else {
             Issue.record("queued sheet is not presented")
             return
         }
@@ -78,13 +76,13 @@ struct SheetPresenterTests {
     @Test
     @MainActor
     func cancelSheetFailsTheRequestWithUserCancelled() async throws {
-        let presenter = SheetPresenter<TestSheetType>()
+        let presenter = TestPresenter()
         let answer = Task { @MainActor in
-            try await presenter.present(payload: SignMessagePayload.mock(id: "request"), sheet: { .signMessage($0) })
+            try await presenter.present(payload: TestPayload(id: "request")) { .request($0) }
         }
-        try await Self.wait { presenter.isPresentingSheet != nil }
+        try await Self.wait { presenter.sheets.isPresentingSheet != nil }
 
-        guard let sheet = presenter.isPresentingSheet else {
+        guard let sheet = presenter.sheets.isPresentingSheet else {
             Issue.record("sheet is not presented")
             return
         }
@@ -94,10 +92,6 @@ struct SheetPresenterTests {
         await #expect(throws: SigningRequestError.userCancelled) {
             try await answer.value
         }
-    }
-
-    private static func sheet(id: String) -> TestSheetType {
-        .signMessage(SigningRequestCallback(payload: .mock(id: id), delegate: { _ in }))
     }
 
     private static func wait(until condition: @MainActor () -> Bool) async throws {
@@ -111,18 +105,26 @@ struct SheetPresenterTests {
     }
 }
 
-private enum TestSheetType: Sendable, Identifiable, SigningRequestRejectable {
-    case signMessage(SigningRequestCallback<SignMessagePayload>)
+private struct TestPayload: Identifiable, Sendable {
+    let id: String
+}
+
+private struct TestPresenter: SheetPresenting {
+    let sheets = SheetPresenter<TestSheetType>()
+}
+
+private enum TestSheetType: Sendable, Identifiable, SheetRejectable {
+    case request(SheetCallback<TestPayload>)
 
     var id: String {
         switch self {
-        case let .signMessage(callback): callback.id
+        case let .request(callback): callback.id
         }
     }
 
     func reject(_ error: any Error) {
         switch self {
-        case let .signMessage(callback): callback.reject(error)
+        case let .request(callback): callback.reject(error)
         }
     }
 }
