@@ -47,7 +47,7 @@ class HyperliquidObserverServiceTest {
         val observer = HyperliquidObserverService(
             observePerpetualWallet = observePerpetualWallet,
             syncPerpetualPositions = mockk(relaxed = true),
-            getPerpetualAccountMode = mockk { coEvery { getPerpetualAccountMode(any()) } returns PerpetualAccountMode.Standard },
+            getPerpetualAccountMode = mockk { coEvery { getPerpetualAccountMode(any(), any()) } returns PerpetualAccountMode.Standard },
             hyperliquid = mockk {
                 every { accountSubscriptions(any(), any()) } returns listOf(
                     GemPerpetualSubscription.AccountState(ADDRESS),

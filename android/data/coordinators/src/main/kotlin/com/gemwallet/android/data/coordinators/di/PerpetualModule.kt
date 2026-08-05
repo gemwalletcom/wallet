@@ -64,9 +64,11 @@ object PerpetualModule {
     @Singleton
     fun provideGetPerpetualAccountMode(
         perpetualService: PerpetualService,
+        userConfig: UserConfig,
     ): GetPerpetualAccountMode {
         return GetPerpetualAccountModeImpl(
             perpetualService = perpetualService,
+            userConfig = userConfig,
         )
     }
 

@@ -139,7 +139,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func accountMode(for wallet: Wallet) async -> PerpetualAccountMode {
         guard let address = wallet.hyperliquidAccount?.address else { return .standard }
-        return await perpetualService.accountMode(address: address)
+        return await perpetualService.accountMode(walletId: wallet.id, address: address)
     }
 
     private func handleAccountState(

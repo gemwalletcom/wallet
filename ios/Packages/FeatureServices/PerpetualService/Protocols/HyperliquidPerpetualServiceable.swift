@@ -6,7 +6,7 @@ import struct Gemstone.GemPerpetualPosition
 import Primitives
 
 public protocol HyperliquidPerpetualServiceable: PerpetualServiceable {
-    func accountMode(address: String) async -> PerpetualAccountMode
+    func accountMode(walletId: WalletId, address: String) async -> PerpetualAccountMode
     func getHypercorePositions(walletId: WalletId) throws -> [GemPerpetualPosition]
     func updateBalance(walletId: WalletId, balance: GemPerpetualBalance) throws
     func diffPositions(deleteIds: [String], positions: [GemPerpetualPosition], walletId: WalletId) throws

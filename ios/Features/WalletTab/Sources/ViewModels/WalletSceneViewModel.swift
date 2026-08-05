@@ -69,7 +69,14 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
             wallet: wallet,
         )
 
-        fiatValuesQuery = ObservableQuery(AssetFiatValuesRequest(walletId: wallet.id, type: .wallet), initialValue: [])
+        fiatValuesQuery = ObservableQuery(
+            AssetFiatValuesRequest(
+                walletId: wallet.id,
+                type: .wallet,
+                perpetualAccountMode: WalletPreferences(walletId: wallet.id).perpetualAccountMode,
+            ),
+            initialValue: [],
+        )
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
