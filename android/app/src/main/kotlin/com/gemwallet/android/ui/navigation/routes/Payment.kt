@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
-import com.gemwallet.android.features.payment.presents.PaymentScene
+import com.gemwallet.android.features.payment.presents.PaymentScreen
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PaymentProviderName
@@ -17,7 +17,7 @@ fun EntryProviderScope<NavKey>.payment(
     cancelAction: CancelAction,
 ) {
     entry<PaymentRoute> { key ->
-        PaymentScene(
+        PaymentScreen(
             provider = key.provider,
             paymentId = key.paymentId,
             onAcquireAsset = onAcquireAsset,

@@ -69,7 +69,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.PaymentException
 
 @Composable
-fun PaymentScene(
+fun PaymentScreen(
     provider: PaymentProviderName,
     paymentId: String,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
