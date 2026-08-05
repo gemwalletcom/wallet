@@ -154,7 +154,7 @@ struct ServicesFactory {
         let paymentService = PaymentService(
             provider: nativeProvider,
             appId: Constants.WalletConnect.projectId,
-            clientId: (try? securePreferences.getDeviceId()) ?? .empty,
+            clientId: UUID().uuidString,
         )
         let transactionStateScheduler = Self.makeTransactionService(
             transactionStore: storeManager.transactionStore,

@@ -28,11 +28,10 @@ import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.GemWalletConnectPayAuth
 import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.WalletConnectSimulationClient
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import kotlinx.coroutines.runBlocking
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.WalletConnectSimulationClientInterface
 import javax.inject.Singleton
+import java.util.UUID
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -114,13 +113,12 @@ object GatewayModule {
     @Singleton
     fun provideGemPaymentService(
         alienProvider: AlienProvider,
-        getDeviceId: GetDeviceId,
     ): GemPaymentService = GemPaymentService(
         provider = alienProvider,
         config = GemPaymentConfig(
             walletConnectPay = GemWalletConnectPayAuth(
                 appId = Constants.WALLET_CONNECT_PROJECT_ID,
-                clientId = runBlocking { getDeviceId.getDeviceId() },
+                clientId = UUID.randomUUID().toString(),
             ),
         ),
     )
