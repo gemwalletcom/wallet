@@ -2,7 +2,9 @@ use crate::{Chain, TransactionType, TransferDataOutputType, UInt64, WCEthereumTr
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
 pub enum SignDigestType {
     Eip191,
     Eip712,

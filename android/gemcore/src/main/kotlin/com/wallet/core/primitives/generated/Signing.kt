@@ -22,3 +22,21 @@ data class EthereumTransactionData (
 	val data: String? = null
 )
 
+@Serializable
+enum class SignDigestType(val string: String) {
+	@SerialName("eip191")
+	Eip191("eip191"),
+	@SerialName("eip712")
+	Eip712("eip712"),
+	@SerialName("base58")
+	Base58("base58"),
+	@SerialName("suiPersonal")
+	SuiPersonal("suiPersonal"),
+	@SerialName("siwe")
+	Siwe("siwe"),
+	@SerialName("tonPersonal")
+	TonPersonal("tonPersonal"),
+	@SerialName("tronPersonal")
+	TronPersonal("tronPersonal"),
+}
+

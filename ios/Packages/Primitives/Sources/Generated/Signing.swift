@@ -31,3 +31,13 @@ public struct EthereumTransactionData: Codable, Equatable, Hashable, Sendable {
 		self.data = data
 	}
 }
+
+public enum SignDigestType: String, Codable, Equatable, Hashable, Sendable {
+	case eip191
+	case eip712
+	case base58
+	case suiPersonal
+	case siwe
+	case tonPersonal
+	case tronPersonal
+}
