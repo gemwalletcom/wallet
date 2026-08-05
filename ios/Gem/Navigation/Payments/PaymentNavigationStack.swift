@@ -16,25 +16,27 @@ struct PaymentNavigationStack: View {
     }
 
     var body: some View {
-        Group {
-            switch type {
-            case let .quotes(data):
-                PaymentQuotesScene(
-                    model: PaymentQuotesSceneViewModel(
-                        request: data.payload,
-                        confirmTransferDelegate: data.delegate,
-                    ),
-                    onComplete: complete,
-                )
-            case let .dataCollection(data):
-                PaymentDataCollectionScene(callback: data, onComplete: complete)
-            case let .confirm(data):
-                SigningRequestSheetView(content: .transfer(data), onComplete: complete)
-            case let .signMessage(data):
-                SigningRequestSheetView(content: .signMessage(data), onComplete: complete)
+        NavigationStack {
+            Group {
+                switch type {
+                case let .quotes(data):
+                    PaymentQuotesScene(
+                        model: PaymentQuotesSceneViewModel(
+                            request: data.payload,
+                            confirmTransferDelegate: data.delegate,
+                        ),
+                        onComplete: complete,
+                    )
+                case let .dataCollection(data):
+                    PaymentDataCollectionScene(callback: data, onComplete: complete)
+                case let .confirm(data):
+                    SigningRequestSheetView(content: .transfer(data), onComplete: complete)
+                case let .signMessage(data):
+                    SigningRequestSheetView(content: .signMessage(data), onComplete: complete)
+                }
             }
+            .signingRequestChrome(onCancel: { presenter.cancelSheet(type: type) })
         }
-        .signingRequestSheet(onCancel: { presenter.cancelSheet(type: type) })
     }
 
     private func complete() {

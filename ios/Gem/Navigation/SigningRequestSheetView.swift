@@ -52,16 +52,13 @@ enum SigningRequestSheetContent {
 // MARK: - Chrome
 
 extension View {
-    func signingRequestSheet(onCancel: @escaping () -> Void) -> some View {
-        NavigationStack {
-            self
-                .interactiveDismissDisabled(true)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("", systemImage: SystemImage.xmark, action: onCancel)
-                    }
+    func signingRequestChrome(onCancel: @escaping () -> Void) -> some View {
+        interactiveDismissDisabled(true)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("", systemImage: SystemImage.xmark, action: onCancel)
                 }
-        }
+            }
     }
 }

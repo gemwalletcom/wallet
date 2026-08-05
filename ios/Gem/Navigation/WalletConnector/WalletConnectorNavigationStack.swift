@@ -16,23 +16,25 @@ struct WalletConnectorNavigationStack: View {
     }
 
     var body: some View {
-        Group {
-            switch type {
-            case let .transferData(data):
-                SigningRequestSheetView(content: .transfer(data), onComplete: complete)
-            case let .signMessage(data):
-                SigningRequestSheetView(content: .signMessage(data), onComplete: complete)
-            case let .connectionProposal(data):
-                ConnectionProposalScene(
-                    model: ConnectionProposalViewModel(
-                        confirmTransferDelegate: data.delegate,
-                        pairingProposal: data.payload,
-                    ),
-                    onComplete: complete,
-                )
+        NavigationStack {
+            Group {
+                switch type {
+                case let .transferData(data):
+                    SigningRequestSheetView(content: .transfer(data), onComplete: complete)
+                case let .signMessage(data):
+                    SigningRequestSheetView(content: .signMessage(data), onComplete: complete)
+                case let .connectionProposal(data):
+                    ConnectionProposalScene(
+                        model: ConnectionProposalViewModel(
+                            confirmTransferDelegate: data.delegate,
+                            pairingProposal: data.payload,
+                        ),
+                        onComplete: complete,
+                    )
+                }
             }
+            .signingRequestChrome(onCancel: { presenter.cancelSheet(type: type) })
         }
-        .signingRequestSheet(onCancel: { presenter.cancelSheet(type: type) })
     }
 
     private func complete() {
