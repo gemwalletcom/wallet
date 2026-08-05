@@ -177,13 +177,6 @@
     },
     {
       "target" : {
-        "containerPath" : "container:Packages\/FeatureServices",
-        "identifier" : "TransferServiceTests",
-        "name" : "TransferServiceTests"
-      }
-    },
-    {
-      "target" : {
         "containerPath" : "container:Features\/Payments",
         "identifier" : "PaymentsTests",
         "name" : "PaymentsTests"
@@ -351,13 +344,6 @@
         "containerPath" : "container:Packages\/ChainServices",
         "identifier" : "WalletConnectorServiceTests",
         "name" : "WalletConnectorServiceTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:Packages\/ChainServices",
-        "identifier" : "SigningRequestServiceTests",
-        "name" : "SigningRequestServiceTests"
       }
     },
     {
