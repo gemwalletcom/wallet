@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.payment.viewmodels.PaymentError
 import com.gemwallet.android.features.payment.viewmodels.PaymentSceneState
@@ -28,6 +29,7 @@ import com.gemwallet.android.features.payment.viewmodels.model.PaymentQuoteUIMod
 import com.gemwallet.android.features.payment.viewmodels.PaymentViewModel
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIModel
 import com.gemwallet.android.model.AuthRequest
+import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.R
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -67,6 +69,7 @@ import uniffi.gemstone.PaymentException
 fun PaymentScene(
     provider: GemPaymentProviderName,
     paymentId: String,
+    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
     onCancel: () -> Unit,
     viewModel: PaymentViewModel = hiltViewModel(),
 ) {
@@ -95,13 +98,13 @@ fun PaymentScene(
             params = sceneState.params,
             finishAction = { hash -> viewModel.onActionResult(hash) },
             cancelAction = onCancel,
-            onAcquireAsset = { _, _ -> },
+            onAcquireAsset = onAcquireAsset,
         )
         is PaymentSceneState.Confirm -> ConfirmScreen(
             params = sceneState.params,
             finishAction = { hash -> viewModel.onActionResult(hash) },
             cancelAction = onCancel,
-            onAcquireAsset = { _, _ -> },
+            onAcquireAsset = onAcquireAsset,
         )
         is PaymentSceneState.SignMessage -> PaymentSignMessageScene(
             state = sceneState,

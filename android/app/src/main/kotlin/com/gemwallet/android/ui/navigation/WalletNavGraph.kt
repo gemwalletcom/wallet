@@ -173,7 +173,10 @@ fun WalletNavGraph(
                 cancelAction = onCancel,
             )
 
-            payment(cancelAction = onCancel)
+            payment(
+                onAcquireAsset = navigator::openAcquireAsset,
+                cancelAction = onCancel,
+            )
 
             nftCollection(
                 cancelAction = onCancel,
