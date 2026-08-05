@@ -14,7 +14,6 @@ import Primitives
 import SigningRequestService
 import PrimitivesComponents
 import Style
-import WalletConnectorService
 
 @Observable
 @MainActor

@@ -79,6 +79,7 @@ let package = Package(
                 .product(name: "EarnService", package: "FeatureServices"),
                 .product(name: "PerpetualService", package: "FeatureServices"),
                 .product(name: "ExplorerService", package: "ChainServices"),
+                .product(name: "SigningRequestService", package: "ChainServices"),
                 .product(name: "NameService", package: "ChainServices"),
                 .product(name: "AddressNameService", package: "FeatureServices"),
                 .product(name: "ActivityService", package: "FeatureServices"),
