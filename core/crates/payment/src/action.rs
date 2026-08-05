@@ -1,5 +1,5 @@
 use primitives::swap::ApprovalData;
-use primitives::{Chain, ChainAddress, PaymentQuote, PaymentQuotes, SignMessage, SignableTransaction};
+use primitives::{AssetId, Chain, ChainAddress, PaymentQuote, PaymentQuotes, SignMessage, SignableTransaction};
 
 use crate::error::PaymentError;
 
@@ -29,7 +29,8 @@ pub struct PreparedPayment {
 
 impl PreparedPayment {
     pub fn validate(&self, addresses: &[ChainAddress]) -> Result<(), PaymentError> {
-        validate_actions(&self.actions, addresses)
+        validate_actions(&self.actions, addresses)?;
+        validate_approvals(&self.actions, &self.quote.amount.asset_id)
     }
 
     pub fn is_relayed(&self) -> bool {
@@ -47,10 +48,25 @@ fn validate_actions(actions: &[PaymentAction], addresses: &[ChainAddress]) -> Re
     }
 }
 
+fn validate_approvals(actions: &[PaymentAction], asset_id: &AssetId) -> Result<(), PaymentError> {
+    for action in actions {
+        if let PaymentAction::ApproveToken { chain, .. } = action
+            && *chain != asset_id.chain
+        {
+            return Err(PaymentError::InvalidRequest(format!(
+                "Payment asks to approve on {} for an asset on {}",
+                chain.as_ref(),
+                asset_id.chain.as_ref()
+            )));
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, PaymentAmount, PaymentMerchant, TransferDataOutputType};
+    use primitives::{PaymentAmount, PaymentMerchant, TransferDataOutputType};
 
     fn send(chain: Chain) -> PaymentAction {
         PaymentAction::SendTransaction {
@@ -68,6 +84,18 @@ mod tests {
             transaction: SignableTransaction::Ton {
                 data: String::new(),
                 output_type: TransferDataOutputType::Signature,
+            },
+        }
+    }
+
+    fn approve(chain: Chain) -> PaymentAction {
+        PaymentAction::ApproveToken {
+            chain,
+            approval: ApprovalData {
+                token: "0xtoken".to_string(),
+                spender: "0xspender".to_string(),
+                value: "1".to_string(),
+                is_unlimited: false,
             },
         }
     }
@@ -106,6 +134,18 @@ mod tests {
         assert!(prepared(vec![]).is_relayed());
         assert!(!prepared(vec![send(Chain::Ethereum)]).is_relayed());
         assert!(!prepared(vec![sign(Chain::Ethereum), send(Chain::Ethereum)]).is_relayed());
+    }
+
+    #[test]
+    fn test_validate_approvals() {
+        let addresses = vec![
+            ChainAddress::new(Chain::Ethereum, "0x1".to_string()),
+            ChainAddress::new(Chain::Polygon, "0x1".to_string()),
+        ];
+
+        assert!(prepared(vec![approve(Chain::Ethereum)]).validate(&addresses).is_ok());
+        assert!(prepared(vec![approve(Chain::Polygon)]).validate(&addresses).is_err());
+        assert!(prepared(vec![approve(Chain::Ethereum), send(Chain::Ethereum)]).validate(&addresses).is_ok());
     }
 
     #[test]

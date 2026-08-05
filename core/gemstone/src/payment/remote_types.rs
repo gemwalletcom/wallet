@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 
 use crate::GemstoneError;
-use primitives::payment_decoder::wallet_connect_pay::WALLET_CONNECT_PAY_HOST;
+use primitives::payment_decoder::wallet_connect_pay::{WALLET_CONNECT_HOST, WALLET_CONNECT_PAY_HOST};
 use primitives::{
     AssetId, Payment, PaymentAmount, PaymentLink, PaymentMerchant, PaymentOptions, PaymentOutcome, PaymentPrice, PaymentProviderName, PaymentQuote, PaymentQuotes, PaymentRequest,
     PaymentStatus, PaymentURLDecoder,
@@ -103,6 +103,11 @@ pub enum GemPaymentProviderName {
 #[uniffi::export]
 pub fn payment_wallet_connect_url() -> String {
     format!("https://{WALLET_CONNECT_PAY_HOST}")
+}
+
+#[uniffi::export]
+pub fn payment_wallet_connect_host() -> String {
+    WALLET_CONNECT_HOST.to_string()
 }
 
 #[uniffi::export]
