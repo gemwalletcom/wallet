@@ -76,46 +76,49 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         await disconnect()
         currentWallet = wallet
+        let mode = await accountMode(for: wallet)
         await update(for: wallet)
 
         guard observeTask == nil else { return }
 
         observeTask = Task { [weak self] in
             guard let self else { return }
-            await observeConnection()
+            await observeConnection(mode: mode)
         }
     }
 
-    private func observeConnection() async {
+    private func observeConnection(mode: PerpetualAccountMode) async {
         for await event in await webSocket.connect() {
             guard !Task.isCancelled else { break }
 
             switch event {
             case .connected:
-                await handleConnected()
+                await handleConnected(mode: mode)
             case let .message(data):
-                await handleMessage(data)
+                await handleMessage(data, mode: mode)
             case .disconnected:
                 break
             }
         }
     }
 
-    private func handleConnected() async {
+    private func handleConnected(mode: PerpetualAccountMode) async {
         guard let address = currentWallet?.hyperliquidAccount?.address else { return }
         do {
-            let subscriptions = Array(Set(defaultSubscriptions(for: address) + Array(activeSubscriptions)))
+            let subscriptions = (hyperliquid.accountSubscriptions(address: address, mode: mode.map()) + activeSubscriptions.asArray()).distinct()
             try await subscribe(subscriptions)
         } catch {
             debugLog("HyperliquidObserver: subscribe failed: \(error)")
         }
     }
 
-    private func handleMessage(_ data: Data) async {
+    private func handleMessage(_ data: Data, mode: PerpetualAccountMode) async {
         do {
-            switch try hyperliquid.parseWebsocketData(data: data) {
+            switch try hyperliquid.parseWebsocketData(data: data, mode: mode.map()) {
             case let .accountState(balance, newPositions):
                 try handleAccountState(balance: balance, newPositions: newPositions)
+            case let .spotState(balance):
+                try handleBalance(balance)
             case let .openOrders(orders):
                 try handleOpenOrders(orders: orders)
             case let .candle(candle):
@@ -134,8 +137,13 @@ public actor HyperliquidObserverService: PerpetualObservable {
         }
     }
 
+    private func accountMode(for wallet: Wallet) async -> PerpetualAccountMode {
+        guard let address = wallet.hyperliquidAccount?.address else { return .standard }
+        return await perpetualService.accountMode(address: address)
+    }
+
     private func handleAccountState(
-        balance: GemPerpetualBalance,
+        balance: GemPerpetualBalance?,
         newPositions: [GemPerpetualPosition],
     ) throws {
         guard let walletId = currentWallet?.id else { return }
@@ -145,15 +153,19 @@ public actor HyperliquidObserverService: PerpetualObservable {
             existingPositions: perpetualService.getHypercorePositions(walletId: walletId),
         )
 
-        try perpetualService.updateBalance(
-            walletId: walletId,
-            balance: balance,
-        )
         try perpetualService.diffPositions(
             deleteIds: diff.deletePositionIds,
             positions: diff.positions,
             walletId: walletId,
         )
+        if let balance {
+            try handleBalance(balance)
+        }
+    }
+
+    private func handleBalance(_ balance: GemPerpetualBalance) throws {
+        guard let walletId = currentWallet?.id else { return }
+        try perpetualService.updateBalance(walletId: walletId, balance: balance)
     }
 
     private func handleOpenOrders(orders: [GemHyperliquidOpenOrder]) throws {
@@ -172,10 +184,6 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func handleCandle(candle: GemChartCandleUpdate) async throws {
         await chartService.yield(candle.map())
-    }
-
-    private func defaultSubscriptions(for address: String) -> [GemPerpetualSubscription] {
-        [.accountState(address: address), .openOrders(address: address)]
     }
 
     private func subscribe(_ subscriptions: [GemPerpetualSubscription]) async throws {

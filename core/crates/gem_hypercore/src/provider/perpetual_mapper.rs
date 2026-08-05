@@ -48,15 +48,19 @@ pub fn map_perpetual_balance(positions: &AssetPositions) -> PerpetualBalance {
 }
 
 pub fn map_perpetual_balance_from_spot(balances: &Balances) -> PerpetualBalance {
-    let usdc = balances.balances.iter().find(|b| b.coin == USDC_SYMBOL);
-    let total = usdc.and_then(|b| b.total.parse::<f64>().ok()).unwrap_or(0.0);
-    let hold = usdc.and_then(|b| b.hold.parse::<f64>().ok()).unwrap_or(0.0);
-    let reserved = f64::min(f64::max(hold, 0.0), f64::max(total, 0.0));
-    let available = f64::max(total - reserved, 0.0);
+    let Some(collateral) = balances.balances.iter().find(|balance| balance.coin == USDC_SYMBOL) else {
+        return PerpetualBalance {
+            available: 0.0,
+            reserved: 0.0,
+            withdrawable: 0.0,
+        };
+    };
+    let total = f64::max(collateral.total.parse().unwrap_or(0.0), 0.0);
+    let available = balances.available_after_maintenance(collateral.token).map(|value| value.clamp(0.0, total)).unwrap_or(total);
 
     PerpetualBalance {
         available,
-        reserved,
+        reserved: total - available,
         withdrawable: available,
     }
 }
@@ -889,19 +893,30 @@ mod tests {
 
     #[test]
     fn test_map_perpetual_balance_from_spot() {
-        let balances = Balances {
-            balances: vec![Balance {
-                coin: "USDC".to_string(),
-                token: 0,
-                total: "100.0".to_string(),
-                hold: "30.0".to_string(),
-            }],
+        let collateral = Balance {
+            coin: "USDC".to_string(),
+            token: 0,
+            total: "4.331289".to_string(),
+            hold: "4.331289".to_string(),
         };
 
+        let balances = Balances {
+            balances: vec![collateral.clone()],
+            token_to_available_after_maintenance: vec![(0, "3.797316".to_string())],
+        };
         let balance = map_perpetual_balance_from_spot(&balances);
 
-        assert_eq!(balance.available, 70.0);
-        assert_eq!(balance.reserved, 30.0);
-        assert_eq!(balance.withdrawable, 70.0);
+        assert_eq!(balance.available, 3.797316);
+        assert_eq!(balance.reserved, 4.331289 - 3.797316);
+        assert_eq!(balance.withdrawable, 3.797316);
+
+        let balances = Balances {
+            balances: vec![collateral],
+            token_to_available_after_maintenance: vec![],
+        };
+        let balance = map_perpetual_balance_from_spot(&balances);
+
+        assert_eq!(balance.available, 4.331289);
+        assert_eq!(balance.reserved, 0.0);
     }
 }

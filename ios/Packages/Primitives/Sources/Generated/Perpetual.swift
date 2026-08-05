@@ -292,6 +292,11 @@ public enum AccountDataType: String, Codable, Equatable, Hashable, Sendable {
 	case activate
 }
 
+public enum PerpetualAccountMode: String, Codable, Equatable, Hashable, Sendable {
+	case standard
+	case unified
+}
+
 public enum PerpetualType: Codable, Equatable, Hashable, Sendable {
 	case open(PerpetualConfirmData)
 	case close(PerpetualConfirmData)

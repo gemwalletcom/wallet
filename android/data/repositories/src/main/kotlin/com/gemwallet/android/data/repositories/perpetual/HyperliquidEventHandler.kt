@@ -7,6 +7,7 @@ import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
+import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.channels.BufferOverflow
@@ -33,10 +34,11 @@ class HyperliquidEventHandler(
     private val pricesUpdateIntervalMs = PerpetualConfig.pricesUpdateIntervalSeconds * 1000L
     private var pricesUpdatedAt = 0L
 
-    suspend fun handle(walletId: WalletId, text: String) {
+    suspend fun handle(walletId: WalletId, mode: PerpetualAccountMode, text: String) {
         runCatchingCancellable {
-            when (val message = hyperliquid.parseWebsocketData(text.encodeToByteArray())) {
+            when (val message = hyperliquid.parseWebsocketData(text.encodeToByteArray(), mode.toGem())) {
                 is GemHyperliquidSocketMessage.AccountState -> handleAccountState(walletId, message.balance, message.positions)
+                is GemHyperliquidSocketMessage.SpotState -> putBalance(walletId, message.balance)
                 is GemHyperliquidSocketMessage.OpenOrders -> handleOpenOrders(walletId, message.orders)
                 is GemHyperliquidSocketMessage.Candle -> chartFlow.emit(message.candle.toDTO())
                 is GemHyperliquidSocketMessage.MarketData -> perpetualRepository.updateMarket(message.market.toDTO())
@@ -49,13 +51,17 @@ class HyperliquidEventHandler(
 
     private suspend fun handleAccountState(
         walletId: WalletId,
-        balance: GemPerpetualBalance,
+        balance: GemPerpetualBalance?,
         positions: List<GemPerpetualPosition>,
     ) {
         val diff = hyperliquid.diffClearinghousePositions(positions, getProviderPositions(walletId))
+        perpetualRepository.applyPositionsDiff(walletId, diff.deletePositionIds, diff.positions.mapNotNull { it.toDTO() })
+        balance?.let { putBalance(walletId, it) }
+    }
+
+    private suspend fun putBalance(walletId: WalletId, balance: GemPerpetualBalance) {
         perpetualRepository.putAsset(HypercoreUSDC)
         perpetualRepository.putBalance(walletId, HypercoreUSDC, balance.toDTO())
-        perpetualRepository.applyPositionsDiff(walletId, diff.deletePositionIds, diff.positions.mapNotNull { it.toDTO() })
     }
 
     private suspend fun handleOpenOrders(walletId: WalletId, orders: List<GemHyperliquidOpenOrder>) {

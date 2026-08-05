@@ -84,6 +84,7 @@ mod tests {
     #[test]
     fn test_map_balance_tokens() {
         let spot_balances = Balances {
+            token_to_available_after_maintenance: vec![],
             balances: vec![Balance {
                 coin: "USDC".to_string(),
                 token: 0,
@@ -117,7 +118,10 @@ mod tests {
 
     #[test]
     fn test_map_balance_tokens_missing_balance() {
-        let spot_balances = Balances { balances: vec![] };
+        let spot_balances = Balances {
+            balances: vec![],
+            token_to_available_after_maintenance: vec![],
+        };
 
         let spot_tokens = vec![SpotToken {
             name: "USDC".to_string(),

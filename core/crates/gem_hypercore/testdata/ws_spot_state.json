@@ -1,0 +1,30 @@
+{
+  "channel": "spotState",
+  "data": {
+    "user": "0xece114137b2e9dbf29712bdc39639eb0b72b41b8",
+    "spotState": {
+      "balances": [
+        {
+          "coin": "USDC",
+          "token": 0,
+          "total": "4.331289",
+          "hold": "4.331289",
+          "entryNtl": "0.0"
+        },
+        {
+          "coin": "USDE",
+          "token": 235,
+          "total": "0.0",
+          "hold": "0.0",
+          "entryNtl": "0.0"
+        }
+      ],
+      "tokenToAvailableAfterMaintenance": [
+        [
+          0,
+          "3.797316"
+        ]
+      ]
+    }
+  }
+}

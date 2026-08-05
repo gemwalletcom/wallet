@@ -5,9 +5,11 @@ pub use crate::models::position::{AssetPositions, MarginSummary};
 #[cfg(test)]
 use crate::rpc::client::HyperCoreClient;
 #[cfg(test)]
-use gem_client::testkit::MockClient;
+use gem_client::{ClientError, testkit::MockClient};
 #[cfg(test)]
 use primitives::InMemoryPreferences;
+#[cfg(test)]
+use serde_json::Value;
 #[cfg(test)]
 use std::sync::Arc;
 
@@ -93,8 +95,25 @@ impl AssetMetadata {
 #[cfg(test)]
 impl HyperCoreClient<MockClient> {
     pub fn mock() -> Self {
-        let preferences = Arc::new(InMemoryPreferences::new());
-        let secure_preferences = Arc::new(InMemoryPreferences::new());
-        Self::new_with_preferences(MockClient::new(), preferences, secure_preferences)
+        Self::mock_with_client(MockClient::new())
+    }
+
+    pub fn mock_with_responses_by_request_type(responses: Vec<(&'static str, Vec<u8>)>) -> Self {
+        let responses = Arc::new(responses);
+        Self::mock_with_client(MockClient::new().with_post(move |path, body| {
+            assert_eq!(path, "/info");
+
+            let request: Value = serde_json::from_slice(body).unwrap();
+            let request_type = request["type"].as_str().unwrap_or_default();
+            responses
+                .iter()
+                .find(|(expected_type, _)| *expected_type == request_type)
+                .map(|(_, response)| response.clone())
+                .ok_or_else(|| ClientError::Http { status: 404, body: body.to_vec() })
+        }))
+    }
+
+    fn mock_with_client(client: MockClient) -> Self {
+        Self::new_with_preferences(client, Arc::new(InMemoryPreferences::new()), Arc::new(InMemoryPreferences::new()))
     }
 }

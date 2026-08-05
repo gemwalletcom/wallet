@@ -15,6 +15,17 @@ pub struct Balance {
 #[serde(rename_all = "camelCase")]
 pub struct Balances {
     pub balances: Vec<Balance>,
+    #[serde(default)]
+    pub token_to_available_after_maintenance: Vec<(u32, String)>,
+}
+
+impl Balances {
+    pub fn available_after_maintenance(&self, token: u32) -> Option<f64> {
+        self.token_to_available_after_maintenance
+            .iter()
+            .find(|(index, _)| *index == token)
+            .and_then(|(_, amount)| amount.parse().ok())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

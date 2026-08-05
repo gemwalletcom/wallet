@@ -4,6 +4,7 @@ import com.gemwallet.android.blockchain.gemstone.toDTO
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualPortfolio
 import com.wallet.core.primitives.PerpetualPositionsSummary
@@ -28,6 +29,10 @@ class PerpetualService(
             return null
         }
         return response.toDTO()
+    }
+
+    suspend fun getAccountMode(chain: Chain = Chain.HyperCore, address: String): PerpetualAccountMode {
+        return gateway.getPerpetualAccountMode(chain.string, address).toDTO()
     }
 
     suspend fun getCandleSticks(chain: Chain = Chain.HyperCore, symbol: String, period: ChartPeriod): List<ChartCandleStick> {

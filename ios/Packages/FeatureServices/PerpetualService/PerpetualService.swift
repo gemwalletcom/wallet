@@ -139,6 +139,10 @@ public struct PerpetualService: PerpetualServiceable {
 // MARK: - HyperliquidPerpetualServiceable
 
 extension PerpetualService: HyperliquidPerpetualServiceable {
+    public func accountMode(address: String) async -> PerpetualAccountMode {
+        await provider.getAccountMode(address: address)
+    }
+
     public func getHypercorePositions(walletId: WalletId) throws -> [GemPerpetualPosition] {
         try store.getPositions(walletId: walletId, provider: .hypercore).map { $0.map() }
     }
