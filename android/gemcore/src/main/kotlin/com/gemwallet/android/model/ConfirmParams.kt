@@ -312,6 +312,7 @@ sealed class ConfirmParams() {
         val data: String,
         val provider: String,
         val contract: String,
+        val approval: ApprovalData? = null,
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean = false
 
@@ -323,8 +324,8 @@ sealed class ConfirmParams() {
             GemApprovalData(
                 assetId.tokenId!!,
                 spender = contract,
-                value = amount.toString(),
-                isUnlimited = true,
+                value = approval?.value ?: amount.toString(),
+                isUnlimited = approval?.isUnlimited ?: true,
             )
         )
 

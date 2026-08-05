@@ -19,6 +19,7 @@ import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIM
 import com.gemwallet.android.features.payment.viewmodels.model.toPriceText
 import com.gemwallet.android.features.payment.viewmodels.model.toUIModel
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.model.toModel
 import com.gemwallet.android.ui.models.withExplorerLinks
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
@@ -243,6 +244,7 @@ class PaymentViewModel @Inject constructor(
                 data = "",
                 provider = current.quotes.merchant.name,
                 contract = action.approval.spender,
+                approval = action.approval.toModel(),
             )
         )
     }
