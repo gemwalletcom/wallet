@@ -31,6 +31,10 @@ impl PreparedPayment {
     pub fn validate(&self, addresses: &[ChainAddress]) -> Result<(), PaymentError> {
         validate_actions(&self.actions, addresses)
     }
+
+    pub fn is_relayed(&self) -> bool {
+        !self.actions.iter().any(|action| matches!(action, PaymentAction::SendTransaction { .. }))
+    }
 }
 
 fn validate_actions(actions: &[PaymentAction], addresses: &[ChainAddress]) -> Result<(), PaymentError> {
@@ -68,10 +72,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_actions_keep_the_order_the_gateway_sent() {
-        let actions = vec![send(Chain::Ethereum), sign(Chain::Ethereum)];
-        let prepared = PreparedPayment {
+    fn prepared(actions: Vec<PaymentAction>) -> PreparedPayment {
+        PreparedPayment {
             quotes: PaymentQuotes {
                 merchant: PaymentMerchant {
                     name: "Merchant".to_string(),
@@ -95,10 +97,15 @@ mod tests {
                 provider_data: "{}".to_string(),
             },
             actions,
-        };
+        }
+    }
 
-        assert!(matches!(prepared.actions[0], PaymentAction::SendTransaction { .. }));
-        assert!(matches!(prepared.actions[1], PaymentAction::SignTransaction { .. }));
+    #[test]
+    fn test_is_relayed() {
+        assert!(prepared(vec![sign(Chain::Ethereum)]).is_relayed());
+        assert!(prepared(vec![]).is_relayed());
+        assert!(!prepared(vec![send(Chain::Ethereum)]).is_relayed());
+        assert!(!prepared(vec![sign(Chain::Ethereum), send(Chain::Ethereum)]).is_relayed());
     }
 
     #[test]

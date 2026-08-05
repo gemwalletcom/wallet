@@ -111,6 +111,15 @@ pub enum PaymentProviderName {
     WalletConnectPay,
 }
 
+impl PaymentProviderName {
+    pub fn has_status(&self) -> bool {
+        match self {
+            Self::WalletConnectPay => true,
+            Self::SolanaPay => false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]

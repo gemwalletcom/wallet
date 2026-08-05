@@ -72,12 +72,6 @@ impl<C: Client> WalletConnectPayClient<C> {
         Ok(self.client.post_with(&path, &request, self.headers()).await?)
     }
 
-    pub async fn cancel(&self, payment_id: &str) -> Result<(), PaymentError> {
-        let path = Self::path(payment_id, "/cancel", &[])?;
-        let _: serde_json::Value = self.client.post_with(&path, &serde_json::Value::Null, self.headers()).await?;
-        Ok(())
-    }
-
     pub async fn get_status(&self, payment_id: &str) -> Result<PaymentStatusResponse, PaymentError> {
         let path = Self::path(payment_id, "/status", &[(QUERY_MAX_POLL_MS, MAX_POLL_MS.to_string())])?;
         Ok(self.client.get_with(&path, &[], self.headers()).await?)

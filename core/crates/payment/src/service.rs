@@ -19,11 +19,15 @@ impl PaymentService {
         }
     }
 
-    pub async fn get_options(&self, link: &PaymentLink, addresses: &[ChainAddress]) -> Result<PaymentOptions, PaymentError> {
-        match link.provider {
-            PaymentProviderName::WalletConnectPay => self.wallet_connect_pay.payment_options(&link.id, addresses).await,
+    fn provider(&self, provider: PaymentProviderName) -> Result<&WalletConnectPayService<RpcClient>, PaymentError> {
+        match provider {
+            PaymentProviderName::WalletConnectPay => Ok(&self.wallet_connect_pay),
             PaymentProviderName::SolanaPay => Err(PaymentError::NotSupported),
         }
+    }
+
+    pub async fn get_options(&self, link: &PaymentLink, addresses: &[ChainAddress]) -> Result<PaymentOptions, PaymentError> {
+        self.provider(link.provider)?.options(&link.id, addresses).await
     }
 
     pub async fn get_prepared_payment(
@@ -33,32 +37,16 @@ impl PaymentService {
         quote: &PaymentQuote,
         addresses: &[ChainAddress],
     ) -> Result<PreparedPayment, PaymentError> {
-        let payment = match provider {
-            PaymentProviderName::WalletConnectPay => self.wallet_connect_pay.prepare_payment(quotes, quote, addresses).await?,
-            PaymentProviderName::SolanaPay => return Err(PaymentError::NotSupported),
-        };
+        let payment = self.provider(provider)?.prepare_payment(quotes, quote, addresses).await?;
         payment.validate(addresses)?;
         Ok(payment)
     }
 
     pub async fn confirm(&self, provider: PaymentProviderName, quote: &PaymentQuote, action_results: Vec<String>) -> Result<PaymentOutcome, PaymentError> {
-        match provider {
-            PaymentProviderName::WalletConnectPay => self.wallet_connect_pay.confirm_payment(quote, action_results).await,
-            PaymentProviderName::SolanaPay => Err(PaymentError::NotSupported),
-        }
+        self.provider(provider)?.confirm_payment(quote, action_results).await
     }
 
     pub async fn get_status(&self, provider: PaymentProviderName, payment_id: &str) -> Result<PaymentOutcome, PaymentError> {
-        match provider {
-            PaymentProviderName::WalletConnectPay => self.wallet_connect_pay.get_payment_status(payment_id).await,
-            PaymentProviderName::SolanaPay => Err(PaymentError::NotSupported),
-        }
-    }
-
-    pub async fn cancel(&self, provider: PaymentProviderName, payment_id: &str) -> Result<(), PaymentError> {
-        match provider {
-            PaymentProviderName::WalletConnectPay => self.wallet_connect_pay.cancel_payment(payment_id).await,
-            PaymentProviderName::SolanaPay => Err(PaymentError::NotSupported),
-        }
+        self.provider(provider)?.get_payment_status(payment_id).await
     }
 }

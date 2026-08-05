@@ -9,7 +9,7 @@ const SOLANA_METHOD_PREFIX: &str = "solana_";
 const METHOD_ETH_SIGN_TYPED_DATA_V4: &str = "eth_signTypedData_v4";
 const TYPE_EIP712_DOMAIN: &str = "EIP712Domain";
 
-pub fn normalize(method: &str, params: &Value) -> Result<Value, PaymentError> {
+pub fn map_signer_params(method: &str, params: &Value) -> Result<Value, PaymentError> {
     if method.starts_with(SOLANA_METHOD_PREFIX) {
         return Ok(unwrapped_solana_transaction(params));
     }
@@ -113,13 +113,13 @@ mod tests {
     }
 
     #[test]
-    fn test_normalize() {
+    fn test_map_signer_params() {
         let transaction = Value::String("base64".to_string());
         let solana_params = Value::Array(vec![transaction.clone()]);
-        assert_eq!(normalize("solana_signTransaction", &solana_params).unwrap(), transaction);
-        assert_eq!(normalize("eth_sendTransaction", &solana_params).unwrap(), solana_params);
+        assert_eq!(map_signer_params("solana_signTransaction", &solana_params).unwrap(), transaction);
+        assert_eq!(map_signer_params("eth_sendTransaction", &solana_params).unwrap(), solana_params);
 
-        let params = normalize(METHOD_ETH_SIGN_TYPED_DATA_V4, &signer_params(permit2_typed_data())).unwrap();
+        let params = map_signer_params(METHOD_ETH_SIGN_TYPED_DATA_V4, &signer_params(permit2_typed_data())).unwrap();
         assert_eq!(
             domain_schema_of(&params),
             serde_json::json!([
@@ -130,7 +130,7 @@ mod tests {
         );
 
         let as_string = Value::String(serde_json::to_string(&permit2_typed_data()).unwrap());
-        let params = normalize(METHOD_ETH_SIGN_TYPED_DATA_V4, &signer_params(as_string)).unwrap();
+        let params = map_signer_params(METHOD_ETH_SIGN_TYPED_DATA_V4, &signer_params(as_string)).unwrap();
         assert!(params[1].is_string());
         assert_eq!(domain_schema_of(&params).as_array().unwrap().len(), 3);
 
@@ -138,12 +138,12 @@ mod tests {
             "domain": {"name": "Permit2"},
             "types": {TYPE_EIP712_DOMAIN: [{"name": "verifyingContract", "type": "address"}]},
         }));
-        assert_eq!(normalize(METHOD_ETH_SIGN_TYPED_DATA_V4, &with_schema).unwrap(), with_schema);
+        assert_eq!(map_signer_params(METHOD_ETH_SIGN_TYPED_DATA_V4, &with_schema).unwrap(), with_schema);
     }
 
     #[test]
     fn test_wallet_connect_params_rejects_unusable_typed_data() {
-        let rejected = |typed_data: Value| normalize(METHOD_ETH_SIGN_TYPED_DATA_V4, &signer_params(typed_data)).is_err();
+        let rejected = |typed_data: Value| map_signer_params(METHOD_ETH_SIGN_TYPED_DATA_V4, &signer_params(typed_data)).is_err();
 
         assert!(rejected(serde_json::json!({"domain": {"chainId": 1, "unexpected": "1"}, "types": {}})));
         assert!(rejected(serde_json::json!({"domain": {"chainId": 1, "salt": "0x00"}, "types": {}})));

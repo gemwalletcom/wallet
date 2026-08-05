@@ -106,6 +106,11 @@ pub fn payment_wallet_connect_url() -> String {
 }
 
 #[uniffi::export]
+pub fn payment_provider_has_status(provider: GemPaymentProviderName) -> bool {
+    provider.has_status()
+}
+
+#[uniffi::export]
 pub fn payment_decode_url(string: &str) -> Result<GemPayment, GemstoneError> {
     Ok(PaymentURLDecoder::decode(string)?)
 }

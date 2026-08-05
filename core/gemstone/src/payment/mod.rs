@@ -19,6 +19,7 @@ pub struct GemPreparedPayment {
     pub quotes: PaymentQuotes,
     pub quote: PaymentQuote,
     pub actions: Vec<PaymentAction>,
+    pub is_relayed: bool,
 }
 
 #[derive(Debug, uniffi::Enum)]
@@ -91,6 +92,7 @@ impl GemPaymentService {
     ) -> Result<GemPreparedPayment, PaymentError> {
         let payment = self.service.get_prepared_payment(provider, &quotes, &quote, &addresses).await?;
         Ok(GemPreparedPayment {
+            is_relayed: payment.is_relayed(),
             quotes: payment.quotes,
             quote: payment.quote,
             actions: payment.actions.into_iter().map(Into::into).collect(),
@@ -99,10 +101,6 @@ impl GemPaymentService {
 
     pub async fn confirm_payment(&self, provider: PaymentProviderName, quote: PaymentQuote, action_results: Vec<String>) -> Result<PaymentOutcome, PaymentError> {
         self.service.confirm(provider, &quote, action_results).await
-    }
-
-    pub async fn cancel_payment(&self, provider: PaymentProviderName, payment_id: String) -> Result<(), PaymentError> {
-        self.service.cancel(provider, &payment_id).await
     }
 
     pub async fn get_payment_status(&self, provider: PaymentProviderName, payment_id: String) -> Result<PaymentOutcome, PaymentError> {

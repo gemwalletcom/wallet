@@ -28,7 +28,7 @@ impl<C: Client> WalletConnectPayService<C> {
         if Self::is_expired(quote) {
             return self.get_requoted_actions(quote, addresses).await;
         }
-        match self.payment_actions(quote).await {
+        match self.actions(quote).await {
             Ok(actions) => Ok(PreparedPayment {
                 quotes: quotes.clone(),
                 quote: quote.clone(),
@@ -40,12 +40,12 @@ impl<C: Client> WalletConnectPayService<C> {
     }
 
     async fn get_requoted_actions(&self, expired: &PaymentQuote, addresses: &[ChainAddress]) -> Result<PreparedPayment, PaymentError> {
-        let quotes = match self.payment_options(&expired.payment_id, addresses).await? {
+        let quotes = match self.options(&expired.payment_id, addresses).await? {
             PaymentOptions::Quotes(quotes) => quotes,
             PaymentOptions::Outcome(_) => return Err(PaymentError::PaymentExpired),
         };
         let quote = Self::get_quote(&quotes, &expired.amount.asset_id)?;
-        let actions = self.payment_actions(&quote).await?;
+        let actions = self.actions(&quote).await?;
         Ok(PreparedPayment { quotes, quote, actions })
     }
 
@@ -54,7 +54,7 @@ impl<C: Client> WalletConnectPayService<C> {
         Ok(payment_mapper::map_payment_outcome(response))
     }
 
-    pub(crate) async fn payment_options(&self, payment_id: &str, addresses: &[ChainAddress]) -> Result<PaymentOptions, PaymentError> {
+    pub(crate) async fn options(&self, payment_id: &str, addresses: &[ChainAddress]) -> Result<PaymentOptions, PaymentError> {
         let identifiers: Vec<String> = addresses.iter().filter_map(|address| account_identifier(address.chain, &address.address)).collect();
         if identifiers.is_empty() {
             return Err(PaymentError::UnsupportedAccounts);
@@ -76,7 +76,7 @@ impl<C: Client> WalletConnectPayService<C> {
             return Err(PaymentError::PaymentExpired);
         }
 
-        let quotes = Self::payment_quotes(payment_id, quoted.options)?;
+        let quotes = Self::quotes(payment_id, quoted.options)?;
         if quotes.is_empty() {
             return Err(PaymentError::NoPaymentOptions);
         }
@@ -102,7 +102,7 @@ impl<C: Client> WalletConnectPayService<C> {
             .ok_or(PaymentError::QuoteExpired)
     }
 
-    async fn payment_actions(&self, quote: &PaymentQuote) -> Result<Vec<PaymentAction>, PaymentError> {
+    async fn actions(&self, quote: &PaymentQuote) -> Result<Vec<PaymentAction>, PaymentError> {
         let option = Self::option(quote)?;
         let actions = self.wallet_rpc_actions(&quote.payment_id, &option).await?;
         if actions.is_empty() {
@@ -112,16 +112,12 @@ impl<C: Client> WalletConnectPayService<C> {
         actions.iter().map(|action| map_wallet_rpc(&option.account, action)).collect()
     }
 
-    pub(crate) async fn cancel_payment(&self, payment_id: &str) -> Result<(), PaymentError> {
-        self.client.cancel(payment_id).await
-    }
-
     pub(crate) async fn get_payment_status(&self, payment_id: &str) -> Result<PaymentOutcome, PaymentError> {
         let response = self.client.get_status(payment_id).await?;
         Ok(payment_mapper::map_payment_outcome(response))
     }
 
-    fn payment_quotes(payment_id: &str, options: Vec<QuotedOption>) -> Result<Vec<PaymentQuote>, PaymentError> {
+    fn quotes(payment_id: &str, options: Vec<QuotedOption>) -> Result<Vec<PaymentQuote>, PaymentError> {
         let (open, collecting): (Vec<QuotedOption>, Vec<QuotedOption>) = options.into_iter().partition(|option| option.collect_data_url.is_none());
         open.into_iter()
             .chain(collecting)
@@ -197,7 +193,7 @@ mod tests {
             Ok(response.to_string().into_bytes())
         });
         let service = service(client);
-        let PaymentOptions::Quotes(quotes) = service.payment_options("pay_123", &addresses()).await.unwrap() else {
+        let PaymentOptions::Quotes(quotes) = service.options("pay_123", &addresses()).await.unwrap() else {
             panic!("Expected quotes");
         };
         let selected = quotes.quotes.first().unwrap().clone();
@@ -220,7 +216,7 @@ mod tests {
             Ok(response.to_string().into_bytes())
         });
         let service = service(client);
-        let PaymentOptions::Quotes(quotes) = service.payment_options("pay_123", &addresses()).await.unwrap() else {
+        let PaymentOptions::Quotes(quotes) = service.options("pay_123", &addresses()).await.unwrap() else {
             panic!("Expected quotes");
         };
         let expired = PaymentQuote {
@@ -276,9 +272,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_payment_options() {
+    async fn test_options() {
         let service = service_with_response(far_future);
-        let prepared = service.payment_options("pay_123", &addresses()).await.unwrap();
+        let prepared = service.options("pay_123", &addresses()).await.unwrap();
 
         let PaymentOptions::Quotes(quotes) = prepared else {
             panic!("Expected Ready, got {prepared:?}");
@@ -292,13 +288,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_payment_options_collect_data() {
+    async fn test_options_collect_data() {
         let service = service_with_response(|response| {
             far_future(response);
             response["options"][0]["collectData"] = serde_json::json!({"url": "https://data-collection.walletconnect.com/ic/pay_123"});
         });
 
-        let prepared = service.payment_options("pay_123", &addresses()).await.unwrap();
+        let prepared = service.options("pay_123", &addresses()).await.unwrap();
         let PaymentOptions::Quotes(quotes) = prepared else {
             panic!("Expected Ready, got {prepared:?}");
         };
@@ -309,51 +305,51 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_payment_options_settled() {
+    async fn test_options_settled() {
         let service = service_with_response(|response| {
             far_future(response);
             response["info"]["status"] = serde_json::json!("succeeded");
         });
 
-        let options = service.payment_options("pay_123", &addresses()).await.unwrap();
+        let options = service.options("pay_123", &addresses()).await.unwrap();
         assert!(matches!(options, PaymentOptions::Outcome(outcome) if outcome.status == PaymentStatus::Succeeded));
 
         let processing = service_with_response(|response| {
             far_future(response);
             response["info"]["status"] = serde_json::json!("processing");
         });
-        let options = processing.payment_options("pay_123", &addresses()).await.unwrap();
+        let options = processing.options("pay_123", &addresses()).await.unwrap();
         assert!(matches!(options, PaymentOptions::Outcome(outcome) if outcome.status == PaymentStatus::Processing));
     }
 
     #[tokio::test]
-    async fn test_get_payment_options_rejects_unpayable() {
+    async fn test_options_rejects_unpayable() {
         let failed = service_with_response(|response| {
             far_future(response);
             response["info"]["status"] = serde_json::json!("failed");
         });
-        assert_eq!(failed.payment_options("pay_123", &addresses()).await, Err(PaymentError::PaymentExpired));
+        assert_eq!(failed.options("pay_123", &addresses()).await, Err(PaymentError::PaymentExpired));
 
         let expired = service_with_response(|response| {
             response["info"]["expiresAt"] = serde_json::json!(1);
         });
-        assert_eq!(expired.payment_options("pay_123", &addresses()).await, Err(PaymentError::PaymentExpired));
+        assert_eq!(expired.options("pay_123", &addresses()).await, Err(PaymentError::PaymentExpired));
 
         let no_options = service_with_response(|response| {
             far_future(response);
             response["options"] = serde_json::json!([]);
         });
-        assert_eq!(no_options.payment_options("pay_123", &addresses()).await, Err(PaymentError::NoPaymentOptions));
+        assert_eq!(no_options.options("pay_123", &addresses()).await, Err(PaymentError::NoPaymentOptions));
 
         let unsupported_addresses = vec![ChainAddress::new(Chain::Bitcoin, "bc1".to_string())];
         assert_eq!(
-            service_with_response(far_future).payment_options("pay_123", &unsupported_addresses).await,
+            service_with_response(far_future).options("pay_123", &unsupported_addresses).await,
             Err(PaymentError::UnsupportedAccounts)
         );
     }
 
     #[test]
-    fn test_payment_quotes_offer_options_asking_for_no_personal_data_first() {
+    fn test_quotes_offer_options_asking_for_no_personal_data_first() {
         let option = |id: &str, collect_data_url: Option<&str>| QuotedOption {
             id: id.to_string(),
             expires_at: None,
@@ -368,7 +364,7 @@ mod tests {
             provider_data: format!("{{\"id\":\"{id}\"}}"),
         };
 
-        let quotes = WalletConnectPayService::<MockClient>::payment_quotes(
+        let quotes = WalletConnectPayService::<MockClient>::quotes(
             "pay_123",
             vec![option("opt_form", Some("https://pay.walletconnect.com/collect?pid=pay_123")), option("opt_plain", None)],
         )
@@ -381,7 +377,7 @@ mod tests {
     }
 
     #[test]
-    fn test_payment_quotes_reject_a_collection_url_off_the_payment_host() {
+    fn test_quotes_reject_a_collection_url_off_the_payment_host() {
         let option = |url: &str| QuotedOption {
             id: "opt_form".to_string(),
             expires_at: None,
@@ -404,12 +400,12 @@ mod tests {
             "not a url",
         ] {
             assert!(
-                WalletConnectPayService::<MockClient>::payment_quotes("pay_123", vec![option(url)]).is_err(),
+                WalletConnectPayService::<MockClient>::quotes("pay_123", vec![option(url)]).is_err(),
                 "{url} was accepted"
             );
         }
 
-        assert!(WalletConnectPayService::<MockClient>::payment_quotes("pay_123", vec![option("https://pay.walletconnect.com/collect")]).is_ok());
-        assert!(WalletConnectPayService::<MockClient>::payment_quotes("pay_123", vec![option("https://data-collection.walletconnect.com/ic/pay_123")]).is_ok());
+        assert!(WalletConnectPayService::<MockClient>::quotes("pay_123", vec![option("https://pay.walletconnect.com/collect")]).is_ok());
+        assert!(WalletConnectPayService::<MockClient>::quotes("pay_123", vec![option("https://data-collection.walletconnect.com/ic/pay_123")]).is_ok());
     }
 }

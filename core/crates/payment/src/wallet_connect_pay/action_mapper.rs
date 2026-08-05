@@ -15,7 +15,7 @@ const APPROVE_SPENDER: &str = "spender";
 const APPROVE_VALUE: &str = "value";
 
 pub fn map_wallet_rpc(account: &str, wallet_rpc: &WalletRpcAction) -> Result<PaymentAction, PaymentError> {
-    let params = params::normalize(&wallet_rpc.method, &wallet_rpc.params)?;
+    let params = params::map_signer_params(&wallet_rpc.method, &wallet_rpc.params)?;
     let action = WalletConnectRequestHandler::parse_action(
         wallet_rpc.method.clone(),
         params.to_string(),
