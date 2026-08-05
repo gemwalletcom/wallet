@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import Payments
 import PaymentService
-import Primitives
-import SigningRequestService
-import PrimitivesTestKit
 import PaymentServiceTestKit
+import Primitives
+import PrimitivesTestKit
+import SigningRequestService
 import SigningRequestServiceTestKit
 import Testing
-@testable import Payments
 
 @MainActor
 struct PaymentActionExecutorTests {
@@ -34,14 +34,14 @@ struct PaymentActionExecutorTests {
         let interactor = SigningRequestInteractableMock()
         interactor.signature = "permit-signature"
 
-        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: Self.approvalAssets()).perform(
             actions: [
                 .approveToken(chain: .ethereum, approval: ApprovalData(token: "0xtoken", spender: "0xspender", value: "1", isUnlimited: true)),
                 .mockSignMessage(data: Data("permit".utf8)),
             ],
             paymentId: "pay_1",
             appMetadata: .mock(),
-            payment: .mock(),
+            payment: Self.approvalPayment(),
             wallet: .mock(),
         )
 
@@ -95,7 +95,7 @@ struct PaymentActionExecutorTests {
         _ = try await PaymentActionExecutor(
             interactor: interactor,
             simulator: SigningSimulatableMock(),
-            assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()]),
+            assetsProvider: Self.approvalAssets(),
         ).perform(
             actions: [
                 .approveToken(chain: .ethereum, approval: .mock()),
@@ -103,7 +103,7 @@ struct PaymentActionExecutorTests {
             ],
             paymentId: "pay_1",
             appMetadata: .mock(),
-            payment: .mock(),
+            payment: Self.approvalPayment(),
             wallet: .mock(),
             onSubmitted: {
                 approvalsWhenRecorded = interactor.sentTransferData.count
@@ -132,5 +132,15 @@ struct PaymentActionExecutorTests {
         )
 
         #expect(interactor.signMessagePayloads.first?.simulation.warnings == [warning])
+    }
+
+    private static let approvalAssetId = AssetId(chain: .ethereum, tokenId: "0xtoken")
+
+    private static func approvalPayment() -> PaymentData {
+        .mock(quote: .mock(amount: .mock(assetId: approvalAssetId)))
+    }
+
+    private static func approvalAssets() -> PaymentAssetsProvidableMock {
+        PaymentAssetsProvidableMock(assetsData: [.mock(asset: .mock(id: approvalAssetId))])
     }
 }
