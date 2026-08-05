@@ -43,15 +43,16 @@ pub fn lib_version() -> String {
 }
 
 /// GemstoneError
-#[derive(Debug, uniffi::Error)]
+#[derive(Debug, PartialEq, Eq, uniffi::Error)]
 pub enum GemstoneError {
     AnyError { msg: String },
+    SignerError { error: signer::GemSignerError, msg: String },
 }
 
 impl std::fmt::Display for GemstoneError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::AnyError { msg } => write!(f, "{}", msg),
+            Self::AnyError { msg } | Self::SignerError { msg, .. } => write!(f, "{}", msg),
         }
     }
 }
@@ -102,7 +103,7 @@ impl From<AlienError> for GemstoneError {
 
 impl From<primitives::SignerError> for GemstoneError {
     fn from(error: primitives::SignerError) -> Self {
-        Self::AnyError { msg: error.to_string() }
+        Self::SignerError { msg: error.to_string(), error }
     }
 }
 

@@ -180,7 +180,7 @@ class ConfirmViewModel @Inject constructor(
             signerPreload.preload(params = request, selection = feeSelection)
         } catch (err: Throwable) {
             state.update {
-                ConfirmState.Error(err.toPreloadConfirmError(owner.chain))
+                ConfirmState.Error(err.toPreloadConfirmError())
             }
             return@combine null
         }

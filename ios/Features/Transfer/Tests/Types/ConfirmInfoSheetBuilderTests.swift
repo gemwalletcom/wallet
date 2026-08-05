@@ -2,6 +2,7 @@
 
 import BigInt
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import Primitives
 import PrimitivesTestKit
@@ -38,7 +39,7 @@ struct ConfirmInfoSheetBuilderTests {
     @Test
     func dustThresholdSheet() {
         let asset = Asset.mock()
-        let error = NSError(domain: "chain", code: 1, userInfo: [NSLocalizedDescriptionKey: "dust threshold not met"])
+        let error = GemstoneError.SignerError(error: .dustThreshold, msg: "message can change")
 
         guard case let .dustThreshold(chain, _) = build(for: error, asset: asset) else {
             Issue.record("Expected dustThreshold sheet")

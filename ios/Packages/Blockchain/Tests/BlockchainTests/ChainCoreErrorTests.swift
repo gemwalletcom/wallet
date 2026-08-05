@@ -2,6 +2,7 @@
 
 @testable import Blockchain
 import Foundation
+import GemstonePrimitives
 import Testing
 
 struct ChainCoreErrorTests {
@@ -11,20 +12,20 @@ struct ChainCoreErrorTests {
     }
 
     @Test
-    func fromErrorMapsNativeSignerDustMessage() {
-        let error = StubError(message: "transaction amount is below the dust threshold")
+    func fromErrorMapsSignerDustError() {
+        let error = GemstoneError.SignerError(error: .dustThreshold, msg: "message can change")
         #expect(ChainCoreError.fromError(error) == .dustThreshold)
     }
 
     @Test
-    func fromErrorMapsNativeSignerInsufficientBalanceMessage() {
-        let error = StubError(message: "insufficient balance")
+    func fromErrorMapsSignerInsufficientFundsError() {
+        let error = GemstoneError.SignerError(error: .insufficientFunds, msg: "message can change")
         #expect(ChainCoreError.fromError(error) == .insufficientBalance)
     }
 
     @Test
-    func fromErrorReturnsNilForUnrelatedMessage() {
-        let error = StubError(message: "broadcast failed: node offline")
+    func fromErrorDoesNotParseSignerMessages() {
+        let error = StubError(message: "transaction amount is below the dust threshold")
         #expect(ChainCoreError.fromError(error) == nil)
     }
 }
