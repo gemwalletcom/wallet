@@ -77,63 +77,68 @@ fun PaymentScene(
 
     LaunchedEffect(paymentId) { viewModel.onPayment(provider, paymentId) }
 
+    val onAction: (PaymentSceneAction) -> Unit = { action ->
+        when (action) {
+            is PaymentSceneAction.SelectQuote -> viewModel.onSelectQuote(action.quoteId)
+            PaymentSceneAction.ConfirmQuote -> viewModel.onConfirmQuote()
+            PaymentSceneAction.DataCollected -> viewModel.onDataCollected()
+            is PaymentSceneAction.DataCollectionFailed -> viewModel.onDataCollectionError(action.message)
+            PaymentSceneAction.Sign -> viewModel.onSign()
+            is PaymentSceneAction.ActionResult -> viewModel.onActionResult(action.result)
+            PaymentSceneAction.Cancel -> onCancel()
+        }
+    }
+
     when (val sceneState = state) {
         PaymentSceneState.Loading -> LoadingScene(
             title = stringResource(R.string.transfer_payment_title),
-            onCancel = onCancel,
+            onCancel = { onAction(PaymentSceneAction.Cancel) },
         )
         is PaymentSceneState.Quotes -> PaymentQuotesScene(
             state = sceneState,
-            onSelect = viewModel::onSelectQuote,
-            onConfirm = viewModel::onConfirmQuote,
-            onCancel = onCancel,
+            onAction = onAction,
         )
         is PaymentSceneState.CollectData -> PaymentDataCollectionScene(
             url = sceneState.url,
-            onComplete = viewModel::onDataCollected,
-            onError = viewModel::onDataCollectionError,
-            onCancel = onCancel,
+            onAction = onAction,
         )
         is PaymentSceneState.Approve -> ConfirmScreen(
             params = sceneState.params,
-            finishAction = { hash -> viewModel.onActionResult(hash) },
-            cancelAction = onCancel,
+            finishAction = { hash -> onAction(PaymentSceneAction.ActionResult(hash)) },
+            cancelAction = { onAction(PaymentSceneAction.Cancel) },
             onAcquireAsset = onAcquireAsset,
         )
         is PaymentSceneState.Confirm -> ConfirmScreen(
             params = sceneState.params,
-            finishAction = { hash -> viewModel.onActionResult(hash) },
-            cancelAction = onCancel,
+            finishAction = { hash -> onAction(PaymentSceneAction.ActionResult(hash)) },
+            cancelAction = { onAction(PaymentSceneAction.Cancel) },
             onAcquireAsset = onAcquireAsset,
         )
         is PaymentSceneState.SignMessage -> PaymentSignMessageScene(
             state = sceneState,
-            onApprove = viewModel::onSign,
-            onCancel = onCancel,
+            onAction = onAction,
         )
-        is PaymentSceneState.Outcome -> PaymentToastEffect(sceneState.outcome.messageRes(), onCancel)
-        is PaymentSceneState.Error -> PaymentToastEffect(sceneState.error.messageRes(), onCancel)
+        is PaymentSceneState.Outcome -> PaymentToastEffect(sceneState.outcome.messageRes()) { onAction(PaymentSceneAction.Cancel) }
+        is PaymentSceneState.Error -> PaymentToastEffect(sceneState.error.messageRes()) { onAction(PaymentSceneAction.Cancel) }
     }
 }
 
 @Composable
 private fun PaymentQuotesScene(
     state: PaymentSceneState.Quotes,
-    onSelect: (String) -> Unit,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
+    onAction: (PaymentSceneAction) -> Unit,
 ) {
     var isSelectingQuote by remember { mutableStateOf(false) }
 
     Scene(
         title = stringResource(R.string.transfer_payment_title),
         backHandle = true,
-        onClose = onCancel,
+        onClose = { onAction(PaymentSceneAction.Cancel) },
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.common_continue),
                 state = if (state.expired || state.selected == null) ButtonState.Disabled else ButtonState.Enabled,
-                onClick = onConfirm,
+                onClick = { onAction(PaymentSceneAction.ConfirmQuote) },
             )
         },
     ) {
@@ -202,7 +207,7 @@ private fun PaymentQuotesScene(
         quotes = state.quotes,
         selected = state.selected,
         onSelect = {
-            onSelect(it)
+            onAction(PaymentSceneAction.SelectQuote(it))
             isSelectingQuote = false
         },
         onDismissRequest = { isSelectingQuote = false },
@@ -253,8 +258,7 @@ private fun PaymentQuotesSelectModal(
 @Composable
 private fun PaymentSignMessageScene(
     state: PaymentSceneState.SignMessage,
-    onApprove: () -> Unit,
-    onCancel: () -> Unit,
+    onAction: (PaymentSceneAction) -> Unit,
 ) {
     val context = LocalContext.current
     var sheetType by remember { mutableStateOf<SignMessageSheetType?>(null) }
@@ -263,10 +267,10 @@ private fun PaymentSignMessageScene(
         title = stringResource(R.string.transfer_payment_title),
         backHandle = true,
         closeIcon = true,
-        onClose = onCancel,
+        onClose = { onAction(PaymentSceneAction.Cancel) },
         mainAction = {
             MainActionButton(title = stringResource(R.string.transfer_confirm)) {
-                context.requestAuth(AuthRequest.Confirmation) { onApprove() }
+                context.requestAuth(AuthRequest.Confirmation) { onAction(PaymentSceneAction.Sign) }
             }
         },
     ) { paddingValues ->

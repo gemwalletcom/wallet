@@ -45,10 +45,10 @@ class AssetsViewModel @Inject constructor(
     getHideBalancesState: GetHideBalancesState,
     getShowWelcomeBanner: GetShowWelcomeBanner,
     getSession: GetSession,
-    userConfig: UserConfig,
+    private val userConfig: UserConfig,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
-    val showScanner: Boolean = userConfig.developEnabled()
+    val showScanner: Boolean get() = userConfig.developEnabled()
 
     val currentWalletId = getSession()
         .map { it?.wallet?.id }

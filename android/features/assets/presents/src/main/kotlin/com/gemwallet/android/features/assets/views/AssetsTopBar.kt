@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.R
@@ -72,7 +73,7 @@ internal fun AssetsTopBar(
                     Icon(
                         imageVector = AppIcons.QrCodeScanner,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        contentDescription = "scan_payment",
+                        contentDescription = stringResource(R.string.wallet_scan_qr_code),
                     )
                 }
             }

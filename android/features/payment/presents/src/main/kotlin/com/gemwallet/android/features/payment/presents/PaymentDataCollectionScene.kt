@@ -43,23 +43,21 @@ private const val TAG = "PaymentDataCollection"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun PaymentDataCollectionScene(
+internal fun PaymentDataCollectionScene(
     url: String,
-    onComplete: () -> Unit,
-    onError: (String?) -> Unit,
-    onCancel: () -> Unit,
+    onAction: (PaymentSceneAction) -> Unit,
 ) {
     var webView by remember { mutableStateOf<WebView?>(null) }
     val uriHandler = LocalUriHandler.current
 
     BackHandler {
         val view = webView
-        if (view != null && view.canGoBack()) view.goBack() else onCancel()
+        if (view != null && view.canGoBack()) view.goBack() else onAction(PaymentSceneAction.Cancel)
     }
 
     Scene(
         title = stringResource(R.string.transfer_payment_title),
-        onClose = onCancel,
+        onClose = { onAction(PaymentSceneAction.Cancel) },
     ) {
         AndroidView(
             modifier = Modifier
@@ -78,7 +76,7 @@ fun PaymentDataCollectionScene(
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
                     webViewClient = AllowedHostWebViewClient(context, uriHandler)
                     webChromeClient = LoggingWebChromeClient()
-                    addJavascriptInterface(CollectDataBridge(onComplete, onError), MESSAGE_HANDLER)
+                    addJavascriptInterface(CollectDataBridge(onAction), MESSAGE_HANDLER)
                     loadUrl(url)
                     webView = this
                 }
@@ -88,15 +86,14 @@ fun PaymentDataCollectionScene(
 }
 
 private class CollectDataBridge(
-    private val onComplete: () -> Unit,
-    private val onError: (String?) -> Unit,
+    private val onAction: (PaymentSceneAction) -> Unit,
 ) {
     @JavascriptInterface
     fun postMessage(payload: String) {
         val message = runCatching { JSONObject(payload) }.getOrNull() ?: return
         when (message.optString(MESSAGE_TYPE_KEY)) {
-            COMPLETE -> onComplete()
-            ERROR -> onError(message.optString(MESSAGE_ERROR_KEY).takeIf { it.isNotEmpty() })
+            COMPLETE -> onAction(PaymentSceneAction.DataCollected)
+            ERROR -> onAction(PaymentSceneAction.DataCollectionFailed(message.optString(MESSAGE_ERROR_KEY).takeIf { it.isNotEmpty() }))
         }
     }
 }
