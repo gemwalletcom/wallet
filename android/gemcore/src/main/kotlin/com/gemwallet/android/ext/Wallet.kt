@@ -8,12 +8,16 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.ChainAddress as GemChainAddress
 
 fun Wallet.getAccount(chain: Chain): Account? {
     return accounts.firstOrNull { it.chain == chain }
 }
 
 fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
+
+fun Wallet.gemChainAddresses(): List<GemChainAddress> =
+    accounts.map { GemChainAddress(chain = it.chain.string, address = it.address) }
 
 val WalletType.isViewOnly: Boolean get() = this == WalletType.View
 val WalletType.canSign: Boolean get() = !isViewOnly

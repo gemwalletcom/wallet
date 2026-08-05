@@ -9,6 +9,8 @@ import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.gemChainAddresses
+import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.SigningRequestApp
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
@@ -38,7 +40,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import uniffi.gemstone.ChainAddress as GemChainAddress
 import uniffi.gemstone.GemPaymentLink
 import uniffi.gemstone.GemPaymentOptions
 import uniffi.gemstone.GemPaymentProviderName
@@ -73,7 +74,7 @@ class PaymentViewModel @Inject constructor(
         state.value = PaymentSceneState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             val wallet = wallet() ?: return@launch
-            val options = runGateway { paymentService.getPaymentOptions(link, wallet.addresses()) } ?: return@launch
+            val options = runGateway { paymentService.getPaymentOptions(link, wallet.gemChainAddresses()) } ?: return@launch
             when (options) {
                 is GemPaymentOptions.Outcome -> state.value = PaymentSceneState.Outcome(options.v1.status.toUIModel())
                 is GemPaymentOptions.Quotes -> {
@@ -183,7 +184,7 @@ class PaymentViewModel @Inject constructor(
     private suspend fun prepare(quote: GemPaymentQuote) {
         val current = payment.value ?: return
         val prepared = runGateway {
-            paymentService.getPreparedPayment(current.provider, current.quotes, quote, current.wallet.addresses())
+            paymentService.getPreparedPayment(current.provider, current.quotes, quote, current.wallet.gemChainAddresses())
         } ?: return
         payment.value = current.prepared(prepared.quote, prepared.actions)
         advance()
@@ -237,7 +238,7 @@ class PaymentViewModel @Inject constructor(
         action: PaymentAction.ApproveToken,
         current: ActivePayment,
     ): PaymentSceneState {
-        val account = current.wallet.account(action.chain) ?: return failure(PaymentError.NoAccount, "approval: no ${action.chain} account")
+        val account = current.account(action.chain) ?: return failure(PaymentError.NoAccount, "approval: no ${action.chain} account")
         val assetId = current.quote?.amount?.assetId?.toAssetId()
             ?: return failure(PaymentError.UnknownAsset, "approval: bad quote asset ${current.quote?.amount?.assetId}")
         val asset = asset(assetId) ?: return failure(PaymentError.UnknownAsset, "approval: unresolved asset ${action.approval.token}")
@@ -259,7 +260,7 @@ class PaymentViewModel @Inject constructor(
         isSendable: Boolean,
         current: ActivePayment,
     ): PaymentSceneState {
-        val account = current.wallet.account(chain) ?: return PaymentSceneState.Error(PaymentError.NoAccount)
+        val account = current.account(chain) ?: return PaymentSceneState.Error(PaymentError.NoAccount)
         return PaymentSceneState.Confirm(
             transaction.toConfirmParams(
                 requestId = current.quote?.paymentId.orEmpty(),
@@ -293,6 +294,9 @@ class PaymentViewModel @Inject constructor(
             ?.also { searchTokensCase.search(assetId, it) }
             ?.let { getAssetInfo(assetId).firstOrNull() }
 
+    private fun ActivePayment.account(chain: String): Account? =
+        chain.toChain()?.let { wallet.getAccount(it) }
+
     private suspend fun wallet(): Wallet? {
         val wallet = sessionRepository.session().firstOrNull()?.wallet
         if (wallet == null) {
@@ -312,12 +316,6 @@ class PaymentViewModel @Inject constructor(
             state.value = PaymentSceneState.Error(PaymentError.Gateway(err as? PaymentException))
         }
         .getOrNull()
-
-    private fun Wallet.addresses(): List<GemChainAddress> =
-        accounts.map { GemChainAddress(chain = it.chain.string, address = it.address) }
-
-    private fun Wallet.account(chain: String): Account? =
-        accounts.firstOrNull { it.chain.string == chain }
 
     private companion object {
         const val TAG = "PaymentViewModel"
