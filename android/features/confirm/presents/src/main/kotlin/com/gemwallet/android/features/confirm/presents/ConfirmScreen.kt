@@ -102,7 +102,8 @@ fun ConfirmScreen(
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
-    val isWalletConnect = params is ConfirmParams.TransferParams.Generic
+    val isPayment = (params as? ConfirmParams.TransferParams.Generic)?.payment != null
+    val isWalletConnect = params is ConfirmParams.TransferParams.Generic && !isPayment
     val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
@@ -129,7 +130,7 @@ fun ConfirmScreen(
 
     val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = confirmTitle(isWalletConnect, amountModel?.transactionType, perpetualType),
+        title = confirmTitle(params, amountModel?.transactionType, perpetualType),
         closeIcon = isWalletConnect,
         onClose = { cancelAction() },
         mainAction = {
@@ -403,11 +404,12 @@ fun ConfirmError.toLabel() = when (this) {
 
 @Composable
 private fun confirmTitle(
-    isWalletConnect: Boolean,
+    params: ConfirmParams?,
     transactionType: TransactionType?,
     perpetualType: PerpetualType?,
 ): String = when {
-    isWalletConnect -> stringResource(R.string.transfer_review_request)
+    params is ConfirmParams.TransferParams.Generic && params.payment != null -> stringResource(R.string.transfer_payment_title)
+    params is ConfirmParams.TransferParams.Generic -> stringResource(R.string.transfer_review_request)
     perpetualType != null -> perpetualType.title()
     else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
 }

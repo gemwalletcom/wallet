@@ -2,10 +2,12 @@ package com.gemwallet.android.ext
 
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentLink
+import com.wallet.core.primitives.PaymentMerchant
 import com.wallet.core.primitives.PaymentProviderName
 import com.wallet.core.primitives.PaymentRequest
 import uniffi.gemstone.GemPayment
 import uniffi.gemstone.GemPaymentLink
+import uniffi.gemstone.GemPaymentMerchant
 import uniffi.gemstone.GemPaymentProviderName
 import uniffi.gemstone.GemPaymentRequest
 
@@ -24,6 +26,11 @@ fun GemPaymentRequest.toPrimitives(): PaymentRequest = PaymentRequest(
 fun GemPaymentLink.toPrimitives(): PaymentLink = PaymentLink(
     provider = provider.toPrimitives(),
     id = id,
+)
+
+fun GemPaymentMerchant.toPrimitives(): PaymentMerchant = PaymentMerchant(
+    name = name,
+    iconUrl = iconUrl,
 )
 
 fun GemPaymentProviderName.toPrimitives(): PaymentProviderName = when (this) {

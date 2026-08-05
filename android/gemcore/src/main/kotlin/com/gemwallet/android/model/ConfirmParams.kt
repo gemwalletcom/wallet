@@ -22,6 +22,7 @@ import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
+import com.wallet.core.primitives.TransactionPaymentMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.ApprovalData
 import kotlinx.serialization.Serializable
@@ -190,6 +191,7 @@ sealed class ConfirmParams() {
             val icon: String,
             val gasLimit: String?,
             val decodedTransactionType: TransactionType = TransactionType.SmartContractCall,
+            val payment: TransactionPaymentMetadata? = null,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType {
                 val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }

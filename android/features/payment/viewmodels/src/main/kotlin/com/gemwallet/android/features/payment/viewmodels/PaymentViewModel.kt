@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIModel
 import com.gemwallet.android.features.payment.viewmodels.model.toPriceText
 import com.gemwallet.android.features.payment.viewmodels.model.toUIModel
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.toModel
 import com.gemwallet.android.ui.models.withExplorerLinks
@@ -142,13 +143,13 @@ class PaymentViewModel @Inject constructor(
         }
     }
 
-    private fun GemPaymentQuotes.toSceneState(wallet: Wallet) = PaymentSceneState.Quotes(
+    private suspend fun GemPaymentQuotes.toSceneState(wallet: Wallet) = PaymentSceneState.Quotes(
         merchant = merchant.toUIModel(),
         walletName = wallet.name,
         walletType = wallet.type,
         walletChain = wallet.accounts.firstOrNull()?.chain,
         price = price?.toPriceText(),
-        quotes = quotes.map { it.toUIModel() },
+        quotes = quotes.map { it.toUIModel(it.amount.assetId.toAssetId()?.let { id -> assetInfo(id) }) },
         selected = quotes.firstOrNull()?.id,
         expiresAt = expiresAt?.times(1000),
         expired = false,
@@ -194,7 +195,7 @@ class PaymentViewModel @Inject constructor(
         if (step == null) {
             val quote = current.quote ?: return
             if (current.isRelayed) {
-                recordPayment(current.provider.toPrimitives(), current.quotes, quote, current.wallet)
+                recordPayment(current.paymentMetadata(quote), quote, current.wallet)
             }
             val settled = runCatchingCancellable {
                 paymentService.confirmPayment(current.provider, quote, current.results)
@@ -221,6 +222,9 @@ class PaymentViewModel @Inject constructor(
             merchant = current.quotes.merchant.toUIModel(),
             chain = chain,
             walletName = current.wallet.name,
+            quote = current.quote?.toUIModel(),
+            price = current.quotes.price?.toPriceText(),
+            expiresAt = current.quotes.expiresAt?.times(1000),
             plainMessage = signer?.let { runCatching { it.plainPreview() }.getOrNull() }.orEmpty(),
             primaryPayloadFields = preview?.primary?.map { it.toPrimitives() }.orEmpty()
                 .withExplorerLinks(chain, null),
@@ -267,6 +271,7 @@ class PaymentViewModel @Inject constructor(
                     icon = current.quotes.merchant.iconUrl.orEmpty(),
                 ),
                 isSendable = isSendable,
+                payment = current.quote?.let(current::paymentMetadata),
                 inputType = if (isSendable) {
                     ConfirmParams.TransferParams.InputType.EncodeTransaction
                 } else {
@@ -281,10 +286,12 @@ class PaymentViewModel @Inject constructor(
         return PaymentSceneState.Error(error)
     }
 
-    private suspend fun asset(assetId: AssetId): Asset? = getAssetInfo(assetId).firstOrNull()?.asset
+    private suspend fun asset(assetId: AssetId): Asset? = assetInfo(assetId)?.asset
+
+    private suspend fun assetInfo(assetId: AssetId): AssetInfo? = getAssetInfo(assetId).firstOrNull()
         ?: sessionRepository.session().firstOrNull()?.currency
             ?.also { searchTokensCase.search(assetId, it) }
-            ?.let { getAssetInfo(assetId).firstOrNull()?.asset }
+            ?.let { getAssetInfo(assetId).firstOrNull() }
 
     private suspend fun wallet(): Wallet? {
         val wallet = sessionRepository.session().firstOrNull()?.wallet

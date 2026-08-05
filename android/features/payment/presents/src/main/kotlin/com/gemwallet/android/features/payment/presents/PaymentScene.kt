@@ -30,10 +30,14 @@ import com.gemwallet.android.features.payment.viewmodels.PaymentViewModel
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
+import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
@@ -213,6 +217,7 @@ private fun PaymentQuotesSelectModal(
 ) {
     ModalBottomSheet(
         isVisible = isVisible,
+        title = stringResource(R.string.transfer_pay_with),
         onDismissRequest = onDismissRequest,
     ) {
         LazyColumn {
@@ -220,22 +225,21 @@ private fun PaymentQuotesSelectModal(
                 ListItem(
                     modifier = Modifier.clickable { onSelect(quote.id) },
                     leading = {
+                        IconWithBadge(
+                            icon = quote.iconUrl,
+                            placeholder = quote.symbol,
+                            supportIcon = quote.supportIconUrl,
+                        )
+                    },
+                    title = { ListItemTitleText(quote.name) },
+                    subtitle = { ListItemSupportText(quote.networkName) },
+                    trailing = {
+                        getBalanceInfo(quote.amountText, quote.balance, false).invoke()
                         if (quote.id == selected) {
-                            IconWithBadge(
-                                icon = quote.iconUrl,
-                                placeholder = quote.symbol,
-                                badge = { SelectionCheckmark() },
-                            )
-                        } else {
-                            IconWithBadge(
-                                icon = quote.iconUrl,
-                                placeholder = quote.symbol,
-                                supportIcon = quote.supportIconUrl,
-                            )
+                            Spacer(modifier = Modifier.width(paddingSmall))
+                            SelectionCheckmark()
                         }
                     },
-                    title = { ListItemTitleText(quote.symbol) },
-                    trailing = { ListItemSupportText(quote.amount) },
                     listPosition = ListPosition.getPosition(index, quotes.size),
                 )
             }
@@ -274,7 +278,7 @@ private fun PaymentSignMessageScene(
     var sheetType by remember { mutableStateOf<SignMessageSheetType?>(null) }
 
     Scene(
-        title = stringResource(R.string.transfer_review_request),
+        title = stringResource(R.string.transfer_payment_title),
         backHandle = true,
         closeIcon = true,
         onClose = onCancel,
@@ -290,20 +294,39 @@ private fun PaymentSignMessageScene(
         ) {
             item {
                 CenteredListHead(
-                    icon = state.merchant.iconUrl,
-                    title = state.merchant.name,
+                    icon = state.quote?.iconUrl ?: state.merchant.iconUrl,
+                    title = state.quote?.amountText ?: state.merchant.name,
+                    subtitle = state.price,
                     placeholderText = state.merchant.name.firstOrNull()?.uppercaseChar()?.toString(),
+                    subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
                 )
             }
-            item { PropertyItem(R.string.common_wallet, state.walletName, listPosition = ListPosition.First) }
-            item { PropertyNetworkItem(state.chain, listPosition = ListPosition.Last) }
-            if (state.hasPayload) {
-                simulationPayloadFieldsContent(
-                    fields = state.primaryPayloadFields,
-                    onDetailsClick = { sheetType = SignMessageSheetType.Details },
+            item { PropertyItem(R.string.transfer_merchant, state.merchant.name, listPosition = ListPosition.First) }
+            item { PropertyItem(R.string.common_wallet, state.walletName, listPosition = ListPosition.Middle) }
+            item {
+                PropertyNetworkItem(
+                    state.chain,
+                    listPosition = if (state.expiresAt == null) ListPosition.Last else ListPosition.Middle,
                 )
-            } else {
-                signMessageText(state.plainMessage)
+            }
+            state.expiresAt?.let { expiresAt ->
+                item {
+                    PropertyExpiryItem(
+                        title = stringResource(R.string.transfer_payment_expires_in),
+                        expiresAt = expiresAt,
+                        listPosition = ListPosition.Last,
+                    )
+                }
+            }
+            if (state.quote == null) {
+                if (state.hasPayload) {
+                    simulationPayloadFieldsContent(
+                        fields = state.primaryPayloadFields,
+                        onDetailsClick = { sheetType = SignMessageSheetType.Details },
+                    )
+                } else {
+                    signMessageText(state.plainMessage)
+                }
             }
         }
 

@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.payment.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import com.wallet.core.primitives.TransactionPaymentMetadata
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemPaymentProviderName
 import uniffi.gemstone.GemPaymentQuote
@@ -18,6 +20,12 @@ internal data class ActivePayment(
 ) {
     val step: Step?
         get() = actions.getOrNull(completed)?.let { Step(it, completed) }
+
+    fun paymentMetadata(quote: GemPaymentQuote) = TransactionPaymentMetadata(
+        paymentId = quote.paymentId,
+        merchant = quotes.merchant.toPrimitives(),
+        provider = provider.toPrimitives(),
+    )
 
     fun collecting(quote: GemPaymentQuote) = copy(collecting = quote)
 

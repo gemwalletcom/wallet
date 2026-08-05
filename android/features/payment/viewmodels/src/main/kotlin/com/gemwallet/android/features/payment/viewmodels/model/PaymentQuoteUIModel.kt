@@ -2,7 +2,9 @@ package com.gemwallet.android.features.payment.viewmodels.model
 
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.getSupportIconUrl
+import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import uniffi.gemstone.GemPaymentPrice
@@ -13,23 +15,34 @@ private val priceFormatter = ValueFormatter(ValueFormatter.Style.Full)
 
 data class PaymentQuoteUIModel(
     val id: String,
+    val name: String,
+    val networkName: String,
     val symbol: String,
     val amount: String,
+    val balance: String,
     val iconUrl: String?,
     val supportIconUrl: String?,
 ) {
     val amountText: String get() = "$amount $symbol"
 }
 
-fun GemPaymentQuote.toUIModel(): PaymentQuoteUIModel {
+fun GemPaymentQuote.toUIModel(assetInfo: AssetInfo? = null): PaymentQuoteUIModel {
     val assetId = amount.assetId.toAssetId()
     return PaymentQuoteUIModel(
         id = id,
+        name = assetInfo?.asset?.name ?: amount.symbol,
+        networkName = assetId?.chain?.asset()?.name.orEmpty(),
         symbol = amount.symbol,
         amount = amountFormatter.string(Crypto(amount.value).value(amount.decimals)),
+        balance = assetInfo?.balanceText().orEmpty(),
         iconUrl = assetId?.getIconUrl(),
         supportIconUrl = assetId?.getSupportIconUrl(),
     )
 }
 
 fun GemPaymentPrice.toPriceText(): String = priceFormatter.string(Crypto(value).value(decimals), currency = symbol)
+
+private fun AssetInfo.balanceText(): String = amountFormatter.string(
+    Crypto(balance.balance.available).value(asset.decimals),
+    currency = asset.symbol,
+)
