@@ -97,9 +97,8 @@ impl<C: Client> WalletConnectPayService<C> {
             .quotes
             .iter()
             .find(|quote| &quote.amount.asset_id == asset_id)
-            .or(quotes.quotes.first())
             .cloned()
-            .ok_or(PaymentError::NoPaymentOptions)
+            .ok_or(PaymentError::QuoteExpired)
     }
 
     async fn payment_actions(&self, quote: &PaymentQuote) -> Result<Vec<PaymentAction>, PaymentError> {
@@ -158,7 +157,7 @@ mod tests {
     use chrono::Duration;
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
-    use primitives::{AssetId, Chain, PaymentAmount};
+    use primitives::{AssetId, Chain, PaymentAmount, PaymentMerchant};
     use std::sync::{Arc, Mutex};
 
     fn service(mock: MockClient) -> WalletConnectPayService<MockClient> {
@@ -226,6 +225,38 @@ mod tests {
         let paths = requested.lock().unwrap().clone();
         assert_eq!(paths.iter().filter(|path| path.contains("/options")).count(), 2);
         assert_eq!(paths.iter().filter(|path| path.contains("/fetch")).count(), 1);
+    }
+
+    #[test]
+    fn test_get_quote_keeps_the_chosen_asset() {
+        let quote = |chain: Chain| PaymentQuote {
+            id: chain.as_ref().to_string(),
+            payment_id: "pay_123".to_string(),
+            amount: PaymentAmount {
+                asset_id: AssetId::from_chain(chain),
+                value: "1".to_string(),
+                symbol: chain.as_ref().to_string(),
+                decimals: 6,
+            },
+            expires_at: None,
+            collect_data_url: None,
+            provider_data: "{}".to_string(),
+        };
+        let quotes = PaymentQuotes {
+            merchant: PaymentMerchant {
+                name: "Merchant".to_string(),
+                icon_url: None,
+            },
+            price: None,
+            expires_at: None,
+            quotes: vec![quote(Chain::Ethereum), quote(Chain::Bitcoin)],
+        };
+
+        let chosen = WalletConnectPayService::<MockClient>::get_quote(&quotes, &AssetId::from_chain(Chain::Bitcoin)).unwrap();
+        assert_eq!(chosen.amount.asset_id, AssetId::from_chain(Chain::Bitcoin));
+
+        let gone = WalletConnectPayService::<MockClient>::get_quote(&quotes, &AssetId::from_chain(Chain::Solana));
+        assert_eq!(gone, Err(PaymentError::QuoteExpired));
     }
 
     fn addresses() -> Vec<ChainAddress> {
