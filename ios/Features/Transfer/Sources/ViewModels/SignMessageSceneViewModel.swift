@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import AddressNameService
-import ExplorerService
-import Foundation
-import Formatters
 import BigInt
+import Components
+import ExplorerService
+import Formatters
+import Foundation
 import class Gemstone.MessageSigner
 import Keystore
 import Localization
 import Primitives
-import SigningRequestService
 import PrimitivesComponents
+import SigningRequestService
 import Style
 
 @Observable

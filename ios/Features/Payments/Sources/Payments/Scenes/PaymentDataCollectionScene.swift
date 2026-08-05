@@ -5,8 +5,8 @@ import Foundation
 import Localization
 import PaymentService
 import Primitives
-import SwiftUI
 import PrimitivesComponents
+import SwiftUI
 
 public struct PaymentDataCollectionScene: View {
     private static let messageHandlerName = "payDataCollectionComplete"

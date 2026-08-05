@@ -2,8 +2,8 @@
 
 import Foundation
 import PaymentService
-import SigningRequestService
 import PrimitivesComponents
+import SigningRequestService
 
 public enum PaymentSheetType: Sendable, Identifiable {
     case quotes(SheetCallback<PaymentQuotesRequest>)

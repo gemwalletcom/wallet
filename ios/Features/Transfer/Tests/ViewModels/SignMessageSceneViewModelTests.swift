@@ -5,8 +5,8 @@ import struct Gemstone.SignMessage
 import KeystoreTestKit
 import Primitives
 import PrimitivesComponents
-import SigningRequestService
 import PrimitivesTestKit
+import SigningRequestService
 import SigningRequestServiceTestKit
 import Testing
 @testable import Transfer

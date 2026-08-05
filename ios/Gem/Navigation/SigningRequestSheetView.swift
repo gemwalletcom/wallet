@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import PrimitivesComponents
 import SigningRequestService
 import Style
 import SwiftUI
 import Transfer
-import PrimitivesComponents
 
 struct SigningRequestSheetView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
