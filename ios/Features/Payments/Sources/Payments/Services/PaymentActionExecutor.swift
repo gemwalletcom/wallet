@@ -82,10 +82,12 @@ extension PaymentActionExecutor {
                 payment: payment,
             )
             return try await interactor.signTransaction(transferData: SigningTransferData(transferData: transferData, wallet: wallet, simulation: .empty))
-        case let .approveToken(_, approval):
+        case let .approveToken(chain, approval):
             let assetId = payment.quote.amount.assetId
-            guard let asset = assetsProvider.assetsData(walletId: wallet.id, assetIds: [assetId]).first?.asset else {
-                throw PaymentLinkError.approvalNotBroadcast
+            guard assetId.chain == chain,
+                  let asset = try assetsProvider.assetsData(walletId: wallet.id, assetIds: [assetId]).first?.asset
+            else {
+                throw PaymentLinkError.unknownAsset
             }
             let transferData = TransferData(
                 type: .tokenApprove(asset, approval),

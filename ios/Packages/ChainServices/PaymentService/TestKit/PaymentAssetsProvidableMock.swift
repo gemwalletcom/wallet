@@ -11,7 +11,7 @@ public struct PaymentAssetsProvidableMock: PaymentAssetsProvidable {
         self.assetsData = assetsData
     }
 
-    public func assetsData(walletId _: WalletId, assetIds: [AssetId]) -> [AssetData] {
+    public func assetsData(walletId _: WalletId, assetIds: [AssetId]) throws -> [AssetData] {
         assetsData.filter { assetIds.contains($0.asset.id) }
     }
 }

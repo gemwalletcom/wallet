@@ -59,7 +59,7 @@ extension PaymentManager {
         guard quotes.quotes.count > 1 else {
             return first
         }
-        let assetsData = assetsProvider.assetsData(walletId: wallet.id, assetIds: quotes.quotes.map(\.amount.assetId))
+        let assetsData = try assetsProvider.assetsData(walletId: wallet.id, assetIds: quotes.quotes.map(\.amount.assetId))
         let selected = try await presenter.selectPaymentQuote(
             request: PaymentQuotesRequest(
                 id: first.paymentId,
