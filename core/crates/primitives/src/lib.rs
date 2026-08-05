@@ -210,8 +210,8 @@ pub mod wallet_import;
 pub use self::wallet_import::WalletImport;
 pub mod wallet_connector;
 pub use self::wallet_connector::{
-    WCPairingProposal, WalletConnectionSessionAppMetadata, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods,
-    WalletConnectionState, WalletConnectionVerificationStatus,
+    WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionAppMetadata,
+    WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus,
 };
 pub mod nft;
 pub use self::nft::{NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};

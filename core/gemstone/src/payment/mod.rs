@@ -60,10 +60,7 @@ pub struct GemPaymentConfig {
 
 impl From<GemPaymentConfig> for PaymentConfig {
     fn from(config: GemPaymentConfig) -> Self {
-        PaymentConfig::new(WalletConnectPayAuth::new(
-            config.wallet_connect_pay.app_id,
-            config.wallet_connect_pay.client_id,
-        ))
+        PaymentConfig::new(WalletConnectPayAuth::new(config.wallet_connect_pay.app_id, config.wallet_connect_pay.client_id))
     }
 }
 
