@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Primitives
+import PrimitivesComponents
 import SigningRequestService
 import WalletConnectorService
 
@@ -16,7 +17,7 @@ public final class WalletConnectorManager {
 
 extension WalletConnectorManager: WalletConnectorInteractable {
     public func sessionReject(error: any Error) async {
-        if let error = error as? SigningRequestError, case .userCancelled = error {
+        if let error = error as? SheetDismissal, case .cancelled = error {
             return
         }
         await MainActor.run { [weak self] in

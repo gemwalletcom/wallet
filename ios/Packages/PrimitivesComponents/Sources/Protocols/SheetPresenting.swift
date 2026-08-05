@@ -26,7 +26,7 @@ public extension SheetPresenting {
         guard sheets.isPresentingSheet?.id == type.id else {
             return
         }
-        type.reject(SigningRequestError.userCancelled)
+        type.reject(SheetDismissal.cancelled)
         sheets.dismiss(id: type.id)
     }
 
@@ -56,6 +56,6 @@ public extension SheetPresenting {
             throw error
         }
         await sheets.dismissPresented()
-        throw SigningRequestError.userCancelled
+        throw SheetDismissal.cancelled
     }
 }

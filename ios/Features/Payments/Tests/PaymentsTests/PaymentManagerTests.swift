@@ -1,17 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import Payments
 import PaymentService
+import PaymentServiceTestKit
 import Primitives
-import SigningRequestService
+import PrimitivesComponents
 import PrimitivesTestKit
+import SigningRequestService
+import SigningRequestServiceTestKit
 import Store
 import StoreTestKit
-import PaymentServiceTestKit
-import SigningRequestServiceTestKit
 import Testing
 import TransactionStateServiceTestKit
-@testable import Payments
 
 @MainActor
 struct PaymentManagerTests {
@@ -59,6 +60,7 @@ struct PaymentManagerTests {
         #expect(await service.confirmedResults == [["signature"]])
         #expect(outcome.status == .succeeded)
     }
+
     @Test
     func payStaysPendingWhenConfirmFails() async throws {
         let service = PaymentServiceableMock(
@@ -92,9 +94,10 @@ struct PaymentManagerTests {
         #expect(presenter.collectDataRequests.isEmpty)
         #expect(await service.confirmedResults == [[]])
     }
+
     @Test
     func payKeepsThePaymentAliveWhenUserClosesDataCollection() async throws {
-        presenter.collectDataError = SigningRequestError.userCancelled
+        presenter.collectDataError = SheetDismissal.cancelled
         let quote = PaymentQuote.mock(collectDataUrl: "https://data-collection.walletconnect.com/ic/pay_1")
         let service = PaymentServiceableMock(options: [.quotes(.mock(quotes: [quote]))])
 

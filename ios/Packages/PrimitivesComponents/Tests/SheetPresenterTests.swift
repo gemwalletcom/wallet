@@ -89,7 +89,7 @@ struct SheetPresenterTests {
         presenter.cancelSheet(type: sheet)
         presenter.onSheetDismiss()
 
-        await #expect(throws: SigningRequestError.userCancelled) {
+        await #expect(throws: SheetDismissal.cancelled) {
             try await answer.value
         }
     }
@@ -105,7 +105,7 @@ struct SheetPresenterTests {
     }
 }
 
-private struct TestPayload: Identifiable, Sendable {
+private struct TestPayload: Identifiable {
     let id: String
 }
 
@@ -113,7 +113,7 @@ private struct TestPresenter: SheetPresenting {
     let sheets = SheetPresenter<TestSheetType>()
 }
 
-private enum TestSheetType: Sendable, Identifiable, SheetRejectable {
+private enum TestSheetType: Identifiable, SheetRejectable {
     case request(SheetCallback<TestPayload>)
 
     var id: String {

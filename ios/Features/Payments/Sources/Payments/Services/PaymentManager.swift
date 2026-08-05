@@ -3,6 +3,7 @@
 import Foundation
 import PaymentService
 import Primitives
+import PrimitivesComponents
 import TransactionStateService
 
 public struct PaymentManager: Sendable {
@@ -45,7 +46,7 @@ extension PaymentManager {
             }
             let quote = try await select(quotes: quotes, wallet: wallet)
             return try await submit(provider: link.provider, quotes: quotes, quote: quote, wallet: wallet)
-        } catch SigningRequestError.userCancelled {
+        } catch SheetDismissal.cancelled {
             return PaymentOutcome(status: .cancelled, transactionId: .none)
         }
     }
