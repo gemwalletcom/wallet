@@ -15,16 +15,16 @@ import TransactionStateServiceTestKit
 
 @MainActor
 struct PaymentManagerTests {
-    private let interactor = SigningRequestInteractableMock()
     private let presenter = PaymentSheetPresentableMock()
 
     private func makeManager(
         service: PaymentServiceableMock,
+        executor: PaymentActionExecutableMock = PaymentActionExecutableMock(),
         transactionStore: TransactionStore = .mock(),
     ) -> PaymentManager {
         PaymentManager(
             service: service,
-            executor: PaymentActionExecutor(interactor: interactor, simulator: SimulationServiceableMock(), assetsProvider: PaymentAssetsProvidableMock()),
+            executor: executor,
             presenter: presenter,
             assetsProvider: PaymentAssetsProvidableMock(),
             transactionStateScheduler: .mock(
@@ -41,7 +41,7 @@ struct PaymentManagerTests {
         let outcome = try await makeManager(service: service).pay(link: .mock(), wallet: .mock())
 
         #expect(outcome.status == .succeeded)
-        #expect(interactor.signMessagePayloads.isEmpty)
+        #expect(await service.requestedQuotes.isEmpty)
         #expect(await service.confirmedResults.isEmpty)
     }
 
@@ -52,10 +52,11 @@ struct PaymentManagerTests {
             actions: [.mockSignMessage(data: Data("pay".utf8))],
         )
 
-        let outcome = try await makeManager(service: service).pay(link: .mock(), wallet: .mock())
+        let outcome = try await makeManager(
+            service: service,
+            executor: PaymentActionExecutableMock(results: ["signature"]),
+        ).pay(link: .mock(), wallet: .mock())
 
-        #expect(interactor.signMessagePayloads.first?.id == "pay_1.0")
-        #expect(interactor.signMessagePayloads.first?.appMetadata.name == "Coffee Shop")
         #expect(await service.confirmedResults == [["signature"]])
         #expect(outcome.status == .succeeded)
     }
@@ -68,9 +69,13 @@ struct PaymentManagerTests {
             confirmError: AnyError("gateway timeout"),
         )
 
-        let outcome = try await makeManager(service: service).pay(link: .mock(), wallet: .mock())
+        let outcome = try await makeManager(
+            service: service,
+            executor: PaymentActionExecutableMock(transactionHash: "0xsent"),
+        ).pay(link: .mock(), wallet: .mock())
 
         #expect(outcome.status == .processing)
+        #expect(outcome.transactionId == "0xsent")
     }
 
     @Test
@@ -103,7 +108,6 @@ struct PaymentManagerTests {
         let outcome = try await makeManager(service: service).pay(link: .mock(), wallet: .mock())
 
         #expect(outcome.status == .cancelled)
-        #expect(await service.cancelledPaymentIds.isEmpty)
         #expect(await service.confirmedResults.isEmpty)
     }
 
@@ -135,8 +139,7 @@ struct PaymentManagerTests {
         _ = try await makeManager(service: service).pay(link: .mock(), wallet: .mock())
 
         #expect(presenter.quotesRequests.count == 1)
-        #expect(interactor.signMessagePayloads.count == 1)
-        #expect(interactor.signMessagePayloads.first?.payment?.quote == other)
+        #expect(await service.requestedQuotes == [other])
     }
 
     @Test

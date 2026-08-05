@@ -8,14 +8,14 @@ import TransactionStateService
 
 public struct PaymentManager: Sendable {
     private let service: any PaymentServiceable
-    private let executor: PaymentActionExecutor
+    private let executor: any PaymentActionExecutable
     private let presenter: any PaymentSheetPresentable
     private let assetsProvider: any PaymentAssetsProvidable
     private let transactionStateScheduler: TransactionStateScheduler
 
     public init(
         service: any PaymentServiceable,
-        executor: PaymentActionExecutor,
+        executor: any PaymentActionExecutable,
         presenter: any PaymentSheetPresentable,
         assetsProvider: any PaymentAssetsProvidable,
         transactionStateScheduler: TransactionStateScheduler,
@@ -78,20 +78,14 @@ extension PaymentManager {
             try await collectData(paymentId: quote.paymentId, url: url)
         }
         let payment = try await service.getPreparedPayment(provider: provider, quotes: quotes, quote: quote, wallet: wallet)
-        let isRelayed = payment.actions.allSatisfy { action in
-            switch action {
-            case .signMessage, .signTransaction, .approveToken: true
-            case .sendTransaction: false
-            }
-        }
-        let results = try await executor.perform(
+        let results = try await executor.execute(
             actions: payment.actions,
             paymentId: payment.quote.paymentId,
             appMetadata: TransactionAppMetadata(merchant: payment.quotes.merchant),
             payment: PaymentData(provider: provider, quotes: payment.quotes, quote: payment.quote),
             wallet: wallet,
             onSubmitted: { [self] in
-                guard isRelayed else {
+                guard payment.isRelayed else {
                     return
                 }
                 save(provider: provider, payment: payment, wallet: wallet)

@@ -10,7 +10,19 @@ public struct PaymentActionResults: Sendable {
     public let transactionHash: String?
 }
 
-public struct PaymentActionExecutor: Sendable {
+public protocol PaymentActionExecutable: Sendable {
+    @MainActor
+    func execute(
+        actions: [PaymentAction],
+        paymentId: String,
+        appMetadata: TransactionAppMetadata,
+        payment: PaymentData,
+        wallet: Wallet,
+        onSubmitted: @MainActor () -> Void,
+    ) async throws -> PaymentActionResults
+}
+
+public struct PaymentActionExecutor: PaymentActionExecutable {
     private let interactor: any SigningRequestInteractable
     private let simulator: any SimulationServiceable
     private let assetsProvider: any PaymentAssetsProvidable
@@ -26,7 +38,7 @@ public struct PaymentActionExecutor: Sendable {
     }
 
     @MainActor
-    public func perform(
+    public func execute(
         actions: [PaymentAction],
         paymentId: String,
         appMetadata: TransactionAppMetadata,
@@ -37,7 +49,7 @@ public struct PaymentActionExecutor: Sendable {
         var results = [String](repeating: "", count: actions.count)
         var transactionHash: String?
         for (index, action) in actions.enumerated() {
-            let value = try await perform(
+            let value = try await execute(
                 action: action,
                 id: "\(paymentId).\(index)",
                 appMetadata: appMetadata,
@@ -59,7 +71,7 @@ public struct PaymentActionExecutor: Sendable {
 
 extension PaymentActionExecutor {
     @MainActor
-    private func perform(action: PaymentAction, id: String, appMetadata: TransactionAppMetadata, payment: PaymentData, wallet: Wallet) async throws -> String {
+    private func execute(action: PaymentAction, id: String, appMetadata: TransactionAppMetadata, payment: PaymentData, wallet: Wallet) async throws -> String {
         switch action {
         case let .signMessage(chain, message):
             let payload = try await SignMessagePayload(
