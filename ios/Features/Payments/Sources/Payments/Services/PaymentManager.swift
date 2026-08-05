@@ -5,7 +5,7 @@ import PaymentService
 import Primitives
 import TransactionStateService
 
-public final class PaymentManager: Sendable {
+public struct PaymentManager: Sendable {
     private let service: any PaymentServiceable
     private let executor: PaymentActionExecutor
     private let presenter: any PaymentSheetPresentable
@@ -34,7 +34,6 @@ public final class PaymentManager: Sendable {
 // MARK: - Private
 
 extension PaymentManager {
-    @MainActor
     private func perform(link: PaymentLink, wallet: Wallet) async throws -> PaymentOutcome {
         do {
             let quotes: PaymentQuotes
@@ -51,7 +50,6 @@ extension PaymentManager {
         }
     }
 
-    @MainActor
     private func select(quotes: PaymentQuotes, wallet: Wallet) async throws -> PaymentQuote {
         guard let first = quotes.quotes.first else {
             throw PaymentLinkError.noQuotes
@@ -74,7 +72,6 @@ extension PaymentManager {
         return quote
     }
 
-    @MainActor
     private func submit(provider: PaymentProviderName, quotes: PaymentQuotes, quote: PaymentQuote, wallet: Wallet) async throws -> PaymentOutcome {
         if let url = quote.collectDataUrl {
             try await collectData(paymentId: quote.paymentId, url: url)
@@ -107,7 +104,6 @@ extension PaymentManager {
         }
     }
 
-    @MainActor
     private func collectData(paymentId: String, url: String) async throws {
         guard let url = url.asURL else {
             throw PaymentLinkError.invalidDataCollectionUrl
@@ -115,7 +111,6 @@ extension PaymentManager {
         _ = try await presenter.collectPaymentData(request: PaymentDataCollectionRequest(id: paymentId, url: url))
     }
 
-    @MainActor
     private func save(provider: PaymentProviderName, payment: PreparedPayment, wallet: Wallet) {
         do {
             let transaction = try PaymentTransactionFactory.makePendingPayment(
