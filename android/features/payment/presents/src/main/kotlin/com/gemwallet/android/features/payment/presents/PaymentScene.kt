@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,6 +42,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
+import com.gemwallet.android.ui.components.list_item.property.PropertyExpiryItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -60,7 +60,6 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import kotlinx.coroutines.delay
 import uniffi.gemstone.GemPaymentProviderName
 import uniffi.gemstone.PaymentException
 
@@ -247,26 +246,6 @@ private fun PaymentQuotesSelectModal(
     }
 }
 
-@Composable
-private fun PropertyExpiryItem(
-    title: String,
-    expiresAt: Long,
-    listPosition: ListPosition,
-) {
-    var remaining by remember(expiresAt) { mutableLongStateOf(expiresAt - System.currentTimeMillis()) }
-    LaunchedEffect(expiresAt) {
-        while (remaining > 0) {
-            delay(1000)
-            remaining = expiresAt - System.currentTimeMillis()
-        }
-    }
-    val seconds = (remaining / 1000).coerceAtLeast(0)
-    PropertyItem(
-        title = title,
-        data = "%d:%02d".format(seconds / 60, seconds % 60),
-        listPosition = listPosition,
-    )
-}
 
 @Composable
 private fun PaymentSignMessageScene(
