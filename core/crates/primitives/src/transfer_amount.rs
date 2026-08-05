@@ -1,4 +1,4 @@
-use crate::{Asset, AssetId, AssetType, Chain, EarnType, PerpetualType, StakeType, TransactionInputType};
+use crate::{Asset, AssetId, AssetType, Chain, EarnType, StakeType, TransactionInputType};
 use num_bigint::BigInt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -83,11 +83,7 @@ impl TransactionInputType {
                 EarnType::Deposit(_) => true,
                 EarnType::Withdraw(_) => false,
             },
-            Self::Perpetual(_, perpetual_type) => match perpetual_type {
-                PerpetualType::Open(_) | PerpetualType::Increase(_) => true,
-                PerpetualType::Close(_) | PerpetualType::Modify(_) | PerpetualType::Reduce(_) => false,
-            },
-            Self::TokenApprove(_, _) | Self::Account(_, _) | Self::TransferNft(_, _) => false,
+            Self::Perpetual(_, _) | Self::TokenApprove(_, _) | Self::Account(_, _) | Self::TransferNft(_, _) => false,
         }
     }
 }
@@ -152,7 +148,7 @@ impl TransferAmountInput {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AccountDataType, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, nft::NFTAsset, swap::ApprovalData};
+    use crate::{AccountDataType, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, PerpetualType, Resource, nft::NFTAsset, swap::ApprovalData};
 
     const SOLANA_MINIMUM_ACCOUNT_BALANCE: u64 = 890_880;
     const FEE: u64 = 5_000;
@@ -184,7 +180,6 @@ mod tests {
             TransactionInputType::Deposit(asset.clone()),
             TransactionInputType::Stake(asset.clone(), StakeType::Stake(DelegationValidator::mock())),
             TransactionInputType::Stake(asset.clone(), StakeType::Freeze(Resource::Bandwidth)),
-            TransactionInputType::Perpetual(asset.clone(), PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
         ];
         for input_type in spending {
             assert!(input_type.spends_balance(), "{:?} must spend the sender balance", input_type.transaction_type());
@@ -198,6 +193,7 @@ mod tests {
             TransactionInputType::TokenApprove(Asset::mock_spl_token(), ApprovalData::mock()),
             TransactionInputType::Account(asset.clone(), AccountDataType::Activate),
             TransactionInputType::TransferNft(asset.clone(), NFTAsset::mock()),
+            TransactionInputType::Perpetual(asset.clone(), PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
             TransactionInputType::Perpetual(asset, PerpetualType::Close(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
         ];
         for input_type in non_spending {
@@ -380,29 +376,26 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_hypercore_fee_check() {
+    fn test_calculate_perpetual_never_spends_wallet_balance() {
         let asset = Asset::from_chain(Chain::HyperCore);
+
+        let open = input(
+            TransactionInputType::Perpetual(asset.clone(), PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
+            1_010_000_000,
+            0,
+            0,
+        );
+        assert!(
+            open.calculate().is_ok(),
+            "a perpetual is margined from the perpetual account, so an empty wallet must not gate opening it"
+        );
+
         let close = input(
-            TransactionInputType::Perpetual(asset.clone(), PerpetualType::Close(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
+            TransactionInputType::Perpetual(asset, PerpetualType::Close(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
             100,
-            100,
+            0,
             0,
         );
         assert!(close.calculate().is_ok());
-
-        let open = input(
-            TransactionInputType::Perpetual(asset, PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
-            100,
-            1_000_000,
-            0,
-        );
-        assert_eq!(
-            open.calculate().unwrap_err(),
-            TransferAmountError::InsufficientNetworkFee {
-                asset_id: Asset::from_chain(Chain::HyperCore).id,
-                required: BigInt::from(FEE),
-                available: BigInt::ZERO,
-            }
-        );
     }
 }
