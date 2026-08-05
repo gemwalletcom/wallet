@@ -7,11 +7,13 @@ import Preferences
 import Primitives
 import SwiftUI
 import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
 public final class CreateWalletModel {
     let walletService: WalletService
+    let walletSessionService: any WalletSessionManageable
     let avatarService: AvatarService
     let hasExistingWallets: Bool
     let onComplete: VoidAction
@@ -20,13 +22,15 @@ public final class CreateWalletModel {
 
     public init(
         walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         avatarService: AvatarService,
         onComplete: VoidAction,
     ) {
         self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.avatarService = avatarService
         self.onComplete = onComplete
-        hasExistingWallets = walletService.wallets.isNotEmpty
+        hasExistingWallets = walletSessionService.wallets.isNotEmpty
     }
 
     public var isAcceptTermsCompleted: Bool {
@@ -64,8 +68,8 @@ extension CreateWalletModel {
         return result.wallet
     }
 
-    func setupWalletComplete(wallet: Wallet) async throws {
+    func setupWalletComplete(wallet: Wallet) async {
         dismiss()
-        try await walletService.setCurrent(wallet: wallet)
+        await walletSessionService.setCurrent(wallet: wallet)
     }
 }

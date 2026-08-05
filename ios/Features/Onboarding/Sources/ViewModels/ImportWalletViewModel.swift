@@ -7,11 +7,13 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
 public final class ImportWalletViewModel {
     let walletService: WalletService
+    let walletSessionService: any WalletSessionManageable
     let avatarService: AvatarService
     let nameService: any NameServiceable
     let onComplete: VoidAction
@@ -20,11 +22,13 @@ public final class ImportWalletViewModel {
 
     public init(
         walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         avatarService: AvatarService,
         nameService: any NameServiceable,
         onComplete: VoidAction,
     ) {
         self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.avatarService = avatarService
         self.nameService = nameService
         self.onComplete = onComplete

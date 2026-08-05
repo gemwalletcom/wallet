@@ -18,12 +18,26 @@ public extension WalletService {
         walletStore: WalletStore = .mock(),
         preferences: ObservablePreferences = .mock(),
     ) -> WalletService {
+        mock(
+            keystore: keystore,
+            walletStore: walletStore,
+            preferences: preferences,
+            walletSessionService: WalletSessionService.mock(store: walletStore, preferences: preferences),
+        )
+    }
+
+    static func mock(
+        keystore: any Keystore = LocalKeystore.mock(),
+        walletStore: WalletStore = .mock(),
+        preferences: ObservablePreferences = .mock(),
+        walletSessionService: any WalletSessionManageable,
+    ) -> WalletService {
         WalletService(
             keystore: keystore,
             walletStore: walletStore,
             preferences: preferences,
             avatarService: AvatarService(store: walletStore),
-            walletSessionService: WalletSessionService.mock(store: walletStore, preferences: preferences),
+            walletSessionService: walletSessionService,
         )
     }
 

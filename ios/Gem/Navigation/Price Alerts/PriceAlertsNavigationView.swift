@@ -7,9 +7,10 @@ import PriceAlerts
 import Primitives
 import Style
 import SwiftUI
+import WalletSessionService
 
 struct PriceAlertsNavigationView: View {
-    @Environment(\.walletService) private var walletService
+    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     @State private var isPresentingAddAsset: Bool = false
@@ -31,7 +32,7 @@ struct PriceAlertsNavigationView: View {
             .sheet(isPresented: $isPresentingAddAsset) {
                 AddAssetPriceAlertsNavigationStack(
                     selectAssetModel: viewModelFactory.selectAssetScene(
-                        wallet: walletService.currentWallet!,
+                        wallet: walletSessionService.currentWallet!,
                         selectType: .priceAlert,
                         selectAssetAction: onSelectAsset,
                     ),

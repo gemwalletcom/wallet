@@ -9,7 +9,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import TransactionsService
-import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
@@ -18,7 +18,7 @@ public final class TransactionsViewModel {
     public let transactionsService: TransactionsService
     public let preferences: Preferences
 
-    private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
     private let type: TransactionsRequestType
 
     public private(set) var wallet: Wallet
@@ -34,12 +34,12 @@ public final class TransactionsViewModel {
 
     public init(
         transactionsService: TransactionsService,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         wallet: Wallet,
         type: TransactionsRequestType,
         preferences: Preferences = .standard,
     ) {
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.transactionsService = transactionsService
 
         self.type = type
@@ -53,7 +53,7 @@ public final class TransactionsViewModel {
     }
 
     public var currentWallet: Wallet? {
-        walletService.currentWallet
+        walletSessionService.currentWallet
     }
 
     public var walletId: WalletId {

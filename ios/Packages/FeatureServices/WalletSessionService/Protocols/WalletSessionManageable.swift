@@ -42,6 +42,12 @@ public extension WalletSessionManageable {
         return wallet
     }
 
+    func setCurrent(wallet: Wallet) async {
+        await MainActor.run {
+            setCurrent(walletId: wallet.id)
+        }
+    }
+
     func walletsCount() throws -> Int {
         try getWallets().count
     }

@@ -10,11 +10,13 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
 final class ImportWalletSceneViewModel {
     private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
     private let wordSuggester = WordSuggester()
     let type: ImportWalletType
 
@@ -32,11 +34,13 @@ final class ImportWalletSceneViewModel {
 
     init(
         walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         nameService: any NameServiceable,
         type: ImportWalletType,
         onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?,
     ) {
         self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.type = type
         self.onComplete = onComplete
         nameRecordViewModel = switch type {
@@ -224,17 +228,17 @@ extension ImportWalletSceneViewModel {
 
         switch result {
         case let .new(wallet):
-            try await activateWallet(wallet)
+            await activateWallet(wallet)
             onComplete?(.new(wallet))
         case let .existing(wallet):
-            try await activateWallet(wallet)
+            await activateWallet(wallet)
             isPresentingExistingWalletName = wallet.name
         }
     }
 
-    private func activateWallet(_ wallet: Wallet) async throws {
+    private func activateWallet(_ wallet: Wallet) async {
         walletService.acceptTerms()
-        try await walletService.setCurrent(wallet: wallet)
+        await walletSessionService.setCurrent(wallet: wallet)
         buttonState = .normal
     }
 

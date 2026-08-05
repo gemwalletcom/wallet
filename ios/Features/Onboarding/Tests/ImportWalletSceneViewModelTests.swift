@@ -6,16 +6,21 @@ import NameServiceTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit
+import Store
 import StoreTestKit
 import Testing
 import WalletService
 import WalletServiceTestKit
+import WalletSessionService
+import WalletSessionServiceTestKit
 
 @MainActor
 struct ImportWalletSceneViewModelTests {
     @Test
     func existingImportSetsCurrentWallet() async throws {
-        let service = WalletService.mock(walletStore: .mock(db: .mockWithChains([.ethereum])))
+        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
+        let walletSessionService = WalletSessionService.mock(store: walletStore)
+        let service = WalletService.mock(walletStore: walletStore, walletSessionService: walletSessionService)
 
         let walletA = try await service.loadOrCreateWallet(
             name: "Wallet A",
@@ -28,12 +33,13 @@ struct ImportWalletSceneViewModelTests {
             type: .single(words: service.createWallet(), chain: .ethereum),
             source: .import,
         ).wallet
-        try await service.setCurrent(wallet: walletB)
+        await walletSessionService.setCurrent(wallet: walletB)
 
-        #expect(service.currentWalletId == walletB.id)
+        #expect(walletSessionService.currentWalletId == walletB.id)
 
         let model = ImportWalletSceneViewModel(
             walletService: service,
+            walletSessionService: walletSessionService,
             nameService: MockNameService(),
             type: .chain(.ethereum),
             onComplete: nil,
@@ -41,6 +47,6 @@ struct ImportWalletSceneViewModelTests {
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
-        #expect(service.currentWalletId == walletA.id)
+        #expect(walletSessionService.currentWalletId == walletA.id)
     }
 }

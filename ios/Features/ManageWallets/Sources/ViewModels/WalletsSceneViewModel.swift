@@ -6,6 +6,7 @@ import Primitives
 import Store
 import SwiftUI
 import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
@@ -17,6 +18,7 @@ public final class WalletsSceneViewModel {
     #endif
 
     private let service: WalletService
+    private let walletSessionService: any WalletSessionManageable
     private let isPresentingCreateWalletSheet: Binding<Bool>
     private let isPresentingImportWalletSheet: Binding<Bool>
     private let navigationPath: Binding<NavigationPath>
@@ -39,12 +41,14 @@ public final class WalletsSceneViewModel {
     public init(
         navigationPath: Binding<NavigationPath>,
         walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         isPresentingCreateWalletSheet: Binding<Bool>,
         isPresentingImportWalletSheet: Binding<Bool>,
     ) {
         self.navigationPath = navigationPath
         service = walletService
-        currentWalletId = service.currentWalletId
+        self.walletSessionService = walletSessionService
+        currentWalletId = walletSessionService.currentWalletId
         isPresentingAlertMessage = nil
         walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
@@ -62,7 +66,7 @@ public final class WalletsSceneViewModel {
 
 extension WalletsSceneViewModel {
     func setCurrent(_ walletId: WalletId) {
-        service.setCurrent(for: walletId)
+        walletSessionService.setCurrent(walletId: walletId)
         currentWalletId = walletId
     }
 
@@ -120,7 +124,7 @@ extension WalletsSceneViewModel {
     func onDeleteConfirmed(wallet: Wallet) async {
         do {
             try await delete(wallet)
-            currentWalletId = service.currentWalletId
+            currentWalletId = walletSessionService.currentWalletId
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }

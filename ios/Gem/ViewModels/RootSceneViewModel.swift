@@ -19,6 +19,7 @@ import TransactionsService
 import TransactionStateService
 import WalletConnector
 import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
@@ -37,12 +38,13 @@ final class RootSceneViewModel {
     let observablePreferences: ObservablePreferences
     let walletSetupService: WalletSetupService
     let walletService: WalletService
+    let walletSessionService: any WalletSessionManageable
     let nameService: NameService
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
     var currentWallet: Wallet? {
-        walletService.currentWallet
+        walletSessionService.currentWallet
     }
 
     var updateVersionAlertMessage: AlertMessage?
@@ -85,6 +87,7 @@ final class RootSceneViewModel {
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
         walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         walletSetupService: WalletSetupService,
         nameService: NameService,
         releaseAlertService: ReleaseAlertService,
@@ -103,6 +106,7 @@ final class RootSceneViewModel {
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
         self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.walletSetupService = walletSetupService
         self.nameService = nameService
         self.releaseAlertService = releaseAlertService

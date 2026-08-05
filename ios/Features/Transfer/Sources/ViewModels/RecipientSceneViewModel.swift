@@ -14,7 +14,7 @@ import ScanService
 import Store
 import Style
 import SwiftUI
-import WalletService
+import WalletSessionService
 
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
@@ -27,7 +27,7 @@ public final class RecipientSceneViewModel {
 
     public let onTransferAction: TransferDataAction
 
-    private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
 
@@ -44,7 +44,7 @@ public final class RecipientSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         nameService: any NameServiceable,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
@@ -53,7 +53,7 @@ public final class RecipientSceneViewModel {
     ) {
         self.wallet = wallet
         self.asset = asset
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.assetImageFormatter = assetImageFormatter
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
@@ -226,7 +226,7 @@ extension RecipientSceneViewModel {
             ContactRecipientSectionViewModel(contacts: contacts).listItems
         case .pinned, .wallets, .view:
             WalletRecipientSectionViewModel(
-                wallets: walletService.wallets.filter { $0.id != wallet.id },
+                wallets: walletSessionService.wallets.filter { $0.id != wallet.id },
                 section: section,
                 chain: asset.chain,
             ).listItems

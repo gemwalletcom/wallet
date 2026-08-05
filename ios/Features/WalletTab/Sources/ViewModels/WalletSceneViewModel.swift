@@ -17,7 +17,7 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
@@ -25,7 +25,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     private let assetDiscoveryService: any AssetDiscoverable
     let balanceService: BalanceService
     private let bannerService: BannerService
-    private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
     private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
@@ -51,7 +51,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
         assetDiscoveryService: any AssetDiscoverable,
         balanceService: BalanceService,
         bannerService: BannerService,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         nftService: NFTService,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
@@ -61,11 +61,11 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
         self.assetDiscoveryService = assetDiscoveryService
         self.balanceService = balanceService
         self.bannerService = bannerService
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.observablePreferences = observablePreferences
         self.collectionsModel = CollectionsViewModel(
             nftService: nftService,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
             wallet: wallet,
         )
 
@@ -88,7 +88,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     }
 
     public var currentWallet: Wallet? {
-        walletService.currentWallet
+        walletSessionService.currentWallet
     }
 
     var manageTokenTitle: String {

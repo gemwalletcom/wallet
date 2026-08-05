@@ -6,7 +6,7 @@ import GemstonePrimitives
 import Primitives
 import SwiftUI
 import TransactionsService
-import WalletService
+import WalletSessionService
 
 @Observable
 final class NavigationHandler: Sendable {
@@ -15,7 +15,7 @@ final class NavigationHandler: Sendable {
 
     private let assetsService: AssetsService
     private let transactionsService: TransactionsService
-    private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
 
     @MainActor var wallet: Wallet?
 
@@ -24,13 +24,13 @@ final class NavigationHandler: Sendable {
         presenter: NavigationPresenter,
         assetsService: AssetsService,
         transactionsService: TransactionsService,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
         self.assetsService = assetsService
         self.transactionsService = transactionsService
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
     }
 
     @MainActor
@@ -134,7 +134,7 @@ extension NavigationHandler {
     }
 
     private func navigateToAsset(_ assetId: AssetId) async throws {
-        guard let asset = try await preparedAssetForNavigation(assetId: assetId, wallet: walletService.currentWallet) else {
+        guard let asset = try await preparedAssetForNavigation(assetId: assetId, wallet: walletSessionService.currentWallet) else {
             return
         }
         navigationState.openAsset(asset)
@@ -169,7 +169,7 @@ extension NavigationHandler {
     }
 
     private func assetForWalletNavigation(walletId: WalletId, assetId: AssetId) async throws -> Asset? {
-        guard let wallet = try? walletService.getWallet(walletId: walletId) else {
+        guard let wallet = try? walletSessionService.getWallet(walletId: walletId) else {
             return nil
         }
         return try await preparedAssetForNavigation(assetId: assetId, wallet: wallet)
@@ -185,11 +185,11 @@ extension NavigationHandler {
     }
 
     private func selectWalletIfNeeded(_ walletId: WalletId) async {
-        guard walletService.currentWalletId != walletId else {
+        guard walletSessionService.currentWalletId != walletId else {
             return
         }
 
-        walletService.setCurrent(for: walletId)
+        walletSessionService.setCurrent(walletId: walletId)
         await Task.yield()
     }
 

@@ -538,7 +538,6 @@ let package = Package(
                 "GemAPI",
                 "DeviceService",
                 "Preferences",
-                "WalletService",
             ],
             path: "NotificationService",
             exclude: ["TestKit"],
@@ -548,7 +547,6 @@ let package = Package(
             dependencies: [
                 "NotificationService",
                 "DeviceServiceTestKit",
-                "WalletServiceTestKit",
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
@@ -826,6 +824,8 @@ let package = Package(
             dependencies: [
                 "WalletService",
                 "WalletServiceTestKit",
+                "WalletSessionService",
+                "WalletSessionServiceTestKit",
                 "BalanceServiceTestKit",
                 .product(name: "KeystoreTestKit", package: "Keystore"),
                 .product(name: "StoreTestKit", package: "Store"),
