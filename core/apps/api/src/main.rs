@@ -47,9 +47,9 @@ use model::APIService;
 use name_resolver::NameProviderFactory;
 use name_resolver::client::{Client as NameClient, NameConfig};
 use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
-use primitives::PriceConfig;
+use primitives::{ConfigKey, PriceConfig};
 use rocket::{Build, Rocket, catchers, routes};
-use search_index::SearchIndexClient;
+use search_index::{SearchIndexClient, SearchIndexConfig};
 use settings::Settings;
 use settings_chain::{ChainProviders, ProviderFactory};
 use storage::Database;
@@ -228,7 +228,10 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let scan_client = ScanClient::new(database.clone(), security_providers);
     let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
     let assets_client = AssetsClient::new(database.clone(), price_config);
-    let search_index_client = SearchIndexClient::new(&settings_clone.meilisearch.url.clone(), &settings_clone.meilisearch.key.clone());
+    let search_index_config = SearchIndexConfig {
+        batch_size: config_cacher.get_usize(ConfigKey::SearchIndexBatchSize)?,
+    };
+    let search_index_client = SearchIndexClient::new(&settings_clone.meilisearch.url, &settings_clone.meilisearch.key, search_index_config);
     let search_client = SearchClient::new(&search_index_client, price_client.clone());
     let swap_client = SwapClient::new(database.clone());
     let fiat_providers = FiatProviderFactory::new_providers(settings_clone.clone());

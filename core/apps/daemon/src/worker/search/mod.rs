@@ -13,17 +13,20 @@ use job_runner::{JobHandle, ShutdownReceiver};
 use nfts_index_updater::NftsIndexUpdater;
 use perpetuals_index_updater::PerpetualsIndexUpdater;
 use primitives::ConfigKey;
-use search_index::SearchIndexClient;
+use search_index::{SearchIndexClient, SearchIndexConfig};
 use std::error::Error;
 use storage::ConfigCacher;
 
 pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
     let database = ctx.database();
     let settings = ctx.settings();
-    let search_index_client = SearchIndexClient::new(&settings.meilisearch.url, settings.meilisearch.key.as_str());
     let config = ConfigCacher::new(database.clone());
 
     let primary_price_max_age = config.get_duration(ConfigKey::PricePrimaryMaxAge)?;
+    let search_index_config = SearchIndexConfig {
+        batch_size: config.get_usize(ConfigKey::SearchIndexBatchSize)?,
+    };
+    let search_index_client = SearchIndexClient::new(&settings.meilisearch.url, settings.meilisearch.key.as_str(), search_index_config);
     ctx.plan_builder(WorkerService::Search, &config, shutdown_rx)
         .job(WorkerJob::UpdateAssetsIndex, {
             let database = database.clone();
