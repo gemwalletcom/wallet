@@ -10,6 +10,7 @@ use crate::wallet_connect_pay::model::{PaymentOption, WalletConnectPayAction, Wa
 use crate::wallet_connect_pay::payment_mapper;
 use crate::wallet_connect_pay::quote::QuotedOption;
 use crate::{PaymentAction, PreparedPayment};
+use primitives::payment_decoder::wallet_connect_pay::{WALLET_CONNECT_HOST, is_wallet_connect_url};
 
 #[derive(Debug)]
 pub struct WalletConnectPayService<C: Client> {
@@ -75,7 +76,7 @@ impl<C: Client> WalletConnectPayService<C> {
             return Err(PaymentError::PaymentExpired);
         }
 
-        let quotes = Self::payment_quotes(payment_id, quoted.options);
+        let quotes = Self::payment_quotes(payment_id, quoted.options)?;
         if quotes.is_empty() {
             return Err(PaymentError::NoPaymentOptions);
         }
@@ -120,17 +121,24 @@ impl<C: Client> WalletConnectPayService<C> {
         Ok(payment_mapper::map_payment_outcome(response))
     }
 
-    fn payment_quotes(payment_id: &str, options: Vec<QuotedOption>) -> Vec<PaymentQuote> {
+    fn payment_quotes(payment_id: &str, options: Vec<QuotedOption>) -> Result<Vec<PaymentQuote>, PaymentError> {
         let (open, collecting): (Vec<QuotedOption>, Vec<QuotedOption>) = options.into_iter().partition(|option| option.collect_data_url.is_none());
         open.into_iter()
             .chain(collecting)
-            .map(|option| PaymentQuote {
-                id: option.id,
-                payment_id: payment_id.to_string(),
-                amount: option.amount,
-                expires_at: option.expires_at,
-                collect_data_url: option.collect_data_url,
-                provider_data: option.provider_data,
+            .map(|option| {
+                if let Some(url) = &option.collect_data_url
+                    && !is_wallet_connect_url(url)
+                {
+                    return Err(PaymentError::InvalidRequest(format!("Payment collects data outside {WALLET_CONNECT_HOST}")));
+                }
+                Ok(PaymentQuote {
+                    id: option.id,
+                    payment_id: payment_id.to_string(),
+                    amount: option.amount,
+                    expires_at: option.expires_at,
+                    collect_data_url: option.collect_data_url,
+                    provider_data: option.provider_data,
+                })
             })
             .collect()
     }
@@ -360,11 +368,48 @@ mod tests {
             provider_data: format!("{{\"id\":\"{id}\"}}"),
         };
 
-        let quotes = WalletConnectPayService::<MockClient>::payment_quotes("pay_123", vec![option("opt_form", Some("https://form")), option("opt_plain", None)]);
+        let quotes = WalletConnectPayService::<MockClient>::payment_quotes(
+            "pay_123",
+            vec![option("opt_form", Some("https://pay.walletconnect.com/collect?pid=pay_123")), option("opt_plain", None)],
+        )
+        .unwrap();
 
         assert_eq!(quotes.len(), 2);
         assert!(quotes[0].collect_data_url.is_none());
         assert!(quotes[1].collect_data_url.is_some());
         assert!(quotes.iter().all(|quote| quote.payment_id == "pay_123"));
+    }
+
+    #[test]
+    fn test_payment_quotes_reject_a_collection_url_off_the_payment_host() {
+        let option = |url: &str| QuotedOption {
+            id: "opt_form".to_string(),
+            expires_at: None,
+            chain: Chain::Ethereum,
+            amount: PaymentAmount {
+                asset_id: AssetId::from(Chain::Ethereum, None),
+                value: "1".to_string(),
+                symbol: "ETH".to_string(),
+                decimals: 18,
+            },
+            collect_data_url: Some(url.to_string()),
+            provider_data: "{}".to_string(),
+        };
+
+        for url in [
+            "https://evil.com/collect",
+            "http://pay.walletconnect.com/collect",
+            "https://pay.walletconnect.com.evil.com/collect",
+            "https://notwalletconnect.com/collect",
+            "not a url",
+        ] {
+            assert!(
+                WalletConnectPayService::<MockClient>::payment_quotes("pay_123", vec![option(url)]).is_err(),
+                "{url} was accepted"
+            );
+        }
+
+        assert!(WalletConnectPayService::<MockClient>::payment_quotes("pay_123", vec![option("https://pay.walletconnect.com/collect")]).is_ok());
+        assert!(WalletConnectPayService::<MockClient>::payment_quotes("pay_123", vec![option("https://data-collection.walletconnect.com/ic/pay_123")]).is_ok());
     }
 }

@@ -5,6 +5,8 @@ use crate::url_query::query_value;
 use crate::{HTTP_URL_SCHEME, HTTPS_URL_SCHEME, WalletConnectLink};
 
 pub const WALLET_CONNECT_PAY_HOST: &str = "pay.walletconnect.com";
+pub const WALLET_CONNECT_HOST: &str = "walletconnect.com";
+const WALLET_CONNECT_HOST_SUFFIX: &str = ".walletconnect.com";
 const WALLET_CONNECT_PAY_HOST_SUFFIX: &str = ".pay.walletconnect.com";
 const PAYMENT_ID_PREFIX: &str = "pay_";
 const PAYMENT_ID_EXTRA_CHARACTERS: &str = "-._~";
@@ -53,6 +55,11 @@ fn from_pairing_uri(url: &Url) -> Option<String> {
     let pairing_uri = Url::parse(&uri).ok()?;
     let payment_url = Url::parse(&query_value(&pairing_uri, QUERY_PAY)?).ok()?;
     from_payment_url(&payment_url)
+}
+
+pub fn is_wallet_connect_url(uri: &str) -> bool {
+    Url::parse(uri)
+        .is_ok_and(|url| url.scheme() == HTTPS_URL_SCHEME && url.host_str().is_some_and(|host| host == WALLET_CONNECT_HOST || host.ends_with(WALLET_CONNECT_HOST_SUFFIX)))
 }
 
 fn is_payment_host(url: &Url) -> bool {
