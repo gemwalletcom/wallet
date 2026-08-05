@@ -2,8 +2,8 @@
 
 import Foundation
 import PaymentService
+import Primitives
 import PrimitivesComponents
-import SigningRequestService
 
 public protocol PaymentSheetPresentable: SigningRequestInteractable {
     func collectPaymentData(request: PaymentDataCollectionRequest) async throws -> String

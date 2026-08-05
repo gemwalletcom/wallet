@@ -18,7 +18,6 @@
 		832AD1A72DEF9AED00096469 /* Assets in Frameworks */ = {isa = PBXBuildFile; productRef = 832AD1A62DEF9AED00096469 /* Assets */; };
 		833809D02D273E450055D91F /* WalletConnectorService in Frameworks */ = {isa = PBXBuildFile; productRef = 83385DDD2D27147900D76803 /* WalletConnectorService */; };
 		0A11FA0000000000000000A1 /* PaymentService in Frameworks */ = {isa = PBXBuildFile; productRef = 0A11FA0000000000000000A2 /* PaymentService */; };
-		0A11FA0000000000000000E1 /* SigningRequestService in Frameworks */ = {isa = PBXBuildFile; productRef = 0A11FA0000000000000000E2 /* SigningRequestService */; };
 		833809D12D273E450055D91F /* WalletConnector in Frameworks */ = {isa = PBXBuildFile; productRef = 83FE37B32D273CC80048D54C /* WalletConnector */; };
 		0A11FA0000000000000000B1 /* Payments in Frameworks */ = {isa = PBXBuildFile; productRef = 0A11FA0000000000000000B2 /* Payments */; };
 		833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A42D2D5B1D0063BB6A /* PriceAlerts */; };
@@ -335,7 +334,6 @@
 				0A11FA0000000000000000B1 /* Payments in Frameworks */,
 				833809D02D273E450055D91F /* WalletConnectorService in Frameworks */,
 				0A11FA0000000000000000A1 /* PaymentService in Frameworks */,
-				0A11FA0000000000000000E1 /* SigningRequestService in Frameworks */,
 				C3D1C4E22A2A9485006E8EEA /* Signer in Frameworks */,
 				D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */,
 				8361BB6D2D400E4F008D89CF /* AssetsService in Frameworks */,
@@ -878,7 +876,6 @@
 				B6STREAM02F5000000000002 /* StreamService */,
 				83385DDD2D27147900D76803 /* WalletConnectorService */,
 				0A11FA0000000000000000A2 /* PaymentService */,
-				0A11FA0000000000000000E2 /* SigningRequestService */,
 				83FE37B32D273CC80048D54C /* WalletConnector */,
 				0A11FA0000000000000000B2 /* Payments */,
 				83EB5E2F2D2ECF00006A7CFB /* Onboarding */,
@@ -2030,10 +2027,6 @@
 		0A11FA0000000000000000A2 /* PaymentService */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PaymentService;
-		};
-		0A11FA0000000000000000E2 /* SigningRequestService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SigningRequestService;
 		};
 		0A11FA0000000000000000B2 /* Payments */ = {
 			isa = XCSwiftPackageProductDependency;

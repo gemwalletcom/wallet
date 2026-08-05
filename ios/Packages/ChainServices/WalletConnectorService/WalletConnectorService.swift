@@ -2,6 +2,8 @@
 
 import Foundation
 import Gemstone
+import enum Gemstone.SignableTransaction
+import enum Gemstone.SignableTransactionType
 import enum Gemstone.SignDigestType
 import struct Gemstone.SignMessage
 import class Gemstone.WalletConnect
@@ -9,13 +11,10 @@ import enum Gemstone.WalletConnectAction
 import enum Gemstone.WalletConnectChainOperation
 import enum Gemstone.WalletConnectResponseType
 import class Gemstone.WalletConnectSimulationClient
-import enum Gemstone.SignableTransaction
-import enum Gemstone.SignableTransactionType
-import GemstonePrimitives
 import NativeProviderService
 import Primitives
-import SigningRequestService
 @preconcurrency import ReownWalletKit
+import SimulationService
 @preconcurrency import WalletConnectPairing
 
 public final class WalletConnectorService {
@@ -23,7 +22,7 @@ public final class WalletConnectorService {
     private let signer: WalletConnectorSignable
     private let messageTracker = MessageTracker()
     private let walletConnect = WalletConnect()
-    private let simulator: SigningSimulator
+    private let simulator: SimulationService
 
     public init(
         signer: WalletConnectorSignable,
@@ -31,7 +30,7 @@ public final class WalletConnectorService {
         requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
     ) {
         self.signer = signer
-        simulator = SigningSimulator(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor)
+        simulator = SimulationService(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor)
     }
 }
 

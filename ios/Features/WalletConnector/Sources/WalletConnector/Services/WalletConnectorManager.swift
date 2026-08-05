@@ -2,7 +2,6 @@
 
 import Primitives
 import PrimitivesComponents
-import SigningRequestService
 import WalletConnectorService
 
 public final class WalletConnectorManager {

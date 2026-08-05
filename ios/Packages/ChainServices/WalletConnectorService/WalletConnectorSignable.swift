@@ -3,7 +3,6 @@
 import Foundation
 import struct Gemstone.SignMessage
 import Primitives
-import SigningRequestService
 import WalletConnectSign
 
 public protocol WalletConnectorSignable: Sendable {

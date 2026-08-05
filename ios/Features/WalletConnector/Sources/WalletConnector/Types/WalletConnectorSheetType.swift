@@ -3,7 +3,6 @@
 import Foundation
 import Primitives
 import PrimitivesComponents
-import SigningRequestService
 
 public enum WalletConnectorSheetType: Sendable, Identifiable {
     case connectionProposal(SheetCallback<WCPairingProposal>)

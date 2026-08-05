@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import PaymentService
 @testable import Payments
+import PaymentService
 import Primitives
-import SigningRequestService
 
 final class PaymentSheetPresentableMock: PaymentSheetPresentable, @unchecked Sendable {
     init() {}
@@ -41,7 +40,7 @@ final class PaymentSheetPresentableMock: PaymentSheetPresentable, @unchecked Sen
         return signature
     }
 
-    func signTransaction(transferData: SigningTransferData) async throws -> String {
+    func signTransaction(transferData _: SigningTransferData) async throws -> String {
         transactionHash
     }
 

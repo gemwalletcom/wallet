@@ -6,8 +6,7 @@ import PaymentService
 import PaymentServiceTestKit
 import Primitives
 import PrimitivesTestKit
-import SigningRequestService
-import SigningRequestServiceTestKit
+import SimulationServiceTestKit
 import Testing
 
 @MainActor
@@ -17,7 +16,7 @@ struct PaymentActionExecutorTests {
         let interactor = SigningRequestInteractableMock()
         interactor.transactionHash = "transaction-hash"
 
-        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SimulationServiceableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [PaymentAction.sendTransaction(chain: .ethereum, transaction: .sui("transaction", .encodedTransaction))],
             paymentId: "pay_1",
             appMetadata: .mock(),
@@ -34,7 +33,7 @@ struct PaymentActionExecutorTests {
         let interactor = SigningRequestInteractableMock()
         interactor.signature = "permit-signature"
 
-        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: Self.approvalAssets()).perform(
+        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SimulationServiceableMock(), assetsProvider: Self.approvalAssets()).perform(
             actions: [
                 .approveToken(chain: .ethereum, approval: ApprovalData(token: "0xtoken", spender: "0xspender", value: "1", isUnlimited: true)),
                 .mockSignMessage(data: Data("permit".utf8)),
@@ -55,7 +54,7 @@ struct PaymentActionExecutorTests {
         interactor.signature = "permit-signature"
         interactor.transactionHash = "approval-hash"
 
-        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        let results = try await PaymentActionExecutor(interactor: interactor, simulator: SimulationServiceableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [
                 .sendTransaction(chain: .ethereum, transaction: .sui("approval", .encodedTransaction)),
                 .mockSignMessage(data: Data("permit".utf8)),
@@ -75,7 +74,7 @@ struct PaymentActionExecutorTests {
         let interactor = SigningRequestInteractableMock()
         let payment = PaymentData.mock(quote: .mock(amount: .mock(value: "25000", symbol: "USDT")))
 
-        _ = try await PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
+        _ = try await PaymentActionExecutor(interactor: interactor, simulator: SimulationServiceableMock(), assetsProvider: PaymentAssetsProvidableMock(assetsData: [.mock()])).perform(
             actions: [PaymentAction.mockSignMessage(data: Data("pay".utf8))],
             paymentId: "pay_1",
             appMetadata: .mock(),
@@ -94,7 +93,7 @@ struct PaymentActionExecutorTests {
 
         _ = try await PaymentActionExecutor(
             interactor: interactor,
-            simulator: SigningSimulatableMock(),
+            simulator: SimulationServiceableMock(),
             assetsProvider: Self.approvalAssets(),
         ).perform(
             actions: [
@@ -119,7 +118,7 @@ struct PaymentActionExecutorTests {
     func signMessageIsSimulatedBeforeItIsShown() async throws {
         let interactor = SigningRequestInteractableMock()
         let warning = SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: "suspicious spender")
-        let simulator = SigningSimulatableMock(
+        let simulator = SimulationServiceableMock(
             result: SimulationResult(warnings: [warning], balanceChanges: [], payload: [], header: .none),
         )
 

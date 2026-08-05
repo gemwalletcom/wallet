@@ -15,7 +15,6 @@ import Onboarding
 import Payments
 import Preferences
 import Primitives
-import SigningRequestService
 import SwiftUI
 import TransactionsService
 import TransactionStateService

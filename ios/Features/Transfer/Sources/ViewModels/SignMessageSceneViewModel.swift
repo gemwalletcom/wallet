@@ -11,7 +11,6 @@ import Keystore
 import Localization
 import Primitives
 import PrimitivesComponents
-import SigningRequestService
 import Style
 
 @Observable
@@ -45,7 +44,7 @@ public final class SignMessageSceneViewModel {
         self.addressNameService = addressNameService
         self.payload = payload
         expiryCountdown = ExpiryCountdown(expiresAt: payload.expiresAt)
-        let signer = MessageSigner(message: payload.message)
+        let signer = MessageSigner(message: payload.message.map())
         self.signer = signer
         let plainMessage = signer.plainPreview()
         self.plainMessage = plainMessage

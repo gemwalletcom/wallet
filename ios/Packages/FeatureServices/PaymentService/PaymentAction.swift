@@ -3,7 +3,6 @@
 import Foundation
 import struct Gemstone.SignMessage
 import Primitives
-import SigningRequestService
 
 public enum PaymentAction: Sendable {
     case signMessage(chain: Chain, message: SignMessage)

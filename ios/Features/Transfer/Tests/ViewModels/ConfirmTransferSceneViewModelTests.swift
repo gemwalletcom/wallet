@@ -25,7 +25,6 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import ScanServiceTestKit
-import SigningRequestServiceTestKit
 import Store
 import Testing
 import TransactionStateServiceTestKit

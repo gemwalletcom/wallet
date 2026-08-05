@@ -1,10 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.SignMessage
-import SigningRequestService
 import Primitives
-import PrimitivesTestKit
 
 public extension SignMessagePayload {
     static func mock(

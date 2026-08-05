@@ -272,9 +272,8 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
-                .product(name: "SigningRequestService", package: "ChainServices"),
-                .product(name: "Gemstone", package: "Gemstone"),
                 .product(name: "GemstonePrimitives", package: "GemstonePrimitives"),
+                .product(name: "Gemstone", package: "Gemstone"),
                 .product(name: "NativeProviderService", package: "NativeProviderService"),
             ],
             path: "PaymentService",
@@ -284,7 +283,6 @@ let package = Package(
             name: "PaymentServiceTestKit",
             dependencies: [
                 "PaymentService",
-                .product(name: "SigningRequestServiceTestKit", package: "ChainServices"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "PaymentService/TestKit",

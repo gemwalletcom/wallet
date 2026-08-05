@@ -13,13 +13,12 @@ import FiatService
 import Foundation
 import Keystore
 import NameService
+import PaymentService
 import PerpetualService
 import Preferences
 import PriceAlertService
 import PriceService
-import PaymentService
 import Primitives
-import SigningRequestService
 import PrimitivesComponents
 import ScanService
 import Stake

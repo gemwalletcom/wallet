@@ -1,13 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import GemstonePrimitives
 import Localization
 import Onboarding
 import Payments
 import PriceService
 import Primitives
-import SigningRequestService
 import Style
 import SwiftUI
 import WalletConnector

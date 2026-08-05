@@ -13,7 +13,6 @@ import WalletConnectorService
 import WalletConnectSign
 import WalletSessionService
 import WalletSessionServiceTestKit
-import SigningRequestService
 
 struct WalletConnectorSignerTests {
     @Test

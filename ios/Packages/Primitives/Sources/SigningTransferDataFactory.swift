@@ -2,11 +2,10 @@
 
 import BigInt
 import Foundation
-import Primitives
 
 public enum SigningTransferDataFactory {
     public static func transferData(
-        chain: Chain,
+        asset: Asset,
         appMetadata: TransactionAppMetadata,
         transaction: SignableTransaction,
         outputAction: TransferDataOutputAction,
@@ -14,17 +13,17 @@ public enum SigningTransferDataFactory {
     ) throws -> TransferData {
         switch transaction {
         case let .ethereum(transaction, transactionType):
-            try ethereumTransferData(chain: chain, appMetadata: appMetadata, transaction: transaction, transactionType: transactionType, payment: payment)
+            try ethereumTransferData(asset: asset, appMetadata: appMetadata, transaction: transaction, transactionType: transactionType, payment: payment)
         case let .solana(transaction, outputType),
              let .sui(transaction, outputType),
              let .ton(transaction, outputType),
              let .tron(transaction, outputType):
-            encodedTransferData(chain: chain, appMetadata: appMetadata, transaction: transaction, outputType: outputType, outputAction: outputAction, payment: payment)
+            encodedTransferData(asset: asset, appMetadata: appMetadata, transaction: transaction, outputType: outputType, outputAction: outputAction, payment: payment)
         }
     }
 
     public static func ethereumTransferData(
-        chain: Chain,
+        asset: Asset,
         appMetadata: TransactionAppMetadata,
         transaction: EthereumTransactionData,
         transactionType: TransactionType,
@@ -60,7 +59,7 @@ public enum SigningTransferDataFactory {
         }()
 
         return TransferData(
-            type: Self.type(asset: chain.asset, appMetadata: appMetadata, payment: payment, extra: TransferDataExtra(
+            type: Self.type(asset: asset, appMetadata: appMetadata, payment: payment, extra: TransferDataExtra(
                 to: address,
                 gasLimit: gasLimit,
                 gasPrice: gasPrice,
@@ -76,7 +75,7 @@ public enum SigningTransferDataFactory {
     }
 
     public static func encodedTransferData(
-        chain: Chain,
+        asset: Asset,
         appMetadata: TransactionAppMetadata,
         transaction: String,
         outputType: TransferDataOutputType,
@@ -84,8 +83,8 @@ public enum SigningTransferDataFactory {
         payment: PaymentData? = .none,
     ) -> TransferData {
         TransferData(
-            type: Self.type(
-                asset: chain.asset,
+            type: type(
+                asset: asset,
                 appMetadata: appMetadata,
                 payment: payment,
                 extra: TransferDataExtra(

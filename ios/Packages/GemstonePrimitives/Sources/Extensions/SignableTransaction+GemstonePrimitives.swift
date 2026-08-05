@@ -5,7 +5,7 @@ import Gemstone
 import Primitives
 
 public extension Gemstone.SignableTransaction {
-    func map() -> SignableTransaction {
+    func map() -> Primitives.SignableTransaction {
         switch self {
         case let .ethereum(data, transactionType): .ethereum(data.map(), transactionType.map())
         case let .solana(data, outputType): .solana(data.transaction, outputType.map())

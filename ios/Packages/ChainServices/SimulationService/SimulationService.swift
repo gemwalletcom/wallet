@@ -2,20 +2,20 @@
 
 import Foundation
 import struct Gemstone.Chain
+import enum Gemstone.SignableTransactionType
 import enum Gemstone.SignDigestType
 import struct Gemstone.SignMessage
 import class Gemstone.WalletConnectSimulationClient
-import enum Gemstone.SignableTransactionType
+import GemstonePrimitives
 import NativeProviderService
 import Primitives
-import GemstonePrimitives
 
-public protocol SigningSimulatable: Sendable {
+public protocol SimulationServiceable: Sendable {
     func simulateSignMessage(chain: Gemstone.Chain, signType: SignDigestType, data: String, sessionDomain: String) async throws -> SimulationResult
     func simulateSendTransaction(chain: Gemstone.Chain, transactionType: SignableTransactionType, data: String) async throws -> SimulationResult
 }
 
-public extension SigningSimulatable {
+public extension SimulationServiceable {
     func simulateSignMessage(message: SignMessage, sessionDomain: String) async throws -> SimulationResult {
         try await simulateSignMessage(
             chain: message.chain,
@@ -26,7 +26,7 @@ public extension SigningSimulatable {
     }
 }
 
-public final class SigningSimulator: SigningSimulatable, Sendable {
+public final class SimulationService: SimulationServiceable, Sendable {
     private let client: WalletConnectSimulationClient
 
     public init(nodeProvider: any NodeURLFetchable, requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor()) {

@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.SignMessage
-import Primitives
 
 public struct SignMessagePayload: Sendable, Identifiable {
     public let id: String

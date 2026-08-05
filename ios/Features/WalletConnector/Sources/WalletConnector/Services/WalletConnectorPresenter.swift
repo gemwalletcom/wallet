@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 import PrimitivesComponents
-import SigningRequestService
 
 @Observable
 public final class WalletConnectorPresenter: SheetPresenting, SigningRequestInteractable, Sendable {

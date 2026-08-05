@@ -12,7 +12,6 @@ import Store
 import Style
 import SwiftUI
 import WalletService
-import SigningRequestService
 
 @main
 struct GemApp: App {

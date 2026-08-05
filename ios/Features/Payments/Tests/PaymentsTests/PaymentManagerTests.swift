@@ -7,8 +7,7 @@ import PaymentServiceTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
-import SigningRequestService
-import SigningRequestServiceTestKit
+import SimulationServiceTestKit
 import Store
 import StoreTestKit
 import Testing
@@ -25,7 +24,7 @@ struct PaymentManagerTests {
     ) -> PaymentManager {
         PaymentManager(
             service: service,
-            executor: PaymentActionExecutor(interactor: interactor, simulator: SigningSimulatableMock(), assetsProvider: PaymentAssetsProvidableMock()),
+            executor: PaymentActionExecutor(interactor: interactor, simulator: SimulationServiceableMock(), assetsProvider: PaymentAssetsProvidableMock()),
             presenter: presenter,
             assetsProvider: PaymentAssetsProvidableMock(),
             transactionStateScheduler: .mock(

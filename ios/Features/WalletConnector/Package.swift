@@ -14,6 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Localization", path: "../../Packages/Localization"),
@@ -31,7 +32,7 @@ let package = Package(
             name: "WalletConnector",
             dependencies: [
                 "Primitives",
-                .product(name: "SigningRequestService", package: "ChainServices"),
+                .product(name: "GemstonePrimitives", package: "GemstonePrimitives"),
                 .product(name: "WalletConnectorService", package: "ChainServices"),
                 "Components",
                 "Localization",
@@ -56,7 +57,6 @@ let package = Package(
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "WalletSessionServiceTestKit", package: "FeatureServices"),
                 .product(name: "ConnectionsServiceTestKit", package: "FeatureServices"),
-                .product(name: "SigningRequestServiceTestKit", package: "ChainServices"),
                 .product(name: "WalletConnectorServiceTestKit", package: "ChainServices"),
                 .product(name: "TransactionStateServiceTestKit", package: "FeatureServices"),
                 "WalletConnector",

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
 import PrimitivesComponents
-import SigningRequestService
 import Style
 import SwiftUI
 import Transfer

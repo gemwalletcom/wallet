@@ -2,7 +2,6 @@
 
 import Foundation
 import Primitives
-import SigningRequestService
 
 public protocol WalletConnectorInteractable: Sendable {
     func sessionReject(error: any Error) async

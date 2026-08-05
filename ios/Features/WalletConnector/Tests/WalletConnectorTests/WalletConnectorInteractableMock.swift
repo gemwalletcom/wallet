@@ -2,7 +2,6 @@
 
 import Foundation
 import Primitives
-import SigningRequestService
 @testable import WalletConnector
 import WalletConnectorService
 

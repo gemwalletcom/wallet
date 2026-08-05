@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.SignDigestType
 import struct Gemstone.Chain
 import enum Gemstone.SignableTransactionType
-import SigningRequestService
+import enum Gemstone.SignDigestType
 import Primitives
+import SimulationService
 
-public struct SigningSimulatableMock: SigningSimulatable {
+public struct SimulationServiceableMock: SimulationServiceable {
     private let result: SimulationResult
 
     public init(result: SimulationResult = .empty) {

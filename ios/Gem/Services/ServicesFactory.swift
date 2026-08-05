@@ -22,15 +22,14 @@ import FiatService
 import Foundation
 import GemAPI
 import GemAPIDevice
-import GemstonePrimitives
 import Keystore
 import NameService
 import NativeProviderService
 import NFTService
 import NodeService
 import NotificationService
-import PaymentService
 import Payments
+import PaymentService
 import PerpetualService
 import Preferences
 import PriceAlertService
@@ -39,7 +38,7 @@ import Primitives
 import RewardsService
 import ScanService
 import ServiceStatusService
-import SigningRequestService
+import SimulationService
 import StakeService
 import Store
 import StreamService
@@ -312,7 +311,7 @@ struct ServicesFactory {
                 service: paymentService,
                 executor: PaymentActionExecutor(
                     interactor: paymentSheetPresenter,
-                    simulator: SigningSimulator(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider),
+                    simulator: SimulationService(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider),
                     assetsProvider: paymentAssetsProvider,
                 ),
                 presenter: paymentSheetPresenter,

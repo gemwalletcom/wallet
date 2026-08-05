@@ -2,7 +2,6 @@
 
 import Foundation
 import Primitives
-import SigningRequestService
 
 public final class SigningRequestInteractableMock: SigningRequestInteractable, @unchecked Sendable {
     public init() {}

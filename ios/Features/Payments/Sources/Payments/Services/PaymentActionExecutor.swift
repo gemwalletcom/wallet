@@ -3,7 +3,7 @@
 import Foundation
 import PaymentService
 import Primitives
-import SigningRequestService
+import SimulationService
 
 public struct PaymentActionResults: Sendable {
     public let results: [String]
@@ -12,12 +12,12 @@ public struct PaymentActionResults: Sendable {
 
 public struct PaymentActionExecutor: Sendable {
     private let interactor: any SigningRequestInteractable
-    private let simulator: any SigningSimulatable
+    private let simulator: any SimulationServiceable
     private let assetsProvider: any PaymentAssetsProvidable
 
     public init(
         interactor: any SigningRequestInteractable,
-        simulator: any SigningSimulatable,
+        simulator: any SimulationServiceable,
         assetsProvider: any PaymentAssetsProvidable,
     ) {
         self.interactor = interactor
@@ -67,7 +67,7 @@ extension PaymentActionExecutor {
                 chain: chain,
                 appMetadata: appMetadata,
                 wallet: wallet,
-                message: message,
+                message: message.map(),
                 simulation: simulator.simulateSignMessage(message: message, sessionDomain: appMetadata.url ?? .empty),
                 payment: payment,
                 expiresAt: payment.expiresAt,
@@ -75,7 +75,7 @@ extension PaymentActionExecutor {
             return try await interactor.signMessage(payload: payload)
         case let .signTransaction(chain, transaction):
             let transferData = try SigningTransferDataFactory.transferData(
-                chain: chain,
+                asset: chain.asset,
                 appMetadata: appMetadata,
                 transaction: transaction,
                 outputAction: .sign,
@@ -102,7 +102,7 @@ extension PaymentActionExecutor {
             )
         case let .sendTransaction(chain, transaction):
             let transferData = try SigningTransferDataFactory.transferData(
-                chain: chain,
+                asset: chain.asset,
                 appMetadata: appMetadata,
                 transaction: transaction,
                 outputAction: .send,

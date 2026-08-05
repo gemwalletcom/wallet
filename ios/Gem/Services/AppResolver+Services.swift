@@ -17,18 +17,18 @@ import EventPresenterService
 import ExplorerService
 import FiatService
 import Foundation
-import Payments
 import NameService
 import NFTService
 import NodeService
 import NotificationService
+import Payments
 import PerpetualService
 import PriceAlertService
 import PriceService
+import Primitives
 import RewardsService
-import ServiceStatusService
 import ScanService
-import SigningRequestService
+import ServiceStatusService
 import StakeService
 import StreamService
 import SupportChatService
@@ -38,7 +38,6 @@ import TransactionStateService
 import WalletConnector
 import WalletService
 import WalletSessionService
-import Primitives
 
 extension AppResolver {
     struct Services {

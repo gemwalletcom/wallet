@@ -6,7 +6,6 @@ import class Gemstone.MessageSigner
 import struct Gemstone.SignMessage
 import Preferences
 import Primitives
-import SigningRequestService
 import Store
 import WalletConnectorService
 import WalletConnectSign
@@ -95,7 +94,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             chain: chain,
             appMetadata: session.session.metadata.transactionAppMetadata,
             wallet: session.wallet,
-            message: message,
+            message: message.map(),
             simulation: simulation,
         )
         return try await signingInteractor.signMessage(payload: payload)
@@ -132,7 +131,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             throw AnyError("Not supported")
         case .solana, .sui, .ton, .tron:
             let transferData = try SigningTransferDataFactory.transferData(
-                chain: chain,
+                asset: chain.asset,
                 appMetadata: session.session.metadata.transactionAppMetadata,
                 transaction: transaction,
                 outputAction: .sign,
@@ -147,7 +146,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         let wallet = try getWallet(id: session.wallet.id)
 
         let transferData = try SigningTransferDataFactory.transferData(
-            chain: chain,
+            asset: chain.asset,
             appMetadata: session.session.metadata.transactionAppMetadata,
             transaction: transaction,
             outputAction: .send,
@@ -160,7 +159,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.id)
         let transferData = SigningTransferDataFactory.encodedTransferData(
-            chain: chain,
+            asset: chain.asset,
             appMetadata: session.session.metadata.transactionAppMetadata,
             transaction: transaction,
             outputType: .encodedTransaction,
