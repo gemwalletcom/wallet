@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.navigation.routes.PaymentRoute
 import uniffi.gemstone.UrlAction
@@ -23,6 +24,7 @@ internal sealed interface PendingNavigation {
 
 class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
+    private val userConfig: UserConfig,
 ) {
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
@@ -59,7 +61,12 @@ class PendingNavigationCoordinator @Inject constructor(
                 }
             }
             is UrlAction.Payment -> {
-                replace(pendingIntent, PendingNavigation.Route(PaymentRoute(action.link.provider.toPrimitives(), action.link.id)))
+                val route = if (userConfig.developEnabled()) {
+                    PendingNavigation.Route(PaymentRoute(action.link.provider.toPrimitives(), action.link.id))
+                } else {
+                    null
+                }
+                replace(pendingIntent, route)
                 return
             }
             null -> Unit

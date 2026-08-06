@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import Localization
 import PaymentService
 import Primitives
 import PrimitivesComponents
@@ -44,7 +43,8 @@ extension PaymentDataCollectionScene {
         case Self.completeMessageType:
             finish(.success(.empty))
         case Self.errorMessageType:
-            finish(.failure(AnyError(payload[Self.messageErrorKey] as? String ?? Localized.Errors.transferError)))
+            debugLog("payment data collection error: \(payload[Self.messageErrorKey] as? String ?? .empty)")
+            finish(.failure(PaymentLinkError.dataCollection))
         default:
             break
         }

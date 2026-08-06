@@ -227,8 +227,8 @@ class PaymentViewModel @Inject constructor(
         val simulation = runCatchingCancellable {
             simulationService.simulateSignMessage(action.message, paymentWalletConnectUrl())
         }.getOrNull()
-        val signer = runCatching { MessageSigner(action.message) }.getOrNull()
-        val preview = signer?.let { runCatching { it.payloadPreview(simulation?.payload.orEmpty().map { field -> field.toGem() }) }.getOrNull() }
+        val signer = runCatchingCancellable { MessageSigner(action.message) }.getOrNull()
+        val preview = signer?.let { runCatchingCancellable { it.payloadPreview(simulation?.payload.orEmpty().map { field -> field.toGem() }) }.getOrNull() }
         return PaymentSceneState.SignMessage(
             merchant = current.quotes.merchant.toUIModel(),
             chain = chain,
@@ -236,7 +236,7 @@ class PaymentViewModel @Inject constructor(
             quote = current.quote?.toUIModel(),
             price = current.quotes.price?.toPriceText(),
             expiresAt = current.quotes.expiresAt,
-            plainMessage = signer?.let { runCatching { it.plainPreview() }.getOrNull() }.orEmpty(),
+            plainMessage = signer?.let { runCatchingCancellable { it.plainPreview() }.getOrNull() }.orEmpty(),
             primaryPayloadFields = preview?.primary?.map { it.toPrimitives() }.orEmpty()
                 .withExplorerLinks(chain, null),
             secondaryPayloadFields = preview?.secondary?.map { it.toPrimitives() }.orEmpty()

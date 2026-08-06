@@ -7,6 +7,7 @@ enum PaymentLinkError: Error, Equatable {
     case noQuotes
     case quoteUnavailable
     case invalidDataCollectionUrl
+    case dataCollection
     case unknownAsset
 }
 
@@ -14,7 +15,7 @@ extension PaymentLinkError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .noQuotes, .quoteUnavailable, .invalidDataCollectionUrl: Localized.Errors.notSupported
-        case .unknownAsset: Localized.Errors.errorOccurred
+        case .dataCollection, .unknownAsset: Localized.Errors.errorOccurred
         }
     }
 }
