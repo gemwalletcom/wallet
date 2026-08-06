@@ -2,11 +2,11 @@ package com.gemwallet.android.data.repositories.tokens
 
 import com.gemwallet.android.application.assets.coordinators.SearchAssets
 import com.gemwallet.android.blockchain.services.TokenService
+import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
-import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.service.store.database.entities.DbSearch
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.ext.toIdentifier
@@ -18,10 +18,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.slot
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -31,6 +29,7 @@ class TokensRepositoryTest {
 
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val pricesDao = mockk<PricesDao>(relaxed = true)
+    private val pricesRepository = mockk<PricesRepository>(relaxed = true)
     private val searchDao = mockk<SearchDao>(relaxed = true)
     private val searchAssets = mockk<SearchAssets>()
     private val tokenService = mockk<TokenService>(relaxed = true)
@@ -38,6 +37,7 @@ class TokensRepositoryTest {
     private val subject = TokensRepository(
         assetsDao = assetsDao,
         pricesDao = pricesDao,
+        pricesRepository = pricesRepository,
         searchDao = searchDao,
         searchAssets = searchAssets,
         tokenService = tokenService,
@@ -53,7 +53,6 @@ class TokensRepositoryTest {
                 tags = listOf(AssetTag.Trending),
             )
         } returns listOf(asset)
-        every { pricesDao.getRates(Currency.USD) } returns flowOf(DbFiatRate(Currency.USD, 1.0))
 
         val result = subject.search(
             query = "btc",
@@ -86,7 +85,6 @@ class TokensRepositoryTest {
                 tags = emptyList(),
             )
         } returns listOf(firstResult, secondResult)
-        every { pricesDao.getRates(Currency.USD) } returns flowOf(DbFiatRate(Currency.USD, 1.0))
 
         subject.search(
             query = "usdt arbitrum",
@@ -109,7 +107,6 @@ class TokensRepositoryTest {
         val assetBasic = mockAssetBasic(asset = asset, rank = 100)
         val updates = slot<List<DbAssetBasicUpdate>>()
         coEvery { searchAssets.getAssets(listOf(asset.id)) } returns listOf(assetBasic)
-        every { pricesDao.getRates(Currency.USD) } returns flowOf(DbFiatRate(Currency.USD, 1.0))
 
         val result = subject.search(
             assetIds = listOf(asset.id),
@@ -131,7 +128,6 @@ class TokensRepositoryTest {
             pricesDao.getByAssets(listOf(cached.id.toIdentifier(), missing.id.toIdentifier()))
         } returns listOf(DbPrice(assetId = cached.id.toIdentifier(), currency = Currency.USD.string))
         coEvery { searchAssets.getAssets(listOf(missing.id)) } returns listOf(missingBasic)
-        every { pricesDao.getRates(Currency.USD) } returns flowOf(DbFiatRate(Currency.USD, 1.0))
 
         subject(listOf(cached.id, missing.id), Currency.USD)
 

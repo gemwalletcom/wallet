@@ -3,21 +3,19 @@ package com.gemwallet.android.data.repositories.assets
 import android.util.Log
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinksModel
 import com.gemwallet.android.data.service.store.database.entities.toMarketRecord
 import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.chain
@@ -68,7 +66,7 @@ private const val TAG = "AssetsRepository"
 class AssetsRepository @Inject constructor(
     private val assetsDao: AssetsDao,
     private val balancesDao: BalancesDao,
-    private val pricesDao: PricesDao,
+    private val pricesRepository: PricesRepository,
     private val sessionRepository: SessionRepository,
     private val balancesService: BalancesService,
     private val searchTokensCase: SearchTokensCase,
@@ -82,7 +80,7 @@ class AssetsRepository @Inject constructor(
     init {
         scope.launch(Dispatchers.IO) {
             sessionRepository.session().collectLatest {
-                currencyRatesService.changeCurrency(it?.currency ?: return@collectLatest)
+                pricesRepository.convertPricesToCurrency(it?.currency ?: return@collectLatest)
             }
         }
         scope.launch(Dispatchers.IO) {
@@ -98,7 +96,6 @@ class AssetsRepository @Inject constructor(
 
     suspend fun saveAssetMetadata(assetFull: AssetFull) = withContext(Dispatchers.IO) {
         val assetId = assetFull.asset.id
-        val assetIdIdentifier = assetId.toIdentifier()
         val currency = sessionRepository.getCurrentCurrency()
         val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull() ?: when (currency) {
             Currency.USD -> FiatRate(Currency.USD.string, 1.0)
@@ -110,11 +107,7 @@ class AssetsRepository @Inject constructor(
         val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
         val marketRecord = rate?.let { assetFull.toMarketRecord(it.rate) }
         assetsDao.upsertAssetMetadata(record, linkRecords, marketRecord)
-        rate?.let {
-            pricesDao.insert(
-                assetFull.toPriceRecord(it) ?: DbPrice(assetId = assetIdIdentifier, currency = currency.string)
-            )
-        }
+        rate?.let { pricesRepository.updatePrice(assetFull, it, currency) }
     }
 
     suspend fun updateAssetMarket(assetId: AssetId, market: AssetMarket, currency: Currency) = withContext(Dispatchers.IO) {
