@@ -35,6 +35,7 @@ If a task spans multiple platforms, read every affected guide. Do not treat ever
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
 - [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
+- [Payments](docs/PAYMENTS.md) — payment link decoding, the action list both apps sign, and provider coverage
 - [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
 
 Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are documented in [core/docs/](core/docs).

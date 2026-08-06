@@ -51,6 +51,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 
 ### Cross-Chain Operations
 - `swapper/`: Standalone swap/exchange integration crate supporting DEX and CEX swaps across multiple chains
+- `payment/`: Merchant payment providers; turns a payment link into the actions the wallet signs
 - `signer/`: Cryptographic signing operations for transactions across multiple blockchain types
 
 ### Data & Storage

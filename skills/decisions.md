@@ -26,6 +26,10 @@ Google, Huawei, Samsung, Solana, and Universal flavors exist to satisfy differen
 
 `core/` is tracked source in this repository, not a Git submodule. Changes to Core and the mobile apps should land together when shared behavior, generated models, or bindings need to stay aligned.
 
+## Payment protocol lives in Core, not in the WalletConnect SDK
+
+Payment link decoding and the provider client are implemented in Core (`payment_decoder`, the `payment` crate) rather than delegated to Reown's WalletKit Pay APIs. Both apps therefore share one implementation, one set of validation rules, and one test suite, and neither depends on the iOS Reown fork gaining Pay support. `PaymentProviderName` is the only provider surface the apps see, so a second provider is a Core change alone. Do not move detection or the client back behind a platform SDK — it would split the rules across two codebases, which is what this design exists to avoid. See [Payments](../docs/PAYMENTS.md).
+
 ## Number parsing: human input vs machine strings
 
 Amount strings come from two sources that must be parsed differently. Confusing them silently corrupts amounts on locales that group thousands with a dot (de, it, es, nl, pt-BR, da), where `"1.234"` means 1234, not 1.234. Pick the parser by the source of the string, never by convenience.
