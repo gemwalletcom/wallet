@@ -25,7 +25,7 @@ public struct WalletSearchScene: View {
             dismissSearch: $model.dismissSearch,
         )
         .searchStateOverlay(model.searchState, background: Colors.sheetInsetGroupedListStyle)
-        .bindQuery(model.searchQuery, model.recentsQuery)
+        .bindQuery(model.searchQuery, model.recentModel.query)
         .searchable(
             text: $model.searchModel.searchableQuery,
             isPresented: $model.isSearchPresented,
@@ -46,9 +46,7 @@ public struct WalletSearchScene: View {
             model.onSelectTag(tag: .all)
         }
         .toast(message: $model.isPresentingToastMessage)
-        .sheet(isPresented: $model.isPresentingRecents) {
-            RecentsScene(model: model.recentsModel)
-        }
+        .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)
     }
 
     private var content: some View {
@@ -65,16 +63,10 @@ public struct WalletSearchScene: View {
             }
 
             if model.showRecents {
-                RecentActivitySectionView(
-                    models: model.recentModels,
-                    onSelectRecents: model.onSelectRecents,
-                ) { assetModel in
-                    Button {
-                        model.onSelectRecent(asset: assetModel.asset)
-                    } label: {
-                        AssetChipView(model: assetModel)
-                    }
-                }
+                RecentAssetsSectionView(
+                    model: model.recentModel,
+                    onSelect: model.onSelectRecent,
+                )
             }
 
             if model.showPinned {

@@ -15,8 +15,8 @@ import WalletTabTestKit
 struct WalletSearchSceneViewModelTests {
     @Test
     func recentActivityTypes() {
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).recentsQuery.request.types == RecentActivityType.allCases)
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).recentsQuery.request.types == RecentActivityType.allCases)
+        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).recentModel.query.request.types == RecentActivityType.allCases)
+        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).recentModel.query.request.types == RecentActivityType.allCases)
     }
 
     @Test

@@ -11,6 +11,7 @@ import Preferences
 import PriceAlertService
 import Primitives
 import PrimitivesComponents
+import Recents
 import Store
 import Style
 import SwiftUI
@@ -32,13 +33,9 @@ public final class SelectAssetViewModel {
     var searchModel: AssetSearchViewModel
 
     public let assetsQuery: ObservableQuery<AssetsRequest>
-    public let recentsQuery: ObservableQuery<RecentActivityRequest>
+    public let recentModel: RecentAssetsModel
     var assets: [AssetData] {
         assetsQuery.value
-    }
-
-    var recents: [RecentAsset] {
-        recentsQuery.value
     }
 
     var isSearching: Bool = false
@@ -47,7 +44,6 @@ public final class SelectAssetViewModel {
     var copyTypeViewModel: CopyTypeViewModel?
 
     public var isPresentingAddToken: Bool = false
-    public var isPresentingRecents: Bool = false
     public var assetSelection: AssetSelectionType?
 
     public var filterModel: AssetsFilterViewModel
@@ -85,14 +81,11 @@ public final class SelectAssetViewModel {
         searchModel = AssetSearchViewModel(selectType: selectType)
 
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: filter.filters), initialValue: [])
-        recentsQuery = ObservableQuery(
-            RecentActivityRequest(
-                walletId: wallet.id,
-                limit: 10,
-                types: selectType.recentActivityTypes,
-                filters: filter.defaultFilters,
-            ),
-            initialValue: [],
+        recentModel = RecentAssetsModel(
+            walletId: wallet.id,
+            types: selectType.recentActivityTypes,
+            filters: filter.defaultFilters,
+            activityService: activityService,
         )
     }
 
@@ -161,11 +154,7 @@ public final class SelectAssetViewModel {
     }
 
     var showRecents: Bool {
-        flow.capabilities.contains(.recents) && searchModel.searchableQuery.isEmpty && recents.isNotEmpty
-    }
-
-    var recentModels: [AssetViewModel] {
-        recents.map { AssetViewModel(asset: $0.asset) }
+        flow.capabilities.contains(.recents) && searchModel.searchableQuery.isEmpty && recentModel.hasAssets
     }
 
     var currencyCode: String {
@@ -279,10 +268,6 @@ extension SelectAssetViewModel {
         }
     }
 
-    func onSelectRecents() {
-        isPresentingRecents = true
-    }
-
     func onSelectAsset(_ assetData: AssetData) {
         assetSelection = .regular(SelectAssetInput(type: selectType, assetData: assetData))
     }
@@ -309,7 +294,7 @@ extension SelectAssetViewModel {
         case .toggle:
             break
         }
-        isPresentingRecents = false
+        recentModel.dismiss()
     }
 
     func onSelectAddCustomToken() {

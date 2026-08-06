@@ -33,6 +33,6 @@ public struct PerpetualsNavigationView: View {
 
     public var body: some View {
         PerpetualsScene(model: model)
-            .bindQuery(model.positionsQuery, model.perpetualsQuery, model.walletBalanceQuery, model.recentsQuery)
+            .bindQuery(model.positionsQuery, model.perpetualsQuery, model.walletBalanceQuery, model.recentModel.query)
     }
 }

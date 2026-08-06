@@ -35,21 +35,16 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
     var searchModel: WalletSearchModel
 
     public let searchQuery: ObservableQuery<WalletSearchRequest>
-    public let recentsQuery: ObservableQuery<RecentActivityRequest>
+    public let recentModel: RecentAssetsModel
 
     var searchResult: WalletSearchResult {
         searchQuery.value
-    }
-
-    var recents: [RecentAsset] {
-        recentsQuery.value
     }
 
     var isPresentingToastMessage: ToastMessage?
     var isSearching: Bool = false
     var isSearchPresented: Bool = false
     var dismissSearch: Bool = false
-    var isPresentingRecents: Bool = false
 
     let onSelectAssetAction: AssetAction
 
@@ -85,13 +80,10 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
             ),
             initialValue: .empty,
         )
-        recentsQuery = ObservableQuery(
-            RecentActivityRequest(
-                walletId: wallet.id,
-                limit: 10,
-                types: WalletSearchModel.recentActivityTypes,
-            ),
-            initialValue: [],
+        recentModel = RecentAssetsModel(
+            walletId: wallet.id,
+            types: WalletSearchModel.recentActivityTypes,
+            activityService: activityService,
         )
     }
 
@@ -124,10 +116,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
         .from(searchResult)
     }
 
-    var recentModels: [AssetViewModel] {
-        recents.map { AssetViewModel(asset: $0.asset) }
-    }
-
     var currencyCode: String {
         preferences.preferences.currency
     }
@@ -137,7 +125,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
     }
 
     var showRecents: Bool {
-        searchModel.searchableQuery.isEmpty && recents.isNotEmpty
+        searchModel.searchableQuery.isEmpty && recentModel.hasAssets
     }
 
     var showPerpetuals: Bool {
@@ -205,16 +193,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
         searchResult.nfts.count > searchModel.nftsLimit
     }
 
-    var recentsModel: RecentsSceneViewModel {
-        RecentsSceneViewModel(
-            walletId: wallet.id,
-            types: recentsQuery.request.types,
-            filters: recentsQuery.request.filters,
-            activityService: activityService,
-            onSelect: onSelectRecent,
-        )
-    }
-
     var assetsResultsDestination: Scenes.AssetsResults {
         Scenes.AssetsResults(
             searchQuery: searchQuery.request.searchBy,
@@ -277,13 +255,9 @@ extension WalletSearchSceneViewModel {
         updateRecent(asset)
     }
 
-    func onSelectRecents() {
-        isPresentingRecents = true
-    }
-
     func onSelectRecent(asset: Asset) {
         onSelectAssetAction?(asset)
-        isPresentingRecents = false
+        recentModel.dismiss()
     }
 
     func onSelectAddCustomToken() {
