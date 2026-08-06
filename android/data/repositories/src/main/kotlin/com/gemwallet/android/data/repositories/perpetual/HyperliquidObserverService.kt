@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.perpetual
 import android.util.Log
 import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.data.repositories.stream.WebSocketConnectable
 import com.gemwallet.android.data.repositories.stream.WebSocketEvent
 import com.gemwallet.android.ext.hyperliquidAccount
@@ -22,6 +23,7 @@ import uniffi.gemstone.GemPerpetualSubscription
 
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
+    private val syncPerpetuals: SyncPerpetuals,
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val eventHandler: HyperliquidEventHandler,
     private val subscriptionService: HyperliquidSubscriptionService,
@@ -43,6 +45,14 @@ class HyperliquidObserverService(
                     val address = wallet?.hyperliquidAccount?.address ?: return@collectLatest
                     runCatching { syncPerpetualPositions.syncPerpetualPositions() }
                     observeConnection(wallet.id, address)
+                }
+        }
+        scope.launch {
+            observePerpetualWallet()
+                .distinctUntilChangedBy { it?.id?.id }
+                .collectLatest { wallet ->
+                    if (wallet == null) return@collectLatest
+                    runCatching { syncPerpetuals.syncPerpetuals() }
                 }
         }
     }

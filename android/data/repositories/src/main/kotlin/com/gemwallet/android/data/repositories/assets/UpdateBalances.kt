@@ -1,21 +1,38 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.blockchain.services.BalancesService
+import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
 class UpdateBalances(
     private val balancesDao: BalancesDao,
     private val balancesService: BalancesService,
+    private val assetsDao: AssetsDao,
 ) {
+
+    suspend fun updateBalances(walletId: String, assetIds: List<String>) {
+        assetsDao.getAssetsInfo(walletId, assetIds)
+            .toAssetInfoModel()
+            .firstOrNull()
+            ?.groupBy { it.asset.chain }
+            ?.mapKeys { it.value.firstOrNull()?.owner }
+            ?.forEach { (account, assetInfos) ->
+                val owner: Account = account ?: return@forEach
+                updateBalances(walletId, owner, assetInfos.map { it.asset })
+            }
+    }
 
     suspend fun updateBalances(
         walletId: String,

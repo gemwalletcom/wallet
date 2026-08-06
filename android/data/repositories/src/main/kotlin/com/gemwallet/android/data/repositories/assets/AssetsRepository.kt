@@ -75,7 +75,7 @@ class AssetsRepository @Inject constructor(
     private val streamSubscriptionService: StreamSubscriptionService,
     private val availabilityService: AssetsAvailabilityService,
     private val currencyRatesService: CurrencyRatesService,
-    private val updateBalances: UpdateBalances = UpdateBalances(balancesDao, balancesService),
+    private val updateBalances: UpdateBalances,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
 
