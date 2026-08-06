@@ -15,10 +15,13 @@ import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
+import com.gemwallet.android.data.repositories.notifications.InAppNotificationsRepository
+import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.StreamEventHandler
-import com.gemwallet.android.data.repositories.support.SupportTypingState
+import com.gemwallet.android.data.repositories.support.SupportChatRepository
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
@@ -26,10 +29,6 @@ import com.gemwallet.android.data.repositories.stream.WebSocketRequest
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
-import com.gemwallet.android.data.service.store.database.PriceAlertsDao
-import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
 import dagger.Module
@@ -48,23 +47,25 @@ object AssetsModule {
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
-        pricesDao: PricesDao,
+        pricesRepository: PricesRepository,
         sessionRepository: SessionRepository,
         balancesService: BalancesService,
         searchTokensCase: SearchTokensCase,
         streamSubscriptionService: StreamSubscriptionService,
         availabilityService: AssetsAvailabilityService,
         currencyRatesService: CurrencyRatesService,
+        updateBalances: UpdateBalances,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
-        pricesDao = pricesDao,
+        pricesRepository = pricesRepository,
         sessionRepository = sessionRepository,
         balancesService = balancesService,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
         availabilityService = availabilityService,
         currencyRatesService = currencyRatesService,
+        updateBalances = updateBalances,
     )
 
     @Provides
@@ -80,49 +81,45 @@ object AssetsModule {
     fun provideUpdateBalances(
         balancesDao: BalancesDao,
         balancesService: BalancesService,
+        assetsDao: AssetsDao,
     ): UpdateBalances = UpdateBalances(
         balancesDao = balancesDao,
         balancesService = balancesService,
+        assetsDao = assetsDao,
     )
 
     @Provides
     @Singleton
     fun provideStreamEventHandler(
-        pricesDao: PricesDao,
-        sessionRepository: SessionRepository,
+        pricesRepository: PricesRepository,
         syncTransactions: dagger.Lazy<SyncTransactions>,
         syncNfts: SyncNfts,
         updatePriceAlerts: UpdatePriceAlerts,
         syncFiatTransactions: dagger.Lazy<SyncFiatTransactions>,
         walletsRepository: WalletsRepository,
-        assetsDao: AssetsDao,
         updateBalances: UpdateBalances,
-        inAppNotificationsDao: InAppNotificationsDao,
-        supportMessagesDao: SupportMessagesDao,
-        supportTypingState: SupportTypingState,
+        inAppNotificationsRepository: InAppNotificationsRepository,
+        supportChatRepository: SupportChatRepository,
     ): StreamEventHandler = StreamEventHandler(
-        pricesDao = pricesDao,
-        sessionRepository = sessionRepository,
+        pricesRepository = pricesRepository,
         syncTransactions = syncTransactions,
         syncNfts = syncNfts,
         updatePriceAlerts = updatePriceAlerts,
         syncFiatTransactions = syncFiatTransactions,
         walletsRepository = walletsRepository,
-        assetsDao = assetsDao,
         updateBalances = updateBalances,
-        inAppNotificationsDao = inAppNotificationsDao,
-        supportMessagesDao = supportMessagesDao,
-        supportTypingState = supportTypingState,
+        inAppNotificationsRepository = inAppNotificationsRepository,
+        supportChatRepository = supportChatRepository,
     )
 
     @Provides
     @Singleton
     fun provideStreamSubscriptionService(
         assetsDao: AssetsDao,
-        priceAlertsDao: PriceAlertsDao,
+        priceAlertRepository: PriceAlertRepository,
     ): StreamSubscriptionService = StreamSubscriptionService(
         assetsDao = assetsDao,
-        priceAlertsDao = priceAlertsDao,
+        priceAlertRepository = priceAlertRepository,
     )
 
     @Provides
@@ -137,9 +134,7 @@ object AssetsModule {
     @Singleton
     fun provideStreamObserverService(
         sessionRepository: SessionRepository,
-        userConfig: com.gemwallet.android.data.repositories.config.UserConfig,
         syncAssets: SyncAssets,
-        syncPerpetuals: com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals,
         deviceRequestSigner: DeviceRequestSigner,
         streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
@@ -147,9 +142,7 @@ object AssetsModule {
         okHttpClient: OkHttpClient,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
-        userConfig = userConfig,
         syncAssets = syncAssets,
-        syncPerpetuals = syncPerpetuals,
         subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,
         connection = WebSocketConnection(

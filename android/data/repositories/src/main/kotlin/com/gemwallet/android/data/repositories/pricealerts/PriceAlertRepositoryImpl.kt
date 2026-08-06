@@ -10,6 +10,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbPriceAlert
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.id
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PriceAlertInfo
 import com.wallet.core.primitives.AssetId
@@ -51,6 +52,10 @@ class PriceAlertRepositoryImpl(
     override fun getPriceAlerts(assetId: AssetId?): Flow<List<PriceAlertInfo>> {
         return (assetId?.let { priceAlertsDao.getAlerts(it.toIdentifier()) } ?: priceAlertsDao.getAlerts())
             .map { it.toDTO() }
+    }
+
+    override fun getPriceAlertAssetIds(): Flow<List<AssetId>> {
+        return priceAlertsDao.getAlerts().map { alerts -> alerts.mapNotNull { it.assetId.toAssetId() } }
     }
 
     override fun getAssetPriceAlert(assetId: AssetId): Flow<PriceAlertInfo?> {

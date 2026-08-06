@@ -7,6 +7,7 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.tokens.TokensRepository
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
 import com.gemwallet.android.data.repositories.tokens.WalletSearchTokens
@@ -29,12 +30,14 @@ object TokensModule {
     fun provideTokensRepository(
         assetsDao: AssetsDao,
         pricesDao: PricesDao,
+        pricesRepository: PricesRepository,
         searchDao: SearchDao,
         gateway: GemGateway,
         searchAssets: SearchAssets,
     ): TokensRepository = TokensRepository(
         assetsDao = assetsDao,
         pricesDao = pricesDao,
+        pricesRepository = pricesRepository,
         searchDao = searchDao,
         searchAssets = searchAssets,
         tokenService = TokenService(

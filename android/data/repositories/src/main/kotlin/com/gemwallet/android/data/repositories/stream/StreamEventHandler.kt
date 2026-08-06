@@ -6,22 +6,11 @@ import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAle
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.support.SupportTypingState
+import com.gemwallet.android.data.repositories.notifications.InAppNotificationsRepository
+import com.gemwallet.android.data.repositories.prices.PricesRepository
+import com.gemwallet.android.data.repositories.support.SupportChatRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
-import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.SupportMessagesDao
-import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toIdentifier
-import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.AssetPrice
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FiatRate
 import com.wallet.core.primitives.StreamBalanceUpdate
 import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamNotificationUpdate
@@ -33,18 +22,15 @@ import com.wallet.core.primitives.WebSocketPricePayload
 import kotlinx.coroutines.flow.firstOrNull
 
 class StreamEventHandler(
-    private val pricesDao: PricesDao,
-    private val sessionRepository: SessionRepository,
+    private val pricesRepository: PricesRepository,
     private val syncTransactions: dagger.Lazy<SyncTransactions>,
     private val syncNfts: SyncNfts,
     private val updatePriceAlerts: UpdatePriceAlerts,
     private val syncFiatTransactions: dagger.Lazy<SyncFiatTransactions>,
     private val walletsRepository: WalletsRepository,
-    private val assetsDao: AssetsDao,
     private val updateBalances: UpdateBalances,
-    private val inAppNotificationsDao: InAppNotificationsDao,
-    private val supportMessagesDao: SupportMessagesDao,
-    private val supportTypingState: SupportTypingState,
+    private val inAppNotificationsRepository: InAppNotificationsRepository,
+    private val supportChatRepository: SupportChatRepository,
 ) {
 
     suspend fun handle(event: StreamEvent) {
@@ -70,39 +56,17 @@ class StreamEventHandler(
     }
 
     private suspend fun handlePrices(payload: WebSocketPricePayload) {
-        val currency = sessionRepository.getCurrentCurrency()
-        updateRates(payload.rates, currency)
-        val rate = pricesDao.getRates(currency).firstOrNull()?.toDTO() ?: return
-        pricesDao.insert(payload.prices.toRecord(rate))
-    }
-
-    private suspend fun updateRates(newRates: List<FiatRate>, currency: Currency) {
-        pricesDao.setRates(newRates.toRecord())
-        newRates.firstOrNull { it.symbol == currency.string }?.let { rate ->
-            pricesDao.updateValues(currency.string, rate.rate)
-        }
+        pricesRepository.updatePrices(payload)
     }
 
     private suspend fun handleBalances(update: StreamBalanceUpdate) {
-        updateBalances(update.walletId.id, update.assetIds.map { it.toIdentifier() })
+        updateBalances.updateBalances(update.walletId.id, update.assetIds.map { it.toIdentifier() })
     }
 
     private suspend fun handleTransactions(update: StreamTransactionsUpdate) {
         val wallet = walletsRepository.getWallet(update.walletId).firstOrNull() ?: return
         syncTransactions.get().syncTransactions(wallet)
-        updateBalances(update.walletId.id, update.assetIds.map { it.toIdentifier() })
-    }
-
-    private suspend fun updateBalances(walletId: String, assetIds: List<String>) {
-        assetsDao.getAssetsInfo(walletId, assetIds)
-            .toAssetInfoModel()
-            .firstOrNull()
-            ?.groupBy { it.asset.chain }
-            ?.mapKeys { it.value.firstOrNull()?.owner }
-            ?.forEach { (account, assetInfos) ->
-                val owner: Account = account ?: return@forEach
-                updateBalances.updateBalances(walletId, owner, assetInfos.map { it.asset })
-            }
+        updateBalances.updateBalances(update.walletId.id, update.assetIds.map { it.toIdentifier() })
     }
 
     private suspend fun handlePriceAlerts() {
@@ -118,19 +82,19 @@ class StreamEventHandler(
     }
 
     private suspend fun handleInAppNotification(update: StreamNotificationUpdate) {
-        inAppNotificationsDao.put(listOf(update.notification.toRecord()))
+        inAppNotificationsRepository.addNotification(update.notification)
     }
 
     private suspend fun handleSupport(event: SupportStreamEvent) {
         when (event) {
             is SupportStreamEvent.Message -> {
-                supportMessagesDao.addMessages(listOf(event.data.toRecord()))
+                supportChatRepository.addMessages(listOf(event.data))
                 when (event.data.sender) {
                     is SupportMessageSender.User -> { }
-                    is SupportMessageSender.Agent -> supportTypingState.clear()
+                    is SupportMessageSender.Agent -> supportChatRepository.clearTyping()
                 }
             }
-            is SupportStreamEvent.Typing -> supportTypingState.update(event.data)
+            is SupportStreamEvent.Typing -> supportChatRepository.updateTyping(event.data)
         }
     }
 

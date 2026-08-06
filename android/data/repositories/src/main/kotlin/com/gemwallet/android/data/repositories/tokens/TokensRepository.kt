@@ -4,12 +4,11 @@ import com.gemwallet.android.application.assets.coordinators.SearchAssets
 import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
+import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.SearchDao
-import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toSearchRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.defaultBasic
@@ -22,12 +21,12 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
 class TokensRepository (
     private val assetsDao: AssetsDao,
     private val pricesDao: PricesDao,
+    private val pricesRepository: PricesRepository,
     private val searchDao: SearchDao,
     private val searchAssets: SearchAssets,
     private val tokenService: TokenService,
@@ -96,12 +95,7 @@ class TokensRepository (
             assetsDao.updateBasicAssets(assets.map { it.toUpdateRecord() })
         }
         runCatching {
-            val rate = pricesDao.getRates(currency).firstOrNull() ?: return@runCatching
-            val prices = assets.toPriceRecord(rate.toDTO())
-
-            if (prices.isNotEmpty()) {
-                pricesDao.insert(prices)
-            }
+            pricesRepository.updatePrices(assets, currency)
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.blockchain.services.BalancesService
+import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -80,7 +81,7 @@ class AssetsRepositoryTest {
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
-        pricesDao = pricesDao,
+        pricesRepository = PricesRepository(pricesDao, sessionRepository),
         sessionRepository = sessionRepository,
         balancesService = balancesService,
         searchTokensCase = searchTokensCase,
