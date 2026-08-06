@@ -13,7 +13,7 @@ struct SelectAssetViewModelTests {
     func recentActivityTypes() {
         let model = SelectAssetViewModel.mock()
 
-        #expect(model.recentsQuery.request.types == RecentActivityType.allCases)
+        #expect(model.recentModel.query.request.types == RecentActivityType.allCases)
     }
 
     @Test

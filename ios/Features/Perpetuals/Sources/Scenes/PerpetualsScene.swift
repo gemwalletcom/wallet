@@ -54,17 +54,7 @@ struct PerpetualsScene: View {
             await model.fetch()
         }
         .listSectionSpacing(.compact)
-        .sheet(isPresented: $model.isPresentingRecents) {
-            RecentsScene(
-                model: RecentsSceneViewModel(
-                    walletId: model.wallet.id,
-                    types: model.recentsQuery.request.types,
-                    filters: model.recentsQuery.request.filters,
-                    activityService: model.activityService,
-                    onSelect: model.onSelectRecent,
-                ),
-            )
-        }
+        .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)
     }
 
     var list: some View {
@@ -84,16 +74,10 @@ struct PerpetualsScene: View {
             }
 
             if model.showRecents {
-                RecentActivitySectionView(
-                    models: model.recentModels,
-                    onSelectRecents: model.onSelectRecents,
-                ) { assetModel in
-                    Button {
-                        model.onSelectRecent(asset: assetModel.asset)
-                    } label: {
-                        AssetChipView(model: assetModel)
-                    }
-                }
+                RecentAssetsSectionView(
+                    model: model.recentModel,
+                    onSelect: model.onSelectRecent,
+                )
             }
 
             if model.showPositions {

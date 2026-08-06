@@ -4,3 +4,4 @@
 --exclude ./Packages/Localization/Sources/Localized.swift
 --exclude ./Packages/Localization/WidgetSources/Localized.swift
 --test-case-name-format standard-identifiers
+--disable wrapPropertyBodies

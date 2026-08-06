@@ -45,7 +45,7 @@ public struct SelectAssetScene: View {
                 )
             }
         }
-        .bindQuery(model.assetsQuery, model.recentsQuery)
+        .bindQuery(model.assetsQuery, model.recentModel.query)
         .onChange(of: model.filterModel, model.onChangeFilterModel)
         .onChange(of: model.searchModel.searchableQuery, model.updateRequest)
         .onChange(of: model.isSearching, model.onChangeFocus)
@@ -72,16 +72,10 @@ public struct SelectAssetScene: View {
             }
 
             if model.showRecents {
-                RecentActivitySectionView(
-                    models: model.recentModels,
-                    onSelectRecents: model.onSelectRecents,
-                ) { assetModel in
-                    Button {
-                        model.onSelectRecent(assetModel.asset)
-                    } label: {
-                        AssetChipView(model: assetModel)
-                    }
-                }
+                RecentAssetsSectionView(
+                    model: model.recentModel,
+                    onSelect: model.onSelectRecent,
+                )
             }
 
             if model.showPopularSection {
