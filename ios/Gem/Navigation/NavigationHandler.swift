@@ -154,7 +154,7 @@ extension NavigationHandler {
             return
         }
 
-        try transactionsService.addTransaction(walletId: walletId, transaction: transaction)
+        try transactionsService.syncTransaction(walletId: walletId, transaction: transaction)
         let transaction = try transactionsService.getTransaction(walletId: walletId, transactionId: transaction.id)
 
         await selectWalletIfNeeded(walletId)

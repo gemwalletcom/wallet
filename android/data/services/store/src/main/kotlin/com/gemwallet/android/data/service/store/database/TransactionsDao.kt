@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.Transaction
+import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
@@ -12,11 +14,17 @@ import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
+import com.gemwallet.android.data.service.store.database.entities.DbTransactionObservation
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
+import com.gemwallet.android.data.service.store.database.entities.toObservation
+import com.gemwallet.android.ext.isCompleted
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
+
+private val settledTransactionStates = TransactionState.entries.filter { it.isCompleted() }
 
 const val EXTENDED_COLUMNS = """
     tx.*,
@@ -74,6 +82,32 @@ interface TransactionsDao {
     @Insert(entity = DbTransaction::class, onConflict = OnConflictStrategy.REPLACE)
     fun insert(transactions: List<DbTransaction>)
 
+    @Transaction
+    fun syncTransactions(transactions: List<DbTransaction>) {
+        insertMissingTransactions(transactions)
+        updateObservedValues(transactions.map { it.toObservation() })
+        transactions.forEach { updateDescription(it.id, it.walletId, it.type, it.metadata) }
+    }
+
+    @Insert(entity = DbTransaction::class, onConflict = OnConflictStrategy.IGNORE)
+    fun insertMissingTransactions(transactions: List<DbTransaction>)
+
+    @Update(entity = DbTransaction::class)
+    fun updateObservedValues(observations: List<DbTransactionObservation>)
+
+    @Query(
+        "UPDATE transactions SET type = :type, metadata = :metadata, updatedAt = :updatedAt " +
+            "WHERE id = :id AND walletId = :walletId AND :metadata IS NOT NULL AND state IN (:settledStates)"
+    )
+    fun updateDescription(
+        id: TransactionId,
+        walletId: WalletId,
+        type: TransactionType,
+        metadata: String?,
+        settledStates: List<TransactionState> = settledTransactionStates,
+        updatedAt: Long = System.currentTimeMillis(),
+    )
+
     @Query("DELETE FROM transactions WHERE id = :id AND walletId = :walletId")
     fun delete(id: TransactionId, walletId: WalletId)
 
@@ -99,9 +133,6 @@ interface TransactionsDao {
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
 
-    @Query("SELECT state FROM transactions WHERE id = :id AND walletId = :walletId")
-    fun getTransactionState(id: TransactionId, walletId: WalletId): TransactionState?
-
     @Query("UPDATE transactions SET id = :newId, hash = :hash, updatedAt = :updatedAt WHERE id = :oldId AND walletId = :walletId")
     fun updateTransactionId(
         oldId: TransactionId,
@@ -110,15 +141,6 @@ interface TransactionsDao {
         hash: String,
         updatedAt: Long = System.currentTimeMillis(),
     )
-
-    @Query("UPDATE transactions SET state = :state, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateState(id: TransactionId, walletId: WalletId, state: TransactionState, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET fee = :fee, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateFee(id: TransactionId, walletId: WalletId, fee: String, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET metadata = :metadata, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateMetadata(id: TransactionId, walletId: WalletId, metadata: String, updatedAt: Long = System.currentTimeMillis())
 
     @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)

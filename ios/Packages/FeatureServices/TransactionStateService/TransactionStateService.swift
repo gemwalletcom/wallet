@@ -17,11 +17,6 @@ struct TransactionStateUpdateResult {
     let status: JobStatus
 }
 
-private struct LocalTransactionRecord {
-    let transactionId: TransactionId
-    let state: TransactionState
-}
-
 public struct TransactionStateService: Sendable {
     private let transactionStore: TransactionStore
     private let postProcessingService: TransactionPostProcessingService
@@ -128,40 +123,32 @@ extension TransactionStateService {
             )
         }
 
-        let localTransaction = try localTransactionRecord(for: transaction, changes: stateChanges.changes)
+        let transactionId = try updatedTransactionId(for: transaction, changes: stateChanges.changes)
         let nextState = try updateStateIfNeeded(
-            transactionId: localTransaction.transactionId,
-            oldState: localTransaction.state,
+            transactionId: transactionId,
+            oldState: transaction.state,
             newState: stateChanges.state,
         )
-        try updateTransactionFields(stateChanges.changes, transactionId: localTransaction.transactionId)
+        try updateTransactionFields(stateChanges.changes, transactionId: transactionId)
 
         return TransactionStateUpdateResult(
-            transactionId: localTransaction.transactionId,
+            transactionId: transactionId,
             status: nextState.isCompleted ? .complete : .retry(),
         )
     }
 
-    private func localTransactionRecord(for transaction: Transaction, changes: [TransactionChange]) throws -> LocalTransactionRecord {
-        try changes.reduce(
-            LocalTransactionRecord(
-                transactionId: transaction.id,
-                state: transaction.state,
-            ),
-        ) { localTransaction, change in
+    private func updatedTransactionId(for transaction: Transaction, changes: [TransactionChange]) throws -> TransactionId {
+        try changes.reduce(transaction.id) { transactionId, change in
             guard case let .hashChange(_, newHash) = change else {
-                return localTransaction
+                return transactionId
             }
             let newTransactionId = TransactionId(chain: transaction.assetId.chain, hash: newHash)
-            let state = try transactionStore.updateTransactionId(
-                oldTransactionId: localTransaction.transactionId,
+            try transactionStore.updateTransactionId(
+                oldTransactionId: transactionId,
                 transactionId: newTransactionId,
                 hash: newHash,
-            ) ?? localTransaction.state
-            return LocalTransactionRecord(
-                transactionId: newTransactionId,
-                state: state,
             )
+            return newTransactionId
         }
     }
 
@@ -171,6 +158,10 @@ extension TransactionStateService {
             _ = try transactionStore.updateState(id: transactionId, state: nextState)
         }
         return nextState
+    }
+
+    private func nextTransactionState(oldState: TransactionState, newState: TransactionState) -> TransactionState {
+        oldState == .pending || newState.isCompleted ? newState : oldState
     }
 
     private func updateTransactionFields(_ changes: [TransactionChange], transactionId: TransactionId) throws {
@@ -188,9 +179,5 @@ extension TransactionStateService {
                 _ = try transactionStore.updateMetadata(transactionId: transactionId, metadata: metadata)
             }
         }
-    }
-
-    private func nextTransactionState(oldState: TransactionState, newState: TransactionState) -> TransactionState {
-        oldState == .pending || newState.isCompleted ? newState : oldState
     }
 }

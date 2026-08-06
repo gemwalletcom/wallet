@@ -73,4 +73,141 @@ struct TransactionStoreTests {
         #expect(assetIds.count == 2)
         #expect(Set(assetIds) == Set([btc, sol]))
     }
+
+    @Test func syncKeepsIntentAndUpdatesObservedValues() throws {
+        let (store, walletId) = transactionStore()
+        let transactionId = TransactionId(chain: .ethereum, hash: "1")
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .swap, state: .inTransit, metadata: Self.swapMetadata),
+        ])
+
+        try store.syncTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .transfer, state: .confirmed, metadata: nil, fee: "500", blockNumber: "77"),
+        ])
+
+        let transaction = try store.getTransaction(walletId: walletId, transactionId: transactionId).transaction
+
+        #expect(transaction.type == .swap)
+        #expect(transaction.state == .confirmed)
+        #expect(transaction.metadata?.decode(TransactionSwapMetadata.self)?.provider == "nearintents")
+        #expect(transaction.fee == "500")
+        #expect(transaction.blockNumber == "77")
+    }
+
+    @Test func syncEnrichesStoredTransactionWithIndexedDescription() throws {
+        let (store, walletId) = transactionStore()
+        let transactionId = TransactionId(chain: .ethereum, hash: "1")
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .smartContractCall, state: .confirmed, metadata: nil),
+        ])
+
+        try store.syncTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .swap, state: .confirmed, metadata: Self.swapMetadata),
+        ])
+
+        let transaction = try store.getTransaction(walletId: walletId, transactionId: transactionId).transaction
+        let assetIds = try store.getTransactionAssetAssociations(for: transactionId).map(\.assetId)
+
+        #expect(transaction.type == .swap)
+        #expect(transaction.metadata?.decode(TransactionSwapMetadata.self)?.provider == "nearintents")
+        #expect(Set(assetIds) == Set([Chain.bitcoin.assetId, Chain.ethereum.assetId]))
+    }
+
+    @Test func syncSettlesPendingTransaction() throws {
+        let (store, walletId) = transactionStore()
+        let transactionId = TransactionId(chain: .ethereum, hash: "1")
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .transfer, state: .pending, metadata: nil),
+        ])
+
+        try store.syncTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .transfer, state: .confirmed, metadata: nil),
+        ])
+
+        #expect(try store.getTransaction(walletId: walletId, transactionId: transactionId).transaction.state == .confirmed)
+    }
+
+    @Test func syncKeepsDescriptionOfTrackedTransaction() throws {
+        let (store, walletId) = transactionStore()
+        let transactionId = TransactionId(chain: .ethereum, hash: "1")
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .swap, state: .inTransit, metadata: Self.swapMetadata),
+        ])
+
+        try store.syncTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: transactionId, type: .swap, state: .inTransit, metadata: Self.indexedSwapMetadata),
+        ])
+
+        let transaction = try store.getTransaction(walletId: walletId, transactionId: transactionId).transaction
+
+        #expect(transaction.metadata?.decode(TransactionSwapMetadata.self)?.provider == "nearintents")
+    }
+
+    @Test func syncStoresUnknownTransactionOnce() throws {
+        let (store, walletId) = transactionStore()
+        let transactionId = TransactionId(chain: .ethereum, hash: "1")
+        let indexed = Transaction.mock(transactionId: transactionId, type: .swap, state: .confirmed, metadata: Self.swapMetadata)
+
+        try store.syncTransactions(walletId: walletId, transactions: [indexed])
+        try store.syncTransactions(walletId: walletId, transactions: [indexed])
+
+        let transaction = try store.getTransaction(walletId: walletId, transactionId: transactionId).transaction
+
+        #expect(try store.getTransactions(states: TransactionState.allCases).count == 1)
+        #expect(transaction.type == .swap)
+        #expect(transaction.state == .confirmed)
+        #expect(transaction.metadata?.decode(TransactionSwapMetadata.self)?.provider == "nearintents")
+    }
+
+    @Test func syncStoresRepeatedBatchOnce() throws {
+        let (store, walletId) = transactionStore()
+        let transactionId = TransactionId(chain: .ethereum, hash: "1")
+        let indexed = Transaction.mock(transactionId: transactionId, type: .transfer, state: .confirmed, metadata: nil)
+
+        try store.syncTransactions(walletId: walletId, transactions: [indexed, indexed])
+
+        #expect(try store.getTransactions(states: TransactionState.allCases).count == 1)
+    }
+
+    @Test func hashChangeKeepsTrackedTransactionOverIndexedDuplicate() throws {
+        let (store, walletId) = transactionStore()
+        let localId = TransactionId(chain: .ethereum, hash: "message")
+        let indexedId = TransactionId(chain: .ethereum, hash: "onchain")
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: localId, type: .swap, state: .inTransit, metadata: Self.swapMetadata),
+        ])
+        try store.syncTransactions(walletId: walletId, transactions: [
+            .mock(transactionId: indexedId, type: .transfer, state: .confirmed, metadata: nil),
+        ])
+
+        try store.updateTransactionId(oldTransactionId: localId, transactionId: indexedId, hash: indexedId.hash)
+        let transaction = try store.getTransaction(walletId: walletId, transactionId: indexedId).transaction
+
+        #expect(try store.getTransactions(states: TransactionState.allCases).count == 1)
+        #expect(transaction.type == .swap)
+        #expect(transaction.state == .inTransit)
+        #expect(transaction.metadata?.decode(TransactionSwapMetadata.self)?.provider == "nearintents")
+    }
+}
+
+extension TransactionStoreTests {
+    private static let swapMetadata = AnyCodableValue.encode(TransactionSwapMetadata.mock(
+        fromAsset: Chain.bitcoin.assetId,
+        toAsset: Chain.ethereum.assetId,
+        provider: "nearintents",
+    ))
+
+    private static let indexedSwapMetadata = AnyCodableValue.encode(TransactionSwapMetadata.mock(
+        fromAsset: Chain.bitcoin.assetId,
+        toAsset: Chain.ethereum.assetId,
+        provider: nil,
+    ))
+
+    private func transactionStore() -> (TransactionStore, WalletId) {
+        let db = DB.mockAssets(assets: [
+            .mock(asset: .mock(id: Chain.bitcoin.assetId)),
+            .mock(asset: .mockEthereum()),
+        ])
+        return (.mock(db: db), .mock())
+    }
 }

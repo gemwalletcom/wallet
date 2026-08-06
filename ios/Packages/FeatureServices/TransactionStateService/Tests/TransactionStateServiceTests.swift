@@ -110,26 +110,26 @@ struct TransactionStateServiceTests {
     }
 
     @Test
-    func hashChangeDoesNotDowngradeCompletedTransaction() async throws {
+    func hashChangeKeepsTrackedTransactionOverIndexedDuplicate() async throws {
         let fixture = try makeFixture(stateChanges: TransactionChanges(
             state: .inTransit,
             changes: [
                 .hashChange(old: "hash", new: "new-hash"),
             ],
         ))
-        let existingTransaction = try makeSwapTransaction(
+        let indexedTransaction = try makeSwapTransaction(
             hash: "new-hash",
             fromAsset: .mock(.bitcoin),
             toAsset: .mock(.ethereum),
             state: .confirmed,
         )
-        try fixture.store.addTransactions(walletId: fixture.walletId, transactions: [existingTransaction])
+        try fixture.store.syncTransactions(walletId: fixture.walletId, transactions: [indexedTransaction])
 
         let status = await fixture.service.update(for: fixture.transaction).status
 
-        expectComplete(status)
-        #expect(try fixture.store.getTransactions(states: [.pending]).isEmpty)
-        let saved = try #require(fixture.store.getTransactions(states: [.confirmed]).first)
+        expectRetry(status)
+        #expect(try fixture.store.getTransactions(states: TransactionState.allCases).count == 1)
+        let saved = try #require(fixture.store.getTransactions(states: [.inTransit]).first)
         #expect(saved.id.hash == "new-hash")
     }
 
