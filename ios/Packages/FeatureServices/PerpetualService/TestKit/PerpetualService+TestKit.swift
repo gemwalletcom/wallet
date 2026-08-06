@@ -41,7 +41,7 @@ public struct PerpetualProviderMock: PerpetualProvidable {
         )
     }
 
-    public func getAccountMode(address _: String) async -> PerpetualAccountMode {
+    public func getAccountMode(address _: String) async throws -> PerpetualAccountMode {
         .standard
     }
 

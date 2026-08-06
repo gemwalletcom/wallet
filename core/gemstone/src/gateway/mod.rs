@@ -170,10 +170,9 @@ impl GemGateway {
         self.with_provider(chain, |provider| async move { provider.get_positions(address).await }).await
     }
 
-    pub async fn get_perpetual_account_mode(&self, chain: Chain, address: String) -> GemPerpetualAccountMode {
+    pub async fn get_perpetual_account_mode(&self, chain: Chain, address: String) -> Result<GemPerpetualAccountMode, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_perpetual_account_mode(address).await })
             .await
-            .unwrap_or(GemPerpetualAccountMode::Standard)
     }
 
     pub async fn get_perpetuals_data(&self, chain: Chain) -> Result<Vec<GemPerpetualData>, GatewayError> {

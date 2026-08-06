@@ -7,7 +7,7 @@ import Primitives
 public protocol PerpetualProvidable: Sendable {
     func provider() -> Primitives.PerpetualProvider
     func getPositions(address: String) async throws -> PerpetualPositionsSummary
-    func getAccountMode(address: String) async -> PerpetualAccountMode
+    func getAccountMode(address: String) async throws -> PerpetualAccountMode
     func getPerpetualsData() async throws -> [PerpetualData]
     func getCandlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick]
     func getPortfolio(address: String) async throws -> PerpetualPortfolio
@@ -33,8 +33,8 @@ struct GatewayPerpetualProvider: PerpetualProvidable {
         try await gateway.getPositions(chain: chain, address: address)
     }
 
-    func getAccountMode(address: String) async -> PerpetualAccountMode {
-        await gateway.getPerpetualAccountMode(chain: chain, address: address)
+    func getAccountMode(address: String) async throws -> PerpetualAccountMode {
+        try await gateway.getPerpetualAccountMode(chain: chain, address: address)
     }
 
     func getPerpetualsData() async throws -> [PerpetualData] {

@@ -10,14 +10,13 @@ use crate::models::{
 use super::perpetual_mapper::{map_perpetual_balance_from_spot, map_positions, map_tp_sl_from_orders};
 
 pub fn account_subscriptions(address: String, mode: PerpetualAccountMode) -> Vec<HyperliquidSubscription> {
-    let mut subscriptions = vec![
-        HyperliquidSubscription::AccountState { address: address.clone() },
-        HyperliquidSubscription::OpenOrders { address: address.clone() },
-    ];
-    if mode == PerpetualAccountMode::Unified {
-        subscriptions.push(HyperliquidSubscription::SpotState { address });
+    let account_state = HyperliquidSubscription::AccountState { address: address.clone() };
+    let open_orders = HyperliquidSubscription::OpenOrders { address: address.clone() };
+
+    match mode {
+        PerpetualAccountMode::Standard => vec![account_state, open_orders],
+        PerpetualAccountMode::Unified => vec![account_state, open_orders, HyperliquidSubscription::SpotState { address }],
     }
-    subscriptions
 }
 
 pub fn parse_websocket_data(data: &[u8], mode: PerpetualAccountMode) -> Result<HyperliquidSocketMessage, serde_json::Error> {

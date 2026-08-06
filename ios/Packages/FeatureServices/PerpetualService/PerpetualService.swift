@@ -140,9 +140,15 @@ public struct PerpetualService: PerpetualServiceable {
 
 extension PerpetualService: HyperliquidPerpetualServiceable {
     public func accountMode(walletId: WalletId, address: String) async -> PerpetualAccountMode {
-        let mode = await provider.getAccountMode(address: address)
-        WalletPreferences(walletId: walletId).perpetualAccountMode = mode
-        return mode
+        let walletPreferences = WalletPreferences(walletId: walletId)
+        do {
+            let mode = try await provider.getAccountMode(address: address)
+            walletPreferences.perpetualAccountMode = mode
+            return mode
+        } catch {
+            debugLog("PerpetualService: account mode failed: \(error)")
+            return walletPreferences.perpetualAccountMode
+        }
     }
 
     public func getHypercorePositions(walletId: WalletId) throws -> [GemPerpetualPosition] {

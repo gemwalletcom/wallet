@@ -7,6 +7,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -16,8 +17,8 @@ class GetPerpetualAccountModeImpl @Inject constructor(
 ) : GetPerpetualAccountMode {
 
     override suspend fun getPerpetualAccountMode(walletId: WalletId, address: String): PerpetualAccountMode = withContext(Dispatchers.IO) {
-        val mode = perpetualService.getAccountMode(Chain.HyperCore, address)
-        userConfig.setPerpetualAccountMode(walletId, mode)
-        mode
+        runCatching { perpetualService.getAccountMode(Chain.HyperCore, address) }
+            .onSuccess { mode -> userConfig.setPerpetualAccountMode(walletId, mode) }
+            .getOrElse { userConfig.perpetualAccountMode(walletId).first() }
     }
 }
