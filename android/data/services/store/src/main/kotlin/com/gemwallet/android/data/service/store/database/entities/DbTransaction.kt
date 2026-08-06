@@ -92,3 +92,31 @@ fun DbTransaction.toDTO(): Transaction {
 fun List<DbTransaction>.toDTO() = map { it.toDTO() }
 
 fun List<Transaction>.toRecord(walletId: WalletId) = map { it.toRecord(walletId) }
+
+data class DbTransactionObservation(
+    val id: TransactionId,
+    val walletId: WalletId,
+    val owner: String,
+    val recipient: String,
+    val contract: String? = null,
+    val blockNumber: String,
+    val sequence: String,
+    val fee: String,
+    val value: String,
+    val payload: String? = null,
+    val updatedAt: Long,
+)
+
+fun DbTransaction.toObservation(): DbTransactionObservation = DbTransactionObservation(
+    id = id,
+    walletId = walletId,
+    owner = owner,
+    recipient = recipient,
+    contract = contract,
+    blockNumber = blockNumber,
+    sequence = sequence,
+    fee = fee,
+    value = value,
+    payload = payload,
+    updatedAt = updatedAt,
+)

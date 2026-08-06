@@ -138,6 +138,10 @@ extension TransactionRecord: CreateTable {
 }
 
 extension TransactionRecord {
+    var transactionState: TransactionState {
+        TransactionState(rawValue: state) ?? .pending
+    }
+
     func mapToTransaction() -> Transaction {
         Transaction(
             id: TransactionId(chain: assetId.chain, hash: hash),
@@ -146,7 +150,7 @@ extension TransactionRecord {
             to: to,
             contract: contract,
             type: type,
-            state: TransactionState(rawValue: state) ?? .pending,
+            state: transactionState,
             blockNumber: blockNumber.asString,
             sequence: sequence.asString,
             fee: fee,

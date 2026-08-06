@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.transactions
 
-import android.text.format.DateUtils
 import android.util.Log
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
@@ -12,7 +11,6 @@ import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.TransactionsDao
-import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -50,7 +48,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.Config
 import uniffi.gemstone.transactionStateConfig
 import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
@@ -105,7 +102,7 @@ class TransactionsRepositoryImpl(
     override fun getChangedTransactions(): Flow<List<TransactionExtended>> = changedTransactions
 
     override suspend fun saveTransactions(walletId: WalletId, transactions: List<Transaction>) = withContext(Dispatchers.IO) {
-        transactionsDao.insert(transactions.toRecord(walletId))
+        transactionsDao.syncTransactions(transactions.toRecord(walletId))
         addSwapMetadata(transactions)
     }
 
@@ -219,13 +216,6 @@ class TransactionsRepositoryImpl(
                     )
                 }
 
-                val hasTimedOut = !currentTransaction.transaction.state.isCompleted() &&
-                    currentTransaction.transaction.createdAt < System.currentTimeMillis() - transactionTimeout(currentTransaction.transaction)
-                if (hasTimedOut) {
-                    currentTransaction = currentTransaction.copy(transaction = currentTransaction.transaction.copy(state = TransactionState.Failed))
-                    updateTransactions(listOf(currentTransaction))
-                    break
-                }
                 if (currentTransaction.transaction.state.isCompleted()) {
                     Log.d(
                         TAG,
@@ -242,20 +232,6 @@ class TransactionsRepositoryImpl(
         } finally {
             jobKeys.forEach { pollingTransactionJobs.remove(it) }
         }
-    }
-
-    private fun transactionTimeout(transaction: DbTransaction): Long {
-        val chain = transaction.assetId.chain
-        val sourceTimeout = Config().getChainConfig(chain.string).transactionTimeout.toLong()
-        if (transaction.state != TransactionState.InTransit) {
-            return sourceTimeout
-        }
-        val destinationChain = getTransactionSwapMetadata(transaction.type, transaction.metadata)?.toAsset?.chain ?: chain
-        if (destinationChain == chain) {
-            return sourceTimeout
-        }
-        val destinationTimeout = Config().getChainConfig(destinationChain.string).transactionTimeout.toLong()
-        return ((sourceTimeout + destinationTimeout) * 3).coerceAtLeast(DateUtils.DAY_IN_MILLIS)
     }
 
     private suspend fun checkTransaction(transaction: DbTransactionExtended): DbTransactionExtended? {
@@ -318,63 +294,21 @@ class TransactionsRepositoryImpl(
             return updatedTransaction
         }
 
-        val existingState = transactionsDao.getTransactionState(
-            updatedTransaction.transaction.id,
-            currentTransaction.transaction.walletId,
+        val walletId = currentTransaction.transaction.walletId
+        transactionsDao.deleteSwapMetadata(updatedTransaction.transaction.id.identifier)
+        transactionsDao.delete(updatedTransaction.transaction.id, walletId)
+        transactionsDao.updateSwapMetadataTransactionId(
+            oldTransactionId = currentTransaction.transaction.id.identifier,
+            newTransactionId = updatedTransaction.transaction.id.identifier,
         )
-        if (existingState == null) {
-            transactionsDao.updateSwapMetadataTransactionId(
-                oldTransactionId = currentTransaction.transaction.id.identifier,
-                newTransactionId = updatedTransaction.transaction.id.identifier,
-            )
-            transactionsDao.updateTransactionId(
-                oldId = currentTransaction.transaction.id,
-                newId = updatedTransaction.transaction.id,
-                walletId = currentTransaction.transaction.walletId,
-                hash = updatedTransaction.transaction.hash,
-            )
-            updateTransactions(listOf(updatedTransaction))
-            return updatedTransaction
-        }
-
-        transactionsDao.deleteSwapMetadata(currentTransaction.transaction.id.identifier)
-        transactionsDao.delete(
-            currentTransaction.transaction.id,
-            currentTransaction.transaction.walletId,
+        transactionsDao.updateTransactionId(
+            oldId = currentTransaction.transaction.id,
+            newId = updatedTransaction.transaction.id,
+            walletId = walletId,
+            hash = updatedTransaction.transaction.hash,
         )
-        val nextState = updateExistingTransaction(
-            placeholder = currentTransaction.transaction,
-            updatedTransaction = updatedTransaction.transaction,
-            existingState = existingState,
-        )
-        return updatedTransaction.copy(
-            transaction = updatedTransaction.transaction.copy(
-                state = nextState,
-            )
-        )
-    }
-
-    private fun updateExistingTransaction(
-        placeholder: DbTransaction,
-        updatedTransaction: DbTransaction,
-        existingState: TransactionState,
-    ): TransactionState {
-        val nextState = nextTransactionState(
-            oldState = existingState,
-            newState = updatedTransaction.state,
-        )
-        if (nextState != existingState) {
-            transactionsDao.updateState(updatedTransaction.id, updatedTransaction.walletId, nextState)
-        }
-        if (placeholder.fee != updatedTransaction.fee) {
-            transactionsDao.updateFee(updatedTransaction.id, updatedTransaction.walletId, updatedTransaction.fee)
-        }
-        val metadata = updatedTransaction.metadata
-        if (placeholder.metadata != metadata && metadata != null) {
-            transactionsDao.updateMetadata(updatedTransaction.id, updatedTransaction.walletId, metadata)
-            addSwapMetadata(listOf(updatedTransaction.toDTO()))
-        }
-        return nextState
+        updateTransactions(listOf(updatedTransaction))
+        return updatedTransaction
     }
 }
 

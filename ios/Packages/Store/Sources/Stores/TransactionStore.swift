@@ -63,20 +63,35 @@ public struct TransactionStore: Sendable {
     }
 
     public func addTransactions(walletId: WalletId, transactions: [Transaction]) throws {
-        if transactions.isEmpty {
-            return
-        }
+        guard transactions.isNotEmpty else { return }
         try db.write { db in
             for transaction in transactions {
                 let record = try transaction.record(walletId: walletId.id).upsertAndFetch(db, as: TransactionRecord.self)
-                if let id = record.id {
-                    try TransactionAssetAssociationRecord
-                        .filter(TransactionAssetAssociationRecord.Columns.transactionId == id)
-                        .deleteAll(db)
+                try replaceAssetAssociations(of: record, with: transaction.assetIds, db: db)
+            }
+        }
+    }
 
-                    try transaction.assetIds.forEach {
-                        try TransactionAssetAssociationRecord(transactionId: id, assetId: $0).upsert(db)
-                    }
+    public func syncTransactions(walletId: WalletId, transactions: [Transaction]) throws {
+        guard transactions.isNotEmpty else { return }
+        try db.write { db in
+            for transaction in transactions {
+                let incomingRecord = try transaction.record(walletId: walletId.id)
+                guard let storedRecord = try storedRecord(of: incomingRecord, db: db) else {
+                    let insertedRecord = try incomingRecord.insertAndFetch(db, as: TransactionRecord.self)
+                    try replaceAssetAssociations(of: insertedRecord, with: transaction.assetIds, db: db)
+                    continue
+                }
+                let storedState = storedRecord.transactionState
+                let syncedState = storedState.next(onChain: incomingRecord.transactionState)
+
+                try refreshObservedValues(of: incomingRecord, db: db)
+                if syncedState != storedState {
+                    try refreshState(of: storedRecord, to: syncedState, db: db)
+                }
+                if syncedState.isCompleted, incomingRecord.metadata != nil {
+                    try refreshDescription(of: incomingRecord, db: db)
+                    try replaceAssetAssociations(of: storedRecord, with: transaction.assetIds, db: db)
                 }
             }
         }
@@ -106,32 +121,23 @@ public struct TransactionStore: Sendable {
         )
     }
 
-    public func updateTransactionId(oldTransactionId: TransactionId, transactionId: TransactionId, hash: String) throws -> TransactionState? {
+    public func updateTransactionId(oldTransactionId: TransactionId, transactionId: TransactionId, hash: String) throws {
         try db.write { db in
-            let oldRecord = try TransactionRecord
+            guard let trackedRecord = try TransactionRecord
                 .filter(TransactionRecord.Columns.transactionId == oldTransactionId.identifier)
                 .fetchOne(db)
-
-            if let oldRecord {
-                let existingRecord = try TransactionRecord
-                    .filter(TransactionRecord.Columns.walletId == oldRecord.walletId)
-                    .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
-                    .fetchOne(db)
-                if let existingRecord {
-                    _ = try TransactionRecord
-                        .filter(TransactionRecord.Columns.id == oldRecord.id)
-                        .deleteAll(db)
-                    return TransactionState(rawValue: existingRecord.state)
-                }
+            else {
+                return
             }
 
+            try deleteIndexedDuplicate(walletId: trackedRecord.walletId, transactionId: transactionId, db: db)
+
             try TransactionRecord
-                .filter(TransactionRecord.Columns.transactionId == oldTransactionId.identifier)
+                .filter(TransactionRecord.Columns.id == trackedRecord.id)
                 .updateAll(db, [
                     TransactionRecord.Columns.transactionId.set(to: transactionId.identifier),
                     TransactionRecord.Columns.hash.set(to: hash),
                 ])
-            return nil
         }
     }
 
@@ -141,6 +147,65 @@ public struct TransactionStore: Sendable {
                 .filter(ids.contains(TransactionRecord.Columns.transactionId))
                 .deleteAll(db)
         }
+    }
+
+    private func deleteIndexedDuplicate(walletId: String, transactionId: TransactionId, db: Database) throws {
+        _ = try TransactionRecord
+            .filter(TransactionRecord.Columns.walletId == walletId)
+            .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
+            .deleteAll(db)
+    }
+
+    private func replaceAssetAssociations(of record: TransactionRecord, with assetIds: [AssetId], db: Database) throws {
+        guard let recordId = record.id else { return }
+        try TransactionAssetAssociationRecord
+            .filter(TransactionAssetAssociationRecord.Columns.transactionId == recordId)
+            .deleteAll(db)
+
+        try assetIds.forEach {
+            try TransactionAssetAssociationRecord(transactionId: recordId, assetId: $0).upsert(db)
+        }
+    }
+
+    private func storedRecord(of record: TransactionRecord, db: Database) throws -> TransactionRecord? {
+        try TransactionRecord
+            .filter(TransactionRecord.Columns.walletId == record.walletId)
+            .filter(TransactionRecord.Columns.transactionId == record.transactionId)
+            .fetchOne(db)
+    }
+
+    private func refreshState(of record: TransactionRecord, to state: TransactionState, db: Database) throws {
+        _ = try TransactionRecord
+            .filter(TransactionRecord.Columns.walletId == record.walletId)
+            .filter(TransactionRecord.Columns.transactionId == record.transactionId)
+            .updateAll(db, [TransactionRecord.Columns.state.set(to: state.rawValue)])
+    }
+
+    private func refreshDescription(of record: TransactionRecord, db: Database) throws {
+        _ = try TransactionRecord
+            .filter(TransactionRecord.Columns.walletId == record.walletId)
+            .filter(TransactionRecord.Columns.transactionId == record.transactionId)
+            .updateAll(db, [
+                TransactionRecord.Columns.type.set(to: record.type.rawValue),
+                TransactionRecord.Columns.metadata.set(to: try JSONEncoder().encode(record.metadata).encodeString()),
+            ])
+    }
+
+    private func refreshObservedValues(of record: TransactionRecord, db: Database) throws {
+        _ = try TransactionRecord
+            .filter(TransactionRecord.Columns.walletId == record.walletId)
+            .filter(TransactionRecord.Columns.transactionId == record.transactionId)
+            .updateAll(db, [
+                TransactionRecord.Columns.from.set(to: record.from),
+                TransactionRecord.Columns.to.set(to: record.to),
+                TransactionRecord.Columns.contract.set(to: record.contract),
+                TransactionRecord.Columns.blockNumber.set(to: record.blockNumber),
+                TransactionRecord.Columns.sequence.set(to: record.sequence),
+                TransactionRecord.Columns.value.set(to: record.value),
+                TransactionRecord.Columns.fee.set(to: record.fee),
+                TransactionRecord.Columns.memo.set(to: record.memo),
+                TransactionRecord.Columns.updatedAt.set(to: record.updatedAt),
+            ])
     }
 
     private func updateValues(id: TransactionId, values: [ColumnAssignment]) throws -> Int {

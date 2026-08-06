@@ -16,6 +16,14 @@ public extension TransactionState {
         }
     }
 
+    func next(_ newState: TransactionState) -> TransactionState {
+        self == .pending || newState.isCompleted ? newState : self
+    }
+
+    func next(onChain newState: TransactionState) -> TransactionState {
+        self == .inTransit ? self : next(newState)
+    }
+
     init(id: String) throws {
         if let state = TransactionState(rawValue: id) {
             self = state
