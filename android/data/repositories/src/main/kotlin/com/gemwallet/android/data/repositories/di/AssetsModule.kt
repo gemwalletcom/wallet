@@ -29,7 +29,6 @@ import com.gemwallet.android.data.repositories.stream.WebSocketRequest
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
 import dagger.Module
@@ -48,7 +47,7 @@ object AssetsModule {
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
-        pricesDao: PricesDao,
+        pricesRepository: PricesRepository,
         sessionRepository: SessionRepository,
         balancesService: BalancesService,
         searchTokensCase: SearchTokensCase,
@@ -59,7 +58,7 @@ object AssetsModule {
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
-        pricesDao = pricesDao,
+        pricesRepository = pricesRepository,
         sessionRepository = sessionRepository,
         balancesService = balancesService,
         searchTokensCase = searchTokensCase,
