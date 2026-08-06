@@ -10,6 +10,7 @@ import com.wallet.core.primitives.SupportMessageImage
 import com.wallet.core.primitives.SupportMessageInput
 import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportMessageStatus
+import com.wallet.core.primitives.SupportTyping
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -26,6 +27,8 @@ class SupportChatRepository(
     val typing: StateFlow<SupportAgent?> = supportTypingState.agent
 
     fun clearTyping() = supportTypingState.clear()
+
+    fun updateTyping(typing: SupportTyping) = supportTypingState.update(typing)
 
     fun getMessages(): Flow<List<SupportMessage>> =
         supportMessagesDao.getMessages().map { records -> records.map { it.toModel() } }

@@ -5,14 +5,10 @@ import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAle
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.support.SupportTypingState
+import com.gemwallet.android.data.repositories.notifications.InAppNotificationsRepository
+import com.gemwallet.android.data.repositories.prices.PricesRepository
+import com.gemwallet.android.data.repositories.support.SupportChatRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
-import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.SupportMessagesDao
-import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransactionId
@@ -30,39 +26,32 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class StreamEventHandlerTest {
 
-    private val pricesDao = mockk<PricesDao>(relaxed = true)
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true)
+    private val pricesRepository = mockk<PricesRepository>(relaxed = true)
     private val syncTransactions = mockk<dagger.Lazy<SyncTransactions>>()
     private val syncNfts = mockk<SyncNfts>(relaxed = true)
     private val updatePriceAlerts = mockk<UpdatePriceAlerts>(relaxed = true)
     private val syncFiatTransactions = mockk<dagger.Lazy<SyncFiatTransactions>>()
     private val walletsRepository = mockk<WalletsRepository>()
-    private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
-    private val inAppNotificationsDao = mockk<InAppNotificationsDao>(relaxed = true)
-    private val supportMessagesDao = mockk<SupportMessagesDao>(relaxed = true)
-    private val supportTypingState = SupportTypingState()
+    private val inAppNotificationsRepository = mockk<InAppNotificationsRepository>(relaxed = true)
+    private val supportChatRepository = mockk<SupportChatRepository>(relaxed = true)
 
     private val handler = StreamEventHandler(
-        pricesDao = pricesDao,
-        sessionRepository = sessionRepository,
+        pricesRepository = pricesRepository,
         syncTransactions = syncTransactions,
         syncNfts = syncNfts,
         updatePriceAlerts = updatePriceAlerts,
         syncFiatTransactions = syncFiatTransactions,
         walletsRepository = walletsRepository,
-        assetsDao = assetsDao,
         updateBalances = updateBalances,
-        inAppNotificationsDao = inAppNotificationsDao,
-        supportMessagesDao = supportMessagesDao,
-        supportTypingState = supportTypingState,
+        inAppNotificationsRepository = inAppNotificationsRepository,
+        supportChatRepository = supportChatRepository,
     )
 
     private val walletId = mockWalletId("w1")
@@ -86,7 +75,7 @@ class StreamEventHandlerTest {
         )
 
         coVerify { sync.syncTransactions(wallet) }
-        verify { assetsDao.getAssetsInfo(walletId.id, listOf(assetId.toIdentifier())) }
+        coVerify { updateBalances.updateBalances(walletId.id, listOf(assetId.toIdentifier())) }
     }
 
     @Test
@@ -130,7 +119,7 @@ class StreamEventHandlerTest {
             )
         )
 
-        coVerify { inAppNotificationsDao.put(listOf(notification.toRecord())) }
+        coVerify { inAppNotificationsRepository.addNotification(notification) }
     }
 
     @Test

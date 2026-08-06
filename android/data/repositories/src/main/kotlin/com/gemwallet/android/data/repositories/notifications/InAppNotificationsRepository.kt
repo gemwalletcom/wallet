@@ -28,6 +28,10 @@ class InAppNotificationsRepository(
         preferences.notificationsTimestamp = newTimestamp
     }
 
+    suspend fun addNotification(notification: InAppNotification) {
+        notificationsDao.put(listOf(notification.toRecord()))
+    }
+
     suspend fun markNotificationsRead() {
         gemDeviceApiClient.markNotificationsRead()
     }

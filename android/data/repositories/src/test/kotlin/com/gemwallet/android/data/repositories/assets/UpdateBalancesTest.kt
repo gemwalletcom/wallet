@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.blockchain.services.BalancesService
+import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.ext.asset
@@ -29,10 +30,12 @@ class UpdateBalancesTest {
 
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
     private val balancesService = mockk<BalancesService>(relaxed = true)
+    private val assetsDao = mockk<AssetsDao>(relaxed = true)
 
     private val subject = UpdateBalances(
         balancesDao = balancesDao,
         balancesService = balancesService,
+        assetsDao = assetsDao,
     )
 
     @After

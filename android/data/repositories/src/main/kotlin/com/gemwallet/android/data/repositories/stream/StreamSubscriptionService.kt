@@ -2,8 +2,8 @@ package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
 import com.gemwallet.android.data.repositories.assets.visibleByDefault
+import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.StreamMessage
@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.withLock
 
 class StreamSubscriptionService(
     private val assetsDao: AssetsDao,
-    private val priceAlertsDao: PriceAlertsDao,
+    private val priceAlertRepository: PriceAlertRepository,
 ) {
     private val outgoing = Channel<StreamMessage>(Channel.UNLIMITED)
     val messages: ReceiveChannel<StreamMessage> = outgoing
@@ -56,8 +56,7 @@ class StreamSubscriptionService(
 
     private suspend fun observableAssets(walletId: String): List<AssetId> {
         val ids = assetsDao.getAssetsPriceUpdate(walletId).mapNotNull { it.toAssetId() }
-        val priceAlerts = priceAlertsDao.getAlerts().firstOrNull()
-            ?.mapNotNull { it.assetId.toAssetId() } ?: emptyList()
+        val priceAlerts = priceAlertRepository.getPriceAlertAssetIds().firstOrNull() ?: emptyList()
         return (ids + priceAlerts).takeIf { it.isNotEmpty() }
             ?: visibleByDefault
     }

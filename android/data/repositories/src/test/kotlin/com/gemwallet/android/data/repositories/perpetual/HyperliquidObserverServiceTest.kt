@@ -43,6 +43,7 @@ class HyperliquidObserverServiceTest {
         every { observePerpetualWallet() } returns flowOf(wallet)
         val observer = HyperliquidObserverService(
             observePerpetualWallet = observePerpetualWallet,
+            syncPerpetuals = mockk(relaxed = true),
             syncPerpetualPositions = mockk(relaxed = true),
             eventHandler = eventHandler,
             subscriptionService = HyperliquidSubscriptionService { _, _ -> SUBSCRIBE_REQUEST },
