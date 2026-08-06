@@ -12,6 +12,7 @@ import java.security.GeneralSecurityException
 import java.security.MessageDigest
 import java.security.ProviderException
 import java.util.Base64
+import javax.crypto.BadPaddingException
 
 internal class TinkEncryptedKeyValueStore(
     context: Context,
@@ -66,6 +67,7 @@ internal data class TinkStoreConfig(
     val keysetName: String,
     val keysetPreferencesFileName: String,
     val masterKeyAlias: String,
+    val resetOnInvalidKeyset: Boolean,
 )
 
 internal class TinkAeadProvider(
@@ -87,14 +89,33 @@ internal class TinkAeadProvider(
 
     private fun buildAead(): Aead {
         AeadConfig.register()
-        return retryAeadBuild {
-            AndroidKeysetManager.Builder()
-                .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
-                .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
-                .withMasterKeyUri("android-keystore://${config.masterKeyAlias}")
-                .build()
-                .keysetHandle
-                .getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        return try {
+            retryAeadBuild(build = ::createAead)
+        } catch (error: BadPaddingException) {
+            if (!config.resetOnInvalidKeyset) {
+                throw error
+            }
+            resetInvalidKeyset()
+            retryAeadBuild(build = ::createAead)
+        }
+    }
+
+    private fun createAead(): Aead = AndroidKeysetManager.Builder()
+        .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
+        .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
+        .withMasterKeyUri("android-keystore://${config.masterKeyAlias}")
+        .build()
+        .keysetHandle
+        .getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+
+    private fun resetInvalidKeyset() {
+        val encryptedValues = context.getSharedPreferences(config.preferencesFileName, Context.MODE_PRIVATE)
+        if (!encryptedValues.edit().clear().commit()) {
+            throw IllegalStateException("Secure values reset failed")
+        }
+        val encryptedKeyset = context.getSharedPreferences(config.keysetPreferencesFileName, Context.MODE_PRIVATE)
+        if (!encryptedKeyset.edit().remove(config.keysetName).commit()) {
+            throw IllegalStateException("Secure keyset reset failed")
         }
     }
 }
@@ -108,6 +129,8 @@ internal fun retryAeadBuild(
     repeat(maxAttempts) { attempt ->
         try {
             return build()
+        } catch (error: BadPaddingException) {
+            throw error
         } catch (error: GeneralSecurityException) {
             lastError = error
         } catch (error: ProviderException) {

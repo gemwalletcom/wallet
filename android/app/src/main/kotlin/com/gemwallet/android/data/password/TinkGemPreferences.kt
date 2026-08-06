@@ -15,6 +15,7 @@ private val GEM_PREFERENCES_STORE_CONFIG = TinkStoreConfig(
     keysetName = GEM_PREFERENCES_KEYSET_NAME,
     keysetPreferencesFileName = GEM_PREFERENCES_KEYSET_FILE_NAME,
     masterKeyAlias = GEM_PREFERENCES_MASTER_KEY_ALIAS,
+    resetOnInvalidKeyset = false,
 )
 
 class TinkGemPreferences private constructor(

@@ -7,6 +7,10 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.math.fromHex
+import com.gemwallet.android.math.hex
+import com.google.crypto.tink.proto.EncryptedKeyset
+import com.google.crypto.tink.shaded.protobuf.ByteString
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,6 +23,7 @@ import org.junit.runner.RunWith
 import java.nio.charset.StandardCharsets.UTF_8
 import java.security.GeneralSecurityException
 import java.security.MessageDigest
+import javax.crypto.BadPaddingException
 
 @RunWith(AndroidJUnit4::class)
 class TinkEncryptedKeyValueStoreInstrumentedTest {
@@ -85,6 +90,47 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
         }
     }
 
+    @Test
+    fun encryptedStore_doesNotResetInvalidKeysetByDefault() {
+        val originalStore = TinkEncryptedKeyValueStore.create(
+            context = context,
+            config = TEST_STORE_CONFIG,
+        )
+        originalStore.putString("original-key", "original-value")
+        mockCorruptKeyset()
+
+        val reopenedStore = TinkEncryptedKeyValueStore.create(
+            context = context,
+            config = TEST_STORE_CONFIG,
+        )
+
+        try {
+            reopenedStore.putString("new-key", "new-value")
+            fail("Expected invalid keyset to fail decryption")
+        } catch (_: BadPaddingException) {
+        }
+        assertTrue(reopenedStore.contains("original-key"))
+    }
+
+    @Test
+    fun encryptedStore_resetsInvalidKeysetWhenConfigured() {
+        val originalStore = TinkEncryptedKeyValueStore.create(
+            context = context,
+            config = RECOVERABLE_TEST_STORE_CONFIG,
+        )
+        originalStore.putString("original-key", "original-value")
+        mockCorruptKeyset()
+
+        val reopenedStore = TinkEncryptedKeyValueStore.create(
+            context = context,
+            config = RECOVERABLE_TEST_STORE_CONFIG,
+        )
+        reopenedStore.putString("new-key", "new-value")
+
+        assertFalse(reopenedStore.contains("original-key"))
+        assertEquals("new-value", reopenedStore.getString("new-key"))
+    }
+
     private fun legacyPreferences() =
         EncryptedSharedPreferences.create(
             context,
@@ -108,6 +154,20 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
         ).forEach(context::deleteSharedPreferences)
     }
 
+    private fun mockCorruptKeyset() {
+        val preferences = context.getSharedPreferences(TEST_KEYSET_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
+        val serializedKeyset = preferences.getString(TEST_KEYSET_NAME, null)!!.fromHex()
+        val keyset = EncryptedKeyset.parseFrom(serializedKeyset)
+        val encryptedKeyset = keyset.encryptedKeyset.toByteArray()
+        encryptedKeyset[encryptedKeyset.lastIndex] = (encryptedKeyset.last().toInt() xor 1).toByte()
+        val corruptedKeyset = keyset.toBuilder()
+            .setEncryptedKeyset(ByteString.copyFrom(encryptedKeyset))
+            .build()
+            .toByteArray()
+            .hex
+        assertTrue(preferences.edit().putString(TEST_KEYSET_NAME, corruptedKeyset).commit())
+    }
+
     private fun storageKey(namespace: String, key: String): String {
         val digest = MessageDigest.getInstance("SHA-256").digest("$namespace\u0000$key".toByteArray(UTF_8))
         return "${namespace}_${digest.joinToString(separator = "") { "%02x".format(it.toInt() and 0xff) }}"
@@ -125,6 +185,8 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
             keysetName = TEST_KEYSET_NAME,
             keysetPreferencesFileName = TEST_KEYSET_PREFERENCES_FILE_NAME,
             masterKeyAlias = TEST_MASTER_KEY_ALIAS,
+            resetOnInvalidKeyset = false,
         )
+        private val RECOVERABLE_TEST_STORE_CONFIG = TEST_STORE_CONFIG.copy(resetOnInvalidKeyset = true)
     }
 }

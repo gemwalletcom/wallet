@@ -18,6 +18,7 @@ private val PASSWORD_STORE_CONFIG = TinkStoreConfig(
     keysetName = PASSWORD_STORE_KEYSET_NAME,
     keysetPreferencesFileName = PASSWORD_STORE_KEYSET_PREFERENCES_FILE_NAME,
     masterKeyAlias = PASSWORD_STORE_MASTER_KEY_ALIAS,
+    resetOnInvalidKeyset = false,
 )
 
 class TinkPasswordStore internal constructor(

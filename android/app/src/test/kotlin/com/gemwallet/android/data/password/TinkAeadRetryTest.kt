@@ -8,6 +8,7 @@ import org.junit.Test
 import java.security.GeneralSecurityException
 import java.security.InvalidKeyException
 import java.security.ProviderException
+import javax.crypto.AEADBadTagException
 
 class TinkAeadRetryTest {
 
@@ -46,6 +47,21 @@ class TinkAeadRetryTest {
         }
 
         assertEquals("not a keystore failure", error.message)
+        assertEquals(1, attempts)
+    }
+
+    @Test
+    fun doesNotRetryInvalidAuthenticationTag() {
+        var attempts = 0
+
+        val error = assertThrows(AEADBadTagException::class.java) {
+            retryAeadBuild(retryDelayMilliseconds = 0) {
+                attempts += 1
+                throw AEADBadTagException("Invalid authentication tag")
+            }
+        }
+
+        assertEquals("Invalid authentication tag", error.message)
         assertEquals(1, attempts)
     }
 

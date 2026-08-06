@@ -25,6 +25,7 @@ private val DEVICE_KEYS_STORE_CONFIG = TinkStoreConfig(
     keysetName = DEVICE_KEYSET_NAME,
     keysetPreferencesFileName = DEVICE_KEYSET_PREFERENCES_FILE_NAME,
     masterKeyAlias = DEVICE_MASTER_KEY_ALIAS,
+    resetOnInvalidKeyset = true,
 )
 
 class TinkSecurityStore(
