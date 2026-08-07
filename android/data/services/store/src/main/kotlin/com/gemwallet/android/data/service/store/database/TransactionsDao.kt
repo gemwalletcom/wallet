@@ -17,6 +17,7 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
+import uniffi.gemstone.defaultTokenRank
 
 const val EXTENDED_COLUMNS = """
     tx.*,
@@ -93,8 +94,8 @@ interface TransactionsDao {
         filters: List<TransactionsRequestFilter> = emptyList(),
     ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
 
-    @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state IN (:states)")
-    fun getTransactionsCount(walletId: WalletId, states: List<TransactionState>): Flow<Int?>
+    @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state IN (:states) AND asset.rank > :rank")
+    fun getTransactionsCount(walletId: WalletId, states: List<TransactionState>, rank: Int = defaultTokenRank()): Flow<Int?>
 
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Preferences
 import Primitives
 import Store
@@ -20,7 +21,10 @@ final class MainTabViewModel {
 
     init(wallet: Wallet) {
         self.wallet = wallet
-        transactionsQuery = ObservableQuery(TransactionsCountRequest(walletId: wallet.id, states: [.pending, .inTransit]), initialValue: 0)
+        transactionsQuery = ObservableQuery(
+            TransactionsCountRequest(walletId: wallet.id, states: [.pending, .inTransit], rank: AssetScore.defaultScore),
+            initialValue: 0,
+        )
     }
 
     var walletId: WalletId {

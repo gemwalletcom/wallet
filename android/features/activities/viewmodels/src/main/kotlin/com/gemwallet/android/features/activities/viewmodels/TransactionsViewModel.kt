@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.defaultTokenRank
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -55,7 +56,8 @@ class TransactionsViewModel @Inject constructor(
         chainsFilter,
         typeFilter,
     ) { chains, types ->
-        buildList<TransactionsRequestFilter> {
+        buildList {
+            add(TransactionsRequestFilter.AssetRankGreaterThan(defaultTokenRank()))
             if (chains.isNotEmpty()) add(TransactionsRequestFilter.Chains(chains))
             val allowedTypes = types.flatMap { it.types }
             if (allowedTypes.isNotEmpty()) add(TransactionsRequestFilter.Types(allowedTypes))
