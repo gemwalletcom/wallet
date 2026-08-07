@@ -9,10 +9,9 @@ import uniffi.gemstone.NodeRegion
 
 class NodeAuthInterceptor(
     private val preferences: GemPreferences,
+    private val nodesDomain: String = Config().getNodeBaseUrl(NodeRegion.US).toHttpUrl().host,
     private val currentTimeSeconds: () -> ULong = { (System.currentTimeMillis() / 1_000).toULong() },
 ) : Interceptor {
-    private val nodesDomain = Config().getNodeBaseUrl(NodeRegion.US).toHttpUrl().host
-
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val host = request.url.host

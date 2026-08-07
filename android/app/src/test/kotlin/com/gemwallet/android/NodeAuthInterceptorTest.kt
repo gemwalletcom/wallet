@@ -18,7 +18,7 @@ class NodeAuthInterceptorTest {
     @Test
     fun interceptAddsValidTokenOnlyToGemNodes() {
         every { preferences.get(any()) } returns DeviceToken("valid", 200u).toJson()
-        val interceptor = NodeAuthInterceptor(preferences) { 100u }
+        val interceptor = NodeAuthInterceptor(preferences, nodesDomain = "gemnodes.com") { 100u }
 
         val nodeChain = mockk<Interceptor.Chain>()
         val nodeRequest = slot<Request>()
