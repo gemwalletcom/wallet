@@ -5,6 +5,7 @@ import typealias Gemstone.ChainConfig
 import class Gemstone.Config
 import enum Gemstone.DocsUrl
 import struct Gemstone.FeeConfig
+import enum Gemstone.NodeRegion
 import enum Gemstone.PublicUrl
 import enum Gemstone.RewardsUrl
 import enum Gemstone.SocialUrl
@@ -23,6 +24,30 @@ public extension Config {
 
 public enum GemstoneConfig {
     public static let shared = Config()
+}
+
+public enum NodeURL {
+    public static let regions = Config.shared.getNodeRegions()
+
+    public static func baseURL(region: NodeRegion) -> URL {
+        URL(string: Config.shared.getNodeBaseUrl(region: region))!
+    }
+
+    public static func url(chain: Primitives.Chain, region: NodeRegion) -> URL {
+        URL(string: Config.shared.getNodeUrl(chain: chain.rawValue, region: region))!
+    }
+
+    public static func region(url: String) -> NodeRegion? {
+        Config.shared.getNodeRegion(url: url)
+    }
+
+    public static func flag(region: NodeRegion) -> String {
+        Config.shared.getNodeRegionFlag(region: region)
+    }
+
+    public static func priority(region: NodeRegion) -> Int32 {
+        Config.shared.getNodeRegionPriority(region: region)
+    }
 }
 
 public enum AppUrl {

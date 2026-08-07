@@ -1,5 +1,61 @@
 use super::chain::Chain;
+use crate::{GEM_NODES_ASIA_HOST, GEM_NODES_EUROPE_HOST, GEM_NODES_HOST};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use strum::{AsRefStr, EnumString};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum NodeRegion {
+    Us,
+    Eu,
+    Asia,
+}
+
+impl NodeRegion {
+    pub fn all() -> Vec<Self> {
+        vec![Self::Us, Self::Asia, Self::Eu]
+    }
+
+    pub fn host(self) -> &'static str {
+        match self {
+            Self::Us => GEM_NODES_HOST,
+            Self::Eu => GEM_NODES_EUROPE_HOST,
+            Self::Asia => GEM_NODES_ASIA_HOST,
+        }
+    }
+
+    pub fn flag(self) -> &'static str {
+        match self {
+            Self::Us => "🇺🇸",
+            Self::Eu => "🇪🇺",
+            Self::Asia => "🇯🇵",
+        }
+    }
+
+    pub fn priority(self) -> i32 {
+        match self {
+            Self::Us => 10,
+            Self::Eu => 9,
+            Self::Asia => 8,
+        }
+    }
+
+    pub fn base_url(self) -> String {
+        format!("https://{}", self.host())
+    }
+
+    pub fn url(self, chain: Chain) -> String {
+        format!("{}/{}", self.base_url(), chain.as_ref())
+    }
+
+    pub fn from_url(value: &str) -> Option<Self> {
+        let url = url::Url::parse(value).ok()?;
+        let host = url.host_str()?;
+        Self::all().into_iter().find(|region| region.host() == host)
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Node {
@@ -167,5 +223,19 @@ pub fn get_nodes_for_chain(chain: Chain) -> Vec<Node> {
         ],
         Chain::Robinhood => vec![Node::new("https://rpc.mainnet.chain.robinhood.com", NodePriority::High)],
         Chain::Stable => vec![Node::new("https://rpc.stable.xyz", NodePriority::High)],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::NodeRegion;
+
+    #[test]
+    fn test_node_region_from_url() {
+        assert_eq!(NodeRegion::from_url("https://gemnodes.com/bitcoin"), Some(NodeRegion::Us));
+        assert_eq!(NodeRegion::from_url("https://eu.gemnodes.com/ethereum"), Some(NodeRegion::Eu));
+        assert_eq!(NodeRegion::from_url("https://asia.gemnodes.com/solana"), Some(NodeRegion::Asia));
+        assert_eq!(NodeRegion::from_url("https://gemnodes.com.evil.example/bitcoin"), None);
+        assert_eq!(NodeRegion::from_url("invalid"), None);
     }
 }

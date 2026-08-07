@@ -1,4 +1,4 @@
-use primitives::node_config::{Node, NodePriority};
+use primitives::node_config::{Node, NodePriority, NodeRegion};
 
 // Sources:
 // https://chainlist.org
@@ -15,4 +15,11 @@ pub enum NodePriority {
     Medium,
     Low,
     Inactive,
+}
+
+#[uniffi::remote(Enum)]
+pub enum NodeRegion {
+    Us,
+    Eu,
+    Asia,
 }

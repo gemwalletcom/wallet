@@ -1,40 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+internal import GemstonePrimitives
 import Foundation
+import enum Gemstone.NodeRegion
 import Primitives
 
 public extension Chain {
     var defaultBaseUrl: URL {
-        Constants.nodesURL.appending(component: rawValue.lowercased())
-    }
-
-    var defaultNode: Node {
-        Node(url: defaultBaseUrl.absoluteString, status: .active, priority: 10)
+        NodeURL.url(chain: self, region: .us)
     }
 
     var defaultChainNode: ChainNode {
-        ChainNode(chain: rawValue, node: defaultNode)
+        chainNode(region: .us)
     }
 
-    var europeChainNode: ChainNode {
-        ChainNode(
-            chain: rawValue,
-            node: Node(
-                url: Constants.nodesEuropeURL.appending(component: rawValue.lowercased()).absoluteString,
-                status: .active,
-                priority: 9,
-            ),
+    private func node(region: NodeRegion) -> Node {
+        Node(
+            url: NodeURL.url(chain: self, region: region).absoluteString,
+            status: .active,
+            priority: NodeURL.priority(region: region),
         )
     }
 
-    var asiaChainNode: ChainNode {
-        ChainNode(
-            chain: rawValue,
-            node: Node(
-                url: Constants.nodesAsiaURL.appending(component: rawValue.lowercased()).absoluteString,
-                status: .active,
-                priority: 8,
-            ),
-        )
+    func chainNode(region: NodeRegion) -> ChainNode {
+        ChainNode(chain: rawValue, node: node(region: region))
     }
 }

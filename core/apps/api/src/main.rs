@@ -164,6 +164,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 chain::block::get_latest_block_number,
                 chain::block::get_block_transactions,
                 chain::block::get_block_transactions_finalize,
+                chain::node::get_nodes_status,
                 chain::swap::get_swap_result,
                 chain::swap::get_swap_quote,
                 chain::swap::get_vault_addresses,
@@ -210,6 +211,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
     let user_agent = settings::service_user_agent("api", None);
     let chain_client = chain::ChainClient::new(ChainProviders::from_settings(&settings, &user_agent));
+    let nodes_status_client = chain::node::NodesStatusClient::default();
     let portfolio_client = PortfolioClient::new(database.clone(), price_config);
     let endpoints = ProviderFactory::get_chain_endpoints(&settings);
     let native_provider = Arc::new(swapper::NativeProvider::new_with_endpoints(endpoints));
@@ -305,6 +307,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         .manage(defi_provider_client)
         .manage(price_alert_client)
         .manage(chain_client)
+        .manage(nodes_status_client)
         .manage(swapper)
         .manage(markets_client)
         .manage(webhooks_client)

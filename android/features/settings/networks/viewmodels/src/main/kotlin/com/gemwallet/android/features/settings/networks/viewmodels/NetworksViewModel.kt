@@ -13,8 +13,6 @@ import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.getGemNode
-import com.gemwallet.android.cases.nodes.getGemNodeRegion
-import com.gemwallet.android.cases.nodes.getGemNodeUrls
 import com.gemwallet.android.data.repositories.chains.ChainInfoRepository
 import com.gemwallet.android.ext.filter
 import com.gemwallet.android.model.NodeStatus
@@ -78,6 +76,9 @@ class NetworksViewModel @Inject constructor(
             .getNodes()[chain.string]
             .orEmpty()
             .mapTo(linkedSetOf()) { it.url }
+        val gemNodeFlags = config.getNodeRegions().associate { region ->
+            config.getNodeUrl(chain.string, region) to config.getNodeRegionFlag(region)
+        }
 
         updateState {
             it.copy(
@@ -88,6 +89,7 @@ class NetworksViewModel @Inject constructor(
                 currentExplorer = getCurrentBlockExplorer.getCurrentBlockExplorer(chain),
                 availableAddNode = true,
                 defaultNodeUrls = defaultNodeUrls,
+                gemNodeFlags = gemNodeFlags,
                 nodes = emptyList(),
                 nodeStates = emptyMap(),
                 refreshNonce = System.nanoTime(),
@@ -242,6 +244,7 @@ class NetworksViewModel @Inject constructor(
         val selectChain: Boolean = true,
         val availableAddNode: Boolean = true,
         val defaultNodeUrls: Set<String> = emptySet(),
+        val gemNodeFlags: Map<String, String> = emptyMap(),
         val refreshNonce: Long = 0,
     ) {
         fun toUIState(): NetworksUIState {
@@ -256,11 +259,11 @@ class NetworksViewModel @Inject constructor(
                     emptyList()
                 } else {
                     buildNodeRows(
-                        chain = chain,
                         nodes = nodes,
                         currentNode = currentNode,
                         nodeStates = nodeStates,
                         defaultNodeUrls = defaultNodeUrls,
+                        gemNodeFlags = gemNodeFlags,
                     )
                 },
             )
@@ -277,21 +280,19 @@ internal fun visibleNodeStates(
 }
 
 internal fun buildNodeRows(
-    chain: Chain,
     nodes: List<Node>,
     currentNode: Node,
     nodeStates: Map<String, NodeStatusState>,
     defaultNodeUrls: Set<String>,
+    gemNodeFlags: Map<String, String>,
 ): List<NodeRowUiModel> {
-    val gemNodeUrls = getGemNodeUrls(chain)
-
     return nodes.map { node ->
         NodeRowUiModel(
             node = node,
             host = displayHost(node.url),
-            gemNodeFlag = getGemNodeRegion(node.url)?.flag,
+            gemNodeFlag = gemNodeFlags[node.url],
             selected = node.url == currentNode.url,
-            canDelete = node.url !in gemNodeUrls && node.url !in defaultNodeUrls,
+            canDelete = node.url !in gemNodeFlags && node.url !in defaultNodeUrls,
             statusState = nodeStates[node.url] ?: NodeStatusState.Loading,
         )
     }

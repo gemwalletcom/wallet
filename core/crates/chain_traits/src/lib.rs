@@ -1,4 +1,8 @@
-use std::{error::Error, str, time::Duration};
+use std::{
+    error::Error,
+    str,
+    time::{Duration, Instant},
+};
 
 use async_trait::async_trait;
 pub use primitives::TransactionIdRequest;
@@ -7,7 +11,7 @@ use primitives::perpetual::{PerpetualAccountMode, PerpetualData, PerpetualPositi
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeCheckReport, NodeCheckRequest, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData,
+    NodeCheckReport, NodeCheckRequest, NodeStatus, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData,
     TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
 
@@ -63,6 +67,18 @@ pub trait ChainTraits:
 {
     async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus, status_latency: Duration) -> NodeCheckReport {
         node_check::check_node(self, request, status, status_latency).await
+    }
+
+    async fn get_nodes_status(&self) -> Result<NodeStatus, Box<dyn Error + Send + Sync>> {
+        let started_at = Instant::now();
+        let (chain_id, latest_block_number) = futures::try_join!(self.get_chain_id(), self.get_block_latest_number())?;
+        let latency_ms = started_at.elapsed().as_millis() as u64;
+
+        Ok(NodeStatus {
+            chain_id,
+            latest_block_number,
+            latency_ms,
+        })
     }
 }
 

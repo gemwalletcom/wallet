@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.cases.nodes.getGemNode
 import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeStatusState
 import com.wallet.core.primitives.Chain
@@ -15,7 +14,11 @@ class NetworksNodeUiStateTest {
 
     @Test
     fun `visibleNodeStates removes deleted node entries`() {
-        val gemNode = getGemNode(Chain.Bitcoin)
+        val gemNode = Node(
+            url = "https://gemnodes.com/bitcoin",
+            status = NodeState.Active,
+            priority = 10,
+        )
         val remainingNode = Node(
             url = "https://custom.example.com/bitcoin",
             status = NodeState.Active,
@@ -46,7 +49,11 @@ class NetworksNodeUiStateTest {
 
     @Test
     fun `buildNodeRows uses provided default urls for delete eligibility`() {
-        val gemNode = getGemNode(Chain.Bitcoin)
+        val gemNode = Node(
+            url = "https://gemnodes.com/bitcoin",
+            status = NodeState.Active,
+            priority = 10,
+        )
         val defaultNode = Node(
             url = "https://default.example.com/bitcoin",
             status = NodeState.Active,
@@ -59,11 +66,11 @@ class NetworksNodeUiStateTest {
         )
 
         val rows = buildNodeRows(
-            chain = Chain.Bitcoin,
             nodes = listOf(gemNode, defaultNode, customNode),
             currentNode = gemNode,
             nodeStates = mapOf(customNode.url to NodeStatusState.Error),
             defaultNodeUrls = setOf(defaultNode.url),
+            gemNodeFlags = mapOf(gemNode.url to "🇺🇸"),
         )
 
         assertFalse(rows.first { it.node.url == gemNode.url }.canDelete)

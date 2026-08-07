@@ -2,20 +2,14 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
-use primitives::{GEM_API_HOST, GEM_NODES_ASIA_HOST, GEM_NODES_EUROPE_HOST, GEM_NODES_HOST};
+use primitives::{GEM_API_HOST, node_config::NodeRegion};
 
 use crate::GemstoneError;
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
 
-const FLAG_UNITED_STATES: &str = "🇺🇸";
-const FLAG_JAPAN: &str = "🇯🇵";
-const FLAG_EUROPE: &str = "🇪🇺";
-
-const TIMEOUT_SECONDS: u32 = 10;
-
 #[uniffi::export]
 pub fn service_status_timeout_seconds() -> u32 {
-    TIMEOUT_SECONDS
+    gem_client::DEFAULT_REQUEST_TIMEOUT.as_secs() as u32
 }
 
 #[derive(uniffi::Enum, Clone, Debug, PartialEq, Eq)]
@@ -56,12 +50,14 @@ impl GemServiceStatus {
     }
 
     pub fn get_endpoints(&self) -> Vec<GemServiceEndpoint> {
-        vec![
-            GemServiceEndpoint::new(GemServiceEndpointType::Api, GEM_API_HOST, FLAG_UNITED_STATES),
-            GemServiceEndpoint::new(GemServiceEndpointType::GemNode, GEM_NODES_HOST, FLAG_UNITED_STATES),
-            GemServiceEndpoint::new(GemServiceEndpointType::GemNode, GEM_NODES_ASIA_HOST, FLAG_JAPAN),
-            GemServiceEndpoint::new(GemServiceEndpointType::GemNode, GEM_NODES_EUROPE_HOST, FLAG_EUROPE),
-        ]
+        [GemServiceEndpoint::new(GemServiceEndpointType::Api, GEM_API_HOST, NodeRegion::Us.flag())]
+            .into_iter()
+            .chain(
+                NodeRegion::all()
+                    .into_iter()
+                    .map(|region| GemServiceEndpoint::new(GemServiceEndpointType::GemNode, region.host(), region.flag())),
+            )
+            .collect()
     }
 
     pub async fn get_endpoint_latency(&self, url: String) -> Result<u64, GemstoneError> {

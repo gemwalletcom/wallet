@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -25,18 +26,8 @@ struct ChainNodeViewModel {
 
     var title: String {
         guard let host = chainNode.host else { return "" }
-
-        let flag: String? = switch host {
-        case Constants.nodesAsiaURL.cleanHost(): "🇯🇵"
-        case Constants.nodesEuropeURL.cleanHost(): "🇪🇺"
-        case Constants.nodesURL.cleanHost(): "🇺🇸"
-        default: nil
-        }
-
-        if let flag {
-            return Localized.Nodes.gemWalletNode + " " + flag
-        }
-        return host
+        guard let region = NodeURL.region(url: chainNode.node.url) else { return host }
+        return Localized.Nodes.gemWalletNode + " " + NodeURL.flag(region: region)
     }
 
     var titleExtra: String? {
@@ -80,6 +71,6 @@ extension ChainNode {
     }
 
     var isGemNode: Bool {
-        host?.contains("gemnodes.com") ?? false
+        NodeURL.region(url: node.url) != nil
     }
 }
