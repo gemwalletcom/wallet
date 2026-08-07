@@ -269,6 +269,11 @@ class TransactionsRepositoryImpl(
         val updatedTransaction = transaction.copy(
             transaction = transactionRecord.copy(
                 id = newHash?.let { TransactionId(chain, it) } ?: transactionRecord.id,
+                broadcastTransactionId = if (newHash == null) {
+                    transactionRecord.broadcastTransactionId
+                } else {
+                    transactionRecord.broadcastTransactionId ?: transactionRecord.id.identifier
+                },
                 state = nextTransactionState(
                     oldState = transactionRecord.state,
                     newState = stateChanges.state,

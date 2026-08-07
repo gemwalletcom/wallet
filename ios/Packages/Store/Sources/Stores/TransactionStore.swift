@@ -58,7 +58,10 @@ public struct TransactionStore: Sendable {
 
     public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended {
         try db.read { db in
-            try TransactionRequest(walletId: walletId, transactionId: transactionId).fetch(db)
+            guard let transaction = try TransactionRequest(walletId: walletId, transactionId: transactionId).fetch(db) else {
+                throw AnyError("Transaction not found")
+            }
+            return transaction
         }
     }
 
@@ -136,6 +139,7 @@ public struct TransactionStore: Sendable {
                 .filter(TransactionRecord.Columns.id == trackedRecord.id)
                 .updateAll(db, [
                     TransactionRecord.Columns.transactionId.set(to: transactionId.identifier),
+                    TransactionRecord.Columns.broadcastTransactionId.set(to: trackedRecord.broadcastTransactionId ?? oldTransactionId.identifier),
                     TransactionRecord.Columns.hash.set(to: hash),
                 ])
         }

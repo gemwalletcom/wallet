@@ -202,6 +202,23 @@ struct TransactionStoreTests {
         #expect(transaction.state == .inTransit)
         #expect(transaction.metadata?.decode(TransactionSwapMetadata.self)?.provider == "nearintents")
     }
+
+    @Test func transactionFoundByBroadcastIdAfterHashChange() throws {
+        let (store, walletId) = transactionStore()
+        let originalId = TransactionId(chain: .ethereum, hash: "original")
+        let renamedId = TransactionId(chain: .ethereum, hash: "renamed")
+        let syncedId = TransactionId(chain: .ethereum, hash: "synced")
+        try store.addTransactions(walletId: walletId, transactions: [.mock(transactionId: originalId, type: .transfer, state: .pending, assetId: Chain.ethereum.assetId, metadata: nil)])
+
+        try store.updateTransactionId(oldTransactionId: originalId, transactionId: renamedId, hash: renamedId.hash)
+
+        #expect(try store.getTransaction(walletId: walletId, transactionId: originalId).transaction.id == renamedId)
+
+        try store.syncTransactions(walletId: walletId, transactions: [.mock(transactionId: syncedId, type: .transfer, state: .confirmed, assetId: Chain.ethereum.assetId, metadata: nil)])
+        try store.updateTransactionId(oldTransactionId: renamedId, transactionId: syncedId, hash: syncedId.hash)
+
+        #expect(try store.getTransaction(walletId: walletId, transactionId: originalId).transaction.id == syncedId)
+    }
 }
 
 extension TransactionStoreTests {

@@ -18,57 +18,14 @@ public struct TransactionRequest: DatabaseQueryable {
         self.transactionId = transactionId
     }
 
-    public func fetch(_ db: Database) throws -> TransactionExtended {
+    public func fetch(_ db: Database) throws -> TransactionExtended? {
         try TransactionsRequest.fetch(
             db,
             type: .transaction(id: transactionId.identifier),
             filters: filters,
             walletId: walletId,
-        ).first ?? .empty
+        ).first
     }
 }
 
 extension TransactionRequest: Equatable {}
-
-public extension TransactionExtended {
-    static let empty: TransactionExtended = {
-        let asset = Asset(
-            id: AssetId(chain: .bitcoin, tokenId: nil),
-            name: "",
-            symbol: "",
-            decimals: 0,
-            type: .native,
-        )
-
-        return TransactionExtended(
-            transaction: Transaction(
-                id: TransactionId(chain: .ethereum, hash: ""),
-                assetId: AssetId(chain: .bitcoin, tokenId: nil),
-                from: "",
-                to: "",
-                contract: nil,
-                type: .transfer,
-                state: .pending,
-                blockNumber: "",
-                sequence: "",
-                fee: "",
-                feeAssetId: AssetId(chain: .bitcoin, tokenId: nil),
-                value: "",
-                memo: nil,
-                direction: .selfTransfer,
-                utxoInputs: [],
-                utxoOutputs: [],
-                metadata: nil,
-                createdAt: .now,
-            ),
-            asset: asset,
-            feeAsset: asset,
-            price: nil,
-            feePrice: nil,
-            assets: [],
-            prices: [],
-            fromAddress: nil,
-            toAddress: nil,
-        )
-    }()
-}

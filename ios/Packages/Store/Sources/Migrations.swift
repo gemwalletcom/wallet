@@ -507,6 +507,13 @@ struct Migrations {
             }
         }
 
+        migrator.registerMigration("Add broadcastTransactionId to \(TransactionRecord.databaseTableName)") { db in
+            try? db.alter(table: TransactionRecord.databaseTableName) {
+                $0.add(column: TransactionRecord.Columns.broadcastTransactionId.name, .text)
+                    .indexed()
+            }
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

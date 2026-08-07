@@ -147,10 +147,13 @@ interface TransactionsDao {
     @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state IN (:states)")
     fun getTransactionsCount(walletId: WalletId, states: List<TransactionState>): Flow<Int?>
 
-    @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
+    @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND (tx.id = :id OR tx.broadcastTransactionId = :id)")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
 
-    @Query("UPDATE transactions SET id = :newId, hash = :hash, updatedAt = :updatedAt WHERE id = :oldId AND walletId = :walletId")
+    @Query(
+        "UPDATE transactions SET id = :newId, broadcastTransactionId = COALESCE(broadcastTransactionId, :oldId), hash = :hash, updatedAt = :updatedAt " +
+            "WHERE id = :oldId AND walletId = :walletId"
+    )
     fun updateTransactionId(
         oldId: TransactionId,
         newId: TransactionId,

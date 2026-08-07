@@ -55,7 +55,7 @@ public struct TransactionsRequest: DatabaseQueryable {
                 request = request.joining(required: TransactionRecord.assetsAssociation.filter(assetIds.map(\.identifier).contains(TransactionAssetAssociationRecord.Columns.assetId)))
             }
         case let .transaction(id):
-            request = request.filter(TransactionRecord.Columns.transactionId == id)
+            request = request.filter(TransactionRecord.Columns.transactionId == id || TransactionRecord.Columns.broadcastTransactionId == id)
         case .all, .pending:
             break
         }

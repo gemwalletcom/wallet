@@ -19,10 +19,11 @@ public final class TransactionSceneViewModel {
     private let explorerService: ExplorerService
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
+    private let transaction: TransactionExtended
 
     public let query: ObservableQuery<TransactionRequest>
     var transactionExtended: TransactionExtended {
-        query.value
+        query.value ?? transaction
     }
 
     var isPresentingTransactionSheet: TransactionSheetType?
@@ -40,6 +41,7 @@ public final class TransactionSceneViewModel {
         self.explorerService = explorerService
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
+        self.transaction = transaction
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.transaction.id), initialValue: transaction)
     }
 

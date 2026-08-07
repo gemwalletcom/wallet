@@ -23,6 +23,7 @@ import com.wallet.core.primitives.WalletId
 data class DbTransaction(
     val id: TransactionId,
     val walletId: WalletId,
+    val broadcastTransactionId: String? = null,
     val hash: String,
     val assetId: AssetId,
     val feeAssetId: AssetId,

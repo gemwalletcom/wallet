@@ -11,6 +11,7 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
         static let id = Column("id")
         static let walletId = Column("walletId")
         static let transactionId = Column("transactionId")
+        static let broadcastTransactionId = Column("broadcastTransactionId")
         static let hash = Column("hash")
         static let from = Column("from")
         static let to = Column("to")
@@ -35,6 +36,7 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
     var id: Int? = .none
     var walletId: String
     var transactionId: String
+    var broadcastTransactionId: String? = .none
     var hash: String
     var type: TransactionType
     var from: String
@@ -88,6 +90,8 @@ extension TransactionRecord: CreateTable {
                 .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
             $0.column(Columns.transactionId.name, .text)
                 .notNull()
+                .indexed()
+            $0.column(Columns.broadcastTransactionId.name, .text)
                 .indexed()
             $0.column(Columns.hash.name, .text)
                 .indexed()
