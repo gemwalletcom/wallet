@@ -164,6 +164,14 @@ enum class AccountDataType(val string: String) {
 }
 
 @Serializable
+enum class PerpetualAccountMode(val string: String) {
+	@SerialName("standard")
+	Standard("standard"),
+	@SerialName("unified")
+	Unified("unified"),
+}
+
+@Serializable
 sealed class PerpetualType {
 	@Serializable
 	@SerialName("Open")

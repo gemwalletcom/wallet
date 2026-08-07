@@ -9,6 +9,7 @@ import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualAccountSummary
+import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
@@ -26,6 +27,7 @@ import uniffi.gemstone.GemChartCandleStick
 import uniffi.gemstone.GemChartCandleUpdate
 import uniffi.gemstone.GemChartDateValue
 import uniffi.gemstone.GemPerpetualAccountSummary
+import uniffi.gemstone.GemPerpetualAccountMode
 import uniffi.gemstone.GemPerpetualBalance
 import uniffi.gemstone.GemPerpetualData
 import uniffi.gemstone.GemPerpetualMarginType
@@ -65,6 +67,11 @@ internal fun GemPerpetualPositionsSummary.toDTO(): PerpetualPositionsSummary {
         positions = positions.mapNotNull { it.toDTO() },
         balance = balance.toDTO(),
     )
+}
+
+fun GemPerpetualAccountMode.toDTO(): PerpetualAccountMode = when (this) {
+    GemPerpetualAccountMode.STANDARD -> PerpetualAccountMode.Standard
+    GemPerpetualAccountMode.UNIFIED -> PerpetualAccountMode.Unified
 }
 
 fun GemPerpetualBalance.toDTO(): PerpetualBalance {

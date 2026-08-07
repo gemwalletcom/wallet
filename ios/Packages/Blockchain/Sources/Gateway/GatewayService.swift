@@ -170,6 +170,10 @@ public extension GatewayService {
         try await gateway.getPositions(chain: chain.rawValue, address: address).map()
     }
 
+    func getPerpetualAccountMode(chain: Primitives.Chain, address: String) async throws -> PerpetualAccountMode {
+        try await gateway.getPerpetualAccountMode(chain: chain.rawValue, address: address).map()
+    }
+
     func getPerpetualsData(chain: Primitives.Chain) async throws -> [PerpetualData] {
         try await gateway.getPerpetualsData(chain: chain.rawValue).map {
             try $0.map()

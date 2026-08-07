@@ -99,6 +99,14 @@ pub struct PerpetualBalance {
     pub withdrawable: f64,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[serde(rename_all = "camelCase")]
+pub enum PerpetualAccountMode {
+    Standard,
+    Unified,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]

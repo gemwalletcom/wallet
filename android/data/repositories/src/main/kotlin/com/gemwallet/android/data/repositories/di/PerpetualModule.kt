@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
+import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualAccountMode
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
@@ -77,6 +78,8 @@ object PerpetualModule {
         observePerpetualWallet: ObservePerpetualWallet,
         syncPerpetuals: SyncPerpetuals,
         syncPerpetualPositions: SyncPerpetualPositions,
+        getPerpetualAccountMode: GetPerpetualAccountMode,
+        hyperliquid: Hyperliquid,
         eventHandler: HyperliquidEventHandler,
         subscriptionService: HyperliquidSubscriptionService,
         getNodeUrlCase: GetNodeUrlCase,
@@ -85,6 +88,8 @@ object PerpetualModule {
         observePerpetualWallet = observePerpetualWallet,
         syncPerpetuals = syncPerpetuals,
         syncPerpetualPositions = syncPerpetualPositions,
+        getPerpetualAccountMode = getPerpetualAccountMode,
+        hyperliquid = hyperliquid,
         eventHandler = eventHandler,
         subscriptionService = subscriptionService,
         connection = WebSocketConnection(

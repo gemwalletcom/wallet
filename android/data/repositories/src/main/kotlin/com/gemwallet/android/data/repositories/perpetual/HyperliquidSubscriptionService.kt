@@ -24,14 +24,9 @@ class HyperliquidSubscriptionService(
         outgoing.trySend(encodeRequest(GemSubscriptionMethod.UNSUBSCRIBE, subscription))
     }
 
-    suspend fun resubscribe(address: String) {
-        (defaultSubscriptions(address) + activeSubscriptions).distinct().forEach {
+    suspend fun resubscribe(defaultSubscriptions: List<GemPerpetualSubscription>) {
+        (defaultSubscriptions + activeSubscriptions).distinct().forEach {
             outgoing.send(encodeRequest(GemSubscriptionMethod.SUBSCRIBE, it))
         }
     }
-
-    private fun defaultSubscriptions(address: String): List<GemPerpetualSubscription> = listOf(
-        GemPerpetualSubscription.AccountState(address),
-        GemPerpetualSubscription.OpenOrders(address),
-    )
 }

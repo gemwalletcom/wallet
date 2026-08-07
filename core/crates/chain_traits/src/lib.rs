@@ -3,7 +3,7 @@ use std::{error::Error, str, time::Duration};
 use async_trait::async_trait;
 pub use primitives::TransactionIdRequest;
 use primitives::chart::ChartCandleStick;
-use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
+use primitives::perpetual::{PerpetualAccountMode, PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
@@ -190,6 +190,10 @@ pub trait ChainAccount: Send + Sync {}
 #[async_trait]
 pub trait ChainPerpetual: Send + Sync {
     async fn get_positions(&self, _address: String) -> Result<PerpetualPositionsSummary, Box<dyn Error + Sync + Send>> {
+        Err("Chain does not support perpetual trading".into())
+    }
+
+    async fn get_perpetual_account_mode(&self, _address: String) -> Result<PerpetualAccountMode, Box<dyn Error + Sync + Send>> {
         Err("Chain does not support perpetual trading".into())
     }
 

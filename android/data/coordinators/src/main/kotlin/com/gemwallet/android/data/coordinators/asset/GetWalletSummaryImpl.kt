@@ -19,6 +19,7 @@ import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +50,16 @@ class GetWalletSummaryImpl(
 
     private val perpetualCollateral: Flow<PerpetualBalance?> =
         observePerpetualWallet().flatMapLatest { wallet ->
-            wallet?.let { perpetualRepository.getBalance(it.id, HypercoreUSDC.id) } ?: flowOf(null)
+            wallet ?: return@flatMapLatest flowOf(null)
+            combine(
+                perpetualRepository.getBalance(wallet.id, HypercoreUSDC.id),
+                userConfig.perpetualAccountMode(wallet.id),
+            ) { balance, mode ->
+                when (mode) {
+                    PerpetualAccountMode.Unified -> null
+                    PerpetualAccountMode.Standard -> balance
+                }
+            }
         }
 
     private val walletSummary = sessionRepository.session().flatMapLatest { session ->

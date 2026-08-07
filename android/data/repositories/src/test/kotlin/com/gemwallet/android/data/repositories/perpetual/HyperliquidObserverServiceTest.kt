@@ -5,6 +5,8 @@ import com.gemwallet.android.data.repositories.stream.WebSocketEvent
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PerpetualAccountMode
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -19,6 +21,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemPerpetualSubscription
 
 class HyperliquidObserverServiceTest {
 
@@ -45,6 +48,13 @@ class HyperliquidObserverServiceTest {
             observePerpetualWallet = observePerpetualWallet,
             syncPerpetuals = mockk(relaxed = true),
             syncPerpetualPositions = mockk(relaxed = true),
+            getPerpetualAccountMode = mockk { coEvery { getPerpetualAccountMode(any(), any()) } returns PerpetualAccountMode.Standard },
+            hyperliquid = mockk {
+                every { accountSubscriptions(any(), any()) } returns listOf(
+                    GemPerpetualSubscription.AccountState(ADDRESS),
+                    GemPerpetualSubscription.OpenOrders(ADDRESS),
+                )
+            },
             eventHandler = eventHandler,
             subscriptionService = HyperliquidSubscriptionService { _, _ -> SUBSCRIBE_REQUEST },
             connection = connection,
@@ -55,7 +65,7 @@ class HyperliquidObserverServiceTest {
         advanceUntilIdle()
 
         assertEquals(listOf(SUBSCRIBE_REQUEST, SUBSCRIBE_REQUEST), connection.sent)
-        coVerify { eventHandler.handle(wallet.id, MESSAGE) }
+        coVerify { eventHandler.handle(wallet.id, PerpetualAccountMode.Standard, MESSAGE) }
         scope.cancel()
     }
 

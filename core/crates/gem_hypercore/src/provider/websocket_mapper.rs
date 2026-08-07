@@ -1,25 +1,42 @@
 use std::collections::{HashMap, HashSet};
 
-use primitives::{AssetId, PerpetualMarketData, PerpetualPosition};
+use primitives::{AssetId, PerpetualAccountMode, PerpetualMarketData, PerpetualPosition};
 
 use crate::models::{
     order::OpenOrder,
-    websocket::{ActiveAssetCtxData, HyperliquidSocketMessage, PositionsDiff, RawSocketMessage},
+    websocket::{ActiveAssetCtxData, HyperliquidSocketMessage, HyperliquidSubscription, PositionsDiff, RawSocketMessage},
 };
 
-use super::perpetual_mapper::{map_positions, map_tp_sl_from_orders};
+use super::perpetual_mapper::{map_perpetual_balance_from_spot, map_positions, map_tp_sl_from_orders};
 
-pub fn parse_websocket_data(data: &[u8]) -> Result<HyperliquidSocketMessage, serde_json::Error> {
+pub fn account_subscriptions(address: String, mode: PerpetualAccountMode) -> Vec<HyperliquidSubscription> {
+    let account_state = HyperliquidSubscription::AccountState { address: address.clone() };
+    let open_orders = HyperliquidSubscription::OpenOrders { address: address.clone() };
+
+    match mode {
+        PerpetualAccountMode::Standard => vec![account_state, open_orders],
+        PerpetualAccountMode::Unified => vec![account_state, open_orders, HyperliquidSubscription::SpotState { address }],
+    }
+}
+
+pub fn parse_websocket_data(data: &[u8], mode: PerpetualAccountMode) -> Result<HyperliquidSocketMessage, serde_json::Error> {
     let raw: RawSocketMessage = serde_json::from_slice(data)?;
 
     match raw {
         RawSocketMessage::AccountState(data) => {
             let summary = map_positions(data.clearinghouse_state, data.address, &[]);
+            let balance = match mode {
+                PerpetualAccountMode::Unified => None,
+                PerpetualAccountMode::Standard => Some(summary.balance),
+            };
             Ok(HyperliquidSocketMessage::AccountState {
-                balance: summary.balance,
+                balance,
                 positions: summary.positions,
             })
         }
+        RawSocketMessage::SpotState(data) => Ok(HyperliquidSocketMessage::SpotState {
+            balance: map_perpetual_balance_from_spot(&data.spot_state),
+        }),
         RawSocketMessage::OpenOrders(data) => Ok(HyperliquidSocketMessage::OpenOrders { orders: data.orders }),
         RawSocketMessage::Candle(candlestick) => Ok(HyperliquidSocketMessage::Candle { candle: candlestick.into() }),
         RawSocketMessage::MarketData(data) => Ok(HyperliquidSocketMessage::MarketData {
@@ -109,7 +126,7 @@ mod tests {
     #[test]
     fn test_parse_all_mids() {
         let json = include_bytes!("../../testdata/ws_all_mids.json");
-        let HyperliquidSocketMessage::MarketPrices { prices } = parse_websocket_data(json).unwrap() else {
+        let HyperliquidSocketMessage::MarketPrices { prices } = parse_websocket_data(json, PerpetualAccountMode::Standard).unwrap() else {
             panic!("expected MarketPrices");
         };
 
@@ -124,7 +141,7 @@ mod tests {
     #[test]
     fn test_parse_active_asset_ctx() {
         let json = include_bytes!("../../testdata/ws_active_asset_ctx.json");
-        let HyperliquidSocketMessage::MarketData { market } = parse_websocket_data(json).unwrap() else {
+        let HyperliquidSocketMessage::MarketData { market } = parse_websocket_data(json, PerpetualAccountMode::Standard).unwrap() else {
             panic!("expected MarketData");
         };
 
@@ -158,13 +175,13 @@ mod tests {
           }
         }"#;
 
-        assert!(parse_websocket_data(json).is_err());
+        assert!(parse_websocket_data(json, PerpetualAccountMode::Standard).is_err());
     }
 
     #[test]
     fn test_parse_candle() {
         let json = include_bytes!("../../testdata/ws_candle.json");
-        let HyperliquidSocketMessage::Candle { candle: update } = parse_websocket_data(json).unwrap() else {
+        let HyperliquidSocketMessage::Candle { candle: update } = parse_websocket_data(json, PerpetualAccountMode::Standard).unwrap() else {
             panic!("expected Candle");
         };
 
@@ -180,7 +197,7 @@ mod tests {
     #[test]
     fn test_parse_open_orders() {
         let json = include_bytes!("../../testdata/ws_open_orders.json");
-        let HyperliquidSocketMessage::OpenOrders { orders } = parse_websocket_data(json).unwrap() else {
+        let HyperliquidSocketMessage::OpenOrders { orders } = parse_websocket_data(json, PerpetualAccountMode::Standard).unwrap() else {
             panic!("expected OpenOrders");
         };
 
@@ -202,9 +219,10 @@ mod tests {
     #[test]
     fn test_parse_clearinghouse_state() {
         let json = include_bytes!("../../testdata/ws_clearinghouse_state.json");
-        let HyperliquidSocketMessage::AccountState { balance, positions } = parse_websocket_data(json).unwrap() else {
+        let HyperliquidSocketMessage::AccountState { balance, positions } = parse_websocket_data(json, PerpetualAccountMode::Standard).unwrap() else {
             panic!("expected AccountState");
         };
+        let balance = balance.expect("clearinghouse account owns its balance");
 
         assert_eq!(balance.available, 15230.5 - 830.5);
         assert_eq!(balance.reserved, 830.5);
@@ -226,5 +244,49 @@ mod tests {
         assert_eq!(pos.funding, Some(-1.82));
         assert_eq!(pos.take_profit, None);
         assert_eq!(pos.stop_loss, None);
+    }
+
+    #[test]
+    fn test_parse_clearinghouse_state_drops_balance_for_spot_collateral() {
+        let json = include_bytes!("../../testdata/ws_clearinghouse_state.json");
+        let HyperliquidSocketMessage::AccountState { balance, positions } = parse_websocket_data(json, PerpetualAccountMode::Unified).unwrap() else {
+            panic!("expected AccountState");
+        };
+
+        assert!(balance.is_none());
+        assert_eq!(positions.len(), 1);
+    }
+
+    #[test]
+    fn test_parse_spot_state() {
+        let json = include_bytes!("../../testdata/ws_spot_state.json");
+        let HyperliquidSocketMessage::SpotState { balance } = parse_websocket_data(json, PerpetualAccountMode::Unified).unwrap() else {
+            panic!("expected SpotState");
+        };
+
+        assert_eq!(balance.available, 3.797316);
+        assert_eq!(balance.reserved, 4.331289 - 3.797316);
+        assert_eq!(balance.withdrawable, 3.797316);
+    }
+
+    #[test]
+    fn test_account_subscriptions() {
+        let address = "0x123".to_string();
+
+        assert_eq!(
+            account_subscriptions(address.clone(), PerpetualAccountMode::Standard),
+            vec![
+                HyperliquidSubscription::AccountState { address: address.clone() },
+                HyperliquidSubscription::OpenOrders { address: address.clone() },
+            ]
+        );
+        assert_eq!(
+            account_subscriptions(address.clone(), PerpetualAccountMode::Unified),
+            vec![
+                HyperliquidSubscription::AccountState { address: address.clone() },
+                HyperliquidSubscription::OpenOrders { address: address.clone() },
+                HyperliquidSubscription::SpotState { address },
+            ]
+        );
     }
 }

@@ -7,13 +7,13 @@ use gem_client::Client;
 use primitives::{
     ChartPeriod,
     chart::ChartCandleStick,
-    perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
+    perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
     portfolio::PerpetualPortfolio,
 };
 
 use crate::{
     config::HypercoreConfig,
-    models::{order::OpenOrder, perp_dex::PerpDex, position::AssetPositions, user::UserAbstractionMode},
+    models::{order::OpenOrder, perp_dex::PerpDex, position::AssetPositions},
     provider::perpetual_mapper::{
         map_account_summary_aggregate, map_candlesticks, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions, merge_perpetual_portfolios,
     },
@@ -129,15 +129,16 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
             },
         );
 
-        let balance = match mode {
-            UserAbstractionMode::Default | UserAbstractionMode::Disabled | UserAbstractionMode::DexAbstraction => balance,
-            UserAbstractionMode::UnifiedAccount | UserAbstractionMode::PortfolioMargin => {
-                let spot = self.get_spot_balances(&address).await?;
-                map_perpetual_balance_from_spot(&spot)
-            }
+        let balance = match PerpetualAccountMode::from(mode) {
+            PerpetualAccountMode::Unified => map_perpetual_balance_from_spot(&self.get_spot_balances(&address).await?),
+            PerpetualAccountMode::Standard => balance,
         };
 
         Ok(PerpetualPositionsSummary { positions, balance })
+    }
+
+    async fn get_perpetual_account_mode(&self, address: String) -> Result<PerpetualAccountMode, Box<dyn Error + Sync + Send>> {
+        Ok(self.get_user_abstraction(&address).await?.into())
     }
 
     async fn get_perpetuals_data(&self) -> Result<Vec<PerpetualData>, Box<dyn Error + Sync + Send>> {
@@ -357,6 +358,49 @@ mod tests {
         assert_eq!(summary.positions.len(), 2);
         assert_eq!(btc.take_profit.as_ref().map(|order| order.price), Some(110.0));
         assert_eq!(eth.stop_loss.as_ref().map(|order| order.price), Some(90.0));
+    }
+
+    #[tokio::test]
+    async fn test_get_perpetual_account_mode() {
+        let unified = HyperCoreClient::mock_with_responses_by_request_type(vec![(
+            "userAbstraction",
+            include_bytes!("../../testdata/perpetual_balance_response_user_abstraction_unified.json").to_vec(),
+        )]);
+        let default = HyperCoreClient::mock_with_responses_by_request_type(vec![(
+            "userAbstraction",
+            include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec(),
+        )]);
+
+        assert_eq!(unified.get_perpetual_account_mode("0x123".to_string()).await.unwrap(), PerpetualAccountMode::Unified);
+        assert_eq!(default.get_perpetual_account_mode("0x123".to_string()).await.unwrap(), PerpetualAccountMode::Standard);
+    }
+
+    #[tokio::test]
+    async fn test_get_positions_takes_balance_from_spot_for_unified_account() {
+        let client = HyperCoreClient::mock_with_responses_by_request_type(vec![
+            (
+                "userAbstraction",
+                include_bytes!("../../testdata/perpetual_balance_response_user_abstraction_unified.json").to_vec(),
+            ),
+            (
+                "clearinghouseState",
+                include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec(),
+            ),
+            (
+                "frontendOpenOrders",
+                include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec(),
+            ),
+            (
+                "spotClearinghouseState",
+                include_bytes!("../../testdata/perpetual_balance_response_spot_clearinghouse_state.json").to_vec(),
+            ),
+        ]);
+
+        let summary = client.get_positions("0x123".to_string()).await.unwrap();
+
+        assert_eq!(summary.balance.available, 3.797316);
+        assert_eq!(summary.balance.reserved, 4.331289 - 3.797316);
+        assert_eq!(summary.positions.len(), 1);
     }
 
     #[tokio::test]

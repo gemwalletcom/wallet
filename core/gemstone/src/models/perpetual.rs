@@ -6,7 +6,7 @@ use gem_hypercore::models::websocket::{HyperliquidSocketMessage, PositionsDiff};
 use primitives::{
     Asset, AssetId, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
     chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue},
-    perpetual::{Perpetual, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
+    perpetual::{Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
 };
 
 pub type GemHyperliquidOpenOrder = OpenOrder;
@@ -15,6 +15,7 @@ pub type GemPerpetualMarginType = PerpetualMarginType;
 pub type GemPerpetualOrderType = PerpetualOrderType;
 pub type GemPerpetualPositionsSummary = PerpetualPositionsSummary;
 pub type GemPerpetualBalance = PerpetualBalance;
+pub type GemPerpetualAccountMode = PerpetualAccountMode;
 pub type GemPerpetualPosition = PerpetualPosition;
 pub type GemPerpetual = Perpetual;
 pub type GemPerpetualMetadata = PerpetualMetadata;
@@ -49,6 +50,12 @@ pub struct GemPerpetualTriggerOrder {
 pub struct GemPerpetualPositionsSummary {
     pub positions: Vec<PerpetualPosition>,
     pub balance: PerpetualBalance,
+}
+
+#[uniffi::remote(Enum)]
+pub enum GemPerpetualAccountMode {
+    Standard,
+    Unified,
 }
 
 #[uniffi::remote(Record)]
@@ -163,6 +170,7 @@ pub enum GemSubscriptionMethod {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
 pub enum GemPerpetualSubscription {
     AccountState { address: String },
+    SpotState { address: String },
     OpenOrders { address: String },
     Candle { symbol: String, interval: String },
     MarketData { symbol: String },
@@ -173,11 +181,27 @@ pub type GemHyperliquidSocketMessage = HyperliquidSocketMessage;
 
 #[uniffi::remote(Enum)]
 pub enum GemHyperliquidSocketMessage {
-    AccountState { balance: PerpetualBalance, positions: Vec<PerpetualPosition> },
-    OpenOrders { orders: Vec<GemHyperliquidOpenOrder> },
-    Candle { candle: ChartCandleUpdate },
-    MarketData { market: GemPerpetualMarketData },
-    MarketPrices { prices: HashMap<String, f64> },
-    SubscriptionResponse { subscription_type: String },
+    AccountState {
+        balance: Option<PerpetualBalance>,
+        positions: Vec<PerpetualPosition>,
+    },
+    SpotState {
+        balance: PerpetualBalance,
+    },
+    OpenOrders {
+        orders: Vec<GemHyperliquidOpenOrder>,
+    },
+    Candle {
+        candle: ChartCandleUpdate,
+    },
+    MarketData {
+        market: GemPerpetualMarketData,
+    },
+    MarketPrices {
+        prices: HashMap<String, f64>,
+    },
+    SubscriptionResponse {
+        subscription_type: String,
+    },
     Unknown,
 }

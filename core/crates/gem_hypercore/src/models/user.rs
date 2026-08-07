@@ -1,3 +1,4 @@
+use primitives::PerpetualAccountMode;
 use serde::{Deserialize, Serialize};
 use serde_serializers::f64::deserialize_f64_from_str;
 
@@ -11,6 +12,15 @@ pub enum UserAbstractionMode {
     DexAbstraction,
     UnifiedAccount,
     PortfolioMargin,
+}
+
+impl From<UserAbstractionMode> for PerpetualAccountMode {
+    fn from(value: UserAbstractionMode) -> Self {
+        match value {
+            UserAbstractionMode::Default | UserAbstractionMode::Disabled | UserAbstractionMode::DexAbstraction => Self::Standard,
+            UserAbstractionMode::UnifiedAccount | UserAbstractionMode::PortfolioMargin => Self::Unified,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
