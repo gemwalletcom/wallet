@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">İptal</string>
+  <string name="common_hidden">Gizli</string>
   <string name="common_done">Tamam</string>
   <string name="common_maximum_value">Maksimum değer %1$s</string>
   <string name="common_minimum_value">Minimum değer %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.</string>
   <string name="errors_network_error">Ağ hatası: %1$s</string>
   <string name="errors_network_offline">İnternet bağlantısı kesilmiş gibi görünüyor.</string>
+  <string name="errors_no_internet_connection">İnternet bağlantısı yok</string>
+  <string name="errors_no_service_connection">Servis bağlantısı yok</string>
+  <string name="errors_balances_activity_outdated">Bakiyeler ve etkinlik güncel olmayabilir.</string>
   <string name="activity_title">Aktivite</string>
   <string name="activity_state_empty_title">Etkinliğiniz burada görünecek</string>
   <string name="activity_state_empty_description">İlk işleminizi yapın</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">Ağ ücreti için ayrıldı</string>
   <string name="info_stake_reserved_description">Cüzdanınızda, stake\'lerinizi iptal etme veya ödül talep etme gibi işlemlerin ücretlerini karşılamak için küçük bir miktar kalır.</string>
   <string name="info_stake_apr_description">Yıllık Yüzde Oranı (APR), kripto paranızı stake etmeniz durumunda ödeyeceğiniz yıllık ödül oranıdır.</string>
+  <string name="info_stake_frozen_required_title">Stake için TRX\'i dondurun</string>
+  <string name="info_stake_frozen_required_description">TRON\'da staking iki adımdan oluşur. Önce TRX\'i dondurun, ardından ödül kazanmak için stake edin.</string>
   <string name="info_perpetual_auto_close_description">Pozisyonunuzu belirlenen fiyat seviyelerinde otomatik olarak kapatın. Kâr Al özelliği kazançlarınızı sabitler, Zarar Durdur özelliği ise kayıplarınızı sınırlar.</string>
   <string name="info_fully_diluted_valuation_title">Tamamen Seyreltilmiş Değerleme</string>
   <string name="info_fully_diluted_valuation_description">Tüm madeni paraların dolaşımda olması durumunda teorik piyasa değeri. Fiyatın maksimum arzla çarpılmasıyla hesaplanır.</string>

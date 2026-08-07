@@ -43,30 +43,6 @@ public final class AssetSceneViewModel: Sendable {
     public let bannersQuery: ObservableQuery<BannersRequest>
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
-    public var chainAssetData: ChainAssetData {
-        assetQuery.value
-    }
-
-    public var banners: [Banner] {
-        bannersQuery.value
-    }
-
-    public var transactions: [TransactionExtended] {
-        transactionsQuery.value
-    }
-
-    public var assetData: AssetData {
-        chainAssetData.assetData
-    }
-
-    private var asset: Asset {
-        assetData.asset
-    }
-
-    private var wallet: Wallet {
-        walletModel.wallet
-    }
-
     public init(
         assetsEnabler: any AssetsEnabler,
         balanceService: BalanceService,
@@ -99,6 +75,30 @@ public final class AssetSceneViewModel: Sendable {
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
 
+    public var chainAssetData: ChainAssetData {
+        assetQuery.value
+    }
+
+    public var banners: [Banner] {
+        bannersQuery.value
+    }
+
+    public var transactions: [TransactionExtended] {
+        transactionsQuery.value
+    }
+
+    public var assetData: AssetData {
+        chainAssetData.assetData
+    }
+
+    private var asset: Asset {
+        assetData.asset
+    }
+
+    private var wallet: Wallet {
+        walletModel.wallet
+    }
+
     public var title: String {
         assetModel.name
     }
@@ -125,6 +125,14 @@ public final class AssetSceneViewModel: Sendable {
 
     var canOpenNetwork: Bool {
         assetDataModel.asset.type != .native
+    }
+
+    var showNetworkAssets: Bool {
+        asset.type == .native && AssetConfiguration.supportedChainsWithTokens.contains(asset.chain)
+    }
+
+    var networkAssetsDestination: Scenes.NetworkAssets {
+        Scenes.NetworkAssets(chain: asset.chain)
     }
 
     var showBalances: Bool {
@@ -345,7 +353,7 @@ public extension AssetSceneViewModel {
         }
         isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
             type: selectType,
-            assetAddress: assetData.assetAddress,
+            assetData: assetData,
         )
     }
 
@@ -371,7 +379,7 @@ public extension AssetSceneViewModel {
                             ),
                             amount: .none,
                         ),
-                        value: 0,
+                        amount: .exact(0),
                     ),
                 )
             case .enableNotifications,
@@ -402,7 +410,7 @@ public extension AssetSceneViewModel {
     internal func onSelectEarn() {
         isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
             type: .earn(assetData.asset),
-            assetAddress: assetData.assetAddress,
+            assetData: assetData,
         )
     }
 
@@ -540,11 +548,23 @@ extension AssetSceneViewModel {
     }
 
     private func updateAssetData() async {
+        let associations: [AssetAssociation]
         do {
-            try await assetsService.updateAsset(assetId: assetModel.asset.id, currency: preferences.preferences.currency)
+            let asset = try await assetsService.updateAsset(
+                assetId: assetModel.asset.id,
+                currency: preferences.preferences.currency,
+            )
+            associations = asset.associations
         } catch {
             // TODO: - handle updateAsset error
             debugLog("asset scene: updateAsset error \(error)")
+            return
+        }
+
+        do {
+            try await assetsService.prefetchAssets(assetIds: associations.map(\.assetId))
+        } catch {
+            debugLog("asset scene: prefetch associations error \(error)")
         }
     }
 

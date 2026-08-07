@@ -8,7 +8,6 @@ use rocket::http::Status;
 use rocket::outcome::Outcome::{Error, Success};
 use rocket::{Data, Request, State};
 use serde::de::DeserializeOwned;
-use std::sync::Arc;
 
 fn error_outcome<'r, T>(req: &'r Request<'_>, status: Status, message: &str) -> Outcome<'r, T, String> {
     cache_error(req, message);
@@ -21,7 +20,7 @@ struct VerifiedBody<T> {
 }
 
 async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Request<'_>, data: Data<'r>) -> Result<VerifiedBody<T>, Outcome<'r, O, String>> {
-    let Success(auth_client) = req.guard::<&State<Arc<AuthClient>>>().await else {
+    let Success(auth_client) = req.guard::<&State<AuthClient>>().await else {
         return Err(error_outcome(req, Status::InternalServerError, "Auth client not available"));
     };
 

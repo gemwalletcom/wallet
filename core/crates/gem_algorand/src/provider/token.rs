@@ -7,11 +7,11 @@ use primitives::Asset;
 
 use crate::{
     provider::token_mapper::{is_valid_token_id, map_asset},
-    rpc::client::AlgorandClient,
+    rpc::AlgorandProvider,
 };
 
 #[async_trait]
-impl<C: Client> ChainToken for AlgorandClient<C> {
+impl<C: Client> ChainToken for AlgorandProvider<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         let asset = self.get_asset(&token_id).await?;
         Ok(map_asset(asset))

@@ -33,7 +33,7 @@ Read `core/AGENTS.md` when the task touches `core/`, generated models, JNI bindi
 Before finishing an Android task:
 1. Use [Quality Checks](../skills/quality-checks.md) to choose targeted vs full verification
 2. Run at least one real Gradle verification command for the touched codepath
-3. If `core/` changed, regenerate shared artifacts and verify Android still builds
+3. If Core changed Android-facing interfaces, generated artifacts, build inputs, or app integration, regenerate the required artifacts and verify Android still builds
 4. Clean imports and avoid unnecessary comments
 5. In tests, prefer shared `:gemcore` fixtures with sensible defaults over inline full-field mock construction
 

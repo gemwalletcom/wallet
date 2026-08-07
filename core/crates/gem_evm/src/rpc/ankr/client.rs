@@ -1,98 +1,41 @@
 use std::collections::HashSet;
 use std::error::Error;
 
+use crate::rpc::{EVMIndexerClient, TransactionReference};
 use gem_client::Client;
-use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
+use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
-use primitives::EVMChain;
-use serde_json::json;
 
-use crate::{method, rpc::EVMIndexerClient};
+use super::{
+    jsonrpc::AnkrRpc,
+    model::{TokenBalances, TokenTransfers, Transactions},
+};
 
-use super::model::{TokenBalances, TokenTransfers, Transactions};
-
-#[derive(Debug, Clone)]
 pub(crate) struct AnkrClient<C: Client + Clone> {
     chain: &'static str,
-    rpc_client: GenericJsonRpcClient<C>,
+    client: JsonRpcClient<C>,
 }
 
 impl<C: Client + Clone> AnkrClient<C> {
-    pub(crate) fn new(client: GenericJsonRpcClient<C>, chain: EVMChain) -> Option<Self> {
-        Some(Self {
-            chain: Self::chain_name(chain)?,
-            rpc_client: client,
-        })
-    }
-
-    fn chain_name(chain: EVMChain) -> Option<&'static str> {
-        match chain {
-            EVMChain::Ethereum => Some("eth"),
-            EVMChain::Polygon => Some("polygon"),
-            EVMChain::AvalancheC => Some("avalanche"),
-            EVMChain::SmartChain => Some("bsc"),
-            EVMChain::Arbitrum => Some("arbitrum"),
-            EVMChain::Optimism => Some("optimism"),
-            EVMChain::Base => Some("base"),
-            EVMChain::Fantom => Some("fantom"),
-            EVMChain::Gnosis => Some("gnosis"),
-            EVMChain::Linea => Some("linea"),
-            EVMChain::XLayer => Some("xlayer"),
-            EVMChain::OpBNB
-            | EVMChain::Manta
-            | EVMChain::Blast
-            | EVMChain::ZkSync
-            | EVMChain::Mantle
-            | EVMChain::Celo
-            | EVMChain::World
-            | EVMChain::Sonic
-            | EVMChain::SeiEvm
-            | EVMChain::Abstract
-            | EVMChain::Berachain
-            | EVMChain::Ink
-            | EVMChain::Unichain
-            | EVMChain::Hyperliquid
-            | EVMChain::Plasma
-            | EVMChain::Monad
-            | EVMChain::Robinhood
-            | EVMChain::Stable => None,
-        }
-    }
-
-    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Transactions, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .rpc_client
-            .call(
-                method::ANKR_GET_TRANSACTIONS_BY_ADDRESS,
-                json!({
-                    "address": address,
-                    "blockchain": self.chain,
-                    "pageSize": limit,
-                    "descOrder": true
-                }),
-            )
-            .await?)
-    }
-
-    async fn get_token_transfers(&self, address: &str, limit: usize) -> Result<TokenTransfers, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .rpc_client
-            .call(
-                method::ANKR_GET_TOKEN_TRANSFERS,
-                json!({
-                    "address": address,
-                    "blockchain": self.chain,
-                    "pageSize": limit
-                }),
-            )
-            .await?)
+    pub(crate) fn new(client: JsonRpcClient<C>, chain: &'static str) -> Self {
+        Self { chain, client }
     }
 }
 
 impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let transactions = self.get_transactions_by_address(address, limit).await?;
-        let token_transfers = self.get_token_transfers(address, limit).await?;
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
+        let (transactions, token_transfers): (Transactions, TokenTransfers) = futures::try_join!(
+            self.client.request(AnkrRpc::TransactionsByAddress {
+                address: address.to_string(),
+                chain: self.chain,
+                limit,
+            }),
+            self.client.request(AnkrRpc::TokenTransfers {
+                address: address.to_string(),
+                chain: self.chain,
+                limit,
+            }),
+        )?;
 
         let transaction_ids = transactions
             .transactions
@@ -101,16 +44,20 @@ impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
             .chain(token_transfers.transfers.into_iter().map(|transfer| transfer.transaction_hash));
 
         let mut seen = HashSet::new();
-        Ok(transaction_ids.filter(|hash| seen.insert(hash.clone())).collect())
+        Ok(transaction_ids
+            .filter(|hash| seen.insert(hash.clone()))
+            .map(|hash| TransactionReference::new(hash, None))
+            .collect())
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
-        let params = json!([{
-            "walletAddress": address,
-            "blockchain": self.chain,
-            "onlyWhitelisted": true,
-        }]);
-        let balances: TokenBalances = self.rpc_client.call(method::ANKR_GET_ACCOUNT_BALANCE, params).await?;
+        let balances: TokenBalances = self
+            .client
+            .request(AnkrRpc::AccountBalance {
+                address: address.to_string(),
+                chain: self.chain,
+            })
+            .await?;
         Ok(balances
             .assets
             .into_iter()
@@ -121,8 +68,10 @@ impl<C: Client + Clone> EVMIndexerClient for AnkrClient<C> {
 
 #[cfg(test)]
 mod tests {
+    use crate::method;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::testkit::json::load_json;
+    use serde_json::json;
 
     use super::*;
 
@@ -154,15 +103,15 @@ mod tests {
             }
             _ => panic!("unexpected method: {request_method}"),
         });
-        let client = AnkrClient::new(rpc_client, EVMChain::SmartChain).unwrap();
+        let client = AnkrClient::new(rpc_client, "bsc");
 
-        let transaction_ids = client.get_transaction_ids_by_address("0x123", 2).await.unwrap();
+        let transaction_ids = client.get_transactions_by_address("0x123", 2).await.unwrap();
 
         assert_eq!(
             transaction_ids,
             vec![
-                "0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7",
-                "0x1111111111111111111111111111111111111111111111111111111111111111"
+                TransactionReference::new("0xcee2abf4d8cc0ea0b9ecc9d21d81b7579f614a27a8740210856b199e5521f6f7".to_string(), None),
+                TransactionReference::new("0x1111111111111111111111111111111111111111111111111111111111111111".to_string(), None)
             ]
         );
     }
@@ -181,7 +130,7 @@ mod tests {
             );
             Ok(load_json(include_str!("../../../testdata/ankr_get_account_balance.json")))
         });
-        let client = AnkrClient::new(rpc_client, EVMChain::XLayer).unwrap();
+        let client = AnkrClient::new(rpc_client, "xlayer");
 
         let balances = client.get_token_balances("0x123").await.unwrap();
 

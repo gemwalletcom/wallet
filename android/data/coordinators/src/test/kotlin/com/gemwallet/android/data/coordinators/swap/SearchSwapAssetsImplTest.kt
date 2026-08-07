@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.application.swap.coordinators.GetSwapSupported
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
@@ -45,7 +45,7 @@ class SearchSwapAssetsImplTest {
             metadata = swapableMetaData,
         )
 
-        val assetsRepository = mockk<AssetsRepository> {
+        val searchService = mockk<AssetsSearchService> {
             every {
                 swapSearch(
                     wallet = wallet,
@@ -63,7 +63,7 @@ class SearchSwapAssetsImplTest {
             )
         }
 
-        val subject = SearchSwapAssetsImpl(assetsRepository, getSwapSupported)
+        val subject = SearchSwapAssetsImpl(searchService, getSwapSupported)
 
         val result = subject.invoke(
             wallet = wallet,

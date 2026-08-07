@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Abbrechen</string>
+  <string name="common_hidden">Ausgeblendet</string>
   <string name="common_done">Erledigt</string>
   <string name="common_maximum_value">Maximaler Wert ist %1$s</string>
   <string name="common_minimum_value">Minimaler Wert ist %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.</string>
   <string name="errors_network_error">Netzwerkfehler: %1$s</string>
   <string name="errors_network_offline">Die Internetverbindung scheint unterbrochen zu sein.</string>
+  <string name="errors_no_internet_connection">Keine Internetverbindung</string>
+  <string name="errors_no_service_connection">Keine Serviceverbindung</string>
+  <string name="errors_balances_activity_outdated">Guthaben und Aktivität sind möglicherweise nicht aktuell.</string>
   <string name="activity_title">Aktivität</string>
   <string name="activity_state_empty_title">Ihre Aktivität wird hier angezeigt</string>
   <string name="activity_state_empty_description">Machen Sie Ihre erste Transaktion</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">Reserviert für Netzwerkgebühr</string>
   <string name="info_stake_reserved_description">Ein kleiner Betrag verbleibt in Ihrem Wallet, um Gebühren für Vorgänge wie das Aufheben der Absteckung oder das Einfordern von Prämien zu decken.</string>
   <string name="info_stake_apr_description">Der effektive Jahreszins (APR) ist der jährliche Belohnungssatz für das Staking Ihrer Kryptowährung.</string>
+  <string name="info_stake_frozen_required_title">TRX zum Staking einfrieren</string>
+  <string name="info_stake_frozen_required_description">Staking auf TRON erfolgt in zwei Schritten. Friere zuerst TRX ein und stake es dann, um Belohnungen zu verdienen.</string>
   <string name="info_perpetual_auto_close_description">Schließen Sie Ihre Position automatisch bei festgelegten Preisniveaus. Take Profit sichert Gewinne, Stop Loss begrenzt Verluste.</string>
   <string name="info_fully_diluted_valuation_title">Vollständig verwässerte Bewertung</string>
   <string name="info_fully_diluted_valuation_description">Der theoretische Marktwert, wenn alle Münzen im Umlauf wären. Berechnet als Preis multipliziert mit der maximalen Gesamtmenge.</string>

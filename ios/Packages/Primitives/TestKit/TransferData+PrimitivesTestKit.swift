@@ -8,14 +8,14 @@ public extension TransferData {
     static func mock(
         type: TransferDataType = .transfer(.mock()),
         recipient: RecipientData = .mock(),
-        value: BigInt = .zero,
-        canChangeValue: Bool = true,
+        amount: TransferAmountValue = .exact(.zero),
+        minimumValue: BigInt? = nil,
     ) -> TransferData {
         TransferData(
             type: type,
             recipientData: recipient,
-            value: value,
-            canChangeValue: canChangeValue,
+            amount: amount,
+            minimumValue: minimumValue,
         )
     }
 }

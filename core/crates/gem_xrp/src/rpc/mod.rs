@@ -1,3 +1,3 @@
 pub mod client;
 
-pub use self::client::XRPClient;
+pub use client::XrpClient;

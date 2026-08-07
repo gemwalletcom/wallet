@@ -11,6 +11,7 @@ enum TransactionFactory {
         amount: TransferAmount,
         hash: String,
         transactionIndex: Int,
+        simulation: SimulationResult? = nil,
     ) throws -> Primitives.Transaction {
         let senderAddress = try wallet.account(for: transferData.chain).address
 
@@ -19,6 +20,10 @@ enum TransactionFactory {
         default: transferData.recipientData.recipient.address
         }
 
+        let assetId: AssetId = switch transferData.type {
+        case .generic: simulation?.header?.assetId ?? transferData.type.asset.id
+        default: transferData.type.asset.id
+        }
         let metadata = transferData.type.metadata
         let direction: TransactionDirection = senderAddress == recipientAddress ? .selfTransfer : .outgoing
 
@@ -41,7 +46,7 @@ enum TransactionFactory {
 
         return Transaction(
             id: TransactionId(chain: transferData.chain, hash: hash),
-            assetId: transferData.type.asset.id,
+            assetId: assetId,
             from: senderAddress,
             to: recipientAddress,
             contract: nil,

@@ -8,11 +8,11 @@ use gem_client::Client;
 use primitives::{Asset, Chain, DelegationBase, DelegationState, DelegationValidator};
 
 use super::staking_mapper::map_staking_validators;
-use crate::rpc::client::TronClient;
+use crate::rpc::TronProvider;
 use crate::rpc::constants::{GET_WITNESS_127_PAY_PER_BLOCK, GET_WITNESS_PAY_PER_BLOCK};
 
 #[async_trait]
-impl<C: Client + Clone> ChainStaking for TronClient<C> {
+impl<C: Client> ChainStaking for TronProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         let params = self.get_chain_parameters().await?;
         let witnesses = self.get_witnesses_list().await?;

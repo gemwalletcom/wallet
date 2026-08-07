@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::sync::Arc;
 use std::time::Duration;
 
 use cacher::CacherClient;
@@ -10,7 +9,6 @@ use redis::PushInfo;
 use redis::aio::MultiplexedConnection;
 use rocket::futures::SinkExt;
 use rocket::serde::json::serde_json;
-use rocket::tokio::sync::Mutex;
 use rocket_ws::Message;
 use rocket_ws::stream::DuplexStream;
 
@@ -21,6 +19,7 @@ pub struct StreamObserverConfig {
     pub redis_url: String,
     pub cacher_client: CacherClient,
     pub retention: Duration,
+    pub history_limit: usize,
 }
 
 pub struct StreamObserverClient {
@@ -30,7 +29,7 @@ pub struct StreamObserverClient {
 }
 
 impl StreamObserverClient {
-    pub fn new(device_id: String, price_client: Arc<Mutex<PriceClient>>) -> Self {
+    pub fn new(device_id: String, price_client: PriceClient) -> Self {
         let device_channel = device_stream_channel(&device_id);
         Self {
             device_id,

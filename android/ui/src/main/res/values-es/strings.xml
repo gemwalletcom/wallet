@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Cancelar</string>
+  <string name="common_hidden">Ocultos</string>
   <string name="common_done">Hecho</string>
   <string name="common_maximum_value">El valor máximo es %1$s</string>
   <string name="common_minimum_value">El valor mínimo es %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">Se produjo un error desconocido. Por favor inténtalo de nuevo.</string>
   <string name="errors_network_error">Error de red: %1$s</string>
   <string name="errors_network_offline">La conexión a Internet parece estar fuera de línea.</string>
+  <string name="errors_no_internet_connection">Sin conexión a internet</string>
+  <string name="errors_no_service_connection">Sin conexión al servicio</string>
+  <string name="errors_balances_activity_outdated">Los saldos y la actividad pueden estar desactualizados.</string>
   <string name="activity_title">Actividad</string>
   <string name="activity_state_empty_title">Tu actividad aparecerá aquí</string>
   <string name="activity_state_empty_description">Realiza tu primera transacción</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">Reservado para comisión de red</string>
   <string name="info_stake_reserved_description">Una pequeña cantidad permanece en tu billetera para cubrir las tarifas de operaciones como retirar del stake o reclamar recompensas.</string>
   <string name="info_stake_apr_description">La tasa de porcentaje anual (APR) es la tasa de recompensa anual por hacer stake de tu criptomoneda.</string>
+  <string name="info_stake_frozen_required_title">Congela TRX para hacer stake</string>
+  <string name="info_stake_frozen_required_description">Hacer stake en TRON tiene dos pasos. Primero congela TRX y luego hazle stake para ganar recompensas.</string>
   <string name="info_perpetual_auto_close_description">Cierra tu posición automáticamente a precios establecidos. El Take Profit fija las ganancias y el Stop Loss limita las pérdidas.</string>
   <string name="info_fully_diluted_valuation_title">Valoración totalmente diluida</string>
   <string name="info_fully_diluted_valuation_description">El valor teórico de mercado si todas las monedas estuvieran en circulación. Se calcula multiplicando el precio por la oferta máxima.</string>

@@ -31,6 +31,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     // stake
     case stakingReservedFees(image: AssetImage)
     case pendingUnconfirmedBalance
+    case stakeFrozenRequired
     // perpetuals
     case fundingApr
     case fundingPayments
@@ -62,6 +63,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         case let .minimumAmount(asset, amount, _): "minimumAmount_\(asset.id.identifier)\(amount)"
         case .stakingReservedFees: "stakingReservedFees"
         case .pendingUnconfirmedBalance: "pendingUnconfirmedBalance"
+        case .stakeFrozenRequired: "stakeFrozenRequired"
         case .noQuote: "noQuote"
         case .fundingApr: "fundingApr"
         case .fundingPayments: "fundingPayments"

@@ -3,6 +3,8 @@ use std::{error::Error, str::FromStr, sync::Arc};
 use gem_encoding::decode_base64;
 use gem_encoding::protobuf::{MessageDecode, MessageEncode, decode_grpc_message, encode_grpc_message};
 use gem_jsonrpc::grpc::GrpcTransport;
+#[cfg(feature = "reqwest")]
+use gem_jsonrpc::grpc::ReqwestGrpcTransport;
 use num_bigint::BigInt;
 use primitives::Chain;
 use serde::de::DeserializeOwned;
@@ -16,7 +18,6 @@ use super::proto::{
     GetServiceInfoResponse, GetTransactionRequest, GetTransactionResponse, ListBalancesRequest, ListBalancesResponse, ListOwnedObjectsRequest, ListOwnedObjectsResponse,
     SimulateTransactionRequest, SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, UserSignature as GrpcUserSignature, WithMut,
 };
-use super::transport::default_transport;
 use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
 use crate::models::{Balance, Checkpoint, Coin, Digest, InspectResult, Object, OwnedCoins, SuiCoinMetadata, SuiObject, TransactionBlocks};
 use crate::{
@@ -60,10 +61,11 @@ pub struct SuiClient {
 }
 
 impl SuiClient {
+    #[cfg(feature = "reqwest")]
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
             endpoint: endpoint.into(),
-            transport: default_transport(),
+            transport: Some(Arc::new(ReqwestGrpcTransport::new())),
         }
     }
 

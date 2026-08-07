@@ -73,14 +73,17 @@ impl StreamProducer {
     }
 
     async fn reconnect(&self) -> Result<Channel, Box<dyn Error + Send + Sync>> {
-        let mut guard = self.channel.lock().await;
-        let channel = with_retry(&self.retry, &self.connection_name, &self.shutdown_rx, || {
+        let mut channel = self.channel.lock().await;
+        if channel.status().connected() {
+            return Ok(channel.clone());
+        }
+
+        *channel = with_retry(&self.retry, &self.connection_name, &self.shutdown_rx, || {
             Self::try_connect(&self.url, &self.connection_name)
         })
         .await?
         .ok_or("shutdown during reconnect")?;
-        *guard = channel;
-        Ok(guard.clone())
+        Ok(channel.clone())
     }
 
     async fn channel(&self) -> Result<Channel, Box<dyn Error + Send + Sync>> {

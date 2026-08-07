@@ -3,6 +3,7 @@ package com.gemwallet.android.domains.perpetual
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.CancelOrderData
+import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.PerpetualConfirmData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
@@ -14,6 +15,8 @@ import com.wallet.core.primitives.PerpetualReduceData
 import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.TPSLOrderData
+import com.wallet.core.primitives.TpslType
+import uniffi.gemstone.GemPerpetualAccountMode
 import uniffi.gemstone.GemPerpetualMarginType
 import uniffi.gemstone.GemPerpetualOrderType
 import uniffi.gemstone.GemPerpetualPosition
@@ -26,6 +29,7 @@ import uniffi.gemstone.PerpetualModifyPositionType as GemPerpetualModifyPosition
 import uniffi.gemstone.PerpetualReduceData as GemPerpetualReduceData
 import uniffi.gemstone.PerpetualType as GemPerpetualType
 import uniffi.gemstone.TpslOrderData as GemTpslOrderData
+import uniffi.gemstone.TpslType as GemTpslType
 
 fun PerpetualConfirmData.toGem(): GemPerpetualConfirmData = GemPerpetualConfirmData(
     direction = direction.toGem(),
@@ -93,6 +97,11 @@ fun PerpetualPosition.toGem(): GemPerpetualPosition = GemPerpetualPosition(
     funding = funding,
 )
 
+fun PerpetualAccountMode.toGem(): GemPerpetualAccountMode = when (this) {
+    PerpetualAccountMode.Standard -> GemPerpetualAccountMode.STANDARD
+    PerpetualAccountMode.Unified -> GemPerpetualAccountMode.UNIFIED
+}
+
 fun PerpetualTriggerOrder.toGem(): GemPerpetualTriggerOrder = GemPerpetualTriggerOrder(
     price = price,
     orderType = order_type.toGem(),
@@ -107,6 +116,11 @@ fun PerpetualOrderType.toGem(): GemPerpetualOrderType = when (this) {
 fun PerpetualDirection.toGem(): GemPerpetualDirection = when (this) {
     PerpetualDirection.Long -> GemPerpetualDirection.LONG
     PerpetualDirection.Short -> GemPerpetualDirection.SHORT
+}
+
+fun TpslType.toGem(): GemTpslType = when (this) {
+    TpslType.TakeProfit -> GemTpslType.TAKE_PROFIT
+    TpslType.StopLoss -> GemTpslType.STOP_LOSS
 }
 
 fun PerpetualMarginType.toGem(): GemPerpetualMarginType = when (this) {

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">يلغي</string>
+  <string name="common_hidden">مخفية</string>
   <string name="common_done">تم</string>
   <string name="common_maximum_value">القيمة القصوى هي %1$s</string>
   <string name="common_minimum_value">القيمة الدنيا هي %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">حدث خطأ غير معروف. يرجى المحاولة مرة أخرى.</string>
   <string name="errors_network_error">خطأ في الشبكة: %1$s</string>
   <string name="errors_network_offline">يبدو أن الاتصال بالإنترنت غير متاح.</string>
+  <string name="errors_no_internet_connection">لا يوجد اتصال بالإنترنت</string>
+  <string name="errors_no_service_connection">لا يوجد اتصال بالخدمة</string>
+  <string name="errors_balances_activity_outdated">قد تكون الأرصدة والنشاط غير محدثة.</string>
   <string name="activity_title">نشاط</string>
   <string name="activity_state_empty_title">سوف يظهر نشاطك هنا</string>
   <string name="activity_state_empty_description">قم بإجراء معاملتك الأولى</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">محجوز لرسوم الشبكة</string>
   <string name="info_stake_reserved_description">يبقى مبلغ صغير في محفظتك لتغطية الرسوم الخاصة بالعمليات مثل إلغاء المراهنة أو المطالبة بالمكافآت.</string>
   <string name="info_stake_apr_description">معدل النسبة السنوية (APR) هو معدل المكافأة السنوي لمراهنة العملة المشفرة الخاصة بك.</string>
+  <string name="info_stake_frozen_required_title">جمّد TRX للتخزين</string>
+  <string name="info_stake_frozen_required_description">يتم التخزين على TRON عبر خطوتين. جمّد TRX أولاً، ثم قم بتخزينه لكسب المكافآت.</string>
   <string name="info_perpetual_auto_close_description">أغلق مركزك تلقائيًا عند مستويات الأسعار المحددة. جني الأرباح يُثبّت الأرباح، ووقف الخسارة يحدّ من الخسائر.</string>
   <string name="info_fully_diluted_valuation_title">التقييم المخفف بالكامل</string>
   <string name="info_fully_diluted_valuation_description">القيمة السوقية النظرية في حال تداول جميع العملات. تُحسب بضرب السعر في الحد الأقصى للعرض.</string>

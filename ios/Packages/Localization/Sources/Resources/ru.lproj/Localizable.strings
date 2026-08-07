@@ -1,4 +1,5 @@
 "common.cancel" = "Отмена";
+"common.hidden" = "Скрытые";
 "common.done" = "Готово";
 "common.maximum_value" = "Максимальное значение %@";
 "common.minimum_value" = "Минимальное значение %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Минимальная сумма сделки — %@. Введите, пожалуйста, сумму побольше.";
 "errors.perpetual.trigger_price_lower" = "Цена триггера должна быть ниже рыночной цены";
 "errors.perpetual.trigger_price_higher" = "Цена триггера должна быть выше рыночной цены";
+"errors.no_internet_connection" = "Нет подключения к интернету";
+"errors.no_service_connection" = "Нет подключения к сервису";
+"errors.balances_activity_outdated" = "Балансы и активность могут быть устаревшими.";
 "activity.title" = "Активность";
 "activity.state.empty.title" = "Ваша активность будет отображаться здесь";
 "activity.state.empty.description" = "Совершите свою первую транзакцию";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Зарезервировано для комиссии сети";
 "info.stake.reserved.description" = "Небольшая сумма остается в вашем кошельке для покрытия комиссий за такие операции, как отмена стейкинга или получение вознаграждений.";
 "info.stake.apr.description" = "Годовая процентная ставка (APR) — это годовая ставка вознаграждения за стейкинг вашей криптовалюты.";
+"info.stake_frozen_required_title" = "Заморозьте TRX для стейкинга";
+"info.stake_frozen_required_description" = "Стейкинг в TRON состоит из двух шагов. Сначала заморозьте TRX, а затем застейкайте его, чтобы получать вознаграждения.";
 "info.perpetual.auto_close.description" = "Автоматически закрывает позицию по достижении заданного уровня цены. Тейк-профит фиксирует прибыль, стоп-лосс ограничивает убытки.";
 "info.fully_diluted_valuation.title" = "Полностью разводненная оценка";
 "info.fully_diluted_valuation.description" = "Теоретическая рыночная стоимость, если бы все монеты находились в обращении. Рассчитывается как цена, умноженная на максимальное предложение.";

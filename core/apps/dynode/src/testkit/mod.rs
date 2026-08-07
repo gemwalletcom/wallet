@@ -1,2 +1,4 @@
 pub mod config;
-pub mod sync;
+mod jsonrpc_mock;
+#[cfg(test)]
+pub(crate) mod sync;

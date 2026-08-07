@@ -9,6 +9,7 @@ import BalanceService
 import BannerService
 import ChainService
 import ConnectionsService
+import ConnectionStatusService
 import ContactService
 import DeviceService
 import DiscoverAssetsService
@@ -25,6 +26,7 @@ import PerpetualService
 import PriceAlertService
 import PriceService
 import RewardsService
+import ServiceStatusService
 import ScanService
 import StakeService
 import Store
@@ -41,6 +43,7 @@ extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
     @Entry var keystore: any Keystore = AppResolver.main.storages.keystore
     @Entry var nodeService: NodeService = AppResolver.main.services.nodeService
+    @Entry var serviceStatusService: any ServiceStatusServiceable = AppResolver.main.services.serviceStatusService
     @Entry var priceService: PriceService = AppResolver.main.services.priceService
     @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var explorerService: ExplorerService = AppResolver.main.services.explorerService
@@ -58,6 +61,7 @@ extension EnvironmentValues {
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
     @Entry var stakeService: StakeService = AppResolver.main.services.stakeService
     @Entry var connectionsService: ConnectionsService = AppResolver.main.services.connectionsService
+    @Entry var connectionStatus: ConnectionStatusObserver = AppResolver.main.services.connectionStatusObserver
     @Entry var walletConnectorManager: WalletConnectorManager = AppResolver.main.services.walletConnectorManager
     @Entry var chainServiceFactory: ChainServiceFactory = AppResolver.main.services.chainServiceFactory
     @Entry var nftService: NFTService = AppResolver.main.services.nftService

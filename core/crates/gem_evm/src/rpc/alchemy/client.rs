@@ -2,41 +2,62 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use gem_client::Client;
-use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
+use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
-use primitives::EVMChain;
+use primitives::Chain;
 use serde_json::{Value, json};
 
-use super::model::{TokenBalances, Transfer, Transfers};
-use crate::{method, rpc::EVMIndexerClient};
+use super::{
+    jsonrpc::AlchemyRpc,
+    model::{TokenBalances, Transfer, Transfers},
+};
+use crate::rpc::{EVMIndexerClient, TransactionReference};
 
-pub fn alchemy_url(chain: EVMChain, key: &str) -> Option<String> {
+pub fn alchemy_url(chain: Chain, base_url: &str, key: &str) -> String {
     let network = match chain {
-        EVMChain::Blast => "blast-mainnet",
-        EVMChain::ZkSync => "zksync-mainnet",
-        EVMChain::Celo => "celo-mainnet",
-        EVMChain::World => "worldchain-mainnet",
-        EVMChain::Abstract => "abstract-mainnet",
-        EVMChain::Berachain => "berachain-mainnet",
-        EVMChain::Ink => "ink-mainnet",
-        EVMChain::Unichain => "unichain-mainnet",
-        EVMChain::Hyperliquid => "hyperliquid-mainnet",
-        EVMChain::Monad => "monad-mainnet",
-        EVMChain::Robinhood => "robinhood-mainnet",
-        _ => return None,
+        Chain::Ethereum => "eth-mainnet",
+        Chain::SmartChain => "bnb-mainnet",
+        Chain::Solana => "solana-mainnet",
+        Chain::Polygon => "polygon-mainnet",
+        Chain::Plasma => "plasma-mainnet",
+        Chain::Arbitrum => "arb-mainnet",
+        Chain::Optimism => "opt-mainnet",
+        Chain::Base => "base-mainnet",
+        Chain::AvalancheC => "avax-mainnet",
+        Chain::OpBNB => "opbnb-mainnet",
+        Chain::Gnosis => "gnosis-mainnet",
+        Chain::Blast => "blast-mainnet",
+        Chain::ZkSync => "zksync-mainnet",
+        Chain::Linea => "linea-mainnet",
+        Chain::Mantle => "mantle-mainnet",
+        Chain::Celo => "celo-mainnet",
+        Chain::World => "worldchain-mainnet",
+        Chain::Sonic => "sonic-mainnet",
+        Chain::SeiEvm => "sei-mainnet",
+        Chain::Abstract => "abstract-mainnet",
+        Chain::Berachain => "berachain-mainnet",
+        Chain::Ink => "ink-mainnet",
+        Chain::Unichain => "unichain-mainnet",
+        Chain::Hyperliquid => "hyperliquid-mainnet",
+        Chain::Monad => "monad-mainnet",
+        Chain::XLayer => "xlayer-mainnet",
+        Chain::Robinhood => "robinhood-mainnet",
+        Chain::Stable => "stable-mainnet",
+        Chain::Fantom => "fantom-mainnet",
+        Chain::Manta => "manta-mainnet",
+        _ => panic!("Alchemy is not supported for {chain}"),
     };
 
-    Some(format!("https://{network}.g.alchemy.com/v2/{key}"))
+    format!("{}/v2/{key}", base_url.replace("{network}", network).trim_end_matches('/'))
 }
 
-#[derive(Debug, Clone)]
 pub(crate) struct AlchemyClient<C: Client + Clone> {
-    rpc_client: GenericJsonRpcClient<C>,
+    client: JsonRpcClient<C>,
 }
 
 impl<C: Client + Clone> AlchemyClient<C> {
-    pub(crate) fn new(client: GenericJsonRpcClient<C>) -> Self {
-        Self { rpc_client: client }
+    pub(crate) fn new(client: JsonRpcClient<C>) -> Self {
+        Self { client }
     }
 
     async fn get_asset_transfers(&self, address_field: &str, address: &str, limit: usize) -> Result<Vec<Transfer>, Box<dyn Error + Send + Sync>> {
@@ -47,28 +68,34 @@ impl<C: Client + Clone> AlchemyClient<C> {
             "order": "desc"
         });
         request[address_field] = Value::String(address.to_string());
-        let response: Transfers = self.rpc_client.call(method::ALCHEMY_GET_ASSET_TRANSFERS, json!([request])).await?;
+        let response: Transfers = self.client.request(AlchemyRpc::GetAssetTransfers(request)).await?;
         Ok(response.transfers)
     }
 }
 
 impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
-    async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let outgoing = self.get_asset_transfers("fromAddress", address, limit).await?;
-        let incoming = self.get_asset_transfers("toAddress", address, limit).await?;
+    async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
+        let (outgoing, incoming) = futures::try_join!(
+            self.get_asset_transfers("fromAddress", address, limit),
+            self.get_asset_transfers("toAddress", address, limit),
+        )?;
         let mut transfers = outgoing.into_iter().chain(incoming).collect::<Vec<_>>();
         transfers.sort_by_key(|transfer| std::cmp::Reverse(transfer.block_num));
 
         let mut transaction_ids = HashSet::new();
         Ok(transfers
             .into_iter()
-            .filter_map(|transfer| transaction_ids.insert(transfer.hash.clone()).then_some(transfer.hash))
+            .filter_map(|transfer| {
+                transaction_ids
+                    .insert(transfer.hash.clone())
+                    .then_some(TransactionReference::new(transfer.hash, Some(transfer.block_num)))
+            })
             .take(limit)
             .collect())
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
-        let balances: TokenBalances = self.rpc_client.call(method::ALCHEMY_GET_TOKEN_BALANCES, json!([address, "erc20"])).await?;
+        let balances: TokenBalances = self.client.request(AlchemyRpc::GetTokenBalances(address.to_string())).await?;
         Ok(balances
             .token_balances
             .into_iter()
@@ -79,16 +106,11 @@ impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
 
 #[cfg(test)]
 mod tests {
+    use crate::method;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::testkit::json::load_json;
 
     use super::*;
-
-    #[test]
-    fn test_alchemy_url() {
-        assert_eq!(alchemy_url(EVMChain::Robinhood, "key"), Some("https://robinhood-mainnet.g.alchemy.com/v2/key".to_string()));
-        assert_eq!(alchemy_url(EVMChain::Ethereum, "key"), None);
-    }
 
     #[tokio::test]
     async fn test_get_transaction_ids_by_address() {
@@ -108,9 +130,15 @@ mod tests {
         });
         let client = AlchemyClient::new(rpc_client);
 
-        let transaction_ids = client.get_transaction_ids_by_address("0x123", 2).await.unwrap();
+        let transaction_ids = client.get_transactions_by_address("0x123", 2).await.unwrap();
 
-        assert_eq!(transaction_ids, vec!["0xin", "0xout"]);
+        assert_eq!(
+            transaction_ids,
+            vec![
+                TransactionReference::new("0xin".to_string(), Some(3)),
+                TransactionReference::new("0xout".to_string(), Some(2))
+            ]
+        );
     }
 
     #[tokio::test]

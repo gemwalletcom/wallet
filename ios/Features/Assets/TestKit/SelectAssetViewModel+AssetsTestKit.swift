@@ -3,6 +3,7 @@
 import ActivityServiceTestKit
 @testable import Assets
 import AssetsServiceTestKit
+import BalanceService
 import BalanceServiceTestKit
 import Components
 import Foundation
@@ -18,12 +19,13 @@ public extension SelectAssetViewModel {
         selectType: SelectAssetType = .manage,
         assets: [AssetData] = [],
         state: StateViewType<[AssetBasic]> = .noData,
+        assetsEnabler: any AssetsEnabler = .mock(),
     ) -> SelectAssetViewModel {
         let model = SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
             searchService: .mock(),
-            assetsEnabler: .mock(),
+            assetsEnabler: assetsEnabler,
             priceAlertService: .mock(),
             activityService: .mock(),
         )

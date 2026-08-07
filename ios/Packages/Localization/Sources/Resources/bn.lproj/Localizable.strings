@@ -1,4 +1,5 @@
 "common.cancel" = "বাতিল করুন";
+"common.hidden" = "লুকানো";
 "common.done" = "সম্পন্ন";
 "common.maximum_value" = "সর্বোচ্চ মান %@";
 "common.minimum_value" = "সর্বনিম্ন মান %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "সর্বনিম্ন ট্রেডের পরিমাণ হল %@. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।";
 "errors.perpetual.trigger_price_lower" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত";
 "errors.perpetual.trigger_price_higher" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত";
+"errors.no_internet_connection" = "ইন্টারনেট সংযোগ নেই";
+"errors.no_service_connection" = "পরিষেবা সংযোগ নেই";
+"errors.balances_activity_outdated" = "ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।";
 "activity.title" = "কার্যকলাপ";
 "activity.state.empty.title" = "আপনার কার্যকলাপ এখানে প্রদর্শিত হবে";
 "activity.state.empty.description" = "আপনার প্রথম লেনদেন করুন";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "নেটওয়ার্ক ফি এর জন্য সংরক্ষিত";
 "info.stake.reserved.description" = "পুরষ্কার দাবি করা বা আনস্টেক করার মতো ক্রিয়াকলাপের ফি মেটাতে আপনার ওয়ালেটে অল্প পরিমাণ টাকা থেকে যায়।";
 "info.stake.apr.description" = "বার্ষিক শতাংশ হার (এপিআর) হল আপনার ক্রিপ্টোকারেন্সি শেয়ার করার জন্য বার্ষিক পুরষ্কারের হার।";
+"info.stake_frozen_required_title" = "স্টেক করতে TRX ফ্রিজ করুন";
+"info.stake_frozen_required_description" = "TRON-এ স্টেকিং দুই ধাপে হয়। প্রথমে TRX ফ্রিজ করুন, তারপর পুরস্কার পেতে সেটি স্টেক করুন।";
 "info.perpetual.auto_close.description" = "নির্ধারিত মূল্য স্তরে আপনার পজিশন স্বয়ংক্রিয়ভাবে বন্ধ করুন। টেক প্রফিট লাভকে আটকে রাখে, স্টপ লস লোকসানকে সীমাবদ্ধ করে।";
 "info.fully_diluted_valuation.title" = "সম্পূর্ণরূপে লঘুকৃত মূল্যায়ন";
 "info.fully_diluted_valuation.description" = "যদি সমস্ত মুদ্রা প্রচলিত থাকে, তাহলে তাত্ত্বিক বাজার মূল্য। সর্বোচ্চ সরবরাহ দ্বারা গুণিত মূল্য হিসাবে গণনা করা হয়।";

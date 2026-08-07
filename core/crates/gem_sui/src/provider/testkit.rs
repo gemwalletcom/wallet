@@ -1,5 +1,7 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use crate::SuiClient;
+use crate::rpc::{SuiClient, SuiIndexer, SuiProvider};
+#[cfg(all(test, feature = "chain_integration_tests"))]
+use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::asset_constants::SUI_USDC_TOKEN_ID;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -17,7 +19,10 @@ pub const TEST_TOKEN_ADDRESS: &str = SUI_USDC_TOKEN_ID;
 pub const TEST_TRANSACTION_ID: &str = "CJ16PEqq49KFp758iEVwxEkd3CwP7zDfqGYLuLuu9Z63";
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-pub fn create_sui_test_client() -> SuiClient {
+pub fn create_sui_test_client() -> SuiProvider {
     let settings = get_test_settings();
-    SuiClient::new(settings.chains.sui.url)
+    SuiProvider::new(
+        SuiClient::new(settings.chains.sui.url),
+        Box::new(SuiIndexer::new(ReqwestClient::new(settings.indexer.sui.url, gem_client::reqwest_client()))),
+    )
 }

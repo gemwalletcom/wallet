@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import ConnectionStatusService
 import Store
 import SwiftUI
 
@@ -12,6 +13,7 @@ extension View {
 
     private func inject(services: AppResolver.Services) -> some View {
         environment(\.nodeService, services.nodeService)
+            .environment(\.serviceStatusService, services.serviceStatusService)
             .environment(\.walletService, services.walletService)
             .environment(\.walletSessionService, services.walletSessionService)
             .environment(\.assetsEnabler, services.assetsEnabler)
@@ -31,6 +33,7 @@ extension View {
             .environment(\.explorerService, services.explorerService)
             .environment(\.scanService, services.scanService)
             .environment(\.connectionsService, services.connectionsService)
+            .environment(\.connectionStatus, services.connectionStatusObserver)
             .environment(\.nftService, services.nftService)
             .environment(\.avatarService, services.avatarService)
             .environment(\.releaseService, services.appReleaseService)

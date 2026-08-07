@@ -9,12 +9,18 @@ use meilisearch_sdk::{client::*, task_info::TaskInfo};
 #[derive(Debug, Clone)]
 pub struct SearchIndexClient {
     client: Client,
+    config: SearchIndexConfig,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct SearchIndexConfig {
+    pub batch_size: usize,
 }
 
 impl SearchIndexClient {
-    pub fn new(url: &str, api_key: &str) -> Self {
+    pub fn new(url: &str, api_key: &str, config: SearchIndexConfig) -> Self {
         let client = Client::new(url.to_string(), Some(api_key)).unwrap();
-        Self { client }
+        Self { client, config }
     }
 
     pub async fn get_or_create_index(&self, name: &str, primary_key: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -24,8 +30,8 @@ impl SearchIndexClient {
         Ok(())
     }
 
-    pub async fn add_documents<T: Serialize + Send + Sync>(&self, index: &str, documents: Vec<T>) -> Result<TaskInfo, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.index(index).add_documents(&documents, None).await?)
+    pub async fn add_documents<T: Serialize + Send + Sync>(&self, index: &str, documents: &[T]) -> Result<TaskInfo, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.index(index).add_documents(documents, None).await?)
     }
 
     pub async fn delete_all_documents(&self, index: &str) -> Result<TaskInfo, Box<dyn Error + Send + Sync>> {
@@ -39,8 +45,8 @@ impl SearchIndexClient {
 
     pub async fn index_documents<T: Serialize + Send + Sync>(&self, index: &str, documents: Vec<T>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let count = documents.len();
-        if count > 0 {
-            self.add_documents(index, documents).await?;
+        for batch in documents.chunks(self.config.batch_size) {
+            self.add_documents(index, batch).await?;
         }
         Ok(count)
     }

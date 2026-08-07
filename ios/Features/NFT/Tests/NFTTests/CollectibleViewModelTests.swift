@@ -10,7 +10,6 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-import WalletServiceTestKit
 
 @MainActor
 struct CollectibleViewModelTests {

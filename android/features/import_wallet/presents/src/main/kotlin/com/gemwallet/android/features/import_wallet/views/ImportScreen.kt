@@ -215,6 +215,7 @@ private fun ImportScene(
                     TypeSelection(importType) { walletType ->
                         onTypeChange(walletType)
                         inputState.value = TextFieldValue()
+                        nameRecordState.value = null
                     }
                     DataInput(importType, inputState, nameRecordState) {
                         dataErrorState = null

@@ -3,11 +3,12 @@ use std::time::Duration;
 
 use crate::database::assets::AssetsStore;
 use crate::database::assets::{AssetFilter, AssetUpdate};
+use crate::database::assets_associations::AssetsAssociationsStore;
 use crate::database::prices::AssetsWithPricesFilter;
-use crate::models::{AssetRow, NewAssetRow, PriceRow};
+use crate::models::{AssetAssociationRow, AssetRow, NewAssetRow, PriceRow};
 use crate::repositories::prices_repository::PricesRepository;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata};
+use primitives::{Asset, AssetAssociation, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata};
 
 pub trait AssetsRepository {
     fn get_assets_all(&mut self) -> Result<Vec<AssetBasic>, DatabaseError>;
@@ -17,6 +18,7 @@ pub trait AssetsRepository {
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError>;
     fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_asset(&mut self, asset_id: &AssetId) -> Result<Asset, DatabaseError>;
+    fn upsert_asset_associations(&mut self, id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
     fn get_asset_full(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<AssetFull, DatabaseError>;
     fn get_assets(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
     fn get_assets_rows(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetRow>, DatabaseError>;
@@ -62,6 +64,13 @@ impl AssetsRepository for DatabaseClient {
         Ok(AssetsStore::get_asset(self, &id).or_not_found(id.clone())?.as_primitive())
     }
 
+    fn upsert_asset_associations(&mut self, id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError> {
+        Ok(AssetsAssociationsStore::upsert_asset_associations(
+            self,
+            values.into_iter().map(|value| AssetAssociationRow::from_primitive(id, value)).collect(),
+        )?)
+    }
+
     fn get_asset_full(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<AssetFull, DatabaseError> {
         use crate::database::assets_links::AssetsLinksStore;
         use crate::database::tag::TagStore;
@@ -75,6 +84,7 @@ impl AssetsRepository for DatabaseClient {
         let market = price_row.as_ref().map(|x| x.as_market_primitive(&asset));
         let price = price_row.as_ref().map(|x| x.as_primitive());
         let links = AssetsLinksStore::get_asset_links(self, &id)?.into_iter().map(|x| x.as_primitive()).collect();
+        let associations = AssetsAssociationsStore::get_asset_associations(self, &id)?.into_iter().map(|x| x.as_primitive()).collect();
         let tags = TagStore::get_assets_tags_for_asset(self, &id)?.into_iter().map(|x| x.tag_id).collect();
         let perpetuals = self.perpetuals().get_perpetuals_for_asset(asset_id)?;
         let perpetuals = perpetuals.into_iter().map(|x| x.as_basic()).collect();
@@ -86,6 +96,7 @@ impl AssetsRepository for DatabaseClient {
             properties: asset.as_property_primitive(),
             score: asset.as_score_primitive(),
             links,
+            associations,
             tags,
             perpetuals,
         })

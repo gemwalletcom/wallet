@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
-import com.gemwallet.android.domains.price.PriceChange
+import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetPriceInfo
@@ -54,7 +54,7 @@ internal fun ChartUIModel.Companion.from(
         PricePoint(
             y = chartValue.value,
             price = chartValue.value.toDouble(),
-            priceChangePercentage = PriceChange.percentage(from = basePrice.toDouble(), to = chartValue.value.toDouble()),
+            priceChangePercentage = PriceChangeCalculator.percentage(from = basePrice.toDouble(), to = chartValue.value.toDouble()),
             timestamp = chartValue.timestamp.toLong().secondsToMillis(),
         )
     }
@@ -65,7 +65,7 @@ internal fun ChartUIModel.Companion.from(
             val changePercent = if (period == ChartPeriod.Day) {
                 assetInfo.price.priceChangePercentage24h
             } else {
-                PriceChange.percentage(from = basePrice.toDouble(), to = assetInfo.price.price)
+                PriceChangeCalculator.percentage(from = basePrice.toDouble(), to = assetInfo.price.price)
             }
             PricePoint(
                 y = assetInfo.price.price.toFloat(),
@@ -95,7 +95,7 @@ internal fun ChartUIModel.Companion.from(
         PricePoint(
             y = value.value.toFloat(),
             price = value.value,
-            priceChangePercentage = PriceChange.percentage(from = basePrice, to = value.value),
+            priceChangePercentage = PriceChangeCalculator.percentage(from = basePrice, to = value.value),
             timestamp = value.date,
         )
     }

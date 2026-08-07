@@ -213,7 +213,7 @@ struct ConfirmTransferSceneViewModelTests {
     func networkFeeItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
 
-        model.state = .error(AnyError("test"))
+        model.state = .mock(transaction: .error(AnyError("test")))
         let errorFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = errorFeeItem?.itemModel {
@@ -225,7 +225,7 @@ struct ConfirmTransferSceneViewModelTests {
         }
 
         model.feeModel.update(feeAmount: BigInt(1_000_000_000_000_000))
-        model.state = .data(TransactionInputViewModel.mock())
+        model.state = .mock(transaction: .data(.mock()))
         let loadedFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = loadedFeeItem?.itemModel {
@@ -293,7 +293,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func errorItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.state = .error(AnyError("Test error"))
+        model.state = .mock(transaction: .error(AnyError("Test error")))
 
         let errorItem = model.itemModel(for: .error) as? ConfirmErrorViewModel
 
@@ -413,7 +413,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMaliciousError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: ScanTransactionError.malicious)
+        model.onSelectListError(error: .scan(.malicious))
 
         guard case .info(.maliciousTransaction) = model.isPresentingSheet else {
             Issue.record("Expected maliciousTransaction sheet")
@@ -424,7 +424,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMemoRequiredError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: ScanTransactionError.memoRequired(symbol: "BTC"))
+        model.onSelectListError(error: .scan(.memoRequired(symbol: "BTC")))
 
         guard case let .info(.memoRequired(symbol)) = model.isPresentingSheet else {
             Issue.record("Expected memoRequired sheet")
@@ -437,10 +437,10 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientNetworkFeeErrorShowsRequiredAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
         let required = BigInt(21_000_000_000_000)
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(
             .mockEthereum(),
             requirement: BalanceRequirement(required: required, available: .zero),
-        ))
+        )))
 
         guard case let .info(.insufficientNetworkFee(_, _, sheetRequirement, _, _, _)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -452,7 +452,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func insufficientNetworkFeeBuyActionUsesSmallDefaultAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockEthereum(), requirement: nil))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockEthereum(), requirement: nil)))
 
         guard case let .info(.insufficientNetworkFee(_, _, _, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -471,10 +471,10 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientBalance(
+        model.onSelectListError(error: .amount(.insufficientBalance(
             .mockTron(),
             requirement: BalanceRequirement(required: 36_798_300, available: 36_070_000),
-        ))
+        )))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .balanceRequired(_, _, requirement, action) = sheet
@@ -503,10 +503,10 @@ struct ConfirmTransferSceneViewModelTests {
     func tronTokenInsufficientBalancePreservesAsset() {
         let asset = Asset.mockTronUSDT()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientBalance(
+        model.onSelectListError(error: .amount(.insufficientBalance(
             asset,
             requirement: BalanceRequirement(required: 2, available: 1),
-        ))
+        )))
 
         guard case let .info(.balanceRequired(_, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")
@@ -527,10 +527,10 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientBalanceBuyActionUsesErrorAsset() {
         let asset = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientBalance(
+        model.onSelectListError(error: .amount(.insufficientBalance(
             asset,
             requirement: BalanceRequirement(required: 2, available: 1),
-        ))
+        )))
 
         guard case let .info(.balanceRequired(_, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")
@@ -580,7 +580,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronInsufficientNetworkFeeUsesNativeAsset() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockTronUSDT(), requirement: nil))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTronUSDT(), requirement: nil)))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .insufficientNetworkFee(asset, _, _, _, _, action) = sheet
@@ -616,8 +616,11 @@ private extension ConfirmTransferSceneViewModel {
         simulation: SimulationResult? = nil,
     ) -> ConfirmTransferSceneViewModel {
         ConfirmTransferSceneViewModel(
-            wallet: wallet,
-            data: data,
+            request: ConfirmTransferRequest(
+                wallet: wallet,
+                data: data,
+                simulation: simulation,
+            ),
             confirmService: ConfirmServiceFactory.create(
                 keystore: KeystoreMock(),
                 chainServiceFactory: ChainServiceFactoryMock(),
@@ -632,28 +635,7 @@ private extension ConfirmTransferSceneViewModel {
                 eventPresenterService: .mock(),
                 chain: data.chain,
             ),
-            simulationService: ConfirmSimulationServiceFactory.create(
-                addressNameService: addressNameService,
-                assetsService: .mock(),
-            ),
-            fiatService: .mock(),
-            simulation: simulation,
             onComplete: {},
-        )
-    }
-}
-
-private extension TransactionInputViewModel {
-    static func mock(
-        validation: TransferAmountValidation = TransferAmountValidation.success(
-            TransferAmount(value: BigInt(100), networkFee: BigInt(21000), useMaxAmount: false),
-        ),
-    ) -> TransactionInputViewModel {
-        TransactionInputViewModel(
-            data: .mock(),
-            transactionData: nil,
-            metaData: nil,
-            transferAmount: validation,
         )
     }
 }

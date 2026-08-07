@@ -22,6 +22,7 @@ pub mod signer;
 pub mod siwe;
 pub mod slippage;
 pub mod thorchain;
+pub mod transaction;
 pub mod u256;
 pub mod uniswap;
 pub mod weth;

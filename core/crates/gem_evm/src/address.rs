@@ -3,7 +3,7 @@ use primitives::Address as AddressTrait;
 use std::str::FromStr;
 
 pub fn ethereum_address_checksum(address: &str) -> Result<String, AddressError> {
-    Ok(Address::from_str(address)?.to_checksum(None))
+    Ok(EthereumAddress::parse(address)?.0.to_checksum(None))
 }
 
 pub fn ethereum_address_from_topic(topic: &str) -> Option<String> {
@@ -15,7 +15,7 @@ pub struct EthereumAddress(Address);
 
 impl AddressTrait for EthereumAddress {
     fn try_parse(address: &str) -> Option<Self> {
-        Address::from_str(address).ok().map(Self)
+        Self::parse(address).ok()
     }
 
     fn as_bytes(&self) -> &[u8] {
@@ -28,6 +28,13 @@ impl AddressTrait for EthereumAddress {
 }
 
 impl EthereumAddress {
+    fn parse(address: &str) -> Result<Self, AddressError> {
+        if address.starts_with("0X") {
+            return Err(AddressError::InvalidChecksum);
+        }
+        Ok(Self(Address::from_str(address)?))
+    }
+
     pub fn from_bytes(bytes: [u8; 20]) -> Self {
         Self(Address::from(bytes))
     }
@@ -46,17 +53,23 @@ mod tests {
     #[test]
     fn test_ethereum_address() {
         let lowercase = VALID_ADDRESS.to_lowercase();
-        let uppercase_prefix = lowercase.replacen("0x", "0X", 1);
 
         assert_eq!(ethereum_address_checksum(&lowercase).unwrap(), VALID_ADDRESS);
         assert_eq!(ethereum_address_checksum(lowercase.trim_start_matches("0x")).unwrap(), VALID_ADDRESS);
-        assert!(ethereum_address_checksum(&uppercase_prefix).is_err());
         assert!(ethereum_address_checksum("invalid").is_err());
 
         let parsed = EthereumAddress::try_parse(&lowercase).unwrap();
         assert!(validate_address(&lowercase));
         assert_eq!(parsed.as_bytes().len(), 20);
         assert_eq!(parsed.encode(), VALID_ADDRESS);
+    }
+
+    #[test]
+    fn test_ethereum_address_rejects_uppercase_prefix() {
+        let uppercase_prefix = VALID_ADDRESS.to_lowercase().replacen("0x", "0X", 1);
+
+        assert!(matches!(ethereum_address_checksum(&uppercase_prefix).unwrap_err(), AddressError::InvalidChecksum));
+        assert!(EthereumAddress::try_parse(&uppercase_prefix).is_none());
         assert!(!validate_address(&uppercase_prefix));
     }
 

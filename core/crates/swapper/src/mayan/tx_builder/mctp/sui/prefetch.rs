@@ -5,6 +5,7 @@ use crate::{
         constants::{SUI_CCTP_CORE_STATE, SUI_CCTP_DENY_LIST, SUI_CCTP_TOKEN_STATE, SUI_MCTP_FEE_MANAGER_STATE, SUI_MCTP_STATE, SUI_WORMHOLE_STATE},
         model::MayanMctpQuote,
     },
+    route_cache::Cache,
 };
 use futures::try_join;
 use gem_sui::{
@@ -28,7 +29,13 @@ pub(super) struct PrefetchedSuiData {
 }
 
 impl PrefetchedSuiData {
-    pub(super) async fn prefetch(client: &SuiClient, sender: &str, route: &MayanMctpQuote, gas_budget: u64) -> Result<Self, SwapperError> {
+    pub(super) async fn prefetch(
+        client: &SuiClient,
+        sender: &str,
+        route: &MayanMctpQuote,
+        gas_budget: u64,
+        package_id_cache: &Cache<&'static str, String>,
+    ) -> Result<Self, SwapperError> {
         let mctp_input_contract = route.mctp_input_contract.clone().ok_or(SwapperError::InvalidRoute)?;
         let from_token_verified_address = route.from_token.verified_address.clone().ok_or(SwapperError::InvalidRoute)?;
         let mctp_verified_input_address = route.mctp_verified_input_address.clone().ok_or(SwapperError::InvalidRoute)?;
@@ -50,10 +57,10 @@ impl PrefetchedSuiData {
             }
             Ok(objects)
         };
-        let mctp_package_id = get_mayan_sui_package_id(client, SUI_MCTP_STATE);
+        let mctp_package_id = get_package_id(client, SUI_MCTP_STATE, package_id_cache);
         let fee_manager_package_id = async {
             if has_auction {
-                get_mayan_sui_package_id(client, SUI_MCTP_FEE_MANAGER_STATE).await.map(Some)
+                get_package_id(client, SUI_MCTP_FEE_MANAGER_STATE, package_id_cache).await.map(Some)
             } else {
                 Ok(None)
             }
@@ -77,7 +84,7 @@ impl PrefetchedSuiData {
 }
 
 fn sui_object_ids(has_auction: bool, from_token_verified_address: &str, mctp_verified_input_address: &str, mctp_input_treasury: &str) -> Vec<String> {
-    let mut object_ids = vec![
+    [
         SUI_MCTP_STATE.to_string(),
         SUI_CCTP_CORE_STATE.to_string(),
         SUI_CCTP_TOKEN_STATE.to_string(),
@@ -86,16 +93,20 @@ fn sui_object_ids(has_auction: bool, from_token_verified_address: &str, mctp_ver
         from_token_verified_address.to_string(),
         mctp_verified_input_address.to_string(),
         mctp_input_treasury.to_string(),
-    ];
-    if has_auction {
-        object_ids.push(SUI_MCTP_FEE_MANAGER_STATE.to_string());
-    }
-    object_ids
+    ]
+    .into_iter()
+    .chain(has_auction.then(|| SUI_MCTP_FEE_MANAGER_STATE.to_string()))
+    .collect()
 }
 
-async fn get_mayan_sui_package_id(client: &SuiClient, state_object_id: &str) -> Result<String, SwapperError> {
+async fn get_package_id(client: &SuiClient, state_object_id: &'static str, package_id_cache: &Cache<&'static str, String>) -> Result<String, SwapperError> {
+    if let Some(package_id) = package_id_cache.get(&state_object_id) {
+        return Ok(package_id);
+    }
     let state: MayanStateObject = client.get_object_json(state_object_id.to_string()).await.map_err(sui_error)?;
-    Ok(state.latest_package_id())
+    let package_id = state.latest_package_id();
+    package_id_cache.put(state_object_id, package_id.clone());
+    Ok(package_id)
 }
 
 #[derive(Debug, Deserialize)]

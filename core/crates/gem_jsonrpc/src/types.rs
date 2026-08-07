@@ -19,8 +19,13 @@ pub struct JsonRpcRequest {
     pub params: Value,
 }
 
-pub trait JsonRpcRequestConvert {
-    fn to_req(&self, id: u64) -> JsonRpcRequest;
+pub trait ToJsonRpcRequest {
+    fn method(&self) -> &'static str;
+    fn params(&self) -> Value;
+
+    fn to_jsonrpc_request(&self, id: u64) -> JsonRpcRequest {
+        JsonRpcRequest::new(id, self.method(), self.params())
+    }
 }
 
 impl JsonRpcRequest {
@@ -97,6 +102,13 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for JsonRpcResult<T> {
 }
 
 impl<T> JsonRpcResult<T> {
+    pub fn id(&self) -> Option<u64> {
+        match self {
+            Self::Value(response) => response.id,
+            Self::Error(response) => response.id,
+        }
+    }
+
     pub fn take(self) -> Result<T, JsonRpcError> {
         match self {
             JsonRpcResult::Value(value) => Ok(value.result),

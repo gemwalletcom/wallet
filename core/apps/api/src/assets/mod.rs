@@ -9,17 +9,17 @@ use model::SearchParams;
 pub use model::SearchRequest;
 use pricer::PriceClient;
 use primitives::{AssetBasic, AssetFull, AssetId, SearchResponse};
-use rocket::{State, get, post, serde::json::Json, tokio::sync::Mutex};
+use rocket::{State, get, post, serde::json::Json};
 
 #[get("/assets/<asset_id>?<currency>")]
 pub async fn get_asset(
     asset_id: AssetIdParam,
     currency: CurrencyParam,
-    client: &State<Mutex<AssetsClient>>,
-    price_client: &State<Mutex<PriceClient>>,
+    client: &State<AssetsClient>,
+    price_client: &State<PriceClient>,
 ) -> Result<ApiResponse<AssetFull>, ApiError> {
-    let asset = client.lock().await.get_asset_full(&asset_id.0)?;
-    let rate = price_client.lock().await.get_fiat_rate(currency.0.as_ref())?.rate;
+    let asset = client.get_asset_full(&asset_id.0)?;
+    let rate = price_client.get_fiat_rate(currency.0.as_ref())?.rate;
     Ok(asset.with_rate(rate).into())
 }
 
@@ -27,37 +27,33 @@ pub async fn get_asset(
 pub async fn get_assets(
     asset_ids: Json<Vec<AssetId>>,
     currency: CurrencyParam,
-    client: &State<Mutex<AssetsClient>>,
-    price_client: &State<Mutex<PriceClient>>,
+    client: &State<AssetsClient>,
+    price_client: &State<PriceClient>,
 ) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
-    let rate = price_client.lock().await.get_fiat_rate(currency.0.as_ref())?.rate;
+    let rate = price_client.get_fiat_rate(currency.0.as_ref())?.rate;
 
-    Ok(client.lock().await.get_assets(asset_ids.0, rate)?.into())
+    Ok(client.get_assets(asset_ids.0, rate)?.into())
 }
 
 #[get("/assets/search?<params..>")]
-pub async fn get_assets_search(params: SearchParams<'_>, client: &State<Mutex<SearchClient>>) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
+pub async fn get_assets_search(params: SearchParams<'_>, client: &State<SearchClient>) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
     let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit.0, params.offset);
-    Ok(client.lock().await.get_assets_search(&request).await?.into())
+    Ok(client.get_assets_search(&request).await?.into())
 }
 
 #[get("/search?<params..>")]
-pub async fn get_search(params: SearchParams<'_>, client: &State<Mutex<SearchClient>>) -> Result<ApiResponse<SearchResponse>, ApiError> {
+pub async fn get_search(params: SearchParams<'_>, client: &State<SearchClient>) -> Result<ApiResponse<SearchResponse>, ApiError> {
     let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit.0, params.offset);
 
-    let search_client = client.lock().await;
-    let assets = search_client.get_assets_search(&request).await?;
-    let lists = if request.should_search_lists() {
-        search_client.get_asset_lists_search(&request).await?
-    } else {
-        vec![]
+    let lists = async {
+        if request.should_search_lists() {
+            client.get_asset_lists_search(&request).await
+        } else {
+            Ok(vec![])
+        }
     };
-    let perpetuals = search_client.get_perpetuals_search(&request).await?;
-    let nfts = if request.has_tag_filter() {
-        vec![]
-    } else {
-        search_client.get_nfts_search(&request).await?
-    };
+    let nfts = async { if request.has_tag_filter() { Ok(vec![]) } else { client.get_nfts_search(&request).await } };
+    let (assets, lists, perpetuals, nfts) = futures::try_join!(client.get_assets_search(&request), lists, client.get_perpetuals_search(&request), nfts,)?;
 
     Ok(SearchResponse { assets, perpetuals, nfts, lists }.into())
 }

@@ -4,7 +4,8 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
+import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
@@ -14,6 +15,7 @@ import com.gemwallet.android.testkit.mockAssetHyperCoreUSDC
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionType
@@ -23,13 +25,36 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
 import java.math.BigInteger
 
 class ConfirmTransactionImplTest {
+
+    @Test
+    fun signerErrorsMapToConfirmErrors() {
+        val dust = GemSignerError.DustThreshold.toConfirmError(Chain.Bitcoin)
+        val signingFailures = listOf(
+            GemSignerError.InvalidInput("invalid transaction"),
+            GemSignerError.SigningError("signing failed"),
+            GemSignerError.InsufficientFunds,
+            GemSignerError.SwapValueBelowMinimum,
+        )
+
+        assertTrue(dust is ConfirmError.DustThreshold)
+        assertEquals(Chain.Bitcoin, (dust as ConfirmError.DustThreshold).chain)
+        signingFailures.forEach { error ->
+            assertSame(
+                ConfirmError.SignFail,
+                error.toConfirmError(Chain.Bitcoin),
+            )
+        }
+    }
 
     @Test
     fun hyperCoreSwapStoresOnlyFinalTransaction() = runTest {
@@ -72,7 +97,7 @@ class ConfirmTransactionImplTest {
             signTransactionOperator = signer,
             broadcastService = broadcastService,
             createTransactionsCase = createTransaction,
-            assetsRepository = mockk<AssetsRepository>(relaxed = true),
+            recentAssetsService = mockk<RecentAssetsService>(relaxed = true),
         ).invoke(
             signerParams = SignerParams(
                 input = ConfirmParams.SwapParams(

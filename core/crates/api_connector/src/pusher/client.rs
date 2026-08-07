@@ -1,4 +1,5 @@
 use super::model::{PushResult, Response};
+use gem_client::reqwest_client;
 use primitives::{GorushNotification, GorushNotifications};
 use reqwest::Client;
 
@@ -11,7 +12,7 @@ pub struct PusherClient {
 
 impl PusherClient {
     pub fn new(url: String, topic: String) -> Self {
-        let client = Client::new();
+        let client = reqwest_client();
         Self { url, client, topic }
     }
 

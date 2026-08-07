@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Annuler
+common_hidden = Masqués
 common_done = Terminé
 common_maximum_value = La valeur maximale est %@
 common_minimum_value = La valeur minimale est %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Impossible de récupérer les info
 errors_unknown_try_again = Une erreur inconnue s'est produite. Veuillez réessayer.
 errors_network_error = Erreur réseau : %@
 errors_network_offline = La connexion Internet semble être hors ligne.
+errors_no_internet_connection = Pas de connexion Internet
+errors_no_service_connection = Pas de connexion au service
+errors_balances_activity_outdated = Les soldes et l'activité peuvent être obsolètes.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Impossible de renvoyer un devis pour la paire de jet
 info_stake_reserved_title = Réservé aux frais de réseau
 info_stake_reserved_description = Une petite somme reste dans votre portefeuille pour couvrir les frais d'opérations telles que le déblocage ou la réclamation de récompenses.
 info_stake_apr_description = Le taux annuel en pourcentage (APR) est le taux de récompense annuel pour le staking de votre crypto-monnaie.
+info_stake_frozen_required_title = Gelez des TRX pour staker
+info_stake_frozen_required_description = Le staking sur TRON se fait en deux étapes. Gelez d'abord des TRX, puis stakez-les pour gagner des récompenses.
 info_perpetual_auto_close_description = Clôturez automatiquement votre position à des niveaux de prix définis. Le Take Profit verrouille vos gains, tandis que le Stop Loss limite vos pertes.
 info_fully_diluted_valuation_title = Évaluation entièrement diluée
 info_fully_diluted_valuation_description = Valeur marchande théorique si toutes les pièces étaient en circulation. Calculée en multipliant le prix par l'offre maximale.

@@ -1,12 +1,17 @@
-use std::{error::Error, str};
+use std::{
+    error::Error,
+    str,
+    time::{Duration, Instant},
+};
 
 use async_trait::async_trait;
+pub use primitives::TransactionIdRequest;
 use primitives::chart::ChartCandleStick;
-use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
+use primitives::perpetual::{PerpetualAccountMode, PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeCheckReport, NodeCheckRequest, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionId, TransactionInputType, TransactionLoadData,
+    NodeCheckReport, NodeCheckRequest, NodeStatus, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData,
     TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
 
@@ -17,7 +22,7 @@ pub mod testkit;
 
 pub enum TransactionsResult {
     Transactions(Vec<Transaction>),
-    TransactionIds(Vec<TransactionId>),
+    TransactionRequests(Vec<TransactionIdRequest>),
 }
 
 pub struct TransactionsRequest {
@@ -42,11 +47,14 @@ impl TransactionsRequest {
     }
 }
 
+#[async_trait]
 pub trait ChainTraits:
     ChainProvider
     + ChainBalances
     + ChainStaking
     + ChainTransactionBroadcast
+    + ChainTransaction
+    + ChainBlockTransactions
     + ChainTransactions
     + ChainTransactionState
     + ChainState
@@ -57,6 +65,21 @@ pub trait ChainTraits:
     + ChainAddressStatus
     + ChainSimulation
 {
+    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus, status_latency: Duration) -> NodeCheckReport {
+        node_check::check_node(self, request, status, status_latency).await
+    }
+
+    async fn get_nodes_status(&self) -> Result<NodeStatus, Box<dyn Error + Send + Sync>> {
+        let started_at = Instant::now();
+        let (chain_id, latest_block_number) = futures::try_join!(self.get_chain_id(), self.get_block_latest_number())?;
+        let latency_ms = started_at.elapsed().as_millis() as u64;
+
+        Ok(NodeStatus {
+            chain_id,
+            latest_block_number,
+            latency_ms,
+        })
+    }
 }
 
 pub trait ChainProvider: Send + Sync {
@@ -122,24 +145,44 @@ pub trait ChainTransactionDecode: Send + Sync {
 }
 
 #[async_trait]
-pub trait ChainTransactions: Send + Sync {
+pub trait ChainTransaction: Send + Sync {
+    async fn get_transaction_by_hash(&self, _request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        Ok(None)
+    }
+}
+
+#[async_trait]
+pub trait ChainBlockTransactions: Send + Sync {
     async fn get_transactions_by_block(&self, _block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
     }
-    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        Ok(TransactionsResult::Transactions(Vec::new()))
-    }
-
-    async fn get_transaction_by_hash(&self, _hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        Ok(None)
-    }
 
     async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let futures = blocks.into_iter().map(|x| self.get_transactions_by_block(x));
+        let futures = blocks.into_iter().map(|block| self.get_transactions_by_block(block));
         let results = futures::future::try_join_all(futures).await?;
         Ok(results.into_iter().flatten().collect())
     }
 }
+
+#[async_trait]
+pub trait ChainTransactions: Send + Sync {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>>;
+}
+
+pub struct EmptyTransactionsProvider;
+
+#[async_trait]
+impl ChainTransactions for EmptyTransactionsProvider {
+    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        Ok(TransactionsResult::Transactions(Vec::new()))
+    }
+}
+
+#[async_trait]
+impl ChainTransaction for EmptyTransactionsProvider {}
+
+#[async_trait]
+impl ChainBlockTransactions for EmptyTransactionsProvider {}
 
 #[async_trait]
 pub trait ChainTransactionState: Send + Sync {
@@ -155,10 +198,6 @@ pub trait ChainState: Send + Sync {
         Ok(NodeSyncStatus::in_sync())
     }
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>>;
-
-    async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus) -> NodeCheckReport {
-        node_check::check_node(self, request, status).await
-    }
 }
 
 #[async_trait]
@@ -167,6 +206,10 @@ pub trait ChainAccount: Send + Sync {}
 #[async_trait]
 pub trait ChainPerpetual: Send + Sync {
     async fn get_positions(&self, _address: String) -> Result<PerpetualPositionsSummary, Box<dyn Error + Sync + Send>> {
+        Err("Chain does not support perpetual trading".into())
+    }
+
+    async fn get_perpetual_account_mode(&self, _address: String) -> Result<PerpetualAccountMode, Box<dyn Error + Sync + Send>> {
         Err("Chain does not support perpetual trading".into())
     }
 

@@ -3,9 +3,8 @@ use alloy_primitives::{Address, Bytes, hex};
 use alloy_sol_types::SolCall;
 use async_trait::async_trait;
 use gem_client::ReqwestClient;
-use gem_evm::method;
+use gem_evm::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use gem_jsonrpc::JsonRpcClient;
-use serde_json::json;
 use std::error::Error;
 use std::str::FromStr;
 
@@ -38,15 +37,8 @@ impl Basenames {
         let node = namehash(name);
         let call_data = L2Resolver::addrCall { node }.abi_encode();
 
-        let params = json!([
-            {
-                "to": self.resolver_address.to_string(),
-                "data": hex::encode_prefixed(&call_data)
-            },
-            "latest"
-        ]);
-
-        let result: String = self.client.call(method::ETH_CALL, params).await?;
+        let transaction = TransactionObject::new_call(&self.resolver_address.to_string(), call_data);
+        let result: String = self.client.request(EthereumRpc::Call(transaction, BlockParameter::Latest)).await?;
         let response_bytes = Bytes::from(hex::decode(&result)?);
 
         L2Resolver::addrCall::abi_decode_returns(response_bytes.as_ref()).map_err(Into::into)

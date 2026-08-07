@@ -10,7 +10,7 @@ public extension TransferData {
         TransferData(
             type: type,
             recipientData: recipientData,
-            value: newValue,
+            amount: .exact(newValue),
         )
     }
 }

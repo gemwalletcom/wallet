@@ -13,13 +13,16 @@ import FiatService
 import Foundation
 import Keystore
 import NameService
+import PerpetualService
 import Preferences
+import PriceAlertService
 import PriceService
 import Primitives
 import PrimitivesComponents
 import ScanService
 import Stake
 import StakeService
+import Store
 import Swap
 import SwapService
 import SwiftUI
@@ -27,7 +30,8 @@ import TransactionStateService
 import Transfer
 import WalletConnector
 import WalletConnectorService
-import WalletService
+import WalletSessionService
+import WalletTab
 
 public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
@@ -36,7 +40,7 @@ public struct ViewModelFactory: Sendable {
     let swapService: SwapService
     let assetsEnabler: any AssetsEnabler
     let priceUpdater: any PriceUpdater
-    let walletService: WalletService
+    let walletSessionService: any WalletSessionManageable
     let stakeService: StakeService
     let earnService: EarnService
     let amountService: AmountService
@@ -49,6 +53,10 @@ public struct ViewModelFactory: Sendable {
     let eventPresenterService: EventPresenterService
     let fiatService: FiatService
     let assetsService: AssetsService
+    let assetSearchService: AssetSearchService
+    let priceAlertService: PriceAlertService
+    let walletSearchService: WalletSearchService
+    let perpetualService: PerpetualService
 
     public init(
         keystore: any Keystore,
@@ -57,7 +65,7 @@ public struct ViewModelFactory: Sendable {
         swapService: SwapService,
         assetsEnabler: any AssetsEnabler,
         priceUpdater: any PriceUpdater,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         stakeService: StakeService,
         earnService: EarnService,
         amountService: AmountService,
@@ -70,6 +78,10 @@ public struct ViewModelFactory: Sendable {
         eventPresenterService: EventPresenterService,
         fiatService: FiatService,
         assetsService: AssetsService,
+        assetSearchService: AssetSearchService,
+        priceAlertService: PriceAlertService,
+        walletSearchService: WalletSearchService,
+        perpetualService: PerpetualService,
     ) {
         self.keystore = keystore
         self.chainServiceFactory = chainServiceFactory
@@ -77,7 +89,7 @@ public struct ViewModelFactory: Sendable {
         self.swapService = swapService
         self.assetsEnabler = assetsEnabler
         self.priceUpdater = priceUpdater
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.stakeService = stakeService
         self.earnService = earnService
         self.amountService = amountService
@@ -90,6 +102,50 @@ public struct ViewModelFactory: Sendable {
         self.eventPresenterService = eventPresenterService
         self.fiatService = fiatService
         self.assetsService = assetsService
+        self.assetSearchService = assetSearchService
+        self.priceAlertService = priceAlertService
+        self.walletSearchService = walletSearchService
+        self.perpetualService = perpetualService
+    }
+
+    @MainActor
+    public func selectAssetScene(
+        wallet: Wallet,
+        selectType: SelectAssetType,
+        selectAssetAction: AssetAction = .none,
+        chains: [Chain] = [],
+    ) -> SelectAssetViewModel {
+        SelectAssetViewModel(
+            wallet: wallet,
+            selectType: selectType,
+            searchService: assetSearchService,
+            assetsEnabler: assetsEnabler,
+            priceAlertService: priceAlertService,
+            activityService: activityService,
+            selectAssetAction: selectAssetAction,
+            chains: chains,
+        )
+    }
+
+    @MainActor
+    public func assetsResultsScene(
+        wallet: Wallet,
+        request: WalletSearchRequest,
+        title: String,
+        onSelectAsset: @escaping (Asset) -> Void,
+    ) -> AssetsResultsSceneViewModel {
+        AssetsResultsSceneViewModel(
+            wallet: wallet,
+            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
+            preferences: Preferences.standard,
+            searchService: walletSearchService,
+            perpetualService: perpetualService,
+            activityService: activityService,
+            request: request,
+            title: title,
+            onSelectAsset: onSelectAsset,
+        )
     }
 
     @MainActor
@@ -100,33 +156,27 @@ public struct ViewModelFactory: Sendable {
         simulation: SimulationResult? = nil,
         onComplete: VoidAction,
     ) -> ConfirmTransferSceneViewModel {
-        let confirmService = ConfirmServiceFactory.create(
-            keystore: keystore,
-            chainServiceFactory: chainServiceFactory,
-            assetsEnabler: assetsEnabler,
-            scanService: scanService,
-            balanceService: balanceService,
-            assetsService: assetsService,
-            priceService: priceService,
-            transactionStateScheduler: transactionStateScheduler,
-            addressNameService: addressNameService,
-            activityService: activityService,
-            eventPresenterService: eventPresenterService,
-            chain: data.chain,
-        )
-        let simulationService = ConfirmSimulationServiceFactory.create(
-            addressNameService: addressNameService,
-            assetsService: assetsService,
-        )
-
-        return ConfirmTransferSceneViewModel(
-            wallet: wallet,
-            data: data,
-            confirmService: confirmService,
-            simulationService: simulationService,
-            fiatService: fiatService,
-            confirmTransferDelegate: confirmTransferDelegate,
-            simulation: simulation,
+        ConfirmTransferSceneViewModel(
+            request: ConfirmTransferRequest(
+                wallet: wallet,
+                data: data,
+                simulation: simulation,
+                delegate: confirmTransferDelegate,
+            ),
+            confirmService: ConfirmServiceFactory.create(
+                keystore: keystore,
+                chainServiceFactory: chainServiceFactory,
+                assetsEnabler: assetsEnabler,
+                scanService: scanService,
+                balanceService: balanceService,
+                assetsService: assetsService,
+                priceService: priceService,
+                transactionStateScheduler: transactionStateScheduler,
+                addressNameService: addressNameService,
+                activityService: activityService,
+                eventPresenterService: eventPresenterService,
+                chain: data.chain,
+            ),
             onComplete: onComplete,
         )
     }
@@ -142,7 +192,7 @@ public struct ViewModelFactory: Sendable {
         RecipientSceneViewModel(
             wallet: wallet,
             asset: asset,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
             nameService: nameService,
             type: type,
             onRecipientDataAction: onRecipientDataAction,

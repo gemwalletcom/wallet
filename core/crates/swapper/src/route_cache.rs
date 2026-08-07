@@ -1,119 +1,143 @@
 use std::{
     collections::HashMap,
     hash::Hash,
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{Mutex, MutexGuard},
+    time::{Duration, Instant},
 };
 
-#[derive(Debug, Clone)]
-struct Discovery<Candidate, Probe> {
-    candidates: Vec<Candidate>,
-    explored: Vec<Probe>,
+use primitives::DAY;
+
+type PairKey<Key> = (Key, Key);
+
+#[derive(Debug)]
+struct Cached<T> {
+    value: T,
+    expires_at: Instant,
 }
 
-impl<Candidate, Probe> Default for Discovery<Candidate, Probe> {
+#[derive(Debug)]
+pub(crate) struct Cache<Key, Value> {
+    values: Mutex<HashMap<Key, Cached<Value>>>,
+    ttl: Duration,
+}
+
+#[derive(Debug)]
+pub(crate) struct DiscoveryCache<Candidate, Probe, Key = String> {
+    discoveries: Cache<PairKey<Key>, HashMap<Probe, Option<Candidate>>>,
+}
+
+impl<Key, Value> Default for Cache<Key, Value> {
     fn default() -> Self {
+        Self::new(DAY)
+    }
+}
+
+impl<Key, Value> Cache<Key, Value> {
+    pub(crate) fn new(ttl: Duration) -> Self {
         Self {
-            candidates: Vec::new(),
-            explored: Vec::new(),
+            values: Mutex::new(HashMap::new()),
+            ttl,
         }
     }
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct DiscoveryCache<Candidate, Probe> {
-    candidates: Arc<Mutex<HashMap<(String, String), Discovery<Candidate, Probe>>>>,
-    routes: Arc<Mutex<HashMap<(String, String), Vec<Candidate>>>>,
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct ValueCache<K, V> {
-    values: Arc<Mutex<HashMap<K, V>>>,
-}
-
-impl<Candidate, Probe> Default for DiscoveryCache<Candidate, Probe> {
+impl<Candidate, Probe, Key> Default for DiscoveryCache<Candidate, Probe, Key> {
     fn default() -> Self {
-        Self {
-            candidates: Arc::new(Mutex::new(HashMap::new())),
-            routes: Arc::new(Mutex::new(HashMap::new())),
-        }
+        Self::new(DAY)
     }
 }
 
-impl<K, V> Default for ValueCache<K, V> {
-    fn default() -> Self {
-        Self {
-            values: Arc::new(Mutex::new(HashMap::new())),
-        }
+impl<Candidate, Probe, Key> DiscoveryCache<Candidate, Probe, Key> {
+    fn new(ttl: Duration) -> Self {
+        Self { discoveries: Cache::new(ttl) }
     }
 }
 
-impl<Candidate, Probe> DiscoveryCache<Candidate, Probe>
+impl<Candidate, Probe, Key> DiscoveryCache<Candidate, Probe, Key>
 where
     Candidate: Clone + PartialEq,
-    Probe: Clone + PartialEq,
+    Probe: Clone + Eq + Hash,
+    Key: Eq + Hash + Ord,
 {
-    pub fn get(&self, from: &str, to: &str) -> (Vec<Candidate>, Vec<Probe>) {
-        let cache = lock(&self.candidates);
-        match cache.get(&Self::pool_key(from, to)) {
-            Some(discovery) => (discovery.candidates.clone(), discovery.explored.clone()),
-            None => (Vec::new(), Vec::new()),
-        }
+    pub fn candidates_for_probes(&self, from: impl Into<Key>, to: impl Into<Key>, probes: &[Probe]) -> Vec<Candidate> {
+        let Some(discovery) = self.discoveries.get(&Self::pair_key(from, to)) else {
+            return Vec::new();
+        };
+        let candidates = probes.iter().filter_map(|probe| discovery.get(probe).and_then(Option::as_ref)).collect::<Vec<_>>();
+        candidates
+            .iter()
+            .enumerate()
+            .filter(|(index, candidate)| !candidates[..*index].contains(candidate))
+            .map(|(_, candidate)| (*candidate).clone())
+            .collect()
     }
 
-    pub fn put(&self, from: &str, to: &str, candidates: &[Candidate], explored: &[Probe]) {
-        if candidates.is_empty() && explored.is_empty() {
+    pub fn missing_probes(&self, from: impl Into<Key>, to: impl Into<Key>, probes: &[Probe]) -> Vec<Probe> {
+        let discovery = self.discoveries.get(&Self::pair_key(from, to));
+        probes
+            .iter()
+            .filter(|probe| discovery.as_ref().is_none_or(|discovery| !discovery.contains_key(*probe)))
+            .cloned()
+            .collect()
+    }
+
+    pub fn record_discovery(&self, from: impl Into<Key>, to: impl Into<Key>, facts: impl IntoIterator<Item = (Probe, Option<Candidate>)>) {
+        let facts = facts.into_iter().collect::<HashMap<_, _>>();
+        if facts.is_empty() {
             return;
         }
-        let mut cache = lock(&self.candidates);
-        let entry = cache.entry(Self::pool_key(from, to)).or_default();
-        for candidate in candidates {
-            if !entry.candidates.contains(candidate) {
-                entry.candidates.push(candidate.clone());
-            }
-        }
-        for probe in explored {
-            if !entry.explored.contains(probe) {
-                entry.explored.push(probe.clone());
-            }
-        }
+        self.discoveries.update(Self::pair_key(from, to), |discovery| {
+            discovery.extend(facts);
+        });
     }
 
-    pub fn get_route(&self, from: &str, to: &str) -> Option<Vec<Candidate>> {
-        let cache = lock(&self.routes);
-        cache.get(&Self::route_key(from, to)).cloned()
-    }
-
-    pub fn put_route(&self, from: &str, to: &str, route: &[Candidate]) {
-        if route.is_empty() {
-            return;
-        }
-        let mut cache = lock(&self.routes);
-        cache.insert(Self::route_key(from, to), route.to_vec());
-    }
-
-    fn pool_key(from: &str, to: &str) -> (String, String) {
-        let (a, b) = if from <= to { (from, to) } else { (to, from) };
-        (a.to_string(), b.to_string())
-    }
-
-    fn route_key(from: &str, to: &str) -> (String, String) {
-        (from.to_string(), to.to_string())
+    fn pair_key(from: impl Into<Key>, to: impl Into<Key>) -> PairKey<Key> {
+        let from = from.into();
+        let to = to.into();
+        if from <= to { (from, to) } else { (to, from) }
     }
 }
 
-impl<K, V> ValueCache<K, V>
+impl<Key, Value> Cache<Key, Value>
 where
-    K: Eq + Hash,
-    V: Clone,
+    Key: Eq + Hash,
+    Value: Clone,
 {
-    pub fn get(&self, key: &K) -> Option<V> {
-        let values = lock(&self.values);
-        values.get(key).cloned()
+    pub fn get(&self, key: &Key) -> Option<Value> {
+        let now = Instant::now();
+        let mut values = lock(&self.values);
+        if values.get(key).is_some_and(|cached| cached.expires_at <= now) {
+            values.remove(key);
+        }
+        values.get(key).map(|cached| cached.value.clone())
     }
 
-    pub fn put(&self, key: K, value: V) {
+    pub fn put(&self, key: Key, value: Value) {
+        lock(&self.values).insert(
+            key,
+            Cached {
+                value,
+                expires_at: Instant::now() + self.ttl,
+            },
+        );
+    }
+}
+
+impl<Key, Value> Cache<Key, Value>
+where
+    Key: Eq + Hash,
+    Value: Default,
+{
+    fn update(&self, key: Key, update: impl FnOnce(&mut Value)) {
+        let now = Instant::now();
         let mut values = lock(&self.values);
-        values.insert(key, value);
+        values.retain(|_, cached| cached.expires_at > now);
+        let cached = values.entry(key).or_insert_with(|| Cached {
+            value: Value::default(),
+            expires_at: now + self.ttl,
+        });
+        update(&mut cached.value);
+        cached.expires_at = now + self.ttl;
     }
 }
 
@@ -126,67 +150,46 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::*;
 
-    fn pool(id: &str) -> String {
-        id.to_string()
+    #[test]
+    fn test_discovery_cache() {
+        let cache = DiscoveryCache::<&str, u32>::default();
+        cache.record_discovery("0xa", "0xb", [(60, Some("0x1")), (200, None)]);
+        cache.record_discovery("0xa", "0xb", [(10, Some("0x2")), (2, Some("0x1"))]);
+
+        assert_eq!(cache.candidates_for_probes("0xa", "0xb", &[60]), vec!["0x1"]);
+        assert_eq!(cache.candidates_for_probes("0xa", "0xb", &[10]), vec!["0x2"]);
+        assert_eq!(cache.candidates_for_probes("0xa", "0xb", &[2, 10, 60, 200]), vec!["0x1", "0x2"]);
+        assert_eq!(cache.candidates_for_probes("0xb", "0xa", &[10]), vec!["0x2"]);
+        assert_eq!(cache.missing_probes("0xa", "0xb", &[2, 3, 10, 200]), vec![3]);
+
+        cache.record_discovery("0xa", "0xb", [(60, None), (200, Some("0x3"))]);
+
+        assert!(cache.candidates_for_probes("0xa", "0xb", &[60]).is_empty());
+        assert_eq!(cache.candidates_for_probes("0xa", "0xb", &[200]), vec!["0x3"]);
     }
 
     #[test]
-    fn test_pool_key_is_direction_insensitive() {
-        assert_eq!(DiscoveryCache::<String, u32>::pool_key("0xa", "0xb"), DiscoveryCache::<String, u32>::pool_key("0xb", "0xa"));
+    fn test_discovery_cache_expiry() {
+        let cache = DiscoveryCache::<&str, u32>::new(Duration::ZERO);
+        cache.record_discovery("0xa", "0xb", [(60, Some("0x1")), (200, None)]);
+
+        assert!(cache.candidates_for_probes("0xa", "0xb", &[60]).is_empty());
+        assert_eq!(cache.missing_probes("0xa", "0xb", &[60, 200]), vec![60, 200]);
     }
 
     #[test]
-    fn test_route_key_is_direction_sensitive() {
-        assert_ne!(
-            DiscoveryCache::<String, u32>::route_key("0xa", "0xb"),
-            DiscoveryCache::<String, u32>::route_key("0xb", "0xa")
-        );
-    }
+    fn test_value_cache() {
+        let cache = Cache::default();
+        cache.put(("router", "jetton"), "wallet");
+        assert_eq!(cache.get(&("router", "jetton")), Some("wallet"));
+        assert_eq!(cache.get(&("router", "other")), None);
 
-    #[test]
-    fn test_cache_merges_candidates_and_probes_across_passes() {
-        let cache = DiscoveryCache::default();
-        cache.put("0xa", "0xb", &[pool("0x1")], &[60, 200]);
-        cache.put("0xa", "0xb", &[pool("0x2"), pool("0x1")], &[10, 2]);
-
-        let (pools, probes) = cache.get("0xa", "0xb");
-        assert_eq!(pools, vec![pool("0x1"), pool("0x2")]);
-        assert_eq!(probes, vec![60, 200, 10, 2]);
-    }
-
-    #[test]
-    fn test_cache_tracks_explored_probes_when_no_candidates_found() {
-        let cache = DiscoveryCache::<String, u32>::default();
-        cache.put("0xa", "0xb", &[], &[60, 200]);
-        let (pools, probes) = cache.get("0xa", "0xb");
-        assert!(pools.is_empty());
-        assert_eq!(probes, vec![60, 200]);
-    }
-
-    #[test]
-    fn test_route_roundtrip() {
-        let cache = DiscoveryCache::<String, u32>::default();
-        let route = vec![pool("0x1"), pool("0x2")];
-        cache.put_route("USDC", "WAL", &route);
-        assert_eq!(cache.get_route("USDC", "WAL").unwrap(), route);
-        assert!(cache.get_route("WAL", "USDC").is_none());
-    }
-
-    #[test]
-    fn test_put_route_skips_empty() {
-        let cache = DiscoveryCache::<String, u32>::default();
-        cache.put_route("USDC", "WAL", &[]);
-        assert!(cache.get_route("USDC", "WAL").is_none());
-    }
-
-    #[test]
-    fn test_value_cache_roundtrip() {
-        let cache = ValueCache::default();
-        cache.put(("router".to_string(), "jetton".to_string()), "wallet".to_string());
-
-        assert_eq!(cache.get(&("router".to_string(), "jetton".to_string())), Some("wallet".to_string()));
-        assert_eq!(cache.get(&("router".to_string(), "other".to_string())), None);
+        let expired = Cache::new(Duration::ZERO);
+        expired.put("router", "wallet");
+        assert_eq!(expired.get(&"router"), None);
     }
 }

@@ -1,10 +1,10 @@
 [package]
 name = "signer"
-version = "1.0.0"
+version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-ed25519-dalek = { version = "2.2.0", default-features = false, features = ["std", "zeroize"] }
+ed25519-dalek = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 k256 = { workspace = true }
 hex = { workspace = true }
 primitives = { path = "../primitives" }

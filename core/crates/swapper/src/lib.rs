@@ -28,7 +28,6 @@ pub mod panora;
 pub mod permit2_data;
 pub mod relay;
 mod route_cache;
-mod solana;
 pub mod squid;
 pub mod stonfi;
 pub mod swapper;
@@ -37,7 +36,7 @@ pub mod uniswap;
 
 use number_formatter::BigNumberFormatter;
 
-pub(crate) use cache::{cache_headers, static_read_cache_headers};
+pub(crate) use cache::static_read_cache_headers;
 
 /// Converts a human-readable amount string to base units value.
 pub fn amount_to_value(token: &str, decimals: u32) -> Option<String> {

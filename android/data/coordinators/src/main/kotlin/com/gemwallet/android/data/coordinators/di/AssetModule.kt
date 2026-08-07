@@ -59,6 +59,8 @@ import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleAssetPinImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
+import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
@@ -98,8 +100,8 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideGetSearchLists(assetsRepository: AssetsRepository): GetSearchLists =
-        GetSearchListsImpl(assetsRepository)
+    fun provideGetSearchLists(searchService: AssetsSearchService): GetSearchLists =
+        GetSearchListsImpl(searchService)
 
     @Provides
     @Singleton
@@ -154,9 +156,11 @@ object AssetModule {
     fun provideGetAssetChartData(
         gemApiClient: GemApiClient,
         assetsRepository: AssetsRepository,
+        currencyRatesService: CurrencyRatesService,
     ): GetAssetChartData = GetAssetChartDataImpl(
         gemApiClient = gemApiClient,
         assetsRepository = assetsRepository,
+        currencyRatesService = currencyRatesService,
     )
 
     @Provides
@@ -164,11 +168,13 @@ object AssetModule {
     fun provideGetPortfolioData(
         gemDeviceApiClient: GemDeviceApiClient,
         assetsRepository: AssetsRepository,
+        currencyRatesService: CurrencyRatesService,
         perpetualService: PerpetualService,
         sessionRepository: SessionRepository,
     ): GetPortfolioData = GetPortfolioDataImpl(
         gemDeviceApiClient = gemDeviceApiClient,
         assetsRepository = assetsRepository,
+        currencyRatesService = currencyRatesService,
         perpetualService = perpetualService,
         sessionRepository = sessionRepository,
     )
@@ -211,10 +217,12 @@ object AssetModule {
         gemApiClient: GemApiClient,
         assetsRepository: AssetsRepository,
         streamSubscriptionService: StreamSubscriptionService,
+        prefetchAssets: PrefetchAssets,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         gemApiClient = gemApiClient,
         assetsRepository = assetsRepository,
         streamSubscriptionService = streamSubscriptionService,
+        prefetchAssets = prefetchAssets,
     )
 
     @Provides

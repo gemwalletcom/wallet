@@ -17,7 +17,7 @@ pub mod wallet_connect;
 use crate::config::chain::ChainConfig;
 use primitives::{
     Chain, StakeChain,
-    node_config::{self, Node},
+    node_config::{self, Node, NodeRegion},
 };
 use std::{collections::HashMap, str::FromStr};
 
@@ -119,6 +119,30 @@ impl Config {
     fn get_nodes_for_chain(&self, chain: &str) -> Vec<Node> {
         let chain = Chain::from_str(chain).unwrap();
         node_config::get_nodes_for_chain(chain)
+    }
+
+    fn get_node_base_url(&self, region: NodeRegion) -> String {
+        region.base_url()
+    }
+
+    fn get_node_regions(&self) -> Vec<NodeRegion> {
+        NodeRegion::all()
+    }
+
+    fn get_node_url(&self, chain: Chain, region: NodeRegion) -> String {
+        region.url(chain)
+    }
+
+    fn get_node_region(&self, url: &str) -> Option<NodeRegion> {
+        NodeRegion::from_url(url)
+    }
+
+    fn get_node_region_flag(&self, region: NodeRegion) -> String {
+        region.flag().to_string()
+    }
+
+    fn get_node_region_priority(&self, region: NodeRegion) -> i32 {
+        region.priority()
     }
 
     fn image_formatter_asset_url(&self, chain: &str, token_id: Option<String>) -> String {

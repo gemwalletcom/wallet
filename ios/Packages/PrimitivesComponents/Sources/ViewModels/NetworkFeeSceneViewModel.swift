@@ -75,7 +75,7 @@ public final class NetworkFeeSceneViewModel {
             FeeRateViewModel(
                 feeRate: $0,
                 unitType: chain.feeUnitType,
-                decimals: feeAsset.decimals.asInt,
+                decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
             )
         }.sorted()
@@ -99,6 +99,10 @@ public final class NetworkFeeSceneViewModel {
         case .native: estimatedFee(for: rate.feeRate).map { display(for: $0).amount.text } ?? rate.valueText
         case .gwei, .satVb: rate.valueText
         }
+    }
+
+    private var feeRateDecimals: Int {
+        chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt)
     }
 
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
@@ -173,7 +177,7 @@ private extension NetworkFeeSceneViewModel {
             FeeRateViewModel(
                 feeRate: FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: $0)),
                 unitType: chain.feeUnitType,
-                decimals: feeAsset.decimals.asInt,
+                decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
             )
         }

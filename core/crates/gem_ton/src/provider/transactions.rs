@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -8,17 +8,24 @@ use primitives::Transaction;
 use crate::{provider::transactions_mapper::map_trace_transactions, rpc::client::TonClient};
 
 #[async_trait]
-impl<C: Client> ChainTransactions for TonClient<C> {
+impl<C: Client> ChainBlockTransactions for TonClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let traces = self.get_traces_by_masterchain_block(block).await?;
         Ok(map_trace_transactions(traces.traces))
     }
+}
 
-    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+#[async_trait]
+impl<C: Client> ChainTransaction for TonClient<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash;
         let traces = self.get_traces_by_hash(hash).await?;
         Ok(map_trace_transactions(traces.traces).into_iter().next())
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransactions for TonClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let traces = self.get_traces_by_address(address, limit).await?;
@@ -35,7 +42,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let latest_block = ChainState::get_block_latest_number(&create_ton_test_client()).await?;
-        let transactions = ChainTransactions::get_transactions_by_block(&create_ton_test_client(), latest_block).await?;
+        let transactions = ChainBlockTransactions::get_transactions_by_block(&create_ton_test_client(), latest_block).await?;
 
         println!("Latest block: {}, transactions count: {}", latest_block, transactions.len());
 
@@ -57,7 +64,9 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_ton_test_client();
-        let transaction = ChainTransactions::get_transaction_by_hash(&client, TEST_TRANSACTION_ID.to_string()).await?.unwrap();
+        let transaction = ChainTransaction::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Ton, TEST_TRANSACTION_ID.to_string(), None))
+            .await?
+            .unwrap();
 
         assert_eq!(transaction.hash, TEST_TRANSACTION_HEX_HASH);
         Ok(())

@@ -54,7 +54,7 @@ public struct GridPosterView: View {
     GridPosterView(
         model: GridPosterViewModel(
             assetImage: AssetImage(
-                imageURL: URL(string: "https://metadata.nftscan.com/eth/0x47a00fc8590c11be4c419d9ae50dec267b6e24ee/0x0000000000000000000000000000000000000000000000000000000000002e5f.png"),
+                imageURL: URL(string: "https://assets.gemwallet.com/blockchains/ethereum/info/logo.png"),
                 placeholder: nil,
                 chainPlaceholder: nil,
             ),

@@ -53,9 +53,9 @@ struct AmountTransferViewModelTests {
 
     @Test
     func makeTransferData() throws {
-        let send = try AmountTransferViewModel(asset: .mock(), action: .send(.mock())).makeTransferData(value: 100)
-        let deposit = try AmountTransferViewModel(asset: .mock(), action: .deposit(.mock())).makeTransferData(value: 200)
-        let withdraw = try AmountTransferViewModel(asset: .mock(), action: .withdraw(.mock())).makeTransferData(value: 300)
+        let send = try AmountTransferViewModel(asset: .mock(), action: .send(.mock())).makeTransferData(amount: .exact(100))
+        let deposit = try AmountTransferViewModel(asset: .mock(), action: .deposit(.mock())).makeTransferData(amount: .exact(200))
+        let withdraw = try AmountTransferViewModel(asset: .mock(), action: .withdraw(.mock())).makeTransferData(amount: .exact(300))
 
         #expect(send.type.transactionType == .transfer)
         #expect(deposit.type.transactionType == .transfer)

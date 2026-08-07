@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
 
 public struct AutocloseEstimator {
+    private let priceChangeCalculator = PriceChangeCalculator()
     public let entryPrice: Double
     public let positionSize: Double
     public let direction: PerpetualDirection
@@ -50,7 +52,7 @@ public struct AutocloseEstimator {
     }
 
     public func calculatePriceChangePercent(price: Double) -> Double {
-        let rawChange = PriceChangeCalculator.calculate(.percentage(from: entryPrice, to: price))
+        let rawChange = priceChangeCalculator.percentage(from: entryPrice, to: price)
         return direction == .short ? -rawChange : rawChange
     }
 

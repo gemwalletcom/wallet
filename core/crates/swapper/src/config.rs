@@ -1,5 +1,6 @@
-use crate::{SwapperProvider, SwapperSlippage, SwapperSlippageMode};
 use primitives::Chain;
+
+use crate::{SwapperProvider, SwapperSlippage, SwapperSlippageMode};
 
 pub const DEFAULT_SLIPPAGE_BPS: u32 = 100;
 

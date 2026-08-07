@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = 취소
+common_hidden = 숨김
 common_done = 완료
 common_maximum_value = 최대값은 %@입니다
 common_minimum_value = 최소값은 %@입니다
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = 토큰 정보를 가져올 수 없
 errors_unknown_try_again = 알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.
 errors_network_error = 네트워크 오류: %@
 errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
+errors_no_internet_connection = 인터넷 연결 없음
+errors_no_service_connection = 서비스 연결 없음
+errors_balances_activity_outdated = 잔액 및 활동이 최신이 아닐 수 있습니다.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = 선택된 토큰 쌍에 대한 견적을 반환할 �
 info_stake_reserved_title = 네트워크 수수료로 예약됨
 info_stake_reserved_description = 스테이킹 해제나 보상 청구 등의 수수료를 충당하기 위해 소액이 지갑에 남아 있습니다.
 info_stake_apr_description = 연이율(APR)은 암호화폐를 스테이킹할 때 매년 지급되는 보상률입니다.
+info_stake_frozen_required_title = 스테이킹하려면 TRX를 동결하세요
+info_stake_frozen_required_description = TRON 스테이킹은 두 단계로 진행됩니다. 먼저 TRX를 동결한 다음, 스테이킹하여 보상을 받으세요.
 info_perpetual_auto_close_description = 설정된 가격 수준에서 자동으로 포지션을 청산합니다. 이익실현(Take Profit)은 수익을 확정하고, 손절매(Stop Loss)는 손실을 제한합니다.
 info_fully_diluted_valuation_title = 완전 희석 평가
 info_fully_diluted_valuation_description = 모든 동전이 유통될 경우의 이론적인 시장 가치. 가격에 최대 공급량을 곱하여 계산합니다.

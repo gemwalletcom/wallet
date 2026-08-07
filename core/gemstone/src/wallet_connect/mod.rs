@@ -5,7 +5,8 @@ use gem_wallet_connect::{
     WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
 };
 use primitives::{
-    Account, Chain, ChainAddress, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionVerificationStatus,
+    Account, Chain, ChainAddress, TransactionType, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest,
+    WalletConnectionVerificationStatus,
 };
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -123,6 +124,7 @@ pub enum WalletConnectChainOperation {
 pub enum WalletConnectTransaction {
     Ethereum {
         data: WCEthereumTransactionData,
+        transaction_type: TransactionType,
     },
     Solana {
         data: WCSolanaTransactionData,
@@ -133,7 +135,7 @@ pub enum WalletConnectTransaction {
         output_type: TransferDataOutputType,
     },
     Ton {
-        messages: String,
+        data: String,
         output_type: TransferDataOutputType,
     },
     Tron {
@@ -287,7 +289,10 @@ impl From<WcEthereumTransactionData> for WCEthereumTransactionData {
 impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
     fn from(t: WcWalletConnectTransaction) -> Self {
         match t {
-            WcWalletConnectTransaction::Ethereum { data } => Self::Ethereum { data: data.into() },
+            WcWalletConnectTransaction::Ethereum { data, transaction_type } => Self::Ethereum {
+                data: data.into(),
+                transaction_type,
+            },
             WcWalletConnectTransaction::Solana { data, output_type } => Self::Solana {
                 data: WCSolanaTransactionData { transaction: data.transaction },
                 output_type,
@@ -299,7 +304,7 @@ impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
                 },
                 output_type,
             },
-            WcWalletConnectTransaction::Ton { messages, output_type } => Self::Ton { messages, output_type },
+            WcWalletConnectTransaction::Ton { data, output_type } => Self::Ton { data, output_type },
             WcWalletConnectTransaction::Tron { data, output_type } => Self::Tron { data, output_type },
         }
     }

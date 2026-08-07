@@ -3,7 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollectionId, NFTData};
+use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollectionId, NFTData, try_in_order};
 
 #[async_trait]
 pub trait NFTProvider: Send + Sync {
@@ -54,12 +54,11 @@ impl NFTProviders {
     }
 
     async fn fetch_assets(chain: Chain, address: String, providers: impl Iterator<Item = &Arc<dyn NFTProvider>>) -> Vec<NFTAssetId> {
-        for provider in providers {
-            if let Ok(ids) = provider.get_assets(chain, address.clone()).await {
-                return ids;
-            }
+        let operations = providers.map(|provider| provider.get_assets(chain, address.clone())).collect::<Vec<_>>();
+        match try_in_order(operations).await {
+            Ok(Some(asset_ids)) => asset_ids,
+            Ok(None) | Err(_) => Vec::new(),
         }
-        vec![]
     }
 
     pub async fn get_assets(&self, addresses: HashMap<Chain, String>) -> Vec<NFTAssetId> {
@@ -72,21 +71,19 @@ impl NFTProviders {
     }
 
     pub async fn get_collection(&self, collection_id: NFTCollectionId) -> Option<NFTCollection> {
-        for provider in self.providers_for_chain(collection_id.chain) {
-            if let Ok(collection) = provider.get_collection(collection_id.clone()).await {
-                return Some(collection);
-            }
-        }
-        None
+        let operations = self
+            .providers_for_chain(collection_id.chain)
+            .map(|provider| provider.get_collection(collection_id.clone()))
+            .collect::<Vec<_>>();
+        try_in_order(operations).await.ok().flatten()
     }
 
     pub async fn get_asset(&self, asset_id: NFTAssetId) -> Option<NFTAsset> {
-        for provider in self.providers_for_chain(asset_id.chain) {
-            if let Ok(asset) = provider.get_asset(asset_id.clone()).await {
-                return Some(asset);
-            }
-        }
-        None
+        let operations = self
+            .providers_for_chain(asset_id.chain)
+            .map(|provider| provider.get_asset(asset_id.clone()))
+            .collect::<Vec<_>>();
+        try_in_order(operations).await.ok().flatten()
     }
 
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {

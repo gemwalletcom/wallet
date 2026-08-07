@@ -17,6 +17,7 @@ pub trait NftRepository {
     fn set_nft_collection_links(&mut self, collection_id: i32, values: Vec<NftLinkRow>) -> Result<usize, DatabaseError>;
     fn add_nft_report(&mut self, report: NewNftReportRow) -> Result<usize, DatabaseError>;
     fn set_nft_asset_associations(&mut self, address_id: i32, chains: Vec<Chain>, asset_ids: Vec<i32>) -> Result<(), DatabaseError>;
+    fn count_nft_assets_by_address_ids(&mut self, address_ids: Vec<i32>, chains: Vec<Chain>) -> Result<i64, DatabaseError>;
 }
 
 impl NftRepository for DatabaseClient {
@@ -81,5 +82,9 @@ impl NftRepository for DatabaseClient {
             NftStore::delete_nft_asset_associations(self, address_id, diff.missing)?;
         }
         Ok(())
+    }
+
+    fn count_nft_assets_by_address_ids(&mut self, address_ids: Vec<i32>, chains: Vec<Chain>) -> Result<i64, DatabaseError> {
+        Ok(NftStore::count_nft_assets_by_address_ids(self, address_ids, chains)?)
     }
 }

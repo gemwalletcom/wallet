@@ -11,7 +11,9 @@ import com.wallet.core.primitives.WalletType
 sealed interface ConfirmProperty {
     class Source(val data: String, val walletType: WalletType, val walletChain: Chain?) : ConfirmProperty
     class Network(val data: Asset) : ConfirmProperty
-    class Memo(val data: String) : ConfirmProperty
+    class Memo(memo: String) : ConfirmProperty {
+        val data: String = memo.ifEmpty { "-" }
+    }
 
     sealed class Destination(val data: String) : ConfirmProperty {
         class Stake(data: String, val address: String? = null, val explorerLink: BlockExplorerLink? = null) : Destination(data)

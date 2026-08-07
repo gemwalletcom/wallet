@@ -25,6 +25,7 @@ Subsystem references live in [docs/](docs). Read the relevant one before changin
 - [Wallet Authentication](docs/WALLET_AUTHENTICATION.md)
 - [Device WebSockets](docs/DEVICE_WEBSOCKETS.md)
 - [Rewards and Referrals](docs/REWARDS_AND_REFERRALS.md)
+- [Core Features and Providers](docs/FEATURES.md) — chain capabilities and indexing, WalletConnect, swap, fiat, and NFT provider coverage
 
 ## Before Coding
 
@@ -32,6 +33,7 @@ Subsystem references live in [docs/](docs). Read the relevant one before changin
 - State assumptions explicitly. UniFFI bounds, lifetimes, provider trait contracts, and JSON shape assumptions are invisible — call them out so a reviewer can spot the wrong one
 - Read before you write. Open the file's existing exports, the immediate caller, the related provider/mapper/repository, and any obvious testkit fixture before adding code. "Looks orthogonal to me" is the most expensive sentence in this crate
 - If two patterns in the codebase contradict (e.g., two providers handling decimals or error mapping differently), do not average them. Pick one — typically the more recent or better tested — explain why, and flag the other for cleanup
+- Keep `docs/FEATURES.md` current in the same change when chain capabilities, simulations, WalletConnect coverage, transaction-indexing routes, active swap, fiat, or NFT providers, provider modes, amount/slippage behavior, deployments, or supported assets change. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
 
 ## Task Completion
 
@@ -43,6 +45,8 @@ Before finishing a task:
 3. **Run tests**: `just test` or `just test <CRATE>`
 4. **Run clippy**: `cargo clippy -p <crate> -- -D warnings`
 5. **Format**: `just format`
+
+Regenerate bindings and build iOS or Android only when the change affects UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
 
 ## Localization
 
@@ -57,7 +61,7 @@ Fluent wraps interpolated args in isolation marks (`\u{2068}…\u{2069}`) — ac
 
 ## Test Rules
 
-- Tests must verify intent, not just behavior. A test that still passes when the function returns a hardcoded constant is a tautology — fix the assertion or the function under test.
+- Tests must protect an independent domain rule, invariant, or failure boundary—not mirror implementation details or serialized output. If the test still passes when the rule flips or the function returns a hardcoded constant, remove or fix it.
 - Do not unit-test static lookup tables, fixture catalogs, enum-to-variant wiring, or literal configuration by copying their values into assertions. Test behavior that consumes the data, a meaningful invariant shared across entries, or a validation/failure boundary; when there is no independent behavior, do not add a test.
 - Do not write tolerance-based assertions against live network values or values recomputed from separate RPC/API calls in integration tests. These tests are flaky and low-signal.
 - For integration tests, assert stable invariants only. For exact numeric behavior, cover the pure calculation in unit tests with deterministic inputs.

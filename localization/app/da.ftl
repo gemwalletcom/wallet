@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Ophæve
+common_hidden = Skjulte
 common_done = Færdig
 common_maximum_value = Maksimal værdi er %@
 common_minimum_value = Minimumsværdi er %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Kan ikke hente tokenoplysninger: %
 errors_unknown_try_again = Der opstod en ukendt fejl. Prøv venligst igen.
 errors_network_error = Netværksfejl: %@
 errors_network_offline = Internetforbindelsen ser ud til at være offline.
+errors_no_internet_connection = Ingen internetforbindelse
+errors_no_service_connection = Ingen serviceforbindelse
+errors_balances_activity_outdated = Saldi og aktivitet kan være forældede.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Kan ikke returnere en pris for det valgte tokenpar, 
 info_stake_reserved_title = Reserveret til netværksgebyr
 info_stake_reserved_description = Et lille beløb forbliver i din pung til at dække gebyrer for operationer som at fjerne indsatser eller gøre krav på belønninger.
 info_stake_apr_description = Årlig procentsats (ÅOP) er den årlige belønningssats for at satse din kryptovaluta.
+info_stake_frozen_required_title = Frys TRX for at stake
+info_stake_frozen_required_description = Staking på TRON sker i to trin. Frys først TRX, og stake det derefter for at tjene belønninger.
 info_perpetual_auto_close_description = Luk automatisk din position ved fastsatte prisniveauer. Take Profit låser gevinster, Stop Loss begrænser tab.
 info_fully_diluted_valuation_title = Fuldt udvandet værdiansættelse
 info_fully_diluted_valuation_description = Den teoretiske markedsværdi, hvis alle mønter var i omløb. Beregnet som prisen ganget med det maksimale udbud.

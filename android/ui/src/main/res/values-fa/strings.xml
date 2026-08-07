@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">لغو کردن</string>
+  <string name="common_hidden">مخفی</string>
   <string name="common_done">انجام شد</string>
   <string name="common_maximum_value">حداکثر مقدار %1$s است</string>
   <string name="common_minimum_value">حداقل مقدار %1$s است</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">خطای ناشناخته ای رخ داد. لطفا دوباره امتحان کنید.</string>
   <string name="errors_network_error">خطای شبکه: %1$s</string>
   <string name="errors_network_offline">به نظر می‌رسد اتصال اینترنت آفلاین است.</string>
+  <string name="errors_no_internet_connection">اتصال اینترنت برقرار نیست</string>
+  <string name="errors_no_service_connection">اتصال سرویس برقرار نیست</string>
+  <string name="errors_balances_activity_outdated">موجودی‌ها و فعالیت ممکن است به‌روز نباشند.</string>
   <string name="activity_title">فعالیت</string>
   <string name="activity_state_empty_title">فعالیت شما اینجا نمایش داده می‌شود</string>
   <string name="activity_state_empty_description">اولین تراکنش خود را انجام دهید</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">برای هزینه شبکه رزرو شده است</string>
   <string name="info_stake_reserved_description">مقدار کمی در کیف پول شما باقی می‌ماند تا هزینه‌های عملیاتی مانند لغو استیک یا دریافت پاداش را پوشش دهد.</string>
   <string name="info_stake_apr_description">نرخ درصد سالانه (APR) نرخ پاداش سالانه برای سپرده‌گذاری ارز دیجیتال شما است.</string>
+  <string name="info_stake_frozen_required_title">برای استیک، TRX را فریز کنید</string>
+  <string name="info_stake_frozen_required_description">استیکینگ در TRON دو مرحله دارد. ابتدا TRX را فریز کنید، سپس آن را استیک کنید تا پاداش بگیرید.</string>
   <string name="info_perpetual_auto_close_description">موقعیت خود را به طور خودکار در سطوح قیمت تعیین شده ببندید. برداشت سود، سود را قفل می‌کند، و توقف ضرر، ضرر را محدود می‌کند.</string>
   <string name="info_fully_diluted_valuation_title">ارزش‌گذاری کاملاً رقیق‌شده</string>
   <string name="info_fully_diluted_valuation_description">ارزش بازار فرضی در صورتی که همه کوین‌ها در گردش باشند. این ارزش از حاصل ضرب قیمت در حداکثر عرضه محاسبه می‌شود.</string>

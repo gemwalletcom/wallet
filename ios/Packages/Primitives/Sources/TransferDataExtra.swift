@@ -10,6 +10,7 @@ public struct TransferDataExtra: Equatable, Sendable {
     public let data: Data?
     public let outputType: TransferDataOutputType
     public let outputAction: TransferDataOutputAction
+    public let transactionType: TransactionType
 
     public init(
         to: String,
@@ -18,6 +19,7 @@ public struct TransferDataExtra: Equatable, Sendable {
         data: Data? = .none,
         outputType: TransferDataOutputType = .encodedTransaction,
         outputAction: TransferDataOutputAction = .send,
+        transactionType: TransactionType = .smartContractCall,
     ) {
         self.to = to
         self.gasLimit = gasLimit
@@ -25,6 +27,7 @@ public struct TransferDataExtra: Equatable, Sendable {
         self.data = data
         self.outputType = outputType
         self.outputAction = outputAction
+        self.transactionType = transactionType
     }
 }
 

@@ -3,11 +3,11 @@ use super::database::run_migrations;
 use super::scan_addresses::setup_scan_addresses;
 use gem_tracing::info_with_fields;
 use primitives::{Asset, AssetTag, Chain, ConfigKey, ConfigParamKey, FiatProviderName, NFTChain, PlatformStore as PrimitivePlatformStore, PriceProvider};
-use search_index::{INDEX_CONFIGS, INDEX_PRIMARY_KEY, SearchIndexClient};
+use search_index::{INDEX_CONFIGS, INDEX_PRIMARY_KEY, SearchIndexClient, SearchIndexConfig};
 use settings::Settings;
 use std::collections::HashSet;
 use storage::models::ConfigRow;
-use storage::{ApiClientsRepository, AssetsRepository, ChainsRepository, ConfigRepository, Database, PricesProvidersRepository, ReleasesRepository, TagRepository};
+use storage::{ApiClientsRepository, AssetsRepository, ChainsRepository, ConfigCacher, ConfigRepository, Database, PricesProvidersRepository, ReleasesRepository, TagRepository};
 use streamer::{ExchangeKind, ExchangeName, QueueName, StreamProducer, StreamProducerConfig};
 
 pub async fn run_setup(settings: Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -18,14 +18,14 @@ pub async fn run_setup(settings: Settings) -> Result<(), Box<dyn std::error::Err
 
     setup_database(&database)?;
     setup_scan_addresses(&database)?;
-    setup_search_index(&settings).await?;
+    setup_search_index(&settings, &database).await?;
     setup_queues(&settings).await?;
 
     info_with_fields!("setup", step = "complete");
     Ok(())
 }
 
-fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub(super) fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let chains = Chain::all();
     info_with_fields!("setup", step = "chains", chains = format!("{:?}", chains));
 
@@ -70,7 +70,7 @@ fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error +
     info_with_fields!("setup", step = "prices providers");
     let providers = PriceProvider::all()
         .into_iter()
-        .map(|p| storage::models::PriceProviderConfigRow::new(p, p == PriceProvider::primary()))
+        .map(|provider| storage::models::PriceProviderConfigRow::new(provider, true))
         .collect::<Vec<_>>();
     let _ = database.prices_providers()?.add_prices_providers(providers);
 
@@ -97,14 +97,17 @@ fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error +
     Ok(())
 }
 
-async fn setup_search_index(settings: &Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn setup_search_index(settings: &Settings, database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     info_with_fields!(
         "setup",
         step = "search index",
         indexes = format!("{:?}", INDEX_CONFIGS.iter().map(|c| c.name).collect::<Vec<_>>())
     );
 
-    let search_index_client = SearchIndexClient::new(&settings.meilisearch.url, settings.meilisearch.key.as_str());
+    let search_index_config = SearchIndexConfig {
+        batch_size: ConfigCacher::new(database.clone()).get_usize(ConfigKey::SearchIndexBatchSize)?,
+    };
+    let search_index_client = SearchIndexClient::new(&settings.meilisearch.url, settings.meilisearch.key.as_str(), search_index_config);
     search_index_client.setup(INDEX_CONFIGS, INDEX_PRIMARY_KEY).await.unwrap();
 
     Ok(())

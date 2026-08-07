@@ -1,24 +1,70 @@
-use std::collections::HashSet;
-use std::sync::Arc;
+use std::{collections::HashSet, fmt::Debug, sync::Arc, time::Duration};
 
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{Chain, ChainType, swap::ApprovalData};
+use primitives::{AssetId, Chain, ChainType, MINUTE, swap::ApprovalData};
 
 use num_bigint::BigInt;
 
 use super::{
-    DUST_THRESHOLD_MULTIPLIER, QUOTE_INTERVAL, QUOTE_MINIMUM, QUOTE_QUANTITY, THORChainNetwork, ThorChain,
+    DUST_THRESHOLD_MULTIPLIER, QUOTE_INTERVAL, QUOTE_MINIMUM, QUOTE_QUANTITY, THORChainNetwork,
     asset::{THORChainAsset, value_to},
     chain::ChainName,
-    model::{AsgardVault, RouteData},
-    quote_data_mapper, swap_mapper,
+    model::{AsgardVault, InboundAddress, InboundAddressesExt, RouteData},
+    quote_data_mapper, quote_mapper, swap_mapper,
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperQuoteData, approval::check_approval_erc20, cross_chain::VaultAddresses, fees::default_referral_fees, thorchain::client::ThorChainSwapClient,
+    SwapperQuoteData, approval::check_approval_erc20, cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
 };
+
+const INBOUND_ADDRESS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
+
+#[derive(Debug)]
+pub struct ThorChain<C>
+where
+    C: Client + Clone + Send + Sync + Debug + 'static,
+{
+    provider: ProviderType,
+    rpc_provider: Arc<dyn RpcProvider>,
+    network: THORChainNetwork,
+    client: ThorChainSwapClient<C>,
+    inbound_address_cache: Cache<(), Vec<InboundAddress>>,
+}
+
+impl<C> ThorChain<C>
+where
+    C: Client + Clone + Send + Sync + Debug + 'static,
+{
+    pub fn with_client(swap_client: ThorChainSwapClient<C>, rpc_provider: Arc<dyn RpcProvider>, network: THORChainNetwork) -> Self {
+        Self {
+            provider: ProviderType::new(network.provider()),
+            rpc_provider,
+            network,
+            client: swap_client,
+            inbound_address_cache: Cache::new(INBOUND_ADDRESS_CACHE_TTL),
+        }
+    }
+
+    async fn get_inbound_addresses(&self) -> Result<Vec<InboundAddress>, SwapperError> {
+        if let Some(addresses) = self.inbound_address_cache.get(&()) {
+            return Ok(addresses);
+        }
+        let addresses = self.client.get_inbound_addresses().await?;
+        self.inbound_address_cache.put((), addresses.clone());
+        Ok(addresses)
+    }
+
+    fn map_quote_error(&self, error: SwapperError, decimals: i32) -> SwapperError {
+        match error {
+            SwapperError::InputAmountError { min_amount: Some(min) } => SwapperError::InputAmountError {
+                min_amount: Some(value_to(&min, decimals).to_string()),
+            },
+            other => other,
+        }
+    }
+}
 
 impl ThorChain<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
@@ -60,6 +106,10 @@ where
         }
     }
 
+    async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {
+        _ = self.get_inbound_addresses().await;
+    }
+
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         let vaults = self.client.get_asgard_vaults().await?;
         let asgard_addresses: HashSet<String> = AsgardVault::all_addresses(self.network, &vaults).into_iter().collect();
@@ -76,15 +126,16 @@ where
         let to_asset = THORChainAsset::from_asset_id(self.network, &request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
 
         let value = super::asset::value_from(&request.value, from_asset.decimals as i32);
+        let inbound_addresses = self.get_inbound_addresses().await?;
+        let from_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &from_asset)?;
+        let to_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &to_asset)?;
 
-        if !(self.network == THORChainNetwork::Thorchain && from_asset.chain.chain() == Chain::Thorchain) {
-            let inbound_addresses = self.client.get_inbound_addresses().await?;
-            let from_inbound_address = inbound_addresses
-                .iter()
-                .find(|address| address.chain == from_asset.chain.long_name())
-                .ok_or(SwapperError::InvalidRoute)?;
+        if [from_inbound_address, to_inbound_address].into_iter().flatten().any(|address| !address.is_swap_available()) {
+            return Err(SwapperError::NoQuoteAvailable);
+        }
 
-            let min_value = min_value(&from_inbound_address.dust_threshold);
+        if let Some(address) = from_inbound_address {
+            let min_value = min_value(&address.dust_threshold);
             if min_value > value {
                 return Err(SwapperError::InputAmountError {
                     min_amount: Some(value_to(&min_value.to_string(), from_asset.decimals as i32).to_string()),
@@ -129,12 +180,12 @@ where
                 routes: vec![Route {
                     input: request.from_asset.asset_id(),
                     output: request.to_asset.asset_id(),
-                    route_data: serde_json::to_string(&route_data).unwrap_or_default(),
+                    route_data: serde_json::to_string(&route_data)?,
                 }],
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
-            eta_in_seconds: Some(self.get_eta_in_seconds(request.to_asset.chain(), quote.total_swap_seconds)),
+            eta_in_seconds: Some(quote_mapper::map_eta_in_seconds(request.to_asset.chain(), quote.total_swap_seconds)),
         };
 
         Ok(quote)
@@ -160,16 +211,18 @@ where
             fee.bps,
         );
 
-        let route_data: RouteData = serde_json::from_str(&quote.data.routes.first().unwrap().route_data).map_err(|_| SwapperError::InvalidRoute)?;
+        let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
+        let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let value = quote.from_value.clone();
 
         let approval: Option<ApprovalData> = {
             if from_asset.use_evm_router() {
                 let router_address = route_data.router_address.clone().ok_or(SwapperError::InvalidRoute)?;
                 let from_amount: U256 = value.to_string().parse().map_err(SwapperError::from)?;
+                let token_id = from_asset.token_id.clone().ok_or(SwapperError::NotSupportedAsset)?;
                 check_approval_erc20(
                     quote.request.wallet_address.clone(),
-                    from_asset.token_id.clone().unwrap(),
+                    token_id,
                     router_address,
                     from_amount,
                     self.rpc_provider.clone(),
@@ -182,7 +235,7 @@ where
             }
         };
 
-        let data = quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id.clone(), value, memo, approval);
+        let data = quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id, value, memo, approval);
 
         Ok(data)
     }
@@ -200,11 +253,47 @@ fn min_value(dust_threshold: &BigInt) -> BigInt {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
 
     use super::*;
-    use crate::{Options, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_bitcoin_max_quote};
+    use crate::{Options, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_bitcoin_max_quote, testkit::mock_quote};
+    use gem_client::testkit::MockClient;
     use primitives::asset_constants::{ARBITRUM_USDC_ASSET_ID, THORCHAIN_TCY_ASSET_ID};
+
+    fn thorchain() -> ThorChain<MockClient> {
+        ThorChain::with_client(
+            ThorChainSwapClient::new(MockClient::new(), THORChainNetwork::Thorchain),
+            Arc::new(ProviderMock::new(String::new())),
+            THORChainNetwork::Thorchain,
+        )
+    }
+
+    #[test]
+    fn test_map_quote_error() {
+        let thorchain = thorchain();
+        let cases = [(18, "6614750000000000"), (8, "661475"), (6, "6614")];
+
+        for (decimals, expected) in cases {
+            let error = SwapperError::InputAmountError {
+                min_amount: Some("661475".to_string()),
+            };
+            assert_eq!(
+                thorchain.map_quote_error(error, decimals),
+                SwapperError::InputAmountError {
+                    min_amount: Some(expected.to_string())
+                }
+            );
+        }
+
+        assert_eq!(
+            thorchain.map_quote_error(SwapperError::InputAmountError { min_amount: None }, 18),
+            SwapperError::InputAmountError { min_amount: None }
+        );
+        assert_eq!(thorchain.map_quote_error(SwapperError::NotSupportedAsset, 18), SwapperError::NotSupportedAsset);
+    }
 
     #[test]
     fn test_min_value() {
@@ -259,6 +348,32 @@ mod tests {
         let mut ethereum_request = mock_bitcoin_max_quote(SwapperQuoteAsset::from(Chain::Solana.as_asset_id()));
         ethereum_request.from_asset = SwapperQuoteAsset::from(Chain::Ethereum.as_asset_id());
         assert_eq!(provider.amount_mode(&ethereum_request), SwapAmountMode::Fixed);
+    }
+
+    #[tokio::test]
+    async fn test_get_quote_rejects_halted_source_and_destination_chains() {
+        let inbound_address_calls = Arc::new(AtomicUsize::new(0));
+        let calls = inbound_address_calls.clone();
+        let client = MockClient::new().with_get(move |path| {
+            calls.fetch_add(1, Ordering::Relaxed);
+            assert_eq!(path, "/thorchain/inbound_addresses");
+            Ok(include_str!("testdata/inbound_addresses_bsc_halted.json").as_bytes().to_vec())
+        });
+        let swapper = ThorChain::with_client(
+            ThorChainSwapClient::new(client, THORChainNetwork::Thorchain),
+            Arc::new(ProviderMock::new(String::new())),
+            THORChainNetwork::Thorchain,
+        );
+        let bsc = SwapperQuoteAsset::from(Chain::SmartChain.as_asset_id());
+        let bitcoin = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
+        swapper.preload_routes(&bsc.asset_id(), &bitcoin.asset_id()).await;
+
+        let source_error = swapper.get_quote(&mock_quote(bsc.clone(), bitcoin.clone())).await.unwrap_err();
+        let destination_error = swapper.get_quote(&mock_quote(bitcoin, bsc)).await.unwrap_err();
+
+        assert_eq!(source_error, SwapperError::NoQuoteAvailable);
+        assert_eq!(destination_error, SwapperError::NoQuoteAvailable);
+        assert_eq!(inbound_address_calls.load(Ordering::Relaxed), 1);
     }
 
     #[tokio::test]

@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = रद्द करना
+common_hidden = छिपाए गए
 common_done = हो गया
 common_maximum_value = अधिकतम मान %@ है
 common_minimum_value = न्यूनतम मान %@ है
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = टोकन जानकारी
 errors_unknown_try_again = एक अज्ञात त्रुटि उत्पन्न हुई. कृपया पुन: प्रयास करें।
 errors_network_error = नेटवर्क त्रुटि: %@
 errors_network_offline = इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।
+errors_no_internet_connection = इंटरनेट कनेक्शन नहीं है
+errors_no_service_connection = सेवा कनेक्शन नहीं है
+errors_balances_activity_outdated = बैलेंस और गतिविधि पुरानी हो सकती है।
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = चयनित टोकन जोड़ी के 
 info_stake_reserved_title = नेटवर्क शुल्क के लिए आरक्षित
 info_stake_reserved_description = आपके वॉलेट में एक छोटी राशि रहती है, जो अनस्टेकिंग या पुरस्कार का दावा करने जैसे कार्यों के लिए शुल्क को कवर करती है।
 info_stake_apr_description = वार्षिक प्रतिशत दर (एपीआर) आपकी क्रिप्टोकरेंसी को दांव पर लगाने के लिए वार्षिक पुरस्कार दर है।
+info_stake_frozen_required_title = स्टेक करने के लिए TRX जमाएं
+info_stake_frozen_required_description = TRON पर स्टेकिंग दो चरणों में होती है। पहले TRX जमाएं, फिर इनाम पाने के लिए उसे स्टेक करें।
 info_perpetual_auto_close_description = निर्धारित मूल्य स्तरों पर अपनी पोजीशन स्वचालित रूप से बंद करें। टेक प्रॉफिट लाभ को लॉक करता है, स्टॉप लॉस नुकसान को सीमित करता है।
 info_fully_diluted_valuation_title = पूर्णतः पतला मूल्यांकन
 info_fully_diluted_valuation_description = यदि सभी सिक्के प्रचलन में होते तो उनका सैद्धांतिक बाजार मूल्य क्या होता? इसकी गणना मूल्य को अधिकतम आपूर्ति से गुणा करके की जाती है।

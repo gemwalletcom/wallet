@@ -29,11 +29,11 @@ struct SettingsNavigationStack: View {
     @Environment(\.bannerService) private var bannerService
     @Environment(\.connectionsService) private var connectionsService
     @Environment(\.assetsEnabler) private var assetsEnabler
-    @Environment(\.walletService) private var walletService
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.priceService) private var priceService
     @Environment(\.nodeService) private var nodeService
+    @Environment(\.serviceStatusService) private var serviceStatusService
     @Environment(\.chainServiceFactory) private var chainServiceFactory
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.releaseService) private var releaseService
@@ -124,7 +124,7 @@ struct SettingsNavigationStack: View {
                 ChainListSettingsScene()
             }
             .navigationDestination(for: Scenes.ServiceStatus.self) { _ in
-                ServiceStatusScene()
+                ServiceStatusScene(model: ServiceStatusViewModel(serviceStatusService: serviceStatusService))
             }
             .navigationDestination(for: Scenes.AboutUs.self) { _ in
                 AboutUsScene(
@@ -154,7 +154,7 @@ struct SettingsNavigationStack: View {
                 ))
             }
             .navigationDestination(for: Scenes.InAppNotifications.self) { _ in
-                if let wallet = walletService.currentWallet {
+                if let wallet = walletSessionService.currentWallet {
                     InAppNotificationsScene(
                         model: InAppNotificationsViewModel(
                             wallet: wallet,
@@ -171,8 +171,8 @@ struct SettingsNavigationStack: View {
                     .onChange(of: observablePreferences.isPerpetualEnabled, onChangePerpetualEnabled)
             }
             .navigationDestination(for: Scenes.Referral.self) { scene in
-                let wallets = walletService.wallets.filter { $0.type == .multicoin }
-                if let wallet = wallets.first(where: { $0.id == walletService.currentWallet?.id }) ?? wallets.first {
+                let wallets = walletSessionService.wallets.filter { $0.type == .multicoin }
+                if let wallet = wallets.first(where: { $0.id == walletSessionService.currentWallet?.id }) ?? wallets.first {
                     RewardsScene(
                         model: RewardsViewModel(
                             rewardsService: rewardsService,
@@ -222,7 +222,7 @@ private extension SettingsNavigationStack {
     func onChangePerpetualEnabled(_: Bool, _ newValue: Bool) {
         if newValue {
             Task {
-                if let wallet = walletService.currentWallet {
+                if let wallet = walletSessionService.currentWallet {
                     await hyperliquidObserverService.setup(for: wallet)
                 }
                 try? await perpetualService.updateMarkets()

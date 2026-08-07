@@ -2,7 +2,6 @@ package com.gemwallet.android.services
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.AddAccountsOperator
-import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.available
@@ -21,7 +20,6 @@ class CheckAccountsService @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val addAccountsOperator: AddAccountsOperator,
     private val passwordStore: PasswordStore,
-    private val syncSubscription: SyncSubscription,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
         // TODO: Remove after legacy native assets with stale rank = 0 have been repaired.
@@ -36,6 +34,7 @@ class CheckAccountsService @Inject constructor(
                 if (nativeAssets.isEmpty()) {
                     assetsRepository.invalidateDefault(wallet)
                 }
+                assetsRepository.ensureDefaultAssets(wallet)
                 return@forEach
             }
 
@@ -55,7 +54,7 @@ class CheckAccountsService @Inject constructor(
                 if (newAccounts.isNotEmpty()) {
                     assetsRepository.invalidateDefault(newWallet)
                 }
-                syncSubscription.syncSubscription(walletsRepository.getAll().firstOrNull() ?: emptyList())
+                assetsRepository.ensureDefaultAssets(newWallet)
                 return@forEach
             }
 
@@ -64,6 +63,7 @@ class CheckAccountsService @Inject constructor(
             if (missingNativeAssetIds.isNotEmpty()) {
                 assetsRepository.invalidateDefault(wallet)
             }
+            assetsRepository.ensureDefaultAssets(wallet)
         }
     }
 }

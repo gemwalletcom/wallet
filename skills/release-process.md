@@ -12,13 +12,14 @@ The repo follows a GitFlow-like release model:
 
 ## Versioning
 
-- App marketing versions use `Major.Release` on iOS and Android, for example `2.27`
+- iOS, Android, tags, and Rust workspace packages use `Major.Minor.Patch`, for example `3.0.0`
 - Internal build numbers remain separate and must keep increasing on every release
 - Bump versions with:
   ```bash
   just bump patch
+  just bump minor
   just bump major
-  just bump 2.30
+  just bump 3.1.2
   ```
 
 ## Commits

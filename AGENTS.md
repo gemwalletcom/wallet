@@ -28,7 +28,16 @@ Read the relevant platform guide(s) before editing code in that area:
 - [Android](android/AGENTS.md) — Kotlin, Compose, Hilt, Gradle workflow
 - [Core](core/AGENTS.md) — Rust crates, UniFFI/TypeShare, clippy, defensive programming
 
-If a task spans multiple platforms, read every affected guide. If you touch `core/`, treat it as a cross-platform change and verify both apps.
+If a task spans multiple platforms, read every affected guide. Do not treat every `core/` edit as a cross-platform build change. Regenerate and verify the apps only when Core changes UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. For internal Core implementation changes that preserve those contracts, run the relevant Core verification without building iOS or Android.
+
+## Design Docs
+
+Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
+
+- [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
+- [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
+
+Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are documented in [core/docs/](core/docs).
 
 ## Security
 
@@ -38,7 +47,7 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 - Never log, print, persist, snapshot, or expose secret material unless the feature explicitly requires secure handling and existing patterns already support it
 - Preserve transaction integrity: amounts, addresses, chain IDs, signatures, simulation data, and confirmation flows must stay explicit and verifiable
 - Prefer existing secure-storage and auth layers over inventing new persistence or authentication paths
-- If a change affects `core/` cryptography or signing behavior, verify both apps after regeneration
+- If a `core/` cryptography or signing change also affects mobile interfaces, generated outputs, platform build inputs, or app-side integration, regenerate and verify the affected apps
 
 ## Testing
 
@@ -49,6 +58,8 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 ## Working Across the Monorepo
 
 - When two patterns contradict (iOS vs. Android handling of a shared flow, two error-mapping styles in `core/`, parallel provider implementations), do not blend them. Pick the more recent or more tested one, state why, and flag the other for follow-up
+- Never wrap an immutable request client in a shared `Mutex` or hold that client lock across network or database I/O. Use mutexes only for narrowly scoped mutable coordination
+- Prefer immutable bindings and transformations. Use `mut` only when ownership requires mutation, and keep its scope narrow
 - Use full domain terms in code names: write `transaction`, not `tx`, except when preserving external protocol field names, database columns, or URLs verbatim
 - For multi-step work that crosses Core → bindings → iOS/Android, checkpoint after each step: state what changed, what was verified, what is left. Do not continue from a state you cannot describe back
 - If a regeneration's effect on either app is unclear, stop and restate before adding more changes
@@ -78,7 +89,7 @@ Before finishing a task:
 1. Build the affected platform(s)
 2. Run the relevant test suites
 3. Review security impact for changes affecting secrets, signing, auth, transactions, or wallet recovery
-4. If `core/` changed, regenerate bindings/models and verify both apps
+4. If `core/` changed mobile interfaces, generated models, platform build inputs, or app-side integration, regenerate and verify the affected app(s); otherwise keep verification scoped to Core
 5. Remove dead code, keep imports clean, and follow platform patterns
 
 Do not close a task based only on reasoning, `git diff`, or file inspection. Run real verification commands for the changed area. If verification is blocked by unrelated repo state, report the exact command you ran and the blocking failure explicitly.

@@ -1,0 +1,17 @@
+{
+  "resume_token": "",
+  "transfers": [
+    {
+      "account_id": "address.near",
+      "amount": "2000000000000000000000000",
+      "asset_id": "native:near",
+      "block_height": "300",
+      "block_timestamp": "1800000300000000000",
+      "predecessor_id": "sender.near",
+      "receipt_account_id": "address.near",
+      "receipt_id": "incoming-receipt",
+      "signer_id": "sender.near",
+      "transaction_id": "incoming-transaction"
+    }
+  ]
+}

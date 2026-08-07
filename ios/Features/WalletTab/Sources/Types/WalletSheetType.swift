@@ -7,7 +7,7 @@ import PrimitivesComponents
 
 public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case wallets
-    case selectAsset(SelectAssetType)
+    case selectAsset(SelectAssetType, chains: [Chain])
     case infoSheet(InfoSheetType)
     case transferData(TransferData)
     case perpetualRecipientData(PerpetualRecipientData)
@@ -19,7 +19,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     public var id: String {
         switch self {
         case .wallets: "wallets"
-        case let .selectAsset(type): "selectAsset-\(type.id)"
+        case let .selectAsset(type, _): "selectAsset-\(type.id)"
         case let .infoSheet(type): "infoSheet-\(type.id)"
         case let .transferData(data): "transferData-\(data.id)"
         case .perpetualRecipientData: "perpetualRecipientData"

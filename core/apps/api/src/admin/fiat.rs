@@ -1,4 +1,4 @@
-use rocket::{State, get, tokio::sync::Mutex};
+use rocket::{State, get};
 
 use crate::api_clients::PermissionFiatQuotesRead;
 use crate::devices::FiatQuotesClient;
@@ -16,7 +16,7 @@ pub async fn get_fiat_quotes(
     provider_id: Option<FiatProviderIdParam>,
     ip_address: Option<&str>,
     ip: std::net::IpAddr,
-    client: &State<Mutex<FiatQuotesClient>>,
+    client: &State<FiatQuotesClient>,
 ) -> Result<ApiResponse<FiatQuotes>, ApiError> {
     let quote_request = FiatQuoteRequest {
         asset_id: asset_id.0,
@@ -26,6 +26,6 @@ pub async fn get_fiat_quotes(
         provider_id: provider_id.map(|p| p.0.id().to_string()),
         ip_address: ip_address.map(str::to_string).unwrap_or_else(|| ip.to_string()),
     };
-    let quotes = client.lock().await.get_quotes(quote_request).await?;
+    let quotes = client.get_quotes(quote_request).await?;
     Ok(quotes.into())
 }

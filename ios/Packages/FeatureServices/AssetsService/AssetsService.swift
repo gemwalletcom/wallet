@@ -82,6 +82,8 @@ public final class AssetsService: Sendable {
 
     @discardableResult
     public func prefetchAssets(assetIds: [AssetId]) async throws -> [AssetId] {
+        guard !assetIds.isEmpty else { return [] }
+
         let assets = try getAssets(for: assetIds).map(\.id).asSet()
         let missingAssetIds = assetIds.asSet().subtracting(assets)
 
@@ -104,10 +106,12 @@ public final class AssetsService: Sendable {
         try balanceStore.setIsEnabled(walletId: walletId, assetIds: assetIds, value: enabled)
     }
 
-    public func updateAsset(assetId: AssetId, currency: String) async throws {
+    @discardableResult
+    public func updateAsset(assetId: AssetId, currency: String) async throws -> AssetFull {
         let asset = try await getAsset(assetId: assetId)
         try assetStore.add(assets: [asset.basic])
         try assetStore.updateLinks(assetId: assetId, asset.links)
+        try assetStore.updateAssociations(assetId: assetId, associations: asset.associations)
         let price = asset.price?.mapToAssetPrice(assetId: assetId) ?? .empty(assetId: assetId)
         try priceStore.updatePrice(price: price, currency: currency)
         if let market = asset.market {
@@ -118,6 +122,7 @@ public final class AssetsService: Sendable {
                 rate: rate,
             )
         }
+        return asset
     }
 
     public func addAssets(assetIds: [AssetId]) async throws {

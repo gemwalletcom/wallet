@@ -1,32 +1,5 @@
-use std::sync::Arc;
-
-use crate::GemstoneError;
 use gem_bitcoin::models::address::Address as BitcoinAddress;
-use primitives::{Chain, ChainAddress, ChainType};
-
-#[derive(uniffi::Object)]
-pub struct GemChainAddress {
-    inner: ChainAddress,
-}
-
-#[uniffi::export]
-impl GemChainAddress {
-    #[uniffi::constructor]
-    pub fn new(address: String, chain: Chain) -> Result<Arc<Self>, GemstoneError> {
-        if !validate_address(&address, chain) {
-            return Err(GemstoneError::AnyError {
-                msg: format!("Invalid address for {chain}"),
-            });
-        }
-        Ok(Arc::new(Self {
-            inner: ChainAddress::new(chain, address),
-        }))
-    }
-
-    pub fn address(&self) -> String {
-        self.inner.address().to_string()
-    }
-}
+use primitives::{Chain, ChainType};
 
 #[uniffi::export]
 pub fn validate_address(address: &str, chain: Chain) -> bool {
@@ -110,12 +83,6 @@ mod tests {
             checksum_address(" \nGvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2\r ", Chain::Solana),
             "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"
         );
-    }
-
-    #[test]
-    fn test_new_returns_err_for_invalid() {
-        assert!(GemChainAddress::new("invalid".to_string(), Chain::Ethereum).is_err());
-        assert!(GemChainAddress::new("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a".to_string(), Chain::Ethereum).is_ok());
     }
 
     #[test]

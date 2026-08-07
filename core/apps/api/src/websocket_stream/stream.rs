@@ -10,7 +10,7 @@ use rocket_ws::stream::DuplexStream;
 
 use super::client::StreamObserverClient;
 
-pub async fn new_stream(redis_url: &str, cacher_client: &CacherClient, retention: Duration, observer: &mut StreamObserverClient, stream: DuplexStream) {
+pub async fn new_stream(redis_url: &str, cacher_client: &CacherClient, retention: Duration, history_limit: usize, observer: &mut StreamObserverClient, stream: DuplexStream) {
     let Ok((mut stream, mut redis_connection, mut rx)) = crate::websocket::setup_ws_resources(redis_url, stream).await else {
         error_fields!("websocket failed to setup redis connection");
         return;
@@ -21,7 +21,7 @@ pub async fn new_stream(redis_url: &str, cacher_client: &CacherClient, retention
         error_fields!("websocket failed to subscribe device channel", message = format!("{e:?}"));
         return;
     }
-    if let Err(e) = flush_device_stream_events(observer, cacher_client, retention, &mut stream).await {
+    if let Err(e) = flush_device_stream_events(observer, cacher_client, retention, history_limit, &mut stream).await {
         error_fields!("websocket failed to flush device stream events", message = format!("{e:?}"));
         return;
     }
@@ -87,6 +87,7 @@ async fn flush_device_stream_events(
     observer: &StreamObserverClient,
     cacher_client: &CacherClient,
     retention: Duration,
+    history_limit: usize,
     stream: &mut DuplexStream,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     let now = unix_timestamp() as f64;
@@ -103,6 +104,7 @@ async fn flush_device_stream_events(
             }
         })
         .collect::<Vec<_>>();
+    pending_events.drain(..pending_events.len().saturating_sub(history_limit));
     pending_events.sort_by(|(_, left_expiration, left_event), (_, right_expiration, right_event)| {
         let priority = |event: &StreamEvent| match event {
             StreamEvent::Transactions(_) => 0,

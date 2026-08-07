@@ -6,6 +6,7 @@ use primitives::{PerpetualMarketData, PerpetualPosition};
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_f64_from_str, deserialize_option_f64_from_str};
 
+use super::balance::Balances;
 use super::candlestick::Candlestick;
 use super::order::OpenOrder;
 use super::position::AssetPositions;
@@ -15,6 +16,9 @@ use super::position::AssetPositions;
 pub enum RawSocketMessage {
     #[serde(rename = "clearinghouseState")]
     AccountState(AccountStateData),
+
+    #[serde(rename = "spotState")]
+    SpotState(SpotStateData),
 
     #[serde(rename = "openOrders")]
     OpenOrders(OpenOrdersData),
@@ -47,6 +51,12 @@ pub enum HyperliquidMethod {
 pub enum HyperliquidSubscription {
     #[serde(rename = "clearinghouseState")]
     AccountState {
+        #[serde(rename = "user")]
+        address: String,
+    },
+
+    #[serde(rename = "spotState")]
+    SpotState {
         #[serde(rename = "user")]
         address: String,
     },
@@ -118,6 +128,12 @@ pub struct AccountStateData {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpotStateData {
+    pub spot_state: Balances,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct OpenOrdersData {
     #[serde(rename = "user")]
     pub address: String,
@@ -143,12 +159,28 @@ pub struct PositionsDiff {
 
 #[derive(Debug)]
 pub enum HyperliquidSocketMessage {
-    AccountState { balance: PerpetualBalance, positions: Vec<PerpetualPosition> },
-    OpenOrders { orders: Vec<OpenOrder> },
-    Candle { candle: ChartCandleUpdate },
-    MarketData { market: PerpetualMarketData },
-    MarketPrices { prices: HashMap<String, f64> },
-    SubscriptionResponse { subscription_type: String },
+    AccountState {
+        balance: Option<PerpetualBalance>,
+        positions: Vec<PerpetualPosition>,
+    },
+    SpotState {
+        balance: PerpetualBalance,
+    },
+    OpenOrders {
+        orders: Vec<OpenOrder>,
+    },
+    Candle {
+        candle: ChartCandleUpdate,
+    },
+    MarketData {
+        market: PerpetualMarketData,
+    },
+    MarketPrices {
+        prices: HashMap<String, f64>,
+    },
+    SubscriptionResponse {
+        subscription_type: String,
+    },
     Unknown,
 }
 

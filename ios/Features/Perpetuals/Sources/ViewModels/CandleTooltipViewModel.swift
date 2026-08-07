@@ -2,12 +2,14 @@
 
 import Components
 import Formatters
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
 public struct CandleTooltipViewModel {
+    private let priceChangeCalculator = PriceChangeCalculator()
     private static let titleStyle = TextStyle(font: .caption2, color: Colors.secondaryText, fontWeight: .medium)
     private static let subtitleStyle = TextStyle(font: .caption2.monospacedDigit(), color: Colors.black, fontWeight: .semibold)
     private static let volumeFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: Currency.usd.rawValue)
@@ -49,7 +51,7 @@ public struct CandleTooltipViewModel {
     }
 
     var changeField: ListItemField {
-        let change = PriceChangeCalculator.calculate(.percentage(from: candle.open, to: candle.close))
+        let change = priceChangeCalculator.percentage(from: candle.open, to: candle.close)
         return ListItemField(
             title: TextValue(text: Localized.Charts.Price.change, style: Self.titleStyle, lineLimit: 1),
             value: TextValue(text: PercentFormatter.signed.string(change), style: TextStyle(font: .caption2.monospacedDigit(), color: PriceChangeColor.color(for: change), fontWeight: .semibold), lineLimit: 1),

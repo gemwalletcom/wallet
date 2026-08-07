@@ -1,4 +1,5 @@
 "common.cancel" = "منسوخ کریں۔";
+"common.hidden" = "پوشیدہ";
 "common.done" = "ہو گیا";
 "common.maximum_value" = "زیادہ سے زیادہ قدر %@ ہے";
 "common.minimum_value" = "کم از کم قدر %@ ہے";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "کم از کم تجارتی رقم %@ ہے۔ براہ کرم زیادہ رقم درج کریں۔";
 "errors.perpetual.trigger_price_lower" = "ٹرگر قیمت مارکیٹ قیمت سے کم ہونی چاہیے";
 "errors.perpetual.trigger_price_higher" = "ٹرگر قیمت مارکیٹ قیمت سے زیادہ ہونی چاہیے";
+"errors.no_internet_connection" = "انٹرنیٹ کنکشن نہیں ہے";
+"errors.no_service_connection" = "سروس کنکشن نہیں ہے";
+"errors.balances_activity_outdated" = "بیلنس اور سرگرمی پرانی ہو سکتی ہے۔";
 "activity.title" = "سرگرمی";
 "activity.state.empty.title" = "آپ کی سرگرمی یہاں ظاہر ہوگی۔";
 "activity.state.empty.description" = "اپنا پہلا لین دین کریں۔";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "نیٹ ورک فیس کے لیے محفوظ ہے";
 "info.stake.reserved.description" = "ایک چھوٹی سی رقم آپ کے والیٹ میں رہ جاتی ہے تاکہ ان کارروائیوں کے لیے فیس کو پورا کیا جا سکے جیسے کہ ان اسٹیکنگ یا انعامات کا دعویٰ کرنا۔";
 "info.stake.apr.description" = "سالانہ فیصدی شرح (APR) آپ کی کریپٹو کرنسی کو اسٹیک کرنے کے لیے سالانہ انعام کی شرح ہے۔";
+"info.stake_frozen_required_title" = "اسٹیک کرنے کے لیے TRX منجمد کریں";
+"info.stake_frozen_required_description" = "TRON پر اسٹیکنگ دو مراحل میں ہوتی ہے۔ پہلے TRX منجمد کریں، پھر انعامات کمانے کے لیے اسے اسٹیک کریں۔";
 "info.perpetual.auto_close.description" = "اپنی پوزیشن کو مقررہ قیمت کی سطح پر خودکار طور پر بند کریں۔ ٹیک پرافٹ منافع کو محفوظ کرتا ہے، اسٹاپ لاس نقصان کو محدود کرتا ہے۔";
 "info.fully_diluted_valuation.title" = "مکمل طور پر کمزور تشخیص";
 "info.fully_diluted_valuation.description" = "نظریاتی مارکیٹ کی قیمت اگر تمام سکے گردش میں تھے۔ قیمت کو زیادہ سے زیادہ سپلائی سے ضرب کے حساب سے شمار کیا جاتا ہے۔";

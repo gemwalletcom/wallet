@@ -3,12 +3,14 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
 public struct PnLViewModel {
+    private let priceChangeCalculator = PriceChangeCalculator()
     private let pnl: Double?
     private let marginAmount: Double
     private let currencyFormatter: CurrencyFormatter
@@ -41,7 +43,7 @@ public struct PnLViewModel {
 
     public var percent: Double {
         guard let pnl, marginAmount > 0 else { return 0 }
-        return PriceChangeCalculator.calculate(.percentage(from: marginAmount, to: marginAmount + pnl))
+        return priceChangeCalculator.percentage(from: marginAmount, to: marginAmount + pnl)
     }
 
     public var color: Color {

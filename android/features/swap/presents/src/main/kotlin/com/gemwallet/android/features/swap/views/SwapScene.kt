@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
+import com.gemwallet.android.ui.components.buttons.IndicatorButton
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.screen.MainActionWidth
 import com.gemwallet.android.ui.components.screen.Scene
@@ -54,6 +54,7 @@ internal fun SwapScene(
     swapDetails: SwapDetailsUIModel?,
     payValue: TextFieldState,
     receiveValue: TextFieldState,
+    showsSlippageIndicator: Boolean,
     onAction: (SwapSceneAction) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
@@ -66,13 +67,11 @@ internal fun SwapScene(
     Scene(
         title = stringResource(id = R.string.wallet_swap),
         actions = {
-            IconButton(onClick = { onAction(SwapSceneAction.Slippage) }) {
-                Icon(
-                    imageVector = AppIcons.Tune,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = null,
-                )
-            }
+            IndicatorButton(
+                imageVector = AppIcons.Tune,
+                showsIndicator = showsSlippageIndicator,
+                onClick = { onAction(SwapSceneAction.Slippage) },
+            )
         },
         mainActionWidth = if (isPercentBarVisible) MainActionWidth.FillWidth else MainActionWidth.Constrained,
         mainActionPadding = PaddingValues(

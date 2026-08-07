@@ -1,5 +1,5 @@
-use crate::jsonrpc::BlockParameter;
-use crate::{constants::STAKING_VALIDATORS_LIMIT, method, rpc::client::EthereumClient};
+use crate::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
+use crate::{constants::STAKING_VALIDATORS_LIMIT, rpc::client::EthereumClient};
 use alloy_primitives::hex;
 use chrono::{DateTime, Utc};
 use gem_bsc::stake_hub::{
@@ -17,17 +17,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         let limit = self.get_max_elected_validators().await?;
         let call_data = encode_validators_call(0, limit);
 
-        let call = (
-            method::ETH_CALL.to_string(),
-            serde_json::json!([{
-            "to": HUB_READER_ADDRESS,
-            "data": hex::encode_prefixed(&call_data)
-        }, serde_json::Value::from(BlockParameter::Latest)]),
-        );
-
-        let result: String = self.call(call.0, call.1).await?;
-        let result_data = hex::decode(result)?;
-        let validators = decode_validators_return(&result_data)?;
+        let validators = decode_validators_return(&self.eth_call(HUB_READER_ADDRESS, &call_data).await?)?;
 
         Ok(validators
             .into_iter()
@@ -127,24 +117,12 @@ impl<C: Client + Clone> EthereumClient<C> {
         let delegations_call_data = encode_delegations_call(address, 0, STAKING_VALIDATORS_LIMIT)?;
         let undelegations_call_data = encode_undelegations_call(address, 0, STAKING_VALIDATORS_LIMIT)?;
 
-        let calls = vec![
-            (
-                method::ETH_CALL.to_string(),
-                serde_json::json!([{
-                    "to": HUB_READER_ADDRESS,
-                    "data": hex::encode_prefixed(&delegations_call_data)
-                }, serde_json::Value::from(BlockParameter::Latest)]),
-            ),
-            (
-                method::ETH_CALL.to_string(),
-                serde_json::json!([{
-                    "to": HUB_READER_ADDRESS,
-                    "data": hex::encode_prefixed(&undelegations_call_data)
-                }, serde_json::Value::from(BlockParameter::Latest)]),
-            ),
+        let requests = vec![
+            EthereumRpc::Call(TransactionObject::new_call(HUB_READER_ADDRESS, delegations_call_data), BlockParameter::Latest),
+            EthereumRpc::Call(TransactionObject::new_call(HUB_READER_ADDRESS, undelegations_call_data), BlockParameter::Latest),
         ];
 
-        let results: Vec<String> = self.client.batch_call::<String>(calls).await?.take_all()?;
+        let results: Vec<String> = self.client.batch_request(requests).await?.take_all()?;
 
         let delegations_data = hex::decode(&results[0])?;
         let delegations = decode_delegations_return(&delegations_data)?;
@@ -156,16 +134,7 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     async fn get_max_elected_validators(&self) -> Result<u16, Box<dyn Error + Sync + Send>> {
-        let call = (
-            method::ETH_CALL.to_string(),
-            serde_json::json!([{
-                "to": STAKE_HUB_ADDRESS,
-                "data": "0xc473318f"
-            }, serde_json::Value::from(BlockParameter::Latest)]),
-        );
-
-        let result: String = self.call(call.0, call.1).await?;
-        let result_data = hex::decode(result.trim_start_matches("0x"))?;
+        let result_data = self.eth_call(STAKE_HUB_ADDRESS, &hex::decode("c473318f")?).await?;
 
         if result_data.len() >= 32 {
             let value = u32::from_be_bytes([result_data[28], result_data[29], result_data[30], result_data[31]]) as u16;

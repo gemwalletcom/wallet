@@ -24,7 +24,15 @@ impl ConfigStore for DatabaseClient {
 
     fn add_config(&mut self, configs: Vec<ConfigRow>) -> Result<usize, diesel::result::Error> {
         use crate::schema::config::dsl::*;
-        diesel::insert_into(config).values(&configs).on_conflict_do_nothing().execute(&mut self.connection)
+        diesel::insert_into(config)
+            .values(&configs)
+            .on_conflict(key)
+            .do_update()
+            .set((
+                value.eq(diesel::dsl::case_when(value.eq(default_value), diesel::upsert::excluded(value)).otherwise(value)),
+                default_value.eq(diesel::upsert::excluded(default_value)),
+            ))
+            .execute(&mut self.connection)
     }
 
     fn set_config(&mut self, config_key: &str, config_value: &str) -> Result<usize, diesel::result::Error> {

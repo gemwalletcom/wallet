@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
+import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
 import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
@@ -9,6 +10,7 @@ import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVi
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
+import com.gemwallet.android.data.coordinators.asset_select.GetChainAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchListAssetsImpl
@@ -16,6 +18,8 @@ import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsIm
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
 import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
@@ -30,14 +34,20 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideSearchSelectAssets(
-        assetsRepository: AssetsRepository,
-    ): SearchSelectAssets = SearchSelectAssetsImpl(assetsRepository)
+        searchService: AssetsSearchService,
+    ): SearchSelectAssets = SearchSelectAssetsImpl(searchService)
 
     @Provides
     @Singleton
     fun provideSearchListAssets(
+        searchService: AssetsSearchService,
+    ): SearchListAssets = SearchListAssetsImpl(searchService)
+
+    @Provides
+    @Singleton
+    fun provideGetChainAssets(
         assetsRepository: AssetsRepository,
-    ): SearchListAssets = SearchListAssetsImpl(assetsRepository)
+    ): GetChainAssets = GetChainAssetsImpl(assetsRepository)
 
     @Provides
     @Singleton
@@ -48,8 +58,8 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideGetRecentAssets(
-        assetsRepository: AssetsRepository,
-    ): GetRecentAssets = GetRecentAssetsImpl(assetsRepository)
+        recentAssetsService: RecentAssetsService,
+    ): GetRecentAssets = GetRecentAssetsImpl(recentAssetsService)
 
     @Provides
     @Singleton
@@ -62,13 +72,13 @@ object AssetSelectModule {
     @Singleton
     fun provideUpdateRecentAsset(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): UpdateRecentAsset = UpdateRecentAssetImpl(sessionRepository, assetsRepository)
+        recentAssetsService: RecentAssetsService,
+    ): UpdateRecentAsset = UpdateRecentAssetImpl(sessionRepository, recentAssetsService)
 
     @Provides
     @Singleton
     fun provideClearRecentAssets(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): ClearRecentAssets = ClearRecentAssetsImpl(sessionRepository, assetsRepository)
+        recentAssetsService: RecentAssetsService,
+    ): ClearRecentAssets = ClearRecentAssetsImpl(sessionRepository, recentAssetsService)
 }

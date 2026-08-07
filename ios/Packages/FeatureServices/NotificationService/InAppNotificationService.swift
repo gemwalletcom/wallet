@@ -5,20 +5,16 @@ import GemAPI
 import Preferences
 import Primitives
 import Store
-import WalletService
 
 public struct InAppNotificationService: Sendable {
     private let apiService: GemAPINotificationService
-    private let walletService: WalletService
     private let store: InAppNotificationStore
 
     public init(
         apiService: GemAPINotificationService = GemAPIService.shared,
-        walletService: WalletService,
         store: InAppNotificationStore,
     ) {
         self.apiService = apiService
-        self.walletService = walletService
         self.store = store
     }
 

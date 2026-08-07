@@ -16,9 +16,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +44,7 @@ import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.AssetsGroupType
@@ -80,7 +78,6 @@ internal fun PerpetualMarketScene(
     query: TextFieldState,
     onAction: (PerpetualMarketAction) -> Unit,
 ) {
-    val pullToRefreshState = rememberPullToRefreshState()
     val longPressedAsset = remember { mutableStateOf<PerpetualId?>(null) }
     var isSearching by rememberSaveable { mutableStateOf(false) }
     val showRecents = isSearching && query.text.isEmpty() && recent.isNotEmpty()
@@ -116,15 +113,6 @@ internal fun PerpetualMarketScene(
         PullToRefreshBox(
             isRefreshing = sceneState.isRefreshing,
             onRefresh = { onAction(PerpetualMarketAction.Refresh) },
-            state = pullToRefreshState,
-            indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = sceneState.isRefreshing,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            }
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()

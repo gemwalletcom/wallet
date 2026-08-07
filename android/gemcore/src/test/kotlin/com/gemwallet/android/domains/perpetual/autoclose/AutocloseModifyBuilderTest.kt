@@ -8,6 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.AutocloseValidation
 
 class AutocloseModifyBuilderTest {
 
@@ -15,7 +16,7 @@ class AutocloseModifyBuilderTest {
 
     @Test
     fun canBuildWithValidChange() {
-        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 110.0, originalPrice = 100.0, error = null)
+        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 110.0, originalPrice = 100.0)
         val stopLoss = mockAutocloseField(TpslType.StopLoss)
         assertTrue(builder.canBuild(takeProfit, stopLoss))
     }
@@ -29,22 +30,22 @@ class AutocloseModifyBuilderTest {
 
     @Test
     fun cannotBuildWithoutChanges() {
-        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 100.0, originalPrice = 100.0, error = null)
-        val stopLoss = mockAutocloseField(TpslType.StopLoss, price = 90.0, originalPrice = 90.0, error = null)
+        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 100.0, originalPrice = 100.0)
+        val stopLoss = mockAutocloseField(TpslType.StopLoss, price = 90.0, originalPrice = 90.0)
         assertFalse(builder.canBuild(takeProfit, stopLoss))
     }
 
     @Test
     fun cannotBuildWithInvalidPrice() {
-        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 50.0, originalPrice = 100.0, error = AutocloseError.TriggerMustBeHigher)
+        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 50.0, originalPrice = 100.0, validation = AutocloseValidation.TRIGGER_MUST_BE_HIGHER)
         val stopLoss = mockAutocloseField(TpslType.StopLoss)
         assertFalse(builder.canBuild(takeProfit, stopLoss))
     }
 
     @Test
     fun buildSetBothEmitsSingleTpslWithSizeZero() {
-        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 110.0, formattedPrice = "110.0", error = null)
-        val stopLoss = mockAutocloseField(TpslType.StopLoss, price = 90.0, formattedPrice = "90.0", error = null)
+        val takeProfit = mockAutocloseField(TpslType.TakeProfit, price = 110.0, formattedPrice = "110.0")
+        val stopLoss = mockAutocloseField(TpslType.StopLoss, price = 90.0, formattedPrice = "90.0")
 
         val result = builder.build(assetIndex = 5, takeProfit = takeProfit, stopLoss = stopLoss)
 
@@ -62,7 +63,6 @@ class AutocloseModifyBuilderTest {
             price = 120.0,
             formattedPrice = "120.0",
             originalPrice = 100.0,
-            error = null,
             orderId = 12345uL,
         )
         val stopLoss = mockAutocloseField(TpslType.StopLoss)

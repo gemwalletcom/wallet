@@ -228,7 +228,7 @@ extension CollectibleViewModel {
         case .send:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
                 type: .send(.nft(assetData.asset)),
-                assetAddress: AssetAddress(asset: account.chain.asset, address: account.address),
+                assetData: .with(asset: account.chain.asset, account: account),
             )
         case .buy, .sell, .receive, .swap, .stake, .more, .deposit, .withdraw:
             fatalError()

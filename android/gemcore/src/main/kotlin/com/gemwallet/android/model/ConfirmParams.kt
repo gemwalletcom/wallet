@@ -25,7 +25,6 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.swap.ApprovalData
 import kotlinx.serialization.Serializable
-import org.json.JSONObject
 import uniffi.gemstone.GemAccountDataType
 import uniffi.gemstone.GemApprovalData
 import uniffi.gemstone.GemResource
@@ -190,6 +189,7 @@ sealed class ConfirmParams() {
             val url: String,
             val icon: String,
             val gasLimit: String?,
+            val decodedTransactionType: TransactionType = TransactionType.SmartContractCall,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType {
                 val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }
@@ -238,6 +238,7 @@ sealed class ConfirmParams() {
                 result = 31 * result + url.hashCode()
                 result = 31 * result + icon.hashCode()
                 result = 31 * result + (gasLimit?.hashCode() ?: 0)
+                result = 31 * result + decodedTransactionType.hashCode()
                 return result
             }
 
@@ -638,7 +639,7 @@ sealed class ConfirmParams() {
 
     fun getTransactionType() : TransactionType {
         return when (this) {
-            is TransferParams.Generic -> TransactionType.SmartContractCall
+            is TransferParams.Generic -> decodedTransactionType
             is TransferParams -> TransactionType.Transfer
             is TokenApprovalParams -> TransactionType.TokenApproval
             is SwapParams -> TransactionType.Swap
@@ -678,26 +679,7 @@ sealed class ConfirmParams() {
         fun unpack(input: String): ConfirmParams? {
             return runCatching {
                 val json = String(Base64.getDecoder().decode(input.urlDecode()))
-                when (JSONObject(json).getString("type")) {
-                    TransferParams.Generic::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Generic>(json)
-                    TransferParams.Native::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Native>(json)
-                    TransferParams.Token::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Token>(json)
-                    TransferParams.Deposit::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Deposit>(json)
-                    TransferParams.Withdrawal::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Withdrawal>(json)
-                    SwapParams::class.qualifiedName -> jsonEncoder.decodeFromString<SwapParams>(json)
-                    TokenApprovalParams::class.qualifiedName -> jsonEncoder.decodeFromString<TokenApprovalParams>(json)
-                    Stake.DelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.DelegateParams>(json)
-                    Stake.UndelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.UndelegateParams>(json)
-                    Stake.RewardsParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.RewardsParams>(json)
-                    Stake.RedelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.RedelegateParams>(json)
-                    Stake.WithdrawParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.WithdrawParams>(json)
-                    Stake.Freeze::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.Freeze>(json)
-                    Stake.Unfreeze::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.Unfreeze>(json)
-                    Activate::class.qualifiedName -> jsonEncoder.decodeFromString<Activate>(json)
-                    NftParams::class.qualifiedName -> jsonEncoder.decodeFromString<NftParams>(json)
-                    PerpetualParams::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams>(json)
-                    else -> null
-                }
+                jsonEncoder.decodeFromString<ConfirmParams>(json)
             }.getOrNull()
         }
     }

@@ -1,0 +1,8 @@
+{
+  "account_id": "address.near",
+  "asset_id": "native:near",
+  "direction": "sender",
+  "desc": true,
+  "limit": 3,
+  "from_timestamp_ms": 1700000000000
+}

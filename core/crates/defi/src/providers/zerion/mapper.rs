@@ -2,7 +2,7 @@ use std::error::Error;
 
 use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 
-use super::client::ZerionClient;
+use super::client::chain_id;
 use super::model::{ZerionFungibleInfo, ZerionPosition, ZerionPositionAttributes, ZerionPositionsResponse};
 
 pub fn map_positions(response: ZerionPositionsResponse, chain: Chain) -> Result<Vec<DefiPosition>, Box<dyn Error + Send + Sync>> {
@@ -34,7 +34,7 @@ pub fn map_positions(response: ZerionPositionsResponse, chain: Chain) -> Result<
 }
 
 fn position_id(id: &str, chain: Chain) -> Result<String, Box<dyn Error + Send + Sync>> {
-    let chain_id = ZerionClient::chain_id(&chain)?;
+    let chain_id = chain_id(&chain)?;
     let marker = format!("-{}-", chain_id);
     let id = id.split_once(&marker).map(|(_, suffix)| format!("{chain_id}-{suffix}")).unwrap_or_else(|| id.to_string());
 
@@ -83,7 +83,7 @@ fn map_position_type(attributes: &ZerionPositionAttributes) -> DefiPositionType 
 }
 
 fn map_asset_id(fungible_info: &ZerionFungibleInfo, chain: Chain) -> Result<AssetId, Box<dyn Error + Send + Sync>> {
-    let chain_id = ZerionClient::chain_id(&chain)?;
+    let chain_id = chain_id(&chain)?;
     let implementation = fungible_info
         .implementations
         .iter()

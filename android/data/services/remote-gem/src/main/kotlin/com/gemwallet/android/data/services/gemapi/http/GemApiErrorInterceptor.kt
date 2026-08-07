@@ -9,6 +9,8 @@ class GemApiErrorInterceptor : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val response = chain.proceed(chain.request())
+        if (response.code == 101) return response
+
         val responseBody = response.peekBody(64L * 1024)
 
         ResponseError.parseOrNull(responseBody.string())?.let { error ->

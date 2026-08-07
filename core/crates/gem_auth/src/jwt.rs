@@ -42,13 +42,14 @@ pub fn verify_device_token(token: &str, secret: &str) -> Result<JwtClaims, jsonw
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::HOUR;
 
     const TEST_SECRET: &str = "test_secret_key_1234567890123456";
 
     #[test]
     fn test_create_and_verify() {
         let device_id = "abc123";
-        let (token, expires_at) = create_device_token(device_id, TEST_SECRET, Duration::from_secs(3600)).unwrap();
+        let (token, expires_at) = create_device_token(device_id, TEST_SECRET, HOUR).unwrap();
         let claims = verify_device_token(&token, TEST_SECRET).unwrap();
 
         assert_eq!(claims.sub, device_id);
@@ -57,14 +58,33 @@ mod tests {
     }
 
     #[test]
+    fn test_hs256_compatibility_vector() {
+        let claims = JwtClaims {
+            sub: "device1".to_string(),
+            exp: 4_102_444_800,
+            iat: 1_700_000_000,
+        };
+        let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(TEST_SECRET.as_bytes())).unwrap();
+
+        assert_eq!(
+            token,
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZXZpY2UxIiwiZXhwIjo0MTAyNDQ0ODAwLCJpYXQiOjE3MDAwMDAwMDB9.2i0jadcYcpDYrMzdGvPb8fJ_EQ3m39oZ5PaZzQlLnxM"
+        );
+        let decoded = verify_device_token(&token, TEST_SECRET).unwrap();
+        assert_eq!(decoded.sub, claims.sub);
+        assert_eq!(decoded.exp, claims.exp);
+        assert_eq!(decoded.iat, claims.iat);
+    }
+
+    #[test]
     fn test_wrong_secret() {
-        let (token, _) = create_device_token("device1", TEST_SECRET, Duration::from_secs(3600)).unwrap();
+        let (token, _) = create_device_token("device1", TEST_SECRET, HOUR).unwrap();
         assert!(verify_device_token(&token, "wrong_secret_key_123456789012345").is_err());
     }
 
     #[test]
     fn test_short_secret() {
-        let create_error = create_device_token("device1", &"a".repeat(MIN_SECRET_LENGTH - 1), Duration::from_secs(3600)).unwrap_err();
+        let create_error = create_device_token("device1", &"a".repeat(MIN_SECRET_LENGTH - 1), HOUR).unwrap_err();
         let verify_error = verify_device_token("token", "").unwrap_err();
 
         assert_eq!(*create_error.kind(), ErrorKind::InvalidKeyFormat);

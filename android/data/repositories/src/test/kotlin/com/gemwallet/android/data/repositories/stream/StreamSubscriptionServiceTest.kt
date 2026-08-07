@@ -1,7 +1,8 @@
 package com.gemwallet.android.data.repositories.stream
 
+import com.gemwallet.android.data.repositories.assets.visibleByDefault
+import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StreamMessage
@@ -17,17 +18,17 @@ import org.junit.Test
 class StreamSubscriptionServiceTest {
 
     private val assetsDao = mockk<AssetsDao>()
-    private val priceAlertsDao = mockk<PriceAlertsDao>()
+    private val priceAlertRepository = mockk<PriceAlertRepository>()
 
     private fun service() = StreamSubscriptionService(
         assetsDao = assetsDao,
-        priceAlertsDao = priceAlertsDao,
+        priceAlertRepository = priceAlertRepository,
     )
 
     @Test
     fun `setupAssets enqueues subscribe message`() = runTest {
         coEvery { assetsDao.getAssetsPriceUpdate("wallet-1") } returns listOf("bitcoin")
-        every { priceAlertsDao.getAlerts() } returns flowOf(emptyList())
+        every { priceAlertRepository.getPriceAlertAssetIds() } returns flowOf(emptyList())
         val service = service()
 
         service.setupAssets(WalletId("wallet-1"))
@@ -37,9 +38,21 @@ class StreamSubscriptionServiceTest {
     }
 
     @Test
+    fun `setupAssets falls back to default assets`() = runTest {
+        coEvery { assetsDao.getAssetsPriceUpdate("wallet-1") } returns emptyList()
+        every { priceAlertRepository.getPriceAlertAssetIds() } returns flowOf(emptyList())
+        val service = service()
+
+        service.setupAssets(WalletId("wallet-1"))
+
+        val subscribe = service.messages.receive() as StreamMessage.SubscribePrices
+        assertEquals(visibleByDefault, subscribe.data.assets)
+    }
+
+    @Test
     fun `messages sent before consumer attaches are buffered`() = runTest {
         coEvery { assetsDao.getAssetsPriceUpdate("wallet-1") } returns listOf("bitcoin")
-        every { priceAlertsDao.getAlerts() } returns flowOf(emptyList())
+        every { priceAlertRepository.getPriceAlertAssetIds() } returns flowOf(emptyList())
         val service = service()
 
         service.setupAssets(WalletId("wallet-1"))
@@ -53,7 +66,7 @@ class StreamSubscriptionServiceTest {
 
     @Test
     fun `addAssetIds skips already subscribed ids`() = runTest {
-        every { priceAlertsDao.getAlerts() } returns flowOf(emptyList())
+        every { priceAlertRepository.getPriceAlertAssetIds() } returns flowOf(emptyList())
         val service = service()
 
         val id = AssetId(Chain.Ethereum)

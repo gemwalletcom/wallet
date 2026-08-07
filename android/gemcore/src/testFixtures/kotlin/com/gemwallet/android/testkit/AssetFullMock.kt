@@ -1,6 +1,7 @@
 package com.gemwallet.android.testkit
 
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
@@ -16,6 +17,7 @@ fun mockAssetFull(
     score: AssetScore = AssetScore(rank = 100),
     tags: List<String> = emptyList(),
     links: List<AssetLink> = emptyList(),
+    associations: List<AssetAssociation> = emptyList(),
     perpetuals: List<PerpetualBasic> = emptyList(),
     price: Price? = null,
     market: AssetMarket? = null,
@@ -25,6 +27,7 @@ fun mockAssetFull(
     score = score,
     tags = tags,
     links = links,
+    associations = associations,
     perpetuals = perpetuals,
     price = price,
     market = market,

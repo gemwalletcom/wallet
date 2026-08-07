@@ -40,7 +40,7 @@ pub struct ProxyRocketResponse(pub ProxyResponse);
 #[rocket::async_trait]
 impl<'r> Responder<'r, 'static> for ProxyRocketResponse {
     fn respond_to(self, _: &'r Request<'_>) -> rocket::response::Result<'static> {
-        let ProxyResponse { status, headers, body } = self.0;
+        let ProxyResponse { status, headers, body, .. } = self.0;
 
         let mut builder = Response::build();
         let status = Status::from_code(status).unwrap_or(Status::Ok);

@@ -4,11 +4,11 @@ use async_trait::async_trait;
 use chain_traits::ChainTransactionState;
 use primitives::{TransactionStateRequest, TransactionUpdate};
 
-use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::SuiClient};
+use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::SuiProvider};
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl ChainTransactionState for SuiClient {
+impl ChainTransactionState for SuiProvider {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn std::error::Error + Sync + Send>> {
         let transaction = self.get_transaction(request.id).await?;
         Ok(map_transaction_status(transaction))

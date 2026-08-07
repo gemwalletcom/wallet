@@ -5,8 +5,8 @@ use crate::models::account::Balances;
 use crate::models::staking::{Delegations, Rewards, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
 use crate::models::{
-    BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, StakingPoolResponse, SupplyResponse, TransactionResponse, TransactionsResponse,
-    ValidatorsResponse,
+    AnnualProvisionsResponse, BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, StakingPoolResponse, SupplyResponse,
+    TransactionResponse, TransactionsResponse, ValidatorsResponse,
 };
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
@@ -36,21 +36,17 @@ impl<C: Client> CosmosClient<C> {
 
     pub async fn get_transactions_by_address_with_limit(&self, address: &str, limit: usize) -> Result<Vec<TransactionResponse>, Box<dyn Error + Send + Sync>> {
         let query_name = match self.chain {
-            CosmosChain::Cosmos => Some("query"),
-            CosmosChain::Osmosis => Some("query"),
-            CosmosChain::Celestia => Some("events"),
-            CosmosChain::Thorchain | CosmosChain::Mayachain => None,
-            CosmosChain::Injective => Some("query"),
-            CosmosChain::Sei => Some("events"),
-            CosmosChain::Noble => Some("query"),
+            CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Injective | CosmosChain::Noble => "query",
+            CosmosChain::Sei => "events",
+            CosmosChain::Thorchain | CosmosChain::Mayachain => return Ok(vec![]),
         };
-        if query_name.is_none() {
-            return Ok(vec![]);
-        }
-        let query_name = query_name.unwrap();
 
-        let inbound = self.get_transactions_by_query(query_name, &format!("message.sender='{address}'"), limit).await?;
-        let outbound = self.get_transactions_by_query(query_name, &format!("message.recipient='{address}'"), limit).await?;
+        let inbound_query = format!("message.sender='{address}'");
+        let outbound_query = format!("message.recipient='{address}'");
+        let (inbound, outbound) = futures::try_join!(
+            self.get_transactions_by_query(query_name, &inbound_query, limit),
+            self.get_transactions_by_query(query_name, &outbound_query, limit),
+        )?;
         let responses = inbound.tx_responses.into_iter().chain(outbound.tx_responses).collect::<Vec<_>>();
         let txs = inbound.txs.into_iter().chain(outbound.txs).collect::<Vec<_>>();
         Ok(responses
@@ -82,6 +78,10 @@ impl<C: Client> CosmosClient<C> {
 
     pub async fn get_inflation(&self) -> Result<InflationResponse, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get("/cosmos/mint/v1beta1/inflation").await?)
+    }
+
+    pub async fn get_celestia_annual_provisions(&self) -> Result<AnnualProvisionsResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get("/cosmos/mint/v1beta1/annual_provisions").await?)
     }
 
     pub async fn get_supply_by_denom(&self, denom: &str) -> Result<SupplyResponse, Box<dyn Error + Send + Sync>> {
@@ -152,6 +152,42 @@ impl<C: Client> ChainAddressStatus for CosmosClient<C> {}
 impl<C: Client> ChainSimulation for CosmosClient<C> {}
 
 impl<C: Client> ChainTraits for CosmosClient<C> {}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
+    use gem_client::testkit::MockClient;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_celestia_transactions_by_address() {
+        let request_count = Arc::new(AtomicUsize::new(0));
+        let request_count_for_client = request_count.clone();
+        let client = MockClient::new().with_get(move |path| {
+            let address = "celestia1cvh8mpz04az0x7vht6h6ekksg8wd650rq0wm5l";
+            let expected_path = match request_count_for_client.fetch_add(1, Ordering::SeqCst) {
+                0 => format!("/cosmos/tx/v1beta1/txs?query=message.sender='{address}'&pagination.limit=1&page=1"),
+                1 => format!("/cosmos/tx/v1beta1/txs?query=message.recipient='{address}'&pagination.limit=1&page=1"),
+                _ => panic!("unexpected request"),
+            };
+            assert_eq!(path, expected_path);
+            Ok(include_str!("../../testdata/empty_transactions.json").as_bytes().to_vec())
+        });
+
+        let transactions = CosmosClient::new(CosmosChain::Celestia, client)
+            .get_transactions_by_address_with_limit("celestia1cvh8mpz04az0x7vht6h6ekksg8wd650rq0wm5l", 1)
+            .await
+            .unwrap();
+
+        assert_eq!(transactions.len(), 0);
+        assert_eq!(request_count.load(Ordering::SeqCst), 2);
+    }
+}
 
 impl<C: Client> chain_traits::ChainProvider for CosmosClient<C> {
     fn get_chain(&self) -> primitives::Chain {

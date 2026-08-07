@@ -14,7 +14,7 @@ import ScanService
 import Store
 import Style
 import SwiftUI
-import WalletService
+import WalletSessionService
 
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
@@ -27,9 +27,8 @@ public final class RecipientSceneViewModel {
 
     public let onTransferAction: TransferDataAction
 
-    private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
     private let onRecipientDataAction: RecipientDataAction
-    private let formatter = ValueFormatter(style: .full)
     private let assetImageFormatter: AssetImageFormatter
 
     public var isPresentingScanner: RecipientScene.Field?
@@ -45,7 +44,7 @@ public final class RecipientSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         nameService: any NameServiceable,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
@@ -54,7 +53,7 @@ public final class RecipientSceneViewModel {
     ) {
         self.wallet = wallet
         self.asset = asset
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.assetImageFormatter = assetImageFormatter
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
@@ -204,7 +203,7 @@ extension RecipientSceneViewModel {
             case let .nft(asset): .transferNft(asset)
             }
 
-            let value = try formatter.inputNumber(from: amount, decimals: asset.decimals.asInt)
+            let value = try BigNumberFormatter.standard.number(from: amount, decimals: asset.decimals.asInt)
             let recipientData = RecipientData(
                 recipient: Recipient(
                     name: .none,
@@ -214,7 +213,7 @@ extension RecipientSceneViewModel {
                 amount: .none,
             )
             return .transferData(
-                TransferData(type: transferType, recipientData: recipientData, value: value, canChangeValue: false),
+                TransferData(type: transferType, recipientData: recipientData, amount: .exact(value)),
             )
         }
 
@@ -227,7 +226,7 @@ extension RecipientSceneViewModel {
             ContactRecipientSectionViewModel(contacts: contacts).listItems
         case .pinned, .wallets, .view:
             WalletRecipientSectionViewModel(
-                wallets: walletService.wallets.filter { $0.id != wallet.id },
+                wallets: walletSessionService.wallets.filter { $0.id != wallet.id },
                 section: section,
                 chain: asset.chain,
             ).listItems
@@ -272,7 +271,7 @@ extension RecipientSceneViewModel {
         case .asset:
             onRecipientDataAction?(recipientData)
         case let .nft(asset):
-            handle(transferData: TransferData(type: .transferNft(asset), recipientData: recipientData, value: .zero, canChangeValue: true))
+            handle(transferData: TransferData(type: .transferNft(asset), recipientData: recipientData, amount: .exact(.zero)))
         }
     }
 

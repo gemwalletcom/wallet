@@ -50,6 +50,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Formatters",
+                .product(name: "GemstoneFormatters", package: "Formatters"),
                 "Localization",
                 "Style",
                 "Components",
@@ -69,7 +70,7 @@ let package = Package(
                 "EventPresenterService",
 
                 .product(name: "ChainService", package: "ChainServices"),
-                .product(name: "WalletService", package: "FeatureServices"),
+                .product(name: "WalletSessionService", package: "FeatureServices"),
                 .product(name: "NodeService", package: "ChainServices"),
                 .product(name: "TransactionStateService", package: "FeatureServices"),
                 .product(name: "ScanService", package: "ChainServices"),
@@ -106,7 +107,8 @@ let package = Package(
                 .product(name: "ScanServiceTestKit", package: "ChainServices"),
                 .product(name: "SwapServiceTestKit", package: "FeatureServices"),
                 .product(name: "KeystoreTestKit", package: "Keystore"),
-                .product(name: "WalletServiceTestKit", package: "FeatureServices"),
+                .product(name: "WalletSessionService", package: "FeatureServices"),
+                .product(name: "WalletSessionServiceTestKit", package: "FeatureServices"),
                 .product(name: "NameServiceTestKit", package: "ChainServices"),
                 .product(name: "NodeServiceTestKit", package: "ChainServices"),
                 .product(name: "PriceServiceTestKit", package: "FeatureServices"),

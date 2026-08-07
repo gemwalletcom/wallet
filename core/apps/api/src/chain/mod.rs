@@ -3,6 +3,7 @@ pub mod block;
 pub mod client;
 pub mod defi;
 pub mod nft;
+pub mod node;
 pub mod staking;
 pub mod swap;
 pub mod token;

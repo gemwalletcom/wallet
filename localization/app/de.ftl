@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Abbrechen
+common_hidden = Ausgeblendet
 common_done = Erledigt
 common_maximum_value = Maximaler Wert ist %@
 common_minimum_value = Minimaler Wert ist %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Token-Informationen konnten nicht 
 errors_unknown_try_again = Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.
 errors_network_error = Netzwerkfehler: %@
 errors_network_offline = Die Internetverbindung scheint unterbrochen zu sein.
+errors_no_internet_connection = Keine Internetverbindung
+errors_no_service_connection = Keine Serviceverbindung
+errors_balances_activity_outdated = Guthaben und Aktivität sind möglicherweise nicht aktuell.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Für das ausgewählte Token-Paar kann kein Angebot z
 info_stake_reserved_title = Reserviert für Netzwerkgebühr
 info_stake_reserved_description = Ein kleiner Betrag verbleibt in Ihrem Wallet, um Gebühren für Vorgänge wie das Aufheben der Absteckung oder das Einfordern von Prämien zu decken.
 info_stake_apr_description = Der effektive Jahreszins (APR) ist der jährliche Belohnungssatz für das Staking Ihrer Kryptowährung.
+info_stake_frozen_required_title = TRX zum Staking einfrieren
+info_stake_frozen_required_description = Staking auf TRON erfolgt in zwei Schritten. Friere zuerst TRX ein und stake es dann, um Belohnungen zu verdienen.
 info_perpetual_auto_close_description = Schließen Sie Ihre Position automatisch bei festgelegten Preisniveaus. Take Profit sichert Gewinne, Stop Loss begrenzt Verluste.
 info_fully_diluted_valuation_title = Vollständig verwässerte Bewertung
 info_fully_diluted_valuation_description = Der theoretische Marktwert, wenn alle Münzen im Umlauf wären. Berechnet als Preis multipliziert mit der maximalen Gesamtmenge.

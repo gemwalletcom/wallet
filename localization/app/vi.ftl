@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Hủy bỏ
+common_hidden = Đã ẩn
 common_done = Xong
 common_maximum_value = Giá trị tối đa là %@
 common_minimum_value = Giá trị tối thiểu là %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Không thể tìm nạp thông tin
 errors_unknown_try_again = Đã xảy ra lỗi không xác định. Vui lòng thử lại.
 errors_network_error = Lỗi mạng: %@
 errors_network_offline = Kết nối Internet dường như đang bị ngắt.
+errors_no_internet_connection = Không có kết nối internet
+errors_no_service_connection = Không có kết nối dịch vụ
+errors_balances_activity_outdated = Số dư và hoạt động có thể chưa được cập nhật.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Không thể trả về báo giá cho cặp mã thô
 info_stake_reserved_title = Dành riêng cho Phí mạng
 info_stake_reserved_description = Một số tiền nhỏ sẽ được giữ lại trong ví của bạn để trang trải phí cho các hoạt động như hủy đặt cọc hoặc nhận phần thưởng.
 info_stake_apr_description = Tỷ lệ phần trăm hàng năm (APR) là tỷ lệ phần thưởng hàng năm cho việc đặt cược tiền điện tử của bạn.
+info_stake_frozen_required_title = Đóng băng TRX để đặt cọc
+info_stake_frozen_required_description = Đặt cọc trên TRON gồm hai bước. Trước tiên hãy đóng băng TRX, sau đó đặt cọc để nhận phần thưởng.
 info_perpetual_auto_close_description = Tự động đóng vị thế của bạn ở mức giá đã đặt. Chốt lời khóa lợi nhuận, Cắt lỗ hạn chế thua lỗ.
 info_fully_diluted_valuation_title = Định giá sau khi pha loãng hoàn toàn
 info_fully_diluted_valuation_description = Giá trị thị trường lý thuyết nếu tất cả các đồng tiền đều được lưu thông. Được tính bằng giá nhân với nguồn cung tối đa.

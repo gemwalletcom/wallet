@@ -2,7 +2,8 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use gem_tracing::info_with_fields;
-use pricer::{PriceClient, PriceProviders};
+use pricer::PriceClient;
+use prices::PriceProviders;
 use streamer::{FetchPricesPayload, consumer::MessageConsumer};
 
 pub struct FetchPricesConsumer {

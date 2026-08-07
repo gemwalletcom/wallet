@@ -34,6 +34,7 @@ private const val ASSET_INFO_COLUMNS = """
     asset.staking_apr AS stakingApr,
     asset.rank AS assetRank,
     asset.chain AS chain,
+    asset.associations AS associations,
     accounts.address AS address,
     accounts.derivation_path AS derivationPath,
     accounts.extendedPublicKey AS extendedPublicKey,
@@ -235,6 +236,12 @@ interface AssetsDao {
 
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank > 0 ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfo(walletId: String): Flow<List<DbAssetInfo>>
+
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
+    fun getAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
+
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible = 0 AND assetRank > 0 AND balanceTotalAmount > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
+    fun getHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
     @Query("SELECT * FROM $ASSET_INFO WHERE id IN (:ids) AND walletId = :walletId ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfo(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>

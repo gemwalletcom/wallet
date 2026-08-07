@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Скасувати</string>
+  <string name="common_hidden">Приховані</string>
   <string name="common_done">Готово</string>
   <string name="common_maximum_value">Максимальне значення %1$s</string>
   <string name="common_minimum_value">Мінімальне значення %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">Сталася невідома помилка. Будь ласка, спробуйте ще раз.</string>
   <string name="errors_network_error">Помилка мережі: %1$s</string>
   <string name="errors_network_offline">Здається, підключення до Інтернету відсутнє.</string>
+  <string name="errors_no_internet_connection">Немає підключення до інтернету</string>
+  <string name="errors_no_service_connection">Немає підключення до сервісу</string>
+  <string name="errors_balances_activity_outdated">Баланси та активність можуть бути застарілими.</string>
   <string name="activity_title">Активність</string>
   <string name="activity_state_empty_title">Ваша активність відображатиметься тут</string>
   <string name="activity_state_empty_description">Зробіть свою першу транзакцію</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">Зарезервовано для комісії мережі</string>
   <string name="info_stake_reserved_description">Невелика сума залишається у вашому гаманці для покриття комісій за такі операції, як зняття коштів зі стейкінгу або отримання винагород.</string>
   <string name="info_stake_apr_description">Річна процентна ставка (APR) – це річна ставка винагороди за стейкінг вашої криптовалюти.</string>
+  <string name="info_stake_frozen_required_title">Заморозьте TRX для стейкінгу</string>
+  <string name="info_stake_frozen_required_description">Стейкінг у TRON складається з двох кроків. Спершу заморозьте TRX, а потім застейкайте його, щоб отримувати винагороди.</string>
   <string name="info_perpetual_auto_close_description">Автоматично закривайте свою позицію за встановленими ціновими рівнями. Тейк-профіт фіксує прибутки, а стоп-лос обмежує збитки.</string>
   <string name="info_fully_diluted_valuation_title">Повністю розбавлена оцінка</string>
   <string name="info_fully_diluted_valuation_description">Теоретична ринкова вартість, якби всі монети були в обігу. Розраховується як ціна, помножена на максимальну пропозицію.</string>

@@ -30,7 +30,7 @@ Before editing any of the following, confirm the task explicitly intends to chan
 
 ## Cross-Platform Rule
 
-- If a security-sensitive behavior is shared through `core/`, regenerate bindings and verify both iOS and Android
+- If a security-sensitive Core change affects mobile interfaces, generated outputs, platform build inputs, or app-side integration, regenerate bindings and verify the affected apps
 - If only one app changes a shared security or transaction flow, call out the parity risk explicitly
 
 ## Optional External Security Skills
@@ -50,4 +50,4 @@ Before finishing a security-sensitive change, check:
 2. Transaction inputs and outputs remain explicit, validated, and correctly typed
 3. Existing auth and confirmation gates still execute on every required path
 4. New external-input handling is validated against malformed or hostile input
-5. Both platforms were verified if shared `core/` behavior changed
+5. Affected platforms were verified when mobile interfaces, generated outputs, platform build inputs, or app-side integration changed

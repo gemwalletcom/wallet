@@ -22,6 +22,7 @@ public struct ImportWalletNavigationStack: View {
                     ImportWalletScene(
                         model: ImportWalletSceneViewModel(
                             walletService: model.walletService,
+                            walletSessionService: model.walletSessionService,
                             nameService: model.nameService,
                             type: type,
                             onComplete: { @MainActor result in onImportResult(result) },

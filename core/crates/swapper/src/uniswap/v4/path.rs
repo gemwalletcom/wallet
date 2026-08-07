@@ -83,11 +83,11 @@ pub fn build_quote_exact_params(
         .collect()
 }
 
-pub fn get_intermediary_token(quote_exact_params: &[Vec<(Vec<TokenPair>, QuoteExactParams)>], batch_idx: usize) -> Option<Address> {
-    if batch_idx == 0 {
+pub fn get_intermediary_token(quote_exact_params: &[Vec<(Vec<TokenPair>, QuoteExactParams)>], route_idx: usize) -> Option<Address> {
+    if route_idx == 0 {
         return None;
     }
-    let batch = quote_exact_params.get(batch_idx - 1)?;
+    let batch = quote_exact_params.get(route_idx - 1)?;
     let (token_pairs, _) = batch.first()?;
     let first_hop = token_pairs.first()?;
     Some(first_hop.token_out)

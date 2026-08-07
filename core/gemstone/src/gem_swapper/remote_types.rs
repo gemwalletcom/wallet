@@ -1,5 +1,6 @@
-use primitives::{AssetId, Chain};
 use std::str::FromStr;
+
+use primitives::{AssetId, Chain};
 pub use swapper::{
     AssetList as SwapperAssetList, FetchQuoteData, Options as SwapperOptions, ProviderData as SwapperProviderData, ProviderType as SwapperProviderType, Quote as SwapperQuote,
     QuoteRequest as SwapperQuoteRequest, Route as SwapperRoute, SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode, SwapperSwapResult,
@@ -7,25 +8,6 @@ pub use swapper::{
 };
 
 pub use crate::models::swap::GemSwapQuoteData;
-
-#[derive(Debug, Clone, PartialEq, uniffi::Object)]
-pub struct SwapProviderConfig(SwapperProviderType);
-
-#[uniffi::export]
-impl SwapProviderConfig {
-    #[uniffi::constructor]
-    pub fn new(id: SwapperProvider) -> Self {
-        Self(SwapperProviderType::new(id))
-    }
-    #[uniffi::constructor]
-    pub fn from_string(id: String) -> Self {
-        let id = SwapperProvider::from_str(&id).unwrap();
-        Self(SwapperProviderType::new(id))
-    }
-    pub fn inner(&self) -> SwapperProviderType {
-        self.0.clone()
-    }
-}
 
 #[uniffi::remote(Enum)]
 pub enum FetchQuoteData {
@@ -173,4 +155,20 @@ fn swapper_provider_from_str(s: &str) -> Option<SwapperProvider> {
 #[uniffi::export]
 fn swapper_provider_to_str(provider: SwapperProvider) -> String {
     provider.as_ref().to_string()
+}
+
+#[uniffi::export]
+fn swapper_provider_config(provider: SwapperProvider) -> SwapperProviderType {
+    SwapperProviderType::new(provider)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_swapper_provider_from_str() {
+        assert_eq!(swapper_provider_from_str("stonfi_v2"), Some(SwapperProvider::StonfiV2));
+        assert_eq!(swapper_provider_from_str("dedust"), None);
+    }
 }

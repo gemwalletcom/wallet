@@ -1,7 +1,9 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
+import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualAccountMode
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidEventHandler
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
@@ -23,6 +25,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 import uniffi.gemstone.Hyperliquid
 
@@ -73,16 +76,24 @@ object PerpetualModule {
     @Singleton
     fun provideHyperliquidObserverService(
         observePerpetualWallet: ObservePerpetualWallet,
+        syncPerpetuals: SyncPerpetuals,
         syncPerpetualPositions: SyncPerpetualPositions,
+        getPerpetualAccountMode: GetPerpetualAccountMode,
+        hyperliquid: Hyperliquid,
         eventHandler: HyperliquidEventHandler,
         subscriptionService: HyperliquidSubscriptionService,
         getNodeUrlCase: GetNodeUrlCase,
+        okHttpClient: OkHttpClient,
     ): HyperliquidObserverService = HyperliquidObserverService(
         observePerpetualWallet = observePerpetualWallet,
+        syncPerpetuals = syncPerpetuals,
         syncPerpetualPositions = syncPerpetualPositions,
+        getPerpetualAccountMode = getPerpetualAccountMode,
+        hyperliquid = hyperliquid,
         eventHandler = eventHandler,
         subscriptionService = subscriptionService,
         connection = WebSocketConnection(
+            client = okHttpClient,
             requestProvider = {
                 val url = getNodeUrlCase.getNodeUrl(Chain.HyperCore)
                 WebSocketRequest(url = url.toWebSocketUrl())

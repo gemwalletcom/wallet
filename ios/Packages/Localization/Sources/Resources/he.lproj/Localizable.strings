@@ -1,4 +1,5 @@
 "common.cancel" = "לְבַטֵל";
+"common.hidden" = "מוסתרים";
 "common.done" = "בוצע";
 "common.maximum_value" = "הערך המקסימלי הוא %@";
 "common.minimum_value" = "הערך המינימלי הוא %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "סכום המסחר המינימלי הוא %@. אנא הזן סכום גבוה יותר.";
 "errors.perpetual.trigger_price_lower" = "מחיר ההפעלה צריך להיות נמוך ממחיר השוק";
 "errors.perpetual.trigger_price_higher" = "מחיר ההפעלה צריך להיות גבוה ממחיר השוק";
+"errors.no_internet_connection" = "אין חיבור לאינטרנט";
+"errors.no_service_connection" = "אין חיבור לשירות";
+"errors.balances_activity_outdated" = "היתרות והפעילות עשויות להיות לא מעודכנות.";
 "activity.title" = "פעילות";
 "activity.state.empty.title" = "הפעילות שלך תופיע כאן";
 "activity.state.empty.description" = "בצעו את העסקה הראשונה שלכם";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "שמור עבור דמי רשת";
 "info.stake.reserved.description" = "סכום קטן נשאר בארנק שלך כדי לכסות עמלות עבור פעולות כמו ביטול הפקדה או תביעת תגמולים.";
 "info.stake.apr.description" = "שיעור אחוז שנתי (APR) הוא שיעור התגמול השנתי עבור הפקדת מטבע הקריפטו שלך.";
+"info.stake_frozen_required_title" = "הקפא TRX כדי לבצע סטייקינג";
+"info.stake_frozen_required_description" = "סטייקינג ב-TRON נעשה בשני שלבים. תחילה הקפא TRX, ולאחר מכן בצע עליו סטייקינג כדי להרוויח תגמולים.";
 "info.perpetual.auto_close.description" = "סגור אוטומטית את הפוזיציה שלך ברמות מחיר קבועות. Take Profit נועל רווחים, Stop Loss מגביל הפסדים.";
 "info.fully_diluted_valuation.title" = "הערכה מדוללת לחלוטין";
 "info.fully_diluted_valuation.description" = "שווי השוק התיאורטי אם כל המטבעות היו במחזור. מחושב כמחיר כפול היצע מקסימלי.";

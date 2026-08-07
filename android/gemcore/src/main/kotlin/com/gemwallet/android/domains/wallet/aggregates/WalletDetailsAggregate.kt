@@ -12,4 +12,7 @@ interface WalletDetailsAggregate {
     val walletChain: Chain?
     val accounts: List<ChainAddress>
     val imageUrl: String?
+
+    val hasAvatar: Boolean
+        get() = !imageUrl.isNullOrEmpty()
 }

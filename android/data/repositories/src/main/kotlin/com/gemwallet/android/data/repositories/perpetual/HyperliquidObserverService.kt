@@ -1,13 +1,17 @@
 package com.gemwallet.android.data.repositories.perpetual
 
 import android.util.Log
+import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualAccountMode
 import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.data.repositories.stream.WebSocketConnectable
 import com.gemwallet.android.data.repositories.stream.WebSocketEvent
+import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.hyperliquidAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
+import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,10 +23,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPerpetualSubscription
+import uniffi.gemstone.Hyperliquid
 
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
+    private val syncPerpetuals: SyncPerpetuals,
     private val syncPerpetualPositions: SyncPerpetualPositions,
+    private val getPerpetualAccountMode: GetPerpetualAccountMode,
+    private val hyperliquid: Hyperliquid,
     private val eventHandler: HyperliquidEventHandler,
     private val subscriptionService: HyperliquidSubscriptionService,
     private val connection: WebSocketConnectable,
@@ -41,8 +49,17 @@ class HyperliquidObserverService(
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     val address = wallet?.hyperliquidAccount?.address ?: return@collectLatest
+                    val mode = getPerpetualAccountMode.getPerpetualAccountMode(wallet.id, address)
                     runCatching { syncPerpetualPositions.syncPerpetualPositions() }
-                    observeConnection(wallet.id, address)
+                    observeConnection(wallet.id, address, mode)
+                }
+        }
+        scope.launch {
+            observePerpetualWallet()
+                .distinctUntilChangedBy { it?.id?.id }
+                .collectLatest { wallet ->
+                    if (wallet == null) return@collectLatest
+                    runCatching { syncPerpetuals.syncPerpetuals() }
                 }
         }
     }
@@ -63,12 +80,12 @@ class HyperliquidObserverService(
         subscriptionService.unsubscribe(subscription)
     }
 
-    private suspend fun observeConnection(walletId: WalletId, address: String) = coroutineScope {
+    private suspend fun observeConnection(walletId: WalletId, address: String, mode: PerpetualAccountMode) = coroutineScope {
         launch { sendSubscriptionRequests() }
         connection.connect().collect { event ->
             when (event) {
-                WebSocketEvent.Connected -> subscriptionService.resubscribe(address)
-                is WebSocketEvent.Message -> eventHandler.handle(walletId, event.text)
+                WebSocketEvent.Connected -> subscriptionService.resubscribe(hyperliquid.accountSubscriptions(address, mode.toGem()))
+                is WebSocketEvent.Message -> eventHandler.handle(walletId, mode, event.text)
                 WebSocketEvent.Disconnected -> Unit
             }
         }

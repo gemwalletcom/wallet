@@ -10,14 +10,15 @@ testkit = []
 config = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+strum = { workspace = true }
 tokio = { workspace = true }
-futures = { workspace = true }
 prometheus-client = { workspace = true }
 reqwest = { workspace = true }
 rocket = { workspace = true }
 primitives = { path = "../../crates/primitives" }
 gem_tracing = { path = "../../crates/tracing" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
+gem_encoding = { path = "../../crates/gem_encoding", features = ["protobuf"] }
 metrics = { path = "../../crates/metrics" }
 settings_chain = { path = "../../crates/settings_chain" }
 serde_serializers = { path = "../../crates/serde_serializers" }

@@ -14,7 +14,7 @@ import Transfer
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.assetsEnabler) private var assetsEnabler
-    @Environment(\.activityService) private var activityService
+    @Environment(\.assetsService) private var assetsService
     @Environment(\.dismiss) private var dismiss
 
     @State private var isPresentingFilteringView: Bool = false
@@ -75,10 +75,10 @@ struct SelectAssetSceneNavigationStack: View {
                     case .receive:
                         ReceiveScene(
                             model: ReceiveViewModel(
-                                assetModel: AssetViewModel(asset: input.asset),
+                                assetData: input.assetData,
                                 wallet: model.wallet,
-                                address: input.assetAddress.address,
                                 assetsEnabler: assetsEnabler,
+                                assetsService: assetsService,
                             ),
                         )
                     case .buy:
@@ -151,17 +151,7 @@ struct SelectAssetSceneNavigationStack: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(Colors.grayBackground)
         }
-        .sheet(isPresented: $model.isPresentingRecents) {
-            RecentsScene(
-                model: RecentsSceneViewModel(
-                    walletId: model.wallet.id,
-                    types: model.recentsQuery.request.types,
-                    filters: model.recentsQuery.request.filters,
-                    activityService: activityService,
-                    onSelect: model.onSelectRecent,
-                ),
-            )
-        }
+        .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)
     }
 }
 

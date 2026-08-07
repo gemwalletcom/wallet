@@ -4,10 +4,10 @@ use std::error::Error;
 
 use gem_client::Client;
 
-use crate::rpc::client::AlgorandClient;
+use crate::rpc::AlgorandProvider;
 
 #[async_trait]
-impl<C: Client> ChainState for AlgorandClient<C> {
+impl<C: Client> ChainState for AlgorandProvider<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
         Ok(self.get_transactions_params().await?.genesis_id)
     }

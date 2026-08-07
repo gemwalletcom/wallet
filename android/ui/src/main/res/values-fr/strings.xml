@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Annuler</string>
+  <string name="common_hidden">Masqués</string>
   <string name="common_done">Terminé</string>
   <string name="common_maximum_value">La valeur maximale est %1$s</string>
   <string name="common_minimum_value">La valeur minimale est %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">Une erreur inconnue s\'est produite. Veuillez réessayer.</string>
   <string name="errors_network_error">Erreur réseau : %1$s</string>
   <string name="errors_network_offline">La connexion Internet semble être hors ligne.</string>
+  <string name="errors_no_internet_connection">Pas de connexion Internet</string>
+  <string name="errors_no_service_connection">Pas de connexion au service</string>
+  <string name="errors_balances_activity_outdated">Les soldes et l\'activité peuvent être obsolètes.</string>
   <string name="activity_title">Activité</string>
   <string name="activity_state_empty_title">Votre activité apparaîtra ici</string>
   <string name="activity_state_empty_description">Effectuez votre première transaction</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">Réservé aux frais de réseau</string>
   <string name="info_stake_reserved_description">Une petite somme reste dans votre portefeuille pour couvrir les frais d\'opérations telles que le déblocage ou la réclamation de récompenses.</string>
   <string name="info_stake_apr_description">Le taux annuel en pourcentage (APR) est le taux de récompense annuel pour le staking de votre crypto-monnaie.</string>
+  <string name="info_stake_frozen_required_title">Gelez des TRX pour staker</string>
+  <string name="info_stake_frozen_required_description">Le staking sur TRON se fait en deux étapes. Gelez d\'abord des TRX, puis stakez-les pour gagner des récompenses.</string>
   <string name="info_perpetual_auto_close_description">Clôturez automatiquement votre position à des niveaux de prix définis. Le Take Profit verrouille vos gains, tandis que le Stop Loss limite vos pertes.</string>
   <string name="info_fully_diluted_valuation_title">Évaluation entièrement diluée</string>
   <string name="info_fully_diluted_valuation_description">Valeur marchande théorique si toutes les pièces étaient en circulation. Calculée en multipliant le prix par l\'offre maximale.</string>

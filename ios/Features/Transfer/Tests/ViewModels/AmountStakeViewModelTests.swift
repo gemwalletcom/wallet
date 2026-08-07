@@ -124,12 +124,12 @@ struct AmountStakeViewModelTests {
         let validator = DelegationValidator.mock(id: "validator1")
         let delegation = Delegation.mock(validator: validator)
 
-        let stake = try AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [validator], recommended: nil)).makeTransferData(value: 100)
-        let unstake = try AmountStakeViewModel(asset: .mockBNB(), type: .unstake(delegation)).makeTransferData(value: 100)
-        let redelegate = try AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(delegation, validators: [validator], recommended: nil)).makeTransferData(value: 100)
-        let withdraw = try AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(delegation)).makeTransferData(value: 100)
-        let freeze = try AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth)).makeTransferData(value: 100)
-        let unfreeze = try AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy)).makeTransferData(value: 100)
+        let stake = try AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [validator], recommended: nil)).makeTransferData(amount: .exact(100))
+        let unstake = try AmountStakeViewModel(asset: .mockBNB(), type: .unstake(delegation)).makeTransferData(amount: .exact(100))
+        let redelegate = try AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(delegation, validators: [validator], recommended: nil)).makeTransferData(amount: .exact(100))
+        let withdraw = try AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(delegation)).makeTransferData(amount: .exact(100))
+        let freeze = try AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth)).makeTransferData(amount: .exact(100))
+        let unfreeze = try AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy)).makeTransferData(amount: .exact(100))
 
         #expect(stake.type.transactionType == .stakeDelegate)
         #expect(unstake.type.transactionType == .stakeUndelegate)

@@ -83,8 +83,19 @@ public extension Primitives.Chain {
         Int(FeeConfig.config(chain: self).decimals)
     }
 
+    func feeRateDecimals(assetDecimals: Int) -> Int {
+        switch feeUnitType {
+        case .satVb, .gwei: feeUnitDecimals
+        case .native: assetDecimals
+        }
+    }
+
     var maxCustomFeeRateMultiplier: Int {
         Int(FeeConfig.config(chain: self).maxMultiplier)
+    }
+
+    var minimumCustomFeeRate: BigInt? {
+        FeeConfig.config(chain: self).minimumCustomFeeRate.map { BigInt($0) }
     }
 
     var customFeeEnabled: Bool {
@@ -105,6 +116,10 @@ public extension Primitives.Chain {
 
     var defaultAssets: [Asset] {
         switch self {
+        case .tron:
+            [
+                .tronUSDT(),
+            ]
         case .hyperCore:
             [
                 .hypercoreUSDC(),
@@ -121,6 +136,10 @@ public extension Primitives.Chain {
 
     func checksumAddress(_ address: String) -> String {
         Gemstone.checksumAddress(address: address, chain: rawValue)
+    }
+
+    var isPrivateKeyImportSupported: Bool {
+        Gemstone.supportsPrivateKeyImport(chain: rawValue)
     }
 
     func matches(query: String) -> Bool {

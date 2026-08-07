@@ -1,6 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use primitives::{ChainSigner, SignerError, SignerInput};
+use primitives::{ChainSigner, SignerError, SignerInput, unix_timestamp};
 
 use super::signer::TonSigner;
 
@@ -9,11 +7,7 @@ pub struct TonChainSigner;
 
 impl ChainSigner for TonChainSigner {
     fn sign_message(&self, message: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|e| SignerError::InvalidInput(e.to_string()))?
-            .as_secs();
-        let result = TonSigner::new(private_key)?.sign_personal(message, timestamp)?;
+        let result = TonSigner::new(private_key)?.sign_personal(message, unix_timestamp())?;
         Ok(gem_encoding::encode_base64(&result.signature))
     }
 
@@ -31,5 +25,9 @@ impl ChainSigner for TonChainSigner {
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         TonSigner::new(private_key)?.sign_swap(input, None)
+    }
+
+    fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        TonSigner::new(private_key)?.sign_wallet_connect(input)
     }
 }

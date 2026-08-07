@@ -1,5 +1,6 @@
 use crate::database::devices::{DeviceFieldUpdate, DeviceFilter, DevicesStore};
 use crate::database::wallets::WalletsStore;
+use crate::models::DeviceRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 use primitives::Device;
 
@@ -7,6 +8,7 @@ pub trait DevicesRepository {
     fn add_device(&mut self, device: crate::models::UpdateDeviceRow) -> Result<Device, DatabaseError>;
     fn get_device_by_id(&mut self, id: i32) -> Result<Device, DatabaseError>;
     fn get_device(&mut self, device_id: &str) -> Result<Device, DatabaseError>;
+    fn get_device_row(&mut self, device_id: &str) -> Result<DeviceRow, DatabaseError>;
     fn get_device_exist(&mut self, device_id: &str) -> Result<bool, DatabaseError>;
     fn get_device_row_id(&mut self, device_id: &str) -> Result<i32, DatabaseError>;
     fn update_device(&mut self, device: crate::models::UpdateDeviceRow) -> Result<Device, DatabaseError>;
@@ -26,6 +28,10 @@ impl DevicesRepository for DatabaseClient {
 
     fn get_device(&mut self, device_id: &str) -> Result<Device, DatabaseError> {
         Ok(DevicesStore::get_device(self, device_id).or_not_found(device_id.to_string())?.as_primitive())
+    }
+
+    fn get_device_row(&mut self, device_id: &str) -> Result<DeviceRow, DatabaseError> {
+        DevicesStore::get_device(self, device_id).or_not_found(device_id.to_string())
     }
 
     fn get_device_exist(&mut self, device_id: &str) -> Result<bool, DatabaseError> {

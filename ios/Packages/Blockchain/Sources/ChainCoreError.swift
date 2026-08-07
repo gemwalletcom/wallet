@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Gemstone
 import Primitives
+
+internal import GemstonePrimitives
 
 public enum ChainCoreError: String, Error, Equatable {
     case feeRateMissed
@@ -12,13 +13,17 @@ public enum ChainCoreError: String, Error, Equatable {
     case insufficientBalance
 
     public static func fromError(_ error: Error) -> ChainCoreError? {
+        if case let GemstoneError.SignerError(error: signerError, msg: _) = error {
+            return switch signerError {
+            case .dustThreshold: .dustThreshold
+            case .insufficientFunds: .insufficientBalance
+            case .invalidInput,
+                 .signingError,
+                 .swapValueBelowMinimum: nil
+            }
+        }
+
         let description = error.localizedDescription
-        if description.contains("dust threshold") {
-            return .dustThreshold
-        }
-        if description.contains("insufficient balance") {
-            return .insufficientBalance
-        }
         for errorCase in [ChainCoreError.feeRateMissed, .cantEstimateFee, .incorrectAmount] {
             if description.contains(errorCase.rawValue) {
                 return errorCase

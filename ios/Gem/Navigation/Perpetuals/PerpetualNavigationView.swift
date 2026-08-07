@@ -43,7 +43,7 @@ public struct PerpetualNavigationView: View {
                     )
                 }
             }
-            .bindQuery(model.positionsQuery, model.perpetualQuery, model.transactionsQuery, model.perpetualTotalValueQuery)
+            .bindQuery(model.positionsQuery, model.perpetualQuery, model.transactionsQuery, model.perpetualFiatValuesQuery)
             .onChange(of: isPresentingSheet) { oldValue, newValue in
                 guard newValue == nil else { return }
                 switch oldValue {

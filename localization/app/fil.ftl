@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Kanselahin
+common_hidden = Nakatago
 common_done = Tapos na
 common_maximum_value = Ang maximum na halaga ay %@
 common_minimum_value = Ang minimum na halaga ay %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Hindi makuha ang impormasyon ng to
 errors_unknown_try_again = May naganap na hindi kilalang error. Pakisubukang muli.
 errors_network_error = Error sa network: %@
 errors_network_offline = Mukhang offline ang koneksyon sa internet.
+errors_no_internet_connection = Walang koneksyon sa internet
+errors_no_service_connection = Walang koneksyon sa serbisyo
+errors_balances_activity_outdated = Maaaring luma na ang mga balanse at aktibidad.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Hindi maibalik ang isang quote para sa napiling pare
 info_stake_reserved_title = Nakalaan para sa Bayad ng Network
 info_stake_reserved_description = May maliit na halaga ang nananatili sa iyong wallet para mabayaran ang mga bayarin para sa mga operasyon tulad ng pag-unstaking o pag-claim ng mga reward.
 info_stake_apr_description = Ang Annual Percentage Rate (APR) ay ang taunang reward rate para sa staking ng iyong cryptocurrency.
+info_stake_frozen_required_title = I-freeze ang TRX para mag-stake
+info_stake_frozen_required_description = May dalawang hakbang ang staking sa TRON. Una, i-freeze ang TRX, pagkatapos ay i-stake ito para kumita ng rewards.
 info_perpetual_auto_close_description = Awtomatikong isara ang iyong posisyon sa nakatakdang antas ng presyo. Pinapanatili ng Take Profit ang mga kita, nililimitahan ng Stop Loss ang mga pagkalugi.
 info_fully_diluted_valuation_title = Buong Diluted na Halaga (FDV)
 info_fully_diluted_valuation_description = Ang teoretikal na halaga sa pamilihan kung lahat ng barya ay nasa sirkulasyon. Kinakalkula bilang presyo na pinarami sa pinakamataas na suplay.

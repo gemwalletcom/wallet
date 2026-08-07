@@ -2,8 +2,6 @@
 
 import BigInt
 import Components
-import ExplorerService
-import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -16,44 +14,24 @@ public struct ConfirmBalanceChangeViewModel {
         self.balanceChange = balanceChange
     }
 
-    var isUnknown: Bool {
-        balanceChange.name == nil
-    }
-
     public var assetTitle: String {
-        balanceChange.name ?? balanceChange.symbol ?? Localized.Errors.unknown
+        balanceChange.asset.name
     }
 
     public var assetImage: AssetImage {
-        AssetIdViewModel(assetId: balanceChange.assetId).assetImage
+        AssetIdViewModel(assetId: balanceChange.asset.id).assetImage
     }
 
     public var amount: TextValue {
         NumericViewModel(
-            data: AssetValuePrice(asset: asset, value: abs(balanceChange.value), price: nil),
+            data: AssetValuePrice(asset: balanceChange.asset, value: abs(balanceChange.value), price: nil),
             style: AmountDisplayStyle(
                 sign: amountSign,
+                formatter: .full,
                 currencyCode: "",
                 textStyle: TextStyle(font: .body, color: amountColor, fontWeight: .medium),
             ),
         ).amount
-    }
-
-    var explorerTokenURL: URL? {
-        guard let tokenId = balanceChange.assetId.tokenId else {
-            return nil
-        }
-        return ExplorerService.standard.tokenUrl(chain: balanceChange.assetId.chain, address: tokenId)?.url
-    }
-
-    private var asset: Asset {
-        Asset(
-            id: balanceChange.assetId,
-            name: balanceChange.name ?? "",
-            symbol: balanceChange.symbol ?? "",
-            decimals: balanceChange.decimals,
-            type: balanceChange.assetId.tokenId == nil ? .native : .token,
-        )
     }
 
     private var amountSign: AmountDisplaySign {

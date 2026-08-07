@@ -1,6 +1,7 @@
 pub mod api_client;
 pub mod asset;
 pub mod asset_address;
+pub mod asset_association;
 pub mod asset_usage_rank;
 pub mod chain;
 pub mod chart;
@@ -33,6 +34,7 @@ pub mod wallet;
 pub use self::api_client::{ApiClientGrant, ApiClientResource, ApiClientRow, ApiClientScope};
 pub use self::asset::{AssetLinkRow, AssetRow, NewAssetRow};
 pub use self::asset_address::{AssetAddressRow, AssetAddressRowsExt};
+pub use self::asset_association::AssetAssociationRow;
 pub use self::asset_usage_rank::AssetUsageRankRow;
 pub use self::chain::ChainIdRow;
 pub use self::chart::{ChartRow, DailyChartRow, HourlyChartRow};

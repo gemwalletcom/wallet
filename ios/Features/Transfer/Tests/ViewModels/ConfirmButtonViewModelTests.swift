@@ -9,25 +9,25 @@ import TransferTestKit
 struct ConfirmButtonViewModelTests {
     @Test
     func loaded() {
-        let model = ConfirmButtonViewModel(state: .data(TransactionInputViewModel.mock()), icon: nil, onAction: {})
+        let model = ConfirmButtonViewModel(state: .data(.mock()), authentication: nil, onAction: {})
         #expect(model.title == Localized.Transfer.confirm)
     }
 
     @Test
     func error() {
-        let model = ConfirmButtonViewModel(state: .error(AnyError("test")), icon: nil, onAction: {})
+        let model = ConfirmButtonViewModel(state: .error(AnyError("test")), authentication: nil, onAction: {})
         #expect(model.title == Localized.Common.tryAgain)
     }
 
     @Test
     func disabledWhenForceDisabled() {
-        let model = ConfirmButtonViewModel(state: .data(TransactionInputViewModel.mock()), icon: nil, isDisabled: true, onAction: {})
+        let model = ConfirmButtonViewModel(state: .data(.mock()), authentication: nil, isDisabled: true, onAction: {})
         #expect(model.type.isDisabled)
     }
 
     @Test
     func enabledWhenNotForceDisabled() {
-        let model = ConfirmButtonViewModel(state: .data(TransactionInputViewModel.mock()), icon: nil, isDisabled: false, onAction: {})
+        let model = ConfirmButtonViewModel(state: .data(.mock()), authentication: nil, isDisabled: false, onAction: {})
         #expect(!model.type.isDisabled)
     }
 }

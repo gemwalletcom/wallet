@@ -11,8 +11,8 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertViewModel
@@ -37,21 +37,24 @@ fun PriceAlertsNavScreen(
     )
 
     var selectingAsset by remember { mutableStateOf(false) }
+    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = viewModel::onPushNotificationGranted)
 
     val data by viewModel.data.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
-    val priceAlertState by viewModel.priceAlertState.collectAsStateWithLifecycle()
+    val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {
             true -> PriceAlertSelectScreen(
                 onCancel = { selectingAsset = false },
-                onSelect = {
-                    viewModel.includeAsset(it) { asset ->
-                        val message = resources.getString(R.string.price_alerts_enabled_for, asset.name)
-                        scope.launch {
-                            snackbar.showSnackbar(message, R.drawable.ic_notifications)
+                onSelect = { assetId ->
+                    requestNotificationPermission {
+                        viewModel.includeAsset(assetId) { asset ->
+                            val message = resources.getString(R.string.price_alerts_enabled_for, asset.name)
+                            scope.launch {
+                                snackbar.showSnackbar(message, R.drawable.ic_notifications)
+                            }
                         }
                     }
                     selectingAsset = false
@@ -60,14 +63,22 @@ fun PriceAlertsNavScreen(
             false -> PriceAlertScene(
                 assetInfo = assetInfo,
                 data = data,
-                enabled = priceAlertState is PriceAlertsStateEvent.Enable,
+                enabled = priceAlertEnabled == true,
                 syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),
                 snackbar = snackbar,
                 onAction = { action ->
                     when (action) {
-                        is PriceAlertAction.TogglePriceAlerts -> viewModel.togglePriceAlerts(action.enabled)
-                        is PriceAlertAction.ToggleAutoAlert -> viewModel.toggleAutoAlert(action.enabled)
+                        is PriceAlertAction.TogglePriceAlerts -> if (action.enabled) {
+                            requestNotificationPermission { viewModel.togglePriceAlerts(true) }
+                        } else {
+                            viewModel.togglePriceAlerts(false)
+                        }
+                        is PriceAlertAction.ToggleAutoAlert -> if (action.enabled) {
+                            requestNotificationPermission { viewModel.toggleAutoAlert(true) }
+                        } else {
+                            viewModel.toggleAutoAlert(false)
+                        }
                         is PriceAlertAction.Exclude -> viewModel.excludeAsset(action.id)
                         PriceAlertAction.Refresh -> viewModel.refresh()
                         PriceAlertAction.Add -> selectingAsset = true
@@ -79,5 +90,4 @@ fun PriceAlertsNavScreen(
             )
         }
     }
-
 }

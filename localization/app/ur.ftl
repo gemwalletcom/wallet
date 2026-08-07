@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = منسوخ کریں۔
+common_hidden = پوشیدہ
 common_done = ہو گیا
 common_maximum_value = زیادہ سے زیادہ قدر %@ ہے
 common_minimum_value = کم از کم قدر %@ ہے
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = ٹوکن کی معلومات حا�
 errors_unknown_try_again = ایک نامعلوم خرابی پیش آگئی۔ براہ کرم دوبارہ کوشش کریں۔
 errors_network_error = نیٹ ورک کی خرابی: %@
 errors_network_offline = انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔
+errors_no_internet_connection = انٹرنیٹ کنکشن نہیں ہے
+errors_no_service_connection = سروس کنکشن نہیں ہے
+errors_balances_activity_outdated = بیلنس اور سرگرمی پرانی ہو سکتی ہے۔
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = ممکنہ طور پر کم رقم، لیکویڈی�
 info_stake_reserved_title = نیٹ ورک فیس کے لیے محفوظ ہے
 info_stake_reserved_description = ایک چھوٹی سی رقم آپ کے والیٹ میں رہ جاتی ہے تاکہ ان کارروائیوں کے لیے فیس کو پورا کیا جا سکے جیسے کہ ان اسٹیکنگ یا انعامات کا دعویٰ کرنا۔
 info_stake_apr_description = سالانہ فیصدی شرح (APR) آپ کی کریپٹو کرنسی کو اسٹیک کرنے کے لیے سالانہ انعام کی شرح ہے۔
+info_stake_frozen_required_title = اسٹیک کرنے کے لیے TRX منجمد کریں
+info_stake_frozen_required_description = TRON پر اسٹیکنگ دو مراحل میں ہوتی ہے۔ پہلے TRX منجمد کریں، پھر انعامات کمانے کے لیے اسے اسٹیک کریں۔
 info_perpetual_auto_close_description = اپنی پوزیشن کو مقررہ قیمت کی سطح پر خودکار طور پر بند کریں۔ ٹیک پرافٹ منافع کو محفوظ کرتا ہے، اسٹاپ لاس نقصان کو محدود کرتا ہے۔
 info_fully_diluted_valuation_title = مکمل طور پر کمزور تشخیص
 info_fully_diluted_valuation_description = نظریاتی مارکیٹ کی قیمت اگر تمام سکے گردش میں تھے۔ قیمت کو زیادہ سے زیادہ سپلائی سے ضرب کے حساب سے شمار کیا جاتا ہے۔

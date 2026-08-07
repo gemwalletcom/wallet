@@ -1,8 +1,7 @@
 use std::str::FromStr;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use num_bigint::BigUint;
-use primitives::{FeeOption, SignerError, SignerInput};
+use primitives::{FeeOption, SignerError, SignerInput, unix_timestamp};
 
 use super::{
     message::{InternalMessage, build_internal_message},
@@ -96,10 +95,7 @@ fn resolve_expire_at(sequence: u32, expire_at: Option<u32>) -> Result<u32, Signe
     match (sequence, expire_at) {
         (0, _) => Ok(STATE_INIT_EXPIRE_AT),
         (_, Some(value)) => Ok(value),
-        (_, None) => {
-            let now = SystemTime::now().duration_since(UNIX_EPOCH).map_err(SignerError::from_display)?.as_secs();
-            u32::try_from(now + EXTERNAL_EXPIRE_WINDOW_SECS).map_err(|_| SignerError::invalid_input("TON expire time does not fit in u32"))
-        }
+        (_, None) => u32::try_from(unix_timestamp() + EXTERNAL_EXPIRE_WINDOW_SECS).map_err(|_| SignerError::invalid_input("TON expire time does not fit in u32")),
     }
 }
 

@@ -17,6 +17,7 @@ import Store
 import SwiftUI
 import Transactions
 import Transfer
+import WalletSessionService
 import WalletTab
 
 struct WalletNavigationStack: View {
@@ -35,10 +36,10 @@ struct WalletNavigationStack: View {
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
     @Environment(\.activityService) private var activityService
     @Environment(\.walletSearchService) private var walletSearchService
-    @Environment(\.assetSearchService) private var assetSearchService
+    @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
-    @Environment(\.walletService) private var walletService
+    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.observablePreferences) private var preferences
 
     @State private var model: WalletSceneViewModel
@@ -76,7 +77,7 @@ struct WalletNavigationStack: View {
             }
             .onChange(of: model.currentWallet, model.onChangeWallet)
             .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
-            .bindQuery(model.assetsQuery, model.bannersQuery, model.totalFiatQuery, model.collectionsModel.query)
+            .bindQuery(model.assetsQuery, model.bannersQuery, model.fiatValuesQuery, model.collectionsModel.query)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !model.isPresentingSearch {
@@ -112,6 +113,18 @@ struct WalletNavigationStack: View {
                     ),
                 )
             }
+            .navigationDestination(for: Scenes.NetworkAssets.self) { destination in
+                NetworkAssetsScene(
+                    model: NetworkAssetsSceneViewModel(
+                        wallet: model.wallet,
+                        chain: destination.chain,
+                        balanceService: balanceService,
+                        assetsEnabler: assetsEnabler,
+                        preferences: preferences.preferences,
+                        onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
+                    ),
+                )
+            }
             .navigationDestination(for: Scenes.Transaction.self) {
                 TransactionNavigationView(
                     model: TransactionSceneViewModel(
@@ -137,7 +150,7 @@ struct WalletNavigationStack: View {
                 CollectionsSceneNavigationView(
                     model: CollectionsViewModel(
                         nftService: nftService,
-                        walletService: walletService,
+                        walletSessionService: walletSessionService,
                         wallet: model.wallet,
                     ),
                 )
@@ -173,21 +186,15 @@ struct WalletNavigationStack: View {
                     perpetualService: perpetualService,
                     observerService: hyperliquidObserverService,
                     activityService: activityService,
-                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0) },
+                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
                     onSelectAsset: navigationState.openAsset,
                     onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
                 )
             }
             .navigationDestination(for: Scenes.AssetsResults.self) { destination in
                 AssetsResultsScene(
-                    model: AssetsResultsSceneViewModel(
+                    model: viewModelFactory.assetsResultsScene(
                         wallet: model.wallet,
-                        assetsEnabler: assetsEnabler,
-                        balanceService: balanceService,
-                        preferences: preferences.preferences,
-                        searchService: walletSearchService,
-                        perpetualService: perpetualService,
-                        activityService: activityService,
                         request: WalletSearchRequest(
                             walletId: model.wallet.id,
                             searchBy: destination.searchQuery,
@@ -223,15 +230,12 @@ struct WalletNavigationStack: View {
                     switch sheet {
                     case .wallets:
                         WalletsNavigationStack()
-                    case let .selectAsset(type):
+                    case let .selectAsset(type, chains):
                         SelectAssetSceneNavigationStack(
-                            model: SelectAssetViewModel(
+                            model: viewModelFactory.selectAssetScene(
                                 wallet: model.wallet,
                                 selectType: type,
-                                searchService: assetSearchService,
-                                assetsEnabler: assetsEnabler,
-                                priceAlertService: priceAlertService,
-                                activityService: activityService,
+                                chains: chains,
                             ),
                         )
                     case let .infoSheet(type):

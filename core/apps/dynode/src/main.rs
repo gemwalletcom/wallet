@@ -1,11 +1,10 @@
 use std::net::IpAddr;
 use std::str::FromStr;
-use std::sync::Arc;
 
 use dynode::auth::auth_endpoint;
 use dynode::config::load_config;
 use dynode::metrics::Metrics;
-use dynode::monitoring::{NodeMonitor, NodeService};
+use dynode::node_service::NodeService;
 use dynode::proxy::{ProxyRequestBuilder, ProxyResponse};
 use dynode::response::{ErrorResponse, ProxyRocketResponse};
 use dynode::webhook::DynodeBroadcastWebhookClient;
@@ -140,15 +139,20 @@ fn resolve_chain(path: &str) -> Option<Chain> {
 
 #[rocket::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let (config, chains) = load_config()?;
+    let selected_chain = std::env::args()
+        .nth(1)
+        .map(|value| Chain::from_str(&value).unwrap_or_else(|_| panic!("Invalid chain: {value}")));
+    let (config, mut chains) = load_config()?;
+    if let Some(chain) = selected_chain {
+        assert!(chains.contains_key(&chain), "Chain is not configured: {chain}");
+        chains.retain(|configured, _| *configured == chain);
+    }
 
     let node_address = IpAddr::from_str(config.address.as_str())?;
     let metrics = Metrics::new(config.metrics.clone());
-    info_with_fields!("broadcast webhook config", enabled = config.webhook.enabled, url = config.webhook.url.as_str(),);
     let broadcast_webhook = DynodeBroadcastWebhookClient::new(config.webhook.clone());
     let client = gem_client::builder().timeout(config.request.timeout).build()?;
-    let monitoring_config = config.monitoring.clone();
-    let node_service = NodeService::new(
+    let mut node_service = NodeService::new(
         chains,
         metrics.clone(),
         client,
@@ -157,27 +161,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         config.retry.clone(),
         config.headers.clone(),
         broadcast_webhook,
+        config.monitoring,
     );
-    if monitoring_config.enabled {
-        let monitor = NodeMonitor::new(
-            node_service.chains.clone(),
-            Arc::clone(&node_service.nodes),
-            Arc::clone(&node_service.metrics),
-            monitoring_config,
-        );
-
-        monitor.start_monitoring();
-    }
-
-    info_with_fields!("Server started", node_address = &format!("{}:{}", node_address, config.port), metrics_path = "/metrics",);
+    node_service.start_monitoring();
 
     let proxy_server = rocket::custom(Config::figment().merge(("address", node_address)).merge(("port", config.port)))
         .manage(node_service)
         .manage(metrics.clone())
         .manage(config.jwt)
         .mount("/", proxy_routes())
-        .mount("/", rocket::routes![health_endpoint, root_endpoint, auth_endpoint, metrics_endpoint]);
+        .mount("/", rocket::routes![health_endpoint, root_endpoint, auth_endpoint, metrics_endpoint])
+        .ignite()
+        .await?;
 
+    info_with_fields!(
+        "Server started",
+        chain = selected_chain.as_ref().map_or("all", AsRef::as_ref),
+        node_address = &format!("{}:{}", node_address, config.port),
+        metrics_path = "/metrics",
+    );
     proxy_server.launch().await?;
 
     Ok(())

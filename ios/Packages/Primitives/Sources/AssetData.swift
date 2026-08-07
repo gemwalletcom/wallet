@@ -19,21 +19,38 @@ public struct AssetData: Codable, Equatable, Hashable, Sendable {
     public let price: Price?
     public let priceAlerts: [PriceAlert]
     public let metadata: AssetMetaData
+    public let associations: [AssetAssociation]
 
-    public init(asset: Asset, balance: Balance, account: Account, price: Price?, priceAlerts: [PriceAlert], metadata: AssetMetaData) {
+    public init(
+        asset: Asset,
+        balance: Balance,
+        account: Account,
+        price: Price?,
+        priceAlerts: [PriceAlert],
+        metadata: AssetMetaData,
+        associations: [AssetAssociation] = [],
+    ) {
         self.asset = asset
         self.balance = balance
         self.account = account
         self.price = price
         self.priceAlerts = priceAlerts
         self.metadata = metadata
+        self.associations = associations
     }
 
     public static func with(asset: Asset) -> AssetData {
+        with(
+            asset: asset,
+            account: Account(chain: asset.chain, address: "", derivationPath: "", extendedPublicKey: nil),
+        )
+    }
+
+    public static func with(asset: Asset, account: Account) -> AssetData {
         AssetData(
             asset: asset,
             balance: .zero,
-            account: Account(chain: asset.chain, address: "", derivationPath: "", extendedPublicKey: nil),
+            account: account,
             price: nil,
             priceAlerts: [],
             metadata: AssetMetaData(
@@ -50,6 +67,7 @@ public struct AssetData: Codable, Equatable, Hashable, Sendable {
                 earnApr: nil,
                 rankScore: 0,
             ),
+            associations: [],
         )
     }
 }

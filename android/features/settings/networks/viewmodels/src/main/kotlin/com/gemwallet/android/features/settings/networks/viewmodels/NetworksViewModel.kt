@@ -13,8 +13,6 @@ import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.getGemNode
-import com.gemwallet.android.cases.nodes.getGemNodeRegion
-import com.gemwallet.android.cases.nodes.getGemNodeUrls
 import com.gemwallet.android.data.repositories.chains.ChainInfoRepository
 import com.gemwallet.android.ext.filter
 import com.gemwallet.android.model.NodeStatus
@@ -78,6 +76,9 @@ class NetworksViewModel @Inject constructor(
             .getNodes()[chain.string]
             .orEmpty()
             .mapTo(linkedSetOf()) { it.url }
+        val gemNodeFlags = config.getNodeRegions().associate { region ->
+            config.getNodeUrl(chain.string, region) to config.getNodeRegionFlag(region)
+        }
 
         updateState {
             it.copy(
@@ -88,8 +89,8 @@ class NetworksViewModel @Inject constructor(
                 currentExplorer = getCurrentBlockExplorer.getCurrentBlockExplorer(chain),
                 availableAddNode = true,
                 defaultNodeUrls = defaultNodeUrls,
+                gemNodeFlags = gemNodeFlags,
                 nodes = emptyList(),
-                nodeRows = emptyList(),
                 nodeStates = emptyMap(),
                 refreshNonce = System.nanoTime(),
             )
@@ -105,18 +106,7 @@ class NetworksViewModel @Inject constructor(
     fun onSelectNode(node: Node) {
         val chain = state.value.chain ?: return
         setCurrentNodeCase.setCurrentNode(chain, node)
-        updateState {
-            it.copy(
-                currentNode = node,
-                nodeRows = buildNodeRows(
-                    chain = chain,
-                    nodes = it.nodes,
-                    currentNode = node,
-                    nodeStates = it.nodeStates,
-                    defaultNodeUrls = it.defaultNodeUrls,
-                ),
-            )
-        }
+        updateState { it.copy(currentNode = node) }
     }
 
     fun onSelectBlockExplorer(name: String) {
@@ -141,13 +131,6 @@ class NetworksViewModel @Inject constructor(
                     nodes = nodes,
                     currentNode = currentNode,
                     nodeStates = nodeStates,
-                    nodeRows = buildNodeRows(
-                        chain = chain,
-                        nodes = nodes,
-                        currentNode = currentNode,
-                        nodeStates = nodeStates,
-                        defaultNodeUrls = it.defaultNodeUrls,
-                    ),
                 )
             }
         }
@@ -165,13 +148,6 @@ class NetworksViewModel @Inject constructor(
                         nodes = nodes,
                         currentNode = currentNode,
                         nodeStates = currentStates,
-                        nodeRows = buildNodeRows(
-                            chain = chain,
-                            nodes = nodes,
-                            currentNode = currentNode,
-                            nodeStates = currentStates,
-                            defaultNodeUrls = it.defaultNodeUrls,
-                        ),
                     )
                 }
 
@@ -207,13 +183,6 @@ class NetworksViewModel @Inject constructor(
                         currentNode = currentNode,
                         refreshNonce = refreshNonce,
                         nodeStates = loadingStates,
-                        nodeRows = buildNodeRows(
-                            chain = chain,
-                            nodes = nodes,
-                            currentNode = currentNode,
-                            nodeStates = loadingStates,
-                            defaultNodeUrls = current.defaultNodeUrls,
-                        ),
                     )
                 }
             }
@@ -232,7 +201,7 @@ class NetworksViewModel @Inject constructor(
                                     current.nodes,
                                     current.nodeStates + (node.url to nodeState),
                                 )
-                                current.copy(nodeStates = nodeStates).refreshedNodeRows(chain, nodeStates)
+                                current.copy(nodeStates = nodeStates).withCurrentNodeFor(chain)
                             }
                         }
                     }
@@ -240,7 +209,7 @@ class NetworksViewModel @Inject constructor(
             }
 
             updateNodesIfCurrent(chain, refreshNonce) { current ->
-                current.refreshedNodeRows(chain, visibleNodeStates(current.nodes, current.nodeStates))
+                current.withCurrentNodeFor(chain)
             }
         }
     }
@@ -252,19 +221,8 @@ class NetworksViewModel @Inject constructor(
         }
     }
 
-    private fun State.refreshedNodeRows(chain: Chain, nodeStates: Map<String, NodeStatusState>): State {
-        val refreshedCurrentNode = currentNodeFor(chain, nodes, currentNode)
-        return copy(
-            currentNode = refreshedCurrentNode,
-            nodeRows = buildNodeRows(
-                chain = chain,
-                nodes = nodes,
-                currentNode = refreshedCurrentNode,
-                nodeStates = nodeStates,
-                defaultNodeUrls = defaultNodeUrls,
-            ),
-        )
-    }
+    private fun State.withCurrentNodeFor(chain: Chain): State =
+        copy(currentNode = currentNodeFor(chain, nodes, currentNode))
 
     private fun updateState(transform: (State) -> State) {
         state.update(transform)
@@ -282,11 +240,11 @@ class NetworksViewModel @Inject constructor(
         val currentExplorer: String? = null,
         val nodeStates: Map<String, NodeStatusState> = emptyMap(),
         val nodes: List<Node> = emptyList(),
-        val nodeRows: List<NodeRowUiModel> = emptyList(),
         val availableChains: List<Chain> = emptyList(),
         val selectChain: Boolean = true,
         val availableAddNode: Boolean = true,
         val defaultNodeUrls: Set<String> = emptySet(),
+        val gemNodeFlags: Map<String, String> = emptyMap(),
         val refreshNonce: Long = 0,
     ) {
         fun toUIState(): NetworksUIState {
@@ -297,7 +255,17 @@ class NetworksViewModel @Inject constructor(
                 blockExplorers = explorers,
                 currentExplorer = currentExplorer,
                 availableAddNode = availableAddNode,
-                nodeRows = nodeRows,
+                nodeRows = if (chain == null || currentNode == null) {
+                    emptyList()
+                } else {
+                    buildNodeRows(
+                        nodes = nodes,
+                        currentNode = currentNode,
+                        nodeStates = nodeStates,
+                        defaultNodeUrls = defaultNodeUrls,
+                        gemNodeFlags = gemNodeFlags,
+                    )
+                },
             )
         }
     }
@@ -312,21 +280,19 @@ internal fun visibleNodeStates(
 }
 
 internal fun buildNodeRows(
-    chain: Chain,
     nodes: List<Node>,
     currentNode: Node,
     nodeStates: Map<String, NodeStatusState>,
     defaultNodeUrls: Set<String>,
+    gemNodeFlags: Map<String, String>,
 ): List<NodeRowUiModel> {
-    val gemNodeUrls = getGemNodeUrls(chain)
-
     return nodes.map { node ->
         NodeRowUiModel(
             node = node,
             host = displayHost(node.url),
-            gemNodeFlag = getGemNodeRegion(node.url)?.flag,
+            gemNodeFlag = gemNodeFlags[node.url],
             selected = node.url == currentNode.url,
-            canDelete = node.url !in gemNodeUrls && node.url !in defaultNodeUrls,
+            canDelete = node.url !in gemNodeFlags && node.url !in defaultNodeUrls,
             statusState = nodeStates[node.url] ?: NodeStatusState.Loading,
         )
     }

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{Asset, AssetId, AssetMarket, AssetScore, LinkType, Price, perpetual::PerpetualBasic};
+use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, LinkType, Price, perpetual::PerpetualBasic};
 
 #[typeshare(swift = "Sendable")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,6 +12,7 @@ pub struct AssetFull {
     pub score: AssetScore,
     pub tags: Vec<String>,
     pub links: Vec<AssetLink>,
+    pub associations: Vec<AssetAssociation>,
     pub perpetuals: Vec<PerpetualBasic>,
     pub price: Option<Price>,
     pub market: Option<AssetMarket>,
@@ -25,6 +26,7 @@ impl AssetFull {
             score: self.score,
             tags: self.tags,
             links: self.links,
+            associations: self.associations,
             perpetuals: self.perpetuals,
             price: self.price.map(|p| p.with_rate(rate)),
             market: self.market.map(|m| m.with_rate(rate)),
@@ -139,11 +141,11 @@ mod tests {
     use chrono::Utc;
 
     use super::*;
-    use crate::{Asset, Chain, PriceProvider};
+    use crate::{Asset, PriceProvider};
 
     #[test]
     fn test_asset_basic_with_rate() {
-        let asset = Asset::from_chain(Chain::Bitcoin);
+        let asset = Asset::mock_btc();
         let price = Price::new(100.0, 5.0, Utc::now(), PriceProvider::Coingecko);
 
         let base = AssetPriceMetadata {
@@ -168,5 +170,17 @@ mod tests {
         assert_eq!(converted.price.as_ref().unwrap().price, price.price * 2.0);
         assert_eq!(converted.price.as_ref().unwrap().price_change_percentage_24h, price.price_change_percentage_24h);
         assert!(missing.price.is_none());
+    }
+
+    #[test]
+    fn test_asset_full_with_rate() {
+        let association = AssetAssociation::mock();
+        let result = AssetFull {
+            associations: vec![association.clone()],
+            ..AssetFull::mock()
+        }
+        .with_rate(2.0);
+
+        assert_eq!(result.associations, vec![association]);
     }
 }

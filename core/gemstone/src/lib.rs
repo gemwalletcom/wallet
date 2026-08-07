@@ -3,11 +3,12 @@ pub mod address_formatter;
 pub mod alien;
 pub mod api_client;
 pub mod auth;
+pub mod balance_calculator;
 pub mod block_explorer;
 pub mod config;
+pub mod crypto_fiat_converter;
 pub mod deeplink;
 pub mod device;
-pub mod ethereum;
 pub mod fee;
 pub mod gateway;
 pub mod gem_swapper;
@@ -18,13 +19,16 @@ pub mod models;
 pub mod network;
 pub mod payment;
 pub mod perpetual;
+pub mod price;
 pub mod price_alert_formatter;
+pub mod service_status;
 pub mod signer;
 pub mod siwe;
 pub mod support;
 #[cfg(all(test, feature = "reqwest_provider"))]
 pub(crate) mod testkit;
 pub mod transaction_state;
+pub mod transfer_amount;
 pub mod url_action;
 pub mod wallet_connect;
 
@@ -39,15 +43,16 @@ pub fn lib_version() -> String {
 }
 
 /// GemstoneError
-#[derive(Debug, uniffi::Error)]
+#[derive(Debug, PartialEq, Eq, uniffi::Error)]
 pub enum GemstoneError {
     AnyError { msg: String },
+    SignerError { error: signer::GemSignerError, msg: String },
 }
 
 impl std::fmt::Display for GemstoneError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::AnyError { msg } => write!(f, "{}", msg),
+            Self::AnyError { msg } | Self::SignerError { msg, .. } => write!(f, "{}", msg),
         }
     }
 }
@@ -98,7 +103,7 @@ impl From<AlienError> for GemstoneError {
 
 impl From<primitives::SignerError> for GemstoneError {
     fn from(error: primitives::SignerError) -> Self {
-        Self::AnyError { msg: error.to_string() }
+        Self::SignerError { msg: error.to_string(), error }
     }
 }
 

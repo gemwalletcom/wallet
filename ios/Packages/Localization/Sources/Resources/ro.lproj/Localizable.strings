@@ -1,4 +1,5 @@
 "common.cancel" = "Anula";
+"common.hidden" = "Ascunse";
 "common.done" = "Gata";
 "common.maximum_value" = "Valoarea maximă este %@";
 "common.minimum_value" = "Valoarea minimă este %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Suma minimă a tranzacției este %@. Vă rugăm să introduceți o sumă mai mare.";
 "errors.perpetual.trigger_price_lower" = "Prețul de declanșare trebuie să fie mai mic decât prețul pieței";
 "errors.perpetual.trigger_price_higher" = "Prețul de declanșare trebuie să fie mai mare decât prețul pieței";
+"errors.no_internet_connection" = "Nicio conexiune la internet";
+"errors.no_service_connection" = "Nicio conexiune la serviciu";
+"errors.balances_activity_outdated" = "Soldurile și activitatea pot fi învechite.";
 "activity.title" = "Activitate";
 "activity.state.empty.title" = "Activitatea ta va apărea aici";
 "activity.state.empty.description" = "Efectuați prima tranzacție";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Rezervat pentru comision de rețea";
 "info.stake.reserved.description" = "O sumă mică rămâne în portofelul tău pentru a acoperi comisioanele aferente operațiunilor precum unstaking-ul sau revendicarea recompenselor.";
 "info.stake.apr.description" = "Rata anuală procentuală (APR) este rata anuală de recompensă pentru plasarea criptomonedei tale.";
+"info.stake_frozen_required_title" = "Îngheață TRX pentru a miza";
+"info.stake_frozen_required_description" = "Mizarea pe TRON are doi pași. Mai întâi îngheață TRX, apoi mizează-l pentru a câștiga recompense.";
 "info.perpetual.auto_close.description" = "Închide automat poziția la nivelurile de preț stabilite. Funcția Take Profit blochează câștigurile, iar funcția Stop Loss limitează pierderile.";
 "info.fully_diluted_valuation.title" = "Evaluare complet diluată";
 "info.fully_diluted_valuation.description" = "Valoarea teoretică de piață ar rezulta în cazul în care toate monedele ar fi în circulație. Calculată ca preț înmulțit cu oferta maximă.";

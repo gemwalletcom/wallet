@@ -7,12 +7,12 @@ use gem_jsonrpc::types::JsonRpcError;
 use primitives::{AssetBalance, Chain};
 
 use super::balances_mapper;
-use crate::rpc::client::NearClient;
+use crate::rpc::NearProvider;
 
 const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = -32000;
 
 #[async_trait]
-impl<C: Client + Clone> ChainBalances for NearClient<C> {
+impl<C: Client + Clone> ChainBalances for NearProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let account = match self.get_account(&address).await {
             Ok(account) => account,
@@ -46,7 +46,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_near_get_balance_coin() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_near_test_client()?;
+        let client = create_near_test_client();
         let address = TEST_ADDRESS.to_string();
         let balance = client.get_balance_coin(address).await?;
         assert!(balance.balance.available > num_bigint::BigUint::from(0u32));
@@ -56,7 +56,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_near_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_near_test_client()?;
+        let client = create_near_test_client();
         let address = TEST_ADDRESS.to_string();
         let assets = client.get_balance_assets(address).await?;
 

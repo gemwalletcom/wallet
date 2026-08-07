@@ -11,6 +11,7 @@ import Preferences
 import PriceAlertService
 import Primitives
 import PrimitivesComponents
+import Recents
 import Store
 import Style
 import SwiftUI
@@ -20,6 +21,7 @@ import SwiftUI
 public final class SelectAssetViewModel {
     let preferences: Preferences
     let selectType: SelectAssetType
+    let flow: SelectAssetFlow
     let searchService: AssetSearchService
     let assetsEnabler: any AssetsEnabler
     let priceAlertService: PriceAlertService
@@ -31,13 +33,9 @@ public final class SelectAssetViewModel {
     var searchModel: AssetSearchViewModel
 
     public let assetsQuery: ObservableQuery<AssetsRequest>
-    public let recentsQuery: ObservableQuery<RecentActivityRequest>
+    public let recentModel: RecentAssetsModel
     var assets: [AssetData] {
         assetsQuery.value
-    }
-
-    var recents: [RecentAsset] {
-        recentsQuery.value
     }
 
     var isSearching: Bool = false
@@ -46,7 +44,6 @@ public final class SelectAssetViewModel {
     var copyTypeViewModel: CopyTypeViewModel?
 
     public var isPresentingAddToken: Bool = false
-    public var isPresentingRecents: Bool = false
     public var assetSelection: AssetSelectionType?
 
     public var filterModel: AssetsFilterViewModel
@@ -61,6 +58,7 @@ public final class SelectAssetViewModel {
         priceAlertService: PriceAlertService,
         activityService: ActivityService,
         selectAssetAction: AssetAction = .none,
+        chains: [Chain] = [],
     ) {
         self.preferences = preferences
         self.wallet = wallet
@@ -69,56 +67,34 @@ public final class SelectAssetViewModel {
         self.assetsEnabler = assetsEnabler
         self.priceAlertService = priceAlertService
         self.activityService = activityService
+        flow = selectType.flow
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
             type: selectType,
             model: ChainsFilterViewModel(
                 chains: wallet.chains,
+                selected: chains,
             ),
         )
         filterModel = filter
         searchModel = AssetSearchViewModel(selectType: selectType)
 
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: filter.filters), initialValue: [])
-        recentsQuery = ObservableQuery(
-            RecentActivityRequest(
-                walletId: wallet.id,
-                limit: 10,
-                types: selectType.recentActivityTypes,
-                filters: filter.defaultFilters,
-            ),
-            initialValue: [],
+        recentModel = RecentAssetsModel(
+            walletId: wallet.id,
+            types: selectType.recentActivityTypes,
+            filters: filter.defaultFilters,
+            activityService: activityService,
         )
     }
 
     var title: String {
-        switch selectType {
-        case .send: Localized.Wallet.send
-        case let .receive(type):
-            switch type {
-            case .asset: Localized.Wallet.receive
-            case .collection: Localized.Wallet.receiveCollection
-            }
-        case .buy: Localized.Wallet.buy
-        case let .swap(type):
-            switch type {
-            case .pay: Localized.Swap.youPay
-            case .receive: Localized.Swap.youReceive
-            }
-        case .manage: Localized.Wallet.manageTokenList
-        case .priceAlert: Localized.Assets.selectAsset
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Wallet.withdraw
-        }
+        flow.title
     }
 
     var sections: AssetsSections {
-        AssetsSections.from(assets, enablePopular: enablePopularSection)
-    }
-
-    var enablePopularSection: Bool {
-        [.buy, .priceAlert].contains(selectType)
+        AssetsSections.from(assets, enablePopular: flow.capabilities.contains(.popularSection))
     }
 
     var showPopularSection: Bool {
@@ -150,42 +126,19 @@ public final class SelectAssetViewModel {
     }
 
     var assetsTitle: String {
-        switch selectType {
-        case .send, .buy, .swap, .manage, .priceAlert, .deposit, .withdraw, .receive(.asset):
-            Localized.Assets.title
-        case .receive(.collection):
-            Localized.Settings.Networks.title
-        }
+        flow.assetsSectionTitle
     }
 
     public var showAddToken: Bool {
-        selectType == .manage && wallet.hasTokenSupport && !filterModel.chainsFilter.isEmpty
+        flow.capabilities.contains(.addCustomToken) && wallet.hasTokenSupport && filterModel.chainsFilter.hasChains
     }
 
     public var showFilter: Bool {
-        switch selectType {
-        case let .receive(type):
-            switch type {
-            case .asset:
-                wallet.isMultiCoins && !filterModel.chainsFilter.isEmpty
-            case .collection: false
-            }
-        case .buy, .manage, .priceAlert, .send, .swap:
-            wallet.isMultiCoins && !filterModel.chainsFilter.isEmpty
-        case .deposit, .withdraw: false
-        }
+        flow.capabilities.contains(.chainFilter) && wallet.isMultiCoins && filterModel.chainsFilter.hasChains
     }
 
     var isNetworkSearchEnabled: Bool {
-        switch selectType {
-        case .manage, .receive, .buy, .priceAlert: true
-        case let .swap(type):
-            switch type {
-            case .pay: false
-            case .receive: true
-            }
-        case .send, .deposit, .withdraw: false
-        }
+        flow.capabilities.contains(.networkSearch)
     }
 
     var showTags: Bool {
@@ -201,14 +154,7 @@ public final class SelectAssetViewModel {
     }
 
     var showRecents: Bool {
-        switch selectType {
-        case .send, .receive, .buy, .swap: searchModel.searchableQuery.isEmpty && recents.isNotEmpty
-        case .manage, .priceAlert, .deposit, .withdraw: false
-        }
-    }
-
-    var recentModels: [AssetViewModel] {
-        recents.map { AssetViewModel(asset: $0.asset) }
+        flow.capabilities.contains(.recents) && searchModel.searchableQuery.isEmpty && recentModel.hasAssets
     }
 
     var currencyCode: String {
@@ -229,14 +175,14 @@ extension SelectAssetViewModel {
     }
 
     func selectAsset(asset: Asset) {
-        switch selectType {
-        case .priceAlert:
+        switch flow.selectionEffect {
+        case .enablePriceAlert:
             Task {
                 await setPriceAlert(assetId: asset.id, enabled: true)
             }
-        case .swap:
+        case .recordRecent:
             updateRecent(assetId: asset.id)
-        case .manage, .send, .receive, .buy, .deposit, .withdraw:
+        case .none:
             break
         }
         onSelectAssetAction?(asset)
@@ -255,14 +201,15 @@ extension SelectAssetViewModel {
     }
 
     func handleAction(assetId: AssetId, enabled: Bool) async {
-        switch selectType {
-        case .manage:
+        switch flow.rowSelection {
+        case .toggle:
             do {
                 try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetId], enabled: enabled)
             } catch {
                 debugLog("SelectAssetViewModel handleAction error: \(error)")
             }
-        case .send, .receive, .buy, .swap, .priceAlert, .deposit, .withdraw: break
+        case .navigate, .select:
+            break
         }
     }
 
@@ -321,16 +268,12 @@ extension SelectAssetViewModel {
         }
     }
 
-    func onSelectRecents() {
-        isPresentingRecents = true
-    }
-
     func onSelectAsset(_ assetData: AssetData) {
-        assetSelection = .regular(SelectAssetInput(type: selectType, assetAddress: assetData.assetAddress))
+        assetSelection = .regular(SelectAssetInput(type: selectType, assetData: assetData))
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
-        guard selectType == .withdraw else { return assetData }
+        guard flow.capabilities.contains(.depositAssetDisplay) else { return assetData }
         return AssetData(
             asset: PerpetualConfig.depositAsset,
             balance: assetData.balance,
@@ -338,19 +281,20 @@ extension SelectAssetViewModel {
             price: assetData.price,
             priceAlerts: assetData.priceAlerts,
             metadata: assetData.metadata,
+            associations: assetData.associations,
         )
     }
 
     public func onSelectRecent(_ asset: Asset) {
-        switch selectType {
-        case .send, .receive, .buy:
-            assetSelection = .recent(SelectAssetInput(type: selectType, assetAddress: assetAddress(for: asset)))
-        case .swap:
+        switch flow.rowSelection {
+        case .navigate:
+            assetSelection = .recent(SelectAssetInput(type: selectType, assetData: assetData(for: asset)))
+        case .select:
             onSelectAssetAction?(asset)
-        case .manage, .priceAlert, .deposit, .withdraw:
+        case .toggle:
             break
         }
-        isPresentingRecents = false
+        recentModel.dismiss()
     }
 
     func onSelectAddCustomToken() {
@@ -361,16 +305,14 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
-    private func assetAddress(for asset: Asset) -> AssetAddress {
-        let address: String = {
-            do {
-                return try wallet.account(for: asset.chain).address
-            } catch {
-                debugLog(error.localizedDescription)
-                return ""
-            }
-        }()
-        return AssetAddress(asset: asset, address: address)
+    private func assetData(for asset: Asset) -> AssetData {
+        if let assetData = assets.first(where: { $0.asset.id == asset.id }) {
+            return assetData
+        }
+        guard let account = try? wallet.account(for: asset.chain) else {
+            return .with(asset: asset)
+        }
+        return .with(asset: asset, account: account)
     }
 
     private func searchAssets(
@@ -407,22 +349,5 @@ extension SelectAssetViewModel {
     private func handle(error: any Error) {
         state.setError(error)
         debugLog("SelectAssetScene scene error: \(error)")
-    }
-}
-
-// MARK: - Models extensions
-
-extension SelectAssetType {
-    var listType: AssetListType {
-        switch self {
-        case .send,
-             .buy,
-             .swap,
-             .deposit,
-             .withdraw: .view
-        case let .receive(type): .copy(type)
-        case .manage: .manage
-        case .priceAlert: .price
-        }
     }
 }

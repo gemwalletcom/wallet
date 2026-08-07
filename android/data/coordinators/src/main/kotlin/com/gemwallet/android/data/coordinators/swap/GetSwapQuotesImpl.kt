@@ -47,6 +47,10 @@ class GetSwapQuotesImpl(
                 useMaxAmount = useMaxAmount,
             )
         )
+        gemSwapper.preloadRoutes(
+            fromAsset = from.id.toIdentifier(),
+            toAsset = to.id.toIdentifier(),
+        )
         return gemSwapper.getQuote(swapRequest)
             .sortedByDescending { BigInteger(it.toValue) }
     }

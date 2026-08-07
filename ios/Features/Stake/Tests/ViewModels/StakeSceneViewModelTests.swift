@@ -37,6 +37,43 @@ struct StakeSceneViewModelTests {
     }
 
     @Test
+    func stakeRequiresFrozenResourcesOnTron() {
+        let tron = StakeSceneViewModel.mock(chain: .tron)
+        tron.validatorsQuery.value = [.mock(.tron)]
+
+        tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock())
+        #expect(tron.isStakeEnabled == false)
+        #expect(tron.stakeInfoAction != nil)
+
+        tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
+        #expect(tron.isStakeEnabled == true)
+        #expect(tron.stakeInfoAction == nil)
+
+        tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(locked: 1))
+        #expect(tron.isStakeEnabled == true)
+        #expect(tron.stakeInfoAction == nil)
+    }
+
+    @Test
+    func stakeStillRequiresValidators() {
+        let tron = StakeSceneViewModel.mock(chain: .tron)
+        tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
+
+        #expect(tron.isStakeEnabled == false)
+        #expect(tron.stakeInfoAction == nil)
+    }
+
+    @Test
+    func stakeNotGatedByFrozenResourcesOffTron() {
+        let cosmos = StakeSceneViewModel.mock(chain: .cosmos)
+        cosmos.validatorsQuery.value = [.mock(.cosmos)]
+        cosmos.assetQuery.value = .mock(asset: Chain.cosmos.asset, balance: .mock())
+
+        #expect(cosmos.isStakeEnabled == true)
+        #expect(cosmos.stakeInfoAction == nil)
+    }
+
+    @Test
     func recommendedCurrentValidator() throws {
         let model = StakeSceneViewModel.mock(chain: .cosmos)
         let recommendedId = try #require(StakeRecommendedValidators().validatorsSet(chain: .cosmos).first)

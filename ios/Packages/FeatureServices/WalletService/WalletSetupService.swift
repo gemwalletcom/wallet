@@ -13,19 +13,18 @@ public struct WalletSetupService: Sendable {
 
     public func setup(wallet: Wallet) throws {
         let chains = wallet.chains
+        let defaultAssets = chains.map(\.defaultAssets.assetIds).flatMap(\.self)
+        let assetIds = chains.ids + defaultAssets
 
-        let (chainsEnabledByDefault, chainsDisabledByDefault) = chains.reduce(into: ([Chain](), [Chain]())) { result, chain in
-            if AssetConfiguration.enabledByDefault.contains(chain.assetId) || (wallet.accounts.count == 1 && chains.count == 1) {
-                result.0.append(chain)
+        let (enabledByDefault, disabledByDefault) = assetIds.reduce(into: ([AssetId](), [AssetId]())) { result, assetId in
+            if AssetConfiguration.enabledByDefault.contains(assetId) || (wallet.accounts.count == 1 && chains.count == 1) {
+                result.0.append(assetId)
             } else {
-                result.1.append(chain)
+                result.1.append(assetId)
             }
         }
 
-        try balanceService.addAssetsBalancesIfMissing(assetIds: chainsEnabledByDefault.ids, wallet: wallet, isEnabled: true)
-        try balanceService.addAssetsBalancesIfMissing(assetIds: chainsDisabledByDefault.ids, wallet: wallet, isEnabled: false)
-
-        let defaultAssets = chains.map(\.defaultAssets.assetIds).flatMap(\.self)
-        try balanceService.addAssetsBalancesIfMissing(assetIds: defaultAssets, wallet: wallet, isEnabled: false)
+        try balanceService.addAssetsBalancesIfMissing(assetIds: enabledByDefault, wallet: wallet, isEnabled: true)
+        try balanceService.addAssetsBalancesIfMissing(assetIds: disabledByDefault, wallet: wallet, isEnabled: false)
     }
 }

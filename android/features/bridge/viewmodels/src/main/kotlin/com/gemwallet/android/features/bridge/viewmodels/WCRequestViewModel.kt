@@ -98,6 +98,10 @@ class WCRequestViewModel @Inject constructor(
                     chainId = chainId,
                     domain = sessionDomain,
                 )
+                if (action is WalletConnectAction.Unsupported) {
+                    respondMethodNotFound(sessionRequest, onError)
+                    return@launch
+                }
                 if (action is WalletConnectAction.ChainOperation) {
                     handleChainOperation(action, sessionRequest, onError)
                     return@launch
@@ -161,13 +165,7 @@ class WCRequestViewModel @Inject constructor(
             }
 
             uniffi.gemstone.WalletConnectChainOperation.GetChainId -> {
-                respondError(
-                    topic = sessionRequest.topic,
-                    id = sessionRequest.request.id,
-                    code = -32601,
-                    message = "The method does not exist / is not available.",
-                    onError = onError,
-                )
+                respondMethodNotFound(sessionRequest, onError)
             }
         }
     }
@@ -303,6 +301,16 @@ class WCRequestViewModel @Inject constructor(
             response = WalletConnectJsonRpcResponse.Error(code, message),
             onSuccess = { state.update { it.copy(canceled = true) } },
             onError = { error -> onError(error.ifBlank { "Request failed" }) },
+        )
+    }
+
+    private fun respondMethodNotFound(sessionRequest: WalletConnectSessionRequest, onError: (String) -> Unit) {
+        respondError(
+            topic = sessionRequest.topic,
+            id = sessionRequest.request.id,
+            code = -32601,
+            message = "Method not found",
+            onError = onError,
         )
     }
 

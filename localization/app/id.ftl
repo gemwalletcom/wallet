@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Batalkan
+common_hidden = Tersembunyi
 common_done = Selesai
 common_maximum_value = Nilai maksimum adalah %@
 common_minimum_value = Nilai minimum adalah %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Gagal mengambil informasi token: %
 errors_unknown_try_again = Terjadi kesalahan. Silakan coba lagi.
 errors_network_error = Kesalahan jaringan: %@
 errors_network_offline = Koneksi internet tampaknya sedang offline.
+errors_no_internet_connection = Tidak ada koneksi internet
+errors_no_service_connection = Tidak ada koneksi layanan
+errors_balances_activity_outdated = Saldo dan aktivitas mungkin tidak terbaru.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Tidak dapat mengembalikan kutipan untuk pasangan tok
 info_stake_reserved_title = Dicadangkan untuk Biaya Jaringan
 info_stake_reserved_description = Sejumlah kecil dana disimpan di dompet Anda untuk menutupi biaya operasi seperti unstaking atau klaim hadiah.
 info_stake_apr_description = Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk mempertaruhkan mata uang kripto Anda.
+info_stake_frozen_required_title = Bekukan TRX untuk staking
+info_stake_frozen_required_description = Staking di TRON dilakukan dalam dua langkah. Bekukan TRX dulu, lalu staking untuk mendapatkan hadiah.
 info_perpetual_auto_close_description = Tutup posisi Anda secara otomatis pada level harga yang ditentukan. Take Profit mengunci keuntungan, Stop Loss membatasi kerugian.
 info_fully_diluted_valuation_title = Valuasi Terdilusi Penuh
 info_fully_diluted_valuation_description = Nilai pasar teoretis jika semua koin beredar. Dihitung sebagai harga dikalikan dengan pasokan maksimum.

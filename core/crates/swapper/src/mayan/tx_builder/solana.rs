@@ -36,7 +36,8 @@ pub(in crate::mayan::tx_builder) async fn build_quote_data(
     transaction: SolanaTransaction,
     rpc_provider: Arc<dyn RpcProvider>,
 ) -> Result<SwapperQuoteData, SwapperError> {
-    let rpc_client = SolanaClient::new(create_client_with_chain(rpc_provider, Chain::Solana));
+    let client = create_client_with_chain(rpc_provider, Chain::Solana);
+    let rpc_client = SolanaClient::new(client);
     let lookup_tables = async { rpc_client.get_address_lookup_tables(transaction.lookup_table_addresses).await.map_err(solana_error) };
     let blockhash = async { rpc_client.get_latest_blockhash().await.map(|response| response.value.blockhash).map_err(SwapperError::from) };
     let (lookup_tables, blockhash) = try_join!(lookup_tables, blockhash)?;

@@ -1,8 +1,6 @@
 use std::error::Error;
 
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
-use primitives::Chain;
 
 use crate::models::account::PolkadotAccountBalance;
 use crate::models::block::PolkadotNodeVersion;
@@ -57,15 +55,3 @@ impl<C: Client> PolkadotClient<C> {
         Ok(self.client.get(&format!("/v1/blocks/{}", block_number)).await?)
     }
 }
-
-impl<C: Client> ChainProvider for PolkadotClient<C> {
-    fn get_chain(&self) -> Chain {
-        Chain::Polkadot
-    }
-}
-
-impl<C: Client> ChainTraits for PolkadotClient<C> {}
-impl<C: Client> ChainAccount for PolkadotClient<C> {}
-impl<C: Client> ChainPerpetual for PolkadotClient<C> {}
-impl<C: Client> ChainAddressStatus for PolkadotClient<C> {}
-impl<C: Client> ChainSimulation for PolkadotClient<C> {}

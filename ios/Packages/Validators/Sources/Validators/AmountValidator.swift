@@ -3,12 +3,13 @@
 import BigInt
 import Formatters
 import Foundation
+import GemstoneFormatters
 import Primitives
 
 public struct AmountValidator: FormattedValidator {
     public enum Source: Sendable {
         case asset
-        case fiat(price: AssetPrice?, converter: ValueConverter)
+        case fiat(price: AssetPrice?, converter: AssetValueConverter)
     }
 
     public typealias Formatted = BigInt
@@ -80,7 +81,7 @@ public extension TextValidator where Self == AmountValidator {
 
     static func fiatAmount(
         formatter: ValueFormatter = .init(style: .full),
-        converter: ValueConverter = .init(),
+        converter: AssetValueConverter = .init(),
         price: AssetPrice?,
         decimals: Int,
         validators: [any ValueValidator<BigInt>],

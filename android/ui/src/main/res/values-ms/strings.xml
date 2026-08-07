@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Batal</string>
+  <string name="common_hidden">Tersembunyi</string>
   <string name="common_done">Selesai</string>
   <string name="common_maximum_value">Nilai maksimum ialah %1$s</string>
   <string name="common_minimum_value">Nilai minimum ialah %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">Ralat tidak diketahui berlaku. Sila cuba lagi.</string>
   <string name="errors_network_error">Ralat rangkaian: %1$s</string>
   <string name="errors_network_offline">Sambungan Internet nampaknya di luar talian.</string>
+  <string name="errors_no_internet_connection">Tiada sambungan internet</string>
+  <string name="errors_no_service_connection">Tiada sambungan perkhidmatan</string>
+  <string name="errors_balances_activity_outdated">Baki dan aktiviti mungkin tidak terkini.</string>
   <string name="activity_title">Aktiviti</string>
   <string name="activity_state_empty_title">Aktiviti anda akan dipaparkan di sini</string>
   <string name="activity_state_empty_description">Buat transaksi pertama anda</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">Dikhaskan untuk Yuran Rangkaian</string>
   <string name="info_stake_reserved_description">Sejumlah kecil kekal dalam dompet anda untuk menampung yuran untuk operasi seperti menanggalkan atau menuntut ganjaran.</string>
   <string name="info_stake_apr_description">Kadar Peratusan Tahunan (APR) ialah kadar ganjaran tahunan untuk mempertaruhkan mata wang kripto anda.</string>
+  <string name="info_stake_frozen_required_title">Bekukan TRX untuk pertaruhan</string>
+  <string name="info_stake_frozen_required_description">Pertaruhan di TRON melibatkan dua langkah. Bekukan TRX dahulu, kemudian pertaruhkannya untuk memperoleh ganjaran.</string>
   <string name="info_perpetual_auto_close_description">Tutup kedudukan anda secara automatik pada tahap harga yang ditetapkan. Ambil Untung mengunci keuntungan, Henti Kerugian menghadkan kerugian.</string>
   <string name="info_fully_diluted_valuation_title">Penilaian Dicairkan Sepenuhnya</string>
   <string name="info_fully_diluted_valuation_description">Nilai pasaran teori jika semua syiling berada dalam edaran. Dikira sebagai harga didarab dengan penawaran maksimum.</string>

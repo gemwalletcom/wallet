@@ -1,13 +1,16 @@
-use super::model::{CollectionDetail, CollectionsResponse, TokenDetailResponse, TokensResponse};
-use primitives::Chain;
 use std::error::Error;
 
-pub struct MagicEdenEvmClient {
-    client: reqwest::Client,
+use gem_client::{Client, ClientExt};
+use primitives::Chain;
+
+use super::model::{CollectionDetail, CollectionsResponse, TokenDetailResponse, TokensResponse};
+
+pub struct MagicEdenEvmClient<C: Client> {
+    client: C,
 }
 
-impl MagicEdenEvmClient {
-    pub fn new(client: reqwest::Client) -> Self {
+impl<C: Client> MagicEdenEvmClient<C> {
+    pub fn new(client: C) -> Self {
         Self { client }
     }
 
@@ -20,14 +23,12 @@ impl MagicEdenEvmClient {
 
     pub async fn get_nfts_by_wallet(&self, chain: Chain, wallet_address: &str) -> Result<TokensResponse, Box<dyn Error + Send + Sync>> {
         let chain_id = Self::chain_id(chain)?;
-        let url = format!("{}/v4/evm-public/assets/user-assets", super::super::BASE_URL);
         let response: TokensResponse = self
             .client
-            .get(&url)
-            .query(&[("chain", chain_id), ("walletAddresses[]", wallet_address)])
-            .send()
-            .await?
-            .json()
+            .get_with_query(
+                "/v4/evm-public/assets/user-assets",
+                &[("chain".to_string(), chain_id.to_string()), ("walletAddresses[]".to_string(), wallet_address.to_string())],
+            )
             .await?;
 
         Ok(response)
@@ -35,9 +36,8 @@ impl MagicEdenEvmClient {
 
     pub async fn fetch_collection_detail(&self, chain: Chain, collection_id: &str) -> Result<CollectionDetail, Box<dyn Error + Send + Sync>> {
         let chain_id = Self::chain_id(chain)?;
-        let url = format!("{}/v4/evm-public/collections", super::super::BASE_URL);
         let body = serde_json::json!({"chain": chain_id, "collectionIds": [collection_id.to_lowercase()]});
-        let response: CollectionsResponse = self.client.post(&url).json(&body).send().await?.json().await?;
+        let response: CollectionsResponse = self.client.post("/v4/evm-public/collections", &body).await?;
         response.collections.into_iter().next().ok_or_else(|| "Collection not found".into())
     }
 
@@ -45,14 +45,16 @@ impl MagicEdenEvmClient {
         let chain_id = Self::chain_id(chain)?;
         let collection_id_lower = collection_id.to_lowercase();
         let asset_id = format!("{}:{}", collection_id_lower, token_id);
-        let url = format!("{}/v4/evm-public/assets/collection-assets", super::super::BASE_URL);
         let response: TokensResponse = self
             .client
-            .get(&url)
-            .query(&[("chain", chain_id), ("collectionId", &collection_id_lower), ("assetIds[]", &asset_id)])
-            .send()
-            .await?
-            .json()
+            .get_with_query(
+                "/v4/evm-public/assets/collection-assets",
+                &[
+                    ("chain".to_string(), chain_id.to_string()),
+                    ("collectionId".to_string(), collection_id_lower),
+                    ("assetIds[]".to_string(), asset_id),
+                ],
+            )
             .await?;
 
         let token = response.assets.into_iter().next().ok_or("Token not found")?.asset;

@@ -28,6 +28,7 @@ const DEFILLAMA_CHAIN_SLUGS: &[(Chain, &str)] = &[
     (Chain::OpBNB, "op_bnb"),
     (Chain::Manta, "manta"),
     (Chain::Ink, "ink"),
+    (Chain::Ton, "ton"),
 ];
 
 pub fn defillama_id_for_asset_id(asset_id: &AssetId) -> Option<String> {

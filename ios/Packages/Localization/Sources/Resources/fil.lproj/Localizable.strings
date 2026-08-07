@@ -1,4 +1,5 @@
 "common.cancel" = "Kanselahin";
+"common.hidden" = "Nakatago";
 "common.done" = "Tapos na";
 "common.maximum_value" = "Ang maximum na halaga ay %@";
 "common.minimum_value" = "Ang minimum na halaga ay %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Ang minimum na halaga ng kalakalan ay %@. Mangyaring maglagay ng mas mataas na halaga.";
 "errors.perpetual.trigger_price_lower" = "Dapat mas mababa sa presyo sa merkado ang trigger price";
 "errors.perpetual.trigger_price_higher" = "Dapat mas mataas sa presyo sa merkado ang trigger price";
+"errors.no_internet_connection" = "Walang koneksyon sa internet";
+"errors.no_service_connection" = "Walang koneksyon sa serbisyo";
+"errors.balances_activity_outdated" = "Maaaring luma na ang mga balanse at aktibidad.";
 "activity.title" = "Aktibidad";
 "activity.state.empty.title" = "Lalabas dito ang iyong aktibidad";
 "activity.state.empty.description" = "Gawin ang iyong unang transaksyon";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Nakalaan para sa Bayad ng Network";
 "info.stake.reserved.description" = "May maliit na halaga ang nananatili sa iyong wallet para mabayaran ang mga bayarin para sa mga operasyon tulad ng pag-unstaking o pag-claim ng mga reward.";
 "info.stake.apr.description" = "Ang Annual Percentage Rate (APR) ay ang taunang reward rate para sa staking ng iyong cryptocurrency.";
+"info.stake_frozen_required_title" = "I-freeze ang TRX para mag-stake";
+"info.stake_frozen_required_description" = "May dalawang hakbang ang staking sa TRON. Una, i-freeze ang TRX, pagkatapos ay i-stake ito para kumita ng rewards.";
 "info.perpetual.auto_close.description" = "Awtomatikong isara ang iyong posisyon sa nakatakdang antas ng presyo. Pinapanatili ng Take Profit ang mga kita, nililimitahan ng Stop Loss ang mga pagkalugi.";
 "info.fully_diluted_valuation.title" = "Buong Diluted na Halaga (FDV)";
 "info.fully_diluted_valuation.description" = "Ang teoretikal na halaga sa pamilihan kung lahat ng barya ay nasa sirkulasyon. Kinakalkula bilang presyo na pinarami sa pinakamataas na suplay.";

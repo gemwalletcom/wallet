@@ -8,11 +8,11 @@ use primitives::Asset;
 use crate::{
     models::Extension,
     provider::token_mapper::{map_token_data_metaplex, map_token_data_spl_token_2022},
-    rpc::client::SolanaClient,
+    rpc::SolanaProvider,
 };
 
 #[async_trait]
-impl<C: Client + Clone> ChainToken for SolanaClient<C> {
+impl<C: Client + Clone> ChainToken for SolanaProvider<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         let token_info_result = self.get_token_mint_info(&token_id).await?;
         let token_info = token_info_result.info();

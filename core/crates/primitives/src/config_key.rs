@@ -179,6 +179,7 @@ pub enum ConfigKey {
     DeviceTimerUpdater,
     DeviceTimerInactiveObserver,
     DeviceStreamRetention,
+    DeviceStreamHistoryLimit,
 
     // Version
     VersionTimerUpdateStoreVersions,
@@ -210,6 +211,7 @@ pub enum ConfigKey {
     SearchAssetListsUpdateInterval,
     SearchPerpetualsUpdateInterval,
     SearchNftsUpdateInterval,
+    SearchIndexBatchSize,
     SearchAssetsLastUpdatedAt,
     SearchPerpetualsLastUpdatedAt,
     SearchNftsLastUpdatedAt,
@@ -376,6 +378,7 @@ impl ConfigKey {
             Self::DeviceTimerUpdater => "1d",
             Self::DeviceTimerInactiveObserver => "1d",
             Self::DeviceStreamRetention => "7d",
+            Self::DeviceStreamHistoryLimit => "25",
             Self::VersionTimerUpdateStoreVersions => "1h",
             Self::TransactionTimerCleanup => "1d",
             Self::TransactionTimerInTransitUpdate => "60s",
@@ -399,6 +402,7 @@ impl ConfigKey {
             Self::SearchAssetListsUpdateInterval => "30m",
             Self::SearchPerpetualsUpdateInterval => "30m",
             Self::SearchNftsUpdateInterval => "30m",
+            Self::SearchIndexBatchSize => "10000",
             Self::SearchAssetsLastUpdatedAt => "0",
             Self::SearchPerpetualsLastUpdatedAt => "0",
             Self::SearchNftsLastUpdatedAt => "0",

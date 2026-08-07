@@ -1,4 +1,5 @@
 "common.cancel" = "Ophæve";
+"common.hidden" = "Skjulte";
 "common.done" = "Færdig";
 "common.maximum_value" = "Maksimal værdi er %@";
 "common.minimum_value" = "Minimumsværdi er %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Minimumsbeløbet for handel er %@. Indtast venligst et højere beløb.";
 "errors.perpetual.trigger_price_lower" = "Triggerprisen skal være lavere end markedsprisen";
 "errors.perpetual.trigger_price_higher" = "Triggerprisen skal være højere end markedsprisen";
+"errors.no_internet_connection" = "Ingen internetforbindelse";
+"errors.no_service_connection" = "Ingen serviceforbindelse";
+"errors.balances_activity_outdated" = "Saldi og aktivitet kan være forældede.";
 "activity.title" = "Aktivitet";
 "activity.state.empty.title" = "Din aktivitet vil blive vist her";
 "activity.state.empty.description" = "Foretag din første transaktion";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Reserveret til netværksgebyr";
 "info.stake.reserved.description" = "Et lille beløb forbliver i din pung til at dække gebyrer for operationer som at fjerne indsatser eller gøre krav på belønninger.";
 "info.stake.apr.description" = "Årlig procentsats (ÅOP) er den årlige belønningssats for at satse din kryptovaluta.";
+"info.stake_frozen_required_title" = "Frys TRX for at stake";
+"info.stake_frozen_required_description" = "Staking på TRON sker i to trin. Frys først TRX, og stake det derefter for at tjene belønninger.";
 "info.perpetual.auto_close.description" = "Luk automatisk din position ved fastsatte prisniveauer. Take Profit låser gevinster, Stop Loss begrænser tab.";
 "info.fully_diluted_valuation.title" = "Fuldt udvandet værdiansættelse";
 "info.fully_diluted_valuation.description" = "Den teoretiske markedsværdi, hvis alle mønter var i omløb. Beregnet som prisen ganget med det maksimale udbud.";

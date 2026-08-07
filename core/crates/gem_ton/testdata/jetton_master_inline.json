@@ -1,0 +1,13 @@
+{
+  "jetton_masters": [
+    {
+      "address": "0:INLINE",
+      "jetton_content": {
+        "name": "Inline Token",
+        "symbol": "INL",
+        "decimals": "8"
+      }
+    }
+  ],
+  "metadata": {}
+}

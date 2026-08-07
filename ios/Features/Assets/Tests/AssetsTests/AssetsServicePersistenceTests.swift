@@ -13,17 +13,19 @@ import Testing
 struct AssetsServicePersistenceTests {
     @Test
     func updateAssetStoresPriceMarketAndLinksFromAssetResponse() async throws {
-        let db = DB.mock()
+        let asset = Asset.mock()
+        let db = DB.mockAssets(assets: [.mock(asset: asset)])
         let assetStore = AssetStore(db: db)
         let balanceStore = BalanceStore(db: db)
         let priceStore = PriceStore(db: db)
         let fiatRateStore = FiatRateStore(db: db)
 
-        let asset = Asset.mock()
         let links = [AssetLink.mock(type: .website, url: "https://bitcoin.org")]
+        let associations = [AssetAssociation(assetId: AssetId(chain: .ethereum), type: .official)]
         let assetFull = AssetFull.mock(
             asset: asset,
             links: links,
+            associations: associations,
             price: .mock(price: 100.0, priceChangePercentage24h: -5.0),
             market: .mock(
                 marketCap: 1000.0,
@@ -55,6 +57,10 @@ struct AssetsServicePersistenceTests {
 
         #expect(result.asset.id == asset.id)
         #expect(result.links == links)
+        let storedAsset = try await db.dbQueue.read { db in
+            try AssetRequest(walletId: .mock(), assetId: asset.id).fetch(db)
+        }
+        #expect(storedAsset.associations == associations)
         #expect(result.price?.price == 50.0)
         #expect(result.price?.priceChangePercentage24h == -5.0)
         #expect(result.market?.marketCap == 500.0)

@@ -7,13 +7,13 @@ use primitives::BroadcastOptions;
 
 use crate::{
     provider::{BroadcastProvider, transaction_broadcast_mapper::map_transaction_broadcast_response_from_str},
-    rpc::client::SolanaClient,
+    rpc::SolanaProvider,
 };
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionBroadcast for SolanaClient<C> {
+impl<C: Client + Clone> ChainTransactionBroadcast for SolanaProvider<C> {
     async fn transaction_broadcast(&self, data: String, options: BroadcastOptions) -> Result<String, Box<dyn Error + Sync + Send>> {
-        let response = self.send_transaction(data, Some(options.skip_preflight)).await?;
+        let response = self.broadcast_transaction(data, Some(options.skip_preflight)).await?;
         Ok(response)
     }
 }

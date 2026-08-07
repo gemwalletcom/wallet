@@ -4,12 +4,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -26,6 +22,7 @@ import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import kotlinx.coroutines.launch
@@ -51,11 +48,11 @@ internal fun AssetDetailsScene(
     transactions: List<TransactionDataAggregate>,
     priceAlertEnabled: Boolean,
     priceAlertsCount: Int,
+    requestNotificationPermission: (() -> Unit) -> Unit,
     isRefreshing: Boolean,
     isOperationEnabled: Boolean,
     onAction: (AssetDetailsAction) -> Unit,
 ) {
-    val pullToRefreshState = rememberPullToRefreshState()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val snackBar = remember { SnackbarHostState() }
@@ -88,6 +85,7 @@ internal fun AssetDetailsScene(
                 uiState = uiState,
                 priceAlertEnabled = priceAlertEnabled,
                 snackBar = snackBar,
+                requestNotificationPermission = requestNotificationPermission,
                 onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },
             )
         },
@@ -98,15 +96,6 @@ internal fun AssetDetailsScene(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,
             onRefresh = { onAction(AssetDetailsAction.Refresh) },
-            state = pullToRefreshState,
-            indicator = {
-                PullToRefreshDefaults.Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = isRefreshing,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            }
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
@@ -140,7 +129,7 @@ internal fun AssetDetailsScene(
                 )
                 status(uiState.asset, uiState.assetInfo.rank)
                 price(uiState, priceAlertsCount, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
-                network(uiState) { onAction(AssetDetailsAction.OpenNetwork(it)) }
+                network(uiState, onAction)
                 balancesHeader(uiState.accountInfoUIModel)
                 itemsPositioned(uiState.accountInfoUIModel.balances) { position, item ->
                     BalancePropertyItem(

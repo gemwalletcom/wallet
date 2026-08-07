@@ -265,6 +265,8 @@ public enum Localized {
     public static let emoji = Localized.tr("Localizable", "common.emoji", fallback: "Emoji")
     /// Get Started
     public static let getStarted = Localized.tr("Localizable", "common.get_started", fallback: "Get Started")
+    /// Hidden
+    public static let hidden = Localized.tr("Localizable", "common.hidden", fallback: "Hidden")
     /// Hide
     public static let hide = Localized.tr("Localizable", "common.hide", fallback: "Hide")
     /// Info
@@ -395,6 +397,8 @@ public enum Localized {
     }
   }
   public enum Errors {
+    /// Balances and activity may be outdated.
+    public static let balancesActivityOutdated = Localized.tr("Localizable", "errors.balances_activity_outdated", fallback: "Balances and activity may be outdated.")
     /// Camera permission not granted. Please enable camera access in settings to scan QR code.
     public static let cameraPermissionsNotGranted = Localized.tr("Localizable", "errors.camera_permissions_not_granted", fallback: "Camera permission not granted. Please enable camera access in settings to scan QR code.")
     /// Create Wallet Error: %@
@@ -429,6 +433,10 @@ public enum Localized {
     public static let invalidUrl = Localized.tr("Localizable", "errors.invalid_url", fallback: "Invalid URL")
     /// No data available
     public static let noDataAvailable = Localized.tr("Localizable", "errors.no_data_available", fallback: "No data available")
+    /// No internet connection
+    public static let noInternetConnection = Localized.tr("Localizable", "errors.no_internet_connection", fallback: "No internet connection")
+    /// No service connection
+    public static let noServiceConnection = Localized.tr("Localizable", "errors.no_service_connection", fallback: "No service connection")
     /// Not Supported
     public static let notSupported = Localized.tr("Localizable", "errors.not_supported", fallback: "Not Supported")
     /// This device does not support QR code scanning. You can only select QR code image from library.
@@ -565,6 +573,10 @@ public enum Localized {
     public static func balanceRequiredTitle(_ p1: Any) -> String {
       return Localized.tr("Localizable", "info.balance_required_title", String(describing: p1), fallback: "%@ required")
     }
+    /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
+    public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
+    /// Freeze TRX to Stake
+    public static let stakeFrozenRequiredTitle = Localized.tr("Localizable", "info.stake_frozen_required_title", fallback: "Freeze TRX to Stake")
     public enum AccountMinimumBalance {
       /// Minimum balance
       public static let title = Localized.tr("Localizable", "info.account_minimum_balance.title", fallback: "Minimum balance")

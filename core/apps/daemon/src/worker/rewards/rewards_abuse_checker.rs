@@ -335,13 +335,14 @@ fn calculate_pattern_penalty_breakdown(patterns: &AbusePatterns, config: &AbuseD
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::{MINUTE, WEEK};
 
     fn config() -> AbuseDetectionConfig {
         AbuseDetectionConfig {
             disable_threshold: 200,
             attempt_penalty: 15,
             verified_threshold_multiplier: 2.0,
-            lookback: std::time::Duration::from_secs(7 * 86400),
+            lookback: WEEK,
             min_referrals_to_evaluate: 2,
             country_rotation_threshold: 2,
             country_rotation_penalty: 50,
@@ -350,7 +351,7 @@ mod tests {
             ring_penalty: 80,
             device_farming_threshold: 5,
             device_farming_penalty: 10,
-            velocity_window: std::time::Duration::from_secs(300),
+            velocity_window: MINUTE * 5,
             velocity_divisor: 2,
             velocity_penalty: 100,
             referral_per_user_daily: 5,

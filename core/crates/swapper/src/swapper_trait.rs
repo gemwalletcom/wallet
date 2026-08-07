@@ -7,13 +7,14 @@ use super::{
 use async_trait::async_trait;
 use std::fmt::Debug;
 
-use primitives::{Chain, swap::SwapStatus};
+use primitives::{AssetId, Chain, swap::SwapStatus};
 
 #[async_trait]
 pub trait Swapper: Send + Sync + Debug {
     fn provider(&self) -> &ProviderType;
     fn supported_assets(&self) -> Vec<SwapperChainAsset>;
     fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode;
+    async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {}
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError>;
     async fn get_permit2_for_quote(&self, _quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {
         Ok(None)
@@ -38,7 +39,7 @@ impl dyn Swapper {
     pub fn supported_chains(&self) -> Vec<Chain> {
         self.supported_assets()
             .into_iter()
-            .map(|x| match x.clone() {
+            .map(|x| match x {
                 SwapperChainAsset::All(chain) => chain,
                 SwapperChainAsset::Assets(chain, _) => chain,
             })

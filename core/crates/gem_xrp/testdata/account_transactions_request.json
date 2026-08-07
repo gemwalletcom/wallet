@@ -1,0 +1,14 @@
+{
+  "jsonrpc": "2.0",
+  "id": 42,
+  "method": "account_tx",
+  "params": [
+    {
+      "account": "rAddress",
+      "api_version": 2,
+      "limit": 25,
+      "ledger_index_max": -1,
+      "ledger_index_min": -1
+    }
+  ]
+}

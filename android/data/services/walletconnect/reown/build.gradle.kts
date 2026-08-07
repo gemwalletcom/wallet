@@ -34,8 +34,11 @@ dependencies {
     implementation(platform(libs.walletconnect.bom))
     implementation(libs.walletconnect.core) {
         exclude(group = "com.jakewharton.timber", module = "timber")
+        exclude(group = "junit", module = "junit")
     }
-    implementation(libs.walletconnect.web3wallet)
+    implementation(libs.walletconnect.web3wallet) {
+        exclude(group = "junit", module = "junit")
+    }
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

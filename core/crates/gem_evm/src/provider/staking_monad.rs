@@ -1,27 +1,30 @@
 use std::collections::HashMap;
 use std::error::Error;
 
-use alloy_primitives::hex;
 use chrono::{DateTime, Utc};
 use gem_client::Client;
 use num_bigint::BigUint;
 use num_traits::{ToPrimitive, Zero};
 use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator};
 
-use crate::jsonrpc::BlockParameter;
 use crate::monad::{
-    IMonadStakingLens, MONAD_SCALE, MonadLensBalance, MonadLensDelegation, MonadLensValidatorInfo, STAKING_LENS_CONTRACT, decode_get_lens_apys, decode_get_lens_balance,
-    decode_get_lens_delegations, decode_get_lens_validators, delegation_id, encode_get_lens_apys, encode_get_lens_balance, encode_get_lens_delegations, encode_get_lens_validators,
+    IMonadStakingLens, MONAD_SCALE, MonadLensDelegation, MonadLensValidatorInfo, STAKING_LENS_CONTRACT, decode_get_lens_apys, decode_get_lens_balance, decode_get_lens_delegations,
+    decode_get_lens_validators, delegation_id, encode_get_lens_apys, encode_get_lens_balance, encode_get_lens_delegations, encode_get_lens_validators,
 };
-use crate::{method, rpc::client::EthereumClient};
+use crate::rpc::client::EthereumClient;
 
 const MONAD_VALIDATOR_NAMES: &[(u64, &str)] = &[(16, "MonadVision"), (5, "Alchemy"), (10, "Stakin"), (9, "Everstake")];
 
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> EthereumClient<C> {
+    pub(crate) async fn call_monad_delegations(&self, address: &str) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
+        let data = encode_get_lens_delegations(address)?;
+        self.call_lens(data).await
+    }
+
     pub async fn get_monad_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         let data = encode_get_lens_apys(&[]);
-        let result = self.call_lens(data).await.ok_or_else(|| "Monad staking lens not configured".to_string())??;
+        let result = self.call_lens(data).await?;
 
         let apys = decode_get_lens_apys(&result)?;
         let apy_bps = apys.into_iter().max().unwrap_or(0);
@@ -35,52 +38,27 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub async fn get_monad_validators(&self) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
         let validator_names: HashMap<u64, &str> = MONAD_VALIDATOR_NAMES.iter().copied().collect();
-        let validator_ids = Self::monad_curated_validator_ids();
+        let validator_ids = MONAD_VALIDATOR_NAMES.iter().map(|(id, _)| *id).collect::<Vec<_>>();
         let data = encode_get_lens_validators(&validator_ids);
-        let result = self.call_lens(data).await.ok_or_else(|| "Monad staking lens not configured".to_string())??;
+        let result = self.call_lens(data).await?;
 
         let (validators, network_apy_bps) = decode_get_lens_validators(&result)?;
         let network_apy = network_apy_bps as f64 / 100.0;
 
         Ok(validators
             .into_iter()
-            .map(|validator| self.map_lens_validator(&validator, &validator_names, network_apy))
+            .map(|validator| Self::map_lens_validator(&validator, &validator_names, network_apy))
             .collect())
     }
 
     pub async fn get_monad_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        self.fetch_monad_delegations(address).await
-    }
-
-    pub async fn get_monad_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        let balance = self.fetch_monad_balance(address).await?;
-        Ok(Some(Self::monad_asset_balance(balance.staked, balance.pending, balance.rewards)))
-    }
-
-    async fn fetch_monad_balance(&self, address: &str) -> Result<MonadLensBalance, Box<dyn Error + Sync + Send>> {
-        let data = encode_get_lens_balance(address)?;
-        let result = self.call_lens(data).await.ok_or_else(|| "Monad staking lens not configured".to_string())??;
-
-        decode_get_lens_balance(&result)
-    }
-
-    async fn fetch_monad_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let data = encode_get_lens_delegations(address)?;
-        let Some(result) = self.call_lens(data).await else {
-            return Ok(Vec::new());
-        };
-
-        let positions = match result {
+        let positions = match self.call_monad_delegations(address).await {
             Ok(bytes) => match decode_get_lens_delegations(&bytes) {
                 Ok(position_list) => position_list,
                 Err(_) => return Ok(Vec::new()),
             },
             Err(_) => return Ok(Vec::new()),
         };
-
-        if positions.is_empty() {
-            return Ok(Vec::new());
-        }
 
         let mut delegations = Vec::new();
 
@@ -111,7 +89,17 @@ impl<C: Client + Clone> EthereumClient<C> {
         Ok(delegations)
     }
 
-    fn map_lens_validator(&self, validator: &MonadLensValidatorInfo, validator_names: &HashMap<u64, &str>, network_apy: f64) -> DelegationValidator {
+    pub async fn get_monad_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
+        let data = encode_get_lens_balance(address)?;
+        let result = self.call_lens(data).await?;
+        let balance = decode_get_lens_balance(&result)?;
+        Ok(Some(AssetBalance::new_balance(
+            AssetId::from_chain(Chain::Monad),
+            primitives::Balance::stake_balance(balance.staked, balance.pending, Some(balance.rewards)),
+        )))
+    }
+
+    fn map_lens_validator(validator: &MonadLensValidatorInfo, validator_names: &HashMap<u64, &str>, network_apy: f64) -> DelegationValidator {
         let validator_name = validator_names
             .get(&validator.validator_id)
             .map(|name| (*name).to_string())
@@ -122,7 +110,7 @@ impl<C: Client + Clone> EthereumClient<C> {
             validator.validator_id.to_string(),
             validator_name,
             validator.is_active,
-            Self::lens_commission_rate(&validator.commission),
+            validator.commission.to_f64().unwrap_or(0.0) / MONAD_SCALE,
             if validator.apy_bps > 0 { validator.apy_bps as f64 / 100.0 } else { network_apy },
         )
     }
@@ -137,36 +125,37 @@ impl<C: Client + Clone> EthereumClient<C> {
         }
     }
 
-    async fn call_lens(&self, data: Vec<u8>) -> Option<Result<Vec<u8>, Box<dyn Error + Sync + Send>>> {
-        let call = Self::build_lens_call(&data)?;
-
-        Some(
-            self.call(call.0, call.1)
-                .await
-                .map_err(|err| -> Box<dyn Error + Sync + Send> { Box::new(err) })
-                .and_then(|result: String| hex::decode(result).map_err(|err| -> Box<dyn Error + Sync + Send> { Box::new(err) })),
-        )
+    async fn call_lens(&self, data: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
+        self.eth_call(STAKING_LENS_CONTRACT, &data).await
     }
+}
 
-    fn build_lens_call(data: &[u8]) -> Option<(String, serde_json::Value)> {
-        Some((
-            method::ETH_CALL.to_string(),
-            serde_json::json!([{
-                "to": STAKING_LENS_CONTRACT,
-                "data": hex::encode_prefixed(data)
-            }, serde_json::Value::from(BlockParameter::Latest)]),
-        ))
-    }
+#[cfg(test)]
+mod tests {
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use serde_json::json;
 
-    fn lens_commission_rate(commission: &BigUint) -> f64 {
-        commission.to_f64().unwrap_or(0.0) / MONAD_SCALE
-    }
+    use super::*;
+    use crate::{method, testkit::TEST_MONAD_ADDRESS};
 
-    fn monad_asset_balance(staked: BigUint, pending: BigUint, rewards: BigUint) -> AssetBalance {
-        AssetBalance::new_balance(AssetId::from_chain(Chain::Monad), primitives::Balance::stake_balance(staked, pending, Some(rewards)))
-    }
+    #[tokio::test]
+    async fn test_call_monad_delegations() {
+        let rpc_client = mock_jsonrpc_client(|request_method, params| {
+            assert_eq!(request_method, method::ETH_CALL);
+            assert_eq!(
+                params,
+                &json!([
+                    {
+                        "data": "0x31cc13ba000000000000000000000000514bcb1f9aabb904e6106bd1052b66d2706dbbb7",
+                        "to": STAKING_LENS_CONTRACT
+                    },
+                    "latest"
+                ])
+            );
+            Ok(json!("0x"))
+        });
+        let client = EthereumClient::new(rpc_client, primitives::EVMChain::Monad);
 
-    fn monad_curated_validator_ids() -> Vec<u64> {
-        MONAD_VALIDATOR_NAMES.iter().map(|(id, _)| *id).collect()
+        assert_eq!(client.call_monad_delegations(TEST_MONAD_ADDRESS).await.unwrap(), Vec::<u8>::new());
     }
 }

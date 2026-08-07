@@ -1,10 +1,11 @@
 use super::{
-    VaultSwapExtras, VaultSwapResponse,
+    AssetsResponse, VaultSwapExtras, VaultSwapResponse,
+    jsonrpc::RequestSwapParameterEncoding,
     model::{ChainflipAsset, DcaParameters},
 };
 use crate::SwapperError;
-use gem_client::Client;
-use gem_jsonrpc::client::JsonRpcClient;
+use gem_client::{Client, ClientExt};
+use gem_jsonrpc::types::{JsonRpcResult, ToJsonRpcRequest};
 use serde_json::{Value, json};
 use std::fmt::Debug;
 
@@ -13,15 +14,19 @@ pub struct BrokerClient<C>
 where
     C: Client + Clone + Debug,
 {
-    client: JsonRpcClient<C>,
+    client: C,
 }
 
 impl<C> BrokerClient<C>
 where
     C: Client + Clone + Debug,
 {
-    pub fn new(client: JsonRpcClient<C>) -> Self {
+    pub fn new(client: C) -> Self {
         Self { client }
+    }
+
+    pub async fn get_assets(&self) -> Result<AssetsResponse, SwapperError> {
+        self.client.get("/assets").await.map_err(SwapperError::from)
     }
 
     pub async fn encode_vault_swap(
@@ -35,10 +40,9 @@ where
         dca_params: Option<DcaParameters>,
     ) -> Result<VaultSwapResponse, SwapperError> {
         let extra_params_json = match extra_params {
-            VaultSwapExtras::Evm(evm) => serde_json::to_value(evm).unwrap(),
-            VaultSwapExtras::Tron(tron) => serde_json::to_value(tron).unwrap(),
-            VaultSwapExtras::Solana(sol) => serde_json::to_value(sol).unwrap(),
-            VaultSwapExtras::None => Value::Null,
+            VaultSwapExtras::Evm(evm) => serde_json::to_value(evm)?,
+            VaultSwapExtras::Tron(tron) => serde_json::to_value(tron)?,
+            VaultSwapExtras::Solana(sol) => serde_json::to_value(sol)?,
         };
 
         let params = json!([
@@ -53,12 +57,8 @@ where
             dca_params,
         ]);
 
-        let result = self
-            .client
-            .call_method_with_param("broker_request_swap_parameter_encoding", params, None)
-            .await
-            .map_err(SwapperError::from)?;
-
-        result.take().map_err(SwapperError::from)
+        let request = RequestSwapParameterEncoding(params).to_jsonrpc_request(1);
+        let response: JsonRpcResult<VaultSwapResponse> = self.client.post("/rpc", &request).await?;
+        response.take().map_err(SwapperError::from)
     }
 }

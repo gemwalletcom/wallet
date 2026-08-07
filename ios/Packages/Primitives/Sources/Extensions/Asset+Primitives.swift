@@ -64,6 +64,16 @@ public extension AssetFull {
 // MARK: - Assets
 
 public extension Asset {
+    static func tronUSDT() -> Asset {
+        Asset(
+            id: AssetId(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+            name: "Tether",
+            symbol: "USDT",
+            decimals: 6,
+            type: .trc20,
+        )
+    }
+
     static func hypercoreUSDC() -> Asset {
         Asset(
             id: AssetId(chain: .hyperCore, tokenId: "perpetual::USDC"),

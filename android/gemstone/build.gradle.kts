@@ -10,6 +10,7 @@ val rustSrcDir = gemstoneRoot.resolve("src")
 val cratesDir = rootProject.projectDir.resolve("../core/crates")
 val jniLibsDir = gemstoneSrc.resolve("main/jniLibs")
 val generatedKotlinDir = gemstoneSrc.resolve("main/java")
+val cargoBuildFlag = if (System.getenv("BUILD_MODE") == "release") "--release" else null
 val defaultCargoNdkAbis = if (System.getenv("UNIT_TESTS") == "true") {
     "x86_64"
 } else {
@@ -29,16 +30,6 @@ android {
     defaultConfig {
         minSdk = 28
         consumerProguardFiles(gemstoneRoot.resolve("android/gemstone/consumer-rules.pro"))
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                gemstoneRoot.resolve("android/gemstone/proguard-rules.pro")
-            )
-        }
     }
 
     compileOptions {
@@ -86,8 +77,9 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     inputs.dir(rustSrcDir)
     inputs.dir(cratesDir)
     inputs.file(gemstoneRoot.resolve("Cargo.toml"))
+    inputs.property("cargoBuildFlag", cargoBuildFlag.orEmpty())
     outputs.dir(jniLibsDir)
-    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib")
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib ${cargoBuildFlag.orEmpty()}")
 }
 
 tasks.configureEach {

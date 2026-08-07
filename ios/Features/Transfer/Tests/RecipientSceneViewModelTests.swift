@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
 import NameServiceTestKit
@@ -7,7 +8,8 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import WalletServiceTestKit
+import WalletSessionService
+import WalletSessionServiceTestKit
 
 @MainActor
 struct RecipientSceneViewModelTests {
@@ -100,23 +102,18 @@ struct RecipientSceneViewModelTests {
 
         let payment = PaymentScanResult(
             address: " \n\(address)\r ",
-            amount: "1",
+            amount: "1.234",
             memo: nil,
         )
 
-        do {
-            let result = try model.getRecipientScanResult(payment: payment)
+        let result = try model.getRecipientScanResult(payment: payment)
 
-            switch result {
-            case let .transferData(data):
-                #expect(data.recipientData.recipient.address == checksummed)
-                #expect(data.canChangeValue == false)
-            case .recipient:
-                Issue.record("Expected transferData but got recipient")
-            }
-        } catch {
-            // If the formatter throws an error, we can still test the recipient case
-            Issue.record("Formatter threw error: \(error)")
+        switch result {
+        case let .transferData(data):
+            #expect(data.recipientData.recipient.address == checksummed)
+            #expect(data.amount == .exact(BigInt("1234000000000000000")))
+        case .recipient:
+            Issue.record("Expected transferData but got recipient")
         }
     }
 
@@ -163,7 +160,7 @@ extension RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: wallet,
             asset: asset,
-            walletService: .mock(),
+            walletSessionService: WalletSessionService.mock(),
             nameService: .mock(),
             type: type,
             onRecipientDataAction: onRecipientDataAction,

@@ -111,7 +111,7 @@ public struct PerpetualService: PerpetualServiceable {
 
     private func perpetualBalanceValue(_ amount: Double) throws -> UpdateBalanceValue {
         try UpdateBalanceValue(
-            value: ValueFormatter.full.inputNumber(from: amount.description, decimals: 6).description,
+            value: BigNumberFormatter.standard.number(from: amount.description, decimals: 6).description,
             amount: amount,
         )
     }
@@ -139,6 +139,18 @@ public struct PerpetualService: PerpetualServiceable {
 // MARK: - HyperliquidPerpetualServiceable
 
 extension PerpetualService: HyperliquidPerpetualServiceable {
+    public func accountMode(walletId: WalletId, address: String) async -> PerpetualAccountMode {
+        let walletPreferences = WalletPreferences(walletId: walletId)
+        do {
+            let mode = try await provider.getAccountMode(address: address)
+            walletPreferences.perpetualAccountMode = mode
+            return mode
+        } catch {
+            debugLog("PerpetualService: account mode failed: \(error)")
+            return walletPreferences.perpetualAccountMode
+        }
+    }
+
     public func getHypercorePositions(walletId: WalletId) throws -> [GemPerpetualPosition] {
         try store.getPositions(walletId: walletId, provider: .hypercore).map { $0.map() }
     }

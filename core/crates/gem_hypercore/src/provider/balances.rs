@@ -4,10 +4,9 @@ use futures::try_join;
 use std::error::Error;
 
 use gem_client::Client;
-use number_formatter::BigNumberFormatter;
 use primitives::{Asset, AssetBalance};
 
-use super::balances_mapper::{map_balance_assets, map_balance_coin, map_balance_staking, map_balance_tokens};
+use super::balances_mapper::{map_balance_assets, map_balance_staking, map_balance_token, map_balance_tokens};
 use crate::rpc::client::HyperCoreClient;
 
 const NATIVE_TOKEN_INDEX: u32 = 150;
@@ -15,17 +14,13 @@ const NATIVE_TOKEN_INDEX: u32 = 150;
 #[async_trait]
 impl<C: Client> ChainBalances for HyperCoreClient<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-        let total = self
-            .get_spot_balances(&address)
-            .await?
-            .balances
-            .into_iter()
-            .find(|balance| balance.token == NATIVE_TOKEN_INDEX)
-            .map(|balance| balance.total)
-            .unwrap_or_else(|| "0".to_string());
-        let native_decimals = Asset::from_chain(self.chain).decimals as u32;
-        let available: String = BigNumberFormatter::value_from_amount(&total, native_decimals)?;
-        Ok(map_balance_coin(available, self.chain))
+        let balances = self.get_spot_balances(&address).await?;
+        let native_decimals = Asset::from_chain(self.chain).decimals;
+        let Some(balance) = balances.balances.iter().find(|balance| balance.token == NATIVE_TOKEN_INDEX) else {
+            return Ok(AssetBalance::new_zero_balance(self.chain.as_asset_id()));
+        };
+
+        map_balance_token(self.chain.as_asset_id(), balance, balances.available_after_maintenance(balance.token), native_decimals)
     }
 
     async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {

@@ -7,11 +7,11 @@ use chain_traits::ChainBalances;
 use primitives::AssetBalance;
 
 use crate::provider::balances_mapper::{map_assets_balances, map_balance_coin, map_balance_staking, map_balance_tokens};
-use crate::rpc::client::SuiClient;
+use crate::rpc::SuiProvider;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl ChainBalances for SuiClient {
+impl ChainBalances for SuiProvider {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         Ok(map_balance_coin(self.get_balance(address).await?))
     }

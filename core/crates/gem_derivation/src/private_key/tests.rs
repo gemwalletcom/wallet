@@ -44,6 +44,12 @@ fn test_private_key_account_derivation_selected_chains() {
         derive_account_from_private_key(&ed_private_key, Chain::Sui).unwrap().address,
         "0xd1fd4baa9c58d54f561ba224506a572b02d0f8ed7fe2f7e70b5a93cc19c8e308"
     );
+
+    let aptos_private_key = decode_hex("0000000000000000000000000000000000000000000000000000000000000022").unwrap();
+    assert_eq!(
+        derive_account_from_private_key(&aptos_private_key, Chain::Aptos).unwrap().address,
+        "0x0dc4a9af7d0b8e5811bf326bf49c44f8685d4ee5b4fd3606e06987c5056f61bb"
+    );
 }
 
 #[test]

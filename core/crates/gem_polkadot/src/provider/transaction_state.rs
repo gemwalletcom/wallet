@@ -5,10 +5,10 @@ use std::error::Error;
 
 use gem_client::Client;
 
-use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::PolkadotClient};
+use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::PolkadotProvider};
 
 #[async_trait]
-impl<C: Client> ChainTransactionState for PolkadotClient<C> {
+impl<C: Client> ChainTransactionState for PolkadotProvider<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
         let block_number = request.block_number;
         if block_number == 0 {

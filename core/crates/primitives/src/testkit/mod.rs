@@ -1,6 +1,7 @@
 pub const ABANDON_PHRASE: &str = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
 pub mod address_name_mock;
+pub mod asset_details_mock;
 pub mod asset_mock;
 pub mod contract_call_data_mock;
 pub mod delegation_mock;

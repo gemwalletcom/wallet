@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Cancelar
+common_hidden = Ocultos
 common_done = Hecho
 common_maximum_value = El valor máximo es %@
 common_minimum_value = El valor mínimo es %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = No se puede recuperar la informaci
 errors_unknown_try_again = Se produjo un error desconocido. Por favor inténtalo de nuevo.
 errors_network_error = Error de red: %@
 errors_network_offline = La conexión a Internet parece estar fuera de línea.
+errors_no_internet_connection = Sin conexión a internet
+errors_no_service_connection = Sin conexión al servicio
+errors_balances_activity_outdated = Los saldos y la actividad pueden estar desactualizados.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = No se puede devolver una cotización para el par de 
 info_stake_reserved_title = Reservado para comisión de red
 info_stake_reserved_description = Una pequeña cantidad permanece en tu billetera para cubrir las tarifas de operaciones como retirar del stake o reclamar recompensas.
 info_stake_apr_description = La tasa de porcentaje anual (APR) es la tasa de recompensa anual por hacer stake de tu criptomoneda.
+info_stake_frozen_required_title = Congela TRX para hacer stake
+info_stake_frozen_required_description = Hacer stake en TRON tiene dos pasos. Primero congela TRX y luego hazle stake para ganar recompensas.
 info_perpetual_auto_close_description = Cierra tu posición automáticamente a precios establecidos. El Take Profit fija las ganancias y el Stop Loss limita las pérdidas.
 info_fully_diluted_valuation_title = Valoración totalmente diluida
 info_fully_diluted_valuation_description = El valor teórico de mercado si todas las monedas estuvieran en circulación. Se calcula multiplicando el precio por la oferta máxima.

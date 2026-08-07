@@ -73,6 +73,10 @@ extension WalletConnectorService: WalletConnectorServiceable {
             group.addTask {
                 await self.handleSessionRequests()
             }
+
+            group.addTask {
+                await self.handleSessionDeletes()
+            }
         }
     }
 
@@ -176,6 +180,12 @@ extension WalletConnectorService {
         }
     }
 
+    private func handleSessionDeletes() async {
+        for await deletion in interactor.sessionDeleteStream {
+            debugLog("Session deleted by peer: topic: \(deletion.topic), reason: \(deletion.message) (code: \(deletion.code))")
+        }
+    }
+
     private func updateSessions(_ sessions: [Session]) {
         debugLog("Received sessions: \(sessions)")
         do {
@@ -268,8 +278,8 @@ extension WalletConnectorService {
             let accounts = try signer.getAccounts(sessionId: sessionId, chain: chain.map())
             let response = walletConnect.encodeGetAccounts(chain: chain, accounts: accounts.map { $0.mapToGem() })
             return .response(response.map())
-        case let .unsupported(method):
-            throw WalletConnectorServiceError.unresolvedMethod(method)
+        case .unsupported:
+            return .error(.methodNotFound)
         }
     }
 

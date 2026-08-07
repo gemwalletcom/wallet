@@ -4,7 +4,7 @@ use chain_traits::ChainTraits;
 use gem_client::builder;
 use primitives::Chain;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use settings_chain::{ProviderConfig, ProviderFactory, ProviderKeyConfig};
+use settings_chain::{ProviderConfig, ProviderFactory};
 
 pub(crate) fn new_provider(chain: Chain, url: &str, headers: &[String]) -> Result<Box<dyn ChainTraits>, Box<dyn Error + Send + Sync>> {
     let headers = headers
@@ -15,9 +15,5 @@ pub(crate) fn new_provider(chain: Chain, url: &str, headers: &[String]) -> Resul
         })
         .collect::<Result<HeaderMap, Box<dyn Error + Send + Sync>>>()?;
     let client = builder().default_headers(headers).build()?;
-    Ok(ProviderFactory::new_provider_with_client(
-        ProviderConfig::new(chain, url, ProviderKeyConfig::default()),
-        "nodecheck",
-        client,
-    ))
+    Ok(ProviderFactory::new_provider_with_client(ProviderConfig::new(chain, url), client))
 }

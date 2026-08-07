@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = لغو کردن
+common_hidden = مخفی
 common_done = انجام شد
 common_maximum_value = حداکثر مقدار %@ است
 common_minimum_value = حداقل مقدار %@ است
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = خطا در واکشی اطلاع�
 errors_unknown_try_again = خطای ناشناخته ای رخ داد. لطفا دوباره امتحان کنید.
 errors_network_error = خطای شبکه: %@
 errors_network_offline = به نظر می‌رسد اتصال اینترنت آفلاین است.
+errors_no_internet_connection = اتصال اینترنت برقرار نیست
+errors_no_service_connection = اتصال سرویس برقرار نیست
+errors_balances_activity_outdated = موجودی‌ها و فعالیت ممکن است به‌روز نباشند.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = امکان ارائه قیمت برای جفت تو�
 info_stake_reserved_title = برای هزینه شبکه رزرو شده است
 info_stake_reserved_description = مقدار کمی در کیف پول شما باقی می‌ماند تا هزینه‌های عملیاتی مانند لغو استیک یا دریافت پاداش را پوشش دهد.
 info_stake_apr_description = نرخ درصد سالانه (APR) نرخ پاداش سالانه برای سپرده‌گذاری ارز دیجیتال شما است.
+info_stake_frozen_required_title = برای استیک، TRX را فریز کنید
+info_stake_frozen_required_description = استیکینگ در TRON دو مرحله دارد. ابتدا TRX را فریز کنید، سپس آن را استیک کنید تا پاداش بگیرید.
 info_perpetual_auto_close_description = موقعیت خود را به طور خودکار در سطوح قیمت تعیین شده ببندید. برداشت سود، سود را قفل می‌کند، و توقف ضرر، ضرر را محدود می‌کند.
 info_fully_diluted_valuation_title = ارزش‌گذاری کاملاً رقیق‌شده
 info_fully_diluted_valuation_description = ارزش بازار فرضی در صورتی که همه کوین‌ها در گردش باشند. این ارزش از حاصل ضرب قیمت در حداکثر عرضه محاسبه می‌شود.

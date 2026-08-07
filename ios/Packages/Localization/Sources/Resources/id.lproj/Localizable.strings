@@ -1,4 +1,5 @@
 "common.cancel" = "Batalkan";
+"common.hidden" = "Tersembunyi";
 "common.done" = "Selesai";
 "common.maximum_value" = "Nilai maksimum adalah %@";
 "common.minimum_value" = "Nilai minimum adalah %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Jumlah transaksi minimum adalah %@. Silakan masukkan jumlah yang lebih tinggi.";
 "errors.perpetual.trigger_price_lower" = "Harga pemicu harus lebih rendah dari harga pasar";
 "errors.perpetual.trigger_price_higher" = "Harga pemicu harus lebih tinggi dari harga pasar";
+"errors.no_internet_connection" = "Tidak ada koneksi internet";
+"errors.no_service_connection" = "Tidak ada koneksi layanan";
+"errors.balances_activity_outdated" = "Saldo dan aktivitas mungkin tidak terbaru.";
 "activity.title" = "Aktivitas";
 "activity.state.empty.title" = "Aktivitas Anda akan muncul di sini";
 "activity.state.empty.description" = "Lakukan transaksi pertama Anda";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Dicadangkan untuk Biaya Jaringan";
 "info.stake.reserved.description" = "Sejumlah kecil dana disimpan di dompet Anda untuk menutupi biaya operasi seperti unstaking atau klaim hadiah.";
 "info.stake.apr.description" = "Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk mempertaruhkan mata uang kripto Anda.";
+"info.stake_frozen_required_title" = "Bekukan TRX untuk staking";
+"info.stake_frozen_required_description" = "Staking di TRON dilakukan dalam dua langkah. Bekukan TRX dulu, lalu staking untuk mendapatkan hadiah.";
 "info.perpetual.auto_close.description" = "Tutup posisi Anda secara otomatis pada level harga yang ditentukan. Take Profit mengunci keuntungan, Stop Loss membatasi kerugian.";
 "info.fully_diluted_valuation.title" = "Valuasi Terdilusi Penuh";
 "info.fully_diluted_valuation.description" = "Nilai pasar teoretis jika semua koin beredar. Dihitung sebagai harga dikalikan dengan pasokan maksimum.";

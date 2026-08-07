@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Soke</string>
+  <string name="common_hidden">Ɓoyayye</string>
   <string name="common_done">Anyi</string>
   <string name="common_maximum_value">Matsakaicin ƙima shine %1$s</string>
   <string name="common_minimum_value">Mafi ƙarancin ƙima shine %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">An sami kuskuren da ba a sani ba. Da fatan za a sake gwadawa.</string>
   <string name="errors_network_error">Kuskuren hanyar sadarwa: %1$s</string>
   <string name="errors_network_offline">Da alama haɗin intanet ɗin ya katse.</string>
+  <string name="errors_no_internet_connection">Babu haɗin intanet</string>
+  <string name="errors_no_service_connection">Babu haɗin sabis</string>
+  <string name="errors_balances_activity_outdated">Ma\'aunai da ayyuka na iya zama tsofaffi.</string>
   <string name="activity_title">Ayyuka</string>
   <string name="activity_state_empty_title">Ayyukanku za su bayyana a nan</string>
   <string name="activity_state_empty_description">Yi ciniki na farko</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">An tanada don Kudin hanyar sadarwa</string>
   <string name="info_stake_reserved_description">Ƙananan kuɗi yana tsayawa a cikin walat ɗin ku don biyan kuɗi don ayyuka kamar cirewa ko neman lada.</string>
   <string name="info_stake_apr_description">Yawan Kashi na shekara-shekara (APR) shine ƙimar lada na shekara don tara kuɗin cryptocurrency.</string>
+  <string name="info_stake_frozen_required_title">Daskare TRX don saka hannun jari</string>
+  <string name="info_stake_frozen_required_description">Saka hannun jari a TRON yana da matakai biyu. Da farko ka daskare TRX, sannan ka saka shi don samun lada.</string>
   <string name="info_perpetual_auto_close_description">Rufe matsayinka ta atomatik a saita matakan farashi. Ɗauki makullin riba a cikin riba, Dakatar da Asara yana iyakance asara.</string>
   <string name="info_fully_diluted_valuation_title">Kimantawa Mai Cikakken Nauyi</string>
   <string name="info_fully_diluted_valuation_description">Darajar kasuwa ta ka\'ida idan duk tsabar kudi suna yawo. An ƙididdige shi azaman farashi da aka ninka ta hanyar mafi girman wadata.</string>

@@ -1,4 +1,5 @@
 "common.cancel" = "لغو کردن";
+"common.hidden" = "مخفی";
 "common.done" = "انجام شد";
 "common.maximum_value" = "حداکثر مقدار %@ است";
 "common.minimum_value" = "حداقل مقدار %@ است";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "حداقل مبلغ معامله %@ است. لطفاً مبلغ بیشتری وارد کنید.";
 "errors.perpetual.trigger_price_lower" = "قیمت فعالسازی باید کمتر از قیمت بازار باشد";
 "errors.perpetual.trigger_price_higher" = "قیمت فعالسازی باید بیشتر از قیمت بازار باشد";
+"errors.no_internet_connection" = "اتصال اینترنت برقرار نیست";
+"errors.no_service_connection" = "اتصال سرویس برقرار نیست";
+"errors.balances_activity_outdated" = "موجودی‌ها و فعالیت ممکن است به‌روز نباشند.";
 "activity.title" = "فعالیت";
 "activity.state.empty.title" = "فعالیت شما اینجا نمایش داده می‌شود";
 "activity.state.empty.description" = "اولین تراکنش خود را انجام دهید";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "برای هزینه شبکه رزرو شده است";
 "info.stake.reserved.description" = "مقدار کمی در کیف پول شما باقی می‌ماند تا هزینه‌های عملیاتی مانند لغو استیک یا دریافت پاداش را پوشش دهد.";
 "info.stake.apr.description" = "نرخ درصد سالانه (APR) نرخ پاداش سالانه برای سپرده‌گذاری ارز دیجیتال شما است.";
+"info.stake_frozen_required_title" = "برای استیک، TRX را فریز کنید";
+"info.stake_frozen_required_description" = "استیکینگ در TRON دو مرحله دارد. ابتدا TRX را فریز کنید، سپس آن را استیک کنید تا پاداش بگیرید.";
 "info.perpetual.auto_close.description" = "موقعیت خود را به طور خودکار در سطوح قیمت تعیین شده ببندید. برداشت سود، سود را قفل می‌کند، و توقف ضرر، ضرر را محدود می‌کند.";
 "info.fully_diluted_valuation.title" = "ارزش‌گذاری کاملاً رقیق‌شده";
 "info.fully_diluted_valuation.description" = "ارزش بازار فرضی در صورتی که همه کوین‌ها در گردش باشند. این ارزش از حاصل ضرب قیمت در حداکثر عرضه محاسبه می‌شود.";

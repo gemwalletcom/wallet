@@ -5,7 +5,7 @@ import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -14,23 +14,27 @@ import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.blockNumber
 import com.gemwallet.android.serializer.jsonEncoder
+import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.TransactionSwapMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemSignerError
+import uniffi.gemstone.GemstoneException
 
 class ConfirmTransactionImpl(
     private val passwordStore: PasswordStore,
     private val signTransactionOperator: GemSignTransactionOperator,
     private val broadcastService: BroadcastService,
     private val createTransactionsCase: CreateTransaction,
-    private val assetsRepository: AssetsRepository,
+    private val recentAssetsService: RecentAssetsService,
 ) : ConfirmTransaction {
 
     override suspend fun invoke(
@@ -38,6 +42,7 @@ class ConfirmTransactionImpl(
         session: Session,
         assetInfo: AssetInfo,
         scope: CoroutineScope,
+        transactionAssetId: AssetId?,
     ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
@@ -59,7 +64,7 @@ class ConfirmTransactionImpl(
                 delay(500)
             } else {
                 lastHash = transactionHash
-                addTransaction(transactionHash, signerParams, assetInfo, account, session)
+                addTransaction(transactionHash, signerParams, assetInfo, account, session, transactionAssetId)
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
             }
         }
@@ -77,6 +82,8 @@ class ConfirmTransactionImpl(
                 signerParams,
                 passwordStore.getPassword(session.wallet.id.id),
             )
+        } catch (error: GemstoneException.SignerException) {
+            throw error.error.toConfirmError(signerParams.input.assetId.chain)
         } catch (_: Throwable) {
             throw ConfirmError.SignFail
         }
@@ -88,13 +95,14 @@ class ConfirmTransactionImpl(
         assetInfo: AssetInfo,
         account: Account,
         session: Session,
+        transactionAssetId: AssetId?,
     ) {
         val destinationAddress = signerParams.input.destination()?.address ?: ""
 
         createTransactionsCase.createTransaction(
             hash = transactionHash,
             walletId = session.wallet.id,
-            assetId = assetInfo.id(),
+            assetId = transactionAssetId ?: assetInfo.id(),
             owner = account,
             to = destinationAddress,
             state = TransactionState.Pending,
@@ -125,13 +133,21 @@ class ConfirmTransactionImpl(
             null
         }
         try {
-            assetsRepository.addRecentActivity(assetInfo.id(), walletId, type, toAssetId)
+            recentAssetsService.addRecentActivity(assetInfo.id(), walletId, type, toAssetId)
         } catch (_: Throwable) {}
     }
 
     private fun assembleMetadata(signerParams: SignerParams) =
         signerParams.input.toTransactionMetadataJson()
 
+}
+
+internal fun GemSignerError.toConfirmError(chain: Chain): ConfirmError = when (this) {
+    GemSignerError.DustThreshold -> ConfirmError.DustThreshold(chain)
+    is GemSignerError.InvalidInput,
+    is GemSignerError.SigningError,
+    GemSignerError.InsufficientFunds,
+    GemSignerError.SwapValueBelowMinimum -> ConfirmError.SignFail
 }
 
 internal fun ConfirmParams.toTransactionMetadataJson(): String? = when (this) {

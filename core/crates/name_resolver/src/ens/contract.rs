@@ -2,9 +2,8 @@ use alloy_ens::namehash;
 use alloy_primitives::{Address, Bytes, hex};
 use alloy_sol_types::{SolCall, sol};
 use gem_client::ReqwestClient;
-use gem_evm::method;
+use gem_evm::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use gem_jsonrpc::JsonRpcClient;
-use serde_json::json;
 use std::error::Error;
 use std::str::FromStr;
 
@@ -73,14 +72,8 @@ impl Contract {
     }
 
     async fn eth_call(&self, to: Address, data: Bytes) -> Result<Bytes, Box<dyn Error + Send + Sync>> {
-        let params = json!([
-            {
-                "to": to.to_string(),
-                "data": hex::encode_prefixed(&data)
-            },
-            "latest"
-        ]);
-        let result: String = self.client.call(method::ETH_CALL, params).await?;
+        let transaction = TransactionObject::new_call(&to.to_string(), data.to_vec());
+        let result: String = self.client.request(EthereumRpc::Call(transaction, BlockParameter::Latest)).await?;
         let bytes = hex::decode(&result)?;
         Ok(Bytes::from(bytes))
     }

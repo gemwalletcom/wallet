@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
@@ -26,9 +27,12 @@ class DeviceAssetsSyncService @Inject constructor(
     private val enableAsset: EnableAsset,
     private val assetsRepository: AssetsRepository,
     private val walletsRepository: WalletsRepository,
+    private val syncDevice: SyncDevice,
 ) {
 
     suspend fun sync(walletId: String) {
+        syncDevice.syncDevice()
+
         val walletIdentifier = WalletId(walletId)
         val preferences = walletPreferencesFactory.create(walletId)
         val assetIds = gemDeviceApiClient.getAssets(

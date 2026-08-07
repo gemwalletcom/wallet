@@ -2,7 +2,7 @@ use alloy_primitives::{Address, hex};
 use gem_hash::keccak::keccak256;
 use k256::{
     SecretKey,
-    elliptic_curve::{rand_core::OsRng, sec1::ToEncodedPoint},
+    elliptic_curve::{Generate, sec1::ToSec1Point},
 };
 use primitives::Preferences;
 use std::{error::Error, sync::Arc};
@@ -59,8 +59,7 @@ impl Agent {
     }
 
     fn generate_private_key(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        let mut rng = OsRng;
-        let secret_key = SecretKey::random(&mut rng);
+        let secret_key = SecretKey::try_generate()?;
         Ok(hex::encode(secret_key.to_bytes()))
     }
 
@@ -68,7 +67,7 @@ impl Agent {
         let private_key_bytes = hex::decode(private_key_hex)?;
         let secret_key = SecretKey::from_slice(&private_key_bytes).map_err(|_| "Invalid private key")?;
         let public_key = secret_key.public_key();
-        let encoded_point = public_key.to_encoded_point(false);
+        let encoded_point = public_key.to_sec1_point(false);
         let hash = keccak256(&encoded_point.as_bytes()[1..]);
         Ok(Address::from_slice(&hash[12..]).to_string().to_lowercase())
     }

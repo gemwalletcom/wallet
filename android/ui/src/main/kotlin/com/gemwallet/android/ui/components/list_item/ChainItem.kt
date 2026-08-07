@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
@@ -18,6 +19,8 @@ fun ChainItem(
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
     icon: Any? = null,
+    subtitle: String? = null,
+    paddingHorizontal: Dp? = null,
     trailing: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = {},
 ) {
@@ -25,6 +28,7 @@ fun ChainItem(
     ListItem(
         modifier = modifier,
         minHeight = ListItemDefaults.iconMinHeight,
+        paddingHorizontal = paddingHorizontal,
         listPosition = listPosition,
         leading = @Composable {
             IconWithBadge(
@@ -34,12 +38,11 @@ fun ChainItem(
         title = @Composable {
             ListItemTitleText(
                 text = title.capitalize(Locale.current),
-                style = MaterialTheme.typography.bodyLarge,
+                style = if (subtitle == null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleMedium,
             )
         },
-        trailing = if (trailing != null) {
-            @Composable { trailing.invoke() }
-        } else null,
+        subtitle = subtitle?.let { @Composable { ListItemSupportText(text = it) } },
+        trailing = trailing?.let { content -> @Composable { content() } },
     )
 }
 

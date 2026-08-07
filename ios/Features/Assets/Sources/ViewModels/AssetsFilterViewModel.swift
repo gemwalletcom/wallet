@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -40,39 +39,11 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
     }
 
     public var defaultFilters: [AssetsRequestFilter] {
-        switch type {
-        case .send: [.enabled, .hasBalance]
-        case let .receive(type):
-            switch type {
-            case .asset: [.enabled]
-            case .collection: [.enabled, .chainsOrAssets([], Chain.allCases.filter(\.isNFTSupported).map(\.rawValue))]
-            }
-        case .buy: [.enabled, .buyable]
-        case let .swap(type):
-            switch type {
-            case .pay: [.enabled, .swappable, .hasBalance]
-            case let .receive(chains, assetIds):
-                [
-                    .enabled,
-                    .chainsOrAssets(
-                        chains.map(\.rawValue),
-                        assetIds.map(\.identifier),
-                    ),
-                    .swappable,
-                ]
-            }
-        case .manage: [.enabled]
-        case .priceAlert: [.enabled, .priceAlerts]
-        case .deposit: [.chainsOrAssets([], [PerpetualConfig.depositAssetId])]
-        case .withdraw: [.chainsOrAssets([], [Asset.hypercoreUSDC().id.identifier])]
-        }
+        type.flow.defaultFilters
     }
 
     var showHasBalanceToggle: Bool {
-        switch type {
-        case .send, .receive, .buy, .swap, .priceAlert, .deposit, .withdraw: false
-        case .manage: true
-        }
+        type.flow.capabilities.contains(.balanceFilter)
     }
 
     var title: String {

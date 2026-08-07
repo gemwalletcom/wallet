@@ -1,4 +1,5 @@
 "common.cancel" = "Cancelar";
+"common.hidden" = "Ocultos";
 "common.done" = "Feito";
 "common.maximum_value" = "O valor máximo é %@";
 "common.minimum_value" = "O valor mínimo é %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "O valor mínimo de transação é %@. Por favor, insira um valor maior.";
 "errors.perpetual.trigger_price_lower" = "O preço de acionamento deve ser menor que o preço de mercado";
 "errors.perpetual.trigger_price_higher" = "O preço de acionamento deve ser maior que o preço de mercado";
+"errors.no_internet_connection" = "Sem conexão com a internet";
+"errors.no_service_connection" = "Sem conexão com o serviço";
+"errors.balances_activity_outdated" = "Os saldos e a atividade podem estar desatualizados.";
 "activity.title" = "Atividade";
 "activity.state.empty.title" = "Sua atividade aparecerá aqui";
 "activity.state.empty.description" = "Faça sua primeira transação";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Reservado para taxa de rede";
 "info.stake.reserved.description" = "Uma pequena quantia fica na sua carteira para cobrir taxas de operações como retirada de stake ou reivindicação de recompensas.";
 "info.stake.apr.description" = "Taxa Percentual Anual (APR) é a taxa de recompensa anual por fazer stake da sua criptomoeda.";
+"info.stake_frozen_required_title" = "Congele TRX para fazer stake";
+"info.stake_frozen_required_description" = "Fazer stake na TRON tem duas etapas. Primeiro congele TRX e depois faça stake para ganhar recompensas.";
 "info.perpetual.auto_close.description" = "Feche sua posição automaticamente em níveis de preço definidos. O Take Profit garante os ganhos, o Stop Loss limita as perdas.";
 "info.fully_diluted_valuation.title" = "Avaliação totalmente diluída";
 "info.fully_diluted_valuation.description" = "O valor de mercado teórico se todas as moedas estivessem em circulação. Calculado como o preço multiplicado pela oferta máxima.";

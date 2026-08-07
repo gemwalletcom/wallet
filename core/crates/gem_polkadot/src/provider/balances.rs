@@ -6,10 +6,10 @@ use gem_client::Client;
 use primitives::AssetBalance;
 
 use crate::provider::balances_mapper;
-use crate::rpc::client::PolkadotClient;
+use crate::rpc::PolkadotProvider;
 
 #[async_trait]
-impl<C: Client> ChainBalances for PolkadotClient<C> {
+impl<C: Client> ChainBalances for PolkadotProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let balance = self.get_balance(address).await?;
         Ok(balances_mapper::map_coin_balance(balance))

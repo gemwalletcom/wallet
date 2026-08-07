@@ -72,8 +72,10 @@ struct PriceAlertServiceTests {
         let store = try createStore()
         let preferences = Preferences.mock()
         let pushNotificationService = PushNotificationEnablerMock()
+        let deviceService = DeviceServiceMock()
         let service = PriceAlertService.mock(
             store: store,
+            deviceService: deviceService,
             preferences: preferences,
             pushNotificationService: pushNotificationService,
         )
@@ -83,6 +85,24 @@ struct PriceAlertServiceTests {
         #expect(pushNotificationService.didRequestPermissions)
         #expect(preferences.isPriceAlertsEnabled)
         #expect(try store.getPriceAlerts().count == 1)
+        #expect(await deviceService.updateCalls == 1)
+    }
+
+    @Test
+    func enableAlertSyncsDeviceWhenPriceAlertsAlreadyEnabled() async throws {
+        let store = try createStore()
+        let preferences = Preferences.mock()
+        preferences.isPriceAlertsEnabled = true
+        let deviceService = DeviceServiceMock()
+        let service = PriceAlertService.mock(
+            store: store,
+            deviceService: deviceService,
+            preferences: preferences,
+        )
+
+        try await service.enable(priceAlert: .mock(assetId: .mock(.bitcoin)))
+
+        #expect(await deviceService.updateCalls == 1)
     }
 
     // MARK: - Private methods

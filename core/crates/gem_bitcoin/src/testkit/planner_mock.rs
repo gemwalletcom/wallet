@@ -34,10 +34,10 @@ pub(crate) fn mock_signer_input(value: &str, is_max: bool) -> SignerInput {
 
 pub(crate) fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<String>, utxos: Vec<UTXO>) -> SignerInput {
     let mut input = mock_transfer_input_with_utxos(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS, TEST_SPEND_RECIPIENT, value, utxos);
-    input.input.gas_price = GasPriceType::regular(BigInt::from(2u64));
+    input.input.gas_price = GasPriceType::regular(BigInt::from(20u64));
     input.input.memo = memo;
     input.input.is_max_value = is_max;
-    input.fee = TransactionFee::new_from_fee(BigInt::from(2u64));
+    input.fee = TransactionFee::new_from_fee(BigInt::from(20u64));
     input
 }
 

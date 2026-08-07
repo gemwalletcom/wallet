@@ -1,4 +1,5 @@
 "common.cancel" = "Cancel";
+"common.hidden" = "Hidden";
 "common.done" = "Done";
 "common.maximum_value" = "Maximum value is %@";
 "common.minimum_value" = "Minimum value is %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Minimum trade amount is %@. Please enter a higher amount.";
 "errors.perpetual.trigger_price_lower" = "Trigger price should be lower than market price";
 "errors.perpetual.trigger_price_higher" = "Trigger price should be higher than market price";
+"errors.no_internet_connection" = "No internet connection";
+"errors.no_service_connection" = "No service connection";
+"errors.balances_activity_outdated" = "Balances and activity may be outdated.";
 "activity.title" = "Activity";
 "activity.state.empty.title" = "Your activity will appear here";
 "activity.state.empty.description" = "Make your first transaction";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Reserved for Network Fee";
 "info.stake.reserved.description" = "A small amount stays in your wallet to cover fees for operations like unstaking or claiming rewards.";
 "info.stake.apr.description" = "Annual Percentage Rate (APR) is the yearly reward rate for staking your cryptocurrency.";
+"info.stake_frozen_required_title" = "Freeze TRX to Stake";
+"info.stake_frozen_required_description" = "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.";
 "info.perpetual.auto_close.description" = "Automatically close your position at set price levels. Take Profit locks in gains, Stop Loss limits losses.";
 "info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
 "info.fully_diluted_valuation.description" = "The theoretical market value if all coins were in circulation. Calculated as price multiplied by max supply.";

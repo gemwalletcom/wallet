@@ -10,10 +10,10 @@ import Primitives
 extension WalletConnectTransaction {
     func map() -> WalletConnectorTransaction {
         switch self {
-        case let .ethereum(data): .ethereum(data.map())
+        case let .ethereum(data, transactionType): .ethereum(data.map(), transactionType.map())
         case let .solana(data, outputType): .solana(data.transaction, outputType.map())
         case let .sui(data, outputType): .sui(data.transaction, outputType.map())
-        case let .ton(messages, outputType): .ton(messages, outputType.map())
+        case let .ton(data, outputType): .ton(data, outputType.map())
         case let .tron(data, outputType): .tron(data, outputType.map())
         }
     }

@@ -13,7 +13,6 @@ import com.wallet.core.primitives.SimulationPayloadFieldDisplay
 import com.wallet.core.primitives.SimulationPayloadFieldKind
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
-import uniffi.gemstone.Explorer
 import java.math.BigInteger
 
 data class Simulation(
@@ -27,17 +26,12 @@ data class Simulation(
 )
 
 data class SimulationAssetChange(
-    val assetId: AssetId,
+    val asset: Asset,
     val value: BigInteger,
-    val decimals: Int,
-    val name: String?,
-    val symbol: String?,
-    val explorerUrl: String?,
-) {
-    val isUnknown: Boolean get() = name == null
-}
+)
 
 fun SimulationResult.toSimulation(
+    assets: Map<AssetId, Asset>,
     chain: Chain? = null,
     explorerName: String? = null,
 ): Simulation {
@@ -52,15 +46,12 @@ fun SimulationResult.toSimulation(
             .withExplorerLinks(chain, explorerName),
         headerValue = header?.value,
         headerIsUnlimited = header?.isUnlimited == true,
-        balanceChanges = balanceChanges.toBalanceChanges(explorerName),
+        balanceChanges = balanceChanges.toBalanceChanges(assets),
     )
 }
 
-val SimulationAssetChange.assetTitle: String
-    get() = name ?: symbol ?: ""
-
 fun SimulationAssetChange.formattedValue(): String {
-    val formatted = ValueFormatter(style = ValueFormatter.Style.Full).string(value, decimals, symbol ?: "")
+    val formatted = ValueFormatter(style = ValueFormatter.Style.Full).string(value, asset.decimals, asset.symbol)
     return if (value > BigInteger.ZERO) "+$formatted" else formatted
 }
 
@@ -70,25 +61,16 @@ fun SimulationAssetChange.valueDirection(): ValueDirection = when {
     else -> ValueDirection.None
 }
 
-private fun List<SimulationBalanceChange>.toBalanceChanges(explorerName: String?): List<SimulationAssetChange> {
+private fun List<SimulationBalanceChange>.toBalanceChanges(assets: Map<AssetId, Asset>): List<SimulationAssetChange> {
     return mapNotNull { change ->
         val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
         if (value == BigInteger.ZERO) return@mapNotNull null
+        val asset = assets[change.assetId] ?: return@mapNotNull null
         SimulationAssetChange(
-            assetId = change.assetId,
+            asset = asset,
             value = value,
-            decimals = change.decimals,
-            name = change.name,
-            symbol = change.symbol,
-            explorerUrl = if (change.name == null) change.assetId.explorerTokenUrl(explorerName) else null,
         )
     }
-}
-
-private fun AssetId.explorerTokenUrl(explorerName: String?): String? {
-    val mint = tokenId ?: return null
-    val name = explorerName ?: return null
-    return Explorer(chain.string).getTokenUrl(name, mint)
 }
 
 fun List<ConfirmProperty>.reorderWalletConnectProperties(): List<ConfirmProperty> {

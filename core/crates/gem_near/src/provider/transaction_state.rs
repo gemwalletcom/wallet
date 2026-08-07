@@ -5,12 +5,12 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::{TransactionStateRequest, TransactionUpdate};
 
-use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::NearClient};
+use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::NearProvider};
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionState for NearClient<C> {
+impl<C: Client + Clone> ChainTransactionState for NearProvider<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
-        let result = self.get_transaction_status(&request.id, &request.sender_address).await?;
+        let result = self.get_transaction(&request.id, &request.sender_address).await?;
         Ok(map_transaction_status(&result))
     }
 }

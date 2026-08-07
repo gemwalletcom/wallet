@@ -6,10 +6,10 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::{FeePriority, FeeRate, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
-use crate::{provider::preload_mapper::map_transaction_preload, rpc::client::XRPClient};
+use crate::{provider::preload_mapper::map_transaction_preload, rpc::XrpClient};
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionLoad for XRPClient<C> {
+impl<C: Client + Clone> ChainTransactionLoad for XrpClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
         let result = self.get_account_info_full(&input.sender_address).await?;
         map_transaction_preload(result)

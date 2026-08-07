@@ -58,8 +58,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 803
-        versionName = "2.104"
+        versionCode = 819
+        versionName = "2.114.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -181,7 +181,7 @@ android {
     }
     packaging {
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = providers.gradleProperty("useLegacyPackaging").getOrElse("false").toBoolean()
         }
     }
 

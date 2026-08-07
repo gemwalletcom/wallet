@@ -8,6 +8,7 @@ import com.gemwallet.android.ext.toNftCollectionId
 import com.gemwallet.android.ext.toPerpetualId
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.CoreListItem
 import com.wallet.core.primitives.NFTAssetId
@@ -24,6 +25,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 
 class StoreConverters {
+    private val assetAssociationsSerializer = ListSerializer(AssetAssociation.serializer())
     private val assetLinksSerializer = ListSerializer(AssetLink.serializer())
     private val nftAttributesSerializer = ListSerializer(NFTAttribute.serializer())
     private val supportImagesSerializer = ListSerializer(SupportMessageImage.serializer())
@@ -91,6 +93,13 @@ class StoreConverters {
 
     @TypeConverter
     fun toWalletId(value: String): WalletId = WalletId(value)
+
+    @TypeConverter
+    fun fromAssetAssociations(value: List<AssetAssociation>): String = jsonEncoder.encodeToString(assetAssociationsSerializer, value)
+
+    @TypeConverter
+    fun toAssetAssociations(value: String): List<AssetAssociation> =
+        runCatching { jsonEncoder.decodeFromString(assetAssociationsSerializer, value) }.getOrDefault(emptyList())
 
     @TypeConverter
     fun fromAssetLinks(value: List<AssetLink>?): String? {

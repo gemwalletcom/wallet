@@ -38,6 +38,22 @@ struct WalletSetupServiceTests {
         #expect(isEnabled == true)
     }
 
+    @Test
+    func setupTronUSDTByDefault() throws {
+        let (db, balanceStore, walletStore, service) = setupService()
+        let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), type: .multicoin, accounts: [.mock(chain: .tron)])
+        let asset = Asset.tronUSDT()
+
+        try addAsset(db: db, asset: .mockTron())
+        try addAsset(db: db, asset: asset)
+        try walletStore.addWallet(wallet)
+        try service.setup(wallet: wallet)
+
+        let isEnabled = try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: asset.id)?.isEnabled
+
+        #expect(isEnabled == true)
+    }
+
     private func setupService() -> (DB, BalanceStore, WalletStore, WalletSetupService) {
         let db = DB.mock()
         let balanceStore = BalanceStore.mock(db: db)
@@ -47,8 +63,12 @@ struct WalletSetupServiceTests {
     }
 
     private func addAsset(db: DB, chain: Chain) throws {
+        try addAsset(db: db, asset: .mock(id: AssetId(chain: chain)))
+    }
+
+    private func addAsset(db: DB, asset: Asset) throws {
         try db.dbQueue.write { db in
-            try Asset.mock(id: AssetId(chain: chain)).record.insert(db)
+            try asset.record.insert(db)
         }
     }
 }

@@ -2,7 +2,7 @@ use gem_tracing::info_with_fields;
 use pricer::PriceClient;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset, PriceProviderAssetMetadata};
 use primitives::{AssetId, PriceData};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use storage::database::prices::PriceFilter;
 use storage::models::{AssetRow, PriceRow};
@@ -28,8 +28,11 @@ impl PricesUpdater {
         }
     }
 
-    pub async fn update_assets(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        self.save_assets(self.provider.get_assets().await?).await
+    pub async fn update_assets(&self, limit: usize) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+        if limit == 0 {
+            return Ok(0);
+        }
+        self.save_assets(self.provider.get_assets(limit).await?).await
     }
 
     pub async fn update_assets_new(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
@@ -39,14 +42,14 @@ impl PricesUpdater {
     pub async fn update_assets_metadata(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
         let provider = self.provider.provider();
         let prices = self.database.prices()?.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?;
-        let mappings = self.get_asset_price_mappings(prices)?;
+        let mappings = self.get_enabled_asset_price_mappings(prices)?;
         if mappings.is_empty() {
             return Ok(0);
         }
 
         let mut updated = 0;
-        for chunk in mappings.chunks(BATCH_SIZE) {
-            updated += self.save_assets_metadata(self.provider.get_assets_metadata(chunk.to_vec()).await?)?;
+        for batch in metadata_batches(mappings) {
+            updated += self.save_assets_metadata(self.provider.get_assets_metadata(batch).await?)?;
         }
 
         info_with_fields!("update prices assets metadata", provider = provider.id(), count = updated);
@@ -104,6 +107,20 @@ impl PricesUpdater {
                     .map(|provider_price_id| AssetPriceMapping::new(row.asset_id.0, provider_price_id))
             })
             .collect())
+    }
+
+    fn get_enabled_asset_price_mappings(&self, prices: Vec<PriceRow>) -> Result<Vec<AssetPriceMapping>, Box<dyn std::error::Error + Send + Sync>> {
+        let mappings = self.get_asset_price_mappings(prices)?;
+        let asset_ids = mappings.iter().map(|mapping| mapping.asset_id.clone()).collect();
+        let enabled: HashSet<AssetId> = self
+            .database
+            .assets()?
+            .get_assets_rows(asset_ids)?
+            .into_iter()
+            .filter(|asset| asset.is_enabled)
+            .map(|asset| asset.as_asset_id())
+            .collect();
+        Ok(mappings.into_iter().filter(|mapping| enabled.contains(&mapping.asset_id)).collect())
     }
 
     async fn save_assets(&self, assets: Vec<PriceProviderAsset>) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
@@ -164,21 +181,8 @@ impl PricesUpdater {
         let metadata_by_asset_id: HashMap<String, PriceProviderAssetMetadata> =
             metadata.into_iter().map(|asset_metadata| (asset_metadata.asset_id.to_string(), asset_metadata)).collect();
 
-        let asset_ids = metadata_by_asset_id.values().map(|asset_metadata| asset_metadata.asset_id.clone()).collect();
-        let enabled_asset_ids: HashSet<String> = self
-            .database
-            .assets()?
-            .get_assets_rows(asset_ids)?
-            .into_iter()
-            .filter(|asset| asset.is_enabled)
-            .map(|asset| asset.id)
-            .collect();
-
         let mut updated = 0;
-        for (asset_id, asset_metadata) in &metadata_by_asset_id {
-            if !enabled_asset_ids.contains(asset_id) {
-                continue;
-            }
+        for asset_metadata in metadata_by_asset_id.values() {
             self.database
                 .assets()?
                 .update_assets(vec![asset_metadata.asset_id.clone()], vec![AssetUpdate::Rank(asset_metadata.rank)])?;
@@ -196,6 +200,19 @@ impl PricesUpdater {
     }
 }
 
+fn metadata_batches(mappings: Vec<AssetPriceMapping>) -> Vec<Vec<AssetPriceMapping>> {
+    let grouped = mappings.into_iter().fold(BTreeMap::<String, Vec<AssetPriceMapping>>::new(), |mut grouped, mapping| {
+        grouped.entry(mapping.provider_price_id.clone()).or_default().push(mapping);
+        grouped
+    });
+    grouped
+        .into_values()
+        .collect::<Vec<_>>()
+        .chunks(BATCH_SIZE)
+        .map(|groups| groups.iter().flatten().cloned().collect())
+        .collect()
+}
+
 fn asset_supply_update(asset: &PriceProviderAsset, current: &AssetRow) -> Option<(AssetId, AssetUpdate)> {
     let market = asset.market.as_ref()?;
     let circulating = market.circulating_supply.filter(|v| *v > 0.0).or(current.circulating_supply);
@@ -205,4 +222,28 @@ fn asset_supply_update(asset: &PriceProviderAsset, current: &AssetRow) -> Option
         return None;
     }
     Some((asset.mapping.asset_id.clone(), AssetUpdate::supply(circulating, total, max)?))
+}
+
+#[cfg(test)]
+mod tests {
+    use primitives::Chain;
+
+    use super::*;
+
+    #[test]
+    fn test_metadata_batches_keep_provider_price_ids_together() {
+        let repeated = (0..=BATCH_SIZE).map(|index| AssetPriceMapping::new(AssetId::from_token(Chain::Ethereum, &format!("0x{index:x}")), "shared".to_string()));
+        let unique = (0..BATCH_SIZE).map(|index| {
+            let id = format!("price-{index}");
+            AssetPriceMapping::new(AssetId::from_token(Chain::Ethereum, &format!("0x1{index:x}")), id)
+        });
+
+        let batches = metadata_batches(repeated.chain(unique).collect());
+        let shared_batches = batches.iter().filter(|batch| batch.iter().any(|mapping| mapping.provider_price_id == "shared")).count();
+        let unique_ids: HashSet<&str> = batches.iter().flatten().map(|mapping| mapping.provider_price_id.as_str()).collect();
+
+        assert_eq!(batches.len(), 2);
+        assert_eq!(shared_batches, 1);
+        assert_eq!(unique_ids.len(), BATCH_SIZE + 1);
+    }
 }

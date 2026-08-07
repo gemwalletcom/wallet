@@ -112,4 +112,16 @@ public struct AssetStore: Sendable {
             }
         }
     }
+
+    public func updateAssociations(assetId: AssetId, associations: [AssetAssociation]) throws {
+        try db.write { db in
+            guard var record = try AssetRecord
+                .filter(AssetRecord.Columns.id == assetId.identifier)
+                .fetchOne(db)
+            else { return }
+            record.associations = associations
+            try record.update(db, columns: [AssetRecord.Columns.associations])
+        }
+    }
+
 }

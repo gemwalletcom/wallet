@@ -1,0 +1,21 @@
+{
+    "hash": "0x130cc74c1a768780ca062a97bc833a01dec85b2d315484869559b7cdee4d0e75",
+    "sender": "0xc95615aa095c100b18eb6eaa0f0a0f30b9cd96685118a7cbc1a2328a91ca2eda",
+    "success": true,
+    "gas_used": "1424",
+    "gas_unit_price": "100",
+    "timestamp": "1759780099581734",
+    "type": "user_transaction",
+    "events": [
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::delegation_pool::AddStake",
+            "data": {
+                "amount_added": "54.108086",
+                "pool_address": "0xe5452230b8d5f4a664e33b8ad95354e50da64caaf003f11c0158391e96a4db2c"
+            }
+        }
+    ]
+}

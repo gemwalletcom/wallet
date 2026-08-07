@@ -1,4 +1,5 @@
 "common.cancel" = "Annuleren";
+"common.hidden" = "Verborgen";
 "common.done" = "Klaar";
 "common.maximum_value" = "Maximale waarde is %@";
 "common.minimum_value" = "Minimale waarde is %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Het minimale handelsbedrag is %@. Voer een hoger bedrag in.";
 "errors.perpetual.trigger_price_lower" = "De triggerprijs moet lager zijn dan de marktprijs";
 "errors.perpetual.trigger_price_higher" = "De triggerprijs moet hoger zijn dan de marktprijs";
+"errors.no_internet_connection" = "Geen internetverbinding";
+"errors.no_service_connection" = "Geen serviceverbinding";
+"errors.balances_activity_outdated" = "Saldi en activiteit zijn mogelijk verouderd.";
 "activity.title" = "Activiteit";
 "activity.state.empty.title" = "Uw activiteit zal hier verschijnen";
 "activity.state.empty.description" = "Maak uw eerste transactie";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Gereserveerd voor netwerkkosten";
 "info.stake.reserved.description" = "Een klein bedrag blijft in uw portemonnee staan om de kosten voor handelingen zoals unstaking of het claimen van beloningen te dekken.";
 "info.stake.apr.description" = "Jaarlijks percentage (APR) is het jaarlijkse beloningspercentage voor het staken van uw cryptocurrency.";
+"info.stake_frozen_required_title" = "Bevries TRX om te staken";
+"info.stake_frozen_required_description" = "Staken op TRON gaat in twee stappen. Bevries eerst TRX en stake het daarna om beloningen te verdienen.";
 "info.perpetual.auto_close.description" = "Sluit uw positie automatisch op ingestelde prijsniveaus. Take Profit vergrendelt winsten, Stop Loss beperkt verliezen.";
 "info.fully_diluted_valuation.title" = "Volledig verwaterde waardering";
 "info.fully_diluted_valuation.description" = "De theoretische marktwaarde als alle munten in omloop zouden zijn. Berekend als de prijs vermenigvuldigd met het maximale aanbod.";

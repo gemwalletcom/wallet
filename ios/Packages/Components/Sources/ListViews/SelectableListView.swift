@@ -67,13 +67,8 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
     }
 
     private func onSelect(item: ViewModel.Item) {
-        model.toggle(item: item)
-
-        switch model.selectionType {
-        case .multiSelection:
-            break
-        case .navigationLink, .checkmark:
-            onFinishSelection?(Array(model.selectedItems))
+        if let selected = model.select(item: item) {
+            onFinishSelection?(selected)
         }
     }
 }

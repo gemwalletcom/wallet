@@ -1,4 +1,4 @@
-use crate::actions::{WalletConnectAction, WalletConnectTransactionType};
+use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use gem_ton::signer::TonSignMessageData;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
@@ -41,6 +41,10 @@ impl TonRequestHandler {
             },
             data: params.to_string(),
         })
+    }
+
+    pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
+        Ok(WalletConnectTransaction::Ton { data, output_type })
     }
 }
 

@@ -49,12 +49,7 @@ impl AddressTrait for AccountAddress {
     }
 
     fn encode(&self) -> String {
-        // Match v3 (and backend-registered addresses): AIP-40 short form (strip leading zero nibbles).
-        let hex = ::hex::encode(self.0);
-        match hex.trim_start_matches('0') {
-            "" => "0x0".to_string(),
-            trimmed => format!("0x{trimmed}"),
-        }
+        self.to_string()
     }
 }
 
@@ -77,25 +72,34 @@ mod tests {
 
     #[test]
     fn test_aptos_address() {
-        let parsed = AccountAddress::from_hex(VALID_ADDRESS).unwrap();
         let padded = "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30";
         let unpadded = "0x7968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30";
+        let reported_padded = "0x0638761ddc13e58b60aaa6f817fca9984b795f238fa46778e03af6859d72bc3d";
+        let reported_unpadded = "0x638761ddc13e58b60aaa6f817fca9984b795f238fa46778e03af6859d72bc3d";
+        let framework_address = format!("0x{}", "00".repeat(31) + "01");
+        let non_special_short_address = format!("0x{}", "00".repeat(31) + "10");
 
-        assert!(validate_address(VALID_ADDRESS));
-        assert!(validate_address(padded));
-        assert!(validate_address(unpadded));
+        for (input, expected) in [
+            (VALID_ADDRESS, VALID_ADDRESS.to_string()),
+            (padded, padded.to_string()),
+            (unpadded, padded.to_string()),
+            (reported_padded, reported_padded.to_string()),
+            (reported_unpadded, reported_padded.to_string()),
+            ("0x1", framework_address),
+            ("0x10", non_special_short_address),
+        ] {
+            let parsed = AccountAddress::from_hex(input).unwrap();
+            let encoded = parsed.encode();
 
-        assert_eq!(AccountAddress::from_hex(padded).unwrap().encode(), unpadded);
-        assert_eq!(AccountAddress::from_hex(unpadded).unwrap().encode(), unpadded);
-        assert_eq!(parsed.encode(), VALID_ADDRESS);
+            assert!(validate_address(input));
+            assert_eq!(parsed.as_bytes().len(), 32);
+            assert_eq!(encoded.len(), 66);
+            assert_eq!(encoded, expected);
+        }
 
-        assert_eq!(AccountAddress::from_hex(unpadded).unwrap().to_string(), padded);
-        assert_eq!(parsed.to_string(), VALID_ADDRESS);
-        assert_eq!(parsed.as_bytes().len(), 32);
+        assert_eq!(AccountAddress::from_hex(padded).unwrap(), AccountAddress::from_hex(unpadded).unwrap());
+        assert_eq!(AccountAddress::from_hex(reported_padded).unwrap(), AccountAddress::from_hex(reported_unpadded).unwrap());
         assert!(!validate_address("invalid"));
-
-        let short = AccountAddress::from_hex("0x1").unwrap();
-        assert_eq!(short.to_string(), format!("0x{}", "00".repeat(31) + "01"));
-        assert_eq!(short.encode(), "0x1");
+        assert!(!validate_address(&format!("0x{}", "1".repeat(65))));
     }
 }

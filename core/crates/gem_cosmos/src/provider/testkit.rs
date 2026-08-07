@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::models::TransactionResponse;
+use crate::models::{StakingPool, StakingPoolResponse, TransactionResponse};
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::CosmosClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -12,6 +12,8 @@ use settings::testkit::get_test_settings;
 pub const TEST_ADDRESS: &str = "cosmos1cvh8mpz04az0x7vht6h6ekksg8wd650r39ltwj";
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub const TEST_EMPTY_ADDRESS: &str = "cosmos19xv76hwfjzf286we9q8ssce4v67h378vfnxvga";
+#[cfg(all(test, feature = "chain_integration_tests"))]
+pub const TEST_CELESTIA_ADDRESS: &str = "celestia1cvh8mpz04az0x7vht6h6ekksg8wd650rq0wm5l";
 #[cfg(test)]
 pub const TEST_TRANSACTION_ID: &str = "BC5E330F0AFA34489B9796E8101A2B027CC8AE8E820AFC7901C3C1E75C2895DD";
 
@@ -23,6 +25,22 @@ impl TransactionResponse {
 
     pub fn mock_reverted_transfer_spam() -> Self {
         serde_json::from_str(include_str!("../../testdata/reverted_transfer_spam.json")).unwrap()
+    }
+}
+
+#[cfg(test)]
+impl StakingPoolResponse {
+    pub fn mock() -> Self {
+        Self::mock_with_bonded_tokens(100.0)
+    }
+
+    pub fn mock_with_bonded_tokens(bonded_tokens: f64) -> Self {
+        Self {
+            pool: StakingPool {
+                bonded_tokens,
+                not_bonded_tokens: 0.0,
+            },
+        }
     }
 }
 
@@ -38,4 +56,11 @@ pub fn create_cosmos_test_client() -> CosmosClient<ReqwestClient> {
     let settings = get_test_settings();
     let reqwest_client = ReqwestClient::new(settings.chains.cosmos.url, gem_client::reqwest_client());
     CosmosClient::new(CosmosChain::Cosmos, reqwest_client)
+}
+
+#[cfg(all(test, feature = "chain_integration_tests"))]
+pub fn create_celestia_test_client() -> CosmosClient<ReqwestClient> {
+    let settings = get_test_settings();
+    let reqwest_client = ReqwestClient::new(settings.chains.celestia.url, gem_client::reqwest_client());
+    CosmosClient::new(CosmosChain::Celestia, reqwest_client)
 }

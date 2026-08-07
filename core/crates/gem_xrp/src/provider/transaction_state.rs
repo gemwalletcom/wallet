@@ -5,10 +5,10 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::{TransactionStateRequest, TransactionUpdate};
 
-use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::XRPClient};
+use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::XrpClient};
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionState for XRPClient<C> {
+impl<C: Client + Clone> ChainTransactionState for XrpClient<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
         let status = self.get_transaction_status(&request.id).await?;
         Ok(map_transaction_status(&status))

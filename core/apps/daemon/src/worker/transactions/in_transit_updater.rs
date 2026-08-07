@@ -209,7 +209,7 @@ fn resolve_status(result: &SwapResult, created_at: NaiveDateTime, cutoff: NaiveD
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::TransactionState as PrimitiveTransactionState;
+    use primitives::{HOUR, MINUTE, TransactionState as PrimitiveTransactionState};
 
     fn swap_result(status: SwapStatus, metadata: Option<TransactionSwapMetadata>) -> SwapResult {
         SwapResult { status, metadata }
@@ -228,7 +228,7 @@ mod tests {
     #[test]
     fn test_scan_limit_covers_check_interval_window() {
         let config = InTransitConfig {
-            timeout: Duration::from_secs(60),
+            timeout: MINUTE,
             query_limit: 100,
             check_interval: JobConfiguration {
                 initial_interval_ms: 60_000,
@@ -262,14 +262,14 @@ mod tests {
     #[test]
     fn test_resolve_status_pending_within_timeout() {
         let now = Utc::now().naive_utc();
-        let cutoff = (Utc::now() - Duration::from_secs(3600)).naive_utc();
+        let cutoff = (Utc::now() - HOUR).naive_utc();
         assert!(resolve_status(&swap_result(SwapStatus::Pending, None), now, cutoff).is_none());
     }
 
     #[test]
     fn test_resolve_status_pending_past_timeout() {
         let cutoff = Utc::now().naive_utc();
-        let created_at = (Utc::now() - Duration::from_secs(7200)).naive_utc();
+        let created_at = (Utc::now() - HOUR * 2).naive_utc();
         let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Pending, None), created_at, cutoff) else {
             panic!("timed out pending status should resolve");
         };

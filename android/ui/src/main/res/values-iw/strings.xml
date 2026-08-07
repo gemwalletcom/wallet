@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">לְבַטֵל</string>
+  <string name="common_hidden">מוסתרים</string>
   <string name="common_done">בוצע</string>
   <string name="common_maximum_value">הערך המקסימלי הוא %1$s</string>
   <string name="common_minimum_value">הערך המינימלי הוא %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">אירעה שגיאה לא ידועה. אנא נסה שוב.</string>
   <string name="errors_network_error">שגיאת רשת: %1$s</string>
   <string name="errors_network_offline">נראה שחיבור האינטרנט אינו מקוון.</string>
+  <string name="errors_no_internet_connection">אין חיבור לאינטרנט</string>
+  <string name="errors_no_service_connection">אין חיבור לשירות</string>
+  <string name="errors_balances_activity_outdated">היתרות והפעילות עשויות להיות לא מעודכנות.</string>
   <string name="activity_title">פעילות</string>
   <string name="activity_state_empty_title">הפעילות שלך תופיע כאן</string>
   <string name="activity_state_empty_description">בצעו את העסקה הראשונה שלכם</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">שמור עבור דמי רשת</string>
   <string name="info_stake_reserved_description">סכום קטן נשאר בארנק שלך כדי לכסות עמלות עבור פעולות כמו ביטול הפקדה או תביעת תגמולים.</string>
   <string name="info_stake_apr_description">שיעור אחוז שנתי (APR) הוא שיעור התגמול השנתי עבור הפקדת מטבע הקריפטו שלך.</string>
+  <string name="info_stake_frozen_required_title">הקפא TRX כדי לבצע סטייקינג</string>
+  <string name="info_stake_frozen_required_description">סטייקינג ב-TRON נעשה בשני שלבים. תחילה הקפא TRX, ולאחר מכן בצע עליו סטייקינג כדי להרוויח תגמולים.</string>
   <string name="info_perpetual_auto_close_description">סגור אוטומטית את הפוזיציה שלך ברמות מחיר קבועות. Take Profit נועל רווחים, Stop Loss מגביל הפסדים.</string>
   <string name="info_fully_diluted_valuation_title">הערכה מדוללת לחלוטין</string>
   <string name="info_fully_diluted_valuation_description">שווי השוק התיאורטי אם כל המטבעות היו במחזור. מחושב כמחיר כפול היצע מקסימלי.</string>

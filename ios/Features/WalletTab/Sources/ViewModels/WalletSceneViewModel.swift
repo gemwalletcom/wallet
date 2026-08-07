@@ -17,15 +17,16 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import WalletService
+import WalletSessionService
 
 @Observable
 @MainActor
-public final class WalletSceneViewModel: Sendable {
+public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     private let assetDiscoveryService: any AssetDiscoverable
-    private let balanceService: BalanceService
+    let balanceService: BalanceService
     private let bannerService: BannerService
-    private let walletService: WalletService
+    private let walletSessionService: any WalletSessionManageable
+    private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
 
@@ -34,22 +35,9 @@ public final class WalletSceneViewModel: Sendable {
     public var wallet: Wallet
 
     // db queries
-    public let totalFiatQuery: ObservableQuery<TotalValueRequest>
+    public let fiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
     public let assetsQuery: ObservableQuery<AssetsRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
-
-    /// db observed values
-    public var totalFiatValue: TotalFiatValue {
-        totalFiatQuery.value
-    }
-
-    public var assets: [AssetData] {
-        assetsQuery.value
-    }
-
-    public var banners: [Banner] {
-        bannersQuery.value
-    }
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingSheet: WalletSheetType?
@@ -63,7 +51,7 @@ public final class WalletSceneViewModel: Sendable {
         assetDiscoveryService: any AssetDiscoverable,
         balanceService: BalanceService,
         bannerService: BannerService,
-        walletService: WalletService,
+        walletSessionService: any WalletSessionManageable,
         nftService: NFTService,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
@@ -73,22 +61,41 @@ public final class WalletSceneViewModel: Sendable {
         self.assetDiscoveryService = assetDiscoveryService
         self.balanceService = balanceService
         self.bannerService = bannerService
-        self.walletService = walletService
+        self.walletSessionService = walletSessionService
         self.observablePreferences = observablePreferences
         self.collectionsModel = CollectionsViewModel(
             nftService: nftService,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
             wallet: wallet,
         )
 
-        totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.id, type: .wallet), initialValue: .zero)
+        fiatValuesQuery = ObservableQuery(
+            AssetFiatValuesRequest(
+                walletId: wallet.id,
+                type: .wallet,
+                perpetualAccountMode: WalletPreferences(walletId: wallet.id).perpetualAccountMode,
+            ),
+            initialValue: [],
+        )
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
+    
+    public var totalFiatValue: TotalFiatValue {
+        balanceCalculator.totalFiatValue(fiatValuesQuery.value)
+    }
+
+    public var assets: [AssetData] {
+        assetsQuery.value
+    }
+
+    public var banners: [Banner] {
+        bannersQuery.value
+    }
 
     public var currentWallet: Wallet? {
-        walletService.currentWallet
+        walletSessionService.currentWallet
     }
 
     var manageTokenTitle: String {
@@ -179,8 +186,8 @@ public extension WalletSceneViewModel {
         isPresentingSheet = .wallets
     }
 
-    func onSelectManage() {
-        isPresentingSheet = .selectAsset(.manage)
+    func onSelectManage(chains: [Chain] = []) {
+        isPresentingSheet = .selectAsset(.manage, chains: chains)
     }
 
     func onToggleSearch() {
@@ -197,9 +204,9 @@ public extension WalletSceneViewModel {
 
     internal func onHeaderAction(type: HeaderButtonType) {
         switch type {
-        case .buy: isPresentingSheet = .selectAsset(.buy)
-        case .send: isPresentingSheet = .selectAsset(.send)
-        case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
+        case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
+        case .send: isPresentingSheet = .selectAsset(.send, chains: [])
+        case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
         case .sell, .swap, .more, .stake, .deposit, .withdraw: break
         }
     }
@@ -220,28 +227,11 @@ public extension WalletSceneViewModel {
             }
         case let .button(bannerButton):
             switch bannerButton {
-            case .buy: isPresentingSheet = .selectAsset(.buy)
-            case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
+            case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
+            case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
             }
         }
         isPresentingUrl = action.url
-    }
-
-    internal func onHideAsset(_ assetId: AssetId) {
-        do {
-            try balanceService.hideAsset(walletId: wallet.id, assetId: assetId)
-        } catch {
-            debugLog("WalletSceneViewModel hide Asset error: \(error)")
-        }
-    }
-
-    internal func onPinAsset(_ asset: Asset, value: Bool) {
-        do {
-            try balanceService.setPinned(value, walletId: wallet.id, assetId: asset.id)
-            isPresentingToastMessage = .pin(asset.name, pinned: value)
-        } catch {
-            debugLog("WalletSceneViewModel pin asset error: \(error)")
-        }
     }
 
     internal func onCopyAddress(_ message: String) {
@@ -324,7 +314,7 @@ extension WalletSceneViewModel {
     private func refresh(for newWallet: Wallet) {
         isLoadingAssets = false
         wallet = newWallet
-        totalFiatQuery.request.walletId = newWallet.id
+        fiatValuesQuery.request.walletId = newWallet.id
         assetsQuery.request.walletId = newWallet.id
         bannersQuery.request.walletId = newWallet.id
         collectionsModel.wallet = newWallet

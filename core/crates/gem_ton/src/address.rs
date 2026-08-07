@@ -18,6 +18,33 @@ const TAG_NON_BOUNCEABLE_MAINNET: u8 = TAG_BOUNCEABLE_MAINNET | 0x40;
 const RAW_ADDRESS_LEN: usize = 33;
 const USER_FRIENDLY_ADDRESS_LEN: usize = 36;
 
+#[derive(Clone, Copy)]
+enum UserFriendlyAddressType {
+    Bounceable,
+    NonBounceable,
+}
+
+impl UserFriendlyAddressType {
+    fn from_tag(tag: u8) -> Option<Self> {
+        match tag & 0x7f {
+            TAG_BOUNCEABLE_MAINNET => Some(Self::Bounceable),
+            TAG_NON_BOUNCEABLE_MAINNET => Some(Self::NonBounceable),
+            _ => None,
+        }
+    }
+
+    fn tag(self) -> u8 {
+        match self {
+            Self::Bounceable => TAG_BOUNCEABLE_MAINNET,
+            Self::NonBounceable => TAG_NON_BOUNCEABLE_MAINNET,
+        }
+    }
+
+    fn is_bounceable(self) -> bool {
+        matches!(self, Self::Bounceable)
+    }
+}
+
 fn crc16(slice: &[u8]) -> u16 {
     Crc::<u16>::new(&crc::CRC_16_XMODEM).checksum(slice)
 }
@@ -44,6 +71,10 @@ impl Address {
     }
 
     pub fn try_parse_base64(base64: &str) -> Option<Self> {
+        Self::parse_user_friendly(base64).map(|(address, _)| address)
+    }
+
+    pub(crate) fn parse_user_friendly(base64: &str) -> Option<(Self, bool)> {
         let bytes = decode_base64_url(base64).or_else(|_| decode_base64_no_pad(base64)).ok()?;
         if bytes.len() != USER_FRIENDLY_ADDRESS_LEN {
             return None;
@@ -52,8 +83,9 @@ impl Address {
         if expected_crc != crc16(&bytes[..34]) {
             return None;
         }
+        let address_type = UserFriendlyAddressType::from_tag(bytes[0])?;
         let raw_bytes: RawBytes = bytes[1..RAW_ADDRESS_LEN + 1].try_into().ok()?;
-        Some(Self { bytes: raw_bytes })
+        Some((Self { bytes: raw_bytes }, address_type.is_bounceable()))
     }
 
     pub fn try_parse_hex(hex_str: &str) -> Option<Self> {
@@ -117,10 +149,10 @@ impl Address {
         Self::from_cell(root.as_ref())
     }
 
-    fn encode_user_friendly(&self, flag: u8) -> String {
+    fn encode_user_friendly(&self, address_type: UserFriendlyAddressType) -> String {
         let mut buffer = [0u8; USER_FRIENDLY_ADDRESS_LEN];
 
-        buffer[0] = flag;
+        buffer[0] = address_type.tag();
         buffer[1..RAW_ADDRESS_LEN + 1].copy_from_slice(&self.bytes);
 
         let crc = crc16(&buffer[..RAW_ADDRESS_LEN + 1]);
@@ -131,11 +163,11 @@ impl Address {
     }
 
     pub fn encode_bounceable(&self) -> String {
-        self.encode_user_friendly(TAG_BOUNCEABLE_MAINNET)
+        self.encode_user_friendly(UserFriendlyAddressType::Bounceable)
     }
 
     pub fn encode_non_bounceable(&self) -> String {
-        self.encode_user_friendly(TAG_NON_BOUNCEABLE_MAINNET)
+        self.encode_user_friendly(UserFriendlyAddressType::NonBounceable)
     }
 }
 
@@ -217,6 +249,8 @@ mod tests {
         assert_eq!(address.as_bytes().len(), RAW_ADDRESS_LEN);
         assert_eq!(address.workchain(), 0);
         assert_eq!(hex::encode(address.hash_part()), "8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78");
+        assert_eq!(Address::parse_user_friendly(encoded), Some((address, true)));
+        assert_eq!(Address::parse_user_friendly(&address.encode_non_bounceable()), Some((address, false)));
     }
 
     #[test]

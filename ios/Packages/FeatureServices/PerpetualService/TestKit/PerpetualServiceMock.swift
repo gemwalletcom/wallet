@@ -27,6 +27,10 @@ public struct PerpetualServiceMock: PerpetualServiceable {
 // MARK: - HyperliquidPerpetualServiceable
 
 extension PerpetualServiceMock: HyperliquidPerpetualServiceable {
+    public func accountMode(walletId _: WalletId, address _: String) async -> PerpetualAccountMode {
+        .standard
+    }
+
     public func getHypercorePositions(walletId _: WalletId) throws -> [GemPerpetualPosition] {
         []
     }

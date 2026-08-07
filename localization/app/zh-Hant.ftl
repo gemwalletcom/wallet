@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = 取消
+common_hidden = 已隱藏
 common_done = 完畢
 common_maximum_value = 最大值為 %@
 common_minimum_value = 最小值為 %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = 無法取得代幣資訊： %@
 errors_unknown_try_again = 發生未知錯誤，請重試
 errors_network_error = 網路錯誤： %@
 errors_network_offline = 網路連線似乎已斷開。
+errors_no_internet_connection = 無網際網路連線
+errors_no_service_connection = 無服務連線
+errors_balances_activity_outdated = 餘額和活動可能不是最新的。
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = 無法返回所選代幣對的報價，可能是由�
 info_stake_reserved_title = 預留網路費用
 info_stake_reserved_description = 您的錢包中會留有少量資金，用於支付取消質押或領取獎勵等操作的費用。
 info_stake_apr_description = 年利率（APR）是質押加密貨幣的年度報酬率。
+info_stake_frozen_required_title = 凍結 TRX 以質押
+info_stake_frozen_required_description = 在 TRON 上質押分兩步。先凍結 TRX，然後質押以賺取獎勵。
 info_perpetual_auto_close_description = 以設定的價格自動平倉。止盈鎖定收益，止損限制損失。
 info_fully_diluted_valuation_title = 完全稀釋估值
 info_fully_diluted_valuation_description = 如果所有硬幣都在流通，其理論市場價值為：價格乘以最大供應量。

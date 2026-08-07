@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">रद्द करना</string>
+  <string name="common_hidden">छिपाए गए</string>
   <string name="common_done">हो गया</string>
   <string name="common_maximum_value">अधिकतम मान %1$s है</string>
   <string name="common_minimum_value">न्यूनतम मान %1$s है</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">एक अज्ञात त्रुटि उत्पन्न हुई. कृपया पुन: प्रयास करें।</string>
   <string name="errors_network_error">नेटवर्क त्रुटि: %1$s</string>
   <string name="errors_network_offline">इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।</string>
+  <string name="errors_no_internet_connection">इंटरनेट कनेक्शन नहीं है</string>
+  <string name="errors_no_service_connection">सेवा कनेक्शन नहीं है</string>
+  <string name="errors_balances_activity_outdated">बैलेंस और गतिविधि पुरानी हो सकती है।</string>
   <string name="activity_title">गतिविधि</string>
   <string name="activity_state_empty_title">आपकी गतिविधि यहां दिखाई देगी</string>
   <string name="activity_state_empty_description">अपना पहला लेनदेन करें</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">नेटवर्क शुल्क के लिए आरक्षित</string>
   <string name="info_stake_reserved_description">आपके वॉलेट में एक छोटी राशि रहती है, जो अनस्टेकिंग या पुरस्कार का दावा करने जैसे कार्यों के लिए शुल्क को कवर करती है।</string>
   <string name="info_stake_apr_description">वार्षिक प्रतिशत दर (एपीआर) आपकी क्रिप्टोकरेंसी को दांव पर लगाने के लिए वार्षिक पुरस्कार दर है।</string>
+  <string name="info_stake_frozen_required_title">स्टेक करने के लिए TRX जमाएं</string>
+  <string name="info_stake_frozen_required_description">TRON पर स्टेकिंग दो चरणों में होती है। पहले TRX जमाएं, फिर इनाम पाने के लिए उसे स्टेक करें।</string>
   <string name="info_perpetual_auto_close_description">निर्धारित मूल्य स्तरों पर अपनी पोजीशन स्वचालित रूप से बंद करें। टेक प्रॉफिट लाभ को लॉक करता है, स्टॉप लॉस नुकसान को सीमित करता है।</string>
   <string name="info_fully_diluted_valuation_title">पूर्णतः पतला मूल्यांकन</string>
   <string name="info_fully_diluted_valuation_description">यदि सभी सिक्के प्रचलन में होते तो उनका सैद्धांतिक बाजार मूल्य क्या होता? इसकी गणना मूल्य को अधिकतम आपूर्ति से गुणा करके की जाती है।</string>

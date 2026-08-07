@@ -1,49 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::COMMITMENT_CONFIRMED;
-
-pub const ENCODING_BASE64: &str = "base64";
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Configuration {
-    pub commitment: &'static str,
-    pub encoding: &'static str,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub filters: Vec<Filter>,
-}
-
-impl Configuration {
-    pub fn new(filters: Vec<Filter>) -> Self {
-        Self {
-            commitment: COMMITMENT_CONFIRMED,
-            encoding: ENCODING_BASE64,
-            filters,
-        }
-    }
-}
-
-impl Default for Configuration {
-    fn default() -> Self {
-        Self {
-            commitment: COMMITMENT_CONFIRMED,
-            encoding: ENCODING_BASE64,
-            filters: vec![],
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Filter {
-    pub memcmp: Memcmp,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Memcmp {
-    pub offset: u8,
-    pub bytes: String,
-    pub encoding: String,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValueResult<T> {
     pub value: T,

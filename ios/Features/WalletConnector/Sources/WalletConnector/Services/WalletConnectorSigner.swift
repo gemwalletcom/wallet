@@ -141,7 +141,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 recipient: Recipient(name: .none, address: "", memo: .none),
                 amount: .none,
             ),
-            value: .zero,
+            amount: .exact(.zero),
         )
     }
 
@@ -174,7 +174,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         let wallet = try getWallet(id: session.wallet.id)
 
         switch transaction {
-        case let .ethereum(transaction):
+        case let .ethereum(transaction, transactionType):
             let address = transaction.to
             let value = try BigInt.fromHex(transaction.value ?? .zero)
             let gasLimit: BigInt? = {
@@ -209,12 +209,13 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                     gasLimit: gasLimit,
                     gasPrice: gasPrice,
                     data: data,
+                    transactionType: transactionType,
                 )),
                 recipientData: RecipientData(
                     recipient: Recipient(name: .none, address: address, memo: .none),
                     amount: .none,
                 ),
-                value: value,
+                amount: .exact(value),
             )
 
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))

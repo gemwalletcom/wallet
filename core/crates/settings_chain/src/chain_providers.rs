@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use chain_traits::{ChainTraits, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTraits, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, stream};
 use gem_tracing::warn_with_fields;
 use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPositionsSummary, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
@@ -13,22 +13,22 @@ pub struct ChainProviders {
 }
 
 impl ChainProviders {
-    pub fn new(providers: Vec<Box<dyn ChainTraits>>) -> Self {
-        Self { providers }
+    pub fn from_settings(settings: &Settings, user_agent: &str) -> Self {
+        Self {
+            providers: ProviderFactory::new_providers_with_user_agent(settings, user_agent),
+        }
     }
 
-    pub fn from_settings(settings: &Settings, service_name: &str) -> Self {
-        Self::new(ProviderFactory::new_providers_with_user_agent(settings, service_name))
-    }
-
-    pub fn for_chain(chain: Chain, settings: &Settings, service_name: &str) -> Self {
-        Self::new(vec![ProviderFactory::new_from_settings_with_user_agent(chain, settings, service_name)])
+    pub fn for_chain(chain: Chain, settings: &Settings, user_agent: &str) -> Self {
+        Self {
+            providers: vec![ProviderFactory::new_from_settings_with_user_agent(chain, settings, user_agent)],
+        }
     }
 
     fn get_provider(&self, chain: Chain) -> Result<&dyn ChainTraits, Box<dyn Error + Send + Sync>> {
         self.providers
             .iter()
-            .find(|x| x.get_chain() == chain)
+            .find(|provider| provider.get_chain() == chain)
             .map(|provider| provider.as_ref())
             .ok_or_else(|| format!("Provider for chain {} not found", chain.as_ref()).into())
     }
@@ -62,24 +62,27 @@ impl ChainProviders {
     }
 
     pub async fn get_transactions_by_address(&self, chain: Chain, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        let limit = request.limit;
         let transactions = match self.get_transactions_by_address_result(chain, request).await? {
             TransactionsResult::Transactions(transactions) => transactions,
-            TransactionsResult::TransactionIds(transaction_ids) => {
+            TransactionsResult::TransactionRequests(transaction_requests) => {
                 let provider = self.get_provider(chain)?;
-                stream::iter(transaction_ids)
-                    .filter_map(|transaction_id| async move {
-                        match provider.get_transaction_by_hash(transaction_id.hash.clone()).await {
+                stream::iter(transaction_requests.into_iter().take(limit))
+                    .map(|request| async move {
+                        match provider.get_transaction_by_hash(request.clone()).await {
                             Ok(Some(transaction)) => Some(transaction),
                             Ok(None) => {
-                                warn_with_fields!("transaction not found", chain = transaction_id.chain, hash = &transaction_id.hash);
+                                warn_with_fields!("transaction not found", chain = request.chain, hash = &request.hash);
                                 None
                             }
                             Err(error) => {
-                                warn_with_fields!("failed to fetch transaction", chain = transaction_id.chain, hash = &transaction_id.hash, error = &error);
+                                warn_with_fields!("failed to fetch transaction", chain = request.chain, hash = &request.hash, error = &error);
                                 None
                             }
                         }
                     })
+                    .buffer_unordered(5)
+                    .filter_map(|transaction| async move { transaction })
                     .collect()
                     .await
             }
@@ -103,8 +106,8 @@ impl ChainProviders {
         self.get_provider(chain)?.get_block_latest_number().await
     }
 
-    pub async fn get_transaction_by_hash(&self, chain: Chain, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
-        self.get_provider(chain)?.get_transaction_by_hash(hash).await
+    pub async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(request.chain)?.get_transaction_by_hash(request).await
     }
 
     pub async fn get_transaction_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Send + Sync>> {

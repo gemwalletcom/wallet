@@ -1,0 +1,25 @@
+{
+  "jetton_masters": [
+    {
+      "address": "0:MISSING_FIELDS",
+      "jetton_content": {
+        "name": "Incomplete Inline Token"
+      }
+    }
+  ],
+  "metadata": {
+    "0:MISSING_FIELDS": {
+      "is_indexed": true,
+      "token_info": [
+        {
+          "valid": true,
+          "type": "jetton_masters",
+          "name": "Incomplete Indexed Token",
+          "extra": {
+            "decimals": "9"
+          }
+        }
+      ]
+    }
+  }
+}

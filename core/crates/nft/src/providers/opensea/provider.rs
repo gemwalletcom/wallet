@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use gem_client::Client;
 use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollectionId};
 
 use super::mapper::{map_asset, map_assets, map_collection};
@@ -7,7 +8,7 @@ use crate::provider::NFTProvider;
 use crate::providers::opensea::client::OpenSeaClient;
 
 #[async_trait::async_trait]
-impl NFTProvider for OpenSeaClient {
+impl<C: Client + 'static> NFTProvider for OpenSeaClient<C> {
     fn name(&self) -> &'static str {
         "OpenSea"
     }

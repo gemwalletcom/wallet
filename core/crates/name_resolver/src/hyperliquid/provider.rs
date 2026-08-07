@@ -3,9 +3,8 @@ use alloy_primitives::{Address, Bytes, hex};
 use alloy_sol_types::SolCall;
 use async_trait::async_trait;
 use gem_client::ReqwestClient;
-use gem_evm::method;
+use gem_evm::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use gem_jsonrpc::JsonRpcClient;
-use serde_json::json;
 use std::{error::Error, str::FromStr};
 
 use super::{
@@ -41,15 +40,8 @@ impl Hyperliquid {
     }
 
     async fn eth_call(&self, to: Address, call_data: &[u8]) -> Result<Bytes, Box<dyn Error + Send + Sync>> {
-        let params = json!([
-            {
-                "to": to.to_string(),
-                "data": hex::encode_prefixed(call_data)
-            },
-            "latest"
-        ]);
-
-        let result_str: String = self.client.call(method::ETH_CALL, params).await?;
+        let transaction = TransactionObject::new_call(&to.to_string(), call_data.to_vec());
+        let result_str: String = self.client.request(EthereumRpc::Call(transaction, BlockParameter::Latest)).await?;
         let result = Bytes::from(hex::decode(&result_str).map_err(|e| format!("Failed to decode hex response: {}", e))?);
         Ok(result)
     }

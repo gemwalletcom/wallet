@@ -8,6 +8,7 @@ import PerpetualService
 import Preferences
 import Primitives
 import PrimitivesComponents
+import Recents
 import Store
 import Style
 import SwiftUI
@@ -25,11 +26,7 @@ final class PerpetualsSceneViewModel {
     let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     let perpetualsQuery: ObservableQuery<PerpetualsRequest>
     let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
-    let recentsQuery: ObservableQuery<RecentActivityRequest>
-
-    var recents: [RecentAsset] {
-        recentsQuery.value
-    }
+    let recentModel: RecentAssetsModel
 
     var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -46,7 +43,6 @@ final class PerpetualsSceneViewModel {
     var isSearchPresented: Bool = false
     var searchQuery: String = .empty
     var isSearching: Bool = false
-    var isPresentingRecents: Bool = false
 
     let onSelectAssetType: ((SelectAssetType) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
@@ -71,7 +67,7 @@ final class PerpetualsSceneViewModel {
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
         walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.id), initialValue: .zero)
-        recentsQuery = ObservableQuery(RecentActivityRequest(walletId: wallet.id, limit: 10, types: [.perpetual]), initialValue: [])
+        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], activityService: activityService)
     }
 
     var navigationTitle: String {
@@ -115,7 +111,7 @@ final class PerpetualsSceneViewModel {
     }
 
     var showRecents: Bool {
-        isSearching && searchQuery.isEmpty && recents.isNotEmpty
+        isSearching && searchQuery.isEmpty && recentModel.hasAssets
     }
 
     var showSearchEmptyState: Bool {
@@ -124,10 +120,6 @@ final class PerpetualsSceneViewModel {
 
     var sections: PerpetualsSections {
         .from(perpetuals)
-    }
-
-    var recentModels: [AssetViewModel] {
-        recents.map { AssetViewModel(asset: $0.asset) }
     }
 
     var headerViewModel: PerpetualsHeaderViewModel {
@@ -221,13 +213,9 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onSelectRecents() {
-        isPresentingRecents = true
-    }
-
     func onSelectRecent(asset: Asset) {
         onSelectAsset?(asset)
-        isPresentingRecents = false
+        recentModel.dismiss()
     }
 
     func onSelectBalance() {

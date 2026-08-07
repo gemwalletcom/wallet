@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.perpetual.autoclose
 
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseError
+import uniffi.gemstone.AutocloseValidation
 import com.gemwallet.android.testkit.mockAutocloseField
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockPerpetualPositionData
@@ -22,7 +22,7 @@ class AutocloseUIModelFactoryTest {
 
     @Test
     fun pnlSuppressedWhenFieldHasError() {
-        val invalid = mockAutocloseField(TpslType.TakeProfit, price = 50.0, error = AutocloseError.TriggerMustBeHigher)
+        val invalid = mockAutocloseField(TpslType.TakeProfit, price = 50.0, validation = AutocloseValidation.TRIGGER_MUST_BE_HIGHER)
         val model = AutocloseUIModelFactory.create(
             position = mockPerpetualPositionData(
                 position = mockPerpetualPosition(direction = PerpetualDirection.Long, entryPrice = 100.0, leverage = 5u),
@@ -36,7 +36,7 @@ class AutocloseUIModelFactoryTest {
 
     @Test
     fun errorSuppressedUntilShowErrorsSet() {
-        val invalidTakeProfit = mockAutocloseField(TpslType.TakeProfit, price = 50.0, error = AutocloseError.TriggerMustBeHigher)
+        val invalidTakeProfit = mockAutocloseField(TpslType.TakeProfit, price = 50.0, validation = AutocloseValidation.TRIGGER_MUST_BE_HIGHER)
         val hidden = AutocloseUIModelFactory.create(
             position = mockPerpetualPositionData(
                 position = mockPerpetualPosition(direction = PerpetualDirection.Long, entryPrice = 100.0, leverage = 5u),
@@ -56,7 +56,7 @@ class AutocloseUIModelFactoryTest {
             showErrors = true,
         )
         assertFalse(hidden.takeProfit.showError)
-        assertEquals(AutocloseError.TriggerMustBeHigher, shown.takeProfit.error)
+        assertEquals(AutocloseValidation.TRIGGER_MUST_BE_HIGHER, shown.takeProfit.validation)
     }
 
     private fun model(leverage: UByte) = AutocloseUIModelFactory.create(

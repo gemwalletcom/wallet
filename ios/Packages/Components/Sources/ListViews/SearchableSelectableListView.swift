@@ -43,7 +43,7 @@ public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & 
                 }
             },
             emptyContent: {
-                if let model = model.emptyCotentModel {
+                if let model = model.emptyContentModel {
                     EmptyContentView(model: model)
                 }
             },
@@ -51,13 +51,8 @@ public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & 
     }
 
     private func onSelect(item: ViewModel.Item) {
-        model.toggle(item: item)
-
-        switch model.selectionType {
-        case .multiSelection:
-            break
-        case .navigationLink, .checkmark:
-            onFinishSelection?(Array(model.selectedItems))
+        if let selected = model.select(item: item) {
+            onFinishSelection?(selected)
         }
     }
 }

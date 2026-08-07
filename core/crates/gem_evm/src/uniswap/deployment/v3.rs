@@ -8,6 +8,7 @@ use primitives::{
 };
 
 pub struct V3Deployment {
+    pub factory: &'static str,
     pub quoter_v2: &'static str,
     pub permit2: &'static str,
     pub universal_router: &'static str,
@@ -15,8 +16,9 @@ pub struct V3Deployment {
 }
 
 impl V3Deployment {
-    fn v2(quoter_v2: &'static str, permit2: &'static str, universal_router: &'static str) -> Self {
+    fn v2(factory: &'static str, quoter_v2: &'static str, permit2: &'static str, universal_router: &'static str) -> Self {
         Self {
+            factory,
             quoter_v2,
             permit2,
             universal_router,
@@ -24,8 +26,9 @@ impl V3Deployment {
         }
     }
 
-    fn v2_1(quoter_v2: &'static str, permit2: &'static str, universal_router: &'static str) -> Self {
+    fn v2_1(factory: &'static str, quoter_v2: &'static str, permit2: &'static str, universal_router: &'static str) -> Self {
         Self {
+            factory,
             quoter_v2,
             permit2,
             universal_router,
@@ -39,85 +42,101 @@ pub fn get_uniswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploym
     let permit2 = get_uniswap_permit2_by_chain(chain)?;
     match chain {
         Chain::Ethereum => Some(V3Deployment::v2_1(
+            "0x1F98431c8aD98523631AE4a59f267346ea31F984",
             "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
             permit2,
             "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA",
         )),
         Chain::Optimism => Some(V3Deployment::v2_1(
+            "0x1F98431c8aD98523631AE4a59f267346ea31F984",
             "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Arbitrum => Some(V3Deployment::v2_1(
+            "0x1F98431c8aD98523631AE4a59f267346ea31F984",
             "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Polygon => Some(V3Deployment::v2_1(
+            "0x1F98431c8aD98523631AE4a59f267346ea31F984",
             "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::AvalancheC => Some(V3Deployment::v2_1(
+            "0x740b1c1de25031C31FF4fC9A62f554A55cdC1baD",
             "0xbe0F5544EC67e9B3b2D979aaA43f18Fd87E6257F",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Base => Some(V3Deployment::v2_1(
+            "0x33128a8fC17869897dcE68Ed026d694621f6FDfD",
             "0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a",
             permit2,
             "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
         )),
         Chain::SmartChain => Some(V3Deployment::v2_1(
+            "0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7",
             "0x78D78E420Da98ad378D7799bE8f4AF69033EB077",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::ZkSync => Some(V3Deployment::v2(
+            "0x8FdA5a7a8dCA67BBcDd10F02Fa0649A937215422",
             "0x8Cb537fc92E26d8EBBb760E632c95484b6Ea3e28",
             permit2,
             "0x28731BCC616B5f51dD52CF2e4dF0E78dD1136C06",
         )),
         Chain::Celo => Some(V3Deployment::v2_1(
+            "0xAfE208a311B21f13EF87E33A90049fC17A7acDEc",
             "0x82825d0554fA07f7FC52Ab63c961F330fdEFa8E8",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Blast => Some(V3Deployment::v2_1(
+            "0x792edAdE80af5fC680d96a2eD80A44247D2Cf6Fd",
             "0x6Cdcd65e03c1CEc3730AeeCd45bc140D57A25C77",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::World => Some(V3Deployment::v2_1(
+            "0x7a5028BDa40e7B173C278C5342087826455ea25a",
             "0x10158D43e6cc414deE1Bd1eB0EfC6a5cBCfF244c",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
 
         Chain::Unichain => Some(V3Deployment::v2_1(
+            "0x1F98400000000000000000000000000000000003",
             "0x385A5cf5F83e99f7BB2852b6A19C3538b9FA7658",
             permit2,
             "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
         )),
         // See: https://github.com/Uniswap/contracts/blob/main/deployments/143.md
         Chain::Monad => Some(V3Deployment::v2_1(
+            "0x204FAca1764B154221e35c0d20aBb3c525710498",
             "0x661E93cca42AfacB172121EF892830cA3b70F08d",
             permit2,
             "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
         )),
         Chain::XLayer => Some(V3Deployment::v2_1(
+            "0x4B2ab38DBF28D31D467aA8993f6c2585981D6804",
             "0xD1b797D92d87B688193A2B976eFc8D577D204343",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         // See: https://swap.stable.xyz/deployments
         Chain::Stable => Some(V3Deployment::v2(
+            "0x88F0a512eF09175D456bc9547f914f48C013E4aA",
             "0xb070179E7032CdA868b53e6C1742F80c9e940d1A",
             permit2,
             "0x5Be52b52f3d1dbC324d2959637471a4208626144",
         )),
         // See: https://github.com/Uniswap/contracts/blob/main/deployments/4663.md
         Chain::Robinhood => Some(V3Deployment::v2_1(
+            "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA",
             "0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7",
             permit2,
             "0x8876789976dEcBfCbBbe364623C63652db8C0904",
@@ -164,32 +183,44 @@ pub fn get_pancakeswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Dep
     // https://developer.pancakeswap.finance/contracts/universal-router/addresses
     // https://docs.pancakeswap.finance/developers/smart-contracts/pancakeswap-exchange/v3-contracts#address
     match chain {
+        Chain::Ethereum => Some(V3Deployment::v2(
+            "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
+            "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+            "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
+            "0x65b382653f7C31bC0Af67f188122035461ec9C76",
+        )),
         Chain::SmartChain => Some(V3Deployment::v2(
+            "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
             "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
             "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
             "0x1A0A18AC4BECDDbd6389559687d1A73d8927E416",
         )),
         Chain::OpBNB => Some(V3Deployment::v2(
+            "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
             "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
             "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
             "0xB89a6778D1efE7a5b7096757A21b810CC2886fa1",
         )),
         Chain::Arbitrum | Chain::Linea | Chain::Base => Some(V3Deployment::v2(
+            "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
             "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
             "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
             "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912",
         )),
         Chain::ZkSync => Some(V3Deployment::v2(
+            "0x1Bb72E0C66EeAb9C0e0F81c405e6e553123a5d2D",
             "0x3d146FcE6c1006857750cBe8aF44f76a28041CCc",
             "0x686FD50007EaA636F01154d660b96110B6bFe351",
             "0xdAee41E335322C85ff2c5a6745c98e1351806e98",
         )),
         Chain::Monad => Some(V3Deployment::v2(
+            "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
             "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
             "0xDca6Dd86A5E305dB99A15eaEB2a6ecfc7F579778",
             "0x23682a588CF2601ACa977dF200938634c9F7d552",
         )),
         Chain::Robinhood => Some(V3Deployment::v2(
+            "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
             "0x8553AA1615549A86882151784b329B017aA7c832",
             "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
             "0xE28c0e44F4016b073db20cF28971CAc6ce3664D3",
@@ -202,26 +233,31 @@ pub fn get_oku_deployment_by_chain(chain: &Chain) -> Option<V3Deployment> {
     // https://docs.oku.trade/home/extra-information/deployed-contracts
     match chain {
         Chain::Sonic => Some(V3Deployment::v2(
+            "0xcb2436774C3e191c85056d248EF4260ce5f27A9D",
             "0x5911cB3633e764939edc2d92b7e1ad375Bb57649",
             "0xB952578f3520EE8Ea45b7914994dcf4702cEe578",
             "0x738fD6d10bCc05c230388B4027CAd37f82fe2AF2",
         )),
         Chain::Mantle => Some(V3Deployment::v2(
+            "0x0d922Fb1Bc191F64970ac40376643808b4B74Df9",
             "0xdD489C75be1039ec7d843A6aC2Fd658350B067Cf",
             "0x5d6b0f5335ec95cD2aB7E52f2A0750dd86502435",
             "0x447B8E40B0CdA8e55F405C86bC635D02d0540aB8",
         )),
         Chain::Gnosis => Some(V3Deployment::v2(
+            "0xe32F7dD7e3f098D518ff19A22d5f028e076489B1",
             "0x7E9cB3499A6cee3baBe5c8a3D328EA7FD36578f4",
             UNISWAP_PERMIT2_CONTRACT,
             "0x75FC67473A91335B5b8F8821277262a13B38c9b3",
         )),
         Chain::Plasma => Some(V3Deployment::v2(
+            "0xcb2436774C3e191c85056d248EF4260ce5f27A9D",
             "0xaa52bB8110fE38D0d2d2AF0B85C3A3eE622CA455",
             UNISWAP_PERMIT2_CONTRACT,
             "0x1b35fbA9357fD9bda7ed0429C8BbAbe1e8CC88fc",
         )),
         Chain::SeiEvm => Some(V3Deployment::v2(
+            "0x75FC67473A91335B5b8F8821277262a13B38c9b3",
             "0x807F4E281B7A3B324825C64ca53c69F0b418dE40",
             "0xB952578f3520EE8Ea45b7914994dcf4702cEe578",
             "0xa683c66045ad16abb1bCE5ad46A64d95f9A25785",
@@ -234,6 +270,7 @@ pub fn get_wagmi_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploymen
     // https://docs.wagmi.com/wagmi/contracts#sonic
     match chain {
         Chain::Sonic => Some(V3Deployment::v2(
+            "0x56CFC796bC88C9c7e1b38C2b0aF9B7120B079aef",
             "0xDb51CffFf3B989d0cB6b58AbF173371b6F2d0D24",
             "0x7Ac9E324c2a211a389fac64b773433A17dB22948",
             "0xC81dAe2Cdf2f6C0076aE3E174a54985040626D19",
@@ -247,6 +284,7 @@ pub fn get_aerodrome_router_deployment_by_chain(chain: &Chain) -> Option<V3Deplo
     let permit2 = get_uniswap_permit2_by_chain(chain)?;
     match chain {
         Chain::Base => Some(V3Deployment::v2(
+            "0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A",
             "0x254cF9E1E6e233aa1AC962CB9B05b2cfeAaE15b0",
             permit2,
             "0x6Cb442acF35158D5eDa88fe602221b67B400Be3E",
@@ -258,13 +296,35 @@ pub fn get_aerodrome_router_deployment_by_chain(chain: &Chain) -> Option<V3Deplo
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloy_primitives::Address;
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_deployment_addresses_are_checksummed() {
+        for chain in Chain::all() {
+            let deployments = [
+                get_uniswap_router_deployment_by_chain(&chain),
+                get_pancakeswap_router_deployment_by_chain(&chain),
+                get_oku_deployment_by_chain(&chain),
+                get_wagmi_router_deployment_by_chain(&chain),
+                get_aerodrome_router_deployment_by_chain(&chain),
+            ];
+            for deployment in deployments.into_iter().flatten() {
+                for value in [deployment.factory, deployment.quoter_v2, deployment.permit2, deployment.universal_router] {
+                    let address = Address::from_str(value).unwrap();
+                    assert_eq!(value, address.to_checksum(None), "{chain} deployment address");
+                }
+            }
+        }
+    }
 
     #[test]
     fn test_robinhood_uniswap_v3_deployment() {
         let deployment = get_uniswap_router_deployment_by_chain(&Chain::Robinhood).unwrap();
 
         assert_eq!(deployment.quoter_v2, "0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7");
+        assert_eq!(deployment.factory, "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA");
         assert_eq!(deployment.permit2, UNISWAP_PERMIT2_CONTRACT);
         assert_eq!(deployment.universal_router, "0x8876789976dEcBfCbBbe364623C63652db8C0904");
         assert_eq!(deployment.universal_router_abi, UniversalRouterAbi::V2_1);
@@ -279,7 +339,9 @@ mod tests {
         let stable = get_uniswap_router_deployment_by_chain(&Chain::Stable).unwrap();
 
         assert_eq!(ethereum.universal_router, "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA");
+        assert_eq!(ethereum.factory, "0x1F98431c8aD98523631AE4a59f267346ea31F984");
         assert_eq!(base.universal_router, "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7");
+        assert_eq!(base.factory, "0x33128a8fC17869897dcE68Ed026d694621f6FDfD");
         assert_eq!(optimism.universal_router, "0x8B844f885672f333Bc0042cB669255f93a4C1E6b");
         assert_eq!(zksync.universal_router, "0x28731BCC616B5f51dD52CF2e4dF0E78dD1136C06");
         assert_eq!(stable.universal_router, "0x5Be52b52f3d1dbC324d2959637471a4208626144");
@@ -288,6 +350,8 @@ mod tests {
         assert_eq!(optimism.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(zksync.universal_router_abi, UniversalRouterAbi::V2);
         assert_eq!(stable.universal_router_abi, UniversalRouterAbi::V2);
+        assert_eq!(zksync.factory, "0x8FdA5a7a8dCA67BBcDd10F02Fa0649A937215422");
+        assert_eq!(stable.factory, "0x88F0a512eF09175D456bc9547f914f48C013E4aA");
     }
 
     #[test]

@@ -3,11 +3,11 @@ import SwiftUI
 
 public struct NavigationCustomLink<Content: View>: View {
     private let content: Content
-    private let action: @MainActor () -> Void
+    private let action: @MainActor @Sendable () -> Void
 
     public init(
         with content: Content,
-        action: @escaping @MainActor () -> Void,
+        action: @escaping @MainActor @Sendable () -> Void,
     ) {
         self.content = content
         self.action = action

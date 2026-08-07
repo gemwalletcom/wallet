@@ -1,3 +1,4 @@
+import AssetsService
 import BalanceService
 import Components
 import Foundation
@@ -14,26 +15,67 @@ public final class ReceiveViewModel: Sendable {
         UIDevice.current.userInterfaceIdiom == .pad ? 180 : 260
     }
 
-    let assetModel: AssetViewModel
-    let wallet: Wallet
-    let address: String
-    let assetsEnabler: any AssetsEnabler
-    let generator = QRCodeGenerator()
+    private(set) var assetModel: AssetViewModel
+    private(set) var address: String
 
-    public var isPresentingShareSheet: Bool = false
-    public var isPresentingCopyToast: Bool = false
-    public var renderedImage: UIImage?
+    var presentation: ReceivePresentationType?
+    var renderedImage: UIImage?
 
-    public init(
-        assetModel: AssetViewModel,
+    private let wallet: Wallet
+    private let assetsEnabler: any AssetsEnabler
+    private let assetsService: AssetsService
+    private let generator = QRCodeGenerator()
+    let networkAssetIds: [AssetId]
+
+    private init(
+        asset: Asset,
+        associations: [AssetAssociation],
         wallet: Wallet,
         address: String,
         assetsEnabler: any AssetsEnabler,
+        assetsService: AssetsService,
     ) {
-        self.assetModel = assetModel
+        assetModel = AssetViewModel(asset: asset)
         self.wallet = wallet
         self.address = address
         self.assetsEnabler = assetsEnabler
+        self.assetsService = assetsService
+
+        networkAssetIds = ([asset.id] + associations.map(\.assetId))
+            .filter { assetId in wallet.accounts.contains { $0.chain == assetId.chain } }
+            .unique()
+    }
+
+    public convenience init(
+        assetData: AssetData,
+        wallet: Wallet,
+        assetsEnabler: any AssetsEnabler,
+        assetsService: AssetsService,
+    ) {
+        self.init(
+            asset: assetData.asset,
+            associations: assetData.associations,
+            wallet: wallet,
+            address: assetData.account.address,
+            assetsEnabler: assetsEnabler,
+            assetsService: assetsService,
+        )
+    }
+
+    public convenience init(
+        assetAddress: AssetAddress,
+        wallet: Wallet,
+        assetsEnabler: any AssetsEnabler,
+        assetsService: AssetsService,
+    ) {
+        self.init(
+            asset: assetAddress.asset,
+            associations: [],
+            wallet: wallet,
+            address: assetAddress.address,
+            assetsEnabler: assetsEnabler,
+            assetsService: assetsService,
+        )
     }
 
     var title: String {
@@ -73,6 +115,40 @@ public final class ReceiveViewModel: Sendable {
         )
     }
 
+    var showNetworkSelector: Bool {
+        networkAssetIds.count > 1
+    }
+
+    var networkSelectorModel: ReceiveNetworkSelectorViewModel {
+        ReceiveNetworkSelectorViewModel(
+            assetIds: networkAssetIds,
+        )
+    }
+
+    var isPresentingSheet: ReceivePresentationType? {
+        get {
+            switch presentation {
+            case .share, .networkSelector: presentation
+            case .copy, nil: nil
+            }
+        }
+        set {
+            presentation = newValue
+        }
+    }
+
+    var isPresentingCopyToast: Bool {
+        get {
+            if case .copy = presentation {
+                return true
+            }
+            return false
+        }
+        set {
+            presentation = newValue ? .copy : nil
+        }
+    }
+
     func activityItems(qrImage: UIImage?) -> [Any] {
         if let qrImage {
             return [qrImage, address]
@@ -80,7 +156,7 @@ public final class ReceiveViewModel: Sendable {
         return [address]
     }
 
-    func enableAsset() async {
+    private func enableAsset() async {
         do {
             try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetModel.asset.id], enabled: true)
         } catch {
@@ -88,7 +164,17 @@ public final class ReceiveViewModel: Sendable {
         }
     }
 
-    func generateQRCode() async -> UIImage? {
+    private func prefetchAssociations() async {
+        do {
+            try await assetsService.prefetchAssets(
+                assetIds: networkAssetIds.filter { $0 != assetModel.asset.id },
+            )
+        } catch {
+            debugLog("ReceiveViewModel prefetchAssociations error: \(error)")
+        }
+    }
+
+    private func generateQRCode() async -> UIImage? {
         await generator.generate(
             from: address,
             size: CGSize(
@@ -106,15 +192,38 @@ extension ReceiveViewModel {
     func onTaskOnce() {
         Task {
             await enableAsset()
+            await prefetchAssociations()
+        }
+    }
+
+    func onSelectNetwork() {
+        presentation = .networkSelector
+    }
+
+    func onFinishNetworkSelection(_ items: [ReceiveNetworkItem]) {
+        presentation = nil
+        guard let assetId = items.first?.assetId, assetId != assetModel.asset.id else { return }
+
+        Task {
+            do {
+                let asset = try await assetsService.getOrFetchAsset(for: assetId)
+                let account = try wallet.account(for: asset.chain)
+                assetModel = AssetViewModel(asset: asset)
+                address = account.address
+                renderedImage = await generateQRCode()
+                await enableAsset()
+            } catch {
+                debugLog("ReceiveViewModel onFinishNetworkSelection error: \(error)")
+            }
         }
     }
 
     func onShareSheet() {
-        isPresentingShareSheet = true
+        presentation = .share
     }
 
     func onCopyAddress() {
-        isPresentingCopyToast = true
+        presentation = .copy
     }
 
     func onLoadImage() async {

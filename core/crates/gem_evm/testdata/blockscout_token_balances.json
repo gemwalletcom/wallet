@@ -1,0 +1,60 @@
+[
+  {
+    "token": {
+      "address_hash": "0xtoken",
+      "circulating_market_cap": "1000000.0",
+      "circulating_supply": "1000000.0",
+      "decimals": "18",
+      "exchange_rate": "1.0",
+      "holders_count": "100",
+      "icon_url": "https://example.com/token.png",
+      "name": "Test Token",
+      "reputation": "ok",
+      "symbol": "TEST",
+      "total_supply": "1000000000000000000000000",
+      "type": "ERC-20",
+      "volume_24h": "1000.0"
+    },
+    "token_id": null,
+    "token_instance": null,
+    "value": "42"
+  },
+  {
+    "token": {
+      "address_hash": "0xunpriced",
+      "exchange_rate": null,
+      "reputation": "ok",
+      "type": "ERC-20"
+    },
+    "value": "10"
+  },
+  {
+    "token": {
+      "address_hash": "0xspam",
+      "exchange_rate": "1.0",
+      "reputation": "spam",
+      "type": "ERC-20"
+    },
+    "value": "10"
+  },
+  {
+    "token": {
+      "address_hash": "0xnft",
+      "circulating_market_cap": null,
+      "circulating_supply": null,
+      "decimals": null,
+      "exchange_rate": null,
+      "holders_count": "1",
+      "icon_url": null,
+      "name": "Test NFT",
+      "reputation": "ok",
+      "symbol": "NFT",
+      "total_supply": "1",
+      "type": "ERC-721",
+      "volume_24h": null
+    },
+    "token_id": "1",
+    "token_instance": null,
+    "value": "1"
+  }
+]

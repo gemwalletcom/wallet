@@ -1,0 +1,19 @@
+[
+  {
+    "chain": "BSC",
+    "address": "0x15a18266c5331ac3a7f6bc5cdf25bcc55561b4fa",
+    "router": "0xb30ec53f98ff5947ede720d32ac2da7e52a5f56b",
+    "halted": true,
+    "global_trading_paused": false,
+    "chain_trading_paused": true,
+    "dust_threshold": "10000"
+  },
+  {
+    "chain": "BTC",
+    "address": "bc1qwkrl8a9qnnn6zaw2w4n6ygn9dalmg99mvrkxll",
+    "halted": false,
+    "global_trading_paused": false,
+    "chain_trading_paused": false,
+    "dust_threshold": "1000"
+  }
+]

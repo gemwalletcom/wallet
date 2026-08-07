@@ -1,125 +1,84 @@
-use gem_tracing::{DurationMs, error_fields, error_fields_impl, info_with_fields_impl};
-use primitives::NodeStatusState;
+use std::fmt::Display;
 
-use crate::config::{ChainConfig, Url};
+use gem_tracing::{DurationMs, error_fields, error_fields_impl, info_with_fields, info_with_fields_impl};
+use primitives::{Chain, NodeStatusState};
 
-use super::sync::{NodeStatusObservation, NodeSwitchResult, NodeSyncAnalyzer};
+use crate::config::Url;
 
-pub struct NodeTelemetry;
+use super::observation::NodeStatusObservation;
+use super::selection::NodeSwitchResult;
+use super::switch_reason::NodeSwitchReason;
+
+pub(super) struct NodeTelemetry;
 
 impl NodeTelemetry {
-    pub fn log_status_debug(chain_config: &ChainConfig, observations: &[NodeStatusObservation]) {
-        let chain = chain_config.chain.as_ref();
-        for observation in observations {
-            match &observation.state {
-                NodeStatusState::Healthy(sync_status) => {
-                    let mut fields = vec![("host", observation.url.host())];
-                    if !sync_status.in_sync {
-                        fields.push(("in_sync", "false".to_string()));
-                    }
-
-                    let latency = DurationMs(observation.latency);
-                    let latest = sync_status.latest_block_number;
-                    let current = if sync_status.in_sync { None } else { sync_status.current_block_number };
-
-                    log_info_event("Node check", chain, fields, &latency, latest, current);
-                }
-                NodeStatusState::Error { message } => {
-                    let latency = DurationMs(observation.latency);
-                    log_info_event("Node check", chain, [("host", observation.url.host()), ("message", message.clone())], &latency, None, None);
-                }
-            }
-        }
+    pub(super) fn log_check_started(chain: Chain, url: &Url) {
+        info_with_fields!("Node check started", chain = chain.as_ref(), host = url.host());
     }
 
-    pub fn log_node_healthy(chain_config: &ChainConfig, observation: &NodeStatusObservation) {
-        let chain = chain_config.chain.as_ref();
-        if let NodeStatusState::Healthy(status) = &observation.state {
-            let mut fields = vec![("host", observation.url.host())];
-            if !status.in_sync {
-                fields.push(("in_sync", "false".to_string()));
-            }
-
-            let latency = DurationMs(observation.latency);
-            let latest = status.latest_block_number;
-            let current = if status.in_sync { None } else { status.current_block_number };
-
-            log_info_event("Node ok", chain, fields, &latency, latest, current);
-        }
-    }
-
-    pub fn log_node_unhealthy(chain_config: &ChainConfig, observation: &NodeStatusObservation) {
-        let chain = chain_config.chain.as_ref();
+    pub(super) fn log_observation(chain: Chain, current: &Url, observation: &NodeStatusObservation) {
+        let chain = chain.as_ref();
         match &observation.state {
-            NodeStatusState::Healthy(status) => {
-                let mut fields = vec![("host", observation.url.host())];
-                if !status.in_sync {
-                    fields.push(("in_sync", "false".to_string()));
-                }
-
-                let latency = DurationMs(observation.latency);
-                let latest = status.latest_block_number;
-                let current = if status.in_sync { None } else { status.current_block_number };
-                log_error_event("Node out of sync", chain, fields, &latency, latest, current);
-            }
-            NodeStatusState::Error { message } => {
-                let latency = DurationMs(observation.latency);
-                log_error_event(
-                    "Node check error",
-                    chain,
-                    [("host", observation.url.host()), ("message", message.clone())],
-                    &latency,
-                    None,
-                    None,
-                );
-            }
+            NodeStatusState::Healthy(status) if observation.url == *current && status.in_sync => log_observation("Node ok", chain, observation, info_with_fields_impl),
+            NodeStatusState::Healthy(_) if observation.url == *current => log_observation("Node out of sync", chain, observation, error_fields_impl),
+            NodeStatusState::Healthy(_) => log_observation("Node check", chain, observation, info_with_fields_impl),
+            NodeStatusState::Error { .. } => log_observation("Node check error", chain, observation, error_fields_impl),
         }
     }
 
-    pub fn log_node_switch(chain_config: &ChainConfig, previous: &Url, switch: &NodeSwitchResult) {
-        let chain = chain_config.chain.as_ref();
+    pub(super) fn log_node_switch(chain: Chain, previous: &Url, switch: &NodeSwitchResult<'_>) {
+        let chain = chain.as_ref();
         let observation = &switch.observation;
         let latency = DurationMs(observation.latency);
         let (latest, current) = match &observation.state {
             NodeStatusState::Healthy(status) => (status.latest_block_number, if status.in_sync { None } else { status.current_block_number }),
             NodeStatusState::Error { .. } => (None, None),
         };
+        let reason = match &switch.reason {
+            NodeSwitchReason::CurrentNodeError { error, message } => format!("{error}: {message}"),
+            reason => reason.metric_reason(),
+        };
 
-        log_info_event(
+        emit_event(
             "Node switch",
             chain,
-            [("new_host", observation.url.host()), ("old_host", previous.host()), ("reason", switch.reason.to_string())],
+            [("new_host", observation.url.host()), ("old_host", previous.host()), ("reason", reason)],
             &latency,
             latest,
             current,
+            info_with_fields_impl,
         );
     }
 
-    pub fn log_no_candidate(chain_config: &ChainConfig, observations: &[NodeStatusObservation]) {
-        error_fields!(
-            "Node switch unavailable",
-            chain = chain_config.chain.as_ref(),
-            statuses = &NodeSyncAnalyzer::format_status_summary(observations),
-        );
+    pub(super) fn log_no_candidate(chain: Chain) {
+        error_fields!("Node switch unavailable", chain = chain.as_ref());
     }
 
-    pub fn log_missing_current(chain_config: &ChainConfig) {
-        error_fields!("Node monitor current missing", chain = chain_config.chain.as_ref());
+    pub(super) fn log_missing_current(chain: Chain) {
+        error_fields!("Node monitor current missing", chain = chain.as_ref());
     }
 }
 
-fn log_info_event<I>(message: &'static str, chain: &str, fields: I, latency: &DurationMs, latest: Option<u64>, current: Option<u64>)
-where
-    I: IntoIterator<Item = (&'static str, String)>,
-{
-    emit_event(message, chain, fields, latency, latest, current, info_with_fields_impl);
-}
-
-fn log_error_event<I>(message: &'static str, chain: &str, fields: I, latency: &DurationMs, latest: Option<u64>, current: Option<u64>)
-where
-    I: IntoIterator<Item = (&'static str, String)>,
-{
-    emit_event(message, chain, fields, latency, latest, current, error_fields_impl);
+fn log_observation(message: &'static str, chain: &str, observation: &NodeStatusObservation, sink: impl Fn(&'static str, &[(&str, &dyn Display)])) {
+    let latency = DurationMs(observation.latency);
+    match &observation.state {
+        NodeStatusState::Healthy(status) => {
+            let mut fields = vec![("host", observation.url.host())];
+            if !status.in_sync {
+                fields.push(("in_sync", "false".to_string()));
+            }
+            let current = if status.in_sync { None } else { status.current_block_number };
+            emit_event(message, chain, fields, &latency, status.latest_block_number, current, sink);
+        }
+        NodeStatusState::Error { message: error } => {
+            let fields = [
+                ("node_host", observation.url.host()),
+                ("error_type", observation.monitor_error.as_ref().to_string()),
+                ("error", format!("{}: {error}", observation.monitor_error)),
+            ];
+            emit_event(message, chain, fields, &latency, None, None, sink);
+        }
+    }
 }
 
 fn emit_event<I>(
@@ -129,24 +88,25 @@ fn emit_event<I>(
     latency: &DurationMs,
     latest: Option<u64>,
     current: Option<u64>,
-    sink: impl Fn(&'static str, &[(&str, &dyn std::fmt::Display)]),
+    sink: impl Fn(&'static str, &[(&str, &dyn Display)]),
 ) where
     I: IntoIterator<Item = (&'static str, String)>,
 {
-    let mut values: Vec<(&'static str, String)> = fields.into_iter().collect();
+    let mut values = Vec::new();
     if let Some(latest) = latest {
         values.push(("latest_block", latest.to_string()));
     }
     if let Some(current) = current {
         values.push(("current_block", current.to_string()));
     }
+    values.extend(fields);
 
-    let mut display: Vec<(&str, &dyn std::fmt::Display)> = Vec::with_capacity(values.len() + 2);
+    let mut display: Vec<(&str, &dyn Display)> = Vec::with_capacity(values.len() + 2);
     display.push(("chain", &chain));
+    display.push(("latency", latency));
     for (key, value) in &values {
         display.push((*key, value));
     }
-    display.push(("latency", latency));
 
     sink(message, &display);
 }

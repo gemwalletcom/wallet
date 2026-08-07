@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.models.chart
 
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.PriceChange
+import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
 import com.wallet.core.primitives.ChartCandleStick
@@ -21,7 +21,7 @@ data class CandlestickTooltipUIModel(
             priceFormatter: (Double) -> String,
             volumeFormatter: (Double) -> String,
         ): CandlestickTooltipUIModel {
-            val changePercent = PriceChange.percentage(from = candle.open, to = candle.close)
+            val changePercent = PriceChangeCalculator.percentage(from = candle.open, to = candle.close)
             return CandlestickTooltipUIModel(
                 open = priceFormatter(candle.open),
                 high = priceFormatter(candle.high),

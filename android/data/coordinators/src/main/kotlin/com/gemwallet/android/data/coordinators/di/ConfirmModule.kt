@@ -3,15 +3,15 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
-import com.gemwallet.android.application.confirm.coordinators.ValidateBalance
+import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
 import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
-import com.gemwallet.android.data.coordinators.confirm.ValidateBalanceImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.coordinators.confirm.CalculateTransferAmountImpl
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import dagger.Module
 import dagger.Provides
@@ -25,7 +25,7 @@ object ConfirmModule {
 
     @Provides
     @Singleton
-    fun provideValidateBalance(): ValidateBalance = ValidateBalanceImpl()
+    fun provideCalculateTransferAmount(): CalculateTransferAmount = CalculateTransferAmountImpl()
 
     @Provides
     @Singleton
@@ -34,13 +34,13 @@ object ConfirmModule {
         signTransactionOperator: GemSignTransactionOperator,
         broadcastService: BroadcastService,
         createTransactionsCase: CreateTransaction,
-        assetsRepository: AssetsRepository,
+        recentAssetsService: RecentAssetsService,
     ): ConfirmTransaction = ConfirmTransactionImpl(
         passwordStore,
         signTransactionOperator,
         broadcastService,
         createTransactionsCase,
-        assetsRepository,
+        recentAssetsService,
     )
 
     @Provides

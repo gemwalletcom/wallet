@@ -14,7 +14,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseError
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
@@ -30,6 +29,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import uniffi.gemstone.AutocloseValidation
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
@@ -72,10 +72,12 @@ internal fun AmountAutocloseSheet(
     val estimator = provider.estimatorFor(amount)
     val takeProfitPrice = numericFormatter.double(takeProfitText)
     val stopLossPrice = numericFormatter.double(stopLossText)
-    val takeProfitRawError = AutocloseValidator(TpslType.TakeProfit, direction, marketPrice).error(takeProfitPrice)
-    val stopLossRawError = AutocloseValidator(TpslType.StopLoss, direction, marketPrice).error(stopLossPrice)
-    val takeProfitField = buildField(TpslType.TakeProfit, takeProfitPrice, takeProfitRawError, estimator, submitAttempted)
-    val stopLossField = buildField(TpslType.StopLoss, stopLossPrice, stopLossRawError, estimator, submitAttempted)
+    val takeProfitValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.TakeProfit, direction, marketPrice) }
+    val stopLossValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.StopLoss, direction, marketPrice) }
+    val takeProfitValidation = takeProfitValidator.validate(takeProfitPrice)
+    val stopLossValidation = stopLossValidator.validate(stopLossPrice)
+    val takeProfitField = buildField(TpslType.TakeProfit, takeProfitPrice, takeProfitValidation, estimator, submitAttempted)
+    val stopLossField = buildField(TpslType.StopLoss, stopLossPrice, stopLossValidation, estimator, submitAttempted)
 
     val activeField = focused?.let {
         when (it) {
@@ -88,8 +90,8 @@ internal fun AmountAutocloseSheet(
         TpslType.StopLoss -> stopLossText
         null -> ""
     }
-    val isTakeProfitValid = takeProfitText.isEmpty() || takeProfitRawError == null
-    val isStopLossValid = stopLossText.isEmpty() || stopLossRawError == null
+    val isTakeProfitValid = takeProfitText.isEmpty() || takeProfitValidation == AutocloseValidation.VALID
+    val isStopLossValid = stopLossText.isEmpty() || stopLossValidation == AutocloseValidation.VALID
     val hasInput = takeProfitPrice != null || stopLossPrice != null ||
         (takeProfitText.isEmpty() && stopLossText.isEmpty())
     val confirmEnabled = if (submitAttempted) isTakeProfitValid && isStopLossValid else hasInput
@@ -188,7 +190,7 @@ private val usdFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Curre
 private fun buildField(
     type: TpslType,
     price: Double?,
-    error: AutocloseError?,
+    validation: AutocloseValidation,
     estimator: AutocloseEstimator,
     showErrors: Boolean,
 ): AutocloseUIModel.Field {
@@ -197,7 +199,7 @@ private fun buildField(
         price = price,
         originalPrice = null,
         formattedPrice = null,
-        error = error,
+        validation = validation,
         orderId = null,
     )
     return AutocloseUIModelFactory.createField(field = field, estimator = estimator, showErrors = showErrors)

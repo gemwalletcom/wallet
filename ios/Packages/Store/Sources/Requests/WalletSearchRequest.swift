@@ -81,15 +81,7 @@ extension WalletSearchRequest {
                 .order(totalFiatValue.desc, searchAlias[SearchRecord.Columns.priority].ascNullsLast, AssetRecord.Columns.rank.desc)
         } else {
             request = request
-                .filter(
-                    AssetRecord.Columns.symbol.like("%%\(query)%%") ||
-                        AssetRecord.Columns.name.like("%%\(query)%%") ||
-                        AssetRecord.Columns.tokenId.like("%%\(query)%%") ||
-                        (
-                            AssetRecord.Columns.type == AssetType.native.rawValue &&
-                                AssetRecord.Columns.chain.like("%%\(query)%%")
-                        ),
-                )
+                .filter(AssetRecord.textSearchFilter(query: query))
                 .order(balanceAlias[BalanceRecord.Columns.isPinned].desc, balanceAlias[BalanceRecord.Columns.isEnabled].desc, totalFiatValue.desc, AssetRecord.Columns.rank.desc)
         }
 

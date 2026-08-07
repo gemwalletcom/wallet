@@ -14,9 +14,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +34,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.shareText
@@ -88,7 +86,6 @@ fun ReferralScene(
     val joinText = stringResource(R.string.rewards_share_text, link)
     val shareTitle = stringResource(id = R.string.common_share, link)
 
-    val pullToRefreshState = rememberPullToRefreshState()
     var getStartedDialogShow by remember(rewards) { mutableStateOf(false) }
     var codeDialogShow by remember(referralCode, inSync) { mutableStateOf(referralCode != null && inSync == SyncType.None) }
     var referralCode by remember(referralCode) { mutableStateOf(referralCode) }
@@ -143,15 +140,6 @@ fun ReferralScene(
         PullToRefreshBox(
             isRefreshing = inSync != SyncType.None,
             onRefresh = onRefresh,
-            state = pullToRefreshState,
-            indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = inSync != SyncType.None,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            }
         ) {
             LazyColumn {
                 referralHead(

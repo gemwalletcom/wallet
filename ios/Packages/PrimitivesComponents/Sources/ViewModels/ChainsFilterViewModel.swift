@@ -6,9 +6,9 @@ public struct ChainsFilterViewModel: Sendable, Equatable {
     public let allChains: [Primitives.Chain]
     public var selectedChains: [Primitives.Chain]
 
-    public init(chains: [Primitives.Chain]) {
+    public init(chains: [Primitives.Chain], selected: [Primitives.Chain] = []) {
         allChains = chains
-        selectedChains = []
+        selectedChains = selected
     }
 
     public var typeModel: ChainsFilterTypeViewModel {
@@ -21,7 +21,7 @@ public struct ChainsFilterViewModel: Sendable, Equatable {
         !selectedChains.isEmpty
     }
 
-    public var isEmpty: Bool {
-        allChains.isEmpty
+    public var hasChains: Bool {
+        allChains.isNotEmpty
     }
 }

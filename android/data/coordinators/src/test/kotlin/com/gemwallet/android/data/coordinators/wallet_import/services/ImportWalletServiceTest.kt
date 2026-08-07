@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.wallet_import.services
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.application.wallet_import.coordinators.GetAvailableAssetIds
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
-import com.gemwallet.android.cases.device.SyncSubscription
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -34,7 +34,7 @@ class ImportWalletServiceTest {
     private val sessionRepository = mockk<SessionRepository>()
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val syncSubscription = mockk<SyncSubscription>(relaxed = true)
+    private val syncDevice = mockk<SyncDevice>(relaxed = true)
     private val syncTransactions = mockk<SyncTransactions>(relaxed = true)
     private val syncNfts = mockk<SyncNfts>(relaxed = true)
     private val walletConfigurationSync = mockk<SyncWalletConfiguration>(relaxed = true)
@@ -70,7 +70,7 @@ class ImportWalletServiceTest {
         advanceUntilIdle()
 
         coVerifyOrder {
-            syncSubscription.syncSubscription(listOf(wallet))
+            syncDevice.syncDevice()
             walletConfigurationSync.sync(wallet.id)
         }
     }
@@ -80,7 +80,7 @@ class ImportWalletServiceTest {
         getAvailableAssetIds = GetAvailableAssetIds { availableAssetIds },
         searchTokensCase = searchTokensCase,
         assetsRepository = assetsRepository,
-        syncSubscription = syncSubscription,
+        syncDevice = syncDevice,
         syncTransactions = syncTransactions,
         syncNfts = syncNfts,
         walletConfigurationSync = walletConfigurationSync,

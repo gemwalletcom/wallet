@@ -7,7 +7,7 @@ use super::{
 use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData};
 use async_trait::async_trait;
 use gem_sui::coin_type_matches;
-use primitives::Chain;
+use primitives::{AssetId, Chain};
 
 #[async_trait]
 impl Swapper for CetusClmm {
@@ -21,6 +21,15 @@ impl Swapper for CetusClmm {
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
         SwapAmountMode::Fixed
+    }
+
+    async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
+        if from_asset.chain != Chain::Sui || to_asset.chain != Chain::Sui {
+            return;
+        }
+        let from = CetusClmm::coin_type(from_asset);
+        let to = CetusClmm::coin_type(to_asset);
+        self.preload_pair(&from, &to).await;
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

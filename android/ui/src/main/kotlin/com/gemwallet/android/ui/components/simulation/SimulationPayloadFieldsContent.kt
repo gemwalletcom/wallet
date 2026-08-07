@@ -18,6 +18,7 @@ import java.time.Instant
 
 fun LazyListScope.simulationPayloadFieldsContent(
     fields: List<PayloadField>,
+    addressNames: Map<String, String> = emptyMap(),
     onDetailsClick: (() -> Unit)? = null,
 ) {
     if (fields.isEmpty() && onDetailsClick == null) {
@@ -31,19 +32,19 @@ fun LazyListScope.simulationPayloadFieldsContent(
         when {
             titleRes != null && field.fieldType == SimulationPayloadFieldType.Address -> AddressPropertyItem(
                 title = titleRes,
-                displayText = AddressFormatter(field.value, chain = payload.chain).value(),
+                displayText = addressDisplay(payload, addressNames),
                 copyValue = field.value,
                 explorerLink = payload.explorerLink,
                 listPosition = listPosition,
             )
             titleRes != null -> PropertyItem(
                 title = titleRes,
-                data = fieldValue(payload),
+                data = fieldValue(payload, addressNames),
                 listPosition = listPosition,
             )
             else -> PropertyItem(
                 title = field.label.orEmpty(),
-                data = fieldValue(payload),
+                data = fieldValue(payload, addressNames),
                 listPosition = listPosition,
             )
         }
@@ -62,11 +63,12 @@ fun LazyListScope.simulationPayloadFieldsContent(
 fun LazyListScope.simulationPayloadDetailsContent(
     primaryFields: List<PayloadField>,
     secondaryFields: List<PayloadField>,
+    addressNames: Map<String, String> = emptyMap(),
 ) {
-    simulationPayloadFieldsContent(primaryFields)
+    simulationPayloadFieldsContent(primaryFields, addressNames)
     if (secondaryFields.isNotEmpty()) {
         item { SubheaderItem(R.string.common_details) }
-        simulationPayloadFieldsContent(secondaryFields)
+        simulationPayloadFieldsContent(secondaryFields, addressNames)
     }
 }
 
@@ -79,10 +81,16 @@ private fun fieldTitleRes(field: SimulationPayloadField): Int? = when (field.kin
     else -> null
 }
 
-private fun fieldValue(payload: PayloadField): String = when (payload.field.fieldType) {
-    SimulationPayloadFieldType.Address -> AddressFormatter(payload.field.value, chain = payload.chain).value()
+private fun fieldValue(payload: PayloadField, addressNames: Map<String, String>): String = when (payload.field.fieldType) {
+    SimulationPayloadFieldType.Address -> addressDisplay(payload, addressNames)
     SimulationPayloadFieldType.Timestamp -> payload.field.value.toTimestampText()
     else -> payload.field.value
+}
+
+private fun addressDisplay(payload: PayloadField, addressNames: Map<String, String>): String {
+    val address = AddressFormatter(payload.field.value, chain = payload.chain).value()
+    val name = addressNames[payload.field.value.lowercase()]
+    return if (name.isNullOrEmpty()) address else "$name ($address)"
 }
 
 private fun String.toTimestampText(): String {

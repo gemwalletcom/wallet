@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Assets
-import AssetsService
 import Components
 import Foundation
 import Localization
@@ -9,13 +7,11 @@ import PriceAlerts
 import Primitives
 import Style
 import SwiftUI
+import WalletSessionService
 
 struct PriceAlertsNavigationView: View {
-    @Environment(\.assetsEnabler) private var assetsEnabler
-    @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.walletService) private var walletService
-    @Environment(\.activityService) private var activityService
-    @Environment(\.assetSearchService) private var assetSearchService
+    @Environment(\.walletSessionService) private var walletSessionService
+    @Environment(\.viewModelFactory) private var viewModelFactory
 
     @State private var isPresentingAddAsset: Bool = false
     @State private var isPresentingToastMessage: ToastMessage?
@@ -35,13 +31,9 @@ struct PriceAlertsNavigationView: View {
             }
             .sheet(isPresented: $isPresentingAddAsset) {
                 AddAssetPriceAlertsNavigationStack(
-                    selectAssetModel: SelectAssetViewModel(
-                        wallet: walletService.currentWallet!,
+                    selectAssetModel: viewModelFactory.selectAssetScene(
+                        wallet: walletSessionService.currentWallet!,
                         selectType: .priceAlert,
-                        searchService: assetSearchService,
-                        assetsEnabler: assetsEnabler,
-                        priceAlertService: priceAlertService,
-                        activityService: activityService,
                         selectAssetAction: onSelectAsset,
                     ),
                 )

@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use primitives::Transaction;
 use std::error::Error;
 
@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[async_trait]
-impl<C: Client> ChainTransactions for BitcoinClient<C> {
+impl<C: Client> ChainBlockTransactions for BitcoinClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let mut transactions = Vec::new();
         let mut page = 1;
@@ -31,8 +31,12 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 
         Ok(transactions)
     }
+}
 
-    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+#[async_trait]
+impl<C: Client> ChainTransaction for BitcoinClient<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash;
         let transaction = self.get_transaction(&hash).await?;
         if transaction.block_height <= 0 || transaction.block_time <= 0 {
             return Ok(None);
@@ -40,7 +44,10 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 
         Ok(map_transaction(self.get_chain(), &transaction))
     }
+}
 
+#[async_trait]
+impl<C: Client> ChainTransactions for BitcoinClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let address = Address::new(&address, self.get_chain()).full();
@@ -53,7 +60,7 @@ impl<C: Client> ChainTransactions for BitcoinClient<C> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::*;
-    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest};
+    use chain_traits::{ChainBlockTransactions, ChainState, ChainTransaction, ChainTransactionState, ChainTransactions, TransactionIdRequest, TransactionsRequest};
     use primitives::{TransactionState, TransactionStateRequest};
 
     #[tokio::test]
@@ -96,7 +103,11 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_bitcoin_get_transaction_by_hash() {
         let bitcoin_client = create_bitcoin_test_client();
-        let transaction = bitcoin_client.get_transaction_by_hash(TEST_TRANSACTION_ID.to_string()).await.unwrap().unwrap();
+        let transaction = bitcoin_client
+            .get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Bitcoin, TEST_TRANSACTION_ID.to_string(), None))
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
     }

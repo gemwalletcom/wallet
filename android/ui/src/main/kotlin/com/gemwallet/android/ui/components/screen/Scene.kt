@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
@@ -35,6 +38,7 @@ import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.ui.theme.space0
 
 enum class MainActionWidth {
     Constrained,
@@ -139,25 +143,34 @@ fun Scene(
             }
         },
         bottomBar = {
-            if (mainAction != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .navigationBarsPadding(),
-                    contentAlignment = Alignment.Center,
-                ) {
+            Column {
+                ConnectionStatusBannerHost(
+                    windowInsets = if (mainAction == null) {
+                        WindowInsets.navigationBars
+                    } else {
+                        WindowInsets(space0)
+                    },
+                )
+                if (mainAction != null) {
                     Box(
                         modifier = Modifier
-                            .then(
-                                when (mainActionWidth) {
-                                    MainActionWidth.FillWidth -> Modifier.fillMaxWidth()
-                                    MainActionWidth.Constrained -> Modifier.widthIn(max = SceneSizing.buttonMaxWidth)
-                                }
-                            )
-                            .padding(mainActionPadding)
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .navigationBarsPadding(),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        mainAction()
+                        Box(
+                            modifier = Modifier
+                                .then(
+                                    when (mainActionWidth) {
+                                        MainActionWidth.FillWidth -> Modifier.fillMaxWidth()
+                                        MainActionWidth.Constrained -> Modifier.widthIn(max = SceneSizing.buttonMaxWidth)
+                                    }
+                                )
+                                .padding(mainActionPadding)
+                        ) {
+                            mainAction()
+                        }
                     }
                 }
             }

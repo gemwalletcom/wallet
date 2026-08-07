@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = キャンセル
+common_hidden = 非表示
 common_done = 完了
 common_maximum_value = 最大値は %@ です
 common_minimum_value = 最小値は %@ です
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = トークン情報を取得でき�
 errors_unknown_try_again = 未知のエラーが発生しました。もう一度お試しください。
 errors_network_error = ネットワークエラー: %@
 errors_network_offline = インターネット接続が切断されているようです。
+errors_no_internet_connection = インターネット接続がありません
+errors_no_service_connection = サービス接続がありません
+errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = 選択したトークン ペアの見積もりを返
 info_stake_reserved_title = ネットワーク料金用に予約
 info_stake_reserved_description = ステーキング解除や報酬の請求などの操作にかかる手数料をカバーするために、少額がウォレットに残ります。
 info_stake_apr_description = 年率 (APR) は、暗号通貨をステーキングした場合の年間報酬率です。
+info_stake_frozen_required_title = ステークするにはTRXをフリーズ
+info_stake_frozen_required_description = TRONのステーキングは2ステップです。まずTRXをフリーズし、次にステークして報酬を獲得します。
 info_perpetual_auto_close_description = 設定した価格レベルでポジションを自動的に決済します。テイクプロフィットで利益を確定し、ストップロスで損失を制限します。
 info_fully_diluted_valuation_title = 完全希薄化後評価額
 info_fully_diluted_valuation_description = すべてのコインが流通している場合の理論上の市場価値。価格に最大供給量を掛けて計算されます。

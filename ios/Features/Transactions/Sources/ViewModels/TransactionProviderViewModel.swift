@@ -2,7 +2,8 @@
 
 import Components
 import Foundation
-import class Gemstone.SwapProviderConfig
+import func Gemstone.swapperProviderConfig
+import func Gemstone.swapperProviderFromStr
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -20,11 +21,12 @@ extension TransactionProviderViewModel: ItemModelProvidable {
         guard let providerId = metadata?.provider else {
             return .empty
         }
+        let providerName = swapperProviderFromStr(s: providerId).map { swapperProviderConfig(provider: $0).name } ?? providerId
 
         return .listItem(
             .text(
                 title: Localized.Common.provider,
-                subtitle: SwapProviderConfig.fromString(id: providerId).inner().name,
+                subtitle: providerName,
             ),
         )
     }

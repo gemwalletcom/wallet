@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Batal
+common_hidden = Tersembunyi
 common_done = Selesai
 common_maximum_value = Nilai maksimum ialah %@
 common_minimum_value = Nilai minimum ialah %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Tidak dapat mengambil maklumat tok
 errors_unknown_try_again = Ralat tidak diketahui berlaku. Sila cuba lagi.
 errors_network_error = Ralat rangkaian: %@
 errors_network_offline = Sambungan Internet nampaknya di luar talian.
+errors_no_internet_connection = Tiada sambungan internet
+errors_no_service_connection = Tiada sambungan perkhidmatan
+errors_balances_activity_outdated = Baki dan aktiviti mungkin tidak terkini.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Tidak dapat mengembalikan sebut harga untuk pasangan
 info_stake_reserved_title = Dikhaskan untuk Yuran Rangkaian
 info_stake_reserved_description = Sejumlah kecil kekal dalam dompet anda untuk menampung yuran untuk operasi seperti menanggalkan atau menuntut ganjaran.
 info_stake_apr_description = Kadar Peratusan Tahunan (APR) ialah kadar ganjaran tahunan untuk mempertaruhkan mata wang kripto anda.
+info_stake_frozen_required_title = Bekukan TRX untuk pertaruhan
+info_stake_frozen_required_description = Pertaruhan di TRON melibatkan dua langkah. Bekukan TRX dahulu, kemudian pertaruhkannya untuk memperoleh ganjaran.
 info_perpetual_auto_close_description = Tutup kedudukan anda secara automatik pada tahap harga yang ditetapkan. Ambil Untung mengunci keuntungan, Henti Kerugian menghadkan kerugian.
 info_fully_diluted_valuation_title = Penilaian Dicairkan Sepenuhnya
 info_fully_diluted_valuation_description = Nilai pasaran teori jika semua syiling berada dalam edaran. Dikira sebagai harga didarab dengan penawaran maksimum.

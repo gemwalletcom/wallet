@@ -5,7 +5,7 @@ use crate::provider::preload_mapper::{
     bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
     map_transaction_preload,
 };
-use crate::rpc::client::EthereumClient;
+use crate::rpc::{EthereumClient, EthereumProvider};
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
@@ -25,7 +25,7 @@ use std::error::Error;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionLoad for EthereumClient<C> {
+impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let nonce = self.get_transaction_count(&input.sender_address).await?;
         let chain_id = self.chain.to_chain().network_id().to_string();

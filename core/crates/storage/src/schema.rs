@@ -10,6 +10,10 @@ pub mod sql_types {
     pub struct ApiClientScope;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "asset_association_type"))]
+    pub struct AssetAssociationType;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "asset_type"))]
     pub struct AssetType;
 
@@ -127,7 +131,7 @@ diesel::table! {
         asset_type -> AssetType,
         #[max_length = 128]
         name -> Varchar,
-        #[max_length = 32]
+        #[max_length = 128]
         symbol -> Varchar,
         decimals -> Int4,
         updated_at -> Timestamp,
@@ -162,6 +166,19 @@ diesel::table! {
         value -> Nullable<Varchar>,
         updated_at -> Timestamp,
         created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::AssetAssociationType;
+
+    assets_associations (asset_id) {
+        #[max_length = 128]
+        asset_id -> Varchar,
+        #[max_length = 64]
+        id -> Varchar,
+        association_type -> AssetAssociationType,
     }
 }
 
@@ -950,6 +967,7 @@ diesel::joinable!(api_client_scopes -> api_clients (client_id));
 diesel::joinable!(assets -> chains (chain));
 diesel::joinable!(assets_addresses -> assets (asset_id));
 diesel::joinable!(assets_addresses -> chains (chain));
+diesel::joinable!(assets_associations -> assets (asset_id));
 diesel::joinable!(assets_links -> assets (asset_id));
 diesel::joinable!(assets_tags -> assets (asset_id));
 diesel::joinable!(assets_tags -> tags (tag_id));
@@ -1023,6 +1041,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     api_clients,
     assets,
     assets_addresses,
+    assets_associations,
     assets_links,
     assets_tags,
     assets_usage_ranks,

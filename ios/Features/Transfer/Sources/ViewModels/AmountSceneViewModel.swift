@@ -5,6 +5,7 @@ import Components
 import FiatService
 import Formatters
 import Foundation
+import GemstoneFormatters
 import InfoSheet
 import Localization
 import Perpetuals
@@ -24,7 +25,7 @@ public final class AmountSceneViewModel {
 
     private let formatter = ValueFormatter(style: .full)
     private let amountFormatter = ValueFormatter.auto
-    private let valueConverter = ValueConverter(formatter: .auto)
+    private let valueConverter = AssetValueConverter(formatter: .auto)
     let currencyFormatter: CurrencyFormatter
 
     public let provider: AmountDataProvider
@@ -246,7 +247,9 @@ private extension AmountSceneViewModel {
     func fetch() async {
         do {
             transferState = .loading
-            let transfer = try await provider.makeTransferData(value: amountTransferValue)
+            let value = try amountTransferValue
+            let amount: TransferAmountValue = value == provider.maxValue(from: assetData) ? .max(value) : .exact(value)
+            let transfer = try await provider.makeTransferData(amount: amount)
             transferState = .noData
             onTransferAction?(transfer)
         } catch {

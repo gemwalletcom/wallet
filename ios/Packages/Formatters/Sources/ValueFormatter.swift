@@ -65,7 +65,7 @@ public struct ValueFormatter: Sendable {
         return result
     }
 
-    func number(amount: String) throws -> Decimal {
+    public func number(amount: String) throws -> Decimal {
         try number(amount: amount, locale: locale)
     }
 

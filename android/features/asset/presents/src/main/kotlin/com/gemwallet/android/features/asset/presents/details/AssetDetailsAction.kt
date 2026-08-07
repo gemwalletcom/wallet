@@ -2,6 +2,7 @@ package com.gemwallet.android.features.asset.presents.details
 
 import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionId
 
 sealed interface AssetDetailsAction {
@@ -20,6 +21,7 @@ sealed interface AssetDetailsAction {
     data class OpenTransaction(val transactionId: TransactionId) : Navigation
     data class OpenChart(val assetId: AssetId) : Navigation
     data class OpenNetwork(val assetId: AssetId) : Navigation
+    data class OpenNetworkAssets(val chain: Chain) : Navigation
     data class Stake(val assetId: AssetId) : Navigation
     data class OpenPriceAlerts(val assetId: AssetId) : Navigation
     data class Confirm(val params: ConfirmParams) : Navigation

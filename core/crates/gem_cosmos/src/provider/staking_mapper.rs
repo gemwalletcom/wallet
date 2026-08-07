@@ -1,52 +1,25 @@
-use crate::constants::BOND_STATUS_BONDED;
-use crate::models::staking::{Delegations, Rewards, StakingPoolResponse, UnbondingDelegations, Validator};
-use crate::models::{InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, SupplyResponse};
+use std::{collections::HashMap, str::FromStr};
+
 use num_bigint::BigUint;
-use std::str::FromStr;
-
-#[cfg(test)]
-use crate::models::staking::{StakingPool, ValidatorCommission, ValidatorCommissionRates, ValidatorDescription, ValidatorsResponse};
-
-#[cfg(test)]
-use crate::models::{OsmosisDistributionProportions, OsmosisMintParams, SupplyAmount};
-
 use number_formatter::BigNumberFormatter;
 use primitives::chain_cosmos::CosmosChain;
 use primitives::{DelegationBase, DelegationState, DelegationValidator};
-use std::collections::HashMap;
 
-/// Convert string amounts to BigUint, handling parsing errors gracefully
+use crate::constants::BOND_STATUS_BONDED;
+use crate::models::staking::{Delegations, Rewards, UnbondingDelegations, Validator};
+#[cfg(test)]
+use crate::models::staking::{StakingPoolResponse, ValidatorCommission, ValidatorCommissionRates, ValidatorDescription, ValidatorsResponse};
+
 fn parse_to_biguint(value: &str) -> BigUint {
     BigUint::from_str(value).unwrap_or_default()
 }
 
-pub fn calculate_network_apy_cosmos(inflation: InflationResponse, supply: SupplyResponse, staking_pool: StakingPoolResponse) -> Option<f64> {
-    let bonded_tokens = staking_pool.pool.bonded_tokens;
-
+pub fn calculate_network_apy(annual_rewards: f64, bonded_tokens: f64) -> f64 {
     if bonded_tokens == 0.0 {
-        return Some(0.0);
+        return 0.0;
     }
 
-    let network_apy = inflation.inflation * (supply.amount.amount / bonded_tokens);
-    Some(network_apy * 100.0)
-}
-
-pub fn calculate_network_apy_osmosis(mint_params: OsmosisMintParamsResponse, epoch_provisions: OsmosisEpochProvisionsResponse, staking_pool: StakingPoolResponse) -> Option<f64> {
-    let epoch_provisions = epoch_provisions.epoch_provisions;
-    let staking_distribution = mint_params.params.distribution_proportions.staking;
-    let bonded_tokens = staking_pool.pool.bonded_tokens;
-
-    if bonded_tokens == 0.0 {
-        return Some(0.0);
-    }
-
-    let epochs_per_year = if mint_params.params.epoch_identifier == "day" { 365.0 } else { 52.0 };
-
-    let annual_issuance = epoch_provisions * epochs_per_year;
-    let annual_staking_rewards = annual_issuance * staking_distribution;
-    let staking_apy = (annual_staking_rewards / bonded_tokens) * 100.0;
-
-    Some(staking_apy)
+    (annual_rewards / bonded_tokens) * 100.0
 }
 
 pub fn map_staking_validators(validators: Vec<Validator>, chain: CosmosChain, apy: Option<f64>) -> Vec<DelegationValidator> {
@@ -225,7 +198,7 @@ mod tests {
             },
         };
 
-        let result = map_staking_validators(vec![validator], CosmosChain::Celestia, Some(10.55));
+        let result = map_staking_validators(vec![validator], CosmosChain::Celestia, Some(5.0));
 
         assert_eq!(result.len(), 1);
         let validator = &result[0];
@@ -238,52 +211,11 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_network_apy_cosmos() {
-        let inflation = InflationResponse { inflation: 0.10 };
-        let supply = SupplyResponse {
-            amount: SupplyAmount {
-                denom: "uatom".to_string(),
-                amount: 498707607433890.0,
-            },
-        };
-        let staking_pool = StakingPoolResponse {
-            pool: StakingPool {
-                bonded_tokens: 294464180546813.0,
-                not_bonded_tokens: 14480963444282.0,
-            },
-        };
+    fn test_calculate_network_apy() {
+        let staking_pool = StakingPoolResponse::mock();
+        assert_eq!(calculate_network_apy(50.0, staking_pool.pool.bonded_tokens), 50.0);
 
-        let result = calculate_network_apy_cosmos(inflation, supply, staking_pool);
-
-        assert!(result.is_some());
-        let apy = result.unwrap();
-
-        assert_eq!(apy.to_bits(), 0x4030efa48809e989);
-    }
-
-    #[test]
-    fn test_calculate_network_apy_osmosis() {
-        let mint_params = OsmosisMintParamsResponse {
-            params: OsmosisMintParams {
-                epoch_identifier: "week".to_string(),
-                distribution_proportions: OsmosisDistributionProportions { staking: 0.5 },
-            },
-        };
-
-        let epoch_provisions = OsmosisEpochProvisionsResponse { epoch_provisions: 1.0 };
-
-        let staking_pool = StakingPoolResponse {
-            pool: StakingPool {
-                bonded_tokens: 50.0,
-                not_bonded_tokens: 0.0,
-            },
-        };
-
-        let result = calculate_network_apy_osmosis(mint_params, epoch_provisions, staking_pool);
-
-        assert!(result.is_some());
-        let apy = result.unwrap();
-
-        assert_eq!(apy, 52.0);
+        let staking_pool = StakingPoolResponse::mock_with_bonded_tokens(0.0);
+        assert_eq!(calculate_network_apy(50.0, staking_pool.pool.bonded_tokens), 0.0);
     }
 }

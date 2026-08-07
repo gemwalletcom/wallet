@@ -1,4 +1,5 @@
 "common.cancel" = "Anuluj";
+"common.hidden" = "Ukryte";
 "common.done" = "Gotowe";
 "common.maximum_value" = "Maksymalna wartość to %@";
 "common.minimum_value" = "Minimalna wartość to %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Minimalna kwota transakcji wynosi %@. Proszę wprowadzić wyższą kwotę.";
 "errors.perpetual.trigger_price_lower" = "Cena aktywacji powinna być niższa niż cena rynkowa";
 "errors.perpetual.trigger_price_higher" = "Cena aktywacji powinna być wyższa niż cena rynkowa";
+"errors.no_internet_connection" = "Brak połączenia z internetem";
+"errors.no_service_connection" = "Brak połączenia z usługą";
+"errors.balances_activity_outdated" = "Salda i aktywność mogą być nieaktualne.";
 "activity.title" = "Aktywność";
 "activity.state.empty.title" = "Twoja aktywność będzie tutaj wyświetlana";
 "activity.state.empty.description" = "Dokonaj pierwszej transakcji";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Zarezerwowane na opłatę sieciową";
 "info.stake.reserved.description" = "Niewielka kwota pozostaje w Twoim portfelu i służy pokryciu opłat za operacje, takie jak anulowanie transakcji lub odbieranie nagród.";
 "info.stake.apr.description" = "Roczna stopa procentowa (APR) to roczna stopa nagrody za stakowanie kryptowaluty.";
+"info.stake_frozen_required_title" = "Zamroź TRX, aby postawić stawkę";
+"info.stake_frozen_required_description" = "Staking na TRON składa się z dwóch kroków. Najpierw zamroź TRX, a następnie postaw je, aby zdobyć nagrody.";
 "info.perpetual.auto_close.description" = "Automatycznie zamykaj pozycje po ustalonych cenach. Take Profit zabezpiecza zyski, Stop Loss ogranicza straty.";
 "info.fully_diluted_valuation.title" = "Wycena całkowicie rozwodniona";
 "info.fully_diluted_valuation.description" = "Teoretyczna wartość rynkowa, gdyby wszystkie monety były w obiegu. Obliczona jako iloczyn ceny i maksymalnej podaży.";

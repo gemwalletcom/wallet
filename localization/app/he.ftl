@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = לְבַטֵל
+common_hidden = מוסתרים
 common_done = בוצע
 common_maximum_value = הערך המקסימלי הוא %@
 common_minimum_value = הערך המינימלי הוא %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = לא ניתן להביא מידע 
 errors_unknown_try_again = אירעה שגיאה לא ידועה. אנא נסה שוב.
 errors_network_error = שגיאת רשת: %@
 errors_network_offline = נראה שחיבור האינטרנט אינו מקוון.
+errors_no_internet_connection = אין חיבור לאינטרנט
+errors_no_service_connection = אין חיבור לשירות
+errors_balances_activity_outdated = היתרות והפעילות עשויות להיות לא מעודכנות.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = לא ניתן להחזיר הצעת מחיר עבו�
 info_stake_reserved_title = שמור עבור דמי רשת
 info_stake_reserved_description = סכום קטן נשאר בארנק שלך כדי לכסות עמלות עבור פעולות כמו ביטול הפקדה או תביעת תגמולים.
 info_stake_apr_description = שיעור אחוז שנתי (APR) הוא שיעור התגמול השנתי עבור הפקדת מטבע הקריפטו שלך.
+info_stake_frozen_required_title = הקפא TRX כדי לבצע סטייקינג
+info_stake_frozen_required_description = סטייקינג ב-TRON נעשה בשני שלבים. תחילה הקפא TRX, ולאחר מכן בצע עליו סטייקינג כדי להרוויח תגמולים.
 info_perpetual_auto_close_description = סגור אוטומטית את הפוזיציה שלך ברמות מחיר קבועות. Take Profit נועל רווחים, Stop Loss מגביל הפסדים.
 info_fully_diluted_valuation_title = הערכה מדוללת לחלוטין
 info_fully_diluted_valuation_description = שווי השוק התיאורטי אם כל המטבעות היו במחזור. מחושב כמחיר כפול היצע מקסימלי.

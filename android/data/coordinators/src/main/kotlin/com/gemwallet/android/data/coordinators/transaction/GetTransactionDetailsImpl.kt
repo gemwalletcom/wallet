@@ -8,7 +8,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.price.toValueDirection
-import com.gemwallet.android.domains.swap.AssetRateFormatter
+import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
@@ -19,7 +19,6 @@ import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
-import com.gemwallet.android.ext.toSwapProvider
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -47,9 +46,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import uniffi.gemstone.Explorer
-import uniffi.gemstone.SwapProviderConfig
 import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
+import uniffi.gemstone.swapperProviderConfig
+import uniffi.gemstone.swapperProviderFromStr
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetTransactionDetailsImpl(
@@ -75,8 +75,8 @@ class GetTransactionDetailsImpl(
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
                     val swapMetadata = data.transaction.getSwapMetadata()
                     val swapProvider = swapMetadata?.provider
-                        ?.toSwapProvider()
-                        ?.let { SwapProviderConfig.fromString(it.string).inner() }
+                        ?.let(::swapperProviderFromStr)
+                        ?.let(::swapperProviderConfig)
                     TransactionDetailsAggregateImpl(
                         data = data,
                         associatedAssets = assets,
@@ -147,44 +147,50 @@ class TransactionDetailsAggregateImpl(
                 }
 
                 else -> {
-                    val value = Crypto(data.transaction.value.toBigInteger())
-                    val fiat = data.price?.price?.let {
-                        CryptoFiatConverter.toFiatString(value, asset.decimals, it, currency)
-                    } ?: ""
+                    val atomicValue = data.transaction.value.toBigIntegerOrNull()
+                    if (atomicValue == null) {
+                        TransactionDetailsValue.Amount.None
+                    } else {
+                        val value = Crypto(atomicValue)
+                        val fiat = data.price?.price?.let {
+                            CryptoFiatConverter.toFiatString(value, asset.decimals, it, currency)
+                        } ?: ""
 
-                    val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+                        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
 
-                    val (amount, equivalent) = when (data.transaction.type) {
-                        TransactionType.StakeDelegate,
-                        TransactionType.StakeUndelegate,
-                        TransactionType.StakeRewards,
-                        TransactionType.StakeRedelegate,
-                        TransactionType.StakeWithdraw,
-                        TransactionType.EarnWithdraw,
-                        TransactionType.EarnDeposit,
-                        TransactionType.Swap,
-                        TransactionType.StakeFreeze,
-                        TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
-                        TransactionType.Transfer -> Pair(
-                            AmountSign(data.transaction.direction).format(formatter.string(value.atomicValue, asset)),
-                            fiat,
-                        )
-                        TransactionType.TransferNFT,
-                        TransactionType.AssetActivation,
-                        TransactionType.SmartContractCall,
-                        TransactionType.PerpetualOpenPosition,
-                        TransactionType.PerpetualClosePosition,
-                        TransactionType.PerpetualModifyPosition,
-                        TransactionType.TokenApproval -> Pair(data.asset.symbol, null)
+                        val (amount, equivalent) = when (data.transaction.type) {
+                            TransactionType.StakeDelegate,
+                            TransactionType.StakeUndelegate,
+                            TransactionType.StakeRewards,
+                            TransactionType.StakeRedelegate,
+                            TransactionType.StakeWithdraw,
+                            TransactionType.EarnWithdraw,
+                            TransactionType.EarnDeposit,
+                            TransactionType.Swap,
+                            TransactionType.StakeFreeze,
+                            TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
+                            TransactionType.Transfer -> Pair(
+                                AmountSign(data.transaction.direction).format(formatter.string(value.atomicValue, asset)),
+                                fiat,
+                            )
+                            TransactionType.TransferNFT,
+                            TransactionType.AssetActivation,
+                            TransactionType.SmartContractCall,
+                            TransactionType.PerpetualOpenPosition,
+                            TransactionType.PerpetualClosePosition,
+                            TransactionType.PerpetualModifyPosition,
+                            TransactionType.TokenApproval -> Pair(data.asset.symbol, null)
+                        }
+                        TransactionDetailsValue.Amount.Plain(data.asset, amount, equivalent)
                     }
-                    TransactionDetailsValue.Amount.Plain(data.asset, amount, equivalent)
                 }
             }
         }
 
-    override val fee: TransactionDetailsValue.Fee
+    override val fee: TransactionDetailsValue.Fee?
         get() {
-            val fee = Crypto(data.transaction.fee.toBigInteger())
+            val atomicValue = data.transaction.fee.toBigIntegerOrNull() ?: return null
+            val fee = Crypto(atomicValue)
             val feeCrypto = ValueFormatter(style = ValueFormatter.Style.Full)
                 .string(fee.atomicValue, data.feeAsset)
             val feeFiat = data.feePrice?.price?.let {
@@ -292,7 +298,7 @@ class TransactionDetailsAggregateImpl(
                     )
                 )
             )
-            add(ValueGroup(listOf(fee)))
+            fee?.let { add(ValueGroup(listOf(it))) }
             add(ValueGroup(listOf(explorer)))
         }
 
@@ -322,18 +328,13 @@ class TransactionDetailsAggregateImpl(
             val metadata = swapMetadata ?: return null
             val fromAsset = associatedAssets.firstOrNull { it.id() == metadata.fromAsset }?.asset ?: return null
             val toAsset = associatedAssets.firstOrNull { it.id() == metadata.toAsset }?.asset ?: return null
-            return try {
-                val fromAmount = Crypto(metadata.fromValue).value(fromAsset.decimals)
-                val toAmount = Crypto(metadata.toValue).value(toAsset.decimals)
-                if (fromAmount.signum() == 0 || toAmount.signum() == 0) return null
-                val formatter = AssetRateFormatter()
-                TransactionDetailsValue.Rate(
-                    forward = formatter.format(fromAsset, toAsset, fromAmount, toAmount, AssetRateFormatter.Direction.Direct),
-                    reverse = formatter.format(fromAsset, toAsset, fromAmount, toAmount, AssetRateFormatter.Direction.Inverse),
-                )
-            } catch (_: Throwable) {
-                null
-            }
+            val rate = buildAssetRatePair(
+                fromAsset = fromAsset,
+                toAsset = toAsset,
+                fromValue = metadata.fromValue,
+                toValue = metadata.toValue,
+            ) ?: return null
+            return TransactionDetailsValue.Rate(rate)
         }
 
     override val swapAgain: TransactionDetailsValue.SwapAgain?

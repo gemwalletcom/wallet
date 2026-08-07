@@ -1,3 +1,4 @@
+pub(crate) mod decoder;
 mod memory;
 mod types;
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">ยกเลิก</string>
+  <string name="common_hidden">ที่ซ่อนไว้</string>
   <string name="common_done">เสร็จแล้ว</string>
   <string name="common_maximum_value">ค่าสูงสุดคือ %1$s</string>
   <string name="common_minimum_value">ค่าต่ำสุดคือ %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง</string>
   <string name="errors_network_error">เกิดข้อผิดพลาดเครือข่าย: %1$s</string>
   <string name="errors_network_offline">ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์</string>
+  <string name="errors_no_internet_connection">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</string>
+  <string name="errors_no_service_connection">ไม่มีการเชื่อมต่อบริการ</string>
+  <string name="errors_balances_activity_outdated">ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน</string>
   <string name="activity_title">กิจกรรม</string>
   <string name="activity_state_empty_title">กิจกรรมของคุณจะปรากฏที่นี่</string>
   <string name="activity_state_empty_description">ทำธุรกรรมครั้งแรกของคุณ</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">สงวนไว้สำหรับค่าธรรมเนียมเครือข่าย</string>
   <string name="info_stake_reserved_description">เงินจำนวนเล็กน้อยจะอยู่ในกระเป๋าเงินของคุณเพื่อชำระค่าธรรมเนียมการดำเนินการ เช่น การเลิกสเตคหรือการรับรางวัล</string>
   <string name="info_stake_apr_description">อัตราเปอร์เซ็นต์ต่อปี (APR) คืออัตราผลตอบแทนรายปีสำหรับการสเตคสกุลเงินดิจิทัลของคุณ</string>
+  <string name="info_stake_frozen_required_title">ฟรีซ TRX เพื่อสเตค</string>
+  <string name="info_stake_frozen_required_description">การสเตคบน TRON มีสองขั้นตอน ก่อนอื่นฟรีซ TRX จากนั้นสเตคเพื่อรับรางวัล</string>
   <string name="info_perpetual_auto_close_description">ปิดสถานะของคุณโดยอัตโนมัติเมื่อถึงระดับราคาที่กำหนด Take Profit ล็อกกำไร Stop Loss จำกัดการขาดทุน</string>
   <string name="info_fully_diluted_valuation_title">การประเมินมูลค่าแบบเจือจางเต็มที่</string>
   <string name="info_fully_diluted_valuation_description">มูลค่าตลาดตามทฤษฎีหากเหรียญทั้งหมดหมุนเวียนอยู่ในระบบ คำนวณจากราคาคูณด้วยจำนวนเหรียญสูงสุดที่มีอยู่</string>

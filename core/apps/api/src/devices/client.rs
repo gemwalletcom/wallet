@@ -1,7 +1,9 @@
 use api_connector::PusherClient;
-use primitives::{Device, GorushNotification, PushNotification, PushNotificationTypes};
+use primitives::{AdminDevice, Device, GorushNotification, PushNotification, PushNotificationTypes};
 use std::error::Error;
-use storage::{Database, DevicesRepository, models::UpdateDeviceRow};
+use storage::{Database, DevicesRepository, PriceAlertsRepository, models::UpdateDeviceRow};
+
+use super::clients::WalletsClient;
 
 #[derive(Clone)]
 pub struct DevicesClient {
@@ -21,6 +23,15 @@ impl DevicesClient {
 
     pub fn get_device(&self, device_id: &str) -> Result<Device, Box<dyn Error + Send + Sync>> {
         Ok(self.database.devices()?.get_device(device_id)?)
+    }
+
+    pub fn get_admin_device(&self, device_id: &str, wallets: &WalletsClient) -> Result<AdminDevice, Box<dyn Error + Send + Sync>> {
+        let device = self.database.devices()?.get_device_row(device_id)?;
+        Ok(AdminDevice {
+            price_alert_count: self.database.price_alerts()?.count_price_alerts_for_device_id(device.id)?,
+            wallets: wallets.get_wallet_overviews(device.id)?,
+            device: device.as_primitive(),
+        })
     }
 
     pub fn update_device(&self, device: Device) -> Result<Device, Box<dyn Error + Send + Sync>> {

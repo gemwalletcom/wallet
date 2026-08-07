@@ -6,7 +6,7 @@ import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
@@ -26,7 +26,7 @@ class PriceAlertsSelectViewModel @Inject constructor(
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     toggleAssetPin: ToggleAssetPin,
-    assetsRepository: AssetsRepository,
+    searchService: AssetsSearchService,
     searchTokensCase: SearchTokensCase,
 ) : BaseAssetSelectViewModel(
     getSession,
@@ -35,20 +35,20 @@ class PriceAlertsSelectViewModel @Inject constructor(
     switchAssetVisibility,
     toggleAssetPin,
     searchTokensCase,
-    PriceAlertSelectSearch(assetsRepository),
+    PriceAlertSelectSearch(searchService),
 ) {
     override val showRecents: Boolean get() = false
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 open class PriceAlertSelectSearch(
-    private val assetsRepository: AssetsRepository,
+    private val searchService: AssetsSearchService,
 ) : SelectSearch {
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return filters
             .flatMapLatest { filters ->
-                assetsRepository.search(
+                searchService.search(
                     filters?.query ?: "",
                     filters?.tag?.let { listOf(it) } ?: emptyList(),
                     true

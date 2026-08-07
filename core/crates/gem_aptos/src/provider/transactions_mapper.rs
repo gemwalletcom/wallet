@@ -194,7 +194,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
                     asset_id.clone(),
                     asset_id,
                     data.pool_address,
-                    data.amount_added,
+                    data.amount_added.to_string(),
                     TransactionType::StakeDelegate,
                     None,
                 ));
@@ -206,7 +206,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
                     asset_id.clone(),
                     asset_id,
                     data.pool_address,
-                    data.amount_unlocked,
+                    data.amount_unlocked.to_string(),
                     TransactionType::StakeUndelegate,
                     None,
                 ));
@@ -357,5 +357,14 @@ mod tests {
         assert_eq!(tx.state, TransactionState::Confirmed);
         assert_eq!(tx.transaction_type, TransactionType::StakeUndelegate);
         assert_eq!(tx.fee, "88400");
+    }
+
+    #[test]
+    fn test_map_transaction_rejects_non_integer_stake_amount() {
+        let transaction: Transaction = serde_json::from_str(include_str!("../../testdata/transaction_stake_delegate_malformed_amount.json")).unwrap();
+
+        let result = map_transaction(transaction);
+
+        assert!(result.is_none());
     }
 }

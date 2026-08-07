@@ -1,10 +1,11 @@
 package com.gemwallet.android.di
 
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
+import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
-import com.gemwallet.android.cases.device.SyncDeviceInfo
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.services.SyncService
 import dagger.Module
@@ -50,11 +51,13 @@ object DataModule {
     @Provides
     fun provideSyncService(
         syncFiatAssets: SyncFiatAssets,
-        syncDeviceInfo: SyncDeviceInfo,
+        syncSwapAssets: SyncSwapAssets,
+        syncDevice: SyncDevice,
     ): SyncService {
         return SyncService(
             syncFiatAssets = syncFiatAssets,
-            syncDeviceInfo = syncDeviceInfo,
+            syncSwapAssets = syncSwapAssets,
+            syncDevice = syncDevice,
         )
     }
 }

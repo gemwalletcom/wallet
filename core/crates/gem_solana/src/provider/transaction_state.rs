@@ -6,10 +6,10 @@ use gem_client::Client;
 use primitives::{TransactionState, TransactionStateRequest, TransactionUpdate};
 
 use crate::models::SolanaTransaction;
-use crate::rpc::client::SolanaClient;
+use crate::rpc::SolanaProvider;
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionState for SolanaClient<C> {
+impl<C: Client + Clone> ChainTransactionState for SolanaProvider<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
         let transaction: Option<SolanaTransaction> = self.get_transaction(&request.id).await?;
 

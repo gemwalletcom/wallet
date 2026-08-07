@@ -8,8 +8,8 @@ import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
-import com.gemwallet.android.cases.device.SyncDeviceInfo
-import com.gemwallet.android.cases.device.SyncSubscription
+import com.gemwallet.android.cases.device.SyncDevice
+import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.device.DeviceRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -57,9 +57,6 @@ object DeviceModule {
     }
 
     @Provides
-    fun provideSyncDeviceInfoCase(repository: DeviceRepository): SyncDeviceInfo = repository
-
-    @Provides
     fun provideSwitchPushEnabledCase(repository: DeviceRepository): SwitchPushEnabled = repository
 
     @Provides
@@ -72,8 +69,18 @@ object DeviceModule {
     fun provideGetPushTokenCase(repository: DeviceRepository): GetPushToken = repository
 
     @Provides
-    fun provideSyncSubscriptionCase(repository: DeviceRepository): SyncSubscription = repository
+    fun provideIsDeviceRegisteredCase(repository: DeviceRepository): IsDeviceRegistered = repository
 
     @Provides
-    fun provideIsDeviceRegisteredCase(repository: DeviceRepository): IsDeviceRegistered = repository
+    fun provideSyncDeviceCase(repository: DeviceRepository): SyncDevice = repository
+
+    @Provides
+    @Singleton
+    fun provideDeviceObserverService(
+        walletsRepository: WalletsRepository,
+        syncDevice: SyncDevice,
+    ): DeviceObserverService = DeviceObserverService(
+        walletsRepository = walletsRepository,
+        syncDevice = syncDevice,
+    )
 }

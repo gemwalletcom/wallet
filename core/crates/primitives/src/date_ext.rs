@@ -51,6 +51,7 @@ impl NaiveDateTimeExt for NaiveDateTime {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{HOUR, WEEK};
 
     #[test]
     fn test_is_within_days() {
@@ -72,9 +73,9 @@ mod tests {
     fn test_as_days_ceil() {
         assert_eq!(StdDuration::from_secs(0).as_days_ceil(), 0);
         assert_eq!(StdDuration::from_secs(1).as_days_ceil(), 1);
-        assert_eq!(StdDuration::from_secs(12 * 60 * 60).as_days_ceil(), 1);
-        assert_eq!(StdDuration::from_secs(36 * 60 * 60).as_days_ceil(), 2);
-        assert_eq!(StdDuration::from_secs(7 * 24 * 60 * 60).as_days_ceil(), 7);
+        assert_eq!((HOUR * 12).as_days_ceil(), 1);
+        assert_eq!((HOUR * 36).as_days_ceil(), 2);
+        assert_eq!(WEEK.as_days_ceil(), 7);
         assert_eq!(StdDuration::from_secs_f64(7.1 * 24.0 * 60.0 * 60.0).as_days_ceil(), 8);
     }
 }

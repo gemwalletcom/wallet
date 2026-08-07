@@ -25,14 +25,13 @@ impl AssetsIndexUpdater {
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {
         let sync = self.sync_client.for_key(ConfigKey::SearchAssetsLastUpdatedAt)?;
         let filters = sync.since().map(AssetsWithPricesFilter::UpdatedSince).into_iter().collect();
-        let prices = self.database.prices()?.get_assets_with_prices(filters, self.primary_price_max_age)?;
+        let prices = PricesRepository::get_assets_with_prices(&mut self.database.prices()?, filters, self.primary_price_max_age)?;
 
         if prices.is_empty() {
             return sync.write(ASSETS_INDEX_NAME, Vec::<AssetDocument>::new()).await;
         }
 
         let usage_ranks = self.database.assets_usage_ranks()?.get_all_usage_ranks()?;
-
         let assets_tags_map = Self::asset_tags_by_asset(self.database.tag()?.get_assets_tags()?);
         let usage_ranks_map: HashMap<String, i32> = usage_ranks.into_iter().map(|r| (r.asset_id.to_string(), r.usage_rank)).collect();
 

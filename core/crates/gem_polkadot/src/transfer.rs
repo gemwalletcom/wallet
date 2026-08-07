@@ -1,4 +1,5 @@
 use primitives::{SignerError, TransactionLoadInput, TransactionLoadMetadata, hex::decode_hex_array};
+#[cfg(any(test, feature = "rpc"))]
 use signer::Ed25519KeyPair;
 
 use crate::address::PolkadotAddress;
@@ -15,11 +16,13 @@ const MORTAL_ERA_MIN_PERIOD: u64 = 4;
 const MORTAL_ERA_MAX_PERIOD: u64 = 1 << 16;
 const MAX_UNHASHED_PAYLOAD_SIZE: usize = 256;
 
+#[cfg(feature = "rpc")]
 pub(crate) fn fee_estimation_transaction(input: &TransactionLoadInput) -> Result<String, SignerError> {
     let fee_estimation_private_key = rand::random::<[u8; 32]>();
     fee_estimation_transaction_with_private_key(input, &fee_estimation_private_key)
 }
 
+#[cfg(any(test, feature = "rpc"))]
 fn fee_estimation_transaction_with_private_key(input: &TransactionLoadInput, private_key: &[u8; 32]) -> Result<String, SignerError> {
     let key_pair = Ed25519KeyPair::from_private_key(private_key)?;
     let transaction = NativeTransferTransaction::from_input(input, key_pair.public_key_bytes)?;

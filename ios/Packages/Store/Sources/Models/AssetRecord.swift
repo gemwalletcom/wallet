@@ -27,6 +27,7 @@ struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, T
         static let stakingApr = Column("stakingApr")
         static let earnApr = Column("earnApr")
         static let hasImage = Column("hasImage")
+        static let associations = Column("associations")
     }
 
     var id: String
@@ -47,6 +48,7 @@ struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, T
     var stakingApr: Double?
     var earnApr: Double?
     var hasImage: Bool
+    var associations: [AssetAssociation]
 
     static let price = hasOne(PriceRecord.self)
     static let links = hasMany(AssetLinkRecord.self, key: "links")
@@ -97,6 +99,9 @@ extension AssetRecord: CreateTable {
             $0.column(Columns.earnApr.name, .double)
             $0.column(Columns.hasImage.name, .boolean)
                 .defaults(to: false)
+            $0.column(Columns.associations.name, .jsonText)
+                .notNull()
+                .defaults(to: "[]")
         }
     }
 }
@@ -119,6 +124,7 @@ extension Asset {
             isEarnable: false,
             rank: 0,
             hasImage: false,
+            associations: [],
         )
     }
 }
@@ -176,6 +182,7 @@ extension AssetRecordInfo {
             price: price?.mapToPrice(),
             priceAlerts: priceAlerts.or([]).compactMap { $0.map() },
             metadata: metadata,
+            associations: asset.associations,
         )
     }
 
@@ -217,6 +224,7 @@ extension AssetBasic {
             stakingApr: properties.stakingApr,
             earnApr: properties.earnApr,
             hasImage: properties.hasImage,
+            associations: [],
         )
     }
 }

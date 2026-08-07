@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = İptal
+common_hidden = Gizli
 common_done = Tamam
 common_maximum_value = Maksimum değer %@
 common_minimum_value = Minimum değer %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Jeton bilgileri getirilemiyor: %@
 errors_unknown_try_again = Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.
 errors_network_error = Ağ hatası: %@
 errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
+errors_no_internet_connection = İnternet bağlantısı yok
+errors_no_service_connection = Servis bağlantısı yok
+errors_balances_activity_outdated = Bakiyeler ve etkinlik güncel olmayabilir.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Seçilen token çifti için bir fiyat teklifi dönd�
 info_stake_reserved_title = Ağ ücreti için ayrıldı
 info_stake_reserved_description = Cüzdanınızda, stake'lerinizi iptal etme veya ödül talep etme gibi işlemlerin ücretlerini karşılamak için küçük bir miktar kalır.
 info_stake_apr_description = Yıllık Yüzde Oranı (APR), kripto paranızı stake etmeniz durumunda ödeyeceğiniz yıllık ödül oranıdır.
+info_stake_frozen_required_title = Stake için TRX'i dondurun
+info_stake_frozen_required_description = TRON'da staking iki adımdan oluşur. Önce TRX'i dondurun, ardından ödül kazanmak için stake edin.
 info_perpetual_auto_close_description = Pozisyonunuzu belirlenen fiyat seviyelerinde otomatik olarak kapatın. Kâr Al özelliği kazançlarınızı sabitler, Zarar Durdur özelliği ise kayıplarınızı sınırlar.
 info_fully_diluted_valuation_title = Tamamen Seyreltilmiş Değerleme
 info_fully_diluted_valuation_description = Tüm madeni paraların dolaşımda olması durumunda teorik piyasa değeri. Fiyatın maksimum arzla çarpılmasıyla hesaplanır.

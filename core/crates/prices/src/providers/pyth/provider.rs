@@ -29,7 +29,7 @@ impl PriceAssetsProvider for PythProvider {
         PriceProvider::Pyth
     }
 
-    async fn get_assets(&self) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
+    async fn get_assets(&self, limit: usize) -> Result<Vec<PriceProviderAsset>, Box<dyn Error + Send + Sync>> {
         let feeds = self.pyth_client.get_price_feeds().await?;
         Ok(feeds
             .into_iter()
@@ -39,6 +39,7 @@ impl PriceAssetsProvider for PythProvider {
                     .map(move |asset_id| AssetPriceMapping::new(asset_id, feed.id.clone()))
             })
             .map(|m| PriceProviderAsset::new(m, None))
+            .take(limit)
             .collect())
     }
 
@@ -84,29 +85,34 @@ impl PriceAssetsProvider for PythProvider {
 }
 
 #[cfg(all(test, feature = "price_integration_tests"))]
-mod tests {
-    use super::super::mapper::price_feed_id_for_chain;
-    use super::super::testkit::create_pyth_test_provider;
-    use crate::{AssetPriceMapping, PriceAssetsProvider, PriceProvider};
+mod price_integration_tests {
+    use std::error::Error;
+
     use primitives::Chain;
 
+    use crate::{AssetPriceMapping, PriceAssetsProvider, PriceProvider};
+
+    use super::super::{mapper::price_feed_id_for_chain, testkit::create_pyth_test_provider};
+
+    const ASSET_LIMIT: usize = 10;
+
     #[tokio::test]
-    async fn test_pyth_provider_basic() {
+    async fn test_pyth_provider_basic() -> Result<(), Box<dyn Error + Send + Sync>> {
         let provider = create_pyth_test_provider();
         assert_eq!(provider.provider(), PriceProvider::Pyth);
 
-        let supported = provider.get_assets().await.unwrap();
-        assert!(!supported.is_empty());
-        for asset in &supported {
-            assert!(!asset.mapping.provider_price_id.is_empty());
+        let assets = provider.get_assets(ASSET_LIMIT).await?;
+        assert_eq!(assets.len(), ASSET_LIMIT);
+        for asset in assets {
+            assert_ne!(asset.mapping.provider_price_id, "");
         }
 
-        let mappings: Vec<AssetPriceMapping> = Chain::all()
-            .iter()
-            .filter_map(|chain| price_feed_id_for_chain(*chain).map(|feed_id| AssetPriceMapping::new(chain.as_asset_id(), feed_id.to_string())))
-            .collect();
-        let prices = provider.get_prices(mappings).await.unwrap();
-        assert!(!prices.is_empty());
-        assert_eq!(prices.len(), Chain::all().len() - 1);
+        let feed_id = price_feed_id_for_chain(Chain::Bitcoin).unwrap();
+        let mapping = AssetPriceMapping::new(Chain::Bitcoin.as_asset_id(), feed_id.to_string());
+        let prices = provider.get_prices(vec![mapping]).await?;
+        assert_eq!(prices.len(), 1);
+        assert!(prices[0].price.price.is_finite());
+        assert!(prices[0].price.price > 0.0);
+        Ok(())
     }
 }

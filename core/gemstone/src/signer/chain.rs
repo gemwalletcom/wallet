@@ -208,8 +208,8 @@ mod tests {
     use super::*;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY};
     use primitives::{
-        DelegationValidator, StakeType, SwapProvider, TransactionLoadMetadata, TransferDataExtra, WalletConnectionSessionAppMetadata, contract_call_data::ContractCallData,
-        nft::NFTAsset,
+        DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputType,
+        WalletConnectionSessionAppMetadata, contract_call_data::ContractCallData, nft::NFTAsset,
     };
 
     #[test]
@@ -220,6 +220,36 @@ mod tests {
         let signer_input: SignerInput = gem.into();
 
         assert_eq!(signer_input.input.destination_address, "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
+    }
+
+    #[test]
+    fn test_sign_input_ton_wallet_connect() {
+        let request = include_str!("../../../crates/gem_ton/testdata/wallet_connect_dedust_send_message.json");
+        let transaction = gem_wallet_connect::WalletConnectRequestHandler::decode_send_transaction(
+            gem_wallet_connect::WalletConnectTransactionType::Ton {
+                output_type: TransferDataOutputType::EncodedTransaction,
+            },
+            request.to_string(),
+        )
+        .unwrap();
+        let gem_wallet_connect::WalletConnectTransaction::Ton { data, .. } = transaction else {
+            panic!("expected TON transaction");
+        };
+        let private_key = hex::decode("1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34").unwrap();
+        let signer = gem_ton::signer::TonSigner::new(&private_key).unwrap();
+        let sender = signer.address().encode_non_bounceable();
+        let mut input = TransactionLoadInput::mock_sign_data(Chain::Ton, &data, TransferDataOutputType::EncodedTransaction);
+        input.sender_address = sender;
+        input.metadata = TransactionLoadMetadata::Ton {
+            sender_token_address: None,
+            recipient_token_address: None,
+            sequence: 1,
+        };
+        let input = SignerInput::new(input, TransactionFee::default());
+
+        let signed = GemChainSigner::new(Chain::Ton).sign_input(input.into(), Zeroizing::new(private_key)).unwrap();
+
+        assert_eq!(signed.len(), 1);
     }
 
     #[test]
@@ -333,6 +363,20 @@ mod tests {
 
     #[test]
     fn test_map_signer_error() {
+        assert_eq!(
+            map_signer_error(Chain::Bitcoin, "transfer", SignerError::DustThreshold),
+            GemstoneError::SignerError {
+                error: SignerError::DustThreshold,
+                msg: "transaction amount is below the dust threshold".to_string(),
+            }
+        );
+        assert_eq!(
+            map_signer_error(Chain::Cardano, "transfer", SignerError::InsufficientFunds),
+            GemstoneError::SignerError {
+                error: SignerError::InsufficientFunds,
+                msg: "insufficient balance".to_string(),
+            }
+        );
         assert_eq!(
             map_signer_error(Chain::Solana, "stake", SignerError::SigningError("sign_stake not implemented".to_string())).to_string(),
             "Signing error: stake not supported for chain solana"

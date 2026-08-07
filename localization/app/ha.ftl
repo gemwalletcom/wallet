@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Soke
+common_hidden = Ɓoyayye
 common_done = Anyi
 common_maximum_value = Matsakaicin ƙima shine %@
 common_minimum_value = Mafi ƙarancin ƙima shine %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Ba a iya samo bayanan alamar: %@
 errors_unknown_try_again = An sami kuskuren da ba a sani ba. Da fatan za a sake gwadawa.
 errors_network_error = Kuskuren hanyar sadarwa: %@
 errors_network_offline = Da alama haɗin intanet ɗin ya katse.
+errors_no_internet_connection = Babu haɗin intanet
+errors_no_service_connection = Babu haɗin sabis
+errors_balances_activity_outdated = Ma'aunai da ayyuka na iya zama tsofaffi.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Ba za a iya dawo da ƙididdiga don nau'in alamar da 
 info_stake_reserved_title = An tanada don Kudin hanyar sadarwa
 info_stake_reserved_description = Ƙananan kuɗi yana tsayawa a cikin walat ɗin ku don biyan kuɗi don ayyuka kamar cirewa ko neman lada.
 info_stake_apr_description = Yawan Kashi na shekara-shekara (APR) shine ƙimar lada na shekara don tara kuɗin cryptocurrency.
+info_stake_frozen_required_title = Daskare TRX don saka hannun jari
+info_stake_frozen_required_description = Saka hannun jari a TRON yana da matakai biyu. Da farko ka daskare TRX, sannan ka saka shi don samun lada.
 info_perpetual_auto_close_description = Rufe matsayinka ta atomatik a saita matakan farashi. Ɗauki makullin riba a cikin riba, Dakatar da Asara yana iyakance asara.
 info_fully_diluted_valuation_title = Kimantawa Mai Cikakken Nauyi
 info_fully_diluted_valuation_description = Darajar kasuwa ta ka'ida idan duk tsabar kudi suna yawo. An ƙididdige shi azaman farashi da aka ninka ta hanyar mafi girman wadata.

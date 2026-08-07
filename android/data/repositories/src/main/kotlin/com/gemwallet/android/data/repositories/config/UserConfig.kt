@@ -10,23 +10,17 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.cases.config.GetLockInterval
-import com.gemwallet.android.cases.config.HideWelcomeBanner
-import com.gemwallet.android.cases.config.IsWelcomeBannerHidden
-import com.gemwallet.android.cases.config.SetLockInterval
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.AppUpdateInfo
 import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.PerpetualAccountMode
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class UserConfig(
     private val context: Context,
-) : GetLockInterval,
-        SetLockInterval,
-        IsWelcomeBannerHidden,
-        HideWelcomeBanner
-{
+) {
 
     private lateinit var store: SharedPreferences
     private val Context.dataStore by preferencesDataStore(name = "user_config")
@@ -86,6 +80,19 @@ class UserConfig(
     suspend fun setPerpetualEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Key.IsPerpetualEnabled] = enabled
+        }
+    }
+
+    fun perpetualAccountMode(walletId: WalletId): Flow<PerpetualAccountMode> = context.dataStore.data
+        .map { preferences ->
+            preferences[Key.perpetualAccountMode(walletId)]
+                ?.let { value -> PerpetualAccountMode.entries.firstOrNull { it.string == value } }
+                ?: PerpetualAccountMode.Standard
+        }
+
+    suspend fun setPerpetualAccountMode(walletId: WalletId, mode: PerpetualAccountMode) {
+        context.dataStore.edit { preferences ->
+            preferences[Key.perpetualAccountMode(walletId)] = mode.string
         }
     }
 
@@ -154,19 +161,19 @@ class UserConfig(
         }
     }
 
-    override fun getLockInterval(): Flow<Int> = context.dataStore.data
+    fun getLockInterval(): Flow<Int> = context.dataStore.data
     .map { preferences -> preferences[Key.LockInterval] ?: 1 }
 
-    override suspend fun setLockInterval(minutes: Int) {
+    suspend fun setLockInterval(minutes: Int) {
         context.dataStore.edit { preferences ->
             preferences[Key.LockInterval] = minutes
         }
     }
 
-    override fun isWelcomeBannerHidden(walletId: String): Flow<Boolean> = context.dataStore.data
+    fun isWelcomeBannerHidden(walletId: String): Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Key.IsWelcomeBannerHidden]?.contains(walletId) ?: false }
 
-    override suspend fun hideWelcomeBanner(walletId: String) {
+    suspend fun hideWelcomeBanner(walletId: String) {
         context.dataStore.edit { preferences ->
             val value = preferences[Key.IsWelcomeBannerHidden]?.let {
                 it.toMutableSet().apply { add(walletId) }
@@ -237,7 +244,6 @@ class UserConfig(
         DevelopEnabled("develop_enabled"),
         PerpetualChartPeriod("perpetual_chart_period"),
         SubscriptionVersion("subscription_version"),
-        SubscriptionVersionHasChange("subscription_version_has_change"),
         LaunchNumber("launch_number"),
         ;
 
@@ -255,6 +261,7 @@ class UserConfig(
         val IsRequestNotifications = booleanPreferencesKey("is_request_notifications")
         val AskNotifications = longPreferencesKey("ask_notifications")
         val IsPerpetualEnabled = booleanPreferencesKey("is_perpetual_enabled")
+        fun perpetualAccountMode(walletId: WalletId) = stringPreferencesKey("perpetual_account_mode_${walletId.id}")
         val PerpetualLeverage = intPreferencesKey("perpetual_leverage")
         val PerpetualTakeProfit = intPreferencesKey("perpetual_take_profit")
         val PerpetualStopLoss = intPreferencesKey("perpetual_stop_loss")

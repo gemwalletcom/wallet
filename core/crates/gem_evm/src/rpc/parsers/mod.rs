@@ -1,4 +1,5 @@
 pub mod across;
+pub mod mayan;
 pub mod okx;
 pub mod pancakeswap;
 pub mod staking;
@@ -15,12 +16,15 @@ use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, Transacti
 
 use self::{
     across::AcrossParser,
+    mayan::MayanParser,
     okx::OkxParser,
     pancakeswap::PancakeSwapParser,
     staking::{EverstakeParser, MonadStakingParser, SmartChainStakingParser},
     universal_router::UniversalRouterParser,
     yo::YoParser,
 };
+
+const EVENT_WORD_SIZE: usize = 64;
 
 pub struct ParseContext<'a> {
     pub chain: &'a Chain,
@@ -65,12 +69,13 @@ fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<
 pub struct ProtocolParsers;
 
 impl ProtocolParsers {
-    fn parsers() -> [&'static dyn ProtocolParser; 8] {
+    fn parsers() -> [&'static dyn ProtocolParser; 9] {
         [
             &EverstakeParser,
             &MonadStakingParser,
             &SmartChainStakingParser,
             &AcrossParser,
+            &MayanParser,
             &OkxParser,
             &YoParser,
             &PancakeSwapParser,

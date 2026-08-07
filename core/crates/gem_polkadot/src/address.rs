@@ -1,6 +1,8 @@
 use std::fmt;
 
-use primitives::{Address, SignerError};
+use primitives::Address;
+#[cfg(any(feature = "rpc", feature = "signer"))]
+use primitives::SignerError;
 
 const POLKADOT_PREFIX: u8 = 0;
 const ADDRESS_DATA_LENGTH: usize = 32;
@@ -49,10 +51,12 @@ impl PolkadotAddress {
         Self(public_key)
     }
 
+    #[cfg(any(feature = "rpc", feature = "signer"))]
     pub(crate) fn parse(value: &str) -> Result<Self, SignerError> {
         Self::try_parse(value).ok_or_else(|| SignerError::invalid_input("invalid Polkadot address"))
     }
 
+    #[cfg(any(feature = "rpc", feature = "signer"))]
     pub(crate) fn account_id(&self) -> &[u8; ADDRESS_DATA_LENGTH] {
         &self.0
     }

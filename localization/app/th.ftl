@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = ยกเลิก
+common_hidden = ที่ซ่อนไว้
 common_done = เสร็จแล้ว
 common_maximum_value = ค่าสูงสุดคือ %@
 common_minimum_value = ค่าต่ำสุดคือ %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = ไม่สามารถดึ�
 errors_unknown_try_again = เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง
 errors_network_error = เกิดข้อผิดพลาดเครือข่าย: %@
 errors_network_offline = ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์
+errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
+errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
+errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = ไม่สามารถส่งคืนใบ�
 info_stake_reserved_title = สงวนไว้สำหรับค่าธรรมเนียมเครือข่าย
 info_stake_reserved_description = เงินจำนวนเล็กน้อยจะอยู่ในกระเป๋าเงินของคุณเพื่อชำระค่าธรรมเนียมการดำเนินการ เช่น การเลิกสเตคหรือการรับรางวัล
 info_stake_apr_description = อัตราเปอร์เซ็นต์ต่อปี (APR) คืออัตราผลตอบแทนรายปีสำหรับการสเตคสกุลเงินดิจิทัลของคุณ
+info_stake_frozen_required_title = ฟรีซ TRX เพื่อสเตค
+info_stake_frozen_required_description = การสเตคบน TRON มีสองขั้นตอน ก่อนอื่นฟรีซ TRX จากนั้นสเตคเพื่อรับรางวัล
 info_perpetual_auto_close_description = ปิดสถานะของคุณโดยอัตโนมัติเมื่อถึงระดับราคาที่กำหนด Take Profit ล็อกกำไร Stop Loss จำกัดการขาดทุน
 info_fully_diluted_valuation_title = การประเมินมูลค่าแบบเจือจางเต็มที่
 info_fully_diluted_valuation_description = มูลค่าตลาดตามทฤษฎีหากเหรียญทั้งหมดหมุนเวียนอยู่ในระบบ คำนวณจากราคาคูณด้วยจำนวนเหรียญสูงสุดที่มีอยู่

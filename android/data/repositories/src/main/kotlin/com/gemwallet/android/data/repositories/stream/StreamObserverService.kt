@@ -2,37 +2,24 @@ package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.cases.device.IsDeviceRegistered
-import com.gemwallet.android.cases.device.SyncDeviceInfo
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.hasPerpetualsSupport
-import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.StreamEventSerializer
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.serializer.toJson
-import com.wallet.core.primitives.StreamMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 
 class StreamObserverService(
     private val sessionRepository: SessionRepository,
-    private val userConfig: UserConfig,
     private val syncAssets: SyncAssets,
-    private val syncPerpetuals: SyncPerpetuals,
     private val subscriptionService: StreamSubscriptionService,
     private val eventHandler: StreamEventHandler,
     private val connection: WebSocketConnectable,
-    private val syncDeviceInfo: SyncDeviceInfo,
-    private val isDeviceRegistered: IsDeviceRegistered,
+    private val syncDevice: SyncDevice,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
     private var connectionJob: Job? = null
@@ -49,11 +36,6 @@ class StreamObserverService(
                 runCatching { syncAssets() }
             }
         }
-        scope.launchPerpetualSync(
-            session = sessionRepository.session(),
-            isPerpetualEnabled = userConfig.isPerpetualEnabled(),
-            syncPerpetuals = syncPerpetuals,
-        )
     }
 
     fun start() {
@@ -61,9 +43,8 @@ class StreamObserverService(
         if (sessionRepository.session().value?.wallet == null) return
 
         connectionJob = scope.launch {
-            if (!isDeviceRegistered.isDeviceRegistered()) {
-                registerDevice()
-            }
+            runCatching { syncDevice.syncDevice() }
+                .onFailure { Log.e(TAG, "Device synchronization error", it) }
             launch {
                 for (message in subscriptionService.messages) {
                     connection.send(message.toJson())
@@ -77,11 +58,6 @@ class StreamObserverService(
                 }
             }
         }
-    }
-
-    private suspend fun registerDevice() {
-        runCatching { syncDeviceInfo.syncDeviceInfo() }
-            .onFailure { Log.e(TAG, "Device registration error", it) }
     }
 
     fun stop() {
@@ -101,20 +77,4 @@ class StreamObserverService(
     companion object {
         private const val TAG = "StreamObserverService"
     }
-}
-
-internal fun CoroutineScope.launchPerpetualSync(
-    session: Flow<Session?>,
-    isPerpetualEnabled: Flow<Boolean>,
-    syncPerpetuals: SyncPerpetuals,
-): Job = launch {
-    combine(session, isPerpetualEnabled) { current, enabled ->
-        val wallet = current?.wallet
-        if (wallet != null && wallet.hasPerpetualsSupport && enabled) wallet.id.id else null
-    }
-        .distinctUntilChanged()
-        .collectLatest { walletId ->
-            if (walletId == null) return@collectLatest
-            runCatching { syncPerpetuals.syncPerpetuals() }
-        }
 }

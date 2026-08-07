@@ -1,0 +1,11 @@
+{
+  "from": "0:fe13d3319ad309867911762d2d2e867f4cad31af65a8c43e60d9a75b8c4d06e7",
+  "messages": [
+    {
+      "address": "EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_",
+      "amount": "1250000000",
+      "payload": "te6cckEBAwEASQABbeoGGF067C2U5DCBD0O5rKAIAbk2nSMtb1xl1c32UUnqzZfUhHWvYPfZ1aSIv7MdATAsSFm3s+QBAglqY/HeDgICAAguHPqC42mdGw=="
+    }
+  ],
+  "valid_until": 4294967295
+}

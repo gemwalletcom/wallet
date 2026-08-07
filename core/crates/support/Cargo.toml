@@ -8,6 +8,7 @@ default = ["backend"]
 backend = [
     "dep:cacher",
     "dep:chrono",
+    "dep:gem_client",
     "dep:hex",
     "dep:hmac",
     "dep:localizer",
@@ -28,6 +29,7 @@ serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 url = { workspace = true }
 cacher = { path = "../cacher", optional = true }
+gem_client = { path = "../gem_client", features = ["reqwest"], optional = true }
 localizer = { path = "../localizer", optional = true }
 primitives = { path = "../primitives" }
 storage = { path = "../storage", optional = true }

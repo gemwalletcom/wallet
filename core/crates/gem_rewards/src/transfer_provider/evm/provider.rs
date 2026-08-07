@@ -3,7 +3,7 @@ use crate::{RedemptionRequest, RedemptionResult};
 use alloy_primitives::hex;
 use chain_traits::ChainTransactionLoad;
 use gem_client::ReqwestClient;
-use gem_evm::rpc::EthereumClient;
+use gem_evm::rpc::EthereumProvider;
 use gem_evm::signer::{create_transfer_tx, sign_eip1559_tx};
 use num_traits::ToPrimitive;
 use primitives::{ChainType, EVMChain, FeePriority, FeeRate, TransactionInputType, TransactionLoadInput, TransactionPreloadInput};
@@ -16,7 +16,7 @@ pub struct WalletConfig {
     pub address: String,
 }
 
-pub type EvmClientProvider = Arc<dyn Fn(EVMChain) -> Option<EthereumClient<ReqwestClient>> + Send + Sync>;
+pub type EvmClientProvider = Arc<dyn Fn(EVMChain) -> Option<EthereumProvider<ReqwestClient>> + Send + Sync>;
 
 pub struct EvmTransferProvider {
     wallets: HashMap<ChainType, WalletConfig>,
@@ -42,7 +42,7 @@ impl EvmTransferProvider {
         Ok(key)
     }
 
-    fn get_client(&self, chain: EVMChain) -> Result<EthereumClient<ReqwestClient>, Box<dyn Error + Send + Sync>> {
+    fn get_client(&self, chain: EVMChain) -> Result<EthereumProvider<ReqwestClient>, Box<dyn Error + Send + Sync>> {
         (self.client_provider)(chain).ok_or_else(|| format!("No client configured for chain {:?}", chain).into())
     }
 
@@ -101,7 +101,7 @@ impl EvmTransferProvider {
 
         let signed_tx = sign_eip1559_tx(&tx, &private_key)?;
         let signed_tx_hex = format!("0x{}", hex::encode(&signed_tx));
-        let transaction_id = client.send_raw_transaction(&signed_tx_hex).await?;
+        let transaction_id = client.broadcast_transaction(&signed_tx_hex).await?;
 
         Ok(RedemptionResult { transaction_id })
     }

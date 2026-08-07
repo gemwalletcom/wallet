@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Скасувати
+common_hidden = Приховані
 common_done = Готово
 common_maximum_value = Максимальне значення %@
 common_minimum_value = Мінімальне значення %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Не вдається отрима
 errors_unknown_try_again = Сталася невідома помилка. Будь ласка, спробуйте ще раз.
 errors_network_error = Помилка мережі: %@
 errors_network_offline = Здається, підключення до Інтернету відсутнє.
+errors_no_internet_connection = Немає підключення до інтернету
+errors_no_service_connection = Немає підключення до сервісу
+errors_balances_activity_outdated = Баланси та активність можуть бути застарілими.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Неможливо повернути котирув
 info_stake_reserved_title = Зарезервовано для комісії мережі
 info_stake_reserved_description = Невелика сума залишається у вашому гаманці для покриття комісій за такі операції, як зняття коштів зі стейкінгу або отримання винагород.
 info_stake_apr_description = Річна процентна ставка (APR) – це річна ставка винагороди за стейкінг вашої криптовалюти.
+info_stake_frozen_required_title = Заморозьте TRX для стейкінгу
+info_stake_frozen_required_description = Стейкінг у TRON складається з двох кроків. Спершу заморозьте TRX, а потім застейкайте його, щоб отримувати винагороди.
 info_perpetual_auto_close_description = Автоматично закривайте свою позицію за встановленими ціновими рівнями. Тейк-профіт фіксує прибутки, а стоп-лос обмежує збитки.
 info_fully_diluted_valuation_title = Повністю розбавлена оцінка
 info_fully_diluted_valuation_description = Теоретична ринкова вартість, якби всі монети були в обігу. Розраховується як ціна, помножена на максимальну пропозицію.

@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Ghairi
+common_hidden = Zilizofichwa
 common_done = Imekamilika
 common_maximum_value = Thamani ya juu ni %@
 common_minimum_value = Thamani ya chini ni %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Imeshindwa kuleta maelezo ya token
 errors_unknown_try_again = Hitilafu isiyojulikana imetokea. Tafadhali jaribu tena.
 errors_network_error = Hitilafu ya mtandao: %@
 errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
+errors_no_internet_connection = Hakuna muunganisho wa intaneti
+errors_no_service_connection = Hakuna muunganisho wa huduma
+errors_balances_activity_outdated = Salio na shughuli huenda si za sasa.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Haikuweza kurejesha nukuu kwa jozi ya tokeni iliyoch
 info_stake_reserved_title = Imehifadhiwa kwa Ada ya Mtandao
 info_stake_reserved_description = Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kutoweka au kudai zawadi.
 info_stake_apr_description = Kiwango cha Asilimia cha Mwaka (APR) ni kiwango cha tuzo cha kila mwaka cha kuweka sarafu yako ya cryptocurrency.
+info_stake_frozen_required_title = Ganda TRX ili kuweka hisa
+info_stake_frozen_required_description = Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza ganda TRX, kisha uziweke hisa ili kupata zawadi.
 info_perpetual_auto_close_description = Funga nafasi yako kiotomatiki katika viwango vya bei vilivyowekwa. Take Profit hulinda faida, Stop Loss hupunguza hasara.
 info_fully_diluted_valuation_title = Thamani Iliyopunguzwa Kikamilifu
 info_fully_diluted_valuation_description = Thamani ya kinadharia ya soko ikiwa sarafu zote zilikuwa zikitumika. Imehesabiwa kama bei ikizidishwa na usambazaji wa juu zaidi.

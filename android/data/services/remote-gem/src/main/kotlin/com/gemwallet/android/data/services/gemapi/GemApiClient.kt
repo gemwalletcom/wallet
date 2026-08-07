@@ -31,6 +31,9 @@ interface GemApiClient {
     @GET("/v1/fiat/assets/{type}")
     suspend fun getFiatAssets(@Path("type") type: String): FiatAssets
 
+    @GET("/v1/swap/assets")
+    suspend fun getSwapAssets(): FiatAssets
+
     @GET("/v1/assets/search")
     suspend fun searchAssets(
         @Query("query") query: String,

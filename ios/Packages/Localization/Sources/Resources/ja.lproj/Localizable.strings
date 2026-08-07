@@ -1,4 +1,5 @@
 "common.cancel" = "キャンセル";
+"common.hidden" = "非表示";
 "common.done" = "完了";
 "common.maximum_value" = "最大値は %@ です";
 "common.minimum_value" = "最小値は %@ です";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "最低取引金額は %@。より高い金額を入力してください。";
 "errors.perpetual.trigger_price_lower" = "トリガー価格は市場価格より低くする必要があります";
 "errors.perpetual.trigger_price_higher" = "トリガー価格は市場価格より高くする必要があります";
+"errors.no_internet_connection" = "インターネット接続がありません";
+"errors.no_service_connection" = "サービス接続がありません";
+"errors.balances_activity_outdated" = "残高とアクティビティは最新でない場合があります。";
 "activity.title" = "アクティビティ";
 "activity.state.empty.title" = "アクティビティはここに表示されます";
 "activity.state.empty.description" = "最初の取引を行う";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "ネットワーク料金用に予約";
 "info.stake.reserved.description" = "ステーキング解除や報酬の請求などの操作にかかる手数料をカバーするために、少額がウォレットに残ります。";
 "info.stake.apr.description" = "年率 (APR) は、暗号通貨をステーキングした場合の年間報酬率です。";
+"info.stake_frozen_required_title" = "ステークするにはTRXをフリーズ";
+"info.stake_frozen_required_description" = "TRONのステーキングは2ステップです。まずTRXをフリーズし、次にステークして報酬を獲得します。";
 "info.perpetual.auto_close.description" = "設定した価格レベルでポジションを自動的に決済します。テイクプロフィットで利益を確定し、ストップロスで損失を制限します。";
 "info.fully_diluted_valuation.title" = "完全希薄化後評価額";
 "info.fully_diluted_valuation.description" = "すべてのコインが流通している場合の理論上の市場価値。価格に最大供給量を掛けて計算されます。";

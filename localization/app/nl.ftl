@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Annuleren
+common_hidden = Verborgen
 common_done = Klaar
 common_maximum_value = Maximale waarde is %@
 common_minimum_value = Minimale waarde is %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Kan tokeninformatie niet ophalen: 
 errors_unknown_try_again = Er is een onbekende fout opgetreden. Probeer het opnieuw.
 errors_network_error = Netwerkfout: %@
 errors_network_offline = De internetverbinding lijkt offline te zijn.
+errors_no_internet_connection = Geen internetverbinding
+errors_no_service_connection = Geen serviceverbinding
+errors_balances_activity_outdated = Saldi en activiteit zijn mogelijk verouderd.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Er kan geen offerte worden geretourneerd voor het ge
 info_stake_reserved_title = Gereserveerd voor netwerkkosten
 info_stake_reserved_description = Een klein bedrag blijft in uw portemonnee staan om de kosten voor handelingen zoals unstaking of het claimen van beloningen te dekken.
 info_stake_apr_description = Jaarlijks percentage (APR) is het jaarlijkse beloningspercentage voor het staken van uw cryptocurrency.
+info_stake_frozen_required_title = Bevries TRX om te staken
+info_stake_frozen_required_description = Staken op TRON gaat in twee stappen. Bevries eerst TRX en stake het daarna om beloningen te verdienen.
 info_perpetual_auto_close_description = Sluit uw positie automatisch op ingestelde prijsniveaus. Take Profit vergrendelt winsten, Stop Loss beperkt verliezen.
 info_fully_diluted_valuation_title = Volledig verwaterde waardering
 info_fully_diluted_valuation_description = De theoretische marktwaarde als alle munten in omloop zouden zijn. Berekend als de prijs vermenigvuldigd met het maximale aanbod.

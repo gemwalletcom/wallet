@@ -1,3 +1,6 @@
+use std::error::Error;
+
+use primitives::swap::{SwapQuoteData, SwapQuoteDataType};
 use serde_json::json;
 
 use crate::models::TransactionPayload;
@@ -44,6 +47,16 @@ pub fn build_token_transfer_transaction_payload(token_id: &str, recipient: &str,
     }
 
     Ok(build_fungible_transfer_transaction_payload(token_id, recipient, amount))
+}
+
+pub fn build_swap_transaction_payload(token_id: &Option<String>, swap_data: &SwapQuoteData) -> Result<TransactionPayload, Box<dyn Error + Send + Sync>> {
+    match swap_data.data_type {
+        SwapQuoteDataType::Transfer => match token_id {
+            None => Ok(build_transfer_transaction_payload(&swap_data.to, &swap_data.value)),
+            Some(token_id) => build_token_transfer_transaction_payload(token_id, &swap_data.to, &swap_data.value).map_err(Into::into),
+        },
+        SwapQuoteDataType::Contract => Ok(serde_json::from_str::<TransactionPayload>(&swap_data.data)?),
+    }
 }
 
 pub fn build_stake_payload_data(pool_address: &str, amount: &str) -> String {
@@ -125,5 +138,52 @@ mod tests {
     fn test_build_token_transfer_transaction_payload_invalid() {
         let err = build_token_transfer_transaction_payload("invalid", TEST_POOL_ADDRESS, "1").unwrap_err();
         assert_eq!(err, "Invalid Aptos token ID format");
+    }
+
+    #[test]
+    fn test_build_swap_transaction_payload_transfer_native() {
+        let swap_data = SwapQuoteData::new_transfer(TEST_POOL_ADDRESS.to_string(), "100000000".to_string(), None);
+        let payload = build_swap_transaction_payload(&None, &swap_data).unwrap();
+
+        assert_eq!(payload.function.as_deref(), Some(APTOS_TRANSFER_FUNCTION));
+    }
+
+    #[test]
+    fn test_build_swap_transaction_payload_transfer_fungible_asset() {
+        let swap_data = SwapQuoteData::new_transfer(TEST_POOL_ADDRESS.to_string(), "1".to_string(), None);
+        let token_id = Some("0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b".to_string());
+        let payload = build_swap_transaction_payload(&token_id, &swap_data).unwrap();
+
+        assert_eq!(payload.function.as_deref(), Some("0x1::primary_fungible_store::transfer"));
+    }
+
+    #[test]
+    fn test_build_swap_transaction_payload_contract() {
+        let contract_payload = build_stake_transaction_payload(TEST_POOL_ADDRESS, "100000000");
+        let data = serde_json::to_string(&contract_payload).unwrap();
+        let swap_data = SwapQuoteData::new_contract(TEST_POOL_ADDRESS.to_string(), "0".to_string(), data, None, None);
+        let payload = build_swap_transaction_payload(&None, &swap_data).unwrap();
+
+        assert_eq!(payload.function, contract_payload.function);
+    }
+
+    #[test]
+    fn test_build_swap_transaction_payload_transfer_invalid_token_id() {
+        let swap_data = SwapQuoteData::new_transfer(TEST_POOL_ADDRESS.to_string(), "1".to_string(), None);
+        let token_id = Some("invalid".to_string());
+        let err = build_swap_transaction_payload(&token_id, &swap_data).unwrap_err();
+
+        assert_eq!(err.to_string(), "Invalid Aptos token ID format");
+    }
+
+    #[test]
+    fn test_build_swap_transaction_payload_contract_invalid_data() {
+        let swap_data = SwapQuoteData::new_transfer(TEST_POOL_ADDRESS.to_string(), "0".to_string(), None);
+        let swap_data = SwapQuoteData {
+            data_type: SwapQuoteDataType::Contract,
+            ..swap_data
+        };
+
+        assert!(build_swap_transaction_payload(&None, &swap_data).is_err());
     }
 }

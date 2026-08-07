@@ -29,6 +29,7 @@ pub(crate) trait FiatStore {
     fn get_fiat_transaction(&mut self, provider: FiatProviderName, transaction_id: &str) -> Result<Option<FiatTransactionRow>, diesel::result::Error>;
     fn get_fiat_transactions_by_device_id(&mut self, device_id: i32) -> Result<Vec<FiatTransactionRow>, diesel::result::Error>;
     fn get_fiat_transactions_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionRow>, diesel::result::Error>;
+    fn count_fiat_transactions_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<i64, diesel::result::Error>;
     fn get_fiat_assets_by_filter(&mut self, filters: Vec<FiatAssetFilter>) -> Result<Vec<FiatAssetRow>, diesel::result::Error>;
     fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, diesel::result::Error>;
     fn get_fiat_assets_for_asset_id(&mut self, asset_id: &str) -> Result<Vec<FiatAssetRow>, diesel::result::Error>;
@@ -140,6 +141,16 @@ impl FiatStore for DatabaseClient {
             .order(fiat_transactions::created_at.desc())
             .select(FiatTransactionRow::as_select())
             .load(&mut self.connection)
+    }
+
+    fn count_fiat_transactions_by_device_and_wallet_id(&mut self, device_id_value: i32, wallet_id_value: i32) -> Result<i64, diesel::result::Error> {
+        use crate::schema::fiat_transactions;
+
+        fiat_transactions::table
+            .filter(fiat_transactions::device_id.eq(device_id_value))
+            .filter(fiat_transactions::wallet_id.eq(wallet_id_value))
+            .count()
+            .get_result(&mut self.connection)
     }
 
     fn get_fiat_transactions_by_device_id(&mut self, device_id_value: i32) -> Result<Vec<FiatTransactionRow>, diesel::result::Error> {

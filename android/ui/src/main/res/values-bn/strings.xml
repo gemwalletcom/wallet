@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">বাতিল করুন</string>
+  <string name="common_hidden">লুকানো</string>
   <string name="common_done">সম্পন্ন</string>
   <string name="common_maximum_value">সর্বোচ্চ মান %1$s</string>
   <string name="common_minimum_value">সর্বনিম্ন মান %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">একটি অজানা ত্রুটি ঘটেছে. আবার চেষ্টা করুন.</string>
   <string name="errors_network_error">নেটওয়ার্ক ত্রুটি: %1$s</string>
   <string name="errors_network_offline">ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।</string>
+  <string name="errors_no_internet_connection">ইন্টারনেট সংযোগ নেই</string>
+  <string name="errors_no_service_connection">পরিষেবা সংযোগ নেই</string>
+  <string name="errors_balances_activity_outdated">ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।</string>
   <string name="activity_title">কার্যকলাপ</string>
   <string name="activity_state_empty_title">আপনার কার্যকলাপ এখানে প্রদর্শিত হবে</string>
   <string name="activity_state_empty_description">আপনার প্রথম লেনদেন করুন</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">নেটওয়ার্ক ফি এর জন্য সংরক্ষিত</string>
   <string name="info_stake_reserved_description">পুরষ্কার দাবি করা বা আনস্টেক করার মতো ক্রিয়াকলাপের ফি মেটাতে আপনার ওয়ালেটে অল্প পরিমাণ টাকা থেকে যায়।</string>
   <string name="info_stake_apr_description">বার্ষিক শতাংশ হার (এপিআর) হল আপনার ক্রিপ্টোকারেন্সি শেয়ার করার জন্য বার্ষিক পুরষ্কারের হার।</string>
+  <string name="info_stake_frozen_required_title">স্টেক করতে TRX ফ্রিজ করুন</string>
+  <string name="info_stake_frozen_required_description">TRON-এ স্টেকিং দুই ধাপে হয়। প্রথমে TRX ফ্রিজ করুন, তারপর পুরস্কার পেতে সেটি স্টেক করুন।</string>
   <string name="info_perpetual_auto_close_description">নির্ধারিত মূল্য স্তরে আপনার পজিশন স্বয়ংক্রিয়ভাবে বন্ধ করুন। টেক প্রফিট লাভকে আটকে রাখে, স্টপ লস লোকসানকে সীমাবদ্ধ করে।</string>
   <string name="info_fully_diluted_valuation_title">সম্পূর্ণরূপে লঘুকৃত মূল্যায়ন</string>
   <string name="info_fully_diluted_valuation_description">যদি সমস্ত মুদ্রা প্রচলিত থাকে, তাহলে তাত্ত্বিক বাজার মূল্য। সর্বোচ্চ সরবরাহ দ্বারা গুণিত মূল্য হিসাবে গণনা করা হয়।</string>

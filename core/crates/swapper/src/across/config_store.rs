@@ -1,23 +1,16 @@
-use crate::{
-    SwapperError,
-    alien::{RpcClient, RpcProvider},
-    client_factory::create_client_with_chain,
-};
+use crate::SwapperError;
 use alloy_primitives::{Address, hex::decode as HexDecode};
 use alloy_sol_types::SolCall;
 use gem_evm::{
     across::{contracts::AcrossConfigStore, fees},
     jsonrpc::{BlockParameter, EthereumRpc, TransactionObject},
 };
-use gem_jsonrpc::{JsonRpcClient, types::JsonRpcResult};
-use primitives::{Chain, contract_constants::ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT};
-use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use primitives::{AssetId, contract_constants::ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT};
+use serde::Deserialize;
+use std::collections::HashMap;
 
-const CONFIG_CACHE_TTL: u64 = 60 * 60 * 24;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub(super) struct RateModel {
+#[derive(Debug, Deserialize)]
+struct RateModel {
     #[serde(rename = "UBar")]
     ubar: String,
     #[serde(rename = "R0")]
@@ -28,46 +21,33 @@ pub(super) struct RateModel {
     r2: String,
 }
 
-impl From<RateModel> for fees::RateModel {
-    fn from(value: RateModel) -> Self {
-        Self {
-            ubar: value.ubar.parse().unwrap(),
-            r0: value.r0.parse().unwrap(),
-            r1: value.r1.parse().unwrap(),
-            r2: value.r2.parse().unwrap(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct TokenConfig {
-    pub(super) rate_model: RateModel,
-    pub(super) route_rate_model: HashMap<String, RateModel>,
+    rate_model: RateModel,
+    route_rate_model: HashMap<String, RateModel>,
 }
 
-pub(super) struct ConfigStoreClient {
-    contract: String,
-    client: JsonRpcClient<RpcClient>,
-}
-
-impl ConfigStoreClient {
-    pub(super) fn new(provider: Arc<dyn RpcProvider>) -> ConfigStoreClient {
-        ConfigStoreClient {
-            contract: ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT.into(),
-            client: create_client_with_chain(provider, Chain::Ethereum),
-        }
+impl TokenConfig {
+    pub(super) fn request(l1_token: &Address) -> EthereumRpc {
+        let data = AcrossConfigStore::l1TokenConfigCall { l1Token: *l1_token }.abi_encode();
+        EthereumRpc::Call(TransactionObject::new_call(ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT, data), BlockParameter::Latest)
     }
 
-    pub(super) async fn fetch_config(&self, l1token: &Address) -> Result<TokenConfig, SwapperError> {
-        let data = AcrossConfigStore::l1TokenConfigCall { l1Token: *l1token }.abi_encode();
-        let call = EthereumRpc::Call(TransactionObject::new_call(&self.contract, data), BlockParameter::Latest);
-        let response: JsonRpcResult<String> = self.client.call_with_cache(&call, Some(CONFIG_CACHE_TTL)).await?;
-        let result = response.take()?;
-        let hex_data = HexDecode(result).map_err(SwapperError::compute_quote_error)?;
-        let decoded = AcrossConfigStore::l1TokenConfigCall::abi_decode_returns(&hex_data).map_err(SwapperError::from)?;
+    pub(super) fn decode(result: String) -> Result<Self, SwapperError> {
+        let data = HexDecode(result).map_err(SwapperError::compute_quote_error)?;
+        let decoded = AcrossConfigStore::l1TokenConfigCall::abi_decode_returns(&data).map_err(SwapperError::from)?;
+        serde_json::from_str(&decoded).map_err(SwapperError::from)
+    }
 
-        let result: TokenConfig = serde_json::from_str(&decoded).map_err(SwapperError::from)?;
-        Ok(result)
+    pub(super) fn rate_model(&self, from_asset: &AssetId, to_asset: &AssetId) -> Result<fees::RateModel, SwapperError> {
+        let route = format!("{}-{}", from_asset.chain.network_id(), to_asset.chain.network_id());
+        let model = self.route_rate_model.get(&route).unwrap_or(&self.rate_model);
+        Ok(fees::RateModel {
+            ubar: model.ubar.parse().map_err(SwapperError::compute_quote_error)?,
+            r0: model.r0.parse().map_err(SwapperError::compute_quote_error)?,
+            r1: model.r1.parse().map_err(SwapperError::compute_quote_error)?,
+            r2: model.r2.parse().map_err(SwapperError::compute_quote_error)?,
+        })
     }
 }

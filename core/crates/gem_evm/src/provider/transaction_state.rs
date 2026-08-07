@@ -6,12 +6,12 @@ use async_trait::async_trait;
 use chain_traits::ChainTransactionState;
 use primitives::{TransactionState, TransactionStateRequest, TransactionUpdate};
 
-use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::EthereumClient};
+use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::EthereumProvider};
 use gem_client::Client;
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionState for EthereumClient<C> {
+impl<C: Client + Clone> ChainTransactionState for EthereumProvider<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
         let Some(receipt) = self.get_transaction_receipt(&request.id).await? else {
             return Ok(TransactionUpdate::new_state(TransactionState::Pending));

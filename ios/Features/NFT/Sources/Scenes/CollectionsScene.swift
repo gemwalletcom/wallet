@@ -43,13 +43,20 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                         .frame(height: .list.minHeight)
                     }
                 }
-                .frame(minHeight: geometry.size.height, alignment: .top)
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: geometry.size.height - Spacing.scene.top,
+                    alignment: .top,
+                )
             }
+            .scrollIndicators(
+                model.content.isEmpty ? .hidden : .automatic,
+            )
         }
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if model.content.items.isEmpty, model.content.unverifiedCount == nil {
+            if model.content.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }

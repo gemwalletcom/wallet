@@ -1,12 +1,10 @@
 use std::{collections::HashMap, error::Error, sync::Arc};
-use tokio::sync::Mutex;
 
-use ::nft::{NFTClient, NFTProviderConfig, OffchainClientConfig};
+use ::nft::{NFTClient, NFTProviderConfig};
 use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use primitives::Chain;
 use settings::Settings;
-use settings_chain::ProviderFactory;
 use storage::Database;
 use streamer::{ChainAddressPayload, ConsumerConfig, ConsumerStatusReporter, QueueName, ShutdownReceiver, StreamConnection, StreamReader, consumer::MessageConsumer, run_consumer};
 
@@ -14,7 +12,7 @@ use crate::consumers::reader_config;
 
 pub struct FetchNftAssetsAddressesConsumer {
     pub cacher: CacherClient,
-    pub nft_client: Arc<Mutex<NFTClient>>,
+    pub nft_client: NFTClient,
 }
 
 impl FetchNftAssetsAddressesConsumer {
@@ -32,14 +30,8 @@ impl FetchNftAssetsAddressesConsumer {
         let name = format!("{}.{}", queue, chain.as_ref());
         let config = reader_config(&settings.rabbitmq, name.clone());
         let stream_reader = StreamReader::from_connection(connection, config).await?;
-        let nft_config = NFTProviderConfig::new(
-            settings.nft.opensea.key.secret.clone(),
-            settings.nft.magiceden.key.secret.clone(),
-            ProviderFactory::get_chain_url(Chain::Ton, &settings),
-            OffchainClientConfig::new(settings.nft.offchain.timeout, settings.nft.offchain.concurrency, settings.nft.offchain.limit),
-        );
+        let nft_config = NFTProviderConfig::from_settings(&settings);
         let nft_client = NFTClient::from_config(database, nft_config, settings.nft.url.clone());
-        let nft_client = Arc::new(Mutex::new(nft_client));
         let consumer = Self { cacher, nft_client };
         run_consumer::<ChainAddressPayload, Self, usize>(&name, stream_reader, queue, Some(chain.as_ref()), consumer, consumer_config, shutdown_rx, reporter).await
     }
@@ -55,7 +47,7 @@ impl MessageConsumer<ChainAddressPayload, usize> for FetchNftAssetsAddressesCons
 
     async fn process(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let map = HashMap::from([(payload.value.chain, payload.value.address.clone())]);
-        let assets = self.nft_client.lock().await.update_assets_for_addresses(map).await?;
+        let assets = self.nft_client.update_assets_for_addresses(map).await?;
         Ok(assets.len())
     }
 }

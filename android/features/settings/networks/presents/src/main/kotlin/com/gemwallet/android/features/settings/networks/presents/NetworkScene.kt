@@ -17,15 +17,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
@@ -38,6 +34,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
@@ -64,22 +61,9 @@ internal fun NetworkScene(
         },
         onClose = { onAction(NetworkAction.Cancel) },
     ) {
-        val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
             isRefreshing = false,
             onRefresh = { onAction(NetworkAction.Refresh) },
-            state = pullToRefreshState,
-            enabled = true,
-            indicator = {
-                if (pullToRefreshState.distanceFraction > 0f) {
-                    Indicator(
-                        modifier = Modifier.align(Alignment.TopCenter),
-                        isRefreshing = false,
-                        state = pullToRefreshState,
-                        containerColor = MaterialTheme.colorScheme.background,
-                    )
-                }
-            },
         ) {
             LazyColumn {
                 item {

@@ -92,10 +92,8 @@ struct LocalKeystoreTests {
                 isWalletsEmpty: true,
                 source: .import,
             )
-            let exportedKey = try await keystore2.getPrivateKey(wallet: wallet2, chain: .solana)
-            let originalKey = try #require(Data(fromHex: hex))
-
-            #expect(exportedKey == originalKey)
+            let exportedKey = try await keystore2.getPrivateKeyEncoded(wallet: wallet2, chain: .solana)
+            #expect(exportedKey == exported)
         }
     }
 
@@ -186,7 +184,7 @@ struct LocalKeystoreTests {
                 case .doge:
                     "DJRFZNg8jkUtjcpo2zJd92FUAzwRjitw6f"
                 case .aptos:
-                    "0x7968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30"
+                    "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30"
                 case .sui:
                     "0xada112cfb90b44ba889cc5d39ac2bf46281e4a91f7919c693bcd9b8323e81ed2"
                 case .xrp:

@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import com.gemwallet.android.ext.hash
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Transaction
@@ -10,7 +12,14 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 
-@Entity(tableName = "transactions", primaryKeys = ["id", "walletId"])
+@Entity(
+    tableName = "transactions",
+    primaryKeys = ["id", "walletId"],
+    foreignKeys = [
+        ForeignKey(DbWallet::class, ["id"], ["walletId"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
+    ],
+    indices = [Index("walletId")],
+)
 data class DbTransaction(
     val id: TransactionId,
     val walletId: WalletId,

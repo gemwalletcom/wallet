@@ -1,0 +1,28 @@
+{
+  "rates": {
+    "GRAM": {
+      "prices": {
+        "USD": 3.42
+      },
+      "diff_24h": {
+        "USD": "−4.58%"
+      }
+    },
+    "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE": {
+      "prices": {
+        "USD": 0.62784
+      },
+      "diff_24h": {
+        "USD": "2.14%"
+      }
+    },
+    "ZERO": {
+      "prices": {
+        "USD": 0.0
+      },
+      "diff_24h": {
+        "USD": "0%"
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="common_cancel">Annuleren</string>
+  <string name="common_hidden">Verborgen</string>
   <string name="common_done">Klaar</string>
   <string name="common_maximum_value">Maximale waarde is %1$s</string>
   <string name="common_minimum_value">Minimale waarde is %1$s</string>
@@ -216,6 +217,9 @@
   <string name="errors_unknown_try_again">Er is een onbekende fout opgetreden. Probeer het opnieuw.</string>
   <string name="errors_network_error">Netwerkfout: %1$s</string>
   <string name="errors_network_offline">De internetverbinding lijkt offline te zijn.</string>
+  <string name="errors_no_internet_connection">Geen internetverbinding</string>
+  <string name="errors_no_service_connection">Geen serviceverbinding</string>
+  <string name="errors_balances_activity_outdated">Saldi en activiteit zijn mogelijk verouderd.</string>
   <string name="activity_title">Activiteit</string>
   <string name="activity_state_empty_title">Uw activiteit zal hier verschijnen</string>
   <string name="activity_state_empty_description">Maak uw eerste transactie</string>
@@ -456,6 +460,8 @@
   <string name="info_stake_reserved_title">Gereserveerd voor netwerkkosten</string>
   <string name="info_stake_reserved_description">Een klein bedrag blijft in uw portemonnee staan om de kosten voor handelingen zoals unstaking of het claimen van beloningen te dekken.</string>
   <string name="info_stake_apr_description">Jaarlijks percentage (APR) is het jaarlijkse beloningspercentage voor het staken van uw cryptocurrency.</string>
+  <string name="info_stake_frozen_required_title">Bevries TRX om te staken</string>
+  <string name="info_stake_frozen_required_description">Staken op TRON gaat in twee stappen. Bevries eerst TRX en stake het daarna om beloningen te verdienen.</string>
   <string name="info_perpetual_auto_close_description">Sluit uw positie automatisch op ingestelde prijsniveaus. Take Profit vergrendelt winsten, Stop Loss beperkt verliezen.</string>
   <string name="info_fully_diluted_valuation_title">Volledig verwaterde waardering</string>
   <string name="info_fully_diluted_valuation_description">De theoretische marktwaarde als alle munten in omloop zouden zijn. Berekend als de prijs vermenigvuldigd met het maximale aanbod.</string>

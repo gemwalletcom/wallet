@@ -9,6 +9,7 @@ import BalanceService
 import BannerService
 import ChainService
 import ConnectionsService
+import ConnectionStatusService
 import ContactService
 import DeviceService
 import DiscoverAssetsService
@@ -24,6 +25,7 @@ import PerpetualService
 import PriceAlertService
 import PriceService
 import RewardsService
+import ServiceStatusService
 import ScanService
 import StakeService
 import StreamService
@@ -43,8 +45,10 @@ extension AppResolver {
         let bannerService: BannerService
         let chainServiceFactory: ChainServiceFactory
         let connectionsService: ConnectionsService
+        let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: DeviceService
         let nodeService: NodeService
+        let serviceStatusService: any ServiceStatusServiceable
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
         let priceAlertService: PriceAlertService
@@ -96,8 +100,10 @@ extension AppResolver {
             bannerService: BannerService,
             chainServiceFactory: ChainServiceFactory,
             connectionsService: ConnectionsService,
+            connectionStatusObserver: ConnectionStatusObserver,
             deviceService: DeviceService,
             nodeService: NodeService,
+            serviceStatusService: any ServiceStatusServiceable,
             navigationHandler: NavigationHandler,
             navigationPresenter: NavigationPresenter,
             priceAlertService: PriceAlertService,
@@ -148,8 +154,10 @@ extension AppResolver {
             self.bannerService = bannerService
             self.chainServiceFactory = chainServiceFactory
             self.connectionsService = connectionsService
+            self.connectionStatusObserver = connectionStatusObserver
             self.deviceService = deviceService
             self.nodeService = nodeService
+            self.serviceStatusService = serviceStatusService
             self.navigationHandler = navigationHandler
             self.navigationPresenter = navigationPresenter
             self.priceAlertService = priceAlertService

@@ -1,4 +1,5 @@
 "common.cancel" = "Soke";
+"common.hidden" = "Ɓoyayye";
 "common.done" = "Anyi";
 "common.maximum_value" = "Matsakaicin ƙima shine %@";
 "common.minimum_value" = "Mafi ƙarancin ƙima shine %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Mafi ƙarancin adadin ciniki shine %@. Da fatan a shigar da adadin da ya fi girma.";
 "errors.perpetual.trigger_price_lower" = "Farashin kunnawa ya kamata ya zama ƙasa da farashin kasuwa";
 "errors.perpetual.trigger_price_higher" = "Farashin kunnawa ya kamata ya zama sama da farashin kasuwa";
+"errors.no_internet_connection" = "Babu haɗin intanet";
+"errors.no_service_connection" = "Babu haɗin sabis";
+"errors.balances_activity_outdated" = "Ma'aunai da ayyuka na iya zama tsofaffi.";
 "activity.title" = "Ayyuka";
 "activity.state.empty.title" = "Ayyukanku za su bayyana a nan";
 "activity.state.empty.description" = "Yi ciniki na farko";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "An tanada don Kudin hanyar sadarwa";
 "info.stake.reserved.description" = "Ƙananan kuɗi yana tsayawa a cikin walat ɗin ku don biyan kuɗi don ayyuka kamar cirewa ko neman lada.";
 "info.stake.apr.description" = "Yawan Kashi na shekara-shekara (APR) shine ƙimar lada na shekara don tara kuɗin cryptocurrency.";
+"info.stake_frozen_required_title" = "Daskare TRX don saka hannun jari";
+"info.stake_frozen_required_description" = "Saka hannun jari a TRON yana da matakai biyu. Da farko ka daskare TRX, sannan ka saka shi don samun lada.";
 "info.perpetual.auto_close.description" = "Rufe matsayinka ta atomatik a saita matakan farashi. Ɗauki makullin riba a cikin riba, Dakatar da Asara yana iyakance asara.";
 "info.fully_diluted_valuation.title" = "Kimantawa Mai Cikakken Nauyi";
 "info.fully_diluted_valuation.description" = "Darajar kasuwa ta ka'ida idan duk tsabar kudi suna yawo. An ƙididdige shi azaman farashi da aka ninka ta hanyar mafi girman wadata.";

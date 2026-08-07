@@ -1,4 +1,5 @@
 "common.cancel" = "Zrušit";
+"common.hidden" = "Skryté";
 "common.done" = "Hotovo";
 "common.maximum_value" = "Maximální hodnota je %@";
 "common.minimum_value" = "Minimální hodnota je %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "Minimální částka obchodu je %@. Zadejte prosím vyšší částku.";
 "errors.perpetual.trigger_price_lower" = "Spouštěcí cena musí být nižší než tržní cena";
 "errors.perpetual.trigger_price_higher" = "Spouštěcí cena musí být vyšší než tržní cena";
+"errors.no_internet_connection" = "Žádné připojení k internetu";
+"errors.no_service_connection" = "Žádné připojení ke službě";
+"errors.balances_activity_outdated" = "Zůstatky a aktivita mohou být zastaralé.";
 "activity.title" = "Aktivita";
 "activity.state.empty.title" = "Vaše aktivita se zde zobrazí";
 "activity.state.empty.description" = "Proveďte svou první transakci";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "Rezervováno pro síťový poplatek";
 "info.stake.reserved.description" = "Malá částka vám zůstane v peněžence na pokrytí poplatků za operace, jako je odstraňování sázek nebo nárokování odměn.";
 "info.stake.apr.description" = "Roční procentní sazba (RPSN) je roční odměna za staking vaší kryptoměny.";
+"info.stake_frozen_required_title" = "Zmrazte TRX pro vsazení";
+"info.stake_frozen_required_description" = "Vsázení na TRONu má dva kroky. Nejprve zmrazte TRX, poté jej vsaďte a získejte odměny.";
 "info.perpetual.auto_close.description" = "Automaticky uzavřete svou pozici na stanovených cenových úrovních. Funkce Take Profit blokuje zisky, Stop Loss omezuje ztráty.";
 "info.fully_diluted_valuation.title" = "Plně zředěné ocenění";
 "info.fully_diluted_valuation.description" = "Teoretická tržní hodnota, pokud by všechny mince byly v oběhu. Vypočítá se jako cena vynásobená maximální nabídkou.";

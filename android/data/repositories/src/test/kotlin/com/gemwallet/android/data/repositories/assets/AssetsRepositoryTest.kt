@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.blockchain.services.BalancesService
+import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -80,7 +81,7 @@ class AssetsRepositoryTest {
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
-        pricesDao = pricesDao,
+        pricesRepository = PricesRepository(pricesDao, sessionRepository),
         sessionRepository = sessionRepository,
         balancesService = balancesService,
         searchTokensCase = searchTokensCase,
@@ -203,6 +204,84 @@ class AssetsRepositoryTest {
         assertEquals(present.id.toIdentifier(), balanceSlot.captured.assetId)
         assertEquals(walletId.id, balanceSlot.captured.walletId)
         assertEquals(false, balanceSlot.captured.isVisible)
+    }
+
+    @Test
+    fun ensureDefaultAssets_addsTronUSDT() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Tron)),
+        )
+        coEvery {
+            assetsDao.getWalletAssetIds(wallet.id.id, listOf(tronUSDT.id.toIdentifier()))
+        } returns emptyList()
+        coEvery {
+            assetsDao.getAssetIds(listOf(tronUSDT.id.toIdentifier()))
+        } returns emptyList()
+
+        val subject = createSubject()
+        subject.ensureDefaultAssets(wallet)
+
+        coVerify { assetsDao.insert(match<DbAsset> { it.id == tronUSDT.id.toIdentifier() }) }
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = wallet.id.id,
+                assetId = tronUSDT.id.toIdentifier(),
+                isVisible = true,
+            )
+        }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(tronUSDT.id)) }
+    }
+
+    @Test
+    fun ensureDefaultAssets_linksStoredTronUSDT() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Tron)),
+        )
+        coEvery {
+            assetsDao.getWalletAssetIds(wallet.id.id, listOf(tronUSDT.id.toIdentifier()))
+        } returns emptyList()
+        coEvery {
+            assetsDao.getAssetIds(listOf(tronUSDT.id.toIdentifier()))
+        } returns listOf(tronUSDT.id.toIdentifier())
+
+        val subject = createSubject()
+        subject.ensureDefaultAssets(wallet)
+
+        coVerify(exactly = 0) { assetsDao.insert(any<DbAsset>()) }
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = wallet.id.id,
+                assetId = tronUSDT.id.toIdentifier(),
+                isVisible = true,
+            )
+        }
+    }
+
+    @Test
+    fun ensureDefaultAssets_preservesExistingVisibility() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Tron)),
+        )
+        coEvery {
+            assetsDao.getWalletAssetIds(wallet.id.id, listOf(tronUSDT.id.toIdentifier()))
+        } returns listOf(tronUSDT.id.toIdentifier())
+
+        val subject = createSubject()
+        subject.ensureDefaultAssets(wallet)
+
+        coVerify(exactly = 0) {
+            assetsDao.setWalletAssetVisibility(
+                walletId = any(),
+                assetId = tronUSDT.id.toIdentifier(),
+                isVisible = any(),
+            )
+        }
     }
 
     @Test

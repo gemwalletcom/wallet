@@ -5,11 +5,11 @@ use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccoun
 #[cfg(test)]
 use crate::models::{InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TronLog};
 #[cfg(test)]
-use crate::rpc::client::TronClient;
-#[cfg(test)]
 use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
 #[cfg(test)]
 use crate::rpc::trongrid::client::TronGridClient;
+#[cfg(test)]
+use crate::rpc::{TronClient, TronProvider};
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_client::ReqwestClient;
 #[cfg(test)]
@@ -130,17 +130,19 @@ impl InternalTransaction {
 }
 
 #[cfg(test)]
-impl TronClient<MockClient> {
+impl TronProvider<MockClient> {
     pub fn mock(get_handler: impl Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static) -> Self {
         let mock = MockClient::new().with_get(get_handler);
-        Self::new(mock.clone(), TronGridClient::new(mock, String::new()))
+        let trongrid = TronGridClient::new(mock.clone(), String::new());
+        Self::new(TronClient::new(mock), Box::new(trongrid.clone()), Box::new(trongrid))
     }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-pub fn create_test_client() -> TronClient<ReqwestClient> {
+pub fn create_test_client() -> TronProvider<ReqwestClient> {
     let settings = get_test_settings();
     let reqwest_client = ReqwestClient::new(settings.chains.tron.url, gem_client::reqwest_client());
-    let trongrid_client = TronGridClient::new(reqwest_client.clone(), settings.trongrid.key.secret);
-    TronClient::new(reqwest_client, trongrid_client)
+    let trongrid = settings.indexer.trongrid.remote_provider_config();
+    let trongrid_client = TronGridClient::new(trongrid.configure_client(reqwest_client.clone()), trongrid.key);
+    TronProvider::new(TronClient::new(reqwest_client), Box::new(trongrid_client.clone()), Box::new(trongrid_client))
 }

@@ -7,6 +7,8 @@ import SwiftUI
 public protocol SimpleListItemViewable {
     var title: String { get }
     var titleStyle: TextStyle { get }
+    var titleExtra: String? { get }
+    var titleStyleExtra: TextStyle { get }
     var assetImage: AssetImage { get }
 
     var subtitle: String? { get }
@@ -21,6 +23,14 @@ public protocol SimpleListItemViewable {
 public extension SimpleListItemViewable {
     var titleStyle: TextStyle {
         .body
+    }
+
+    var titleExtra: String? {
+        .none
+    }
+
+    var titleStyleExtra: TextStyle {
+        .footnote
     }
 
     var imageSize: CGFloat {
@@ -59,6 +69,8 @@ public struct SimpleListItemView: View {
         ListItemView(
             title: model.title,
             titleStyle: model.titleStyle,
+            titleExtra: model.titleExtra,
+            titleStyleExtra: model.titleStyleExtra,
             subtitle: model.subtitle,
             subtitleStyle: model.subtitleStyle,
             subtitleExtra: model.subtitleExtra,

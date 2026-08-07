@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = Anula
+common_hidden = Ascunse
 common_done = Gata
 common_maximum_value = Valoarea maximă este %@
 common_minimum_value = Valoarea minimă este %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = Nu se pot prelua informații despr
 errors_unknown_try_again = A apărut o eroare necunoscută. Vă rugăm să încercați din nou.
 errors_network_error = Eroare de rețea: %@
 errors_network_offline = Conexiunea la internet pare să fie offline.
+errors_no_internet_connection = Nicio conexiune la internet
+errors_no_service_connection = Nicio conexiune la serviciu
+errors_balances_activity_outdated = Soldurile și activitatea pot fi învechite.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = Nu se poate returna o cotație pentru perechea de to
 info_stake_reserved_title = Rezervat pentru comision de rețea
 info_stake_reserved_description = O sumă mică rămâne în portofelul tău pentru a acoperi comisioanele aferente operațiunilor precum unstaking-ul sau revendicarea recompenselor.
 info_stake_apr_description = Rata anuală procentuală (APR) este rata anuală de recompensă pentru plasarea criptomonedei tale.
+info_stake_frozen_required_title = Îngheață TRX pentru a miza
+info_stake_frozen_required_description = Mizarea pe TRON are doi pași. Mai întâi îngheață TRX, apoi mizează-l pentru a câștiga recompense.
 info_perpetual_auto_close_description = Închide automat poziția la nivelurile de preț stabilite. Funcția Take Profit blochează câștigurile, iar funcția Stop Loss limitează pierderile.
 info_fully_diluted_valuation_title = Evaluare complet diluată
 info_fully_diluted_valuation_description = Valoarea teoretică de piață ar rezulta în cazul în care toate monedele ar fi în circulație. Calculată ca preț înmulțit cu oferta maximă.

@@ -1,4 +1,5 @@
 "common.cancel" = "يلغي";
+"common.hidden" = "مخفية";
 "common.done" = "تم";
 "common.maximum_value" = "القيمة القصوى هي %@";
 "common.minimum_value" = "القيمة الدنيا هي %@";
@@ -205,6 +206,9 @@
 "errors.swap.minimum_amount" = "الحد الأدنى لمبلغ التداول هو %@. يرجى إدخال مبلغ أعلى.";
 "errors.perpetual.trigger_price_lower" = "يجب أن يكون سعر التفعيل أقل من سعر السوق";
 "errors.perpetual.trigger_price_higher" = "يجب أن يكون سعر التفعيل أعلى من سعر السوق";
+"errors.no_internet_connection" = "لا يوجد اتصال بالإنترنت";
+"errors.no_service_connection" = "لا يوجد اتصال بالخدمة";
+"errors.balances_activity_outdated" = "قد تكون الأرصدة والنشاط غير محدثة.";
 "activity.title" = "نشاط";
 "activity.state.empty.title" = "سوف يظهر نشاطك هنا";
 "activity.state.empty.description" = "قم بإجراء معاملتك الأولى";
@@ -441,6 +445,8 @@
 "info.stake.reserved.title" = "محجوز لرسوم الشبكة";
 "info.stake.reserved.description" = "يبقى مبلغ صغير في محفظتك لتغطية الرسوم الخاصة بالعمليات مثل إلغاء المراهنة أو المطالبة بالمكافآت.";
 "info.stake.apr.description" = "معدل النسبة السنوية (APR) هو معدل المكافأة السنوي لمراهنة العملة المشفرة الخاصة بك.";
+"info.stake_frozen_required_title" = "جمّد TRX للتخزين";
+"info.stake_frozen_required_description" = "يتم التخزين على TRON عبر خطوتين. جمّد TRX أولاً، ثم قم بتخزينه لكسب المكافآت.";
 "info.perpetual.auto_close.description" = "أغلق مركزك تلقائيًا عند مستويات الأسعار المحددة. جني الأرباح يُثبّت الأرباح، ووقف الخسارة يحدّ من الخسائر.";
 "info.fully_diluted_valuation.title" = "التقييم المخفف بالكامل";
 "info.fully_diluted_valuation.description" = "القيمة السوقية النظرية في حال تداول جميع العملات. تُحسب بضرب السعر في الحد الأقصى للعرض.";

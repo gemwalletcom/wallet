@@ -1,0 +1,29 @@
+{
+  "jetton_masters": [
+    {
+      "address": "0:65AAC9B5E380EAE928DB3C8E238D9BC0D61A9320FDC2BC7A2F6C87D6FEDF9208",
+      "jetton_content": {
+        "uri": "ipfs://QmeebZm4sCmXGdM9iiD8TtYDyQwyFa3Dm27hxonVQyFT4P"
+      }
+    }
+  ],
+  "metadata": {
+    "0:65AAC9B5E380EAE928DB3C8E238D9BC0D61A9320FDC2BC7A2F6C87D6FEDF9208": {
+      "is_indexed": true,
+      "token_info": [
+        {
+          "valid": true,
+          "type": "jetton_masters",
+          "name": "DeDust",
+          "symbol": "DUST",
+          "description": "DUST is the governance token for the DeDust Protocol.",
+          "image": "https://assets.dedust.io/images/dust.gif",
+          "extra": {
+            "address": "0:65AAC9B5E380EAE928DB3C8E238D9BC0D61A9320FDC2BC7A2F6C87D6FEDF9208",
+            "uri": "ipfs://QmeebZm4sCmXGdM9iiD8TtYDyQwyFa3Dm27hxonVQyFT4P"
+          }
+        }
+      ]
+    }
+  }
+}

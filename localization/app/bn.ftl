@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = বাতিল করুন
+common_hidden = লুকানো
 common_done = সম্পন্ন
 common_maximum_value = সর্বোচ্চ মান %@
 common_minimum_value = সর্বনিম্ন মান %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = টোকেন তথ্য আ�
 errors_unknown_try_again = একটি অজানা ত্রুটি ঘটেছে. আবার চেষ্টা করুন.
 errors_network_error = নেটওয়ার্ক ত্রুটি: %@
 errors_network_offline = ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।
+errors_no_internet_connection = ইন্টারনেট সংযোগ নেই
+errors_no_service_connection = পরিষেবা সংযোগ নেই
+errors_balances_activity_outdated = ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = নির্বাচিত টোকেন জো�
 info_stake_reserved_title = নেটওয়ার্ক ফি এর জন্য সংরক্ষিত
 info_stake_reserved_description = পুরষ্কার দাবি করা বা আনস্টেক করার মতো ক্রিয়াকলাপের ফি মেটাতে আপনার ওয়ালেটে অল্প পরিমাণ টাকা থেকে যায়।
 info_stake_apr_description = বার্ষিক শতাংশ হার (এপিআর) হল আপনার ক্রিপ্টোকারেন্সি শেয়ার করার জন্য বার্ষিক পুরষ্কারের হার।
+info_stake_frozen_required_title = স্টেক করতে TRX ফ্রিজ করুন
+info_stake_frozen_required_description = TRON-এ স্টেকিং দুই ধাপে হয়। প্রথমে TRX ফ্রিজ করুন, তারপর পুরস্কার পেতে সেটি স্টেক করুন।
 info_perpetual_auto_close_description = নির্ধারিত মূল্য স্তরে আপনার পজিশন স্বয়ংক্রিয়ভাবে বন্ধ করুন। টেক প্রফিট লাভকে আটকে রাখে, স্টপ লস লোকসানকে সীমাবদ্ধ করে।
 info_fully_diluted_valuation_title = সম্পূর্ণরূপে লঘুকৃত মূল্যায়ন
 info_fully_diluted_valuation_description = যদি সমস্ত মুদ্রা প্রচলিত থাকে, তাহলে তাত্ত্বিক বাজার মূল্য। সর্বোচ্চ সরবরাহ দ্বারা গুণিত মূল্য হিসাবে গণনা করা হয়।

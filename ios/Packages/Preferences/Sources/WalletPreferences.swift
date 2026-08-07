@@ -13,6 +13,7 @@ public final class WalletPreferences: @unchecked Sendable {
         static let completeInitialLoadTransactions = "complete_initial_load_transactions"
         static let completeInitialLoadNFTs = "complete_initial_load_nfts"
         static let completeInitialWalletConfiguration = "complete_initial_wallet_configuration"
+        static let perpetualAccountMode = "perpetual_account_mode"
     }
 
     private let defaults: UserDefaults
@@ -21,6 +22,11 @@ public final class WalletPreferences: @unchecked Sendable {
     public init(walletId: WalletId) {
         suiteName = Self.suiteName(walletId: walletId.id)
         defaults = UserDefaults(suiteName: suiteName)!
+    }
+
+    public var perpetualAccountMode: PerpetualAccountMode {
+        set { defaults.setValue(newValue.rawValue, forKey: Keys.perpetualAccountMode) }
+        get { defaults.string(forKey: Keys.perpetualAccountMode).flatMap(PerpetualAccountMode.init(rawValue:)) ?? .standard }
     }
 
     public var completeInitialLoadAssets: Bool {

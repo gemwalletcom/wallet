@@ -83,10 +83,8 @@ public struct PriceAlertService: Sendable {
     }
 
     public func enablePriceAlerts() async throws {
-        if !preferences.isPriceAlertsEnabled {
-            preferences.isPriceAlertsEnabled = true
-            try await deviceService.update()
-        }
+        preferences.isPriceAlertsEnabled = true
+        try await deviceService.update()
     }
 
     public func delete(priceAlerts: [PriceAlert]) async throws {

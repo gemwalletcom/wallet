@@ -21,8 +21,8 @@ use job_runner::{JobHandle, ShutdownReceiver};
 use markets_updater::MarketsUpdater;
 use missing_prices_publisher::MissingPricesPublisher;
 use observed_prices_updater::{ObservedPricesConfig, ObservedPricesUpdater};
-use pricer::{MarketsClient, PriceClient, PriceProviders, build_price_providers};
-use prices::{PriceAssetsProvider, PriceProvider, PriceProviderEndpoints};
+use pricer::{MarketsClient, PriceClient};
+use prices::{PriceAssetsProvider, PriceProvider, PriceProviderConfig, PriceProviders, build_price_providers};
 use prices_cleanup_updater::PricesCleanupUpdater;
 use prices_metrics_updater::PricesMetricsUpdater;
 use prices_updater::PricesUpdater;
@@ -48,8 +48,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
         .filter(|p| p.enabled)
         .map(|p| p.id.0)
         .collect();
-    let endpoints = price_provider_endpoints(&settings);
-    let assets_providers: AssetsProviders = Arc::new(build_price_providers(&endpoints, enabled_providers.iter().copied()));
+    let assets_providers: AssetsProviders = Arc::new(price_providers(&settings, enabled_providers.iter().copied()));
     let price_client = PriceClient::new(database.clone(), cacher_client.clone());
 
     let builder = ctx.plan_builder(WorkerService::Prices, config.as_ref(), shutdown_rx);
@@ -151,6 +150,7 @@ fn add_provider_jobs<'a>(
     producer_prices: &StreamProducer,
 ) -> Result<JobPlanBuilder<'a>, Box<dyn Error + Send + Sync>> {
     let mut builder = builder;
+    let assets_limit = config.get_param_usize(&ConfigParamKey::PriceProviderAssetsLimit(kind))?;
     builder = add_updater_job(
         builder,
         database,
@@ -161,7 +161,7 @@ fn add_provider_jobs<'a>(
         kind,
         WorkerJob::UpdatePricesAssets,
         ConfigParamKey::PriceProviderAssetsDuration(kind),
-        |u| async move { u.update_assets().await },
+        move |u| async move { u.update_assets(assets_limit).await },
     )?;
     builder = add_updater_job(
         builder,
@@ -241,14 +241,14 @@ fn add_provider_jobs<'a>(
                 }),
             )
             .job(WorkerJob::UpdateMarkets, {
-                let coingecko = CoinGeckoClient::new(&settings.coingecko.key.secret);
+                let coingecko = CoinGeckoClient::new(&settings.prices.coingecko.key.secret);
                 let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
                 move |_| {
                     let updater = MarketsUpdater::new(markets_client.clone(), coingecko.clone());
                     Box::pin(async move { updater.update_markets().await })
                 }
             }),
-        PriceProvider::Pyth | PriceProvider::Jupiter | PriceProvider::DefiLlama => add_updater_job(
+        PriceProvider::Pyth | PriceProvider::Jupiter | PriceProvider::DefiLlama | PriceProvider::TonApi => add_updater_job(
             builder,
             database,
             price_client,
@@ -285,17 +285,18 @@ where
     Ok(builder.job(variant, provider_job(database, price_client, provider.clone(), producer.clone(), run)))
 }
 
-fn price_provider_endpoints(settings: &Settings) -> PriceProviderEndpoints {
-    PriceProviderEndpoints {
-        coingecko_api_key: settings.coingecko.key.secret.clone(),
-        pyth_url: settings.prices.pyth.url.clone(),
-        jupiter_url: settings.prices.jupiter.url.clone(),
-        defillama_url: settings.prices.defillama.url.clone(),
-    }
-}
-
-pub fn price_providers(settings: &Settings) -> PriceProviders {
-    build_price_providers(&price_provider_endpoints(settings), PriceProvider::all())
+pub fn price_providers(settings: &Settings, providers: impl IntoIterator<Item = PriceProvider>) -> PriceProviders {
+    build_price_providers(
+        &PriceProviderConfig {
+            coingecko_api_key: settings.prices.coingecko.key.secret.clone(),
+            pyth: settings.prices.pyth.remote_provider_config(),
+            jupiter: settings.prices.jupiter.remote_provider_config(),
+            defillama: settings.prices.defillama.remote_provider_config(),
+            tonapi: settings.prices.tonapi.remote_provider_config(),
+            stonfi: settings.prices.stonfi.remote_provider_config(),
+        },
+        providers,
+    )
 }
 
 fn charts_history_job(

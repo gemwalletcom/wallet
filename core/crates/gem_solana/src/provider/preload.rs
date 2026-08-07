@@ -8,7 +8,10 @@ use primitives::{
     Chain, FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
 };
 
-use crate::{METAPLEX_CORE_PROGRAM, get_token_program_id_by_address, metaplex_core, rpc::client::SolanaClient};
+use crate::{
+    METAPLEX_CORE_PROGRAM, get_token_program_id_by_address, metaplex_core,
+    rpc::{SolanaClient, SolanaProvider},
+};
 
 struct SolanaNftPreload {
     token_program: Option<SolanaTokenProgramId>,
@@ -17,7 +20,7 @@ struct SolanaNftPreload {
 
 #[cfg(feature = "rpc")]
 #[async_trait]
-impl<C: Client + Clone> ChainTransactionLoad for SolanaClient<C> {
+impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let TransactionPreloadInput {
             input_type,
@@ -143,7 +146,7 @@ mod chain_integration_tests {
         };
         let result = client.get_transaction_preload(input).await?;
 
-        println!("Tranasction load metadata: {:?}", result);
+        println!("Transaction load metadata: {:?}", result);
 
         assert!(result.get_block_hash()?.len() == 44);
         assert!(result.get_sender_token_address()?.is_none());
@@ -163,7 +166,7 @@ mod chain_integration_tests {
 
         let result = client.get_transaction_preload(input).await?;
 
-        println!("Tranasction load metadata: {:?}", result);
+        println!("Transaction load metadata: {:?}", result);
 
         assert!(result.get_block_hash()?.len() == 44);
         assert!(result.get_sender_token_address()? == Some("HEeranxp3y7kVQKVSLdZW1rUmnbs7bAtUTMu8o88Jash".to_string()));

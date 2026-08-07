@@ -187,6 +187,10 @@ open class BaseAssetSelectViewModel(
         return true
     }
 
+    fun setChainFilter(chains: List<Chain>) {
+        chainFilter.value = chains
+    }
+
     fun onChainFilter(chain: Chain) {
         chainFilter.update {
             val chains = it.toMutableList()

@@ -1,0 +1,106 @@
+use gem_jsonrpc::types::ToJsonRpcRequest;
+use serde_json::json;
+
+use crate::method;
+
+#[derive(Clone, Debug)]
+pub enum NearRpc {
+    GetAccount(String),
+    GetAccountAccessKey { address: String, public_key: String },
+    GetGasPrice,
+    GetLatestBlock,
+    GetStatus,
+    GetTransactionStatus { transaction_hash: String, sender_account_id: String },
+    SendTransaction(String),
+}
+
+impl ToJsonRpcRequest for NearRpc {
+    fn method(&self) -> &'static str {
+        match self {
+            Self::GetAccount(_) | Self::GetAccountAccessKey { .. } => method::QUERY,
+            Self::GetGasPrice => method::GAS_PRICE,
+            Self::GetLatestBlock => method::BLOCK,
+            Self::GetStatus => method::STATUS,
+            Self::GetTransactionStatus { .. } => method::TRANSACTION,
+            Self::SendTransaction(_) => method::SEND_TRANSACTION,
+        }
+    }
+
+    fn params(&self) -> serde_json::Value {
+        match self {
+            Self::GetAccount(address) => json!({
+                "request_type": "view_account",
+                "finality": "final",
+                "account_id": address
+            }),
+            Self::GetAccountAccessKey { address, public_key } => json!({
+                "request_type": "view_access_key",
+                "finality": "final",
+                "account_id": address,
+                "public_key": public_key
+            }),
+            Self::GetGasPrice => json!([null]),
+            Self::GetLatestBlock => json!({"finality": "final"}),
+            Self::GetStatus => json!([]),
+            Self::GetTransactionStatus {
+                transaction_hash,
+                sender_account_id,
+            } => json!({
+                "tx_hash": transaction_hash,
+                "sender_account_id": sender_account_id,
+                "wait_until": "EXECUTED"
+            }),
+            Self::SendTransaction(signed_transaction) => json!({"signed_tx_base64": signed_transaction}),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_request(rpc: NearRpc, method: &str, params: serde_json::Value) {
+        let request = rpc.to_jsonrpc_request(42);
+        assert_eq!(request.id, 42);
+        assert_eq!(request.method, method);
+        assert_eq!(request.params, params);
+    }
+
+    #[test]
+    fn builds_access_key_query() {
+        assert_request(
+            NearRpc::GetAccountAccessKey {
+                address: "account.near".into(),
+                public_key: "ed25519:key".into(),
+            },
+            method::QUERY,
+            json!({
+                "request_type": "view_access_key",
+                "finality": "final",
+                "account_id": "account.near",
+                "public_key": "ed25519:key"
+            }),
+        );
+    }
+
+    #[test]
+    fn builds_transaction_status_request() {
+        assert_request(
+            NearRpc::GetTransactionStatus {
+                transaction_hash: "hash".into(),
+                sender_account_id: "account.near".into(),
+            },
+            method::TRANSACTION,
+            json!({"tx_hash": "hash", "sender_account_id": "account.near", "wait_until": "EXECUTED"}),
+        );
+    }
+
+    #[test]
+    fn builds_broadcast_request() {
+        assert_request(
+            NearRpc::SendTransaction("signed-transaction".into()),
+            method::SEND_TRANSACTION,
+            json!({"signed_tx_base64": "signed-transaction"}),
+        );
+    }
+}

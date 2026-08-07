@@ -78,7 +78,11 @@ internal fun WalletImageScene(
                 size = extraLargeIconSize,
                 modifier = Modifier.padding(top = paddingDefault),
                 supportIcon = wallet.type.supportIcon(),
-                onClick = { onAction(WalletImageAction.ResetToDefault) },
+                onRemove = if (wallet.hasAvatar) {
+                    { onAction(WalletImageAction.ResetToDefault) }
+                } else {
+                    null
+                },
             )
             Spacer16()
             when (source) {

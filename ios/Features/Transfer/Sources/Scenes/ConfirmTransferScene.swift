@@ -27,13 +27,12 @@ public struct ConfirmTransferScene: View {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .onChange(of: model.feeModel.selection) { _, _ in
-            model.onChangeFeeSelection()
+        .task(id: model.feeModel.selection) {
+            await model.fetch()
         }
-        .taskOnce { model.fetch() }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
-        .activityIndicator(isLoading: model.confirmingState.isLoading, message: model.progressMessage)
+        .activityIndicator(isLoading: model.isConfirming, message: model.progressMessage)
         .alertSheet($model.isPresentingAlertMessage)
         .bindQuery(model.recipientAddressNameQuery)
     }
@@ -89,19 +88,11 @@ extension ConfirmTransferScene {
         case let .warnings(warnings):
             SimulationWarningsContent(warnings: warnings)
         case let .balanceChange(model):
-            let row = ListItemView(
+            ListItemView(
                 title: TextValue(text: model.assetTitle, style: .body, lineLimit: 1, truncationMode: .tail),
                 subtitle: model.amount,
                 imageStyle: .list(assetImage: model.assetImage, cornerRadiusType: .rounded),
             )
-            if model.isUnknown, let url = model.explorerTokenURL {
-                NavigationCustomLink(
-                    with: row,
-                    action: { self.model.onSelectUnknownBalanceChange(url) },
-                )
-            } else {
-                row
-            }
         case let .payload(fields):
             Group {
                 SimulationPayloadFieldsContent(

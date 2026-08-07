@@ -49,7 +49,16 @@ extension StakeScene {
 
     private var stakeSection: some View {
         Section(Localized.Common.manage) {
-            if model.showStake {
+            if let stakeInfoAction = model.stakeInfoAction {
+                NavigationCustomLink(
+                    with: ListItemView(
+                        title: model.stakeTitle,
+                        titleStyle: .bodySecondary,
+                        infoAction: stakeInfoAction,
+                    ),
+                    action: stakeInfoAction,
+                )
+            } else {
                 NavigationLink(value: model.stakeDestination) {
                     ListItemView(title: model.stakeTitle)
                 }

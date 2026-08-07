@@ -8,9 +8,7 @@ const ETHEREUM_RECOVERY_ID_OFFSET: u8 = 27;
 /// Returns (signature_bytes, recovery_id) where recovery_id ∈ {0, 1}.
 pub(crate) fn sign_digest(digest: &[u8], private_key: &[u8]) -> Result<(Vec<u8>, u8), SignerError> {
     let signing_key = SecpSigningKey::from_slice(private_key).map_err(|_| SignerError::signing_error("Invalid Secp256k1 private key"))?;
-    let (signature, recovery_id) = signing_key
-        .sign_prehash_recoverable(digest)
-        .map_err(|_| SignerError::signing_error("Failed to sign Secp256k1 digest"))?;
+    let (signature, recovery_id) = signing_key.sign_prehash_recoverable(digest);
     Ok((signature.to_bytes().to_vec(), u8::from(recovery_id)))
 }
 
@@ -33,7 +31,7 @@ pub fn public_key_from_private(private_key: &[u8]) -> Result<Vec<u8>, SignerErro
 
 pub fn uncompressed_public_key_from_private(private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
     let signing_key = SecpSigningKey::from_slice(private_key).map_err(|_| SignerError::invalid_input("Invalid Secp256k1 private key"))?;
-    Ok(signing_key.verifying_key().to_encoded_point(false).as_bytes().to_vec())
+    Ok(signing_key.verifying_key().to_sec1_point(false).as_bytes().to_vec())
 }
 
 /// Ensure a 65-byte signature uses Ethereum's 27/28 recovery id convention.
@@ -57,13 +55,17 @@ mod tests {
     const DIGEST: [u8; 32] = [7u8; 32];
 
     #[test]
-    fn sign_digest_returns_raw_recovery_id() {
+    fn sign_digest_matches_compatibility_vector_and_recovers_key() {
         let private_key = hex::decode(TEST_PRIVATE_KEY).unwrap();
         let (rs, v) = sign_digest(&DIGEST, &private_key).unwrap();
         let signing_key = SecpSigningKey::from_slice(&private_key).unwrap();
 
         assert_eq!(rs.len(), 64);
         assert!(matches!(v, 0 | 1), "raw recovery id must be 0 or 1, got {v}");
+        assert_eq!(
+            hex::encode([rs.as_slice(), &[v]].concat()),
+            "39b9017b040c7c8a2adeb56e09f0540878db3a5981c52b7c3beb9853ce5e6aff1ed8a577616609cdfa6dc9c671bc0d62f46304526546be28d40d1b7c6ee864b801"
+        );
 
         let recovery_id = RecoveryId::from_byte(v).unwrap();
         let signature = Signature::try_from(rs.as_slice()).unwrap();

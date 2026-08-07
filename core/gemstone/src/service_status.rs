@@ -1,0 +1,75 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::Instant;
+
+use primitives::{GEM_API_HOST, node_config::NodeRegion};
+
+use crate::GemstoneError;
+use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
+
+#[uniffi::export]
+pub fn service_status_timeout_seconds() -> u32 {
+    gem_client::DEFAULT_REQUEST_TIMEOUT.as_secs() as u32
+}
+
+#[derive(uniffi::Enum, Clone, Debug, PartialEq, Eq)]
+pub enum GemServiceEndpointType {
+    Api,
+    GemNode,
+}
+
+#[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
+pub struct GemServiceEndpoint {
+    pub endpoint_type: GemServiceEndpointType,
+    pub host: String,
+    pub url: String,
+    pub flag: String,
+}
+
+impl GemServiceEndpoint {
+    fn new(endpoint_type: GemServiceEndpointType, host: &str, flag: &str) -> Self {
+        Self {
+            endpoint_type,
+            host: host.to_string(),
+            url: format!("https://{host}"),
+            flag: flag.to_string(),
+        }
+    }
+}
+
+#[derive(uniffi::Object)]
+pub struct GemServiceStatus {
+    provider: Arc<dyn AlienProvider>,
+}
+
+#[uniffi::export]
+impl GemServiceStatus {
+    #[uniffi::constructor]
+    pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
+        Self { provider }
+    }
+
+    pub fn get_endpoints(&self) -> Vec<GemServiceEndpoint> {
+        [GemServiceEndpoint::new(GemServiceEndpointType::Api, GEM_API_HOST, NodeRegion::Us.flag())]
+            .into_iter()
+            .chain(
+                NodeRegion::all()
+                    .into_iter()
+                    .map(|region| GemServiceEndpoint::new(GemServiceEndpointType::GemNode, region.host(), region.flag())),
+            )
+            .collect()
+    }
+
+    pub async fn get_endpoint_latency(&self, url: String) -> Result<u64, GemstoneError> {
+        let target = AlienTarget {
+            url,
+            method: AlienHttpMethod::Get,
+            headers: Some(HashMap::from([("Cache-Control".to_string(), "no-cache".to_string())])),
+            body: None,
+        };
+        let start_time = Instant::now();
+        self.provider.request(target).await?;
+
+        Ok(start_time.elapsed().as_millis() as u64)
+    }
+}

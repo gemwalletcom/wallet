@@ -1,6 +1,7 @@
 # Common
 
 common_cancel = يلغي
+common_hidden = مخفية
 common_done = تم
 common_maximum_value = القيمة القصوى هي %@
 common_minimum_value = القيمة الدنيا هي %@
@@ -246,6 +247,9 @@ errors_token_unable_fetch_token_information = غير قادر على جلب مع
 errors_unknown_try_again = حدث خطأ غير معروف. يرجى المحاولة مرة أخرى.
 errors_network_error = خطأ في الشبكة: %@
 errors_network_offline = يبدو أن الاتصال بالإنترنت غير متاح.
+errors_no_internet_connection = لا يوجد اتصال بالإنترنت
+errors_no_service_connection = لا يوجد اتصال بالخدمة
+errors_balances_activity_outdated = قد تكون الأرصدة والنشاط غير محدثة.
 
 # Activity
 
@@ -561,6 +565,8 @@ info_no_quote_description = تعذر إرجاع عرض الأسعار لزوج �
 info_stake_reserved_title = محجوز لرسوم الشبكة
 info_stake_reserved_description = يبقى مبلغ صغير في محفظتك لتغطية الرسوم الخاصة بالعمليات مثل إلغاء المراهنة أو المطالبة بالمكافآت.
 info_stake_apr_description = معدل النسبة السنوية (APR) هو معدل المكافأة السنوي لمراهنة العملة المشفرة الخاصة بك.
+info_stake_frozen_required_title = جمّد TRX للتخزين
+info_stake_frozen_required_description = يتم التخزين على TRON عبر خطوتين. جمّد TRX أولاً، ثم قم بتخزينه لكسب المكافآت.
 info_perpetual_auto_close_description = أغلق مركزك تلقائيًا عند مستويات الأسعار المحددة. جني الأرباح يُثبّت الأرباح، ووقف الخسارة يحدّ من الخسائر.
 info_fully_diluted_valuation_title = التقييم المخفف بالكامل
 info_fully_diluted_valuation_description = القيمة السوقية النظرية في حال تداول جميع العملات. تُحسب بضرب السعر في الحد الأقصى للعرض.

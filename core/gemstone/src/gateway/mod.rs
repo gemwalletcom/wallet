@@ -170,6 +170,11 @@ impl GemGateway {
         self.with_provider(chain, |provider| async move { provider.get_positions(address).await }).await
     }
 
+    pub async fn get_perpetual_account_mode(&self, chain: Chain, address: String) -> Result<GemPerpetualAccountMode, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_perpetual_account_mode(address).await })
+            .await
+    }
+
     pub async fn get_perpetuals_data(&self, chain: Chain) -> Result<Vec<GemPerpetualData>, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_perpetuals_data().await }).await
     }
@@ -212,18 +217,8 @@ impl GemGateway {
     }
 
     pub async fn get_node_status(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
-        let start_time = std::time::Instant::now();
         let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
-
-        let (chain_id, latest_block_number) = futures::try_join!(provider.get_chain_id(), provider.get_block_latest_number()).map_err(map_network_error)?;
-
-        let latency_ms = start_time.elapsed().as_millis() as u64;
-
-        Ok(GemNodeStatus {
-            chain_id,
-            latest_block_number,
-            latency_ms,
-        })
+        provider.get_nodes_status().await.map_err(map_network_error)
     }
 }
 

@@ -11,6 +11,7 @@ import BannerService
 import Blockchain
 import ChainService
 import ConnectionsService
+import ConnectionStatusService
 import ContactService
 import DeviceService
 import DiscoverAssetsService
@@ -21,7 +22,6 @@ import FiatService
 import Foundation
 import GemAPI
 import GemAPIDevice
-import Gemstone
 import GemstonePrimitives
 import Keystore
 import NameService
@@ -36,6 +36,7 @@ import PriceService
 import Primitives
 import RewardsService
 import ScanService
+import ServiceStatusService
 import StakeService
 import Store
 import StreamService
@@ -66,13 +67,13 @@ struct ServicesFactory {
         let deviceProvider = Provider<GemDeviceAPI>(options: ProviderOptions(baseUrl: nil, requestInterceptor: interceptor))
         let deviceAPIService = GemDeviceService(deviceProvider: deviceProvider)
 
-        let subscriptionService = Self.makeSubscriptionService(
+        let subscriptionService = SubscriptionService(
             subscriptionProvider: deviceAPIService,
             walletStore: storeManager.walletStore,
         )
-        let deviceService = Self.makeDeviceService(
+        let deviceService = DeviceService(
             deviceProvider: deviceAPIService,
-            subscriptionService: subscriptionService,
+            subscriptionsService: subscriptionService,
             securePreferences: securePreferences,
         )
         let apiService = GemAPIService(
@@ -91,52 +92,58 @@ struct ServicesFactory {
         let nodeService = NodeService(nodeStore: storeManager.nodeStore)
         let nodeAuthProvider = NodeAuthTokenProvider(securePreferences: securePreferences)
         let nodeProvider: any NodeURLFetchable = nodeService
+        let connectionStatusObserver = ConnectionStatusObserver(
+            monitors: [
+                InternetConnectionMonitor(),
+            ],
+        )
         let nativeProvider = NativeProvider(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
         let gatewayService = GatewayService(provider: nativeProvider)
+        let serviceStatusService = ServiceStatusService(requestInterceptor: nodeAuthProvider)
         let chainServiceFactory = ChainServiceFactory(
             gatewayService: gatewayService,
             requestInterceptor: nodeAuthProvider,
         )
 
         let avatarService = AvatarService(store: storeManager.walletStore)
-        let assetsService = Self.makeAssetsService(
+        let assetsService = AssetsService(
             assetStore: storeManager.assetStore,
             balanceStore: storeManager.balanceStore,
             priceStore: storeManager.priceStore,
-            chainFactory: chainServiceFactory,
+            chainServiceFactory: chainServiceFactory,
         )
 
         let walletSessionService = WalletSessionService(
             walletStore: storeManager.walletStore,
             preferences: storages.observablePreferences,
         )
-        let walletService = Self.makeWalletService(
-            preferences: storages.observablePreferences,
+        let walletService = WalletService(
             keystore: storages.keystore,
             walletStore: storeManager.walletStore,
+            preferences: storages.observablePreferences,
             avatarService: avatarService,
             walletSessionService: walletSessionService,
         )
-        let balanceService = Self.makeBalanceService(
+        let balanceService = BalanceService(
             balanceStore: storeManager.balanceStore,
             assetsService: assetsService,
-            chainFactory: chainServiceFactory,
+            chainServiceFactory: chainServiceFactory,
         )
         let earnService = EarnService(
             store: storeManager.stakeStore,
             gatewayService: gatewayService,
         )
-        let stakeService = Self.makeStakeService(
-            stakeStore: storeManager.stakeStore,
+        let stakeService = StakeService(
+            store: storeManager.stakeStore,
             addressStore: storeManager.addressStore,
-            chainFactory: chainServiceFactory,
+            chainServiceFactory: chainServiceFactory,
         )
-        let nftService = Self.makeNftService(
+        let nftService = NFTService(
             apiService: apiService,
             nftStore: storeManager.nftStore,
         )
-        let transactionsService = Self.makeTransactionsService(
-            apiService: apiService,
+        let transactionsService = TransactionsService(
+            provider: apiService,
             transactionStore: storeManager.transactionStore,
             assetsService: assetsService,
             addressStore: storeManager.addressStore,
@@ -153,9 +160,9 @@ struct ServicesFactory {
         let preferences = storages.observablePreferences.preferences
         let pushNotificationEnablerService = PushNotificationEnablerService(preferences: preferences)
         let bannerSetupService = BannerSetupService(store: storeManager.bannerStore, preferences: preferences)
-        let bannerService = Self.makeBannerService(
-            bannerStore: storeManager.bannerStore,
-            pushNotificationEnablerService: pushNotificationEnablerService,
+        let bannerService = BannerService(
+            store: storeManager.bannerStore,
+            pushNotificationService: pushNotificationEnablerService,
         )
         let navigationPresenter = NavigationPresenter()
         let navigationHandler = NavigationHandler(
@@ -163,7 +170,7 @@ struct ServicesFactory {
             presenter: navigationPresenter,
             assetsService: assetsService,
             transactionsService: transactionsService,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
         )
 
         let priceService = PriceService(
@@ -252,12 +259,12 @@ struct ServicesFactory {
         )
         let rateService = RateService(preferences: preferences)
 
-        let onStartService = Self.makeOnstartService(
+        let onStartService = OnstartService(
             assetListService: apiService,
+            assetsService: assetsService,
             assetStore: storeManager.assetStore,
             nodeStore: storeManager.nodeStore,
             preferences: preferences,
-            assetsService: assetsService,
             walletService: walletService,
         )
         let onstartAsyncService = Self.makeOnstartAsyncService(
@@ -269,7 +276,7 @@ struct ServicesFactory {
             configService: configService,
             swappableChainsProvider: swapService,
         )
-        let onstartWalletService = Self.makeOnstartWalletService(
+        let onstartWalletService = OnstartWalletService(
             deviceService: deviceService,
             bannerSetupService: bannerSetupService,
             walletConfigurationService: apiService,
@@ -302,7 +309,6 @@ struct ServicesFactory {
         )
         let inAppNotificationService = InAppNotificationService(
             apiService: apiService,
-            walletService: walletService,
             store: storeManager.inAppNotificationStore,
         )
 
@@ -311,6 +317,7 @@ struct ServicesFactory {
         let appLifecycleService = AppLifecycleService(
             preferences: preferences,
             connectionsService: connectionsService,
+            connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
@@ -324,7 +331,7 @@ struct ServicesFactory {
             swapService: swapService,
             assetsEnabler: assetsEnabler,
             priceUpdater: streamSubscriptionService,
-            walletService: walletService,
+            walletSessionService: walletSessionService,
             stakeService: stakeService,
             earnService: earnService,
             amountService: AmountService(earnDataProvider: earnService),
@@ -337,6 +344,10 @@ struct ServicesFactory {
             eventPresenterService: eventPresenterService,
             fiatService: fiatService,
             assetsService: assetsService,
+            assetSearchService: assetSearchService,
+            priceAlertService: priceAlertService,
+            walletSearchService: walletSearchService,
+            perpetualService: perpetualService,
         )
 
         return AppResolver.Services(
@@ -345,8 +356,10 @@ struct ServicesFactory {
             bannerService: bannerService,
             chainServiceFactory: chainServiceFactory,
             connectionsService: connectionsService,
+            connectionStatusObserver: connectionStatusObserver,
             deviceService: deviceService,
             nodeService: nodeService,
+            serviceStatusService: serviceStatusService,
             navigationHandler: navigationHandler,
             navigationPresenter: navigationPresenter,
             priceAlertService: priceAlertService,
@@ -408,28 +421,6 @@ extension ServicesFactory {
         }
     }
 
-    private static func makeSubscriptionService(
-        subscriptionProvider: any GemAPISubscriptionService,
-        walletStore: WalletStore,
-    ) -> SubscriptionService {
-        SubscriptionService(
-            subscriptionProvider: subscriptionProvider,
-            walletStore: walletStore,
-        )
-    }
-
-    private static func makeDeviceService(
-        deviceProvider: any GemAPIDeviceService,
-        subscriptionService: SubscriptionService,
-        securePreferences: SecurePreferences,
-    ) -> DeviceService {
-        DeviceService(
-            deviceProvider: deviceProvider,
-            subscriptionsService: subscriptionService,
-            securePreferences: securePreferences,
-        )
-    }
-
     private static func makeDeviceObserverService(
         deviceService: any DeviceServiceable,
         subscriptionService: SubscriptionService,
@@ -439,74 +430,6 @@ extension ServicesFactory {
             deviceService: deviceService,
             subscriptionsService: subscriptionService,
             subscriptionsObserver: walletStore.observer(),
-        )
-    }
-
-    private static func makeWalletService(
-        preferences: ObservablePreferences,
-        keystore: any Keystore,
-        walletStore: WalletStore,
-        avatarService: AvatarService,
-        walletSessionService: any WalletSessionManageable,
-    ) -> WalletService {
-        WalletService(
-            keystore: keystore,
-            walletStore: walletStore,
-            preferences: preferences,
-            avatarService: avatarService,
-            walletSessionService: walletSessionService,
-        )
-    }
-
-    private static func makeBalanceService(
-        balanceStore: BalanceStore,
-        assetsService: AssetsService,
-        chainFactory: ChainServiceFactory,
-    ) -> BalanceService {
-        BalanceService(
-            balanceStore: balanceStore,
-            assetsService: assetsService,
-            chainServiceFactory: chainFactory,
-        )
-    }
-
-    private static func makeStakeService(
-        stakeStore: StakeStore,
-        addressStore: AddressStore,
-        chainFactory: ChainServiceFactory,
-    ) -> StakeService {
-        StakeService(
-            store: stakeStore,
-            addressStore: addressStore,
-            chainServiceFactory: chainFactory,
-        )
-    }
-
-    private static func makeAssetsService(
-        assetStore: AssetStore,
-        balanceStore: BalanceStore,
-        priceStore: PriceStore,
-        chainFactory: ChainServiceFactory,
-    ) -> AssetsService {
-        AssetsService(
-            assetStore: assetStore,
-            balanceStore: balanceStore,
-            priceStore: priceStore,
-            chainServiceFactory: chainFactory,
-        )
-    }
-
-    private static func makeTransactionsService(
-        apiService: GemAPIService,
-        transactionStore: TransactionStore,
-        assetsService: AssetsService,
-        addressStore: AddressStore,
-    ) -> TransactionsService {
-        TransactionsService(
-            provider: apiService,
-            transactionStore: transactionStore,
-            assetsService: assetsService,
-            addressStore: addressStore,
         )
     }
 
@@ -533,16 +456,6 @@ extension ServicesFactory {
         return TransactionStateScheduler(
             transactionStore: transactionStore,
             service: service,
-        )
-    }
-
-    private static func makeBannerService(
-        bannerStore: BannerStore,
-        pushNotificationEnablerService: PushNotificationEnablerService,
-    ) -> BannerService {
-        BannerService(
-            store: bannerStore,
-            pushNotificationService: pushNotificationEnablerService,
         )
     }
 
@@ -582,24 +495,6 @@ extension ServicesFactory {
         )
     }
 
-    private static func makeOnstartService(
-        assetListService: any GemAPIAssetsListService,
-        assetStore: AssetStore,
-        nodeStore: NodeStore,
-        preferences: Preferences,
-        assetsService: AssetsService,
-        walletService: WalletService,
-    ) -> OnstartService {
-        OnstartService(
-            assetListService: assetListService,
-            assetsService: assetsService,
-            assetStore: assetStore,
-            nodeStore: nodeStore,
-            preferences: preferences,
-            walletService: walletService,
-        )
-    }
-
     private static func makeOnstartAsyncService(
         apiService: GemAPIService,
         nodeService: NodeService,
@@ -629,30 +524,6 @@ extension ServicesFactory {
                     preferences: preferences,
                 ),
             ],
-        )
-    }
-
-    private static func makeOnstartWalletService(
-        deviceService: any DeviceServiceable,
-        bannerSetupService: BannerSetupService,
-        walletConfigurationService: any GemAPIWalletConfigurationService,
-        pushNotificationEnablerService: PushNotificationEnablerService,
-    ) -> OnstartWalletService {
-        OnstartWalletService(
-            deviceService: deviceService,
-            bannerSetupService: bannerSetupService,
-            walletConfigurationService: walletConfigurationService,
-            pushNotificationEnablerService: pushNotificationEnablerService,
-        )
-    }
-
-    private static func makeNftService(
-        apiService: GemAPIService,
-        nftStore: NFTStore,
-    ) -> NFTService {
-        NFTService(
-            apiService: apiService,
-            nftStore: nftStore,
         )
     }
 

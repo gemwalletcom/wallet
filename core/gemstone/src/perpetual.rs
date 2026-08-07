@@ -1,9 +1,9 @@
 use gem_hypercore::{
     models::websocket::{HyperliquidMethod, HyperliquidRequest, HyperliquidSubscription},
     perpetual_formatter::PerpetualFormatter,
-    provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data},
+    provider::websocket_mapper::{account_subscriptions, diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data},
 };
-use primitives::{PerpetualPosition, PerpetualProvider};
+use primitives::{AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualDirection, PerpetualPosition, PerpetualProvider, TpslType};
 
 use crate::models::perpetual::{GemHyperliquidOpenOrder, GemHyperliquidSocketMessage, GemPerpetualSubscription, GemPositionsDiff, GemSubscriptionMethod};
 
@@ -54,8 +54,12 @@ impl Hyperliquid {
         Self {}
     }
 
-    pub fn parse_websocket_data(&self, data: Vec<u8>) -> Result<GemHyperliquidSocketMessage, crate::GemstoneError> {
-        Ok(parse_websocket_data(&data)?)
+    pub fn account_subscriptions(&self, address: String, mode: PerpetualAccountMode) -> Vec<GemPerpetualSubscription> {
+        account_subscriptions(address, mode).into_iter().map(GemPerpetualSubscription::from).collect()
+    }
+
+    pub fn parse_websocket_data(&self, data: Vec<u8>, mode: PerpetualAccountMode) -> Result<GemHyperliquidSocketMessage, crate::GemstoneError> {
+        Ok(parse_websocket_data(&data, mode)?)
     }
 
     pub fn websocket_request(&self, method: GemSubscriptionMethod, subscription: GemPerpetualSubscription) -> Result<String, crate::GemstoneError> {
@@ -74,6 +78,39 @@ impl Hyperliquid {
     }
 }
 
+#[uniffi::remote(Enum)]
+pub enum TpslType {
+    TakeProfit,
+    StopLoss,
+}
+
+#[uniffi::remote(Enum)]
+pub enum AutocloseValidation {
+    Valid,
+    InvalidAmount,
+    TriggerMustBeHigher,
+    TriggerMustBeLower,
+}
+
+#[derive(Debug, uniffi::Object)]
+pub struct AutocloseValidator {
+    inner: Validator,
+}
+
+#[uniffi::export]
+impl AutocloseValidator {
+    #[uniffi::constructor]
+    pub fn new(trigger_type: TpslType, direction: PerpetualDirection, market_price: f64) -> Self {
+        Self {
+            inner: Validator::new(trigger_type, direction, market_price),
+        }
+    }
+
+    pub fn validate(&self, price: f64) -> AutocloseValidation {
+        self.inner.validate(price)
+    }
+}
+
 impl GemSubscriptionMethod {
     fn map(self) -> HyperliquidMethod {
         match self {
@@ -83,10 +120,24 @@ impl GemSubscriptionMethod {
     }
 }
 
+impl From<HyperliquidSubscription> for GemPerpetualSubscription {
+    fn from(value: HyperliquidSubscription) -> Self {
+        match value {
+            HyperliquidSubscription::AccountState { address } => Self::AccountState { address },
+            HyperliquidSubscription::SpotState { address } => Self::SpotState { address },
+            HyperliquidSubscription::OpenOrders { address } => Self::OpenOrders { address },
+            HyperliquidSubscription::Candle { symbol, interval } => Self::Candle { symbol, interval },
+            HyperliquidSubscription::MarketData { symbol } => Self::MarketData { symbol },
+            HyperliquidSubscription::MarketPrices => Self::MarketPrices,
+        }
+    }
+}
+
 impl GemPerpetualSubscription {
     fn map(self) -> HyperliquidSubscription {
         match self {
             Self::AccountState { address } => HyperliquidSubscription::AccountState { address },
+            Self::SpotState { address } => HyperliquidSubscription::SpotState { address },
             Self::OpenOrders { address } => HyperliquidSubscription::OpenOrders { address },
             Self::Candle { symbol, interval } => HyperliquidSubscription::Candle { symbol, interval },
             Self::MarketData { symbol } => HyperliquidSubscription::MarketData { symbol },
@@ -102,13 +153,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_websocket_request_maps_generic_subscription() {
-        let request = Hyperliquid::new()
-            .websocket_request(GemSubscriptionMethod::Subscribe, GemPerpetualSubscription::AccountState { address: "0x123".to_string() })
-            .unwrap();
+    fn test_account_subscriptions() {
+        let hyperliquid = Hyperliquid::new();
 
         assert_eq!(
-            serde_json::from_str::<serde_json::Value>(&request).unwrap(),
+            hyperliquid.account_subscriptions("0x123".to_string(), PerpetualAccountMode::Standard),
+            vec![
+                GemPerpetualSubscription::AccountState { address: "0x123".to_string() },
+                GemPerpetualSubscription::OpenOrders { address: "0x123".to_string() },
+            ]
+        );
+        assert_eq!(
+            hyperliquid.account_subscriptions("0x123".to_string(), PerpetualAccountMode::Unified),
+            vec![
+                GemPerpetualSubscription::AccountState { address: "0x123".to_string() },
+                GemPerpetualSubscription::OpenOrders { address: "0x123".to_string() },
+                GemPerpetualSubscription::SpotState { address: "0x123".to_string() },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_websocket_request_maps_generic_subscription() {
+        let request = HyperliquidRequest {
+            method: GemSubscriptionMethod::Subscribe.map(),
+            subscription: GemPerpetualSubscription::AccountState { address: "0x123".to_string() }.map(),
+        };
+
+        assert_eq!(
+            serde_json::to_value(request).unwrap(),
             json!({
                 "method": "subscribe",
                 "subscription": {

@@ -34,7 +34,7 @@ struct RootScene: View {
                 await model.handleOpenUrl(url)
             }
         }
-        .sheet(item: $model.isPresentingConnnectorSheet) { type in
+        .sheet(item: $model.isPresentingConnectorSheet) { type in
             WalletConnectorNavigationStack(
                 type: type,
                 presenter: model.walletConnectorPresenter,
@@ -44,6 +44,7 @@ struct RootScene: View {
             CreateWalletNavigationStack(
                 model: CreateWalletModel(
                     walletService: model.walletService,
+                    walletSessionService: model.walletSessionService,
                     avatarService: model.avatarService,
                     onComplete: model.dismissCreateWallet,
                 ),
@@ -53,6 +54,7 @@ struct RootScene: View {
             ImportWalletNavigationStack(
                 model: ImportWalletViewModel(
                     walletService: model.walletService,
+                    walletSessionService: model.walletSessionService,
                     avatarService: model.avatarService,
                     nameService: model.nameService,
                     onComplete: model.dismissImportWallet,
