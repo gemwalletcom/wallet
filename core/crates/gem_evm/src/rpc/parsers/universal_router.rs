@@ -1,4 +1,4 @@
-use alloy_primitives::Address;
+use alloy_primitives::U256;
 use alloy_sol_types::SolCall;
 
 use crate::{
@@ -90,37 +90,27 @@ fn decode_execute_swap_call(
     execute_call: &IUniversalRouter::executeCall,
     receipt: &TransactionReceipt,
 ) -> Option<TransactionSwapMetadata> {
-    let commands_vec = &execute_call.commands;
-    let inputs_vec = &execute_call.inputs;
-    let mut from_asset = None;
-    let mut to_asset = None;
-    let mut from_value = "".to_string();
-    let mut to_value = "".to_string();
+    let commands = &execute_call.commands;
+    let inputs = &execute_call.inputs;
+    let mut swap_input: Option<(AssetId, U256)> = None;
+    let mut swap_output = None;
     let mut swap_provider = provider;
 
-    let mut has_wrap = false;
-    let mut has_unwrap = false;
-    let mut has_sweep = false;
-    let mut unwrap_value = "".to_string();
-    let mut sweep_value = "".to_string();
+    let has_wrap = commands.contains(&WRAP_ETH_COMMAND);
+    let mut unwrap_minimum = None;
+    let mut sweep_minimum = None;
 
-    for (command, input) in commands_vec.iter().zip(inputs_vec.iter()) {
-        if command == &WRAP_ETH_COMMAND {
-            has_wrap = true;
-        }
+    for (command, input) in commands.iter().zip(inputs.iter()) {
         if command == &UNWRAP_WETH_COMMAND {
             let unwrap_weth = UnwrapWeth::abi_decode(input).ok()?;
-            has_unwrap = true;
-            unwrap_value = unwrap_weth.amount_min.to_string();
-        }
-        if command == &SWEEP_COMMAND {
+            unwrap_minimum = Some(unwrap_weth.amount_min);
+        } else if command == &SWEEP_COMMAND {
             let sweep = Sweep::abi_decode(input).ok()?;
-            has_sweep = true;
-            sweep_value = sweep.amount_min.to_string();
+            sweep_minimum = Some(sweep.amount_min);
         }
     }
 
-    for (command, input) in commands_vec.iter().zip(inputs_vec.iter()) {
+    for (command, input) in commands.iter().zip(inputs.iter()) {
         if command == &V3_SWAP_EXACT_IN_COMMAND {
             let (amount_in, amount_out_min, path) = match router_abi.v3 {
                 UniversalRouterAbi::V2 => {
@@ -136,28 +126,32 @@ fn decode_execute_swap_call(
             let from_token = token_pair.token_in.to_checksum(None);
             let to_token = token_pair.token_out.to_checksum(None);
 
-            from_asset = Some(AssetId {
-                chain: *chain,
-                token_id: if has_wrap { None } else { Some(from_token.clone()) },
-            });
-            to_asset = Some(AssetId {
-                chain: *chain,
-                token_id: if has_unwrap { None } else { Some(to_token.clone()) },
-            });
-            from_value = amount_in.to_string();
-            to_value = if has_unwrap {
-                withdraw_value_from_receipt(&to_token, receipt).unwrap_or(unwrap_value.clone())
-            } else if has_sweep {
-                transfer_value_from_receipt(from, &to_token, receipt).unwrap_or(sweep_value.clone())
+            let leg_from_asset = AssetId::from(*chain, (!has_wrap).then_some(from_token));
+            let (leg_to_asset, leg_to_value) = if let Some(unwrap_minimum) = &unwrap_minimum {
+                (
+                    AssetId::from_chain(*chain),
+                    withdraw_value_from_receipt(&to_token, receipt).unwrap_or_else(|| unwrap_minimum.to_string()),
+                )
             } else {
-                transfer_value_from_receipt(from, &to_token, receipt).unwrap_or(amount_out_min.to_string())
+                let to_value = if let Some(sweep_minimum) = &sweep_minimum {
+                    transfer_value_from_receipt(from, &to_token, receipt).unwrap_or_else(|| sweep_minimum.to_string())
+                } else {
+                    transfer_value_from_receipt(from, &to_token, receipt).unwrap_or_else(|| amount_out_min.to_string())
+                };
+                (AssetId::from(*chain, Some(to_token)), to_value)
+            };
+            match &mut swap_input {
+                Some((from_asset, from_value)) if from_asset == &leg_from_asset => *from_value = from_value.checked_add(amount_in)?,
+                None => swap_input = Some((leg_from_asset, amount_in)),
+                Some(_) => {}
             }
+            swap_output = Some((leg_to_asset, leg_to_value));
         }
         if command == &V4_SWAP_COMMAND
             && let Some(universal_router_abi) = router_abi.v4
-            && let Ok(decoded_actions_vec) = decode_action_data(input, universal_router_abi)
+            && let Ok(actions) = decode_action_data(input, universal_router_abi)
         {
-            for action in decoded_actions_vec {
+            for action in actions {
                 let (from_token, to_token, amount_in) = match action {
                     V4Action::SWAP_EXACT_IN(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn),
                     V4Action::SWAP_EXACT_IN_V2_1(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn),
@@ -166,39 +160,35 @@ fn decode_execute_swap_call(
                 let Some(to_token) = to_token else {
                     continue;
                 };
-                from_asset = Some(AssetId {
-                    chain: *chain,
-                    token_id: if from_token == Address::ZERO { None } else { Some(from_token.to_checksum(None)) },
-                });
-                to_asset = Some(AssetId {
-                    chain: *chain,
-                    token_id: if to_token == Address::ZERO { None } else { Some(to_token.to_checksum(None)) },
-                });
-                from_value = amount_in.to_string();
-                to_value = if to_token == Address::ZERO {
-                    sweep_value.clone()
+                let leg_from_asset = AssetId::from(*chain, (!from_token.is_zero()).then(|| from_token.to_checksum(None)));
+                let to_token_id = (!to_token.is_zero()).then(|| to_token.to_checksum(None));
+                let leg_to_value = if let Some(to_token_id) = &to_token_id {
+                    transfer_value_from_receipt(from, to_token_id, receipt)?
                 } else {
-                    transfer_value_from_receipt(from, &to_token.to_checksum(None), receipt)?
+                    sweep_minimum.as_ref()?.to_string()
                 };
+                let leg_to_asset = AssetId::from(*chain, to_token_id);
+                let leg_from_value = U256::from(amount_in);
+                match &mut swap_input {
+                    Some((from_asset, from_value)) if from_asset == &leg_from_asset => *from_value = from_value.checked_add(leg_from_value)?,
+                    None => swap_input = Some((leg_from_asset, leg_from_value)),
+                    Some(_) => {}
+                }
+                swap_output = Some((leg_to_asset, leg_to_value));
                 swap_provider = SwapProvider::UniswapV4.id();
             }
         }
     }
 
-    if let Some(from_asset) = from_asset
-        && let Some(to_asset) = to_asset
-        && !from_value.is_empty()
-        && !to_value.is_empty()
-    {
-        return Some(TransactionSwapMetadata {
-            from_asset,
-            to_asset,
-            from_value,
-            to_value,
-            provider: Some(swap_provider.to_string()),
-        });
-    }
-    None
+    let (from_asset, from_value) = swap_input?;
+    let (to_asset, to_value) = swap_output?;
+    Some(TransactionSwapMetadata {
+        from_asset,
+        to_asset,
+        from_value: from_value.to_string(),
+        to_value,
+        provider: Some(swap_provider.to_string()),
+    })
 }
 
 fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReceipt) -> Option<String> {
@@ -216,15 +206,19 @@ fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionRecei
     let to = ethereum_address_checksum(to).ok()?;
     let token = ethereum_address_checksum(token).ok()?;
 
-    receipt.logs.iter().find_map(|log| {
-        (ethereum_address_checksum(&log.address).ok()? == token
-            && log.topics.len() == 3
-            && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC)
-            && ethereum_address_from_topic(log.topics.get(2)?)? == to)
-            .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
-            .flatten()
-            .map(|value| value.to_string())
-    })
+    receipt
+        .logs
+        .iter()
+        .filter_map(|log| {
+            (ethereum_address_checksum(&log.address).ok()? == token
+                && log.topics.len() == 3
+                && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC)
+                && ethereum_address_from_topic(log.topics.get(2)?)? == to)
+                .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
+                .flatten()
+        })
+        .reduce(|total, value| total + value)
+        .map(|value| value.to_string())
 }
 
 #[cfg(test)]
@@ -237,7 +231,7 @@ mod tests {
     use chrono::DateTime;
     use primitives::{
         AssetId, Chain, TransactionSwapMetadata, TransactionType,
-        asset_constants::{POLYGON_USDT_TOKEN_ID, UNICHAIN_DAI_TOKEN_ID, UNICHAIN_USDC_TOKEN_ID},
+        asset_constants::{ETHEREUM_USDT_ASSET_ID, POLYGON_USDT_TOKEN_ID, UNICHAIN_DAI_TOKEN_ID, UNICHAIN_USDC_TOKEN_ID},
         contract_constants::{ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT},
         testkit::json_rpc::load_json_rpc_result,
     };
@@ -310,6 +304,22 @@ mod tests {
             }
         );
         assert_eq!(metadata.to_value, "1155057703771482");
+    }
+
+    #[test]
+    fn test_map_split_v3_v4_swap_eth_usdt() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v3_v4_eth_usdt_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v3_v4_eth_usdt_transaction_receipt.json"));
+
+        let swap_transaction = map_swap(&Chain::Ethereum, &transaction, &receipt);
+        let metadata: TransactionSwapMetadata = serde_json::from_value(swap_transaction.metadata.unwrap()).unwrap();
+
+        assert_eq!(swap_transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(swap_transaction.value, "10000000000000");
+        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(metadata.from_value, "10000000000000");
+        assert_eq!(metadata.to_asset, ETHEREUM_USDT_ASSET_ID.clone());
+        assert_eq!(metadata.to_value, "19304");
     }
 
     #[test]
