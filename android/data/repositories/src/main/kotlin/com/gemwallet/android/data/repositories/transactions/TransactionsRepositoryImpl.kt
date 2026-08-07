@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -203,6 +204,8 @@ class TransactionsRepositoryImpl(
                 delay(pollingDelay.toLong())
                 pollingDelay = jobConfig.nextIntervalMs(pollingDelay)
 
+                currentTransaction = storedTransaction(currentTransaction) ?: break
+
                 checkTransaction(currentTransaction)?.let { updatedTransaction ->
                     if (updatedTransaction.transaction.id != currentTransaction.transaction.id) {
                         coroutineContext[Job]?.let { runningJob ->
@@ -233,6 +236,12 @@ class TransactionsRepositoryImpl(
             jobKeys.forEach { pollingTransactionJobs.remove(it) }
         }
     }
+
+    private suspend fun storedTransaction(transaction: DbTransactionExtended): DbTransactionExtended? =
+        transactionsDao.getExtendedTransaction(
+            transaction.transaction.walletId,
+            transaction.transaction.id,
+        ).first()
 
     private suspend fun checkTransaction(transaction: DbTransactionExtended): DbTransactionExtended? {
         val transactionRecord = transaction.transaction
