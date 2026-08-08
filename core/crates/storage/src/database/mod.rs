@@ -38,14 +38,8 @@ pub type PgPool = Pool<ConnectionManager<PgConnection>>;
 pub type PgPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 use crate::repositories::{
-    api_clients_repository::ApiClientsRepository, assets_addresses_repository::AssetsAddressesRepository, assets_links_repository::AssetsLinksRepository,
-    assets_repository::AssetsRepository, assets_usage_ranks_repository::AssetsUsageRanksRepository, chains_repository::ChainsRepository, charts_repository::ChartsRepository,
-    config_repository::ConfigRepository, devices_repository::DevicesRepository, fiat_repository::FiatRepository, migrations_repository::MigrationsRepository,
-    nft_repository::NftRepository, notifications_repository::NotificationsRepository, parser_state_repository::ParserStateRepository, perpetuals_repository::PerpetualsRepository,
-    price_alerts_repository::PriceAlertsRepository, prices_providers_repository::PricesProvidersRepository, prices_repository::PricesRepository,
-    releases_repository::ReleasesRepository, rewards_redemptions_repository::RewardsRedemptionsRepository, rewards_repository::RewardsRepository,
-    scan_addresses_repository::ScanAddressesRepository, support_sessions_repository::SupportSessionsRepository, tag_repository::TagRepository,
-    transactions_repository::TransactionsRepository, wallets_repository::WalletsRepository,
+    config_repository::ConfigRepository, devices_repository::DevicesRepository, fiat_repository::FiatRepository, nft_repository::NftRepository,
+    perpetuals_repository::PerpetualsRepository, rewards_repository::RewardsRepository,
 };
 
 pub fn create_pool(database_url: &str, pool_size: u32) -> PgPool {
@@ -66,34 +60,6 @@ impl DatabaseClient {
         Ok(Self { connection })
     }
 
-    pub fn assets(&mut self) -> &mut dyn AssetsRepository {
-        self
-    }
-
-    pub fn api_clients(&mut self) -> &mut dyn ApiClientsRepository {
-        self
-    }
-
-    pub fn assets_addresses(&mut self) -> &mut dyn AssetsAddressesRepository {
-        self
-    }
-
-    pub fn assets_links(&mut self) -> &mut dyn AssetsLinksRepository {
-        self
-    }
-
-    pub fn assets_usage_ranks(&mut self) -> &mut dyn AssetsUsageRanksRepository {
-        self
-    }
-
-    pub fn chains(&mut self) -> &mut dyn ChainsRepository {
-        self
-    }
-
-    pub fn charts(&mut self) -> &mut dyn ChartsRepository {
-        self
-    }
-
     pub fn config(&mut self) -> &mut dyn ConfigRepository {
         self
     }
@@ -106,10 +72,6 @@ impl DatabaseClient {
         self
     }
 
-    pub fn migrations(&mut self) -> &mut dyn MigrationsRepository {
-        self
-    }
-
     pub fn perpetuals(&mut self) -> &mut dyn PerpetualsRepository {
         self
     }
@@ -118,55 +80,7 @@ impl DatabaseClient {
         self
     }
 
-    pub fn notifications(&mut self) -> &mut dyn NotificationsRepository {
-        self
-    }
-
-    pub fn parser_state(&mut self) -> &mut dyn ParserStateRepository {
-        self
-    }
-
-    pub fn price_alerts(&mut self) -> &mut dyn PriceAlertsRepository {
-        self
-    }
-
-    pub fn prices(&mut self) -> &mut dyn PricesRepository {
-        self
-    }
-
-    pub fn prices_providers(&mut self) -> &mut dyn PricesProvidersRepository {
-        self
-    }
-
     pub fn rewards(&mut self) -> &mut dyn RewardsRepository {
-        self
-    }
-
-    pub fn rewards_redemptions(&mut self) -> &mut dyn RewardsRedemptionsRepository {
-        self
-    }
-
-    pub fn releases(&mut self) -> &mut dyn ReleasesRepository {
-        self
-    }
-
-    pub fn scan_addresses(&mut self) -> &mut dyn ScanAddressesRepository {
-        self
-    }
-
-    pub fn support_sessions(&mut self) -> &mut dyn SupportSessionsRepository {
-        self
-    }
-
-    pub fn tag(&mut self) -> &mut dyn TagRepository {
-        self
-    }
-
-    pub fn transactions(&mut self) -> &mut dyn TransactionsRepository {
-        self
-    }
-
-    pub fn wallets(&mut self) -> &mut dyn WalletsRepository {
         self
     }
 }

@@ -3,10 +3,6 @@ use chrono::{DateTime, Utc};
 use crate::CoinMarket;
 
 impl CoinMarket {
-    pub fn mock() -> Self {
-        Self::mock_with_id("bitcoin")
-    }
-
     pub fn mock_with_id(id: &str) -> Self {
         Self {
             id: id.to_string(),

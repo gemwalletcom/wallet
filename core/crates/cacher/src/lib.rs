@@ -20,14 +20,6 @@ impl CacherClient {
         Ok(Self { connection })
     }
 
-    pub async fn set_values(&self, values: Vec<(String, String)>) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        if values.is_empty() {
-            return Ok(0);
-        }
-        self.connection.clone().mset::<String, String, ()>(values.as_slice()).await?;
-        Ok(values.len())
-    }
-
     pub async fn set_values_with_publish(&self, values: Vec<(String, String)>, ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let values = values.into_iter().map(|(key, value)| (key, value, ttl_seconds)).collect();
         self.set_serialized_values_with_ttl_and_publish(values, true).await
@@ -121,10 +113,6 @@ impl CacherClient {
         Ok(self.connection.clone().del(keys).await?)
     }
 
-    pub async fn increment(&self, key: &str) -> Result<i64, Box<dyn Error + Send + Sync>> {
-        Ok(self.connection.clone().incr(key, 1).await?)
-    }
-
     pub async fn increment_with_ttl(&self, key: &str, ttl: i64) -> Result<i64, Box<dyn Error + Send + Sync>> {
         let mut pipe = redis::pipe();
         pipe.atomic();
@@ -142,10 +130,6 @@ impl CacherClient {
     pub async fn set_cached<T: serde::Serialize>(&self, key: CacheKey<'_>, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.set_values_with_ttl(vec![(&key.key(), value)], key.ttl() as i64).await?;
         Ok(())
-    }
-
-    pub async fn get_cached<T: serde::de::DeserializeOwned>(&self, key: CacheKey<'_>) -> Result<T, Box<dyn Error + Send + Sync>> {
-        self.get_value(&key.key()).await
     }
 
     pub async fn get_cached_optional<T: serde::de::DeserializeOwned>(&self, key: CacheKey<'_>) -> Result<Option<T>, Box<dyn Error + Send + Sync>> {
@@ -245,15 +229,6 @@ impl CacherClient {
         self.can_process_now(&key.key(), key.ttl()).await
     }
 
-    pub async fn set_i64(&self, key: &str, value: i64, ttl_seconds: u64) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.connection.clone().set_ex::<&str, i64, ()>(key, value, ttl_seconds).await?;
-        Ok(())
-    }
-
-    pub async fn get_i64(&self, key: &str) -> Result<Option<i64>, Box<dyn Error + Send + Sync>> {
-        Ok(self.connection.clone().get::<&str, Option<i64>>(key).await?)
-    }
-
     pub async fn sorted_set_incr_with_expire(&self, key: &str, members: &[String], ttl: i64) -> Result<(), Box<dyn Error + Send + Sync>> {
         if members.is_empty() {
             return Ok(());
@@ -270,10 +245,6 @@ impl CacherClient {
     pub async fn publish<T: serde::Serialize, R: redis::FromRedisValue>(&self, channel: &str, value: &T) -> Result<R, Box<dyn Error + Send + Sync>> {
         let message = serde_json::to_string(value)?;
         Ok(self.connection.clone().publish(channel, &message).await?)
-    }
-
-    pub async fn keys(&self, pattern: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        Ok(redis::cmd("KEYS").arg(pattern).query_async(&mut self.connection.clone()).await?)
     }
 
     pub async fn sorted_set_range_by_score(&self, key: &str, min: f64, max: f64, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {

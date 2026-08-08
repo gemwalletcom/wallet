@@ -12,10 +12,6 @@ pub struct JupiterClient<C: Client> {
 }
 
 impl JupiterClient<ReqwestClient> {
-    pub fn new_with_api_key(url: String, api_key: String) -> Self {
-        Self::new_with_client_and_api_key(ReqwestClient::new(url, gem_client::reqwest_client()), api_key)
-    }
-
     pub fn new_with_reqwest_client(client: reqwest::Client) -> Self {
         Self::new_with_client(ReqwestClient::new(JUPITER_API_URL.to_string(), client))
     }

@@ -1,20 +1,5 @@
 use serde::{Deserialize, Deserializer};
 
-pub fn serialize_u128<S>(value: &u128, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    serializer.serialize_str(&value.to_string())
-}
-
-pub fn deserialize_u128_from_str<'de, D>(deserializer: D) -> Result<u128, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s: String = Deserialize::deserialize(deserializer)?;
-    s.parse::<u128>().map_err(serde::de::Error::custom)
-}
-
 pub fn deserialize_option_u128_from_str<'de, D>(deserializer: D) -> Result<Option<u128>, D::Error>
 where
     D: Deserializer<'de>,

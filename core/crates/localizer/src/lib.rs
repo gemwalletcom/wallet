@@ -215,10 +215,6 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "notification_reward_pending_title")
     }
 
-    pub fn notification_reward_pending_description(&self) -> String {
-        fl!(self.loader.as_ref(), "notification_reward_pending_description")
-    }
-
     pub fn notification_reward_redeemed_title(&self) -> String {
         fl!(self.loader.as_ref(), "notification_rewards_redeem_points_title")
     }

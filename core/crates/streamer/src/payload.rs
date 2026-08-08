@@ -167,12 +167,6 @@ pub struct FetchNFTCollectionPayload {
     pub collection_id: String,
 }
 
-impl FetchNFTCollectionPayload {
-    pub fn new(chain: Chain, collection_id: String) -> Self {
-        Self { chain, collection_id }
-    }
-}
-
 impl fmt::Display for FetchNFTCollectionPayload {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "chain={}, collection_id={}", self.chain.as_ref(), self.collection_id)
@@ -199,12 +193,6 @@ impl fmt::Display for FetchNFTAssetPayload {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AssetsAddressPayload {
     pub values: Vec<AssetAddress>,
-}
-
-impl AssetsAddressPayload {
-    pub fn new(values: Vec<AssetAddress>) -> Self {
-        Self { values }
-    }
 }
 
 impl fmt::Display for AssetsAddressPayload {

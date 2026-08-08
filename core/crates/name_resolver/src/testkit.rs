@@ -29,10 +29,6 @@ impl TestProvider {
             response,
         }
     }
-
-    pub fn boxed(provider: NameProvider, domains: Vec<&'static str>, chains: Vec<Chain>, response: Result<&'static str, &'static str>) -> Box<dyn NameClient + Send + Sync> {
-        Box::new(Self::new(provider, domains, chains, response))
-    }
 }
 
 #[async_trait]

@@ -13,10 +13,6 @@ pub struct CoinMarketCapClient<C: Client> {
 }
 
 impl CoinMarketCapClient<ReqwestClient> {
-    pub fn new(api_key: &str) -> Self {
-        Self::new_with_reqwest_client(gem_client::reqwest_client(), api_key)
-    }
-
     pub fn new_with_reqwest_client(client: reqwest::Client, api_key: &str) -> Self {
         Self::new_with_client_and_api_key(ReqwestClient::new(COINMARKETCAP_API_URL.to_string(), client), api_key)
     }

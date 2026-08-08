@@ -23,10 +23,6 @@ pub mod string {
         *value = field.string()?;
         Ok(())
     }
-
-    pub fn encode(field_number: u32, value: &str) -> Vec<u8> {
-        encode_string_field(field_number, value)
-    }
 }
 
 pub mod optional_bytes {
@@ -88,10 +84,6 @@ pub mod varint_u64 {
         *value = field.varint()?;
         Ok(())
     }
-
-    pub fn encode(field_number: u32, value: &u64) -> Vec<u8> {
-        encode_optional_u64_field(field_number, Some(*value))
-    }
 }
 
 pub mod optional_varint_i32 {
@@ -107,29 +99,12 @@ pub mod optional_varint_i32 {
     }
 }
 
-pub mod optional_varint_i64 {
-    use super::*;
-
-    pub fn decode(value: &mut Option<i64>, field: Field<'_>) -> MessageResult<()> {
-        *value = Some(field.varint()? as i64);
-        Ok(())
-    }
-
-    pub fn encode(field_number: u32, value: &Option<i64>) -> Vec<u8> {
-        encode_optional_u64_field(field_number, value.map(|value| value as u64))
-    }
-}
-
 pub mod varint_i32 {
     use super::*;
 
     pub fn decode(value: &mut i32, field: Field<'_>) -> MessageResult<()> {
         *value = field.varint()? as i32;
         Ok(())
-    }
-
-    pub fn encode(field_number: u32, value: &i32) -> Vec<u8> {
-        encode_optional_u64_field(field_number, Some(*value as u64))
     }
 }
 
@@ -139,10 +114,6 @@ pub mod varint_i64 {
     pub fn decode(value: &mut i64, field: Field<'_>) -> MessageResult<()> {
         *value = field.varint()? as i64;
         Ok(())
-    }
-
-    pub fn encode(field_number: u32, value: &i64) -> Vec<u8> {
-        encode_optional_u64_field(field_number, Some(*value as u64))
     }
 }
 
@@ -182,11 +153,6 @@ pub mod repeated_message {
 
 pub mod repeated_string {
     use super::*;
-
-    pub fn decode(value: &mut Vec<String>, field: Field<'_>) -> MessageResult<()> {
-        value.push(field.string()?);
-        Ok(())
-    }
 
     pub fn encode(field_number: u32, value: &[String]) -> Vec<u8> {
         value.iter().flat_map(|value| encode_string_field(field_number, value)).collect()

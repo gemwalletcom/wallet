@@ -15,10 +15,10 @@ pub use biguint::{
 pub mod duration;
 pub use duration::{deserialize as deserialize_duration, deserialize_option as deserialize_option_duration};
 pub mod f64;
-pub use f64::{deserialize_f64_from_str, deserialize_option_f64_from_str, serialize_f64};
+pub use f64::{deserialize_f64_from_str, deserialize_option_f64_from_str};
 pub mod hex_bytes;
 pub mod size;
 pub mod u64;
-pub use u64::{deserialize_option_u64_from_str, deserialize_option_u64_from_str_or_int, deserialize_u64_from_str, deserialize_u64_from_str_or_int, serialize_u64};
+pub use u64::{deserialize_option_u64_from_str, deserialize_option_u64_from_str_or_int, deserialize_u64_from_str, deserialize_u64_from_str_or_int};
 pub mod u128;
-pub use u128::{deserialize_option_u128_from_str, deserialize_u128_from_str, serialize_u128};
+pub use u128::deserialize_option_u128_from_str;

@@ -14,10 +14,6 @@ impl ReqwestGrpcTransport {
             client: gem_client::reqwest_client(),
         }
     }
-
-    pub fn new_with_client(client: reqwest::Client) -> Self {
-        Self { client }
-    }
 }
 
 impl Default for ReqwestGrpcTransport {

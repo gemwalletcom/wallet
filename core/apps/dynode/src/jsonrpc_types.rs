@@ -94,10 +94,6 @@ pub enum JsonRpcRequest {
 }
 
 impl JsonRpcRequest {
-    pub fn get_methods_list(&self) -> String {
-        self.get_methods_for_metrics().join(",")
-    }
-
     pub fn get_methods_for_metrics(&self) -> Vec<String> {
         match self {
             Self::Single(call) => vec![call.method.clone()],

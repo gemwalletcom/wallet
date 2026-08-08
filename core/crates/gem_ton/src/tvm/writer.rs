@@ -9,10 +9,6 @@ pub struct BitWriter {
 }
 
 impl BitWriter {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn write_bit(&mut self, value: bool) -> Result<(), TvmError> {
         if self.bit_len == MAX_CELL_BITS {
             return Err(TvmError::new(format!("cell exceeds {MAX_CELL_BITS} bits")));
