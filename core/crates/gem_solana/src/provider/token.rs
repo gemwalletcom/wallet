@@ -3,9 +3,10 @@ use chain_traits::ChainToken;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::Asset;
+use primitives::{Asset, AssetType};
 
 use crate::{
+    get_token_program_id_by_address,
     models::Extension,
     provider::token_mapper::{map_token_data_metaplex, map_token_data_spl_token_2022},
     rpc::SolanaProvider,
@@ -16,8 +17,11 @@ impl<C: Client + Clone> ChainToken for SolanaProvider<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         let token_info_result = self.get_token_mint_info(&token_id).await?;
         let token_info = token_info_result.info();
+        let asset_type = asset_type_for_owner_program(&token_info_result.value.owner)?;
 
-        if let Some(extensions) = &token_info.extensions {
+        if asset_type == AssetType::SPL2022
+            && let Some(extensions) = &token_info.extensions
+        {
             for ext in extensions {
                 if let Extension::TokenMetadata(_token_metadata) = ext {
                     return map_token_data_spl_token_2022(self.get_chain(), token_id, &token_info);
@@ -26,11 +30,33 @@ impl<C: Client + Clone> ChainToken for SolanaProvider<C> {
         }
 
         let metadata = self.get_metaplex_metadata(&token_id).await?;
-        map_token_data_metaplex(self.get_chain(), token_id, &token_info, &metadata)
+        map_token_data_metaplex(self.get_chain(), token_id, &token_info, &metadata, asset_type)
     }
 
     fn get_is_token_address(&self, token_id: &str) -> bool {
         token_id.len() >= 40 && token_id.len() <= 60 && bs58::decode(token_id).into_vec().is_ok()
+    }
+}
+
+fn asset_type_for_owner_program(owner: &str) -> Result<AssetType, Box<dyn Error + Sync + Send>> {
+    get_token_program_id_by_address(owner)
+        .map(|program| program.asset_type())
+        .ok_or_else(|| format!("unsupported Solana token owner program: {owner}").into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{TOKEN_PROGRAM, TOKEN_PROGRAM_2022};
+
+    #[test]
+    fn test_asset_type_for_owner_program() {
+        assert_eq!(asset_type_for_owner_program(TOKEN_PROGRAM).unwrap(), AssetType::SPL);
+        assert_eq!(asset_type_for_owner_program(TOKEN_PROGRAM_2022).unwrap(), AssetType::SPL2022);
+        assert_eq!(
+            asset_type_for_owner_program("unsupported").unwrap_err().to_string(),
+            "unsupported Solana token owner program: unsupported"
+        );
     }
 }
 
