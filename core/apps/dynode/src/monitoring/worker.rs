@@ -34,6 +34,7 @@ impl NodeMonitor {
                 continue;
             };
             let chain = chain_config.chain;
+            metrics.set_node_host_current(chain.as_ref(), &url.host());
             if chain_config.urls.len() <= 1 {
                 continue;
             }
