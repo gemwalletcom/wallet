@@ -26,7 +26,7 @@ mod tests {
     use super::*;
     use crate::models::{RECEIPT_FAILED, RECEIPT_OUT_OF_ENERGY, RECEIPT_REVERT, TransactionReceipt, TransactionReceiptData};
 
-    fn create_receipt(result: Option<&str>, receipt_result: Option<&str>, block_number: i64, fee: Option<i64>) -> TransactionReceiptData {
+    fn create_receipt(result: Option<&str>, receipt_result: Option<&str>, block_number: i64, fee: Option<u64>) -> TransactionReceiptData {
         TransactionReceiptData {
             id: "transaction_id".to_string(),
             fee,

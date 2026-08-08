@@ -3,13 +3,24 @@ mod mapper;
 use std::error::Error;
 
 use gem_client::{Client, ClientExt};
+use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
 use primitives::Transaction;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 
 use self::mapper::map_transaction;
 
 const NATIVE_ASSET_SYMBOL: &str = "DOT";
 const MAX_TRANSFERS_LIMIT: usize = 100;
+const POLKADOT_DECIMALS: u32 = 10;
+
+fn deserialize_dot_amount<'de, D>(deserializer: D) -> Result<BigUint, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    let amount = String::deserialize(deserializer)?;
+    BigNumberFormatter::value_from_amount_biguint(&amount, POLKADOT_DECIMALS).map_err(de::Error::custom)
+}
 
 #[derive(Debug, Serialize)]
 struct TransfersRequest<'a> {
@@ -33,9 +44,11 @@ struct TransfersData {
 
 #[derive(Debug, Deserialize)]
 pub(super) struct SubscanTransfer {
-    pub amount: String,
+    #[serde(deserialize_with = "deserialize_dot_amount")]
+    pub amount: BigUint,
     pub block_timestamp: i64,
-    pub fee: String,
+    #[serde(deserialize_with = "deserialize_dot_amount")]
+    pub fee: BigUint,
     pub from: String,
     pub hash: String,
     pub success: bool,

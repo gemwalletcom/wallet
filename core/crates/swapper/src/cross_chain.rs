@@ -105,8 +105,11 @@ mod tests {
         let vault = "vault_address".to_string();
         let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::NearIntents)]);
         let transaction = Transaction::mock_utxo(
-            vec![TransactionUtxoInput::new("sender".into(), "50000".into())],
-            vec![TransactionUtxoInput::new(vault, "40000".into()), TransactionUtxoInput::new("change".into(), "9000".into())],
+            vec![TransactionUtxoInput::new("sender".into(), 50000u32.into())],
+            vec![
+                TransactionUtxoInput::new(vault, 40000u32.into()),
+                TransactionUtxoInput::new("change".into(), 9000u32.into()),
+            ],
         );
         assert_eq!(swap_provider_with_vault_addresses(&transaction, &deposit_addresses), Some(SwapperProvider::NearIntents));
     }
@@ -115,8 +118,8 @@ mod tests {
     fn test_utxo_no_vault_address_in_outputs() {
         let deposit_addresses = DepositAddressMap::from([("vault_address".to_string(), SwapperProvider::NearIntents)]);
         let transaction = Transaction::mock_utxo(
-            vec![TransactionUtxoInput::new("sender".into(), "50000".into())],
-            vec![TransactionUtxoInput::new("recipient".into(), "40000".into())],
+            vec![TransactionUtxoInput::new("sender".into(), 50000u32.into())],
+            vec![TransactionUtxoInput::new("recipient".into(), 40000u32.into())],
         );
         assert!(!is_cross_chain_swap(&transaction, &deposit_addresses));
     }
@@ -137,8 +140,8 @@ mod tests {
         let vault = "vault_address".to_string();
         let send_addresses = SendAddressMap::from([(vault.clone(), SwapperProvider::NearIntents)]);
         let transaction = Transaction::mock_utxo(
-            vec![TransactionUtxoInput::new(vault, "50000".into())],
-            vec![TransactionUtxoInput::new("recipient".into(), "40000".into())],
+            vec![TransactionUtxoInput::new(vault, 50000u32.into())],
+            vec![TransactionUtxoInput::new("recipient".into(), 40000u32.into())],
         );
         assert!(is_from_vault_address(&transaction, &send_addresses));
     }

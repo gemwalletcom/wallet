@@ -1,12 +1,17 @@
 // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
 // https://hyperliquid.gitbook.io/hyperliquid-docs/trading/contract-specifications
 
+use num_bigint::BigUint;
+
 const MIN_ORDER_VALUE_USD: f64 = 10.0;
 const USDC_CENTS_MULTIPLIER: f64 = 100.0;
 pub const USDC_DECIMALS_MULTIPLIER: f64 = 1_000_000.0;
 
-pub fn usdc_value(amount: f64) -> String {
-    ((amount * USDC_DECIMALS_MULTIPLIER).round() as u64).to_string()
+pub fn usdc_value(amount: f64) -> BigUint {
+    if !amount.is_finite() || amount <= 0.0 {
+        return BigUint::ZERO;
+    }
+    BigUint::from((amount * USDC_DECIMALS_MULTIPLIER).round() as u64)
 }
 
 pub struct PerpetualFormatter;
@@ -64,6 +69,13 @@ mod tests {
         assert_eq!(PerpetualFormatter::minimum_order_usd_amount(487.0, 2, 1), 14_610_000);
         assert_eq!(PerpetualFormatter::minimum_order_usd_amount(200.0, 1, 10), 2_000_000);
         assert_eq!(PerpetualFormatter::minimum_order_usd_amount(0.5, 0, 1), 10_000_000);
+    }
+
+    #[test]
+    fn test_usdc_value_is_nonnegative_integer() {
+        assert_eq!(usdc_value(31_379.53517), BigUint::from(31_379_535_170u64));
+        assert_eq!(usdc_value(-1.0), BigUint::ZERO);
+        assert_eq!(usdc_value(f64::NAN), BigUint::ZERO);
     }
 
     #[test]

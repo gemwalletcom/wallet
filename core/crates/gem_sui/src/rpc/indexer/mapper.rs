@@ -1,9 +1,10 @@
-use std::{error::Error, str::FromStr};
+use std::error::Error;
 
 use chrono::{DateTime, Utc};
 use num_bigint::{BigInt, BigUint};
 use serde::Deserialize;
 use serde_json::Value;
+use serde_serializers::deserialize_bigint_from_str;
 
 use crate::models::transaction::{STATUS_FAILURE, STATUS_SUCCESS};
 use crate::models::{BalanceChange, Digest, Effect, Event, GasObject, GasUsed, Owner, OwnerObject, Status};
@@ -72,7 +73,8 @@ struct GraphqlConnection<T> {
 struct GraphqlBalanceChange {
     owner: GraphqlAddress,
     coin_type: GraphqlMoveType,
-    amount: String,
+    #[serde(deserialize_with = "deserialize_bigint_from_str")]
+    amount: BigInt,
 }
 
 #[derive(Debug, Deserialize)]
@@ -115,14 +117,12 @@ pub(super) fn map_transaction(transaction: GraphqlTransaction) -> Result<Digest,
         .balance_changes
         .nodes
         .into_iter()
-        .map(|change| {
-            Ok(BalanceChange {
-                owner: address_owner(change.owner.address),
-                coin_type: change.coin_type.repr,
-                amount: BigInt::from_str(&change.amount)?,
-            })
+        .map(|change| BalanceChange {
+            owner: address_owner(change.owner.address),
+            coin_type: change.coin_type.repr,
+            amount: change.amount,
         })
-        .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()?;
+        .collect();
     let events = transaction
         .effects
         .events

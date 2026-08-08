@@ -4,6 +4,7 @@ use crate::{
 };
 
 use chrono::{DateTime, Utc};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, vec};
 use typeshare::typeshare;
@@ -205,7 +206,7 @@ impl Transaction {
             }
             TransactionDirection::Outgoing => {
                 let to = outputs_addresses.iter().find(|x| !user_set.contains(*x)).unwrap().clone();
-                let value = utxo_outputs.iter().find(|x| x.address == to).unwrap().value.clone();
+                let value = utxo_outputs.iter().find(|x| x.address == to).unwrap().value.to_string();
                 (to, value)
             }
             TransactionDirection::SelfTransfer => {
@@ -238,8 +239,8 @@ impl Transaction {
         }
     }
 
-    fn utxo_calculate_value(values: &[TransactionUtxoInput], addresses: &HashSet<String>) -> i64 {
-        values.iter().filter(|x| addresses.contains(&x.address)).filter_map(|x| x.value.parse::<i64>().ok()).sum()
+    fn utxo_calculate_value(values: &[TransactionUtxoInput], addresses: &HashSet<String>) -> BigUint {
+        values.iter().filter(|x| addresses.contains(&x.address)).map(|x| &x.value).sum()
     }
 
     fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
@@ -471,14 +472,14 @@ mod tests {
         assert_eq!(transaction.assets_addresses_with_fee().len(), 3);
     }
 
-    fn utxo_input(address: &str, value: &str) -> TransactionUtxoInput {
-        TransactionUtxoInput::new(address.to_string(), value.to_string())
+    fn utxo_input(address: &str, value: u64) -> TransactionUtxoInput {
+        TransactionUtxoInput::new(address.to_string(), value.into())
     }
 
     #[test]
     fn test_finalize_incoming_utxo() {
         let transaction =
-            Transaction::mock_utxo(vec![utxo_input("sender", "50000")], vec![utxo_input("user", "40000"), utxo_input("change", "9000")]).finalize(vec!["user".to_string()]);
+            Transaction::mock_utxo(vec![utxo_input("sender", 50_000)], vec![utxo_input("user", 40_000), utxo_input("change", 9_000)]).finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()),
@@ -490,7 +491,7 @@ mod tests {
     #[test]
     fn test_finalize_outgoing_utxo() {
         let transaction =
-            Transaction::mock_utxo(vec![utxo_input("user", "50000")], vec![utxo_input("recipient", "40000"), utxo_input("user", "9000")]).finalize(vec!["user".to_string()]);
+            Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("recipient", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()),
@@ -501,8 +502,7 @@ mod tests {
 
     #[test]
     fn test_finalize_self_transfer_utxo() {
-        let transaction =
-            Transaction::mock_utxo(vec![utxo_input("user", "50000")], vec![utxo_input("user", "40000"), utxo_input("user", "9000")]).finalize(vec!["user".to_string()]);
+        let transaction = Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("user", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
 
         assert_eq!((transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()), ("user", "user", "49000"));
         assert_eq!(transaction.direction, TransactionDirection::SelfTransfer);

@@ -36,7 +36,7 @@ pub fn map_transaction(chain: Chain, created_at: &str, transaction: &Transaction
         chain.as_asset_id(),
         TransactionType::Transfer,
         TransactionState::Confirmed,
-        transaction.fee.clone(),
+        transaction.fee.to_string(),
         chain.as_asset_id(),
         "0".to_string(),
         None,
@@ -67,13 +67,13 @@ mod tests {
             hash: "tx_hash".to_string(),
             inputs: vec![Input {
                 address: "addr1".to_string(),
-                value: "1000".to_string(),
+                value: 1000u32.into(),
             }],
             outputs: vec![Output {
                 address: "addr2".to_string(),
-                value: "900".to_string(),
+                value: 900u32.into(),
             }],
-            fee: "100".to_string(),
+            fee: 100u32.into(),
         };
 
         let result = map_transaction(Chain::Cardano, "2023-01-01T00:00:00Z", &transaction);

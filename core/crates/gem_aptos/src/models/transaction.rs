@@ -55,12 +55,10 @@ pub struct Guid {
 }
 
 impl Event {
-    pub fn get_amount(&self) -> Option<String> {
+    pub fn get_amount(&self) -> Option<BigUint> {
         let data = self.data.clone()?;
         match self.event_type.as_str() {
-            STAKE_WITHDRAW_EVENT | STAKE_DEPOSIT_EVENT | FUNGIBLE_ASSET_WITHDRAW_EVENT | FUNGIBLE_ASSET_DEPOSIT_EVENT => {
-                serde_json::from_value::<AmountData>(data).ok()?.amount.map(|amount| amount.to_string())
-            }
+            STAKE_WITHDRAW_EVENT | STAKE_DEPOSIT_EVENT | FUNGIBLE_ASSET_WITHDRAW_EVENT | FUNGIBLE_ASSET_DEPOSIT_EVENT => serde_json::from_value::<AmountData>(data).ok()?.amount,
             _ => None,
         }
     }

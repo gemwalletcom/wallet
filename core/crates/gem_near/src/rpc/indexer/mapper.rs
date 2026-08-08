@@ -1,18 +1,18 @@
-use std::{collections::HashMap, error::Error, str::FromStr};
+use std::{collections::HashMap, error::Error};
 
 use chrono::{DateTime, Utc};
-use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::{Chain, Transaction, TransactionState, TransactionType};
 
 use super::FastNearTransfer;
 
-pub(super) fn map_transaction(transfer: FastNearTransfer, fees: &HashMap<String, String>, address: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
+pub(super) fn map_transaction(transfer: FastNearTransfer, fees: &HashMap<String, BigUint>, address: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
     let timestamp = i64::try_from(transfer.block_timestamp)?;
     let created_at = DateTime::<Utc>::from_timestamp_nanos(timestamp);
-    let value = BigInt::from_str(&transfer.amount)?.magnitude().to_string();
+    let value = transfer.amount.magnitude().to_string();
     let fee = if transfer.signer_id == address && transfer.predecessor_id == address {
         let transaction_id = transfer.transaction_id.as_ref().ok_or("missing FastNear sender transaction id")?;
-        fees.get(transaction_id).ok_or("missing FastNear sender transaction details")?.clone()
+        fees.get(transaction_id).ok_or("missing FastNear sender transaction details")?.to_string()
     } else {
         "0".to_string()
     };

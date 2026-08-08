@@ -49,7 +49,7 @@ pub struct ContractParameter {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ContractParameterValue {
-    pub amount: Option<i64>,
+    pub amount: Option<u64>,
     #[serde(default, deserialize_with = "tron_address_deserialize")]
     pub owner_address: Option<String>,
     #[serde(default, deserialize_with = "tron_address_deserialize")]
@@ -57,8 +57,8 @@ pub struct ContractParameterValue {
     #[serde(default, deserialize_with = "tron_address_deserialize")]
     pub contract_address: Option<String>,
     pub data: Option<String>,
-    pub frozen_balance: Option<i64>,
-    pub unfreeze_balance: Option<i64>,
+    pub frozen_balance: Option<u64>,
+    pub unfreeze_balance: Option<u64>,
     pub resource: Option<String>,
     pub votes: Option<Vec<VoteInfo>>,
     pub support: Option<bool>,
@@ -68,7 +68,7 @@ pub struct ContractParameterValue {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VoteInfo {
     pub vote_address: String,
-    pub vote_count: i64,
+    pub vote_count: u64,
 }
 
 pub type BlockTransactionsInfo = Vec<TransactionReceiptData>;
@@ -80,7 +80,7 @@ pub const RECEIPT_REVERT: &str = "REVERT";
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TransactionReceiptData {
     pub id: String,
-    pub fee: Option<i64>,
+    pub fee: Option<u64>,
     #[serde(rename = "blockNumber")]
     pub block_number: i64,
     #[serde(rename = "blockTimeStamp")]

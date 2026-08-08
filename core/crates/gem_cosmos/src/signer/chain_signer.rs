@@ -1,6 +1,7 @@
 use gem_encoding::encode_base64;
 use gem_hash::{keccak::keccak256, sha2::sha256};
 use k256::{PublicKey, elliptic_curve::sec1::ToSec1Point};
+use num_bigint::BigUint;
 use primitives::{ChainSigner, SignerError, SignerInput, TransactionLoadMetadata, chain_cosmos::CosmosChain};
 use signer::{SignatureScheme, Signer};
 
@@ -48,7 +49,7 @@ impl ChainSigner for CosmosChainSigner {
         let chain = Self::chain(input)?;
         let messages = transaction::stake_messages(input, chain)?;
         let gas_limit = Self::gas_limit(input, messages.len())?;
-        let fee_amount = input.fee.fee.to_string();
+        let fee_amount = input.fee.fee.to_biguint().ok_or_else(|| SignerError::invalid_input("invalid cosmos fee"))?;
         let memo = input.memo.as_deref().filter(|m| !m.is_empty()).unwrap_or(DEFAULT_STAKE_MEMO);
 
         Ok(vec![Self::sign_messages(chain, &input.metadata, messages, gas_limit, fee_amount, memo, private_key)?])
@@ -98,11 +99,11 @@ impl CosmosChainSigner {
             .ok_or_else(|| SignerError::invalid_input("gas limit overflow"))
     }
 
-    fn scale_fee(gas_limit: u64, base_fee: u64) -> String {
-        ((gas_limit as u128 * base_fee as u128 / BASE_FEE_GAS_UNITS as u128) as u64).to_string()
+    fn scale_fee(gas_limit: u64, base_fee: u64) -> BigUint {
+        BigUint::from(gas_limit) * BigUint::from(base_fee) / BigUint::from(BASE_FEE_GAS_UNITS)
     }
 
-    fn fee_coins(chain: CosmosChain, fee_amount: String) -> Vec<Coin> {
+    fn fee_coins(chain: CosmosChain, fee_amount: BigUint) -> Vec<Coin> {
         match chain {
             CosmosChain::Thorchain | CosmosChain::Mayachain => vec![],
             CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Injective | CosmosChain::Sei | CosmosChain::Noble => vec![Coin {
@@ -113,9 +114,10 @@ impl CosmosChainSigner {
     }
 
     fn sign_send(chain: CosmosChain, input: &SignerInput, denom: &str, private_key: &[u8]) -> Result<String, SignerError> {
-        let message = transaction::transfer_message(input, denom);
+        let amount = input.value.parse().map_err(|_| SignerError::invalid_input("invalid cosmos amount"))?;
+        let message = transaction::transfer_message(input, denom, amount);
         let gas_limit = Self::gas_limit(input, 1)?;
-        let fee_amount = input.fee.fee.to_string();
+        let fee_amount = input.fee.fee.to_biguint().ok_or_else(|| SignerError::invalid_input("invalid cosmos fee"))?;
         let memo = input.memo.as_deref().unwrap_or("");
         Self::sign_messages(chain, &input.metadata, vec![message], gas_limit, fee_amount, memo, private_key)
     }
@@ -125,7 +127,7 @@ impl CosmosChainSigner {
         metadata: &TransactionLoadMetadata,
         messages: Vec<CosmosMessage>,
         gas_limit: u64,
-        fee_amount: String,
+        fee_amount: BigUint,
         memo: &str,
         private_key: &[u8],
     ) -> Result<String, SignerError> {

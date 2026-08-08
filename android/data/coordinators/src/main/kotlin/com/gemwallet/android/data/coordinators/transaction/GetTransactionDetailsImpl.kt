@@ -147,50 +147,44 @@ class TransactionDetailsAggregateImpl(
                 }
 
                 else -> {
-                    val atomicValue = data.transaction.value.toBigIntegerOrNull()
-                    if (atomicValue == null) {
-                        TransactionDetailsValue.Amount.None
-                    } else {
-                        val value = Crypto(atomicValue)
-                        val fiat = data.price?.price?.let {
-                            CryptoFiatConverter.toFiatString(value, asset.decimals, it, currency)
-                        } ?: ""
+                    val value = Crypto(data.transaction.value)
+                    val fiat = data.price?.price?.let {
+                        CryptoFiatConverter.toFiatString(value, asset.decimals, it, currency)
+                    } ?: ""
 
-                        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+                    val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
 
-                        val (amount, equivalent) = when (data.transaction.type) {
-                            TransactionType.StakeDelegate,
-                            TransactionType.StakeUndelegate,
-                            TransactionType.StakeRewards,
-                            TransactionType.StakeRedelegate,
-                            TransactionType.StakeWithdraw,
-                            TransactionType.EarnWithdraw,
-                            TransactionType.EarnDeposit,
-                            TransactionType.Swap,
-                            TransactionType.StakeFreeze,
-                            TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
-                            TransactionType.Transfer -> Pair(
-                                AmountSign(data.transaction.direction).format(formatter.string(value.atomicValue, asset)),
-                                fiat,
-                            )
-                            TransactionType.TransferNFT,
-                            TransactionType.AssetActivation,
-                            TransactionType.SmartContractCall,
-                            TransactionType.PerpetualOpenPosition,
-                            TransactionType.PerpetualClosePosition,
-                            TransactionType.PerpetualModifyPosition,
-                            TransactionType.TokenApproval -> Pair(data.asset.symbol, null)
-                        }
-                        TransactionDetailsValue.Amount.Plain(data.asset, amount, equivalent)
+                    val (amount, equivalent) = when (data.transaction.type) {
+                        TransactionType.StakeDelegate,
+                        TransactionType.StakeUndelegate,
+                        TransactionType.StakeRewards,
+                        TransactionType.StakeRedelegate,
+                        TransactionType.StakeWithdraw,
+                        TransactionType.EarnWithdraw,
+                        TransactionType.EarnDeposit,
+                        TransactionType.Swap,
+                        TransactionType.StakeFreeze,
+                        TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
+                        TransactionType.Transfer -> Pair(
+                            AmountSign(data.transaction.direction).format(formatter.string(value.atomicValue, asset)),
+                            fiat,
+                        )
+                        TransactionType.TransferNFT,
+                        TransactionType.AssetActivation,
+                        TransactionType.SmartContractCall,
+                        TransactionType.PerpetualOpenPosition,
+                        TransactionType.PerpetualClosePosition,
+                        TransactionType.PerpetualModifyPosition,
+                        TransactionType.TokenApproval -> Pair(data.asset.symbol, null)
                     }
+                    TransactionDetailsValue.Amount.Plain(data.asset, amount, equivalent)
                 }
             }
         }
 
-    override val fee: TransactionDetailsValue.Fee?
+    override val fee: TransactionDetailsValue.Fee
         get() {
-            val atomicValue = data.transaction.fee.toBigIntegerOrNull() ?: return null
-            val fee = Crypto(atomicValue)
+            val fee = Crypto(data.transaction.fee)
             val feeCrypto = ValueFormatter(style = ValueFormatter.Style.Full)
                 .string(fee.atomicValue, data.feeAsset)
             val feeFiat = data.feePrice?.price?.let {
@@ -298,7 +292,7 @@ class TransactionDetailsAggregateImpl(
                     )
                 )
             )
-            fee?.let { add(ValueGroup(listOf(it))) }
+            add(ValueGroup(listOf(fee)))
             add(ValueGroup(listOf(explorer)))
         }
 

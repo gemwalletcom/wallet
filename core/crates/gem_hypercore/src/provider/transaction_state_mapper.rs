@@ -191,11 +191,10 @@ fn transaction_update_from_hash(hash: Option<String>, request_id: String) -> Tra
 fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<Vec<TransactionChange>> {
     let (_, metadata) = prepare_perpetual_fill(matching_fills, last_fill)?;
     let fee: f64 = matching_fills.iter().map(|fill| fill.fee).sum();
-    let network_fee = usdc_value(fee).parse().ok()?;
 
     Some(vec![
         TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)),
-        TransactionChange::NetworkFee(network_fee),
+        TransactionChange::NetworkFee(usdc_value(fee).into()),
     ])
 }
 

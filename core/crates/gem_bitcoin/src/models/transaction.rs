@@ -1,4 +1,6 @@
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_serializers::deserialize_biguint_from_str;
 
 use super::UInt64;
 
@@ -47,9 +49,11 @@ pub struct AddressDetails {
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
     pub txid: String,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
     pub value_in: String,
-    pub fees: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub fees: BigUint,
     pub confirmations: Option<i64>,
     pub block_time: i64,
     pub block_height: i64,
@@ -68,7 +72,8 @@ impl Transaction {
 pub struct Input {
     pub is_address: bool,
     pub addresses: Option<Vec<String>>, // will be optional for Coinbase Input
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
     pub n: i64,
     pub tx_id: Option<String>, // will be optional for Coinbase Input
     pub vout: Option<i64>,     // will be optional for Coinbase Input
@@ -79,7 +84,8 @@ pub struct Input {
 pub struct Output {
     pub is_address: bool,
     pub addresses: Option<Vec<String>>,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
     pub n: i64,
 }
 

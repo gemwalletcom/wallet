@@ -75,7 +75,7 @@ fn map_transaction_type(
             from_change.owner.get_address_owner()?,
             to_change.owner.get_address_owner()?,
             TransactionType::Transfer,
-            to_change.amount.to_string(),
+            to_change.amount.magnitude().to_string(),
             None,
         ));
     }

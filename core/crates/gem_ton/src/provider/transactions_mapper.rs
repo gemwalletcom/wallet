@@ -118,7 +118,7 @@ fn jetton_transfer_details(actions: &[TraceAction]) -> Option<TransferDetails> {
         asset_id: AssetId::from_token(Chain::Ton, &token_id),
         from: parse_address(&details.sender)?,
         to: parse_address(&details.receiver)?,
-        value: details.amount,
+        value: details.amount.to_string(),
         transaction_type: TransactionType::Transfer,
         memo: details.comment.filter(|comment| !comment.is_empty()),
         metadata: None,
@@ -169,9 +169,9 @@ fn jetton_swap_metadata(actions: &[TraceAction]) -> Option<(String, TransactionS
     };
     let metadata = TransactionSwapMetadata {
         from_asset,
-        from_value: swap.dex_incoming_transfer.amount,
+        from_value: swap.dex_incoming_transfer.amount.to_string(),
         to_asset,
-        to_value: swap.dex_outgoing_transfer.amount,
+        to_value: swap.dex_outgoing_transfer.amount.to_string(),
         provider: swap.dex,
     };
     Some((sender, metadata))
@@ -194,7 +194,7 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
             asset_id,
             from: parse_address(&out_message.source)?,
             to,
-            value: parse_ton_value(&out_message.value)?,
+            value: out_message.value.as_ref().map_or_else(|| "0".to_string(), ToString::to_string),
             transaction_type: TransactionType::Transfer,
             memo: extract_memo(out_message),
             metadata: None,
@@ -204,14 +204,13 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
     if message.out_msgs.is_empty()
         && let Some(in_msg) = &message.in_msg
         && let (Some(value), Some(source)) = (&in_msg.value, &in_msg.source)
-        && let Ok(value_int) = value.parse::<i64>()
-        && value_int > 0
+        && value > &BigUint::ZERO
     {
         return Some(TransferDetails {
             asset_id,
             from: parse_address(source)?,
             to: parse_address(&in_msg.destination)?,
-            value: value.clone(),
+            value: value.to_string(),
             transaction_type: TransactionType::Transfer,
             memo: None,
             metadata: None,
@@ -219,13 +218,6 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
     }
 
     None
-}
-
-fn parse_ton_value(value: &Option<String>) -> Option<String> {
-    match value.as_deref() {
-        None => Some("0".to_string()),
-        Some(raw) => raw.parse::<BigUint>().ok().map(|value| value.to_string()),
-    }
 }
 
 fn parse_address(address: &str) -> Option<String> {
@@ -365,15 +357,7 @@ mod tests {
         assert_eq!(transaction.out_msgs[0].value, None);
         assert_eq!(transaction.out_msgs[0].destination, None);
 
-        assert_eq!(transaction.out_msgs[1].value, Some("137245095".to_string()));
-    }
-
-    #[test]
-    fn test_parse_ton_value() {
-        assert_eq!(parse_ton_value(&Some("137245095".to_string())), Some("137245095".to_string()));
-        assert_eq!(parse_ton_value(&None), Some("0".to_string()));
-        assert_eq!(parse_ton_value(&Some("".to_string())), None);
-        assert_eq!(parse_ton_value(&Some("54.108086".to_string())), None);
+        assert_eq!(transaction.out_msgs[1].value, Some(BigUint::from(137245095u64)));
     }
 
     #[test]
@@ -512,16 +496,12 @@ mod tests {
 
     #[test]
     fn test_map_trace_transactions_without_transactions_order() {
-        let message_transactions: MessageTransactions = serde_json::from_str(include_str!("../../testdata/transaction_transfer_state_success.json")).unwrap();
-        let root = message_transactions.transactions.first().unwrap();
-
-        let mut root_value = serde_json::to_value(root).unwrap();
-        if let Value::Object(transaction) = &mut root_value {
-            transaction.insert("total_fees".to_string(), json!(root.total_fees.to_string()));
-        }
+        let message_transactions: Value = serde_json::from_str(include_str!("../../testdata/transaction_transfer_state_success.json")).unwrap();
+        let root = message_transactions["transactions"][0].clone();
+        let root_hash = root["hash"].as_str().unwrap().to_string();
 
         let mut transactions = Map::new();
-        transactions.insert(root.hash.clone(), root_value);
+        transactions.insert(root_hash, root);
 
         let mut trace = Map::new();
         trace.insert("is_incomplete".to_string(), json!(false));

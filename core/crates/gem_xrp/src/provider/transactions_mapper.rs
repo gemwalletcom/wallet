@@ -1,6 +1,7 @@
 use crate::models::rpc::{AccountLedger, AccountLedgerTransaction, Amount, Ledger, Transaction as XrpTransaction, TransactionBroadcast, TransactionMemo};
 use crate::{RESULT_SUCCESS, TRANSACTION_TYPE_PAYMENT, XRP_EPOCH_OFFSET_SECONDS};
 use chrono::DateTime;
+use num_bigint::BigUint;
 use primitives::{AssetId, Transaction, TransactionState, TransactionType, chain::Chain};
 use std::error::Error;
 
@@ -55,7 +56,7 @@ fn map_transaction_common(
     amount: Option<Amount>,
     destination_tag: Option<i64>,
     memos: Option<Vec<TransactionMemo>>,
-    fee: Option<String>,
+    fee: Option<BigUint>,
     transaction_type: String,
     meta_result: String,
     timestamp: i64,
@@ -85,7 +86,7 @@ fn map_transaction_common(
             None,
             TransactionType::Transfer,
             state,
-            fee.unwrap_or_default(),
+            fee.unwrap_or_default().to_string(),
             chain.as_asset_id(),
             value,
             memo,

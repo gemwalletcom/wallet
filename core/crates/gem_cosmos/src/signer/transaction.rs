@@ -1,4 +1,5 @@
 use gem_encoding::protobuf::*;
+use num_bigint::BigUint;
 use primitives::{Address, DelegationValidator, SignerError, SignerInput, StakeType, chain_cosmos::CosmosChain};
 
 use crate::address::CosmosAddress;
@@ -11,14 +12,11 @@ pub const COSMOS_SECP256K1_PUBKEY_TYPE: &str = "/cosmos.crypto.secp256k1.PubKey"
 pub const INJECTIVE_ETHSECP256K1_PUBKEY_TYPE: &str = "/injective.crypto.v1beta1.ethsecp256k1.PubKey";
 const SIGN_MODE_DIRECT: u64 = 1;
 
-pub fn transfer_message(input: &SignerInput, denom: &str) -> CosmosMessage {
+pub fn transfer_message(input: &SignerInput, denom: &str, amount: BigUint) -> CosmosMessage {
     CosmosMessage::Send {
         from_address: input.sender_address.clone(),
         to_address: input.destination_address.clone(),
-        amount: vec![Coin {
-            denom: denom.to_string(),
-            amount: input.value.clone(),
-        }],
+        amount: vec![Coin { denom: denom.to_string(), amount }],
     }
 }
 
@@ -27,7 +25,7 @@ pub fn stake_messages(input: &SignerInput, chain: CosmosChain) -> Result<Vec<Cos
     let delegator_address = &input.sender_address;
     let amount = Coin {
         denom: chain.denom().as_ref().to_string(),
-        amount: input.value.clone(),
+        amount: input.value.parse().map_err(|_| SignerError::invalid_input("invalid cosmos amount"))?,
     };
 
     match stake_type {
@@ -75,8 +73,8 @@ fn encode_send(chain: CosmosChain, from_address: &str, to_address: &str, amount:
     Ok([address_fields, coin_fields].concat())
 }
 
-fn encode_coin(denom: &str, amount: &str) -> Vec<u8> {
-    [encode_string_field(1, denom), encode_string_field(2, amount)].concat()
+fn encode_coin(denom: &str, amount: &BigUint) -> Vec<u8> {
+    [encode_string_field(1, denom), encode_string_field(2, &amount.to_string())].concat()
 }
 
 fn reward_messages(delegator_address: &str, validators: &[DelegationValidator]) -> Vec<CosmosMessage> {
@@ -242,7 +240,7 @@ mod tests {
             msg: b"{\"swap\":{}}".to_vec(),
             funds: vec![Coin {
                 denom: "uosmo".to_string(),
-                amount: "1000000".to_string(),
+                amount: 1_000_000u32.into(),
             }],
         };
         assert_eq!(
@@ -258,7 +256,7 @@ mod tests {
             source_channel: "channel-0".to_string(),
             token: Coin {
                 denom: "uatom".to_string(),
-                amount: "1000000".to_string(),
+                amount: 1_000_000u32.into(),
             },
             sender: "cosmos1test".to_string(),
             receiver: "osmo1test".to_string(),

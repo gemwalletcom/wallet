@@ -21,7 +21,7 @@ interface TransactionDetailsAggregate {
     val currency: Currency
 
     val amount: TransactionDetailsValue.Amount
-    val fee: TransactionDetailsValue.Fee?
+    val fee: TransactionDetailsValue.Fee
     val date: TransactionDetailsValue.Date
     val status: TransactionDetailsValue.Status
     val rate: TransactionDetailsValue.Rate?

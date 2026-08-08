@@ -73,9 +73,9 @@ fn map_perpetual_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &Use
         last_fill,
         create_perpetual_asset_id(&last_fill.coin),
         transaction_type,
-        usdc_value(fee),
+        usdc_value(fee).to_string(),
         HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
-        usdc_value(value),
+        usdc_value(value).to_string(),
         metadata,
     )
 }
@@ -124,8 +124,13 @@ fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotTo
 }
 
 fn amount_to_value(amount: f64, decimals: i32) -> Option<String> {
+    if !amount.is_finite() {
+        return None;
+    }
     let precision: usize = decimals.try_into().ok()?;
-    BigNumberFormatter::value_from_amount(&format!("{amount:.precision$}"), precision as u32).ok()
+    BigNumberFormatter::value_from_amount_biguint(&format!("{:.precision$}", amount.max(0.0)), precision as u32)
+        .ok()
+        .map(|value| value.to_string())
 }
 
 fn build_fill_transaction(

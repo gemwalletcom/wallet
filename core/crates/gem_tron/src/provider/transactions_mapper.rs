@@ -121,7 +121,7 @@ struct TransactionContext {
 }
 
 impl TransactionContext {
-    fn new(chain: Chain, hash: String, owner_address: Option<String>, contract_ret: &str, fee: Option<i64>, block_time_stamp: i64, data: Option<&str>) -> Option<Self> {
+    fn new(chain: Chain, hash: String, owner_address: Option<String>, contract_ret: &str, fee: Option<u64>, block_time_stamp: i64, data: Option<&str>) -> Option<Self> {
         Some(Self {
             chain,
             hash,
@@ -164,7 +164,7 @@ impl TransactionContext {
     fn vote_witness_transaction_data(&self, contract_value: &ContractParameterValue) -> Option<(TransactionType, String, String, Option<Value>)> {
         let vote = contract_value.votes.as_ref()?.first()?;
         let to = TronAddress::from_hex(vote.vote_address.as_str())?.encode();
-        let value = (vote.vote_count * 1_000_000).to_string();
+        let value = vote.vote_count.checked_mul(1_000_000)?.to_string();
         Some((TransactionType::StakeDelegate, to, value, None))
     }
 

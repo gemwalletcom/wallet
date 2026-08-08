@@ -207,18 +207,6 @@ class TransactionDetailsAggregateImplTest {
     }
 
     @Test
-    fun testAmountPlain_malformedValue() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            value = "54.108086",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, price = null)
-        val aggregate = createAggregate(extended)
-
-        Assert.assertTrue(aggregate.amount is TransactionDetailsValue.Amount.None)
-    }
-
-    @Test
     fun testAmountSwap_withValidMetadata() {
         val bnbAsset = mockAsset(
             chain = Chain.SmartChain,
@@ -719,7 +707,7 @@ class TransactionDetailsAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = feePrice)
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals(btcAsset, fee.asset)
         Assert.assertEquals("0.00001 BTC", fee.value)
         Assert.assertEquals("\$0.5", fee.equivalent)
@@ -738,7 +726,7 @@ class TransactionDetailsAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = feePrice)
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals("0.00001 BTC", fee.value)
         Assert.assertEquals("\$0.0000428", fee.equivalent)
     }
@@ -751,21 +739,10 @@ class TransactionDetailsAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = null)
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals(btcAsset, fee.asset)
         Assert.assertEquals("0.00001 BTC", fee.value)
         Assert.assertEquals("", fee.equivalent)
-    }
-
-    @Test
-    fun testFee_malformedValue() {
-        val transaction = createTransaction(
-            fee = "0.006671888",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = null)
-        val aggregate = createAggregate(extended)
-
-        Assert.assertNull(aggregate.fee)
     }
 
     @Test
@@ -780,7 +757,7 @@ class TransactionDetailsAggregateImplTest {
         )
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals(ethAsset, fee.asset)
         Assert.assertEquals("0.001 ETH", fee.value)
         Assert.assertEquals("", fee.equivalent)

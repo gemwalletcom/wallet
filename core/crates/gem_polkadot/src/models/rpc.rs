@@ -1,7 +1,8 @@
 use core::str;
 
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use serde_serializers::deserialize_u64_from_str;
+use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_u64_from_str};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TransactionBroadcast {
@@ -40,7 +41,8 @@ pub struct ExtrinsicMethod {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtrinsicInfo {
-    pub partial_fee: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub partial_fee: Option<BigUint>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,7 +62,8 @@ pub struct ExtrinsicTimestamp {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExtrinsicTransfer {
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
     pub dest: AddressId,
 }
 
@@ -78,7 +81,8 @@ pub struct Call {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CallArgs {
     pub dest: AddressId,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
