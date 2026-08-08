@@ -81,6 +81,8 @@ class SetPriceAlertsEnabledImplTest {
 
         override fun getPriceAlerts(assetId: AssetId?): Flow<List<PriceAlertInfo>> = flowOf(emptyList())
 
+        override fun getPriceAlertAssetIds(): Flow<List<AssetId>> = flowOf(emptyList())
+
         override fun getAssetPriceAlert(assetId: AssetId): Flow<PriceAlertInfo?> = flowOf(null)
 
         override suspend fun addPriceAlert(priceAlert: PriceAlert) = Unit

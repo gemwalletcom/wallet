@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.device
 
+import com.gemwallet.android.application.SecureValueNotFoundException
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.math.hex
@@ -31,7 +32,7 @@ class GetDeviceIdImpl(
                 privateKey = store.getValue(Keys.PrivateKey),
                 publicKey = store.getValue(Keys.PublicKey),
             )
-        } catch (_: Throwable) {}
+        } catch (_: SecureValueNotFoundException) {}
 
         val deviceKey = generateDeviceKeyPair()
         val privateKey = deviceKey.privateKey.hex

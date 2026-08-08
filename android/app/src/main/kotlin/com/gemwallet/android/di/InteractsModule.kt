@@ -28,7 +28,7 @@ import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
-import com.gemwallet.android.data.password.TinkSecurityStore
+import com.gemwallet.android.data.password.TinkDeviceAuthStore
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.PhraseAddressImportWalletService
@@ -121,7 +121,7 @@ object InteractsModule {
     @Provides
     @Singleton
     fun provideSecurityStore(@ApplicationContext context: Context): SecurityStore<Any> =
-        TinkSecurityStore(context)
+        TinkDeviceAuthStore(context)
 
     @Singleton
     @Provides

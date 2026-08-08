@@ -5,3 +5,5 @@ interface SecurityStore<T> {
 
     suspend fun putValue(key: T, value: String)
 }
+
+class SecureValueNotFoundException : IllegalStateException("Secure value not found")

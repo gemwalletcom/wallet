@@ -1,14 +1,14 @@
 package com.gemwallet.android.data.password
 
 import android.content.Context
-import com.gemwallet.android.math.hex
+import android.util.Log
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.aead.AesGcmKeyManager
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import java.nio.charset.StandardCharsets.UTF_8
-import java.security.MessageDigest
+import java.security.GeneralSecurityException
 import java.util.Base64
 
 internal class TinkEncryptedKeyValueStore(
@@ -22,30 +22,30 @@ internal class TinkEncryptedKeyValueStore(
         Context.MODE_PRIVATE,
     )
 
-    override fun contains(key: String): Boolean = sharedPreferences.contains(storageKey(key))
+    override fun contains(key: String): Boolean = sharedPreferences.contains(storageKey(config.namespace, key))
 
     override fun getString(key: String): String? {
-        val encryptedValue = sharedPreferences.getString(storageKey(key), null) ?: return null
-        val decryptedValue = aeadProvider.get().decrypt(Base64.getDecoder().decode(encryptedValue), associatedData(key))
+        val encryptedValue = sharedPreferences.getString(storageKey(config.namespace, key), null) ?: return null
+        val decryptedValue = aeadProvider.get().decrypt(
+            Base64.getDecoder().decode(encryptedValue),
+            associatedData(config.namespace, key),
+        )
         return String(decryptedValue, UTF_8)
     }
 
     override fun putString(key: String, value: String) {
-        val encryptedValue = aeadProvider.get().encrypt(value.toByteArray(UTF_8), associatedData(key))
+        val encryptedValue = aeadProvider.get().encrypt(
+            value.toByteArray(UTF_8),
+            associatedData(config.namespace, key),
+        )
         val encodedValue = Base64.getEncoder().encodeToString(encryptedValue)
-        if (!sharedPreferences.edit().putString(storageKey(key), encodedValue).commit()) {
+        if (!sharedPreferences.edit().putString(storageKey(config.namespace, key), encodedValue).commit()) {
             throw IllegalStateException("Secure value write failed")
         }
     }
 
-    override fun removeString(key: String): Boolean = sharedPreferences.edit().remove(storageKey(key)).commit()
-
-    private fun associatedData(key: String): ByteArray = "${config.namespace}:$key".toByteArray(UTF_8)
-
-    private fun storageKey(key: String): String {
-        val digest = MessageDigest.getInstance("SHA-256").digest("${config.namespace}\u0000$key".toByteArray(UTF_8))
-        return "${config.namespace}_${digest.hex}"
-    }
+    override fun removeString(key: String): Boolean =
+        sharedPreferences.edit().remove(storageKey(config.namespace, key)).commit()
 
     companion object {
         fun create(context: Context, config: TinkStoreConfig): TinkEncryptedKeyValueStore {
@@ -85,12 +85,23 @@ internal class TinkAeadProvider(
 
     private fun buildAead(): Aead {
         AeadConfig.register()
-        val keysetHandle = AndroidKeysetManager.Builder()
-            .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
-            .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
-            .withMasterKeyUri("android-keystore://${config.masterKeyAlias}")
-            .build()
-            .keysetHandle
-        return keysetHandle.getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        synchronized(ANDROID_KEYSTORE_LOCK) {
+            return try {
+                keysetAead()
+            } catch (error: GeneralSecurityException) {
+                Log.w(TAG, "Retrying Tink keyset load: ${error.javaClass.simpleName}", error)
+                keysetAead()
+            }
+        }
     }
+
+    private fun keysetAead(): Aead = AndroidKeysetManager.Builder()
+        .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
+        .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
+        .withMasterKeyUri("android-keystore://${config.masterKeyAlias}")
+        .build()
+        .keysetHandle
+        .getPrimitive(RegistryConfiguration.get(), Aead::class.java)
 }
+
+private const val TAG = "TinkAeadProvider"

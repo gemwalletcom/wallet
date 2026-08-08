@@ -4,8 +4,11 @@ import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.wallet.core.primitives.WalletId
 import okhttp3.Interceptor
 import okhttp3.Protocol
+import okhttp3.Request
 import okhttp3.Response
 import okio.Buffer
+
+const val DEVICE_AUTH_ERROR_CODE = 599
 
 class SecurityInterceptor internal constructor(
     private val signer: DeviceRequestSigner,
@@ -20,23 +23,30 @@ class SecurityInterceptor internal constructor(
             it.writeTo(buffer)
             buffer.readByteArray()
         }
-        val signature = signer.sign(
-            method = request.method,
-            path = request.url.encodedPath,
-            body = body,
-            walletId = request.tag(WalletId::class.java)?.id.orEmpty(),
-        )
+        val signature = try {
+            signer.sign(
+                method = request.method,
+                path = request.url.encodedPath,
+                body = body,
+                walletId = request.tag(WalletId::class.java)?.id.orEmpty(),
+            )
+        } catch (error: Throwable) {
+            return request.errorResponse(DEVICE_AUTH_ERROR_CODE, "Device auth error: ${error.javaClass.simpleName}")
+        }
         return try {
             val builder = request.newBuilder()
             signature.toHeaders().forEach { (key, value) -> builder.header(key, value) }
             chain.proceed(builder.build())
         } catch (error: Throwable) {
-            Response.Builder()
-                .code(503)
-                .message("HTTP Exception: ${error.message}")
-                .request(request)
-                .protocol(Protocol.HTTP_2)
-                .build()
+            request.errorResponse(503, "HTTP Exception: ${error.message}")
         }
     }
 }
+
+internal fun Request.errorResponse(code: Int, message: String): Response =
+    Response.Builder()
+        .code(code)
+        .message(message)
+        .request(this)
+        .protocol(Protocol.HTTP_2)
+        .build()

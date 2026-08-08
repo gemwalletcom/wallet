@@ -1,9 +1,11 @@
 package com.gemwallet.android.data.password
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.gemwallet.android.application.SecureValueNotFoundException
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.Dispatchers
@@ -18,8 +20,10 @@ private const val DEVICE_KEYSET_PREFERENCES_FILE_NAME = "gem_device_master_key"
 private const val DEVICE_MASTER_KEY_ALIAS = "gem_device_master_key"
 private const val DEVICE_KEYS_PREFERENCES_FILE_NAME = "gem_device_keys"
 private const val DEVICE_KEYS_NAMESPACE = "device_keys"
+private const val DEVICE_AEAD_KEY_ALIAS = "gem_device_keys_aead_v1"
+private const val TAG = "TinkDeviceAuthStore"
 
-private val DEVICE_KEYS_STORE_CONFIG = TinkStoreConfig(
+private val TINK_DEVICE_KEYS_STORE_CONFIG = TinkStoreConfig(
     preferencesFileName = DEVICE_KEYS_PREFERENCES_FILE_NAME,
     namespace = DEVICE_KEYS_NAMESPACE,
     keysetName = DEVICE_KEYSET_NAME,
@@ -27,19 +31,27 @@ private val DEVICE_KEYS_STORE_CONFIG = TinkStoreConfig(
     masterKeyAlias = DEVICE_MASTER_KEY_ALIAS,
 )
 
-class TinkSecurityStore(
+class TinkDeviceAuthStore(
     private val context: Context,
 ) : SecurityStore<Any> {
 
     private val Context.dataStore by preferencesDataStore(name = LEGACY_DEVICE_KEYS_DATASTORE_NAME)
-    private val aeadProvider = TinkAeadProvider(
+    private val tinkAeadProvider = TinkAeadProvider(
         context = context,
-        config = DEVICE_KEYS_STORE_CONFIG,
+        config = TINK_DEVICE_KEYS_STORE_CONFIG,
     )
-    private val encryptedStore = TinkEncryptedKeyValueStore(
+    private val tinkEncryptedStore = TinkEncryptedKeyValueStore(
         context = context,
-        config = DEVICE_KEYS_STORE_CONFIG,
-        aeadProvider = aeadProvider,
+        config = TINK_DEVICE_KEYS_STORE_CONFIG,
+        aeadProvider = tinkAeadProvider,
+    )
+    private val encryptedStore = EncryptedKeyValueStore(
+        context = context,
+        preferencesFileName = DEVICE_KEYS_PREFERENCES_FILE_NAME,
+        namespace = DEVICE_KEYS_NAMESPACE,
+        aeadProvider = AeadProvider(keyAlias = DEVICE_AEAD_KEY_ALIAS),
+        legacyStore = tinkEncryptedStore,
+        resetOnInvalidKey = true,
     )
 
     override suspend fun getValue(key: Any): String = withContext(Dispatchers.IO) {
@@ -49,9 +61,13 @@ class TinkSecurityStore(
             return@withContext currentValue
         }
 
-        val value = getLegacyValue(keyValue) ?: throw IllegalStateException("Data not found")
-        encryptedStore.putString(keyValue, value)
-        removeLegacyValue(keyValue)
+        val value = getLegacyValue(keyValue) ?: throw SecureValueNotFoundException()
+        runCatching {
+            encryptedStore.putString(keyValue, value)
+            removeLegacyValue(keyValue)
+        }.onFailure { error ->
+            Log.e(TAG, "Keeping legacy device auth value, migration failed", error)
+        }
         value
     }
 
@@ -62,10 +78,17 @@ class TinkSecurityStore(
     }
 
     private suspend fun getLegacyValue(key: String): String? {
-        return context.dataStore.data.map { preferences -> preferences[stringPreferencesKey(key)] }
-            .firstOrNull()?.let {
-                String(aeadProvider.get().decrypt(it.fromHex(), null), UTF_8)
+        val storedValue = context.dataStore.data.map { preferences -> preferences[stringPreferencesKey(key)] }
+            .firstOrNull() ?: return null
+        return try {
+            String(tinkAeadProvider.get().decrypt(storedValue.fromHex(), null), UTF_8)
+        } catch (error: Exception) {
+            if (!(isSecureValueCorruption(error) || isSecureKeyFailure(error))) {
+                throw error
             }
+            Log.e(TAG, "Ignoring undecryptable legacy device auth value: ${error.javaClass.simpleName}", error)
+            null
+        }
     }
 
     private suspend fun removeLegacyValue(key: String) {
