@@ -54,6 +54,7 @@ fn map_transaction_common(
     account: Option<String>,
     destination: Option<String>,
     amount: Option<Amount>,
+    delivered_amount: Option<Amount>,
     destination_tag: Option<i64>,
     memos: Option<Vec<TransactionMemo>>,
     fee: Option<BigUint>,
@@ -67,16 +68,15 @@ fn map_transaction_common(
             .and_then(|m| m.first())
             .and_then(|m| m.decoded_data())
             .or_else(|| destination_tag.map(|x| x.to_string()));
-        let value = amount.clone()?.as_value_string()?;
-        let token_id = amount?.token_id();
+        let (state, amount) = if meta_result == RESULT_SUCCESS {
+            (TransactionState::Confirmed, delivered_amount?)
+        } else {
+            (TransactionState::Failed, amount?)
+        };
+        let value = amount.as_value_string()?;
+        let token_id = amount.token_id();
         let asset_id = AssetId::from(chain, token_id);
         let created_at = DateTime::from_timestamp(timestamp, 0)?;
-
-        let state = if meta_result == RESULT_SUCCESS {
-            TransactionState::Confirmed
-        } else {
-            TransactionState::Failed
-        };
 
         return Some(Transaction::new(
             hash,
@@ -104,6 +104,7 @@ pub fn map_account_transaction(chain: Chain, transaction: AccountLedgerTransacti
         transaction.tx_json.account,
         transaction.tx_json.destination,
         transaction.tx_json.amount,
+        transaction.meta.delivered_amount,
         transaction.tx_json.destination_tag,
         transaction.tx_json.memos,
         transaction.tx_json.fee,
@@ -120,6 +121,7 @@ pub fn map_block_transaction(chain: Chain, transaction: XrpTransaction, close_ti
         transaction.account,
         transaction.destination,
         transaction.amount,
+        transaction.meta.delivered_amount,
         transaction.destination_tag,
         transaction.memos,
         transaction.fee,
@@ -136,6 +138,7 @@ pub fn map_direct_transaction(chain: Chain, transaction: XrpTransaction) -> Opti
         transaction.account,
         transaction.destination,
         transaction.amount,
+        transaction.meta.delivered_amount,
         transaction.destination_tag,
         transaction.memos,
         transaction.fee,
@@ -243,5 +246,27 @@ mod tests {
 
         assert_eq!(mapped.hash, TEST_TRANSACTION_ID);
         assert_eq!(mapped.from, "rnXZ876yGEhoATQSYegtD8bg8wpA8TTX5a");
+    }
+
+    #[test]
+    fn test_map_transaction_uses_delivered_amount() {
+        let map = |delivered_amount| {
+            map_transaction_common(
+                Chain::Xrp,
+                "hash".to_string(),
+                Some("sender".to_string()),
+                Some("recipient".to_string()),
+                Some(Amount::Str(100u32.into())),
+                delivered_amount,
+                None,
+                None,
+                None,
+                TRANSACTION_TYPE_PAYMENT.to_string(),
+                RESULT_SUCCESS.to_string(),
+                0,
+            )
+        };
+
+        assert_eq!(map(Some(Amount::Str(1u32.into()))).unwrap().value, "1");
     }
 }
