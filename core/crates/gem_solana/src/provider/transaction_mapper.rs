@@ -160,13 +160,11 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     let fee_asset_id = chain.as_asset_id();
     let created_at = DateTime::from_timestamp(block_time, 0)?;
 
-    // system transfer
-    if (account_keys.len() == 3) && account_keys.last()? == SYSTEM_PROGRAM_ID
-        || (account_keys.len() == 4 && account_keys.last()? == SYSTEM_PROGRAM_ID && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID))
+    if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID)
+        || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID))
     {
         let from = account_keys.first()?.clone();
-        let to = account_keys[1].clone();
-
+        let to = account_keys.get(1)?.clone();
         let value = transaction.get_balance_change(&from);
 
         let transaction = Transaction::new(
@@ -509,6 +507,28 @@ mod tests {
             None,
             None,
             DateTime::from_timestamp(1750884182, 0).unwrap(),
+        );
+
+        assert_eq!(transaction, expected);
+    }
+
+    #[test]
+    fn test_transaction_transfer_sol_compute_program_last() {
+        let transaction = map_single_transaction(include_str!("../../testdata/transfer_sol_compute_program_last.json"));
+        let expected = Transaction::new(
+            "55cdNy5LCuvW6SC3uZstkHwAt9Tpu3EMn1LujddzX93X6LNd2VaXsbvoUMkgdyuDJ8W6MGDrucVxMGqiipf596fv".to_string(),
+            Chain::Solana.as_asset_id(),
+            "ASTyfSima4LLAdDgoFGkgqoKowG1LZFDr9fAQrg7iaJZ".to_string(),
+            "BEMoVoNd74UEaRsyKsqhQvwawtm3qDKMKWUZtwKWVT3d".to_string(),
+            None,
+            TransactionType::Transfer,
+            TransactionState::Confirmed,
+            "8125".to_string(),
+            Chain::Solana.as_asset_id(),
+            "66825800".to_string(),
+            None,
+            None,
+            DateTime::from_timestamp(1786173123, 0).unwrap(),
         );
 
         assert_eq!(transaction, expected);

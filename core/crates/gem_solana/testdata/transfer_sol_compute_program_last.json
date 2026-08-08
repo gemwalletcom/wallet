@@ -1,0 +1,89 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "blockTime": 1786173123,
+    "meta": {
+      "computeUnitsConsumed": 450,
+      "costUnits": 1784,
+      "err": null,
+      "fee": 8125,
+      "innerInstructions": [],
+      "loadedAddresses": {
+        "readonly": [],
+        "writable": []
+      },
+      "logMessages": [
+        "Program 11111111111111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success"
+      ],
+      "postBalances": [
+        36656062943585,
+        737176085,
+        1,
+        1
+      ],
+      "postTokenBalances": [],
+      "preBalances": [
+        36656129777510,
+        670350285,
+        1,
+        1
+      ],
+      "preTokenBalances": [],
+      "rewards": [],
+      "status": {
+        "Ok": null
+      }
+    },
+    "slot": 437947818,
+    "transaction": {
+      "message": {
+        "accountKeys": [
+          "ASTyfSima4LLAdDgoFGkgqoKowG1LZFDr9fAQrg7iaJZ",
+          "BEMoVoNd74UEaRsyKsqhQvwawtm3qDKMKWUZtwKWVT3d",
+          "11111111111111111111111111111111",
+          "ComputeBudget111111111111111111111111111111"
+        ],
+        "header": {
+          "numReadonlySignedAccounts": 0,
+          "numReadonlyUnsignedAccounts": 2,
+          "numRequiredSignatures": 1
+        },
+        "instructions": [
+          {
+            "accounts": [
+              0,
+              1
+            ],
+            "data": "3Bxs4D1nH5vGXajR",
+            "programIdIndex": 2,
+            "stackHeight": 1
+          },
+          {
+            "accounts": [],
+            "data": "3bgH9Hv7KbuZ",
+            "programIdIndex": 3,
+            "stackHeight": 1
+          },
+          {
+            "accounts": [],
+            "data": "KQUSGo",
+            "programIdIndex": 3,
+            "stackHeight": 1
+          }
+        ],
+        "recentBlockhash": "CotYmniDGsTPvDTtw5XPw9fexTKCVHAwoorGBh6TrJDR"
+      },
+      "signatures": [
+        "55cdNy5LCuvW6SC3uZstkHwAt9Tpu3EMn1LujddzX93X6LNd2VaXsbvoUMkgdyuDJ8W6MGDrucVxMGqiipf596fv"
+      ]
+    },
+    "transactionIndex": 243,
+    "version": "legacy"
+  },
+  "id": 1
+}
