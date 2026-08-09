@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PriceAlertInfo
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.map
 data class DbPriceAlert(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val assetId: String,
-    val currency: String,
+    val currency: Currency,
     val price: Double? = null,
     val pricePercentChange: Double? = null,
     val priceDirection: PriceAlertDirection? = null,

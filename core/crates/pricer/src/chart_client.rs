@@ -1,4 +1,4 @@
-use primitives::{AssetId, ChartPeriod, ChartValue, DEFAULT_FIAT_CURRENCY, PriceConfig};
+use primitives::{AssetId, ChartPeriod, ChartValue, PriceConfig, currency::Currency};
 use std::error::Error;
 use storage::{ChartsRepository, Database, PricesRepository};
 
@@ -13,8 +13,8 @@ impl ChartClient {
         Self { database, config }
     }
 
-    pub async fn get_charts_prices(&self, asset_id: &AssetId, period: ChartPeriod, currency: &str) -> Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>> {
-        let base_rate = self.database.fiat()?.get_fiat_rate(DEFAULT_FIAT_CURRENCY)?.as_primitive();
+    pub async fn get_charts_prices(&self, asset_id: &AssetId, period: ChartPeriod, currency: &Currency) -> Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>> {
+        let base_rate = self.database.fiat()?.get_fiat_rate(&Currency::USD)?.as_primitive();
         let rate = self.database.fiat()?.get_fiat_rate(currency)?.as_primitive();
         let rate_multiplier = rate.multiplier(base_rate.rate);
 

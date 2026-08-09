@@ -1,6 +1,7 @@
 use cacher::{CacheError, CacheKey, CacherClient};
 use gem_tracing::error_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
+use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, PriceData, PriceId, PriceProvider};
 use std::collections::HashSet;
 use std::error::Error;
@@ -33,11 +34,11 @@ impl PriceClient {
         Ok(self.database.fiat()?.get_fiat_rates()?.into_iter().map(|r| r.as_primitive()).collect())
     }
 
-    pub fn get_fiat_rate(&self, symbol: &str) -> Result<FiatRate, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.fiat()?.get_fiat_rate(symbol)?.as_primitive())
+    pub fn get_fiat_rate(&self, currency: &Currency) -> Result<FiatRate, Box<dyn Error + Send + Sync>> {
+        Ok(self.database.fiat()?.get_fiat_rate(currency)?.as_primitive())
     }
 
-    pub async fn get_asset_price(&self, asset_id: &AssetId, currency: &str) -> Result<AssetMarketPrice, Box<dyn Error + Send + Sync>> {
+    pub async fn get_asset_price(&self, asset_id: &AssetId, currency: &Currency) -> Result<AssetMarketPrice, Box<dyn Error + Send + Sync>> {
         let rate = self.get_fiat_rate(currency)?.rate;
         let price = self.get_cache_price(asset_id).await?;
         let prices = self
@@ -87,8 +88,8 @@ impl PriceClient {
         }
     }
 
-    pub async fn get_asset_prices(&self, currency: &str, asset_ids: Vec<AssetId>) -> Result<AssetPrices, Box<dyn Error + Send + Sync>> {
-        let rate = self.get_fiat_rate(currency)?.rate;
+    pub async fn get_asset_prices(&self, currency: Currency, asset_ids: Vec<AssetId>) -> Result<AssetPrices, Box<dyn Error + Send + Sync>> {
+        let rate = self.get_fiat_rate(&currency)?.rate;
         let prices = self
             .get_cache_prices(asset_ids)
             .await
@@ -97,10 +98,7 @@ impl PriceClient {
             .map(|x| x.as_asset_price_primitive_with_rate(rate))
             .collect();
 
-        Ok(AssetPrices {
-            currency: currency.to_string(),
-            prices,
-        })
+        Ok(AssetPrices { currency, prices })
     }
 
     pub async fn aggregate_charts(&self, timeframe: ChartTimeframe) -> Result<usize, Box<dyn Error + Send + Sync>> {

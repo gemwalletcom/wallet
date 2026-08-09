@@ -34,7 +34,7 @@ class PricesRepositoryTest {
         val assetFull = mockAssetFull(asset = mockAssetSolana(), price = null)
         val stored = slot<DbPrice>()
 
-        subject.updatePrice(assetFull, FiatRate(Currency.EUR.string, 0.5), Currency.EUR)
+        subject.updatePrice(assetFull, FiatRate(Currency.EUR, 0.5))
 
         coVerify(exactly = 1) { pricesDao.insert(capture(stored)) }
         assertEquals("solana", stored.captured.assetId)

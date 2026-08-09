@@ -432,10 +432,10 @@ public extension AssetSceneViewModel {
 
     func onTogglePriceAlert() {
         Task {
-            let isPriceAlertsEnabled = assetData.isPriceAlertsEnabled
+            let enabled = !assetData.isPriceAlertsEnabled
             do {
-                try await isPriceAlertsEnabled ? disablePriceAlert() : enablePriceAlert()
-                isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: !isPriceAlertsEnabled)
+                try await setPriceAlert(enabled: enabled)
+                isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: enabled)
             } catch {
                 debugLog("onTogglePriceAlert error \(error)")
             }
@@ -533,12 +533,14 @@ extension AssetSceneViewModel {
         }
     }
 
-    private func enablePriceAlert() async throws {
-        try await priceAlertService.enable(priceAlert: .default(for: assetModel.asset.id, currency: preferences.preferences.currency))
-    }
-
-    private func disablePriceAlert() async throws {
-        try await priceAlertService.delete(priceAlerts: [.default(for: assetModel.asset.id, currency: preferences.preferences.currency)])
+    private func setPriceAlert(enabled: Bool) async throws {
+        let currency = try Currency(id: preferences.preferences.currency)
+        let priceAlert = PriceAlert.default(for: assetModel.asset.id, currency: currency)
+        if enabled {
+            try await priceAlertService.enable(priceAlert: priceAlert)
+        } else {
+            try await priceAlertService.delete(priceAlerts: [priceAlert])
+        }
     }
 
     private func updateAsset() async {

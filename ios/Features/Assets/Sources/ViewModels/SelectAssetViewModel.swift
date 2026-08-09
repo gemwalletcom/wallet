@@ -335,7 +335,7 @@ extension SelectAssetViewModel {
 
     private func setPriceAlert(assetId: AssetId, enabled: Bool) async {
         do {
-            let currency = Preferences.standard.currency
+            let currency = try Currency(id: Preferences.standard.currency)
             if enabled {
                 try await priceAlertService.enable(priceAlert: .default(for: assetId, currency: currency))
             } else {

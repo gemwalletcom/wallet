@@ -12,13 +12,13 @@ data class DbFiatRate(
 )
 
 fun DbFiatRate.toDTO(): FiatRate {
-    return FiatRate(currency.string, rate)
+    return FiatRate(currency, rate)
 }
 
-fun FiatRate.toRecord(): DbFiatRate? {
-    return DbFiatRate(Currency.entries.firstOrNull { it.string == symbol } ?: return null, rate)
+fun FiatRate.toRecord(): DbFiatRate {
+    return DbFiatRate(symbol, rate)
 }
 
 fun List<DbFiatRate>.toDTO() = map { it.toDTO() }
 
-fun List<FiatRate>.toRecord() = mapNotNull { it.toRecord() }
+fun List<FiatRate>.toRecord() = map { it.toRecord() }

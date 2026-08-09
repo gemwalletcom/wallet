@@ -3,6 +3,7 @@ use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{self, Output, ToSql};
 use primitives::AssetId as PrimitiveAssetId;
+use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::nft::NFTType as PrimitiveNFTType;
 use primitives::rewards::{
     RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType,
@@ -24,7 +25,7 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 use crate::schema::sql_types::{
-    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, DeviceLocale as DeviceLocaleSql,
+    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql,
     FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql,
     NftType as NftTypeSql, NotificationType as NotificationTypeSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql,
     RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, TagVisibility as TagVisibilitySql,
@@ -33,16 +34,11 @@ use crate::schema::sql_types::{
 };
 
 macro_rules! diesel_enum {
-    ($wrapper:ident, $inner:ty, $sql_type:ty, [$($variant:ident),+ $(,)?]) => {
+    ($wrapper:ident, $inner:ty, $sql_type:ty) => {
         #[derive(Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow)]
         #[serde(transparent)]
         #[diesel(sql_type = $sql_type)]
         pub struct $wrapper(pub $inner);
-
-        #[allow(non_upper_case_globals)]
-        impl $wrapper {
-            $(pub const $variant: Self = Self(<$inner>::$variant);)+
-        }
 
         impl Deref for $wrapper {
             type Target = $inner;
@@ -69,6 +65,14 @@ macro_rules! diesel_enum {
                 out.write_all(self.0.as_ref().as_bytes())?;
                 Ok(serialize::IsNull::No)
             }
+        }
+    };
+    ($wrapper:ident, $inner:ty, $sql_type:ty, [$($variant:ident),+ $(,)?]) => {
+        diesel_enum!($wrapper, $inner, $sql_type);
+
+        #[allow(non_upper_case_globals)]
+        impl $wrapper {
+            $(pub const $variant: Self = Self(<$inner>::$variant);)+
         }
     };
 }
@@ -164,6 +168,8 @@ diesel_enum!(
 diesel_enum!(UsernameStatus, PrimitiveUsernameStatus, UsernameStatusSql, [Unverified, Verified]);
 
 diesel_enum!(Platform, PrimitivePlatform, PlatformSql, [IOS, Android]);
+
+diesel_enum!(Currency, PrimitiveCurrency, CurrencySql);
 
 diesel_enum!(
     DeviceLocale,

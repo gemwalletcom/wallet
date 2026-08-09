@@ -9,7 +9,7 @@ extension PriceAlert: Identifiable {
         }
         return [
             assetId.identifier,
-            currency,
+            currency.rawValue,
             price.map { Self.formatValue($0) },
             pricePercentChange.map { Self.formatValue($0) },
             priceDirection?.rawValue,
@@ -20,7 +20,7 @@ extension PriceAlert: Identifiable {
 }
 
 public extension PriceAlert {
-    static func `default`(for assetId: AssetId, currency: String) -> PriceAlert {
+    static func `default`(for assetId: AssetId, currency: Currency) -> PriceAlert {
         PriceAlert(
             assetId: assetId,
             currency: currency,

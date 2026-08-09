@@ -1,5 +1,6 @@
 package com.gemwallet.android.testkit
 
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Device
 import com.wallet.core.primitives.DeviceLocale
 import com.wallet.core.primitives.Platform
@@ -14,7 +15,7 @@ fun mockDevice(
     token: String = "test-token-123",
     locale: DeviceLocale = DeviceLocale.EN,
     version: String = "1.0.0",
-    currency: String = "USD",
+    currency: Currency = Currency.USD,
     isPushEnabled: Boolean = true,
     isPriceAlertsEnabled: Boolean? = true,
     subscriptionsVersion: Int = 1,

@@ -38,7 +38,7 @@ public extension DB {
 
     static func mockAssetsWithPrice(priceChangePercentage24h: Double) throws -> DB {
         let db = Self.mockAssets()
-        try FiatRateStore(db: db).add([FiatRate(symbol: Currency.usd.rawValue, rate: 1)])
+        try FiatRateStore(db: db).add([FiatRate(symbol: .usd, rate: 1)])
         try PriceStore(db: db).updatePrice(
             price: AssetPrice(assetId: AssetId(chain: .ethereum), price: 1100, priceChangePercentage24h: priceChangePercentage24h, updatedAt: .now),
             currency: Currency.usd.rawValue,

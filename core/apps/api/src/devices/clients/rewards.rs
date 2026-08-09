@@ -241,7 +241,7 @@ impl RewardsClient {
             device_os: device.os.clone(),
             device_model: device.model.clone(),
             device_locale: device.locale.as_ref().to_string(),
-            device_currency: device.currency.clone(),
+            device_currency: device.currency.to_string(),
             ip_result,
             referrer_status: referrer_info.status,
             referrer_referral_count: referrer_info.referral_count as i64,

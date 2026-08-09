@@ -244,7 +244,7 @@ class DeviceRepository(
             isPushEnabled = pushEnabled,
             isPriceAlertsEnabled = priceAlertRepository.isPriceAlertsEnabled().firstOrNull(),
             version = versionName,
-            currency = getCurrentCurrency.getCurrentCurrency().string,
+            currency = getCurrentCurrency.getCurrentCurrency(),
             subscriptionsVersion = subscriptionsVersion,
         )
     }

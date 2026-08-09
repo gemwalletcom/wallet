@@ -98,7 +98,7 @@ class AssetsRepository @Inject constructor(
         val assetId = assetFull.asset.id
         val currency = sessionRepository.getCurrentCurrency()
         val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull() ?: when (currency) {
-            Currency.USD -> FiatRate(Currency.USD.string, 1.0)
+            Currency.USD -> FiatRate(Currency.USD, 1.0)
             else -> null
         }
         val record = assetFull.toRecord().copy(
@@ -107,7 +107,7 @@ class AssetsRepository @Inject constructor(
         val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
         val marketRecord = rate?.let { assetFull.toMarketRecord(it.rate) }
         assetsDao.upsertAssetMetadata(record, linkRecords, marketRecord)
-        rate?.let { pricesRepository.updatePrice(assetFull, it, currency) }
+        rate?.let { pricesRepository.updatePrice(assetFull, it) }
     }
 
     suspend fun updateAssetMarket(assetId: AssetId, market: AssetMarket, currency: Currency) = withContext(Dispatchers.IO) {

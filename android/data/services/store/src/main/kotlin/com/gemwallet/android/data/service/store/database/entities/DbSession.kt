@@ -11,16 +11,16 @@ import com.wallet.core.primitives.Wallet
 data class DbSession(
     @PrimaryKey val id: Int = 1,
     @ColumnInfo("wallet_id") val walletId: String,
-    val currency: String,
+    val currency: Currency,
 )
 
 fun DbSession.toDTO(wallet: Wallet): Session {
     return Session(
         wallet = wallet,
-        currency = Currency.entries.firstOrNull { it.string == currency } ?: Currency.USD
+        currency = currency
     )
 }
 
 fun Session.toRecord(): DbSession {
-    return DbSession(walletId = wallet.id.id, currency = currency.string)
+    return DbSession(walletId = wallet.id.id, currency = currency)
 }

@@ -5,10 +5,10 @@
 import Foundation
 
 public struct FiatRate: Codable, Sendable {
-	public let symbol: String
+	public let symbol: Currency
 	public let rate: Double
 
-	public init(symbol: String, rate: Double) {
+	public init(symbol: Currency, rate: Double) {
 		self.symbol = symbol
 		self.rate = rate
 	}

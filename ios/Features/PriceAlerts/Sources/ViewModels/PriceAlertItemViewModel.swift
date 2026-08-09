@@ -16,12 +16,11 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
 
     init(data: PriceAlertData) {
         self.data = data
-        switch data.priceAlert.type {
-        case .auto:
-            priceModel = PriceViewModel(price: data.price, currencyCode: Preferences.standard.currency)
-        case .price, .pricePercentChange:
-            priceModel = PriceViewModel(price: data.price, currencyCode: data.priceAlert.currency)
+        let currencyCode = switch data.priceAlert.type {
+        case .auto: Preferences.standard.currency
+        case .price, .pricePercentChange: data.priceAlert.currency.rawValue
         }
+        priceModel = PriceViewModel(price: data.price, currencyCode: currencyCode)
     }
 
     var name: String {

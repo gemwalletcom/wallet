@@ -46,7 +46,7 @@ class GetAssetChartDataImplTest {
             totalVolumes = emptyList(),
         )
         coEvery { gemApiClient.getChart("bitcoin", "day") } returns chart
-        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate(Currency.EUR, 2.0))
 
         val result = subject.getAssetChartData(
             assetId = asset.id,

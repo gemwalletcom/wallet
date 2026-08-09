@@ -1,11 +1,12 @@
 use crate::schema::fiat_providers;
-use crate::sql_types::{AssetId, FiatProviderNameRow};
+use crate::sql_types::{AssetId, Currency, FiatProviderNameRow};
 use crate::{DatabaseClient, models::*};
 use chrono::NaiveDateTime;
 use diesel::associations::HasTable;
 use diesel::dsl::count_star;
 use diesel::prelude::*;
 use diesel::upsert::excluded;
+use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::{FiatProviderName, FiatTransactionUpdate};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,7 +36,7 @@ pub(crate) trait FiatStore {
     fn get_fiat_assets_for_asset_id(&mut self, asset_id: &str) -> Result<Vec<FiatAssetRow>, diesel::result::Error>;
     fn set_fiat_rates(&mut self, rates: Vec<FiatRateRow>) -> Result<usize, diesel::result::Error>;
     fn get_fiat_rates(&mut self) -> Result<Vec<FiatRateRow>, diesel::result::Error>;
-    fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRateRow, diesel::result::Error>;
+    fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error>;
     fn get_fiat_providers(&mut self) -> Result<Vec<FiatProviderRow>, diesel::result::Error>;
     fn add_fiat_transaction(&mut self, transaction: NewFiatTransactionRow) -> Result<usize, diesel::result::Error>;
     fn update_fiat_provider_payment_methods(&mut self, provider_id: FiatProviderName, values: serde_json::Value) -> Result<usize, diesel::result::Error>;
@@ -225,9 +226,9 @@ impl FiatStore for DatabaseClient {
         fiat_rates.select(FiatRateRow::as_select()).load(&mut self.connection)
     }
 
-    fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRateRow, diesel::result::Error> {
+    fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error> {
         use crate::schema::fiat_rates::dsl::*;
-        fiat_rates.find(currency).select(FiatRateRow::as_select()).first(&mut self.connection)
+        fiat_rates.find(Currency(currency.clone())).select(FiatRateRow::as_select()).first(&mut self.connection)
     }
 
     fn get_fiat_providers(&mut self) -> Result<Vec<FiatProviderRow>, diesel::result::Error> {
@@ -362,7 +363,7 @@ impl DatabaseClient {
         FiatStore::get_fiat_rates(self)
     }
 
-    pub fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRateRow, diesel::result::Error> {
+    pub fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error> {
         FiatStore::get_fiat_rate(self, currency)
     }
 

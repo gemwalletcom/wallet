@@ -165,14 +165,14 @@ public final class SetPriceAlertViewModel {
         }
     }
 
-    private func priceAlert() -> PriceAlert {
+    private func priceAlert() throws -> PriceAlert {
         let (price, pricePercentChange): (Double?, Double?) = switch state.type {
         case .price: (amountValue, nil)
         case .percentage: (nil, amountValue)
         }
         return PriceAlert(
             assetId: asset.id,
-            currency: preferences.currency,
+            currency: try Currency(id: preferences.currency),
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: state.alertDirection,
@@ -194,8 +194,9 @@ public final class SetPriceAlertViewModel {
 extension SetPriceAlertViewModel {
     func setPriceAlert() async {
         do {
+            let priceAlert = try priceAlert()
             onComplete?(completeMessage)
-            try await priceAlertService.enable(priceAlert: priceAlert())
+            try await priceAlertService.enable(priceAlert: priceAlert)
         } catch {
             debugLog("Set price alert error: \(error.localizedDescription)")
         }

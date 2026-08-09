@@ -80,7 +80,7 @@ impl AssetMarket {
 #[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPrices {
-    pub currency: String,
+    pub currency: Currency,
     pub prices: Vec<AssetPrice>,
 }
 

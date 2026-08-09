@@ -126,7 +126,7 @@ class TokensRepositoryTest {
         val missingBasic = mockAssetBasic(asset = missing)
         coEvery {
             pricesDao.getByAssets(listOf(cached.id.toIdentifier(), missing.id.toIdentifier()))
-        } returns listOf(DbPrice(assetId = cached.id.toIdentifier(), currency = Currency.USD.string))
+        } returns listOf(DbPrice(assetId = cached.id.toIdentifier(), currency = Currency.USD))
         coEvery { searchAssets.getAssets(listOf(missing.id)) } returns listOf(missingBasic)
 
         subject(listOf(cached.id, missing.id), Currency.USD)
@@ -139,7 +139,7 @@ class TokensRepositoryTest {
         val asset = mockAsset()
         coEvery {
             pricesDao.getByAssets(listOf(asset.id.toIdentifier()))
-        } returns listOf(DbPrice(assetId = asset.id.toIdentifier(), currency = Currency.USD.string))
+        } returns listOf(DbPrice(assetId = asset.id.toIdentifier(), currency = Currency.USD))
 
         subject(listOf(asset.id), Currency.USD)
 

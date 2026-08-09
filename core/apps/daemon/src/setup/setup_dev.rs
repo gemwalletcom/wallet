@@ -3,6 +3,7 @@ use super::database::run_migrations;
 use super::production::setup_database;
 use chrono::Utc;
 use gem_tracing::info_with_fields;
+use primitives::currency::Currency;
 use primitives::{
     Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, DeviceLocale, FiatProviderName, FiatQuoteType, FiatTransaction,
     FiatTransactionStatus, NotificationType, PriceAlert, PriceAlertDirection, PriceId, PriceProvider,
@@ -41,7 +42,7 @@ fn setup_dev_currency(database: &Database) -> Result<(), Box<dyn std::error::Err
     info_with_fields!("setup_dev", step = "add currency");
 
     let fiat_rate = FiatRateRow {
-        id: "USD".to_string(),
+        id: Currency::USD.into(),
         name: "US Dollar".to_string(),
         rate: 1.0,
     };
@@ -74,7 +75,7 @@ fn setup_dev_devices(database: &Database) -> Result<(), Box<dyn std::error::Erro
         platform_store: PlatformStore::AppStore,
         token: "test_token".to_string(),
         locale: DeviceLocale::EN.into(),
-        currency: "USD".to_string(),
+        currency: Currency::USD.into(),
         is_push_enabled: true,
         is_price_alerts_enabled: true,
         version: "1.0.0".to_string(),
@@ -89,7 +90,7 @@ fn setup_dev_devices(database: &Database) -> Result<(), Box<dyn std::error::Erro
         platform_store: PlatformStore::GooglePlay,
         token: "test_token_android".to_string(),
         locale: DeviceLocale::EN.into(),
-        currency: "USD".to_string(),
+        currency: Currency::USD.into(),
         is_push_enabled: true,
         is_price_alerts_enabled: true,
         version: "1.0.0".to_string(),
@@ -182,8 +183,8 @@ fn setup_dev_devices(database: &Database) -> Result<(), Box<dyn std::error::Erro
 
     info_with_fields!("setup_dev", step = "add price alerts");
     let price_alerts = vec![
-        PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), "USD".to_string(), 3000.0, PriceAlertDirection::Up),
-        PriceAlert::new_price(AssetId::from_chain(Chain::Bitcoin), "USD".to_string(), 50000.0, PriceAlertDirection::Down),
+        PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 3000.0, PriceAlertDirection::Up),
+        PriceAlert::new_price(AssetId::from_chain(Chain::Bitcoin), Currency::USD, 50000.0, PriceAlertDirection::Down),
     ];
     let result = database.price_alerts()?.add_price_alerts(&ios_device_id, price_alerts)?;
     info_with_fields!("setup_dev", step = "price alerts added", count = result);

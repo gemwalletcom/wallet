@@ -18,6 +18,10 @@ pub mod sql_types {
     pub struct AssetType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "currency"))]
+    pub struct Currency;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "device_locale"))]
     pub struct DeviceLocale;
 
@@ -276,6 +280,7 @@ diesel::table! {
     use super::sql_types::Platform;
     use super::sql_types::PlatformStore;
     use super::sql_types::DeviceLocale;
+    use super::sql_types::Currency;
 
     devices (id) {
         id -> Int4,
@@ -291,8 +296,7 @@ diesel::table! {
         version -> Varchar,
         updated_at -> Timestamp,
         created_at -> Timestamp,
-        #[max_length = 8]
-        currency -> Varchar,
+        currency -> Currency,
         subscriptions_version -> Int4,
         is_price_alerts_enabled -> Bool,
         #[max_length = 64]
@@ -362,9 +366,11 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Currency;
+
     fiat_rates (id) {
-        #[max_length = 8]
-        id -> Varchar,
+        id -> Currency,
         name -> Varchar,
         rate -> Float8,
         created_at -> Timestamp,
@@ -588,6 +594,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Currency;
+
     price_alerts (id) {
         id -> Int4,
         #[max_length = 512]
@@ -595,8 +604,7 @@ diesel::table! {
         device_id -> Int4,
         #[max_length = 128]
         asset_id -> Varchar,
-        #[max_length = 128]
-        currency -> Varchar,
+        currency -> Currency,
         #[max_length = 16]
         price_direction -> Nullable<Varchar>,
         price -> Nullable<Float8>,

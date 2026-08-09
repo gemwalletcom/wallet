@@ -2,6 +2,7 @@ package com.gemwallet.android.serializer
 
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlert
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -15,7 +16,7 @@ class DateSerializerTest {
         val json = jsonEncoder.encodeToString(
             PriceAlert(
                 assetId = AssetId(Chain.Bitcoin),
-                currency = "USD",
+                currency = Currency.USD,
                 lastNotifiedAt = 1_775_557_356_209L,
             )
         )

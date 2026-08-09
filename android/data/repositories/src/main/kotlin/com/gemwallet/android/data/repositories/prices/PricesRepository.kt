@@ -44,17 +44,17 @@ class PricesRepository @Inject constructor(
         }
     }
 
-    suspend fun updatePrice(assetFull: AssetFull, rate: FiatRate, currency: Currency) {
+    suspend fun updatePrice(assetFull: AssetFull, rate: FiatRate) {
         pricesDao.insert(
             assetFull.toPriceRecord(rate)
-                ?: DbPrice(assetId = assetFull.asset.id.toIdentifier(), currency = currency.string)
+                ?: DbPrice(assetId = assetFull.asset.id.toIdentifier(), currency = rate.symbol)
         )
     }
 
     suspend fun convertPricesToCurrency(currency: Currency) {
         val rate = currentRate(currency) ?: return
         pricesDao.getAll().firstOrNull()?.map {
-            it.copy(value = (it.usdValue ?: 0.0) * rate.rate, currency = currency.string)
+            it.copy(value = (it.usdValue ?: 0.0) * rate.rate, currency = currency)
         }?.let { pricesDao.insert(it) }
     }
 
@@ -64,8 +64,8 @@ class PricesRepository @Inject constructor(
 
     private suspend fun updateRates(newRates: List<FiatRate>, currency: Currency) {
         pricesDao.setRates(newRates.toRecord())
-        newRates.firstOrNull { it.symbol == currency.string }?.let { rate ->
-            pricesDao.updateValues(currency.string, rate.rate)
+        newRates.firstOrNull { it.symbol == currency }?.let { rate ->
+            pricesDao.updateValues(currency, rate.rate)
         }
     }
 }

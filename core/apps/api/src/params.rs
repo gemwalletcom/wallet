@@ -216,7 +216,7 @@ impl<'r> rocket::request::FromRequest<'r> for UserAgent {
 
 #[cfg(test)]
 mod tests {
-    use primitives::DEFAULT_FIAT_CURRENCY;
+    use primitives::currency::Currency;
     use rocket::http::Status;
     use rocket::local::blocking::Client;
     use rocket::{get, routes};
@@ -239,7 +239,7 @@ mod tests {
 
         let response = client.get("/currency").dispatch();
         assert_eq!(response.status(), Status::Ok);
-        assert_eq!(response.into_string().unwrap(), DEFAULT_FIAT_CURRENCY);
+        assert_eq!(response.into_string().unwrap(), Currency::USD.as_ref());
 
         let response = client.get("/currency?currency=EUR").dispatch();
         assert_eq!(response.status(), Status::Ok);

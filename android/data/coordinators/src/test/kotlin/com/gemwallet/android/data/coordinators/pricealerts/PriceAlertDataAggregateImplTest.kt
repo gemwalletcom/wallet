@@ -66,7 +66,7 @@ class PriceAlertDataAggregateImplTest {
 
     private fun createPriceAlert(
         assetId: AssetId = btcAsset.id,
-        currency: String = "USD",
+        currency: Currency = Currency.USD,
         price: Double? = null,
         pricePercentChange: Double? = null,
         priceDirection: PriceAlertDirection? = null,
@@ -247,7 +247,7 @@ class PriceAlertDataAggregateImplTest {
     fun testPrice_fromPriceAlert() {
         val priceAlert = createPriceAlert(
             price = 50000.0,
-            currency = "USD",
+            currency = Currency.USD,
         )
         val aggregate = createAggregate(priceAlert = priceAlert)
 
@@ -292,7 +292,7 @@ class PriceAlertDataAggregateImplTest {
         )
         val priceAlert = createPriceAlert(
             price = null,
-            currency = "EUR",
+            currency = Currency.EUR,
         )
         val aggregate = createAggregate(
             assetPrice = assetPrice,
@@ -306,7 +306,7 @@ class PriceAlertDataAggregateImplTest {
     fun testPrice_fromPriceAlert_whenSmallValue_usesDynamicFormatting() {
         val priceAlert = createPriceAlert(
             price = 0.006333,
-            currency = "USD",
+            currency = Currency.USD,
         )
         val aggregate = createAggregate(priceAlert = priceAlert)
 

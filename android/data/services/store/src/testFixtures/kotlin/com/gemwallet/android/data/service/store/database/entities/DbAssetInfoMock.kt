@@ -5,6 +5,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 
 fun mockDbAssetInfo(
@@ -59,7 +60,7 @@ fun mockDbAssetInfo(
     walletType: WalletType? = WalletType.Multicoin,
     priceValue: Double? = null,
     priceDayChanges: Double? = null,
-    priceCurrency: String? = null,
+    priceCurrency: Currency? = null,
     balanceAvailable: String? = null,
     balanceAvailableAmount: Double? = null,
     balanceFrozen: String? = null,

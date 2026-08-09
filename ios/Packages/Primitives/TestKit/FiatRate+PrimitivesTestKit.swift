@@ -4,7 +4,7 @@ import Primitives
 
 public extension FiatRate {
     static func mock(
-        symbol: String = Currency.usd.rawValue,
+        symbol: Currency = .usd,
         rate: Double = 1.0,
     ) -> Self {
         FiatRate(symbol: symbol, rate: rate)

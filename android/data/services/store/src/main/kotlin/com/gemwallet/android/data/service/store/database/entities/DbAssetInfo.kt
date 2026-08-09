@@ -49,7 +49,7 @@ data class DbAssetInfo(
     // price
     val priceValue: Double?,
     val priceDayChanges: Double?,
-    val priceCurrency: String?,
+    val priceCurrency: Currency?,
     // balance
     val balanceAvailable: String?,
     val balanceAvailableAmount: Double?,
@@ -132,7 +132,6 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
         },
     )
 
-    val currency = Currency.entries.firstOrNull { it.string == entity.priceCurrency }
     val account = if (entity.address.isNullOrEmpty()) null else Account(
         chain = entity.chain,
         address = entity.address,
@@ -144,9 +143,9 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
         owner = account,
         asset = asset,
         balance = balances,
-        price = if (entity.priceValue != null && entity.priceValue > 0 && currency != null) {
+        price = if (entity.priceValue != null && entity.priceValue > 0 && entity.priceCurrency != null) {
             AssetPriceInfo(
-                currency = currency,
+                currency = entity.priceCurrency,
                 price = AssetPrice(
                     assetId = assetId,
                     price = entity.priceValue,

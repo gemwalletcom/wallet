@@ -372,6 +372,7 @@ fn datetime_from_unix_timestamp(value: i64) -> Option<DateTime<Utc>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::currency::Currency;
     use primitives::{Device, DeviceLocale, PlatformStore, SupportAgent, SupportMessageSender, SupportMessageStatus};
 
     #[test]
@@ -382,7 +383,7 @@ mod tests {
             model: "Xiaomi Redmi Note 8 Pro".to_string(),
             locale: DeviceLocale::FA,
             version: "2.93".to_string(),
-            currency: "USD".to_string(),
+            currency: Currency::USD,
             ..Device::mock()
         };
 

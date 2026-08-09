@@ -18,7 +18,7 @@ struct PriceStoreTests {
         let priceUsd = 2500.0
         let currency = Currency.rub.rawValue
 
-        try fiatRateStore.add([FiatRate(symbol: currency, rate: rate)])
+        try fiatRateStore.add([FiatRate(symbol: .rub, rate: rate)])
         try priceStore.updatePrices(prices: [.mock(assetId: assetId, price: priceUsd)], currency: currency)
 
         let result = try priceStore.getPrices(for: [assetId.identifier])

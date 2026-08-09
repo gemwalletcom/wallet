@@ -18,7 +18,7 @@ struct PortfolioDataServiceTests {
         let rate: Float = 3.67
         let date = Date(timeIntervalSince1970: 0)
         let currency = Currency.eur.rawValue
-        try FiatRateStore(db: db).add([FiatRate(symbol: currency, rate: Double(rate))])
+        try FiatRateStore(db: db).add([FiatRate(symbol: .eur, rate: Double(rate))])
 
         let service = PortfolioDataService.mock(
             portfolioService: .mock(apiService: GemAPIPortfolioServiceMock(

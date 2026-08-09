@@ -14,7 +14,7 @@ public extension Device {
             token: .empty,
             locale: .en,
             version: .empty,
-            currency: .empty,
+            currency: .usd,
             isPushEnabled: true,
             isPriceAlertsEnabled: .none,
             subscriptionsVersion: 1,

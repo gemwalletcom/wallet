@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{DeviceLocale, PlatformStore, platform::Platform};
+use crate::{DeviceLocale, PlatformStore, currency::Currency, platform::Platform};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Sendable")]
@@ -15,7 +15,7 @@ pub struct Device {
     pub token: String,
     pub locale: DeviceLocale,
     pub version: String,
-    pub currency: String,
+    pub currency: Currency,
     pub is_push_enabled: bool,
     pub is_price_alerts_enabled: Option<bool>,
     pub subscriptions_version: i32,

@@ -148,7 +148,7 @@ public struct DeviceService: DeviceServiceable {
             token: deviceToken,
             locale: Locale.current.deviceLocale(),
             version: Bundle.main.releaseVersionNumber,
-            currency: preferences.currency,
+            currency: try Currency(id: preferences.currency),
             isPushEnabled: preferences.isPushNotificationsEnabled,
             isPriceAlertsEnabled: preferences.isPriceAlertsEnabled,
             subscriptionsVersion: ignoreSubscriptionsVersion ? 0 : preferences.subscriptionsVersion.asInt32,

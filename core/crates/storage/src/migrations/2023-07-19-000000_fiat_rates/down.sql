@@ -1,1 +1,2 @@
 DROP TABLE IF EXISTS fiat_rates;
+DROP TYPE IF EXISTS currency;
