@@ -327,10 +327,6 @@ impl DatabaseClient {
         FiatStore::add_fiat_providers_countries(self, values)
     }
 
-    pub fn get_fiat_providers_countries(&mut self) -> Result<Vec<FiatProviderCountryRow>, diesel::result::Error> {
-        FiatStore::get_fiat_providers_countries(self)
-    }
-
     pub fn update_fiat_transaction(&mut self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<FiatTransactionRow, diesel::result::Error> {
         FiatStore::update_fiat_transaction(self, provider, update)
     }
@@ -339,20 +335,8 @@ impl DatabaseClient {
         FiatStore::get_fiat_transaction(self, provider, transaction_id)
     }
 
-    pub fn get_fiat_transactions_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionRow>, diesel::result::Error> {
-        FiatStore::get_fiat_transactions_by_device_and_wallet_id(self, device_id, wallet_id)
-    }
-
-    pub fn get_fiat_transactions_by_device_id(&mut self, device_id: i32) -> Result<Vec<FiatTransactionRow>, diesel::result::Error> {
-        FiatStore::get_fiat_transactions_by_device_id(self, device_id)
-    }
-
     pub fn get_fiat_assets_by_filter(&mut self, filters: Vec<FiatAssetFilter>) -> Result<Vec<FiatAssetRow>, diesel::result::Error> {
         FiatStore::get_fiat_assets_by_filter(self, filters)
-    }
-
-    pub fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, diesel::result::Error> {
-        FiatStore::get_fiat_assets_popular(self, from, limit)
     }
 
     pub fn set_fiat_rates(&mut self, rates: Vec<FiatRateRow>) -> Result<usize, diesel::result::Error> {

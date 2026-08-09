@@ -6,7 +6,6 @@ pub const JSONRPC_VERSION: &str = "2.0";
 
 pub const ERROR_INVALID_REQUEST: i32 = -32600;
 pub const ERROR_METHOD_NOT_FOUND: i32 = -32601;
-pub const ERROR_INVALID_PARAMS: i32 = -32602;
 pub const ERROR_INTERNAL_ERROR: i32 = -32603;
 
 pub const ERROR_CLIENT_ERROR: i32 = -32900;

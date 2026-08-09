@@ -44,10 +44,6 @@ impl TransactionJsonReplay {
     }
 }
 
-pub async fn replay_transaction_json(client: &SuiClient, transaction_json: &str) -> Result<ReplayedTransaction, SuiError> {
-    prepare_transaction_json_replay(client, transaction_json).await?.replay()
-}
-
 pub async fn prepare_transaction_json_replay(client: &SuiClient, transaction_json: &str) -> Result<TransactionJsonReplay, SuiError> {
     prepare_replay(client, parse_transaction_json(transaction_json)?).await
 }

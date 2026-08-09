@@ -59,10 +59,6 @@ impl NodeCheckRecorder {
         self.record_result(method, result.map(|value| (value, "available".to_string())), started.elapsed()).0
     }
 
-    pub fn record_available<T, E: Display>(self, method: &str, result: Result<T, E>) -> Self {
-        self.record_result(method, result.map(|value| (value, "available".to_string())), Duration::ZERO).0
-    }
-
     pub async fn record_optional_available_timed<T, E: Display, F: Future<Output = Result<T, E>>>(self, method: &str, future: F) -> Self {
         let started = Instant::now();
         let result = future.await;

@@ -94,10 +94,6 @@ impl AssetMetadata {
 
 #[cfg(test)]
 impl HyperCoreClient<MockClient> {
-    pub fn mock() -> Self {
-        Self::mock_with_client(MockClient::new())
-    }
-
     pub fn mock_with_responses_by_request_type(responses: Vec<(&'static str, Vec<u8>)>) -> Self {
         let responses = Arc::new(responses);
         Self::mock_with_client(MockClient::new().with_post(move |path, body| {

@@ -83,10 +83,6 @@ impl NearIntents<RpcClient> {
         let sui_client = create_sui_client(rpc_provider.clone()).expect("failed to create Sui gRPC client");
         Self::with_client(client, explorer, sui_client)
     }
-
-    pub fn boxed(rpc_provider: Arc<dyn RpcProvider>) -> Box<dyn crate::swapper_trait::Swapper> {
-        Box::new(Self::new(rpc_provider))
-    }
 }
 
 impl<C> NearIntents<C>

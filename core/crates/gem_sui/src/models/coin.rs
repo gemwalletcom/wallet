@@ -50,14 +50,6 @@ impl<T> OwnedCoins<T> {
             address_balance,
         }
     }
-
-    pub fn map<U>(self, f: impl FnMut(T) -> U) -> OwnedCoins<U> {
-        OwnedCoins {
-            coin_type: self.coin_type,
-            coins: self.coins.into_iter().map(f).collect(),
-            address_balance: self.address_balance,
-        }
-    }
 }
 
 impl OwnedCoins<Coin> {

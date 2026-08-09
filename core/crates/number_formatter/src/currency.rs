@@ -361,10 +361,6 @@ impl Money {
         Ok(Money { amount, currency })
     }
 
-    pub fn new(amount: Decimal, currency: Currency) -> Self {
-        Money { amount, currency }
-    }
-
     pub fn currency(&self) -> &Currency {
         &self.currency
     }

@@ -11,8 +11,6 @@ mod swap_mapper;
 
 pub use provider::ThorChain;
 
-use chain::ChainName;
-use primitives::Chain;
 use strum::Display;
 
 use super::SwapperProvider;
@@ -53,9 +51,5 @@ impl THORChainNetwork {
                 "0x700E97ef07219440487840Dc472E7120A7FF11F4", // Arbitrum
             ],
         }
-    }
-
-    pub fn supported_chains(&self) -> Vec<Chain> {
-        ChainName::supported(*self).iter().map(|name| name.chain()).collect()
     }
 }

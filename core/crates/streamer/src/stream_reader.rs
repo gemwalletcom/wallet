@@ -49,11 +49,6 @@ impl StreamReader {
         Self::configure_channel(connection.create_channel().await?, config.prefetch).await
     }
 
-    pub async fn close(self) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.channel.close(0, "Normal shutdown".into()).await?;
-        Ok(())
-    }
-
     async fn create_channel(connection: &StreamConnection, prefetch: u16) -> Result<Channel, Box<dyn Error + Send + Sync>> {
         Self::configure_channel(connection.create_channel().await?, prefetch).await
     }

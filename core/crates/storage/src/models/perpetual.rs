@@ -1,9 +1,6 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{
-    AssetId as PrimitiveAssetId,
-    perpetual::{Perpetual as PrimitivePerpetual, PerpetualBasic},
-};
+use primitives::perpetual::Perpetual as PrimitivePerpetual;
 use serde::{Deserialize, Serialize};
 
 use crate::sql_types::{AssetId, PerpetualIdRow, PerpetualProviderRow};
@@ -53,15 +50,6 @@ pub struct NewPerpetualAssetRow {
     pub asset_id: AssetId,
 }
 
-impl NewPerpetualAssetRow {
-    pub fn new(perpetual_id: String, asset_id: PrimitiveAssetId) -> Self {
-        Self {
-            perpetual_id,
-            asset_id: asset_id.into(),
-        }
-    }
-}
-
 impl NewPerpetualRow {
     pub fn from_primitive(perpetual: PrimitivePerpetual) -> Self {
         Self {
@@ -96,14 +84,6 @@ impl PerpetualRow {
             funding: self.funding,
             max_leverage: self.leverage.first().and_then(|v| v.and_then(|i| u8::try_from(i).ok())).unwrap_or(1),
             is_isolated_only: self.is_isolated_only,
-        }
-    }
-
-    pub fn as_basic(&self) -> PerpetualBasic {
-        PerpetualBasic {
-            asset_id: self.asset_id.0.clone(),
-            perpetual_id: self.id.0.clone(),
-            provider: self.provider.0.clone(),
         }
     }
 }

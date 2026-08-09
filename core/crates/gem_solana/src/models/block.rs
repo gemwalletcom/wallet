@@ -1,4 +1,3 @@
-use crate::models::rpc::ValueResult;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize)]
@@ -26,8 +25,6 @@ pub struct Block {
 pub struct Blockhash {
     pub blockhash: String,
 }
-
-pub type LatestBlockhash = ValueResult<Blockhash>;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]

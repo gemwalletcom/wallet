@@ -165,14 +165,6 @@ impl FiatProviderRow {
             payment_methods,
         }
     }
-
-    pub fn is_buy_enabled(&self) -> bool {
-        self.enabled && self.buy_enabled
-    }
-
-    pub fn is_sell_enabled(&self) -> bool {
-        self.enabled && self.sell_enabled
-    }
 }
 
 #[derive(Debug, Queryable, Selectable, Clone)]

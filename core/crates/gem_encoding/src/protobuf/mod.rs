@@ -12,4 +12,4 @@ pub use encode::{
     encode_optional_u64_field, encode_raw_varint_field, encode_string_field, encode_varint, encode_varint_field,
 };
 pub use grpc::{decode_grpc_frame, decode_grpc_message, encode_grpc_frame, encode_grpc_message};
-pub use message::{Message, MessageDecode, MessageEncode, MessageResult};
+pub use message::{MessageDecode, MessageEncode, MessageResult};

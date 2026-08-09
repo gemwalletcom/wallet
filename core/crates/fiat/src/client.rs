@@ -84,13 +84,6 @@ impl FiatClient {
         Ok(FiatRepository::get_fiat_providers_countries(&mut self.database.fiat()?)?)
     }
 
-    pub async fn get_order_status(&self, provider_name: &str, order_id: &str) -> Result<FiatTransaction, Box<dyn std::error::Error + Send + Sync>> {
-        let provider = self.provider(provider_name)?;
-        let update = provider.get_order_status(order_id).await?;
-        let transaction = self.database.fiat()?.update_fiat_transaction(provider.name(), update)?;
-        Ok(transaction.as_primitive()?)
-    }
-
     pub async fn process_and_publish_webhook(&self, request: FiatWebhookRequest, provider_name: &str) -> Result<FiatWebhookPayload, Box<dyn std::error::Error + Send + Sync>> {
         let provider = self.provider(provider_name)?;
         let provider_id = provider.name().id().to_string();
@@ -229,10 +222,6 @@ impl FiatClient {
         quotes.sort_by(|a, b| sort_fn(a, b, &db_providers));
 
         Ok(FiatQuotes { quotes, errors })
-    }
-
-    pub async fn get_quote(&self, quote_id: &str) -> Result<FiatQuote, Box<dyn Error + Send + Sync>> {
-        Ok(self.fiat_cacher.get_quote(quote_id).await?.quote)
     }
 
     pub async fn get_quote_url(&self, quote_id: &str, wallet_id: i32, device_id: i32, ip_address: &str, locale: &str) -> Result<FiatQuoteUrl, Box<dyn Error + Send + Sync>> {
