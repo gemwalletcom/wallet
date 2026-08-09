@@ -1,5 +1,9 @@
 CREATE TYPE platform AS ENUM ('ios', 'android');
 CREATE TYPE platform_store AS ENUM ('appStore', 'googlePlay', 'fdroid', 'huawei', 'solanaStore', 'samsungStore', 'apkUniversal', 'emerald', 'local');
+CREATE TYPE device_locale AS ENUM (
+    'ar', 'bn', 'cs', 'da', 'de', 'en', 'es', 'fa', 'fil', 'fr', 'ha', 'he', 'hi', 'id', 'it', 'ja',
+    'ko', 'ms', 'nl', 'pl', 'pt-BR', 'ro', 'ru', 'sw', 'th', 'tr', 'uk', 'ur', 'vi', 'zh-Hans', 'zh-Hant'
+);
 
 CREATE TABLE devices (
     id SERIAL PRIMARY KEY,
@@ -8,7 +12,7 @@ CREATE TABLE devices (
     platform platform NOT NULL,
     platform_store platform_store NOT NULL,
     token VARCHAR(256) NOT NULL,
-    locale VARCHAR(8) NOT NULL,
+    locale device_locale NOT NULL,
     version VARCHAR(8) NOT NULL,
     updated_at timestamp NOT NULL default current_timestamp,
     created_at timestamp NOT NULL default current_timestamp,

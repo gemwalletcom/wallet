@@ -21,7 +21,6 @@ class DeviceRepositoryTest {
         val remote = mockDevice(
             id = "device-id",
             token = "push-token",
-            locale = "en-US",
         )
         val local = remote.copy(currency = "EUR")
 
@@ -33,7 +32,6 @@ class DeviceRepositoryTest {
         val remote = mockDevice(
             id = "device-id",
             token = "push-token",
-            locale = "en-US",
         )
 
         assertFalse(deviceHasChanges(remote, remote.copy()))

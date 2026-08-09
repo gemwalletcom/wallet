@@ -18,6 +18,10 @@ pub mod sql_types {
     pub struct AssetType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "device_locale"))]
+    pub struct DeviceLocale;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "fiat_transaction_status"))]
     pub struct FiatTransactionStatus;
 
@@ -271,6 +275,7 @@ diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::Platform;
     use super::sql_types::PlatformStore;
+    use super::sql_types::DeviceLocale;
 
     devices (id) {
         id -> Int4,
@@ -281,8 +286,7 @@ diesel::table! {
         platform_store -> PlatformStore,
         #[max_length = 256]
         token -> Varchar,
-        #[max_length = 8]
-        locale -> Varchar,
+        locale -> DeviceLocale,
         #[max_length = 8]
         version -> Varchar,
         updated_at -> Timestamp,

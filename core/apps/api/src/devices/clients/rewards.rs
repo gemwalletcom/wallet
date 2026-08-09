@@ -122,7 +122,7 @@ impl RewardsClient {
         ip_address: &str,
         user_agent: &str,
     ) -> Result<Vec<RewardEvent>, Box<dyn Error + Send + Sync>> {
-        let locale = device.locale.as_str();
+        let locale = device.locale.as_ref();
         let wallet_identifier = WalletId::Multicoin(address.to_string()).id();
         let wallet = self.db.wallets()?.get_or_create_wallet(NewWalletRow {
             identifier: wallet_identifier,
@@ -240,7 +240,7 @@ impl RewardsClient {
             device_platform_store: *device.platform_store,
             device_os: device.os.clone(),
             device_model: device.model.clone(),
-            device_locale: device.locale.as_str().to_string(),
+            device_locale: device.locale.as_ref().to_string(),
             device_currency: device.currency.clone(),
             ip_result,
             referrer_status: referrer_info.status,

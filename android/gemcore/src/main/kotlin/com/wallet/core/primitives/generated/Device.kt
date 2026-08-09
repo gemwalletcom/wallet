@@ -15,7 +15,7 @@ data class Device (
 	val os: String,
 	val model: String,
 	val token: String,
-	val locale: String,
+	val locale: DeviceLocale,
 	val version: String,
 	val currency: String,
 	val isPushEnabled: Boolean,

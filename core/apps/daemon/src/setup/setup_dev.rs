@@ -4,8 +4,8 @@ use super::production::setup_database;
 use chrono::Utc;
 use gem_tracing::info_with_fields;
 use primitives::{
-    Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionStatus,
-    NotificationType, PriceAlert, PriceAlertDirection, PriceId, PriceProvider,
+    Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, DeviceLocale, FiatProviderName, FiatQuoteType, FiatTransaction,
+    FiatTransactionStatus, NotificationType, PriceAlert, PriceAlertDirection, PriceId, PriceProvider,
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID,
         SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TON_DUST_ASSET_ID, TON_DUST_TOKEN_ID, TON_STON_ASSET_ID, TON_STON_TOKEN_ID, TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID,
@@ -73,7 +73,7 @@ fn setup_dev_devices(database: &Database) -> Result<(), Box<dyn std::error::Erro
         platform: Platform::IOS,
         platform_store: PlatformStore::AppStore,
         token: "test_token".to_string(),
-        locale: "en".to_string(),
+        locale: DeviceLocale::EN.into(),
         currency: "USD".to_string(),
         is_push_enabled: true,
         is_price_alerts_enabled: true,
@@ -88,7 +88,7 @@ fn setup_dev_devices(database: &Database) -> Result<(), Box<dyn std::error::Erro
         platform: Platform::Android,
         platform_store: PlatformStore::GooglePlay,
         token: "test_token_android".to_string(),
-        locale: "en".to_string(),
+        locale: DeviceLocale::EN.into(),
         currency: "USD".to_string(),
         is_push_enabled: true,
         is_price_alerts_enabled: true,

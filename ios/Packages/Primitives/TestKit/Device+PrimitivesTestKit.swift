@@ -12,7 +12,7 @@ public extension Device {
             os: "iOS 26",
             model: "iPhone",
             token: .empty,
-            locale: .empty,
+            locale: .en,
             version: .empty,
             currency: .empty,
             isPushEnabled: true,

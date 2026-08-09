@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use primitives::Device;
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{Platform, PlatformStore};
+use crate::sql_types::{DeviceLocale, Platform, PlatformStore};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::devices)]
@@ -14,7 +14,7 @@ pub struct DeviceRow {
     pub platform: Platform,
     pub platform_store: PlatformStore,
     pub token: String,
-    pub locale: String,
+    pub locale: DeviceLocale,
     pub currency: String,
     pub is_push_enabled: bool,
     pub is_price_alerts_enabled: bool,
@@ -34,7 +34,7 @@ pub struct UpdateDeviceRow {
     pub platform: Platform,
     pub platform_store: PlatformStore,
     pub token: String,
-    pub locale: String,
+    pub locale: DeviceLocale,
     pub currency: String,
     pub is_push_enabled: bool,
     pub is_price_alerts_enabled: bool,
@@ -53,7 +53,7 @@ impl DeviceRow {
             os: self.os.clone(),
             model: self.model.clone(),
             token: self.token.clone(),
-            locale: self.locale.clone(),
+            locale: self.locale.0,
             currency: self.currency.clone(),
             is_push_enabled: self.is_push_enabled,
             is_price_alerts_enabled: Some(self.is_price_alerts_enabled),
@@ -72,7 +72,7 @@ impl UpdateDeviceRow {
             os: device.os,
             model: device.model,
             token: device.token,
-            locale: device.locale,
+            locale: device.locale.into(),
             currency: device.currency,
             is_push_enabled: device.is_push_enabled,
             is_price_alerts_enabled: device.is_price_alerts_enabled.unwrap_or(false),

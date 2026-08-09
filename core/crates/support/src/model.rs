@@ -275,7 +275,7 @@ impl ChatwootContactUpdate {
                 ("device_id".to_string(), device.id.clone()),
                 ("app".to_string(), format!("Version {}, {}, {}", device.version, device.os, device.platform_store.name())),
                 ("device".to_string(), device.model.clone()),
-                ("locale".to_string(), format!("{}, {}", device.locale, device.currency)),
+                ("locale".to_string(), format!("{}, {}", device.locale.as_ref(), device.currency)),
             ]),
         }
     }
@@ -372,7 +372,7 @@ fn datetime_from_unix_timestamp(value: i64) -> Option<DateTime<Utc>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Device, PlatformStore, SupportAgent, SupportMessageSender, SupportMessageStatus};
+    use primitives::{Device, DeviceLocale, PlatformStore, SupportAgent, SupportMessageSender, SupportMessageStatus};
 
     #[test]
     fn test_chatwoot_contact_update_attributes() {
@@ -380,7 +380,7 @@ mod tests {
             platform_store: PlatformStore::ApkUniversal,
             os: "Android 11".to_string(),
             model: "Xiaomi Redmi Note 8 Pro".to_string(),
-            locale: "fa".to_string(),
+            locale: DeviceLocale::FA,
             version: "2.93".to_string(),
             currency: "USD".to_string(),
             ..Device::mock()

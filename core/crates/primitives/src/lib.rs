@@ -125,6 +125,8 @@ pub mod contact;
 pub use self::contact::Contact;
 pub mod device;
 pub use self::device::Device;
+pub mod device_locale;
+pub use self::device_locale::DeviceLocale;
 pub mod device_token;
 pub use self::device_token::DeviceToken;
 pub mod defi;

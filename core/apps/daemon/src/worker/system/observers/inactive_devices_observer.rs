@@ -32,7 +32,7 @@ impl InactiveDevicesObserver {
             if !self.cacher.can_process_cached(CacheKey::InactiveDeviceObserver(&device.id)).await? {
                 continue;
             }
-            let language_localizer = LanguageLocalizer::new_with_language(device.locale.as_str());
+            let language_localizer = LanguageLocalizer::new_with_language(device.locale.as_ref());
             let asset = Asset::from_chain(Chain::Bitcoin);
             let (title, description) = language_localizer.notification_onboarding_buy_asset(&asset.name);
             if let Some(notification) = GorushNotification::from_device(device.clone(), title, description, PushNotification::new_buy_asset(asset.id)) {

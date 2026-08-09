@@ -175,7 +175,7 @@ pub async fn create_device_referral_v2(
             &request.data.code,
             device.device_row.id,
             &ip.to_string(),
-            device.device_row.locale.as_str(),
+            device.device_row.locale.as_ref(),
         )
         .await?
         .into())
@@ -402,7 +402,7 @@ pub async fn get_fiat_quote_url_v2(
     ip: std::net::IpAddr,
     client: &State<FiatQuotesClient>,
 ) -> Result<ApiResponse<FiatQuoteUrl>, ApiError> {
-    let locale = device.device_row.locale.as_str();
+    let locale = device.device_row.locale.as_ref();
     let ip_address = ip.to_string();
     let url = client.get_quote_url(quote_id, device.wallet_id, device.device_row.id, &ip_address, locale).await?;
     Ok(url.into())

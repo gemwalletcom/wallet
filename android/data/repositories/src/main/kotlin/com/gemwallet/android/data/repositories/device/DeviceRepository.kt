@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.device
 
 import android.content.Context
+import android.icu.util.ULocale
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -26,6 +27,7 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AddressChains
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Device
+import com.wallet.core.primitives.DeviceLocale
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.Wallet
@@ -238,7 +240,7 @@ class DeviceRepository(
             os = Platform.os,
             model = Platform.model,
             token = pushToken,
-            locale = getLocale(Locale.getDefault()),
+            locale = getDeviceLocale(Locale.getDefault()),
             isPushEnabled = pushEnabled,
             isPriceAlertsEnabled = priceAlertRepository.isPriceAlertsEnabled().firstOrNull(),
             version = versionName,
@@ -264,15 +266,14 @@ class DeviceRepository(
     companion object {
         private const val SYNC_ATTEMPTS = 2
 
-        fun getLocale(locale: Locale): String {
-            val tag = locale.toLanguageTag()
-            if (tag == "pt-BR" || tag == "pt_BR") {
-                return "pt-BR"
+        fun getDeviceLocale(locale: Locale): DeviceLocale {
+            val canonicalLocale = ULocale.addLikelySubtags(ULocale.forLocale(locale))
+            val identifier = when (canonicalLocale.language) {
+                "pt" -> "pt-BR"
+                "zh" -> "${canonicalLocale.language}-${canonicalLocale.script}"
+                else -> canonicalLocale.language
             }
-            if (locale.language == "zh") {
-                return "${locale.language}-${(locale.script.ifEmpty { "Hans" })}"
-            }
-            return  locale.language
+            return DeviceLocale.entries.firstOrNull { it.string == identifier } ?: DeviceLocale.EN
         }
     }
 }

@@ -91,7 +91,7 @@ impl StakingRewardsNotifier {
     }
 
     fn create_notification(sub: DeviceSubscription, rewards_value: &str, asset: &Asset) -> Option<GorushNotification> {
-        let localizer = LanguageLocalizer::new_with_language(&sub.device.locale);
+        let localizer = LanguageLocalizer::new_with_language(sub.device.locale.as_ref());
         let notification = localizer.notification_stake_rewards(rewards_value, &asset.name);
         let push = PushNotification::new_stake(sub.wallet_id, asset.id.clone());
         GorushNotification::from_device(sub.device, notification.title, notification.description, push)
