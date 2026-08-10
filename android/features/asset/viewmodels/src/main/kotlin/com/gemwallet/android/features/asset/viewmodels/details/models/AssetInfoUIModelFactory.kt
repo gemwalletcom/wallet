@@ -12,7 +12,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.getStackedAmount
+import com.gemwallet.android.model.getStakedAmount
 import com.gemwallet.android.model.getTotalAmount
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
@@ -83,10 +83,10 @@ object AssetInfoUIModelFactory {
             return ""
         }
         val balances = assetInfo.balance
-        return if (balances.balanceAmount.getStackedAmount() == 0.0) {
+        return if (balances.balanceAmount.getStakedAmount() == 0.0) {
             "APR ${(assetInfo.stakeApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
         } else {
-            formatter.string(balances.balance.getStackedAmount(), balances.asset)
+            formatter.string(balances.balance.getStakedAmount(), balances.asset)
         }
     }
 

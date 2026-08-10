@@ -177,7 +177,7 @@ extension BalanceRecord {
         )
     }
 
-    func mapToWalletAssetBalanace() -> WalletAssetBalance {
+    func mapToWalletAssetBalance() -> WalletAssetBalance {
         WalletAssetBalance(
             walletId: walletId,
             balance: mapToAssetBalance(),

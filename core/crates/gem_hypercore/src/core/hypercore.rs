@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use super::{actions::*, eip712, hahser::action_hash, models::PhantomAgent};
+use super::{actions::*, eip712, hasher::action_hash, models::PhantomAgent};
 
 fn l1_action_typed_data(action: Value, nonce: u64) -> String {
     let hash = action_hash(&action, None, nonce, None).unwrap();

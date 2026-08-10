@@ -206,7 +206,7 @@ struct Migrations {
             }
         }
 
-        // not revelevant for new users, only debug
+        // not relevant for new users, only debug
         migrator.registerMigration("Add initial nft setup tables drop") { db in
             try? db.drop(table: NFTCollectionRecord.databaseTableName)
             try? db.drop(table: NFTAssetRecord.databaseTableName)

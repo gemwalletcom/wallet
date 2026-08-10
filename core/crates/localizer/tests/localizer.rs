@@ -19,7 +19,7 @@ fn test_invalid_language_fallback() {
 }
 
 #[test]
-fn test_pass_argment() {
+fn test_pass_argument() {
     let localizer = LanguageLocalizer::new_with_language("es");
     assert_eq!(&localizer.notification_transfer_title(true, "1 BTC"), "💸 Enviado: \u{2068}1 BTC\u{2069}");
 }

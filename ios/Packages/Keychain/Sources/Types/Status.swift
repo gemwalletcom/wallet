@@ -358,7 +358,7 @@ enum Status: OSStatus, Error {
     case unsupportedService = -67849
     case invalidTupleGroup = -67850
     case invalidBaseACLs = -67851
-    case invalidTupleCredendtials = -67852
+    case invalidTupleCredentials = -67852
     case invalidEncoding = -67853
     case invalidValidityPeriod = -67854
     case invalidRequestor = -67855
@@ -1129,7 +1129,7 @@ extension Status: RawRepresentable, CustomStringConvertible {
             "The tuple group was not valid."
         case .invalidBaseACLs:
             "The base ACLs are not valid."
-        case .invalidTupleCredendtials:
+        case .invalidTupleCredentials:
             "The tuple credentials are not valid."
         case .invalidEncoding:
             "The encoding was not valid."

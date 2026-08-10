@@ -14,7 +14,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         keystorePassword: KeystorePassword = LocalKeystorePassword(),
     ) {
         do {
-            // migrate keystore from documents directory to applocation support directory
+            // migrate keystore from documents directory to application support directory
             // TODO: delete in 2026
             let fileMigrator = FileMigrator()
             let keystoreURL = try fileMigrator.migrate(

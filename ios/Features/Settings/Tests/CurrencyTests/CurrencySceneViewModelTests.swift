@@ -26,8 +26,8 @@ struct CurrencySceneViewModelTests {
 
     @Test
     func gBPCurrencyValue() {
-        let gbpCurrancyStorage = MockCurrencyStorage(currency: "GBP")
-        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrancyStorage, priceService: .mock())
+        let gbpCurrencyStorage = MockCurrencyStorage(currency: "GBP")
+        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, priceService: .mock())
         #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
     }
 

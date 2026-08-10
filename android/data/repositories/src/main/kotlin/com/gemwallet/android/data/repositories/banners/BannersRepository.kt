@@ -10,11 +10,11 @@ import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.domains.asset.isStackable
+import com.gemwallet.android.domains.asset.isStakeable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NotificationsAvailable
-import com.gemwallet.android.model.getStackedAmount
+import com.gemwallet.android.model.getStakedAmount
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerEvent
@@ -77,7 +77,7 @@ class BannersRepository(
         val event = when {
             wallet == null && assetInfo == null -> BannerEvent.EnableNotifications
 //            asset?.id?.chain?.getReserveBalance()?.let { it != BigInteger.ZERO } == true -> BannerEvent.AccountActivation
-            assetInfo?.let { it.asset.isStackable && it.balance.balance.getStackedAmount() <= BigInteger.ZERO } ?: false -> BannerEvent.Stake
+            assetInfo?.let { it.asset.isStakeable && it.balance.balance.getStakedAmount() <= BigInteger.ZERO } ?: false -> BannerEvent.Stake
             assetInfo?.balance?.isActive == false -> BannerEvent.ActivateAsset
             else -> return null
         }
