@@ -16,7 +16,9 @@ internal class DeviceSyncCoordinator(
 
     suspend fun synchronize(operation: suspend () -> Unit) {
         val task = mutex.withLock {
-            current.takeIf { it.isActive } ?: scope.async {
+            val previous = current
+            scope.async {
+                previous.join()
                 try {
                     operation()
                 } catch (error: CancellationException) {

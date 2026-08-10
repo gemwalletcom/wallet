@@ -16,6 +16,7 @@ struct MainTabView: View {
     @Environment(\.assetDiscoveryService) private var assetDiscoveryService
     @Environment(\.balanceService) private var balanceService
     @Environment(\.bannerService) private var bannerService
+    @Environment(\.deviceService) private var deviceService
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.nftService) private var nftService
@@ -83,6 +84,7 @@ struct MainTabView: View {
             SettingsNavigationStack(
                 walletId: model.wallet.id,
                 priceService: priceService,
+                deviceService: deviceService,
                 isPresentingSupport: presenter.isPresentingSupport,
             )
             .tabItem {
