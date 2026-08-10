@@ -26,4 +26,8 @@ impl NodeStatusObservation {
     pub(super) fn with_monitor_error(self, monitor_error: NodeMonitorError) -> Self {
         Self { monitor_error, ..self }
     }
+
+    pub(super) fn is_usable(&self, latency_threshold: Option<Duration>) -> bool {
+        self.state.is_healthy() && latency_threshold.is_none_or(|threshold| self.latency <= threshold)
+    }
 }

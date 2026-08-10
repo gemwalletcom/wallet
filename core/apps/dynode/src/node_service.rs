@@ -391,6 +391,7 @@ mod tests {
         ChainConfig {
             chain,
             poll_interval_seconds: None,
+            latency: None,
             overrides: None,
             allowlist: None,
             urls: vec![Url {

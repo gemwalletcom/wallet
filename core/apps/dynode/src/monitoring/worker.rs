@@ -41,9 +41,10 @@ impl NodeMonitor {
 
             let request = node_check_request(chain, monitoring_config.profile);
             let interval = chain_config.monitoring_interval(&monitoring_config);
+            let latency_threshold = chain_config.monitoring_latency(&monitoring_config);
             let initial_delay = Duration::from_millis(((index as u64) + 1) * 250);
             let signal = RequestFailureSignal::new(url, monitoring_config.trigger.clone());
-            let evaluator = NodeHealthEvaluator::new(chain_config, request, Arc::clone(&nodes), Arc::clone(&metrics));
+            let evaluator = NodeHealthEvaluator::new(chain_config, latency_threshold, request, Arc::clone(&nodes), Arc::clone(&metrics));
             monitors.push(ChainMonitor::new(evaluator, interval, initial_delay, signal.clone()));
             signals.insert(chain, signal);
         }

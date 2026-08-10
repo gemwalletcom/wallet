@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter, sync::Arc};
+use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 
 use primitives::{Chain, NodeCheckRequest};
 use tokio::sync::RwLock;
@@ -15,15 +15,23 @@ use crate::proxy::NodeDomain;
 
 pub(super) struct NodeHealthEvaluator {
     chain_config: ChainConfig,
+    latency_threshold: Option<Duration>,
     request: NodeCheckRequest,
     nodes: Arc<RwLock<HashMap<Chain, NodeDomain>>>,
     metrics: Arc<Metrics>,
 }
 
 impl NodeHealthEvaluator {
-    pub(super) fn new(chain_config: ChainConfig, request: NodeCheckRequest, nodes: Arc<RwLock<HashMap<Chain, NodeDomain>>>, metrics: Arc<Metrics>) -> Self {
+    pub(super) fn new(
+        chain_config: ChainConfig,
+        latency_threshold: Option<Duration>,
+        request: NodeCheckRequest,
+        nodes: Arc<RwLock<HashMap<Chain, NodeDomain>>>,
+        metrics: Arc<Metrics>,
+    ) -> Self {
         Self {
             chain_config,
+            latency_threshold,
             request,
             nodes,
             metrics,
@@ -51,13 +59,13 @@ impl NodeHealthEvaluator {
             NodeTelemetry::log_missing_current(self.chain_config.chain);
             return self.current_url().await;
         };
-        match NodeSelectionPolicy::select_node(&current_node.url, &observations) {
+        match NodeSelectionPolicy::select_node(&current_node.url, &observations, self.latency_threshold) {
             Some(switch) => {
                 if self.switch_if_current(&current_node.url, &switch.observation.url, &switch.reason).await {
                     NodeTelemetry::log_node_switch(self.chain_config.chain, &current_node.url, &switch);
                 }
             }
-            None if current_observation.state.is_healthy() => {}
+            None if current_observation.is_usable(self.latency_threshold) => {}
             None => NodeTelemetry::log_no_candidate(self.chain_config.chain),
         }
         self.current_url().await
@@ -68,16 +76,16 @@ impl NodeHealthEvaluator {
         let Some(current_index) = self.chain_config.urls.iter().position(|url| url == current) else {
             return vec![current_observation];
         };
-        let current_healthy = current_observation.state.is_healthy();
-        if current_index == 0 && current_healthy {
+        let current_usable = current_observation.is_usable(self.latency_threshold);
+        if current_index == 0 && current_usable {
             return vec![current_observation];
         }
 
         let mut observations: Vec<Option<NodeStatusObservation>> = iter::repeat_with(|| None).take(self.chain_config.urls.len()).collect();
         observations[current_index] = Some(current_observation);
-        for index in Self::probe_indices(self.chain_config.urls.len(), current_index, current_healthy) {
+        for index in Self::probe_indices(self.chain_config.urls.len(), current_index, current_usable) {
             let observation = self.observe_node(current, self.chain_config.urls[index].clone()).await;
-            let selected = observation.state.is_healthy();
+            let selected = observation.is_usable(self.latency_threshold);
             observations[index] = Some(observation);
             if selected {
                 break;
@@ -147,12 +155,13 @@ mod tests {
         let chain_config = ChainConfig {
             chain: Chain::Ethereum,
             poll_interval_seconds: None,
+            latency: None,
             overrides: None,
             allowlist: None,
             urls: vec![url("https://a"), url("https://b"), url("https://c")],
         };
         let nodes = Arc::new(RwLock::new(HashMap::from([(chain_config.chain, NodeDomain::new(url("https://a"), chain_config.clone()))])));
-        let evaluator = NodeHealthEvaluator::new(chain_config, NodeCheckRequest::Basic, nodes, Arc::new(Metrics::new(MetricsConfig::default())));
+        let evaluator = NodeHealthEvaluator::new(chain_config, None, NodeCheckRequest::Basic, nodes, Arc::new(Metrics::new(MetricsConfig::default())));
 
         assert!(evaluator.switch_if_current(&url("https://a"), &url("https://b"), &NodeSwitchReason::PreferredNode).await);
         assert_eq!(evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap().url, url("https://b"));

@@ -15,6 +15,7 @@ chains:
 
   # Bitcoin - default
   - chain: bitcoin
+    latency: 2s
     urls:
       - url: https://blockbook.btc.zelcore.io
 

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use super::observation::NodeStatusObservation;
 use super::switch_reason::NodeSwitchReason;
 use crate::config::Url;
@@ -12,25 +14,33 @@ pub(super) struct NodeSwitchResult<'a> {
 pub(super) struct NodeSelectionPolicy;
 
 impl NodeSelectionPolicy {
-    pub(super) fn select_node<'a>(current: &Url, configured_observations: &'a [NodeStatusObservation]) -> Option<NodeSwitchResult<'a>> {
+    pub(super) fn select_node<'a>(current: &Url, configured_observations: &'a [NodeStatusObservation], latency_threshold: Option<Duration>) -> Option<NodeSwitchResult<'a>> {
         let current_index = configured_observations.iter().position(|observation| observation.url == *current)?;
         let current_observation = &configured_observations[current_index];
-        let candidates = if current_observation.state.is_healthy() {
+        let current_usable = current_observation.is_usable(latency_threshold);
+        let candidates = if current_usable {
             &configured_observations[..current_index]
         } else {
             configured_observations
         };
-        let candidate = candidates.iter().find(|observation| observation.url != *current && observation.state.is_healthy())?;
-        let reason = match &current_observation.state {
-            NodeStatusState::Error { message } => NodeSwitchReason::CurrentNodeError {
-                error: current_observation.monitor_error,
-                message: message.clone(),
-            },
-            NodeStatusState::Healthy(status) if !status.in_sync => NodeSwitchReason::BlockHeight,
-            NodeStatusState::Healthy(_) => NodeSwitchReason::PreferredNode,
-        };
+        let candidate = candidates
+            .iter()
+            .find(|observation| observation.url != *current && observation.is_usable(latency_threshold))?;
+        let reason = switch_reason(current_observation, current_usable);
 
         Some(NodeSwitchResult { observation: candidate, reason })
+    }
+}
+
+fn switch_reason(current_observation: &NodeStatusObservation, current_usable: bool) -> NodeSwitchReason {
+    match &current_observation.state {
+        NodeStatusState::Error { message } => NodeSwitchReason::CurrentNodeError {
+            error: current_observation.monitor_error,
+            message: message.clone(),
+        },
+        NodeStatusState::Healthy(status) if !status.in_sync => NodeSwitchReason::BlockHeight,
+        NodeStatusState::Healthy(_) if !current_usable => NodeSwitchReason::Latency,
+        NodeStatusState::Healthy(_) => NodeSwitchReason::PreferredNode,
     }
 }
 
@@ -53,10 +63,10 @@ mod tests {
             healthy_observation("https://b", Some(110), Some(110), 300),
             healthy_observation("https://c", Some(120), Some(120), 20),
         ];
-        let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured).unwrap();
+        let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured, None).unwrap();
         assert_eq!(result.observation.url, url("https://b"));
 
-        let result = NodeSelectionPolicy::select_node(&url("https://c"), &configured).unwrap();
+        let result = NodeSelectionPolicy::select_node(&url("https://c"), &configured, None).unwrap();
         assert_eq!(result.observation.url, url("https://b"));
 
         let configured = vec![
@@ -64,7 +74,7 @@ mod tests {
             healthy_observation("https://b", Some(120), Some(120), 10),
             healthy_observation("https://c", Some(120), Some(120), 20),
         ];
-        let result = NodeSelectionPolicy::select_node(&url("https://c"), &configured).unwrap();
+        let result = NodeSelectionPolicy::select_node(&url("https://c"), &configured, None).unwrap();
         assert_eq!(result.observation.url, url("https://a"));
     }
 
@@ -74,18 +84,18 @@ mod tests {
             healthy_observation("https://a", Some(120), Some(120), 100),
             healthy_observation("https://b", Some(120), Some(120), 50),
         ];
-        assert!(NodeSelectionPolicy::select_node(&url("https://a"), &configured).is_none());
+        assert!(NodeSelectionPolicy::select_node(&url("https://a"), &configured, None).is_none());
 
         let configured = vec![
             error_observation("https://a", "unavailable"),
             healthy_observation("https://b", Some(120), Some(120), 100),
             healthy_observation("https://c", Some(120), Some(120), 50),
         ];
-        assert!(NodeSelectionPolicy::select_node(&url("https://b"), &configured).is_none());
+        assert!(NodeSelectionPolicy::select_node(&url("https://b"), &configured, None).is_none());
 
         let configured = vec![error_observation("https://a", "unavailable"), error_observation("https://b", "unavailable")];
-        assert!(NodeSelectionPolicy::select_node(&url("https://a"), &configured).is_none());
-        assert!(NodeSelectionPolicy::select_node(&url("https://missing"), &configured).is_none());
+        assert!(NodeSelectionPolicy::select_node(&url("https://a"), &configured, None).is_none());
+        assert!(NodeSelectionPolicy::select_node(&url("https://missing"), &configured, None).is_none());
     }
 
     #[test]
@@ -94,14 +104,14 @@ mod tests {
             not_in_sync_observation("https://a", Some(100), Some(90), 100),
             healthy_observation("https://b", Some(110), Some(110), 500),
         ];
-        let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured).unwrap();
+        let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured, None).unwrap();
         assert_eq!(result.reason, NodeSwitchReason::BlockHeight);
 
         let configured = vec![
             error_observation("https://a", "connection failed"),
             healthy_observation("https://b", Some(110), Some(110), 500),
         ];
-        let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured).unwrap();
+        let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured, None).unwrap();
         assert_eq!(
             result.reason,
             NodeSwitchReason::CurrentNodeError {
@@ -114,7 +124,20 @@ mod tests {
             healthy_observation("https://a", Some(110), Some(110), 500),
             healthy_observation("https://b", Some(110), Some(110), 100),
         ];
-        let result = NodeSelectionPolicy::select_node(&url("https://b"), &configured).unwrap();
+        let result = NodeSelectionPolicy::select_node(&url("https://b"), &configured, None).unwrap();
         assert_eq!(result.reason, NodeSwitchReason::PreferredNode);
+    }
+
+    #[test]
+    fn treats_slow_current_node_as_switch_candidate() {
+        let configured = vec![
+            healthy_observation("https://a", Some(120), Some(120), 1200),
+            healthy_observation("https://b", Some(120), Some(120), 300),
+        ];
+
+        let result = NodeSelectionPolicy::select_node(&url("https://a"), &configured, Some(Duration::from_secs(1))).unwrap();
+
+        assert_eq!(result.observation.url, url("https://b"));
+        assert_eq!(result.reason, NodeSwitchReason::Latency);
     }
 }
