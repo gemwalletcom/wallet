@@ -15,7 +15,7 @@ import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.Asset
@@ -65,7 +65,7 @@ fun AssetsManageScreen(
         selectedTag = selectedTag,
         tags = viewModel.getTags(),
         pinned = pinned,
-        popular = emptyList<AssetItemUIModel>().toImmutableList(),
+        popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
         unpinned = unpinned,
         recent = emptyList<Asset>().toImmutableList(),
         state = uiStates,
@@ -97,7 +97,7 @@ fun AssetsManageScreen(
         },
         itemTrailing = { asset ->
             Switch(
-                checked = asset.metadata?.isBalanceEnabled == true,
+                checked = asset.balanceEnabled,
                 onCheckedChange = { viewModel.onChangeVisibility(asset.asset.id, it) },
             )
         },

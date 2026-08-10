@@ -10,8 +10,9 @@ import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -47,16 +48,16 @@ class NetworkAssetsViewModel @Inject constructor(
         .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE } }
         .flowOn(Dispatchers.IO)
 
-    val pinned: StateFlow<List<AssetItemUIModel>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned == true }.map { AssetInfoUIModel(it) } }
+    val pinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
+        .map { assets -> assets.filter { it.metadata?.isPinned == true }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val unpinned: StateFlow<List<AssetItemUIModel>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned != true }.map { AssetInfoUIModel(it) } }
+    val unpinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
+        .map { assets -> assets.filter { it.metadata?.isPinned != true }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val hidden: StateFlow<List<AssetItemUIModel>> = getChainAssets.hidden(chain)
-        .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE }.map { AssetInfoUIModel(it) } }
+    val hidden: StateFlow<List<AssetInfoDataAggregate>> = getChainAssets.hidden(chain)
+        .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

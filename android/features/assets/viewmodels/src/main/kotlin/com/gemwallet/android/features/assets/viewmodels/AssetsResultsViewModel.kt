@@ -19,6 +19,7 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.config.showPerpetuals
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
 import com.gemwallet.android.data.repositories.tokens.listPriorityQuery
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig
 import com.gemwallet.android.domains.search.WalletSearchTag
@@ -30,7 +31,6 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearc
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
@@ -87,7 +87,7 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    val cappedAssets: StateFlow<List<AssetItemUIModel>> = combine(pinned, unpinned) { pinned, unpinned ->
+    val cappedAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(pinned, unpinned) { pinned, unpinned ->
         unpinned.take((WalletSearchConfig.resultsLimit - pinned.size).coerceAtLeast(0))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

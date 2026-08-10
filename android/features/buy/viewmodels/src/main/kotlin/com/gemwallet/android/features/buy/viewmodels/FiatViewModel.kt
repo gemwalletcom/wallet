@@ -20,7 +20,8 @@ import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.Fiat
 import com.gemwallet.android.model.hasAvailable
-import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -110,13 +111,11 @@ class FiatViewModel @Inject constructor(
     val assetInfoUIModel = assetData
         .mapNotNull { it }
         .map {
-            object : AssetInfoUIModel(
-                assetInfo = it.toAssetInfo(),
-                hideBalances = false,
-            ) {
-                override val cryptoAmount: Double
-                    get() = assetInfo.balance.balanceAmount.available
-            }
+            val assetInfo = it.toAssetInfo()
+            assetInfo.toAssetInfoDataAggregate(
+                naming = AssetRowNaming.CanonicalNative,
+                displayedAmount = assetInfo.balance.balanceAmount.available,
+            )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

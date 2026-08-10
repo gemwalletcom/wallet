@@ -15,6 +15,7 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.config.showPerpetuals
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig
 import com.gemwallet.android.ext.toIdentifier
@@ -23,7 +24,6 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectS
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.AssetId
@@ -128,7 +128,7 @@ class WalletSearchViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val previewAssets: StateFlow<List<AssetItemUIModel>> = combine(
+    val previewAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(
         unpinned, currentQuery, selectedTag,
     ) { items, query, tag ->
         items.take(assetsLimit(query, tag))
@@ -174,7 +174,7 @@ class WalletSearchViewModel @Inject constructor(
     override fun assetsSearchLimit(query: String, tag: AssetTag?): Int = assetsLimit(query, tag) + 1
 
     fun onPinAsset(assetId: AssetId) {
-        val willPin = (pinned.value + unpinned.value).firstOrNull { it.asset.id == assetId }?.metadata?.isPinned != true
+        val willPin = (pinned.value + unpinned.value).firstOrNull { it.asset.id == assetId }?.pinned != true
         onTogglePin(assetId)
         if (willPin) onChangeVisibility(assetId, true)
     }
