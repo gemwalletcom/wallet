@@ -18,6 +18,8 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 
+private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+
 @Composable
 fun TransactionDataAggregate.getTitle(): String =
     perpetualTitle(type, perpetualDirection) ?: stringResource(type.getTitle(direction, state))
@@ -72,7 +74,7 @@ fun TransactionDataAggregate.formatAddress(): String? = when (type) {
     TransactionType.PerpetualOpenPosition,
     TransactionType.PerpetualClosePosition,
     TransactionType.PerpetualModifyPosition -> perpetualPrice?.let {
-        "${stringResource(R.string.asset_price)}: ${CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(it)}"
+        "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(it)}"
     }
     TransactionType.StakeFreeze -> resourceType?.let {
         "${stringResource(id = R.string.transfer_to)} ${stringResource(it.titleRes())}"

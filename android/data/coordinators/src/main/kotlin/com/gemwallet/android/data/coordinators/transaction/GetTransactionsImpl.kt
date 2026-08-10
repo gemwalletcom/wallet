@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
 
+private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+
 class GetTransactionsImpl(
     private val transactionsRepository: TransactionRepository,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -111,11 +113,11 @@ class TransactionDataAggregateImpl(
                 AmountSign.Incoming.format(formatter.string(value, asset))
             } ?: ""
         }
-        TransactionType.PerpetualOpenPosition -> CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(
+        TransactionType.PerpetualOpenPosition -> usdFiatFormatter.string(
             CryptoFiatConverter.toFiat(Crypto(data.transaction.value), HypercoreUSDC.decimals, price = 1.0).atomicValue,
         )
         TransactionType.PerpetualClosePosition -> pnl?.let {
-            PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)).string(it)
+            PriceChangeFormatter(usdFiatFormatter).string(it)
         } ?: ""
         TransactionType.StakeUndelegate,
         TransactionType.StakeRewards,
