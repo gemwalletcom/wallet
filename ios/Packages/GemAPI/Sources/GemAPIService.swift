@@ -37,10 +37,6 @@ public extension GemAPIAssetsService {
     }
 }
 
-public protocol GemAPINameService: Sendable {
-    func getName(name: String, chain: String) async throws -> NameRecord?
-}
-
 public protocol GemAPIAddressNamesService: Sendable {
     func getAddressNames(requests: [ChainAddress]) async throws -> [AddressName]
 }
@@ -178,7 +174,7 @@ extension GemAPIService: GemAPIConfigService {
     }
 }
 
-extension GemAPIService: GemAPINameService {
+extension GemAPIService: NameServiceable {
     public func getName(name: String, chain: String) async throws -> NameRecord? {
         try await requestDevice(.getNameRecord(name: name, chain: chain))
             .mapResponse(as: NameRecord?.self)

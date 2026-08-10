@@ -3,7 +3,6 @@
 import BigInt
 import Components
 import Formatters
-import NameServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing

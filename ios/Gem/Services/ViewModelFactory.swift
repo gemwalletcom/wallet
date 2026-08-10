@@ -12,7 +12,6 @@ import FiatConnect
 import FiatService
 import Foundation
 import Keystore
-import NameService
 import PerpetualService
 import Preferences
 import PriceAlertService
@@ -44,7 +43,7 @@ public struct ViewModelFactory: Sendable {
     let stakeService: StakeService
     let earnService: EarnService
     let amountService: AmountService
-    let nameService: NameService
+    let nameService: any NameServiceable
     let balanceService: BalanceService
     let priceService: PriceService
     let transactionStateScheduler: TransactionStateScheduler
@@ -69,7 +68,7 @@ public struct ViewModelFactory: Sendable {
         stakeService: StakeService,
         earnService: EarnService,
         amountService: AmountService,
-        nameService: NameService,
+        nameService: any NameServiceable,
         balanceService: BalanceService,
         priceService: PriceService,
         transactionStateScheduler: TransactionStateScheduler,

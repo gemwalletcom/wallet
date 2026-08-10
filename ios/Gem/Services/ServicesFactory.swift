@@ -24,7 +24,6 @@ import GemAPI
 import GemAPIDevice
 import GemstonePrimitives
 import Keystore
-import NameService
 import NativeProviderService
 import NFTService
 import NodeService
@@ -288,7 +287,6 @@ struct ServicesFactory {
             perpetualService: perpetualService,
         )
 
-        let nameService = NameService(provider: apiService)
         let scanService = ScanService(apiService: apiService)
         let addressNameService = AddressNameService(addressStore: storeManager.addressStore, apiService: apiService)
         let activityService = ActivityService(store: storeManager.recentActivityStore)
@@ -335,7 +333,7 @@ struct ServicesFactory {
             stakeService: stakeService,
             earnService: earnService,
             amountService: AmountService(earnDataProvider: earnService),
-            nameService: nameService,
+            nameService: apiService,
             balanceService: balanceService,
             priceService: priceService,
             transactionStateScheduler: transactionStateScheduler,
@@ -390,7 +388,7 @@ struct ServicesFactory {
             walletConnectorManager: walletConnectorManager,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
-            nameService: nameService,
+            nameService: apiService,
             addressNameService: addressNameService,
             activityService: activityService,
             eventPresenterService: eventPresenterService,
