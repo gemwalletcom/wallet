@@ -8043,6 +8043,7 @@ dependencies = [
  "primitives",
  "serde",
  "serde_json",
+ "strum",
  "zeroize",
 ]
 

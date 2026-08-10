@@ -29,7 +29,8 @@ pub const CARDANO_EXTENDED_PRIVATE_KEY_LENGTH: usize = 192;
 #[derive(Debug, Default)]
 pub struct Signer;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, strum::AsRefStr)]
+#[strum(serialize_all = "lowercase")]
 pub enum SignatureScheme {
     Ed25519,
     Ed25519CardanoExtended,
