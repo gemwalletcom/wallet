@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.NftListItem
@@ -189,7 +189,7 @@ fun WalletSearchScreen(
         selectedTag = selectedTag,
         tags = viewModel.getTags(),
         pinned = pinned,
-        popular = emptyList<AssetItemUIModel>().toImmutableList(),
+        popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
         unpinned = previewAssets.toImmutableList(),
         recent = recent,
         state = state,

@@ -7,7 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.RecentType
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
@@ -18,14 +18,14 @@ import kotlinx.collections.immutable.toImmutableList
 @Composable
 fun AssetSelectScreen(
     title: String = "",
-    titleBadge: (AssetItemUIModel) -> String?,
+    titleBadge: (AssetInfoDataAggregate) -> String?,
     showPopular: Boolean = false,
     recentType: RecentType? = null,
     onCancel: () -> Unit,
     onSelect: ((AssetId) -> Unit)? = null,
     onSelectRecent: ((AssetId) -> Unit)? = null,
-    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
-    itemSupport: ((AssetItemUIModel) -> (@Composable () -> Unit)?)? = null,
+    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
+    itemSupport: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)? = null,
     onAddAsset: (() -> Unit)? = null,
     viewModel: BaseAssetSelectViewModel,
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
@@ -64,7 +64,7 @@ fun AssetSelectScreen(
         popular = if (showPopular) {
             popular
         } else {
-            emptyList<AssetItemUIModel>().toImmutableList()
+            emptyList<AssetInfoDataAggregate>().toImmutableList()
         },
         unpinned = unpinned,
         recent = recent,

@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.coordinators.asset
+package com.gemwallet.android.domains.asset.aggregates
 
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetBalance
@@ -21,7 +21,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class AssetInfoDataAggregateImplTest {
+class AssetInfoDataAggregateTest {
 
     private val btcAsset = Asset(
         id = AssetId(Chain.Bitcoin),

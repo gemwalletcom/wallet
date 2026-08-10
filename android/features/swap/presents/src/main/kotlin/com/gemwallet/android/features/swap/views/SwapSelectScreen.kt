@@ -8,7 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
@@ -57,7 +57,7 @@ fun SwapSelectScreen(
         query = viewModel.queryState,
         tags = viewModel.getTags(),
         selectedTag = selectedTag,
-        popular = emptyList<AssetItemUIModel>().toImmutableList(),
+        popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
         pinned = pinned,
         unpinned = unpinned,
         recent = recent,

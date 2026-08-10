@@ -11,7 +11,8 @@ import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggreg
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
@@ -79,12 +80,12 @@ internal fun PriceAlertAutoAssetItem(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    val uiModel = remember(assetInfo) { AssetInfoUIModel(assetInfo) }
+    val uiModel = remember(assetInfo) { assetInfo.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) }
     AssetListItem(
         asset = uiModel,
         listPosition = ListPosition.Single,
         support = assetPriceSupport(uiModel.price),
-        badge = uiModel.symbol.uppercase(),
+        badge = uiModel.asset.symbol.uppercase(),
         trailing = {
             Switch(
                 checked = enabled,

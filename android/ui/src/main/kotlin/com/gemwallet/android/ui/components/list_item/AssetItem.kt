@@ -20,12 +20,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.AssetPriceDataAggregate
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.PriceUIModel
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingMiddle
@@ -44,37 +44,9 @@ fun AssetListItem(
     asset: AssetInfoDataAggregate,
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
-) {
-    ListItem(
-        modifier = modifier,
-        listPosition = listPosition,
-        minHeight = ListItemDefaults.iconMinHeight,
-        contentPadding = assetListItemContentPadding(),
-        titleSubtitleSpacing = space0,
-        leading = @Composable { AssetIcon(asset.asset) },
-        title = @Composable { ListItemTitleText(asset.title) },
-        subtitle = asset.price?.let {
-            {
-                PriceInfo(
-                    it.valueFormatted,
-                    it.changePercentageFormatted,
-                    it.state,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        },
-        trailing = { getBalanceInfo(asset.balance, asset.balanceEquivalent, asset.isZeroBalance).invoke() },
-    )
-}
-
-@Composable
-fun AssetListItem(
-    asset: AssetItemUIModel,
-    support: @Composable (() -> Unit)?,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition,
+    support: (@Composable () -> Unit)? = assetPriceSupport(asset.price),
     badge: String? = null,
-    trailing: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = { getBalanceInfo(asset).invoke() },
 ) {
     ListItem(
         modifier = modifier,
@@ -83,7 +55,7 @@ fun AssetListItem(
         contentPadding = assetListItemContentPadding(),
         titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(asset.asset) },
-        title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
+        title = @Composable { ListItemTitleText(asset.title, { Badge(text = badge) }) },
         subtitle = support,
         trailing = if (trailing == null) null else {
             { trailing.invoke() }
@@ -129,32 +101,15 @@ fun Badge(text: String?) {
     )
 }
 
-@Composable
-fun PriceInfo(
-    price: PriceUIModel,
-    modifier: Modifier = Modifier,
-    style: TextStyle = MaterialTheme.typography.bodyLarge,
-    isHighlightPercentage: Boolean = false,
-    internalPadding: Dp = paddingHalfSmall,
-) {
-    PriceInfo(
-        price.fiatFormatted,
-        price.percentageFormatted,
-        price.state,
-        modifier,
-        style,
-        isHighlightPercentage,
-        internalPadding,
-    )
-}
-
-fun assetPriceSupport(price: PriceUIModel): (@Composable () -> Unit)? {
-    if (price.fiatFormatted.isEmpty()) {
+fun assetPriceSupport(price: AssetPriceDataAggregate?): (@Composable () -> Unit)? {
+    if (price == null || price.valueFormatted.isEmpty()) {
         return null
     }
     return {
         PriceInfo(
-            price = price,
+            price.valueFormatted,
+            price.changePercentageFormatted,
+            price.state,
             style = MaterialTheme.typography.bodyMedium,
             internalPadding = paddingHalfSmall,
         )
@@ -198,8 +153,8 @@ fun PriceInfo(
     }
 }
 
-fun getBalanceInfo(uiModel: AssetItemUIModel): @Composable () -> Unit
-        = getBalanceInfo(uiModel, uiModel)
+fun getBalanceInfo(asset: AssetInfoDataAggregate): @Composable () -> Unit
+        = getBalanceInfo(asset.balance, asset.balanceEquivalent, asset.isZeroBalance)
 
 fun getBalanceInfo(crypto: CryptoFormattedUIModel, fiatFormattedUIModel: FiatFormattedUIModel): @Composable () -> Unit {
     return (@Composable {
