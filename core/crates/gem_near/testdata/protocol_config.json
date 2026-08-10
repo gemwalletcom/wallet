@@ -1,0 +1,32 @@
+{
+  "runtime_config": {
+    "min_gas_purchase_price": "1000000000",
+    "storage_amount_per_byte": "10000000000000000000",
+    "transaction_costs": {
+      "action_receipt_creation_config": {
+        "execution": 108059500000,
+        "send_not_sir": 108059500000,
+        "send_sir": 108059500000
+      },
+      "action_creation_config": {
+        "create_account_cost": {
+          "execution": 7200000000000,
+          "send_not_sir": 500000000000,
+          "send_sir": 500000000000
+        },
+        "transfer_cost": {
+          "execution": 115123062500,
+          "send_not_sir": 115123062500,
+          "send_sir": 115123062500
+        },
+        "add_key_cost": {
+          "full_access_cost": {
+            "execution": 101765125000,
+            "send_not_sir": 101765125000,
+            "send_sir": 101765125000
+          }
+        }
+      }
+    }
+  }
+}

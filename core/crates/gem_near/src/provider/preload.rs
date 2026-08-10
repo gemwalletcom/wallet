@@ -1,15 +1,14 @@
+use std::error::Error;
+
 use async_trait::async_trait;
 use chain_traits::ChainTransactionLoad;
 use futures::try_join;
-use num_bigint::BigInt;
-use std::{error::Error, str::FromStr};
-
 use gem_client::Client;
-use primitives::{FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
     provider::{
-        preload_mapper::{address_to_public_key, map_transaction_preload},
+        preload_mapper::{address_to_public_key, map_transaction_fee, map_transaction_preload},
         state_mapper::map_gas_price_to_priorities,
     },
     rpc::NearProvider,
@@ -24,8 +23,9 @@ impl<C: Client + Clone> ChainTransactionLoad for NearProvider<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
+        let protocol_config = self.get_protocol_config().await?;
         Ok(TransactionLoadData {
-            fee: TransactionFee::new_from_gas_price_and_limit(input.gas_price.gas_price(), BigInt::from_str("9000000000000")?), // "4174947687500" * 2
+            fee: map_transaction_fee(&input, &protocol_config),
             metadata: input.metadata,
         })
     }

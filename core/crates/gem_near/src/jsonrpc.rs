@@ -9,6 +9,7 @@ pub enum NearRpc {
     GetAccountAccessKey { address: String, public_key: String },
     GetGasPrice,
     GetLatestBlock,
+    GetProtocolConfig,
     GetStatus,
     GetTransactionStatus { transaction_hash: String, sender_account_id: String },
     SendTransaction(String),
@@ -20,6 +21,7 @@ impl ToJsonRpcRequest for NearRpc {
             Self::GetAccount(_) | Self::GetAccountAccessKey { .. } => method::QUERY,
             Self::GetGasPrice => method::GAS_PRICE,
             Self::GetLatestBlock => method::BLOCK,
+            Self::GetProtocolConfig => method::PROTOCOL_CONFIG,
             Self::GetStatus => method::STATUS,
             Self::GetTransactionStatus { .. } => method::TRANSACTION,
             Self::SendTransaction(_) => method::SEND_TRANSACTION,
@@ -41,6 +43,7 @@ impl ToJsonRpcRequest for NearRpc {
             }),
             Self::GetGasPrice => json!([null]),
             Self::GetLatestBlock => json!({"finality": "final"}),
+            Self::GetProtocolConfig => json!({"finality": "final"}),
             Self::GetStatus => json!([]),
             Self::GetTransactionStatus {
                 transaction_hash,

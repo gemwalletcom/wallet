@@ -1,6 +1,6 @@
 use crate::{
     jsonrpc::NearRpc,
-    models::{Account, AccountAccessKey, Block, BroadcastResult, GasPrice, NodeStatus},
+    models::{Account, AccountAccessKey, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
 };
 use gem_client::Client;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
@@ -36,6 +36,10 @@ impl<C: Client + Clone> NearClient<C> {
 
     pub async fn get_gas_price(&self) -> Result<GasPrice, JsonRpcError> {
         self.client.request(NearRpc::GetGasPrice).await
+    }
+
+    pub async fn get_protocol_config(&self) -> Result<ProtocolConfig, JsonRpcError> {
+        self.client.request(NearRpc::GetProtocolConfig).await
     }
 
     pub async fn get_status(&self) -> Result<NodeStatus, JsonRpcError> {

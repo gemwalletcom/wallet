@@ -1,12 +1,12 @@
-use async_trait::async_trait;
-use chain_traits::ChainBalances;
 use std::error::Error;
 
+use async_trait::async_trait;
+use chain_traits::ChainBalances;
 use gem_client::Client;
 use gem_jsonrpc::types::JsonRpcError;
 use primitives::{AssetBalance, Chain};
 
-use super::balances_mapper;
+use super::balances_mapper::map_native_balance;
 use crate::rpc::NearProvider;
 
 const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = -32000;
@@ -19,7 +19,7 @@ impl<C: Client + Clone> ChainBalances for NearProvider<C> {
             Err(error) if is_account_missing(&error) => return Ok(AssetBalance::new_zero_balance(Chain::Near.as_asset_id())),
             Err(error) => return Err(error.into()),
         };
-        balances_mapper::map_native_balance(&account)
+        Ok(map_native_balance(&account))
     }
 
     async fn get_balance_tokens(&self, _address: String, _token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {

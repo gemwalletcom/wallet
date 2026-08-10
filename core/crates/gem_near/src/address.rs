@@ -17,6 +17,10 @@ impl AddressTrait for NearAddress {
 }
 
 pub fn validate_address(address: &str) -> bool {
+    is_implicit_address(address)
+}
+
+pub(crate) fn is_implicit_address(address: &str) -> bool {
     NearAddress::is_valid(address)
 }
 
