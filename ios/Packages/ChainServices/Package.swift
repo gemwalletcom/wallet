@@ -9,8 +9,6 @@ let package = Package(
         .macOS(.v15),
     ],
     products: [
-        .library(name: "NameService", targets: ["NameService"]),
-        .library(name: "NameServiceTestKit", targets: ["NameServiceTestKit"]),
         .library(name: "StakeService", targets: ["StakeService"]),
         .library(name: "StakeServiceTestKit", targets: ["StakeServiceTestKit"]),
         .library(name: "NodeService", targets: ["NodeService"]),
@@ -35,23 +33,6 @@ let package = Package(
         .package(name: "reown-swift", path: "../../Submodules/reown-swift"),
     ],
     targets: [
-        .target(
-            name: "NameService",
-            dependencies: [
-                "Primitives",
-                "GemAPI",
-            ],
-            path: "NameService",
-            exclude: ["TestKit"],
-        ),
-        .target(
-            name: "NameServiceTestKit",
-            dependencies: [
-                "NameService",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ],
-            path: "NameService/TestKit",
-        ),
         .target(
             name: "StakeService",
             dependencies: [

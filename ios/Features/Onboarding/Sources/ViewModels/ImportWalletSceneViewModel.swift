@@ -4,7 +4,6 @@ import GemstonePrimitives
 import enum Keystore.KeystoreImportType
 import enum Keystore.Mnemonic
 import Localization
-import NameService
 import Primitives
 import PrimitivesComponents
 import Style

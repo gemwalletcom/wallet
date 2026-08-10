@@ -2,7 +2,6 @@
 
 import Components
 @testable import Contacts
-import NameServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing

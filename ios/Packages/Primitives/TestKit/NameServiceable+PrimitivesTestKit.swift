@@ -1,25 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@testable import NameService
-import Primitives
-import PrimitivesTestKit
+@testable import Primitives
 
 public extension NameServiceable where Self == MockNameService {
-    static func mock(
-        canResolve: Bool = true,
-        nameRecord: NameRecord? = nil,
-    ) -> MockNameService {
-        MockNameService(canResolve: canResolve, nameRecord: nameRecord)
+    static func mock(nameRecord: NameRecord? = nil) -> MockNameService {
+        MockNameService(nameRecord: nameRecord)
     }
 }
 
 public struct MockNameService: NameServiceable {
-    let canResolve: Bool
     let nameRecord: NameRecord?
 
-    public init(canResolve: Bool = true, nameRecord: NameRecord? = nil) {
-        self.canResolve = canResolve
+    public init(nameRecord: NameRecord? = nil) {
         self.nameRecord = nameRecord
     }
 

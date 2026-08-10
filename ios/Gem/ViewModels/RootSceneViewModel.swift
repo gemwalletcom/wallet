@@ -10,7 +10,6 @@ import Foundation
 import GemstonePrimitives
 import Localization
 import LockManager
-import NameService
 import Onboarding
 import Preferences
 import Primitives
@@ -39,7 +38,7 @@ final class RootSceneViewModel {
     let walletSetupService: WalletSetupService
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
-    let nameService: NameService
+    let nameService: any NameServiceable
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
@@ -89,7 +88,7 @@ final class RootSceneViewModel {
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
         walletSetupService: WalletSetupService,
-        nameService: NameService,
+        nameService: any NameServiceable,
         releaseAlertService: ReleaseAlertService,
         rateService: RateService,
         eventPresenterService: EventPresenterService,

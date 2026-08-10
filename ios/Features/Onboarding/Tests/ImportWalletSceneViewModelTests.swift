@@ -2,7 +2,6 @@
 
 import Keystore
 import KeystoreTestKit
-import NameServiceTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit
