@@ -20,7 +20,7 @@ extension TransactionPriceViewModel: ItemModelProvidable {
             return .empty
         }
 
-        let formatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+        let formatter = CurrencyFormatter.usd
         let priceFormatted = formatter.string(metadata.price)
 
         return .price(

@@ -8,7 +8,7 @@ import Store
 @Observable
 @MainActor
 final class PerpetualsPreviewViewModel {
-    private let currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+    private let currencyFormatter = CurrencyFormatter.usd
 
     let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>

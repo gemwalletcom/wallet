@@ -13,7 +13,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AutocloseSceneViewModel {
-    private let currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+    private let currencyFormatter = CurrencyFormatter.usd
     private let percentFormatter = PercentFormatter.signed
     private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType

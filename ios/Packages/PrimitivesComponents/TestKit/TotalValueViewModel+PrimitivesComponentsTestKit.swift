@@ -13,7 +13,7 @@ public extension TotalValueViewModel {
     ) -> TotalValueViewModel {
         TotalValueViewModel(
             totalValue: .mock(value: value, pnlAmount: pnlAmount, pnlPercentage: pnlPercentage),
-            currencyFormatter: CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
+            currencyFormatter: CurrencyFormatter.usd,
         )
     }
 }

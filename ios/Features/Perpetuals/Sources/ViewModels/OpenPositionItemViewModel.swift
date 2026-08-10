@@ -16,7 +16,7 @@ struct OpenPositionItemViewModel: ListAssetItemViewable {
 
     init(data: AutocloseOpenData) {
         self.data = data
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+        currencyFormatter = CurrencyFormatter.usd
     }
 
     var name: String {

@@ -9,7 +9,7 @@ public struct AutocloseFormatter: Sendable {
     private let stopLossLabel: String
 
     public init(
-        currencyFormatter: CurrencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
+        currencyFormatter: CurrencyFormatter = CurrencyFormatter.usd,
         takeProfitLabel: String,
         stopLossLabel: String,
     ) {

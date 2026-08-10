@@ -22,7 +22,7 @@ extension TransactionPnlViewModel: ItemModelProvidable {
             return .empty
         }
 
-        let formatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+        let formatter = CurrencyFormatter.usd
         let sign = metadata.pnl >= 0 ? "+" : ""
         let pnlFormatted = formatter.string(metadata.pnl)
         let color = metadata.pnl >= 0 ? Colors.green : Colors.red

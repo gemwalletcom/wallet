@@ -38,7 +38,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 
     private let type: PerpetualDetailsType
-    private let currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+    private let currencyFormatter = CurrencyFormatter.usd
     private let numericFormatter = NumericFormatter()
     private let percentFormatter = PercentFormatter.signed
     private let percentSignLessFormatter = PercentFormatter.unsigned

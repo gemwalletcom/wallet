@@ -19,7 +19,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     private let currencyFormatter: CurrencyFormatter
     private let priceFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
-    private let perpetualFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+    private let perpetualFormatter = CurrencyFormatter.usd
 
     var state: PortfolioState
 

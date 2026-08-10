@@ -18,7 +18,7 @@ public struct PerpetualViewModel {
     public init(perpetual: Perpetual, currencyStyle: CurrencyFormatterType = .abbreviated) {
         self.perpetual = perpetual
         marketValueFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
-        priceFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+        priceFormatter = CurrencyFormatter.usd
     }
 
     public var name: String {
