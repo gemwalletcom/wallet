@@ -92,7 +92,7 @@ fun Balance<String>.rewardsBalance() = rewards.toBigIntegerOrNull() ?: BigIntege
 
 fun Balance<Double>.getTotalAmount() = available + frozen + locked + staked + pending + rewards
 
-fun Balance<Double>.getStackedAmount() = frozen + staked + pending + rewards + locked
+fun Balance<Double>.getStakedAmount() = frozen + staked + pending + rewards + locked
 
 fun Balance<String>.getTotalAmount() = BigInteger(available) +
         BigInteger(frozen) +
@@ -101,7 +101,7 @@ fun Balance<String>.getTotalAmount() = BigInteger(available) +
         BigInteger(pending) +
         BigInteger(rewards)
 
-fun Balance<String>.getStackedAmount() = BigInteger(frozen) +
+fun Balance<String>.getStakedAmount() = BigInteger(frozen) +
         BigInteger(staked) +
         BigInteger(pending) +
         BigInteger(rewards) +

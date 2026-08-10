@@ -157,8 +157,8 @@ impl HyperCoreSigner {
     }
 
     fn sign_set_referrer(&self, agent_key: &[u8], code: &str, timestamp: u64) -> SignerResult<String> {
-        let referer = SetReferrer::new(code.to_string());
-        self.sign_serialized_action(referer, timestamp, agent_key, |value| set_referrer_typed_data(value, timestamp), "set referrer")
+        let referrer = SetReferrer::new(code.to_string());
+        self.sign_serialized_action(referrer, timestamp, agent_key, |value| set_referrer_typed_data(value, timestamp), "set referrer")
     }
 
     fn sign_spot_send(&self, amount: &str, destination: &str, token: &str, private_key: &[u8]) -> SignerResult<String> {

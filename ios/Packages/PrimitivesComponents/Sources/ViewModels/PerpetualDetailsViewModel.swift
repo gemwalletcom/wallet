@@ -20,7 +20,7 @@ public enum PerpetualDetailsType: Sendable {
         case let .close(data): self = .close(data)
         case let .increase(data): self = .increase(data)
         case let .reduce(data): self = .reduce(data)
-        case .modify: fatalError("not suppoerted")
+        case .modify: fatalError("not supported")
         }
     }
 

@@ -7,9 +7,9 @@ public struct StateButtonStyle: ButtonStyle {
     private let variant: ButtonType
     private let palette: ButtonStylePalette
 
-    public init(_ variant: ButtonType, palettee: ButtonStylePalette) {
+    public init(_ variant: ButtonType, palette: ButtonStylePalette) {
         self.variant = variant
-        palette = palettee
+        self.palette = palette
     }
 
     public func makeBody(configuration: Configuration) -> some View {
@@ -65,7 +65,7 @@ public struct StateButtonStyle: ButtonStyle {
 
 public extension ButtonStyle where Self == StateButtonStyle {
     static func primary(_ state: ButtonState = .normal) -> Self {
-        .init(.primary(state), palettee: .primary)
+        .init(.primary(state), palette: .primary)
     }
 
     static func variant(_ variant: ButtonType) -> Self {

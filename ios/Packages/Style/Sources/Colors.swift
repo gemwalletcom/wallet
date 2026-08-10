@@ -69,7 +69,7 @@ public extension Colors {
         ("Gray Dark Background", Colors.grayDarkBackground),
         ("Secondary Text", Colors.secondaryText),
         ("List style color", Colors.listStyleColor),
-        ("Inset Gropued List style color", Colors.insetGroupedListStyle),
+        ("Inset Grouped List style color", Colors.insetGroupedListStyle),
     ]
     return List {
         ForEach(colors, id: \.name) { color in

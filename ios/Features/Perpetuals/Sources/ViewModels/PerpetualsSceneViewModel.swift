@@ -130,7 +130,7 @@ final class PerpetualsSceneViewModel {
     }
 }
 
-// MARK: - Businesss Logic
+// MARK: - Business Logic
 
 extension PerpetualsSceneViewModel {
     func fetch() async {

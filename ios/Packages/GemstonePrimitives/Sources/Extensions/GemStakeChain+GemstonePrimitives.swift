@@ -40,7 +40,7 @@ public extension StakeChain {
         Config.shared.getStakeConfig(chain: rawValue).canRedelegate
     }
 
-    var supportWidthdraw: Bool {
+    var supportWithdraw: Bool {
         Config.shared.getStakeConfig(chain: rawValue).canWithdraw
     }
 

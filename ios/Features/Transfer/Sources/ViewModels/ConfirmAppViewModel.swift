@@ -15,7 +15,7 @@ public struct ConfirmAppViewModel: ItemModelProvidable {
     }
 }
 
-// MARK: - ItemModelPrividable
+// MARK: - ItemModelProvidable
 
 public extension ConfirmAppViewModel {
     var itemModel: ConfirmTransferItemModel {

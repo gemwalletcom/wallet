@@ -61,11 +61,11 @@ pub struct TransactionResponseData {
 pub struct TransactionEvent {
     #[serde(rename = "type")]
     pub event_type: String,
-    pub attributes: Vec<TransactionEventAtribute>,
+    pub attributes: Vec<TransactionEventAttribute>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionEventAtribute {
+pub struct TransactionEventAttribute {
     pub key: String,
     pub value: Option<String>,
 }

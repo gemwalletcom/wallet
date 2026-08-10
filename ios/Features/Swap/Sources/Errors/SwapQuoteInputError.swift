@@ -4,7 +4,7 @@ import Foundation
 
 public enum SwapQuoteInputError: Error {
     case invalidAmount
-    case formatingError
+    case formattingError
     case missingFromAsset
     case missingToAsset
 }
