@@ -216,6 +216,20 @@ struct TransactionStateServiceTests {
     }
 
     @Test
+    func jobStopsWhenWalletRemoved() async throws {
+        let fixture = try makeFixture(stateChanges: TransactionChanges(state: .confirmed))
+        let job = TransactionStateJob(
+            wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),
+            service: fixture.service,
+        )
+        _ = try WalletStore.mock(db: fixture.db).deleteWallet(for: fixture.walletId)
+
+        await expectCancelled(job.run())
+
+        #expect(try fixture.store.getTransactions(states: [.confirmed]).isEmpty)
+    }
+
+    @Test
     func postProcessingRefreshesSwapBalances() async throws {
         let fromAsset = AssetId.mock(.bitcoin)
         let toAsset = AssetId.mock(.ethereum)
@@ -282,6 +296,7 @@ struct TransactionStateServiceTests {
 
 private extension TransactionStateServiceTests {
     struct Fixture {
+        let db: DB
         let store: TransactionStore
         let walletId: WalletId
         let wallet: Wallet
@@ -327,7 +342,7 @@ private extension TransactionStateServiceTests {
             postProcessingService: postProcessingService,
             statusService: statusService,
         )
-        return Fixture(store: store, walletId: walletId, wallet: wallet, transaction: transaction, service: service)
+        return Fixture(db: db, store: store, walletId: walletId, wallet: wallet, transaction: transaction, service: service)
     }
 
     func makeSwapTransaction(
@@ -382,6 +397,13 @@ private extension TransactionStateServiceTests {
     func expectComplete(_ status: JobStatus) {
         guard case .complete = status else {
             Issue.record("Expected complete")
+            return
+        }
+    }
+
+    func expectCancelled(_ status: JobStatus) {
+        guard case .cancelled = status else {
+            Issue.record("Expected cancelled")
             return
         }
     }

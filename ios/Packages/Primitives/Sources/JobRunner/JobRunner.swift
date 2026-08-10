@@ -52,6 +52,9 @@ extension JobRunner {
                     debugLog("transaction status complete: id=\(job.id), status=complete, error=\(error)")
                 }
                 return
+            case .cancelled:
+                debugLog("transaction status cancelled: id=\(job.id), status=cancelled")
+                return
             case let .retry(error):
                 let sleepUntil = attemptStart.advanced(by: .milliseconds(Int(intervalMs)))
                 if clock.now < sleepUntil {
