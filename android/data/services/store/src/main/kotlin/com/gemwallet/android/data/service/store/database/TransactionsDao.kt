@@ -120,6 +120,16 @@ interface TransactionsDao {
     @Query("UPDATE transactions SET metadata = :metadata, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
     fun updateMetadata(id: TransactionId, walletId: WalletId, metadata: String, updatedAt: Long = System.currentTimeMillis())
 
+    @Query("UPDATE transactions SET state = :state, fee = :fee, metadata = :metadata, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
+    fun updateTransaction(
+        id: TransactionId,
+        walletId: WalletId,
+        state: TransactionState,
+        fee: String,
+        metadata: String?,
+        updatedAt: Long = System.currentTimeMillis(),
+    ): Int
+
     @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)
 
