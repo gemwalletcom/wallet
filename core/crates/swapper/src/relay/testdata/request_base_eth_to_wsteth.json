@@ -3,309 +3,51 @@
     {
       "id": "0xa6839f78e09d3536890fc43bbac2c43c746ca7c9268e521506d6876644ce770f",
       "status": "success",
-      "user": "0x09cdaf0c46e020159835fa3d706345913909dee3",
-      "recipient": "0x09cdaF0c46e020159835fa3d706345913909dEE3",
-      "sender": null,
-      "refundTo": null,
-      "supersededByRequestId": null,
-      "depositAddress": null,
-      "data": {
-        "slippageTolerance": "100",
-        "failReason": null,
-        "refundFailReason": null,
-        "usesExternalLiquidity": false,
-        "timeEstimate": 4,
-        "triggeredByFastFill": null,
-        "inTxs": [
-          {
-            "txHash": "0x109b0a9fb58d23d50cfeed6322d9116dc72aea3778760f511b1e4165fc23f52c",
-            "fee": "3029653758641",
-            "feeUsd": "0.005803",
-            "block": 49746781,
-            "type": "onchain",
-            "chainId": 8453,
-            "timestamp": 1786282909,
-            "status": "success",
-            "data": {
-              "to": "0xb92fe925dc43a0ecde6c8b1a2709c170ec4fff4f",
-              "data": "0xcd6e13f700000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008600000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000000000000000000000000000000000000000000560000000000000000000000000b92fe925dc43a0ecde6c8b1a2709c170ec4fff4f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c4a6bd8c96000000000000000000000000000000000000000000000000000001dd310d3d79000000000000000000000000f70da97812cb96acdf810712aa562db8dfa3dbef00000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000021f077ec4466786d605125e8629c7ac647c34c2cabb34cf0986353d90e87f9386a01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020f6ee51340adeed01a59b0e65cb3703f3dc860c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004d8d28c182e89000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000002c446ec278a00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000269022800a0b92fe925dc43a0ecde6c8b1a2709c170ec4fff4f0000000000000000000000000000000000000000c1cba3fcea344f92d9239c08c0568f6f2f0ee4520000000000000000000000000000000000000000000000000004d8d28c182e89e00114c80119c80121d4bab7c80cd411884b18508d554ca0309e595c30c0646af115b15994b8358ca6f0012900ee56d5a06299286df8235f790c272ad8dddb913638258fd70fbda18b95e5a43316eebef2a5913fdcbb83ba4f936d5a13acbf8b65eb535e11fd0bd2b71ed707441b00e06a7884c0c803df9abd6fd28fc803e99ee38d657ef0271042000000000000000000000000000000000000068569213d10e502b0573f9cd6d33be324144b894fc804d8d28c182e8902012b02013f0e015301533df02124f800f80101016603016a03016c0e0153015303016a833589fcd6edb6e08f4c7c32d4f71b54bda0291302017f128acb0800000000000000000000000000000000000000000000000000000001000276a400000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000014833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000000101960603016c05000004019a008045837e65e4c44ca260ab40e6dc30ff1b466a00ca00070a00000000000000000000000000000000000000000000000000000000000003023d05004002007002007007050080010000015b01660000000000016e017f013f060020019301960000000040021a02290229070020025e026400000600200264026700000300000267026e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b92fe925dc43a0ecde6c8b1a2709c170ec4fff4f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000001a49bb43718000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000c1cba3fcea344f92d9239c08c0568f6f2f0ee452000000000000000000000000000000000000000000000000000000000000000100000000000000000000000009cdaf0c46e020159835fa3d706345913909dee3000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021f077ec4466786d605125e8629c7ac647c34c2cabb34cf0986353d90e87f9386a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021f077ec4466786d605125e8629c7ac647c34c2cabb34cf0986353d90e87f9386a0000000000000000000000000000000000000000000000000000000000000000a6839f78e09d3536890fc43bbac2c43c746ca7c9268e521506d6876644ce770f",
-              "from": "0x09cdaf0c46e020159835fa3d706345913909dee3",
-              "value": "1366348234320898"
-            },
-            "stateChanges": [
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0x0000000000000000000000000000000000000000"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "-1366348234320898"
-                },
-                "address": "0x09cdaf0c46e020159835fa3d706345913909dee3"
-              },
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "1095489605726256"
-                },
-                "address": "0x09cdaf0c46e020159835fa3d706345913909dee3"
-              },
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0x0000000000000000000000000000000000000000"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "2049522351481"
-                },
-                "address": "0xf70da97812cb96acdf810712aa562db8dfa3dbef"
-              },
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0x0000000000000000000000000000000000000000"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "1364298711969417"
-                },
-                "address": "0x4200000000000000000000000000000000000006"
-              },
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0x4200000000000000000000000000000000000006"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "1364298711969417"
-                },
-                "address": "0x8569213d10e502b0573f9cd6d33be324144b894f"
-              },
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "-2617528"
-                },
-                "address": "0x8569213d10e502b0573f9cd6d33be324144b894f"
-              },
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "-1095489605726256"
-                },
-                "address": "0x45837e65e4c44ca260ab40e6dc30ff1b466a00ca"
-              },
-              {
-                "change": {
-                  "data": {
-                    "tokenKind": "ft",
-                    "tokenAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
-                  },
-                  "kind": "token",
-                  "balanceDiff": "2617528"
-                },
-                "address": "0x45837e65e4c44ca260ab40e6dc30ff1b466a00ca"
-              }
-            ]
-          }
-        ],
-        "outTxs": [
-          {
-            "chainId": 8453
-          }
-        ],
-        "appFees": {
-          "quoted": [],
-          "actual": [],
-          "currency": {
-            "chainId": 8453,
-            "address": "0x0000000000000000000000000000000000000000",
-            "symbol": "ETH",
-            "name": "Ether",
-            "decimals": 18,
-            "metadata": {
-              "logoURI": "https://assets.relay.link/icons/1/light.png",
-              "verified": true
-            }
-          }
-        },
-        "feeSponsorship": null,
-        "fees": {
-          "quoted": {
-            "swap": {
-              "usd": "0.000000",
-              "amount": "0",
-              "amountFormatted": "0.0"
-            },
-            "execution": {
-              "usd": "-0.020746",
-              "amount": "10789245504636",
-              "amountFormatted": "0.000010789245504636"
-            },
-            "platform": {
-              "usd": "-0.003940",
-              "amount": "2049050358874",
-              "amountFormatted": "0.000002049050358874"
-            },
-            "app": {
-              "usd": "0.000000",
-              "amount": "0",
-              "amountFormatted": "0.0"
-            },
-            "sponsored": {
-              "usd": "0",
-              "amount": "0",
-              "amountFormatted": "0.0"
-            }
-          },
-          "actual": {
-            "swap": {
-              "usd": "0.000000",
-              "amount": "0",
-              "amountFormatted": "0.0"
-            },
-            "execution": {
-              "usd": "-0.020746",
-              "amount": "10789245504636",
-              "amountFormatted": "0.000010789245504636"
-            },
-            "platform": {
-              "usd": "-0.003940",
-              "amount": "2049050358874",
-              "amountFormatted": "0.000002049050358874"
-            },
-            "app": {
-              "usd": "0.000000",
-              "amount": "0",
-              "amountFormatted": "0.0"
-            },
-            "sponsored": {
-              "usd": "0",
-              "amount": "0",
-              "amountFormatted": "0.0"
-            }
-          },
-          "currency": {
-            "chainId": 8453,
-            "address": "0x0000000000000000000000000000000000000000",
-            "symbol": "ETH",
-            "name": "Ether",
-            "decimals": 18,
-            "metadata": {
-              "logoURI": "https://assets.relay.link/icons/1/light.png",
-              "verified": true
-            }
-          }
-        },
-        "route": {
-          "quoted": {
-            "origin": {
-              "inputCurrency": {
-                "currency": {
-                  "chainId": 8453,
-                  "address": "0x0000000000000000000000000000000000000000",
-                  "symbol": "ETH",
-                  "name": "Ether",
-                  "decimals": 18,
-                  "metadata": {
-                    "logoURI": "https://assets.relay.link/icons/1/light.png",
-                    "verified": true
-                  }
-                },
-                "amount": "1366348234320898",
-                "amountFormatted": "0.001366348234320898",
-                "amountUsd": "2.627272",
-                "minimumAmount": "1366348234320898"
-              },
-              "outputCurrency": {
-                "currency": {
-                  "chainId": 8453,
-                  "address": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452",
-                  "symbol": "wstETH",
-                  "name": "Wrapped liquid staked Ether 2.0",
-                  "decimals": 18,
-                  "metadata": {
-                    "logoURI": "https://coin-images.coingecko.com/coins/images/18834/large/wstETH.png?1696518295",
-                    "verified": true
-                  }
-                },
-                "amount": "1101293561931134",
-                "amountFormatted": "0.001101293561931134",
-                "amountUsd": "2.627830",
-                "minimumAmount": "1090280626311822"
-              },
-              "router": "magpie"
-            },
-            "destination": null
-          },
-          "actual": {
-            "origin": {
-              "inputCurrency": {
-                "currency": {
-                  "chainId": 8453,
-                  "address": "0x0000000000000000000000000000000000000000",
-                  "symbol": "ETH",
-                  "name": "Ether",
-                  "decimals": 18,
-                  "metadata": {
-                    "logoURI": "https://assets.relay.link/icons/1/light.png",
-                    "verified": true
-                  }
-                },
-                "amount": "1366348234320898",
-                "amountFormatted": "0.001366348234320898",
-                "amountUsd": "2.627272",
-                "minimumAmount": "1366348234320898"
-              },
-              "outputCurrency": {
-                "currency": {
-                  "chainId": 8453,
-                  "address": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452",
-                  "symbol": "wstETH",
-                  "name": "Wrapped liquid staked Ether 2.0",
-                  "decimals": 18,
-                  "metadata": {
-                    "logoURI": "https://coin-images.coingecko.com/coins/images/18834/large/wstETH.png?1696518295",
-                    "verified": true
-                  }
-                },
-                "amount": "1101293561931134",
-                "amountFormatted": "0.001101293561931134",
-                "amountUsd": "2.627830",
-                "minimumAmount": "1090280626311822"
-              },
-              "router": "magpie"
-            },
-            "destination": null
-          }
-        },
-        "quoteOraclePrice": null,
-        "refundCurrencyData": null,
-        "externalMetadata": {
-          "moonpayId": null
-        }
-      },
-      "protocol": null,
       "requestType": "Same-chain Swap",
-      "features": [],
-      "createdAt": "2026-08-09T13:41:49.362Z",
-      "updatedAt": "2026-08-09T13:41:49.377Z"
+      "data": {
+        "route": {
+          "actual": {
+            "origin": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0x0000000000000000000000000000000000000000",
+                  "symbol": "ETH",
+                  "name": "Ether",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://assets.relay.link/icons/1/light.png",
+                    "verified": true
+                  }
+                },
+                "amount": "1366348234320898",
+                "amountFormatted": "0.001366348234320898",
+                "amountUsd": "2.627272",
+                "minimumAmount": "1366348234320898"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452",
+                  "symbol": "wstETH",
+                  "name": "Wrapped liquid staked Ether 2.0",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://coin-images.coingecko.com/coins/images/18834/large/wstETH.png?1696518295",
+                    "verified": true
+                  }
+                },
+                "amount": "1101293561931134",
+                "amountFormatted": "0.001101293561931134",
+                "amountUsd": "2.627830",
+                "minimumAmount": "1090280626311822"
+              },
+              "router": "magpie"
+            },
+            "destination": null
+          }
+        }
+      }
     }
-  ],
-  "continuation": "WzE3ODYyODI5MDkzNjIsMjkyOTM0Nzk0MjgxMjExNV0"
+  ]
 }
