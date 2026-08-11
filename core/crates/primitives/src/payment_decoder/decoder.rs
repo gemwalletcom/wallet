@@ -5,6 +5,7 @@ use crate::{
     payment::{Payment, PaymentLink, PaymentRequest},
 };
 use std::{collections::HashMap, str::FromStr};
+use url::form_urlencoded;
 
 use super::{
     erc681::{ETHEREUM_SCHEME, TransactionRequest},
@@ -13,104 +14,69 @@ use super::{
     wallet_connect_pay,
 };
 
+const REQUIRED_PARAMETER_PREFIX: &str = "req-";
+
 #[derive(Debug)]
 pub struct PaymentURLDecoder;
 
 impl PaymentURLDecoder {
     pub fn decode(string: &str) -> Result<Payment> {
-        if let Some(payment_id) = wallet_connect_pay::parse(string) {
+        let uri = string.trim();
+
+        if let Some(payment_id) = wallet_connect_pay::parse(uri) {
             return Ok(Payment::Link(PaymentLink::WalletConnectPay(payment_id)));
         }
 
-        let chunks: Vec<&str> = string.split(':').collect();
+        let Some((scheme, path)) = uri.split_once(':') else {
+            return Self::decode_path(uri, None);
+        };
+        let scheme = scheme.to_ascii_lowercase();
 
-        match chunks.len() {
-            // Handle case with no scheme
-            1 => {
-                // Check for query parameters
-                if string.contains('?') {
-                    let parts: Vec<&str> = string.splitn(2, '?').collect();
-                    if parts.len() == 2 {
-                        let address = parts[0].to_string();
-                        let params = Self::decode_query_string(parts[1]);
-                        return Ok(Payment::Request(PaymentRequest {
-                            address,
-                            amount: params.get("amount").cloned(),
-                            memo: params.get("memo").cloned(),
-                            asset_id: None,
-                        }));
-                    }
-                }
-                // No scheme and no query parameters
-                Ok(Payment::Request(PaymentRequest::new_address(string)))
+        match scheme.as_str() {
+            ETHEREUM_SCHEME => Ok(Payment::Request(TransactionRequest::parse(uri)?.into())),
+            SOLANA_PAY_SCHEME => match solana_pay::parse(uri)? {
+                solana_pay::RequestType::Transfer(transfer) => Ok(Payment::Request(transfer.into())),
+                solana_pay::RequestType::Transaction(link) => Ok(Payment::Link(PaymentLink::SolanaPay(link))),
+            },
+            TON_PAY_SCHEME => {
+                let ton_payment = ton_pay::parse(uri)?;
+                Ok(Payment::Request(PaymentRequest {
+                    address: ton_payment.recipient,
+                    amount: None,
+                    memo: None,
+                    asset_id: Some(ton_payment.asset_id),
+                }))
             }
-            // Handle case with scheme
-            2 => {
-                let scheme = chunks[0];
-                if scheme == ETHEREUM_SCHEME {
-                    let transaction_request = TransactionRequest::parse(string)?;
-                    return Ok(Payment::Request(transaction_request.into()));
-                }
-                if scheme == SOLANA_PAY_SCHEME {
-                    let pay_request = solana_pay::parse(string)?;
-                    match pay_request {
-                        solana_pay::RequestType::Transfer(transfer) => {
-                            return Ok(Payment::Request(transfer.into()));
-                        }
-                        solana_pay::RequestType::Transaction(link) => {
-                            return Ok(Payment::Link(PaymentLink::SolanaPay(link)));
-                        }
-                    }
-                }
-                if scheme == TON_PAY_SCHEME {
-                    let ton_payment = ton_pay::parse(string)?;
-                    return Ok(Payment::Request(PaymentRequest {
-                        address: ton_payment.recipient,
-                        amount: None,
-                        memo: None,
-                        asset_id: Some(ton_payment.asset_id),
-                    }));
-                }
-
-                let path: &str = chunks[1];
-                let path_chunks: Vec<&str> = path.split('?').collect();
-                let address = path_chunks[0].to_string();
-                let asset_id = Self::decode_scheme(scheme);
-
-                if path_chunks.len() == 1 {
-                    Ok(Payment::Request(PaymentRequest {
-                        address,
-                        amount: None,
-                        memo: None,
-                        asset_id,
-                    }))
-                } else if path_chunks.len() == 2 {
-                    let query = path_chunks[1];
-                    let params = Self::decode_query_string(query);
-                    let amount = params.get("amount").cloned();
-                    let memo = params.get("memo").cloned();
-
-                    Ok(Payment::Request(PaymentRequest { address, amount, memo, asset_id }))
-                } else {
-                    Err(PaymentDecoderError::InvalidFormat("BIP21 format is incorrect".to_string()))
-                }
-            }
-            // Handle any other case (shouldn't normally happen)
-            _ => Ok(Payment::Request(PaymentRequest::new_address(string))),
+            _ => Self::decode_path(path, Self::decode_scheme(&scheme)),
         }
     }
 
+    fn decode_path(path: &str, asset_id: Option<AssetId>) -> Result<Payment> {
+        let Some((address, query)) = path.split_once('?') else {
+            return Ok(Payment::Request(PaymentRequest {
+                address: path.to_string(),
+                amount: None,
+                memo: None,
+                asset_id,
+            }));
+        };
+
+        let params = Self::decode_query_string(query);
+        if let Some(required) = params.keys().find(|key| key.starts_with(REQUIRED_PARAMETER_PREFIX)) {
+            return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported required parameter: {required}")));
+        }
+
+        Ok(Payment::Request(PaymentRequest {
+            address: address.to_string(),
+            amount: params.get("amount").cloned(),
+            memo: params.get("memo").cloned(),
+            asset_id,
+        }))
+    }
+
     fn decode_query_string(query_string: &str) -> HashMap<String, String> {
-        query_string
-            .split('&')
-            .filter_map(|pair| {
-                let components: Vec<&str> = pair.split('=').collect();
-                if components.len() == 2 {
-                    Some((components[0].to_string(), components[1].to_string()))
-                } else {
-                    None
-                }
-            })
+        form_urlencoded::parse(query_string.as_bytes())
+            .map(|(key, value)| (key.to_ascii_lowercase(), value.into_owned()))
             .collect()
     }
 
@@ -169,6 +135,54 @@ mod tests {
         assert_eq!(
             PaymentURLDecoder::decode("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326").unwrap(),
             Payment::Request(PaymentRequest::new_address("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"))
+        );
+    }
+
+    #[test]
+    fn test_uri_normalization() {
+        let bitcoin = Payment::Request(PaymentRequest {
+            address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
+            amount: Some("0.1".to_string()),
+            memo: None,
+            asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+        });
+        let uri = "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.1";
+
+        assert_eq!(PaymentURLDecoder::decode(uri).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("  {uri}\n")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode("BITCOIN:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?AMOUNT=0.1").unwrap(), bitcoin);
+
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?memo=see%20http%3A%2F%2Fx.com").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
+                amount: None,
+                memo: Some("see http://x.com".to_string()),
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?memo=YWJjZA==").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
+                amount: None,
+                memo: Some("YWJjZA==".to_string()),
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            })
+        );
+        assert!(PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?req-escrow=1").is_err());
+    }
+
+    #[test]
+    fn test_ton() {
+        assert_eq!(
+            PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA".to_string(),
+                amount: None,
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            })
         );
     }
 

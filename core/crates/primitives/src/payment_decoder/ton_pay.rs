@@ -26,6 +26,7 @@ pub fn parse(uri: &str) -> Result<TonPayment> {
 }
 
 fn extract_address(query_part: &str) -> Result<String> {
+    let query_part = query_part.split('?').next().unwrap_or(query_part);
     let parts: Vec<&str> = query_part.split('/').filter(|s| !s.is_empty()).collect();
     if parts.len() == 2 && parts[0] == TON_PAY_TYPE_TRANSFER {
         Ok(parts[1].to_string())
@@ -50,6 +51,13 @@ mod tests {
     #[test]
     fn test_parse_without_transfer() {
         let uri = "ton://UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
+        let payment = parse(uri).unwrap();
+        assert_eq!(payment.recipient, "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA");
+    }
+
+    #[test]
+    fn test_parse_with_query() {
+        let uri = "ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=order";
         let payment = parse(uri).unwrap();
         assert_eq!(payment.recipient, "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA");
     }
