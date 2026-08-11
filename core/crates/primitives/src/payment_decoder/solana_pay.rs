@@ -1,3 +1,4 @@
+use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
@@ -38,7 +39,7 @@ impl From<PayTransfer> for PaymentRequest {
     fn from(val: PayTransfer) -> Self {
         Self {
             address: val.recipient,
-            amount: val.amount,
+            amount: val.amount.as_deref().and_then(amount::from_coins),
             memo: val.memo,
             asset_id: Some(AssetId::from(Chain::Solana, val.spl_token.map(|token| token.to_string()))),
         }
@@ -63,9 +64,9 @@ pub fn parse(path: &str) -> Result<RequestType> {
 
     query::reject_unsupported(&query_params, &[QUERY_REFERENCE])?;
 
-    let amount = query_params.get(QUERY_AMOUNT).cloned();
-    let spl_token = query_params.get(QUERY_SPL_TOKEN).cloned();
-    let memo = query_params.get(QUERY_MEMO).cloned();
+    let amount = query::value(&query_params, QUERY_AMOUNT);
+    let spl_token = query::value(&query_params, QUERY_SPL_TOKEN);
+    let memo = query::value(&query_params, QUERY_MEMO);
 
     Ok(RequestType::Transfer(PayTransfer {
         recipient: recipient.to_string(),

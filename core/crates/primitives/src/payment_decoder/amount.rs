@@ -4,6 +4,10 @@ use crate::{Chain, asset::Asset};
 
 const MAX_EXPONENT: u32 = 78;
 
+pub(crate) fn from_coins(value: &str) -> Option<String> {
+    Some(Amount::read(value)?.to_string())
+}
+
 pub(crate) fn from_smallest_unit(value: &str, chain: Chain) -> Option<String> {
     let decimals = u32::try_from(Asset::from_chain(chain).decimals).ok()?;
 
@@ -62,6 +66,17 @@ impl fmt::Display for Amount {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_from_coins() {
+        assert_eq!(from_coins("50"), Some("50".to_string()));
+        assert_eq!(from_coins("0.500"), Some("0.5".to_string()));
+        assert_eq!(from_coins(".123"), Some("0.123".to_string()));
+
+        for not_a_plain_decimal in ["XYZ", "100,000", "1_000", "-1", "", "1e2"] {
+            assert_eq!(from_coins(not_a_plain_decimal), None, "{not_a_plain_decimal}");
+        }
+    }
 
     #[test]
     fn test_from_smallest_unit() {

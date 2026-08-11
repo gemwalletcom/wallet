@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
@@ -32,11 +33,11 @@ pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
     }
 
     let is_xrp = asset_id.as_ref().is_some_and(|asset_id| asset_id.chain == Chain::Xrp);
-    let memo = parameters.get(QUERY_MEMO).or_else(|| parameters.get(QUERY_DESTINATION_TAG).filter(|_| is_xrp)).cloned();
+    let memo = query::value(&parameters, QUERY_MEMO).or_else(|| query::value(&parameters, QUERY_DESTINATION_TAG).filter(|_| is_xrp));
 
     Ok(Payment::Request(PaymentRequest {
         address: address.to_string(),
-        amount: parameters.get(QUERY_AMOUNT).cloned(),
+        amount: query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(amount::from_coins),
         memo,
         asset_id,
     }))

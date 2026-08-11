@@ -1,4 +1,4 @@
-use super::amount::from_smallest_unit;
+use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
@@ -71,21 +71,21 @@ pub fn decode(path: &str) -> Result<Payment> {
 impl From<TransactionRequest> for PaymentRequest {
     fn from(val: TransactionRequest) -> Self {
         let chain = val.chain_id.and_then(Chain::from_chain_id).unwrap_or(Chain::Ethereum);
-        let memo = val.parameters.get("memo").cloned();
+        let memo = query::value(&val.parameters, "memo");
 
         if val.function_name.as_deref() == Some(TRANSFER_FUNCTION) {
             return Self {
-                address: val.parameters.get("address").cloned().unwrap_or_default(),
+                address: query::value(&val.parameters, "address").unwrap_or_default(),
                 amount: None,
                 memo,
                 asset_id: Some(AssetId::from(chain, Some(val.target_address))),
             };
         }
 
-        let value = val.parameters.get("value").and_then(|value| from_smallest_unit(value, chain));
+        let value = val.parameters.get("value").and_then(|value| amount::from_smallest_unit(value, chain));
         Self {
             address: val.target_address,
-            amount: value.or_else(|| val.parameters.get("amount").cloned()),
+            amount: value.or_else(|| query::value(&val.parameters, "amount").as_deref().and_then(amount::from_coins)),
             memo,
             asset_id: Some(AssetId::from(chain, None)),
         }

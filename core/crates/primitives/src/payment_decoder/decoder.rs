@@ -147,6 +147,50 @@ mod tests {
     }
 
     #[test]
+    fn test_bip21_fixtures() {
+        let address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
+        let bitcoin = request(address, Chain::Bitcoin);
+
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("BITCOIN:{address}")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("BitCoin:{address}")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?label=Luke-Jr")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?dontexist=")).unwrap(), bitcoin);
+
+        assert_eq!(
+            PaymentURLDecoder::decode(&format!("bitcoin:{address}?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: address.to_string(),
+                amount: Some("50".to_string()),
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            })
+        );
+
+        assert!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?req-dontexist=")).is_err());
+        assert!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?req-somethingyoudontunderstand=50")).is_err());
+    }
+
+    #[test]
+    fn test_ignores_an_amount_that_is_not_a_number() {
+        let address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
+        let bitcoin = request(address, Chain::Bitcoin);
+
+        for amount in ["XYZ", "100'000", "100,000", "-1"] {
+            assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?amount={amount}")).unwrap(), bitcoin);
+        }
+        assert_eq!(
+            PaymentURLDecoder::decode(&format!("bitcoin:{address}?amount=.123")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: address.to_string(),
+                amount: Some("0.123".to_string()),
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            })
+        );
+    }
+
+    #[test]
     fn test_refuses_what_it_cannot_sign() {
         assert!(PaymentURLDecoder::decode("solana:mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny").is_err());
         assert!(PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1&bin=te6cc").is_err());

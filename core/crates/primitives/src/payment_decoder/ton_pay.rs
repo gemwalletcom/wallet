@@ -30,8 +30,8 @@ pub fn parse(path: &str) -> Result<TonPayment> {
 
     Ok(TonPayment {
         recipient,
-        amount: parameters.get(QUERY_AMOUNT).cloned(),
-        comment: parameters.get(QUERY_TEXT).cloned(),
+        amount: query::value(&parameters, QUERY_AMOUNT),
+        comment: query::value(&parameters, QUERY_TEXT),
     })
 }
 
