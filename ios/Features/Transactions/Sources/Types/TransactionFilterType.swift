@@ -37,3 +37,9 @@ public extension TransactionType {
         }
     }
 }
+
+public extension TransactionFilterType {
+    var transactionTypes: [TransactionType] {
+        TransactionType.allCases.filter { $0.filterType == self }
+    }
+}

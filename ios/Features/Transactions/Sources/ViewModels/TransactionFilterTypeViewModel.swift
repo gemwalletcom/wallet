@@ -21,15 +21,4 @@ struct TransactionFilterTypeViewModel {
         case .others: Localized.Transfer.Other.title
         }
     }
-
-    var filters: [TransactionType] {
-        switch type {
-        case .transfers: [.transfer, .transferNFT]
-        case .smartContract: [.smartContractCall]
-        case .swaps: [.swap, .tokenApproval]
-        case .stake: [.stakeDelegate, .stakeUndelegate, .stakeRewards, .stakeRedelegate, .stakeWithdraw]
-        case .perpetuals: [.perpetualOpenPosition, .perpetualClosePosition]
-        case .others: [.assetActivation]
-        }
-    }
 }

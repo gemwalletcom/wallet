@@ -12,7 +12,7 @@ public struct TransactionTypesFilterViewModel: Equatable {
     }
 
     public var requestFilters: [TransactionType] {
-        selectedTypes.map { TransactionFilterTypeViewModel(type: $0).filters }.reduce([], +)
+        selectedTypes.flatMap(\.transactionTypes)
     }
 
     public var typeModel: TransactionsFilterTypeViewModel {
