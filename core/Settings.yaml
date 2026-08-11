@@ -99,7 +99,7 @@ name:
     key:
       secret: ""
   sns:
-    url: https://sns-sdk-proxy.bonfida.workers.dev
+    url: https://sdk-proxy.sns.id
   ton:
     url: https://toncenter.com
   eths:
