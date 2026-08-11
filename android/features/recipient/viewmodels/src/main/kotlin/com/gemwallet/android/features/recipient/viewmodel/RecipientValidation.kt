@@ -11,5 +11,5 @@ internal fun DestinationAddress.isValidRecipient(
     chain: Chain,
     resolvedNameRecord: NameRecord?,
     validateAddress: ValidateAddressOperator,
-): Boolean = resolvedNameRecord?.matchesRecipient(inputAddress, address, chain) == true ||
-    validateAddress(address, chain).getOrNull() == true
+): Boolean = validateAddress(address, chain).getOrNull() == true &&
+    (resolvedNameRecord == null || resolvedNameRecord.matchesRecipient(inputAddress, address, chain))

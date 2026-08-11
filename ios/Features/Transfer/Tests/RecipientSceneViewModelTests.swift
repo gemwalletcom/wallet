@@ -68,6 +68,7 @@ struct RecipientSceneViewModelTests {
         model.addressInputModel.nameRecordViewModel.state = .loading
         #expect(model.actionButtonState == .disabled)
 
+        model.addressInputModel.text = "test.eth"
         model.addressInputModel.nameRecordViewModel.state = .complete(NameRecord.mock())
         #expect(model.actionButtonState == .normal)
     }

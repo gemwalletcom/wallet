@@ -12,19 +12,43 @@ import org.junit.Test
 class RecipientValidationTest {
 
     @Test
-    fun resolvedNameRequiresMatchingRecord() {
+    fun validRecipientRequiresValidAddressAndMatchingRecord() {
         val accountId = "wrap.near"
         val otherAccountId = "other.near"
         val chain = Chain.Near
-        val rejectAddress = addressValidator(false)
         val destination = DestinationAddress(address = accountId, name = accountId)
         val record = NameRecord(name = accountId, chain = chain, address = accountId, provider = NameProvider.Near)
+        val validAddress = addressValidator(true)
+        val invalidAddress = addressValidator(false)
 
-        assertTrue(destination.isValidRecipient(accountId, chain, record, rejectAddress))
-        assertFalse(destination.isValidRecipient(otherAccountId, chain, record, rejectAddress))
-        assertFalse(destination.isValidRecipient(accountId, Chain.Ethereum, record, rejectAddress))
-        assertFalse(destination.isValidRecipient(accountId, chain, null, rejectAddress))
-        assertTrue(destination.isValidRecipient(accountId, chain, null, addressValidator(true)))
+        assertTrue(destination.isValidRecipient(accountId, chain, record, validAddress))
+        assertFalse(destination.isValidRecipient(otherAccountId, chain, record, validAddress))
+        assertFalse(destination.isValidRecipient(accountId, Chain.Ethereum, record, validAddress))
+        assertFalse(destination.isValidRecipient(accountId, chain, record, invalidAddress))
+        assertFalse(destination.isValidRecipient(accountId, chain, null, invalidAddress))
+        assertTrue(destination.isValidRecipient(accountId, chain, null, validAddress))
+
+        val ethereumName = "example.eth"
+        val ethereumAddress = "0x1234567890123456789012345678901234567890"
+        val ethereumDestination = DestinationAddress(address = ethereumAddress, name = ethereumName)
+        val ethereumRecord = NameRecord(
+            name = ethereumName,
+            chain = Chain.Ethereum,
+            address = ethereumAddress,
+            provider = NameProvider.Ens,
+        )
+        val unresolvedEthereumRecord = ethereumRecord.copy(address = ethereumName)
+        val unresolvedEthereumDestination = DestinationAddress(address = ethereumName, name = ethereumName)
+
+        assertTrue(ethereumDestination.isValidRecipient(ethereumName, Chain.Ethereum, ethereumRecord, validAddress))
+        assertFalse(
+            unresolvedEthereumDestination.isValidRecipient(
+                ethereumName,
+                Chain.Ethereum,
+                unresolvedEthereumRecord,
+                invalidAddress,
+            ),
+        )
     }
 
     private fun addressValidator(result: Boolean) = object : ValidateAddressOperator {

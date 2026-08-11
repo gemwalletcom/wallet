@@ -29,6 +29,17 @@ struct AddressInputViewModelTests {
 
         model.nameRecordViewModel.state = .complete(.mock())
         #expect(model.validate())
+
+        model.nameRecordViewModel.state = .complete(.mock(name: "other.eth"))
+        #expect(model.validate() == false)
+
+        model.nameRecordViewModel.state = .complete(.mock(address: "test.eth"))
+        #expect(model.validate() == false)
+
+        model.chain = .near
+        model.inputModel.text = "h3rman.near"
+        model.nameRecordViewModel.state = .complete(.mock(name: "h3rman.near", chain: .near, address: "h3rman.near", provider: .near))
+        #expect(model.validate())
     }
 
     @Test
