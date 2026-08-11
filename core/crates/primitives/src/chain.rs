@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
@@ -109,6 +109,14 @@ impl Chain {
         Self::iter().find(|&chain| chain.network_id_value().is_some_and(|network_id| network_id == chain_id))
     }
 
+    pub fn from_payment_scheme(scheme: &str) -> Option<Self> {
+        match scheme {
+            "dogecoin" => Some(Self::Doge),
+            "ripple" | "xrpl" => Some(Self::Xrp),
+            _ => Self::from_str(scheme).ok(),
+        }
+    }
+
     pub fn is_utxo(&self) -> bool {
         self.config().is_utxo
     }
@@ -200,6 +208,17 @@ mod tests {
         assert!(Chain::Base.is_defi_supported());
         assert!(Chain::Solana.is_defi_supported());
         assert!(!Chain::Bitcoin.is_defi_supported());
+    }
+
+    #[test]
+    fn test_from_payment_scheme() {
+        assert_eq!(Chain::from_payment_scheme("bitcoin"), Some(Chain::Bitcoin));
+        assert_eq!(Chain::from_payment_scheme("dogecoin"), Some(Chain::Doge));
+        assert_eq!(Chain::from_payment_scheme("ripple"), Some(Chain::Xrp));
+        assert_eq!(Chain::from_payment_scheme("xrpl"), Some(Chain::Xrp));
+
+        assert_eq!(Chain::from_payment_scheme("lightning"), None);
+        assert_eq!(Chain::from_payment_scheme("wc"), None);
     }
 
     #[test]

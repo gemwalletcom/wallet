@@ -147,6 +147,37 @@ mod tests {
     }
 
     #[test]
+    fn test_address_written_as_an_authority() {
+        assert_eq!(
+            PaymentURLDecoder::decode("algorand://TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD").unwrap(),
+            request("TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD", Chain::Algorand)
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin://bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4").unwrap(),
+            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
+        );
+    }
+
+    #[test]
+    fn test_refuses_a_scheme_that_is_not_a_payment() {
+        assert!(PaymentURLDecoder::decode("wc:abc123@2?relay-protocol=irn&symKey=deadbeef").is_err());
+        assert!(PaymentURLDecoder::decode("https://gemwallet.com/tokens/bitcoin").is_err());
+        assert!(PaymentURLDecoder::decode("gem://wc?sessionTopic=abc").is_err());
+        assert!(PaymentURLDecoder::decode("lightning:lnbc1pvjluezpp5qqqsyq").is_err());
+        assert!(PaymentURLDecoder::decode("eip155:1:0xcB3028d6120802148f03d6c884D6AD6A210Df62A").is_err());
+        assert!(PaymentURLDecoder::decode("web+stellar:pay?destination=GABC").is_err());
+        assert!(PaymentURLDecoder::decode("monero:4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge").is_err());
+    }
+
+    #[test]
+    fn test_scheme_that_is_not_named_after_its_chain() {
+        assert_eq!(
+            PaymentURLDecoder::decode("dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L").unwrap(),
+            request("DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L", Chain::Doge)
+        );
+    }
+
+    #[test]
     fn test_bip21_fixtures() {
         let address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
         let bitcoin = request(address, Chain::Bitcoin);
@@ -257,6 +288,10 @@ mod tests {
         );
         assert_eq!(
             PaymentURLDecoder::decode("wc:abc@2?pay=https://pay.walletconnect.com/?pid=pay_123").unwrap(),
+            Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string()))
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("gem://wc?uri=wc%3Aabc%402%3Fpay%3Dhttps%253A%252F%252Fpay.walletconnect.com%252F%253Fpid%253Dpay_123").unwrap(),
             Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string()))
         );
     }

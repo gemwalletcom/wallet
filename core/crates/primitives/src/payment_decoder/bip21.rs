@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
@@ -10,13 +8,17 @@ use crate::{
 };
 
 const REQUIRED_PARAMETER_PREFIX: &str = "req-";
+const AUTHORITY_PREFIX: &str = "//";
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_MEMO: &str = "memo";
-const XRP_SCHEMES: [&str; 2] = ["ripple", "xrpl"];
 const QUERY_DESTINATION_TAG: &str = "dt";
 
 pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
-    let asset_id = scheme.and_then(asset_id);
+    let asset_id = match scheme {
+        Some(scheme) => Some(asset_id(scheme).ok_or(PaymentDecoderError::InvalidScheme)?),
+        None => None,
+    };
+    let path = path.strip_prefix(AUTHORITY_PREFIX).unwrap_or(path);
 
     let Some((address, query)) = path.split_once('?') else {
         return Ok(Payment::Request(PaymentRequest {
@@ -44,9 +46,5 @@ pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
 }
 
 fn asset_id(scheme: &str) -> Option<AssetId> {
-    let chain = match scheme {
-        scheme if XRP_SCHEMES.contains(&scheme) => Chain::Xrp,
-        scheme => Chain::from_str(scheme).ok()?,
-    };
-    Some(AssetId::from(chain, None))
+    Chain::from_payment_scheme(scheme).map(|chain| AssetId::from(chain, None))
 }
