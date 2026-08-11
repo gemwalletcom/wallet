@@ -1,4 +1,4 @@
-use super::error::Result;
+use super::error::{PaymentDecoderError, Result};
 use crate::payment::{Payment, PaymentLink};
 
 use super::{bip21, erc681, solana_pay, ton_pay, wallet_connect_pay};
@@ -8,8 +8,15 @@ pub struct PaymentURLDecoder;
 
 impl PaymentURLDecoder {
     pub fn decode(string: &str) -> Result<Payment> {
-        let uri = string.trim();
+        let payment = Self::decode_uri(string.trim())?;
 
+        if matches!(&payment, Payment::Request(request) if request.address.is_empty()) {
+            return Err(PaymentDecoderError::MissingField("address".to_string()));
+        }
+        Ok(payment)
+    }
+
+    fn decode_uri(uri: &str) -> Result<Payment> {
         if let Some(payment_id) = wallet_connect_pay::parse(uri) {
             return Ok(Payment::Link(PaymentLink::WalletConnectPay(payment_id)));
         }
@@ -32,6 +39,15 @@ impl PaymentURLDecoder {
 mod tests {
     use super::*;
     use crate::{Chain, asset_id::AssetId, payment::PaymentRequest};
+
+    fn request(address: &str, chain: Chain) -> Payment {
+        Payment::Request(PaymentRequest {
+            address: address.to_string(),
+            amount: None,
+            memo: None,
+            asset_id: Some(AssetId::from_chain(chain)),
+        })
+    }
 
     #[test]
     fn test_address() {
@@ -86,6 +102,14 @@ mod tests {
     }
 
     #[test]
+    fn test_solana_without_parameters() {
+        assert_eq!(
+            PaymentURLDecoder::decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5").unwrap(),
+            request("HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5", Chain::Solana)
+        );
+    }
+
+    #[test]
     fn test_ton() {
         assert_eq!(
             PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=order+7").unwrap(),
@@ -95,6 +119,30 @@ mod tests {
                 memo: Some("order 7".to_string()),
                 asset_id: Some(AssetId::from_chain(Chain::Ton)),
             })
+        );
+    }
+
+    #[test]
+    fn test_rejects_a_request_without_an_address() {
+        assert!(PaymentURLDecoder::decode("bitcoin:").is_err());
+        assert!(PaymentURLDecoder::decode("bitcoin:?amount=0.1").is_err());
+        assert!(PaymentURLDecoder::decode("ethereum:").is_err());
+        assert!(PaymentURLDecoder::decode("").is_err());
+    }
+
+    #[test]
+    fn test_ignores_an_empty_parameter() {
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=&memo=").unwrap(),
+            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
+        );
+    }
+
+    #[test]
+    fn test_keeps_display_only_parameters_out_of_the_memo() {
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?label=Store&message=Order%2012").unwrap(),
+            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
         );
     }
 

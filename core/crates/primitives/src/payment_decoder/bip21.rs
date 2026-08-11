@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
 use super::error::{PaymentDecoderError, Result};
+use super::query;
 use crate::{
     Chain,
     asset_id::AssetId,
     payment::{Payment, PaymentRequest},
-    url_query::query_parameters,
 };
 
 const REQUIRED_PARAMETER_PREFIX: &str = "req-";
@@ -26,7 +26,7 @@ pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
         }));
     };
 
-    let parameters = query_parameters(query);
+    let parameters = query::parameters(query);
     if let Some(required) = parameters.keys().find(|key| key.starts_with(REQUIRED_PARAMETER_PREFIX)) {
         return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported required parameter: {required}")));
     }

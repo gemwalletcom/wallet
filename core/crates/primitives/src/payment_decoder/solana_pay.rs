@@ -1,5 +1,5 @@
 use super::error::{PaymentDecoderError, Result};
-use crate::url_query::query_parameters;
+use super::query;
 use crate::{
     Chain,
     asset_id::AssetId,
@@ -19,9 +19,6 @@ pub struct PayTransfer {
     pub recipient: String,
     pub amount: Option<String>,
     pub spl_token: Option<String>,
-    pub reference: Option<Vec<String>>,
-    pub label: Option<String>,
-    pub message: Option<String>,
     pub memo: Option<String>,
 }
 
@@ -55,27 +52,18 @@ pub fn parse(path: &str) -> Result<RequestType> {
         return Ok(RequestType::Transaction(url.to_string()));
     }
 
-    // Handle Transfer Request
-    let (recipient, query) = query_part
-        .split_once('?')
-        .ok_or_else(|| PaymentDecoderError::InvalidFormat("Invalid URL query string".to_string()))?;
+    let (recipient, query) = query_part.split_once('?').unwrap_or((&query_part, ""));
 
-    let query_params = query_parameters(query);
+    let query_params = query::parameters(query);
 
     let amount = query_params.get("amount").cloned();
     let spl_token = query_params.get("spl-token").cloned();
-    let reference = query_params.get("reference").map(|v| v.split(',').map(String::from).collect());
-    let label = query_params.get("label").cloned();
-    let message = query_params.get("message").cloned();
     let memo = query_params.get("memo").cloned();
 
     Ok(RequestType::Transfer(PayTransfer {
         recipient: recipient.to_string(),
         amount,
         spl_token,
-        reference,
-        label,
-        message,
         memo,
     }))
 }
@@ -120,9 +108,6 @@ mod tests {
         assert_eq!(pay_url.recipient, "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN");
         assert_eq!(pay_url.amount.unwrap(), "1");
         assert_eq!(pay_url.spl_token.unwrap(), SOLANA_PAY_USDC_SPL_TOKEN);
-        assert_eq!(pay_url.reference.unwrap(), vec!["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny".to_string()]);
-        assert_eq!(pay_url.label.unwrap(), "Michael");
-        assert_eq!(pay_url.message.unwrap(), "Thanks for all the fish");
         assert_eq!(pay_url.memo.unwrap(), "OrderId5678");
     }
 

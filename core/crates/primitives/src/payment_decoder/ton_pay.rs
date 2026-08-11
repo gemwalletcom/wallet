@@ -1,14 +1,14 @@
 use super::amount::from_smallest_unit;
 use super::error::{PaymentDecoderError, Result};
+use super::query;
 
 use crate::{
     AssetId, Chain,
     payment::{Payment, PaymentRequest},
-    url_query::query_parameters,
 };
 
 pub const TON_PAY_SCHEME: &str = "ton";
-pub const TON_PAY_TYPE_TRANSFER: &str = "transfer";
+const TON_PAY_TYPE_TRANSFER: &str = "transfer";
 
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_TEXT: &str = "text";
@@ -23,7 +23,7 @@ pub struct TonPayment {
 pub fn parse(path: &str) -> Result<TonPayment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let recipient = extract_address(path)?;
-    let parameters = query_parameters(query);
+    let parameters = query::parameters(query);
 
     Ok(TonPayment {
         recipient,

@@ -30,6 +30,10 @@ impl PaymentRequest {
             asset_id: None,
         }
     }
+
+    pub fn with_asset(self, asset_id: AssetId) -> Self {
+        Self { asset_id: Some(asset_id), ..self }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
