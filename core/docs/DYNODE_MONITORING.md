@@ -6,7 +6,7 @@ Dynode monitoring keeps one active RPC URL per chain and moves traffic between c
 
 - URL order is priority order. The first configured URL is preferred.
 - A node is usable only when its status and configured profile checks succeed and it is in sync.
-- If `monitoring.trigger.latency` is set, every required profile check must complete within that latency.
+- If `monitoring.trigger.latency` is set, a node observation must complete within that latency.
 - A healthy fallback remains active until a higher-priority URL becomes healthy again.
 - Selection uses configuration order among usable nodes.
 - Switching is atomic: the selected URL is installed only if the active URL has not changed since the monitoring cycle started.
@@ -18,7 +18,7 @@ Dynode also starts a monitoring cycle when the active URL reaches either configu
 
 - `trigger.failures`: consecutive retryable failures.
 - `trigger.rate`: retryable failure percentage within `trigger.window`, after at least `trigger.failures` failed requests.
-- `trigger.latency`: maximum acceptable latency for any required profile check before alternatives are checked.
+- `trigger.latency`: maximum acceptable latency for one node monitoring observation before alternatives are checked.
 
 Transport errors always count. Responses count only when their HTTP status or JSON-RPC error message matches `retry.errors`. Cache hits and fallback attempts do not count. The window also acts as the cooldown between triggered checks for the active URL.
 

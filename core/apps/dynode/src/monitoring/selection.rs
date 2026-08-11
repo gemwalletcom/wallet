@@ -140,4 +140,14 @@ mod tests {
         assert_eq!(result.observation.url, url("https://b"));
         assert_eq!(result.reason, NodeSwitchReason::Latency);
     }
+
+    #[test]
+    fn does_not_select_slow_candidate() {
+        let configured = vec![
+            healthy_observation("https://a", Some(120), Some(120), 1200),
+            healthy_observation("https://b", Some(120), Some(120), 1100),
+        ];
+
+        assert!(NodeSelectionPolicy::select_node(&url("https://a"), &configured, Some(Duration::from_secs(1))).is_none());
+    }
 }

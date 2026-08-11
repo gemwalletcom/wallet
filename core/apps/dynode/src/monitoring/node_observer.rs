@@ -1,9 +1,6 @@
-use std::{
-    str::FromStr,
-    time::{Duration, Instant},
-};
+use std::{str::FromStr, time::Instant};
 
-use primitives::{Chain, NodeCheckReport, NodeCheckRequest, NodeStatusState};
+use primitives::{Chain, NodeCheckRequest, NodeStatusState};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use settings_chain::{ProviderConfig, ProviderFactory};
 
@@ -16,7 +13,6 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
     NodeTelemetry::log_check_started(chain, &url);
     let started_at = Instant::now();
     let observation = |state| NodeStatusObservation::new(url.clone(), state, started_at.elapsed());
-    let healthy_observation = |state, latency| NodeStatusObservation::new(url.clone(), state, latency);
 
     let headers = match request_headers(&url) {
         Ok(headers) => headers,
@@ -35,15 +31,11 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
             let report = provider.check_node(request, &status, status_started.elapsed()).await;
             match report.error() {
                 Some(error) => observation(NodeStatusState::error(error)).with_monitor_error(NodeMonitorError::NodeCheck),
-                None => healthy_observation(NodeStatusState::healthy(status), max_check_latency(&report)),
+                None => observation(NodeStatusState::healthy(status)),
             }
         }
         Err(error) => observation(NodeStatusState::error(error.to_string())).with_monitor_error(NodeMonitorError::from_error(error.as_ref())),
     }
-}
-
-fn max_check_latency(report: &NodeCheckReport) -> Duration {
-    report.checks.iter().map(|check| Duration::from_millis(check.latency_ms)).max().unwrap_or_default()
 }
 
 fn request_headers(url: &Url) -> Result<HeaderMap, String> {

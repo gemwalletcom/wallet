@@ -31,3 +31,28 @@ impl NodeStatusObservation {
         self.state.is_healthy() && latency_threshold.is_none_or(|threshold| self.latency <= threshold)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::sync::{healthy_observation, not_in_sync_observation, url};
+
+    #[test]
+    fn usability_respects_health_and_latency_threshold() {
+        let cases = [
+            (healthy_observation("https://a", Some(1), Some(1), 100), None, true),
+            (healthy_observation("https://a", Some(1), Some(1), 100), Some(Duration::from_millis(100)), true),
+            (healthy_observation("https://a", Some(1), Some(1), 101), Some(Duration::from_millis(100)), false),
+            (not_in_sync_observation("https://a", Some(2), Some(1), 10), Some(Duration::from_millis(100)), false),
+            (
+                NodeStatusObservation::new(url("https://a"), NodeStatusState::error("unavailable"), Duration::from_millis(10)),
+                Some(Duration::from_millis(100)),
+                false,
+            ),
+        ];
+
+        for (observation, threshold, expected) in cases {
+            assert_eq!(observation.is_usable(threshold), expected);
+        }
+    }
+}
