@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.password
 
 import android.content.Context
+import android.util.Log
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.Base64
 
@@ -26,7 +27,9 @@ internal class EncryptedKeyValueStore(
         val encryptedValue = sharedPreferences.getString(storageKey(namespace, key), null) ?: return null
         if (!encryptedValue.startsWith(KEYSTORE_VALUE_PREFIX)) {
             val legacyValue = readLegacyValue(key) ?: return null
-            runCatching { putString(key, legacyValue) }
+            runCatching { putString(key, legacyValue) }.onFailure { error ->
+                Log.e(TAG, "Keeping legacy value for $namespace, migration failed", error)
+            }
             return legacyValue
         }
         val encodedValue = encryptedValue.removePrefix(KEYSTORE_VALUE_PREFIX)
@@ -139,3 +142,5 @@ internal class EncryptedKeyValueStore(
 }
 
 internal const val KEYSTORE_VALUE_PREFIX = "android-keystore-v1:"
+
+private const val TAG = "EncryptedKeyValueStore"
