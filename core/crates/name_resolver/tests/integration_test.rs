@@ -10,6 +10,7 @@ mod tests {
         hyperliquid::Hyperliquid,
         injective::InjectiveNameClient,
         model::NameQuery,
+        near::NearNameClient,
         suins::SuinsClient,
     };
     use primitives::{Chain, node_config::get_nodes_for_chain};
@@ -79,5 +80,13 @@ mod tests {
         let client = AllDomainsClient::new(nodes[0].url.clone());
         let address = client.resolve(&NameQuery::new("miester.poor"), Chain::Solana).await.unwrap();
         assert_eq!(address.trim(), "2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67");
+    }
+
+    #[tokio::test]
+    async fn test_resolve_near_account() {
+        let nodes = get_nodes_for_chain(Chain::Near);
+        let client = NearNameClient::new(nodes[0].url.clone());
+        let address = client.resolve(&NameQuery::new("wrap.near"), Chain::Near).await.unwrap();
+        assert_eq!(address, "wrap.near");
     }
 }

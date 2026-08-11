@@ -169,14 +169,16 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
+        val resolvedNameRecord = nameRecord.value
         submit(
             type = type,
             destination = DestinationAddress(
-                address = nameRecord.value?.address ?: address.value,
-                name = nameRecord.value?.name,
+                address = resolvedNameRecord?.address ?: address.value,
+                name = resolvedNameRecord?.name,
             ),
             amountAction = amountAction,
             confirmAction = confirmAction,
+            resolvedNameRecord = resolvedNameRecord,
         )
     }
 
@@ -194,10 +196,11 @@ class RecipientViewModel @Inject constructor(
         destination: DestinationAddress,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
+        resolvedNameRecord: NameRecord? = null,
     ) {
         val asset = type.assetInfo.asset
         destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
-            val validation = validateDestination(asset, destination)
+            val validation = validateDestination(asset, destination, resolvedNameRecord)
             if (validation != RecipientError.None) {
                 if (!resolveName.canResolveName(destination.address)) {
                     addressError.update { validation }
@@ -268,8 +271,8 @@ class RecipientViewModel @Inject constructor(
         confirmAction(params)
     }
 
-    private fun validateDestination(asset: Asset, destination: DestinationAddress): RecipientError =
-        if (validateAddressOperator(destination.address, asset.chain).getOrNull() == true) {
+    private fun validateDestination(asset: Asset, destination: DestinationAddress, resolvedNameRecord: NameRecord? = null): RecipientError =
+        if (destination.isValidRecipient(address.value, asset.chain, resolvedNameRecord, validateAddressOperator)) {
             RecipientError.None
         } else {
             RecipientError.IncorrectAddress(asset.name)
