@@ -43,6 +43,10 @@ A fresh install imports a wallet and immediately asks for its assets, so the sub
 
 The local record of what was published is written only after a successful sync, so a failed sync leaves the divergence in place and the next trigger retries it. A sync must never record success it did not achieve. Concurrent triggers collapse into a single network sync rather than one per caller.
 
+A device id is not permanent either. Either platform can lose its device keypair and mint a new one — Android rotates after an unrecoverable Keystore failure, iOS regenerates when Keychain items do not survive a restore or transfer — while the locally persisted registered flag still describes the old identity. The backend then answers `404 Device not found` for the new id on everything except registration.
+
+The sync must re-register such a device on its next run, without an app-data wipe: the registered flag is a hint, never authority. iOS keeps the register fallback reachable by mapping the `GET /v2/devices` 404 to `nil` and falling through to `POST /v2/devices`. Android cannot use the nullable return for this: `GemApiErrorInterceptor` converts any error body into a thrown `GemApiException`, so nullable gem-API client methods such as `getDevice(): Device?` never return null on API errors — Android asks `GET /v2/devices/is_registered` during reconcile instead of trusting the local flag.
+
 ## iOS and Android
 
 | | iOS | Android |
@@ -50,6 +54,7 @@ The local record of what was published is written only after a successful sync, 
 | Entry point | `DeviceService.update()`, `synchronizeIfNeeded()` | `SyncDevice.syncDevice()` |
 | Needs-sync decision | `isSynchronized`: registered and no pending-changes flag | `needsSynchronization()`: registered and current state equals the last published state |
 | Change tracking | each mutation site sets the pending flag | none, divergence is derived by comparison |
+| Registered check in reconcile | local flag first; `GET /v2/devices` 404 maps to `nil`, which triggers registration | backend `is_registered` decides; local flag is updated, not consulted |
 | Concurrency | `DeviceSyncCoordinator` joins the in-flight task | `DeviceSyncCoordinator` joins the in-flight task |
 | Wallet changes | `SubscriptionsObserver` on accounts, via `DeviceObserverService` | `DeviceObserverService` on wallets and accounts |
 
@@ -64,6 +69,7 @@ Changes on either platform must keep these true:
 - Published state is recorded only after a successful sync.
 - Adding a wallet does not remove other wallets' subscriptions; deleting one removes its own.
 - Nothing changed since the last sync means no requests.
+- A device whose id changed re-registers on the next sync; no recovery may require clearing app data.
 
 Keep this document current in the same change when the sync triggers, the reconcile rules, or the platform mechanisms above change.
 
