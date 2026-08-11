@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.main.views
 
+import android.widget.Toast
+import android.widget.Toast.makeText
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
@@ -30,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,6 +61,8 @@ import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.gemwallet.android.ui.navigation.routes.transactionsRoute
 import com.gemwallet.android.ui.theme.alpha10
 import kotlinx.coroutines.launch
+import uniffi.gemstone.UrlAction
+import uniffi.gemstone.urlAction
 
 @Composable
 fun MainScreen(
@@ -69,12 +74,21 @@ fun MainScreen(
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
+    val context = LocalContext.current
     var isPresentingScanner by remember { mutableStateOf(false) }
 
     QrCodeScannerModal(
         isVisible = isPresentingScanner,
         onDismissRequest = { isPresentingScanner = false },
-        onResult = { isPresentingScanner = false },
+        onResult = { scanned ->
+            isPresentingScanner = false
+            when (runCatching { urlAction(scanned) }.getOrNull()) {
+                is UrlAction.Payment,
+                is UrlAction.Deeplink,
+                is UrlAction.WalletConnect,
+                null -> makeText(context, R.string.errors_not_supported, Toast.LENGTH_SHORT).show()
+            }
+        },
     )
 
     BackHandler(isRootRouteActive && currentTab.value != assetsRoute) {
