@@ -50,6 +50,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import com.gemwallet.android.ext.request
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -161,7 +163,7 @@ fun QRScannerScene(
                         mapOf(DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE))
                     )
                 }.decode(binaryBmp)
-                imageResult = paymentDecodeUrl(result.text).address
+                imageResult = paymentDecodeUrl(result.text).toPrimitives().request?.address.orEmpty()
                 if (imageResult.isEmpty()) {
                     throw Exception()
                 }

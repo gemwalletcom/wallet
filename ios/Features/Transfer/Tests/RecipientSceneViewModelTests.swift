@@ -100,10 +100,11 @@ struct RecipientSceneViewModelTests {
         let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
         let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
 
-        let payment = PaymentScanResult(
+        let payment = PaymentRequest(
             address: " \n\(address)\r ",
             amount: "1.234",
             memo: nil,
+            assetId: nil,
         )
 
         let result = try model.getRecipientScanResult(payment: payment)
@@ -121,10 +122,11 @@ struct RecipientSceneViewModelTests {
     func getRecipientScanResult_recipient() throws {
         let model = RecipientSceneViewModel.mock()
 
-        let payment = PaymentScanResult(
+        let payment = PaymentRequest(
             address: "0x123",
             amount: nil,
             memo: "test memo",
+            assetId: nil,
         )
 
         let result = try model.getRecipientScanResult(payment: payment)
@@ -133,7 +135,7 @@ struct RecipientSceneViewModelTests {
         case let .recipient(address, memo, amount):
             #expect(address == payment.address)
             #expect(memo == payment.memo)
-            #expect(amount == payment.amount)
+            #expect(amount == nil)
         case .transferData:
             Issue.record("Expected recipient but got transferData")
         }

@@ -56,6 +56,10 @@ class PendingNavigationCoordinator @Inject constructor(
                     return
                 }
             }
+            is UrlAction.Payment -> {
+                replace(pendingIntent, replacement = null)
+                return
+            }
             null -> Unit
         }
 

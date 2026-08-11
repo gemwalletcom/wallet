@@ -16,11 +16,14 @@ import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.isValidAddress
+import com.gemwallet.android.ext.request
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.models.ButtonState
@@ -56,7 +59,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -208,15 +210,11 @@ class RecipientViewModel @Inject constructor(
     }
 
     fun setQrData(type: RecipientType, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
-        val paymentWrapper = uniffi.gemstone.paymentDecodeUrl(data)
-        val amount = try {
-            BigInteger(paymentWrapper.amount ?: throw IllegalArgumentException())
-        } catch (_: Throwable) {
-            null
-        }
+        val request = uniffi.gemstone.paymentDecodeUrl(data).toPrimitives().request ?: return
         val assetInfo = type.assetInfo
-        val address = assetInfo.asset.chain.checksumAddress(paymentWrapper.address)
-        val memo = paymentWrapper.memo
+        val amount = request.amount?.let { runCatching { Crypto(it, assetInfo.asset.decimals).atomicValue }.getOrNull() }
+        val address = assetInfo.asset.chain.checksumAddress(request.address)
+        val memo = request.memo
 
         val owner = assetInfo.owner
         if (
@@ -238,7 +236,7 @@ class RecipientViewModel @Inject constructor(
             }
             QrScanField.Memo -> {
                 addressInput.applyExternalAddress(address.ifEmpty { addressInput.text.value })
-                _memo.value = paymentWrapper.memo ?: data
+                _memo.value = memo ?: data
             }
         }
     }

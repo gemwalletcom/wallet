@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
 import Foundation
@@ -182,19 +183,11 @@ extension RecipientSceneViewModel {
 
 extension RecipientSceneViewModel {
     // TODO: Add unit tests, will be added once moved to package
-    private func paymentScan(string: String) throws -> PaymentScanResult {
-        let payment = try PaymentURLDecoder.decode(string)
-
-        return PaymentScanResult(
-            address: payment.address,
-            amount: payment.amount,
-            memo: payment.memo,
-        )
-    }
-
-    func getRecipientScanResult(payment: PaymentScanResult) throws -> RecipientScanResult {
+    func getRecipientScanResult(payment: PaymentRequest) throws -> RecipientScanResult {
         let address = asset.chain.checksumAddress(payment.address)
-        if let amount = payment.amount, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
+        let value = try transferValue(for: payment.amount)
+
+        if let value, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
            asset.chain.isValidAddress(address)
         {
             let transferType: TransferDataType = switch type {
@@ -202,7 +195,6 @@ extension RecipientSceneViewModel {
             case let .nft(asset): .transferNft(asset)
             }
 
-            let value = try BigNumberFormatter.standard.number(from: amount, decimals: asset.decimals.asInt)
             let recipientData = RecipientData(
                 recipient: Recipient(
                     name: .none,
@@ -216,7 +208,16 @@ extension RecipientSceneViewModel {
             )
         }
 
-        return .recipient(address: address, memo: payment.memo, amount: payment.amount)
+        return .recipient(
+            address: address,
+            memo: payment.memo,
+            amount: value.map { ValueFormatter(style: .full).string($0, decimals: asset.decimals.asInt) },
+        )
+    }
+
+    private func transferValue(for amount: String?) throws -> BigInt? {
+        guard let amount else { return .none }
+        return try BigNumberFormatter.standard.number(from: amount, decimals: asset.decimals.asInt)
     }
 
     private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<RecipientAddress>] {
@@ -251,7 +252,9 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        let payment = try paymentScan(string: string)
+        guard case let .request(payment) = try PaymentURLDecoder.decode(string) else {
+            throw AnyError(Localized.Errors.notSupported)
+        }
         let scanResult = try getRecipientScanResult(payment: payment)
         switch scanResult {
         case let .transferData(data):
@@ -260,8 +263,12 @@ extension RecipientSceneViewModel {
             // TODO: - open if all fields filled
             addressInputModel.update(text: address)
 
-            if let memo { self.memo = memo }
-            if let amount { self.amount = amount }
+            if let memo {
+                self.memo = memo
+            }
+            if let amount {
+                self.amount = amount
+            }
         }
     }
 

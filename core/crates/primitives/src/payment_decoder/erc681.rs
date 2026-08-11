@@ -50,10 +50,9 @@ impl TransactionRequest {
         }
 
         let mut prefix = None;
-        let prefix_parts = target_address.split('-').collect::<Vec<&str>>();
-        if prefix_parts.len() == 2 {
-            prefix = Some(prefix_parts[0].to_string());
-            target_address = prefix_parts[1].to_string();
+        if let Some(address) = target_address.strip_prefix(PAY_PREFIX) {
+            prefix = Some(PAY_PREFIX.trim_end_matches('-').to_string());
+            target_address = address.to_string();
         }
 
         // The second part (if exists) is the function name
@@ -77,9 +76,46 @@ impl TransactionRequest {
     }
 }
 
+pub fn integer_value(value: &str) -> Option<String> {
+    let value = value.strip_prefix('+').unwrap_or(value);
+    let (mantissa, exponent) = match value.split_once(['e', 'E']) {
+        Some((mantissa, exponent)) => (mantissa, exponent.parse::<usize>().ok()?),
+        None => (value, 0),
+    };
+    let (integer, fraction) = mantissa.split_once('.').unwrap_or((mantissa, ""));
+    if integer.is_empty() && fraction.is_empty() {
+        return None;
+    }
+    if !integer.chars().chain(fraction.chars()).all(|character| character.is_ascii_digit()) {
+        return None;
+    }
+
+    let zeros = exponent.checked_sub(fraction.len())?;
+    let digits = format!("{integer}{fraction}{}", "0".repeat(zeros));
+    let trimmed = digits.trim_start_matches('0');
+
+    Some(if trimmed.is_empty() { "0".to_string() } else { trimmed.to_string() })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_integer_value() {
+        assert_eq!(integer_value("2.014e18"), Some("2014000000000000000".to_string()));
+        assert_eq!(integer_value("1e6"), Some("1000000".to_string()));
+        assert_eq!(integer_value("+1E18"), Some("1000000000000000000".to_string()));
+        assert_eq!(integer_value("1500000"), Some("1500000".to_string()));
+        assert_eq!(integer_value("0.5e18"), Some("500000000000000000".to_string()));
+        assert_eq!(integer_value("0"), Some("0".to_string()));
+
+        assert_eq!(integer_value("-1e18"), None);
+        assert_eq!(integer_value("2.014"), None);
+        assert_eq!(integer_value("1e"), None);
+        assert_eq!(integer_value("abc"), None);
+        assert_eq!(integer_value(""), None);
+    }
 
     #[test]
     fn test_minimal_uri() {

@@ -1,6 +1,7 @@
 use super::error::{PaymentDecoderError, Result};
 use crate::{
     Chain,
+    asset::ChainAsset,
     asset_id::AssetId,
     payment::{Payment, PaymentLink, PaymentRequest},
 };
@@ -8,13 +9,15 @@ use std::{collections::HashMap, str::FromStr};
 use url::form_urlencoded;
 
 use super::{
-    erc681::{ETHEREUM_SCHEME, TransactionRequest},
+    erc681::{ETHEREUM_SCHEME, TransactionRequest, integer_value},
     solana_pay::{self, PayTransfer as SolanaPayTransfer, SOLANA_PAY_SCHEME},
     ton_pay::{self, TON_PAY_SCHEME},
     wallet_connect_pay,
 };
 
 const REQUIRED_PARAMETER_PREFIX: &str = "req-";
+const XRP_SCHEMES: [&str; 2] = ["ripple", "xrpl"];
+const QUERY_DESTINATION_TAG: &str = "dt";
 
 #[derive(Debug)]
 pub struct PaymentURLDecoder;
@@ -42,8 +45,8 @@ impl PaymentURLDecoder {
                 let ton_payment = ton_pay::parse(uri)?;
                 Ok(Payment::Request(PaymentRequest {
                     address: ton_payment.recipient,
-                    amount: None,
-                    memo: None,
+                    amount: ton_payment.amount.and_then(|amount| whole_coins(&amount, Chain::Ton)),
+                    memo: ton_payment.comment,
                     asset_id: Some(ton_payment.asset_id),
                 }))
             }
@@ -66,23 +69,49 @@ impl PaymentURLDecoder {
             return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported required parameter: {required}")));
         }
 
+        let is_xrp = asset_id.as_ref().is_some_and(|asset_id| asset_id.chain == Chain::Xrp);
+
         Ok(Payment::Request(PaymentRequest {
             address: address.to_string(),
             amount: params.get("amount").cloned(),
-            memo: params.get("memo").cloned(),
+            memo: params.get("memo").or_else(|| params.get(QUERY_DESTINATION_TAG).filter(|_| is_xrp)).cloned(),
             asset_id,
         }))
     }
 
     fn decode_query_string(query_string: &str) -> HashMap<String, String> {
         form_urlencoded::parse(query_string.as_bytes())
-            .map(|(key, value)| (key.to_ascii_lowercase(), value.into_owned()))
+            .map(|(key, value)| (key.into_owned(), value.into_owned()))
             .collect()
     }
 
     fn decode_scheme(scheme: &str) -> Option<AssetId> {
-        let chain = Chain::from_str(scheme).ok()?;
+        let chain = match scheme {
+            scheme if XRP_SCHEMES.contains(&scheme) => Chain::Xrp,
+            scheme => Chain::from_str(scheme).ok()?,
+        };
         Some(AssetId::from(chain, None))
+    }
+}
+
+fn whole_coins(smallest_unit: &str, chain: Chain) -> Option<String> {
+    let decimals = usize::try_from(ChainAsset::from_chain(chain).asset.decimals).ok()?;
+    Some(with_decimal_point(smallest_unit, decimals))
+}
+
+fn with_decimal_point(digits: &str, decimals: usize) -> String {
+    if digits.len() > decimals {
+        let (integer, fraction) = digits.split_at(digits.len() - decimals);
+        decimal(integer, fraction)
+    } else {
+        decimal("0", &format!("{}{digits}", "0".repeat(decimals - digits.len())))
+    }
+}
+
+fn decimal(integer: &str, fraction: &str) -> String {
+    match fraction.trim_end_matches('0') {
+        "" => integer.to_string(),
+        fraction => format!("{integer}.{fraction}"),
     }
 }
 
@@ -100,13 +129,17 @@ impl From<TransactionRequest> for PaymentRequest {
         // ERC20
         if val.function_name == Some("transfer".to_string()) {
             address = val.parameters.get("address").map(|x| x.to_string()).unwrap_or("".to_string());
-            amount = val.parameters.get("uint256").map(|x| x.to_string());
+            amount = None;
             asset_id = Some(AssetId::from(chain, Some(val.target_address)));
         } else {
             address = val.target_address;
-            amount = val.parameters.get("value").map(|x| x.to_string());
+            amount = val
+                .parameters
+                .get("value")
+                .and_then(|value| integer_value(value))
+                .and_then(|value| whole_coins(&value, chain));
             if amount.is_none() {
-                amount = val.parameters.get("amount").map(|x| x.to_string());
+                amount = val.parameters.get("amount").cloned();
             }
             asset_id = Some(AssetId::from(chain, None));
         };
@@ -150,7 +183,16 @@ mod tests {
 
         assert_eq!(PaymentURLDecoder::decode(uri).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode(&format!("  {uri}\n")).unwrap(), bitcoin);
-        assert_eq!(PaymentURLDecoder::decode("BITCOIN:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?AMOUNT=0.1").unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode("BITCOIN:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.1").unwrap(), bitcoin);
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?AMOUNT=0.1").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
+                amount: None,
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            })
+        );
 
         assert_eq!(
             PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?memo=see%20http%3A%2F%2Fx.com").unwrap(),
@@ -176,12 +218,36 @@ mod tests {
     #[test]
     fn test_ton() {
         assert_eq!(
-            PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000").unwrap(),
+            PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=order+7").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA".to_string(),
+                amount: Some("1".to_string()),
+                memo: Some("order 7".to_string()),
+                asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            })
+        );
+    }
+
+    #[test]
+    fn test_xrp_destination_tag() {
+        let payment = Payment::Request(PaymentRequest {
+            address: "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh".to_string(),
+            amount: Some("10".to_string()),
+            memo: Some("12345".to_string()),
+            asset_id: Some(AssetId::from_chain(Chain::Xrp)),
+        });
+
+        assert_eq!(PaymentURLDecoder::decode("ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345&amount=10").unwrap(), payment);
+        assert_eq!(PaymentURLDecoder::decode("xrpl:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345&amount=10").unwrap(), payment);
+        assert_eq!(PaymentURLDecoder::decode("xrp:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345&amount=10").unwrap(), payment);
+
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?dt=12345").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
                 amount: None,
                 memo: None,
-                asset_id: Some(AssetId::from_chain(Chain::Ton)),
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
             })
         );
     }
@@ -275,6 +341,42 @@ mod tests {
                 amount: Some("1.23".to_string()),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::SmartChain)),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:0xcB3028d6120802148f03d6c884D6AD6A210Df62A?value=2.014e18").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
+                amount: Some("2.014".to_string()),
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:my-wallet.eth").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "my-wallet.eth".to_string(),
+                amount: None,
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:pay-0xcB3028d6120802148f03d6c884D6AD6A210Df62A?value=1e6").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
+                amount: Some("0.000000000001".to_string()),
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48@1/transfer?address=0xcB3028d6120802148f03d6c884D6AD6A210Df62A&uint256=1500000").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
+                amount: None,
+                memo: None,
+                asset_id: Some(AssetId::from(Chain::Ethereum, Some("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".to_string()))),
             })
         );
     }

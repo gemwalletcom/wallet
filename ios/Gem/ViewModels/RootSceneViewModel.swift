@@ -158,6 +158,8 @@ extension RootSceneViewModel {
             switch action {
             case let .walletConnect(walletConnectAction):
                 try await handleWalletConnect(walletConnectAction)
+            case .payment:
+                throw AnyError(Localized.Errors.notSupported)
             case .deeplink:
                 await navigationHandler.handle(action)
             }
