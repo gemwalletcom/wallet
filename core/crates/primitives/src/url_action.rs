@@ -1,13 +1,17 @@
-use crate::{Deeplink, WalletConnectLink};
+use crate::{Deeplink, Payment, PaymentLink, PaymentURLDecoder, WalletConnectLink};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UrlAction {
     Deeplink { deeplink: Deeplink },
+    Payment { link: PaymentLink },
     WalletConnect { link: WalletConnectLink },
 }
 
 impl UrlAction {
     pub fn from_url(url: &str) -> Option<Self> {
+        if let Ok(Payment::Link(link)) = PaymentURLDecoder::decode(url) {
+            return Some(Self::Payment { link });
+        }
         if let Some(link) = WalletConnectLink::from_url(url) {
             return Some(Self::WalletConnect { link });
         }
@@ -42,6 +46,18 @@ mod tests {
                 link: WalletConnectLink::Connect {
                     uri: "wc:topic@2?relay-protocol=irn&symKey=abc".to_string(),
                 },
+            })
+        );
+        assert_eq!(
+            UrlAction::from_url("https://pay.walletconnect.com/?pid=pay_123"),
+            Some(UrlAction::Payment {
+                link: PaymentLink::WalletConnectPay("pay_123".to_string()),
+            })
+        );
+        assert_eq!(
+            UrlAction::from_url("wc:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123"),
+            Some(UrlAction::Payment {
+                link: PaymentLink::WalletConnectPay("pay_123".to_string()),
             })
         );
         assert_eq!(UrlAction::from_url("https://example.com/tokens/bitcoin"), None);

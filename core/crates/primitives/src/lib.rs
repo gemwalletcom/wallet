@@ -119,6 +119,9 @@ pub mod platform;
 pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
+pub mod payment;
+pub use self::payment::{Payment, PaymentLink, PaymentRequest};
+
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
@@ -215,7 +218,7 @@ pub use self::tag::AssetTag;
 pub mod chain_cosmos;
 pub use self::chain_cosmos::CosmosDenom;
 pub mod payment_decoder;
-pub use self::payment_decoder::{DecodedLinkType, PaymentURLDecoder};
+pub use self::payment_decoder::PaymentURLDecoder;
 
 pub mod image_formatter;
 pub use self::image_formatter::ImageFormatter;
