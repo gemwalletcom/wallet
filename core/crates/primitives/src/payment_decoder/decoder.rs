@@ -147,6 +147,15 @@ mod tests {
     }
 
     #[test]
+    fn test_refuses_what_it_cannot_sign() {
+        assert!(PaymentURLDecoder::decode("solana:mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny").is_err());
+        assert!(PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1&bin=te6cc").is_err());
+        assert!(PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1&init=te6cc").is_err());
+        assert!(PaymentURLDecoder::decode("ethereum:0xcB3028d6120802148f03d6c884D6AD6A210Df62A/approve?value=1000000000000000000").is_err());
+        assert!(PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?req-escrow=1").is_err());
+    }
+
+    #[test]
     fn test_xrp_destination_tag() {
         let payment = Payment::Request(PaymentRequest {
             address: "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh".to_string(),

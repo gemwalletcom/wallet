@@ -1,5 +1,5 @@
 use super::amount::from_smallest_unit;
-use super::error::Result;
+use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
     Chain,
@@ -10,6 +10,7 @@ use std::collections::HashMap;
 
 pub const ETHEREUM_SCHEME: &str = "ethereum";
 const PAY_PREFIX: &str = "pay-";
+const TRANSFER_FUNCTION: &str = "transfer";
 
 #[derive(Debug)]
 pub struct TransactionRequest {
@@ -60,7 +61,11 @@ impl TransactionRequest {
 }
 
 pub fn decode(path: &str) -> Result<Payment> {
-    Ok(Payment::Request(TransactionRequest::parse(path)?.into()))
+    let request = TransactionRequest::parse(path)?;
+    if let Some(function) = request.function_name.as_deref().filter(|function| *function != TRANSFER_FUNCTION) {
+        return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}")));
+    }
+    Ok(Payment::Request(request.into()))
 }
 
 impl From<TransactionRequest> for PaymentRequest {
@@ -68,7 +73,7 @@ impl From<TransactionRequest> for PaymentRequest {
         let chain = val.chain_id.and_then(Chain::from_chain_id).unwrap_or(Chain::Ethereum);
         let memo = val.parameters.get("memo").cloned();
 
-        if val.function_name.as_deref() == Some("transfer") {
+        if val.function_name.as_deref() == Some(TRANSFER_FUNCTION) {
             return Self {
                 address: val.parameters.get("address").cloned().unwrap_or_default(),
                 amount: None,

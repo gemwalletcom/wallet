@@ -8,6 +8,11 @@ use crate::{
 use url::{Url, form_urlencoded};
 pub const SOLANA_PAY_SCHEME: &str = "solana";
 
+const QUERY_AMOUNT: &str = "amount";
+const QUERY_SPL_TOKEN: &str = "spl-token";
+const QUERY_MEMO: &str = "memo";
+const QUERY_REFERENCE: &str = "reference";
+
 #[derive(Debug, Clone)]
 pub enum RequestType {
     Transfer(PayTransfer),
@@ -56,9 +61,11 @@ pub fn parse(path: &str) -> Result<RequestType> {
 
     let query_params = query::parameters(query);
 
-    let amount = query_params.get("amount").cloned();
-    let spl_token = query_params.get("spl-token").cloned();
-    let memo = query_params.get("memo").cloned();
+    query::reject_unsupported(&query_params, &[QUERY_REFERENCE])?;
+
+    let amount = query_params.get(QUERY_AMOUNT).cloned();
+    let spl_token = query_params.get(QUERY_SPL_TOKEN).cloned();
+    let memo = query_params.get(QUERY_MEMO).cloned();
 
     Ok(RequestType::Transfer(PayTransfer {
         recipient: recipient.to_string(),
@@ -97,9 +104,15 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_transfer_rejects_a_reference() {
+        let uri = "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny";
+        assert!(parse(uri).is_err());
+    }
+
+    #[test]
     fn test_parse_transfer() {
         let uri = format!(
-            "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&spl-token={SOLANA_PAY_USDC_SPL_TOKEN}&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny&label=Michael&message=Thanks%20for%20all%20the%20fish&memo=OrderId5678"
+            "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&spl-token={SOLANA_PAY_USDC_SPL_TOKEN}&label=Michael&message=Thanks%20for%20all%20the%20fish&memo=OrderId5678"
         );
         let pay_url = match parse(&uri).unwrap() {
             RequestType::Transfer(pay_url) => pay_url,

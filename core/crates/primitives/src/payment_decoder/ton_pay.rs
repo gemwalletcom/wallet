@@ -12,6 +12,8 @@ const TON_PAY_TYPE_TRANSFER: &str = "transfer";
 
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_TEXT: &str = "text";
+const QUERY_BODY: &str = "bin";
+const QUERY_STATE_INIT: &str = "init";
 
 #[derive(Debug, Clone)]
 pub struct TonPayment {
@@ -24,6 +26,7 @@ pub fn parse(path: &str) -> Result<TonPayment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let recipient = extract_address(path)?;
     let parameters = query::parameters(query);
+    query::reject_unsupported(&parameters, &[QUERY_BODY, QUERY_STATE_INIT])?;
 
     Ok(TonPayment {
         recipient,
