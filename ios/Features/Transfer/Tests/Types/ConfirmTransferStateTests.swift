@@ -11,12 +11,20 @@ struct ConfirmTransferStateTests {
 
     @Test
     func loadedCarriesBundle() {
-        let data = ConfirmTransferData(metadata: .mock(), input: .mock(), simulation: .mock(warnings: [warning]))
+        let data = ConfirmTransferData(
+            preload: ConfirmTransferPreload(
+                metadata: .mock(),
+                input: .mock(),
+                feeRates: [FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 1))],
+            ),
+            simulation: .mock(warnings: [warning]),
+        )
 
         let loaded = ConfirmTransferState.loaded(data)
 
         #expect(loaded.transaction.value != nil)
         #expect(loaded.metadata != nil)
+        #expect(loaded.feeRates.count == 1)
         #expect(loaded.simulation.warnings.count == 1)
     }
 }

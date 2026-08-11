@@ -54,14 +54,14 @@ public struct ConfirmService: Sendable {
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection) async throws -> ConfirmTransferData {
-        let metadata = try metadata(request: request)
-        async let input = inputProvider.load(request: request, metadata: metadata, selection: selection)
         async let simulation = simulationService.updateState(data: request.data, simulation: request.simulation)
+        let preload = try await preload(request: request, selection: selection)
 
-        let simulationState = await simulation
-        let inputData = try await input
+        return ConfirmTransferData(preload: preload, simulation: await simulation)
+    }
 
-        return ConfirmTransferData(metadata: metadata, input: inputData, simulation: simulationState)
+    func preload(request: ConfirmTransferRequest, selection: FeeSelection) async throws -> ConfirmTransferPreload {
+        try await inputProvider.load(request: request, metadata: metadata(request: request), selection: selection)
     }
 
     func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {

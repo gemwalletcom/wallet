@@ -16,7 +16,7 @@ public struct ConfirmTransferInputProvider: Sendable {
         request: ConfirmTransferRequest,
         metadata: TransferDataMetadata,
         selection: FeeSelection,
-    ) async throws -> ConfirmTransferInput {
+    ) async throws -> ConfirmTransferPreload {
         do {
             let transactionData = try await transferTransactionProvider.loadTransferTransactionData(
                 wallet: request.wallet,
@@ -24,9 +24,8 @@ public struct ConfirmTransferInputProvider: Sendable {
                 selection: selection,
                 available: metadata.available,
             )
-            return ConfirmTransferInput(
+            let input = ConfirmTransferInput(
                 transactionData: transactionData.transactionData,
-                feeRates: transactionData.rates,
                 transferAmount: TransferAmountCalculator().validate(
                     transferData: request.data,
                     availableValue: request.data.availableValue(metadata: metadata),
@@ -34,6 +33,7 @@ public struct ConfirmTransferInputProvider: Sendable {
                     fee: transactionData.transactionData.fee.fee,
                 ),
             )
+            return ConfirmTransferPreload(metadata: metadata, input: input, feeRates: transactionData.rates)
         } catch {
             throw preloadFailureError(metadata: metadata) ?? error
         }

@@ -26,7 +26,8 @@ extension ConfirmTransferState {
         transaction: StateViewType<ConfirmTransferInput> = .loading,
         metadata: TransferDataMetadata? = nil,
         simulation: ConfirmSimulationState = .mock(),
+        feeRates: [FeeRate] = [],
     ) -> ConfirmTransferState {
-        ConfirmTransferState(simulation: simulation, metadata: metadata, transaction: transaction)
+        ConfirmTransferState(simulation: simulation, metadata: metadata, feeRates: feeRates, transaction: transaction)
     }
 }

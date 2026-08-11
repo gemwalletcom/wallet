@@ -3,8 +3,7 @@
 import Foundation
 import Primitives
 
-struct ConfirmTransferData: Sendable {
-    let metadata: TransferDataMetadata
-    let input: ConfirmTransferInput
+struct ConfirmTransferData {
+    let preload: ConfirmTransferPreload
     let simulation: ConfirmSimulationState
 }

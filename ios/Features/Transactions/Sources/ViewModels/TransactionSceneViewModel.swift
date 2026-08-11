@@ -199,14 +199,13 @@ extension TransactionSceneViewModel {
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        let viewModel = NetworkFeeSceneViewModel(
+        NetworkFeeSceneViewModel(
             chain: model.transaction.transaction.assetId.chain,
             feeAsset: model.transaction.feeAsset,
-            priority: .normal,
             currency: Currency(rawValue: preferences.currency) ?? .usd,
+            selection: .preset(.normal),
+            feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),
         )
-        viewModel.update(rates: [], feeAssetPrice: model.transaction.feePrice)
-        return viewModel
     }
 }
