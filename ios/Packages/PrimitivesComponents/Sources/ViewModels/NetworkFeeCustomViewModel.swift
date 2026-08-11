@@ -18,7 +18,7 @@ public final class NetworkFeeCustomViewModel {
     private let baseTotal: BigInt?
     private let normalTotal: BigInt?
     private let decimals: Int
-    private let onSelect: (BigInt) -> Void
+    private let onSelect: @MainActor (BigInt) -> Void
 
     public var input: String = ""
 
@@ -31,7 +31,7 @@ public final class NetworkFeeCustomViewModel {
         baseTotal: BigInt?,
         normalTotal: BigInt?,
         initialRate: BigInt?,
-        onSelect: @escaping (BigInt) -> Void,
+        onSelect: @escaping @MainActor (BigInt) -> Void,
     ) {
         self.chain = chain
         self.feeAsset = feeAsset

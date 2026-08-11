@@ -32,11 +32,12 @@ struct TransactionFilterTypeTests {
     }
 
     @Test
-    func perpetualFilterIncludesOpenAndClose() {
+    func everyTransactionTypeIsSelectableByItsOwnGroup() {
         var model = TransactionTypesFilterViewModel(types: TransactionType.allCases)
 
-        model.selectedTypes = [.perpetuals]
-
-        #expect(model.requestFilters == [.perpetualOpenPosition, .perpetualClosePosition])
+        for type in TransactionType.allCases {
+            model.selectedTypes = [type.filterType]
+            #expect(model.requestFilters.contains(type))
+        }
     }
 }

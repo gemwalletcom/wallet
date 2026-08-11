@@ -9,19 +9,22 @@ public extension NetworkFeeSceneViewModel {
     static func mock(
         chain: Chain = .ethereum,
         feeAsset: Asset? = nil,
-        priority: FeePriority = .normal,
         currency: Currency = .usd,
+        selection: FeeSelection = .preset(.normal),
+        rates: [FeeRate] = [],
+        feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
-        mode: NetworkFeeSceneViewModel.Mode = .standard,
+        onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
     ) -> NetworkFeeSceneViewModel {
-        let feeAsset = feeAsset ?? defaultFeeAsset(for: chain)
-        return NetworkFeeSceneViewModel(
+        NetworkFeeSceneViewModel(
             chain: chain,
-            feeAsset: feeAsset,
-            priority: priority,
+            feeAsset: feeAsset ?? defaultFeeAsset(for: chain),
             currency: currency,
+            selection: selection,
+            rates: rates,
+            feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
-            mode: mode,
+            onSelect: onSelect,
         )
     }
 }

@@ -39,6 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +64,7 @@ class TransactionsRepositoryImpl(
     private val sessionRepository: SessionRepository,
     private val transactionsDao: TransactionsDao,
     private val transactionStatusService: TransactionStatusService,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : TransactionRepository,
     GetChangedTransactions,
     GetPendingTransactionsCount,
@@ -109,11 +110,21 @@ class TransactionsRepositoryImpl(
         addSwapMetadata(transactions)
     }
 
-    private suspend fun updateTransactions(transactions: List<DbTransactionExtended>) = withContext(Dispatchers.IO) {
-        val updatedAt = System.currentTimeMillis()
-        val records = transactions.map { it.transaction.copy(updatedAt = updatedAt) }
-        transactionsDao.insert(records)
-        addSwapMetadata(records.map { it.toDTO() })
+    private suspend fun updateTransaction(transaction: DbTransactionExtended): DbTransactionExtended? = withContext(Dispatchers.IO) {
+        val transactionRecord = transaction.transaction.copy(updatedAt = System.currentTimeMillis())
+        val updatedRows = transactionsDao.updateTransaction(
+            id = transactionRecord.id,
+            walletId = transactionRecord.walletId,
+            state = transactionRecord.state,
+            fee = transactionRecord.fee,
+            metadata = transactionRecord.metadata,
+            updatedAt = transactionRecord.updatedAt,
+        )
+        if (updatedRows == 0) {
+            return@withContext null
+        }
+        addSwapMetadata(listOf(transactionRecord.toDTO()))
+        transaction.copy(transaction = transactionRecord)
     }
 
     override suspend fun clearPending() {
@@ -206,6 +217,11 @@ class TransactionsRepositoryImpl(
                 delay(pollingDelay.toLong())
                 pollingDelay = jobConfig.nextIntervalMs(pollingDelay)
 
+                val transactionRecord = currentTransaction.transaction
+                if (transactionsDao.getTransactionState(transactionRecord.id, transactionRecord.walletId) == null) {
+                    return@launch
+                }
+
                 checkTransaction(currentTransaction)?.let { updatedTransaction ->
                     if (updatedTransaction.transaction.id != currentTransaction.transaction.id) {
                         coroutineContext[Job]?.let { runningJob ->
@@ -216,14 +232,14 @@ class TransactionsRepositoryImpl(
                     currentTransaction = storeTransactionUpdate(
                         currentTransaction = currentTransaction,
                         updatedTransaction = updatedTransaction,
-                    )
+                    ) ?: return@launch
                 }
 
                 val hasTimedOut = !currentTransaction.transaction.state.isCompleted() &&
                     currentTransaction.transaction.createdAt < System.currentTimeMillis() - transactionTimeout(currentTransaction.transaction)
                 if (hasTimedOut) {
                     currentTransaction = currentTransaction.copy(transaction = currentTransaction.transaction.copy(state = TransactionState.Failed))
-                    updateTransactions(listOf(currentTransaction))
+                    updateTransaction(currentTransaction) ?: return@launch
                     break
                 }
                 if (currentTransaction.transaction.state.isCompleted()) {
@@ -309,13 +325,12 @@ class TransactionsRepositoryImpl(
         }
     }
 
-    private suspend fun storeTransactionUpdate(
+    internal suspend fun storeTransactionUpdate(
         currentTransaction: DbTransactionExtended,
         updatedTransaction: DbTransactionExtended,
-    ): DbTransactionExtended {
+    ): DbTransactionExtended? {
         if (updatedTransaction.transaction.id == currentTransaction.transaction.id) {
-            updateTransactions(listOf(updatedTransaction))
-            return updatedTransaction
+            return updateTransaction(updatedTransaction)
         }
 
         val existingState = transactionsDao.getTransactionState(
@@ -333,8 +348,7 @@ class TransactionsRepositoryImpl(
                 walletId = currentTransaction.transaction.walletId,
                 hash = updatedTransaction.transaction.hash,
             )
-            updateTransactions(listOf(updatedTransaction))
-            return updatedTransaction
+            return updateTransaction(updatedTransaction)
         }
 
         transactionsDao.deleteSwapMetadata(currentTransaction.transaction.id.identifier)

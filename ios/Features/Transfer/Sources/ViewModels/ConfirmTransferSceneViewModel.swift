@@ -19,7 +19,7 @@ import WalletConnector
 @Observable
 @MainActor
 public final class ConfirmTransferSceneViewModel {
-    public var feeModel: NetworkFeeSceneViewModel
+    var feeSelection: FeeSelection
     var state: ConfirmTransferState {
         didSet { onStateChange(state: state) }
     }
@@ -58,13 +58,7 @@ public final class ConfirmTransferSceneViewModel {
 
         let currency = Currency(rawValue: Preferences.standard.currency) ?? .usd
         self.currency = currency
-        feeModel = NetworkFeeSceneViewModel(
-            chain: request.data.chain,
-            feeAsset: request.data.type.asset.feeAsset,
-            priority: confirmService.defaultPriority(for: request.data.type),
-            currency: currency,
-            mode: .custom,
-        )
+        feeSelection = .preset(confirmService.defaultPriority(for: request.data.type))
 
         let recipientAddress = request.data.recipientData.recipient.address
         recipientAddressNameQuery = ObservableQuery(
@@ -142,6 +136,19 @@ public final class ConfirmTransferSceneViewModel {
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
         state.simulation.balanceChanges.map(ConfirmBalanceChangeViewModel.init)
     }
+
+    public var feeModel: NetworkFeeSceneViewModel {
+        NetworkFeeSceneViewModel(
+            chain: request.data.chain,
+            feeAsset: request.data.type.asset.feeAsset,
+            currency: currency,
+            selection: feeSelection,
+            rates: state.feeRates,
+            feeAssetPrice: state.metadata?.feePrice,
+            feeAmount: state.transaction.value?.transactionData.fee.fee,
+            onSelect: { [weak self] in self?.feeSelection = $0 },
+        )
+    }
 }
 
 // MARK: - ListSectionProvideable
@@ -196,10 +203,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 state: state.transaction,
-                title: feeModel.title,
-                value: feeModel.value,
-                fiatValue: feeModel.fiatValue,
-                selectable: feeModel.showFeeDetails,
+                feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
             )
         case .error:
@@ -286,13 +290,16 @@ extension ConfirmTransferSceneViewModel {
 
     func fetch() async {
         state.transaction = .loading
-        feeModel.reset()
         do {
-            let data = try await confirmService.load(request: request, selection: feeModel.selection)
-            state = .loaded(data)
-            feeModel.update(rates: data.input.feeRates, feeAssetPrice: data.metadata.feePrice)
-            feeModel.update(feeAmount: data.input.transactionData.fee.fee)
+            if state.feeRates.isEmpty {
+                let data = try await confirmService.load(request: request, selection: feeSelection)
+                state = .loaded(data)
+            } else {
+                let preload = try await confirmService.preload(request: request, selection: feeSelection)
+                state.update(preload)
+            }
         } catch {
+            guard !Task.isCancelled else { return }
             state.transaction.setError(error)
             debugLog("preload transaction error: \(error)")
         }

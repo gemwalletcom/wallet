@@ -23,9 +23,10 @@ pub fn map_quote_data(quote_response: &RelayQuoteResponse, approval: Option<Appr
 }
 
 pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
-    let metadata = request.data.as_ref().and_then(|d| d.metadata.as_ref()).and_then(|m| {
-        let currency_in = m.currency_in.as_ref()?;
-        let currency_out = m.currency_out.as_ref()?;
+    let metadata = request.data.as_ref().and_then(|data| {
+        let actual = data.route.as_ref()?.actual.as_ref()?;
+        let currency_in = actual.currency_in()?;
+        let currency_out = actual.currency_out()?;
         let from_chain = RelayChain::from_chain_id(currency_in.currency.chain_id)?.to_chain();
         let to_chain = RelayChain::from_chain_id(currency_out.currency.chain_id)?.to_chain();
         Some(TransactionSwapMetadata {
@@ -46,7 +47,7 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::relay::model::{RelayCurrencyDetail, RelayQuoteResponse, RelayRequest, RelayRequestMetadata, RelayStatus, Step};
+    use crate::relay::model::{RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step};
     use primitives::{AssetId, Chain, swap::SwapStatus};
 
     #[test]
@@ -80,33 +81,33 @@ mod tests {
     }
 
     #[test]
-    fn test_map_swap_result_evm_to_evm() {
-        let request = RelayRequest::mock(
-            RelayStatus::Success,
-            Some(RelayRequestMetadata {
-                currency_in: Some(RelayCurrencyDetail::mock("0x0000000000000000000000000000000000000000", 1, "1000000000000000000")),
-                currency_out: Some(RelayCurrencyDetail::mock("0x0000000000000000000000000000000000000000", 8453, "999000000000000000")),
-            }),
-        );
-
-        let result = map_swap_result(&request);
+    fn test_map_swap_result() {
+        let cross_chain_response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_arb_eth_to_base_eth.json")).unwrap();
+        let result = map_swap_result(cross_chain_response.requests.first().unwrap());
 
         assert_eq!(result.status, SwapStatus::Completed);
         let metadata = result.metadata.unwrap();
-        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(metadata.from_value, "1000000000000000000");
+        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Arbitrum));
+        assert_eq!(metadata.from_value, "60000000000000");
         assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Base));
-        assert_eq!(metadata.to_value, "999000000000000000");
+        assert_eq!(metadata.to_value, "49426938842266");
         assert_eq!(metadata.provider, Some("relay".to_string()));
-    }
 
-    #[test]
-    fn test_map_swap_result_status() {
-        let pending = map_swap_result(&RelayRequest::mock(RelayStatus::Pending, None));
+        let same_chain_response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_base_eth_to_wsteth.json")).unwrap();
+        let result = map_swap_result(same_chain_response.requests.first().unwrap());
+
+        assert_eq!(result.status, SwapStatus::Completed);
+        let metadata = result.metadata.unwrap();
+        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Base));
+        assert_eq!(metadata.from_value, "1366348234320898");
+        assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Base, "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452"));
+        assert_eq!(metadata.to_value, "1101293561931134");
+
+        let pending = map_swap_result(&RelayRequest::mock_with_status(RelayStatus::Pending));
         assert_eq!(pending.status, SwapStatus::Pending);
         assert!(pending.metadata.is_none());
 
-        let failed = map_swap_result(&RelayRequest::mock(RelayStatus::Failed, None));
+        let failed = map_swap_result(&RelayRequest::mock_with_status(RelayStatus::Failure));
         assert_eq!(failed.status, SwapStatus::Failed);
         assert!(failed.metadata.is_none());
     }
