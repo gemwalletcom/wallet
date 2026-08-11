@@ -150,7 +150,7 @@ class DeviceRepository(
     }
 
     private suspend fun getOrCreateDevice(device: Device): Device {
-        if (isDeviceRegistered() || gemDeviceApiClient.isDeviceRegistered()) {
+        if (gemDeviceApiClient.isDeviceRegistered()) {
             gemDeviceApiClient.getDevice()?.let { remoteDevice ->
                 setDeviceRegistered(true)
                 return remoteDevice
