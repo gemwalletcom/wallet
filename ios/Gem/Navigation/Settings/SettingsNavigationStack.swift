@@ -2,6 +2,7 @@
 
 import Contacts
 import ContactService
+import DeviceService
 import InAppNotifications
 import MarketInsight
 import NotificationService
@@ -22,7 +23,6 @@ import WalletSessionService
 struct SettingsNavigationStack: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationHandler) private var navigationHandler
-    @Environment(\.deviceService) private var deviceService
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.stakeService) private var stakeService
@@ -50,20 +50,24 @@ struct SettingsNavigationStack: View {
     @State private var currencyModel: CurrencySceneViewModel
 
     let walletId: WalletId
+    private let deviceService: any DeviceServiceable
     @Binding var isPresentingSupport: Bool
 
     init(
         walletId: WalletId,
         preferences: Preferences = .standard,
         priceService: PriceService,
+        deviceService: any DeviceServiceable,
         isPresentingSupport: Binding<Bool>,
     ) {
         self.walletId = walletId
+        self.deviceService = deviceService
         _isPresentingSupport = isPresentingSupport
         _currencyModel = State(
             initialValue: CurrencySceneViewModel(
                 currencyStorage: preferences,
                 priceService: priceService,
+                deviceService: deviceService,
             ),
         )
     }

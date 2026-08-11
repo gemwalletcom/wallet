@@ -6,13 +6,10 @@ import Store
 import StoreTestKit
 
 public extension PriceService {
-    static func mock(
-        priceStore: PriceStore = .mock(),
-        fiatRateStore: FiatRateStore = .mock(),
-    ) -> Self {
+    static func mock(db: DB = .mock()) -> Self {
         PriceService(
-            priceStore: priceStore,
-            fiatRateStore: fiatRateStore,
+            priceStore: .mock(db: db),
+            fiatRateStore: .mock(db: db),
         )
     }
 }

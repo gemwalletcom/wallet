@@ -67,11 +67,13 @@ class DeviceRepository(
     private val syncCoordinator = DeviceSyncCoordinator(scope)
 
     override suspend fun syncDevice() {
-        repeat(SYNC_ATTEMPTS) {
-            if (!needsSynchronization()) {
-                return
+        if (!needsSynchronization()) {
+            return
+        }
+        syncCoordinator.synchronize {
+            if (needsSynchronization()) {
+                reconcileDevice()
             }
-            syncCoordinator.synchronize { reconcileDevice() }
         }
     }
 
@@ -264,8 +266,6 @@ class DeviceRepository(
     }
 
     companion object {
-        private const val SYNC_ATTEMPTS = 2
-
         fun getDeviceLocale(locale: Locale): DeviceLocale {
             val canonicalLocale = ULocale.addLikelySubtags(ULocale.forLocale(locale))
             val identifier = when (canonicalLocale.language) {
