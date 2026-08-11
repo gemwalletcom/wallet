@@ -13,6 +13,7 @@ import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
@@ -44,7 +45,10 @@ class AssetsViewModel @Inject constructor(
     getHideBalancesState: GetHideBalancesState,
     getShowWelcomeBanner: GetShowWelcomeBanner,
     getSession: GetSession,
+    private val userConfig: UserConfig,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
+
+    val showScanner: Boolean get() = userConfig.developEnabled()
 
     val currentWalletId = getSession()
         .map { it?.wallet?.id }

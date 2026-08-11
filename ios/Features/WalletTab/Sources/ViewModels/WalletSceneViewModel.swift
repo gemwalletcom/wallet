@@ -40,6 +40,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     public let bannersQuery: ObservableQuery<BannersRequest>
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
+    public var isPresentingScanner = false
     public var isPresentingSheet: WalletSheetType?
     public var isPresentingSearch = false
     public var isPresentingUrl: URL?
@@ -63,7 +64,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
         self.bannerService = bannerService
         self.walletSessionService = walletSessionService
         self.observablePreferences = observablePreferences
-        self.collectionsModel = CollectionsViewModel(
+        collectionsModel = CollectionsViewModel(
             nftService: nftService,
             wallet: wallet,
         )
@@ -80,7 +81,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
-    
+
     public var totalFiatValue: TotalFiatValue {
         balanceCalculator.totalFiatValue(fiatValuesQuery.value)
     }
@@ -115,6 +116,14 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
 
     public var searchImage: Image {
         Images.System.search
+    }
+
+    public var scannerImage: Image {
+        Images.System.qrCodeViewfinder
+    }
+
+    public var showScanner: Bool {
+        observablePreferences.isDeveloperEnabled
     }
 
     public var manageImage: Image {
@@ -191,6 +200,21 @@ public extension WalletSceneViewModel {
 
     func onToggleSearch() {
         isPresentingSearch.toggle()
+    }
+
+    func onSelectScanner() {
+        isPresentingScanner = true
+    }
+
+    func onHandleScan(_ result: String) {
+        guard let action = try? URLParser.from(string: result) else {
+            isPresentingToastMessage = .error(Localized.Errors.notSupported)
+            return
+        }
+        switch action {
+        case .deeplink, .payment, .walletConnect:
+            isPresentingToastMessage = .error(Localized.Errors.notSupported)
+        }
     }
 
     func onSelectAddCustomToken() {

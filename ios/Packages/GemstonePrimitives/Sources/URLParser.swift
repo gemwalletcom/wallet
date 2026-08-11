@@ -6,13 +6,17 @@ import func Gemstone.urlAction
 import Primitives
 
 enum URLParserError: Error {
-    case invalidURL(URL)
+    case unsupported(String)
 }
 
 public enum URLParser {
     public static func from(url: URL) throws -> URLAction {
-        guard let action = urlAction(url: url.absoluteString) else {
-            throw URLParserError.invalidURL(url)
+        try from(string: url.absoluteString)
+    }
+
+    public static func from(string: String) throws -> URLAction {
+        guard let action = urlAction(url: string) else {
+            throw URLParserError.unsupported(string)
         }
         return try action.map()
     }

@@ -110,7 +110,14 @@ fun AssetsScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { AssetsTopBar(walletSummary, { onAction(AssetsAction.ShowWallets) }, { onAction(AssetsAction.Search) }) },
+        topBar = {
+            AssetsTopBar(
+                walletSummary = walletSummary,
+                onShowWallets = { onAction(AssetsAction.ShowWallets) },
+                onSearch = { onAction(AssetsAction.Search) },
+                onScan = { onAction(AssetsAction.Scan) }.takeIf { viewModel.showScanner },
+            )
+        },
         snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.surface,
