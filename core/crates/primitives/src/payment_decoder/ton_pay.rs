@@ -1,8 +1,11 @@
+use super::amount::from_smallest_unit;
 use super::error::{PaymentDecoderError, Result};
-use std::collections::HashMap;
-use url::form_urlencoded;
 
-use crate::{AssetId, Chain};
+use crate::{
+    AssetId, Chain,
+    payment::{Payment, PaymentRequest},
+    url_query::query_parameters,
+};
 
 pub const TON_PAY_SCHEME: &str = "ton";
 pub const TON_PAY_TYPE_TRANSFER: &str = "transfer";
@@ -13,29 +16,30 @@ const QUERY_TEXT: &str = "text";
 #[derive(Debug, Clone)]
 pub struct TonPayment {
     pub recipient: String,
-    pub asset_id: AssetId,
     pub amount: Option<String>,
     pub comment: Option<String>,
 }
 
-pub fn parse(uri: &str) -> Result<TonPayment> {
-    let scheme = format!("{TON_PAY_SCHEME}:");
-    if !uri.starts_with(&scheme) {
-        return Err(PaymentDecoderError::InvalidScheme);
-    }
-    let remainder = &uri[scheme.len()..];
-    let (path, query) = remainder.split_once('?').unwrap_or((remainder, ""));
+pub fn parse(path: &str) -> Result<TonPayment> {
+    let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let recipient = extract_address(path)?;
-    let parameters: HashMap<String, String> = form_urlencoded::parse(query.as_bytes())
-        .map(|(key, value)| (key.into_owned(), value.into_owned()))
-        .collect();
+    let parameters = query_parameters(query);
 
     Ok(TonPayment {
         recipient,
-        asset_id: AssetId::from_chain(Chain::Ton),
         amount: parameters.get(QUERY_AMOUNT).cloned(),
         comment: parameters.get(QUERY_TEXT).cloned(),
     })
+}
+
+pub fn decode(path: &str) -> Result<Payment> {
+    let payment = parse(path)?;
+    Ok(Payment::Request(PaymentRequest {
+        address: payment.recipient,
+        amount: payment.amount.and_then(|amount| from_smallest_unit(&amount, Chain::Ton)),
+        memo: payment.comment,
+        asset_id: Some(AssetId::from_chain(Chain::Ton)),
+    }))
 }
 
 fn extract_address(path: &str) -> Result<String> {
@@ -55,7 +59,7 @@ mod tests {
 
     #[test]
     fn test_parse_with_transfer() {
-        let uri = "ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
+        let uri = "//transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
         let payment = parse(uri).unwrap();
         assert_eq!(payment.recipient, "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA");
         assert_eq!(payment.amount, None);
@@ -64,14 +68,14 @@ mod tests {
 
     #[test]
     fn test_parse_without_transfer() {
-        let uri = "ton://UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
+        let uri = "//UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
         let payment = parse(uri).unwrap();
         assert_eq!(payment.recipient, "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA");
     }
 
     #[test]
     fn test_parse_with_query() {
-        let uri = "ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=hello+world";
+        let uri = "//transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=hello+world";
         let payment = parse(uri).unwrap();
         assert_eq!(payment.recipient, "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA");
         assert_eq!(payment.amount, Some("1000000000".to_string()));
@@ -80,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_parse_invalid_uri() {
-        let uri = "ton://invalid/format";
+        let uri = "//invalid/format";
         assert!(parse(uri).is_err());
     }
 }

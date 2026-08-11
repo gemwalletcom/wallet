@@ -1,9 +1,12 @@
 use super::error::{PaymentDecoderError, Result};
-use std::collections::HashMap;
-use url::Url;
-use url::form_urlencoded;
+use crate::url_query::query_parameters;
+use crate::{
+    Chain,
+    asset_id::AssetId,
+    payment::{Payment, PaymentLink, PaymentRequest},
+};
+use url::{Url, form_urlencoded};
 pub const SOLANA_PAY_SCHEME: &str = "solana";
-pub const SOLANA_PAY_USDC_SPL_TOKEN: &str = crate::asset_constants::SOLANA_USDC_TOKEN_ID;
 
 #[derive(Debug, Clone)]
 pub enum RequestType {
@@ -22,13 +25,26 @@ pub struct PayTransfer {
     pub memo: Option<String>,
 }
 
-pub fn parse(uri: &str) -> Result<RequestType> {
-    let scheme = format!("{SOLANA_PAY_SCHEME}:");
-    if !uri.starts_with(&scheme) {
-        return Err(PaymentDecoderError::InvalidScheme);
+pub fn decode(path: &str) -> Result<Payment> {
+    match parse(path)? {
+        RequestType::Transfer(transfer) => Ok(Payment::Request(transfer.into())),
+        RequestType::Transaction(link) => Ok(Payment::Link(PaymentLink::SolanaPay(link))),
     }
+}
 
-    let query_part = uri.replace(&scheme, "");
+impl From<PayTransfer> for PaymentRequest {
+    fn from(val: PayTransfer) -> Self {
+        Self {
+            address: val.recipient,
+            amount: val.amount,
+            memo: val.memo,
+            asset_id: Some(AssetId::from(Chain::Solana, val.spl_token.map(|token| token.to_string()))),
+        }
+    }
+}
+
+pub fn parse(path: &str) -> Result<RequestType> {
+    let query_part = path.to_string();
     if query_part.starts_with("https") {
         let encoded = format!("value={query_part}");
         let decoded = form_urlencoded::parse(encoded.as_bytes())
@@ -44,7 +60,7 @@ pub fn parse(uri: &str) -> Result<RequestType> {
         .split_once('?')
         .ok_or_else(|| PaymentDecoderError::InvalidFormat("Invalid URL query string".to_string()))?;
 
-    let query_params: HashMap<String, String> = form_urlencoded::parse(query.as_bytes()).into_owned().collect();
+    let query_params = query_parameters(query);
 
     let amount = query_params.get("amount").cloned();
     let spl_token = query_params.get("spl-token").cloned();
@@ -68,9 +84,11 @@ pub fn parse(uri: &str) -> Result<RequestType> {
 mod tests {
     use super::*;
 
+    const SOLANA_PAY_USDC_SPL_TOKEN: &str = crate::asset_constants::SOLANA_USDC_TOKEN_ID;
+
     #[test]
     fn test_parse_transaction_encoded_https() {
-        let uri = "solana:https%3A%2F%2Fmy.site%2Fpay%3Fcheckout%3D1";
+        let uri = "https%3A%2F%2Fmy.site%2Fpay%3Fcheckout%3D1";
         let link = match parse(uri).unwrap() {
             RequestType::Transaction(pay_url) => pay_url,
             _ => panic!("Wrong type"),
@@ -81,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_parse_transaction_plain_https() {
-        let uri = "solana:https://another.example/pay";
+        let uri = "https://another.example/pay";
         let link = match parse(uri).unwrap() {
             RequestType::Transaction(pay_url) => pay_url,
             _ => panic!("Wrong type"),
@@ -93,7 +111,7 @@ mod tests {
     #[test]
     fn test_parse_transfer() {
         let uri = format!(
-            "solana:mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&spl-token={SOLANA_PAY_USDC_SPL_TOKEN}&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny&label=Michael&message=Thanks%20for%20all%20the%20fish&memo=OrderId5678"
+            "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&spl-token={SOLANA_PAY_USDC_SPL_TOKEN}&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny&label=Michael&message=Thanks%20for%20all%20the%20fish&memo=OrderId5678"
         );
         let pay_url = match parse(&uri).unwrap() {
             RequestType::Transfer(pay_url) => pay_url,
@@ -110,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_parse_transaction() {
-        let uri = "solana:https://example.com/solana-pay";
+        let uri = "https://example.com/solana-pay";
         let link = match parse(uri).unwrap() {
             RequestType::Transaction(pay_url) => pay_url,
             _ => panic!("Wrong type"),
@@ -118,7 +136,7 @@ mod tests {
 
         assert_eq!(link, "https://example.com/solana-pay");
 
-        let uri = "solana:https%3A%2F%2Fexample.com%2Fsolana-pay%3Forder%3D12345";
+        let uri = "https%3A%2F%2Fexample.com%2Fsolana-pay%3Forder%3D12345";
         let link = match parse(uri).unwrap() {
             RequestType::Transaction(pay_url) => pay_url,
             _ => panic!("Wrong type"),

@@ -1,4 +1,11 @@
+use super::amount::from_smallest_unit;
 use super::error::{PaymentDecoderError, Result};
+use crate::{
+    Chain,
+    asset_id::AssetId,
+    payment::{Payment, PaymentRequest},
+    url_query::query_parameters,
+};
 use std::collections::HashMap;
 
 pub const ETHEREUM_SCHEME: &str = "ethereum";
@@ -14,21 +21,8 @@ pub struct TransactionRequest {
 }
 
 impl TransactionRequest {
-    pub fn parse(uri: &str) -> Result<Self> {
-        // Split the URI into the scheme and the main part
-        let splits = uri.split(':').collect::<Vec<&str>>();
-        if splits.len() != 2 {
-            return Err(PaymentDecoderError::InvalidFormat("Invalid uri without expected ':'".to_string()));
-        }
-
-        // Validate the scheme
-        let prefix = splits[0];
-        if !prefix.eq(ETHEREUM_SCHEME) {
-            return Err(PaymentDecoderError::InvalidScheme);
-        }
-
-        // Split the main part and the query string
-        let parts: Vec<&str> = splits[1].split('?').collect();
+    pub fn parse(path: &str) -> Result<Self> {
+        let parts: Vec<&str> = path.split('?').collect();
         let query_string = if parts.len() > 1 { parts[1] } else { "" };
 
         // Split the main part by '/'
@@ -58,13 +52,7 @@ impl TransactionRequest {
         // The second part (if exists) is the function name
         let function_name = if main_parts.len() > 1 { Some(main_parts[1].to_string()) } else { None };
 
-        // Parse the query string into key-value pairs
-        let mut parameters = HashMap::new();
-        for pair in query_string.split('&') {
-            if let Some((key, value)) = pair.split_once('=') {
-                parameters.insert(key.to_string(), value.to_string());
-            }
-        }
+        let parameters = query_parameters(query_string);
 
         Ok(TransactionRequest {
             target_address,
@@ -76,25 +64,32 @@ impl TransactionRequest {
     }
 }
 
-pub fn integer_value(value: &str) -> Option<String> {
-    let value = value.strip_prefix('+').unwrap_or(value);
-    let (mantissa, exponent) = match value.split_once(['e', 'E']) {
-        Some((mantissa, exponent)) => (mantissa, exponent.parse::<usize>().ok()?),
-        None => (value, 0),
-    };
-    let (integer, fraction) = mantissa.split_once('.').unwrap_or((mantissa, ""));
-    if integer.is_empty() && fraction.is_empty() {
-        return None;
-    }
-    if !integer.chars().chain(fraction.chars()).all(|character| character.is_ascii_digit()) {
-        return None;
-    }
+pub fn decode(path: &str) -> Result<Payment> {
+    Ok(Payment::Request(TransactionRequest::parse(path)?.into()))
+}
 
-    let zeros = exponent.checked_sub(fraction.len())?;
-    let digits = format!("{integer}{fraction}{}", "0".repeat(zeros));
-    let trimmed = digits.trim_start_matches('0');
+impl From<TransactionRequest> for PaymentRequest {
+    fn from(val: TransactionRequest) -> Self {
+        let chain = val.chain_id.and_then(Chain::from_chain_id).unwrap_or(Chain::Ethereum);
+        let memo = val.parameters.get("memo").cloned();
 
-    Some(if trimmed.is_empty() { "0".to_string() } else { trimmed.to_string() })
+        if val.function_name.as_deref() == Some("transfer") {
+            return Self {
+                address: val.parameters.get("address").cloned().unwrap_or_default(),
+                amount: None,
+                memo,
+                asset_id: Some(AssetId::from(chain, Some(val.target_address))),
+            };
+        }
+
+        let value = val.parameters.get("value").and_then(|value| from_smallest_unit(value, chain));
+        Self {
+            address: val.target_address,
+            amount: value.or_else(|| val.parameters.get("amount").cloned()),
+            memo,
+            asset_id: Some(AssetId::from(chain, None)),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -102,24 +97,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_integer_value() {
-        assert_eq!(integer_value("2.014e18"), Some("2014000000000000000".to_string()));
-        assert_eq!(integer_value("1e6"), Some("1000000".to_string()));
-        assert_eq!(integer_value("+1E18"), Some("1000000000000000000".to_string()));
-        assert_eq!(integer_value("1500000"), Some("1500000".to_string()));
-        assert_eq!(integer_value("0.5e18"), Some("500000000000000000".to_string()));
-        assert_eq!(integer_value("0"), Some("0".to_string()));
-
-        assert_eq!(integer_value("-1e18"), None);
-        assert_eq!(integer_value("2.014"), None);
-        assert_eq!(integer_value("1e"), None);
-        assert_eq!(integer_value("abc"), None);
-        assert_eq!(integer_value(""), None);
-    }
-
-    #[test]
     fn test_minimal_uri() {
-        let uri = "ethereum:0x32Be343B94f860124dC4fEe278FDCBD38C102D88";
+        let uri = "0x32Be343B94f860124dC4fEe278FDCBD38C102D88";
         let erc681 = TransactionRequest::parse(uri).unwrap();
         assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
         assert_eq!(erc681.prefix, None);
@@ -129,15 +108,8 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_uri() {
-        let uri = "bitcoin:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
-        let erc681 = TransactionRequest::parse(uri);
-        assert!(erc681.is_err());
-    }
-
-    #[test]
     fn test_ens_name_uri() {
-        let uri = "ethereum:pay-gemwallet.eth@1";
+        let uri = "pay-gemwallet.eth@1";
         let erc681 = TransactionRequest::parse(uri).unwrap();
         assert_eq!(erc681.target_address, "gemwallet.eth");
         assert_eq!(erc681.prefix.unwrap(), "pay");
@@ -148,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_chain_id_uri() {
-        let uri = "ethereum:pay-0x32Be343B94f860124dC4fEe278FDCBD38C102D88@0x38";
+        let uri = "pay-0x32Be343B94f860124dC4fEe278FDCBD38C102D88@0x38";
         let erc681 = TransactionRequest::parse(uri).unwrap();
         assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
         assert_eq!(erc681.prefix.unwrap(), "pay");
@@ -159,7 +131,7 @@ mod tests {
 
     #[test]
     fn test_eth_transfer_uri() {
-        let uri = "ethereum:0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000";
+        let uri = "0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000";
         let erc681 = TransactionRequest::parse(uri).unwrap();
         assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
         assert_eq!(erc681.prefix, None);
@@ -172,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_erc20_transfer_uri() {
-        let uri = "ethereum:0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7/transfer?address=0x8e23ee67d1332ad560396262c48ffbb01f93d052&uint256=1";
+        let uri = "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7/transfer?address=0x8e23ee67d1332ad560396262c48ffbb01f93d052&uint256=1";
         let erc681 = TransactionRequest::parse(uri).unwrap();
         assert_eq!(erc681.target_address, "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7");
         assert_eq!(erc681.prefix, None);

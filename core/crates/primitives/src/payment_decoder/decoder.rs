@@ -1,23 +1,7 @@
-use super::error::{PaymentDecoderError, Result};
-use crate::{
-    Chain,
-    asset::ChainAsset,
-    asset_id::AssetId,
-    payment::{Payment, PaymentLink, PaymentRequest},
-};
-use std::{collections::HashMap, str::FromStr};
-use url::form_urlencoded;
+use super::error::Result;
+use crate::payment::{Payment, PaymentLink};
 
-use super::{
-    erc681::{ETHEREUM_SCHEME, TransactionRequest, integer_value},
-    solana_pay::{self, PayTransfer as SolanaPayTransfer, SOLANA_PAY_SCHEME},
-    ton_pay::{self, TON_PAY_SCHEME},
-    wallet_connect_pay,
-};
-
-const REQUIRED_PARAMETER_PREFIX: &str = "req-";
-const XRP_SCHEMES: [&str; 2] = ["ripple", "xrpl"];
-const QUERY_DESTINATION_TAG: &str = "dt";
+use super::{bip21, erc681, solana_pay, ton_pay, wallet_connect_pay};
 
 #[derive(Debug)]
 pub struct PaymentURLDecoder;
@@ -31,129 +15,15 @@ impl PaymentURLDecoder {
         }
 
         let Some((scheme, path)) = uri.split_once(':') else {
-            return Self::decode_path(uri, None);
+            return bip21::decode(None, uri);
         };
         let scheme = scheme.to_ascii_lowercase();
 
         match scheme.as_str() {
-            ETHEREUM_SCHEME => Ok(Payment::Request(TransactionRequest::parse(uri)?.into())),
-            SOLANA_PAY_SCHEME => match solana_pay::parse(uri)? {
-                solana_pay::RequestType::Transfer(transfer) => Ok(Payment::Request(transfer.into())),
-                solana_pay::RequestType::Transaction(link) => Ok(Payment::Link(PaymentLink::SolanaPay(link))),
-            },
-            TON_PAY_SCHEME => {
-                let ton_payment = ton_pay::parse(uri)?;
-                Ok(Payment::Request(PaymentRequest {
-                    address: ton_payment.recipient,
-                    amount: ton_payment.amount.and_then(|amount| whole_coins(&amount, Chain::Ton)),
-                    memo: ton_payment.comment,
-                    asset_id: Some(ton_payment.asset_id),
-                }))
-            }
-            _ => Self::decode_path(path, Self::decode_scheme(&scheme)),
-        }
-    }
-
-    fn decode_path(path: &str, asset_id: Option<AssetId>) -> Result<Payment> {
-        let Some((address, query)) = path.split_once('?') else {
-            return Ok(Payment::Request(PaymentRequest {
-                address: path.to_string(),
-                amount: None,
-                memo: None,
-                asset_id,
-            }));
-        };
-
-        let params = Self::decode_query_string(query);
-        if let Some(required) = params.keys().find(|key| key.starts_with(REQUIRED_PARAMETER_PREFIX)) {
-            return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported required parameter: {required}")));
-        }
-
-        let is_xrp = asset_id.as_ref().is_some_and(|asset_id| asset_id.chain == Chain::Xrp);
-
-        Ok(Payment::Request(PaymentRequest {
-            address: address.to_string(),
-            amount: params.get("amount").cloned(),
-            memo: params.get("memo").or_else(|| params.get(QUERY_DESTINATION_TAG).filter(|_| is_xrp)).cloned(),
-            asset_id,
-        }))
-    }
-
-    fn decode_query_string(query_string: &str) -> HashMap<String, String> {
-        form_urlencoded::parse(query_string.as_bytes())
-            .map(|(key, value)| (key.into_owned(), value.into_owned()))
-            .collect()
-    }
-
-    fn decode_scheme(scheme: &str) -> Option<AssetId> {
-        let chain = match scheme {
-            scheme if XRP_SCHEMES.contains(&scheme) => Chain::Xrp,
-            scheme => Chain::from_str(scheme).ok()?,
-        };
-        Some(AssetId::from(chain, None))
-    }
-}
-
-fn whole_coins(smallest_unit: &str, chain: Chain) -> Option<String> {
-    let decimals = usize::try_from(ChainAsset::from_chain(chain).asset.decimals).ok()?;
-    Some(with_decimal_point(smallest_unit, decimals))
-}
-
-fn with_decimal_point(digits: &str, decimals: usize) -> String {
-    if digits.len() > decimals {
-        let (integer, fraction) = digits.split_at(digits.len() - decimals);
-        decimal(integer, fraction)
-    } else {
-        decimal("0", &format!("{}{digits}", "0".repeat(decimals - digits.len())))
-    }
-}
-
-fn decimal(integer: &str, fraction: &str) -> String {
-    match fraction.trim_end_matches('0') {
-        "" => integer.to_string(),
-        fraction => format!("{integer}.{fraction}"),
-    }
-}
-
-impl From<TransactionRequest> for PaymentRequest {
-    fn from(val: TransactionRequest) -> Self {
-        let address: String;
-        let mut amount: Option<String>;
-        let asset_id: Option<AssetId>;
-        let memo = val.parameters.get("memo").map(|x| x.to_string());
-        let mut chain = Chain::Ethereum;
-        if let Some(chain_id) = val.chain_id {
-            chain = Chain::from_chain_id(chain_id).unwrap_or(Chain::Ethereum);
-        }
-
-        // ERC20
-        if val.function_name == Some("transfer".to_string()) {
-            address = val.parameters.get("address").map(|x| x.to_string()).unwrap_or("".to_string());
-            amount = None;
-            asset_id = Some(AssetId::from(chain, Some(val.target_address)));
-        } else {
-            address = val.target_address;
-            amount = val
-                .parameters
-                .get("value")
-                .and_then(|value| integer_value(value))
-                .and_then(|value| whole_coins(&value, chain));
-            if amount.is_none() {
-                amount = val.parameters.get("amount").cloned();
-            }
-            asset_id = Some(AssetId::from(chain, None));
-        };
-        Self { address, amount, memo, asset_id }
-    }
-}
-
-impl From<SolanaPayTransfer> for PaymentRequest {
-    fn from(val: SolanaPayTransfer) -> Self {
-        Self {
-            address: val.recipient,
-            amount: val.amount,
-            memo: val.memo,
-            asset_id: Some(AssetId::from(Chain::Solana, val.spl_token.map(|x| x.to_string()))),
+            erc681::ETHEREUM_SCHEME => erc681::decode(path),
+            solana_pay::SOLANA_PAY_SCHEME => solana_pay::decode(path),
+            ton_pay::TON_PAY_SCHEME => ton_pay::decode(path),
+            _ => bip21::decode(Some(&scheme), path),
         }
     }
 }
@@ -161,7 +31,7 @@ impl From<SolanaPayTransfer> for PaymentRequest {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Chain;
+    use crate::{Chain, asset_id::AssetId, payment::PaymentRequest};
 
     #[test]
     fn test_address() {
