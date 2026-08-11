@@ -8,9 +8,11 @@ import Primitives
 
 struct TransactionPriceViewModel {
     private let metadata: TransactionPerpetualMetadata?
+    private let currencyFormatter: CurrencyFormatter
 
-    init(metadata: TransactionPerpetualMetadata?) {
+    init(metadata: TransactionPerpetualMetadata?, currencyFormatter: CurrencyFormatter = .usd) {
         self.metadata = metadata
+        self.currencyFormatter = currencyFormatter
     }
 }
 
@@ -20,8 +22,7 @@ extension TransactionPriceViewModel: ItemModelProvidable {
             return .empty
         }
 
-        let formatter = CurrencyFormatter.usd
-        let priceFormatted = formatter.string(metadata.price)
+        let priceFormatted = currencyFormatter.string(metadata.price)
 
         return .price(
             title: Localized.Asset.price,

@@ -15,10 +15,14 @@ public struct PerpetualViewModel {
     private let priceFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
 
-    public init(perpetual: Perpetual, currencyStyle: CurrencyFormatterType = .abbreviated) {
+    public init(
+        perpetual: Perpetual,
+        currencyStyle: CurrencyFormatterType = .abbreviated,
+        priceFormatter: CurrencyFormatter = .usd,
+    ) {
         self.perpetual = perpetual
+        self.priceFormatter = priceFormatter
         marketValueFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
-        priceFormatter = CurrencyFormatter.usd
     }
 
     public var name: String {

@@ -38,7 +38,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 
     private let type: PerpetualDetailsType
-    private let currencyFormatter = CurrencyFormatter.usd
+    private let currencyFormatter: CurrencyFormatter
     private let numericFormatter = NumericFormatter()
     private let percentFormatter = PercentFormatter.signed
     private let percentSignLessFormatter = PercentFormatter.unsigned
@@ -47,8 +47,9 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
         stopLossLabel: Localized.Perpetual.stopLoss,
     )
 
-    public init(type: PerpetualDetailsType) {
+    public init(type: PerpetualDetailsType, currencyFormatter: CurrencyFormatter = .usd) {
         self.type = type
+        self.currencyFormatter = currencyFormatter
     }
 
     var data: PerpetualConfirmData {

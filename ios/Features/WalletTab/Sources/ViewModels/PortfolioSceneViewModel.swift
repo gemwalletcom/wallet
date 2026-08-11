@@ -19,7 +19,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     private let currencyFormatter: CurrencyFormatter
     private let priceFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
-    private let perpetualFormatter = CurrencyFormatter.usd
+    private let perpetualFormatter: CurrencyFormatter
 
     var state: PortfolioState
 
@@ -38,10 +38,12 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         service: PortfolioDataService,
         preferences: ObservablePreferences,
         defaultType: PortfolioType = .wallet,
+        perpetualFormatter: CurrencyFormatter = .usd,
     ) {
         self.wallet = wallet
         self.service = service
         self.preferences = preferences
+        self.perpetualFormatter = perpetualFormatter
         let currencyCode = preferences.preferences.currency
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
         priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
