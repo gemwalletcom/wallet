@@ -72,7 +72,8 @@
 "wallet.default_name" = "錢包 #%d";
 "wallet.default_name_chain" = "%@ 錢包 #%d";
 "wallet.copy_address" = "複製地址";
-"wallet.watch.tooltip.title" = "您正在觀察此錢包。";
+"wallet.watch.tooltip.title" = "僅供觀察的錢包。這些資金不受您控制。";
+"wallet.watch_empty_state_title" = "您正在觀察此錢包。";
 "wallet.stake" = "質押";
 "wallet.receive.no_memo_required" = "不需要備忘";
 "wallet.receive.no_destination_tag_required" = "不需要目的地標籤";

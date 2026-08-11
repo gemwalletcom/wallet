@@ -20,12 +20,12 @@ public struct EmptyContentTypeViewModel: EmptyContentViewable {
         case .priceAlerts: Localized.PriceAlerts.State.Empty.title
         case let .asset(_, _, _, isViewOnly):
             switch isViewOnly {
-            case true: Localized.Wallet.Watch.Tooltip.title
+            case true: Localized.Wallet.watchEmptyStateTitle
             case false: Localized.Asset.State.Empty.title
             }
         case let .activity(_, _, isViewOnly):
             switch isViewOnly {
-            case true: Localized.Wallet.Watch.Tooltip.title
+            case true: Localized.Wallet.watchEmptyStateTitle
             case false: Localized.Activity.State.Empty.title
             }
         case .stake: Localized.Stake.State.Empty.title

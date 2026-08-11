@@ -72,7 +72,8 @@
 "wallet.default_name" = "वॉलेट #%d";
 "wallet.default_name_chain" = "%@ वॉलेट #%d";
 "wallet.copy_address" = "पता कॉपी करें";
-"wallet.watch.tooltip.title" = "आप यह बटुआ देख रहे हैं.";
+"wallet.watch.tooltip.title" = "केवल देखने वाला वॉलेट। इन फ़ंड पर आपका नियंत्रण नहीं है।";
+"wallet.watch_empty_state_title" = "आप यह बटुआ देख रहे हैं.";
 "wallet.stake" = "स्टेक";
 "wallet.receive.no_memo_required" = "किसी मेमो की आवश्यकता नहीं";
 "wallet.receive.no_destination_tag_required" = "किसी गंतव्य टैग की आवश्यकता नहीं है";

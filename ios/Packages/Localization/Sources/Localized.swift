@@ -1632,6 +1632,8 @@ public enum Localized {
     public static let title = Localized.tr("Localizable", "wallet.title", fallback: "Wallet")
     /// Transfer from another wallet
     public static let transferFromAnotherWallet = Localized.tr("Localizable", "wallet.transfer_from_another_wallet", fallback: "Transfer from another wallet")
+    /// You are watching this wallet.
+    public static let watchEmptyStateTitle = Localized.tr("Localizable", "wallet.watch_empty_state_title", fallback: "You are watching this wallet.")
     /// Withdraw
     public static let withdraw = Localized.tr("Localizable", "wallet.withdraw", fallback: "Withdraw")
     public enum AddToken {
@@ -1666,8 +1668,8 @@ public enum Localized {
     }
     public enum Watch {
       public enum Tooltip {
-        /// You are watching this wallet.
-        public static let title = Localized.tr("Localizable", "wallet.watch.tooltip.title", fallback: "You are watching this wallet.")
+        /// Watch-only wallet. You don't control these funds.
+        public static let title = Localized.tr("Localizable", "wallet.watch.tooltip.title", fallback: "Watch-only wallet. You don't control these funds.")
       }
     }
   }

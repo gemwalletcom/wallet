@@ -72,7 +72,8 @@
 "wallet.default_name" = "Ví #%d";
 "wallet.default_name_chain" = "%@ Ví #%d";
 "wallet.copy_address" = "Sao chép địa chỉ";
-"wallet.watch.tooltip.title" = "Bạn đang xem ví này.";
+"wallet.watch.tooltip.title" = "Ví chỉ để theo dõi. Bạn không kiểm soát số tiền này.";
+"wallet.watch_empty_state_title" = "Bạn đang xem ví này.";
 "wallet.stake" = "Đặt cọc";
 "wallet.receive.no_memo_required" = "Không cần ghi nhớ";
 "wallet.receive.no_destination_tag_required" = "Không cần thẻ đích";

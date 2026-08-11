@@ -72,7 +72,8 @@
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Adresse kopieren";
-"wallet.watch.tooltip.title" = "Sie beobachten diese Wallet.";
+"wallet.watch.tooltip.title" = "Nur-Beobachten-Wallet. Sie haben keine Kontrolle über diese Gelder.";
+"wallet.watch_empty_state_title" = "Sie beobachten diese Wallet.";
 "wallet.stake" = "Staking";
 "wallet.receive.no_memo_required" = "Kein Memo erforderlich";
 "wallet.receive.no_destination_tag_required" = "Kein Destination-Tag erforderlich";

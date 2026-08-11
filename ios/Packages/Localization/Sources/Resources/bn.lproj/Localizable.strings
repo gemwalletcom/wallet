@@ -72,7 +72,8 @@
 "wallet.default_name" = "ওয়ালেট #%d";
 "wallet.default_name_chain" = "%@ ওয়ালেট #%d";
 "wallet.copy_address" = "কপি ঠিকানা";
-"wallet.watch.tooltip.title" = "আপনি এই মানিব্যাগ দেখছেন.";
+"wallet.watch.tooltip.title" = "শুধুমাত্র দেখার ওয়ালেট। এই তহবিল আপনার নিয়ন্ত্রণে নেই।";
+"wallet.watch_empty_state_title" = "আপনি এই মানিব্যাগ দেখছেন.";
 "wallet.stake" = "স্টেক";
 "wallet.receive.no_memo_required" = "কোন মেমো প্রয়োজন নেই";
 "wallet.receive.no_destination_tag_required" = "কোনো গন্তব্য ট্যাগ প্রয়োজন নেই";

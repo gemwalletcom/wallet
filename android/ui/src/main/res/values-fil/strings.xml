@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Wallet #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Wallet #%2$d</string>
   <string name="wallet_copy_address">Kopyahin ang Address</string>
-  <string name="wallet_watch_tooltip_title">Binabantayan mo ang wallet na ito.</string>
+  <string name="wallet_watch_tooltip_title">Wallet na pang-bantay lamang. Hindi mo kontrolado ang mga pondong ito.</string>
+  <string name="wallet_watch_empty_state_title">Binabantayan mo ang wallet na ito.</string>
   <string name="wallet_stake">Mag-stake</string>
   <string name="wallet_receive_no_memo_required">Walang kinakailangang memo</string>
   <string name="wallet_receive_no_destination_tag_required">Walang kinakailangang tag ng patutunguhan</string>

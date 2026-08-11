@@ -77,7 +77,8 @@
   <string name="wallet_default_name">ארנק #%1$d</string>
   <string name="wallet_default_name_chain">%1$s ארנק #%2$d</string>
   <string name="wallet_copy_address">העתק כתובת</string>
-  <string name="wallet_watch_tooltip_title">אתה צופה בארנק הזה.</string>
+  <string name="wallet_watch_tooltip_title">ארנק לצפייה בלבד. אין לך שליטה על הכספים האלה.</string>
+  <string name="wallet_watch_empty_state_title">אתה צופה בארנק הזה.</string>
   <string name="wallet_stake">סטייקינג</string>
   <string name="wallet_receive_no_memo_required">אין צורך בתזכיר</string>
   <string name="wallet_receive_no_destination_tag_required">אין צורך בתג יעד</string>

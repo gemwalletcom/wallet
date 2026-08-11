@@ -72,7 +72,8 @@
 "wallet.default_name" = "Dompet #%d";
 "wallet.default_name_chain" = "%@ Dompet #%d";
 "wallet.copy_address" = "Salin Alamat";
-"wallet.watch.tooltip.title" = "Anda sedang memerhati dompet ini.";
+"wallet.watch.tooltip.title" = "Dompet pantau sahaja. Anda tidak mengawal dana ini.";
+"wallet.watch_empty_state_title" = "Anda sedang memerhati dompet ini.";
 "wallet.stake" = "Pertaruhan";
 "wallet.receive.no_memo_required" = "Tiada memo diperlukan";
 "wallet.receive.no_destination_tag_required" = "Tiada teg destinasi diperlukan";

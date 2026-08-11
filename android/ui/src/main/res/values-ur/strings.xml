@@ -77,7 +77,8 @@
   <string name="wallet_default_name">والیٹ #%1$d</string>
   <string name="wallet_default_name_chain">%1$s والیٹ #%2$d</string>
   <string name="wallet_copy_address">ایڈریس کاپی کریں۔</string>
-  <string name="wallet_watch_tooltip_title">آپ اس والیٹ کو دیکھ رہے ہیں۔</string>
+  <string name="wallet_watch_tooltip_title">صرف دیکھنے کے لیے والیٹ۔ ان فنڈز پر آپ کا کنٹرول نہیں ہے۔</string>
+  <string name="wallet_watch_empty_state_title">آپ اس والیٹ کو دیکھ رہے ہیں۔</string>
   <string name="wallet_stake">اسٹیک</string>
   <string name="wallet_receive_no_memo_required">میمو کی ضرورت نہیں ہے۔</string>
   <string name="wallet_receive_no_destination_tag_required">کسی منزل کے ٹیگ کی ضرورت نہیں ہے۔</string>

@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Wallet #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Wallet #%2$d</string>
   <string name="wallet_copy_address">Copy Address</string>
-  <string name="wallet_watch_tooltip_title">You are watching this wallet.</string>
+  <string name="wallet_watch_tooltip_title">Watch-only wallet. You don\'t control these funds.</string>
+  <string name="wallet_watch_empty_state_title">You are watching this wallet.</string>
   <string name="wallet_stake">Stake</string>
   <string name="wallet_receive_no_memo_required">No memo required</string>
   <string name="wallet_receive_no_destination_tag_required">No destination tag required</string>

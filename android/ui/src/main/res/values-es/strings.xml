@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Billetera #%1$d</string>
   <string name="wallet_default_name_chain">Billetera %1$s #%2$d</string>
   <string name="wallet_copy_address">Copiar dirección</string>
-  <string name="wallet_watch_tooltip_title">Estás observando esta billetera.</string>
+  <string name="wallet_watch_tooltip_title">Billetera solo de observación. No controlas estos fondos.</string>
+  <string name="wallet_watch_empty_state_title">Estás observando esta billetera.</string>
   <string name="wallet_stake">Stake</string>
   <string name="wallet_receive_no_memo_required">No se requiere nota</string>
   <string name="wallet_receive_no_destination_tag_required">No se requiere etiqueta de destino</string>

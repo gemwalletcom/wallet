@@ -72,7 +72,8 @@
 "wallet.default_name" = "Carteira #%d";
 "wallet.default_name_chain" = "%@ Carteira #%d";
 "wallet.copy_address" = "Copiar endereço";
-"wallet.watch.tooltip.title" = "Você está observando esta carteira.";
+"wallet.watch.tooltip.title" = "Carteira somente de observação. Você não controla esses fundos.";
+"wallet.watch_empty_state_title" = "Você está observando esta carteira.";
 "wallet.stake" = "Fazer stake";
 "wallet.receive.no_memo_required" = "Não é necessário memorando";
 "wallet.receive.no_destination_tag_required" = "Nenhuma tag de destino é necessária";

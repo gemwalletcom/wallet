@@ -72,7 +72,8 @@
 "wallet.default_name" = "Portofelul #%d";
 "wallet.default_name_chain" = "%@ Portofelul #%d";
 "wallet.copy_address" = "Copiați adresa";
-"wallet.watch.tooltip.title" = "Te uiți la acest portofel.";
+"wallet.watch.tooltip.title" = "Portofel doar pentru monitorizare. Nu controlezi aceste fonduri.";
+"wallet.watch_empty_state_title" = "Te uiți la acest portofel.";
 "wallet.stake" = "Mizează";
 "wallet.receive.no_memo_required" = "Nu este nevoie de notă";
 "wallet.receive.no_destination_tag_required" = "Nu este necesară eticheta de destinație";

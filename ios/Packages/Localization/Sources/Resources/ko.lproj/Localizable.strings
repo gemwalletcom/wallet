@@ -72,7 +72,8 @@
 "wallet.default_name" = "지갑 #%d";
 "wallet.default_name_chain" = "%@ 지갑 #%d";
 "wallet.copy_address" = "주소 복사";
-"wallet.watch.tooltip.title" = "당신은 이 지갑을 보고 있습니다.";
+"wallet.watch.tooltip.title" = "보기 전용 지갑입니다. 이 자금을 제어할 수 없습니다.";
+"wallet.watch_empty_state_title" = "당신은 이 지갑을 보고 있습니다.";
 "wallet.stake" = "스테이크";
 "wallet.receive.no_memo_required" = "메모가 필요하지 않습니다";
 "wallet.receive.no_destination_tag_required" = "대상 태그가 필요하지 않습니다.";

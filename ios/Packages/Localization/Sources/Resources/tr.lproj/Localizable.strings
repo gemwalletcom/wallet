@@ -72,7 +72,8 @@
 "wallet.default_name" = "Cüzdan # %d";
 "wallet.default_name_chain" = "%@ Cüzdan # %d";
 "wallet.copy_address" = "Adresi Kopyala";
-"wallet.watch.tooltip.title" = "Bu cüzdanı izliyorsunuz.";
+"wallet.watch.tooltip.title" = "Yalnızca izleme cüzdanı. Bu fonlar sizin kontrolünüzde değil.";
+"wallet.watch_empty_state_title" = "Bu cüzdanı izliyorsunuz.";
 "wallet.stake" = "Stake";
 "wallet.receive.no_memo_required" = "Memo gerekli değil";
 "wallet.receive.no_destination_tag_required" = "Hedef etiketi gerekmiyor";

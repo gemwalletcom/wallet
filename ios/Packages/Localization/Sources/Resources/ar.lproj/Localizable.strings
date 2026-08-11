@@ -72,7 +72,8 @@
 "wallet.default_name" = "المحفظة #%d";
 "wallet.default_name_chain" = "%@ المحفظة رقم %d";
 "wallet.copy_address" = "نسخ العنوان";
-"wallet.watch.tooltip.title" = "أنت تشاهد هذه المحفظة.";
+"wallet.watch.tooltip.title" = "محفظة للمراقبة فقط. أنت لا تتحكم في هذه الأموال.";
+"wallet.watch_empty_state_title" = "أنت تشاهد هذه المحفظة.";
 "wallet.stake" = "التخزين";
 "wallet.receive.no_memo_required" = "لا مذكرة المطلوبة";
 "wallet.receive.no_destination_tag_required" = "لا توجد علامة الوجهة المطلوبة";

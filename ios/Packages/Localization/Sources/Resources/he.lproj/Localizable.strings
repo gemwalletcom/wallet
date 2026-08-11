@@ -72,7 +72,8 @@
 "wallet.default_name" = "ארנק #%d";
 "wallet.default_name_chain" = "%@ ארנק #%d";
 "wallet.copy_address" = "העתק כתובת";
-"wallet.watch.tooltip.title" = "אתה צופה בארנק הזה.";
+"wallet.watch.tooltip.title" = "ארנק לצפייה בלבד. אין לך שליטה על הכספים האלה.";
+"wallet.watch_empty_state_title" = "אתה צופה בארנק הזה.";
 "wallet.stake" = "סטייקינג";
 "wallet.receive.no_memo_required" = "אין צורך בתזכיר";
 "wallet.receive.no_destination_tag_required" = "אין צורך בתג יעד";

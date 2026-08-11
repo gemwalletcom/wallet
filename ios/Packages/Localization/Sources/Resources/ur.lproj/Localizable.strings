@@ -72,7 +72,8 @@
 "wallet.default_name" = "والیٹ #%d";
 "wallet.default_name_chain" = "%@ والیٹ #%d";
 "wallet.copy_address" = "ایڈریس کاپی کریں۔";
-"wallet.watch.tooltip.title" = "آپ اس والیٹ کو دیکھ رہے ہیں۔";
+"wallet.watch.tooltip.title" = "صرف دیکھنے کے لیے والیٹ۔ ان فنڈز پر آپ کا کنٹرول نہیں ہے۔";
+"wallet.watch_empty_state_title" = "آپ اس والیٹ کو دیکھ رہے ہیں۔";
 "wallet.stake" = "اسٹیک";
 "wallet.receive.no_memo_required" = "میمو کی ضرورت نہیں ہے۔";
 "wallet.receive.no_destination_tag_required" = "کسی منزل کے ٹیگ کی ضرورت نہیں ہے۔";
