@@ -169,6 +169,8 @@ pub struct CurrencyAmount {
 pub enum RelayStatus {
     Pending,
     Waiting,
+    Depositing,
+    Submitted,
     Success,
     Completed,
     Failed,
@@ -182,7 +184,7 @@ pub enum RelayStatus {
 impl RelayStatus {
     pub fn into_swap_status(self) -> SwapStatus {
         match self {
-            RelayStatus::Pending | RelayStatus::Waiting | RelayStatus::Unknown => SwapStatus::Pending,
+            RelayStatus::Pending | RelayStatus::Waiting | RelayStatus::Depositing | RelayStatus::Submitted | RelayStatus::Unknown => SwapStatus::Pending,
             RelayStatus::Success | RelayStatus::Completed => SwapStatus::Completed,
             RelayStatus::Failed | RelayStatus::Failure | RelayStatus::Refund | RelayStatus::Refunded => SwapStatus::Failed,
         }
@@ -205,14 +207,38 @@ pub struct RelayRequest {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RelayRequestData {
-    pub metadata: Option<RelayRequestMetadata>,
+    pub route: Option<RelayRoute>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RelayRequestMetadata {
-    pub currency_in: Option<RelayCurrencyDetail>,
-    pub currency_out: Option<RelayCurrencyDetail>,
+pub struct RelayRoute {
+    pub actual: Option<RelayRouteActual>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayRouteActual {
+    pub origin: Option<RelayRouteSide>,
+    pub destination: Option<RelayRouteSide>,
+}
+
+impl RelayRouteActual {
+    pub fn currency_in(&self) -> Option<&RelayCurrencyDetail> {
+        self.origin.as_ref()?.input_currency.as_ref()
+    }
+
+    pub fn currency_out(&self) -> Option<&RelayCurrencyDetail> {
+        let origin_output = self.origin.as_ref().and_then(|origin| origin.output_currency.as_ref());
+        self.destination.as_ref().and_then(|destination| destination.output_currency.as_ref()).or(origin_output)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayRouteSide {
+    pub input_currency: Option<RelayCurrencyDetail>,
+    pub output_currency: Option<RelayCurrencyDetail>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

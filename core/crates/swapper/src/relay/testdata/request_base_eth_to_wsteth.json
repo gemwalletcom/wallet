@@ -1,0 +1,53 @@
+{
+  "requests": [
+    {
+      "id": "0xa6839f78e09d3536890fc43bbac2c43c746ca7c9268e521506d6876644ce770f",
+      "status": "success",
+      "requestType": "Same-chain Swap",
+      "data": {
+        "route": {
+          "actual": {
+            "origin": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0x0000000000000000000000000000000000000000",
+                  "symbol": "ETH",
+                  "name": "Ether",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://assets.relay.link/icons/1/light.png",
+                    "verified": true
+                  }
+                },
+                "amount": "1366348234320898",
+                "amountFormatted": "0.001366348234320898",
+                "amountUsd": "2.627272",
+                "minimumAmount": "1366348234320898"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452",
+                  "symbol": "wstETH",
+                  "name": "Wrapped liquid staked Ether 2.0",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://coin-images.coingecko.com/coins/images/18834/large/wstETH.png?1696518295",
+                    "verified": true
+                  }
+                },
+                "amount": "1101293561931134",
+                "amountFormatted": "0.001101293561931134",
+                "amountUsd": "2.627830",
+                "minimumAmount": "1090280626311822"
+              },
+              "router": "magpie"
+            },
+            "destination": null
+          }
+        }
+      }
+    }
+  ]
+}

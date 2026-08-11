@@ -1,0 +1,90 @@
+{
+  "requests": [
+    {
+      "id": "0x9964ad132c45a2a41af330929971f34b429de671f485404d95e2a4718aa3ff4b",
+      "status": "success",
+      "requestType": "Crosschain Swap",
+      "data": {
+        "route": {
+          "actual": {
+            "origin": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 42161,
+                  "address": "0x0000000000000000000000000000000000000000",
+                  "symbol": "ETH",
+                  "name": "Ether",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://assets.relay.link/icons/1/light.png",
+                    "verified": true
+                  }
+                },
+                "amount": "60000000000000",
+                "amountFormatted": "0.00006",
+                "amountUsd": "0.115354",
+                "minimumAmount": "60000000000000"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 42161,
+                  "address": "0x0000000000000000000000000000000000000000",
+                  "symbol": "ETH",
+                  "name": "Ether",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://assets.relay.link/icons/1/light.png",
+                    "verified": true
+                  }
+                },
+                "amount": "60000000000000",
+                "amountFormatted": "0.00006",
+                "amountUsd": "0.115349",
+                "minimumAmount": "60000000000000"
+              },
+              "router": "relay"
+            },
+            "destination": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0x0000000000000000000000000000000000000000",
+                  "symbol": "ETH",
+                  "name": "Ether",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://assets.relay.link/icons/1/light.png",
+                    "verified": true
+                  }
+                },
+                "amount": "49426938842266",
+                "amountFormatted": "0.000049426938842266",
+                "amountUsd": "0.095026",
+                "minimumAmount": "49426938842266"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0x0000000000000000000000000000000000000000",
+                  "symbol": "ETH",
+                  "name": "Ether",
+                  "decimals": 18,
+                  "metadata": {
+                    "logoURI": "https://assets.relay.link/icons/1/light.png",
+                    "verified": true
+                  }
+                },
+                "amount": "49426938842266",
+                "amountFormatted": "0.000049426938842266",
+                "amountUsd": "0.095023",
+                "minimumAmount": "49426938842266"
+              },
+              "router": "relay"
+            },
+            "rate": "0.8237823140377666"
+          }
+        }
+      }
+    }
+  ]
+}
