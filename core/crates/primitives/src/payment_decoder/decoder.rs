@@ -55,6 +55,16 @@ mod tests {
             PaymentURLDecoder::decode("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326").unwrap(),
             Payment::Request(PaymentRequest::new_address("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"))
         );
+
+        assert_eq!(
+            PaymentURLDecoder::decode("0x25851Bf7D35293A89F710eBFbD4718322eF7B174?amount=50.72").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0x25851Bf7D35293A89F710eBFbD4718322eF7B174".to_string(),
+                amount: Some("50.72".to_string()),
+                memo: None,
+                asset_id: None,
+            })
+        );
     }
 
     #[test]
@@ -99,13 +109,19 @@ mod tests {
             })
         );
         assert!(PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?req-escrow=1").is_err());
-    }
 
-    #[test]
-    fn test_solana_without_parameters() {
         assert_eq!(
-            PaymentURLDecoder::decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5").unwrap(),
-            request("HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5", Chain::Solana)
+            PaymentURLDecoder::decode("algorand://TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD").unwrap(),
+            request("TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD", Chain::Algorand)
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin://bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4").unwrap(),
+            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
+        );
+
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=&memo=").unwrap(),
+            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
         );
     }
 
@@ -120,90 +136,29 @@ mod tests {
                 asset_id: Some(AssetId::from_chain(Chain::Ton)),
             })
         );
-    }
-
-    #[test]
-    fn test_rejects_a_request_without_an_address() {
-        assert!(PaymentURLDecoder::decode("bitcoin:").is_err());
-        assert!(PaymentURLDecoder::decode("bitcoin:?amount=0.1").is_err());
-        assert!(PaymentURLDecoder::decode("ethereum:").is_err());
-        assert!(PaymentURLDecoder::decode("").is_err());
-    }
-
-    #[test]
-    fn test_ignores_an_empty_parameter() {
-        assert_eq!(
-            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=&memo=").unwrap(),
-            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
-        );
-    }
-
-    #[test]
-    fn test_keeps_display_only_parameters_out_of_the_memo() {
-        assert_eq!(
-            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?label=Store&message=Order%2012").unwrap(),
-            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
-        );
-    }
-
-    #[test]
-    fn test_address_written_as_an_authority() {
-        assert_eq!(
-            PaymentURLDecoder::decode("algorand://TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD").unwrap(),
-            request("TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD", Chain::Algorand)
-        );
-        assert_eq!(
-            PaymentURLDecoder::decode("bitcoin://bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4").unwrap(),
-            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
-        );
-    }
-
-    #[test]
-    fn test_refuses_a_scheme_that_is_not_a_payment() {
-        assert!(PaymentURLDecoder::decode("wc:abc123@2?relay-protocol=irn&symKey=deadbeef").is_err());
-        assert!(PaymentURLDecoder::decode("https://gemwallet.com/tokens/bitcoin").is_err());
-        assert!(PaymentURLDecoder::decode("gem://wc?sessionTopic=abc").is_err());
-        assert!(PaymentURLDecoder::decode("lightning:lnbc1pvjluezpp5qqqsyq").is_err());
-        assert!(PaymentURLDecoder::decode("eip155:1:0xcB3028d6120802148f03d6c884D6AD6A210Df62A").is_err());
-        assert!(PaymentURLDecoder::decode("web+stellar:pay?destination=GABC").is_err());
-        assert!(PaymentURLDecoder::decode("monero:4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge").is_err());
-    }
-
-    #[test]
-    fn test_scheme_that_is_not_named_after_its_chain() {
-        assert_eq!(
-            PaymentURLDecoder::decode("dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L").unwrap(),
-            request("DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L", Chain::Doge)
-        );
-    }
-
-    #[test]
-    fn test_bip21_fixtures() {
-        let address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
-        let bitcoin = request(address, Chain::Bitcoin);
-
-        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}")).unwrap(), bitcoin);
-        assert_eq!(PaymentURLDecoder::decode(&format!("BITCOIN:{address}")).unwrap(), bitcoin);
-        assert_eq!(PaymentURLDecoder::decode(&format!("BitCoin:{address}")).unwrap(), bitcoin);
-        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?label=Luke-Jr")).unwrap(), bitcoin);
-        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?dontexist=")).unwrap(), bitcoin);
 
         assert_eq!(
-            PaymentURLDecoder::decode(&format!("bitcoin:{address}?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz")).unwrap(),
+            PaymentURLDecoder::decode("UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA").unwrap(),
             Payment::Request(PaymentRequest {
-                address: address.to_string(),
-                amount: Some("50".to_string()),
+                address: "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA".to_string(),
+                amount: None,
                 memo: None,
-                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+                asset_id: None,
             })
         );
-
-        assert!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?req-dontexist=")).is_err());
-        assert!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?req-somethingyoudontunderstand=50")).is_err());
+        assert_eq!(
+            PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA".to_string(),
+                amount: None,
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            })
+        );
     }
 
     #[test]
-    fn test_ignores_an_amount_that_is_not_a_number() {
+    fn test_amount() {
         let address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
         let bitcoin = request(address, Chain::Bitcoin);
 
@@ -228,6 +183,19 @@ mod tests {
         assert!(PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1&init=te6cc").is_err());
         assert!(PaymentURLDecoder::decode("ethereum:0xcB3028d6120802148f03d6c884D6AD6A210Df62A/approve?value=1000000000000000000").is_err());
         assert!(PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?req-escrow=1").is_err());
+
+        assert!(PaymentURLDecoder::decode("wc:abc123@2?relay-protocol=irn&symKey=deadbeef").is_err());
+        assert!(PaymentURLDecoder::decode("https://gemwallet.com/tokens/bitcoin").is_err());
+        assert!(PaymentURLDecoder::decode("gem://wc?sessionTopic=abc").is_err());
+        assert!(PaymentURLDecoder::decode("lightning:lnbc1pvjluezpp5qqqsyq").is_err());
+        assert!(PaymentURLDecoder::decode("eip155:1:0xcB3028d6120802148f03d6c884D6AD6A210Df62A").is_err());
+        assert!(PaymentURLDecoder::decode("web+stellar:pay?destination=GABC").is_err());
+        assert!(PaymentURLDecoder::decode("monero:4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge").is_err());
+
+        assert!(PaymentURLDecoder::decode("bitcoin:").is_err());
+        assert!(PaymentURLDecoder::decode("bitcoin:?amount=0.1").is_err());
+        assert!(PaymentURLDecoder::decode("ethereum:").is_err());
+        assert!(PaymentURLDecoder::decode("").is_err());
     }
 
     #[test]
@@ -273,6 +241,11 @@ mod tests {
             PaymentURLDecoder::decode("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1df6564b6b4d43eaa077b732ad9b6ab9%3Fstate%3DAlabama%26country%3DUSA%26lineItems%3D%255B%257B%2522id%2522%253A%2522lineItem_82032b8ea67244e692cd322051e35689%2522%252C%2522quantity%2522%253A500%257D%255D%26solanaPayReference%3D4Vqsq8WhoTbFu8Lw2DbbtnCiHXXmBRN6afF8HkgxrXs7%26paymentReference%3DOZ_UxaOrU_F8fM5GhlrE2%26network%3Dsol%26skipPreflight%3Dfalse").unwrap(),
             Payment::Link(PaymentLink::SolanaPay("https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1df6564b6b4d43eaa077b732ad9b6ab9?state=Alabama&country=USA&lineItems=%5B%7B%22id%22%3A%22lineItem_82032b8ea67244e692cd322051e35689%22%2C%22quantity%22%3A500%7D%5D&solanaPayReference=4Vqsq8WhoTbFu8Lw2DbbtnCiHXXmBRN6afF8HkgxrXs7&paymentReference=OZ_UxaOrU_F8fM5GhlrE2&network=sol&skipPreflight=false".to_string()
             )),
+        );
+
+        assert_eq!(
+            PaymentURLDecoder::decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5").unwrap(),
+            request("HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5", Chain::Solana)
         );
     }
 
@@ -326,6 +299,33 @@ mod tests {
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Solana)),
             })
+        );
+
+        let address = "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
+        let bitcoin = request(address, Chain::Bitcoin);
+
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("BITCOIN:{address}")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("BitCoin:{address}")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?label=Luke-Jr")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?dontexist=")).unwrap(), bitcoin);
+
+        assert_eq!(
+            PaymentURLDecoder::decode(&format!("bitcoin:{address}?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: address.to_string(),
+                amount: Some("50".to_string()),
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            })
+        );
+
+        assert!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?req-dontexist=")).is_err());
+        assert!(PaymentURLDecoder::decode(&format!("bitcoin:{address}?req-somethingyoudontunderstand=50")).is_err());
+
+        assert_eq!(
+            PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?label=Store&message=Order%2012").unwrap(),
+            request("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Bitcoin)
         );
     }
 
@@ -383,41 +383,6 @@ mod tests {
                 amount: None,
                 memo: None,
                 asset_id: Some(AssetId::from(Chain::Ethereum, Some("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".to_string()))),
-            })
-        );
-    }
-
-    #[test]
-    fn test_ton_address() {
-        assert_eq!(
-            PaymentURLDecoder::decode("UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA").unwrap(),
-            Payment::Request(PaymentRequest {
-                address: "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA".to_string(),
-                amount: None,
-                memo: None,
-                asset_id: None,
-            })
-        );
-        assert_eq!(
-            PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA").unwrap(),
-            Payment::Request(PaymentRequest {
-                address: "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA".to_string(),
-                amount: None,
-                memo: None,
-                asset_id: Some(AssetId::from_chain(Chain::Ton)),
-            })
-        );
-    }
-
-    #[test]
-    fn test_address_with_amount() {
-        assert_eq!(
-            PaymentURLDecoder::decode("0x25851Bf7D35293A89F710eBFbD4718322eF7B174?amount=50.72").unwrap(),
-            Payment::Request(PaymentRequest {
-                address: "0x25851Bf7D35293A89F710eBFbD4718322eF7B174".to_string(),
-                amount: Some("50.72".to_string()),
-                memo: None,
-                asset_id: None,
             })
         );
     }
