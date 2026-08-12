@@ -2,9 +2,9 @@ package com.gemwallet.android.features.recipient.viewmodel
 
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.testkit.mockNameRecord
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameProvider
-import com.wallet.core.primitives.NameRecord
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,7 +17,7 @@ class RecipientValidationTest {
         val otherAccountId = "other.near"
         val chain = Chain.Near
         val destination = DestinationAddress(address = accountId, name = accountId)
-        val record = NameRecord(name = accountId, chain = chain, address = accountId, provider = NameProvider.Near)
+        val record = mockNameRecord(name = accountId, chain = chain, address = accountId, provider = NameProvider.Near)
         val validAddress = addressValidator(true)
         val invalidAddress = addressValidator(false)
 
@@ -29,13 +29,11 @@ class RecipientValidationTest {
         assertTrue(destination.isValidRecipient(accountId, chain, null, validAddress))
 
         val ethereumName = "example.eth"
-        val ethereumAddress = "0x1234567890123456789012345678901234567890"
+        val ethereumAddress = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
         val ethereumDestination = DestinationAddress(address = ethereumAddress, name = ethereumName)
-        val ethereumRecord = NameRecord(
+        val ethereumRecord = mockNameRecord(
             name = ethereumName,
-            chain = Chain.Ethereum,
             address = ethereumAddress,
-            provider = NameProvider.Ens,
         )
         val unresolvedEthereumRecord = ethereumRecord.copy(address = ethereumName)
         val unresolvedEthereumDestination = DestinationAddress(address = ethereumName, name = ethereumName)

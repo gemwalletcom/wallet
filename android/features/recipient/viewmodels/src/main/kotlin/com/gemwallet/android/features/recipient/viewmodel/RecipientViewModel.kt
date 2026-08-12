@@ -178,7 +178,7 @@ class RecipientViewModel @Inject constructor(
             ),
             amountAction = amountAction,
             confirmAction = confirmAction,
-            resolvedNameRecord = resolvedNameRecord,
+            nameRecord = resolvedNameRecord,
         )
     }
 
@@ -196,11 +196,11 @@ class RecipientViewModel @Inject constructor(
         destination: DestinationAddress,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
-        resolvedNameRecord: NameRecord? = null,
+        nameRecord: NameRecord? = null,
     ) {
         val asset = type.assetInfo.asset
         destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
-            val validation = validateDestination(asset, destination, resolvedNameRecord)
+            val validation = validateDestination(asset, destination, nameRecord)
             if (validation != RecipientError.None) {
                 if (!resolveName.canResolveName(destination.address)) {
                     addressError.update { validation }
@@ -271,8 +271,8 @@ class RecipientViewModel @Inject constructor(
         confirmAction(params)
     }
 
-    private fun validateDestination(asset: Asset, destination: DestinationAddress, resolvedNameRecord: NameRecord? = null): RecipientError =
-        if (destination.isValidRecipient(address.value, asset.chain, resolvedNameRecord, validateAddressOperator)) {
+    private fun validateDestination(asset: Asset, destination: DestinationAddress, nameRecord: NameRecord? = null): RecipientError =
+        if (destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddressOperator)) {
             RecipientError.None
         } else {
             RecipientError.IncorrectAddress(asset.name)

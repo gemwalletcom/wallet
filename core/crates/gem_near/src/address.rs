@@ -16,11 +16,11 @@ impl AddressTrait for NearAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    validate_account_id(address)
+pub fn is_valid_address(address: &str) -> bool {
+    is_implicit_address(address) || is_valid_account_id(address)
 }
 
-pub fn validate_account_id(account_id: &str) -> bool {
+pub fn is_valid_account_id(account_id: &str) -> bool {
     if !(2..=64).contains(&account_id.len()) {
         return false;
     }
@@ -51,12 +51,12 @@ mod tests {
         let deterministic_address = "0s85f17cf997934a597031b2e18a9ab6ebd4b9f6a4";
 
         for address in ["aa", "alice-near_1.testnet", "h3rman.near", implicit_address, eth_implicit_address, deterministic_address] {
-            assert!(validate_account_id(address));
+            assert!(is_valid_account_id(address));
         }
         for address in ["a", "Alice.near", "ƒelicia.near", ".near", "alice..near", "alice.near-"] {
-            assert!(!validate_account_id(address));
+            assert!(!is_valid_account_id(address));
         }
-        assert!(!validate_account_id(&"a".repeat(65)));
+        assert!(!is_valid_account_id(&"a".repeat(65)));
     }
 
     #[test]

@@ -11,7 +11,7 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
         ChainType::Tron => gem_tron::validate_address(address),
         ChainType::Aptos => gem_aptos::validate_address(address),
         ChainType::Sui => gem_sui::validate_address(address),
-        ChainType::Near => gem_near::validate_address(address),
+        ChainType::Near => gem_near::is_valid_address(address),
         ChainType::Stellar => gem_stellar::validate_address(address),
         ChainType::Algorand => gem_algorand::validate_address(address),
         ChainType::Xrp => gem_xrp::validate_address(address),
