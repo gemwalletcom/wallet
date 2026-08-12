@@ -104,20 +104,10 @@ public final class ConfirmTransferSceneViewModel {
         state.simulation.warnings
     }
 
-    public var primaryPayloadFields: [SimulationPayloadField] {
-        state.simulation.primaryFields
-    }
-
-    public var secondaryPayloadFields: [SimulationPayloadField] {
-        state.simulation.secondaryFields
-    }
-
-    var hasPayloadDetails: Bool {
-        state.simulation.hasDetails
-    }
+    public var payloadModel: SimulationPayloadModel { state.simulation.payload }
 
     var isButtonDisabled: Bool {
-        simulationWarnings.contains(where: { $0.severity == .critical })
+        simulationWarnings.hasCritical
     }
 
     var confirmButtonModel: ConfirmButtonViewModel {
@@ -159,7 +149,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ListSection(type: .header, [.header]),
             ListSection(type: .details, detailItems),
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
-            primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
+            payloadModel.primaryFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
             ListSection(type: .fee, [.networkFee]),
             ListSection(type: .error, [.error]),
@@ -197,7 +187,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .details:
             detailsViewModel
         case .payload:
-            ConfirmTransferItemModel.payload(primaryPayloadFields)
+            ConfirmTransferItemModel.payload(payloadModel.primaryFields)
         case let .balanceChange(index):
             ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
@@ -234,23 +224,10 @@ extension ConfirmTransferSceneViewModel {
     }
 
     public func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
-        var items = payloadFieldViewModel(for: field).contextMenuItems
-        if field.fieldType == .address {
-            let link = confirmService.explorerLink(chain: dataModel.chain, address: field.value)
-            items.append(.url(title: Localized.Transaction.viewOn(link.name), onOpen: { [weak self] in
-                if let url = URL(string: link.link) {
-                    self?.isPresentingSheet = .url(url)
-                }
-            }))
-        }
-        return items
-    }
-
-    public func payloadFieldViewModel(for field: SimulationPayloadField) -> SimulationPayloadFieldViewModel {
-        SimulationPayloadFieldViewModel(
-            field: field,
-            chain: dataModel.chain,
-            addressName: state.simulation.addressName(chain: dataModel.chain, for: field),
+        payloadModel.contextMenuItems(
+            for: field,
+            explorerLink: { confirmService.explorerLink(chain: dataModel.chain, address: $0) },
+            onOpenURL: { [weak self] in self?.isPresentingSheet = .url($0) },
         )
     }
 

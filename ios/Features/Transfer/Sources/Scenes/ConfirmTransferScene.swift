@@ -97,11 +97,11 @@ extension ConfirmTransferScene {
             Group {
                 SimulationPayloadFieldsContent(
                     fields: fields,
-                    fieldViewModel: self.model.payloadFieldViewModel(for:),
+                    fieldViewModel: self.model.payloadModel.fieldViewModel(for:),
                     contextMenuItems: self.model.contextMenuItems(for:),
                 )
 
-                if self.model.hasPayloadDetails {
+                if self.model.payloadModel.hasDetails {
                     NavigationCustomLink(
                         with: ListItemView(title: Localized.Common.details),
                         action: self.model.onSelectPayloadDetails,

@@ -360,8 +360,8 @@ struct SignMessageSceneViewModelTests {
         #expect(viewModel.simulationWarnings.count == 1)
         #expect(viewModel.simulationWarnings.first?.warning == .externallyOwnedSpender)
         #expect(!viewModel.isButtonDisabled)
-        #expect(viewModel.hasPayload)
-        #expect(viewModel.primaryPayloadFields.contains(where: { $0.kind == .spender && $0.value == "0x3333333333333333333333333333333333333333" }))
+        #expect(viewModel.payloadModel.hasFields)
+        #expect(viewModel.payloadModel.primaryFields.contains(where: { $0.kind == .spender && $0.value == "0x3333333333333333333333333333333333333333" }))
     }
 
     @Test
@@ -431,7 +431,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.hasPayload)
-        #expect(viewModel.primaryPayloadFields.count == 2)
+        #expect(viewModel.payloadModel.hasFields)
+        #expect(viewModel.payloadModel.primaryFields.count == 2)
     }
 }

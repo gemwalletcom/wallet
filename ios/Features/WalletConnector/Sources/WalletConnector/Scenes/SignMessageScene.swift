@@ -42,11 +42,11 @@ public struct SignMessageScene: View {
                 }
             }
 
-            if model.hasPayload {
+            if model.payloadModel.hasFields {
                 Section {
                     SimulationPayloadFieldsContent(
-                        fields: model.primaryPayloadFields,
-                        fieldViewModel: model.payloadFieldViewModel(for:),
+                        fields: model.payloadModel.primaryFields,
+                        fieldViewModel: model.payloadModel.fieldViewModel(for:),
                         contextMenuItems: model.contextMenuItems(for:),
                     )
 
@@ -73,12 +73,12 @@ public struct SignMessageScene: View {
         .navigationTitle(model.title)
         .safariSheet(url: $model.isPresentingUrl)
         .sheet(isPresented: $model.isPresentingPayloadDetails) {
-            if model.hasPayload {
+            if model.payloadModel.hasFields {
                 NavigationStack {
                     SimulationPayloadDetailsScene(
-                        primaryFields: model.primaryPayloadFields,
-                        secondaryFields: model.secondaryPayloadFields,
-                        fieldViewModel: model.payloadFieldViewModel(for:),
+                        primaryFields: model.payloadModel.primaryFields,
+                        secondaryFields: model.payloadModel.secondaryFields,
+                        fieldViewModel: model.payloadModel.fieldViewModel(for:),
                         contextMenuItems: model.contextMenuItems(for:),
                         actionTitle: Localized.SignMessage.viewFullMessage,
                         actionDestination: AnyView(TextMessageScene(model: model.textMessageViewModel)),

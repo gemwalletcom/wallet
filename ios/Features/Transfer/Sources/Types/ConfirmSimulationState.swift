@@ -5,17 +5,7 @@ import PrimitivesComponents
 
 struct ConfirmSimulationState {
     let warnings: [SimulationWarning]
-    let primaryFields: [SimulationPayloadField]
-    let secondaryFields: [SimulationPayloadField]
-    let payloadAddressNames: [ChainAddress: AddressName]
+    let payload: SimulationPayloadModel
     let headerData: AssetValueHeaderData?
     let balanceChanges: [SimulationAssetChange]
-
-    var hasDetails: Bool {
-        !secondaryFields.isEmpty
-    }
-
-    func addressName(chain: Chain, for field: SimulationPayloadField) -> AddressName? {
-        payloadAddressNames[ChainAddress(chain: chain, address: field.value)]
-    }
 }

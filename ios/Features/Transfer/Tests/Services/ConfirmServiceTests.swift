@@ -38,8 +38,8 @@ struct ConfirmServiceTests {
         )
 
         #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(1_000_000)))
-        #expect(state.primaryFields.isEmpty)
-        #expect(state.secondaryFields.isEmpty)
+        #expect(state.payload.primaryFields.isEmpty)
+        #expect(state.payload.secondaryFields.isEmpty)
     }
 
     @Test
@@ -82,9 +82,9 @@ struct ConfirmServiceTests {
         )
 
         #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .unlimited))
-        #expect(state.primaryFields.count == 1)
-        #expect(state.primaryFields.first?.kind == .contract)
-        #expect(state.secondaryFields.isEmpty)
+        #expect(state.payload.primaryFields.count == 1)
+        #expect(state.payload.primaryFields.first?.kind == .contract)
+        #expect(state.payload.secondaryFields.isEmpty)
     }
 
     @Test
@@ -159,8 +159,8 @@ struct ConfirmServiceTests {
             ]),
         )
 
-        #expect(state.primaryFields.count == 1)
-        #expect(state.secondaryFields.isEmpty)
-        #expect(state.payloadAddressNames.isEmpty)
+        #expect(state.payload.primaryFields.count == 1)
+        #expect(state.payload.secondaryFields.isEmpty)
+        #expect(state.payload.addressNames.isEmpty)
     }
 }
