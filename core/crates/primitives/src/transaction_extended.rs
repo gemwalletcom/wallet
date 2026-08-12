@@ -1,6 +1,6 @@
+use crate::{Transaction, Asset, Price, AssetPrice, AddressName};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
-use crate::{Transaction, Asset, Price, AssetPrice, AddressName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Sendable, Equatable, Hashable")]
@@ -18,4 +18,6 @@ pub struct TransactionExtended {
     pub from_address: Option<AddressName>,
     #[serde(rename = "toAddress")]
     pub to_address: Option<AddressName>,
+    #[serde(rename = "confirmationEtaSeconds")]
+    pub confirmation_eta_seconds: Option<u32>,
 }

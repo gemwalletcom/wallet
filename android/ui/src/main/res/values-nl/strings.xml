@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Portemonnee #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Portemonnee #%2$d</string>
   <string name="wallet_copy_address">Kopieer adres</string>
-  <string name="wallet_watch_tooltip_title">Je houdt deze portemonnee in de gaten.</string>
+  <string name="wallet_watch_tooltip_title">Alleen-kijken-portemonnee. Je hebt geen controle over deze tegoeden.</string>
+  <string name="wallet_watch_empty_state_title">Je houdt deze portemonnee in de gaten.</string>
   <string name="wallet_stake">Inzet</string>
   <string name="wallet_receive_no_memo_required">Geen notitie vereist</string>
   <string name="wallet_receive_no_destination_tag_required">Geen bestemmingstag vereist</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">Datum</string>
   <string name="transaction_view_on">Bekijk op %1$s</string>
   <string name="transaction_status">Status</string>
+  <string name="transaction_estimated_confirmation">Geschatte bevestiging</string>
   <string name="transaction_status_confirmed">Succesvol</string>
   <string name="transaction_status_pending">In behandeling</string>
   <string name="transaction_status_failed">Mislukt</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">Voor elke transactie op het %1$s netwerk is een vergoeding van %2$s vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.</string>
   <string name="info_transaction_error_description">De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.</string>
   <string name="info_transaction_pending_description">De transactie is verzonden en wacht op bevestiging op het netwerk. Verwerkingstijden kunnen variëren. Kom later terug voor updates.</string>
+  <string name="info_estimated_confirmation_description">Deze schatting is gebaseerd op de transactiekosten en de huidige activiteit op het %1$s-netwerk. De werkelijke bevestigingstijd kan veranderen en wordt niet gegarandeerd.</string>
   <string name="info_transaction_success_description">De transactie is voltooid en bevestigd op het netwerk. U kunt de details bekijken om de status ervan te verifiëren.</string>
   <string name="info_lock_time_description">De vergrendelingstijd, ook wel de unbonding- of unfreezing-periode genoemd, is de tijdsduur gedurende welke de inzet van activa ontoegankelijk is nadat u besluit deze weer op te heffen.</string>
   <string name="info_price_impact_description">Prijsimpact is de verandering in de tokenprijs die wordt veroorzaakt door de omvang van uw transactie. Een hogere prijsimpact betekent dat u minder tokens ontvangt vanwege de lage liquiditeit of een grote ordergrootte.</string>

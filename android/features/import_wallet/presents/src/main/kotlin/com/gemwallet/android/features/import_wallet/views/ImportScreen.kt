@@ -66,7 +66,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.NameRecord
+import com.gemwallet.android.ui.models.name.NameRecordState
 import com.wallet.core.primitives.WalletType
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -104,6 +104,7 @@ fun ImportScreen(
         onDispose {}
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val nameResolveState by viewModel.nameResolveState.collectAsStateWithLifecycle()
     val inputState = remember { mutableStateOf(TextFieldValue()) }
 
     ImportScene(
@@ -111,12 +112,13 @@ fun ImportScreen(
         importType = uiState.importType,
         generatedNameIndex = uiState.generatedNameIndex,
         chainName = uiState.chainName,
-        nameRecord = uiState.nameRecord,
+        nameResolveState = nameResolveState,
         dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
-        onImport = { generatedName, value, nameRecord ->
-            viewModel.import(generatedName, value, nameRecord, onImported)
+        onImport = { generatedName, value ->
+            viewModel.import(generatedName, value, onImported)
         },
+        onInput = viewModel::onInput,
         onTypeChange = viewModel::chainType,
         onCancel = onCancel,
     )
@@ -164,10 +166,11 @@ private fun ImportScene(
     importType: ImportType,
     generatedNameIndex: Int,
     chainName: String,
-    nameRecord: NameRecord?,
+    nameResolveState: NameRecordState,
     dataError: ImportError?,
     buttonState: ButtonState,
-    onImport: (generatedName: String, value: String, nameRecord: NameRecord?) -> Unit,
+    onImport: (generatedName: String, value: String) -> Unit,
+    onInput: (String) -> Unit,
     onTypeChange: (WalletType) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -184,7 +187,6 @@ private fun ImportScene(
             chainWalletName
         }
     }
-    val nameRecordState = remember(nameRecord?.address) { mutableStateOf(nameRecord) }
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
     Scene(
@@ -195,7 +197,7 @@ private fun ImportScene(
                 title = stringResource(id = R.string.wallet_import_action),
                 state = buttonState,
                 onClick = {
-                    onImport(generatedName, inputState.value.text, nameRecordState.value)
+                    onImport(generatedName, inputState.value.text)
                 },
             )
         },
@@ -215,9 +217,8 @@ private fun ImportScene(
                     TypeSelection(importType) { walletType ->
                         onTypeChange(walletType)
                         inputState.value = TextFieldValue()
-                        nameRecordState.value = null
                     }
-                    DataInput(importType, inputState, nameRecordState) {
+                    DataInput(importType, inputState, nameResolveState, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
@@ -232,7 +233,8 @@ private fun ImportScene(
 private fun DataInput(
     importType: ImportType,
     inputState: MutableState<TextFieldValue>,
-    nameRecordState: MutableState<NameRecord?>,
+    nameResolveState: NameRecordState,
+    onInput: (String) -> Unit,
     onChange: () -> Unit,
 ) {
     val suggestions = remember(importType.walletType) { mutableStateListOf<String>() }
@@ -240,11 +242,13 @@ private fun DataInput(
     ImportInput(
         inputState = inputState.value,
         importType = importType,
+        uiState = nameResolveState,
         onValueChange = { query ->
             inputState.value = query
             suggestions.clear()
 
             onChange()
+            onInput(query.text)
 
             if (!supportsPhraseSuggestions(importType.walletType)) {
                 return@ImportInput
@@ -261,10 +265,8 @@ private fun DataInput(
             }
             val result = GemFindPhraseWord().invoke(word)
             suggestions.addAll(result)
-        }
-    ) {
-        nameRecordState.value = it
-    }
+        },
+    )
 
     if (importType.walletType == WalletType.View) {
         Text(
@@ -363,10 +365,11 @@ fun PreviewImportAddress() {
                 importType = ImportType(chain = Chain.Bitcoin, walletType = WalletType.View),
                 generatedNameIndex = 1,
                 chainName = "Ethereum",
-                nameRecord = null,
+                nameResolveState = NameRecordState.None,
                 dataError = null,
                 buttonState = ButtonState.Enabled,
-                onImport = {_, _, _ -> },
+                onImport = {_, _ -> },
+                onInput = {},
                 onTypeChange = {},
                 onCancel = {},
             )

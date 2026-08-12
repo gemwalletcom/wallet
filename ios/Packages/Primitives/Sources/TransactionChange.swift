@@ -19,4 +19,5 @@ public enum TransactionChange: Sendable {
     case createdAt(Date)
     case hashChange(old: String, new: String)
     case metadata(AnyCodableValue)
+    case confirmationEtaSeconds(UInt32)
 }

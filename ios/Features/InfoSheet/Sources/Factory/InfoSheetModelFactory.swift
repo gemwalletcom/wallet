@@ -58,6 +58,12 @@ public enum InfoSheetModelFactory {
                 image: .assetImage(AssetImage(imageURL: imageURL, placeholder: placeholder, chainPlaceholder: model.stateImage)),
                 button: .url(AppUrl.docs(.transactionStatus)),
             )
+        case let .estimatedConfirmation(chain):
+            return InfoSheetModel(
+                title: Localized.Transaction.estimatedConfirmation,
+                description: Localized.Info.estimatedConfirmationDescription(chain.networkName.boldMarkdown()),
+                image: .image(Images.Info.networkFee),
+            )
         case .watchWallet:
             return InfoSheetModel(
                 title: Localized.Info.WatchWallet.title,

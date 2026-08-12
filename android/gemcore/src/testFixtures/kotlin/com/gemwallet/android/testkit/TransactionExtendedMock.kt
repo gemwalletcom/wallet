@@ -15,6 +15,7 @@ fun mockTransactionExtended(
     price: Price? = null,
     feePrice: Price? = null,
     assets: List<Asset> = listOf(asset),
+    confirmationEtaSeconds: UInt? = null,
 ) = TransactionExtended(
     transaction = transaction,
     asset = asset,
@@ -22,4 +23,5 @@ fun mockTransactionExtended(
     price = price,
     feePrice = feePrice,
     assets = assets,
+    confirmationEtaSeconds = confirmationEtaSeconds,
 )

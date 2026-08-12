@@ -23,6 +23,6 @@ impl GemApiClient {
             body: Some(serde_json::to_vec(&payload).map_err(|e| e.to_string())?),
         };
         let response = self.provider.request(target).await.map_err(|e| e.to_string())?;
-        serde_json::from_slice(&response.data).map_err(|e| format!("Failed to parse response: {}", e))
+        serde_json::from_slice(response.data()).map_err(|e| format!("Failed to parse response: {}", e))
     }
 }

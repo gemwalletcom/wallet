@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub use gem_client::X_CACHE_TTL;
-pub use gem_jsonrpc::RpcResponse as AlienResponse;
+use gem_jsonrpc::RpcResponse;
 pub type AlienTarget = swapper::Target;
 pub type AlienHttpMethod = swapper::HttpMethod;
 
@@ -13,10 +13,29 @@ pub struct AlienTarget {
     pub body: Option<Vec<u8>>,
 }
 
-#[uniffi::remote(Record)]
+#[derive(Debug, uniffi::Object)]
 pub struct AlienResponse {
-    pub status: Option<u16>,
-    pub data: Vec<u8>,
+    response: RpcResponse,
+}
+
+#[uniffi::export]
+impl AlienResponse {
+    #[uniffi::constructor]
+    pub fn new(status: Option<u16>, data: Vec<u8>) -> Self {
+        Self {
+            response: RpcResponse { status, data },
+        }
+    }
+}
+
+impl AlienResponse {
+    pub(crate) fn to_rpc_response(&self) -> RpcResponse {
+        self.response.clone()
+    }
+
+    pub(crate) fn data(&self) -> &[u8] {
+        &self.response.data
+    }
 }
 
 #[uniffi::remote(Enum)]

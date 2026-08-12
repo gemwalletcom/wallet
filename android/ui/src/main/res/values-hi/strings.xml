@@ -77,7 +77,8 @@
   <string name="wallet_default_name">वॉलेट #%1$d</string>
   <string name="wallet_default_name_chain">%1$s वॉलेट #%2$d</string>
   <string name="wallet_copy_address">पता कॉपी करें</string>
-  <string name="wallet_watch_tooltip_title">आप यह बटुआ देख रहे हैं.</string>
+  <string name="wallet_watch_tooltip_title">केवल देखने वाला वॉलेट। इन फ़ंड पर आपका नियंत्रण नहीं है।</string>
+  <string name="wallet_watch_empty_state_title">आप यह बटुआ देख रहे हैं.</string>
   <string name="wallet_stake">स्टेक</string>
   <string name="wallet_receive_no_memo_required">किसी मेमो की आवश्यकता नहीं</string>
   <string name="wallet_receive_no_destination_tag_required">किसी गंतव्य टैग की आवश्यकता नहीं है</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">दिनांक</string>
   <string name="transaction_view_on">%1$s पर देखें</string>
   <string name="transaction_status">स्थिति</string>
+  <string name="transaction_estimated_confirmation">अनुमानित पुष्टि</string>
   <string name="transaction_status_confirmed">सफल</string>
   <string name="transaction_status_pending">लंबित</string>
   <string name="transaction_status_failed">असफल</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">%1$s नेटवर्क पर प्रत्येक लेनदेन के लिए आपके लेनदेन को संसाधित करने के लिए खनिकों को भुगतान किए जाने वाले %2$s शुल्क की आवश्यकता होती है, Gem Wallet की नहीं। नेटवर्क शुल्क नेटवर्क उपयोग के आधार पर भिन्न होता है।</string>
   <string name="info_transaction_error_description">अपर्याप्त धनराशि, अमान्य इनपुट या नेटवर्क द्वारा अस्वीकृति जैसी किसी त्रुटि के कारण लेनदेन पूरा नहीं हो सका। कृपया विवरण की समीक्षा करें और पुनः प्रयास करें।</string>
   <string name="info_transaction_pending_description">लेन-देन सबमिट कर दिया गया है और नेटवर्क पर पुष्टि की प्रतीक्षा कर रहा है। प्रसंस्करण समय अलग-अलग हो सकता है। कृपया अपडेट के लिए वापस जाँच करें।</string>
+  <string name="info_estimated_confirmation_description">यह अनुमान लेन-देन शुल्क और मौजूदा %1$s नेटवर्क गतिविधि पर आधारित है। वास्तविक पुष्टि समय बदल सकता है और इसकी गारंटी नहीं है।</string>
   <string name="info_transaction_success_description">लेन-देन पूरा हो गया है और नेटवर्क पर इसकी पुष्टि हो गई है। आप इसकी स्थिति सत्यापित करने के लिए विवरण की समीक्षा कर सकते हैं।</string>
   <string name="info_lock_time_description">लॉक टाइम, जिसे अनबॉन्डिंग या अनफ़्रीज़िंग अवधि के रूप में भी जाना जाता है, वह अवधि है जिसके दौरान आपके द्वारा दांव से हटाने का निर्णय लेने के बाद दांव पर लगी संपत्तियों तक पहुंच नहीं हो पाती है।</string>
   <string name="info_price_impact_description">मूल्य प्रभाव आपके व्यापार आकार के कारण टोकन मूल्य में होने वाला परिवर्तन है। उच्च मूल्य प्रभाव का मतलब है कि आपको कम तरलता या बड़े ऑर्डर आकार के कारण कम टोकन प्राप्त होते हैं।</string>

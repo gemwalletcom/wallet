@@ -11,7 +11,7 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
         ChainType::Tron => gem_tron::validate_address(address),
         ChainType::Aptos => gem_aptos::validate_address(address),
         ChainType::Sui => gem_sui::validate_address(address),
-        ChainType::Near => gem_near::validate_address(address),
+        ChainType::Near => gem_near::is_valid_address(address),
         ChainType::Stellar => gem_stellar::validate_address(address),
         ChainType::Algorand => gem_algorand::validate_address(address),
         ChainType::Xrp => gem_xrp::validate_address(address),
@@ -50,6 +50,8 @@ mod tests {
         assert!(validate_address("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2", Chain::Solana));
         assert!(validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75H", Chain::Xrp));
         assert!(!validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75J", Chain::Xrp));
+        assert!(validate_address("h3rman.near", Chain::Near));
+        assert!(validate_address("0x85f17cf997934a597031b2e18a9ab6ebd4b9f6a4", Chain::Near));
         assert!(validate_address("UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV", Chain::Ton));
         assert!(validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo", Chain::Polkadot));
         assert!(!validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXj", Chain::Polkadot));

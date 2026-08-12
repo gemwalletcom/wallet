@@ -72,7 +72,8 @@
 "wallet.default_name" = "Dompet %d";
 "wallet.default_name_chain" = "Dompet %@ #%d";
 "wallet.copy_address" = "Salin Alamat";
-"wallet.watch.tooltip.title" = "Anda sedang memantau dompet ini.";
+"wallet.watch.tooltip.title" = "Dompet khusus pantau. Anda tidak mengontrol dana ini.";
+"wallet.watch_empty_state_title" = "Anda sedang memantau dompet ini.";
 "wallet.stake" = "Staking";
 "wallet.receive.no_memo_required" = "Memo tidak diperlukan";
 "wallet.receive.no_destination_tag_required" = "Tag tujuan tidak diperlukan";
@@ -222,6 +223,7 @@
 "transaction.date" = "Tanggal";
 "transaction.view_on" = "Lihat di %@";
 "transaction.status" = "Status";
+"transaction.estimated_confirmation" = "Perkiraan konfirmasi";
 "transaction.status.confirmed" = "Berhasil";
 "transaction.status.pending" = "Tertunda";
 "transaction.status.failed" = "Gagal";
@@ -424,6 +426,7 @@
 "info.network_fee.description" = "Setiap transaksi di jaringan %@ memerlukan biaya sebesar %@ yang dibayarkan kepada penambang untuk memproses transaksi Anda, bukan Gem Wallet. Biaya jaringan bervariasi berdasarkan penggunaan jaringan.";
 "info.transaction.error.description" = "Transaksi tidak dapat diselesaikan karena kesalahan, seperti dana tidak mencukupi, input tidak valid, atau penolakan oleh jaringan. Harap tinjau detailnya dan coba lagi.";
 "info.transaction.pending.description" = "Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.";
+"info.estimated_confirmation_description" = "Perkiraan ini didasarkan pada biaya transaksi dan aktivitas jaringan %@ saat ini. Waktu konfirmasi sebenarnya dapat berubah dan tidak dijamin.";
 "info.transaction.success.description" = "Transaksi telah selesai dan dikonfirmasi di jaringan. Anda dapat meninjau detailnya untuk memverifikasi statusnya.";
 "info.lock_time.description" = "Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset yang dipertaruhkan tidak dapat diakses setelah Anda memutuskan untuk melepaskannya.";
 "info.price_impact.description" = "Dampak harga adalah perubahan harga token yang disebabkan oleh ukuran perdagangan Anda. Dampak harga yang lebih tinggi berarti Anda menerima lebih sedikit token karena likuiditas rendah atau ukuran pesanan besar.";

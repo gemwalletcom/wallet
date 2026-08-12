@@ -20,5 +20,5 @@ data class TransactionExtended (
     val assets: List<Asset>,
     val fromAddress: AddressName? = null,
     val toAddress: AddressName? = null,
+    val confirmationEtaSeconds: UInt? = null,
 )
-

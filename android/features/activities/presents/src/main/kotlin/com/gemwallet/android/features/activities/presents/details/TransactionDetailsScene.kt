@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.features.activities.presents.details.components.DestinationPropertyItem
@@ -16,6 +17,7 @@ import com.gemwallet.android.features.activities.presents.details.components.Swa
 import com.gemwallet.android.features.activities.presents.details.components.TransactionExplorer
 import com.gemwallet.android.features.activities.presents.details.components.TransactionStatusProperty
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
@@ -106,6 +108,12 @@ internal fun TransactionDetailsScene(
                         is TransactionDetailsValue.Pnl -> PropertyItem(stringResource(R.string.perpetual_pnl), item.value, dataColor = item.direction.color(), listPosition = position)
                         is TransactionDetailsValue.Price -> PropertyItem(R.string.asset_price, item.data, listPosition = position)
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
+                        is TransactionDetailsValue.EstimatedConfirmation -> PropertyItem(
+                            title = R.string.transaction_estimated_confirmation,
+                            data = formatEstimatedConfirmation(item.seconds),
+                            info = InfoSheetEntity.EstimatedConfirmationInfo(data.asset.chain),
+                            listPosition = position,
+                        )
                         is TransactionDetailsValue.Rate -> AssetRatePropertyItem(item.rate, position)
                         is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item)
                         is TransactionDetailsValue.SwapAgain -> MainActionButton(

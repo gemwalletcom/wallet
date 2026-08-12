@@ -1,14 +1,14 @@
 use super::{AlienError, AlienResponse, AlienTarget};
 
 use async_trait::async_trait;
-use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
+use gem_jsonrpc::rpc::{RpcProvider as GenericRpcProvider, RpcResponse};
 use primitives::Chain;
 use std::{fmt::Debug, sync::Arc};
 
 #[uniffi::export(with_foreign)]
 #[async_trait]
 pub trait AlienProvider: Send + Sync + Debug {
-    async fn request(&self, target: AlienTarget) -> Result<AlienResponse, AlienError>;
+    async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError>;
     fn get_endpoint(&self, chain: Chain) -> Result<String, AlienError>;
 }
 
@@ -27,8 +27,8 @@ impl AlienProviderWrapper {
 impl GenericRpcProvider for AlienProviderWrapper {
     type Error = AlienError;
 
-    async fn request(&self, target: AlienTarget) -> Result<AlienResponse, Self::Error> {
-        self.provider.request(target).await
+    async fn request(&self, target: AlienTarget) -> Result<RpcResponse, Self::Error> {
+        Ok(self.provider.request(target).await?.to_rpc_response())
     }
 
     fn get_endpoint(&self, chain: Chain) -> Result<String, Self::Error> {

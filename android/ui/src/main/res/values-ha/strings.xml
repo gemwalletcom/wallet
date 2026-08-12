@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Wallet #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Wallet #%2$d</string>
   <string name="wallet_copy_address">Kwafi Adireshin</string>
-  <string name="wallet_watch_tooltip_title">Kuna kallon wannan walat.</string>
+  <string name="wallet_watch_tooltip_title">Walat na kallo kawai. Ba ku da ikon sarrafa waɗannan kuɗaɗe ba.</string>
+  <string name="wallet_watch_empty_state_title">Kuna kallon wannan walat.</string>
   <string name="wallet_stake">Saka hannun jari</string>
   <string name="wallet_receive_no_memo_required">Babu memo da ake buƙata</string>
   <string name="wallet_receive_no_destination_tag_required">Babu alamar makoma da ake buƙata</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">Kwanan wata</string>
   <string name="transaction_view_on">Duba kan %1$s</string>
   <string name="transaction_status">Matsayi</string>
+  <string name="transaction_estimated_confirmation">Kiyasin tabbatarwa</string>
   <string name="transaction_status_confirmed">Nasara</string>
   <string name="transaction_status_pending">Ana jiran</string>
   <string name="transaction_status_failed">Ba a yi nasara ba</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">Kowace ciniki akan hanyar sadarwar %1$s tana buƙatar kuɗi a cikin %2$s da aka biya ga masu hakar ma\'adinai don aiwatar da kasuwancin ku, ba Gem Wallet ba. Kudaden hanyar sadarwa sun bambanta dangane da amfani da hanyar sadarwa.</string>
   <string name="info_transaction_error_description">Ba za a iya kammala cinikin ba saboda kuskure, kamar rashin isassun kuɗi, shigarwa mara inganci, ko kin amincewa da hanyar sadarwa. Da fatan za a sake nazarin cikakkun bayanai kuma a sake gwadawa.</string>
   <string name="info_transaction_pending_description">An ƙaddamar da ma\'amala kuma yana jiran tabbaci akan hanyar sadarwar. Lokutan sarrafawa na iya bambanta. Da fatan za a duba baya don sabuntawa.</string>
+  <string name="info_estimated_confirmation_description">Wannan kiyasi ya dogara da kuɗin ma\'amala da aikin hanyar sadarwar %1$s na yanzu. Ainihin lokacin tabbatarwa na iya canzawa kuma ba shi da tabbaci.</string>
   <string name="info_transaction_success_description">An kammala cinikin kuma an tabbatar da shi akan hanyar sadarwa. Kuna iya duba cikakkun bayanai don tabbatar da matsayinsa.</string>
   <string name="info_lock_time_description">Lokacin kulle, wanda kuma aka sani da lokacin kwancewa ko rashin daskarewa, shine tsawon lokacin da kadarorin da aka saka ba a iya samun su bayan kun yanke shawarar cire su.</string>
   <string name="info_price_impact_description">Tasirin farashi shine canjin farashin alamar da girman cinikin ku ya haifar. Tasirin farashi mafi girma yana nufin ka karɓi ƴan alamu saboda ƙarancin kuɗi ko girman oda.</string>

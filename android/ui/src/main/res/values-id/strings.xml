@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Dompet %1$d</string>
   <string name="wallet_default_name_chain">Dompet %1$s #%2$d</string>
   <string name="wallet_copy_address">Salin Alamat</string>
-  <string name="wallet_watch_tooltip_title">Anda sedang memantau dompet ini.</string>
+  <string name="wallet_watch_tooltip_title">Dompet khusus pantau. Anda tidak mengontrol dana ini.</string>
+  <string name="wallet_watch_empty_state_title">Anda sedang memantau dompet ini.</string>
   <string name="wallet_stake">Staking</string>
   <string name="wallet_receive_no_memo_required">Memo tidak diperlukan</string>
   <string name="wallet_receive_no_destination_tag_required">Tag tujuan tidak diperlukan</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">Tanggal</string>
   <string name="transaction_view_on">Lihat di %1$s</string>
   <string name="transaction_status">Status</string>
+  <string name="transaction_estimated_confirmation">Perkiraan konfirmasi</string>
   <string name="transaction_status_confirmed">Berhasil</string>
   <string name="transaction_status_pending">Tertunda</string>
   <string name="transaction_status_failed">Gagal</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">Setiap transaksi di jaringan %1$s memerlukan biaya sebesar %2$s yang dibayarkan kepada penambang untuk memproses transaksi Anda, bukan Gem Wallet. Biaya jaringan bervariasi berdasarkan penggunaan jaringan.</string>
   <string name="info_transaction_error_description">Transaksi tidak dapat diselesaikan karena kesalahan, seperti dana tidak mencukupi, input tidak valid, atau penolakan oleh jaringan. Harap tinjau detailnya dan coba lagi.</string>
   <string name="info_transaction_pending_description">Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.</string>
+  <string name="info_estimated_confirmation_description">Perkiraan ini didasarkan pada biaya transaksi dan aktivitas jaringan %1$s saat ini. Waktu konfirmasi sebenarnya dapat berubah dan tidak dijamin.</string>
   <string name="info_transaction_success_description">Transaksi telah selesai dan dikonfirmasi di jaringan. Anda dapat meninjau detailnya untuk memverifikasi statusnya.</string>
   <string name="info_lock_time_description">Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset yang dipertaruhkan tidak dapat diakses setelah Anda memutuskan untuk melepaskannya.</string>
   <string name="info_price_impact_description">Dampak harga adalah perubahan harga token yang disebabkan oleh ukuran perdagangan Anda. Dampak harga yang lebih tinggi berarti Anda menerima lebih sedikit token karena likuiditas rendah atau ukuran pesanan besar.</string>

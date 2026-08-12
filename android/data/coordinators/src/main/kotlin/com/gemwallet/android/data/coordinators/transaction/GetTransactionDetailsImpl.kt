@@ -199,6 +199,10 @@ class TransactionDetailsAggregateImpl(
 
     override val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state)
 
+    override val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = data.confirmationEtaSeconds
+        ?.takeIf { data.transaction.state == TransactionState.Pending && it > 0u }
+        ?.let { TransactionDetailsValue.EstimatedConfirmation(it) }
+
     override val memo: TransactionDetailsValue.Memo? = data.transaction.memo
         ?.takeIf { it.isNotEmpty() }
         ?.let { TransactionDetailsValue.Memo(it) }
@@ -282,6 +286,7 @@ class TransactionDetailsAggregateImpl(
                     listOfNotNull(
                         date,
                         status,
+                        estimatedConfirmation,
                         rate,
                         addressDestination,
                         resourceType,

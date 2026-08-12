@@ -28,6 +28,7 @@ extension TransactionInfo {
             prices: prices.compactMap { $0.mapToAssetPrice() },
             fromAddress: fromAddress?.mapToAddressName(),
             toAddress: toAddress?.mapToAddressName(),
+            confirmationEtaSeconds: transaction.estimatedConfirmationInSeconds,
         )
     }
 }

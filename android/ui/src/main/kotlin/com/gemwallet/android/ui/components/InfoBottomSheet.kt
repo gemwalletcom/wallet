@@ -153,6 +153,13 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
     )
 
+    class EstimatedConfirmationInfo(chain: Chain) : InfoSheetEntity(
+        icon = R.drawable.ic_network_fee,
+        title = R.string.transaction_estimated_confirmation,
+        description = R.string.info_estimated_confirmation_description,
+        descriptionArgs = listOf("**${chain.networkName()}**"),
+    )
+
     object WatchWalletInfo : InfoSheetEntity(
         icon = R.drawable.watch_badge,
         title = R.string.info_watch_wallet_title,

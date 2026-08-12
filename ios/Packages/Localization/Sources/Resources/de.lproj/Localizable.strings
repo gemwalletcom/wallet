@@ -72,7 +72,8 @@
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Adresse kopieren";
-"wallet.watch.tooltip.title" = "Sie beobachten diese Wallet.";
+"wallet.watch.tooltip.title" = "Nur-Beobachten-Wallet. Sie haben keine Kontrolle über diese Gelder.";
+"wallet.watch_empty_state_title" = "Sie beobachten diese Wallet.";
 "wallet.stake" = "Staking";
 "wallet.receive.no_memo_required" = "Kein Memo erforderlich";
 "wallet.receive.no_destination_tag_required" = "Kein Destination-Tag erforderlich";
@@ -222,6 +223,7 @@
 "transaction.date" = "Datum";
 "transaction.view_on" = "Anzeigen auf %@";
 "transaction.status" = "Status";
+"transaction.estimated_confirmation" = "Geschätzte Bestätigung";
 "transaction.status.confirmed" = "Erfolgreich";
 "transaction.status.pending" = "Ausstehend";
 "transaction.status.failed" = "Fehlgeschlagen";
@@ -424,6 +426,7 @@
 "info.network_fee.description" = "Für jede Transaktion im %@-Netzwerk wird eine Gebühr in %@ an die Miner gezahlt, um Ihre Transaktion abzuwickeln, nicht an Gem Wallet. Die Netzwerkgebühren variieren je nach Netzwerknutzung.";
 "info.transaction.error.description" = "Die Transaktion konnte aufgrund eines Fehlers nicht abgeschlossen werden, z. B. aufgrund unzureichender Mittel, ungültiger Eingaben oder einer Ablehnung durch das Netzwerk. Bitte überprüfen Sie die Details und versuchen Sie es erneut.";
 "info.transaction.pending.description" = "Die Transaktion wurde übermittelt und wartet auf die Bestätigung im Netzwerk. Die Bearbeitungszeit kann variieren. Bitte schauen Sie später noch einmal vorbei, um Updates zu erhalten.";
+"info.estimated_confirmation_description" = "Dies ist eine Schätzung auf Grundlage der Transaktionsgebühr und der aktuellen Auslastung des %@-Netzwerks. Die tatsächliche Bestätigungszeit kann sich ändern und ist nicht garantiert.";
 "info.transaction.success.description" = "Die Transaktion wurde abgeschlossen und im Netzwerk bestätigt. Sie können die Details überprüfen, um den Status zu verifizieren.";
 "info.lock_time.description" = "Die Sperrzeit, auch Unbonding- oder Unfreezing-Zeitraum genannt, ist der Zeitraum, in dem abgesteckte Vermögenswerte nicht mehr zugänglich sind, nachdem Sie sich entschieden haben, sie aufzuheben.";
 "info.price_impact.description" = "Der Preiseinfluss ist die Änderung des Token-Preises, die durch Ihre Handelsgröße verursacht wird. Ein höherer Preiseinfluss bedeutet, dass Sie aufgrund geringer Liquidität oder einer großen Auftragsgröße weniger Token erhalten.";

@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Carteira #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Carteira #%2$d</string>
   <string name="wallet_copy_address">Copiar endereço</string>
-  <string name="wallet_watch_tooltip_title">Você está observando esta carteira.</string>
+  <string name="wallet_watch_tooltip_title">Carteira somente de observação. Você não controla esses fundos.</string>
+  <string name="wallet_watch_empty_state_title">Você está observando esta carteira.</string>
   <string name="wallet_stake">Fazer stake</string>
   <string name="wallet_receive_no_memo_required">Não é necessário memorando</string>
   <string name="wallet_receive_no_destination_tag_required">Nenhuma tag de destino é necessária</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">Data</string>
   <string name="transaction_view_on">Ver em %1$s</string>
   <string name="transaction_status">Estado</string>
+  <string name="transaction_estimated_confirmation">Confirmação estimada</string>
   <string name="transaction_status_confirmed">Bem-sucedido</string>
   <string name="transaction_status_pending">Pendente</string>
   <string name="transaction_status_failed">Falhou</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">Cada transação na rede %1$s exige uma taxa em %2$s paga aos mineradores para processar sua transação, não à Gem Wallet. As taxas de rede variam de acordo com o uso da rede.</string>
   <string name="info_transaction_error_description">A transação não pôde ser concluída devido a um erro, como fundos insuficientes, entrada inválida ou rejeição pela rede. Revise os detalhes e tente novamente.</string>
   <string name="info_transaction_pending_description">A transação foi enviada e aguarda confirmação na rede. O tempo de processamento pode variar. Verifique novamente para obter atualizações.</string>
+  <string name="info_estimated_confirmation_description">Esta estimativa se baseia na taxa da transação e na atividade atual da rede %1$s. O tempo real de confirmação pode mudar e não é garantido.</string>
   <string name="info_transaction_success_description">A transação foi concluída e confirmada na rede. Você pode revisar os detalhes para verificar o status.</string>
   <string name="info_lock_time_description">O tempo de bloqueio, também conhecido como período de desvinculação ou descongelamento, é a duração durante a qual os ativos apostados ficam inacessíveis após você decidir desfazê-los.</string>
   <string name="info_price_impact_description">Impacto de preço é a mudança no preço do token causada pelo tamanho da sua negociação. Impacto de preço mais alto significa que você recebe menos tokens devido à baixa liquidez ou a um tamanho de ordem grande.</string>

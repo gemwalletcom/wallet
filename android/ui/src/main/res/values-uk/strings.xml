@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Гаманець № %1$d</string>
   <string name="wallet_default_name_chain">%1$s Гаманець № %2$d</string>
   <string name="wallet_copy_address">Копіювати адресу</string>
-  <string name="wallet_watch_tooltip_title">Ви спостерігаєте за цим гаманцем.</string>
+  <string name="wallet_watch_tooltip_title">Гаманець лише для спостереження. Ви не контролюєте ці кошти.</string>
+  <string name="wallet_watch_empty_state_title">Ви спостерігаєте за цим гаманцем.</string>
   <string name="wallet_stake">Стейкнути</string>
   <string name="wallet_receive_no_memo_required">Memo не потрібен</string>
   <string name="wallet_receive_no_destination_tag_required">Тег призначення не потрібен</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">Дата</string>
   <string name="transaction_view_on">Переглянути %1$s</string>
   <string name="transaction_status">Статус</string>
+  <string name="transaction_estimated_confirmation">Орієнтовне підтвердження</string>
   <string name="transaction_status_confirmed">Успішно</string>
   <string name="transaction_status_pending">В очікуванні</string>
   <string name="transaction_status_failed">Помилка</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">Кожна транзакція в мережі %1$s вимагає комісію в %2$s, яка сплачується майнерам за обробку вашої транзакції, а не Gem Wallet. Розмір мережевої комісії залежить від використання мережі.</string>
   <string name="info_transaction_error_description">Транзакцію не вдалося завершити через помилку, таку як недостатня кількість коштів, недійсні дані або відхилення мережею. Перегляньте деталі та повторіть спробу.</string>
   <string name="info_transaction_pending_description">Транзакцію надіслано та очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями.</string>
+  <string name="info_estimated_confirmation_description">Ця оцінка базується на комісії транзакції та поточній активності мережі %1$s. Фактичний час підтвердження може змінюватися й не гарантується.</string>
   <string name="info_transaction_success_description">Транзакцію завершено та підтверджено в мережі. Ви можете переглянути деталі, щоб перевірити її статус.</string>
   <string name="info_lock_time_description">Час блокування, також відомий як період розблокування або розморожування, — це тривалість, протягом якої ставлені активи недоступні після того, як ви вирішили їх скасувати.</string>
   <string name="info_price_impact_description">Вплив ціни — це зміна ціни токена, спричинена розміром вашої торгівлі. Більший вплив на ціну означає, що ви отримуєте менше токенів через низьку ліквідність або великий розмір замовлення.</string>

@@ -72,7 +72,8 @@
 "wallet.default_name" = "Carteira #%d";
 "wallet.default_name_chain" = "%@ Carteira #%d";
 "wallet.copy_address" = "Copiar endereço";
-"wallet.watch.tooltip.title" = "Você está observando esta carteira.";
+"wallet.watch.tooltip.title" = "Carteira somente de observação. Você não controla esses fundos.";
+"wallet.watch_empty_state_title" = "Você está observando esta carteira.";
 "wallet.stake" = "Fazer stake";
 "wallet.receive.no_memo_required" = "Não é necessário memorando";
 "wallet.receive.no_destination_tag_required" = "Nenhuma tag de destino é necessária";
@@ -222,6 +223,7 @@
 "transaction.date" = "Data";
 "transaction.view_on" = "Ver em %@";
 "transaction.status" = "Estado";
+"transaction.estimated_confirmation" = "Confirmação estimada";
 "transaction.status.confirmed" = "Bem-sucedido";
 "transaction.status.pending" = "Pendente";
 "transaction.status.failed" = "Falhou";
@@ -424,6 +426,7 @@
 "info.network_fee.description" = "Cada transação na rede %@ exige uma taxa em %@ paga aos mineradores para processar sua transação, não à Gem Wallet. As taxas de rede variam de acordo com o uso da rede.";
 "info.transaction.error.description" = "A transação não pôde ser concluída devido a um erro, como fundos insuficientes, entrada inválida ou rejeição pela rede. Revise os detalhes e tente novamente.";
 "info.transaction.pending.description" = "A transação foi enviada e aguarda confirmação na rede. O tempo de processamento pode variar. Verifique novamente para obter atualizações.";
+"info.estimated_confirmation_description" = "Esta estimativa se baseia na taxa da transação e na atividade atual da rede %@. O tempo real de confirmação pode mudar e não é garantido.";
 "info.transaction.success.description" = "A transação foi concluída e confirmada na rede. Você pode revisar os detalhes para verificar o status.";
 "info.lock_time.description" = "O tempo de bloqueio, também conhecido como período de desvinculação ou descongelamento, é a duração durante a qual os ativos apostados ficam inacessíveis após você decidir desfazê-los.";
 "info.price_impact.description" = "Impacto de preço é a mudança no preço do token causada pelo tamanho da sua negociação. Impacto de preço mais alto significa que você recebe menos tokens devido à baixa liquidez ou a um tamanho de ordem grande.";

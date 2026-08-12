@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.recipient.viewmodel
+package com.gemwallet.android.ui.models.name
 
 import com.wallet.core.primitives.NameRecord
 
