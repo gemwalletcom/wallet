@@ -268,7 +268,7 @@ mod tests {
                 .collect::<Vec<_>>()
         };
 
-        // Cross chain swaps (same chain will be filtered out)
+        // Cross-chain providers are eligible across different chains.
         assert_eq!(filter(Chain::Ethereum, Chain::Optimism), vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents]);
 
         assert_eq!(
@@ -286,6 +286,8 @@ mod tests {
             filter(Chain::Ethereum, Chain::Ethereum),
             vec![SwapperProvider::UniswapV3, SwapperProvider::PancakeswapV3, SwapperProvider::Jupiter]
         );
+
+        assert!(filter(Chain::Near, Chain::Near).contains(&SwapperProvider::NearIntents));
     }
 
     #[test]

@@ -505,7 +505,7 @@ mod swap_integration_tests {
     use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ARBITRUM_USDC_ASSET_ID, BASE_USDC_ASSET_ID},
+        asset_constants::{ARBITRUM_USDC_ASSET_ID, BASE_USDC_ASSET_ID, NEAR_USDT_ASSET_ID},
     };
     use std::sync::Arc;
 
@@ -531,6 +531,25 @@ mod swap_integration_tests {
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(!quote_data.to.is_empty());
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_near_intents_near_to_usdt_quote() -> Result<(), SwapperError> {
+        let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
+        let provider = NearIntents::new(rpc_provider);
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Near)),
+            to_asset: SwapperQuoteAsset::from(NEAR_USDT_ASSET_ID.clone()),
+            wallet_address: "test.near".to_string(),
+            destination_address: "test.near".to_string(),
+            value: "1000000000000000000000000".to_string(),
+            options: Options::mock_exact(100),
+        };
+
+        let quote = provider.get_quote(&request).await?;
+
+        assert!(!quote.to_value.is_empty());
         Ok(())
     }
 

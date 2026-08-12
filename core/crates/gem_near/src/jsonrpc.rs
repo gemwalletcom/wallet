@@ -5,6 +5,7 @@ use crate::method;
 
 #[derive(Clone, Debug)]
 pub enum NearRpc {
+    CallFunction { contract_id: String, method_name: String, args_base64: String },
     GetAccount(String),
     GetAccountAccessKey { address: String, public_key: String },
     GetGasPrice,
@@ -18,7 +19,7 @@ pub enum NearRpc {
 impl ToJsonRpcRequest for NearRpc {
     fn method(&self) -> &'static str {
         match self {
-            Self::GetAccount(_) | Self::GetAccountAccessKey { .. } => method::QUERY,
+            Self::CallFunction { .. } | Self::GetAccount(_) | Self::GetAccountAccessKey { .. } => method::QUERY,
             Self::GetGasPrice => method::GAS_PRICE,
             Self::GetLatestBlock => method::BLOCK,
             Self::GetProtocolConfig => method::PROTOCOL_CONFIG,
@@ -30,6 +31,17 @@ impl ToJsonRpcRequest for NearRpc {
 
     fn params(&self) -> serde_json::Value {
         match self {
+            Self::CallFunction {
+                contract_id,
+                method_name,
+                args_base64,
+            } => json!({
+                "request_type": "call_function",
+                "finality": "final",
+                "account_id": contract_id,
+                "method_name": method_name,
+                "args_base64": args_base64
+            }),
             Self::GetAccount(address) => json!({
                 "request_type": "view_account",
                 "finality": "final",
@@ -82,6 +94,25 @@ mod tests {
                 "finality": "final",
                 "account_id": "account.near",
                 "public_key": "ed25519:key"
+            }),
+        );
+    }
+
+    #[test]
+    fn builds_function_call_query() {
+        assert_request(
+            NearRpc::CallFunction {
+                contract_id: "token.near".into(),
+                method_name: "ft_balance_of".into(),
+                args_base64: "encoded-args".into(),
+            },
+            method::QUERY,
+            json!({
+                "request_type": "call_function",
+                "finality": "final",
+                "account_id": "token.near",
+                "method_name": "ft_balance_of",
+                "args_base64": "encoded-args"
             }),
         );
     }

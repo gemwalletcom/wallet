@@ -14,6 +14,11 @@
           "send_not_sir": 500000000000,
           "send_sir": 500000000000
         },
+        "function_call_cost": {
+          "execution": 780000000000,
+          "send_not_sir": 200000000000,
+          "send_sir": 200000000000
+        },
         "transfer_cost": {
           "execution": 115123062500,
           "send_not_sir": 115123062500,

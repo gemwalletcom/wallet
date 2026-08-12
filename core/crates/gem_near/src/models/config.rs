@@ -22,6 +22,7 @@ pub struct TransactionCosts {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActionCreationCosts {
     pub create_account_cost: ActionCost,
+    pub function_call_cost: ActionCost,
     pub transfer_cost: ActionCost,
     pub add_key_cost: AddKeyCost,
 }

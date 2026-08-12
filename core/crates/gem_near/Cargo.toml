@@ -34,7 +34,7 @@ hex = { workspace = true }
 
 [features]
 default = []
-rpc = ["dep:gem_jsonrpc", "dep:gem_client", "dep:chain_traits", "dep:async-trait", "dep:bs58", "dep:chrono", "dep:futures"]
+rpc = ["dep:gem_jsonrpc", "dep:gem_client", "dep:chain_traits", "dep:async-trait", "dep:bs58", "dep:chrono", "dep:futures", "dep:gem_encoding"]
 signer = ["dep:gem_encoding", "dep:bs58", "dep:gem_hash", "dep:signer"]
 reqwest = ["gem_client/reqwest", "gem_jsonrpc/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]

@@ -927,7 +927,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             denom: None,
             slip44: 397,
             chain_type: ChainType::Near,
-            default_asset_type: None,
+            default_asset_type: Some(AssetType::TOKEN),
             account_activation_fee: None,
             token_activation_fee: None,
             minimum_account_balance: None,

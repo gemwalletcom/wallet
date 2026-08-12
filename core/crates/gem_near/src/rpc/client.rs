@@ -3,8 +3,16 @@ use crate::{
     models::{Account, AccountAccessKey, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
 };
 use gem_client::Client;
+use gem_encoding::encode_base64;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
 use primitives::Chain;
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use std::error::Error;
+
+#[derive(Deserialize)]
+struct ContractCallResult {
+    result: Vec<u8>,
+}
 
 #[derive(Debug)]
 pub struct NearClient<C: Client + Clone> {
@@ -19,6 +27,19 @@ impl<C: Client + Clone> NearClient<C> {
 
     pub async fn get_account(&self, address: &str) -> Result<Account, JsonRpcError> {
         self.client.request(NearRpc::GetAccount(address.to_string())).await
+    }
+
+    pub async fn call_function<T: Serialize, R: DeserializeOwned>(&self, contract_id: &str, method_name: &str, args: &T) -> Result<R, Box<dyn Error + Sync + Send>> {
+        let args = serde_json::to_vec(args)?;
+        let response: ContractCallResult = self
+            .client
+            .request(NearRpc::CallFunction {
+                contract_id: contract_id.to_string(),
+                method_name: method_name.to_string(),
+                args_base64: encode_base64(&args),
+            })
+            .await?;
+        Ok(serde_json::from_slice(&response.result)?)
     }
 
     pub async fn get_account_access_key(&self, address: &str, public_key: &str) -> Result<AccountAccessKey, JsonRpcError> {

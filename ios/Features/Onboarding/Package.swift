@@ -26,7 +26,6 @@ let package = Package(
         .package(name: "QRScanner", path: "../QRScanner"),
         .package(name: "Keystore", path: "../../Packages/Keystore"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "Store", path: "../../Packages/Store"),
     ],
     targets: [

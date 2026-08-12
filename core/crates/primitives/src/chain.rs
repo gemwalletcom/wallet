@@ -190,6 +190,11 @@ mod tests {
     }
 
     #[test]
+    fn test_near_token_asset_type() {
+        assert_eq!(Chain::Near.default_asset_type(), Some(AssetType::TOKEN));
+    }
+
+    #[test]
     fn test_defi_supported() {
         assert!(Chain::Ethereum.is_defi_supported());
         assert!(Chain::Base.is_defi_supported());
