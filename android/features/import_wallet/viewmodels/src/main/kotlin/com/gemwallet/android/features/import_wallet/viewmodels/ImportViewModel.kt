@@ -53,7 +53,7 @@ class ImportViewModel @Inject constructor(
     fun onInput(value: String) {
         val importType = state.value.importType
         when (importType.walletType) {
-            WalletType.View, WalletType.PrivateKey -> resolver.resolve(value, importType.chain)
+            WalletType.View -> resolver.resolve(value, importType.chain)
             else -> resolver.reset()
         }
     }

@@ -59,6 +59,7 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
@@ -224,6 +225,18 @@ private fun ImportScene(
                     ErrorMessage(dataErrorState)
                 }
             }
+            if (importType.walletType == WalletType.View) {
+                item {
+                    Text(
+                        modifier = Modifier.sectionHeaderItem(),
+                        text = parseMarkdownToAnnotatedString(
+                            stringResource(R.string.wallet_import_address_warning)
+                        ),
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
             item { Spacer(modifier = Modifier.size(it.calculateBottomPadding())) }
         }
     }
@@ -268,16 +281,6 @@ private fun DataInput(
         },
     )
 
-    if (importType.walletType == WalletType.View) {
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = parseMarkdownToAnnotatedString(
-                stringResource(R.string.wallet_import_address_warning)
-            ),
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.bodySmall,
-        )
-    }
     if (suggestions.isNotEmpty() && supportsPhraseSuggestions(importType.walletType)) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
