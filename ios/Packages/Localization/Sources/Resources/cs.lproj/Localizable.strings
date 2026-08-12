@@ -222,6 +222,7 @@
 "transaction.date" = "Datum";
 "transaction.view_on" = "Zobrazit na %@";
 "transaction.status" = "Stav";
+"transaction.estimated_confirmation" = "Odhadované potvrzení";
 "transaction.status.confirmed" = "Úspěšný";
 "transaction.status.pending" = "Čeká na vyřízení";
 "transaction.status.failed" = "Nepodařilo se";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Každá transakce v síti %@ vyžaduje poplatek ve výši %@ zaplacený těžařům za zpracování vaší transakce, nikoli Gem Wallet. Síťové poplatky se liší podle využití sítě.";
 "info.transaction.error.description" = "Transakci nebylo možné dokončit kvůli chybě, jako je nedostatek finančních prostředků, neplatný vstup nebo odmítnutí ze strany sítě. Zkontrolujte podrobnosti a zkuste to znovu.";
 "info.transaction.pending.description" = "Transakce byla odeslána a čeká na potvrzení v síti. Doba zpracování se může lišit. Zkontrolujte prosím aktualizace.";
+"info.estimated_confirmation_description" = "Tento odhad vychází z transakčního poplatku a aktuální aktivity sítě %@. Skutečná doba potvrzení se může změnit a není zaručena.";
 "info.transaction.success.description" = "Transakce byla dokončena a potvrzena v síti. Můžete zkontrolovat podrobnosti a ověřit jeho stav.";
 "info.lock_time.description" = "Doba uzamčení, známá také jako období rozvázání nebo rozmrazení, je doba, po kterou jsou vsazená aktiva nepřístupná poté, co se je rozhodnete zrušit.";
 "info.price_impact.description" = "Vliv ceny je změna ceny tokenu způsobená velikostí vašeho obchodu. Vyšší dopad na cenu znamená, že obdržíte méně tokenů kvůli nízké likviditě nebo velké velikosti objednávky.";

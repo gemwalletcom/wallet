@@ -25,6 +25,7 @@ public enum TransactionItem: Identifiable, Equatable, Sendable {
     case swapButton
     case date
     case status
+    case estimatedConfirmation
     case participant
     case memo
     case rate

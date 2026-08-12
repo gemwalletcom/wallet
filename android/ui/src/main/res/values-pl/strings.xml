@@ -237,6 +237,7 @@
   <string name="transaction_date">Data</string>
   <string name="transaction_view_on">Zobacz w %1$s</string>
   <string name="transaction_status">Stan</string>
+  <string name="transaction_estimated_confirmation">Szacowane potwierdzenie</string>
   <string name="transaction_status_confirmed">Udany</string>
   <string name="transaction_status_pending">Oczekujące</string>
   <string name="transaction_status_failed">Nieudana</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Każda transakcja w sieci %1$s wymaga opłaty w wysokości %2$s płaconej górnikom za przetworzenie Twojej transakcji, a nie Gem Wallet. Opłaty sieciowe różnią się w zależności od wykorzystania sieci.</string>
   <string name="info_transaction_error_description">Transakcja nie mogła zostać ukończona z powodu błędu, takiego jak niewystarczające środki, nieprawidłowe dane wejściowe lub odrzucenie przez sieć. Sprawdź szczegóły i spróbuj ponownie.</string>
   <string name="info_transaction_pending_description">Transakcja została wysłana i oczekuje na potwierdzenie w sieci. Czasy przetwarzania mogą się różnić. Sprawdź ponownie, czy są jakieś aktualizacje.</string>
+  <string name="info_estimated_confirmation_description">To oszacowanie opiera się na opłacie transakcyjnej i bieżącej aktywności sieci %1$s. Rzeczywisty czas potwierdzenia może się zmienić i nie jest gwarantowany.</string>
   <string name="info_transaction_success_description">Transakcja została ukończona i potwierdzona w sieci. Możesz przejrzeć szczegóły, aby zweryfikować jej status.</string>
   <string name="info_lock_time_description">Czas blokady, znany również jako okres odłączenia lub odmrożenia, to czas, podczas którego postawione aktywa są niedostępne po podjęciu decyzji o ich odstawieniu.</string>
   <string name="info_price_impact_description">Wpływ ceny to zmiana ceny tokena spowodowana rozmiarem transakcji. Większy wpływ ceny oznacza, że otrzymujesz mniej tokenów z powodu niskiej płynności lub dużego rozmiaru zamówienia.</string>

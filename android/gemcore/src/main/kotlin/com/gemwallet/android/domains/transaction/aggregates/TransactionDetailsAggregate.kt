@@ -24,6 +24,7 @@ interface TransactionDetailsAggregate {
     val fee: TransactionDetailsValue.Fee
     val date: TransactionDetailsValue.Date
     val status: TransactionDetailsValue.Status
+    val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation?
     val rate: TransactionDetailsValue.Rate?
     val swapProgress: TransactionDetailsValue.SwapProgress?
     val swapAgain: TransactionDetailsValue.SwapAgain?

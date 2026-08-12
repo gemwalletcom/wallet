@@ -10,6 +10,7 @@ public extension TransactionExtended {
         assets: [Asset] = [],
         fromAddress: AddressName? = nil,
         toAddress: AddressName? = nil,
+        confirmationEtaSeconds: UInt32? = nil,
     ) -> TransactionExtended {
         TransactionExtended(
             transaction: transaction,
@@ -21,6 +22,7 @@ public extension TransactionExtended {
             prices: [],
             fromAddress: fromAddress,
             toAddress: toAddress,
+            confirmationEtaSeconds: confirmationEtaSeconds,
         )
     }
 }

@@ -222,6 +222,7 @@
 "transaction.date" = "Data";
 "transaction.view_on" = "Vizualizați pe %@";
 "transaction.status" = "Stare";
+"transaction.estimated_confirmation" = "Confirmare estimată";
 "transaction.status.confirmed" = "Reușită";
 "transaction.status.pending" = "În așteptare";
 "transaction.status.failed" = "A eșuat";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Fiecare tranzacție din rețeaua %@ necesită o taxă în %@ plătită minerilor pentru a vă procesa tranzacția, nu Gem Wallet. Taxele de rețea variază în funcție de utilizarea rețelei.";
 "info.transaction.error.description" = "Tranzacția nu a putut fi finalizată din cauza unei erori, cum ar fi fonduri insuficiente, introducere nevalidă sau respingere din partea rețelei. Vă rugăm să examinați detaliile și să încercați din nou.";
 "info.transaction.pending.description" = "Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.";
+"info.estimated_confirmation_description" = "Această estimare se bazează pe taxa tranzacției și pe activitatea curentă a rețelei %@. Timpul real de confirmare se poate modifica și nu este garantat.";
 "info.transaction.success.description" = "Tranzacția a fost finalizată și confirmată în rețea. Puteți examina detaliile pentru a verifica starea acestuia.";
 "info.lock_time.description" = "Timpul de blocare, cunoscut și ca perioada de dezlegare sau dezghețare, este durata în care activele mizate sunt inaccesibile după ce decideți să le dezlegați.";
 "info.price_impact.description" = "Impactul prețului este modificarea prețului tokenului cauzată de dimensiunea tranzacției dvs. Impactul mai mare al prețului înseamnă că primiți mai puține tokenuri din cauza lichidității scăzute sau a unei comenzi mari.";

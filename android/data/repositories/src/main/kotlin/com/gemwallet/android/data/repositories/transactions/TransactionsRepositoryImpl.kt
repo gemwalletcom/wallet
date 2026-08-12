@@ -118,6 +118,7 @@ class TransactionsRepositoryImpl(
             state = transactionRecord.state,
             fee = transactionRecord.fee,
             metadata = transactionRecord.metadata,
+            confirmationEtaSeconds = transactionRecord.confirmationEtaSeconds,
             updatedAt = transactionRecord.updatedAt,
         )
         if (updatedRows == 0) {
@@ -316,6 +317,7 @@ class TransactionsRepositoryImpl(
                 hash = newHash ?: transactionRecord.hash,
                 fee = stateChanges.fee?.toString() ?: transactionRecord.fee,
                 metadata = stateChanges.metadata ?: transactionRecord.metadata,
+                confirmationEtaSeconds = stateChanges.confirmationEtaSeconds?.toLong() ?: transactionRecord.confirmationEtaSeconds,
             )
         )
         return if (updatedTransaction.transaction != transactionRecord) {

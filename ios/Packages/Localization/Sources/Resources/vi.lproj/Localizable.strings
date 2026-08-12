@@ -222,6 +222,7 @@
 "transaction.date" = "Ngày";
 "transaction.view_on" = "Xem trên %@";
 "transaction.status" = "Trạng thái";
+"transaction.estimated_confirmation" = "Xác nhận dự kiến";
 "transaction.status.confirmed" = "Thành công";
 "transaction.status.pending" = "Đang chờ xử lý";
 "transaction.status.failed" = "Thất bại";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Mọi giao dịch trên mạng %@ đều yêu cầu một khoản phí bằng %@ trả cho người khai thác để xử lý giao dịch của bạn, không phải Ví Gem. Phí mạng thay đổi tùy theo mức sử dụng mạng.";
 "info.transaction.error.description" = "Giao dịch không thể hoàn tất do lỗi, chẳng hạn như không đủ tiền, đầu vào không hợp lệ hoặc bị mạng từ chối. Vui lòng xem lại chi tiết và thử lại.";
 "info.transaction.pending.description" = "Giao dịch đã được gửi và đang chờ xác nhận trên mạng. Thời gian xử lý có thể thay đổi. Vui lòng kiểm tra lại để cập nhật.";
+"info.estimated_confirmation_description" = "Ước tính này dựa trên phí giao dịch và hoạt động hiện tại của mạng %@. Thời gian xác nhận thực tế có thể thay đổi và không được đảm bảo.";
 "info.transaction.success.description" = "Giao dịch đã hoàn tất và được xác nhận trên mạng. Bạn có thể xem lại thông tin chi tiết để xác minh trạng thái của giao dịch.";
 "info.lock_time.description" = "Thời gian khóa, còn được gọi là thời gian hủy liên kết hoặc hủy đóng băng, là khoảng thời gian mà tài sản đã đặt cược không thể truy cập được sau khi bạn quyết định hủy đặt cược chúng.";
 "info.price_impact.description" = "Tác động giá là sự thay đổi về giá token do quy mô giao dịch của bạn gây ra. Tác động giá cao hơn có nghĩa là bạn nhận được ít token hơn do tính thanh khoản thấp hoặc quy mô lệnh lớn.";

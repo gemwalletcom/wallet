@@ -237,6 +237,7 @@
   <string name="transaction_date">তারিখ</string>
   <string name="transaction_view_on">%1$s এ দেখুন</string>
   <string name="transaction_status">স্ট্যাটাস</string>
+  <string name="transaction_estimated_confirmation">আনুমানিক নিশ্চিতকরণ</string>
   <string name="transaction_status_confirmed">সফল</string>
   <string name="transaction_status_pending">মুলতুবি</string>
   <string name="transaction_status_failed">ব্যর্থ হয়েছে</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">%1$s নেটওয়ার্কে প্রতিটি লেনদেনের জন্য আপনার লেনদেন প্রক্রিয়া করার জন্য %2$s-এ ফি দিতে হবে, Gem Wallet নয়। নেটওয়ার্ক ফি নেটওয়ার্ক ব্যবহারের উপর ভিত্তি করে পরিবর্তিত হয়।</string>
   <string name="info_transaction_error_description">একটি ত্রুটির কারণে লেনদেন সম্পন্ন করা যায়নি, যেমন অপর্যাপ্ত তহবিল, অবৈধ ইনপুট, বা নেটওয়ার্ক দ্বারা প্রত্যাখ্যান। অনুগ্রহ করে বিস্তারিত পর্যালোচনা করুন এবং আবার চেষ্টা করুন।</string>
   <string name="info_transaction_pending_description">লেনদেন জমা দেওয়া হয়েছে এবং নেটওয়ার্কে নিশ্চিতকরণের জন্য অপেক্ষা করছে। প্রক্রিয়াকরণের সময় পরিবর্তিত হতে পারে। আপডেটের জন্য আবার চেক করুন.</string>
+  <string name="info_estimated_confirmation_description">এই অনুমানটি লেনদেনের ফি এবং বর্তমান %1$s নেটওয়ার্ক কার্যকলাপের উপর ভিত্তি করে। প্রকৃত নিশ্চিতকরণের সময় পরিবর্তিত হতে পারে এবং এর নিশ্চয়তা নেই।</string>
   <string name="info_transaction_success_description">নেটওয়ার্কে লেনদেন সম্পন্ন এবং নিশ্চিত করা হয়েছে। আপনি এর স্থিতি যাচাই করতে বিশদ পর্যালোচনা করতে পারেন।</string>
   <string name="info_lock_time_description">লক টাইম, যা আনবন্ডিং বা আনফ্রিজিং পিরিয়ড নামেও পরিচিত, সেই সময়কাল যে সময়ে স্টেক করা সম্পদগুলিকে আনস্টেক করার সিদ্ধান্ত নেওয়ার পরে অ্যাক্সেসযোগ্য নয়।</string>
   <string name="info_price_impact_description">মূল্যের প্রভাব হল আপনার ট্রেড সাইজের কারণে টোকেন মূল্যের পরিবর্তন। উচ্চ মূল্যের প্রভাবের অর্থ হল আপনি কম তরলতা বা একটি বড় অর্ডার আকারের কারণে কম টোকেন পাবেন।</string>

@@ -25,6 +25,7 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
         static let sequence = Column("sequence")
         static let date = Column("date")
         static let state = Column("state")
+        static let confirmationEtaSeconds = Column("estimatedConfirmationInSeconds")
         static let memo = Column("memo")
         static let metadata = Column("metadata")
         static let direction = Column("direction")
@@ -49,6 +50,7 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
     var sequence: Int
     var date: Date
     var state: String
+    var confirmationEtaSeconds: UInt32?
     var memo: String?
     var direction: TransactionDirection
     var metadata: AnyCodableValue?
@@ -121,6 +123,7 @@ extension TransactionRecord: CreateTable {
                 .notNull()
             $0.column(Columns.state.name, .text)
                 .notNull()
+            $0.column(Columns.confirmationEtaSeconds.name, .integer)
             $0.column(Columns.memo.name, .text)
             $0.column(Columns.metadata.name, .jsonText)
             $0.column(Columns.direction.name, .text)
@@ -181,6 +184,7 @@ extension Transaction {
             sequence: Int(sequence ?? "0") ?? 0,
             date: createdAt,
             state: state.rawValue,
+            confirmationEtaSeconds: nil,
             memo: memo,
             direction: direction,
             metadata: metadata,

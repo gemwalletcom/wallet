@@ -378,6 +378,7 @@ struct TransactionSceneViewModelTests {
         #expect(sections[3].values == [
             TransactionItem.date,
             TransactionItem.status,
+            TransactionItem.estimatedConfirmation,
             TransactionItem.participant,
             TransactionItem.memo,
             TransactionItem.rate,
@@ -388,6 +389,27 @@ struct TransactionSceneViewModelTests {
         ])
         #expect(sections[4].values == [TransactionItem.fee])
         #expect(sections[5].values == [TransactionItem.explorerLink])
+    }
+
+    @Test
+    func estimatedConfirmationIsOnlyVisibleWhilePending() {
+        let pending = TransactionSceneViewModel.mock(
+            state: .pending,
+            confirmationEtaSeconds: 720,
+        )
+        let confirmed = TransactionSceneViewModel.mock(
+            state: .confirmed,
+            confirmationEtaSeconds: 720,
+        )
+
+        guard case let .listItem(item) = pending.item(for: .estimatedConfirmation) else {
+            Issue.record("Expected estimated confirmation item")
+            return
+        }
+        #expect(item.subtitle == "≈ 12 min")
+        if case .empty = confirmed.item(for: .estimatedConfirmation) {} else {
+            Issue.record("Expected confirmed transaction estimate to be hidden")
+        }
     }
 
     private func verifyNonEmpty(_ model: TransactionItemModel) {
@@ -408,6 +430,7 @@ extension TransactionSceneViewModel {
         toAddress: String = "participant_address",
         memo: String? = nil,
         metadata: AnyCodableValue? = nil,
+        confirmationEtaSeconds: UInt32? = nil,
         createdAt _: Date = Date(),
     ) -> TransactionSceneViewModel {
         TransactionSceneViewModel(
@@ -423,6 +446,7 @@ extension TransactionSceneViewModel {
                 ),
                 asset: asset,
                 assets: assets,
+                confirmationEtaSeconds: confirmationEtaSeconds,
             ),
             walletId: .mock(),
             preferences: Preferences.standard,

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.service.store.database.entities
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -40,6 +41,8 @@ data class DbTransaction(
     val direction: TransactionDirection,
     val createdAt: Long,
     val updatedAt: Long,
+    @ColumnInfo(name = "estimatedConfirmationInSeconds")
+    val confirmationEtaSeconds: Long? = null,
 )
 
 fun Transaction.toRecord(walletId: WalletId): DbTransaction {
@@ -63,6 +66,7 @@ fun Transaction.toRecord(walletId: WalletId): DbTransaction {
         direction = this.direction,
         updatedAt = System.currentTimeMillis(),
         createdAt = this.createdAt,
+        confirmationEtaSeconds = null,
     )
 }
 

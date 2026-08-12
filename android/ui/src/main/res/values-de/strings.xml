@@ -237,6 +237,7 @@
   <string name="transaction_date">Datum</string>
   <string name="transaction_view_on">Anzeigen auf %1$s</string>
   <string name="transaction_status">Status</string>
+  <string name="transaction_estimated_confirmation">Geschätzte Bestätigung</string>
   <string name="transaction_status_confirmed">Erfolgreich</string>
   <string name="transaction_status_pending">Ausstehend</string>
   <string name="transaction_status_failed">Fehlgeschlagen</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Für jede Transaktion im %1$s-Netzwerk wird eine Gebühr in %2$s an die Miner gezahlt, um Ihre Transaktion abzuwickeln, nicht an Gem Wallet. Die Netzwerkgebühren variieren je nach Netzwerknutzung.</string>
   <string name="info_transaction_error_description">Die Transaktion konnte aufgrund eines Fehlers nicht abgeschlossen werden, z. B. aufgrund unzureichender Mittel, ungültiger Eingaben oder einer Ablehnung durch das Netzwerk. Bitte überprüfen Sie die Details und versuchen Sie es erneut.</string>
   <string name="info_transaction_pending_description">Die Transaktion wurde übermittelt und wartet auf die Bestätigung im Netzwerk. Die Bearbeitungszeit kann variieren. Bitte schauen Sie später noch einmal vorbei, um Updates zu erhalten.</string>
+  <string name="info_estimated_confirmation_description">Dies ist eine Schätzung auf Grundlage der Transaktionsgebühr und der aktuellen Auslastung des %1$s-Netzwerks. Die tatsächliche Bestätigungszeit kann sich ändern und ist nicht garantiert.</string>
   <string name="info_transaction_success_description">Die Transaktion wurde abgeschlossen und im Netzwerk bestätigt. Sie können die Details überprüfen, um den Status zu verifizieren.</string>
   <string name="info_lock_time_description">Die Sperrzeit, auch Unbonding- oder Unfreezing-Zeitraum genannt, ist der Zeitraum, in dem abgesteckte Vermögenswerte nicht mehr zugänglich sind, nachdem Sie sich entschieden haben, sie aufzuheben.</string>
   <string name="info_price_impact_description">Der Preiseinfluss ist die Änderung des Token-Preises, die durch Ihre Handelsgröße verursacht wird. Ein höherer Preiseinfluss bedeutet, dass Sie aufgrund geringer Liquidität oder einer großen Auftragsgröße weniger Token erhalten.</string>

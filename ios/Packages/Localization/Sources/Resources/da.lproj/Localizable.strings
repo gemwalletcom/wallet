@@ -222,6 +222,7 @@
 "transaction.date" = "Dato";
 "transaction.view_on" = "Se på %@";
 "transaction.status" = "Status";
+"transaction.estimated_confirmation" = "Estimeret bekræftelse";
 "transaction.status.confirmed" = "Vellykket";
 "transaction.status.pending" = "Afventer";
 "transaction.status.failed" = "Mislykkedes";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Hver transaktion på %@ netværket kræver et gebyr i %@ betalt til minearbejdere for at behandle din transaktion, ikke Gem Wallet. Netværksgebyrer varierer afhængigt af netværksbrug.";
 "info.transaction.error.description" = "Transaktionen kunne ikke gennemføres på grund af en fejl, såsom utilstrækkelige midler, ugyldigt input eller afvisning af netværket. Gennemgå venligst detaljerne og prøv igen.";
 "info.transaction.pending.description" = "Transaktionen er blevet indsendt og afventer bekræftelse på netværket. Behandlingstiderne kan variere. Kom venligst tilbage for opdateringer.";
+"info.estimated_confirmation_description" = "Dette er et estimat baseret på transaktionsgebyret og den aktuelle aktivitet på %@-netværket. Den faktiske bekræftelsestid kan ændre sig og er ikke garanteret.";
 "info.transaction.success.description" = "Transaktionen er gennemført og bekræftet på netværket. Du kan gennemgå detaljerne for at bekræfte dens status.";
 "info.lock_time.description" = "Låsetid, også kendt som ophævelses- eller frigørelsesperioden, er den varighed, hvori satsede aktiver er utilgængelige, efter at du beslutter dig for at ophæve dem.";
 "info.price_impact.description" = "Prispåvirkning er ændringen i tokenpris forårsaget af din handelsstørrelse. Større prispåvirkning betyder, at du modtager færre tokens på grund af lav likviditet eller en stor ordrestørrelse.";

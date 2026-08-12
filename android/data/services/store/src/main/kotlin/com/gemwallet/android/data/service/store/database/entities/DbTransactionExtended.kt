@@ -43,6 +43,7 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
         ),
         fromAddress = fromAddress?.toAddressName(transaction.owner),
         toAddress = toAddress?.toAddressName(transaction.recipient),
+        confirmationEtaSeconds = transaction.confirmationEtaSeconds?.toUInt(),
     )
 }
 

@@ -237,6 +237,7 @@
   <string name="transaction_date">Ngày</string>
   <string name="transaction_view_on">Xem trên %1$s</string>
   <string name="transaction_status">Trạng thái</string>
+  <string name="transaction_estimated_confirmation">Xác nhận dự kiến</string>
   <string name="transaction_status_confirmed">Thành công</string>
   <string name="transaction_status_pending">Đang chờ xử lý</string>
   <string name="transaction_status_failed">Thất bại</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Mọi giao dịch trên mạng %1$s đều yêu cầu một khoản phí bằng %2$s trả cho người khai thác để xử lý giao dịch của bạn, không phải Ví Gem. Phí mạng thay đổi tùy theo mức sử dụng mạng.</string>
   <string name="info_transaction_error_description">Giao dịch không thể hoàn tất do lỗi, chẳng hạn như không đủ tiền, đầu vào không hợp lệ hoặc bị mạng từ chối. Vui lòng xem lại chi tiết và thử lại.</string>
   <string name="info_transaction_pending_description">Giao dịch đã được gửi và đang chờ xác nhận trên mạng. Thời gian xử lý có thể thay đổi. Vui lòng kiểm tra lại để cập nhật.</string>
+  <string name="info_estimated_confirmation_description">Ước tính này dựa trên phí giao dịch và hoạt động hiện tại của mạng %1$s. Thời gian xác nhận thực tế có thể thay đổi và không được đảm bảo.</string>
   <string name="info_transaction_success_description">Giao dịch đã hoàn tất và được xác nhận trên mạng. Bạn có thể xem lại thông tin chi tiết để xác minh trạng thái của giao dịch.</string>
   <string name="info_lock_time_description">Thời gian khóa, còn được gọi là thời gian hủy liên kết hoặc hủy đóng băng, là khoảng thời gian mà tài sản đã đặt cược không thể truy cập được sau khi bạn quyết định hủy đặt cược chúng.</string>
   <string name="info_price_impact_description">Tác động giá là sự thay đổi về giá token do quy mô giao dịch của bạn gây ra. Tác động giá cao hơn có nghĩa là bạn nhận được ít token hơn do tính thanh khoản thấp hoặc quy mô lệnh lớn.</string>

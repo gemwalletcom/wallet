@@ -55,6 +55,8 @@ pub struct Transaction {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub fees: BigUint,
     pub confirmations: Option<i64>,
+    #[serde(rename = "confirmationETASeconds")]
+    pub confirmation_eta_seconds: Option<i64>,
     pub block_time: i64,
     pub block_height: i64,
     pub vin: Vec<Input>,
@@ -100,6 +102,26 @@ mod tests {
 
         assert!(result.result.is_none());
         assert_eq!(result.error.unwrap().message(), "-26: min relay fee not met, 432 < 576");
+    }
+
+    #[test]
+    fn test_deserialize_confirmation_eta_seconds() {
+        let json = r#"{
+            "txid": "transaction-id",
+            "value": "1",
+            "valueIn": "2",
+            "fees": "1",
+            "confirmations": 0,
+            "confirmationETASeconds": 698,
+            "blockTime": 0,
+            "blockHeight": -1,
+            "vin": [],
+            "vout": []
+        }"#;
+
+        let transaction: Transaction = serde_json::from_str(json).unwrap();
+
+        assert_eq!(transaction.confirmation_eta_seconds, Some(698));
     }
 
     #[test]

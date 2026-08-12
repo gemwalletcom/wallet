@@ -237,6 +237,7 @@
   <string name="transaction_date">تاریخ</string>
   <string name="transaction_view_on">%1$s پر دیکھیں</string>
   <string name="transaction_status">حیثیت</string>
+  <string name="transaction_estimated_confirmation">تخمینی تصدیق</string>
   <string name="transaction_status_confirmed">کامیاب</string>
   <string name="transaction_status_pending">زیر التواء</string>
   <string name="transaction_status_failed">ناکام</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">%1$s نیٹ ورک پر ہر ٹرانزیکشن کے لیے %2$s میں فیس کی ضرورت ہوتی ہے جو کان کنوں کو آپ کے لین دین پر کارروائی کرنے کے لیے ادا کی جاتی ہے، Gem Wallet کی نہیں۔ نیٹ ورک فیس نیٹ ورک کے استعمال کی بنیاد پر مختلف ہوتی ہے۔</string>
   <string name="info_transaction_error_description">لین دین ایک خرابی کی وجہ سے مکمل نہیں ہو سکا، جیسے کہ ناکافی فنڈز، غلط ان پٹ، یا نیٹ ورک کی طرف سے مسترد۔ براہ کرم تفصیلات کا جائزہ لیں اور دوبارہ کوشش کریں۔</string>
   <string name="info_transaction_pending_description">لین دین جمع کر دیا گیا ہے اور نیٹ ورک پر تصدیق کا انتظار کر رہا ہے۔ پروسیسنگ کے اوقات مختلف ہو سکتے ہیں۔ براہ کرم اپ ڈیٹس کے لیے دوبارہ چیک کریں۔</string>
+  <string name="info_estimated_confirmation_description">یہ تخمینہ لین دین کی فیس اور موجودہ %1$s نیٹ ورک سرگرمی پر مبنی ہے۔ تصدیق کا اصل وقت تبدیل ہو سکتا ہے اور اس کی ضمانت نہیں ہے۔</string>
   <string name="info_transaction_success_description">لین دین مکمل ہو چکا ہے اور نیٹ ورک پر اس کی تصدیق ہو چکی ہے۔ آپ اس کی حیثیت کی تصدیق کے لیے تفصیلات کا جائزہ لے سکتے ہیں۔</string>
   <string name="info_lock_time_description">لاک ٹائم، جسے ان بانڈنگ یا غیر منجمد کرنے کا دورانیہ بھی کہا جاتا ہے، وہ دورانیہ ہے جس کے دوران اسٹیک کیے گئے اثاثے ان اسٹیک کرنے کا فیصلہ کرنے کے بعد ناقابل رسائی ہوتے ہیں۔</string>
   <string name="info_price_impact_description">قیمت کا اثر آپ کے تجارتی سائز کی وجہ سے ٹوکن کی قیمت میں تبدیلی ہے۔ زیادہ قیمت کے اثر کا مطلب ہے کہ آپ کو کم لیکویڈیٹی یا آرڈر کے بڑے سائز کی وجہ سے کم ٹوکن ملتے ہیں۔</string>

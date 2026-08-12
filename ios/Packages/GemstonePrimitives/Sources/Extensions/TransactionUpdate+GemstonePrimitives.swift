@@ -17,6 +17,8 @@ public extension Gemstone.TransactionUpdate {
                 return try .blockNumber(Int.from(string: number))
             case let .networkFee(fee):
                 return try .networkFee(BigInt.from(string: fee))
+            case let .confirmationEtaSeconds(seconds):
+                return .confirmationEtaSeconds(seconds)
             }
         }
         return TransactionChanges(

@@ -237,6 +237,7 @@
   <string name="transaction_date">Data</string>
   <string name="transaction_view_on">Vizualizați pe %1$s</string>
   <string name="transaction_status">Stare</string>
+  <string name="transaction_estimated_confirmation">Confirmare estimată</string>
   <string name="transaction_status_confirmed">Reușită</string>
   <string name="transaction_status_pending">În așteptare</string>
   <string name="transaction_status_failed">A eșuat</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Fiecare tranzacție din rețeaua %1$s necesită o taxă în %2$s plătită minerilor pentru a vă procesa tranzacția, nu Gem Wallet. Taxele de rețea variază în funcție de utilizarea rețelei.</string>
   <string name="info_transaction_error_description">Tranzacția nu a putut fi finalizată din cauza unei erori, cum ar fi fonduri insuficiente, introducere nevalidă sau respingere din partea rețelei. Vă rugăm să examinați detaliile și să încercați din nou.</string>
   <string name="info_transaction_pending_description">Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.</string>
+  <string name="info_estimated_confirmation_description">Această estimare se bazează pe taxa tranzacției și pe activitatea curentă a rețelei %1$s. Timpul real de confirmare se poate modifica și nu este garantat.</string>
   <string name="info_transaction_success_description">Tranzacția a fost finalizată și confirmată în rețea. Puteți examina detaliile pentru a verifica starea acestuia.</string>
   <string name="info_lock_time_description">Timpul de blocare, cunoscut și ca perioada de dezlegare sau dezghețare, este durata în care activele mizate sunt inaccesibile după ce decideți să le dezlegați.</string>
   <string name="info_price_impact_description">Impactul prețului este modificarea prețului tokenului cauzată de dimensiunea tranzacției dvs. Impactul mai mare al prețului înseamnă că primiți mai puține tokenuri din cauza lichidității scăzute sau a unei comenzi mari.</string>

@@ -237,6 +237,7 @@
   <string name="transaction_date">Date</string>
   <string name="transaction_view_on">Afficher sur %1$s</string>
   <string name="transaction_status">Statut</string>
+  <string name="transaction_estimated_confirmation">Confirmation estimée</string>
   <string name="transaction_status_confirmed">Réussi</string>
   <string name="transaction_status_pending">En attente</string>
   <string name="transaction_status_failed">Échoué</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Chaque transaction sur le réseau %1$s nécessite des frais en %2$s payés aux mineurs pour traiter votre transaction, et non à Gem Wallet. Les frais de réseau varient en fonction de l\'utilisation du réseau.</string>
   <string name="info_transaction_error_description">La transaction n\'a pas pu être finalisée en raison d\'une erreur, telle qu\'un fonds insuffisant, une saisie non valide ou un rejet par le réseau. Veuillez vérifier les détails et réessayer.</string>
   <string name="info_transaction_pending_description">La transaction a été soumise et est en attente de confirmation sur le réseau. Les délais de traitement peuvent varier. Veuillez consulter régulièrement les mises à jour.</string>
+  <string name="info_estimated_confirmation_description">Cette estimation repose sur les frais de transaction et l’activité actuelle du réseau %1$s. Le délai réel de confirmation peut changer et n’est pas garanti.</string>
   <string name="info_transaction_success_description">La transaction a été finalisée et confirmée sur le réseau. Vous pouvez consulter les détails pour vérifier son statut.</string>
   <string name="info_lock_time_description">Le temps de verrouillage, également connu sous le nom de période de déliement ou de dégel, est la durée pendant laquelle les actifs mis en jeu sont inaccessibles après que vous ayez décidé de les débloquer.</string>
   <string name="info_price_impact_description">L\'impact sur le prix est la variation du prix du jeton causée par la taille de votre transaction. Un impact sur le prix plus élevé signifie que vous recevez moins de jetons en raison d\'une faible liquidité ou d\'une taille de commande importante.</string>

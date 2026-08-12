@@ -222,6 +222,7 @@
 "transaction.date" = "Date";
 "transaction.view_on" = "Afficher sur %@";
 "transaction.status" = "Statut";
+"transaction.estimated_confirmation" = "Confirmation estimée";
 "transaction.status.confirmed" = "Réussi";
 "transaction.status.pending" = "En attente";
 "transaction.status.failed" = "Échoué";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Chaque transaction sur le réseau %@ nécessite des frais en %@ payés aux mineurs pour traiter votre transaction, et non à Gem Wallet. Les frais de réseau varient en fonction de l'utilisation du réseau.";
 "info.transaction.error.description" = "La transaction n'a pas pu être finalisée en raison d'une erreur, telle qu'un fonds insuffisant, une saisie non valide ou un rejet par le réseau. Veuillez vérifier les détails et réessayer.";
 "info.transaction.pending.description" = "La transaction a été soumise et est en attente de confirmation sur le réseau. Les délais de traitement peuvent varier. Veuillez consulter régulièrement les mises à jour.";
+"info.estimated_confirmation_description" = "Cette estimation repose sur les frais de transaction et l’activité actuelle du réseau %@. Le délai réel de confirmation peut changer et n’est pas garanti.";
 "info.transaction.success.description" = "La transaction a été finalisée et confirmée sur le réseau. Vous pouvez consulter les détails pour vérifier son statut.";
 "info.lock_time.description" = "Le temps de verrouillage, également connu sous le nom de période de déliement ou de dégel, est la durée pendant laquelle les actifs mis en jeu sont inaccessibles après que vous ayez décidé de les débloquer.";
 "info.price_impact.description" = "L'impact sur le prix est la variation du prix du jeton causée par la taille de votre transaction. Un impact sur le prix plus élevé signifie que vous recevez moins de jetons en raison d'une faible liquidité ou d'une taille de commande importante.";

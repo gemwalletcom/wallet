@@ -222,6 +222,7 @@
 "transaction.date" = "Date";
 "transaction.view_on" = "View on %@";
 "transaction.status" = "Status";
+"transaction.estimated_confirmation" = "Estimated confirmation";
 "transaction.status.confirmed" = "Successful";
 "transaction.status.pending" = "Pending";
 "transaction.status.failed" = "Failed";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.";
 "info.transaction.error.description" = "The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.";
 "info.transaction.pending.description" = "The transaction has been submitted and is awaiting confirmation on the network. Processing times may vary. Please check back for updates.";
+"info.estimated_confirmation_description" = "This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.";
 "info.transaction.success.description" = "The transaction has been completed and confirmed on the network. You can review the details to verify its status.";
 "info.lock_time.description" = "Lock time, also known as the unbonding or unfreezing period, is the duration during which staked assets are inaccessible after you decide to unstake them.";
 "info.price_impact.description" = "Price impact is the change in token price caused by your trade size. Higher price impact means you receive fewer tokens due to low liquidity or a large order size.";

@@ -8,6 +8,7 @@ impl Transaction {
             value_in: "105000".to_string(),
             fees: 5_000u32.into(),
             confirmations: Some(1),
+            confirmation_eta_seconds: None,
             block_time: 1640995200,
             block_height: 700000,
             vin: vec![],

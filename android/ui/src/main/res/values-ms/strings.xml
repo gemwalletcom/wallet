@@ -237,6 +237,7 @@
   <string name="transaction_date">Tarikh</string>
   <string name="transaction_view_on">Lihat pada %1$s</string>
   <string name="transaction_status">Status</string>
+  <string name="transaction_estimated_confirmation">Anggaran pengesahan</string>
   <string name="transaction_status_confirmed">Berjaya</string>
   <string name="transaction_status_pending">Belum selesai</string>
   <string name="transaction_status_failed">Gagal</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Setiap transaksi pada rangkaian %1$s memerlukan bayaran dalam %2$s dibayar kepada pelombong untuk memproses transaksi anda, bukan Gem Wallet. Yuran rangkaian berbeza-beza berdasarkan penggunaan rangkaian.</string>
   <string name="info_transaction_error_description">Urus niaga tidak dapat diselesaikan kerana ralat, seperti dana tidak mencukupi, input tidak sah atau penolakan oleh rangkaian. Sila semak butiran dan cuba lagi.</string>
   <string name="info_transaction_pending_description">Urus niaga telah diserahkan dan sedang menunggu pengesahan pada rangkaian. Masa pemprosesan mungkin berbeza-beza. Sila semak semula untuk kemas kini.</string>
+  <string name="info_estimated_confirmation_description">Anggaran ini berdasarkan yuran transaksi dan aktiviti rangkaian %1$s semasa. Masa pengesahan sebenar mungkin berubah dan tidak dijamin.</string>
   <string name="info_transaction_success_description">Urus niaga telah selesai dan disahkan pada rangkaian. Anda boleh menyemak butiran untuk mengesahkan statusnya.</string>
   <string name="info_lock_time_description">Masa kunci, juga dikenali sebagai tempoh nyah ikatan atau nyahbeku, ialah tempoh di mana aset dipertaruhkan tidak boleh diakses selepas anda memutuskan untuk menyahtaruhnya.</string>
   <string name="info_price_impact_description">Kesan harga ialah perubahan dalam harga token yang disebabkan oleh saiz dagangan anda. Kesan harga yang lebih tinggi bermakna anda menerima lebih sedikit token disebabkan kecairan yang rendah atau saiz pesanan yang besar.</string>

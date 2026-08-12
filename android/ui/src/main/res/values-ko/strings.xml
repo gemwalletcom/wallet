@@ -237,6 +237,7 @@
   <string name="transaction_date">날짜</string>
   <string name="transaction_view_on">%1$s 에서 보기</string>
   <string name="transaction_status">상태</string>
+  <string name="transaction_estimated_confirmation">예상 확인 시간</string>
   <string name="transaction_status_confirmed">성공적인</string>
   <string name="transaction_status_pending">보류 중</string>
   <string name="transaction_status_failed">실패한</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">%1$s 네트워크의 모든 거래에는 Gem Wallet이 아닌 거래를 처리하기 위해 채굴자에게 지불되는 %2$s 수수료가 필요합니다. 네트워크 요금은 네트워크 사용량에 따라 다릅니다.</string>
   <string name="info_transaction_error_description">자금 부족, 잘못된 입력, 네트워크 거부 등의 오류로 인해 거래를 완료할 수 없습니다. 세부 정보를 확인하고 다시 시도해 주세요.</string>
   <string name="info_transaction_pending_description">거래가 제출되었으며 네트워크에서 확인을 기다리고 있습니다. 처리 시간은 다를 수 있습니다. 업데이트된 내용을 다시 확인해 주세요.</string>
+  <string name="info_estimated_confirmation_description">이 예상치는 거래 수수료와 현재 %1$s 네트워크 활동을 기반으로 합니다. 실제 확인 시간은 달라질 수 있으며 보장되지 않습니다.</string>
   <string name="info_transaction_success_description">거래가 완료되었으며 네트워크에서 확인되었습니다. 세부 정보를 확인하여 거래 상태를 확인하실 수 있습니다.</string>
   <string name="info_lock_time_description">결합 해제 또는 동결 해제 기간이라고도 알려진 잠금 시간은 스테이크 해제를 결정한 후 스테이크된 자산에 액세스할 수 없는 기간입니다.</string>
   <string name="info_price_impact_description">가격 영향은 거래 규모로 인해 발생하는 토큰 가격의 변화입니다. 가격 영향이 클수록 유동성이 낮거나 주문 규모가 커서 토큰을 덜 받는다는 의미입니다.</string>

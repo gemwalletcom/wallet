@@ -108,6 +108,7 @@ class TransactionDetailsAggregateImplTest {
         price: Price? = null,
         feePrice: Price? = null,
         assets: List<Asset> = emptyList(),
+        confirmationEtaSeconds: UInt? = null,
     ) = TransactionExtended(
         transaction = transaction,
         asset = asset,
@@ -115,6 +116,7 @@ class TransactionDetailsAggregateImplTest {
         price = price,
         feePrice = feePrice,
         assets = assets,
+        confirmationEtaSeconds = confirmationEtaSeconds,
     )
 
     private fun createAssetInfo(asset: Asset) = AssetInfo(
@@ -1088,5 +1090,24 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(Currency.EUR, aggregate.currency)
         val valueGroups = aggregate.valueGroups
         Assert.assertEquals(4, valueGroups.size)
+    }
+
+    @Test
+    fun estimatedConfirmation_isOnlyAvailableWhilePending() {
+        val pending = createAggregate(
+            createTransactionExtended(
+                transaction = createTransaction(state = TransactionState.Pending),
+                confirmationEtaSeconds = 720u,
+            )
+        )
+        val confirmed = createAggregate(
+            createTransactionExtended(
+                transaction = createTransaction(state = TransactionState.Confirmed),
+                confirmationEtaSeconds = 720u,
+            )
+        )
+
+        Assert.assertEquals(720u, pending.estimatedConfirmation?.seconds)
+        Assert.assertNull(confirmed.estimatedConfirmation)
     }
 }

@@ -222,6 +222,7 @@
 "transaction.date" = "Tarehe";
 "transaction.view_on" = "Tazama kwenye %@";
 "transaction.status" = "Hali";
+"transaction.estimated_confirmation" = "Uthibitisho unaokadiriwa";
 "transaction.status.confirmed" = "Imefanikiwa";
 "transaction.status.pending" = "Inasubiri";
 "transaction.status.failed" = "Imeshindwa";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Kila muamala kwenye mtandao wa %@ unahitaji ada ya %@ kulipwa kwa wachimbaji ili kushughulikia muamala wako, si Gem Wallet. Ada za mtandao hutofautiana kulingana na matumizi ya mtandao.";
 "info.transaction.error.description" = "Muamala haukuweza kukamilika kwa sababu ya hitilafu, kama vile uhaba wa fedha, ingizo batili au kukataliwa na mtandao. Tafadhali kagua maelezo na ujaribu tena.";
 "info.transaction.pending.description" = "Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.";
+"info.estimated_confirmation_description" = "Makadirio haya yanategemea ada ya muamala na shughuli za sasa za mtandao wa %@. Muda halisi wa uthibitisho unaweza kubadilika na haujahakikishwa.";
 "info.transaction.success.description" = "Muamala umekamilika na kuthibitishwa kwenye mtandao. Unaweza kukagua maelezo ili kuthibitisha hali yake.";
 "info.lock_time.description" = "Muda wa kufunga, unaojulikana pia kama kipindi cha kuunganisha au kufungia, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa.";
 "info.price_impact.description" = "Athari ya bei ni mabadiliko ya bei ya tokeni yanayosababishwa na ukubwa wa biashara yako. Athari ya bei ya juu inamaanisha unapokea tokeni chache kutokana na ukwasi mdogo au ukubwa mkubwa wa agizo.";

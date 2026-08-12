@@ -222,6 +222,7 @@
 "transaction.date" = "Kwanan wata";
 "transaction.view_on" = "Duba kan %@";
 "transaction.status" = "Matsayi";
+"transaction.estimated_confirmation" = "Kiyasin tabbatarwa";
 "transaction.status.confirmed" = "Nasara";
 "transaction.status.pending" = "Ana jiran";
 "transaction.status.failed" = "Ba a yi nasara ba";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Kowace ciniki akan hanyar sadarwar %@ tana buƙatar kuɗi a cikin %@ da aka biya ga masu hakar ma'adinai don aiwatar da kasuwancin ku, ba Gem Wallet ba. Kudaden hanyar sadarwa sun bambanta dangane da amfani da hanyar sadarwa.";
 "info.transaction.error.description" = "Ba za a iya kammala cinikin ba saboda kuskure, kamar rashin isassun kuɗi, shigarwa mara inganci, ko kin amincewa da hanyar sadarwa. Da fatan za a sake nazarin cikakkun bayanai kuma a sake gwadawa.";
 "info.transaction.pending.description" = "An ƙaddamar da ma'amala kuma yana jiran tabbaci akan hanyar sadarwar. Lokutan sarrafawa na iya bambanta. Da fatan za a duba baya don sabuntawa.";
+"info.estimated_confirmation_description" = "Wannan kiyasi ya dogara da kuɗin ma'amala da aikin hanyar sadarwar %@ na yanzu. Ainihin lokacin tabbatarwa na iya canzawa kuma ba shi da tabbaci.";
 "info.transaction.success.description" = "An kammala cinikin kuma an tabbatar da shi akan hanyar sadarwa. Kuna iya duba cikakkun bayanai don tabbatar da matsayinsa.";
 "info.lock_time.description" = "Lokacin kulle, wanda kuma aka sani da lokacin kwancewa ko rashin daskarewa, shine tsawon lokacin da kadarorin da aka saka ba a iya samun su bayan kun yanke shawarar cire su.";
 "info.price_impact.description" = "Tasirin farashi shine canjin farashin alamar da girman cinikin ku ya haifar. Tasirin farashi mafi girma yana nufin ka karɓi ƴan alamu saboda ƙarancin kuɗi ko girman oda.";

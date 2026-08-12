@@ -8,6 +8,7 @@ data class TransactionChanges(
     val fee: BigInteger? = null,
     val hashChanges: HashChanges? = null,
     val metadata: String? = null,
+    val confirmationEtaSeconds: UInt? = null,
 )
 
 data class HashChanges(

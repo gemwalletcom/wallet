@@ -237,6 +237,7 @@
   <string name="transaction_date">Tarehe</string>
   <string name="transaction_view_on">Tazama kwenye %1$s</string>
   <string name="transaction_status">Hali</string>
+  <string name="transaction_estimated_confirmation">Uthibitisho unaokadiriwa</string>
   <string name="transaction_status_confirmed">Imefanikiwa</string>
   <string name="transaction_status_pending">Inasubiri</string>
   <string name="transaction_status_failed">Imeshindwa</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Kila muamala kwenye mtandao wa %1$s unahitaji ada ya %2$s kulipwa kwa wachimbaji ili kushughulikia muamala wako, si Gem Wallet. Ada za mtandao hutofautiana kulingana na matumizi ya mtandao.</string>
   <string name="info_transaction_error_description">Muamala haukuweza kukamilika kwa sababu ya hitilafu, kama vile uhaba wa fedha, ingizo batili au kukataliwa na mtandao. Tafadhali kagua maelezo na ujaribu tena.</string>
   <string name="info_transaction_pending_description">Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.</string>
+  <string name="info_estimated_confirmation_description">Makadirio haya yanategemea ada ya muamala na shughuli za sasa za mtandao wa %1$s. Muda halisi wa uthibitisho unaweza kubadilika na haujahakikishwa.</string>
   <string name="info_transaction_success_description">Muamala umekamilika na kuthibitishwa kwenye mtandao. Unaweza kukagua maelezo ili kuthibitisha hali yake.</string>
   <string name="info_lock_time_description">Muda wa kufunga, unaojulikana pia kama kipindi cha kuunganisha au kufungia, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa.</string>
   <string name="info_price_impact_description">Athari ya bei ni mabadiliko ya bei ya tokeni yanayosababishwa na ukubwa wa biashara yako. Athari ya bei ya juu inamaanisha unapokea tokeni chache kutokana na ukwasi mdogo au ukubwa mkubwa wa agizo.</string>

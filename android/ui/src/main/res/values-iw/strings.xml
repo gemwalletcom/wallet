@@ -237,6 +237,7 @@
   <string name="transaction_date">תאריך</string>
   <string name="transaction_view_on">הצג ב-%1$s</string>
   <string name="transaction_status">סטטוס</string>
+  <string name="transaction_estimated_confirmation">אישור משוער</string>
   <string name="transaction_status_confirmed">מוצלח</string>
   <string name="transaction_status_pending">בהמתנה</string>
   <string name="transaction_status_failed">נכשל</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">כל עסקה ברשת %1$s דורשת עמלה ב-%2$s ששולם לכורים על מנת לעבד את העסקה שלך, לא ארנק Gem. עמלות הרשת משתנות בהתאם לשימוש ברשת.</string>
   <string name="info_transaction_error_description">לא ניתן היה להשלים את העסקה עקב שגיאה, כגון חוסר כספים, קלט לא תקין או דחייה על ידי הרשת. אנא בדוק את הפרטים ונסה שוב.</string>
   <string name="info_transaction_pending_description">העסקה הוגשה וממתינה לאישור ברשת. זמני העיבוד עשויים להשתנות. אנא בדקו שוב לעדכונים.</string>
+  <string name="info_estimated_confirmation_description">הערכה זו מבוססת על עמלת העסקה ועל הפעילות הנוכחית ברשת %1$s. זמן האישור בפועל עשוי להשתנות ואינו מובטח.</string>
   <string name="info_transaction_success_description">העסקה הושלמה ואושרה ברשת. באפשרותך לעיין בפרטים כדי לאמת את מצבה.</string>
   <string name="info_lock_time_description">זמן הנעילה, המכונה גם תקופת ביטול ההצמדה או ההקפאה, הוא משך הזמן שבו נכסים בהימור אינם נגישים לאחר שהחלטת לבטל אותם.</string>
   <string name="info_price_impact_description">השפעת המחיר היא השינוי במחיר האסימון שנגרם על ידי גודל המסחר שלך. השפעה גבוהה יותר על המחיר פירושה שאתה מקבל פחות אסימונים עקב נזילות נמוכה או גודל הזמנה גדול.</string>

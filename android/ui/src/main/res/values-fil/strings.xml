@@ -237,6 +237,7 @@
   <string name="transaction_date">Petsa</string>
   <string name="transaction_view_on">Tingnan sa %1$s</string>
   <string name="transaction_status">Katayuan</string>
+  <string name="transaction_estimated_confirmation">Tinatayang kumpirmasyon</string>
   <string name="transaction_status_confirmed">Matagumpay</string>
   <string name="transaction_status_pending">Nakabinbin</string>
   <string name="transaction_status_failed">Nabigo</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">Ang bawat transaksyon sa %1$s network ay nangangailangan ng bayad sa %2$s na binabayaran sa mga minero upang maproseso ang iyong transaksyon, hindi ang Gem Wallet. Nag-iiba-iba ang mga bayarin sa network batay sa paggamit ng network.</string>
   <string name="info_transaction_error_description">Hindi makumpleto ang transaksyon dahil sa isang error, tulad ng hindi sapat na pondo, hindi wastong input, o pagtanggi ng network. Pakisuri ang mga detalye at subukang muli.</string>
   <string name="info_transaction_pending_description">Naisumite na ang transaksyon at naghihintay ng kumpirmasyon sa network. Maaaring mag-iba ang mga oras ng pagproseso. Mangyaring bumalik para sa mga update.</string>
+  <string name="info_estimated_confirmation_description">Ang tantiya na ito ay batay sa bayad sa transaksyon at kasalukuyang aktibidad ng %1$s network. Maaaring magbago ang aktuwal na oras ng kumpirmasyon at hindi ito garantisado.</string>
   <string name="info_transaction_success_description">Ang transaksyon ay nakumpleto at nakumpirma sa network. Maaari mong suriin ang mga detalye upang i-verify ang status nito.</string>
   <string name="info_lock_time_description">Ang tagal ng pag-lock, na kilala rin bilang unbonding o unfreezing period, ay ang tagal kung saan hindi naa-access ang staked asset pagkatapos mong magpasya na alisin ang stake sa mga ito.</string>
   <string name="info_price_impact_description">Ang epekto sa presyo ay ang pagbabago sa presyo ng token na dulot ng laki ng iyong kalakalan. Ang mas mataas na epekto sa presyo ay nangangahulugan na nakakatanggap ka ng mas kaunting mga token dahil sa mababang pagkatubig o isang malaking laki ng order.</string>

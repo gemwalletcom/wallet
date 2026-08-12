@@ -237,6 +237,7 @@
   <string name="transaction_date">日付</string>
   <string name="transaction_view_on">%1$sで見る</string>
   <string name="transaction_status">状態</string>
+  <string name="transaction_estimated_confirmation">推定承認時間</string>
   <string name="transaction_status_confirmed">成功</string>
   <string name="transaction_status_pending">確認待ち</string>
   <string name="transaction_status_failed">失敗した</string>
@@ -439,6 +440,7 @@
   <string name="info_network_fee_description">%1$s ネットワーク上のすべての取引には、取引処理のためにマイナーに支払われる %2$s の手数料が必要であり、Gem Wallet には支払われません。ネットワーク手数料はネットワークの使用状況により変動します。</string>
   <string name="info_transaction_error_description">残高不足、無効な入力、ネットワークによる拒否などのエラーにより、取引を完了できませんでした。詳細をご確認の上、再度お試しください。</string>
   <string name="info_transaction_pending_description">取引は送信済みで、ネットワーク上での確認を待っています。処理時間は異なる場合があります。最新情報を再度ご確認ください。</string>
+  <string name="info_estimated_confirmation_description">この推定は、取引手数料と%1$sネットワークの現在の状況に基づいています。実際の承認時間は変わる可能性があり、保証されるものではありません。</string>
   <string name="info_transaction_success_description">取引は完了し、ネットワーク上で確認されました。詳細を確認してステータスをご確認ください。</string>
   <string name="info_lock_time_description">ロック時間は、アンボンディング期間や凍結解除期間とも呼ばれ、ステーキング解除を決定した後にステークされた資産が利用できなくなる期間のことです。</string>
   <string name="info_price_impact_description">価格影響とは、取引サイズによって生じるトークン価格の変化です。価格影響が大きいということは、流動性が低いか注文サイズが大きいために受け取るトークンが少なくなることを意味します。</string>

@@ -222,6 +222,7 @@
 "transaction.date" = "Data";
 "transaction.view_on" = "Visualizza su %@";
 "transaction.status" = "Stato";
+"transaction.estimated_confirmation" = "Conferma stimata";
 "transaction.status.confirmed" = "Riuscita";
 "transaction.status.pending" = "In sospeso";
 "transaction.status.failed" = "Fallito";
@@ -424,6 +425,7 @@
 "info.network_fee.description" = "Ogni transazione sulla rete %@ richiede una commissione in %@ pagata ai minatori per elaborare la transazione, non a Gem Wallet. Le tariffe di rete variano in base all'utilizzo della rete.";
 "info.transaction.error.description" = "La transazione non è stata completata a causa di un errore, ad esempio fondi insufficienti, input non validi o rifiuto da parte della rete. Si prega di controllare i dettagli e riprovare.";
 "info.transaction.pending.description" = "La transazione è stata inoltrata ed è in attesa di conferma sulla rete. I tempi di elaborazione possono variare. Si prega di controllare regolarmente per aggiornamenti.";
+"info.estimated_confirmation_description" = "Questa stima si basa sulla commissione della transazione e sull’attuale attività della rete %@. Il tempo effettivo di conferma può cambiare e non è garantito.";
 "info.transaction.success.description" = "La transazione è stata completata e confermata sulla rete. Puoi controllare i dettagli per verificarne lo stato.";
 "info.lock_time.description" = "Il tempo di blocco, noto anche come periodo di svincolo o sblocco, è la durata durante la quale le risorse vincolate sono inaccessibili dopo che hai deciso di rimuoverle.";
 "info.price_impact.description" = "L'impatto sul prezzo è la variazione del prezzo del token causata dalla dimensione del tuo trade. Un impatto sul prezzo più elevato significa che ricevi meno token a causa della bassa liquidità o di una grande dimensione dell'ordine.";

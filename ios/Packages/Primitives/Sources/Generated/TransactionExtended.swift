@@ -14,8 +14,9 @@ public struct TransactionExtended: Codable, Equatable, Hashable, Sendable {
 	public let prices: [AssetPrice]
 	public let fromAddress: AddressName?
 	public let toAddress: AddressName?
+	public let confirmationEtaSeconds: UInt32?
 
-	public init(transaction: Transaction, asset: Asset, feeAsset: Asset, price: Price?, feePrice: Price?, assets: [Asset], prices: [AssetPrice], fromAddress: AddressName?, toAddress: AddressName?) {
+	public init(transaction: Transaction, asset: Asset, feeAsset: Asset, price: Price?, feePrice: Price?, assets: [Asset], prices: [AssetPrice], fromAddress: AddressName?, toAddress: AddressName?, confirmationEtaSeconds: UInt32?) {
 		self.transaction = transaction
 		self.asset = asset
 		self.feeAsset = feeAsset
@@ -25,5 +26,6 @@ public struct TransactionExtended: Codable, Equatable, Hashable, Sendable {
 		self.prices = prices
 		self.fromAddress = fromAddress
 		self.toAddress = toAddress
+		self.confirmationEtaSeconds = confirmationEtaSeconds
 	}
 }

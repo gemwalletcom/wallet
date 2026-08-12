@@ -186,6 +186,8 @@ extension TransactionStateService {
                 _ = try transactionStore.updateCreatedAt(transactionId: transactionId, date: date)
             case let .metadata(metadata):
                 _ = try transactionStore.updateMetadata(transactionId: transactionId, metadata: metadata)
+            case let .confirmationEtaSeconds(seconds):
+                _ = try transactionStore.updateConfirmationEtaSeconds(transactionId: transactionId, seconds: seconds)
             }
         }
     }
