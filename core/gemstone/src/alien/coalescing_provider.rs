@@ -8,7 +8,7 @@ use std::{
     sync::{Arc, Mutex, MutexGuard},
 };
 
-type RequestWaiters = Vec<oneshot::Sender<Result<AlienResponse, AlienError>>>;
+type RequestWaiters = Vec<oneshot::Sender<Result<Arc<AlienResponse>, AlienError>>>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct RequestKey {
@@ -78,7 +78,7 @@ fn requests(requests: &Mutex<HashMap<RequestKey, RequestWaiters>>) -> MutexGuard
 
 #[async_trait]
 impl AlienProvider for CoalescingAlienProvider {
-    async fn request(&self, target: AlienTarget) -> Result<AlienResponse, AlienError> {
+    async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
         let key = RequestKey::new(&target);
         let receiver = {
             let mut requests = requests(&self.requests);
@@ -137,13 +137,10 @@ mod tests {
 
     #[async_trait]
     impl AlienProvider for MockProvider {
-        async fn request(&self, _target: AlienTarget) -> Result<AlienResponse, AlienError> {
+        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
             self.count.fetch_add(1, Ordering::SeqCst);
             thread::sleep(Duration::from_millis(100));
-            Ok(AlienResponse {
-                status: Some(200),
-                data: b"{}".to_vec(),
-            })
+            Ok(Arc::new(AlienResponse::new(Some(200), b"{}".to_vec())))
         }
 
         fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
@@ -153,15 +150,12 @@ mod tests {
 
     #[async_trait]
     impl AlienProvider for CancelProvider {
-        async fn request(&self, _target: AlienTarget) -> Result<AlienResponse, AlienError> {
+        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
             let count = self.count.fetch_add(1, Ordering::SeqCst);
             if count == 0 {
                 futures::future::pending().await
             } else {
-                Ok(AlienResponse {
-                    status: Some(200),
-                    data: b"{}".to_vec(),
-                })
+                Ok(Arc::new(AlienResponse::new(Some(200), b"{}".to_vec())))
             }
         }
 
@@ -179,7 +173,7 @@ mod tests {
         }
     }
 
-    fn spawn_request(provider: Arc<CoalescingAlienProvider>, barrier: Arc<Barrier>, request_type: &'static str) -> thread::JoinHandle<AlienResponse> {
+    fn spawn_request(provider: Arc<CoalescingAlienProvider>, barrier: Arc<Barrier>, request_type: &'static str) -> thread::JoinHandle<Arc<AlienResponse>> {
         thread::spawn(move || {
             barrier.wait();
             futures::executor::block_on(provider.request(target(request_type))).unwrap()
