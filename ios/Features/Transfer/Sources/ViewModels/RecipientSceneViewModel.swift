@@ -48,6 +48,7 @@ public final class RecipientSceneViewModel {
         nameService: any NameServiceable,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
+        recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
     ) {
@@ -70,6 +71,10 @@ public final class RecipientSceneViewModel {
         )
 
         contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
+
+        if let recipient {
+            update(from: recipient)
+        }
     }
 
     var tittle: String {
@@ -182,44 +187,6 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    // TODO: Add unit tests, will be added once moved to package
-    func getRecipientScanResult(payment: PaymentRequest) throws -> RecipientScanResult {
-        let address = asset.chain.checksumAddress(payment.address)
-        let value = try transferValue(for: payment.amount)
-
-        if let value, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
-           asset.chain.isValidAddress(address)
-        {
-            let transferType: TransferDataType = switch type {
-            case let .asset(asset): .transfer(asset)
-            case let .nft(asset): .transferNft(asset)
-            }
-
-            let recipientData = RecipientData(
-                recipient: Recipient(
-                    name: .none,
-                    address: address,
-                    memo: payment.memo,
-                ),
-                amount: .none,
-            )
-            return .transferData(
-                TransferData(type: transferType, recipientData: recipientData, amount: .exact(value)),
-            )
-        }
-
-        return .recipient(
-            address: address,
-            memo: payment.memo,
-            amount: value.map { ValueFormatter(style: .full).string($0, decimals: asset.decimals.asInt) },
-        )
-    }
-
-    private func transferValue(for amount: String?) throws -> BigInt? {
-        guard let amount else { return .none }
-        return try BigNumberFormatter.standard.number(from: amount, decimals: asset.decimals.asInt)
-    }
-
     private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<RecipientAddress>] {
         switch section {
         case .contacts:
@@ -252,23 +219,39 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        guard case let .request(payment) = try PaymentURLDecoder.decode(string) else {
+        switch try PaymentURLDecoder.decode(string) {
+        case let .request(payment):
+            try handle(payment: payment)
+        case .link:
             throw AnyError(Localized.Errors.notSupported)
         }
-        let scanResult = try getRecipientScanResult(payment: payment)
-        switch scanResult {
-        case let .transferData(data):
-            handle(transferData: data)
-        case let .recipient(address, memo, amount):
-            // TODO: - open if all fields filled
-            addressInputModel.update(text: address)
+    }
 
-            if let memo {
-                self.memo = memo
+    private func handle(payment: PaymentRequest) throws {
+        switch type {
+        case let .asset(asset):
+            switch try PaymentTransfer(asset: asset).destination(for: payment) {
+            case let .confirm(data): handle(transferData: data)
+            case let .recipient(data): update(from: data)
             }
-            if let amount {
-                self.amount = amount
-            }
+        case .nft:
+            update(
+                from: RecipientData(
+                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address), memo: payment.memo),
+                    amount: .none,
+                ),
+            )
+        }
+    }
+
+    private func update(from recipientData: RecipientData) {
+        addressInputModel.update(text: recipientData.recipient.address)
+
+        if let memo = recipientData.recipient.memo {
+            self.memo = memo
+        }
+        if let amount = recipientData.amount {
+            self.amount = amount
         }
     }
 

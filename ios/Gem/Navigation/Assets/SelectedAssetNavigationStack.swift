@@ -39,6 +39,7 @@ struct SelectedAssetNavigationStack: View {
                             wallet: wallet,
                             asset: input.asset,
                             type: type,
+                            recipient: input.recipient,
                             onRecipientDataAction: {
                                 navigationPath.append($0)
                             },

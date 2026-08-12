@@ -22,8 +22,11 @@ struct SelectAssetSceneNavigationStack: View {
     @State private var model: SelectAssetViewModel
     @State private var navigationPath = NavigationPath()
 
-    init(model: SelectAssetViewModel) {
+    private let recipient: RecipientData?
+
+    init(model: SelectAssetViewModel, recipient: RecipientData? = .none) {
         _model = State(wrappedValue: model)
+        self.recipient = recipient
     }
 
     var body: some View {
@@ -64,6 +67,7 @@ struct SelectAssetSceneNavigationStack: View {
                                 wallet: model.wallet,
                                 asset: input.asset,
                                 type: .asset(input.asset),
+                                recipient: recipient,
                                 onRecipientDataAction: {
                                     navigationPath.append($0)
                                 },

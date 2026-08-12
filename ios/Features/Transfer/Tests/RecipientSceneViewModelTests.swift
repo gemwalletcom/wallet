@@ -94,7 +94,7 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
-    func getRecipientScanResult_transferData() throws {
+    func destination_confirm() throws {
         let asset = Asset.mockEthereum()
         let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
         let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
@@ -107,19 +107,19 @@ struct RecipientSceneViewModelTests {
             assetId: nil,
         )
 
-        let result = try model.getRecipientScanResult(payment: payment)
+        let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
 
         switch result {
-        case let .transferData(data):
+        case let .confirm(data):
             #expect(data.recipientData.recipient.address == checksummed)
             #expect(data.amount == .exact(BigInt("1234000000000000000")))
         case .recipient:
-            Issue.record("Expected transferData but got recipient")
+            Issue.record("Expected confirm but got recipient")
         }
     }
 
     @Test
-    func getRecipientScanResult_recipient() throws {
+    func destination_recipient() throws {
         let model = RecipientSceneViewModel.mock()
 
         let payment = PaymentRequest(
@@ -129,15 +129,15 @@ struct RecipientSceneViewModelTests {
             assetId: nil,
         )
 
-        let result = try model.getRecipientScanResult(payment: payment)
+        let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
 
         switch result {
-        case let .recipient(address, memo, amount):
-            #expect(address == payment.address)
-            #expect(memo == payment.memo)
-            #expect(amount == nil)
-        case .transferData:
-            Issue.record("Expected recipient but got transferData")
+        case let .recipient(data):
+            #expect(data.recipient.address == payment.address)
+            #expect(data.recipient.memo == payment.memo)
+            #expect(data.amount == nil)
+        case .confirm:
+            Issue.record("Expected recipient but got confirm")
         }
     }
 

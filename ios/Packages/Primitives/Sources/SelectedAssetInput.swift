@@ -5,10 +5,12 @@ import Foundation
 public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     public let type: SelectedAssetType
     public let assetData: AssetData
+    public let recipient: RecipientData?
 
-    public init(type: SelectedAssetType, assetData: AssetData) {
+    public init(type: SelectedAssetType, assetData: AssetData, recipient: RecipientData? = .none) {
         self.type = type
         self.assetData = assetData
+        self.recipient = recipient
     }
 
     public var id: String {

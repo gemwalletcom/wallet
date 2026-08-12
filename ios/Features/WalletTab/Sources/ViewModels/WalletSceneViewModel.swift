@@ -13,6 +13,7 @@ import NFT
 import NFTService
 import Preferences
 import Primitives
+import Transfer
 import PrimitivesComponents
 import Store
 import Style
@@ -207,14 +208,54 @@ public extension WalletSceneViewModel {
     }
 
     func onHandleScan(_ result: String) {
-        guard let action = try? URLParser.from(string: result) else {
-            isPresentingToastMessage = .error(Localized.Errors.notSupported)
-            return
+        do {
+            switch try PaymentURLDecoder.decode(result) {
+            case let .request(payment): try present(payment)
+            case .link: throw AnyError(Localized.Errors.notSupported)
+            }
+        } catch {
+            isPresentingToastMessage = .error(error.localizedDescription)
         }
-        switch action {
-        case .deeplink, .payment, .walletConnect:
-            isPresentingToastMessage = .error(Localized.Errors.notSupported)
+    }
+
+    private func present(_ payment: PaymentRequest) throws {
+        switch paymentAsset(for: payment) {
+        case .unsupported:
+            throw AnyError(Localized.Errors.notSupported)
+        case let .single(assetData):
+            try present(payment, with: assetData)
+        case let .choice(payable):
+            isPresentingSheet = .selectAsset(
+                .send,
+                chains: payable.map(\.asset.chain),
+                recipient: RecipientData(
+                    recipient: Recipient(name: .none, address: payment.address, memo: payment.memo),
+                    amount: payment.amount,
+                ),
+            )
         }
+    }
+
+    private func present(_ payment: PaymentRequest, with assetData: AssetData) throws {
+        switch try PaymentTransfer(asset: assetData.asset).destination(for: payment) {
+        case let .confirm(transfer):
+            isPresentingSheet = .transferData(transfer)
+        case let .recipient(recipient):
+            isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
+                type: .send(.asset(assetData.asset)),
+                assetData: assetData,
+                recipient: recipient,
+            )
+        }
+    }
+
+    private func paymentAsset(for payment: PaymentRequest) -> PaymentAsset {
+        let payable = switch payment.assetId {
+        case let .some(assetId): assets.filter { $0.asset.id == assetId }
+        case .none: assets.filter { $0.asset.chain.isValidAddress(payment.address) }
+        }
+        guard let assetData = payable.first else { return .unsupported }
+        return payable.count == 1 ? .single(assetData) : .choice(payable)
     }
 
     func onSelectAddCustomToken() {
