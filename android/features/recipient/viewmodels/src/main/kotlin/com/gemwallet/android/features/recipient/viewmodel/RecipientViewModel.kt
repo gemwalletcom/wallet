@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.ext.mutableStateIn
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
@@ -30,9 +29,11 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
+import com.gemwallet.android.ui.models.name.AddressInputModel
+import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.ui.models.navigation.requireAssetId
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NameRecord
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -53,7 +55,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -70,13 +72,18 @@ class RecipientViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _address = MutableStateFlow("")
-    val address = _address.asStateFlow()
+    private val addressInput = AddressInputModel(
+        resolveName = resolveName,
+        scope = viewModelScope,
+        validateAddress = { address, chain -> validateAddressOperator(address, chain).getOrNull() == true },
+    )
+
+    val address: StateFlow<String> = addressInput.text
+    val nameResolveState: StateFlow<NameRecordState> = addressInput.nameResolveState
+    val addressError: StateFlow<Boolean> = addressInput.showError
 
     private val _memo = MutableStateFlow("")
     val memo = _memo.asStateFlow()
-
-    private val nameRecord = MutableStateFlow<NameRecord?>(null)
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -118,42 +125,18 @@ class RecipientViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val addressError = combine(
-        state,
-        address,
-        nameRecord,
-    ) { state, address, record ->
-        when (state) {
-            RecipientState.Loading -> RecipientError.None
-            is RecipientState.Ready -> {
-                val asset = state.type.assetInfo.asset
-                val resolvedAddress = asset.chain.checksumAddress(record?.address ?: address)
-                when {
-                    resolvedAddress.isEmpty() -> RecipientError.None
-                    resolveName.canResolveName(address) -> RecipientError.None
-                    else -> validateDestination(
-                        asset = asset,
-                        destination = DestinationAddress(resolvedAddress, record?.name),
-                    )
-                }
-            }
-        }
-    }.mutableStateIn(viewModelScope, RecipientError.None)
-
     val memoErrorState = MutableStateFlow<RecipientError>(RecipientError.None)
 
-    val buttonState: StateFlow<ButtonState> = combine(
-        address,
-        nameRecord,
-        addressError,
-    ) { address, record, error ->
-        val valid = when {
-            record != null -> true
-            resolveName.canResolveName(address) -> false
-            else -> address.isNotBlank() && error == RecipientError.None
+    val buttonState: StateFlow<ButtonState> = addressInput.isValid
+        .map { buttonState(enabled = it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
+
+    init {
+        viewModelScope.launch {
+            state.filterIsInstance<RecipientState.Ready>()
+                .collect { addressInput.setChain(it.type.assetInfo.asset.chain) }
         }
-        buttonState(enabled = valid)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
+    }
 
     val hasMemo: StateFlow<Boolean> = state
         .map {
@@ -169,11 +152,12 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        val resolvedNameRecord = nameRecord.value
+        if (!addressInput.validate()) return
+        val resolvedNameRecord = addressInput.nameRecord
         submit(
             type = type,
             destination = DestinationAddress(
-                address = resolvedNameRecord?.address ?: address.value,
+                address = addressInput.resolvedAddress,
                 name = resolvedNameRecord?.name,
             ),
             amountAction = amountAction,
@@ -200,10 +184,9 @@ class RecipientViewModel @Inject constructor(
     ) {
         val asset = type.assetInfo.asset
         destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
-            val validation = validateDestination(asset, destination, nameRecord)
-            if (validation != RecipientError.None) {
+            if (!destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddressOperator)) {
                 if (!resolveName.canResolveName(destination.address)) {
-                    addressError.update { validation }
+                    addressInput.markInvalid()
                 }
                 return
             }
@@ -216,10 +199,7 @@ class RecipientViewModel @Inject constructor(
         }
     }
 
-    fun onAddress(input: String, record: NameRecord?) {
-        _address.value = input
-        nameRecord.value = record
-    }
+    fun onAddress(input: String) = addressInput.onTextChange(input)
 
     fun onMemo(input: String) {
         _memo.value = input
@@ -251,11 +231,11 @@ class RecipientViewModel @Inject constructor(
         when (field) {
             QrScanField.None -> Unit
             QrScanField.Address -> {
-                _address.value = address.ifEmpty { data }
+                addressInput.applyExternalAddress(address.ifEmpty { data })
                 _memo.value = memo?.ifEmpty { _memo.value } ?: _memo.value
             }
             QrScanField.Memo -> {
-                _address.value = address.ifEmpty { _address.value }
+                addressInput.applyExternalAddress(address.ifEmpty { addressInput.text.value })
                 _memo.value = paymentWrapper.memo ?: data
             }
         }
@@ -270,11 +250,4 @@ class RecipientViewModel @Inject constructor(
         )
         confirmAction(params)
     }
-
-    private fun validateDestination(asset: Asset, destination: DestinationAddress, nameRecord: NameRecord? = null): RecipientError =
-        if (destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddressOperator)) {
-            RecipientError.None
-        } else {
-            RecipientError.IncorrectAddress(asset.name)
-        }
 }

@@ -50,7 +50,6 @@ dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
     implementation(project(":blockchain"))
-    implementation(project(":features:recipient:viewmodels"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -60,6 +59,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

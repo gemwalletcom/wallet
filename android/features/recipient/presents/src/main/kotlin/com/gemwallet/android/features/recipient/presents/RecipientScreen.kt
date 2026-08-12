@@ -24,6 +24,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.recipient.presents.components.RecipientHead
 import com.gemwallet.android.features.recipient.presents.components.contactsDestination
 import com.gemwallet.android.features.recipient.presents.components.destinationView
+import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.features.recipient.presents.components.walletsDestination
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
@@ -59,6 +60,7 @@ fun RecipientScreen(
     val address by viewModel.address.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val memo by viewModel.memo.collectAsStateWithLifecycle()
+    val nameResolveState by viewModel.nameResolveState.collectAsStateWithLifecycle()
 
     var scan by remember { mutableStateOf(QrScanField.None) }
 
@@ -71,13 +73,14 @@ fun RecipientScreen(
                 address = address,
                 memo = memo,
                 addressError = addressError,
+                nameResolveState = nameResolveState,
                 memoError = memoError,
                 wallets = wallets,
                 contacts = contacts,
                 buttonState = buttonState,
                 onAction = { action ->
                     when (action) {
-                        is RecipientAction.SetAddress -> viewModel.onAddress(action.address, action.nameRecord)
+                        is RecipientAction.SetAddress -> viewModel.onAddress(action.address)
                         is RecipientAction.SetMemo -> viewModel.onMemo(action.memo)
                         is RecipientAction.Scan -> scan = action.field
                         RecipientAction.Next -> viewModel.onNext(currentState.type, amountAction, confirmAction)
@@ -105,7 +108,8 @@ internal fun RecipientScreen(
     hasMemo: Boolean,
     address: String,
     memo: String,
-    addressError: RecipientError,
+    addressError: Boolean,
+    nameResolveState: NameRecordState,
     memoError: RecipientError,
     wallets: List<Wallet>,
     contacts: List<ContactRecipient>,
@@ -146,13 +150,14 @@ internal fun RecipientScreen(
         ) {
             item { RecipientHead(type) }
             destinationView(
-                asset = type.assetInfo,
                 hasMemo = hasMemo,
+                assetName = type.assetInfo.asset.name,
                 address = address,
                 addressError = addressError,
+                nameResolveState = nameResolveState,
                 memo = memo,
                 memoError = memoError,
-                onAddress = { input, nameRecord -> onAction(RecipientAction.SetAddress(input, nameRecord)) },
+                onAddress = { onAction(RecipientAction.SetAddress(it)) },
                 onMemo = { onAction(RecipientAction.SetMemo(it)) },
                 onQrScan = { onAction(RecipientAction.Scan(it)) },
             )
