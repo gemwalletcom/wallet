@@ -36,6 +36,7 @@ pub enum SwapProvider {
     Orca,
     Squid,
     Mayachain,
+    SwapsXyz,
 }
 
 impl SwapProvider {
@@ -49,7 +50,16 @@ impl SwapProvider {
 
     pub fn is_cross_chain(&self) -> bool {
         match self {
-            Self::Thorchain | Self::Mayachain | Self::Across | Self::Mayan | Self::Chainflip | Self::NearIntents | Self::Relay | Self::Hyperliquid | Self::Squid => true,
+            Self::Thorchain
+            | Self::Mayachain
+            | Self::Across
+            | Self::Mayan
+            | Self::Chainflip
+            | Self::NearIntents
+            | Self::Relay
+            | Self::Hyperliquid
+            | Self::Squid
+            | Self::SwapsXyz => true,
             Self::UniswapV3
             | Self::UniswapV4
             | Self::PancakeswapV3
@@ -93,6 +103,7 @@ impl SwapProvider {
             | Self::StonfiV2
             | Self::Aerodrome
             | Self::Hyperliquid
+            | Self::SwapsXyz
             | Self::Orca => None,
         }
     }
@@ -119,6 +130,7 @@ impl SwapProvider {
             Self::Hyperliquid => "Hyperliquid",
             Self::Orca => "Orca",
             Self::Squid => "Squid",
+            Self::SwapsXyz => "Swaps.xyz",
         }
     }
 
@@ -144,7 +156,8 @@ impl SwapProvider {
             | Self::Relay
             | Self::Hyperliquid
             | Self::Orca
-            | Self::Squid => self.name(),
+            | Self::Squid
+            | Self::SwapsXyz => self.name(),
         }
     }
 }
@@ -160,6 +173,7 @@ mod tests {
         assert!(SwapProvider::Mayan.is_cross_chain());
         assert!(SwapProvider::NearIntents.is_cross_chain());
         assert!(SwapProvider::Relay.is_cross_chain());
+        assert!(SwapProvider::SwapsXyz.is_cross_chain());
         assert!(!SwapProvider::UniswapV3.is_cross_chain());
         assert!(!SwapProvider::Jupiter.is_cross_chain());
     }

@@ -53,5 +53,7 @@ enum class SwapProvider(val string: String) {
 	Squid("squid"),
 	@SerialName("mayachain")
 	Mayachain("mayachain"),
+	@SerialName("swaps_xyz")
+	SwapsXyz("swaps_xyz"),
 }
 

@@ -32,6 +32,7 @@ mod route_cache;
 pub mod squid;
 pub mod stonfi;
 pub mod swapper;
+pub mod swaps_xyz;
 pub mod thorchain;
 pub mod uniswap;
 

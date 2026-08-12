@@ -92,6 +92,7 @@ public enum Images {
         public static let okx = Image(.okx)
         public static let nearIntents = Image(.nearIntents)
         public static let squid = Image(.squid)
+        public static let swapsXyz = Image(.swapsXyz)
     }
 
     public enum EarnProviders {

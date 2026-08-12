@@ -29,6 +29,8 @@ A route is only a hint. Every quote still uses the current amount and live chain
 
 Exact concurrent RPC requests are joined by the same Gemstone coalescer used by `GemGateway`. Quote results, prices, balances, approvals, and transaction data are never cached.
 
+The Gem API adds every Swaps.xyz quoted deposit address to the seven-day vault watchlist while proxying the action request. Source-chain memo and destination-tag values returned as `tx.toExtra` are preserved in `SwapQuoteData.memo`; Sui deposits also receive a prebuilt transfer payload. Status polling uses the confirmed source-chain transaction hash directly; clients do not register broadcasts or persist a provider transaction-ID mapping.
+
 ## Failure and lifetime
 
 Preloading is best-effort. Completed probes are cached; transport failures and incomplete responses remain missing, so `get_quote` retries them through the provider's normal discovery path. Uniswap falls back to its full quote request set when discovery is unavailable.

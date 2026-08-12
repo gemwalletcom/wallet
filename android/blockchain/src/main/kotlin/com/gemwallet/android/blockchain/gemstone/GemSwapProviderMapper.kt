@@ -26,4 +26,5 @@ internal fun SwapProvider.toGem(): SwapperProvider = when (this) {
     SwapProvider.Orca -> SwapperProvider.ORCA
     SwapProvider.Squid -> SwapperProvider.SQUID
     SwapProvider.Mayachain -> SwapperProvider.MAYACHAIN
+    SwapProvider.SwapsXyz -> SwapperProvider.SWAPS_XYZ
 }
