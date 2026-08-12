@@ -77,7 +77,8 @@
   <string name="wallet_default_name">ওয়ালেট #%1$d</string>
   <string name="wallet_default_name_chain">%1$s ওয়ালেট #%2$d</string>
   <string name="wallet_copy_address">কপি ঠিকানা</string>
-  <string name="wallet_watch_tooltip_title">আপনি এই মানিব্যাগ দেখছেন.</string>
+  <string name="wallet_watch_tooltip_title">শুধুমাত্র দেখার ওয়ালেট। এই তহবিল আপনার নিয়ন্ত্রণে নেই।</string>
+  <string name="wallet_watch_empty_state_title">আপনি এই মানিব্যাগ দেখছেন.</string>
   <string name="wallet_stake">স্টেক</string>
   <string name="wallet_receive_no_memo_required">কোন মেমো প্রয়োজন নেই</string>
   <string name="wallet_receive_no_destination_tag_required">কোনো গন্তব্য ট্যাগ প্রয়োজন নেই</string>

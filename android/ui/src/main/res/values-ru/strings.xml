@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Кошелек № %1$d</string>
   <string name="wallet_default_name_chain">%1$s Кошелек № %2$d</string>
   <string name="wallet_copy_address">Копировать адрес</string>
-  <string name="wallet_watch_tooltip_title">Вы следите за этим кошельком.</string>
+  <string name="wallet_watch_tooltip_title">Кошелек только для наблюдения. Вы не управляете этими средствами.</string>
+  <string name="wallet_watch_empty_state_title">Вы следите за этим кошельком.</string>
   <string name="wallet_stake">Стейк</string>
   <string name="wallet_receive_no_memo_required">Мемо не требуется</string>
   <string name="wallet_receive_no_destination_tag_required">Тег назначения не требуется</string>

@@ -77,7 +77,8 @@
   <string name="wallet_default_name">钱包 #%1$d</string>
   <string name="wallet_default_name_chain">%1$s 钱包 #%2$d</string>
   <string name="wallet_copy_address">复制地址</string>
-  <string name="wallet_watch_tooltip_title">正在观察这个钱包。</string>
+  <string name="wallet_watch_tooltip_title">仅供观察的钱包。这些资金不受您控制。</string>
+  <string name="wallet_watch_empty_state_title">正在观察这个钱包。</string>
   <string name="wallet_stake">质押</string>
   <string name="wallet_receive_no_memo_required">无需备忘录</string>
   <string name="wallet_receive_no_destination_tag_required">无需目的地标签</string>

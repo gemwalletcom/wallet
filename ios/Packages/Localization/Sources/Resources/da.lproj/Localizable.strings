@@ -72,7 +72,8 @@
 "wallet.default_name" = "Tegnebog #%d";
 "wallet.default_name_chain" = "%@ tegnebog #%d";
 "wallet.copy_address" = "Kopiér adresse";
-"wallet.watch.tooltip.title" = "Du holder øje med denne tegnebog.";
+"wallet.watch.tooltip.title" = "Tegnebog kun til overvågning. Du kontrollerer ikke disse midler.";
+"wallet.watch_empty_state_title" = "Du holder øje med denne tegnebog.";
 "wallet.stake" = "Indsats";
 "wallet.receive.no_memo_required" = "Intet notat påkrævet";
 "wallet.receive.no_destination_tag_required" = "Der kræves ingen destinationsmærke";

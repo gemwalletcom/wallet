@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Carteira #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Carteira #%2$d</string>
   <string name="wallet_copy_address">Copiar endereço</string>
-  <string name="wallet_watch_tooltip_title">Você está observando esta carteira.</string>
+  <string name="wallet_watch_tooltip_title">Carteira somente de observação. Você não controla esses fundos.</string>
+  <string name="wallet_watch_empty_state_title">Você está observando esta carteira.</string>
   <string name="wallet_stake">Fazer stake</string>
   <string name="wallet_receive_no_memo_required">Não é necessário memorando</string>
   <string name="wallet_receive_no_destination_tag_required">Nenhuma tag de destino é necessária</string>

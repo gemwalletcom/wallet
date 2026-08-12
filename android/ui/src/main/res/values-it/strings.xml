@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Portafoglio n.%1$d</string>
   <string name="wallet_default_name_chain">%1$s Portafoglio n.%2$d</string>
   <string name="wallet_copy_address">Copia indirizzo</string>
-  <string name="wallet_watch_tooltip_title">Stai guardando questo portafoglio.</string>
+  <string name="wallet_watch_tooltip_title">Portafoglio di sola osservazione. Non controlli questi fondi.</string>
+  <string name="wallet_watch_empty_state_title">Stai guardando questo portafoglio.</string>
   <string name="wallet_stake">Stake</string>
   <string name="wallet_receive_no_memo_required">Nessun promemoria richiesto</string>
   <string name="wallet_receive_no_destination_tag_required">Nessun tag di destinazione richiesto</string>

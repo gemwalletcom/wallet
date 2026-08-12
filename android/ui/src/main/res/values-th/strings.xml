@@ -77,7 +77,8 @@
   <string name="wallet_default_name">กระเป๋าเงิน #%1$d</string>
   <string name="wallet_default_name_chain">%1$s กระเป๋าเงิน #%2$d</string>
   <string name="wallet_copy_address">คัดลอกที่อยู่</string>
-  <string name="wallet_watch_tooltip_title">คุณกำลังดูกระเป๋าสตางค์นี้</string>
+  <string name="wallet_watch_tooltip_title">กระเป๋าเงินสำหรับดูเท่านั้น คุณไม่ได้ควบคุมเงินเหล่านี้</string>
+  <string name="wallet_watch_empty_state_title">คุณกำลังดูกระเป๋าสตางค์นี้</string>
   <string name="wallet_stake">สเตค</string>
   <string name="wallet_receive_no_memo_required">ไม่จำเป็นต้องมีบันทึกช่วยจำ</string>
   <string name="wallet_receive_no_destination_tag_required">ไม่ต้องใช้แท็กปลายทาง</string>

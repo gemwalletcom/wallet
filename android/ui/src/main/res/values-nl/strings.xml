@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Portemonnee #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Portemonnee #%2$d</string>
   <string name="wallet_copy_address">Kopieer adres</string>
-  <string name="wallet_watch_tooltip_title">Je houdt deze portemonnee in de gaten.</string>
+  <string name="wallet_watch_tooltip_title">Alleen-kijken-portemonnee. Je hebt geen controle over deze tegoeden.</string>
+  <string name="wallet_watch_empty_state_title">Je houdt deze portemonnee in de gaten.</string>
   <string name="wallet_stake">Inzet</string>
   <string name="wallet_receive_no_memo_required">Geen notitie vereist</string>
   <string name="wallet_receive_no_destination_tag_required">Geen bestemmingstag vereist</string>

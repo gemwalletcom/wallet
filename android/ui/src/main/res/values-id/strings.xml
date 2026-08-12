@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Dompet %1$d</string>
   <string name="wallet_default_name_chain">Dompet %1$s #%2$d</string>
   <string name="wallet_copy_address">Salin Alamat</string>
-  <string name="wallet_watch_tooltip_title">Anda sedang memantau dompet ini.</string>
+  <string name="wallet_watch_tooltip_title">Dompet khusus pantau. Anda tidak mengontrol dana ini.</string>
+  <string name="wallet_watch_empty_state_title">Anda sedang memantau dompet ini.</string>
   <string name="wallet_stake">Staking</string>
   <string name="wallet_receive_no_memo_required">Memo tidak diperlukan</string>
   <string name="wallet_receive_no_destination_tag_required">Tag tujuan tidak diperlukan</string>

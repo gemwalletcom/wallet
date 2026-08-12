@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Tegnebog #%1$d</string>
   <string name="wallet_default_name_chain">%1$s tegnebog #%2$d</string>
   <string name="wallet_copy_address">Kopiér adresse</string>
-  <string name="wallet_watch_tooltip_title">Du holder øje med denne tegnebog.</string>
+  <string name="wallet_watch_tooltip_title">Tegnebog kun til overvågning. Du kontrollerer ikke disse midler.</string>
+  <string name="wallet_watch_empty_state_title">Du holder øje med denne tegnebog.</string>
   <string name="wallet_stake">Indsats</string>
   <string name="wallet_receive_no_memo_required">Intet notat påkrævet</string>
   <string name="wallet_receive_no_destination_tag_required">Der kræves ingen destinationsmærke</string>

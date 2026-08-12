@@ -72,7 +72,8 @@
 "wallet.default_name" = "کیف پول %d";
 "wallet.default_name_chain" = "%@ کیف پول %d";
 "wallet.copy_address" = "کپی کردن آدرس";
-"wallet.watch.tooltip.title" = "شما در حال تماشای این کیف پول هستید.";
+"wallet.watch.tooltip.title" = "کیف پول فقط برای مشاهده. شما کنترلی بر این وجوه ندارید.";
+"wallet.watch_empty_state_title" = "شما در حال تماشای این کیف پول هستید.";
 "wallet.stake" = "استیک";
 "wallet.receive.no_memo_required" = "به یادداشت نیاز نیست.";
 "wallet.receive.no_destination_tag_required" = "نیازی به برچسب مقصد نیست.";

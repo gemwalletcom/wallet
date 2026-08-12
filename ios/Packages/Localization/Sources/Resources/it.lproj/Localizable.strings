@@ -72,7 +72,8 @@
 "wallet.default_name" = "Portafoglio n.%d";
 "wallet.default_name_chain" = "%@ Portafoglio n.%d";
 "wallet.copy_address" = "Copia indirizzo";
-"wallet.watch.tooltip.title" = "Stai guardando questo portafoglio.";
+"wallet.watch.tooltip.title" = "Portafoglio di sola osservazione. Non controlli questi fondi.";
+"wallet.watch_empty_state_title" = "Stai guardando questo portafoglio.";
 "wallet.stake" = "Stake";
 "wallet.receive.no_memo_required" = "Nessun promemoria richiesto";
 "wallet.receive.no_destination_tag_required" = "Nessun tag di destinazione richiesto";

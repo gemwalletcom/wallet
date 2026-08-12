@@ -77,7 +77,8 @@
   <string name="wallet_default_name">वॉलेट #%1$d</string>
   <string name="wallet_default_name_chain">%1$s वॉलेट #%2$d</string>
   <string name="wallet_copy_address">पता कॉपी करें</string>
-  <string name="wallet_watch_tooltip_title">आप यह बटुआ देख रहे हैं.</string>
+  <string name="wallet_watch_tooltip_title">केवल देखने वाला वॉलेट। इन फ़ंड पर आपका नियंत्रण नहीं है।</string>
+  <string name="wallet_watch_empty_state_title">आप यह बटुआ देख रहे हैं.</string>
   <string name="wallet_stake">स्टेक</string>
   <string name="wallet_receive_no_memo_required">किसी मेमो की आवश्यकता नहीं</string>
   <string name="wallet_receive_no_destination_tag_required">किसी गंतव्य टैग की आवश्यकता नहीं है</string>

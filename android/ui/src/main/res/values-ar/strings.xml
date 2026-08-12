@@ -77,7 +77,8 @@
   <string name="wallet_default_name">المحفظة #%1$d</string>
   <string name="wallet_default_name_chain">%1$s المحفظة رقم %2$d</string>
   <string name="wallet_copy_address">نسخ العنوان</string>
-  <string name="wallet_watch_tooltip_title">أنت تشاهد هذه المحفظة.</string>
+  <string name="wallet_watch_tooltip_title">محفظة للمراقبة فقط. أنت لا تتحكم في هذه الأموال.</string>
+  <string name="wallet_watch_empty_state_title">أنت تشاهد هذه المحفظة.</string>
   <string name="wallet_stake">التخزين</string>
   <string name="wallet_receive_no_memo_required">لا مذكرة المطلوبة</string>
   <string name="wallet_receive_no_destination_tag_required">لا توجد علامة الوجهة المطلوبة</string>

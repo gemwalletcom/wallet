@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Гаманець № %1$d</string>
   <string name="wallet_default_name_chain">%1$s Гаманець № %2$d</string>
   <string name="wallet_copy_address">Копіювати адресу</string>
-  <string name="wallet_watch_tooltip_title">Ви спостерігаєте за цим гаманцем.</string>
+  <string name="wallet_watch_tooltip_title">Гаманець лише для спостереження. Ви не контролюєте ці кошти.</string>
+  <string name="wallet_watch_empty_state_title">Ви спостерігаєте за цим гаманцем.</string>
   <string name="wallet_stake">Стейкнути</string>
   <string name="wallet_receive_no_memo_required">Memo не потрібен</string>
   <string name="wallet_receive_no_destination_tag_required">Тег призначення не потрібен</string>

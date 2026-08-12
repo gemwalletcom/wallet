@@ -168,8 +168,10 @@ wallet_default_name = Wallet #%d
 wallet_default_name_chain = %@ Wallet #%d
 # Used in wallet creation, import, receive, and wallet detail screens for the copy address label.
 wallet_copy_address = Copy Address
-# Used in wallet creation, import, receive, and wallet detail screens for the watch tooltip title.
-wallet_watch_tooltip_title = You are watching this wallet.
+# Used in the wallet and asset header banner for watch wallets.
+wallet_watch_tooltip_title = Watch-only wallet. You don't control these funds.
+# Used as the empty state title on asset and activity screens for watch wallets.
+wallet_watch_empty_state_title = You are watching this wallet.
 # Used in wallet creation, import, receive, and wallet detail screens for the stake label.
 wallet_stake = Stake
 # Used in wallet creation, import, receive, and wallet detail screens for the receive no memo required label.
