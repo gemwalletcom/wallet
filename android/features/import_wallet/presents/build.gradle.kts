@@ -57,7 +57,6 @@ dependencies {
     implementation(project(":gemcore"))
     implementation(project(":blockchain"))
     implementation(project(":features:import_wallet:viewmodels"))
-    implementation(project(":features:recipient:viewmodels"))
     implementation(project(":features:add_asset:viewmodels"))
 
     implementation(libs.hilt.android)

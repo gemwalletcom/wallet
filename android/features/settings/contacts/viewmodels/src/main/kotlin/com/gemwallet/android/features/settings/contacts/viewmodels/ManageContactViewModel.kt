@@ -8,10 +8,11 @@ import com.gemwallet.android.cases.contacts.AddContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact
 import com.gemwallet.android.cases.name.ResolveName
-import com.gemwallet.android.features.recipient.viewmodel.NameRecordState
-import com.gemwallet.android.features.recipient.viewmodel.NameResolveController
+import com.gemwallet.android.ui.models.name.AddressInputModel
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
@@ -20,9 +21,10 @@ import com.wallet.core.primitives.ContactAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -50,17 +52,42 @@ class ManageContactViewModel @Inject constructor(
     private val contactId: String = (mode as? Mode.Edit)?.contactId ?: UUID.randomUUID().toString()
     private var createdAt: Long? = null
 
-    private val resolver = NameResolveController(resolveName, viewModelScope)
+    private val addressInput = AddressInputModel(
+        resolveName = resolveName,
+        scope = viewModelScope,
+        validateAddress = { address, chain -> validateAddress(address, chain).getOrNull() == true },
+    )
 
-    private val state = MutableStateFlow(ManageContactUIState(isEdit = mode is Mode.Edit))
-    val uiState: StateFlow<ManageContactUIState> = state.asStateFlow()
+    private val state = MutableStateFlow(ManageContactState(isEdit = mode is Mode.Edit))
+    val uiState: StateFlow<ManageContactUIState> = combine(
+        state,
+        addressInput.text,
+        addressInput.nameResolveState,
+        addressInput.showError,
+        addressInput.isValid,
+    ) { current, address, resolve, showError, isValid ->
+        ManageContactUIState(
+            isEdit = current.isEdit,
+            name = current.name,
+            description = current.description,
+            addresses = current.addresses,
+            page = current.page,
+            saved = current.saved,
+            addressInput = current.form?.let { form ->
+                ContactAddressInput(
+                    editingId = form.editingId,
+                    chain = form.chain,
+                    memo = form.memo,
+                    address = address,
+                    nameResolveState = resolve,
+                    isAddressValid = isValid,
+                    showAddressError = showError,
+                )
+            },
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ManageContactUIState(isEdit = mode is Mode.Edit))
 
     init {
-        viewModelScope.launch {
-            resolver.state.collect { resolve ->
-                updateInput { it.copy(nameResolveState = resolve) }
-            }
-        }
         when (val mode = mode) {
             is Mode.Edit -> viewModelScope.launch(Dispatchers.IO) {
                 val data = getContacts.getContact(mode.contactId) ?: return@launch
@@ -87,34 +114,34 @@ class ManageContactViewModel @Inject constructor(
     }
 
     fun addAddress() {
-        resolver.reset()
-        state.update { it.copy(page = ManageContactPage.Address, addressInput = ContactAddressInput()) }
+        val form = ContactAddressForm()
+        addressInput.reset()
+        addressInput.setChain(form.chain)
+        state.update { it.copy(page = ManageContactPage.Address, form = form) }
     }
 
     fun editAddress(address: ContactAddress) {
-        resolver.reset()
+        addressInput.reset()
+        addressInput.setChain(address.chain)
+        addressInput.onTextChange(address.address)
         state.update {
             it.copy(
                 page = ManageContactPage.Address,
-                addressInput = ContactAddressInput(
+                form = ContactAddressForm(
                     editingId = address.id,
                     chain = address.chain,
-                    address = address.address,
                     memo = address.memo ?: "",
-                ).validated(),
+                ),
             )
         }
     }
 
     fun cancelAddress() {
-        resolver.reset()
+        addressInput.reset()
         state.update { it.copy(page = ManageContactPage.Form) }
     }
 
-    fun setAddress(value: String) {
-        updateInput { it.copy(address = value, showAddressError = false) }
-        resolver.onInput(value, state.value.addressInput?.chain)
-    }
+    fun setAddress(value: String) = addressInput.onTextChange(value)
 
     fun setMemo(value: String) = updateInput { it.copy(memo = value) }
 
@@ -123,19 +150,11 @@ class ManageContactViewModel @Inject constructor(
     fun pasteAddress(data: String) = applyExternalAddress(data)
 
     private fun applyExternalAddress(data: String) {
-        resolver.reset()
         val decoded = runCatching { uniffi.gemstone.paymentDecodeUrl(data) }.getOrNull()
         val address = (decoded?.address?.ifBlank { null } ?: data).trim()
         val memo = decoded?.memo
-        state.update {
-            val input = it.addressInput ?: return@update it
-            it.copy(
-                addressInput = input
-                    .copy(address = address, nameResolveState = NameRecordState.None, memo = memo ?: input.memo)
-                    .validated()
-                    .withAddressError(),
-            )
-        }
+        addressInput.applyExternalAddress(address)
+        updateInput { it.copy(memo = memo ?: it.memo) }
     }
 
     fun selectChain() = state.update { it.copy(page = ManageContactPage.SelectChain) }
@@ -143,42 +162,28 @@ class ManageContactViewModel @Inject constructor(
     fun cancelSelectChain() = state.update { it.copy(page = ManageContactPage.Address) }
 
     fun setChain(chain: Chain) {
-        resolver.reset()
+        addressInput.setChain(chain)
         state.update {
-            it.copy(
-                page = ManageContactPage.Address,
-                addressInput = it.addressInput
-                    ?.copy(chain = chain, memo = "", nameResolveState = NameRecordState.None)
-                    ?.validated()
-                    ?.withAddressError(),
-            )
+            it.copy(page = ManageContactPage.Address, form = it.form?.copy(chain = chain, memo = ""))
         }
     }
 
-    private fun updateInput(transform: (ContactAddressInput) -> ContactAddressInput) = state.update { current ->
-        val input = current.addressInput ?: return@update current
-        current.copy(addressInput = transform(input).validated())
+    private fun updateInput(transform: (ContactAddressForm) -> ContactAddressForm) = state.update { current ->
+        val form = current.form ?: return@update current
+        current.copy(form = transform(form))
     }
 
-    private fun ContactAddressInput.validated(): ContactAddressInput = copy(
-        isAddressValid = resolvedAddress.isNotBlank() && validateAddress(resolvedAddress, chain).getOrNull() == true,
-    )
-
-    private fun ContactAddressInput.withAddressError(): ContactAddressInput = copy(
-        showAddressError = resolvedAddress.isNotBlank() && !isAddressValid,
-    )
-
     fun confirmAddress() {
-        val input = state.value.addressInput ?: return
+        val input = uiState.value.addressInput ?: return
         if (!input.isConfirmEnabled) return
 
         val address = contactAddress(
             chain = input.chain,
-            address = input.resolvedAddress,
+            address = addressInput.resolvedAddress,
             memo = input.memo.ifBlank { null },
         )
 
-        resolver.reset()
+        addressInput.reset()
         state.update { current ->
             current.copy(
                 addresses = current.addresses.upsert(address, setOfNotNull(input.editingId, address.id)),
@@ -202,7 +207,7 @@ class ManageContactViewModel @Inject constructor(
     )
 
     fun save() {
-        val current = state.value
+        val current = uiState.value
         if (!current.isSaveEnabled) return
 
         val now = System.currentTimeMillis()

@@ -1,11 +1,9 @@
-package com.gemwallet.android.features.recipient.viewmodel
+package com.gemwallet.android.ui.models.name
 
 import com.gemwallet.android.cases.name.ResolveName
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.NameRecord
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -22,26 +20,25 @@ class NameResolveController(
     private val _state = MutableStateFlow<NameRecordState>(NameRecordState.None)
     val state: StateFlow<NameRecordState> = _state.asStateFlow()
 
-    var onResolved: ((NameRecord?) -> Unit)? = null
-
-    fun onNameRecord(chain: Chain?, value: String) {
+    fun resolve(value: String, chain: Chain?) {
         if (value.isEmpty()) {
             reset()
             return
         }
-        if (value != _state.value.nameRecord?.name) {
-            onInput(value, chain)
+        if (value == _state.value.nameRecord?.name) {
+            return
         }
+        startResolve(value, chain)
     }
 
-    fun onInput(input: String, chain: Chain?) {
+    private fun startResolve(input: String, chain: Chain?) {
         job?.cancel()
         _state.value = NameRecordState.None
         if (chain == null || !resolveName.canResolveName(input)) {
             return
         }
         _state.value = NameRecordState.Loading
-        job = scope.launch(Dispatchers.IO) {
+        job = scope.launch {
             delay(DEBOUNCE_MS)
             val record = try {
                 resolveName.resolveName(input, chain)
@@ -51,23 +48,18 @@ class NameResolveController(
                 null
             }
             ensureActive()
-            setNameRecord(record, input)
+            val resolved = record?.takeIf { it.address.isNotEmpty() && it.name.isNotEmpty() }
+            _state.value = when {
+                resolved != null -> NameRecordState.Complete(resolved)
+                input.isNotEmpty() -> NameRecordState.Error
+                else -> NameRecordState.None
+            }
         }
     }
 
     fun reset() {
         job?.cancel()
         _state.value = NameRecordState.None
-    }
-
-    private fun setNameRecord(record: NameRecord?, input: String) {
-        onResolved?.invoke(record)
-        val resolved = record?.takeIf { it.address.isNotEmpty() && it.name.isNotEmpty() }
-        _state.value = when {
-            resolved != null -> NameRecordState.Complete(resolved)
-            input.isNotEmpty() -> NameRecordState.Error
-            else -> NameRecordState.None
-        }
     }
 
     private companion object {

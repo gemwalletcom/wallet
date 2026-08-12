@@ -49,7 +49,7 @@ import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
-import com.gemwallet.android.features.recipient.presents.components.AddressChainField
+import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import uniffi.gemstone.DocsUrl
@@ -97,11 +97,9 @@ internal fun AddAssetScene(
         )
         Column {
             AddressChainField(
-                chain = network.chain,
                 label = stringResource(R.string.wallet_import_contract_address_field),
                 value = addressState.value,
-                searchName = false,
-                onValueChange = { input, _ ->
+                onValueChange = { input ->
                     addressState.value = input
                 },
                 onQrScanner = { onAction(AddAssetAction.Scan) },

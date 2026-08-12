@@ -14,9 +14,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +32,6 @@ import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.blockchain.operators.InvalidWords
 import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
 import com.gemwallet.android.model.ImportType
@@ -47,10 +42,9 @@ import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.components.fields.NameResolveIndicator
+import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
-import com.gemwallet.android.features.recipient.viewmodel.NameRecordState
-import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.WalletType
 
 internal fun supportsPhraseSuggestions(walletType: WalletType): Boolean {
@@ -75,29 +69,9 @@ internal fun shouldProtectInput(walletType: WalletType): Boolean {
 internal fun ImportInput(
     inputState: TextFieldValue,
     importType: ImportType,
+    uiState: NameRecordState,
     onValueChange: (TextFieldValue) -> Unit,
-    onResolved: (NameRecord?) -> Unit,
 ) {
-    val viewModel: AddressChainViewModel = hiltViewModel()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    fun updateInput(value: TextFieldValue) {
-        onValueChange(value)
-        if (importType.walletType == WalletType.View || importType.walletType == WalletType.PrivateKey) {
-            viewModel.onInput(value.text, importType.chain)
-        }
-    }
-
-    DisposableEffect(Unit) {
-        viewModel.onResolved(onResolved)
-
-        onDispose {}
-    }
-
-    LaunchedEffect(importType.walletType) {
-        viewModel.reset()
-    }
-
     val errorColor = MaterialTheme.colorScheme.error
     val clipboardManager = LocalClipboard.current.nativeClipboard
     val interactionSource = remember { MutableInteractionSource() }
@@ -108,7 +82,7 @@ internal fun ImportInput(
         Box(modifier = Modifier.fillMaxWidth()) {
             BasicTextField(
                 modifier = Modifier.fillMaxWidth(),
-                onValueChange = ::updateInput,
+                onValueChange = onValueChange,
                 value = inputState,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface
@@ -152,23 +126,8 @@ internal fun ImportInput(
                 modifier = Modifier.align(Alignment.TopEnd),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (uiState is NameRecordState.Loading) {
-                    CircularProgressIndicator16()
-                    Spacer(modifier = Modifier.size(8.dp))
-                }
-                if (uiState is NameRecordState.Complete) {
-                    SelectionCheckmark(
-                        color = MaterialTheme.colorScheme.tertiary,
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                }
-                if (uiState is NameRecordState.Error) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = AppIcons.Error,
-                        contentDescription = "Name is resolved",
-                        tint = MaterialTheme.colorScheme.error,
-                    )
+                NameResolveIndicator(uiState)
+                if (uiState != NameRecordState.None) {
                     Spacer(modifier = Modifier.size(8.dp))
                 }
             }
@@ -190,7 +149,7 @@ internal fun ImportInput(
                 } else {
                     "$newValue "
                 }
-                updateInput(
+                onValueChange(
                     TextFieldValue(
                         text = pastedText,
                         selection = TextRange(pastedText.length),

@@ -54,8 +54,6 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":ui-models"))
     implementation(project(":features:settings:contacts:viewmodels"))
-    implementation(project(":features:recipient:presents"))
-    implementation(project(":features:recipient:viewmodels"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

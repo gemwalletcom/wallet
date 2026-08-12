@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.recipient.presents.components
+package com.gemwallet.android.ui.components.fields
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,10 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
-import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
 @Composable
@@ -21,7 +19,7 @@ fun MemoTextField(
     value: String,
     label: String,
     onValueChange: (String) -> Unit,
-    error: RecipientError = RecipientError.None,
+    error: String = "",
     onQrScanner: (() -> Unit)? = null,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -51,10 +49,10 @@ fun MemoTextField(
                 )
             }
         )
-        if (error != RecipientError.None) {
+        if (error.isNotEmpty()) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = recipientErrorString(error),
+                text = error,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.labelMedium,
             )

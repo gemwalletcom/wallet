@@ -2,7 +2,7 @@ package com.gemwallet.android.features.settings.contacts.viewmodels.models
 
 import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.features.recipient.viewmodel.NameRecordState
+import com.gemwallet.android.ui.models.name.NameRecordState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
 
@@ -25,14 +25,30 @@ data class ManageContactUIState(
         get() = name.trim().isNotEmpty()
 }
 
+data class ManageContactState(
+    val isEdit: Boolean = false,
+    val name: String = "",
+    val description: String = "",
+    val addresses: List<ContactAddress> = emptyList(),
+    val page: ManageContactPage = ManageContactPage.Form,
+    val form: ContactAddressForm? = null,
+    val saved: Boolean = false,
+)
+
+data class ContactAddressForm(
+    val editingId: String? = null,
+    val chain: Chain = Chain.Bitcoin,
+    val memo: String = "",
+)
+
 data class ContactAddressInput(
     val editingId: String? = null,
     val chain: Chain = Chain.Bitcoin,
     val address: String = "",
+    val memo: String = "",
     val nameResolveState: NameRecordState = NameRecordState.None,
     val isAddressValid: Boolean = false,
     val showAddressError: Boolean = false,
-    val memo: String = "",
 ) {
     val resolvedAddress: String
         get() = chain.checksumAddress(nameResolveState.nameRecord?.address?.takeIf { it.isNotEmpty() } ?: address)
