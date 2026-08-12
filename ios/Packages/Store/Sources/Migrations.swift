@@ -509,7 +509,7 @@ struct Migrations {
 
         migrator.registerMigration("Add estimated confirmation to \(TransactionRecord.databaseTableName)") { db in
             try? db.alter(table: TransactionRecord.databaseTableName) {
-                $0.add(column: TransactionRecord.Columns.estimatedConfirmationInSeconds.name, .integer)
+                $0.add(column: TransactionRecord.Columns.confirmationEtaSeconds.name, .integer)
             }
         }
 
