@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.service.store.ConfigStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,7 +16,10 @@ object ConfigModule {
 
     @Singleton
     @Provides
-    fun provideConfigRepository(
+    fun provideUserConfig(
         @ApplicationContext context: Context,
-    ): UserConfig = UserConfig(context = context)
+    ): UserConfig = UserConfig(
+        context = context,
+        configStore = ConfigStore(context.getSharedPreferences("config", Context.MODE_PRIVATE)),
+    )
 }

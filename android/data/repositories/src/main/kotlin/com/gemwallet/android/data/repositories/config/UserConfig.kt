@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.repositories.config
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.text.format.DateUtils
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.AppUpdateInfo
 import com.wallet.core.primitives.ChartPeriod
@@ -18,132 +19,75 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+private val Context.dataStore by preferencesDataStore(name = "user_config")
+
 class UserConfig(
     private val context: Context,
+    private val configStore: ConfigStore,
 ) {
 
-    private lateinit var store: SharedPreferences
-    private val Context.dataStore by preferencesDataStore(name = "user_config")
+    fun authRequired(): Boolean = configStore.getBoolean(ConfigKey.Auth.string)
 
-    fun authRequired(): Boolean {
-        return getBoolean(Keys.Auth)
-    }
+    fun setAuthRequired(enabled: Boolean) = configStore.putBoolean(ConfigKey.Auth.string, enabled)
 
-    fun setAuthRequired(enabled: Boolean) {
-        putBoolean(Keys.Auth, enabled)
-    }
+    fun developEnabled(): Boolean = configStore.getBoolean(ConfigKey.DevelopEnabled.string)
 
-    fun developEnabled(enabled: Boolean) {
-        putBoolean(Keys.DevelopEnabled, enabled)
-    }
+    fun developEnabled(enabled: Boolean) = configStore.putBoolean(ConfigKey.DevelopEnabled.string, enabled)
 
-    fun developEnabled(): Boolean {
-        return getBoolean(Keys.DevelopEnabled)
-    }
+    fun getLaunchNumber(): Int = configStore.getInt(ConfigKey.LaunchNumber.string)
 
-    fun getLaunchNumber(): Int {
-        return getInt(Keys.LaunchNumber)
-    }
+    fun increaseLaunchNumber() = configStore.putInt(ConfigKey.LaunchNumber.string, getLaunchNumber() + 1)
 
-    fun increaseLaunchNumber() {
-        putInt(Keys.LaunchNumber, getInt(Keys.LaunchNumber) + 1)
-    }
+    fun chartPeriod(): ChartPeriod = configStore.getString(ConfigKey.ChartPeriod.string).toChartPeriod()
 
-    fun chartPeriod(): ChartPeriod {
-        return getString(Keys.ChartPeriod).toChartPeriod(default = ChartPeriod.Day)
-    }
+    fun setChartPeriod(period: ChartPeriod) = configStore.putString(ConfigKey.ChartPeriod.string, period.string)
 
-    fun setChartPeriod(period: ChartPeriod) {
-        putString(Keys.ChartPeriod, period.string)
-    }
+    fun perpetualChartPeriod(): ChartPeriod =
+        configStore.getString(ConfigKey.PerpetualChartPeriod.string).toChartPeriod()
 
-    fun perpetualChartPeriod(): ChartPeriod {
-        return getString(Keys.PerpetualChartPeriod).toChartPeriod(default = ChartPeriod.Day)
-    }
+    fun setPerpetualChartPeriod(period: ChartPeriod) =
+        configStore.putString(ConfigKey.PerpetualChartPeriod.string, period.string)
 
-    fun setPerpetualChartPeriod(period: ChartPeriod) {
-        putString(Keys.PerpetualChartPeriod, period.string)
-    }
+    fun isHideBalances(): Flow<Boolean> = read(Key.IsHideBalances, false)
 
-    fun isHideBalances(): Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[Key.IsHideBalances] == true }
+    suspend fun hideBalances() = update(Key.IsHideBalances, false) { !it }
 
-    suspend fun hideBalances() {
-        context.dataStore.edit { preferences ->
-            preferences[Key.IsHideBalances] = preferences[Key.IsHideBalances] != true
-        }
-    }
+    fun isPerpetualEnabled(): Flow<Boolean> = read(Key.IsPerpetualEnabled, false)
 
-    fun isPerpetualEnabled(): Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[Key.IsPerpetualEnabled] == true }
+    suspend fun setPerpetualEnabled(enabled: Boolean) = write(Key.IsPerpetualEnabled, enabled)
 
-    suspend fun setPerpetualEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.IsPerpetualEnabled] = enabled
-        }
-    }
-
-    fun perpetualAccountMode(walletId: WalletId): Flow<PerpetualAccountMode> = context.dataStore.data
-        .map { preferences ->
-            preferences[Key.perpetualAccountMode(walletId)]
-                ?.let { value -> PerpetualAccountMode.entries.firstOrNull { it.string == value } }
-                ?: PerpetualAccountMode.Standard
+    fun perpetualAccountMode(walletId: WalletId): Flow<PerpetualAccountMode> =
+        read(Key.perpetualAccountMode(walletId), "").map { value ->
+            PerpetualAccountMode.entries.firstOrNull { it.string == value } ?: PerpetualAccountMode.Standard
         }
 
-    suspend fun setPerpetualAccountMode(walletId: WalletId, mode: PerpetualAccountMode) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.perpetualAccountMode(walletId)] = mode.string
+    suspend fun setPerpetualAccountMode(walletId: WalletId, mode: PerpetualAccountMode) =
+        write(Key.perpetualAccountMode(walletId), mode.string)
+
+    fun perpetualLeverage(): Flow<Int> = read(Key.PerpetualLeverage, PerpetualConfig.defaultLeverage)
+
+    suspend fun setPerpetualLeverage(value: Int) = write(Key.PerpetualLeverage, value)
+
+    fun perpetualTakeProfit(): Flow<Int> = read(Key.PerpetualTakeProfit, PerpetualConfig.defaultTakeProfit)
+
+    suspend fun setPerpetualTakeProfit(value: Int) = write(Key.PerpetualTakeProfit, value)
+
+    fun perpetualStopLoss(): Flow<Int> = read(Key.PerpetualStopLoss, PerpetualConfig.defaultStopLoss)
+
+    suspend fun setPerpetualStopLoss(value: Int) = write(Key.PerpetualStopLoss, value)
+
+    fun swapSlippageBps(): Flow<UInt?> = read(Key.SwapSlippageBps, 0).map { bps -> bps.takeIf { it > 0 }?.toUInt() }
+
+    suspend fun setSwapSlippageBps(bps: UInt?) = write(Key.SwapSlippageBps, bps?.toInt() ?: 0)
+
+    fun getLatestAppUpdate(): Flow<AppUpdateInfo?> = context.dataStore.data.map { preferences ->
+        val version = preferences[Key.LatestVersion].orEmpty()
+        if (version.isBlank()) {
+            null
+        } else {
+            AppUpdateInfo(version = version, isRequired = preferences[Key.LatestVersionRequired] == true)
         }
     }
-
-    fun perpetualLeverage(): Flow<Int> = context.dataStore.data
-        .map { preferences -> preferences[Key.PerpetualLeverage] ?: PerpetualConfig.defaultLeverage }
-
-    suspend fun setPerpetualLeverage(value: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.PerpetualLeverage] = value
-        }
-    }
-
-    fun perpetualTakeProfit(): Flow<Int> = context.dataStore.data
-        .map { preferences -> preferences[Key.PerpetualTakeProfit] ?: PerpetualConfig.defaultTakeProfit }
-
-    suspend fun setPerpetualTakeProfit(value: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.PerpetualTakeProfit] = value
-        }
-    }
-
-    fun perpetualStopLoss(): Flow<Int> = context.dataStore.data
-        .map { preferences -> preferences[Key.PerpetualStopLoss] ?: PerpetualConfig.defaultStopLoss }
-
-    suspend fun setPerpetualStopLoss(value: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.PerpetualStopLoss] = value
-        }
-    }
-
-    fun swapSlippageBps(): Flow<UInt?> = context.dataStore.data
-        .map { preferences -> preferences[Key.SwapSlippageBps]?.takeIf { it > 0 }?.toUInt() }
-
-    suspend fun setSwapSlippageBps(bps: UInt?) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.SwapSlippageBps] = bps?.toInt() ?: 0
-        }
-    }
-
-    fun getLatestAppUpdate(): Flow<AppUpdateInfo?> = context.dataStore.data
-        .map { preferences ->
-            val version = preferences[Key.LatestVersion].orEmpty()
-            if (version.isBlank()) {
-                null
-            } else {
-                AppUpdateInfo(
-                    version = version,
-                    isRequired = preferences[Key.LatestVersionRequired] == true,
-                )
-            }
-        }
 
     suspend fun setLatestAppUpdate(update: AppUpdateInfo) {
         context.dataStore.edit { preferences ->
@@ -152,102 +96,50 @@ class UserConfig(
         }
     }
 
-    fun getAppVersionSkip(): Flow<String>  = context.dataStore.data
-        .map { preferences -> preferences[Key.AppVersionSkip] ?: "" }
+    fun getAppVersionSkip(): Flow<String> = read(Key.AppVersionSkip, "")
 
-    suspend fun setAppVersionSkip(version: String) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.AppVersionSkip] = version
-        }
+    suspend fun setAppVersionSkip(version: String) = write(Key.AppVersionSkip, version)
+
+    fun getLockInterval(): Flow<Int> = read(Key.LockInterval, 1)
+
+    suspend fun setLockInterval(minutes: Int) = write(Key.LockInterval, minutes)
+
+    fun isWelcomeBannerHidden(walletId: String): Flow<Boolean> =
+        read(Key.IsWelcomeBannerHidden, emptySet()).map { walletId in it }
+
+    suspend fun hideWelcomeBanner(walletId: String) =
+        update(Key.IsWelcomeBannerHidden, emptySet()) { it + walletId }
+
+    fun isTermsAccepted(): Flow<Boolean> = read(Key.IsTermsAccepted, false)
+
+    suspend fun acceptTerms() = write(Key.IsTermsAccepted, true)
+
+    fun isAskNotifications(): Flow<Boolean> = read(Key.AskNotifications, 0L)
+        .map { it < System.currentTimeMillis() - 30 * DateUtils.DAY_IN_MILLIS }
+
+    suspend fun stopAskNotifications() = write(Key.AskNotifications, System.currentTimeMillis())
+
+    private fun <T> read(key: Preferences.Key<T>, default: T): Flow<T> =
+        context.dataStore.data.map { it[key] ?: default }
+
+    private suspend fun <T> write(key: Preferences.Key<T>, value: T) {
+        context.dataStore.edit { it[key] = value }
     }
 
-    fun getLockInterval(): Flow<Int> = context.dataStore.data
-    .map { preferences -> preferences[Key.LockInterval] ?: 1 }
-
-    suspend fun setLockInterval(minutes: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.LockInterval] = minutes
-        }
+    private suspend fun <T> update(key: Preferences.Key<T>, default: T, transform: (T) -> T) {
+        context.dataStore.edit { it[key] = transform(it[key] ?: default) }
     }
 
-    fun isWelcomeBannerHidden(walletId: String): Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[Key.IsWelcomeBannerHidden]?.contains(walletId) ?: false }
+    private fun String.toChartPeriod(): ChartPeriod =
+        ChartPeriod.entries.firstOrNull { it.string == this } ?: ChartPeriod.Day
 
-    suspend fun hideWelcomeBanner(walletId: String) {
-        context.dataStore.edit { preferences ->
-            val value = preferences[Key.IsWelcomeBannerHidden]?.let {
-                it.toMutableSet().apply { add(walletId) }
-            } ?: setOf(walletId)
-
-            preferences[Key.IsWelcomeBannerHidden] = value
-        }
-    }
-
-    fun isTermsAccepted(): Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[Key.IsTermsAccepted] == true }
-
-    suspend fun acceptTerms() {
-        context.dataStore.edit { preferences ->
-            preferences[Key.IsTermsAccepted] = true
-        }
-    }
-
-    fun isAskNotifications(): Flow<Boolean> = context.dataStore.data.map {
-        (it[Key.AskNotifications] ?: 0L) < System.currentTimeMillis() - 30 * DateUtils.DAY_IN_MILLIS
-    }
-
-    suspend fun stopAskNotifications() = context.dataStore.edit {
-        it[Key.AskNotifications] = System.currentTimeMillis()
-    }
-
-    fun isRequestNotificationEnable(): Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[Key.IsRequestNotifications] ?: true }
-
-    suspend fun hideRequestNotification() {
-        context.dataStore.edit { preferences ->
-            preferences[Key.IsRequestNotifications] = false
-        }
-    }
-
-    private fun getStore(): SharedPreferences {
-        if (!::store.isInitialized) {
-            store = context.getSharedPreferences("config", Context.MODE_PRIVATE)
-        }
-        return store
-    }
-
-    private fun getInt(key: Keys, postfix: String = "") = getStore().getInt(key.buildKey(postfix), 0)
-
-    private fun getString(key: Keys, postfix: String = "") = getStore().getString(key.buildKey(postfix), "") ?: ""
-
-    private fun getBoolean(key: Keys, default: Boolean = false) = getStore().getBoolean(key.buildKey(), default)
-
-    private fun putInt(key: Keys, value: Int, postfix: String = "") {
-        getStore().edit().putInt(key.buildKey(postfix), value).apply()
-    }
-
-    private fun putString(key: Keys, value: String) {
-        getStore().edit().putString(key.buildKey(), value).apply()
-    }
-
-    private fun putBoolean(key: Keys, value: Boolean) {
-        getStore().edit().putBoolean(key.buildKey(), value).apply()
-    }
-
-    private fun String.toChartPeriod(default: ChartPeriod): ChartPeriod {
-        return ChartPeriod.entries.firstOrNull { it.string == this } ?: default
-    }
-
-    enum class Keys(val string: String) {
+    private enum class ConfigKey(val string: String) {
         Auth("auth"),
         ChartPeriod("chart_period"),
         DevelopEnabled("develop_enabled"),
         PerpetualChartPeriod("perpetual_chart_period"),
-        SubscriptionVersion("subscription_version"),
         LaunchNumber("launch_number"),
         ;
-
-        fun buildKey(postfix: String = "") = "$string-$postfix"
     }
 
     private object Key {
@@ -258,7 +150,6 @@ class UserConfig(
         val AppVersionSkip = stringPreferencesKey("app-version-skip")
         val IsWelcomeBannerHidden = stringSetPreferencesKey("is_welcome_banner_state")
         val IsTermsAccepted = booleanPreferencesKey("is_terms_accepted")
-        val IsRequestNotifications = booleanPreferencesKey("is_request_notifications")
         val AskNotifications = longPreferencesKey("ask_notifications")
         val IsPerpetualEnabled = booleanPreferencesKey("is_perpetual_enabled")
         fun perpetualAccountMode(walletId: WalletId) = stringPreferencesKey("perpetual_account_mode_${walletId.id}")
@@ -267,5 +158,4 @@ class UserConfig(
         val PerpetualStopLoss = intPreferencesKey("perpetual_stop_loss")
         val SwapSlippageBps = intPreferencesKey("swap_slippage_bps")
     }
-
 }

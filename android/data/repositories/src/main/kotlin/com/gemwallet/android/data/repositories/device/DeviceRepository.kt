@@ -14,7 +14,6 @@ import com.gemwallet.android.cases.device.RequestPushToken
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.data.repositories.config.UserConfig.Keys
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
@@ -203,12 +202,12 @@ class DeviceRepository(
     }
 
     private fun getSubscriptionVersion(): Int {
-        return configStore.getInt(Keys.SubscriptionVersion.string)
+        return configStore.getInt(ConfigKey.SubscriptionVersion.string)
     }
 
     private fun setSubscriptionVersion(subVersion: Int) {
         configStore.putInt(
-            Keys.SubscriptionVersion.string,
+            ConfigKey.SubscriptionVersion.string,
             subVersion
         )
     }
@@ -257,6 +256,7 @@ class DeviceRepository(
         PushToken("push_token"),
         PushedDevice("pushed_device"),
         PushedSubscriptions("pushed_subscriptions"),
+        SubscriptionVersion("subscription_version"),
         ;
     }
 
