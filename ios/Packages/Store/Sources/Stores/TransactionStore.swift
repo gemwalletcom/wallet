@@ -99,7 +99,7 @@ public struct TransactionStore: Sendable {
     }
 
     public func updateConfirmationEtaSeconds(transactionId: TransactionId, seconds: UInt32) throws -> Int {
-        try updateValues(id: transactionId, values: [TransactionRecord.Columns.confirmationEtaSeconds.set(to: seconds)])
+        try updateValues(id: transactionId, values: [TransactionRecord.Columns.estimatedConfirmationInSeconds.set(to: seconds)])
     }
 
     public func updateMetadata(transactionId: TransactionId, metadata: AnyCodableValue) throws -> Int {
