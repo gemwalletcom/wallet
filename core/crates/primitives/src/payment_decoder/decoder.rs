@@ -194,6 +194,9 @@ mod tests {
         assert!(PaymentURLDecoder::decode("web+stellar:pay?destination=GABC").is_err());
         assert!(PaymentURLDecoder::decode("monero:4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge").is_err());
 
+        assert!(PaymentURLDecoder::decode("ton://invalid/format").is_err());
+        assert!(PaymentURLDecoder::decode("ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/transfer?uint256=1").is_err());
+
         assert!(PaymentURLDecoder::decode("bitcoin:").is_err());
         assert!(PaymentURLDecoder::decode("bitcoin:?amount=0.1").is_err());
         assert!(PaymentURLDecoder::decode("ethereum:").is_err());
@@ -248,6 +251,24 @@ mod tests {
         assert_eq!(
             PaymentURLDecoder::decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5").unwrap(),
             request("HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5", Chain::Solana)
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("solana:https://merchant.example/pay?order=12345").unwrap(),
+            Payment::Link(PaymentLink::SolanaPay("https://merchant.example/pay?order=12345".to_string()))
+        );
+
+        let usdc = crate::asset_constants::SOLANA_USDC_TOKEN_ID;
+        assert_eq!(
+            PaymentURLDecoder::decode(&format!(
+                "solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=1&spl-token={usdc}&label=Michael&memo=OrderId5678"
+            ))
+            .unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5".to_string(),
+                amount: Some("1".to_string()),
+                memo: Some("OrderId5678".to_string()),
+                asset_id: Some(AssetId::from(Chain::Solana, Some(usdc.to_string()))),
+            })
         );
     }
 
@@ -385,6 +406,19 @@ mod tests {
                 amount: None,
                 memo: None,
                 asset_id: Some(AssetId::from(Chain::Ethereum, Some("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".to_string()))),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:pay-gemwallet.eth@1").unwrap(),
+            request("gemwallet.eth", Chain::Ethereum)
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0x32Be343B94f860124dC4fEe278FDCBD38C102D88".to_string(),
+                amount: Some("0.00000000000000001".to_string()),
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
             })
         );
     }

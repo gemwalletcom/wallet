@@ -6,146 +6,43 @@ use crate::{
     asset_id::AssetId,
     payment::{Payment, PaymentRequest},
 };
-use std::collections::HashMap;
 
 pub const ETHEREUM_SCHEME: &str = "ethereum";
 const PAY_PREFIX: &str = "pay-";
 const TRANSFER_FUNCTION: &str = "transfer";
 
-#[derive(Debug)]
-pub struct TransactionRequest {
-    pub target_address: String,
-    pub chain_id: Option<u64>,
-    pub function_name: Option<String>,
-    pub parameters: HashMap<String, String>,
-}
-
-impl TransactionRequest {
-    pub fn parse(path: &str) -> Result<Self> {
-        let parts: Vec<&str> = path.split('?').collect();
-        let query_string = if parts.len() > 1 { parts[1] } else { "" };
-
-        // Split the main part by '/'
-        let main_parts: Vec<&str> = parts[0].split('/').collect();
-
-        // The first part should be the target address with optional chain id and pay prefix
-        let mut target_address = main_parts[0].to_string();
-
-        // Parse chain id in integer and 0x format
-        let target_parts = target_address.split('@').collect::<Vec<&str>>();
-        let mut chain_id = None;
-        if target_parts.len() == 2 {
-            chain_id = match target_parts[1].strip_prefix("0x") {
-                Some(hexadecimal) => u64::from_str_radix(hexadecimal, 16).ok(),
-                None => target_parts[1].parse().ok(),
-            };
-            target_address = target_parts[0].to_string();
-        }
-
-        if let Some(address) = target_address.strip_prefix(PAY_PREFIX) {
-            target_address = address.to_string();
-        }
-
-        // The second part (if exists) is the function name
-        let function_name = if main_parts.len() > 1 { Some(main_parts[1].to_string()) } else { None };
-
-        let parameters = query::parameters(query_string);
-
-        Ok(TransactionRequest {
-            target_address,
-            chain_id,
-            function_name,
-            parameters,
-        })
-    }
-}
+const QUERY_ADDRESS: &str = "address";
+const QUERY_AMOUNT: &str = "amount";
+const QUERY_MEMO: &str = "memo";
+const QUERY_VALUE: &str = "value";
 
 pub fn decode(path: &str) -> Result<Payment> {
-    let request = TransactionRequest::parse(path)?;
-    if let Some(function) = request.function_name.as_deref().filter(|function| *function != TRANSFER_FUNCTION) {
-        return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}")));
-    }
-    Ok(Payment::Request(request.into()))
-}
+    let (path, query) = path.split_once('?').unwrap_or((path, ""));
+    let (target, function) = path.split_once('/').map_or((path, None), |(target, function)| (target, Some(function)));
+    let (target, chain) = match target.split_once('@') {
+        Some((target, network_id)) => (target, Chain::from_network_id(network_id).unwrap_or(Chain::Ethereum)),
+        None => (target, Chain::Ethereum),
+    };
+    let target = target.strip_prefix(PAY_PREFIX).unwrap_or(target);
+    let parameters = query::parameters(query);
+    let memo = query::value(&parameters, QUERY_MEMO);
 
-impl From<TransactionRequest> for PaymentRequest {
-    fn from(val: TransactionRequest) -> Self {
-        let chain = val.chain_id.and_then(Chain::from_chain_id).unwrap_or(Chain::Ethereum);
-        let memo = query::value(&val.parameters, "memo");
-
-        if val.function_name.as_deref() == Some(TRANSFER_FUNCTION) {
-            return Self {
-                address: query::value(&val.parameters, "address").unwrap_or_default(),
-                amount: None,
-                memo,
-                asset_id: Some(AssetId::from(chain, Some(val.target_address))),
-            };
-        }
-
-        let value = val.parameters.get("value").and_then(|value| amount::from_smallest_unit(value, chain));
-        Self {
-            address: val.target_address,
-            amount: value.or_else(|| query::value(&val.parameters, "amount").as_deref().and_then(amount::from_coins)),
+    match function {
+        Some(TRANSFER_FUNCTION) => Ok(Payment::Request(PaymentRequest {
+            address: query::value(&parameters, QUERY_ADDRESS).ok_or_else(|| PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string()))?,
+            amount: None,
+            memo,
+            asset_id: Some(AssetId::from(chain, Some(target.to_string()))),
+        })),
+        Some(function) => Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}"))),
+        None => Ok(Payment::Request(PaymentRequest {
+            address: target.to_string(),
+            amount: query::value(&parameters, QUERY_VALUE)
+                .as_deref()
+                .and_then(|value| amount::from_smallest_unit(value, chain))
+                .or_else(|| query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(amount::from_coins)),
             memo,
             asset_id: Some(AssetId::from(chain, None)),
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_minimal_uri() {
-        let uri = "0x32Be343B94f860124dC4fEe278FDCBD38C102D88";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
-        assert_eq!(erc681.chain_id, None);
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.len(), 0);
-    }
-
-    #[test]
-    fn test_ens_name_uri() {
-        let uri = "pay-gemwallet.eth@1";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "gemwallet.eth");
-        assert_eq!(erc681.chain_id, Some(1));
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.len(), 0);
-    }
-
-    #[test]
-    fn test_chain_id_uri() {
-        let uri = "pay-0x32Be343B94f860124dC4fEe278FDCBD38C102D88@0x38";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
-        assert_eq!(erc681.chain_id, Some(56));
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.len(), 0);
-    }
-
-    #[test]
-    fn test_eth_transfer_uri() {
-        let uri = "0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
-        assert_eq!(erc681.chain_id, None);
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.get("value").unwrap(), "10");
-        assert_eq!(erc681.parameters.get("gas").unwrap(), "200000");
-        assert_eq!(erc681.parameters.get("gasPrice").unwrap(), "20000000000");
-    }
-
-    #[test]
-    fn test_erc20_transfer_uri() {
-        let uri = "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7/transfer?address=0x8e23ee67d1332ad560396262c48ffbb01f93d052&uint256=1";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7");
-        assert_eq!(erc681.chain_id, None);
-        assert_eq!(erc681.function_name.unwrap(), "transfer");
-        assert_eq!(erc681.parameters.get("address").unwrap(), "0x8e23ee67d1332ad560396262c48ffbb01f93d052");
-        assert_eq!(erc681.parameters.get("uint256").unwrap(), "1");
+        })),
     }
 }
