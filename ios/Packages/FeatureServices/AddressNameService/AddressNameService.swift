@@ -54,6 +54,7 @@ private extension AddressNameService {
             guard !error.isCancelled else {
                 throw error
             }
+            debugLog("address names request error: \(error)")
             return [:]
         }
 

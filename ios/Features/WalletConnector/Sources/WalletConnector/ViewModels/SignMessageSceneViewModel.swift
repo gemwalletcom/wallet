@@ -116,26 +116,18 @@ public final class SignMessageSceneViewModel {
         payload.simulation.warnings
     }
 
-    public var primaryPayloadFields: [SimulationPayloadField] {
+    public var payloadModel: SimulationPayloadModel {
         switch messageDisplayType {
-        case let .payload(primaryFields, _):
-            primaryFields
+        case let .payload(primaryFields, secondaryFields):
+            SimulationPayloadModel(
+                chain: payload.chain,
+                primaryFields: primaryFields,
+                secondaryFields: secondaryFields,
+                addressNames: payloadAddressNames,
+            )
         case .text:
-            []
+            SimulationPayloadModel(chain: payload.chain, primaryFields: [], secondaryFields: [])
         }
-    }
-
-    public var secondaryPayloadFields: [SimulationPayloadField] {
-        switch messageDisplayType {
-        case let .payload(_, secondaryFields):
-            secondaryFields
-        case .text:
-            []
-        }
-    }
-
-    public var hasPayload: Bool {
-        !payloadFields.isEmpty
     }
 
     public var hasWarnings: Bool {
@@ -143,7 +135,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var isButtonDisabled: Bool {
-        simulationWarnings.contains(where: { $0.severity == .critical })
+        simulationWarnings.hasCritical
     }
 
     public var buttonType: ButtonType {
@@ -165,23 +157,12 @@ public extension SignMessageSceneViewModel {
         }
     }
 
-    func payloadFieldViewModel(for field: SimulationPayloadField) -> SimulationPayloadFieldViewModel {
-        SimulationPayloadFieldViewModel(
-            field: field,
-            chain: payload.chain,
-            addressName: payloadAddressNames[ChainAddress(chain: payload.chain, address: field.value)],
-        )
-    }
-
     func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
-        var items = payloadFieldViewModel(for: field).contextMenuItems
-        guard field.fieldType == .address else { return items }
-
-        let link = explorerService.addressUrl(chain: payload.chain, address: field.value)
-        items.append(.url(title: Localized.Transaction.viewOn(link.name), onOpen: { [weak self] in
-            self?.isPresentingUrl = URL(string: link.link)
-        }))
-        return items
+        payloadModel.contextMenuItems(
+            for: field,
+            explorerLink: { explorerService.addressUrl(chain: payload.chain, address: $0) },
+            onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
+        )
     }
 
     func onViewWebsite() {
@@ -195,27 +176,8 @@ public extension SignMessageSceneViewModel {
 
 private extension SignMessageSceneViewModel {
     func loadPayloadAddressNamesIfNeeded() async {
-        guard payloadAddressNames.isEmpty else { return }
-        guard !payloadFields.isEmpty else { return }
+        guard payloadAddressNames.isEmpty, payloadModel.hasFields else { return }
 
-        do {
-            payloadAddressNames = try await addressNameService.getAddressNames(requests: payloadAddressRequests)
-        } catch {
-            debugLog("payload address name lookup error: \(error)")
-        }
-    }
-
-    var payloadFields: [SimulationPayloadField] {
-        primaryPayloadFields + secondaryPayloadFields
-    }
-
-    var payloadAddressRequests: [ChainAddress] {
-        payloadFields.compactMap {
-            guard $0.fieldType == .address else {
-                return nil
-            }
-
-            return ChainAddress(chain: payload.chain, address: $0.value)
-        }
+        payloadAddressNames = await (try? addressNameService.getAddressNames(requests: payloadModel.addressRequests)) ?? [:]
     }
 }

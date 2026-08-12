@@ -12,9 +12,7 @@ extension ConfirmSimulationState {
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(
             warnings: warnings,
-            primaryFields: [],
-            secondaryFields: [],
-            payloadAddressNames: [:],
+            payload: SimulationPayloadModel(chain: .ethereum, primaryFields: [], secondaryFields: []),
             headerData: headerData,
             balanceChanges: [],
         )
