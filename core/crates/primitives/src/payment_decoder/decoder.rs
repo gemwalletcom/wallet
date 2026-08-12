@@ -8,7 +8,8 @@ pub struct PaymentURLDecoder;
 
 impl PaymentURLDecoder {
     pub fn decode(string: &str) -> Result<Payment> {
-        let payment = Self::decode_uri(string.trim())?;
+        let uri = string.trim();
+        let payment = Self::decode_uri(uri.split_once('#').map_or(uri, |(uri, _)| uri))?;
 
         if matches!(&payment, Payment::Request(request) if request.address.is_empty()) {
             return Err(PaymentDecoderError::MissingField("address".to_string()));
@@ -79,6 +80,7 @@ mod tests {
 
         assert_eq!(PaymentURLDecoder::decode(uri).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode(&format!("  {uri}\n")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("{uri}#note")).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode("BITCOIN:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.1").unwrap(), bitcoin);
         assert_eq!(
             PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?AMOUNT=0.1").unwrap(),

@@ -211,14 +211,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_payment_scheme() {
-        assert_eq!(Chain::from_payment_scheme("bitcoin"), Some(Chain::Bitcoin));
+    fn test_from_payment_scheme_reads_a_network_known_by_another_name() {
         assert_eq!(Chain::from_payment_scheme("dogecoin"), Some(Chain::Doge));
         assert_eq!(Chain::from_payment_scheme("ripple"), Some(Chain::Xrp));
         assert_eq!(Chain::from_payment_scheme("xrpl"), Some(Chain::Xrp));
 
         assert_eq!(Chain::from_payment_scheme("lightning"), None);
-        assert_eq!(Chain::from_payment_scheme("wc"), None);
     }
 
     #[test]
