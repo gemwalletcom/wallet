@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use number_formatter::BigNumberFormatter;
 use primitives::{
     PerpetualDirection, PerpetualProvider, TransactionChange, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionType, TransactionUpdate,
@@ -136,6 +138,16 @@ fn delegator_history_action_hash(updates: &[DelegatorHistoryUpdate], action_id: 
 fn ledger_match_delta(update: &LedgerUpdate, action_id: &HyperCoreActionId, nonce: u64) -> Option<u64> {
     match &update.delta {
         LedgerDelta::Send { nonce: update_nonce } | LedgerDelta::SpotTransfer { nonce: update_nonce } if *update_nonce == nonce => Some(0),
+        LedgerDelta::Withdraw { nonce: update_nonce } => match action_id {
+            HyperCoreActionId::Nonce(_) => {
+                if Duration::from_micros(*update_nonce) == Duration::from_millis(nonce) {
+                    Some(0)
+                } else {
+                    action_history_time_delta(update.time, nonce)
+                }
+            }
+            HyperCoreActionId::Order(_) | HyperCoreActionId::CDeposit { .. } | HyperCoreActionId::CWithdraw { .. } | HyperCoreActionId::TokenDelegate { .. } => None,
+        },
         LedgerDelta::CStakingTransfer { token, amount, is_deposit } => {
             let (wei, expected_deposit) = match action_id {
                 HyperCoreActionId::CDeposit { wei, .. } => (*wei, true),
@@ -391,6 +403,42 @@ mod tests {
                     new: "0x1210f05525bce189138a042e558d8002126b003ac0b0005bb5d99ba7e4b0bb73".to_string(),
                 }]
             )
+        );
+    }
+
+    #[test]
+    fn test_map_transaction_state_action_confirms_withdraw() {
+        let updates: Vec<LedgerUpdate> = serde_json::from_str(include_str!("../../testdata/user_non_funding_ledger_updates_withdraw.json")).unwrap();
+
+        for (nonce, expected_hash) in [
+            (1777960893092, "0x1111111111111111111111111111111111111111111111111111111111111111"),
+            (1777961099000, "0x2222222222222222222222222222222222222222222222222222222222222222"),
+        ] {
+            let request_id = format!("action:{nonce}");
+            assert_eq!(
+                map_transaction_state_action(updates.clone(), HyperCoreActionId::Nonce(nonce), request_id.clone()),
+                TransactionUpdate::new(
+                    TransactionState::Confirmed,
+                    vec![TransactionChange::HashChange {
+                        old: request_id,
+                        new: expected_hash.to_string(),
+                    }]
+                )
+            );
+        }
+
+        assert_eq!(
+            map_transaction_state_action(updates.clone(), HyperCoreActionId::Nonce(1777961500000), "action:1777961500000".to_string()),
+            TransactionUpdate::new_state(TransactionState::Pending)
+        );
+
+        let staking_action = HyperCoreActionId::CDeposit {
+            wei: 9_000_000,
+            nonce: 1777960893092,
+        };
+        assert_eq!(
+            map_transaction_state_action(updates, staking_action, "action:cDeposit:9000000:1777960893092".to_string()),
+            TransactionUpdate::new_state(TransactionState::Pending)
         );
     }
 

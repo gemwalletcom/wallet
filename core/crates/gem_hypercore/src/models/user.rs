@@ -102,6 +102,9 @@ pub enum LedgerDelta {
     SpotTransfer {
         nonce: u64,
     },
+    Withdraw {
+        nonce: u64,
+    },
     CStakingTransfer {
         token: String,
         amount: String,
