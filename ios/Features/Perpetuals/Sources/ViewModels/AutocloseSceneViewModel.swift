@@ -13,7 +13,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AutocloseSceneViewModel {
-    private let currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+    private let currencyFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
     private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType
@@ -21,8 +21,9 @@ public final class AutocloseSceneViewModel {
 
     var input: AutocloseInput
 
-    public init(type: AutocloseType) {
+    public init(type: AutocloseType, currencyFormatter: CurrencyFormatter = .usd) {
         self.type = type
+        self.currencyFormatter = currencyFormatter
         estimator = AutocloseEstimator(type: type)
 
         input = AutocloseInput(

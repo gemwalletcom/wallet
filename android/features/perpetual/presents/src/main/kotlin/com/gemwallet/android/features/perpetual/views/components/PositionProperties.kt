@@ -22,6 +22,8 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualMarginType
 
+private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
+
 internal fun LazyListScope.positionProperties(
     position: PerpetualPositionDetailsDataAggregate?,
     onAutocloseClick: () -> Unit,
@@ -121,5 +123,5 @@ private fun PerpetualMarginType.title(): String {
 }
 
 private fun Double?.formatTriggerOrder(label: String): String? {
-    return this?.let { "$label: ${CurrencyFormatter(currency = Currency.USD).string(it)}" }
+    return this?.let { "$label: ${usdFormatter.string(it)}" }
 }

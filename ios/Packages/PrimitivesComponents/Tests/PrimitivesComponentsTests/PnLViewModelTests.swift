@@ -37,7 +37,7 @@ extension PnLViewModel {
         PnLViewModel(
             pnl: pnl,
             marginAmount: marginAmount,
-            currencyFormatter: CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
+            currencyFormatter: CurrencyFormatter.usd,
             percentFormatter: PercentFormatter.signed,
         )
     }

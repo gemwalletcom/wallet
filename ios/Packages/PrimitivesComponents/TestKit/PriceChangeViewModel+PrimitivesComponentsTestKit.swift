@@ -9,7 +9,7 @@ public extension PriceChangeViewModel {
     static func mock(value: Double?) -> PriceChangeViewModel {
         PriceChangeViewModel(
             value: value,
-            currencyFormatter: CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
+            currencyFormatter: CurrencyFormatter.usd,
         )
     }
 }
