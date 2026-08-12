@@ -22,7 +22,12 @@ pub fn map_transaction_preload(access_key: &AccountAccessKey, block: &Block) -> 
     }
 }
 
-pub(super) fn map_transaction_fee(input: &TransactionLoadInput, config: &ProtocolConfig, token_account_creation_deposit: Option<BigInt>) -> TransactionFee {
+pub(super) fn map_transaction_fee(
+    input: &TransactionLoadInput,
+    destination_address: &str,
+    config: &ProtocolConfig,
+    token_account_creation_deposit: Option<BigInt>,
+) -> TransactionFee {
     let costs = &config.runtime_config.transaction_costs;
     let action_costs = &costs.action_creation_config;
 
@@ -40,11 +45,11 @@ pub(super) fn map_transaction_fee(input: &TransactionLoadInput, config: &Protoco
             .unwrap_or_default();
         (send_gas, execution_gas, options)
     } else {
-        let sender_is_receiver = input.sender_address == input.destination_address;
+        let sender_is_receiver = input.sender_address == destination_address;
         let mut send_gas = BigInt::from(costs.action_receipt_creation_config.send_gas(sender_is_receiver)) + BigInt::from(action_costs.transfer_cost.send_gas(sender_is_receiver));
         let mut execution_gas = BigInt::from(costs.action_receipt_creation_config.execution) + BigInt::from(action_costs.transfer_cost.execution);
 
-        if is_implicit_address(&input.destination_address) {
+        if is_implicit_address(destination_address) {
             send_gas += BigInt::from(action_costs.create_account_cost.send_gas(sender_is_receiver));
             send_gas += BigInt::from(action_costs.add_key_cost.full_access_cost.send_gas(sender_is_receiver));
             execution_gas += BigInt::from(action_costs.create_account_cost.execution);
@@ -66,7 +71,7 @@ pub(super) fn map_transaction_fee(input: &TransactionLoadInput, config: &Protoco
 mod tests {
     use super::*;
     use crate::models::{AccountAccessKey, Block, BlockHeader};
-    use primitives::GasPriceType;
+    use primitives::{Asset, Chain, GasPriceType, SwapProvider, TransactionInputType, swap::SwapData};
 
     #[test]
     fn test_address_to_public_key() {
@@ -109,11 +114,23 @@ mod tests {
         );
         input.gas_price = GasPriceType::regular(BigInt::from(100000000u64));
 
-        let implicit_fee = map_transaction_fee(&input, &config, None);
+        let implicit_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(implicit_fee.fee, BigInt::from(7607442456250000000000u128));
 
+        input.input_type = TransactionInputType::Swap(
+            Asset::from_chain(Chain::Near),
+            Asset::from_chain(Chain::Near),
+            SwapData::mock_transfer(SwapProvider::NearIntents, "1", "1", "051d30e6c78c4cf858389d62af5f703275450d318b85ff52a4ac963948cfdf95"),
+        );
+        input.destination_address = input.sender_address.clone();
+        let swap_destination = input.input_type.swap_to_address().unwrap();
+        let swap_fee = map_transaction_fee(&input, swap_destination, &config, None);
+        assert_eq!(swap_fee.fee, implicit_fee.fee);
+        assert_eq!(swap_fee.gas_limit, implicit_fee.gas_limit);
+
+        input.input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::Near));
         input.destination_address = "receiver.near".to_string();
-        let named_fee = map_transaction_fee(&input, &config, None);
+        let named_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(named_fee.fee, BigInt::from(245500818750000000000u128));
 
         input.input_type = primitives::TransactionInputType::Transfer(primitives::Asset::new(
@@ -123,12 +140,12 @@ mod tests {
             6,
             primitives::AssetType::TOKEN,
         ));
-        let token_fee = map_transaction_fee(&input, &config, None);
+        let token_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(token_fee.gas_limit, BigInt::from(31_196_119_000_000u64));
         assert_eq!(token_fee.fee, BigInt::from(30_918_865_450_000_000_000_000u128));
 
         let token_account_creation = BigInt::from(1_250_000_000_000_000_000_000u128);
-        let token_fee = map_transaction_fee(&input, &config, Some(token_account_creation.clone()));
+        let token_fee = map_transaction_fee(&input, &input.destination_address, &config, Some(token_account_creation.clone()));
         assert_eq!(token_fee.gas_limit, BigInt::from(62_176_119_000_000u64));
         assert_eq!(token_fee.options.get(&FeeOption::TokenAccountCreation), Some(&token_account_creation));
         assert_eq!(token_fee.fee, BigInt::from(62_968_865_450_000_000_000_000u128));
