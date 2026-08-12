@@ -2,6 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use gem_evm::ethereum_address_checksum;
+use primitives::EVMChain;
 use primitives::chain::Chain;
 use primitives::name::{NameProvider, NameRecord};
 
@@ -59,6 +61,10 @@ impl Client {
 
         let provider = self.matched_provider(name, chain)?;
         let address = provider.resolve(&query, chain).await?;
+        let address = match EVMChain::from_chain(chain) {
+            Some(_) => ethereum_address_checksum(&address)?,
+            None => address,
+        };
 
         Ok(NameRecord {
             provider: provider.provider(),
@@ -112,6 +118,33 @@ mod tests {
 
     use super::{Client, NameConfig};
     use primitives::chain::Chain;
+
+    #[tokio::test]
+    async fn test_resolve_checksums_evm_address() {
+        let client = Client::new(
+            vec![
+                Box::new(TestProvider::new(
+                    NameProvider::Ud,
+                    vec!["crypto"],
+                    vec![Chain::Ethereum],
+                    Ok("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"),
+                )),
+                Box::new(TestProvider::new(
+                    NameProvider::Sns,
+                    vec!["sol"],
+                    vec![Chain::Solana],
+                    Ok("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"),
+                )),
+            ],
+            NameConfig { max_name_length: 20 },
+        );
+
+        let ethereum = client.resolve("example.crypto", Chain::Ethereum).await.unwrap();
+        let solana = client.resolve("example.sol", Chain::Solana).await.unwrap();
+
+        assert_eq!(ethereum.address, "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
+        assert_eq!(solana.address, "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2");
+    }
 
     #[tokio::test]
     async fn test_resolve_prefers_longer_domain_match() {

@@ -1,5 +1,5 @@
 pub mod address;
-pub use address::validate_address;
+pub use address::is_valid_address;
 #[cfg(feature = "rpc")]
 pub mod rpc;
 

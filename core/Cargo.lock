@@ -5643,6 +5643,7 @@ dependencies = [
  "gem_evm",
  "gem_hash",
  "gem_jsonrpc",
+ "gem_near",
  "gem_solana",
  "gem_ton",
  "hex",

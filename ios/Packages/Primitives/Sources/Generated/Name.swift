@@ -21,6 +21,7 @@ public enum NameProvider: String, Codable, Sendable {
 	case basenames
 	case hyperliquid
 	case allDomains = "alldomains"
+	case near
 }
 
 public struct NameRecord: Codable, Hashable, Sendable {
