@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.7"
+version = "2.114.8"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
