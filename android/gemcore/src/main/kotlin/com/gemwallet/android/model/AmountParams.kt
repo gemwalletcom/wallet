@@ -1,9 +1,8 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
-import com.gemwallet.android.ext.urlDecode
-import com.gemwallet.android.ext.urlEncode
-import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.serializer.packRoutePayload
+import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
@@ -11,17 +10,14 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.Base64
 
 @Serializable
 sealed interface AmountParams {
     val assetId: AssetId
     val transactionType: TransactionType
+    val amount: String? get() = null
 
-    fun pack(): String? = runCatching {
-        val json = jsonEncoder.encodeToString(this)
-        Base64.getEncoder().encodeToString(json.toByteArray()).urlEncode()
-    }.getOrNull()
+    fun pack(): String? = packRoutePayload()
 
     @Serializable
     @SerialName("transfer")
@@ -29,6 +25,7 @@ sealed interface AmountParams {
         override val assetId: AssetId,
         val destination: DestinationAddress,
         val memo: String? = null,
+        override val amount: String? = null,
     ) : AmountParams {
         override val transactionType: TransactionType get() = TransactionType.Transfer
     }
@@ -128,9 +125,6 @@ sealed interface AmountParams {
     }
 
     companion object {
-        fun unpack(input: String): AmountParams? = runCatching {
-            val json = String(Base64.getDecoder().decode(input.urlDecode()))
-            jsonEncoder.decodeFromString<AmountParams>(json)
-        }.getOrNull()
+        fun unpack(input: String): AmountParams? = unpackRoutePayload(input)
     }
 }

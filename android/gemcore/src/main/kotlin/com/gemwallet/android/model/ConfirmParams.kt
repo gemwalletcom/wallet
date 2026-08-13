@@ -7,12 +7,11 @@ import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.domains.stake.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
-import com.gemwallet.android.ext.urlDecode
-import com.gemwallet.android.ext.urlEncode
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.serializer.BigIntegerSerializer
-import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.serializer.packRoutePayload
+import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -38,7 +37,6 @@ import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransferDataOutputAction
 import uniffi.gemstone.TransferDataOutputType
 import java.math.BigInteger
-import java.util.Base64
 
 @Serializable
 sealed class ConfirmParams() {
@@ -632,10 +630,7 @@ sealed class ConfirmParams() {
         )
     }
 
-    fun pack(): String? {
-        val json = jsonEncoder.encodeToString(this)
-        return Base64.getEncoder().encodeToString(json.toByteArray()).urlEncode()
-    }
+    fun pack(): String? = packRoutePayload()
 
     fun getTransactionType() : TransactionType {
         return when (this) {
@@ -676,12 +671,7 @@ sealed class ConfirmParams() {
     }
 
     companion object {
-        fun unpack(input: String): ConfirmParams? {
-            return runCatching {
-                val json = String(Base64.getDecoder().decode(input.urlDecode()))
-                jsonEncoder.decodeFromString<ConfirmParams>(json)
-            }.getOrNull()
-        }
+        fun unpack(input: String): ConfirmParams? = unpackRoutePayload(input)
     }
 }
 
