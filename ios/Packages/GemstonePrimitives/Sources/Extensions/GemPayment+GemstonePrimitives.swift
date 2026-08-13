@@ -28,7 +28,6 @@ public extension GemPaymentLink {
     func map() -> PaymentLink {
         switch self {
         case let .solanaPay(id): .solanaPay(id)
-        case let .walletConnectPay(id): .walletConnectPay(id)
         }
     }
 }

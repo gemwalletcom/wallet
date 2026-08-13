@@ -1,7 +1,7 @@
 use super::error::{PaymentDecoderError, Result};
-use crate::payment::{Payment, PaymentLink};
+use crate::payment::Payment;
 
-use super::{bip21, erc681, solana_pay, ton_pay, wallet_connect_pay};
+use super::{bip21, erc681, solana_pay, ton_pay};
 
 #[derive(Debug)]
 pub struct PaymentURLDecoder;
@@ -18,10 +18,6 @@ impl PaymentURLDecoder {
     }
 
     fn decode_uri(uri: &str) -> Result<Payment> {
-        if let Some(payment_id) = wallet_connect_pay::parse(uri) {
-            return Ok(Payment::Link(PaymentLink::WalletConnectPay(payment_id)));
-        }
-
         let Some((scheme, path)) = uri.split_once(':') else {
             return bip21::decode(None, uri);
         };
@@ -39,7 +35,11 @@ impl PaymentURLDecoder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Chain, asset_id::AssetId, payment::PaymentRequest};
+    use crate::{
+        Chain,
+        asset_id::AssetId,
+        payment::{PaymentLink, PaymentRequest},
+    };
 
     fn request(address: &str, chain: Chain) -> Payment {
         Payment::Request(PaymentRequest {
@@ -187,6 +187,8 @@ mod tests {
         assert!(PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?req-escrow=1").is_err());
 
         assert!(PaymentURLDecoder::decode("wc:abc123@2?relay-protocol=irn&symKey=deadbeef").is_err());
+        assert!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").is_err());
+        assert!(PaymentURLDecoder::decode("wc:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").is_err());
         assert!(PaymentURLDecoder::decode("https://gemwallet.com/tokens/bitcoin").is_err());
         assert!(PaymentURLDecoder::decode("gem://wc?sessionTopic=abc").is_err());
         assert!(PaymentURLDecoder::decode("lightning:lnbc1pvjluezpp5qqqsyq").is_err());
@@ -215,6 +217,17 @@ mod tests {
         assert_eq!(PaymentURLDecoder::decode("ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345&amount=10").unwrap(), payment);
         assert_eq!(PaymentURLDecoder::decode("xrpl:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345&amount=10").unwrap(), payment);
         assert_eq!(PaymentURLDecoder::decode("xrp:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345&amount=10").unwrap(), payment);
+
+        assert_eq!(
+            PaymentURLDecoder::decode("dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L?amount=42").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L".to_string(),
+                amount: Some("42".to_string()),
+                memo: None,
+                asset_id: Some(AssetId::from_chain(Chain::Doge)),
+            })
+        );
+        assert!(PaymentURLDecoder::decode("lightning:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L").is_err());
 
         assert_eq!(
             PaymentURLDecoder::decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?dt=12345").unwrap(),
@@ -269,26 +282,6 @@ mod tests {
                 memo: Some("OrderId5678".to_string()),
                 asset_id: Some(AssetId::from(Chain::Solana, Some(usdc.to_string()))),
             })
-        );
-    }
-
-    #[test]
-    fn test_wallet_connect_pay() {
-        assert_eq!(
-            PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(),
-            Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string()))
-        );
-        assert_eq!(
-            PaymentURLDecoder::decode("wc:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").unwrap(),
-            Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string()))
-        );
-        assert_eq!(
-            PaymentURLDecoder::decode("wc:abc@2?pay=https://pay.walletconnect.com/?pid=pay_123").unwrap(),
-            Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string()))
-        );
-        assert_eq!(
-            PaymentURLDecoder::decode("gem://wc?uri=wc%3Aabc%402%3Fpay%3Dhttps%253A%252F%252Fpay.walletconnect.com%252F%253Fpid%253Dpay_123").unwrap(),
-            Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string()))
         );
     }
 

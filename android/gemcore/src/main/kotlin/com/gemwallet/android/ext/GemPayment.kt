@@ -21,5 +21,4 @@ fun GemPaymentRequest.toPrimitives(): PaymentRequest = PaymentRequest(
 
 fun GemPaymentLink.toPrimitives(): PaymentLink = when (this) {
     is GemPaymentLink.SolanaPay -> PaymentLink.SolanaPay(v1)
-    is GemPaymentLink.WalletConnectPay -> PaymentLink.WalletConnectPay(v1)
 }

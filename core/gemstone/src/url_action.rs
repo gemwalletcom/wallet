@@ -20,7 +20,11 @@ mod tests {
     fn test_url_action() {
         assert!(matches!(url_action("https://gemwallet.com/tokens/bitcoin"), Some(UrlAction::Deeplink { .. })));
         assert!(matches!(url_action("gem://wc?sessionTopic=abc"), Some(UrlAction::WalletConnect { .. })));
-        assert!(matches!(url_action("https://pay.walletconnect.com/?pid=pay_123"), Some(UrlAction::Payment { .. })));
+        assert!(matches!(
+            url_action("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1"),
+            Some(UrlAction::Payment { .. })
+        ));
         assert_eq!(url_action("https://example.com"), None);
+        assert_eq!(url_action("https://pay.walletconnect.com/?pid=pay_123"), None);
     }
 }

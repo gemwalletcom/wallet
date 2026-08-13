@@ -30,8 +30,5 @@ sealed class PaymentLink {
 	@Serializable
 	@SerialName("solanaPay")
 	data class SolanaPay(val content: String): PaymentLink()
-	@Serializable
-	@SerialName("walletConnectPay")
-	data class WalletConnectPay(val content: String): PaymentLink()
 }
 

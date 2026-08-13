@@ -41,5 +41,4 @@ impl PaymentRequest {
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]
 pub enum PaymentLink {
     SolanaPay(String),
-    WalletConnectPay(String),
 }

@@ -65,11 +65,9 @@ public enum Payment: Codable, Equatable, Hashable, Sendable {
 
 public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
 	case solanaPay(String)
-	case walletConnectPay(String)
 
 	enum CodingKeys: String, CodingKey, Codable {
-		case solanaPay,
-			walletConnectPay
+		case solanaPay
 	}
 
 	private enum ContainerCodingKeys: String, CodingKey {
@@ -85,11 +83,6 @@ public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
 					self = .solanaPay(content)
 					return
 				}
-			case .walletConnectPay:
-				if let content = try? container.decode(String.self, forKey: .content) {
-					self = .walletConnectPay(content)
-					return
-				}
 			}
 		}
 		throw DecodingError.typeMismatch(PaymentLink.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PaymentLink"))
@@ -100,9 +93,6 @@ public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
 		switch self {
 		case .solanaPay(let content):
 			try container.encode(CodingKeys.solanaPay, forKey: .type)
-			try container.encode(content, forKey: .content)
-		case .walletConnectPay(let content):
-			try container.encode(CodingKeys.walletConnectPay, forKey: .type)
 			try container.encode(content, forKey: .content)
 		}
 	}
