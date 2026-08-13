@@ -4,6 +4,7 @@ use super::query;
 use crate::{
     Chain,
     asset_id::AssetId,
+    chain::network_id_value,
     payment::{Payment, PaymentRequest},
 };
 
@@ -20,7 +21,7 @@ pub fn decode(path: &str) -> Result<Payment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let (target, function) = path.split_once('/').map_or((path, None), |(target, function)| (target, Some(function)));
     let (target, chain) = match target.split_once('@') {
-        Some((target, network_id)) => (target, Chain::from_network_id(network_id).unwrap_or(Chain::Ethereum)),
+        Some((target, network_id)) => (target, chain(network_id).unwrap_or(Chain::Ethereum)),
         None => (target, Chain::Ethereum),
     };
     let target = target.strip_prefix(PAY_PREFIX).unwrap_or(target);
@@ -40,9 +41,13 @@ pub fn decode(path: &str) -> Result<Payment> {
             amount: query::value(&parameters, QUERY_VALUE)
                 .as_deref()
                 .and_then(|value| amount::from_smallest_unit(value, chain))
-                .or_else(|| query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(amount::from_coins)),
+                .or_else(|| query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(|value| amount::from_coins(value, chain))),
             memo,
             asset_id: Some(AssetId::from(chain, None)),
         })),
     }
+}
+
+fn chain(network_id: &str) -> Option<Chain> {
+    Chain::from_chain_id(network_id_value(network_id)?)
 }

@@ -4,8 +4,15 @@ use crate::{Chain, asset::Asset};
 
 const MAX_EXPONENT: u32 = 78;
 
-pub(crate) fn from_coins(value: &str) -> Option<String> {
+pub(crate) fn normalize(value: &str) -> Option<String> {
     Some(Amount::read(value)?.to_string())
+}
+
+pub(crate) fn from_coins(value: &str, chain: Chain) -> Option<String> {
+    let decimals = u32::try_from(Asset::from_chain(chain).decimals).ok()?;
+    let amount = Amount::read(value)?;
+
+    (amount.significant_decimals() <= decimals).then(|| amount.to_string())
 }
 
 pub(crate) fn from_smallest_unit(value: &str, chain: Chain) -> Option<String> {
@@ -45,6 +52,12 @@ impl Amount {
         })
     }
 
+    fn significant_decimals(&self) -> u32 {
+        let trailing_zeros = self.units.len() - self.units.trim_end_matches('0').len();
+
+        self.decimals.saturating_sub(trailing_zeros as u32)
+    }
+
     fn with_decimals(self, decimals: u32) -> Option<Self> {
         (self.decimals == 0).then_some(Self { decimals, ..self })
     }
@@ -68,14 +81,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_coins() {
-        assert_eq!(from_coins("50"), Some("50".to_string()));
-        assert_eq!(from_coins("0.500"), Some("0.5".to_string()));
-        assert_eq!(from_coins(".123"), Some("0.123".to_string()));
+    fn test_normalize() {
+        assert_eq!(normalize("50"), Some("50".to_string()));
+        assert_eq!(normalize("0.500"), Some("0.5".to_string()));
+        assert_eq!(normalize(".123"), Some("0.123".to_string()));
 
         for not_a_plain_decimal in ["XYZ", "100,000", "1_000", "-1", "", "1e2"] {
-            assert_eq!(from_coins(not_a_plain_decimal), None, "{not_a_plain_decimal}");
+            assert_eq!(normalize(not_a_plain_decimal), None, "{not_a_plain_decimal}");
         }
+    }
+
+    #[test]
+    fn test_from_coins() {
+        assert_eq!(from_coins("0.0001", Chain::Bitcoin), Some("0.0001".to_string()));
+        assert_eq!(from_coins("1.000000000", Chain::Bitcoin), Some("1".to_string()));
+
+        for finer_than_a_satoshi in ["0.000000001", "0.123456789"] {
+            assert_eq!(from_coins(finer_than_a_satoshi, Chain::Bitcoin), None, "{finer_than_a_satoshi}");
+        }
+        assert_eq!(from_coins("0.000000001", Chain::Ethereum), Some("0.000000001".to_string()));
     }
 
     #[test]

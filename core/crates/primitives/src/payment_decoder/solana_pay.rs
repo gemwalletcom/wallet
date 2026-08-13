@@ -25,11 +25,17 @@ pub fn decode(path: &str) -> Result<Payment> {
     let parameters = query::parameters(query);
     query::reject_unsupported(&parameters, &[QUERY_REFERENCE])?;
 
+    let token = query::value(&parameters, QUERY_SPL_TOKEN);
+    let amount = query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(|value| match &token {
+        Some(_) => amount::normalize(value),
+        None => amount::from_coins(value, Chain::Solana),
+    });
+
     Ok(Payment::Request(PaymentRequest {
         address: recipient.to_string(),
-        amount: query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(amount::from_coins),
+        amount,
         memo: query::value(&parameters, QUERY_MEMO),
-        asset_id: Some(AssetId::from(Chain::Solana, query::value(&parameters, QUERY_SPL_TOKEN))),
+        asset_id: Some(AssetId::from(Chain::Solana, token)),
     }))
 }
 

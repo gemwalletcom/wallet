@@ -1,4 +1,4 @@
-use std::{fmt, str::FromStr};
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
@@ -68,7 +68,7 @@ pub enum Chain {
     Stable,
 }
 
-fn network_id_value(network_id: &str) -> Option<u64> {
+pub(crate) fn network_id_value(network_id: &str) -> Option<u64> {
     network_id
         .parse()
         .ok()
@@ -110,18 +110,6 @@ impl Chain {
 
     pub fn from_chain_id(chain_id: u64) -> Option<Self> {
         Self::iter().find(|&chain| chain.network_id_value().is_some_and(|network_id| network_id == chain_id))
-    }
-
-    pub fn from_network_id(network_id: &str) -> Option<Self> {
-        Self::from_chain_id(network_id_value(network_id)?)
-    }
-
-    pub fn from_payment_scheme(scheme: &str) -> Option<Self> {
-        match scheme {
-            "dogecoin" => Some(Self::Doge),
-            "ripple" | "xrpl" => Some(Self::Xrp),
-            _ => Self::from_str(scheme).ok(),
-        }
     }
 
     pub fn is_utxo(&self) -> bool {
@@ -218,25 +206,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_payment_scheme_reads_a_network_known_by_another_name() {
-        assert_eq!(Chain::from_payment_scheme("dogecoin"), Some(Chain::Doge));
-        assert_eq!(Chain::from_payment_scheme("ripple"), Some(Chain::Xrp));
-        assert_eq!(Chain::from_payment_scheme("xrpl"), Some(Chain::Xrp));
-
-        assert_eq!(Chain::from_payment_scheme("lightning"), None);
-    }
-
-    #[test]
     fn test_from_chain_id_supports_hex_network_id() {
         assert_eq!(Chain::from_chain_id(728_126_428), Some(Chain::Tron));
-    }
-
-    #[test]
-    fn test_from_network_id() {
-        assert_eq!(Chain::from_network_id("1"), Some(Chain::Ethereum));
-        assert_eq!(Chain::from_network_id("0x38"), Some(Chain::SmartChain));
-
-        assert_eq!(Chain::from_network_id("0x"), None);
-        assert_eq!(Chain::from_network_id("999999"), None);
     }
 }
