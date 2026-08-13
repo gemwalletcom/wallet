@@ -43,7 +43,6 @@ struct WalletNavigationStack: View {
     @Environment(\.observablePreferences) private var preferences
 
     @State private var model: WalletSceneViewModel
-    @State private var scannedCode: String?
 
     init(model: WalletSceneViewModel) {
         _model = State(initialValue: model)
@@ -233,8 +232,8 @@ struct WalletNavigationStack: View {
                     ),
                 )
             }
-            .sheet(isPresented: $model.isPresentingScanner, onDismiss: onScannerDismiss) {
-                ScanQRCodeNavigationStack { scannedCode = $0 }
+            .sheet(isPresented: $model.isPresentingScanner) {
+                ScanQRCodeNavigationStack(action: model.onScan(_:))
             }
             .sheet(item: $model.isPresentingSheet) { sheet in
                 Group {
@@ -301,12 +300,6 @@ struct WalletNavigationStack: View {
 // MARK: - Actions
 
 extension WalletNavigationStack {
-    private func onScannerDismiss() {
-        guard let scannedCode else { return }
-        self.scannedCode = .none
-        model.onScan(scannedCode)
-    }
-
     private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
         Task {
             do {
