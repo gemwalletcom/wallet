@@ -6,10 +6,8 @@ mod provider;
 pub use model::{ActionRequest, ActionResponse};
 pub use provider::SwapsXyz;
 
-use crate::config::get_swap_proxy_url;
-
-const NATIVE_TOKEN: &str = "0x0000000000000000000000000000000000000000";
+use crate::{SwapperProvider, config::get_swap_proxy_url};
 
 pub fn base_url() -> String {
-    get_swap_proxy_url("swaps_xyz")
+    get_swap_proxy_url(SwapperProvider::SwapsXyz.as_ref())
 }

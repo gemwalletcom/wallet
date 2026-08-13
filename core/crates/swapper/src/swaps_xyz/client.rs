@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use gem_client::{Client, ClientError, ClientExt};
+use primitives::contract_constants::EVM_ZERO_ADDRESS;
 
 use super::model::{ActionRequest, ActionResponse, PathsResponse, StatusResponse};
 use crate::SwapperError;
@@ -25,7 +26,7 @@ where
     pub async fn get_paths(&self, source_chain_id: u64, destination_chain_id: u64) -> Result<PathsResponse, SwapperError> {
         let query = serde_urlencoded::to_string([
             ("srcChainId", source_chain_id.to_string()),
-            ("srcToken", super::NATIVE_TOKEN.to_string()),
+            ("srcToken", EVM_ZERO_ADDRESS.to_string()),
             ("dstChainId", destination_chain_id.to_string()),
         ])?;
         self.upstream.get(&format!("/getPaths?{query}")).await.map_err(Into::into)

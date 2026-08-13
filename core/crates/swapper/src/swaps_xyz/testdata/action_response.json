@@ -4,13 +4,13 @@
   "tx": {
     "to": "deposit",
     "toExtra": "1234",
-    "value": "10000000",
-    "chainId": 999000419,
-    "chainKey": "algorand"
+    "value": "1000000",
+    "chainId": 999000433,
+    "chainKey": "atom"
   },
   "amountIn": {
-    "amount": "10000000",
-    "chainId": 999000419,
+    "amount": "1000000",
+    "chainId": 999000433,
     "address": "0x0000000000000000000000000000000000000000",
     "decimals": 6,
     "isNative": true
@@ -23,8 +23,8 @@
     "isNative": true
   },
   "applicationFee": {
-    "amount": "50000",
-    "chainId": 999000419,
+    "amount": "5000",
+    "chainId": 999000433,
     "address": "0x0000000000000000000000000000000000000000",
     "decimals": 6,
     "isNative": true

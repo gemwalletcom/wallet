@@ -24,6 +24,6 @@ pub async fn post_near_intents_quote(body: Json<serde_json::Value>, client: &Sta
 }
 
 #[post("/swaps/swaps_xyz/action", data = "<body>")]
-pub async fn post_swaps_action(body: Json<ActionRequest>, client: &State<SwapsXyzProxyClient>) -> Result<Json<ActionResponse>, ApiError> {
+pub async fn post_swaps_xyz_action(body: Json<ActionRequest>, client: &State<SwapsXyzProxyClient>) -> Result<Json<ActionResponse>, ApiError> {
     Ok(Json(client.action(&body).await?))
 }

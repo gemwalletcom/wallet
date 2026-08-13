@@ -4,13 +4,16 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_sui::{build_transfer_message_bytes, rpc::SuiClient};
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, TransactionSwapMetadata, swap::SwapStatus};
+use primitives::{
+    AssetId, Chain, TransactionSwapMetadata,
+    contract_constants::EVM_ZERO_ADDRESS,
+    swap::{HUNDRED_PERCENT_IN_BPS, SwapStatus},
+};
 
 use super::{
-    NATIVE_TOKEN,
     chain::SwapsXyzChain,
     client::SwapsXyzClient,
-    model::{ActionRequest, ActionResponse, AmountLimits, AppFee, StatusActionResponse},
+    model::{ActionRequest, ActionResponse, AmountLimits, AppFee},
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
@@ -46,7 +49,7 @@ impl SwapsXyz<RpcClient> {
         Self::with_client(
             SwapsXyzClient::new(
                 RpcClient::new(super::base_url(), rpc_provider.clone()),
-                RpcClient::new(format!("{API_BASE_URL}/v1/swaps/swaps_xyz"), rpc_provider),
+                RpcClient::new(format!("{API_BASE_URL}/v1/swaps/{}", SwapperProvider::SwapsXyz.as_ref()), rpc_provider),
             ),
             sui_client,
         )
@@ -77,10 +80,10 @@ where
         Ok(ActionRequest {
             action_type: "swap-action".into(),
             sender: request.wallet_address.clone(),
-            src_chain_id: source.id(),
-            src_token: NATIVE_TOKEN.into(),
-            dst_chain_id: destination.id(),
-            dst_token: NATIVE_TOKEN.into(),
+            src_chain_id: source.id,
+            src_token: EVM_ZERO_ADDRESS.into(),
+            dst_chain_id: destination.id,
+            dst_token: EVM_ZERO_ADDRESS.into(),
             slippage: request.options.slippage.bps,
             amount: request.value.clone(),
             swap_direction: "exact-amount-in".into(),
@@ -100,7 +103,8 @@ where
                 min_amount: Some(minimum.to_string()),
             });
         }
-        if let Some(maximum) = limits.max_amount.as_deref().and_then(|amount| amount_to_value(amount, decimals)) {
+        if let Some(maximum) = limits.max_amount.as_deref() {
+            let maximum = amount_to_value(maximum, decimals).ok_or_else(|| SwapperError::ComputeQuoteError("Invalid maximum amount".into()))?;
             let maximum = maximum.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
             if value > maximum {
                 return Err(SwapperError::ComputeQuoteError("Input amount exceeds route maximum".into()));
@@ -112,13 +116,13 @@ where
     fn validate_response(response: &ActionResponse, request: &QuoteRequest, source: SwapsXyzChain, destination: SwapsXyzChain) -> Result<(), SwapperError> {
         let fee = default_referral_fees().evm;
         let input = request.value.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
-        let expected_fee = input * BigUint::from(fee.bps) / BigUint::from(10_000_u32);
+        let expected_fee = input * BigUint::from(fee.bps) / BigUint::from(HUNDRED_PERCENT_IN_BPS);
         let actual_fee = response.application_fee.amount.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
         let valid = response.vm_id == "alt-vm"
             && !response.tx.to.is_empty()
             && response.tx.value == request.value
-            && response.tx.chain_id == source.id()
-            && response.tx.chain_key == source.key()
+            && response.tx.chain_id == source.id
+            && response.tx.chain_key == source.key
             && response.amount_in.amount == request.value
             && response.amount_in.native_chain() == Some(source)
             && response.amount_out.native_chain() == Some(destination)
@@ -126,31 +130,6 @@ where
             && response.application_fee.native_chain() == Some(source)
             && actual_fee == expected_fee;
         if valid { Ok(()) } else { Err(SwapperError::InvalidRoute) }
-    }
-
-    async fn build_quote_data(&self, response: ActionResponse, request: &QuoteRequest, source: SwapsXyzChain) -> Result<SwapperQuoteData, SwapperError> {
-        let mut data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value, response.tx.to_extra.filter(|memo| !memo.is_empty()));
-        if source.chain() == Chain::Sui {
-            let amount = data
-                .value
-                .parse::<u64>()
-                .map_err(|_| SwapperError::ComputeQuoteError("Invalid Sui amount provided for deposit".into()))?;
-            data.data = build_transfer_message_bytes(&self.sui_client, &request.wallet_address, &data.to, amount, None)
-                .await
-                .map_err(|error| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {error}")))?;
-        }
-        Ok(data)
-    }
-
-    fn metadata(status: Option<StatusActionResponse>) -> Option<TransactionSwapMetadata> {
-        let status = status?;
-        Some(TransactionSwapMetadata {
-            from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain()),
-            from_value: status.amount_in.amount,
-            to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain()),
-            to_value: status.amount_out.amount,
-            provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
-        })
     }
 
     fn map_status(status: &str) -> SwapStatus {
@@ -172,7 +151,7 @@ where
     }
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
-        SwapsXyzChain::all().iter().copied().map(|chain| SwapperChainAsset::assets(chain.chain(), [])).collect()
+        SwapsXyzChain::ALL.iter().map(|chain| SwapperChainAsset::assets(chain.chain, [])).collect()
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -182,11 +161,11 @@ where
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let source = SwapsXyzChain::from_chain(request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
-        let paths = self.client.get_paths(source.id(), destination.id()).await?;
+        let paths = self.client.get_paths(source.id, destination.id).await?;
         let path = paths
             .paths
             .iter()
-            .find(|path| path.chain_id == destination.id() && path.supports_exact_amount_in && path.supports_native_asset())
+            .find(|path| path.chain_id == destination.id && path.supports_exact_amount_in && path.tokens.iter().any(|token| token.is_native && token.address == EVM_ZERO_ADDRESS))
             .ok_or(SwapperError::NoQuoteAvailable)?;
         Self::validate_amount(&path.amount_limits, &request.value, source.decimals())?;
         let action_request = Self::build_action_request(request, source, destination)?;
@@ -217,90 +196,67 @@ where
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
-        if route.input != quote.request.from_asset.asset_id() || route.output != quote.request.to_asset.asset_id() {
-            return Err(SwapperError::InvalidRoute);
-        }
         let response: ActionResponse = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let source = SwapsXyzChain::from_chain(quote.request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(quote.request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         Self::validate_response(&response, &quote.request, source, destination)?;
-        self.build_quote_data(response, &quote.request, source).await
+        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value, response.tx.to_extra.filter(|memo| !memo.is_empty()));
+        if source.chain != Chain::Sui {
+            return Ok(data);
+        }
+        let amount = data
+            .value
+            .parse::<u64>()
+            .map_err(|_| SwapperError::ComputeQuoteError("Invalid Sui amount provided for deposit".into()))?;
+        let payload = build_transfer_message_bytes(&self.sui_client, &quote.request.wallet_address, &data.to, amount, None)
+            .await
+            .map_err(|error| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {error}")))?;
+        Ok(SwapperQuoteData { data: payload, ..data })
     }
 
     async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
         let chain = SwapsXyzChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
-        let Some(response) = self.client.get_status(transaction_hash, chain.id()).await? else {
+        let Some(response) = self.client.get_status(transaction_hash, chain.id).await? else {
             return Ok(SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None,
             });
         };
+        let metadata = response.action_response.and_then(|status| {
+            Some(TransactionSwapMetadata {
+                from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
+                from_value: status.amount_in.amount,
+                to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
+                to_value: status.amount_out.amount,
+                provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
+            })
+        });
         Ok(SwapResult {
             status: Self::map_status(&response.status),
-            metadata: Self::metadata(response.action_response),
+            metadata,
         })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::super::model::{AltVmTransaction, TokenAmount};
     use super::*;
     use crate::{Options, SwapperQuoteAsset};
     use gem_client::{ClientError, testkit::MockClient};
 
     fn request() -> QuoteRequest {
         QuoteRequest {
-            from_asset: SwapperQuoteAsset {
-                id: Chain::Stellar.as_asset_id().to_string(),
-                symbol: "XLM".into(),
-                decimals: 7,
-            },
-            to_asset: SwapperQuoteAsset {
-                id: Chain::Cardano.as_asset_id().to_string(),
-                symbol: "ADA".into(),
-                decimals: 6,
-            },
-            wallet_address: "GABC".into(),
-            destination_address: "addr1destination".into(),
-            value: "2000000000".into(),
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Stellar)),
+            wallet_address: "COSMOS_ADDRESS".into(),
+            destination_address: "STELLAR_ADDRESS".into(),
+            value: "1000000".into(),
             options: Options::default(),
         }
     }
 
     fn response() -> ActionResponse {
-        ActionResponse {
-            vm_id: "alt-vm".into(),
-            tx: AltVmTransaction {
-                to: "GDEPOSIT".into(),
-                to_extra: Some("6891911517326921".into()),
-                value: "2000000000".into(),
-                chain_id: 999_000_338,
-                chain_key: "xlm".into(),
-            },
-            amount_in: TokenAmount {
-                amount: "2000000000".into(),
-                chain_id: 999_000_338,
-                address: NATIVE_TOKEN.into(),
-                decimals: 7,
-                is_native: true,
-            },
-            amount_out: TokenAmount {
-                amount: "172150529".into(),
-                chain_id: 1816,
-                address: NATIVE_TOKEN.into(),
-                decimals: 6,
-                is_native: true,
-            },
-            application_fee: TokenAmount {
-                amount: "10000000".into(),
-                chain_id: 999_000_338,
-                address: NATIVE_TOKEN.into(),
-                decimals: 7,
-                is_native: true,
-            },
-            estimated_tx_time: 311.3,
-        }
+        serde_json::from_str(include_str!("testdata/action_response.json")).unwrap()
     }
 
     #[test]
@@ -308,8 +264,8 @@ mod tests {
         let request = request();
         let action = SwapsXyz::<MockClient>::build_action_request(
             &request,
-            SwapsXyzChain::from_chain(Chain::Stellar).unwrap(),
-            SwapsXyzChain::from_chain(Chain::Cardano).unwrap(),
+            SwapsXyzChain::from_chain(request.from_asset.chain()).unwrap(),
+            SwapsXyzChain::from_chain(request.to_asset.chain()).unwrap(),
         )
         .unwrap();
         let fees: Vec<AppFee> = serde_json::from_str(&action.app_fees).unwrap();
@@ -336,16 +292,25 @@ mod tests {
                 min_amount: Some("105000000".into())
             })
         );
-        assert!(SwapsXyz::<MockClient>::validate_amount(&limits, "105000000", 7).is_ok());
+        assert_eq!(SwapsXyz::<MockClient>::validate_amount(&limits, "105000000", 7), Ok(()));
+
+        let invalid_maximum = AmountLimits {
+            min_amount: "1".into(),
+            max_amount: Some("invalid".into()),
+        };
+        assert_eq!(
+            SwapsXyz::<MockClient>::validate_amount(&invalid_maximum, "105000000", 7),
+            Err(SwapperError::ComputeQuoteError("Invalid maximum amount".into()))
+        );
     }
 
     #[test]
     fn test_validate_response() {
         let request = request();
-        let source = SwapsXyzChain::from_chain(Chain::Stellar).unwrap();
-        let destination = SwapsXyzChain::from_chain(Chain::Cardano).unwrap();
+        let source = SwapsXyzChain::from_chain(request.from_asset.chain()).unwrap();
+        let destination = SwapsXyzChain::from_chain(request.to_asset.chain()).unwrap();
         let response = response();
-        assert!(SwapsXyz::<MockClient>::validate_response(&response, &request, source, destination).is_ok());
+        assert_eq!(SwapsXyz::<MockClient>::validate_response(&response, &request, source, destination), Ok(()));
 
         let mut wrong_fee = response;
         wrong_fee.application_fee.amount = "0".into();
@@ -386,7 +351,7 @@ mod tests {
         };
 
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        assert_eq!(data.memo.as_deref(), Some("6891911517326921"));
+        assert_eq!(data.memo.as_deref(), Some("1234"));
     }
 
     #[test]

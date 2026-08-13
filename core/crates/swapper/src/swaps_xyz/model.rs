@@ -1,6 +1,7 @@
+use primitives::contract_constants::EVM_ZERO_ADDRESS;
 use serde::{Deserialize, Serialize};
 
-use super::{NATIVE_TOKEN, chain::SwapsXyzChain};
+use super::chain::SwapsXyzChain;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -61,7 +62,7 @@ pub struct TokenAmount {
 impl TokenAmount {
     pub(super) fn native_chain(&self) -> Option<SwapsXyzChain> {
         let chain = SwapsXyzChain::from_id(self.chain_id)?;
-        (self.is_native && self.address == NATIVE_TOKEN && self.decimals == chain.decimals()).then_some(chain)
+        (self.is_native && self.address == EVM_ZERO_ADDRESS && self.decimals == chain.decimals()).then_some(chain)
     }
 }
 
@@ -78,12 +79,6 @@ pub struct Path {
     pub tokens: Vec<PathToken>,
     pub supports_exact_amount_in: bool,
     pub amount_limits: AmountLimits,
-}
-
-impl Path {
-    pub fn supports_native_asset(&self) -> bool {
-        self.tokens.iter().any(|token| token.is_native && token.address == NATIVE_TOKEN)
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -112,16 +107,4 @@ pub struct StatusResponse {
 pub struct StatusActionResponse {
     pub amount_in: TokenAmount,
     pub amount_out: TokenAmount,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_decodes_alt_vm_action() {
-        let response: ActionResponse = serde_json::from_str(include_str!("testdata/action_response.json")).unwrap();
-        assert_eq!(response.application_fee.amount, "50000");
-        assert_eq!(response.amount_out.address, "0x0000000000000000000000000000000000000000");
-    }
 }

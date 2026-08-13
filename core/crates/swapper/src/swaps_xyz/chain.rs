@@ -2,13 +2,13 @@ use primitives::{Asset, Chain};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) struct SwapsXyzChain {
-    chain: Chain,
-    id: u64,
-    key: &'static str,
+    pub(super) chain: Chain,
+    pub(super) id: u64,
+    pub(super) key: &'static str,
 }
 
 impl SwapsXyzChain {
-    const ALL: &'static [Self] = &[
+    pub(super) const ALL: &'static [Self] = &[
         Self {
             chain: Chain::Algorand,
             id: 999_000_419,
@@ -61,28 +61,12 @@ impl SwapsXyzChain {
         },
     ];
 
-    pub(super) fn all() -> &'static [Self] {
-        Self::ALL
-    }
-
     pub(super) fn from_chain(chain: Chain) -> Option<Self> {
         Self::ALL.iter().copied().find(|value| value.chain == chain)
     }
 
     pub(super) fn from_id(id: u64) -> Option<Self> {
         Self::ALL.iter().copied().find(|value| value.id == id)
-    }
-
-    pub(super) fn chain(self) -> Chain {
-        self.chain
-    }
-
-    pub(super) fn id(self) -> u64 {
-        self.id
-    }
-
-    pub(super) fn key(self) -> &'static str {
-        self.key
     }
 
     pub(super) fn decimals(self) -> u32 {

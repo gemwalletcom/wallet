@@ -5,7 +5,7 @@ use typeshare::typeshare;
 use crate::{
     block_explorer::BlockExplorer,
     chain::Chain,
-    explorers::{AcrossScan, ChainflipScan, MayaScan, MayanScan, NearIntents, RelayScan, RuneScan, SkipExplorer},
+    explorers::{AcrossScan, ChainflipScan, MayaScan, MayanScan, NearIntents, RelayScan, RuneScan, SkipExplorer, SwapsXyzScan},
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, AsRefStr, EnumString, Eq, PartialOrd, Ord, Serialize, Deserialize, EnumIter)]
@@ -90,6 +90,7 @@ impl SwapProvider {
             Self::NearIntents => Some(NearIntents::boxed()),
             Self::Relay => Some(RelayScan::boxed()),
             Self::Squid => Some(SkipExplorer::boxed(chain)),
+            Self::SwapsXyz => Some(SwapsXyzScan::boxed()),
             Self::UniswapV3
             | Self::UniswapV4
             | Self::PancakeswapV3
@@ -103,7 +104,6 @@ impl SwapProvider {
             | Self::StonfiV2
             | Self::Aerodrome
             | Self::Hyperliquid
-            | Self::SwapsXyz
             | Self::Orca => None,
         }
     }
@@ -176,5 +176,18 @@ mod tests {
         assert!(SwapProvider::SwapsXyz.is_cross_chain());
         assert!(!SwapProvider::UniswapV3.is_cross_chain());
         assert!(!SwapProvider::Jupiter.is_cross_chain());
+    }
+
+    #[test]
+    fn test_swaps_xyz_explorer() {
+        let transaction_id = "0x6331c6eded7cfe4ed578e41a57855102b3fd60b3daa2c4bef992f4f5869856b4";
+        for chain in [Chain::Ton, Chain::Algorand, Chain::Stellar] {
+            let explorer = SwapProvider::SwapsXyz.swap_explorer(chain).unwrap();
+            assert_eq!(explorer.name(), "Swaps.xyz");
+            assert_eq!(
+                explorer.get_swap_tx_url(&transaction_id.into()),
+                format!("https://scan.swaps.xyz/transactions?search={transaction_id}")
+            );
+        }
     }
 }

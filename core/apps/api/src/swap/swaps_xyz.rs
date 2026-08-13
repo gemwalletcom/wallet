@@ -27,9 +27,10 @@ impl SwapsXyzProxyClient {
             .error_for_status()?
             .json::<ActionResponse>()
             .await?;
-        self.cacher
+        let _ = self
+            .cacher
             .add_to_set_cached(CacheKey::SwapDepositAddresses(SwapProvider::SwapsXyz.as_ref()), slice::from_ref(&response.tx.to))
-            .await?;
+            .await;
         Ok(response)
     }
 }
