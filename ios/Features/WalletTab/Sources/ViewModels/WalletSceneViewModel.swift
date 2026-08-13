@@ -17,7 +17,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import Transfer
 import WalletSessionService
 
 @Observable
@@ -42,6 +41,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingScanner = false
+    private var scannedCode: String?
     public var isPresentingSheet: WalletSheetType?
     public var isPresentingSearch = false
     public var isPresentingUrl: URL?
@@ -205,6 +205,16 @@ public extension WalletSceneViewModel {
 
     func onSelectScanner() {
         isPresentingScanner = true
+    }
+
+    func onScan(_ result: String) {
+        scannedCode = result
+    }
+
+    func onScannerDismiss() {
+        guard let code = scannedCode else { return }
+        scannedCode = .none
+        onHandleScan(code)
     }
 
     func onHandleScan(_ result: String) {

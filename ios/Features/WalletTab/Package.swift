@@ -35,7 +35,6 @@ let package = Package(
         .package(name: "Perpetuals", path: "../Perpetuals"),
         .package(name: "Recents", path: "../Recents"),
         .package(name: "NFT", path: "../NFT"),
-        .package(name: "Transfer", path: "../Transfer"),
     ],
     targets: [
         .target(
@@ -50,7 +49,6 @@ let package = Package(
                 "InfoSheet",
                 "Store",
                 "Preferences",
-                "Transfer",
                 .product(name: "BalanceService", package: "FeatureServices"),
                 .product(name: "BannerService", package: "FeatureServices"),
                 .product(name: "WalletSessionService", package: "FeatureServices"),

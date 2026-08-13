@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Primitives
+import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 @testable import Transfer

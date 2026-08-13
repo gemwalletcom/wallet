@@ -232,8 +232,8 @@ struct WalletNavigationStack: View {
                     ),
                 )
             }
-            .sheet(isPresented: $model.isPresentingScanner) {
-                ScanQRCodeNavigationStack(action: model.onHandleScan(_:))
+            .sheet(isPresented: $model.isPresentingScanner, onDismiss: model.onScannerDismiss) {
+                ScanQRCodeNavigationStack(action: model.onScan(_:))
             }
             .sheet(item: $model.isPresentingSheet) { sheet in
                 Group {
