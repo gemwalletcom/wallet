@@ -295,8 +295,9 @@ private fun AssetWatchOnly() {
             )
             Spacer8()
             Text(
-                modifier = Modifier.weight(1f, fill = false),
+                modifier = Modifier.weight(1f),
                 text = stringResource(id = R.string.wallet_watch_tooltip_title),
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.W400,
             )
