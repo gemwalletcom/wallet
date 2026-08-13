@@ -142,6 +142,28 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
+    func destination_belowSmallestUnit() throws {
+        let asset = Asset.mockEthereum()
+        let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
+
+        let payment = PaymentRequest(
+            address: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a",
+            amount: "0.0000000000000000001",
+            memo: nil,
+            assetId: nil,
+        )
+
+        let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
+
+        switch result {
+        case let .recipient(data):
+            #expect(data.amount == payment.amount)
+        case .confirm:
+            Issue.record("A nineteenth decimal is not signable as ETH")
+        }
+    }
+
+    @Test
     func nftAssetImage() {
         let nftAsset = NFTAsset.mock(id: NFTAssetId(chain: .ethereum, contractAddress: "0x123", tokenId: "1"))
         let image = RecipientSceneViewModel.mock().nftAssetImage(for: nftAsset)

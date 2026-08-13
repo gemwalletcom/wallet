@@ -18,12 +18,12 @@ public struct PaymentTransfer: Sendable {
 
     public func destination(for payment: PaymentRequest) throws -> PaymentDestination {
         guard isSameAsset(payment) else {
-            throw AnyError(Localized.Errors.notSupported)
+            throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
         }
         let address = asset.chain.checksumAddress(payment.address)
         let recipient = Recipient(name: .none, address: address, memo: payment.memo)
 
-        switch try confirmableValue(of: payment, address: address) {
+        switch confirmableValue(of: payment, address: address) {
         case let .some(value):
             return .confirm(
                 TransferData(
@@ -46,8 +46,8 @@ private extension PaymentTransfer {
         return assetId == asset.id
     }
 
-    func confirmableValue(of payment: PaymentRequest, address: String) throws -> BigInt? {
-        guard let value = try transferValue(of: payment) else { return .none }
+    func confirmableValue(of payment: PaymentRequest, address: String) -> BigInt? {
+        guard let value = transferValue(of: payment) else { return .none }
         guard asset.chain.isValidAddress(address), !needsMemoReview(payment) else { return .none }
         return value
     }
@@ -56,8 +56,8 @@ private extension PaymentTransfer {
         asset.chain.isMemoSupported && payment.memo != nil
     }
 
-    func transferValue(of payment: PaymentRequest) throws -> BigInt? {
+    func transferValue(of payment: PaymentRequest) -> BigInt? {
         guard let amount = payment.amount else { return .none }
-        return try numberFormatter.number(from: amount, decimals: asset.decimals.asInt)
+        return try? numberFormatter.exactNumber(from: amount, decimals: asset.decimals.asInt)
     }
 }
