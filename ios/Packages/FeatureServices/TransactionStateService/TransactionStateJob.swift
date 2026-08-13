@@ -26,6 +26,11 @@ struct TransactionStateJob: Job {
             return .cancelled
         }
         await context.update(currentTransactionWallet)
+        if transactionWallet.transaction.state == .pending,
+           currentTransactionWallet.transaction.state == .inTransit
+        {
+            await service.updateBalances(currentTransactionWallet)
+        }
         return result.status
     }
 

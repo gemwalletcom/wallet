@@ -71,6 +71,13 @@ public struct TransactionStateService: Sendable {
             transaction: transactionWallet.transaction,
         )
     }
+
+    func updateBalances(_ transactionWallet: TransactionWallet) async {
+        await postProcessingService.updateBalances(
+            wallet: transactionWallet.wallet,
+            transaction: transactionWallet.transaction,
+        )
+    }
 }
 
 // MARK: - Private

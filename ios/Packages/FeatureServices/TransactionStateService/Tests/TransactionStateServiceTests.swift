@@ -216,6 +216,28 @@ struct TransactionStateServiceTests {
     }
 
     @Test
+    func jobRefreshesBalancesWhenEnteringInTransit() async throws {
+        let sourceAsset = AssetId.mock(.bitcoin)
+        try await confirmation("updates balances once") { updatedBalances in
+            let fixture = try makeFixture(
+                type: .transfer,
+                statusService: TransactionStatusServiceMock(stateChanges: TransactionChanges(state: .inTransit)),
+                balanceUpdater: BalanceUpdaterMock { _, assetIds in
+                    #expect(assetIds == [sourceAsset])
+                    updatedBalances()
+                },
+            )
+            let job = TransactionStateJob(
+                wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),
+                service: fixture.service,
+            )
+
+            await expectRetry(job.run())
+            await expectRetry(job.run())
+        }
+    }
+
+    @Test
     func jobStopsWhenWalletRemoved() async throws {
         let fixture = try makeFixture(stateChanges: TransactionChanges(state: .confirmed))
         let job = TransactionStateJob(
@@ -310,8 +332,10 @@ private extension TransactionStateServiceTests {
 
     func makeFixture(
         state: TransactionState = .pending,
+        type: TransactionType = .swap,
         provider: SwapProvider? = .thorchain,
         statusService: any TransactionStatusServiceable,
+        balanceUpdater: BalanceUpdaterMock = .init(),
     ) throws -> Fixture {
         let fromAsset = AssetId.mock(.bitcoin)
         let toAsset = AssetId.mock(.ethereum)
@@ -322,17 +346,26 @@ private extension TransactionStateServiceTests {
         let store = TransactionStore.mock(db: db)
         let wallet = Wallet.mock()
         let walletId = wallet.id
-        let transaction = try makeSwapTransaction(
-            fromAsset: fromAsset,
-            toAsset: toAsset,
-            state: state,
-            provider: provider,
-        )
+        let transaction = if type == .swap {
+            try makeSwapTransaction(
+                fromAsset: fromAsset,
+                toAsset: toAsset,
+                state: state,
+                provider: provider,
+            )
+        } else {
+            Transaction.mock(
+                transactionId: TransactionId(chain: fromAsset.chain, hash: "hash"),
+                type: type,
+                state: state,
+                assetId: fromAsset,
+            )
+        }
         try store.addTransactions(walletId: walletId, transactions: [transaction])
 
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: store,
-            balanceUpdater: BalanceUpdaterMock(),
+            balanceUpdater: balanceUpdater,
             stakeService: .mock(),
             earnService: .mock(),
             nftService: .mock(),
@@ -359,25 +392,12 @@ private extension TransactionStateServiceTests {
             toValue: "10000000000000000000",
             provider: provider?.rawValue,
         )))
-        return Transaction(
-            id: TransactionId(chain: fromAsset.chain, hash: hash),
-            assetId: fromAsset,
-            from: "sender",
-            to: "recipient",
-            contract: nil,
+        return Transaction.mock(
+            transactionId: TransactionId(chain: fromAsset.chain, hash: hash),
             type: .swap,
             state: state,
-            blockNumber: "7",
-            sequence: "1",
-            fee: "1",
-            feeAssetId: fromAsset,
-            value: "100000000",
-            memo: nil,
-            direction: .outgoing,
-            utxoInputs: [],
-            utxoOutputs: [],
+            assetId: fromAsset,
             metadata: metadata,
-            createdAt: Date(timeIntervalSince1970: 1234),
         )
     }
 

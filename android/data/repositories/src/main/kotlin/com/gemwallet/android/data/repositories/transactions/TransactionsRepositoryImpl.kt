@@ -224,6 +224,7 @@ class TransactionsRepositoryImpl(
                 }
 
                 checkTransaction(currentTransaction)?.let { updatedTransaction ->
+                    val previousTransaction = currentTransaction
                     if (updatedTransaction.transaction.id != currentTransaction.transaction.id) {
                         coroutineContext[Job]?.let { runningJob ->
                             pollingTransactionJobs[updatedTransaction.transaction.id] = runningJob
@@ -234,6 +235,7 @@ class TransactionsRepositoryImpl(
                         currentTransaction = currentTransaction,
                         updatedTransaction = updatedTransaction,
                     ) ?: return@launch
+                    publishEnteringInTransit(previousTransaction, currentTransaction)
                 }
 
                 val hasTimedOut = !currentTransaction.transaction.state.isCompleted() &&
@@ -255,7 +257,7 @@ class TransactionsRepositoryImpl(
                     "transaction status pending: id=${currentTransaction.transaction.id.identifier}, state=${currentTransaction.transaction.state}, next check = ${pollingDelay}ms",
                 )
             }
-            currentTransaction.toDTO()?.let { changedTransactions.tryEmit(listOf(it)) }
+            publishChangedTransaction(currentTransaction)
         } finally {
             jobKeys.forEach { pollingTransactionJobs.remove(it) }
         }
@@ -366,8 +368,23 @@ class TransactionsRepositoryImpl(
         return updatedTransaction.copy(
             transaction = updatedTransaction.transaction.copy(
                 state = nextState,
-            )
+            ),
         )
+    }
+
+    internal fun publishEnteringInTransit(
+        previousTransaction: DbTransactionExtended,
+        currentTransaction: DbTransactionExtended,
+    ) {
+        if (previousTransaction.transaction.state == TransactionState.Pending &&
+            currentTransaction.transaction.state == TransactionState.InTransit
+        ) {
+            publishChangedTransaction(currentTransaction)
+        }
+    }
+
+    private fun publishChangedTransaction(transaction: DbTransactionExtended) {
+        transaction.toDTO()?.let { changedTransactions.tryEmit(listOf(it)) }
     }
 
     private fun updateExistingTransaction(

@@ -62,6 +62,29 @@ class TransactionsRepositoryImplTest {
     }
 
     @Test
+    fun publishEnteringInTransit_emitsChange() {
+        val current = mockTransaction(state = TransactionState.Pending)
+        val updated = current.copy(state = TransactionState.InTransit)
+
+        subject.publishEnteringInTransit(extended(current), extended(updated))
+
+        assertEquals(
+            listOf(TransactionState.InTransit),
+            subject.changedTransactions.value.map { it.transaction.state },
+        )
+    }
+
+    @Test
+    fun publishEnteringInTransit_ignoresOtherTransitions() {
+        val current = mockTransaction(state = TransactionState.Pending)
+        val updated = current.copy(state = TransactionState.Confirmed)
+
+        subject.publishEnteringInTransit(extended(current), extended(updated))
+
+        assertEquals(emptyList<TransactionState>(), subject.changedTransactions.value.map { it.transaction.state })
+    }
+
+    @Test
     fun storeTransactionUpdate_hashChangedAndRowRemoved_terminatesWithoutInsert() = runBlocking {
         every { transactionsDao.getTransactionState(any(), any()) } returns null
         every { transactionsDao.updateTransaction(any(), any(), any(), any(), any(), any()) } returns 0
@@ -95,7 +118,7 @@ class TransactionsRepositoryImplTest {
     )
 
     private fun assetProjection() = DbAssetProjection(
-        id = "asset",
+        id = "bitcoin",
         name = "Asset",
         symbol = "A",
         decimals = 8,
