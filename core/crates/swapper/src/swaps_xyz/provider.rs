@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_sui::{build_transfer_message_bytes, rpc::SuiClient};
 use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
 use primitives::{
     AssetId, Chain, TransactionSwapMetadata,
     contract_constants::EVM_ZERO_ADDRESS,
@@ -17,7 +18,7 @@ use super::{
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperProvider, SwapperQuoteData, amount_to_value, client_factory::create_sui_client, config::API_BASE_URL, fees::default_referral_fees,
+    SwapperProvider, SwapperQuoteData, client_factory::create_sui_client, config::API_BASE_URL, fees::default_referral_fees,
 };
 
 pub struct SwapsXyz<C>
@@ -96,16 +97,14 @@ where
 
     fn validate_amount(limits: &AmountLimits, value: &str, decimals: u32) -> Result<(), SwapperError> {
         let value = value.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
-        let minimum = amount_to_value(&limits.min_amount, decimals).ok_or_else(|| SwapperError::ComputeQuoteError("Invalid minimum amount".into()))?;
-        let minimum = minimum.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
+        let minimum = BigNumberFormatter::value_from_amount_biguint(&limits.min_amount, decimals).map_err(|_| SwapperError::ComputeQuoteError("Invalid minimum amount".into()))?;
         if value < minimum {
             return Err(SwapperError::InputAmountError {
                 min_amount: Some(minimum.to_string()),
             });
         }
         if let Some(maximum) = limits.max_amount.as_deref() {
-            let maximum = amount_to_value(maximum, decimals).ok_or_else(|| SwapperError::ComputeQuoteError("Invalid maximum amount".into()))?;
-            let maximum = maximum.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
+            let maximum = BigNumberFormatter::value_from_amount_biguint(maximum, decimals).map_err(|_| SwapperError::ComputeQuoteError("Invalid maximum amount".into()))?;
             if value > maximum {
                 return Err(SwapperError::ComputeQuoteError("Input amount exceeds route maximum".into()));
             }
@@ -116,19 +115,18 @@ where
     fn validate_response(response: &ActionResponse, request: &QuoteRequest, source: SwapsXyzChain, destination: SwapsXyzChain) -> Result<(), SwapperError> {
         let fee = default_referral_fees().evm;
         let input = request.value.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
-        let expected_fee = input * BigUint::from(fee.bps) / BigUint::from(HUNDRED_PERCENT_IN_BPS);
-        let actual_fee = response.application_fee.amount.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
+        let expected_fee = &input * BigUint::from(fee.bps) / BigUint::from(HUNDRED_PERCENT_IN_BPS);
         let valid = response.vm_id == "alt-vm"
             && !response.tx.to.is_empty()
-            && response.tx.value == request.value
+            && response.tx.value == input
             && response.tx.chain_id == source.id
             && response.tx.chain_key == source.key
-            && response.amount_in.amount == request.value
+            && response.amount_in.amount == input
             && response.amount_in.native_chain() == Some(source)
             && response.amount_out.native_chain() == Some(destination)
-            && response.amount_out.amount.parse::<BigUint>().is_ok_and(|amount| amount > BigUint::from(0_u8))
+            && response.amount_out.amount > BigUint::from(0_u8)
             && response.application_fee.native_chain() == Some(source)
-            && actual_fee == expected_fee;
+            && response.application_fee.amount == expected_fee;
         if valid { Ok(()) } else { Err(SwapperError::InvalidRoute) }
     }
 
@@ -177,9 +175,9 @@ where
             None
         };
         Ok(Quote {
-            from_value: response.amount_in.amount.clone(),
+            from_value: response.amount_in.amount.to_string(),
             min_from_value: None,
-            to_value: response.amount_out.amount.clone(),
+            to_value: response.amount_out.amount.to_string(),
             data: ProviderData {
                 provider: self.provider.clone(),
                 routes: vec![Route {
@@ -200,7 +198,7 @@ where
         let source = SwapsXyzChain::from_chain(quote.request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(quote.request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         Self::validate_response(&response, &quote.request, source, destination)?;
-        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value, response.tx.to_extra.filter(|memo| !memo.is_empty()));
+        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value.to_string(), response.tx.to_extra.filter(|memo| !memo.is_empty()));
         if source.chain != Chain::Sui {
             return Ok(data);
         }
@@ -225,9 +223,9 @@ where
         let metadata = response.action_response.and_then(|status| {
             Some(TransactionSwapMetadata {
                 from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
-                from_value: status.amount_in.amount,
+                from_value: status.amount_in.amount.to_string(),
                 to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
-                to_value: status.amount_out.amount,
+                to_value: status.amount_out.amount.to_string(),
                 provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
             })
         });
@@ -294,6 +292,17 @@ mod tests {
         );
         assert_eq!(SwapsXyz::<MockClient>::validate_amount(&limits, "105000000", 7), Ok(()));
 
+        let whole_token_limit = AmountLimits {
+            min_amount: "1".into(),
+            max_amount: None,
+        };
+        assert_eq!(
+            SwapsXyz::<MockClient>::validate_amount(&whole_token_limit, "9999999", 7),
+            Err(SwapperError::InputAmountError {
+                min_amount: Some("10000000".into())
+            })
+        );
+
         let invalid_maximum = AmountLimits {
             min_amount: "1".into(),
             max_amount: Some("invalid".into()),
@@ -313,7 +322,7 @@ mod tests {
         assert_eq!(SwapsXyz::<MockClient>::validate_response(&response, &request, source, destination), Ok(()));
 
         let mut wrong_fee = response;
-        wrong_fee.application_fee.amount = "0".into();
+        wrong_fee.application_fee.amount = BigUint::from(0_u8);
         assert_eq!(
             SwapsXyz::<MockClient>::validate_response(&wrong_fee, &request, source, destination),
             Err(SwapperError::InvalidRoute)
@@ -334,9 +343,9 @@ mod tests {
         let request = request();
         let response = response();
         let quote = Quote {
-            from_value: response.amount_in.amount.clone(),
+            from_value: response.amount_in.amount.to_string(),
             min_from_value: None,
-            to_value: response.amount_out.amount.clone(),
+            to_value: response.amount_out.amount.to_string(),
             data: ProviderData {
                 provider: provider.provider.clone(),
                 slippage_bps: request.options.slippage.bps,

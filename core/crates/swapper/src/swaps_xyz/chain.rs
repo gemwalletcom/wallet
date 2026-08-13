@@ -30,6 +30,16 @@ impl SwapsXyzChain {
             key: "ton",
         },
         Self {
+            chain: Chain::Zcash,
+            id: 999_000_322,
+            key: "zec",
+        },
+        Self {
+            chain: Chain::Near,
+            id: 397,
+            key: "near",
+        },
+        Self {
             chain: Chain::Cosmos,
             id: 999_000_433,
             key: "atom",
@@ -53,11 +63,6 @@ impl SwapsXyzChain {
             chain: Chain::Xrp,
             id: 999_000_346,
             key: "xrp",
-        },
-        Self {
-            chain: Chain::Tron,
-            id: 728_126_428,
-            key: "trx",
         },
     ];
 

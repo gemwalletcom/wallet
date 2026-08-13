@@ -1,5 +1,7 @@
+use num_bigint::BigUint;
 use primitives::contract_constants::EVM_ZERO_ADDRESS;
 use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
 use super::chain::SwapsXyzChain;
 
@@ -44,7 +46,8 @@ pub struct ActionResponse {
 pub struct AltVmTransaction {
     pub to: String,
     pub to_extra: Option<String>,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str", serialize_with = "serialize_biguint")]
+    pub value: BigUint,
     pub chain_id: u64,
     pub chain_key: String,
 }
@@ -52,7 +55,8 @@ pub struct AltVmTransaction {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenAmount {
-    pub amount: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str", serialize_with = "serialize_biguint")]
+    pub amount: BigUint,
     pub chain_id: u64,
     pub address: String,
     pub decimals: u32,
