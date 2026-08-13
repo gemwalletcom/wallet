@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.application.recipient.coordinators.GetWallets
 import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.cases.contacts.ContactRecipient
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.name.ResolveName
@@ -16,6 +15,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
+import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
@@ -67,15 +67,17 @@ class RecipientViewModel @Inject constructor(
     private val getContacts: GetContacts,
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
-    private val validateAddressOperator: ValidateAddressOperator,
     private val resolveName: ResolveName,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val validateAddress: (address: String, chain: Chain) -> Boolean =
+        { address, chain -> chain.isValidAddress(address) }
+
     private val addressInput = AddressInputModel(
         resolveName = resolveName,
         scope = viewModelScope,
-        validateAddress = { address, chain -> validateAddressOperator(address, chain).getOrNull() == true },
+        validateAddress = validateAddress,
     )
 
     val address: StateFlow<String> = addressInput.text
@@ -184,7 +186,7 @@ class RecipientViewModel @Inject constructor(
     ) {
         val asset = type.assetInfo.asset
         destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
-            if (!destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddressOperator)) {
+            if (!destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddress)) {
                 if (!resolveName.canResolveName(destination.address)) {
                     addressInput.markInvalid()
                 }

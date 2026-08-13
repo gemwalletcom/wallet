@@ -8,11 +8,9 @@ import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
-import com.gemwallet.android.blockchain.operators.GemValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
-import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemAddAccountsOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemCreateAccountOperator
@@ -43,10 +41,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object InteractsModule {
-
-    @Singleton
-    @Provides
-    fun provideValidateAddressInteract(): ValidateAddressOperator = GemValidateAddressOperator()
 
     @Singleton
     @Provides
@@ -131,7 +125,6 @@ object InteractsModule {
         sessionRepository: SessionRepository,
         storePhraseOperator: StorePhraseOperator,
         phraseValidate: ValidatePhraseOperator,
-        addressValidate: ValidateAddressOperator,
         passwordStore: PasswordStore,
         syncDevice: SyncDevice,
         walletImportSync: SyncWalletImport,
@@ -141,7 +134,6 @@ object InteractsModule {
         sessionRepository = sessionRepository,
         storePhraseOperator = storePhraseOperator,
         phraseValidate = phraseValidate,
-        addressValidate = addressValidate,
         passwordStore = passwordStore,
         syncDevice = syncDevice,
         walletImportSync = walletImportSync,

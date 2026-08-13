@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
-import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.ext.matchesRecipient
 import com.gemwallet.android.model.DestinationAddress
 import com.wallet.core.primitives.Chain
@@ -10,6 +9,6 @@ internal fun DestinationAddress.isValidRecipient(
     inputAddress: String,
     chain: Chain,
     nameRecord: NameRecord?,
-    validateAddress: ValidateAddressOperator,
-): Boolean = validateAddress(address, chain).getOrNull() == true &&
+    validateAddress: (address: String, chain: Chain) -> Boolean,
+): Boolean = validateAddress(address, chain) &&
     (nameRecord == null || nameRecord.matchesRecipient(inputAddress, address, chain))
