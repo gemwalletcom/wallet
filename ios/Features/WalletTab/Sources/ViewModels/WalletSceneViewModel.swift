@@ -214,12 +214,9 @@ public extension WalletSceneViewModel {
     func onScannerDismiss() {
         guard let code = scannedCode else { return }
         scannedCode = .none
-        onHandleScan(code)
-    }
 
-    func onHandleScan(_ result: String) {
         do {
-            switch try PaymentURLDecoder.decode(result) {
+            switch try PaymentURLDecoder.decode(code) {
             case let .request(payment): try present(payment)
             case .link: throw AnyError(Localized.Errors.notSupported)
             }

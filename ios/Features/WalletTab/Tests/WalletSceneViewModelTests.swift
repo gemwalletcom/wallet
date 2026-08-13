@@ -50,13 +50,15 @@ struct WalletSceneViewModelTests {
     }
 
     @Test
-    func onHandleScan() {
+    func onScan() {
         let model = WalletSceneViewModel.mock()
 
-        model.onHandleScan("https://pay.walletconnect.com/?pid=pay_123")
+        model.onScan("https://pay.walletconnect.com/?pid=pay_123")
+        model.onScannerDismiss()
         #expect(model.isPresentingToastMessage?.title == Localized.Errors.notSupported)
 
-        model.onHandleScan("WIFI:S:MyNet;T:WPA;P:secret;;")
+        model.onScan("WIFI:S:MyNet;T:WPA;P:secret;;")
+        model.onScannerDismiss()
         #expect(model.isPresentingToastMessage?.title == Localized.Errors.notSupported)
     }
 }
