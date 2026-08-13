@@ -3,7 +3,7 @@
 import Foundation
 
 public enum SelectAssetType: Identifiable, Hashable, Sendable {
-    case send
+    case send(RecipientData?)
     case receive(ReceiveAssetType)
     case buy
     case swap(SelectAssetSwapType)

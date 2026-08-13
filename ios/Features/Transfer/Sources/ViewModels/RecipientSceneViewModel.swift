@@ -223,7 +223,7 @@ extension RecipientSceneViewModel {
         case let .request(payment):
             try handle(payment: payment)
         case .link:
-            throw AnyError(Localized.Errors.notSupported)
+            throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
         }
     }
 

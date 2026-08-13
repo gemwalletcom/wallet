@@ -240,14 +240,13 @@ struct WalletNavigationStack: View {
                     switch sheet {
                     case .wallets:
                         WalletsNavigationStack()
-                    case let .selectAsset(type, chains, recipient):
+                    case let .selectAsset(type, chains):
                         SelectAssetSceneNavigationStack(
                             model: viewModelFactory.selectAssetScene(
                                 wallet: model.wallet,
                                 selectType: type,
                                 chains: chains,
                             ),
-                            recipient: recipient,
                         )
                     case let .infoSheet(type):
                         InfoSheetScene(type: type)

@@ -22,11 +22,8 @@ struct SelectAssetSceneNavigationStack: View {
     @State private var model: SelectAssetViewModel
     @State private var navigationPath = NavigationPath()
 
-    private let recipient: RecipientData?
-
-    init(model: SelectAssetViewModel, recipient: RecipientData? = .none) {
+    init(model: SelectAssetViewModel) {
         _model = State(wrappedValue: model)
-        self.recipient = recipient
     }
 
     var body: some View {
@@ -61,7 +58,7 @@ struct SelectAssetSceneNavigationStack: View {
             .navigationDestination(for: SelectAssetInput.self) { input in
                 Group {
                     switch input.type {
-                    case .send:
+                    case let .send(recipient):
                         RecipientNavigationView(
                             model: viewModelFactory.recipientScene(
                                 wallet: model.wallet,

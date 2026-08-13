@@ -13,11 +13,11 @@ import NFT
 import NFTService
 import Preferences
 import Primitives
-import Transfer
 import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import Transfer
 import WalletSessionService
 
 @Observable
@@ -214,24 +214,25 @@ public extension WalletSceneViewModel {
             case .link: throw AnyError(Localized.Errors.notSupported)
             }
         } catch {
-            isPresentingToastMessage = .error(error.localizedDescription)
+            isPresentingToastMessage = .error(Localized.Errors.notSupported)
         }
     }
 
     private func present(_ payment: PaymentRequest) throws {
-        switch paymentAsset(for: payment) {
+        switch PaymentAsset.from(payment, assets: assets) {
         case .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         case let .single(assetData):
             try present(payment, with: assetData)
         case let .choice(payable):
             isPresentingSheet = .selectAsset(
-                .send,
-                chains: payable.map(\.asset.chain),
-                recipient: RecipientData(
-                    recipient: Recipient(name: .none, address: payment.address, memo: payment.memo),
-                    amount: payment.amount,
+                .send(
+                    RecipientData(
+                        recipient: Recipient(name: .none, address: payment.address, memo: payment.memo),
+                        amount: payment.amount,
+                    ),
                 ),
+                chains: payable.map(\.asset.chain),
             )
         }
     }
@@ -249,15 +250,6 @@ public extension WalletSceneViewModel {
         }
     }
 
-    private func paymentAsset(for payment: PaymentRequest) -> PaymentAsset {
-        let payable = switch payment.assetId {
-        case let .some(assetId): assets.filter { $0.asset.id == assetId }
-        case .none: assets.filter { $0.asset.chain.isValidAddress(payment.address) }
-        }
-        guard let assetData = payable.first else { return .unsupported }
-        return payable.count == 1 ? .single(assetData) : .choice(payable)
-    }
-
     func onSelectAddCustomToken() {
         isPresentingSheet = .addAsset
     }
@@ -269,7 +261,7 @@ public extension WalletSceneViewModel {
     internal func onHeaderAction(type: HeaderButtonType) {
         switch type {
         case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
-        case .send: isPresentingSheet = .selectAsset(.send, chains: [])
+        case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
         case .sell, .swap, .more, .stake, .deposit, .withdraw: break
         }
