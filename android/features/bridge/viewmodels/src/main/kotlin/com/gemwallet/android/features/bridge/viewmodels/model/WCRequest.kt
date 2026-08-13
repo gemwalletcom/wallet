@@ -19,6 +19,7 @@ import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.gemstone.toGem
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.wallet.core.primitives.SimulationResult
+import com.wallet.core.primitives.SimulationWarning
 import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
@@ -53,7 +54,7 @@ sealed class WCRequest(
         val action: WalletConnectAction.SignMessage,
         val simulation: SimulationResult,
         private val explorerName: String?,
-    ) : WCRequest(sessionRequest, account, appMetadata) {
+    ) : WCRequest(sessionRequest, account, appMetadata), WalletConnectReviewModel {
 
         private val signer by lazy {
             runCatching {
@@ -67,25 +68,25 @@ sealed class WCRequest(
             }
         }
 
-        val plainMessage: String
+        override val message: String
             get() = signer.getOrNull()?.plainPreview() ?: action.data
 
-        val primaryPayloadFields: List<PayloadField> by lazy {
+        override val warnings: List<SimulationWarning>
+            get() = simulation.warnings
+
+        override val primaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.primary
                 ?.map { it.toPrimitives() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerName)
         }
 
-        val secondaryPayloadFields: List<PayloadField> by lazy {
+        override val secondaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.secondary
                 ?.map { it.toPrimitives() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerName)
         }
-
-        val hasPayload: Boolean
-            get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 
         suspend fun execute(
             signMessageOperator: GemSignMessageOperator,

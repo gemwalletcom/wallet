@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
+import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.PayloadField
@@ -336,11 +337,19 @@ sealed interface AuthSceneState {
 
     class Error(val message: String) : AuthSceneState
 
-    sealed interface Content : AuthSceneState {
+    sealed interface Content : AuthSceneState, WalletConnectReviewModel {
         val peer: SessionUI
         val availableWallets: List<Wallet>
         val selectedWallet: Wallet
         val approval: AuthApproval
+
+        override val icon: String get() = peer.icon
+        override val name: String get() = peer.name
+        override val uri: String get() = peer.uri
+        override val chain: Chain get() = approval.chain
+        override val primaryPayloadFields: List<PayloadField> get() = approval.primaryPayloadFields
+        override val secondaryPayloadFields: List<PayloadField> get() = approval.secondaryPayloadFields
+        override val message: String get() = approval.message
     }
 
     data class Request(
@@ -370,7 +379,6 @@ data class AuthApproval(
     val secondaryPayloadFields: List<PayloadField>,
 ) {
     val chain: Chain get() = account.chain
-    val hasPayload: Boolean get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 }
 
 private data class AuthAccount(
