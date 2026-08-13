@@ -41,7 +41,6 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingScanner = false
-    private var scannedCode: String?
     public var isPresentingSheet: WalletSheetType?
     public var isPresentingSearch = false
     public var isPresentingUrl: URL?
@@ -208,15 +207,8 @@ public extension WalletSceneViewModel {
     }
 
     func onScan(_ result: String) {
-        scannedCode = result
-    }
-
-    func onScannerDismiss() {
-        guard let code = scannedCode else { return }
-        scannedCode = .none
-
         do {
-            switch try PaymentURLDecoder.decode(code) {
+            switch try PaymentURLDecoder.decode(result) {
             case let .request(payment): try present(payment)
             case .link: throw AnyError(Localized.Errors.notSupported)
             }
