@@ -10,6 +10,16 @@
   - `just test-integration` or `just test-ui` for the iOS integration suite
 - Run the narrowest relevant target while iterating, then finish with the appropriate broader validation
 
+## New Test Targets
+
+A test target only runs if it is registered in all three places:
+
+1. `.testTarget` in the package's `Package.swift`
+2. The package is referenced in `Gem.xcodeproj` (Packages group)
+3. An entry in `GemTests/unit_frameworks.xctestplan`
+
+`swift test` inside the package and Xcode's package scheme bypass the test plan, so green there proves nothing about CI. xcodebuild silently ignores targets missing from the plan and plan entries pointing at deleted targets. After adding a test target, verify with `just test <TARGET>` from `ios/` and confirm the target's tests appear in the output.
+
 ## Test Structure
 
 - Keep test names short and descriptive, for example `showManageToken`

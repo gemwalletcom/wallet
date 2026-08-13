@@ -106,7 +106,6 @@
 		D83BDCB72E3E878A00E41807 /* PerpetualPositionNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB52E3E878A00E41807 /* PerpetualPositionNavigationStack.swift */; };
 		D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */; };
 		D83D3C252D6E62F4002959EA /* ScanService in Frameworks */ = {isa = PBXBuildFile; productRef = D83D3C242D6E62F4002959EA /* ScanService */; };
-		D84941902F2563E100FCCCCD /* unit_app.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = D849418F2F2563E100FCCCCD /* unit_app.xctestplan */; };
 		D852CAFD2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */; };
 		D852CB012C9CC315004121D3 /* PriceAlertsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */; };
 		D85AD29D2CD337BE0010DEF8 /* SwapService in Frameworks */ = {isa = PBXBuildFile; productRef = D85AD29C2CD337BE0010DEF8 /* SwapService */; };
@@ -227,6 +226,7 @@
 		83E041592D0AFCB80031D4BC /* RootSceneViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootSceneViewModel.swift; sourceTree = "<group>"; };
 		83FE37B22D2715BF0048D54C /* WalletConnector */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WalletConnector; sourceTree = "<group>"; };
 		B604C2E72F3F537800CBAFDC /* Contacts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Contacts; sourceTree = "<group>"; };
+		A1B2C3D42F400000000000A2 /* NativeProviderService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = NativeProviderService; sourceTree = "<group>"; };
 		B67B3EEE2EFD25A6007AFA9C /* EventPresenterService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = EventPresenterService; sourceTree = "<group>"; };
 		B67ED5462DDB5DCC009F74E6 /* NavigationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationHandler.swift; sourceTree = "<group>"; };
 		FADEC0DE000000000000B001 /* AddContactNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactNavigationView.swift; sourceTree = "<group>"; };
@@ -270,7 +270,6 @@
 		D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GemPriceWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D83BDCB52E3E878A00E41807 /* PerpetualPositionNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualPositionNavigationStack.swift; sourceTree = "<group>"; };
 		D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelFactory.swift; sourceTree = "<group>"; };
-		D849418F2F2563E100FCCCCD /* unit_app.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = unit_app.xctestplan; sourceTree = "<group>"; };
 		D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddAssetPriceAlertNavigationStack.swift; sourceTree = "<group>"; };
 		D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertsNavigationView.swift; sourceTree = "<group>"; };
 		D87316532E3AF1F000C11634 /* ChainServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ChainServices; sourceTree = "<group>"; };
@@ -645,7 +644,6 @@
 			children = (
 				D8D726BF2C716C5B00A6B559 /* Screenshots */,
 				C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */,
-				D849418F2F2563E100FCCCCD /* unit_app.xctestplan */,
 				D87316B72E3AF30300C11634 /* ui_tests.xctestplan */,
 				D8041FA12B193A2C002DC071 /* screenshots.xctestplan */,
 			);
@@ -683,6 +681,7 @@
 				D87316542E3AF1F000C11634 /* FeatureServices */,
 				D87316552E3AF1F000C11634 /* SystemServices */,
 				D87316B62E3AF2FA00C11634 /* Gemstone */,
+				A1B2C3D42F400000000000A2 /* NativeProviderService */,
 			);
 			path = Packages;
 			sourceTree = "<group>";
@@ -1109,7 +1108,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D84941902F2563E100FCCCCD /* unit_app.xctestplan in Resources */,
 				C34C7CF829FDE942009EEC21 /* unit_frameworks.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

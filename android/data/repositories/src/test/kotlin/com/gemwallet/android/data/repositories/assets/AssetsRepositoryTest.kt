@@ -31,7 +31,6 @@ import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetMarket
 import com.gemwallet.android.testkit.mockWalletId
-import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -88,8 +87,6 @@ class AssetsRepositoryTest {
         streamSubscriptionService = streamSubscriptionService,
         availabilityService = AssetsAvailabilityService(assetsDao),
         currencyRatesService = CurrencyRatesService(pricesDao),
-        searchService = AssetsSearchService(assetsDao, searchDao, assetListDao, sessionRepository),
-        recentAssetsService = RecentAssetsService(assetsDao, sessionRepository),
         updateBalances = updateBalances,
         scope = scope,
     )
@@ -153,7 +150,7 @@ class AssetsRepositoryTest {
         assertEquals("solana", priceSlot.captured.assetId)
         assertEquals(50.0, priceSlot.captured.value ?: 0.0, 0.0)
         assertEquals(100.0, priceSlot.captured.usdValue ?: 0.0, 0.0)
-        assertEquals("EUR", priceSlot.captured.currency)
+        assertEquals(Currency.EUR, priceSlot.captured.currency)
 
         assertEquals("solana", marketSlot.captured.assetId)
         assertEquals(500.0, marketSlot.captured.marketCap ?: 0.0, 0.0)
@@ -310,11 +307,9 @@ class AssetsRepositoryTest {
 
     @Test
     fun updateBuyAvailable_appliesAvailabilityDiffWithoutResettingAllRows() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-        coEvery { assetsDao.getSwapAvailableAssetIds(any()) } returns emptyList()
         coEvery { assetsDao.getBuyAvailableAssetIds() } returns listOf("bitcoin", "ethereum")
 
-        val subject = createSubject()
+        val subject = AssetsAvailabilityService(assetsDao)
         subject.updateBuyAvailable(listOf("ethereum", "solana"))
 
         coVerify { assetsDao.setBuyAvailable(listOf("bitcoin"), false) }
@@ -323,11 +318,9 @@ class AssetsRepositoryTest {
 
     @Test
     fun updateSellAvailable_appliesAvailabilityDiffWithoutResettingAllRows() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-        coEvery { assetsDao.getSwapAvailableAssetIds(any()) } returns emptyList()
         coEvery { assetsDao.getSellAvailableAssetIds() } returns listOf("bitcoin", "ethereum")
 
-        val subject = createSubject()
+        val subject = AssetsAvailabilityService(assetsDao)
         subject.updateSellAvailable(listOf("ethereum", "solana"))
 
         coVerify { assetsDao.setSellAvailable(listOf("bitcoin"), false) }
@@ -521,7 +514,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun swapSearch_includesEnabledHiddenAndUnlinkedAssets() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
         every { searchDao.hasAssetPriorities("") } returns flowOf(0)
 
         val wallet = mockWallet(
@@ -573,7 +565,7 @@ class AssetsRepositoryTest {
             )
         )
 
-        val subject = createSubject()
+        val subject = AssetsSearchService(assetsDao, searchDao, assetListDao, sessionRepository)
         val result = subject.swapSearch(
             wallet = wallet,
             query = "",
@@ -587,7 +579,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun swapSearch_usesPriorityDaoAndPreservesOrderWhenPrioritiesExist() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
         every { searchDao.hasAssetPriorities("usd") } returns flowOf(2)
 
         val wallet = mockWallet(
@@ -611,7 +602,7 @@ class AssetsRepositoryTest {
             )
         )
 
-        val subject = createSubject()
+        val subject = AssetsSearchService(assetsDao, searchDao, assetListDao, sessionRepository)
         val result = subject.swapSearch(
             wallet = wallet,
             query = "usd",

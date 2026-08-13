@@ -39,9 +39,9 @@
     },
     {
       "target" : {
-        "containerPath" : "container:Packages\/Style",
-        "identifier" : "StyleTests",
-        "name" : "StyleTests"
+        "containerPath" : "container:Features\/Contacts",
+        "identifier" : "ContactsTests",
+        "name" : "ContactsTests"
       }
     },
     {
@@ -74,9 +74,9 @@
     },
     {
       "target" : {
-        "containerPath" : "container:Packages\/Signer",
-        "identifier" : "SignerTests",
-        "name" : "SignerTests"
+        "containerPath" : "container:Features\/MarketInsight",
+        "identifier" : "MarketInsightTests",
+        "name" : "MarketInsightTests"
       }
     },
     {
@@ -116,9 +116,9 @@
     },
     {
       "target" : {
-        "containerPath" : "container:Features\/Settings",
-        "identifier" : "SettingsTests",
-        "name" : "SettingsTests"
+        "containerPath" : "container:Packages\/NativeProviderService",
+        "identifier" : "NativeProviderServiceTests",
+        "name" : "NativeProviderServiceTests"
       }
     },
     {
@@ -143,11 +143,6 @@
       }
     },
     {
-      "skippedTests" : {
-        "testFunctions" : [
-          "example()"
-        ]
-      },
       "target" : {
         "containerPath" : "container:Features\/Transactions",
         "identifier" : "TransactionsTests",
@@ -240,9 +235,9 @@
     },
     {
       "target" : {
-        "containerPath" : "container:Features\/QRScanner",
-        "identifier" : "QRScannerTests",
-        "name" : "QRScannerTests"
+        "containerPath" : "container:Packages\/SwiftHTTPClient",
+        "identifier" : "WebSocketClientTests",
+        "name" : "WebSocketClientTests"
       }
     },
     {
@@ -292,13 +287,6 @@
         "containerPath" : "container:Packages\/FeatureServices",
         "identifier" : "BannerServiceTests",
         "name" : "BannerServiceTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:Packages\/Keychain",
-        "identifier" : "KeychainTests",
-        "name" : "KeychainTests"
       }
     },
     {

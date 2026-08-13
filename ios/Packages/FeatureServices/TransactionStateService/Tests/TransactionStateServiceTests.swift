@@ -2,6 +2,7 @@
 
 import BalanceServiceTestKit
 import EarnService
+import EarnServiceTestKit
 import Foundation
 import GemAPITestKit
 import NFTServiceTestKit

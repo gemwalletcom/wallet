@@ -213,7 +213,7 @@ class FiatViewModelTest {
         try {
             runCurrent()
 
-            assertEquals("1 BTC", viewModel.assetInfoUIModel.value?.cryptoFormatted)
+            assertEquals("1 BTC", viewModel.assetInfoUIModel.value?.balance)
         } finally {
             viewModel.viewModelScope.cancel()
         }

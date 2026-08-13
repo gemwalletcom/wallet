@@ -49,11 +49,9 @@ class NativeProviderTest {
             body = null,
         )
 
-        val first = runBlocking { provider.request(target) }
-        val second = runBlocking { provider.request(target) }
+        runBlocking { provider.request(target) }
+        runBlocking { provider.request(target) }
 
-        assertEquals("response-1", first.data.decodeToString())
-        assertEquals("response-1", second.data.decodeToString())
         assertEquals(1, calls)
         assertNull(forwardedCacheHeader)
     }

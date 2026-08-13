@@ -38,7 +38,7 @@ class PricesRepositoryTest {
 
         coVerify(exactly = 1) { pricesDao.insert(capture(stored)) }
         assertEquals("solana", stored.captured.assetId)
-        assertEquals("EUR", stored.captured.currency)
+        assertEquals(Currency.EUR, stored.captured.currency)
         assertEquals(0.0, stored.captured.value ?: -1.0, 0.0)
         assertEquals(0.0, stored.captured.usdValue ?: -1.0, 0.0)
     }
