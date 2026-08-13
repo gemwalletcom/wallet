@@ -256,7 +256,7 @@ class WalletNavigatorTest {
         assertEquals(
             listOf(
                 WalletRootRoute,
-                SendSelectRoute,
+                SendSelectRoute(),
                 RecipientInputRoute(assetId, nftAssetId = null),
                 RecipientInputRoute(assetId, nftAssetId = "ethereum_0xcollection::1"),
             ),

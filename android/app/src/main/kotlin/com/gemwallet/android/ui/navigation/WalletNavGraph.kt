@@ -155,8 +155,8 @@ fun WalletNavGraph(
             swapSelect(navigator = navigator, onCancel = onCancel)
 
             recipientInput(
+                navigator = navigator,
                 cancelAction = onCancel,
-                recipientAction = navigator::openRecipient,
                 amountAction = navigator::openAmount,
                 confirmAction = navigator::openConfirm,
             )

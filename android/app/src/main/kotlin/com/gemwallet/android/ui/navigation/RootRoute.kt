@@ -82,6 +82,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
+import com.wallet.core.primitives.PaymentRequest
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
@@ -237,8 +238,8 @@ class WalletNavigator(
     fun openReceive() = push(ReceiveSelectRoute)
     fun openReceive(assetId: AssetId) = push(ReceiveRoute(assetId))
     fun openReceiveNftChains() = push(ReceiveNftChainsRoute)
-    fun openRecipient() = push(SendSelectRoute)
-    fun openRecipient(assetId: AssetId) = push(RecipientInputRoute(assetId, nftAssetId = null))
+    fun openRecipient(payment: PaymentRequest? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
+    fun openRecipient(assetId: AssetId, payment: PaymentRequest? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
     fun openNftRecipient(assetId: AssetId, nftAssetId: NFTAssetId) = push(RecipientInputRoute(assetId, nftAssetId.toIdentifier()))
     fun openAmount(params: AmountParams) {
         val pack = params.pack() ?: return
@@ -338,8 +339,8 @@ class WalletNavigator(
 
 internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
     return when (this) {
-        SendSelectRoute,
         SwapRoute -> true
+        is SendSelectRoute,
         is AmountRoute,
         is ConfirmRoute,
         is DelegationRoute,

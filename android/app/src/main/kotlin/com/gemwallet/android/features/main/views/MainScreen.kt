@@ -46,8 +46,10 @@ import com.gemwallet.android.features.assets.views.AssetsAction
 import com.gemwallet.android.features.assets.views.AssetsScreen
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
+import com.gemwallet.android.features.main.viewmodels.PaymentScanViewModel
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsSceneAction
+import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
@@ -61,8 +63,6 @@ import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.gemwallet.android.ui.navigation.routes.transactionsRoute
 import com.gemwallet.android.ui.theme.alpha10
 import kotlinx.coroutines.launch
-import uniffi.gemstone.UrlAction
-import uniffi.gemstone.urlAction
 
 @Composable
 fun MainScreen(
@@ -73,6 +73,8 @@ fun MainScreen(
 ) {
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
+    val paymentScanViewModel: PaymentScanViewModel = hiltViewModel()
+    val coroutineScope = rememberCoroutineScope()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
     val context = LocalContext.current
     var isPresentingScanner by remember { mutableStateOf(false) }
@@ -82,11 +84,13 @@ fun MainScreen(
         onDismissRequest = { isPresentingScanner = false },
         onResult = { scanned ->
             isPresentingScanner = false
-            when (runCatching { urlAction(scanned) }.getOrNull()) {
-                is UrlAction.Payment,
-                is UrlAction.Deeplink,
-                is UrlAction.WalletConnect,
-                null -> makeText(context, R.string.errors_not_supported, Toast.LENGTH_SHORT).show()
+            coroutineScope.launch {
+                when (val destination = paymentScanViewModel.onScan(scanned)) {
+                    PaymentDestination.Unsupported -> makeText(context, R.string.errors_not_supported, Toast.LENGTH_SHORT).show()
+                    is PaymentDestination.Confirm -> navigator.openConfirm(destination.params)
+                    is PaymentDestination.Recipient -> navigator.openRecipient(destination.assetId, destination.request)
+                    is PaymentDestination.SelectAsset -> navigator.openRecipient(destination.request, destination.chains)
+                }
             }
         },
     )
@@ -98,7 +102,6 @@ fun MainScreen(
     val activitiesListState = rememberLazyListState()
     val settingsScrollState = rememberScrollState()
     val tabStateHolder = rememberSaveableStateHolder()
-    val coroutineScope = rememberCoroutineScope()
     val scrollTabToTop: (String) -> Unit = { route ->
         coroutineScope.launch {
             when (route) {

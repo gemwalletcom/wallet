@@ -50,7 +50,7 @@ class AmountViewModel @Inject constructor(
     private val params: AmountParams = savedStateHandle.requireAmountParams()
     val provider: AmountDataProvider = factory.create(params, viewModelScope)
 
-    var amount by mutableStateOf("")
+    var amount by mutableStateOf(params.amount.orEmpty())
         private set
 
     val amountInputType = MutableStateFlow(AmountInputType.Crypto)
