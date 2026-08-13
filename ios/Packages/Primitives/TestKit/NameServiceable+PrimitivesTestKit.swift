@@ -9,14 +9,16 @@ public extension NameServiceable where Self == MockNameService {
     }
 }
 
-public struct MockNameService: NameServiceable {
+public actor MockNameService: NameServiceable {
     let nameRecord: NameRecord?
+    public private(set) var requests: [String] = []
 
     public init(nameRecord: NameRecord? = nil) {
         self.nameRecord = nameRecord
     }
 
-    public func getName(name _: String, chain _: String) async throws -> NameRecord? {
-        nameRecord ?? NameRecord.mock()
+    public func getName(name: String, chain _: String) async throws -> NameRecord? {
+        requests.append(name)
+        return nameRecord ?? NameRecord.mock()
     }
 }
