@@ -3,11 +3,11 @@ package com.gemwallet.android.features.settings.contacts.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.cases.contacts.AddContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact
 import com.gemwallet.android.cases.name.ResolveName
+import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
@@ -35,7 +35,6 @@ class ManageContactViewModel @Inject constructor(
     private val getContacts: GetContacts,
     private val addContactCase: AddContact,
     private val updateContactCase: UpdateContact,
-    private val validateAddress: ValidateAddressOperator,
     resolveName: ResolveName,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -55,7 +54,7 @@ class ManageContactViewModel @Inject constructor(
     private val addressInput = AddressInputModel(
         resolveName = resolveName,
         scope = viewModelScope,
-        validateAddress = { address, chain -> validateAddress(address, chain).getOrNull() == true },
+        validateAddress = { address, chain -> chain.isValidAddress(address) },
     )
 
     private val state = MutableStateFlow(ManageContactState(isEdit = mode is Mode.Edit))

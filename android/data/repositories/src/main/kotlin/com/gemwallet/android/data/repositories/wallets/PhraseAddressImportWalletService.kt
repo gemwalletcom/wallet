@@ -5,7 +5,6 @@ import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletIm
 import com.gemwallet.android.blockchain.operators.InvalidPhrase
 import com.gemwallet.android.blockchain.operators.InvalidWords
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
-import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportError
@@ -13,6 +12,7 @@ import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.words
 import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ImportType
@@ -27,7 +27,6 @@ class PhraseAddressImportWalletService(
     private val sessionRepository: SessionRepository,
     private val storePhraseOperator: StorePhraseOperator,
     private val phraseValidate: ValidatePhraseOperator,
-    private val addressValidate: ValidateAddressOperator,
     private val passwordStore: PasswordStore,
     private val syncDevice: SyncDevice,
     private val walletImportSync: SyncWalletImport,
@@ -91,7 +90,7 @@ class PhraseAddressImportWalletService(
     }
 
     private suspend fun handleAddress(chain: Chain, walletName: String, data: String): Wallet {
-        if (addressValidate(data, chain).getOrNull() != true) {
+        if (!chain.isValidAddress(data)) {
             throw ImportError.InvalidAddress
         }
         return try {

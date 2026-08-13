@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
-import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockNameRecord
 import com.wallet.core.primitives.Chain
@@ -49,7 +48,5 @@ class RecipientValidationTest {
         )
     }
 
-    private fun addressValidator(result: Boolean) = object : ValidateAddressOperator {
-        override fun invoke(address: String, chain: Chain): Result<Boolean> = Result.success(result)
-    }
+    private fun addressValidator(result: Boolean): (String, Chain) -> Boolean = { _, _ -> result }
 }
