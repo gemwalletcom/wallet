@@ -39,6 +39,7 @@ let package = Package(
             dependencies: [
                 "Blockchain",
                 "Primitives",
+                "NativeProviderService",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "TestKit",

@@ -45,11 +45,6 @@ android {
             excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
         }
     }
-    testOptions {
-        unitTests.all {
-            it.systemProperty("jna.library.path", rootProject.projectDir.resolve("../core/target/debug").absolutePath)
-        }
-    }
 }
 
 dependencies {
@@ -66,7 +61,6 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(testFixtures(project(":gemcore")))
-    testImplementation("net.java.dev.jna:jna:5.18.1")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

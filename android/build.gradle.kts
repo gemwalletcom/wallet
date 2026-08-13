@@ -47,6 +47,14 @@ subprojects {
     configurations.configureEach {
         resolutionStrategy.activateDependencyLocking()
     }
+    plugins.withId("com.android.library") {
+        extensions.configure(com.android.build.api.dsl.LibraryExtension::class.java) {
+            testOptions.unitTests.all {
+                it.systemProperty("jna.library.path", File(rootDir, "../core/target/debug").absolutePath)
+            }
+        }
+        dependencies.add("testImplementation", "net.java.dev.jna:jna:5.18.1")
+    }
 }
 
 tasks.register("clean", Delete::class) {

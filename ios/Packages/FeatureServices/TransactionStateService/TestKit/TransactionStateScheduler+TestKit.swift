@@ -3,12 +3,12 @@
 import BalanceService
 import BalanceServiceTestKit
 import Blockchain
+import BlockchainTestKit
 import EarnService
+import EarnServiceTestKit
 import Foundation
-import NativeProviderService
 import NFTService
 import NFTServiceTestKit
-import Primitives
 import StakeService
 import StakeServiceTestKit
 import Store
@@ -18,9 +18,9 @@ import TransactionStateService
 public extension TransactionStateScheduler {
     static func mock(
         transactionStore: TransactionStore = .mock(),
-        gatewayService: GatewayService = GatewayService(provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor())),
+        gatewayService: GatewayService = .mock(),
         stakeService: StakeService = .mock(),
-        earnService: EarnService = .mock(),
+        earnService: any EarnPositionsUpdatable = .mock(),
         nftService: NFTService = .mock(),
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
@@ -39,14 +39,5 @@ public extension TransactionStateScheduler {
             transactionStore: transactionStore,
             service: service,
         )
-    }
-}
-
-public extension EarnService {
-    static func mock(
-        store: StakeStore = .mock(),
-    ) -> EarnService {
-        let provider = NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor())
-        return EarnService(store: store, gatewayService: GatewayService(provider: provider))
     }
 }

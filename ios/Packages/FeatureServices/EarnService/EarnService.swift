@@ -8,7 +8,11 @@ public protocol EarnDataProvidable: Sendable {
     func getEarnData(assetId: AssetId, address: String, value: String, earnType: EarnType) async throws -> ContractCallData
 }
 
-public struct EarnService: Sendable {
+public protocol EarnPositionsUpdatable: Sendable {
+    func update(walletId: WalletId, assetId: AssetId, address: String) async throws
+}
+
+public struct EarnService: Sendable, EarnPositionsUpdatable {
     private let store: StakeStore
     private let gatewayService: GatewayService
 

@@ -28,9 +28,6 @@ clean:
 build:
     @./gradlew assembleGoogleDebug
 
-ci-test:
-    @./gradlew assembleGoogleDebug testGoogleDebugUnitTest
-
 run: build
     @just _run-adb emulator
 
@@ -84,11 +81,14 @@ _run-adb TARGET:
 build-test:
     @./gradlew assembleGoogleDebugAndroidTest
 
-test:
-    @./gradlew testGoogleDebugUnitTest
+test: build-gemstone-host
+    @./gradlew testGoogleDebugUnitTest testDebugUnitTest
+
+build-gemstone-host:
+    @cd ../core && cargo build --package gemstone
 
 test-integration:
-    @./gradlew connectedGoogleDebugAndroidTest
+    @./gradlew connectedGoogleDebugAndroidTest connectedDebugAndroidTest
 
 lint:
     @./gradlew lint -x :gemstone:lintDebug

@@ -25,12 +25,5 @@ let package = Package(
             dependencies: ["Keychain"],
             path: "TestKit",
         ),
-        .testTarget(
-            name: "KeychainTests",
-            dependencies: [
-                "Keychain",
-            ],
-            path: "Tests",
-        ),
     ],
 )

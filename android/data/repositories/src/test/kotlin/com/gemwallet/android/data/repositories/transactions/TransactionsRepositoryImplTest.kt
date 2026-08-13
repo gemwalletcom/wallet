@@ -37,7 +37,7 @@ class TransactionsRepositoryImplTest {
 
     @Test
     fun storeTransactionUpdate_rowRemoved_terminatesWithoutInsert() = runBlocking {
-        every { transactionsDao.updateTransaction(any(), any(), any(), any(), any(), any()) } returns 0
+        every { transactionsDao.updateTransaction(any(), any(), any(), any(), any(), any(), any()) } returns 0
 
         val result = subject.storeTransactionUpdate(
             currentTransaction = extended(mockTransaction(state = TransactionState.Pending)),
@@ -50,7 +50,7 @@ class TransactionsRepositoryImplTest {
 
     @Test
     fun storeTransactionUpdate_rowPresent_storesUpdate() = runBlocking {
-        every { transactionsDao.updateTransaction(any(), any(), any(), any(), any(), any()) } returns 1
+        every { transactionsDao.updateTransaction(any(), any(), any(), any(), any(), any(), any()) } returns 1
 
         val result = subject.storeTransactionUpdate(
             currentTransaction = extended(mockTransaction(state = TransactionState.Pending)),
@@ -64,7 +64,7 @@ class TransactionsRepositoryImplTest {
     @Test
     fun storeTransactionUpdate_hashChangedAndRowRemoved_terminatesWithoutInsert() = runBlocking {
         every { transactionsDao.getTransactionState(any(), any()) } returns null
-        every { transactionsDao.updateTransaction(any(), any(), any(), any(), any(), any()) } returns 0
+        every { transactionsDao.updateTransaction(any(), any(), any(), any(), any(), any(), any()) } returns 0
         val current = mockTransaction(state = TransactionState.Pending)
         val updated = current.copy(
             id = mockTransactionId(hash = "replaced-tx-id"),

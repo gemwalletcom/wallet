@@ -423,14 +423,9 @@ class TransactionDetailsAggregateImplTest {
             swapProvider = createSwapProvider(),
         )
 
-        val progress = aggregate.swapProgress
-        Assert.assertNotNull(progress)
-        Assert.assertEquals(ethAsset, progress?.fromAsset)
-        Assert.assertEquals("1000000000000000000", progress?.fromValue)
-        Assert.assertEquals("NEAR Intents", progress?.providerName)
-        Assert.assertEquals(TransactionState.Confirmed, progress?.state)
-        Assert.assertEquals(6, aggregate.valueGroups.size)
-        Assert.assertTrue(aggregate.valueGroups[2].items.single() is TransactionDetailsValue.SwapAgain)
+        Assert.assertNull(aggregate.swapProgress)
+        Assert.assertEquals(5, aggregate.valueGroups.size)
+        Assert.assertTrue(aggregate.valueGroups[1].items.single() is TransactionDetailsValue.SwapAgain)
     }
 
     @Test

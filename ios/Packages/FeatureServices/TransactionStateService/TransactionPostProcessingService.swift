@@ -12,14 +12,14 @@ public struct TransactionPostProcessingService: Sendable {
     private let transactionStore: TransactionStore
     private let balanceUpdater: any BalanceUpdater
     private let stakeService: StakeService
-    private let earnService: EarnService
+    private let earnService: any EarnPositionsUpdatable
     private let nftService: NFTService
 
     public init(
         transactionStore: TransactionStore,
         balanceUpdater: any BalanceUpdater,
         stakeService: StakeService,
-        earnService: EarnService,
+        earnService: any EarnPositionsUpdatable,
         nftService: NFTService,
     ) {
         self.transactionStore = transactionStore
