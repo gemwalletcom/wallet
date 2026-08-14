@@ -15,6 +15,7 @@ import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.data.repositories.config.UserConfig
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,7 @@ class AssetsViewModelTest {
         )
     )
 
+    private val userConfig = mockk<UserConfig>(relaxed = true)
     private val syncAssets = mockk<SyncAssets>(relaxed = true)
     private val hideAsset = mockk<HideAsset>(relaxed = true)
     private val toggleAssetPin = mockk<ToggleAssetPin>(relaxed = true)
@@ -114,6 +116,7 @@ class AssetsViewModelTest {
         getHideBalancesState = getHideBalancesState,
         getShowWelcomeBanner = getShowWelcomeBanner,
         getSession = getSession,
+        userConfig = userConfig,
     )
 
     private fun assetAggregate(
