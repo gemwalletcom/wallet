@@ -1,7 +1,9 @@
 package com.gemwallet.android.features.perpetual.views.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +27,7 @@ fun MarketHeadActions(
 ) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
     Row(
+        modifier = Modifier.width(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
         verticalAlignment = Alignment.CenterVertically,
     ) {
