@@ -18,7 +18,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 
-    public var wallet: Wallet
+    public let wallet: Wallet
 
     public init(
         nftService: NFTService,

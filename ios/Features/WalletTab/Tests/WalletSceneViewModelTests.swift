@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BannerServiceTestKit
+import Observation
 import Primitives
 import PrimitivesTestKit
 @testable import Store
+import StoreTestKit
 import Testing
 @testable import WalletTab
 import WalletTabTestKit
@@ -23,28 +25,30 @@ struct WalletSceneViewModelTests {
     }
 
     @Test
-    func onChangeWalletUpdatesImageUrl() {
-        let wallet = Wallet.mock(id: .multicoin(address: "0x1"), imageUrl: nil)
+    func renameNotifiesWalletBar() async throws {
+        let wallet = Wallet.mock(id: .multicoin(address: "0x1"), name: "First")
+        let db = DB.mock()
+        let store = WalletStore.mock(db: db)
+        try store.addWallet(wallet)
+
         let model = WalletSceneViewModel.mock(wallet: wallet)
+        model.walletQuery.bind(dbQueue: db.dbQueue)
 
-        #expect(model.wallet.imageUrl == nil)
+        #expect(model.walletBarModel.name == "First")
 
-        let updatedWallet = Wallet.mock(id: .multicoin(address: "0x1"), imageUrl: "avatar.png")
-        model.onChangeWallet(wallet, updatedWallet)
+        await confirmation(expectedCount: 1...) { changed in
+            withObservationTracking {
+                _ = model.wallet
+            } onChange: {
+                changed()
+            }
 
-        #expect(model.wallet.imageUrl == "avatar.png")
-    }
+            try? store.renameWallet(wallet.id, name: "Renamed")
+            for _ in 0 ..< 100 where model.wallet.name != "Renamed" {
+                try? await Task.sleep(for: .milliseconds(10))
+            }
+        }
 
-    @Test
-    func onChangeWalletSwitchesToDifferentWallet() {
-        let wallet = Wallet.mock(id: .multicoin(address: "0x1"), name: "Wallet 1")
-        let model = WalletSceneViewModel.mock(wallet: wallet)
-
-        #expect(model.wallet.id == .multicoin(address: "0x1"))
-
-        let newWallet = Wallet.mock(id: .multicoin(address: "0x2"), name: "Wallet 2")
-        model.onChangeWallet(wallet, newWallet)
-
-        #expect(model.wallet.id == .multicoin(address: "0x2"))
+        #expect(model.walletBarModel.name == "Renamed")
     }
 }

@@ -10,23 +10,6 @@ import WalletSessionServiceTestKit
 
 struct WalletSessionServiceTests {
     @Test
-    func setCurrentReturnsWalletId() throws {
-        let wallet = Wallet.mock(index: 1)
-        let service = try WalletSessionService.mock(wallet: wallet)
-
-        #expect(service.setCurrent(index: 1) == wallet.id)
-        #expect(service.currentWalletId == wallet.id)
-    }
-
-    @Test
-    func setCurrentReturnsNil() throws {
-        let service = try WalletSessionService.mock(wallet: .mock(index: 1))
-
-        #expect(service.setCurrent(index: 999) == .none)
-        #expect(service.currentWalletId == .none)
-    }
-
-    @Test
     func currentWalletResolvesSelectedWalletAmongMany() throws {
         let store = WalletStore.mock(db: .mockWithChains([.bitcoin, .ethereum]))
         let first = Wallet.mock(

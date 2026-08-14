@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import Preferences
 import Primitives
 import Store
 import Transactions
@@ -10,7 +9,6 @@ import Transactions
 @Observable
 @MainActor
 final class MainTabViewModel {
-    var wallet: Wallet
     let transactionsQuery: ObservableQuery<TransactionsCountRequest>
 
     var transactions: Int {
@@ -20,21 +18,10 @@ final class MainTabViewModel {
     var isPresentingToastMessage: ToastMessage?
 
     init(wallet: Wallet) {
-        self.wallet = wallet
         transactionsQuery = ObservableQuery(
             TransactionsCountRequest(walletId: wallet.id, type: .pending, filters: TransactionsRequestFilter.activityDefaults),
             initialValue: 0,
         )
-    }
-
-    var walletId: WalletId {
-        wallet.id
-    }
-
-    func onChangeWallet(_ _: Wallet?, _ newWallet: Wallet?) {
-        guard let newWallet else { return }
-        wallet = newWallet
-        transactionsQuery.request.walletId = newWallet.id
     }
 
     var isMarketEnabled: Bool {

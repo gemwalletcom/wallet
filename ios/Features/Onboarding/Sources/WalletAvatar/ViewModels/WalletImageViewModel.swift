@@ -30,7 +30,7 @@ public final class WalletImageViewModel: Sendable {
     public let walletQuery: ObservableQuery<WalletRequest>
     public let nftQuery: ObservableQuery<NFTRequest>
 
-    public var dbWallet: Wallet? {
+    public var dbWallet: Wallet {
         walletQuery.value
     }
 
@@ -65,8 +65,7 @@ public final class WalletImageViewModel: Sendable {
     }
 
     var hasAvatar: Bool {
-        guard let dbWallet else { return false }
-        return WalletViewModel(wallet: dbWallet).hasAvatar
+        WalletViewModel(wallet: dbWallet).hasAvatar
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
