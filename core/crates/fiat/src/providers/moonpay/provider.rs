@@ -1,5 +1,6 @@
 use crate::{
     FiatProvider, FiatWebhookRequest,
+    error::FiatQuoteError,
     model::{FiatMapping, FiatProviderAsset},
     provider::generate_quote_id,
 };
@@ -10,8 +11,19 @@ use streamer::FiatWebhook;
 use super::{
     client::MoonPayClient,
     mapper::{map_order, map_webhook_data},
+    models::MoonPayBuyQuote,
 };
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData};
+
+impl MoonPayClient {
+    fn map_buy_quote_response(request_amount: f64, quote: MoonPayBuyQuote) -> Result<FiatQuoteResponse, FiatQuoteError> {
+        if quote.total_amount > request_amount {
+            return Err(FiatQuoteError::MinimumAmount(quote.total_amount));
+        }
+
+        Ok(FiatQuoteResponse::new(generate_quote_id(), request_amount, quote.quote_currency_amount))
+    }
+}
 
 #[async_trait]
 impl FiatProvider for MoonPayClient {
@@ -48,7 +60,7 @@ impl FiatProvider for MoonPayClient {
             .get_buy_quote(request_map.asset_symbol.symbol.to_lowercase(), request.currency.to_lowercase(), request.amount)
             .await?;
 
-        Ok(FiatQuoteResponse::new(generate_quote_id(), request.amount, quote.quote_currency_amount))
+        Ok(Self::map_buy_quote_response(request.amount, quote)?)
     }
 
     async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
@@ -142,7 +154,30 @@ mod fiat_integration_tests {
 
 #[cfg(test)]
 mod tests {
+    use super::MoonPayBuyQuote;
+    use crate::providers::moonpay::models::Currency;
     use crate::{FiatProvider, FiatWebhookRequest, providers::moonpay::client::MoonPayClient};
+
+    #[test]
+    fn test_map_buy_quote_response_rejects_provider_minimum_adjustment() {
+        let quote = MoonPayBuyQuote {
+            quote_currency_amount: 56.3,
+            quote_currency_code: "trx".to_string(),
+            quote_currency: Currency {
+                decimals: 6,
+                not_allowed_countries: vec![],
+                not_allowed_us_states: vec![],
+            },
+            total_amount: 20.0,
+        };
+
+        let error = MoonPayClient::map_buy_quote_response(10.0, quote.clone()).unwrap_err();
+        assert_eq!(error.to_string(), "Minimum Amount is 20");
+
+        let response = MoonPayClient::map_buy_quote_response(20.0, quote).unwrap();
+        assert_eq!(response.fiat_amount, 20.0);
+        assert_eq!(response.crypto_amount, 56.3);
+    }
 
     #[tokio::test]
     async fn test_process_webhook_rejects_missing_signature() {
