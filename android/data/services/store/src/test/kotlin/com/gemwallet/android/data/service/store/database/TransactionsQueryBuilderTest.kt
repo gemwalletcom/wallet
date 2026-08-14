@@ -7,6 +7,7 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -114,6 +115,20 @@ class TransactionsQueryBuilderTest {
         assertEquals(Chain.Ethereum.string, query.args[baseArgCount])
         assertEquals("Transfer", query.args[baseArgCount + 1])
         assertEquals(15, query.args[baseArgCount + 2])
+    }
+
+    @Test
+    fun countSql_sharesFilterClausesWithExtendedSql() {
+        val filters = listOf(
+            TransactionsRequestFilter.AssetRankGreaterThan(15),
+            TransactionsRequestFilter.States(listOf(TransactionState.Pending, TransactionState.InTransit)),
+        )
+        val query = buildTransactionsCountSql(walletId, filters)
+        assertTrue(query.sql.trimStart().startsWith("SELECT COUNT(DISTINCT tx.id)"))
+        assertTrue(query.sql.contains("AND asset.rank > ?"))
+        assertTrue(query.sql.contains("AND tx.state IN (?,?)"))
+        assertFalse(query.sql.contains("ORDER BY"))
+        assertEquals(listOf<Any>(walletId.id, 15, "Pending", "InTransit"), query.args)
     }
 
     @Test

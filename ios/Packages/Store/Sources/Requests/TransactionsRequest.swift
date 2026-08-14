@@ -30,12 +30,7 @@ public struct TransactionsRequest: DatabaseQueryable {
         filters: [TransactionsRequestFilter],
         walletId: WalletId,
     ) throws -> [TransactionExtended] {
-        let states = states(type: type)
-        let types = types(type: type)
-        var request = TransactionRecord
-            .filter(TransactionRecord.Columns.walletId == walletId.id)
-            .filter(states.contains(TransactionRecord.Columns.state))
-            .filter(types.contains(TransactionRecord.Columns.type))
+        try query(walletId: walletId, type: type, filters: filters)
             .including(required: TransactionRecord.asset)
             .including(required: TransactionRecord.feeAsset)
             .including(optional: TransactionRecord.price)
@@ -45,6 +40,22 @@ public struct TransactionsRequest: DatabaseQueryable {
             .including(optional: TransactionRecord.fromAddress)
             .including(optional: TransactionRecord.toAddress)
             .order(TransactionRecord.Columns.date.desc)
+            .asRequest(of: TransactionInfo.self)
+            .fetchAll(db)
+            .compactMap { $0.mapToTransactionExtended() }
+    }
+
+    static func query(
+        walletId: WalletId,
+        type: TransactionsRequestType,
+        filters: [TransactionsRequestFilter],
+    ) -> QueryInterfaceRequest<TransactionRecord> {
+        let states = states(type: type)
+        let types = types(type: type)
+        var request = TransactionRecord
+            .filter(TransactionRecord.Columns.walletId == walletId.id)
+            .filter(states.contains(TransactionRecord.Columns.state))
+            .filter(types.contains(TransactionRecord.Columns.type))
             .distinct()
 
         switch type {
@@ -64,9 +75,7 @@ public struct TransactionsRequest: DatabaseQueryable {
             request = Self.applyFilter(request: request, filter)
         }
 
-        return try request.asRequest(of: TransactionInfo.self)
-            .fetchAll(db)
-            .compactMap { $0.mapToTransactionExtended() }
+        return request
     }
 }
 
@@ -89,7 +98,7 @@ extension TransactionsRequest {
     private static func states(type: TransactionsRequestType) -> [String] {
         switch type {
         case .pending:
-            [TransactionState.pending.rawValue]
+            [TransactionState.pending, TransactionState.inTransit].map(\.rawValue)
         case .all, .asset, .transaction:
             TransactionState.allCases.map(\.rawValue)
         case let .assetsTransactionType(_, _, states):

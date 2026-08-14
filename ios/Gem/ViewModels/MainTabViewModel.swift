@@ -5,6 +5,7 @@ import Foundation
 import Preferences
 import Primitives
 import Store
+import Transactions
 
 @Observable
 @MainActor
@@ -20,7 +21,10 @@ final class MainTabViewModel {
 
     init(wallet: Wallet) {
         self.wallet = wallet
-        transactionsQuery = ObservableQuery(TransactionsCountRequest(walletId: wallet.id, states: [.pending, .inTransit]), initialValue: 0)
+        transactionsQuery = ObservableQuery(
+            TransactionsCountRequest(walletId: wallet.id, type: .pending, filters: TransactionsRequestFilter.activityDefaults),
+            initialValue: 0,
+        )
     }
 
     var walletId: WalletId {
