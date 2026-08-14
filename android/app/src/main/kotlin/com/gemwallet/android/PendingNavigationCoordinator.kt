@@ -13,6 +13,7 @@ import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 import uniffi.gemstone.urlAction
 import javax.inject.Inject
+import javax.inject.Singleton
 
 internal sealed interface PendingNavigation {
 
@@ -27,6 +28,7 @@ internal sealed interface PendingNavigation {
     }
 }
 
+@Singleton
 class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
     private val paymentNavigation: PaymentNavigation,
