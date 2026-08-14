@@ -55,7 +55,8 @@ class TransactionsViewModel @Inject constructor(
         chainsFilter,
         typeFilter,
     ) { chains, types ->
-        buildList<TransactionsRequestFilter> {
+        buildList {
+            addAll(TransactionsRequestFilter.activityDefaults())
             if (chains.isNotEmpty()) add(TransactionsRequestFilter.Chains(chains))
             val allowedTypes = types.flatMap { it.types }
             if (allowedTypes.isNotEmpty()) add(TransactionsRequestFilter.Types(allowedTypes))

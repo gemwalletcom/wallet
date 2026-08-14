@@ -93,8 +93,18 @@ interface TransactionsDao {
         filters: List<TransactionsRequestFilter> = emptyList(),
     ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
 
-    @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state IN (:states)")
-    fun getTransactionsCount(walletId: WalletId, states: List<TransactionState>): Flow<Int?>
+    @RawQuery(
+        observedEntities = [
+            DbTransaction::class,
+            DbAsset::class,
+        ]
+    )
+    fun getTransactionsCount(query: SupportSQLiteQuery): Flow<Int?>
+
+    fun getTransactionsCount(
+        walletId: WalletId,
+        filters: List<TransactionsRequestFilter>,
+    ): Flow<Int?> = getTransactionsCount(buildTransactionsCountSql(walletId, filters).toSupportSQLiteQuery())
 
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>

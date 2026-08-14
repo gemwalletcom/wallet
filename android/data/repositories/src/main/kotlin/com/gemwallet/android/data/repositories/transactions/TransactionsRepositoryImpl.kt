@@ -86,7 +86,10 @@ class TransactionsRepositoryImpl(
 
     override fun getPendingTransactionsCount(): Flow<Int?> {
         return currentWalletId().flatMapLatest { walletId ->
-            transactionsDao.getTransactionsCount(walletId, pollingTransactionStates)
+            transactionsDao.getTransactionsCount(
+                walletId,
+                TransactionsRequestFilter.activityDefaults() + TransactionsRequestFilter.States(pollingTransactionStates),
+            )
         }
     }
 
