@@ -7,7 +7,7 @@ public extension Gemstone.UrlAction {
     func map() throws -> Primitives.URLAction {
         switch self {
         case let .deeplink(deeplink): try .deeplink(deeplink.map())
-        case let .payment(link): .payment(link.map())
+        case let .payment(payment): try .payment(payment.map())
         case let .walletConnect(link): .walletConnect(link.map())
         }
     }

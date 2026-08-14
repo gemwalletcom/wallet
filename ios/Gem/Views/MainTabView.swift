@@ -26,6 +26,7 @@ struct MainTabView: View {
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.transactionsService) private var transactionsService
+    @Environment(\.viewModelFactory) private var viewModelFactory
 
     @State private var model: MainTabViewModel
 
@@ -99,6 +100,18 @@ struct MainTabView: View {
                 onComplete: { onComplete(type: input.type) },
             )
         }
+        .sheet(item: presenter.isPresentingPayment) { input in
+            switch input {
+            case let .confirm(data):
+                ConfirmTransferNavigationStack(wallet: model.wallet, transferData: data, onComplete: onPaymentComplete)
+            case let .recipient(assetInput):
+                SelectedAssetNavigationStack(input: assetInput, wallet: model.wallet, onComplete: onPaymentComplete)
+            case let .selectAsset(type, chains):
+                SelectAssetSceneNavigationStack(
+                    model: viewModelFactory.selectAssetScene(wallet: model.wallet, selectType: type, chains: chains),
+                )
+            }
+        }
         .sheet(item: presenter.isPresentingPriceAlert) { input in
             SetPriceAlertNavigationStack(
                 model: SetPriceAlertViewModel(
@@ -133,6 +146,10 @@ extension MainTabView {
 extension MainTabView {
     private func onSelect(tab: TabItem) {
         navigationState.select(tab: tab)
+    }
+
+    private func onPaymentComplete() {
+        presenter.isPresentingPayment.wrappedValue = nil
     }
 
     private func onSetPriceAlertComplete(message: String) {

@@ -24,6 +24,7 @@ import WalletTab
 struct WalletNavigationStack: View {
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.balanceService) private var balanceService
+    @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
@@ -232,7 +233,7 @@ struct WalletNavigationStack: View {
                     ),
                 )
             }
-            .scanQRCodeSheet(isPresented: $model.isPresentingScanner, action: model.onScan(_:))
+            .scanQRCodeSheet(isPresented: $model.isPresentingScanner, action: onScan)
             .sheet(item: $model.isPresentingSheet) { sheet in
                 Group {
                     switch sheet {
@@ -298,6 +299,10 @@ struct WalletNavigationStack: View {
 // MARK: - Actions
 
 extension WalletNavigationStack {
+    private func onScan(_ code: String) {
+        Task { await navigationHandler.handle(code: code) }
+    }
+
     private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
         Task {
             do {

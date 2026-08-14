@@ -4,7 +4,7 @@ import Foundation
 
 public enum URLAction: Equatable {
     case deeplink(DeepLink)
-    case payment(PaymentLink)
+    case payment(Payment)
     case walletConnect(WalletConnectAction)
 }
 

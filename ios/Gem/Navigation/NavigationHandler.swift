@@ -1,11 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AssetsService
+import Components
+import ConnectionsService
 import Foundation
 import GemstonePrimitives
+import Localization
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 import TransactionsService
+import WalletConnector
 import WalletSessionService
 
 @Observable
@@ -14,7 +19,9 @@ final class NavigationHandler: Sendable {
     private let presenter: NavigationPresenter
 
     private let assetsService: AssetsService
+    private let connectionsService: ConnectionsService
     private let transactionsService: TransactionsService
+    private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
     @MainActor var wallet: Wallet?
@@ -23,13 +30,17 @@ final class NavigationHandler: Sendable {
         navigationState: NavigationStateManager,
         presenter: NavigationPresenter,
         assetsService: AssetsService,
+        connectionsService: ConnectionsService,
         transactionsService: TransactionsService,
+        walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
         self.assetsService = assetsService
+        self.connectionsService = connectionsService
         self.transactionsService = transactionsService
+        self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }
 
@@ -44,6 +55,17 @@ final class NavigationHandler: Sendable {
     }
 
     @MainActor
+    func handle(url: URL) async {
+        await handle(code: url.absoluteString)
+    }
+
+    @MainActor
+    func handle(code: String) async {
+        guard let action = try? URLParser.from(code: code) else { return }
+        await handle(action)
+    }
+
+    @MainActor
     func handle(_ action: URLAction) async {
         do {
             try await handleURLAction(action)
@@ -55,14 +77,8 @@ final class NavigationHandler: Sendable {
     @MainActor
     func open(url: URL) -> Bool {
         guard let action = try? URLParser.from(url: url) else { return false }
-
-        switch action {
-        case .payment, .walletConnect:
-            return false
-        case .deeplink:
-            Task { await handle(action) }
-            return true
-        }
+        Task { await handle(action) }
+        return true
     }
 }
 
@@ -72,8 +88,9 @@ final class NavigationHandler: Sendable {
 extension NavigationHandler {
     private func handleURLAction(_ action: URLAction) async throws {
         switch action {
-        case .payment, .walletConnect: break
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
+        case let .payment(payment): try handlePayment(payment)
+        case let .walletConnect(action): await handleWalletConnect(action)
         }
     }
 
@@ -90,6 +107,43 @@ extension NavigationHandler {
         }
 
         selectTab(for: deeplink.selectTab)
+    }
+}
+
+// MARK: - Payment
+
+@MainActor
+extension NavigationHandler {
+    private func handlePayment(_ payment: Payment) throws {
+        guard case let .request(request) = payment, let wallet else {
+            throw AnyError(Localized.Errors.notSupported)
+        }
+        let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [.enabledBalance])
+
+        presenter.isPresentingPayment.wrappedValue = try PaymentInputBuilder.build(payment: request, assets: assets)
+    }
+}
+
+// MARK: - WalletConnect
+
+@MainActor
+extension NavigationHandler {
+    private func handleWalletConnect(_ action: WalletConnectAction) async {
+        walletConnectorPresenter.isPresentingConnectionBar = true
+
+        do {
+            switch action {
+            case let .connect(uri):
+                try await connectionsService.pair(uri: uri)
+            case .request:
+                break
+            case .session:
+                connectionsService.updateSessions()
+            }
+        } catch {
+            debugLog("NavigationHandler walletConnect error: \(error)")
+            walletConnectorPresenter.isPresentingError = error.localizedDescription
+        }
     }
 }
 

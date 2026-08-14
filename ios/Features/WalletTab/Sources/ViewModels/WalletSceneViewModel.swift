@@ -206,17 +206,6 @@ public extension WalletSceneViewModel {
         isPresentingScanner = true
     }
 
-    func onScan(_ result: String) {
-        do {
-            switch try PaymentURLDecoder.decode(result) {
-            case let .request(payment): try present(payment)
-            case .link: throw AnyError(Localized.Errors.notSupported)
-            }
-        } catch {
-            isPresentingToastMessage = .error(Localized.Errors.notSupported)
-        }
-    }
-
     func onSelectAddCustomToken() {
         isPresentingSheet = .addAsset
     }
@@ -300,44 +289,6 @@ public extension WalletSceneViewModel {
 // MARK: - Private
 
 extension WalletSceneViewModel {
-    private func present(_ payment: PaymentRequest) throws {
-        switch PaymentAsset.from(payment, assets: assets) {
-        case .unsupported:
-            throw AnyError(Localized.Errors.notSupported)
-        case let .single(assetData):
-            try presentTransfer(payment, for: assetData)
-        case let .choice(payable):
-            isPresentingSheet = .selectAsset(
-                .send(recipientData(for: payment)),
-                chains: payable.map(\.asset.chain),
-            )
-        }
-    }
-
-    private func recipientData(for payment: PaymentRequest) -> RecipientData {
-        let amount: String? = switch payment.amount {
-        case let .exactValue(value): value
-        case .atomicValue, .none: .none
-        }
-        return RecipientData(
-            recipient: Recipient(name: .none, address: payment.address, memo: payment.memo),
-            amount: amount,
-        )
-    }
-
-    private func presentTransfer(_ payment: PaymentRequest, for assetData: AssetData) throws {
-        switch try PaymentTransfer(asset: assetData.asset).destination(for: payment) {
-        case let .confirm(transfer):
-            isPresentingSheet = .transferData(transfer)
-        case let .recipient(recipient):
-            isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
-                type: .send(.asset(assetData.asset)),
-                assetData: assetData,
-                recipient: recipient,
-            )
-        }
-    }
-
     private func fetchOnce(wallet: Wallet) async {
         let shouldShowLoadingAssets = shouldShowInitialLoadingAssets(for: wallet)
 

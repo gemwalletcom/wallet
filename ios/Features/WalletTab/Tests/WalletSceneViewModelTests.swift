@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BannerServiceTestKit
-import Localization
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -47,16 +46,5 @@ struct WalletSceneViewModelTests {
         model.onChangeWallet(wallet, newWallet)
 
         #expect(model.wallet.id == .multicoin(address: "0x2"))
-    }
-
-    @Test
-    func onScan() {
-        let model = WalletSceneViewModel.mock()
-
-        model.onScan("https://pay.walletconnect.com/?pid=pay_123")
-        #expect(model.isPresentingToastMessage?.title == Localized.Errors.notSupported)
-
-        model.onScan("WIFI:S:MyNet;T:WPA;P:secret;;")
-        #expect(model.isPresentingToastMessage?.title == Localized.Errors.notSupported)
     }
 }

@@ -1,9 +1,9 @@
-use primitives::{Deeplink, PaymentLink, UrlAction, WalletConnectLink};
+use primitives::{Deeplink, Payment, UrlAction, WalletConnectLink};
 
 #[uniffi::remote(Enum)]
 pub enum UrlAction {
     Deeplink { deeplink: Deeplink },
-    Payment { link: PaymentLink },
+    Payment { payment: Payment },
     WalletConnect { link: WalletConnectLink },
 }
 
