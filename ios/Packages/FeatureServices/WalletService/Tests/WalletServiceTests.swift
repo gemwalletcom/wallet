@@ -6,6 +6,7 @@ import Observation
 import Preferences
 import PreferencesTestKit
 import Primitives
+import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
@@ -219,6 +220,22 @@ struct WalletServiceTests {
             }
             try await service.delete(wallet)
         }
+    }
+
+    @Test
+    func deleteEmptyWalletsUsesNormalDeletion() async throws {
+        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
+        let wallet = Wallet.mock(id: .multicoin(address: "empty"))
+        let walletPreferences = WalletPreferences(walletId: wallet.id)
+        defer { walletPreferences.clear() }
+        let service = WalletService.mock(walletStore: walletStore)
+        try walletStore.addWallet(wallet)
+        walletPreferences.completeInitialLoadAssets = true
+
+        try await service.deleteEmptyWallets()
+
+        #expect(try walletStore.getWallet(id: wallet.id) == nil)
+        #expect(!walletPreferences.completeInitialLoadAssets)
     }
 
     @Test

@@ -17,6 +17,13 @@ interface WalletsDao {
     """)
     fun getAll(): Flow<Map<DbWallet, List<DbAccount>>>
 
+    @Query("""
+        SELECT wallets.* FROM wallets
+        LEFT JOIN accounts ON wallets.id = accounts.wallet_id
+        WHERE accounts.wallet_id IS NULL
+    """)
+    suspend fun getEmptyWallets(): List<DbWallet>
+
     @Query("SELECT * FROM wallets WHERE id = :id")
     fun getById(id: String): Flow<DbWallet?>
 

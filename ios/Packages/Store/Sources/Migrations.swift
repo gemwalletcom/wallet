@@ -5,6 +5,8 @@ import GRDB
 import Primitives
 
 struct Migrations {
+    static let sei = "sei"
+
     var migrator = DatabaseMigrator()
 
     init(
@@ -21,6 +23,62 @@ struct Migrations {
         try? db.execute(sql: "DELETE FROM \(AssetLinkRecord.databaseTableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
         try? db.execute(sql: "DELETE FROM \(PerpetualRecord.databaseTableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
         try? db.execute(sql: "DELETE FROM \(AssetRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+    }
+
+    static func removeChains(_ db: Database, chains: Set<String>) throws {
+        for chain in chains {
+            let assetIdPattern = "\(chain)\\_%"
+            let quotedChain = "\"\(chain)\""
+            let quotedAssetIdPrefix = "\"\(chain)_"
+
+            try db.execute(
+                sql: "DELETE FROM \(WalletConnectionRecord.databaseTableName) WHERE instr(chains, ?) > 0",
+                arguments: [quotedChain],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(NotificationRecord.databaseTableName) WHERE instr(item, ?) > 0 OR instr(item, ?) > 0",
+                arguments: [quotedChain, quotedAssetIdPrefix],
+            )
+            try db.execute(
+                sql: "UPDATE \(AssetRecord.databaseTableName) SET associations = '[]' WHERE instr(associations, ?) > 0 OR instr(associations, ?) > 0",
+                arguments: [quotedChain, quotedAssetIdPrefix],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(ContactAddressRecord.databaseTableName) WHERE chain = ?",
+                arguments: [chain],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(TransactionAssetAssociationRecord.databaseTableName) WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\'",
+                arguments: [chain, assetIdPattern],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(TransactionRecord.databaseTableName) WHERE chain = ? OR assetId = ? OR assetId LIKE ? ESCAPE '\\' OR feeAssetId = ? OR feeAssetId LIKE ? ESCAPE '\\'",
+                arguments: [chain, chain, assetIdPattern, chain, assetIdPattern],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(PriceRecord.databaseTableName) WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\'",
+                arguments: [chain, assetIdPattern],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(PriceAlertRecord.databaseTableName) WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\'",
+                arguments: [chain, assetIdPattern],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(RecentActivityRecord.databaseTableName) WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\' OR toAssetId = ? OR toAssetId LIKE ? ESCAPE '\\'",
+                arguments: [chain, assetIdPattern, chain, assetIdPattern],
+            )
+            try db.execute(
+                sql: "DELETE FROM \(BannerRecord.databaseTableName) WHERE chain = ? OR assetId = ? OR assetId LIKE ? ESCAPE '\\'",
+                arguments: [chain, chain, assetIdPattern],
+            )
+            try db.execute(sql: "DELETE FROM \(NFTAssetRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+            try db.execute(sql: "DELETE FROM \(NFTCollectionRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+            try db.execute(sql: "DELETE FROM \(NodeSelectedRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+            try db.execute(sql: "DELETE FROM \(NodeRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+            try db.execute(sql: "DELETE FROM \(AddressRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+            try db.execute(sql: "DELETE FROM \(AccountRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+            try db.execute(sql: "DELETE FROM \(AssetRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+        }
     }
 
     private static func clearTables(_ db: Database, tableNames: [String]) throws {
@@ -511,6 +569,10 @@ struct Migrations {
             try? db.alter(table: TransactionRecord.databaseTableName) {
                 $0.add(column: TransactionRecord.Columns.confirmationEtaSeconds.name, .integer)
             }
+        }
+
+        migrator.registerMigration("Remove Sei chain") { db in
+            try Self.removeChains(db, chains: [Self.sei])
         }
 
         try migrator.migrate(dbQueue)

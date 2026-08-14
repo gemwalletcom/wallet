@@ -40,7 +40,10 @@ import javax.inject.Singleton
 object DatabaseModule {
     @Singleton
     @Provides
-    fun provideRoom(@ApplicationContext context: Context, passwordStore: PasswordStore): GemDatabase = Room.databaseBuilder(
+    fun provideRoom(
+        @ApplicationContext context: Context,
+        passwordStore: PasswordStore,
+    ): GemDatabase = Room.databaseBuilder(
             context = context,
             klass = GemDatabase::class.java,
             name = "gem.db",
@@ -89,6 +92,7 @@ object DatabaseModule {
         .addMigrations(Migration_82_83)
         .addMigrations(Migration_83_84)
         .addMigrations(Migration_84_85)
+        .addMigrations(Migration_85_86)
         .build()
 
     @Singleton

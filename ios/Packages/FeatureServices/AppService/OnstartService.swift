@@ -61,6 +61,12 @@ public struct OnstartService: Sendable {
             debugLog("v3 keystore migration could not enumerate wallets: \(error)")
         }
         do {
+            try await walletService.deleteEmptyWallets()
+        } catch {
+            debugLog("wallet cleanup error: \(error)")
+            return
+        }
+        do {
             try walletService.setup(chains: AssetConfiguration.allChains)
         } catch {
             debugLog("wallet chains setup error: \(error)")

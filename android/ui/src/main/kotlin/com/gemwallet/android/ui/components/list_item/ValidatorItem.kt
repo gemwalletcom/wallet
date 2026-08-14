@@ -91,7 +91,7 @@ fun PreviewValidatorItem() {
     WalletTheme {
         ValidatorItem(
             data = DelegationValidator(
-                chain = Chain.Sei,
+                chain = Chain.Cosmos,
                 id = "some_validator_id",
                 name = "Castlenode",
                 isActive = true,
@@ -112,7 +112,7 @@ fun PreviewValidatorItemSelected() {
     WalletTheme {
         ValidatorItem(
             data = DelegationValidator(
-                chain = Chain.Sei,
+                chain = Chain.Cosmos,
                 id = "some_validator_id",
                 name = "Castlenode",
                 isActive = true,

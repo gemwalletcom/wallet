@@ -4,7 +4,6 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.available
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
@@ -39,7 +38,7 @@ class CheckAccountsService @Inject constructor(
             }
 
             val accountChains = wallet.accounts.map { it.chain }.toSet()
-            val newChains = Chain.available().filterNot(accountChains::contains)
+            val newChains = Chain.entries.filterNot(accountChains::contains)
 
             // Backfill new chains via add_accounts, skips gracefully if the v4 keystore isn't ready (e.g. migration pending) and retries next launch.
             val newAccounts = if (newChains.isNotEmpty()) {

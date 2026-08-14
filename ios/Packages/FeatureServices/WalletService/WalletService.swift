@@ -87,6 +87,12 @@ public struct WalletService: Sendable {
         preferences.invalidateSubscriptions()
     }
 
+    public func deleteEmptyWallets() async throws {
+        for wallet in try walletStore.getWallets() where wallet.accounts.isEmpty {
+            try await delete(wallet)
+        }
+    }
+
     public func setup(chains: [Chain]) throws {
         let wallets = walletSessionService.wallets.filter { $0.type == .multicoin }
         guard !wallets.isEmpty else { return }

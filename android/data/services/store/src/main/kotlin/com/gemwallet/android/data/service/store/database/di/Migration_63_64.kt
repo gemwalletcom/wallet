@@ -39,7 +39,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
             val walletId = accountsCursor.getString(0)
             val address = accountsCursor.getString(1)
             val chainEnumName = accountsCursor.getString(2)
-            val chain = Chain.entries.firstOrNull { it.name == chainEnumName } ?: continue
+            val chain = findLegacyChain(chainEnumName) ?: continue
             val account = Account(
                 chain = chain,
                 address = address,
@@ -114,4 +114,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
             db.execSQL("DELETE FROM transactions WHERE walletId = ?", arrayOf(walletId))
         }
     }
+
+    private fun findLegacyChain(name: String): Chain? =
+        Chain.entries.firstOrNull { it.name == name }
 }

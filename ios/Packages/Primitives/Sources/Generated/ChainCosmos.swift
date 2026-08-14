@@ -11,7 +11,6 @@ public enum CosmosChain: String, Codable, CaseIterable, Equatable, Sendable {
 	case thorchain
 	case mayachain
 	case injective
-	case sei
 	case noble
 }
 

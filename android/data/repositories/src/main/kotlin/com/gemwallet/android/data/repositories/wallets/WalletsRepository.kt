@@ -12,6 +12,8 @@ interface WalletsRepository {
 
     fun getAll(): Flow<List<Wallet>>
 
+    suspend fun getEmptyWallets(): List<Wallet>
+
     suspend fun addWatch(walletName: String, address: String, chain: Chain): Wallet
 
     suspend fun addControlled(

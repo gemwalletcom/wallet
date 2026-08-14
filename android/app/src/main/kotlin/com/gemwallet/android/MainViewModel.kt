@@ -3,6 +3,7 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AuthState
@@ -29,6 +30,7 @@ class MainViewModel @Inject constructor(
     private val bridgesRepository: BridgesRepository,
     private val syncService: SyncService,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
+    private val deleteWallet: DeleteWallet,
     private val checkAccountsService: CheckAccountsService,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
@@ -78,10 +80,12 @@ class MainViewModel @Inject constructor(
     fun isAuthRequired(): Boolean = userConfig.authRequired()
 
     internal fun maintain() {
-        viewModelScope.launch(Dispatchers.IO) { syncService.sync() }
         viewModelScope.launch(Dispatchers.IO) {
             migrateV3KeystoreService()
-            checkAccountsService()
+            if (deleteWallet.deleteEmptyWallets()) {
+                checkAccountsService()
+                syncService.sync()
+            }
         }
     }
 

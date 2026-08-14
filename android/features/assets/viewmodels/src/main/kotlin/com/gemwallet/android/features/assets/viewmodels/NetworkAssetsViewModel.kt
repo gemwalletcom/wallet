@@ -9,10 +9,10 @@ import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVi
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType

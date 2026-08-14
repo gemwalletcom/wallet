@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.asset
 
+import com.gemwallet.android.Constants
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.twoSubtokenIds
@@ -8,7 +9,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
@@ -19,13 +19,7 @@ import uniffi.gemstone.SwapperProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
 
-fun Chain.getIconUrl(): String {
-    val icon = when (this) {
-        Chain.SeiEvm -> Chain.Sei.string
-        else -> string
-    }
-    return "file:///android_asset/chains/icons/${icon}.svg"
-}
+fun Chain.getIconUrl(): String = "file:///android_asset/chains/icons/${string}.svg"
 
 fun AssetId.getIconUrl(): String = when {
     tokenId.isNullOrEmpty() -> when (chain) {

@@ -44,7 +44,7 @@ class WalletSearchTokens(
         if (scope.isAll && query.isEmpty()) {
             return@withContext false
         }
-        val chains = if (scope.isAll) scopeChains.ifEmpty { Chain.entries.toList() } else emptyList()
+        val chains = if (scope.isAll) scopeChains.ifEmpty { Chain.entries } else emptyList()
         val networkAssets = async { tokenService.search(query, chains) }
         val searchResult = runCatchingCancellable {
             gemSearch.search(query = query, chains = scopeChains, scope = scope)

@@ -39,6 +39,7 @@ pub enum Chain {
     Gnosis,
     Celestia,
     Injective,
+    #[typeshare(skip)]
     Sei,
     SeiEvm,
     Manta,
@@ -153,6 +154,10 @@ impl Chain {
         self.config().is_defi_supported
     }
 
+    pub fn is_disabled(&self) -> bool {
+        self.config().is_disabled()
+    }
+
     // milliseconds
     pub fn block_time(&self) -> u32 {
         self.config().block_time
@@ -163,11 +168,15 @@ impl Chain {
     }
 
     pub fn all() -> Vec<Self> {
-        Self::iter().collect::<Vec<_>>()
+        Self::iter().filter(|chain| !chain.is_disabled()).collect()
+    }
+
+    pub fn all_with_disabled() -> Vec<Self> {
+        Self::iter().collect()
     }
 
     pub fn stakeable() -> Vec<Self> {
-        Self::all().into_iter().filter(|x| x.is_stake_supported()).collect()
+        Self::all().into_iter().filter(|chain| chain.is_stake_supported()).collect()
     }
 
     pub fn perpetual_chains() -> Vec<Self> {
@@ -178,6 +187,12 @@ impl Chain {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_all() {
+        assert_eq!(Chain::all().into_iter().filter(Chain::is_disabled).collect::<Vec<_>>(), vec![]);
+        assert_eq!(Chain::all_with_disabled().into_iter().filter(Chain::is_disabled).collect::<Vec<_>>(), vec![Chain::Sei]);
+    }
 
     #[test]
     fn test_mayachain_swap_not_supported() {

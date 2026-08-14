@@ -12,7 +12,6 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.available
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -44,6 +43,9 @@ class WalletsRepositoryImpl @Inject constructor(
     }
 
     override fun getAll(): Flow<List<Wallet>> = walletsDao.getAll().toDTO()
+
+    override suspend fun getEmptyWallets(): List<Wallet> =
+        walletsDao.getEmptyWallets().map { it.toDTO(emptyList()) }
 
     override suspend fun addWatch(walletName: String, address: String, chain: Chain): Wallet {
         val walletId = walletIdGenerator.generateWalletId(WalletType.View, chain, address)
@@ -79,11 +81,10 @@ class WalletsRepositoryImpl @Inject constructor(
         source: WalletSource
     ): Wallet {
         val accounts = mutableListOf<Account>()
-        val availableChains = Chain.available()
         val chains =
             if ((type == WalletType.Single || type == WalletType.PrivateKey) && chain != null) listOf(
                 chain
-            ) else Chain.entries.filter(availableChains::contains)
+            ) else Chain.entries
         for (item in chains) {
             accounts.add(createAccount(type, data, item))
         }

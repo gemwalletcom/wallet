@@ -21,11 +21,11 @@ import com.gemwallet.android.data.service.store.database.entities.mockDbAsset
 import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -464,15 +464,12 @@ class AssetsRepositoryTest {
         every { sessionRepository.session() } returns sessionFlow
         mockkStatic("com.gemwallet.android.ext.ChainKt")
         mockkStatic("uniffi.gemstone.GemstoneKt")
-        every { Chain.available() } returns setOf(Chain.Solana, Chain.Ethereum)
-        every { Chain.Solana.asset() } returns mockAssetSolana()
-        every { Chain.Ethereum.asset() } returns mockAssetEthereum()
-        every { Chain.Solana.isSwapSupport() } returns true
-        every { Chain.Solana.isStakeSupported() } returns true
-        every { Chain.Ethereum.isSwapSupport() } returns true
-        every { Chain.Ethereum.isStakeSupported() } returns false
-        every { assetDefaultRank(Chain.Solana.string) } returns 99
-        every { assetDefaultRank(Chain.Ethereum.string) } returns 77
+        Chain.entries.forEach { chain ->
+            every { chain.asset() } returns mockAsset(chain = chain)
+            every { chain.isSwapSupport() } returns false
+            every { chain.isStakeSupported() } returns false
+            every { assetDefaultRank(chain.string) } returns if (chain == Chain.Solana) 99 else 77
+        }
 
         val subject = createSubject()
         subject.updateNativeAssetRanks()

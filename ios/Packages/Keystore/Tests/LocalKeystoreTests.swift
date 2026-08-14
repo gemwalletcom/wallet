@@ -193,8 +193,6 @@ struct LocalKeystoreTests {
                     "celestia142j9u5eaduzd7faumygud6ruhdwme98qpwmfv7"
                 case .injective:
                     "inj13u6g7vqgw074mgmf2ze2cadzvkz9snlwcrtq8a"
-                case .sei:
-                    "sei142j9u5eaduzd7faumygud6ruhdwme98qagm0sj"
                 case .noble:
                     "noble142j9u5eaduzd7faumygud6ruhdwme98qc8l3wa"
                 case .near:

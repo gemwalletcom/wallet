@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_deployment_addresses_are_checksummed() {
-        for chain in Chain::all() {
+        for chain in Chain::all_with_disabled() {
             let Some(deployment) = get_uniswap_deployment_by_chain(&chain) else {
                 continue;
             };

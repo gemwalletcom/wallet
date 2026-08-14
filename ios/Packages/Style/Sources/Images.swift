@@ -41,7 +41,7 @@ public enum Images {
         public static let optimism = Image(.optimism)
         public static let osmosis = Image(.osmosis)
         public static let polygon = Image(.polygon)
-        public static let sei = Image(.sei)
+        public static let seievm = Image(.seievm)
         public static let smartchain = Image(.smartchain)
         public static let solana = Image(.solana)
         public static let sui = Image(.sui)
@@ -260,7 +260,7 @@ public enum Images {
             (Images.Chains.optimism, "Optimism"),
             (Images.Chains.osmosis, "Osmosis"),
             (Images.Chains.polygon, "Polygon"),
-            (Images.Chains.sei, "Sei"),
+            (Images.Chains.seievm, "Sei EVM"),
             (Images.Chains.smartchain, "Smart Chain"),
             (Images.Chains.solana, "Solana"),
             (Images.Chains.sui, "Sui"),

@@ -13,7 +13,7 @@ fun AssetId.type() = if (tokenId.isNullOrEmpty()) AssetSubtype.NATIVE else Asset
 fun String.toAssetId(): AssetId? {
     val components = split("_", limit = 2)
     val chainId = components.firstOrNull() ?: return null
-    val chain = Chain.entries.firstOrNull { it.string == chainId } ?: return null
+    val chain = Chain.find(chainId) ?: return null
     val token = if (components.size > 1) components[1] else null
     return AssetId(chain, token)
 }
