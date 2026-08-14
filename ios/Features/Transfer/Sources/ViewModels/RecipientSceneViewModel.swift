@@ -34,7 +34,7 @@ public final class RecipientSceneViewModel {
     public var isPresentingScanner: RecipientScene.Field?
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
-    var amount: String = ""
+    private(set) var scanned: RecipientData?
 
     public let contactsQuery: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -141,7 +141,7 @@ extension RecipientSceneViewModel {
                     address: addressInputModel.resolvedAddress,
                     memo: memo,
                 ),
-                amount: amount.isEmpty ? .none : amount,
+                amount: scanned?.amount,
             ),
         )
     }
@@ -164,10 +164,9 @@ extension RecipientSceneViewModel {
         }
     }
 
-    func onChangeAddressText(_: String, new _: String) {
-        if !amount.isEmpty {
-            amount = .empty
-        }
+    func onChangeAddressText(_: String, new: String) {
+        guard new != scanned?.recipient.address else { return }
+        scanned = .none
     }
 
     func onSelectRecipient(_ recipient: RecipientAddress) {
@@ -245,13 +244,11 @@ extension RecipientSceneViewModel {
     }
 
     private func update(from recipientData: RecipientData) {
+        scanned = recipientData
         addressInputModel.update(text: recipientData.recipient.address)
 
         if let memo = recipientData.recipient.memo {
             self.memo = memo
-        }
-        if let amount = recipientData.amount {
-            self.amount = amount
         }
     }
 

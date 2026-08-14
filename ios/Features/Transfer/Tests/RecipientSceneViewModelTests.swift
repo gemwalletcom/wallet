@@ -143,6 +143,43 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
+    func onHandleScan_keepsAmount() {
+        let asset = Asset.mockEthereum()
+        let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
+
+        model.onHandleScan("ethereum:0x123?amount=1.5", for: .address)
+        model.onChangeAddressText("", new: model.addressInputModel.text)
+
+        #expect(model.scanned?.amount == "1.5")
+
+        model.onChangeAddressText("", new: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326")
+
+        #expect(model.scanned == nil)
+    }
+
+    @Test
+    func prefilledRecipient_keepsAmount() {
+        let asset = Asset.mockEthereum()
+        let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
+        let model = RecipientSceneViewModel.mock(
+            asset: asset,
+            type: .mockAsset(asset),
+            recipient: RecipientData(
+                recipient: Recipient(name: .none, address: address, memo: "12345"),
+                amount: "10",
+            ),
+        )
+
+        #expect(model.addressInputModel.text == address)
+        #expect(model.memo == "12345")
+        #expect(model.scanned?.amount == "10")
+
+        model.onChangeAddressText(address, new: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a")
+
+        #expect(model.scanned == nil)
+    }
+
+    @Test
     func destination_belowSmallestUnit() throws {
         let asset = Asset.mockEthereum()
         let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
@@ -179,6 +216,7 @@ extension RecipientSceneViewModel {
         wallet: Wallet = .mock(),
         asset: Asset = .mockEthereum(),
         type: RecipientAssetType = .mockAsset(),
+        recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction = nil,
         onTransferAction: TransferDataAction = nil,
     ) -> RecipientSceneViewModel {
@@ -188,6 +226,7 @@ extension RecipientSceneViewModel {
             walletSessionService: WalletSessionService.mock(),
             nameService: .mock(),
             type: type,
+            recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
         )
