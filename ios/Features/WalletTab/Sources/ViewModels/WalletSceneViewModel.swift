@@ -65,7 +65,6 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
         self.observablePreferences = observablePreferences
         self.collectionsModel = CollectionsViewModel(
             nftService: nftService,
-            walletSessionService: walletSessionService,
             wallet: wallet,
         )
 

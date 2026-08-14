@@ -8,18 +8,13 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import WalletSessionService
 
 @Observable
 @MainActor
 public final class CollectionsViewModel: CollectionsViewable, Sendable {
-    private let walletSessionService: any WalletSessionManageable
     private let nftService: NFTService
 
     public let query: ObservableQuery<NFTRequest>
-    public var nftDataList: [NFTData] {
-        query.value
-    }
 
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 
@@ -27,21 +22,15 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     public init(
         nftService: NFTService,
-        walletSessionService: any WalletSessionManageable,
         wallet: Wallet,
     ) {
         self.nftService = nftService
-        self.walletSessionService = walletSessionService
         self.wallet = wallet
         query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
 
     public var title: String {
         Localized.Nft.collections
-    }
-
-    public var currentWallet: Wallet? {
-        walletSessionService.currentWallet
     }
 
     public var content: CollectionsContent {
@@ -52,6 +41,10 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     // MARK: - Private
+
+    private var nftDataList: [NFTData] {
+        query.value
+    }
 
     private var verifiedItems: [GridPosterViewItem] {
         nftDataList

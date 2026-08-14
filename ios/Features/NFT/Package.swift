@@ -41,7 +41,6 @@ let package = Package(
                 .product(name: "NFTService", package: "FeatureServices"),
                 "Store",
                 .product(name: "ImageGalleryService", package: "SystemServices"),
-                .product(name: "WalletSessionService", package: "FeatureServices"),
                 "GemstonePrimitives",
                 .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "AvatarService", package: "FeatureServices"),

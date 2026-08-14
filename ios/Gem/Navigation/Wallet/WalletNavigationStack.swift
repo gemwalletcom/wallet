@@ -39,7 +39,6 @@ struct WalletNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
-    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.observablePreferences) private var preferences
 
     @State private var model: WalletSceneViewModel
@@ -150,7 +149,6 @@ struct WalletNavigationStack: View {
                 CollectionsSceneNavigationView(
                     model: CollectionsViewModel(
                         nftService: nftService,
-                        walletSessionService: walletSessionService,
                         wallet: model.wallet,
                     ),
                 )
