@@ -4,6 +4,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.isValidAddress
+import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentRequest
 import java.math.BigInteger
 
@@ -41,9 +42,10 @@ class PaymentTransfer(private val assetInfo: AssetInfo) {
     private fun needsMemoReview(request: PaymentRequest): Boolean =
         assetInfo.asset.chain.isMemoSupport() && request.memo != null
 
-    private fun transferValue(request: PaymentRequest): BigInteger? {
-        val amount = request.amount ?: return null
-
-        return Crypto.exact(amount, assetInfo.asset.decimals)?.atomicValue
-    }
+    private fun transferValue(request: PaymentRequest): BigInteger? =
+        when (val amount = request.amount) {
+            is PaymentAmount.ExactValue -> Crypto.exact(amount.content, assetInfo.asset.decimals)?.atomicValue
+            is PaymentAmount.AtomicValue -> amount.content.toBigIntegerOrNull()
+            null -> null
+        }
 }

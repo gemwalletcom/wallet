@@ -13,6 +13,7 @@ import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
+import com.gemwallet.android.ext.exactValue
 import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
@@ -251,7 +252,7 @@ class RecipientViewModel @Inject constructor(
     private fun updateFrom(request: PaymentRequest) {
         addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address))
         request.memo?.let { _memo.value = it }
-        requestedAmount = request.amount
+        requestedAmount = request.amount?.exactValue
     }
 
     private fun onNftConfirm(nftAsset: NFTAsset, destination: DestinationAddress, confirmAction: ConfirmTransactionAction) {

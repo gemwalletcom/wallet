@@ -17,10 +17,19 @@ public extension GemPaymentRequest {
     func map() throws -> PaymentRequest {
         try PaymentRequest(
             address: address,
-            amount: amount,
+            amount: amount?.map(),
             memo: memo,
             assetId: assetId.map { try AssetId(id: $0) },
         )
+    }
+}
+
+public extension GemPaymentAmount {
+    func map() -> PaymentAmount {
+        switch self {
+        case let .exactValue(value): .exactValue(value)
+        case let .atomicValue(value): .atomicValue(value)
+        }
     }
 }
 

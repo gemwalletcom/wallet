@@ -5,7 +5,7 @@ use crate::{
     Chain, EVMChain,
     asset_id::AssetId,
     chain::network_id_value,
-    payment::{Payment, PaymentRequest},
+    payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
 pub const ETHEREUM_SCHEME: &str = "ethereum";
@@ -15,6 +15,7 @@ const TRANSFER_FUNCTION: &str = "transfer";
 const QUERY_ADDRESS: &str = "address";
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_MEMO: &str = "memo";
+const QUERY_UINT256: &str = "uint256";
 const QUERY_VALUE: &str = "value";
 
 pub fn decode(path: &str) -> Result<Payment> {
@@ -34,7 +35,9 @@ pub fn decode(path: &str) -> Result<Payment> {
     match function {
         Some(TRANSFER_FUNCTION) => Ok(Payment::Request(PaymentRequest {
             address: query::value(&parameters, QUERY_ADDRESS).ok_or_else(|| PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string()))?,
-            amount: None,
+            amount: query::value(&parameters, QUERY_UINT256)
+                .and_then(|value| amount::atomic(&value))
+                .map(PaymentAmount::AtomicValue),
             memo,
             asset_id: Some(AssetId::from(chain, Some(target.to_string()))),
         })),
@@ -42,9 +45,9 @@ pub fn decode(path: &str) -> Result<Payment> {
         None => Ok(Payment::Request(PaymentRequest {
             address: target.to_string(),
             amount: query::value(&parameters, QUERY_VALUE)
-                .as_deref()
-                .and_then(|value| amount::from_smallest_unit(value, chain))
-                .or_else(|| query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(|value| amount::from_coins(value, chain))),
+                .and_then(|value| amount::exact_from_atomic(&value, chain))
+                .or_else(|| query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)))
+                .map(PaymentAmount::ExactValue),
             memo,
             asset_id: Some(AssetId::from(chain, None)),
         })),

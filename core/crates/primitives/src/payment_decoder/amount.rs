@@ -8,17 +8,21 @@ pub(crate) fn normalize(value: &str) -> Option<String> {
     Some(Amount::read(value)?.to_string())
 }
 
-pub(crate) fn from_coins(value: &str, chain: Chain) -> Option<String> {
+pub(crate) fn exact(value: &str, chain: Chain) -> Option<String> {
     let decimals = u32::try_from(Asset::from_chain(chain).decimals).ok()?;
     let amount = Amount::read(value)?;
 
     (amount.significant_decimals() <= decimals).then(|| amount.to_string())
 }
 
-pub(crate) fn from_smallest_unit(value: &str, chain: Chain) -> Option<String> {
+pub(crate) fn exact_from_atomic(value: &str, chain: Chain) -> Option<String> {
     let decimals = u32::try_from(Asset::from_chain(chain).decimals).ok()?;
 
     Some(Amount::read_exponential(value)?.with_decimals(decimals)?.to_string())
+}
+
+pub(crate) fn atomic(value: &str) -> Option<String> {
+    Some(Amount::read_exponential(value)?.with_decimals(0)?.to_string())
 }
 
 struct Amount {
@@ -92,27 +96,39 @@ mod tests {
     }
 
     #[test]
-    fn test_from_coins() {
-        assert_eq!(from_coins("0.0001", Chain::Bitcoin), Some("0.0001".to_string()));
-        assert_eq!(from_coins("1.000000000", Chain::Bitcoin), Some("1".to_string()));
+    fn test_exact() {
+        assert_eq!(exact("0.0001", Chain::Bitcoin), Some("0.0001".to_string()));
+        assert_eq!(exact("1.000000000", Chain::Bitcoin), Some("1".to_string()));
 
         for finer_than_a_satoshi in ["0.000000001", "0.123456789"] {
-            assert_eq!(from_coins(finer_than_a_satoshi, Chain::Bitcoin), None, "{finer_than_a_satoshi}");
+            assert_eq!(exact(finer_than_a_satoshi, Chain::Bitcoin), None, "{finer_than_a_satoshi}");
         }
-        assert_eq!(from_coins("0.000000001", Chain::Ethereum), Some("0.000000001".to_string()));
+        assert_eq!(exact("0.000000001", Chain::Ethereum), Some("0.000000001".to_string()));
     }
 
     #[test]
-    fn test_from_smallest_unit() {
-        assert_eq!(from_smallest_unit("10000000", Chain::Bitcoin), Some("0.1".to_string()));
-        assert_eq!(from_smallest_unit("1000000000", Chain::Ton), Some("1".to_string()));
-        assert_eq!(from_smallest_unit("+2.014e18", Chain::Ethereum), Some("2.014".to_string()));
+    fn test_atomic() {
+        assert_eq!(atomic("1500000"), Some("1500000".to_string()));
+        assert_eq!(atomic("1.5e6"), Some("1500000".to_string()));
+        assert_eq!(atomic("+2.014e18"), Some("2014000000000000000".to_string()));
+
+        for not_a_whole_unit in ["0.5", "1.5", "1e-6", "XYZ", "-1", ""] {
+            assert_eq!(atomic(not_a_whole_unit), None, "{not_a_whole_unit}");
+        }
+    }
+
+    #[test]
+    fn test_exact_from_atomic() {
+        assert_eq!(exact_from_atomic("10000000", Chain::Bitcoin), Some("0.1".to_string()));
+        assert_eq!(exact_from_atomic("1000000000", Chain::Ton), Some("1".to_string()));
+        assert_eq!(exact_from_atomic("+2.014e18", Chain::Ethereum), Some("2.014".to_string()));
 
         for fraction_of_a_unit in ["0.5", "123.3"] {
-            assert_eq!(from_smallest_unit(fraction_of_a_unit, Chain::Ton), None, "{fraction_of_a_unit}");
+            assert_eq!(exact_from_atomic(fraction_of_a_unit, Chain::Ton), None, "{fraction_of_a_unit}");
         }
         for unusable_exponent in ["1e", "1e-6", "1e79", "1e4000000000"] {
-            assert_eq!(from_smallest_unit(unusable_exponent, Chain::Ethereum), None, "{unusable_exponent}");
+            assert_eq!(exact_from_atomic(unusable_exponent, Chain::Ethereum), None, "{unusable_exponent}");
         }
     }
 }
+

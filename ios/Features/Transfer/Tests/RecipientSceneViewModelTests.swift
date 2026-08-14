@@ -103,7 +103,7 @@ struct RecipientSceneViewModelTests {
 
         let payment = PaymentRequest(
             address: " \n\(address)\r ",
-            amount: "1.234",
+            amount: .exactValue("1.234"),
             memo: nil,
             assetId: nil,
         )
@@ -186,7 +186,7 @@ struct RecipientSceneViewModelTests {
 
         let payment = PaymentRequest(
             address: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a",
-            amount: "0.0000000000000000001",
+            amount: .exactValue("0.0000000000000000001"),
             memo: nil,
             assetId: nil,
         )
@@ -195,7 +195,7 @@ struct RecipientSceneViewModelTests {
 
         switch result {
         case let .recipient(data):
-            #expect(data.amount == payment.amount)
+            #expect(data.amount == "0.0000000000000000001")
         case .confirm:
             Issue.record("A nineteenth decimal is not signable as ETH")
         }

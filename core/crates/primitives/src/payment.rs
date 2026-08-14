@@ -13,10 +13,18 @@ pub enum Payment {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(tag = "type", content = "content", rename_all = "camelCase")]
+pub enum PaymentAmount {
+    ExactValue(String),
+    AtomicValue(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PaymentRequest {
     pub address: String,
-    pub amount: Option<String>,
+    pub amount: Option<PaymentAmount>,
     pub memo: Option<String>,
     pub asset_id: Option<AssetId>,
 }

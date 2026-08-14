@@ -38,7 +38,7 @@ mod tests {
     use crate::{
         Chain,
         asset_id::AssetId,
-        payment::{PaymentLink, PaymentRequest},
+        payment::{PaymentAmount, PaymentLink, PaymentRequest},
     };
 
     fn request(address: &str, chain: Chain) -> Payment {
@@ -61,7 +61,7 @@ mod tests {
             PaymentURLDecoder::decode("0x25851Bf7D35293A89F710eBFbD4718322eF7B174?amount=50.72").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "0x25851Bf7D35293A89F710eBFbD4718322eF7B174".to_string(),
-                amount: Some("50.72".to_string()),
+                amount: Some(PaymentAmount::ExactValue("50.72".to_string())),
                 memo: None,
                 asset_id: None,
             })
@@ -72,7 +72,7 @@ mod tests {
     fn test_uri_normalization() {
         let bitcoin = Payment::Request(PaymentRequest {
             address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
-            amount: Some("0.1".to_string()),
+            amount: Some(PaymentAmount::ExactValue("0.1".to_string())),
             memo: None,
             asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
         });
@@ -133,7 +133,7 @@ mod tests {
             PaymentURLDecoder::decode("ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=order+7").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA".to_string(),
-                amount: Some("1".to_string()),
+                amount: Some(PaymentAmount::ExactValue("1".to_string())),
                 memo: Some("order 7".to_string()),
                 asset_id: Some(AssetId::from_chain(Chain::Ton)),
             })
@@ -171,7 +171,7 @@ mod tests {
             PaymentURLDecoder::decode(&format!("bitcoin:{address}?amount=.123")).unwrap(),
             Payment::Request(PaymentRequest {
                 address: address.to_string(),
-                amount: Some("0.123".to_string()),
+                amount: Some(PaymentAmount::ExactValue("0.123".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
             })
@@ -211,7 +211,7 @@ mod tests {
     fn test_xrp_destination_tag() {
         let payment = Payment::Request(PaymentRequest {
             address: "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh".to_string(),
-            amount: Some("10".to_string()),
+            amount: Some(PaymentAmount::ExactValue("10".to_string())),
             memo: Some("12345".to_string()),
             asset_id: Some(AssetId::from_chain(Chain::Xrp)),
         });
@@ -224,7 +224,7 @@ mod tests {
             PaymentURLDecoder::decode("dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L?amount=42").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L".to_string(),
-                amount: Some("42".to_string()),
+                amount: Some(PaymentAmount::ExactValue("42".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Doge)),
             })
@@ -252,7 +252,7 @@ mod tests {
             PaymentURLDecoder::decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=0.266232").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5".to_string(),
-                amount: Some("0.266232".to_string()),
+                amount: Some(PaymentAmount::ExactValue("0.266232".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Solana)),
             })
@@ -280,7 +280,7 @@ mod tests {
             .unwrap(),
             Payment::Request(PaymentRequest {
                 address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5".to_string(),
-                amount: Some("1".to_string()),
+                amount: Some(PaymentAmount::ExactValue("1".to_string())),
                 memo: Some("OrderId5678".to_string()),
                 asset_id: Some(AssetId::from(Chain::Solana, Some(usdc.to_string()))),
             })
@@ -293,7 +293,7 @@ mod tests {
             PaymentURLDecoder::decode("bitcoin:bc1pn6pua8a566z7t822kphpd2el45ntm23354c3krfmpe3nnn33lkcskuxrdl?amount=0.00001").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "bc1pn6pua8a566z7t822kphpd2el45ntm23354c3krfmpe3nnn33lkcskuxrdl".to_string(),
-                amount: Some("0.00001".to_string()),
+                amount: Some(PaymentAmount::ExactValue("0.00001".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
             })
@@ -303,7 +303,7 @@ mod tests {
             PaymentURLDecoder::decode("ethereum:0xA20d8935d61812b7b052E08f0768cFD6D81cB088?amount=0.01233&memo=test").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "0xA20d8935d61812b7b052E08f0768cFD6D81cB088".to_string(),
-                amount: Some("0.01233".to_string()),
+                amount: Some(PaymentAmount::ExactValue("0.01233".to_string())),
                 memo: Some("test".to_string()),
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
             })
@@ -313,7 +313,7 @@ mod tests {
             PaymentURLDecoder::decode("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
-                amount: Some("0.42301".to_string()),
+                amount: Some(PaymentAmount::ExactValue("0.42301".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Solana)),
             })
@@ -332,7 +332,7 @@ mod tests {
             PaymentURLDecoder::decode(&format!("bitcoin:{address}?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz")).unwrap(),
             Payment::Request(PaymentRequest {
                 address: address.to_string(),
-                amount: Some("50".to_string()),
+                amount: Some(PaymentAmount::ExactValue("50".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
             })
@@ -362,7 +362,7 @@ mod tests {
             PaymentURLDecoder::decode("ethereum:0xcB3028d6120802148f03d6c884D6AD6A210Df62A@0x38?amount=1.23").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
-                amount: Some("1.23".to_string()),
+                amount: Some(PaymentAmount::ExactValue("1.23".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::SmartChain)),
             })
@@ -371,7 +371,7 @@ mod tests {
             PaymentURLDecoder::decode("ethereum:0xcB3028d6120802148f03d6c884D6AD6A210Df62A?value=2.014e18").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
-                amount: Some("2.014".to_string()),
+                amount: Some(PaymentAmount::ExactValue("2.014".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
             })
@@ -389,13 +389,31 @@ mod tests {
             PaymentURLDecoder::decode("ethereum:pay-0xcB3028d6120802148f03d6c884D6AD6A210Df62A?value=1e6").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
-                amount: Some("0.000000000001".to_string()),
+                amount: Some(PaymentAmount::ExactValue("0.000000000001".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
             })
         );
         assert_eq!(
             PaymentURLDecoder::decode("ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48@1/transfer?address=0xcB3028d6120802148f03d6c884D6AD6A210Df62A&uint256=1500000").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
+                amount: Some(PaymentAmount::AtomicValue("1500000".to_string())),
+                memo: None,
+                asset_id: Some(AssetId::from(Chain::Ethereum, Some("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".to_string()))),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/transfer?address=0xcB3028d6120802148f03d6c884D6AD6A210Df62A&uint256=1.5e6").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
+                amount: Some(PaymentAmount::AtomicValue("1500000".to_string())),
+                memo: None,
+                asset_id: Some(AssetId::from(Chain::Ethereum, Some("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".to_string()))),
+            })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/transfer?address=0xcB3028d6120802148f03d6c884D6AD6A210Df62A&uint256=1.5").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
                 amount: None,
@@ -411,7 +429,7 @@ mod tests {
             PaymentURLDecoder::decode("ethereum:0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "0x32Be343B94f860124dC4fEe278FDCBD38C102D88".to_string(),
-                amount: Some("0.00000000000000001".to_string()),
+                amount: Some(PaymentAmount::ExactValue("0.00000000000000001".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
             })

@@ -4,13 +4,58 @@
 
 import Foundation
 
+public enum PaymentAmount: Codable, Equatable, Hashable, Sendable {
+	case exactValue(String)
+	case atomicValue(String)
+
+	enum CodingKeys: String, CodingKey, Codable {
+		case exactValue,
+			atomicValue
+	}
+
+	private enum ContainerCodingKeys: String, CodingKey {
+		case type, content
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
+		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
+			switch type {
+			case .exactValue:
+				if let content = try? container.decode(String.self, forKey: .content) {
+					self = .exactValue(content)
+					return
+				}
+			case .atomicValue:
+				if let content = try? container.decode(String.self, forKey: .content) {
+					self = .atomicValue(content)
+					return
+				}
+			}
+		}
+		throw DecodingError.typeMismatch(PaymentAmount.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PaymentAmount"))
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
+		switch self {
+		case .exactValue(let content):
+			try container.encode(CodingKeys.exactValue, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .atomicValue(let content):
+			try container.encode(CodingKeys.atomicValue, forKey: .type)
+			try container.encode(content, forKey: .content)
+		}
+	}
+}
+
 public struct PaymentRequest: Codable, Equatable, Hashable, Sendable {
 	public let address: String
-	public let amount: String?
+	public let amount: PaymentAmount?
 	public let memo: String?
 	public let assetId: AssetId?
 
-	public init(address: String, amount: String?, memo: String?, assetId: AssetId?) {
+	public init(address: String, amount: PaymentAmount?, memo: String?, assetId: AssetId?) {
 		self.address = address
 		self.amount = amount
 		self.memo = memo

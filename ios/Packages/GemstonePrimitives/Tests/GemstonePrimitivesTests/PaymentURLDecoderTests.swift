@@ -21,7 +21,7 @@ final class PaymentURLDecoderTests {
             try PaymentURLDecoder.decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=0.266232&memo=order7")
                 == .request(PaymentRequest(
                     address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5",
-                    amount: "0.266232",
+                    amount: .exactValue("0.266232"),
                     memo: "order7",
                     assetId: AssetId(chain: .solana, tokenId: .none),
                 )),

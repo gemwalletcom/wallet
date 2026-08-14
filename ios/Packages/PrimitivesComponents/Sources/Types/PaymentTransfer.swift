@@ -33,7 +33,7 @@ public struct PaymentTransfer: Sendable {
                 ),
             )
         case .none:
-            return .recipient(RecipientData(recipient: recipient, amount: payment.amount))
+            return .recipient(RecipientData(recipient: recipient, amount: exactAmount(of: payment)))
         }
     }
 }
@@ -56,8 +56,18 @@ private extension PaymentTransfer {
         asset.chain.isMemoSupported && payment.memo != nil
     }
 
+    func exactAmount(of payment: PaymentRequest) -> String? {
+        switch payment.amount {
+        case let .exactValue(value): value
+        case .atomicValue, .none: .none
+        }
+    }
+
     func transferValue(of payment: PaymentRequest) -> BigInt? {
-        guard let amount = payment.amount else { return .none }
-        return try? numberFormatter.exactNumber(from: amount, decimals: asset.decimals.asInt)
+        switch payment.amount {
+        case let .exactValue(value): try? numberFormatter.exactNumber(from: value, decimals: asset.decimals.asInt)
+        case let .atomicValue(value): BigInt(value)
+        case .none: .none
+        }
     }
 }

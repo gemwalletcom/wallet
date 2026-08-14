@@ -1,9 +1,10 @@
 use crate::GemstoneError;
-use primitives::{AssetId, Payment, PaymentLink, PaymentRequest, PaymentURLDecoder};
+use primitives::{AssetId, Payment, PaymentAmount, PaymentLink, PaymentRequest, PaymentURLDecoder};
 
 pub type GemPayment = Payment;
 pub type GemPaymentRequest = PaymentRequest;
 pub type GemPaymentLink = PaymentLink;
+pub type GemPaymentAmount = PaymentAmount;
 
 #[uniffi::remote(Enum)]
 pub enum GemPayment {
@@ -11,10 +12,16 @@ pub enum GemPayment {
     Link(GemPaymentLink),
 }
 
+#[uniffi::remote(Enum)]
+pub enum GemPaymentAmount {
+    ExactValue(String),
+    AtomicValue(String),
+}
+
 #[uniffi::remote(Record)]
 pub struct GemPaymentRequest {
     pub address: String,
-    pub amount: Option<String>,
+    pub amount: Option<GemPaymentAmount>,
     pub memo: Option<String>,
     pub asset_id: Option<AssetId>,
 }
@@ -40,7 +47,7 @@ mod tests {
             payment_decode_url("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
             GemPayment::Request(GemPaymentRequest {
                 address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
-                amount: Some("0.42301".to_string()),
+                amount: Some(GemPaymentAmount::ExactValue("0.42301".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Solana)),
             })

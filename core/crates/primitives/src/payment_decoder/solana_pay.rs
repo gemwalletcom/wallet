@@ -4,7 +4,7 @@ use super::query;
 use crate::{
     Chain,
     asset_id::AssetId,
-    payment::{Payment, PaymentLink, PaymentRequest},
+    payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest},
 };
 use url::{Url, form_urlencoded};
 
@@ -26,10 +26,12 @@ pub fn decode(path: &str) -> Result<Payment> {
     query::reject_unsupported(&parameters, &[QUERY_REFERENCE])?;
 
     let token = query::value(&parameters, QUERY_SPL_TOKEN);
-    let amount = query::value(&parameters, QUERY_AMOUNT).as_deref().and_then(|value| match &token {
-        Some(_) => amount::normalize(value),
-        None => amount::from_coins(value, Chain::Solana),
-    });
+    let amount = query::value(&parameters, QUERY_AMOUNT)
+        .and_then(|value| match &token {
+            Some(_) => amount::normalize(&value),
+            None => amount::exact(&value, Chain::Solana),
+        })
+        .map(PaymentAmount::ExactValue);
 
     Ok(Payment::Request(PaymentRequest {
         address: recipient.to_string(),

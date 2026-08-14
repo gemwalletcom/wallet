@@ -8,9 +8,19 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
+sealed class PaymentAmount {
+	@Serializable
+	@SerialName("exactValue")
+	data class ExactValue(val content: String): PaymentAmount()
+	@Serializable
+	@SerialName("atomicValue")
+	data class AtomicValue(val content: String): PaymentAmount()
+}
+
+@Serializable
 data class PaymentRequest (
 	val address: String,
-	val amount: String? = null,
+	val amount: PaymentAmount? = null,
 	val memo: String? = null,
 	val assetId: AssetId? = null
 )

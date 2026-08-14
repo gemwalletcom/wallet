@@ -120,7 +120,7 @@ pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
 pub mod payment;
-pub use self::payment::{Payment, PaymentLink, PaymentRequest};
+pub use self::payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest};
 
 pub mod payment_type;
 pub use self::payment_type::PaymentType;

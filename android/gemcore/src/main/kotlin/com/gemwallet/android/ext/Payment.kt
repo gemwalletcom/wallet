@@ -3,6 +3,7 @@ package com.gemwallet.android.ext
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.Payment
+import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentRequest
 import uniffi.gemstone.paymentDecodeUrl
 
@@ -10,6 +11,12 @@ val Payment.request: PaymentRequest?
     get() = when (this) {
         is Payment.Request -> content
         is Payment.Link -> null
+    }
+
+val PaymentAmount.exactValue: String?
+    get() = when (this) {
+        is PaymentAmount.ExactValue -> content
+        is PaymentAmount.AtomicValue -> null
     }
 
 fun decodePayment(url: String): Payment? =

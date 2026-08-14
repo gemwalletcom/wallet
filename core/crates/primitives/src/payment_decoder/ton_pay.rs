@@ -3,7 +3,7 @@ use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
     AssetId, Chain,
-    payment::{Payment, PaymentRequest},
+    payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
 pub const TON_PAY_SCHEME: &str = "ton";
@@ -22,8 +22,8 @@ pub fn decode(path: &str) -> Result<Payment> {
     Ok(Payment::Request(PaymentRequest {
         address: address(path)?,
         amount: query::value(&parameters, QUERY_AMOUNT)
-            .as_deref()
-            .and_then(|amount| amount::from_smallest_unit(amount, Chain::Ton)),
+            .and_then(|value| amount::exact_from_atomic(&value, Chain::Ton))
+            .map(PaymentAmount::ExactValue),
         memo: query::value(&parameters, QUERY_TEXT),
         asset_id: Some(AssetId::from_chain(Chain::Ton)),
     }))
