@@ -2,7 +2,7 @@ use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
-    Chain,
+    Chain, EVMChain,
     asset_id::AssetId,
     chain::network_id_value,
     payment::{Payment, PaymentRequest},
@@ -21,7 +21,10 @@ pub fn decode(path: &str) -> Result<Payment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let (target, function) = path.split_once('/').map_or((path, None), |(target, function)| (target, Some(function)));
     let (target, chain) = match target.split_once('@') {
-        Some((target, network_id)) => (target, chain(network_id).unwrap_or(Chain::Ethereum)),
+        Some((target, network_id)) => (
+            target,
+            chain(network_id).ok_or_else(|| PaymentDecoderError::InvalidFormat(format!("Unsupported network: {network_id}")))?,
+        ),
         None => (target, Chain::Ethereum),
     };
     let target = target.strip_prefix(PAY_PREFIX).unwrap_or(target);
@@ -49,5 +52,5 @@ pub fn decode(path: &str) -> Result<Payment> {
 }
 
 fn chain(network_id: &str) -> Option<Chain> {
-    Chain::from_chain_id(network_id_value(network_id)?)
+    EVMChain::from_chain_id(network_id_value(network_id)?).map(|chain| chain.to_chain())
 }

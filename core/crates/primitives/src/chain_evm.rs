@@ -90,6 +90,10 @@ impl EVMChain {
         EVMChain::from_str(chain.as_ref()).ok()
     }
 
+    pub fn from_chain_id(chain_id: u64) -> Option<Self> {
+        Self::iter().find(|chain| chain.chain_id() == chain_id)
+    }
+
     pub fn to_chain(&self) -> Chain {
         Chain::from_str(self.as_ref()).unwrap()
     }
@@ -104,6 +108,14 @@ mod tests {
         assert_eq!(EVMChain::from_chain(Chain::Ethereum), Some(EVMChain::Ethereum));
         assert_eq!(EVMChain::from_chain(Chain::SeiEvm), Some(EVMChain::SeiEvm));
         assert_eq!(EVMChain::from_chain(Chain::Bitcoin), None);
+    }
+
+    #[test]
+    fn test_from_chain_id() {
+        assert_eq!(EVMChain::from_chain_id(1), Some(EVMChain::Ethereum));
+        assert_eq!(EVMChain::from_chain_id(56), Some(EVMChain::SmartChain));
+        assert_eq!(EVMChain::from_chain_id(1337), None);
+        assert_eq!(EVMChain::from_chain_id(764824073), None);
     }
 
     #[test]
