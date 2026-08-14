@@ -2,6 +2,7 @@ package com.gemwallet.android.features.main.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -18,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
+    private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     bridgesRepository: BridgesRepository,
     getTransactions: GetPendingTransactionsCount
 ) : ViewModel() {
@@ -29,4 +31,6 @@ class MainScreenViewModel @Inject constructor(
         .filterNotNull()
         .map { if (it == 0) null else it.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun onScan(code: String) = pendingNavigationCoordinator.handleScan(code)
 }

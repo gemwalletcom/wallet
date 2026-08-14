@@ -66,7 +66,7 @@ class MainViewModel @Inject constructor(
             combine(
                 _uiState.map { it.initialAuth == AuthState.Success }.distinctUntilChanged(),
                 pendingNavigation,
-            ) { unlocked, pending -> unlocked && pending is PendingNavigation.RawIntent }
+            ) { unlocked, pending -> unlocked && pending is PendingNavigation.Unresolved }
                 .distinctUntilChanged()
                 .filter { it }
                 .collect {

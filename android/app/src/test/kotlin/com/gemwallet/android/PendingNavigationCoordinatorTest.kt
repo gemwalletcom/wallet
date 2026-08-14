@@ -23,7 +23,8 @@ import uniffi.gemstone.urlAction
 class PendingNavigationCoordinatorTest {
 
     private val notificationNavigation = mockk<NotificationNavigation>(relaxed = true)
-    private val coordinator = PendingNavigationCoordinator(notificationNavigation)
+    private val paymentNavigation = mockk<PaymentNavigation>(relaxed = true)
+    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation)
 
     @Before
     fun setUp() = mockkStatic("uniffi.gemstone.GemstoneKt")

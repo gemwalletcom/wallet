@@ -3,6 +3,8 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.ext.request
+import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +15,13 @@ import uniffi.gemstone.urlAction
 import javax.inject.Inject
 
 internal sealed interface PendingNavigation {
-    data class RawIntent(val intent: Intent) : PendingNavigation
+
+    sealed interface Unresolved : PendingNavigation
+
+    data class RawIntent(val intent: Intent) : Unresolved
+
+    data class RawCode(val code: String) : Unresolved
+
     data class Route(val routes: List<NavKey>) : PendingNavigation {
         constructor(route: NavKey) : this(listOf(route))
     }
@@ -21,6 +29,7 @@ internal sealed interface PendingNavigation {
 
 class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
+    private val paymentNavigation: PaymentNavigation,
 ) {
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
@@ -32,54 +41,53 @@ class PendingNavigationCoordinator @Inject constructor(
         }
     }
 
+    fun handleScan(code: String) {
+        _pendingNavigation.update { PendingNavigation.RawCode(code) }
+    }
+
     fun consume() {
         _pendingNavigation.update { null }
     }
 
     suspend fun resolve(walletConnect: WalletConnectHandler) {
-        val pendingIntent = (_pendingNavigation.value as? PendingNavigation.RawIntent)?.intent ?: return
-        val uri = pendingIntent.dataString
-
-        when (val action = uri?.let(::urlAction)) {
-            is UrlAction.WalletConnect -> {
-                when (val link = action.link) {
-                    is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
-                    WalletConnectLink.Request -> walletConnect.onRequest()
-                    is WalletConnectLink.Session -> Unit
-                }
-                replace(pendingIntent, replacement = null)
-                return
-            }
-            is UrlAction.Deeplink -> {
-                action.deeplink.toRoute()?.let { route ->
-                    replace(pendingIntent, PendingNavigation.Route(route))
-                    return
-                }
-            }
-            is UrlAction.Payment -> {
-                replace(pendingIntent, replacement = null)
-                return
-            }
-            null -> Unit
+        when (val pending = _pendingNavigation.value) {
+            is PendingNavigation.RawCode -> resolve(pending, urlAction(pending.code), walletConnect)
+            is PendingNavigation.RawIntent -> resolve(pending, walletConnect)
+            else -> Unit
         }
-
-        if (!pendingIntent.hasNotificationPayload()) {
-            replace(pendingIntent, replacement = null)
-            return
-        }
-
-        val routes = notificationNavigation.prepareNavigation(pendingIntent)
-        replace(pendingIntent, replacement = routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Route))
     }
 
-    private fun replace(pendingIntent: Intent, replacement: PendingNavigation?) {
-        _pendingNavigation.update { current ->
-            if (current is PendingNavigation.RawIntent && current.intent === pendingIntent) {
-                replacement
-            } else {
-                current
-            }
+    private suspend fun resolve(pending: PendingNavigation.RawIntent, walletConnect: WalletConnectHandler) {
+        val action = pending.intent.dataString?.let(::urlAction)
+
+        when (action) {
+            null -> replace(pending, navigation(notificationNavigation.prepareNavigation(pending.intent)))
+            else -> resolve(pending, action, walletConnect)
         }
+    }
+
+    private suspend fun resolve(pending: PendingNavigation.Unresolved, action: UrlAction?, walletConnect: WalletConnectHandler) {
+        replace(pending, action?.let { navigation(routes(it, walletConnect)) })
+    }
+
+    private suspend fun routes(action: UrlAction, walletConnect: WalletConnectHandler): List<NavKey> = when (action) {
+        is UrlAction.WalletConnect -> {
+            when (val link = action.link) {
+                is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
+                WalletConnectLink.Request -> walletConnect.onRequest()
+                is WalletConnectLink.Session -> Unit
+            }
+            emptyList()
+        }
+        is UrlAction.Deeplink -> listOfNotNull(action.deeplink.toRoute())
+        is UrlAction.Payment -> paymentNavigation.prepareNavigation(action.payment.toPrimitives().request)
+    }
+
+    private fun navigation(routes: List<NavKey>): PendingNavigation? =
+        routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Route)
+
+    private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {
+        _pendingNavigation.update { current -> if (current === pending) replacement else current }
     }
 
     @VisibleForTesting
