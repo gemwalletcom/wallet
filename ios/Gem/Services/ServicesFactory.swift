@@ -290,6 +290,7 @@ struct ServicesFactory {
             presenter: navigationPresenter,
             assetsService: assetsService,
             connectionsService: connectionsService,
+            eventPresenterService: eventPresenterService,
             transactionsService: transactionsService,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,

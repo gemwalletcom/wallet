@@ -3,6 +3,7 @@
 import AssetsService
 import Components
 import ConnectionsService
+import EventPresenterService
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -20,6 +21,7 @@ final class NavigationHandler: Sendable {
 
     private let assetsService: AssetsService
     private let connectionsService: ConnectionsService
+    private let eventPresenterService: EventPresenterService
     private let transactionsService: TransactionsService
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
@@ -31,6 +33,7 @@ final class NavigationHandler: Sendable {
         presenter: NavigationPresenter,
         assetsService: AssetsService,
         connectionsService: ConnectionsService,
+        eventPresenterService: EventPresenterService,
         transactionsService: TransactionsService,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
@@ -39,6 +42,7 @@ final class NavigationHandler: Sendable {
         self.presenter = presenter
         self.assetsService = assetsService
         self.connectionsService = connectionsService
+        self.eventPresenterService = eventPresenterService
         self.transactionsService = transactionsService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
@@ -61,7 +65,9 @@ final class NavigationHandler: Sendable {
 
     @MainActor
     func handle(code: String) async {
-        guard let action = try? URLParser.from(code: code) else { return }
+        guard let action = try? URLParser.from(code: code) else {
+            return presentNotSupported()
+        }
         await handle(action)
     }
 
@@ -71,6 +77,7 @@ final class NavigationHandler: Sendable {
             try await handleURLAction(action)
         } catch {
             debugLog("NavigationHandler URLAction error: \(error)")
+            presentNotSupported()
         }
     }
 
@@ -182,6 +189,10 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
+    private func presentNotSupported() {
+        eventPresenterService.toastPresenter.toastMessage = .error(Localized.Errors.notSupported)
+    }
+
     private func selectTab(for tab: TabItem?) {
         guard let tab else { return }
         navigationState.selectedTab = tab
