@@ -24,20 +24,17 @@ struct Migrations {
     }
 
     static func removeChain(_ db: Database, chain: String) throws {
-        let quotedChain = "\"\(chain)\""
-        let quotedAssetIdPrefix = "\"\(chain)_"
-
         try db.execute(
-            sql: "DELETE FROM \(WalletConnectionRecord.databaseTableName) WHERE instr(chains, ?) > 0",
-            arguments: [quotedChain],
+            sql: "DELETE FROM \(WalletConnectionRecord.databaseTableName) WHERE instr(chains, '\"' || ? || '\"') > 0",
+            arguments: [chain],
         )
         try db.execute(
-            sql: "DELETE FROM \(NotificationRecord.databaseTableName) WHERE instr(item, ?) > 0 OR instr(item, ?) > 0",
-            arguments: [quotedChain, quotedAssetIdPrefix],
+            sql: "DELETE FROM \(NotificationRecord.databaseTableName) WHERE instr(item, '\"' || ? || '\"') > 0 OR instr(item, '\"' || ? || '_') > 0",
+            arguments: [chain, chain],
         )
         try db.execute(
-            sql: "UPDATE \(AssetRecord.databaseTableName) SET associations = '[]' WHERE instr(associations, ?) > 0 OR instr(associations, ?) > 0",
-            arguments: [quotedChain, quotedAssetIdPrefix],
+            sql: "UPDATE \(AssetRecord.databaseTableName) SET associations = '[]' WHERE instr(associations, '\"' || ? || '\"') > 0 OR instr(associations, '\"' || ? || '_') > 0",
+            arguments: [chain, chain],
         )
         try db.execute(
             sql: "DELETE FROM \(ContactAddressRecord.databaseTableName) WHERE chain = ?",

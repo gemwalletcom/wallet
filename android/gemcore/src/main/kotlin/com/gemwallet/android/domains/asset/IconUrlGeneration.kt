@@ -19,13 +19,7 @@ import uniffi.gemstone.SwapperProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
 
-fun Chain.getIconUrl(): String {
-    val icon = when (this) {
-        Chain.SeiEvm -> "sei"
-        else -> string
-    }
-    return "file:///android_asset/chains/icons/${icon}.svg"
-}
+fun Chain.getIconUrl(): String = "file:///android_asset/chains/icons/${string}.svg"
 
 fun AssetId.getIconUrl(): String = when {
     tokenId.isNullOrEmpty() -> when (chain) {

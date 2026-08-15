@@ -48,7 +48,7 @@ public struct ChainImage: Sendable {
         case .gnosis: Images.Chains.gnosis
         case .celestia: Images.Chains.celestia
         case .injective: Images.Chains.injective
-        case .seiEvm: Images.Chains.sei
+        case .seiEvm: Images.Chains.seievm
         case .manta: Images.Chains.manta
         case .noble: Images.Chains.noble
         case .mantle: Images.Chains.mantle
