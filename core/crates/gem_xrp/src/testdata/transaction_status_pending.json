@@ -1,0 +1,18 @@
+{
+  "result": {
+    "Account": "rnXZ876yGEhoATQSYegtD8bg8wpA8TTX5a",
+    "Amount": "1",
+    "DeliverMax": "1",
+    "Destination": "rnZmVGX6f4pUYyS4oXYJzoLdRojQV8y297",
+    "Fee": "11",
+    "Flags": 0,
+    "LastLedgerSequence": 99743783,
+    "Sequence": 96791415,
+    "SigningPubKey": "ED0D97D2D94F98BCFA7BD4042BEC4184F07382B1DDE537B5F58E39C72BBEE64385",
+    "TransactionType": "Payment",
+    "TxnSignature": "B0E4B6A46E483294D339AE26C65F328D202D9BDBC1C77D46F8E975C12991C70207D1291CF2176510BFC3DD2860F4F4BE89A8107D3FD85347B9E16EC962AD7B05",
+    "hash": "474F58E6C78F1DE8542036AB3C16E2B5A4089241DEE3E58142154DC3CA0E8271",
+    "status": "success",
+    "validated": false
+  }
+}

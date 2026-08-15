@@ -3,7 +3,9 @@ use number_formatter::BigNumberFormatter;
 use serde::{Deserialize, Serialize, de};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_u64_from_str};
 
-use crate::constants::XRP_DEFAULT_ASSET_DECIMALS;
+use primitives::TransactionState;
+
+use crate::constants::{RESULT_SUCCESS, XRP_DEFAULT_ASSET_DECIMALS};
 
 fn deserialize_issued_amount<'de, D>(deserializer: D) -> Result<BigUint, D::Error>
 where
@@ -231,10 +233,23 @@ pub struct TransactionJson {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionStatus {
-    pub status: String,
+    #[serde(default)]
+    pub validated: bool,
+    #[serde(rename = "metaData", alias = "meta")]
+    pub meta: Option<TransactionMeta>,
     #[serde(rename = "Fee")]
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub fee: BigUint,
+}
+
+impl TransactionStatus {
+    pub fn state(&self) -> TransactionState {
+        match &self.meta {
+            Some(meta) if self.validated && meta.result == RESULT_SUCCESS => TransactionState::Confirmed,
+            Some(_) if self.validated => TransactionState::Failed,
+            _ => TransactionState::Pending,
+        }
+    }
 }
 
 #[cfg(test)]

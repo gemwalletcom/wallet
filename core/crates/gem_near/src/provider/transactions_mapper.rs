@@ -1,19 +1,21 @@
-use crate::constants::{TRANSACTION_STATUS_EXECUTED, TRANSACTION_STATUS_EXECUTED_OPTIMISTIC, TRANSACTION_STATUS_FINAL};
 use crate::models::transaction::BroadcastResult;
 use std::error::Error;
 
 pub fn map_transaction_broadcast(response: &BroadcastResult) -> Result<String, Box<dyn Error + Sync + Send>> {
-    match response.final_execution_status.as_str() {
-        TRANSACTION_STATUS_FINAL | TRANSACTION_STATUS_EXECUTED | TRANSACTION_STATUS_EXECUTED_OPTIMISTIC => Ok(response.transaction.hash.clone()),
-        _ => Err(format!("Broadcast failed with status: {}", response.final_execution_status).into()),
+    if response.is_executed() {
+        Ok(response.transaction.hash.clone())
+    } else {
+        Err(format!("Broadcast failed with status: {}", response.final_execution_status).into())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::transaction::{BroadcastResult, BroadcastTransaction, Outcome, TransactionOutcome};
+    use crate::constants::TRANSACTION_STATUSES_EXECUTED;
+    use crate::models::transaction::{BroadcastResult, BroadcastTransaction, ExecutionStatus, Outcome, TransactionOutcome};
     use primitives::JsonRpcResult;
+    use serde_json::Value;
 
     fn create_test_transaction() -> BroadcastTransaction {
         BroadcastTransaction {
@@ -34,9 +36,10 @@ mod tests {
 
     #[test]
     fn test_map_transaction_broadcast_success() {
-        for status in [TRANSACTION_STATUS_FINAL, TRANSACTION_STATUS_EXECUTED, TRANSACTION_STATUS_EXECUTED_OPTIMISTIC] {
+        for status in TRANSACTION_STATUSES_EXECUTED {
             let response = BroadcastResult {
                 final_execution_status: status.to_string(),
+                status: ExecutionStatus::SuccessValue(String::new()),
                 transaction: create_test_transaction(),
                 transaction_outcome: create_test_outcome("417494768750000000000"),
             };
@@ -50,13 +53,13 @@ mod tests {
     fn test_map_transaction_broadcast_failure() {
         let response = BroadcastResult {
             final_execution_status: "EXECUTION_FAILURE".to_string(),
+            status: ExecutionStatus::Failure(Value::Null),
             transaction: create_test_transaction(),
             transaction_outcome: create_test_outcome("0"),
         };
 
-        let result = map_transaction_broadcast(&response);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("EXECUTION_FAILURE"));
+        let error = map_transaction_broadcast(&response).unwrap_err();
+        assert_eq!(error.to_string(), "Broadcast failed with status: EXECUTION_FAILURE");
     }
 
     #[test]
