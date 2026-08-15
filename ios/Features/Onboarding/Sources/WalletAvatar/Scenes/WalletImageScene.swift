@@ -25,7 +25,7 @@ public struct WalletImageScene: View {
     public var body: some View {
         VStack {
             AvatarView(
-                avatarImage: model.avatarAssetImage(for: model.dbWallet),
+                avatarImage: model.avatarAssetImage(for: model.wallet),
                 size: model.emojiViewSize,
                 removeAction: model.hasAvatar ? { onRemoveAvatar() } : nil,
             )

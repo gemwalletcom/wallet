@@ -34,7 +34,7 @@ public struct WalletDetailScene: View {
                         Spacer()
                         VStack(spacing: .medium) {
                             AvatarView(
-                                avatarImage: model.avatarAssetImage(for: model.dbWallet),
+                                avatarImage: model.avatarAssetImage(for: model.wallet),
                                 size: .image.extraLarge,
                                 action: model.onSelectImage,
                             )

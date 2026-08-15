@@ -13,7 +13,6 @@ import WalletService
 @MainActor
 public final class WalletDetailViewModel {
     private let navigationPath: Binding<NavigationPath>
-    let wallet: Wallet
     let walletService: WalletService
     private let explorerService: any ExplorerLinkFetchable
 
@@ -23,7 +22,7 @@ public final class WalletDetailViewModel {
     var isPresentingExportWallet: ExportWalletType?
 
     public let walletQuery: ObservableQuery<WalletRequest>
-    public var dbWallet: Wallet {
+    public var wallet: Wallet {
         walletQuery.value
     }
 
@@ -34,7 +33,6 @@ public final class WalletDetailViewModel {
         explorerService: any ExplorerLinkFetchable = ExplorerService.standard,
     ) {
         self.navigationPath = navigationPath
-        self.wallet = wallet
         self.walletService = walletService
         self.explorerService = explorerService
         nameInput = wallet.name
