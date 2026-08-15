@@ -134,7 +134,9 @@ impl ToJsonRpcRequest for SolanaRpc {
                     "limit": limit,
                 }))
             ]),
-            Self::GetSupply => json!([confirmed_config(json!({}))]),
+            Self::GetSupply => json!([confirmed_config(json!({
+                "excludeNonCirculatingAccountsList": true,
+            }))]),
             Self::GetTokenAccountsByOwner(owner, filter) => json!([owner, filter.value(), confirmed_encoding_config(SolanaAccountEncoding::JsonParsed)]),
             Self::GetTransaction(signature) => json!([
                 signature,
@@ -245,6 +247,15 @@ mod tests {
     #[test]
     fn includes_confirmed_config_when_requested() {
         assert_request(SolanaRpc::GetSlot(SolanaRpcConfig::Confirmed), method::GET_SLOT, json!([{"commitment": "confirmed"}]));
+    }
+
+    #[test]
+    fn excludes_supply_account_list() {
+        assert_request(
+            SolanaRpc::GetSupply,
+            method::GET_SUPPLY,
+            json!([{"commitment": "confirmed", "excludeNonCirculatingAccountsList": true}]),
+        );
     }
 
     #[test]
