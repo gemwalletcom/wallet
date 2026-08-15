@@ -40,10 +40,7 @@ import javax.inject.Singleton
 object DatabaseModule {
     @Singleton
     @Provides
-    fun provideRoom(
-        @ApplicationContext context: Context,
-        passwordStore: PasswordStore,
-    ): GemDatabase = Room.databaseBuilder(
+    fun provideRoom(@ApplicationContext context: Context, passwordStore: PasswordStore): GemDatabase = Room.databaseBuilder(
             context = context,
             klass = GemDatabase::class.java,
             name = "gem.db",

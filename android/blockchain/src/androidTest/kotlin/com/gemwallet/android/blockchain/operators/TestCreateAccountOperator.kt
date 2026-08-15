@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.operators
 
 import androidx.test.core.app.ApplicationProvider
+import com.gemwallet.android.ext.available
 import com.gemwallet.android.testkit.LOCAL_KEYSTORE_TEST_PHRASE
 import com.gemwallet.android.testkit.TEST_PHRASE
 import com.gemwallet.android.testkit.gemstoneTestAccount
@@ -45,7 +46,7 @@ class TestCreateAccountOperator {
 
     @Test
     fun testCreate_account_derive_address_matches_ios_local_keystore() {
-        Chain.entries.forEach { chain ->
+        Chain.available().forEach { chain ->
             val account = gemstoneTestAccount(context, chain = chain, phrase = LOCAL_KEYSTORE_TEST_PHRASE)
 
             assertEquals("Unexpected derived address for $chain", expectedAddress(chain), account.address)

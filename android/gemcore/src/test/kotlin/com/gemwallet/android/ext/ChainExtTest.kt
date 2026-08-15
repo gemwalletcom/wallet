@@ -16,7 +16,7 @@ class ChainExtTest {
         assertEquals(AssetType.ERC20, Chain.SeiEvm.assetType())
         assertEquals(EVMChain.SeiEvm, Chain.SeiEvm.toEVM())
         assertEquals(ChainType.Ethereum, Chain.SeiEvm.toChainType())
-        assertEquals("file:///android_asset/chains/icons/seievm.svg", Chain.SeiEvm.getIconUrl())
+        assertEquals("file:///android_asset/chains/icons/sei.svg", Chain.SeiEvm.getIconUrl())
     }
 
     @Test

@@ -4,73 +4,82 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object Migration_85_86 : Migration(85, 86) {
-    internal const val SEI = "sei"
-
     override fun migrate(db: SupportSQLiteDatabase) {
-        removeChains(db, setOf(SEI))
+        removeChain(db, "sei")
     }
 }
 
-internal fun removeChains(db: SupportSQLiteDatabase, chains: Set<String>) {
-    for (chain in chains) {
-        chainRemovalStatements(chain).forEach { statement ->
-            db.execSQL(statement.sql, statement.arguments.toTypedArray())
-        }
-    }
-}
-
-internal data class MigrationStatement(
-    val sql: String,
-    val arguments: List<Any?>,
-) {
-    override fun toString(): String = "$sql | ${arguments.joinToString()}"
-}
-
-internal fun chainRemovalStatements(chain: String): List<MigrationStatement> {
+private fun removeChain(db: SupportSQLiteDatabase, chain: String) {
     val assetIdPattern = "${chain}\\_%"
     val quotedChain = "\"$chain\""
     val quotedAssetIdPrefix = "\"${chain}_"
-    fun assetId(column: String) = "$column = ? OR $column LIKE ? ESCAPE '\\'"
-
-    return listOf(
-        MigrationStatement(
-            "DELETE FROM wallets_connections WHERE instr(chains, ?) > 0",
-            listOf(quotedChain),
-        ),
-        MigrationStatement(
-            "DELETE FROM in_app_notifications WHERE instr(item, ?) > 0 OR instr(item, ?) > 0",
-            listOf(quotedChain, quotedAssetIdPrefix),
-        ),
-        MigrationStatement(
-            "UPDATE asset SET associations = '[]' WHERE instr(associations, ?) > 0 OR instr(associations, ?) > 0",
-            listOf(quotedChain, quotedAssetIdPrefix),
-        ),
-        MigrationStatement("DELETE FROM contacts_addresses WHERE chain = ?", listOf(chain)),
-        MigrationStatement(
-            "DELETE FROM tx_swap_metadata WHERE ${assetId("from_asset_id")} OR ${assetId("to_asset_id")}",
-            listOf(chain, assetIdPattern, chain, assetIdPattern),
-        ),
-        MigrationStatement(
-            "DELETE FROM transactions WHERE ${assetId("assetId")} OR ${assetId("feeAssetId")}",
-            listOf(chain, assetIdPattern, chain, assetIdPattern),
-        ),
-        MigrationStatement(
-            "DELETE FROM prices WHERE ${assetId("asset_id")}",
-            listOf(chain, assetIdPattern),
-        ),
-        MigrationStatement(
-            "DELETE FROM price_alerts WHERE ${assetId("assetId")}",
-            listOf(chain, assetIdPattern),
-        ),
-        MigrationStatement(
-            "DELETE FROM recent_assets WHERE ${assetId("asset_id")} OR ${assetId("to_asset_id")}",
-            listOf(chain, assetIdPattern, chain, assetIdPattern),
-        ),
-        MigrationStatement(
-            "DELETE FROM banners WHERE chain = ? OR ${assetId("asset_id")}",
-            listOf(chain, chain, assetIdPattern),
-        ),
-    ) + listOf("nft_assets", "nft_collections", "nodes", "addresses", "accounts", "asset").map { table ->
-        MigrationStatement("DELETE FROM $table WHERE chain = ?", listOf(chain))
+    fun deleteAssetReferences(table: String, column: String) {
+        db.execSQL(
+            "DELETE FROM $table WHERE $column = ? OR $column LIKE ? ESCAPE '\\'",
+            arrayOf(chain, assetIdPattern),
+        )
     }
+
+    db.execSQL("DELETE FROM wallets_connections WHERE instr(chains, ?) > 0", arrayOf(quotedChain))
+    db.execSQL(
+        "DELETE FROM in_app_notifications WHERE instr(item, ?) > 0 OR instr(item, ?) > 0",
+        arrayOf(quotedChain, quotedAssetIdPrefix),
+    )
+    db.execSQL(
+        "UPDATE asset SET associations = '[]' WHERE instr(associations, ?) > 0 OR instr(associations, ?) > 0",
+        arrayOf(quotedChain, quotedAssetIdPrefix),
+    )
+    db.execSQL("DELETE FROM contacts_addresses WHERE chain = ?", arrayOf(chain))
+    db.execSQL(
+        "DELETE FROM tx_swap_metadata WHERE " +
+            "from_asset_id = ? OR from_asset_id LIKE ? ESCAPE '\\' OR " +
+            "to_asset_id = ? OR to_asset_id LIKE ? ESCAPE '\\' OR " +
+            "tx_id IN (SELECT id FROM transactions WHERE " +
+            "assetId = ? OR assetId LIKE ? ESCAPE '\\' OR " +
+            "feeAssetId = ? OR feeAssetId LIKE ? ESCAPE '\\')",
+        arrayOf(chain, assetIdPattern, chain, assetIdPattern, chain, assetIdPattern, chain, assetIdPattern),
+    )
+    db.execSQL(
+        "DELETE FROM transactions WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\' OR " +
+            "feeAssetId = ? OR feeAssetId LIKE ? ESCAPE '\\'",
+        arrayOf(chain, assetIdPattern, chain, assetIdPattern),
+    )
+    db.execSQL(
+        "DELETE FROM search WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\' OR " +
+            "perpetualId IN (SELECT id FROM perpetuals WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\')",
+        arrayOf(chain, assetIdPattern, chain, assetIdPattern),
+    )
+    db.execSQL(
+        "DELETE FROM perpetuals_positions WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\' OR " +
+            "perpetualId IN (SELECT id FROM perpetuals WHERE assetId = ? OR assetId LIKE ? ESCAPE '\\')",
+        arrayOf(chain, assetIdPattern, chain, assetIdPattern),
+    )
+    deleteAssetReferences("perpetuals", "assetId")
+    deleteAssetReferences("stake_delegations", "assetId")
+    deleteAssetReferences("stake_validators", "assetId")
+    db.execSQL(
+        "DELETE FROM nft_assets_associations WHERE asset_id IN (SELECT id FROM nft_assets WHERE chain = ?)",
+        arrayOf(chain),
+    )
+    db.execSQL("DELETE FROM nft_assets WHERE chain = ?", arrayOf(chain))
+    db.execSQL("DELETE FROM nft_collections WHERE chain = ?", arrayOf(chain))
+    deleteAssetReferences("balances", "asset_id")
+    deleteAssetReferences("asset_links", "asset_id")
+    deleteAssetReferences("asset_market", "asset_id")
+    deleteAssetReferences("fiat_transactions", "assetId")
+    deleteAssetReferences("prices", "asset_id")
+    deleteAssetReferences("price_alerts", "assetId")
+    db.execSQL(
+        "DELETE FROM recent_assets WHERE asset_id = ? OR asset_id LIKE ? ESCAPE '\\' OR " +
+            "to_asset_id = ? OR to_asset_id LIKE ? ESCAPE '\\'",
+        arrayOf(chain, assetIdPattern, chain, assetIdPattern),
+    )
+    db.execSQL(
+        "DELETE FROM banners WHERE chain = ? OR asset_id = ? OR asset_id LIKE ? ESCAPE '\\'",
+        arrayOf(chain, chain, assetIdPattern),
+    )
+    db.execSQL("DELETE FROM nodes WHERE chain = ?", arrayOf(chain))
+    db.execSQL("DELETE FROM addresses WHERE chain = ?", arrayOf(chain))
+    db.execSQL("DELETE FROM accounts WHERE chain = ?", arrayOf(chain))
+    db.execSQL("DELETE FROM asset WHERE chain = ?", arrayOf(chain))
 }

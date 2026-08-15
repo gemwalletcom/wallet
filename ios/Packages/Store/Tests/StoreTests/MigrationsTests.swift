@@ -63,30 +63,41 @@ struct MigrationsTests {
     }
 
     @Test
-    func removeChainsRemovesSeiReferences() throws {
+    func removeChainRemovesSeiReferencesAndPreservesSeiEvm() throws {
         let store = DB.mock()
-        let chain = Migrations.sei
 
         try store.dbQueue.write { db in
-            try seedChain(db, chain: chain)
-
-            try Migrations.removeChains(db, chains: [chain])
-
-            #expect(
-                try String.fetchOne(
-                    db,
-                    sql: """
-                    SELECT 'assets=' || (SELECT COUNT(*) FROM assets WHERE chain = '\(chain)') ||
-                        ',accounts=' || (SELECT COUNT(*) FROM wallets_accounts WHERE chain = '\(chain)') ||
-                        ',connections=' || (SELECT COUNT(*) FROM wallets_connections WHERE instr(chains, '"\(chain)"') > 0) ||
-                        ',notifications=' || (SELECT COUNT(*) FROM notifications WHERE instr(item, '"\(chain)"') > 0)
-                    """,
-                ) == "assets=0,accounts=0,connections=0,notifications=0",
+            try seedChain(db, chain: "sei", associations: "[]")
+            try seedChain(db, chain: "seievm", associations: "[{\"assetId\":\"sei\"}]")
+            try db.execute(
+                sql: "INSERT INTO contacts (id, name, createdAt, updatedAt) VALUES ('contact', 'Contact', 0, 0)",
             )
+            try db.execute(
+                sql: "INSERT INTO contacts_addresses (id, contactId, address, chain) VALUES ('sei-contact', 'contact', 'sei-address', 'sei'), ('seievm-contact', 'contact', 'seievm-address', 'seievm')",
+            )
+        }
+
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("Remove chain", foreignKeyChecks: .immediate) { db in
+            try Migrations.removeChain(db, chain: "sei")
+        }
+        try migrator.migrate(store.dbQueue)
+
+        try store.dbQueue.read { (db: Database) throws in
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM assets WHERE chain = 'sei'") == 0)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM assets WHERE chain = 'seievm'") == 1)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wallets_accounts WHERE chain = 'sei'") == 0)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wallets_accounts WHERE chain = 'seievm'") == 1)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wallets") == 2)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wallets_connections") == 1)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM notifications") == 1)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM contacts_addresses") == 1)
+            #expect(try String.fetchOne(db, sql: "SELECT associations FROM assets WHERE id = 'seievm'") == "[]")
+            #expect(try Row.fetchAll(db, sql: "PRAGMA foreign_key_check").isEmpty)
         }
     }
 
-    private func seedChain(_ db: Database, chain: String) throws {
+    private func seedChain(_ db: Database, chain: String, associations: String) throws {
         let walletId = "wallet-\(chain)"
         try db.execute(
             sql: "INSERT INTO wallets (id, name, type, `index`, `order`, isPinned) VALUES (?, ?, 'single', 0, 0, 0)",
@@ -95,7 +106,7 @@ struct MigrationsTests {
         try db.execute(
             sql: "INSERT INTO assets (id, chain, name, symbol, decimals, type, isEnabled, isBuyable, isSellable, isSwappable, isStakeable, isEarnable, rank, hasImage, associations) " +
                 "VALUES (?, ?, ?, ?, 6, 'native', 1, 0, 0, 0, 0, 0, 1, 0, ?)",
-            arguments: [chain, chain, chain, chain, "[]"],
+            arguments: [chain, chain, chain, chain, associations],
         )
         try db.execute(
             sql: "INSERT INTO wallets_accounts (walletId, chain, address, `index`, derivationPath) VALUES (?, ?, ?, 0, '')",

@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.service.store.database
 
 import androidx.room.TypeConverter
-import com.gemwallet.android.ext.find
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Chain
 import kotlinx.serialization.builtins.ListSerializer
@@ -14,7 +13,7 @@ class ChainConverters {
 
     @TypeConverter
     fun toChain(value: String): Chain {
-        return Chain.find(value)
+        return Chain.entries.firstOrNull { it.string == value }
             ?: throw IllegalArgumentException("Unknown chain: $value")
     }
 

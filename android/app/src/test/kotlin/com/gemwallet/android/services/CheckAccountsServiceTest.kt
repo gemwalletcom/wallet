@@ -4,16 +4,17 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.ext.available
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
@@ -42,14 +43,14 @@ class CheckAccountsServiceTest {
 
     @Test
     fun invoke_repairsMissingNativeAssetsWithoutCreatingNewAccounts() = runBlocking {
-        val accounts = Chain.entries.map { chain ->
+        val accounts = Chain.available().map { chain ->
             mockAccount(chain = chain)
         }
         val wallet = mockWallet(
             id = "wallet-1",
             accounts = accounts,
         )
-        val nativeAssets = Chain.entries
+        val nativeAssets = Chain.available()
             .filterNot { it == Chain.Ethereum }
             .map { chain -> mockAsset(chain = chain) }
 
@@ -75,9 +76,11 @@ class CheckAccountsServiceTest {
 
     @Test
     fun invoke_doesNotRepairWhenExpectedNativeAssetsExist() = runBlocking {
+        mockkStatic("com.gemwallet.android.ext.ChainKt")
+        every { Chain.available() } returns setOf(Chain.Solana)
+
         val wallet = mockWallet(
             id = "wallet-1",
-            type = WalletType.Single,
             accounts = listOf(mockAccount(chain = Chain.Solana)),
         )
         val nativeAssets = listOf(

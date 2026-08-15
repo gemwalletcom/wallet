@@ -16,11 +16,8 @@ import uniffi.gemstone.validateAddress
 import uniffi.gemstone.checksumAddress as gemstoneChecksumAddress
 import java.math.BigInteger
 
-private val config by lazy { Config() }
-private val allChains: List<Chain> = Chain.entries
-
 private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
-    allChains.associateWith { chain ->
+    Chain.entries.associateWith { chain ->
         val wrapper = uniffi.gemstone.chainAssetWrapper(chain.string)
         ChainAsset(
             asset = wrapper.asset.toDTO(),
@@ -29,15 +26,9 @@ private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
     }
 }
 
-private val chainConfigCache by lazy {
-    allChains.associateWith { chain -> config.getChainConfig(chain.string) }
-}
-
 private fun Chain.chainAsset(): ChainAsset {
     return chainAssetCache[this] ?: throw IllegalArgumentException("Unsupported chain: $string")
 }
-
-private fun Chain.chainConfig() = chainConfigCache[this] ?: throw IllegalArgumentException("Unsupported chain: $string")
 
 fun Chain.assetType(): AssetType? {
     return when (this) {
@@ -115,19 +106,19 @@ fun Chain.toEVM(): EVMChain? {
     return EVMChain.entries.firstOrNull { it.string == string }
 }
 
-fun Chain.getReserveBalance(): BigInteger = chainConfig().accountActivationFee?.toBigInteger() ?: BigInteger.ZERO
+fun Chain.getReserveBalance(): BigInteger = Config().getChainConfig(this.string).accountActivationFee?.toBigInteger() ?: BigInteger.ZERO
 
-fun Chain.getTokenActivationFee(): BigInteger = chainConfig().tokenActivationFee?.toBigInteger() ?: BigInteger.ZERO
+fun Chain.getTokenActivationFee(): BigInteger = Config().getChainConfig(this.string).tokenActivationFee?.toBigInteger() ?: BigInteger.ZERO
 
-fun Chain.getReserveBalanceUrl(): String? = chainConfig().accountActivationFeeUrl
+fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string).accountActivationFeeUrl
 
-fun Chain.getMinimumAccountBalance(): Long = chainConfig().minimumAccountBalance?.toLong() ?: 0L
+fun Chain.getMinimumAccountBalance(): Long = Config().getChainConfig(this.string).minimumAccountBalance?.toLong() ?: 0L
 
-fun Chain.isStakeSupported(): Boolean = chainConfig().isStakeSupported
+fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
-fun Chain.isNftSupported(): Boolean = chainConfig().isNftSupported
+fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
-fun Chain.isDefiSupported(): Boolean = chainConfig().isDefiSupported
+fun Chain.isDefiSupported(): Boolean = Config().getChainConfig(this.string).isDefiSupported
 
 fun Chain.asset(): Asset {
     return chainAsset().asset
@@ -137,7 +128,11 @@ fun Chain.networkName(): String {
     return chainAsset().networkName
 }
 
-fun Chain.Companion.find(value: String): Chain? = allChains.firstOrNull { it.string == value }
+fun Chain.Companion.findByString(value: String): Chain? {
+    return Chain.entries.firstOrNull { it.string == value }
+}
+
+fun Chain.Companion.available() = Chain.entries.toSet()
 
 fun List<Chain>.filter(query: String): List<Chain> {
     return if (query.isBlank()) this else filter { chain ->
@@ -209,12 +204,12 @@ fun Chain.toChainType(): ChainType {
 
 
 fun Chain.getNetworkId(): String {
-    return chainConfig().networkId
+    return Config().getChainConfig(string).networkId
 }
 
 fun Chain.isSwapSupport(): Boolean {
     return try {
-        chainConfig().isSwapSupported
+        Config().getChainConfig(string).isSwapSupported
     } catch (_: Throwable) {
         false
     }
@@ -223,10 +218,10 @@ fun Chain.isSwapSupport(): Boolean {
 fun Chain.Companion.swapSupport() = Chain.entries.filter { it.isSwapSupport() }
 
 fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
-    it.string == chainConfig().feeUnitType
+    it.string == Config().getChainConfig(string).feeUnitType
 }
 
-fun Chain.isMemoSupport() = chainConfig().isMemoSupported
+fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 
 fun Chain.isValidAddress(address: String): Boolean = validateAddress(checksumAddress(address), string)
 
@@ -235,7 +230,7 @@ fun Chain.checksumAddress(address: String): String = gemstoneChecksumAddress(add
 fun Chain.isPrivateKeyImportSupported(): Boolean = supportsPrivateKeyImport(string)
 
 fun uniffi.gemstone.Chain.toChain(): Chain? {
-    return Chain.find(this)
+    return Chain.entries.firstOrNull { it.string == this }
 }
 
 val Chain.Companion.referralChain: Chain get() = Chain.Ethereum

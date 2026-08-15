@@ -36,7 +36,7 @@ class TokensRepository (
         if (query.isEmpty() && tags.isEmpty()) {
             return@withContext false
         }
-        val networkAssets = async { tokenService.search(query, chains.ifEmpty { Chain.entries }) }
+        val networkAssets = async { tokenService.search(query, chains.ifEmpty { Chain.entries.toList() }) }
         val tokens = runCatchingCancellable {
             searchAssets.searchAssets(
                 query = query,

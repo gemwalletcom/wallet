@@ -19,7 +19,7 @@ fun ContactChainSelectScene(
 
     val chainFilter = rememberTextFieldState()
     val query = chainFilter.text.toString()
-    val chains = remember(query) { Chain.entries.filter(query.lowercase()) }
+    val chains = remember(query) { Chain.entries.toList().filter(query.lowercase()) }
 
     SelectChain(
         chains = chains,

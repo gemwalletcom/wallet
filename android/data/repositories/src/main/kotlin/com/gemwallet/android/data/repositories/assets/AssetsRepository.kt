@@ -21,6 +21,7 @@ import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
@@ -360,7 +361,7 @@ class AssetsRepository @Inject constructor(
     }
 
     suspend fun updateNativeAssetRanks() = withContext(Dispatchers.IO) {
-        val basics = Chain.entries.map { it.asset().defaultBasic }
+        val basics = Chain.available().map { it.asset().defaultBasic }
         assetsDao.insert(basics.map { it.toRecord() })
         for (basic in basics) {
             runCatching { assetsDao.updateAssetRank(basic.asset.id.toIdentifier(), basic.score.rank) }

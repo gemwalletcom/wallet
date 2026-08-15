@@ -1,6 +1,5 @@
 package com.wallet.core.primitives
 
-import com.gemwallet.android.ext.find
 import com.gemwallet.android.serializer.TransactionIdSerializer
 import kotlinx.serialization.Serializable
 
@@ -16,7 +15,7 @@ data class TransactionId(
                 return null
             }
 
-            val chain = Chain.find(components[0]) ?: return null
+            val chain = Chain.entries.firstOrNull { it.string == components[0] } ?: return null
             return TransactionId(chain, components[1])
         }
     }

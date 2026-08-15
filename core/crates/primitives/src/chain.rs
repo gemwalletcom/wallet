@@ -169,7 +169,7 @@ impl Chain {
     }
 
     pub fn stakeable() -> Vec<Self> {
-        Self::all().into_iter().filter(|chain| chain.is_stake_supported()).collect()
+        Self::all().into_iter().filter(|x| x.is_stake_supported()).collect()
     }
 
     pub fn perpetual_chains() -> Vec<Self> {
@@ -184,6 +184,13 @@ mod tests {
     #[test]
     fn test_mayachain_swap_not_supported() {
         assert!(!Chain::Mayachain.is_swap_supported());
+    }
+
+    #[test]
+    fn test_all_excludes_legacy_sei() {
+        let chains = Chain::all();
+        assert!(!chains.contains(&Chain::Sei));
+        assert!(chains.contains(&Chain::SeiEvm));
     }
 
     #[test]

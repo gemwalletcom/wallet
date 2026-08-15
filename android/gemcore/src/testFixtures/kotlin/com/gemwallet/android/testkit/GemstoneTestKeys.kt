@@ -1,7 +1,6 @@
 package com.gemwallet.android.testkit
 
 import android.content.Context
-import com.gemwallet.android.ext.find
 import com.gemwallet.android.ext.words
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
@@ -50,6 +49,6 @@ private fun GemKeystoreAccount.toAccount(): Account {
 }
 
 private fun String.toPrimitiveChain(): Chain {
-    return Chain.find(this)
+    return Chain.entries.firstOrNull { it.string == this }
         ?: throw IllegalArgumentException("Unsupported chain: $this")
 }
