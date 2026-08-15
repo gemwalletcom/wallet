@@ -1,6 +1,7 @@
 use num_bigint::BigUint;
 use primitives::TransactionState;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use serde_serializers::deserialize_biguint_from_str;
 
 use crate::constants::TRANSACTION_STATUSES_EXECUTED;
@@ -32,7 +33,7 @@ pub enum ExecutionStatus {
     NotStarted,
     Started,
     SuccessValue(String),
-    Failure(serde_json::Value),
+    Failure(Value),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

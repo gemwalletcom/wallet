@@ -235,7 +235,7 @@ pub struct TransactionJson {
 pub struct TransactionStatus {
     #[serde(default)]
     pub validated: bool,
-    #[serde(default, rename = "metaData", alias = "meta")]
+    #[serde(rename = "metaData", alias = "meta")]
     pub meta: Option<TransactionMeta>,
     #[serde(rename = "Fee")]
     #[serde(deserialize_with = "deserialize_biguint_from_str")]

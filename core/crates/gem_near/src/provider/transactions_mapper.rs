@@ -15,6 +15,7 @@ mod tests {
     use crate::constants::TRANSACTION_STATUSES_EXECUTED;
     use crate::models::transaction::{BroadcastResult, BroadcastTransaction, ExecutionStatus, Outcome, TransactionOutcome};
     use primitives::JsonRpcResult;
+    use serde_json::Value;
 
     fn create_test_transaction() -> BroadcastTransaction {
         BroadcastTransaction {
@@ -52,14 +53,13 @@ mod tests {
     fn test_map_transaction_broadcast_failure() {
         let response = BroadcastResult {
             final_execution_status: "EXECUTION_FAILURE".to_string(),
-            status: ExecutionStatus::Failure(serde_json::Value::Null),
+            status: ExecutionStatus::Failure(Value::Null),
             transaction: create_test_transaction(),
             transaction_outcome: create_test_outcome("0"),
         };
 
-        let result = map_transaction_broadcast(&response);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("EXECUTION_FAILURE"));
+        let error = map_transaction_broadcast(&response).unwrap_err();
+        assert_eq!(error.to_string(), "Broadcast failed with status: EXECUTION_FAILURE");
     }
 
     #[test]
