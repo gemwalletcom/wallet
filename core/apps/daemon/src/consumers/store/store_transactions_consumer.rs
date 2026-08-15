@@ -82,11 +82,12 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             .flat_map(|subscription| transactions.iter().map(move |transaction| (subscription, transaction)))
             .filter(|(subscription, transaction)| transaction.addresses().contains(&subscription.address))
             .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| existing_assets_map.contains_key(id)))
-            .filter(|(_, transaction)| {
+            .filter(|(subscription, transaction)| {
+                let transaction = transaction.finalize(vec![subscription.address.clone()]);
                 existing_assets_map.get(&transaction.asset_id).is_some_and(|asset_price| {
                     !self
                         .config
-                        .is_transaction_insufficient_amount(transaction, &asset_price.asset.asset, asset_price.price, min_amount)
+                        .is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, min_amount)
                 })
             })
             .collect::<Vec<_>>();

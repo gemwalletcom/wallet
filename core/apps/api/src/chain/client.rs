@@ -34,9 +34,14 @@ impl ChainClient {
     }
 
     pub async fn get_transactions(&self, request: ChainAddress, from_timestamp: Option<u64>, limit: usize) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        self.providers
-            .get_transactions_by_address(request.chain, TransactionsRequest::new(request.address, limit).with_from_timestamp(from_timestamp))
-            .await
+        let address = request.address;
+        Ok(self
+            .providers
+            .get_transactions_by_address(request.chain, TransactionsRequest::new(address.clone(), limit).with_from_timestamp(from_timestamp))
+            .await?
+            .into_iter()
+            .map(|transaction| transaction.finalize(vec![address.clone()]))
+            .collect())
     }
 
     pub async fn get_validators(&self, chain: Chain) -> Result<Vec<primitives::StakeValidator>, Box<dyn Error + Send + Sync>> {
@@ -68,7 +73,8 @@ impl ChainClient {
         transaction_type: Option<&str>,
     ) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         let transactions = self
-            .get_block_transactions(chain, block_number, None)
+            .providers
+            .get_block_transactions(chain, block_number as u64)
             .await?
             .into_iter()
             .map(|x| x.finalize(addresses.clone()))

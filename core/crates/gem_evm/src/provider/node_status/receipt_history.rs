@@ -6,6 +6,8 @@ use primitives::{DAY, MONTH};
 
 use crate::rpc::EthereumProvider;
 
+const SEARCH_WINDOW_MS: u64 = 60_000;
+
 pub(super) async fn record_receipt_checks<C: Client + Clone>(provider: &EthereumProvider<C>, recorder: NodeCheckRecorder, latest_block: u64) -> NodeCheckRecorder {
     let recorder = recorder
         .record_timed("eth_getReceipt(history)", get_receipt_at_age(provider, latest_block, DAY, "1 day"))
@@ -19,8 +21,7 @@ pub(super) async fn record_receipt_checks<C: Client + Clone>(provider: &Ethereum
 async fn find_transaction_hash<C: Client + Clone>(provider: &EthereumProvider<C>, latest_block: u64, block_depth: u64) -> Result<String, String> {
     let target_block = latest_block.saturating_sub(block_depth);
     let block_time = u64::from(provider.get_chain().block_time()).max(1);
-    let one_minute_ms = 60_000_u64;
-    let search_blocks = one_minute_ms.div_ceil(block_time).clamp(1, 10);
+    let search_blocks = SEARCH_WINDOW_MS.div_ceil(block_time);
 
     for offset in 0..search_blocks {
         let block_number = target_block.saturating_sub(offset);
