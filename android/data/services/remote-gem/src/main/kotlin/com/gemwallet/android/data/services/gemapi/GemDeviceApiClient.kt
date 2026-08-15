@@ -120,8 +120,8 @@ interface GemDeviceApiClient {
         @Query("from_timestamp") from: Long,
     ): TransactionsResponse?
 
-    @GET("/v2/devices/transaction/{transaction_id}")
-    suspend fun getTransaction(@Path("transaction_id") transactionId: String): Transaction
+    @GET("/v2/devices/transactions/{transaction_id}")
+    suspend fun getTransaction(@Tag walletId: WalletId, @Path("transaction_id") transactionId: String): Transaction
 
     @POST("/v2/devices/scan/transaction")
     suspend fun getScanTransaction(@Body payload: ScanTransactionPayload): ScanTransaction

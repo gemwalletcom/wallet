@@ -73,6 +73,17 @@ impl TransactionsClient {
         Ok(self.database.transactions()?.get_transaction_by_id(id)?.as_primitive(vec![]))
     }
 
+    pub fn get_transaction_by_wallet_id(&self, device_row_id: i32, wallet_id: i32, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
+        let addresses = self
+            .database
+            .wallets()?
+            .get_subscriptions_by_wallet_id(device_row_id, wallet_id)?
+            .into_iter()
+            .map(|(_, address)| address.address)
+            .collect::<Vec<_>>();
+        Ok(self.database.transactions()?.get_transaction_by_id(id)?.as_primitive(addresses.clone()).finalize(addresses))
+    }
+
     pub fn get_transactions_by_hash(&self, hash: &str) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         Ok(self
             .database

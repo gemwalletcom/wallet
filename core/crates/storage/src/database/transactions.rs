@@ -158,7 +158,7 @@ impl TransactionsStore for DatabaseClient {
             .filter(state.ne(TransactionState::InTransit));
 
         if let Some(filter_asset) = filter_asset_id {
-            query = query.filter(asset_id.eq(filter_asset));
+            query = query.filter(transactions_addresses::asset_id.eq(filter_asset));
         }
 
         if let Some(datetime) = from_datetime {

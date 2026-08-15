@@ -1,6 +1,6 @@
 use crate::{
     AddressName, AssetAddress, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionSwapMetadata, asset_id::AssetId, transaction_direction::TransactionDirection,
-    transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
+    transaction_metadata_types::TransactionAssetTransfersMetadata, transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
 };
 
 use chrono::{DateTime, Utc};
@@ -155,18 +155,24 @@ impl Transaction {
     }
 
     pub fn addresses(&self) -> Vec<String> {
-        // Append addresses from utxo inputs and outputs
-        let mut array = vec![self.from.clone(), self.to.clone()];
-        array.extend(self.input_addresses());
-        array.extend(self.output_addresses());
-        array.dedup();
-        array.into_iter().filter(|x| !x.is_empty()).collect()
+        let mut addresses = vec![self.from.clone(), self.to.clone()];
+        addresses.extend(self.input_addresses());
+        addresses.extend(self.output_addresses());
+        if let Some(metadata) = self.asset_transfers_metadata() {
+            addresses.extend(metadata.asset_transfers.into_iter().flat_map(|transfer| [transfer.from, transfer.to]));
+        }
+
+        let mut unique = HashSet::new();
+        addresses.retain(|address| !address.is_empty() && unique.insert(address.clone()));
+        addresses
     }
 
     pub fn finalize(&self, addresses: Vec<String>) -> Self {
-        let chain = self.asset_id.chain;
-        if !chain.is_utxo() {
-            return self.clone();
+        if !self.asset_id.chain.is_utxo() {
+            let Some(metadata) = self.asset_transfers_metadata() else {
+                return self.clone();
+            };
+            return self.project_asset_transfer(metadata, &addresses).unwrap_or_else(|| self.clone());
         }
 
         let inputs_addresses = self.input_addresses();
@@ -215,28 +221,43 @@ impl Transaction {
                 (to, value)
             }
         };
-        Transaction {
-            id: self.id.clone(),
-            hash: self.hash.clone(),
-            asset_id: self.asset_id.clone(),
+        Self {
             from,
             to,
-            contract: self.contract.clone(),
-            transaction_type: self.transaction_type.clone(),
-            state: self.state,
-            block_number: self.block_number.clone(),
-            sequence: self.sequence.clone(),
-            fee: self.fee.clone(),
-            fee_asset_id: self.fee_asset_id.clone(),
-            value: value.to_string(),
-            memo: self.memo.clone(),
+            value,
             direction,
-            utxo_inputs: self.utxo_inputs.clone(),
-            utxo_outputs: self.utxo_outputs.clone(),
-            metadata: self.metadata.clone(),
-            data: self.data.clone(),
-            created_at: self.created_at,
+            ..self.clone()
         }
+    }
+
+    fn project_asset_transfer(&self, metadata: TransactionAssetTransfersMetadata, addresses: &[String]) -> Option<Self> {
+        let contains = |address: &str| addresses.iter().any(|candidate| candidate.eq_ignore_ascii_case(address));
+        let mut transfers = metadata.asset_transfers.into_iter().filter(|transfer| contains(&transfer.from) || contains(&transfer.to));
+        let transfer = transfers.next()?;
+        if transfers.next().is_some() {
+            return None;
+        }
+
+        let direction = if contains(&transfer.from) {
+            if contains(&transfer.to) {
+                TransactionDirection::SelfTransfer
+            } else {
+                TransactionDirection::Outgoing
+            }
+        } else {
+            TransactionDirection::Incoming
+        };
+
+        Some(Self {
+            asset_id: transfer.asset_id,
+            from: transfer.from,
+            to: transfer.to,
+            transaction_type: TransactionType::Transfer,
+            value: transfer.value.to_string(),
+            direction,
+            metadata: None,
+            ..self.clone()
+        })
     }
 
     fn utxo_calculate_value(values: &[TransactionUtxoInput], addresses: &HashSet<String>) -> BigUint {
@@ -245,6 +266,10 @@ impl Transaction {
 
     fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
         self.metadata.as_ref().and_then(|value| TransactionSwapMetadata::deserialize(value).ok())
+    }
+
+    fn asset_transfers_metadata(&self) -> Option<TransactionAssetTransfersMetadata> {
+        self.metadata.as_ref().and_then(|value| TransactionAssetTransfersMetadata::deserialize(value).ok())
     }
 
     pub fn nft_asset_id(&self) -> Option<NFTAssetId> {
@@ -258,7 +283,7 @@ impl Transaction {
     }
 
     pub fn asset_ids(&self) -> Vec<AssetId> {
-        match self.transaction_type {
+        let mut asset_ids = match self.transaction_type {
             TransactionType::Transfer
             | TransactionType::TokenApproval
             | TransactionType::StakeDelegate
@@ -277,14 +302,29 @@ impl Transaction {
             | TransactionType::EarnDeposit
             | TransactionType::EarnWithdraw => vec![self.asset_id.clone()],
             TransactionType::Swap => self.swap_metadata().map(|metadata| vec![metadata.from_asset, metadata.to_asset]).unwrap_or_default(),
+        };
+        if let Some(metadata) = self.asset_transfers_metadata() {
+            asset_ids.extend(metadata.asset_transfers.into_iter().map(|transfer| transfer.asset_id));
         }
-        .into_iter()
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .collect()
+        asset_ids.into_iter().collect::<HashSet<_>>().into_iter().collect()
     }
 
     pub fn assets_addresses(&self) -> Vec<AssetAddress> {
+        if let Some(metadata) = self.asset_transfers_metadata() {
+            return metadata
+                .asset_transfers
+                .into_iter()
+                .flat_map(|transfer| {
+                    [
+                        AssetAddress::new(transfer.asset_id.clone(), transfer.from, None),
+                        AssetAddress::new(transfer.asset_id, transfer.to, None),
+                    ]
+                })
+                .collect::<HashSet<_>>()
+                .into_iter()
+                .collect();
+        }
+
         match self.transaction_type {
             TransactionType::Transfer | TransactionType::TransferNFT => self
                 .addresses()
@@ -354,7 +394,7 @@ impl Transaction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Asset, TransactionUtxoInput};
+    use crate::{Asset, TransactionUtxoInput, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
     fn test_asset_ids_transfer() {
@@ -514,5 +554,52 @@ mod tests {
         let transaction = original.clone().finalize(vec!["0xfrom".to_string()]);
 
         assert_eq!((transaction.from, transaction.to, transaction.value), (original.from, original.to, original.value));
+    }
+
+    #[test]
+    fn test_asset_transfer_metadata() {
+        let usdc = Asset::mock_ethereum_usdc().id;
+        let original = Transaction {
+            transaction_type: TransactionType::SmartContractCall,
+            metadata: Some(
+                serde_json::to_value(TransactionAssetTransfersMetadata {
+                    asset_transfers: vec![
+                        TransactionAssetTransfer {
+                            asset_id: usdc.clone(),
+                            from: "0xContract".to_string(),
+                            to: "0xUser".to_string(),
+                            value: BigUint::from(10u8),
+                        },
+                        TransactionAssetTransfer {
+                            asset_id: usdc.clone(),
+                            from: "0xContract".to_string(),
+                            to: "0xOther".to_string(),
+                            value: BigUint::from(20u8),
+                        },
+                    ],
+                })
+                .unwrap(),
+            ),
+            ..Transaction::mock()
+        };
+
+        assert_eq!(original.asset_ids().into_iter().collect::<HashSet<_>>(), HashSet::from([Asset::mock().id, usdc.clone()]));
+        assert_eq!(original.assets_addresses().len(), 3);
+        let serialized = serde_json::to_string(&original).unwrap();
+        let deserialized: Transaction = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized.asset_transfers_metadata(), original.asset_transfers_metadata());
+
+        let incoming = original.finalize(vec!["0xuser".to_string()]);
+        assert_eq!(incoming.transaction_type, TransactionType::Transfer);
+        assert_eq!(incoming.asset_id, usdc);
+        assert_eq!(incoming.from, "0xContract");
+        assert_eq!(incoming.to, "0xUser");
+        assert_eq!(incoming.value, "10");
+        assert_eq!(incoming.direction, TransactionDirection::Incoming);
+        assert_eq!(incoming.metadata, None);
+
+        let ambiguous = original.finalize(vec!["0xUser".to_string(), "0xOther".to_string()]);
+        assert_eq!(ambiguous.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(ambiguous.metadata, original.metadata);
     }
 }
