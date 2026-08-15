@@ -288,7 +288,6 @@ pub fn load_config() -> Result<(NodeConfig, HashMap<Chain, ChainConfig>), Config
         .collect::<Result<Vec<_>, _>>()?
         .into_iter()
         .flat_map(|cf| cf.chains)
-        .filter(|config| !config.chain.is_disabled())
         .map(|c| (c.chain, c))
         .collect();
 

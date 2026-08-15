@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn test_wallet_node_check_request() {
-        for chain in Chain::all_with_disabled() {
+        for chain in Chain::all() {
             let NodeCheckRequest::Wallet { address, transaction_id } = node_check_request(chain, NodeCheckProfile::Wallet) else {
                 panic!("wallet profile expected for {chain}");
             };

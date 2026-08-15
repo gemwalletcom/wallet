@@ -219,16 +219,15 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
     let max_check = config.get_duration(primitives::ConfigKey::ParserMaxCheckInterval)?;
     let error_interval = config.get_duration(primitives::ConfigKey::ParserErrorInterval)?;
 
-    let chains: Vec<Chain> = match chain {
-        Some(chain) if !chain.is_disabled() => vec![chain],
-        Some(_) => Vec::new(),
-        None => database
+    let chains: Vec<Chain> = if let Some(chain) = chain {
+        vec![chain]
+    } else {
+        database
             .parser_state()?
             .get_parser_states()?
             .into_iter()
             .flat_map(|x| Chain::from_str(x.chain.as_ref()))
-            .filter(|chain| !chain.is_disabled())
-            .collect(),
+            .collect()
     };
 
     info_with_fields!("parser init", chains = format!("{:?}", chains));

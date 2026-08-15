@@ -5,9 +5,7 @@ import com.wallet.core.primitives.WalletId
 interface DeleteWallet {
     suspend fun deleteWallet(
         walletId: WalletId,
-        onBoard: () -> Unit = {},
-        onComplete: () -> Unit = {},
-    ): Boolean
-
-    suspend fun deleteEmptyWallets(): Boolean
+        onBoard: () -> Unit,
+        onComplete: () -> Unit,
+    )
 }

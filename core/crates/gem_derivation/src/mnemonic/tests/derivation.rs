@@ -88,7 +88,7 @@ fn test_derive_accounts_public_key() {
 
 #[test]
 fn test_mnemonic_derivation_coverage_for_every_chain() {
-    for chain in Chain::all_with_disabled() {
+    for chain in Chain::all() {
         let expected = expected_derivation(chain);
         let accounts = derive_accounts_from_mnemonic(PHRASE, vec![chain]).unwrap();
         assert_eq!(accounts.len(), 1);

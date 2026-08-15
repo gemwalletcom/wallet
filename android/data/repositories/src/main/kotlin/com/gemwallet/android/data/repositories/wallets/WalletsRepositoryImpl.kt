@@ -44,9 +44,6 @@ class WalletsRepositoryImpl @Inject constructor(
 
     override fun getAll(): Flow<List<Wallet>> = walletsDao.getAll().toDTO()
 
-    override suspend fun getEmptyWallets(): List<Wallet> =
-        walletsDao.getEmptyWallets().map { it.toDTO(emptyList()) }
-
     override suspend fun addWatch(walletName: String, address: String, chain: Chain): Wallet {
         val walletId = walletIdGenerator.generateWalletId(WalletType.View, chain, address)
         val hasWallet = getWallet(walletId).firstOrNull()

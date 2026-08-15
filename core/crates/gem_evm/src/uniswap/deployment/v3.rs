@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn test_deployment_addresses_are_checksummed() {
-        for chain in Chain::all_with_disabled() {
+        for chain in Chain::all() {
             let deployments = [
                 get_uniswap_router_deployment_by_chain(&chain),
                 get_pancakeswap_router_deployment_by_chain(&chain),

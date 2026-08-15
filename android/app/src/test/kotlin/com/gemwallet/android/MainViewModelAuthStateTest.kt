@@ -1,6 +1,5 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AuthState
@@ -93,7 +92,6 @@ class MainViewModelAuthStateTest {
             bridgesRepository = mockk<BridgesRepository>(relaxed = true),
             syncService = mockk<SyncService>(relaxed = true),
             migrateV3KeystoreService = mockk<MigrateV3KeystoreService>(relaxed = true),
-            deleteWallet = mockk<DeleteWallet>(relaxed = true),
             checkAccountsService = mockk<CheckAccountsService>(relaxed = true),
             lockTimer = mockk<LockTimer>(relaxed = true),
             pendingNavigationCoordinator = mockk<PendingNavigationCoordinator>(relaxed = true),

@@ -50,14 +50,6 @@ pub struct ChainConfig {
     pub stake: Option<StakeChainConfig>,
 }
 
-const DISABLED_CHAINS: &[Chain] = &[Chain::Sei];
-
-impl ChainConfig {
-    pub fn is_disabled(&self) -> bool {
-        DISABLED_CHAINS.contains(&self.chain)
-    }
-}
-
 // Centralized chain configurations. Add new chains here.
 static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
     vec![

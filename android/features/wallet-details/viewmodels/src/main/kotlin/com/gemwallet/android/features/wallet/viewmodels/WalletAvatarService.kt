@@ -7,7 +7,6 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.gemwallet.android.application.wallet.coordinators.SetWalletAvatar
-import com.gemwallet.android.data.service.store.LocalStore
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class WalletAvatarService @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
     private val emojiRenderer: EmojiAvatarRenderer,
     private val localStore: LocalStore,
     private val setWalletAvatar: SetWalletAvatar,

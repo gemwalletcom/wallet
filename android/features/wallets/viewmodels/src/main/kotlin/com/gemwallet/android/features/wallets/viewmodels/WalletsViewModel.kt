@@ -30,7 +30,7 @@ class WalletsViewModel @Inject constructor(
     }
 
     fun deleteWallet(walletId: WalletId, onBoard: () -> Unit) = viewModelScope.launch {
-        deleteWallet.deleteWallet(walletId, onBoard)
+        deleteWallet.deleteWallet(walletId, onBoard) {}
     }
 
     fun togglePin(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
