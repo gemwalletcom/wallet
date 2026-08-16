@@ -25,18 +25,17 @@ public final class WalletsSceneViewModel {
 
     var isPresentingAlertMessage: AlertMessage?
     var walletDelete: Wallet?
-    var currentWalletId: WalletId?
+
+    var currentWalletId: WalletId? {
+        walletSessionService.currentWalletId
+    }
 
     let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
     let walletsQuery: ObservableQuery<WalletsRequest>
 
-    var pinnedWallets: [Wallet] {
-        pinnedWalletsQuery.value
-    }
-
-    var wallets: [Wallet] {
-        walletsQuery.value
-    }
+    var pinnedWallets: [Wallet] { pinnedWalletsQuery.value }
+    var wallets: [Wallet] { walletsQuery.value }
+    var hasWallets: Bool { wallets.isNotEmpty || pinnedWallets.isNotEmpty }
 
     public init(
         navigationPath: Binding<NavigationPath>,
@@ -48,7 +47,6 @@ public final class WalletsSceneViewModel {
         self.navigationPath = navigationPath
         service = walletService
         self.walletSessionService = walletSessionService
-        currentWalletId = walletSessionService.currentWalletId
         isPresentingAlertMessage = nil
         walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
@@ -67,7 +65,6 @@ public final class WalletsSceneViewModel {
 extension WalletsSceneViewModel {
     func setCurrent(_ walletId: WalletId) {
         walletSessionService.setCurrent(walletId: walletId)
-        currentWalletId = walletId
     }
 
     func onEdit(wallet: Wallet) {
@@ -109,6 +106,11 @@ extension WalletsSceneViewModel {
         dismiss()
     }
 
+    func onChangeWallets(dismiss: DismissAction) {
+        guard !hasWallets else { return }
+        dismiss()
+    }
+
     func onDelete(wallet: Wallet) {
         walletDelete = wallet
     }
@@ -124,7 +126,6 @@ extension WalletsSceneViewModel {
     func onDeleteConfirmed(wallet: Wallet) async {
         do {
             try await delete(wallet)
-            currentWalletId = walletSessionService.currentWalletId
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }

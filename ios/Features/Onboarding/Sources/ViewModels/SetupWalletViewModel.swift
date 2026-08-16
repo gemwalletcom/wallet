@@ -17,7 +17,7 @@ public final class SetupWalletViewModel: Sendable {
     private let onCompleteAction: (Wallet) -> Void
 
     public let query: ObservableQuery<WalletRequest>
-    var wallet: Wallet? {
+    var wallet: Wallet {
         query.value
     }
 
@@ -37,14 +37,13 @@ public final class SetupWalletViewModel: Sendable {
     }
 
     var title: String {
-        switch wallet?.source {
+        switch wallet.source {
         case .create: Localized.Wallet.New.title
-        case .import, .none: Localized.Wallet.Import.title
+        case .import: Localized.Wallet.Import.title
         }
     }
 
     var avatarAssetImage: AssetImage {
-        guard let wallet else { return AssetImage(placeholder: Images.Logo.logo) }
         let avatar = WalletViewModel(wallet: wallet).avatarImage
         return AssetImage(
             type: avatar.type,
@@ -55,18 +54,15 @@ public final class SetupWalletViewModel: Sendable {
     }
 
     func onSelectImage() {
-        guard let wallet else { return }
         onSelectImageAction(wallet)
     }
 
     func onComplete() {
-        guard let wallet else { return }
         onCompleteAction(wallet)
     }
 
     func onChangeWalletName() {
         do {
-            guard let wallet else { return }
             try walletService.rename(walletId: wallet.id, newName: nameInput)
         } catch {
             debugLog("Rename wallet error: \(error)")

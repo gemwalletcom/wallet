@@ -27,18 +27,6 @@ public struct WalletSessionService: WalletSessionManageable {
         return try? WalletId.from(id: id)
     }
 
-    public func setCurrent(index: Int) -> WalletId? {
-        guard let wallet = wallets.first(where: { $0.index == index }) else {
-            return nil
-        }
-        if let currentWallet, currentWallet == wallet {
-            return currentWallet.id
-        }
-        preferences.currentWalletId = wallet.id.id
-
-        return wallet.id
-    }
-
     public func setCurrent(walletId: WalletId?) {
         preferences.currentWalletId = walletId?.id
     }
