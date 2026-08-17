@@ -8,6 +8,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceA
 import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
 import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceAlertEnabled
 import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.coordinators.pricealerts.ExcludePriceAlertImpl
@@ -18,6 +19,7 @@ import com.gemwallet.android.data.coordinators.pricealerts.HasAssetPriceAlertsIm
 import com.gemwallet.android.data.coordinators.pricealerts.IncludePriceAlertImpl
 import com.gemwallet.android.data.coordinators.pricealerts.SetAssetPriceAlertEnabledImpl
 import com.gemwallet.android.data.coordinators.pricealerts.SetPriceAlertsEnabledImpl
+import com.gemwallet.android.data.coordinators.pricealerts.SyncAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
@@ -134,4 +136,15 @@ object PriceAlertModule {
     fun provideHasAssetPriceAlerts(
         priceAlertRepository: PriceAlertRepository,
     ): HasAssetPriceAlerts = HasAssetPriceAlertsImpl(priceAlertRepository)
+
+    @Provides
+    fun provideSyncAssetPriceAlerts(
+        hasAssetPriceAlerts: HasAssetPriceAlerts,
+        updatePriceAlerts: UpdatePriceAlerts,
+    ): SyncAssetPriceAlerts {
+        return SyncAssetPriceAlertsImpl(
+            hasAssetPriceAlerts = hasAssetPriceAlerts,
+            updatePriceAlerts = updatePriceAlerts,
+        )
+    }
 }
