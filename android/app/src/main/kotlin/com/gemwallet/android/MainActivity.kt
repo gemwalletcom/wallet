@@ -67,6 +67,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                     onIntentConsumed = viewModel::consumePendingNavigation,
                     onOpenSystemAuthSettings = systemAuthenticator::openSettings,
                     onWalletConnectPairingToastShown = viewModel::dismissWalletConnectPairingToast,
+                    onScanErrorShown = viewModel::dismissScanError,
                     onWalletConnectError = viewModel::showWalletConnectError,
                     onWalletConnectErrorDismiss = viewModel::resetWalletConnectError,
                 )

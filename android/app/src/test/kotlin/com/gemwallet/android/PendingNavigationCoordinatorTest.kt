@@ -33,69 +33,69 @@ class PendingNavigationCoordinatorTest {
     fun tearDown() = unmockkStatic("uniffi.gemstone.GemstoneKt")
 
     @Test
-    fun consume_withoutPendingIntent_isNoOp() = runTest {
-        coordinator.consume(NoOpWalletConnect)
+    fun buildRoutes_withoutPendingIntent_isNoOp() = runTest {
+        coordinator.buildRoutes(NoOpWalletConnect)
 
         assertNull(coordinator.pendingNavigation.value)
     }
 
     @Test
-    fun consume_walletConnectPairing_invokesPairingHandlerAndClears() = runTest {
+    fun buildRoutes_walletConnectPairing_invokesPairingHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "wc:abc@2?relay-protocol=irn"
         every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Connect(uri))
-        coordinator.setPendingIntent(intent(uri = uri))
+        coordinator.setIntent(intent(uri = uri))
 
-        coordinator.consume(handler)
+        coordinator.buildRoutes(handler)
 
         assertEquals(listOf("pairing:$uri"), handler.events)
         assertNull("intent must be cleared after handing off to wallet connect", coordinator.pendingNavigation.value)
     }
 
     @Test
-    fun consume_walletConnectRequest_invokesRequestHandlerAndClears() = runTest {
+    fun buildRoutes_walletConnectRequest_invokesRequestHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "gem://wc?requestId=42"
         every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Request)
-        coordinator.setPendingIntent(intent(uri = uri))
+        coordinator.setIntent(intent(uri = uri))
 
-        coordinator.consume(handler)
+        coordinator.buildRoutes(handler)
 
         assertEquals(listOf("request"), handler.events)
         assertNull(coordinator.pendingNavigation.value)
     }
 
     @Test
-    fun consume_webDeepLink_storesRoute() = runTest {
+    fun buildRoutes_webDeepLink_storesRoute() = runTest {
         val uri = "https://gemwallet.com/join/gemcoder"
         every { urlAction(uri) } returns UrlAction.Deeplink(Deeplink.Rewards(code = "gemcoder"))
-        coordinator.setPendingIntent(intent(uri = uri))
+        coordinator.setIntent(intent(uri = uri))
 
-        coordinator.consume(NoOpWalletConnect)
+        coordinator.buildRoutes(NoOpWalletConnect)
 
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
         assertEquals(listOf(ReferralRoute(code = "gemcoder")), routes)
     }
 
     @Test
-    fun consume_unknownIntentWithoutNotificationPayload_clears() = runTest {
+    fun buildRoutes_unknownIntentWithoutNotificationPayload_clears() = runTest {
         val uri = "https://example.com/unknown"
         every { urlAction(uri) } returns null
-        coordinator.setPendingIntent(intent(uri = uri))
+        coordinator.setIntent(intent(uri = uri))
 
-        coordinator.consume(NoOpWalletConnect)
+        coordinator.buildRoutes(NoOpWalletConnect)
 
         assertNull(coordinator.pendingNavigation.value)
     }
 
     @Test
-    fun consume_notificationPayload_storesRouteFromNotificationNavigation() = runTest {
+    fun buildRoutes_notificationPayload_storesRouteFromNotificationNavigation() = runTest {
         val intent = intent(uri = null, hasNotificationPayload = true)
         val expected = listOf(ReferralRoute(code = "from-notification"))
         coEvery { notificationNavigation.prepareNavigation(intent) } returns expected
-        coordinator.setPendingIntent(intent)
+        coordinator.setIntent(intent)
 
-        coordinator.consume(NoOpWalletConnect)
+        coordinator.buildRoutes(NoOpWalletConnect)
 
         coVerify(exactly = 1) { notificationNavigation.prepareNavigation(intent) }
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
@@ -103,19 +103,19 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
-    fun consume_notificationPayloadWithNoRoute_clears() = runTest {
+    fun buildRoutes_notificationPayloadWithNoRoute_clears() = runTest {
         val intent = intent(uri = null, hasNotificationPayload = true)
         coEvery { notificationNavigation.prepareNavigation(intent) } returns emptyList()
-        coordinator.setPendingIntent(intent)
+        coordinator.setIntent(intent)
 
-        coordinator.consume(NoOpWalletConnect)
+        coordinator.buildRoutes(NoOpWalletConnect)
 
         assertNull(coordinator.pendingNavigation.value)
     }
 
     @Test
     fun clear_clearsPendingNavigation() {
-        coordinator.setPendingIntent(intent(uri = "https://example.com"))
+        coordinator.setIntent(intent(uri = "https://example.com"))
 
         coordinator.clear()
 

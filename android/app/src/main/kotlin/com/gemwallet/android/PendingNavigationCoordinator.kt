@@ -17,15 +17,15 @@ import javax.inject.Singleton
 
 internal sealed interface PendingNavigation {
 
-    sealed interface Raw : PendingNavigation {
+    sealed interface Input : PendingNavigation {
         val code: String?
     }
 
-    data class RawIntent(val intent: Intent) : Raw {
+    data class FromIntent(val intent: Intent) : Input {
         override val code: String? = intent.dataString
     }
 
-    data class RawCode(override val code: String) : Raw
+    data class FromScan(override val code: String) : Input
 
     data class Routes(val routes: List<NavKey>) : PendingNavigation
 }
@@ -41,29 +41,34 @@ class PendingNavigationCoordinator @Inject constructor(
 
     fun handleIntent(intent: Intent) {
         if (intent.hasNotificationPayload() || intent.dataString != null) {
-            _pendingNavigation.update { PendingNavigation.RawIntent(Intent(intent)) }
+            _pendingNavigation.update { PendingNavigation.FromIntent(Intent(intent)) }
         }
     }
 
     fun handleScan(code: String) {
-        _pendingNavigation.update { PendingNavigation.RawCode(code) }
+        _pendingNavigation.update { PendingNavigation.FromScan(code) }
     }
 
     fun clear() {
         _pendingNavigation.update { null }
     }
 
-    suspend fun consume(walletConnect: WalletConnectHandler) {
-        val pending = _pendingNavigation.value as? PendingNavigation.Raw ?: return
+    suspend fun buildRoutes(walletConnect: WalletConnectHandler): Boolean {
+        val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return true
         val action = pending.code?.let(::urlAction)
 
         val routes = when {
             action != null -> routes(action, walletConnect)
-            pending is PendingNavigation.RawIntent -> notificationNavigation.prepareNavigation(pending.intent)
+            pending is PendingNavigation.FromIntent -> notificationNavigation.prepareNavigation(pending.intent)
             else -> emptyList()
         }
 
         replace(pending, routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Routes))
+
+        return when (pending) {
+            is PendingNavigation.FromIntent -> true
+            is PendingNavigation.FromScan -> routes.isNotEmpty() || action is UrlAction.WalletConnect
+        }
     }
 
     private suspend fun routes(action: UrlAction, walletConnect: WalletConnectHandler): List<NavKey> = when (action) {
@@ -87,8 +92,8 @@ class PendingNavigationCoordinator @Inject constructor(
     }
 
     @VisibleForTesting
-    internal fun setPendingIntent(intent: Intent) {
-        _pendingNavigation.update { PendingNavigation.RawIntent(intent) }
+    internal fun setIntent(intent: Intent) {
+        _pendingNavigation.update { PendingNavigation.FromIntent(intent) }
     }
 
     interface WalletConnectHandler {
