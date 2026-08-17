@@ -64,7 +64,7 @@ final class NavigationHandler: Sendable {
     @MainActor
     func handle(code: String) async {
         guard let action = try? URLParser.from(code: code) else {
-            return presentNotSupported()
+            return showError(AnyError(Localized.Errors.notSupported))
         }
         await handle(action)
     }
@@ -74,8 +74,7 @@ final class NavigationHandler: Sendable {
         do {
             try await handleURLAction(action)
         } catch {
-            debugLog("NavigationHandler URLAction error: \(error)")
-            presentNotSupported()
+            showError(error)
         }
     }
 
@@ -120,10 +119,11 @@ extension NavigationHandler {
 @MainActor
 extension NavigationHandler {
     private func handlePayment(_ payment: Payment) throws {
-        guard case let .request(request) = payment, let wallet = walletSessionService.currentWallet else {
+        guard let wallet = walletSessionService.currentWallet else { return }
+        guard case let .request(request) = payment else {
             throw AnyError(Localized.Errors.notSupported)
         }
-        let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [.enabledBalance])
+        let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
 
         presenter.isPresentingPayment.wrappedValue = try PaymentInputBuilder.build(payment: request, assets: assets)
     }
@@ -187,8 +187,9 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func presentNotSupported() {
-        eventPresenterService.toastPresenter.toastMessage = .error(Localized.Errors.notSupported)
+    private func showError(_ error: Error) {
+        debugLog("NavigationHandler error: \(error)")
+        eventPresenterService.toastPresenter.toastMessage = .error(error.localizedDescription)
     }
 
     private func selectTab(for tab: TabItem?) {
