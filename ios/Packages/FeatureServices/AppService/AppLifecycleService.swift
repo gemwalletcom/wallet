@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ConnectionsService
+import ConnectionStatusService
 import DeviceService
 import Foundation
-import ConnectionStatusService
 import PerpetualService
 import Preferences
 import Primitives
@@ -17,7 +17,7 @@ public actor AppLifecycleService: Sendable {
     private let deviceObserverService: DeviceObserverService
     private let streamObserverService: StreamObserverService
     private let streamSubscriptionService: StreamSubscriptionService
-    private let hyperliquidObserverService: any PerpetualObservable
+    private let perpetualEnablerService: PerpetualEnablerService
 
     private var currentWallet: Wallet?
 
@@ -28,7 +28,7 @@ public actor AppLifecycleService: Sendable {
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
         streamSubscriptionService: StreamSubscriptionService,
-        hyperliquidObserverService: any PerpetualObservable,
+        perpetualEnablerService: PerpetualEnablerService,
     ) {
         self.preferences = preferences
         self.connectionsService = connectionsService
@@ -36,7 +36,7 @@ public actor AppLifecycleService: Sendable {
         self.deviceObserverService = deviceObserverService
         self.streamObserverService = streamObserverService
         self.streamSubscriptionService = streamSubscriptionService
-        self.hyperliquidObserverService = hyperliquidObserverService
+        self.perpetualEnablerService = perpetualEnablerService
     }
 
     public func setup() async {
@@ -56,7 +56,7 @@ public actor AppLifecycleService: Sendable {
     }
 
     public func updatePerpetualConnection() async {
-        await connectPerpetual()
+        await perpetualEnablerService.updateEnablement(wallet: currentWallet)
     }
 
     public func handleScenePhase(_ phase: ScenePhase) async {
@@ -127,17 +127,13 @@ extension AppLifecycleService {
     }
 
     private func connectPerpetual() async {
-        if let wallet = currentWallet, preferences.showPerpetuals(for: wallet) {
-            await hyperliquidObserverService.setup(for: wallet)
-        } else {
-            await hyperliquidObserverService.disconnect()
-        }
+        await perpetualEnablerService.updateConnection(wallet: currentWallet)
     }
 
     private func disconnectObservers() async {
         async let connection: () = connectionStatusObserver.stop()
         async let price: () = streamObserverService.disconnect()
-        async let perpetual: () = hyperliquidObserverService.disconnect()
+        async let perpetual: () = perpetualEnablerService.disconnect()
         async let nodeAuthToken: () = deviceObserverService.stopNodeAuthTokenUpdates()
         _ = await (connection, price, perpetual, nodeAuthToken)
     }
