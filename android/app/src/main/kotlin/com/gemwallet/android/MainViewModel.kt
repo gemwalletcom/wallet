@@ -66,11 +66,11 @@ class MainViewModel @Inject constructor(
             combine(
                 _uiState.map { it.initialAuth == AuthState.Success }.distinctUntilChanged(),
                 pendingNavigation,
-            ) { unlocked, pending -> unlocked && pending is PendingNavigation.Unresolved }
+            ) { unlocked, pending -> unlocked && pending is PendingNavigation.Raw }
                 .distinctUntilChanged()
                 .filter { it }
                 .collect {
-                    pendingNavigationCoordinator.resolve(walletConnectHandler)
+                    pendingNavigationCoordinator.consume(walletConnectHandler)
                 }
         }
     }
@@ -150,7 +150,7 @@ class MainViewModel @Inject constructor(
 
     fun handleIntent(intent: Intent) = pendingNavigationCoordinator.handleIntent(intent)
 
-    fun consumePendingNavigation() = pendingNavigationCoordinator.consume()
+    fun consumePendingNavigation() = pendingNavigationCoordinator.clear()
 
     fun dismissWalletConnectPairingToast() {
         _uiState.update { it.copy(isWalletConnectPairingToastVisible = false) }

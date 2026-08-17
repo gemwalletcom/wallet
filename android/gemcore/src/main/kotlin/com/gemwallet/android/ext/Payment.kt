@@ -13,10 +13,10 @@ val Payment.request: PaymentRequest?
         is Payment.Link -> null
     }
 
-val PaymentAmount.exactValue: String?
-    get() = when (this) {
-        is PaymentAmount.ExactValue -> content
-        is PaymentAmount.AtomicValue -> null
+val PaymentRequest.exactAmount: String?
+    get() = when (val amount = amount) {
+        is PaymentAmount.ExactValue -> amount.content
+        is PaymentAmount.AtomicValue, null -> null
     }
 
 fun decodePayment(url: String): Payment? =

@@ -11,7 +11,8 @@ import java.math.BigInteger
 class PaymentTransfer(private val assetInfo: AssetInfo) {
 
     fun destination(request: PaymentRequest): PaymentDestination.Transfer {
-        if (!isSameAsset(request)) {
+        val assetId = request.assetId
+        if (assetId != null && assetId != assetInfo.asset.id) {
             return PaymentDestination.Unsupported
         }
         val address = assetInfo.asset.chain.checksumAddress(request.address)
@@ -20,11 +21,6 @@ class PaymentTransfer(private val assetInfo: AssetInfo) {
             null -> PaymentDestination.Recipient(assetInfo.asset.id, request)
             else -> PaymentDestination.Confirm(params)
         }
-    }
-
-    private fun isSameAsset(request: PaymentRequest): Boolean {
-        val assetId = request.assetId ?: return true
-        return assetId == assetInfo.asset.id
     }
 
     private fun confirmParams(request: PaymentRequest, address: String): ConfirmParams? {

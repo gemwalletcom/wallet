@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.main.views
 
-import android.widget.Toast
-import android.widget.Toast.makeText
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
@@ -23,7 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +29,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -73,15 +69,14 @@ fun MainScreen(
     val assetsViewModel: AssetsViewModel = hiltViewModel()
     val coroutineScope = rememberCoroutineScope()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
-    val context = LocalContext.current
     var isPresentingScanner by remember { mutableStateOf(false) }
 
     QrCodeScannerModal(
         isVisible = isPresentingScanner,
         onDismissRequest = { isPresentingScanner = false },
-        onResult = { scanned ->
+        onResult = { code ->
             isPresentingScanner = false
-            viewModel.onScan(scanned)
+            viewModel.onScan(code)
         },
     )
 

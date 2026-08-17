@@ -15,10 +15,8 @@ class PaymentNavigation @Inject constructor(
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
 ) {
 
-    suspend fun prepareNavigation(request: PaymentRequest?): List<NavKey> {
-        request ?: return emptyList()
-
-        return when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first())) {
+    suspend fun prepareNavigation(request: PaymentRequest): List<NavKey> =
+        when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first())) {
             PaymentDestination.Unsupported -> emptyList()
             is PaymentDestination.Confirm -> listOfNotNull(destination.params.pack()?.let(::ConfirmRoute))
             is PaymentDestination.Recipient -> listOf(
@@ -26,5 +24,4 @@ class PaymentNavigation @Inject constructor(
             )
             is PaymentDestination.SelectAsset -> listOf(SendSelectRoute(destination.request, destination.chains))
         }
-    }
 }
