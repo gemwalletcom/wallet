@@ -20,7 +20,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +40,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,6 +73,7 @@ import java.nio.ByteBuffer
 import kotlin.math.min
 
 private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
+private const val SCAN_FROM_GALLERY_TAG = "scanFromGallery"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -183,7 +184,7 @@ fun QRScannerScene(
             }
             IconButton(
                 onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.testTag("scanFromGallery"),
+                modifier = Modifier.testTag(SCAN_FROM_GALLERY_TAG),
             ) {
                 Icon(imageVector = AppIcons.Image, contentDescription = "from_image")
             }

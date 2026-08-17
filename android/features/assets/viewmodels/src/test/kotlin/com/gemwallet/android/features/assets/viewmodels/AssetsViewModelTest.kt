@@ -11,11 +11,11 @@ import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.wallet.core.primitives.Chain
-import com.gemwallet.android.data.repositories.config.UserConfig
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

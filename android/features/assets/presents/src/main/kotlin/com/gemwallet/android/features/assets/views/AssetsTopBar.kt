@@ -26,6 +26,9 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.WalletType
 
+private const val ScanActionTag = "assetsScanAction"
+private const val ManageActionTag = "assetsManageAction"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AssetsTopBar(
@@ -68,7 +71,7 @@ internal fun AssetsTopBar(
             if (onScan != null) {
                 IconButton(
                     onClick = onScan,
-                    Modifier.testTag("assetsScanAction")
+                    Modifier.testTag(ScanActionTag)
                 ) {
                     Icon(
                         imageVector = AppIcons.QrCodeScanner,
@@ -81,7 +84,7 @@ internal fun AssetsTopBar(
         actions = {
             IconButton(
                 onClick = onSearch,
-                Modifier.testTag("assetsManageAction")
+                Modifier.testTag(ManageActionTag)
             ) {
                 Icon(
                     imageVector = AppIcons.Search,
