@@ -99,6 +99,7 @@ class AmountStakeProviderTest {
     fun `undelegate builds UndelegateParams`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Undelegate(asset.id, validatorId = "v1", delegationId = "d1"))
         provider.assetInfo.filterNotNull().first()
+        provider.validatorState.filterNotNull().first()
         val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
         assertTrue(confirm is ConfirmParams.Stake.UndelegateParams)
     }
@@ -115,6 +116,7 @@ class AmountStakeProviderTest {
     fun `withdraw builds WithdrawParams`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Withdraw(asset.id, validatorId = "v1", delegationId = "d1"))
         provider.assetInfo.filterNotNull().first()
+        provider.validatorState.filterNotNull().first()
         val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
         assertTrue(confirm is ConfirmParams.Stake.WithdrawParams)
     }
