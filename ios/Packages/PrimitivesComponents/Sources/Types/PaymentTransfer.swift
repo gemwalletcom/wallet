@@ -9,63 +9,46 @@ import Primitives
 
 public struct PaymentTransfer: Sendable {
     private let asset: Asset
-    private let numberFormatter: BigNumberFormatter
 
-    public init(asset: Asset, numberFormatter: BigNumberFormatter = .standard) {
+    public init(asset: Asset) {
         self.asset = asset
-        self.numberFormatter = numberFormatter
     }
 
     public func destination(for payment: PaymentRequest) throws -> PaymentDestination {
-        guard isSameAsset(payment) else {
+        if let assetId = payment.assetId, assetId != asset.id {
             throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
         }
         let address = asset.chain.checksumAddress(payment.address)
         let recipient = Recipient(name: .none, address: address, memo: payment.memo)
 
-        switch confirmableValue(of: payment, address: address) {
-        case let .some(value):
-            return .confirm(
-                TransferData(
-                    type: .transfer(asset),
-                    recipientData: RecipientData(recipient: recipient, amount: .none),
-                    amount: .exact(value),
-                ),
-            )
-        case .none:
-            return .recipient(RecipientData(recipient: recipient, amount: exactAmount(of: payment)))
+        guard let value = confirmableValue(of: payment, address: address) else {
+            return .recipient(RecipientData(recipient: recipient, amount: payment.exactAmount))
         }
+        return .confirm(
+            TransferData(
+                type: .transfer(asset),
+                recipientData: RecipientData(recipient: recipient, amount: .none),
+                amount: .exact(value),
+            ),
+        )
     }
 }
 
 // MARK: - Private
 
 private extension PaymentTransfer {
-    func isSameAsset(_ payment: PaymentRequest) -> Bool {
-        guard let assetId = payment.assetId else { return true }
-        return assetId == asset.id
-    }
-
     func confirmableValue(of payment: PaymentRequest, address: String) -> BigInt? {
-        guard let value = transferValue(of: payment) else { return .none }
         guard asset.chain.isValidAddress(address), !needsMemoReview(payment) else { return .none }
-        return value
+        return transferValue(of: payment)
     }
 
     func needsMemoReview(_ payment: PaymentRequest) -> Bool {
         asset.chain.isMemoSupported && payment.memo != nil
     }
 
-    func exactAmount(of payment: PaymentRequest) -> String? {
-        switch payment.amount {
-        case let .exactValue(value): value
-        case .atomicValue, .none: .none
-        }
-    }
-
     func transferValue(of payment: PaymentRequest) -> BigInt? {
         switch payment.amount {
-        case let .exactValue(value): try? numberFormatter.exactNumber(from: value, decimals: asset.decimals.asInt)
+        case let .exactValue(value): try? BigNumberFormatter.standard.exactNumber(from: value, decimals: asset.decimals.asInt)
         case let .atomicValue(value): BigInt(value)
         case .none: .none
         }

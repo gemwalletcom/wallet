@@ -1,19 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 
 public enum PaymentInputBuilder {
     public static func build(payment: PaymentRequest, assets: [AssetData]) throws -> PaymentInput {
-        switch PaymentAsset.from(payment, assets: assets) {
-        case .unsupported:
+        let payable = payableAssets(for: payment, in: assets)
+
+        guard let assetData = payable.first else {
             throw AnyError(Localized.Errors.notSupported)
-        case let .single(assetData):
-            return try build(payment: payment, assetData: assetData)
-        case let .choice(payable):
-            return .selectAsset(.send(recipientData(for: payment)), chains: payable.map(\.asset.chain))
         }
+        if payable.count > 1 {
+            return .selectAsset(.send(recipientData(for: payment)), chains: payable.map(\.asset.chain).distinct())
+        }
+        return try build(payment: payment, assetData: assetData)
+    }
+
+    private static func payableAssets(for payment: PaymentRequest, in assets: [AssetData]) -> [AssetData] {
+        if let assetId = payment.assetId {
+            return assets.filter { $0.asset.id == assetId }
+        }
+        return assets.filter { $0.asset.chain.isValidAddress(payment.address) }
     }
 
     private static func build(payment: PaymentRequest, assetData: AssetData) throws -> PaymentInput {
@@ -32,13 +41,9 @@ public enum PaymentInputBuilder {
     }
 
     private static func recipientData(for payment: PaymentRequest) -> RecipientData {
-        let amount: String? = switch payment.amount {
-        case let .exactValue(value): value
-        case .atomicValue, .none: .none
-        }
-        return RecipientData(
+        RecipientData(
             recipient: Recipient(name: .none, address: payment.address, memo: payment.memo),
-            amount: amount,
+            amount: payment.exactAmount,
         )
     }
 }
