@@ -11,19 +11,19 @@ public extension View {
 private struct ScanQRCodeSheet: ViewModifier {
     @Binding var isPresented: Bool
 
-    @State private var scanned: String?
+    @State private var code: String?
 
     let action: (String) -> Void
 
     func body(content: Content) -> some View {
         content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
-            ScanQRCodeNavigationStack { scanned = $0 }
+            ScanQRCodeNavigationStack { code = $0 }
         }
     }
 
     private func onDismiss() {
-        guard let scanned else { return }
-        self.scanned = .none
-        action(scanned)
+        guard let code else { return }
+        self.code = .none
+        action(code)
     }
 }

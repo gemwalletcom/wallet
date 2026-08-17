@@ -150,15 +150,15 @@ struct RecipientSceneViewModelTests {
         model.onHandleScan("ethereum:0x123?amount=1.5", for: .address)
         model.onChangeAddressText("", new: model.addressInputModel.text)
 
-        #expect(model.scanned?.amount == "1.5")
+        #expect(model.recipientData?.amount == "1.5")
 
         model.onChangeAddressText("", new: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326")
 
-        #expect(model.scanned == nil)
+        #expect(model.recipientData == nil)
     }
 
     @Test
-    func prefilledRecipient_keepsAmount() {
+    func recipientData_keepsAmount() {
         let asset = Asset.mockEthereum()
         let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
         let model = RecipientSceneViewModel.mock(
@@ -172,11 +172,34 @@ struct RecipientSceneViewModelTests {
 
         #expect(model.addressInputModel.text == address)
         #expect(model.memo == "12345")
-        #expect(model.scanned?.amount == "10")
+        #expect(model.recipientData?.amount == "10")
 
         model.onChangeAddressText(address, new: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a")
 
-        #expect(model.scanned == nil)
+        #expect(model.recipientData == nil)
+    }
+
+    @Test
+    func destination_memoReview() throws {
+        let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
+        let address = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        let transfer = PaymentTransfer(asset: xrp)
+
+        let tagged = try transfer.destination(for: PaymentRequest(address: address, amount: .exactValue("10"), memo: "12345", assetId: xrp.id))
+
+        guard case let .recipient(data) = tagged else {
+            Issue.record("a destination tag must be reviewed, got \(tagged)")
+            return
+        }
+        #expect(data.recipient.memo == "12345")
+        #expect(data.amount == "10")
+
+        let untagged = try transfer.destination(for: PaymentRequest(address: address, amount: .exactValue("10"), memo: .none, assetId: xrp.id))
+
+        guard case .confirm = untagged else {
+            Issue.record("no tag to review, got \(untagged)")
+            return
+        }
     }
 
     @Test

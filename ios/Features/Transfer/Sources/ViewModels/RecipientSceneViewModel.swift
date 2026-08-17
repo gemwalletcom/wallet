@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
-import Formatters
 import Foundation
 import GemstonePrimitives
 import Keystore
@@ -34,7 +32,7 @@ public final class RecipientSceneViewModel {
     public var isPresentingScanner: RecipientScene.Field?
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
-    private(set) var scanned: RecipientData?
+    private(set) var recipientData: RecipientData?
 
     public let contactsQuery: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -141,7 +139,7 @@ extension RecipientSceneViewModel {
                     address: addressInputModel.resolvedAddress,
                     memo: memo,
                 ),
-                amount: scanned?.amount,
+                amount: recipientData?.amount,
             ),
         )
     }
@@ -165,8 +163,8 @@ extension RecipientSceneViewModel {
     }
 
     func onChangeAddressText(_: String, new: String) {
-        guard new != scanned?.recipient.address else { return }
-        scanned = .none
+        guard new != recipientData?.recipient.address else { return }
+        recipientData = .none
     }
 
     func onSelectRecipient(_ recipient: RecipientAddress) {
@@ -244,7 +242,7 @@ extension RecipientSceneViewModel {
     }
 
     private func update(from recipientData: RecipientData) {
-        scanned = recipientData
+        self.recipientData = recipientData
         addressInputModel.update(text: recipientData.recipient.address)
 
         if let memo = recipientData.recipient.memo {
