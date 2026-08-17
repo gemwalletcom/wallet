@@ -1,8 +1,11 @@
 use num_bigint::BigInt;
-use primitives::{AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType};
+use primitives::{AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, StakeType, TransactionFee, TransactionInputType};
 use std::collections::HashMap;
 
-use crate::{DEFAULT_SWAP_GAS_LIMIT, constants::STATIC_BASE_FEE, models::prioritization_fee::SolanaPrioritizationFee};
+use crate::{
+    constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT, STATIC_BASE_FEE},
+    models::prioritization_fee::SolanaPrioritizationFee,
+};
 
 const STAKE_ACCOUNT_CREATION_FEE: u64 = 2_282_880;
 
@@ -46,7 +49,7 @@ fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
         | TransactionInputType::TokenApprove(_, _)
         | TransactionInputType::Generic(_, _, _)
         | TransactionInputType::Perpetual(_, _)
-        | TransactionInputType::Earn(_, _, _) => BigInt::from(100_000),
+        | TransactionInputType::Earn(_, _, _) => BigInt::from(DEFAULT_GAS_LIMIT),
         TransactionInputType::Swap(_, _, swap_data) => swap_data
             .data
             .gas_limit
@@ -54,7 +57,7 @@ fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
             .and_then(|x| x.parse::<u64>().ok())
             .map(BigInt::from)
             .unwrap_or(BigInt::from(DEFAULT_SWAP_GAS_LIMIT)),
-        TransactionInputType::Stake(_, _) => BigInt::from(100_000),
+        TransactionInputType::Stake(_, _) => BigInt::from(DEFAULT_GAS_LIMIT),
     }
 }
 
@@ -110,7 +113,7 @@ pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fee
                 FeePriority::Fast => &total_priority_base * 3,
             };
 
-            let priority_fee = (total_priority.clone() * gas_limit.clone()) / BigInt::from(1_000_000);
+            let priority_fee = (total_priority.clone() * gas_limit.clone()) / BigInt::from(SOLANA_PRIORITY_FEE_SCALE);
             let unit_price = total_priority;
 
             FeeRate::new(*priority, GasPriceType::solana(static_base_fee.clone(), priority_fee, unit_price))

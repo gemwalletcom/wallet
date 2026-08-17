@@ -1,3 +1,5 @@
+#[cfg(feature = "rpc")]
+mod constants;
 pub mod models;
 
 #[cfg(feature = "signer")]

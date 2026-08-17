@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
 
 use gem_client::Client;
@@ -9,10 +9,14 @@ use primitives::{
     FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
 };
 
-use crate::rpc::PolkadotProvider;
+use crate::{constants::TRANSACTION_FEE_ESTIMATE, rpc::PolkadotProvider};
 
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for PolkadotProvider<C> {
+    fn transaction_fee_estimate_units(&self, _operation: TransactionFeeOperation) -> Option<u64> {
+        Some(TRANSACTION_FEE_ESTIMATE)
+    }
+
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let material = self.get_transaction_material().await?;
         let sender_balance = self.get_balance(input.sender_address).await?;

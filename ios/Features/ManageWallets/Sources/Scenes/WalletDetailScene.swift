@@ -33,14 +33,12 @@ public struct WalletDetailScene: View {
                     HStack {
                         Spacer()
                         VStack(spacing: .medium) {
-                            if let dbWallet = model.dbWallet {
-                                AvatarView(
-                                    avatarImage: model.avatarAssetImage(for: dbWallet),
-                                    size: .image.extraLarge,
-                                    action: model.onSelectImage,
-                                )
-                                .padding(.bottom, .extraLarge)
-                            }
+                            AvatarView(
+                                avatarImage: model.avatarAssetImage(for: model.wallet),
+                                size: .image.extraLarge,
+                                action: model.onSelectImage,
+                            )
+                            .padding(.bottom, .extraLarge)
                         }
                         Spacer()
                     }

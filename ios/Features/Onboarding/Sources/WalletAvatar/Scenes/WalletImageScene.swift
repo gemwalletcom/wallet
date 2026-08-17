@@ -24,15 +24,13 @@ public struct WalletImageScene: View {
 
     public var body: some View {
         VStack {
-            if let dbWallet = model.dbWallet {
-                AvatarView(
-                    avatarImage: model.avatarAssetImage(for: dbWallet),
-                    size: model.emojiViewSize,
-                    removeAction: model.hasAvatar ? { onRemoveAvatar() } : nil,
-                )
-                .padding(.top, .medium)
-                .padding(.bottom, .extraLarge)
-            }
+            AvatarView(
+                avatarImage: model.avatarAssetImage(for: model.wallet),
+                size: model.emojiViewSize,
+                removeAction: model.hasAvatar ? { onRemoveAvatar() } : nil,
+            )
+            .padding(.top, .medium)
+            .padding(.bottom, .extraLarge)
             switch model.source {
             case .onboarding:
                 listView

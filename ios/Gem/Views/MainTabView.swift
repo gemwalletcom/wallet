@@ -9,7 +9,6 @@ import Style
 import SwiftUI
 import Transactions
 import TransactionsService
-import WalletSessionService
 import WalletTab
 
 struct MainTabView: View {
@@ -22,10 +21,11 @@ struct MainTabView: View {
     @Environment(\.nftService) private var nftService
     @Environment(\.priceService) private var priceService
     @Environment(\.observablePreferences) private var observablePreferences
-    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.transactionsService) private var transactionsService
+
+    let wallet: Wallet
 
     @State private var model: MainTabViewModel
 
@@ -36,24 +36,28 @@ struct MainTabView: View {
         )
     }
 
-    init(model: MainTabViewModel) {
-        _model = State(initialValue: model)
+    init(wallet: Wallet) {
+        self.wallet = wallet
+        _model = State(initialValue: MainTabViewModel(wallet: wallet))
     }
 
     var body: some View {
         TabView(selection: tabViewSelection) {
-            WalletNavigationStack(
-                model: WalletSceneViewModel(
-                    assetDiscoveryService: assetDiscoveryService,
-                    balanceService: balanceService,
-                    bannerService: bannerService,
-                    walletSessionService: walletSessionService,
-                    nftService: nftService,
-                    observablePreferences: observablePreferences,
-                    wallet: model.wallet,
-                    isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
-                ),
-            )
+            NavigationStack(path: navigationState.wallet.binding) {
+                WalletNavigationView(
+                    model: WalletSceneViewModel(
+                        assetDiscoveryService: assetDiscoveryService,
+                        balanceService: balanceService,
+                        bannerService: bannerService,
+                        nftService: nftService,
+                        observablePreferences: observablePreferences,
+                        wallet: wallet,
+                        isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
+                        isPresentingWallets: presenter.isPresentingWallets,
+                    ),
+                )
+                .id(wallet.id)
+            }
             .tabItem {
                 tabItem(Localized.Wallet.title, Images.Tabs.wallet)
             }
@@ -67,26 +71,31 @@ struct MainTabView: View {
                     .tag(TabItem.markets)
             }
 
-            TransactionsNavigationStack(
-                model: TransactionsViewModel(
-                    transactionsService: transactionsService,
-                    walletSessionService: walletSessionService,
-                    wallet: model.wallet,
-                    type: .all,
-                ),
-            )
+            NavigationStack(path: navigationState.activity.binding) {
+                TransactionsNavigationView(
+                    model: TransactionsViewModel(
+                        transactionsService: transactionsService,
+                        wallet: wallet,
+                        type: .all,
+                    ),
+                )
+                .id(wallet.id)
+            }
             .tabItem {
                 tabItem(Localized.Activity.title, Images.Tabs.activity)
             }
             .badge(model.transactions)
             .tag(TabItem.activity)
 
-            SettingsNavigationStack(
-                walletId: model.wallet.id,
-                priceService: priceService,
-                deviceService: deviceService,
-                isPresentingSupport: presenter.isPresentingSupport,
-            )
+            NavigationStack(path: navigationState.settings.binding) {
+                SettingsNavigationView(
+                    walletId: wallet.id,
+                    priceService: priceService,
+                    deviceService: deviceService,
+                    isPresentingSupport: presenter.isPresentingSupport,
+                )
+                .id(wallet.id)
+            }
             .tabItem {
                 tabItem(Localized.Settings.title, Images.Tabs.settings)
             }
@@ -95,14 +104,14 @@ struct MainTabView: View {
         .sheet(item: presenter.isPresentingAssetInput) { input in
             SelectedAssetNavigationStack(
                 input: input,
-                wallet: model.wallet,
+                wallet: wallet,
                 onComplete: { onComplete(type: input.type) },
             )
         }
         .sheet(item: presenter.isPresentingPriceAlert) { input in
             SetPriceAlertNavigationStack(
                 model: SetPriceAlertViewModel(
-                    walletId: model.wallet.id,
+                    walletId: wallet.id,
                     asset: input.asset,
                     priceAlertService: priceAlertService,
                     price: input.price,
@@ -112,7 +121,7 @@ struct MainTabView: View {
         }
         .toast(message: $model.isPresentingToastMessage)
         .bindQuery(model.transactionsQuery)
-        .onChange(of: walletSessionService.currentWallet, model.onChangeWallet)
+        .task(id: wallet.id) { model.transactionsQuery.request.walletId = wallet.id }
         .connectionStatusBanner()
     }
 }

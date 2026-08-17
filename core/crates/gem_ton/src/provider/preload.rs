@@ -119,9 +119,7 @@ impl<C: Client> ChainTransactionLoad for TonClient<C> {
     }
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![
-            FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(10000000))), // 0.01 TON
-        ])
+        Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(TON_BASE_FEE)))])
     }
 }
 

@@ -1,6 +1,7 @@
 const SECONDS_PER_MINUTE: u64 = 60;
 const SECONDS_PER_HOUR: u64 = 60 * SECONDS_PER_MINUTE;
 const SECONDS_PER_DAY: u64 = 24 * 60 * 60;
+const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
 pub enum CacheKey<'a> {
     // Referral keys
@@ -66,6 +67,8 @@ pub enum CacheKey<'a> {
     // Transaction keys
     FetchTransaction(&'a str, &'a str),
     PendingTransactions(&'a str),
+    TransactionFeeEstimates(&'a str),
+    TransactionFeeEstimatesFresh(&'a str),
 }
 
 impl CacheKey<'_> {
@@ -106,6 +109,8 @@ impl CacheKey<'_> {
             Self::PerpetualPriorityAddresses(chain) => format!("perpetual:priority_addresses:{}", chain),
             Self::PerpetualObserverCheckpoint(chain, address) => format!("perpetual:last_seen:{}:{}", chain, address),
             Self::PendingTransactions(chain) => format!("transactions:pending:{}", chain),
+            Self::TransactionFeeEstimates(chain) => format!("transactions:fee_estimates:{}", chain),
+            Self::TransactionFeeEstimatesFresh(chain) => format!("transactions:fee_estimates:fresh:{}", chain),
         }
     }
 
@@ -146,6 +151,8 @@ impl CacheKey<'_> {
             Self::PerpetualPriorityAddresses(_) => 30 * SECONDS_PER_MINUTE,
             Self::PerpetualObserverCheckpoint(_, _) => 30 * SECONDS_PER_DAY,
             Self::PendingTransactions(_) => 30 * SECONDS_PER_DAY,
+            Self::TransactionFeeEstimates(_) => 5 * SECONDS_PER_YEAR,
+            Self::TransactionFeeEstimatesFresh(_) => SECONDS_PER_HOUR,
         }
     }
 }

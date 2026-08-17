@@ -9,3 +9,5 @@ pub(crate) const STORAGE_AMOUNT_PER_BYTE: u128 = 10_000_000_000_000_000_000;
 pub(crate) const FUNGIBLE_TOKEN_TRANSFER_DEPOSIT: u128 = 1;
 #[cfg(any(feature = "rpc", feature = "signer"))]
 pub(crate) const FUNGIBLE_TOKEN_FUNCTION_CALL_GAS: u64 = 30_000_000_000_000;
+#[cfg(feature = "rpc")]
+pub(crate) const TRANSFER_GAS_UNITS: u64 = 3_000_000_000_000;

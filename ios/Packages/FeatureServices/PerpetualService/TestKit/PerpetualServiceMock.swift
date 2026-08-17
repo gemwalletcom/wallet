@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import struct Gemstone.GemPerpetualBalance
 import struct Gemstone.GemPerpetualMarketData
 import struct Gemstone.GemPerpetualPosition
@@ -9,7 +10,11 @@ import Primitives
 public struct PerpetualServiceMock: PerpetualServiceable {
     public init() {}
 
+    public var marketsUpdatedAt: Date? { nil }
+
     public func updateMarkets() async throws {}
+
+    public func clearMarkets() throws {}
 
     public func candlesticks(symbol _: String, period _: ChartPeriod) async throws -> [ChartCandleStick] {
         []

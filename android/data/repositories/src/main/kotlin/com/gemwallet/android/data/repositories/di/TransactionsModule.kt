@@ -1,13 +1,15 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
 import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
+import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
+import com.gemwallet.android.data.repositories.transactions.TransactionStateService
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import dagger.Module
@@ -26,9 +28,17 @@ object TransactionsModule {
     fun provideTransactionsRepository(
         sessionRepository: SessionRepository,
         transactionsDao: TransactionsDao,
-        gateway: GemGateway,
     ): TransactionsRepositoryImpl = TransactionsRepositoryImpl(
         sessionRepository = sessionRepository,
+        transactionsDao = transactionsDao,
+    )
+
+    @Singleton
+    @Provides
+    fun provideTransactionStateService(
+        transactionsDao: TransactionsDao,
+        gateway: GemGateway,
+    ): TransactionStateService = TransactionStateService(
         transactionsDao = transactionsDao,
         transactionStatusService = TransactionStatusService(
             gateway = gateway,
@@ -37,15 +47,23 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideTransactionRepository( // TODO: Remove when TransactionsRepositoryImpl will refactored
-        impl: TransactionsRepositoryImpl
-    ): TransactionRepository = impl
+    fun provideTransactionStateScheduler(
+        sessionRepository: SessionRepository,
+        transactionsDao: TransactionsDao,
+        stateService: TransactionStateService,
+        postProcessingService: TransactionPostProcessingService,
+    ): TransactionStateScheduler = TransactionStateScheduler(
+        sessionRepository = sessionRepository,
+        transactionsDao = transactionsDao,
+        stateService = stateService,
+        postProcessingService = postProcessingService,
+    )
 
     @Singleton
     @Provides
-    fun provideGetChangedTransactions(transactionsRepository: TransactionsRepositoryImpl): GetChangedTransactions {
-        return transactionsRepository
-    }
+    fun provideTransactionRepository(
+        impl: TransactionsRepositoryImpl
+    ): TransactionRepository = impl
 
     @Singleton
     @Provides
@@ -71,4 +89,3 @@ object TransactionsModule {
         return transactionsRepository
     }
 }
-

@@ -9,19 +9,21 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
+import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetPriceAlertsViewModel
 
 @Composable
 fun AssetDetailsScreen(
     onAction: (AssetDetailsAction.Navigation) -> Unit,
 ) {
     val viewModel: AssetDetailsViewModel = hiltViewModel()
+    val priceAlertsViewModel: AssetPriceAlertsViewModel = hiltViewModel()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
-    val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
-    val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
+    val priceAlertEnabled by priceAlertsViewModel.isEnabled.collectAsStateWithLifecycle()
+    val priceAlertsCount by priceAlertsViewModel.alertsCount.collectAsStateWithLifecycle()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val isOperationEnabled by viewModel.isOperationEnabled.collectAsStateWithLifecycle()
-    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = viewModel::onPushNotificationGranted)
+    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = priceAlertsViewModel::onPushNotificationGranted)
 
     if (uiModel != null) {
         AssetDetailsScene(
@@ -37,7 +39,7 @@ fun AssetDetailsScreen(
                     AssetDetailsAction.Refresh -> viewModel.refresh()
                     AssetDetailsAction.Pin -> viewModel.pin()
                     AssetDetailsAction.Add -> viewModel.add()
-                    is AssetDetailsAction.TogglePriceAlert -> viewModel.enablePriceAlert(action.assetId)
+                    is AssetDetailsAction.TogglePriceAlert -> priceAlertsViewModel.toggle(action.assetId)
                     is AssetDetailsAction.Navigation -> onAction(action)
                 }
             },

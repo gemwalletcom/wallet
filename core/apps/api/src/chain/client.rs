@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use primitives::{Asset, AssetBalance, Chain, ChainAddress, Transaction, TransactionStateRequest, TransactionUpdate};
-use settings_chain::{ChainProviders, TransactionIdRequest, TransactionsRequest};
+use settings_chain::{ChainProviders, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest};
 
 pub struct ChainClient {
     providers: ChainProviders,
@@ -58,6 +58,10 @@ impl ChainClient {
 
     pub async fn get_transaction_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Send + Sync>> {
         self.providers.get_transaction_status(chain, request).await
+    }
+
+    pub async fn get_transaction_fee_estimates(&self, chain: Chain) -> Result<TransactionFeeEstimates, Box<dyn Error + Send + Sync>> {
+        self.providers.get_transaction_fee_estimates(chain).await
     }
 
     pub async fn get_block_transactions(&self, chain: Chain, block_number: i64, transaction_type: Option<&str>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {

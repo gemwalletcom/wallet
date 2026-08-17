@@ -7,12 +7,7 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
-import com.gemwallet.android.application.device.coordinators.EnableDevicePush
-import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceAlertEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
+import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
@@ -38,7 +33,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -57,12 +51,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
-    private val getAssetPriceAlertState: GetAssetPriceAlertState,
-    private val setAssetPriceAlertEnabled: SetAssetPriceAlertEnabled,
-    private val hasAssetPriceAlerts: HasAssetPriceAlerts,
-    private val updatePriceAlerts: UpdatePriceAlerts,
-    private val getPriceAlerts: GetPriceAlerts,
-    private val enableDevicePush: EnableDevicePush,
+    private val syncAssetPriceAlerts: SyncAssetPriceAlerts,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val hasMultiSign: HasMultiSign,
     private val syncAssetTransactions: SyncAssetTransactions,
@@ -75,13 +64,10 @@ class AssetDetailsViewModel @Inject constructor(
 
     private val assetId = savedStateHandle.requireAssetId()
 
-    private val observedPriceAlertAssetId = MutableStateFlow<AssetId?>(null)
-
     private val chainAssetInfo = getChainAssetInfo(assetId)
         .onStart {
             val wallet = session.value?.wallet ?: return@onStart
-            observedPriceAlertAssetId.value = assetId
-            syncAssetDetails(wallet, assetId, shouldRefreshPriceAlerts = true)
+            restartAssetSync(wallet)
         }
         .filterNotNull()
 
@@ -101,19 +87,6 @@ class AssetDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val priceAlertEnabled = observedPriceAlertAssetId.flatMapLatest { observedAssetId ->
-        if (observedAssetId == null) {
-            flowOf<Boolean?>(null)
-        } else {
-            getAssetPriceAlertState.isAssetPriceAlertEnabled(observedAssetId)
-        }
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val priceAlertsCount = getPriceAlerts(assetId)
-        .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
-
     val transactions = getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(assetId)))
         .map { it.toImmutableList() }
         .flowOn(Dispatchers.IO)
@@ -126,63 +99,38 @@ class AssetDetailsViewModel @Inject constructor(
 
     fun refresh() {
         val wallet = session.value?.wallet ?: return
-        syncAssetDetails(wallet, assetId, showLoading = true, shouldRefreshPriceAlerts = true)
-    }
-
-    private fun syncAssetDetails(
-        wallet: Wallet,
-        assetId: AssetId,
-        showLoading: Boolean = false,
-        shouldRefreshPriceAlerts: Boolean = false,
-    ) {
-        val previousJob = syncJob
-        if (previousJob?.isActive == true) {
-            if (showLoading) {
-                return
-            }
+        if (syncJob?.isActive == true) {
+            return
         }
 
-        if (showLoading) {
-            isRefreshing.value = true
-        }
-
-        if (shouldRefreshPriceAlerts) {
-            refreshPriceAlertsIfNeeded(assetId)
-        }
-
+        isRefreshing.value = true
+        syncPriceAlerts()
         syncJob = viewModelScope.launch(Dispatchers.IO) {
-            if (previousJob?.isActive == true) {
-                previousJob.cancelAndJoin()
-            }
-
             try {
-                refreshAssetDetails(wallet, assetId)
+                syncAssetDetails(wallet)
             } finally {
-                if (showLoading) {
-                    isRefreshing.value = false
-                }
+                isRefreshing.value = false
             }
         }
     }
 
-    private suspend fun refreshAssetDetails(wallet: Wallet, assetId: AssetId) = coroutineScope {
+    private fun restartAssetSync(wallet: Wallet) {
+        val previousJob = syncJob
+
+        syncPriceAlerts()
+        syncJob = viewModelScope.launch(Dispatchers.IO) {
+            previousJob?.cancelAndJoin()
+            syncAssetDetails(wallet)
+        }
+    }
+
+    private fun syncPriceAlerts() = viewModelScope.launch(Dispatchers.IO) {
+        syncAssetPriceAlerts(assetId)
+    }
+
+    private suspend fun syncAssetDetails(wallet: Wallet) = coroutineScope {
         launch { syncAssetInfo.syncAssetInfo(assetId = assetId, wallet = wallet) }
         launch { syncAssetTransactions.syncAssetTransactions(assetId) }
-    }
-
-    private fun refreshPriceAlertsIfNeeded(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        if (hasAssetPriceAlerts(assetId)) {
-            runCatching { updatePriceAlerts.update(assetId) }
-        }
-    }
-
-    fun enablePriceAlert(assetId: AssetId) = viewModelScope.launch {
-        val enabled = priceAlertEnabled.value ?: return@launch
-        setAssetPriceAlertEnabled(assetId, !enabled)
-    }
-
-    fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
-        enableDevicePush()
     }
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {

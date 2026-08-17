@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use chain_traits::{ChainTraits, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTraits, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, stream};
 use gem_tracing::warn_with_fields;
 use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPositionsSummary, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
@@ -108,6 +108,10 @@ impl ChainProviders {
 
     pub async fn get_transaction_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Send + Sync>> {
         self.get_provider(chain)?.get_transaction_status(request).await
+    }
+
+    pub async fn get_transaction_fee_estimates(&self, chain: Chain) -> Result<TransactionFeeEstimates, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transaction_fee_estimates().await
     }
 
     pub async fn get_block_transactions(&self, chain: Chain, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {

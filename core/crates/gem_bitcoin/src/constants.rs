@@ -1,0 +1,2 @@
+pub(crate) const SEGWIT_TRANSACTION_VBYTES: u64 = 141;
+pub(crate) const LEGACY_TRANSACTION_VBYTES: u64 = 226;

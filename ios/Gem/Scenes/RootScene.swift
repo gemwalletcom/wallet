@@ -11,6 +11,8 @@ import SwiftUI
 
 struct RootScene: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.navigationPresenter) private var presenter
+
     @State private var model: RootSceneViewModel
 
     init(model: RootSceneViewModel) {
@@ -20,7 +22,7 @@ struct RootScene: View {
     var body: some View {
         VStack {
             if let currentWallet = model.currentWallet {
-                MainTabView(model: .init(wallet: currentWallet))
+                MainTabView(wallet: currentWallet)
                     .alertSheet($model.updateVersionAlertMessage)
             } else {
                 OnboardingScene(
@@ -33,6 +35,9 @@ struct RootScene: View {
             Task {
                 await model.handleOpenUrl(url)
             }
+        }
+        .sheet(isPresented: presenter.isPresentingWallets) {
+            WalletsNavigationStack()
         }
         .sheet(item: $model.isPresentingConnectorSheet) { type in
             WalletConnectorNavigationStack(
@@ -78,9 +83,9 @@ struct RootScene: View {
         .taskOnce(model.setup)
         .lockManaged(by: model.lockManager)
         .onChange(
-            of: model.currentWallet,
+            of: model.currentWalletId,
             initial: true,
-            model.onChangeWallet,
+            model.onChangeWalletId,
         )
         .toast(
             isPresenting: $model.isPresentingConnectorBar,
