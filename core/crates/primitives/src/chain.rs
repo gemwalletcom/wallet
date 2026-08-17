@@ -68,13 +68,6 @@ pub enum Chain {
     Stable,
 }
 
-pub(crate) fn network_id_value(network_id: &str) -> Option<u64> {
-    network_id
-        .parse()
-        .ok()
-        .or_else(|| network_id.strip_prefix("0x").and_then(|hexadecimal| u64::from_str_radix(hexadecimal, 16).ok()))
-}
-
 impl fmt::Debug for Chain {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.as_ref())
@@ -105,7 +98,11 @@ impl Chain {
     }
 
     pub fn network_id_value(&self) -> Option<u64> {
-        network_id_value(self.network_id())
+        let network_id = self.network_id();
+        network_id
+            .parse()
+            .ok()
+            .or_else(|| network_id.strip_prefix("0x").and_then(|hex| u64::from_str_radix(hex, 16).ok()))
     }
 
     pub fn from_chain_id(chain_id: u64) -> Option<Self> {

@@ -2,8 +2,7 @@ use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
-    Chain,
-    asset_id::AssetId,
+    AssetId, Chain,
     payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest},
 };
 use url::{Url, form_urlencoded};
@@ -23,12 +22,15 @@ pub fn decode(path: &str) -> Result<Payment> {
 
     let (recipient, query) = path.split_once('?').unwrap_or((path, ""));
     let parameters = query::parameters(query);
-    query::reject_unsupported(&parameters, &[QUERY_REFERENCE])?;
+
+    if parameters.contains_key(QUERY_REFERENCE) {
+        return Err(PaymentDecoderError::InvalidFormat("Unsupported payment reference".to_string()));
+    }
 
     let token = query::value(&parameters, QUERY_SPL_TOKEN);
     let amount = query::value(&parameters, QUERY_AMOUNT)
         .and_then(|value| match &token {
-            Some(_) => amount::normalize(&value),
+            Some(_) => amount::decimal(&value),
             None => amount::exact(&value, Chain::Solana),
         })
         .map(PaymentAmount::ExactValue);
@@ -48,4 +50,64 @@ fn transaction_link(path: &str) -> Result<String> {
         .ok_or_else(|| PaymentDecoderError::InvalidFormat("Invalid percent encoding".to_string()))?;
 
     Ok(Url::parse(&decoded)?.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::asset_constants::SOLANA_USDC_TOKEN_ID;
+
+    const RECIPIENT: &str = "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5";
+
+    #[test]
+    fn test_decode() {
+        assert_eq!(
+            decode(RECIPIENT).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: RECIPIENT.to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode(&format!("{RECIPIENT}?amount=0.266232")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: RECIPIENT.to_string(),
+                amount: Some(PaymentAmount::ExactValue("0.266232".to_string())),
+                asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode(&format!("{RECIPIENT}?amount=1&spl-token={SOLANA_USDC_TOKEN_ID}&label=Michael&memo=OrderId5678")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: RECIPIENT.to_string(),
+                amount: Some(PaymentAmount::ExactValue("1".to_string())),
+                memo: Some("OrderId5678".to_string()),
+                asset_id: Some(AssetId::from(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID.to_string()))),
+            })
+        );
+    }
+
+    #[test]
+    fn test_decode_transaction_link() {
+        assert_eq!(
+            decode("https://merchant.example/pay?order=12345").unwrap(),
+            Payment::Link(PaymentLink::SolanaPay("https://merchant.example/pay?order=12345".to_string()))
+        );
+        assert_eq!(
+            decode("https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1%3Fnetwork%3Dsol").unwrap(),
+            Payment::Link(PaymentLink::SolanaPay(
+                "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1?network=sol".to_string()
+            ))
+        );
+    }
+
+    #[test]
+    fn test_decode_refuses_a_reference() {
+        assert_eq!(
+            decode(&format!("{RECIPIENT}?amount=1&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported payment reference".to_string()))
+        );
+    }
 }

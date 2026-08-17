@@ -11,6 +11,7 @@ pub mod gorush_mock;
 pub mod json;
 pub mod json_rpc;
 pub mod nft_mock;
+pub mod payment_mock;
 pub mod perpetual_mock;
 pub mod quote_asset_mock;
 pub mod signer_mock;

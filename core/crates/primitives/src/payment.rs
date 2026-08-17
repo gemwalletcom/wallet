@@ -1,3 +1,4 @@
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
@@ -16,7 +17,7 @@ pub enum Payment {
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]
 pub enum PaymentAmount {
     ExactValue(String),
-    AtomicValue(String),
+    AtomicValue(#[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")] BigUint),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -37,10 +38,6 @@ impl PaymentRequest {
             memo: None,
             asset_id: None,
         }
-    }
-
-    pub fn with_asset(self, asset_id: AssetId) -> Self {
-        Self { asset_id: Some(asset_id), ..self }
     }
 }
 

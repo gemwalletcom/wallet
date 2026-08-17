@@ -60,5 +60,11 @@ mod tests {
             })
         );
         assert_eq!(UrlAction::from_url("https://example.com/tokens/bitcoin"), None);
+        assert_eq!(
+            UrlAction::from_url("not a url"),
+            Some(UrlAction::Payment {
+                payment: Payment::Request(PaymentRequest::new_address("not a url")),
+            })
+        );
     }
 }

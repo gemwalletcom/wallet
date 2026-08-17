@@ -1,4 +1,4 @@
-use crate::GemstoneError;
+use crate::{GemstoneError, models::custom_types::GemBigUint};
 use primitives::{AssetId, Payment, PaymentAmount, PaymentLink, PaymentRequest, PaymentURLDecoder};
 
 pub type GemPayment = Payment;
@@ -15,7 +15,7 @@ pub enum GemPayment {
 #[uniffi::remote(Enum)]
 pub enum GemPaymentAmount {
     ExactValue(String),
-    AtomicValue(String),
+    AtomicValue(GemBigUint),
 }
 
 #[uniffi::remote(Record)]
