@@ -12,6 +12,7 @@ use primitives::{
     fee::GasPriceType,
 };
 
+use crate::constants::TRANSFER_GAS_LIMIT;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
 use crate::everstake::{DEFAULT_ALLOWED_INTERCHANGE_NUM, EVERSTAKE_ACCOUNTING_ADDRESS, EVERSTAKE_POOL_ADDRESS, EVERSTAKE_SOURCE, IAccounting, IPool};
 use crate::fee_calculator::FeeCalculator;
@@ -19,7 +20,6 @@ use crate::models::fee::EthereumFeeHistory;
 use crate::monad::{STAKING_CONTRACT, encode_monad_staking};
 
 const GAS_LIMIT_PERCENT_INCREASE: u32 = 50;
-const GAS_LIMIT_21000: u64 = 21000;
 
 pub struct TransactionParams {
     pub to: String,
@@ -174,7 +174,7 @@ pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> 
 }
 
 pub fn calculate_gas_limit_with_increase(gas_limit: BigInt) -> BigInt {
-    if gas_limit == BigInt::from(GAS_LIMIT_21000) {
+    if gas_limit == BigInt::from(TRANSFER_GAS_LIMIT) {
         gas_limit
     } else {
         gas_limit * BigInt::from(100 + GAS_LIMIT_PERCENT_INCREASE) / BigInt::from(100)

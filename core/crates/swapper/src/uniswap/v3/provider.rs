@@ -17,6 +17,7 @@ use crate::{
 use alloy_primitives::{Address, Bytes, U256, hex::encode_prefixed as HexEncode};
 use async_trait::async_trait;
 use gem_evm::{
+    constants::DEFAULT_SWAP_GAS_LIMIT,
     jsonrpc::EthereumRpc,
     uniswap::{command::encode_commands, path::get_base_pair},
 };
@@ -24,7 +25,7 @@ use gem_jsonrpc::client::JsonRpcClient;
 use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
 use std::{fmt, str::FromStr, sync::Arc};
 
-use super::{DEFAULT_SWAP_GAS_LIMIT, UniversalRouterProvider, commands::build_commands, path::build_paths_with_routes};
+use super::{UniversalRouterProvider, commands::build_commands, path::build_paths_with_routes};
 
 pub struct UniswapV3 {
     provider: Box<dyn UniversalRouterProvider>,

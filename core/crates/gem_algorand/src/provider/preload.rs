@@ -4,11 +4,9 @@ use num_bigint::BigInt;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{
-    FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
-};
+use primitives::{FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
-use crate::rpc::AlgorandProvider;
+use crate::{provider::state_mapper::map_transaction_params_to_fee, rpc::AlgorandProvider};
 
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for AlgorandProvider<C> {
@@ -31,6 +29,6 @@ impl<C: Client> ChainTransactionLoad for AlgorandProvider<C> {
     }
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(1)))])
+        Ok(vec![map_transaction_params_to_fee(&self.get_transactions_params().await?)])
     }
 }

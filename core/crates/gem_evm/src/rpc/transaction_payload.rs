@@ -3,6 +3,7 @@ use num_traits::Num;
 
 use crate::{
     address::{ethereum_address_checksum, ethereum_address_from_topic},
+    constants::TRANSFER_GAS_LIMIT,
     rpc::model::{Log, Transaction, TransactionReceipt},
 };
 
@@ -15,8 +16,6 @@ const FUNCTION_ERC1155_TRANSFER: &str = "0xf242432a";
 pub(crate) const TRANSFER_TOPIC: &str = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 const APPROVAL_TOPIC: &str = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925";
 const TRANSFER_SINGLE: &str = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62";
-const TRANSFER_GAS_LIMIT: u64 = 21000;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LogSearch {
     FirstMatch,
