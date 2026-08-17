@@ -312,6 +312,11 @@ struct ServicesFactory {
 
         let contactService = ContactService(store: storeManager.contactStore, addressStore: storeManager.addressStore)
 
+        let perpetualEnablerService = PerpetualEnablerService(
+            observer: hyperliquidObserverService,
+            service: perpetualService,
+            preferences: preferences,
+        )
         let appLifecycleService = AppLifecycleService(
             preferences: preferences,
             connectionsService: connectionsService,
@@ -319,7 +324,7 @@ struct ServicesFactory {
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
-            hyperliquidObserverService: hyperliquidObserverService,
+            perpetualEnablerService: perpetualEnablerService,
         )
 
         let viewModelFactory = ViewModelFactory(

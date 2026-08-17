@@ -9,18 +9,15 @@ import StoreTestKit
 
 public extension PerpetualService {
     static func mock(
-        store: PerpetualStore = .mock(),
-        assetStore: AssetStore = .mock(),
-        priceStore: PriceStore = .mock(),
-        balanceStore: BalanceStore = .mock(),
+        db: DB = .mock(),
         provider: PerpetualProvidable = PerpetualProviderMock(),
         preferences: Preferences = .mock(),
     ) -> PerpetualService {
         PerpetualService(
-            store: store,
-            assetStore: assetStore,
-            priceStore: priceStore,
-            balanceStore: balanceStore,
+            store: PerpetualStore(db: db),
+            assetStore: AssetStore(db: db),
+            priceStore: PriceStore(db: db),
+            balanceStore: BalanceStore(db: db),
             provider: provider,
             preferences: preferences,
         )

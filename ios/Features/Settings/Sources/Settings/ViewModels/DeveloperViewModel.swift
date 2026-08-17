@@ -142,8 +142,7 @@ public final class DeveloperViewModel {
 
     func clearPerpetuals() {
         performAction {
-            try perpetualService.clear()
-            Preferences.standard.perpetualMarketsUpdatedAt = .none
+            try perpetualService.clearMarkets()
         }
     }
 
