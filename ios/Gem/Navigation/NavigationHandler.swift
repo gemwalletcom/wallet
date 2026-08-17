@@ -125,7 +125,7 @@ extension NavigationHandler {
         }
         let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
 
-        presenter.isPresentingPayment.wrappedValue = try PaymentInputBuilder.build(payment: request, assets: assets)
+        presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
     }
 }
 

@@ -5,8 +5,8 @@ import GemstonePrimitives
 import Localization
 import Primitives
 
-public enum PaymentInputBuilder {
-    public static func build(payment: PaymentRequest, assets: [AssetData]) throws -> PaymentInput {
+public enum PaymentDestinationBuilder {
+    public static func build(payment: PaymentRequest, assets: [AssetData]) throws -> PaymentDestination {
         let payable = payableAssets(for: payment, in: assets)
 
         guard let assetData = payable.first else {
@@ -25,7 +25,7 @@ public enum PaymentInputBuilder {
         return assets.filter { $0.asset.chain.isValidAddress(payment.address) }
     }
 
-    private static func build(payment: PaymentRequest, assetData: AssetData) throws -> PaymentInput {
+    private static func build(payment: PaymentRequest, assetData: AssetData) throws -> PaymentDestination {
         switch try PaymentTransfer(asset: assetData.asset).destination(for: payment) {
         case let .confirm(transfer):
             return .confirm(transfer)

@@ -8,13 +8,18 @@ import Localization
 import Primitives
 
 public struct PaymentTransfer: Sendable {
+    public enum Destination: Sendable {
+        case confirm(TransferData)
+        case recipient(RecipientData)
+    }
+
     private let asset: Asset
 
     public init(asset: Asset) {
         self.asset = asset
     }
 
-    public func destination(for payment: PaymentRequest) throws -> PaymentDestination {
+    public func destination(for payment: PaymentRequest) throws -> Destination {
         if let assetId = payment.assetId, assetId != asset.id {
             throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
         }

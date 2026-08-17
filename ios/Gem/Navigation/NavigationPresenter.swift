@@ -12,7 +12,7 @@ import Transactions
 @Observable
 final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingAssetInput: SelectedAssetInput?
-    @MainActor private var _isPresentingPayment: PaymentInput?
+    @MainActor private var _isPresentingPayment: PaymentDestination?
     @MainActor private var _isPresentingPriceAlert: SetPriceAlertInput?
     @MainActor private var _isPresentingSupport: Bool = false
     @MainActor private var _isPresentingWallets: Bool = false
@@ -26,7 +26,7 @@ extension NavigationPresenter {
         Binding(get: { self._isPresentingAssetInput }, set: { self._isPresentingAssetInput = $0 })
     }
 
-    var isPresentingPayment: Binding<PaymentInput?> {
+    var isPresentingPayment: Binding<PaymentDestination?> {
         Binding(get: { self._isPresentingPayment }, set: { self._isPresentingPayment = $0 })
     }
 
