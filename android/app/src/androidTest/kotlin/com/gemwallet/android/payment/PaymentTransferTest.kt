@@ -1,6 +1,7 @@
 package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
@@ -103,7 +104,7 @@ class PaymentTransferTest {
 
         assertTrue("a destination tag must be reviewed, got $reviewed", reviewed is PaymentDestination.Recipient)
         assertEquals("12345", (reviewed as PaymentDestination.Recipient).request.memo)
-        assertEquals("10", reviewed.request.amount)
+        assertEquals("10", reviewed.request.exactAmount)
 
         val untagged = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10")
 
