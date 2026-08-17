@@ -9,7 +9,6 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.PaymentTransfer
 import com.gemwallet.android.testkit.includeGemstoneLibs
-import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -41,20 +40,10 @@ class PaymentTransferTest {
         }
     }
 
-    private val bitcoin = mockAssetInfo(
-        asset = mockAsset(),
-        owner = mockAccount(Chain.Bitcoin, BITCOIN_ADDRESS),
-    )
-
-    private val solana = mockAssetInfo(
-        asset = mockAssetSolana(),
-        owner = mockAccount(Chain.Solana, SOLANA_ADDRESS),
-    )
-
-    private val ripple = mockAssetInfo(
-        asset = mockAssetXrp(),
-        owner = mockAccount(Chain.Xrp, RIPPLE_ADDRESS),
-    )
+    private val bitcoin = mockAssetInfo(asset = mockAsset())
+    private val solana = mockAssetInfo(asset = mockAssetSolana())
+    private val ripple = mockAssetInfo(asset = mockAssetXrp())
+    private val usdc = mockAssetInfo(asset = mockAssetSolanaUSDC())
 
     private fun decode(url: String): PaymentRequest =
         requireNotNull(paymentDecodeUrl(url).toPrimitives().request) { "not a payment request: $url" }
@@ -88,10 +77,6 @@ class PaymentTransferTest {
 
         assertEquals(PaymentDestination.Unsupported, destination(solana, url))
 
-        val usdc = mockAssetInfo(
-            asset = mockAssetSolanaUSDC(),
-            owner = mockAccount(Chain.Solana, SOLANA_ADDRESS),
-        )
         val confirm = destination(usdc, url)
 
         assertTrue("expected USDC to confirm, got $confirm", confirm is PaymentDestination.Confirm)
@@ -113,10 +98,6 @@ class PaymentTransferTest {
 
     @Test
     fun destination_belowSmallestUnit() {
-        val usdc = mockAssetInfo(
-            asset = mockAssetSolanaUSDC(),
-            owner = mockAccount(Chain.Solana, SOLANA_ADDRESS),
-        )
         val recipient = destination(usdc, "solana:$SOLANA_ADDRESS?amount=0.0000001&spl-token=$USDC_TOKEN_ID")
 
         assertTrue("a seventh decimal is not signable as USDC, got $recipient", recipient is PaymentDestination.Recipient)

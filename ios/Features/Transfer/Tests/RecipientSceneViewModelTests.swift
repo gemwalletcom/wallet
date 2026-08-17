@@ -101,12 +101,7 @@ struct RecipientSceneViewModelTests {
         let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
         let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
 
-        let payment = PaymentRequest(
-            address: " \n\(address)\r ",
-            amount: .exactValue("1.234"),
-            memo: nil,
-            assetId: nil,
-        )
+        let payment = PaymentRequest.mock(address: " \n\(address)\r ", amount: .exactValue("1.234"))
 
         let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
 
@@ -123,12 +118,7 @@ struct RecipientSceneViewModelTests {
     func destination_recipient() throws {
         let model = RecipientSceneViewModel.mock()
 
-        let payment = PaymentRequest(
-            address: "0x123",
-            amount: nil,
-            memo: "test memo",
-            assetId: nil,
-        )
+        let payment = PaymentRequest.mock(address: "0x123", memo: "test memo")
 
         let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
 
@@ -185,7 +175,7 @@ struct RecipientSceneViewModelTests {
         let address = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         let transfer = PaymentTransfer(asset: xrp)
 
-        let tagged = try transfer.destination(for: PaymentRequest(address: address, amount: .exactValue("10"), memo: "12345", assetId: xrp.id))
+        let tagged = try transfer.destination(for: .mock(address: address, amount: .exactValue("10"), memo: "12345", assetId: xrp.id))
 
         guard case let .recipient(data) = tagged else {
             Issue.record("a destination tag must be reviewed, got \(tagged)")
@@ -194,7 +184,7 @@ struct RecipientSceneViewModelTests {
         #expect(data.recipient.memo == "12345")
         #expect(data.amount == "10")
 
-        let untagged = try transfer.destination(for: PaymentRequest(address: address, amount: .exactValue("10"), memo: .none, assetId: xrp.id))
+        let untagged = try transfer.destination(for: .mock(address: address, amount: .exactValue("10"), assetId: xrp.id))
 
         guard case .confirm = untagged else {
             Issue.record("no tag to review, got \(untagged)")
@@ -207,11 +197,9 @@ struct RecipientSceneViewModelTests {
         let asset = Asset.mockEthereum()
         let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
 
-        let payment = PaymentRequest(
+        let payment = PaymentRequest.mock(
             address: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a",
             amount: .exactValue("0.0000000000000000001"),
-            memo: nil,
-            assetId: nil,
         )
 
         let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
