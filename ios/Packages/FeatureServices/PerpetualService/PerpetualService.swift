@@ -34,6 +34,10 @@ public struct PerpetualService: PerpetualServiceable {
         self.preferences = preferences
     }
 
+    public var marketsUpdatedAt: Date? {
+        preferences.perpetualMarketsUpdatedAt
+    }
+
     public func updateMarkets() async throws {
         let perpetualsData = try await provider.getPerpetualsData()
         let perpetuals = perpetualsData.map(\.perpetual)
@@ -48,6 +52,13 @@ public struct PerpetualService: PerpetualServiceable {
             priceChangePercentage24h: 0,
             updatedAt: .now,
         ), currency: Currency.usd.rawValue)
+        preferences.perpetualMarketsUpdatedAt = .now
+    }
+
+    public func clearMarkets() throws {
+        try clear()
+        try clearBalance()
+        preferences.perpetualMarketsUpdatedAt = nil
     }
 
     public func candlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {
@@ -72,15 +83,15 @@ public struct PerpetualService: PerpetualServiceable {
         try syncProviderBalances(walletId: walletId, balance: summary.balance)
     }
 
-    public func clear() throws {
+    // MARK: - Private
+
+    private func clear() throws {
         try store.clear()
     }
 
-    public func clearBalance() throws {
+    private func clearBalance() throws {
         try balanceStore.deleteBalance(assetId: Asset.hypercoreUSDC().id)
     }
-
-    // MARK: - Private
 
     private func syncProviderBalances(walletId: WalletId, balance: PerpetualBalance) throws {
         let usd = Asset.hypercoreUSDC()

@@ -19,7 +19,7 @@ public enum GemDeviceAPI: TargetType {
     case deletePriceAlerts(priceAlerts: [PriceAlert])
 
     case getTransactions(walletId: WalletId, assetId: String?, fromTimestamp: Int)
-    case getTransaction(transactionId: TransactionId)
+    case getTransaction(walletId: WalletId, transactionId: TransactionId)
     case getAssetsList(walletId: WalletId, fromTimestamp: Int)
     case getDeviceNFTAssets(walletId: WalletId)
     case getDeviceNFTAsset(assetId: NFTAssetId)
@@ -128,8 +128,8 @@ public enum GemDeviceAPI: TargetType {
                 path += "&asset_id=\(assetId)"
             }
             return path
-        case let .getTransaction(transactionId):
-            return "/v2/devices/transaction/\(transactionId.identifier)"
+        case let .getTransaction(_, transactionId):
+            return "/v2/devices/transactions/\(transactionId.identifier)"
         case let .getAssetsList(_, fromTimestamp):
             return "/v2/devices/assets?from_timestamp=\(fromTimestamp)"
         case .getDeviceNFTAssets:
@@ -189,6 +189,7 @@ public enum GemDeviceAPI: TargetType {
     public var walletId: String? {
         switch self {
         case let .getTransactions(walletId, _, _),
+             let .getTransaction(walletId, _),
              let .getAssetsList(walletId, _),
              let .getDeviceNFTAssets(walletId),
              let .refreshNftAsset(walletId, _),

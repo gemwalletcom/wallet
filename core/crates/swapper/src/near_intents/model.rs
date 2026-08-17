@@ -85,6 +85,8 @@ pub struct Quote {
     pub amount_out_formatted: String,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub min_amount_out: BigUint,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub withdraw_fee: BigUint,
     pub deadline: Option<String>,
     pub time_when_inactive: Option<String>,
     pub time_estimate: u32,

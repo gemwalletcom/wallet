@@ -27,7 +27,7 @@ public final class GemAPITransactionServiceMock: GemAPITransactionService, @unch
         assetTransactionsResponse
     }
 
-    public func getDeviceTransaction(transactionId _: TransactionId) async throws -> Transaction {
+    public func getDeviceTransaction(walletId _: WalletId, transactionId _: TransactionId) async throws -> Transaction {
         guard let transactionResponse else {
             throw NSError(domain: "GemAPITransactionServiceMock", code: 0)
         }

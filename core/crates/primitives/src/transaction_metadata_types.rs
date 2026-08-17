@@ -1,4 +1,6 @@
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 use typeshare::typeshare;
 
 use crate::{AssetId, NFTAssetId, PerpetualDirection, PerpetualProvider, stake_type::Resource};
@@ -63,6 +65,22 @@ impl TransactionResourceTypeMetadata {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionSmartContractMetadata {
     pub method_name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionAssetTransfer {
+    pub asset_id: AssetId,
+    pub from: String,
+    pub to: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str", serialize_with = "serialize_biguint")]
+    pub value: BigUint,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionAssetTransfersMetadata {
+    pub asset_transfers: Vec<TransactionAssetTransfer>,
 }
 
 #[cfg(test)]

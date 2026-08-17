@@ -39,10 +39,9 @@ final class RootSceneViewModel {
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
-    var currentWallet: Wallet? {
-        walletSessionService.currentWallet
-    }
 
+    var currentWallet: Wallet? { walletSessionService.currentWallet }
+    var currentWalletId: WalletId? { walletSessionService.currentWalletId }
     var updateVersionAlertMessage: AlertMessage?
 
     var isPresentingToastMessage: ToastMessage? {
@@ -139,12 +138,10 @@ extension RootSceneViewModel {
 // MARK: - Effects
 
 extension RootSceneViewModel {
-    func onChangeWallet(_ oldWallet: Wallet?, _ newWallet: Wallet?) {
-        guard let newWallet else { return }
-        if oldWallet?.id != newWallet.id {
-            navigationHandler.resetNavigation()
-        }
-        setup(wallet: newWallet)
+    func onChangeWalletId() {
+        guard let currentWallet else { return }
+        navigationHandler.resetNavigation()
+        setup(wallet: currentWallet)
     }
 
     func handleOpenUrl(_ url: URL) async {
@@ -166,7 +163,6 @@ extension RootSceneViewModel {
 
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
-        navigationHandler.wallet = wallet
         onstartWalletService.setup(wallet: wallet)
         do {
             try walletSetupService.setup(wallet: wallet)

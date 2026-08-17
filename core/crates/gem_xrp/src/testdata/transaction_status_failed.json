@@ -1,0 +1,60 @@
+{
+  "result": {
+    "Account": "rUJn2oxLKa9GSCPsdYCmsJ22vrxBgHNAZN",
+    "Amount": "489963",
+    "Destination": "r4Z8HQfKmUXJXEE6ppFA13DZ3yvAcsENWN",
+    "Fee": "12",
+    "Flags": 0,
+    "LastLedgerSequence": 106221391,
+    "Memos": [
+      {
+        "Memo": {
+          "MemoData": "7B2263757272656E6379223A22585250222C22746F546F6B656E41646472657373223A22307865656565656565656565656565656565656565656565656565656565656565656565656565656565222C2264657374696E6174696F6E223A2272345A384851664B6D55584A58454536707046413133445A337976416373454E574E222C22616D6F756E744F75744D696E223A22343839393633222C2266726F6D48617368223A22227D"
+        }
+      }
+    ],
+    "Sequence": 106220618,
+    "SigningPubKey": "ED2920E52F393E822ED8F871E4A96DC385B9DF735CB3E81A3055F1E9A32142C61F",
+    "TransactionType": "Payment",
+    "TxnSignature": "1F6C1ED63CDB27D400D649436E16EE673B877F0A6DEF86B4E60D52A54007F653CFD2DDA435D7FED6CC8F312DF507A706A4D35127D22C0632A02FC86609E5DA03",
+    "hash": "5BC7CEDDA85478E819DF27214FF31785D3453A8E265B9D85360D2100B3902EDD",
+    "DeliverMax": "489963",
+    "ctid": "C654CF3D00530000",
+    "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rUJn2oxLKa9GSCPsdYCmsJ22vrxBgHNAZN",
+              "Balance": "1489951",
+              "Flags": 0,
+              "OwnerCount": 1,
+              "Sequence": 106220619
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "DED9ADADCD86BC9EB6D62868778D0EA6857DD505FDBA8DCAD1E0E5D2E16BE074",
+            "PreviousFields": {
+              "Balance": "1489963",
+              "Sequence": 106220618
+            },
+            "PreviousTxnID": "68CD697CDB144DDA7780696C2D7EAC0EC361EB9551C7669A026E8387FAFCA97F",
+            "PreviousTxnLgrSeq": 106221352
+          }
+        }
+      ],
+      "TransactionIndex": 83,
+      "TransactionResult": "tecUNFUNDED_PAYMENT"
+    },
+    "validated": true,
+    "date": 839765900,
+    "ledger_index": 106221373,
+    "inLedger": 106221373,
+    "status": "success"
+  },
+  "warnings": [
+    {
+      "id": 2001,
+      "message": "This is a clio server. clio only serves validated data. If you want to talk to rippled, include 'ledger_index':'current' in your request"
+    }
+  ]
+}

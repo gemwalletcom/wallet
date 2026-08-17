@@ -26,8 +26,6 @@ final class NavigationHandler: Sendable {
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
-    @MainActor var wallet: Wallet?
-
     init(
         navigationState: NavigationStateManager,
         presenter: NavigationPresenter,
@@ -122,7 +120,7 @@ extension NavigationHandler {
 @MainActor
 extension NavigationHandler {
     private func handlePayment(_ payment: Payment) throws {
-        guard case let .request(request) = payment, let wallet else {
+        guard case let .request(request) = payment, let wallet = walletSessionService.currentWallet else {
             throw AnyError(Localized.Errors.notSupported)
         }
         let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [.enabledBalance])
@@ -255,11 +253,15 @@ extension NavigationHandler {
         }
 
         walletSessionService.setCurrent(walletId: walletId)
-        await Task.yield()
+        await withCheckedContinuation { continuation in
+            RunLoop.main.perform(inModes: [.common]) {
+                continuation.resume()
+            }
+        }
     }
 
     private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
-        guard let wallet else { return }
+        guard let wallet = walletSessionService.currentWallet else { return }
         try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet, assetsService: assetsService)
     }
 
@@ -269,7 +271,7 @@ extension NavigationHandler {
     }
 
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) throws {
-        guard let wallet else { return }
+        guard let wallet = walletSessionService.currentWallet else { return }
         try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
     }
 
