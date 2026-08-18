@@ -1,4 +1,4 @@
-use primitives::{BitcoinChain, Chain, ChainType, FeeUnitType, chain_transaction_timeout};
+use primitives::{BitcoinChain, Chain, ChainType, chain_transaction_timeout};
 
 #[derive(uniffi::Record, Debug, Clone, PartialEq)]
 pub struct ChainConfig {
@@ -30,7 +30,7 @@ pub fn get_chain_config(chain: Chain) -> ChainConfig {
         rank: chain.rank(),
         denom: chain.as_denom().map(|x| x.to_string()),
         chain_type: chain.chain_type().as_ref().to_string(),
-        fee_unit_type: fee_unit_type(chain).as_ref().to_string(),
+        fee_unit_type: chain.fee_unit_type().as_ref().to_string(),
         default_asset_type: chain.default_asset_type().map(|x| x.as_ref().to_string()),
         account_activation_fee: chain.account_activation_fee(),
         account_activation_fee_url: account_activation_fee_url(chain).map(|x| x.to_string()),
@@ -66,14 +66,6 @@ pub fn account_activation_fee_url(chain: Chain) -> Option<String> {
         Chain::Stellar => Some("https://developers.stellar.org/docs/learn/fundamentals/lumens#minimum-balance".into()),
         Chain::Algorand => Some("https://developer.algorand.org/docs/features/accounts/#minimum-balance".into()),
         _ => None,
-    }
-}
-
-pub fn fee_unit_type(chain: Chain) -> FeeUnitType {
-    match chain.chain_type() {
-        ChainType::Bitcoin => FeeUnitType::SatVb,
-        ChainType::Ethereum => FeeUnitType::Gwei,
-        _ => FeeUnitType::Native,
     }
 }
 

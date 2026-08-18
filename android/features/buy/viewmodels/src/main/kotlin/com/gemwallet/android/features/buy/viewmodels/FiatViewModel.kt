@@ -19,7 +19,6 @@ import com.gemwallet.android.math.parseInputNumber
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.Fiat
-import com.gemwallet.android.model.hasAvailable
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.models.ButtonState
@@ -281,4 +280,4 @@ private fun Double.toAmountText(): String =
     BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()
 
 private fun AssetData.showFiatTypePicker() =
-    metadata?.isSellEnabled == true && balance.balance.hasAvailable()
+    metadata?.isSellEnabled == true

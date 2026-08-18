@@ -1,13 +1,14 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use futures::try_join;
 use gem_client::Client;
 use num_bigint::BigInt;
 use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
+    constants::{FUNGIBLE_TOKEN_FUNCTION_CALL_GAS, TRANSFER_GAS_UNITS},
     models::StorageBalanceBounds,
     provider::{
         preload_mapper::{address_to_public_key, map_transaction_fee, map_transaction_preload},
@@ -18,6 +19,13 @@ use crate::{
 
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionLoad for NearProvider<C> {
+    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
+        Some(match operation {
+            TransactionFeeOperation::Transfer | TransactionFeeOperation::Swap => TRANSFER_GAS_UNITS,
+            TransactionFeeOperation::TokenTransfer => FUNGIBLE_TOKEN_FUNCTION_CALL_GAS,
+        })
+    }
+
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let public_key = address_to_public_key(&input.sender_address)?;
         let (access_key, block) = try_join!(self.get_account_access_key(&input.sender_address, &public_key), self.get_latest_block(),)?;

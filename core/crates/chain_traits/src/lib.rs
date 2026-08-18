@@ -16,6 +16,9 @@ use primitives::{
 };
 
 pub mod node_check;
+mod transaction_fee;
+
+pub use transaction_fee::{TransactionFeeEstimate, TransactionFeeEstimates, TransactionFeeOperation};
 
 #[cfg(feature = "testkit")]
 pub mod testkit;
@@ -65,6 +68,20 @@ pub trait ChainTraits:
     + ChainAddressStatus
     + ChainSimulation
 {
+    async fn get_transaction_fee_estimates(&self) -> Result<TransactionFeeEstimates, Box<dyn Error + Sync + Send>> {
+        let chain = self.get_chain();
+        let rates = self.get_transaction_fee_rates(TransactionInputType::Transfer(Asset::from_chain(chain))).await?;
+        let estimate = |operation| {
+            let units = self.transaction_fee_estimate_units(operation);
+            rates.iter().map(|rate| TransactionFeeEstimate::new(rate, units, chain.fee_unit_type())).collect()
+        };
+        Ok(TransactionFeeEstimates {
+            transfer: estimate(TransactionFeeOperation::Transfer),
+            token_transfer: chain.default_asset_type().is_some().then(|| estimate(TransactionFeeOperation::TokenTransfer)),
+            swap: chain.is_swap_supported().then(|| estimate(TransactionFeeOperation::Swap)),
+        })
+    }
+
     async fn check_node(&self, request: &NodeCheckRequest, status: &NodeSyncStatus, status_latency: Duration) -> NodeCheckReport {
         node_check::check_node(self, request, status, status_latency).await
     }
@@ -257,6 +274,10 @@ pub trait ChainTransactionLoad: Send + Sync {
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         Err("Chain does not support fee rates".into())
+    }
+
+    fn transaction_fee_estimate_units(&self, _operation: TransactionFeeOperation) -> Option<u64> {
+        None
     }
 
     async fn get_utxos(&self, _address: String) -> Result<Vec<UTXO>, Box<dyn Error + Sync + Send>> {

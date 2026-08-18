@@ -24,7 +24,7 @@ impl CryptoFiatConverter {
     }
 
     fn price_value(price: f64) -> Result<BigDecimal, NumberFormatterError> {
-        BigDecimal::try_from(price).map_err(|_| NumberFormatterError::ConversionError(price.to_string()))
+        BigDecimal::from_str(&price.to_string()).map_err(|_| NumberFormatterError::ConversionError(price.to_string()))
     }
 }
 
@@ -36,6 +36,7 @@ mod tests {
     fn test_to_fiat() {
         assert_eq!(CryptoFiatConverter::to_fiat("150000000", 8, 50_000.0).unwrap(), "75000");
         assert_eq!(CryptoFiatConverter::to_fiat("1000000000000000000", 18, 2500.5).unwrap(), "2500.5");
+        assert_eq!(CryptoFiatConverter::to_fiat("1092000000000", 18, 3520.42).unwrap(), "0.00384429864");
         assert_eq!(CryptoFiatConverter::to_fiat("0", 8, 50_000.0).unwrap(), "0");
         assert_eq!(
             CryptoFiatConverter::to_fiat("123456789012345678901234567890", 18, 2.0).unwrap(),

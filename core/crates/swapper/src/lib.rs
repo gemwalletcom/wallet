@@ -26,7 +26,6 @@ pub mod near_intents;
 pub mod okx;
 pub mod panora;
 pub mod permit2_data;
-pub mod proxy;
 pub mod relay;
 mod route_cache;
 pub mod squid;

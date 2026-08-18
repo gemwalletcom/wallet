@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.assets
 
-import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.model.AssetInfo
@@ -16,10 +15,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -27,29 +22,23 @@ import org.junit.Test
 
 class TransactionPostProcessingServiceTest {
 
-    private val getChangedTransactions = mockk<GetChangedTransactions>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val syncStakeDelegations = mockk<SyncStakeDelegations>(relaxed = true)
     private val syncNfts = mockk<SyncNfts>(relaxed = true)
-    private val scope = CoroutineScope(Job())
 
     private fun createSubject() = TransactionPostProcessingService(
-        getChangedTransactions = getChangedTransactions,
         assetsRepository = assetsRepository,
         syncStakeDelegations = syncStakeDelegations,
         syncNfts = syncNfts,
-        scope = scope,
     )
 
     @After
     fun tearDown() {
-        scope.cancel()
         unmockkAll()
     }
 
     @Test
     fun completeStakeTransaction_syncsDelegations() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         val asset = mockAssetSolana()
         val assetInfo = mockAssetInfo(asset = asset, walletId = mockWalletId("wallet-1")).copy(stakeApr = 7.5)
         every { assetsRepository.getAssetsInfo(any<List<AssetId>>()) } returns flowOf(listOf(assetInfo))
@@ -77,7 +66,6 @@ class TransactionPostProcessingServiceTest {
 
     @Test
     fun completeNftTransfer_syncsWalletNfts() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         val transaction = mockTransaction(type = TransactionType.TransferNFT)
         val assetInfo: AssetInfo = mockAssetInfo(walletId = mockWalletId())
         every { assetsRepository.getAssetsInfo(any<List<AssetId>>()) } returns flowOf(listOf(assetInfo))

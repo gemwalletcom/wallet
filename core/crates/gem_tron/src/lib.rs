@@ -1,4 +1,6 @@
 pub mod address;
+#[cfg(feature = "rpc")]
+mod constants;
 pub mod models;
 
 #[cfg(any(feature = "rpc", feature = "signer"))]

@@ -86,12 +86,11 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 nft::get_nft_collection_preview,
                 markets::get_markets,
                 referral::get_rewards_leaderboard,
+                chain::fee::get_fee_estimates,
                 swap::post_near_intents_quote,
                 swap::post_swaps_xyz_action,
                 swap::okx::post_okx_quote_v6,
                 swap::okx::post_okx_swap_v6,
-                swap::okx::post_okx_quote_legacy,
-                swap::okx::post_okx_quote_data_legacy,
             ],
         )
         .mount(
@@ -165,6 +164,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 chain::block::get_latest_block_number,
                 chain::block::get_block_transactions,
                 chain::block::get_block_transactions_finalize,
+                chain::fee::get_chain_fee_estimates,
                 chain::node::get_nodes_status,
                 chain::swap::get_swap_result,
                 chain::swap::get_swap_quote,

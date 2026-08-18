@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use std::error::Error;
 
 use gem_client::Client;
@@ -14,6 +14,13 @@ use crate::rpc::client::AptosClient;
 
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for AptosClient<C> {
+    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
+        Some(match operation {
+            TransactionFeeOperation::Transfer | TransactionFeeOperation::TokenTransfer => crate::DEFAULT_MAX_GAS_AMOUNT,
+            TransactionFeeOperation::Swap => crate::DEFAULT_SWAP_MAX_GAS_AMOUNT,
+        })
+    }
+
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let account = self.get_account(&input.sender_address).await?;
         map_transaction_preload(&account)

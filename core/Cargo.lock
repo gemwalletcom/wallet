@@ -658,6 +658,7 @@ dependencies = [
  "localizer",
  "name_resolver",
  "nft",
+ "number_formatter",
  "portfolio",
  "pricer",
  "prices",

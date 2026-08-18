@@ -1,5 +1,6 @@
 #[cfg(feature = "rpc")]
 use super::preload_optimism::OptimismGasOracle;
+use crate::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT, TRANSFER_GAS_LIMIT};
 use crate::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use crate::provider::preload_mapper::{
     bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
@@ -9,7 +10,7 @@ use crate::rpc::{EthereumClient, EthereumProvider};
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use gem_client::Client;
 #[cfg(feature = "rpc")]
 use num_bigint::BigInt;
@@ -26,6 +27,14 @@ use std::error::Error;
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
+    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
+        Some(match operation {
+            TransactionFeeOperation::Transfer => TRANSFER_GAS_LIMIT,
+            TransactionFeeOperation::TokenTransfer => TOKEN_TRANSFER_GAS_LIMIT,
+            TransactionFeeOperation::Swap => DEFAULT_SWAP_GAS_LIMIT,
+        })
+    }
+
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let nonce = self.get_transaction_count(&input.sender_address).await?;
         let chain_id = self.chain.to_chain().network_id().to_string();

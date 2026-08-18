@@ -6,7 +6,6 @@ use crate::{
     SwapperError,
     alien::RpcProvider,
     approval::{check_approval_erc20, check_approval_trc20, get_swap_gas_limit_with_approval},
-    fees::apply_slippage_in_bp,
     models::ApprovalType,
 };
 use alloy_primitives::U256;
@@ -33,11 +32,6 @@ pub(super) async fn build_swap_quote_data(
         ChainType::Tron => build_tron_quote_data(transaction_data, from_asset, from_value, owner, rpc_provider).await,
         _ => Err(SwapperError::NotSupportedChain),
     }
-}
-
-pub(super) fn output_min_value(to_token_amount: &str, slippage_bps: u32) -> Result<String, SwapperError> {
-    let amount = U256::from_str(to_token_amount)?;
-    Ok(apply_slippage_in_bp(&amount, slippage_bps).to_string())
 }
 
 pub(super) async fn build_evm_quote_data(
@@ -143,14 +137,6 @@ fn get_spender(signature_data: Option<&[String]>) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_output_min_value() {
-        assert_eq!(output_min_value("1000", 100).unwrap(), "990");
-        assert_eq!(output_min_value("1000", 300).unwrap(), "970");
-        assert_eq!(output_min_value("10000000000000000000", 50).unwrap(), "9950000000000000000");
-        assert_eq!(output_min_value("1000", 11_000).unwrap(), "0");
-    }
 
     #[test]
     fn test_buffered_gas_limit() {
