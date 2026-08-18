@@ -139,7 +139,10 @@ extension RootSceneViewModel {
 
 extension RootSceneViewModel {
     func onChangeWalletId() {
-        guard let currentWallet else { return }
+        guard let currentWallet else {
+            Task { await appLifecycleService.updateWalletConnections() }
+            return
+        }
         navigationHandler.resetNavigation()
         setup(wallet: currentWallet)
     }
@@ -170,7 +173,7 @@ extension RootSceneViewModel {
             debugLog("RootSceneViewModel setupWallet error: \(error)")
         }
         Task {
-            await appLifecycleService.setupWallet(wallet)
+            await appLifecycleService.updateWalletConnections()
         }
     }
 

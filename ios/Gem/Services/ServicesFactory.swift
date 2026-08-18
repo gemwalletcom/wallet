@@ -181,6 +181,7 @@ struct ServicesFactory {
         let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
         let streamSubscriptionService = StreamSubscriptionService(
             priceService: priceService,
+            walletSessionService: walletSessionService,
             webSocket: webSocket,
         )
         let priceAlertService = Self.makePriceAlertService(
@@ -327,6 +328,7 @@ struct ServicesFactory {
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
             perpetualEnablerService: perpetualEnablerService,
+            walletSessionService: walletSessionService,
         )
 
         let viewModelFactory = ViewModelFactory(

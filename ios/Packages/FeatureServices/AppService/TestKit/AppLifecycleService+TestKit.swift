@@ -13,6 +13,8 @@ import Preferences
 import PreferencesTestKit
 import StreamService
 import StreamServiceTestKit
+import WalletSessionService
+import WalletSessionServiceTestKit
 
 public extension AppLifecycleService {
     static func mock(
@@ -24,6 +26,7 @@ public extension AppLifecycleService {
         streamSubscriptionService: StreamSubscriptionService = .mock(),
         hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
         perpetualService: any PerpetualServiceable = PerpetualServiceMock(),
+        walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
     ) -> AppLifecycleService {
         AppLifecycleService(
             preferences: preferences,
@@ -37,6 +40,7 @@ public extension AppLifecycleService {
                 service: perpetualService,
                 preferences: preferences,
             ),
+            walletSessionService: walletSessionService,
         )
     }
 }

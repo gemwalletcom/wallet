@@ -3,26 +3,29 @@
 import Foundation
 import PriceService
 import Primitives
+import WalletSessionService
 import WebSocketClient
 
 public actor StreamSubscriptionService: Sendable {
     private let priceService: PriceService
+    private let walletSessionService: any WalletSessionManageable
     private let webSocket: any WebSocketConnectable
     private let encoder = JSONEncoder()
 
     private var subscribedAssetIds: Set<AssetId> = []
-    private var currentWalletId: WalletId?
 
     public init(
         priceService: PriceService,
+        walletSessionService: any WalletSessionManageable,
         webSocket: any WebSocketConnectable,
     ) {
         self.priceService = priceService
+        self.walletSessionService = walletSessionService
         self.webSocket = webSocket
     }
 
-    public func setupAssets(walletId: WalletId) async throws {
-        currentWalletId = walletId
+    public func setupAssets() async throws {
+        guard let walletId = walletSessionService.currentWalletId else { return }
         guard await webSocket.state == .connected else { return }
 
         let assets = try priceService.observableAssets(walletId: walletId)
@@ -35,9 +38,8 @@ public actor StreamSubscriptionService: Sendable {
     }
 
     public func resubscribe() async {
-        guard let walletId = currentWalletId else { return }
         do {
-            try await setupAssets(walletId: walletId)
+            try await setupAssets()
         } catch {
             debugLog("stream subscription: resubscribe failed: \(error)")
         }

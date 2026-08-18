@@ -4,16 +4,20 @@ import Foundation
 import PriceService
 import PriceServiceTestKit
 import StreamService
+import WalletSessionService
+import WalletSessionServiceTestKit
 import WebSocketClient
 import WebSocketClientTestKit
 
 public extension StreamSubscriptionService {
     static func mock(
         priceService: PriceService = .mock(),
+        walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
         webSocket: any WebSocketConnectable = WebSocketConnectionMock(),
     ) -> StreamSubscriptionService {
         StreamSubscriptionService(
             priceService: priceService,
+            walletSessionService: walletSessionService,
             webSocket: webSocket,
         )
     }
