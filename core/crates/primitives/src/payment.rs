@@ -30,17 +30,6 @@ pub struct PaymentRequest {
     pub asset_id: Option<AssetId>,
 }
 
-impl PaymentRequest {
-    pub fn new_address(address: &str) -> Self {
-        Self {
-            address: address.to_string(),
-            amount: None,
-            memo: None,
-            asset_id: None,
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]

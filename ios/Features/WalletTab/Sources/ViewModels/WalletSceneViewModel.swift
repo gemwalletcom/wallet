@@ -121,10 +121,6 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
         Images.System.qrCodeViewfinder
     }
 
-    public var showScanner: Bool {
-        observablePreferences.isDeveloperEnabled
-    }
-
     public var manageImage: Image {
         Images.Actions.manage
     }

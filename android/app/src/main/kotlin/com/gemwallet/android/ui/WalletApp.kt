@@ -41,7 +41,7 @@ import com.wallet.core.primitives.AssetId
 @Composable
 fun WalletApp(
     pendingRoutes: List<NavKey> = emptyList(),
-    onIntentConsumed: () -> Unit = {},
+    onPendingNavigationConsumed: () -> Unit = {},
     onContentReady: () -> Unit = {},
     walletConnectOverlay: @Composable ((AcquireAssetAction, AssetId) -> Unit) -> Unit = { _ -> },
     viewModel: AppViewModel = hiltViewModel(),
@@ -72,7 +72,7 @@ fun WalletApp(
             return@LaunchedEffect
         }
         if (navigator.openPendingNavigation(pendingRoutes)) {
-            onIntentConsumed()
+            onPendingNavigationConsumed()
         } else if (navigator.needsPendingNavigationConfirmation()) {
             confirmPendingNavigation = true
         }
@@ -139,12 +139,12 @@ fun WalletApp(
             onOpen = {
                 confirmPendingNavigation = false
                 if (navigator.openPendingNavigation(pendingRoutes, confirmed = true)) {
-                    onIntentConsumed()
+                    onPendingNavigationConsumed()
                 }
             },
             onCancel = {
                 confirmPendingNavigation = false
-                onIntentConsumed()
+                onPendingNavigationConsumed()
             },
         )
     }

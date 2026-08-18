@@ -13,8 +13,8 @@ import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
-import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.decodePayment
+import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.isValidAddress
@@ -32,10 +32,10 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
-import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.name.NameRecordState
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
 import com.gemwallet.android.ui.models.navigation.optionalPaymentRequest
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
@@ -99,7 +99,6 @@ class RecipientViewModel @Inject constructor(
 
     private val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
     private val nftAssetId = savedStateHandle.optionalNftAssetId(RouteArgument.NftAssetId)
-    private val payment = savedStateHandle.optionalPaymentRequest(RouteArgument.Payment)
 
     private val nftAsset: Deferred<NFTAsset?> = viewModelScope.async(Dispatchers.IO, CoroutineStart.LAZY) {
         val id = nftAssetId ?: return@async null
@@ -158,7 +157,7 @@ class RecipientViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
-        payment?.let(::updateFrom)
+        savedStateHandle.optionalPaymentRequest(RouteArgument.Payment)?.let(::updateFrom)
     }
 
     fun onNext(

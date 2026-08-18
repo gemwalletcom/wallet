@@ -2,7 +2,6 @@ package com.gemwallet.android
 
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
-import com.gemwallet.android.ext.pack
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute

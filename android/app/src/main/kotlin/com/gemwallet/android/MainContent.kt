@@ -25,7 +25,7 @@ internal fun MainContent(
     walletConnectViewModel: WalletConnectViewModel,
     walletConnectEnabled: Boolean,
     onSystemAuthRequired: () -> Unit,
-    onIntentConsumed: () -> Unit,
+    onPendingNavigationConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
     onWalletConnectPairingToastShown: () -> Unit,
     onScanErrorShown: () -> Unit,
@@ -63,7 +63,7 @@ internal fun MainContent(
             if (state.hasUnlockedApp) {
                 WalletApp(
                     pendingRoutes = unlockedPendingRoutes,
-                    onIntentConsumed = onIntentConsumed,
+                    onPendingNavigationConsumed = onPendingNavigationConsumed,
                     onContentReady = onWalletContentReady,
                     walletConnectOverlay = walletConnectOverlay,
                 )

@@ -10,9 +10,9 @@ import NFT
 import Perpetuals
 import PriceAlerts
 import PriceService
-import QRScanner
 import Primitives
 import PrimitivesComponents
+import QRScanner
 import StakeService
 import Store
 import SwiftUI
@@ -75,13 +75,11 @@ struct WalletNavigationView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !model.isPresentingSearch {
-                if model.showScanner {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: model.onSelectScanner) {
-                            model.scannerImage
-                        }
-                        .accessibilityIdentifier("scan")
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: model.onSelectScanner) {
+                        model.scannerImage
                     }
+                    .accessibilityIdentifier("scan")
                 }
                 ToolbarItem(placement: .principal) {
                     WalletBarView(

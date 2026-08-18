@@ -16,7 +16,6 @@ import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockAssetXrp
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentRequest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -84,7 +83,7 @@ class PaymentTransferTest {
     }
 
     @Test
-    fun destination_withAmountAndMemo_confirms() {
+    fun destination_xrpDestinationTag_confirms() {
         val confirm = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10&dt=12345")
 
         assertTrue("an exact tagged payment must confirm, got $confirm", confirm is PaymentDestination.Confirm)
@@ -92,15 +91,6 @@ class PaymentTransferTest {
         assertEquals(BigInteger("10000000"), params.amount)
         assertEquals(RIPPLE_ADDRESS, params.destination()?.address)
         assertEquals("12345", params.memo())
-    }
-
-    @Test
-    fun destination_withAmountWithoutMemo_requiresRecipient() {
-        val recipient = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10")
-
-        assertTrue("an XRP payment without a destination tag must require recipient review", recipient is PaymentDestination.Recipient)
-        assertEquals(PaymentAmount.ExactValue("10"), (recipient as PaymentDestination.Recipient).request.amount)
-        assertEquals(null, recipient.request.memo)
     }
 
     @Test

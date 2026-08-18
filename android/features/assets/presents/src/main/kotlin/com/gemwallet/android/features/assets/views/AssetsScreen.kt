@@ -112,13 +112,11 @@ fun AssetsScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            val onScan: (() -> Unit)? = if (viewModel.showScanner) { { onAction(AssetsAction.Scan) } } else null
-
             AssetsTopBar(
                 walletSummary = walletSummary,
                 onShowWallets = { onAction(AssetsAction.ShowWallets) },
                 onSearch = { onAction(AssetsAction.Search) },
-                onScan = onScan,
+                onScan = { onAction(AssetsAction.Scan) },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },

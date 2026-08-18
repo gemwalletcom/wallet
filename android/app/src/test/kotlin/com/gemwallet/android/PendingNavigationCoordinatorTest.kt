@@ -33,7 +33,7 @@ class PendingNavigationCoordinatorTest {
     fun tearDown() = unmockkStatic("uniffi.gemstone.GemstoneKt")
 
     @Test
-    fun buildRoutes_withoutPendingIntent_isNoOp() = runTest {
+    fun buildRoutes_withoutPendingInput_isNoOp() = runTest {
         coordinator.buildRoutes(NoOpWalletConnect)
 
         assertNull(coordinator.pendingNavigation.value)
@@ -44,12 +44,12 @@ class PendingNavigationCoordinatorTest {
         val handler = RecordingWalletConnect()
         val uri = "wc:abc@2?relay-protocol=irn"
         every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Connect(uri))
-        coordinator.setIntent(intent(uri = uri))
+        coordinator.handleScan(uri)
 
         coordinator.buildRoutes(handler)
 
         assertEquals(listOf("pairing:$uri"), handler.events)
-        assertNull("intent must be cleared after handing off to wallet connect", coordinator.pendingNavigation.value)
+        assertNull("input must be cleared after handing off to wallet connect", coordinator.pendingNavigation.value)
     }
 
     @Test
@@ -57,7 +57,7 @@ class PendingNavigationCoordinatorTest {
         val handler = RecordingWalletConnect()
         val uri = "gem://wc?requestId=42"
         every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Request)
-        coordinator.setIntent(intent(uri = uri))
+        coordinator.handleScan(uri)
 
         coordinator.buildRoutes(handler)
 
@@ -69,7 +69,7 @@ class PendingNavigationCoordinatorTest {
     fun buildRoutes_webDeepLink_storesRoute() = runTest {
         val uri = "https://gemwallet.com/join/gemcoder"
         every { urlAction(uri) } returns UrlAction.Deeplink(Deeplink.Rewards(code = "gemcoder"))
-        coordinator.setIntent(intent(uri = uri))
+        coordinator.handleScan(uri)
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -78,10 +78,10 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
-    fun buildRoutes_unknownIntentWithoutNotificationPayload_clears() = runTest {
+    fun buildRoutes_unknownScan_clears() = runTest {
         val uri = "https://example.com/unknown"
         every { urlAction(uri) } returns null
-        coordinator.setIntent(intent(uri = uri))
+        coordinator.handleScan(uri)
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -115,7 +115,7 @@ class PendingNavigationCoordinatorTest {
 
     @Test
     fun clear_clearsPendingNavigation() {
-        coordinator.setIntent(intent(uri = "https://example.com"))
+        coordinator.handleScan("https://example.com")
 
         coordinator.clear()
 

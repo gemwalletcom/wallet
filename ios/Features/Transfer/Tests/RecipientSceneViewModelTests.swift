@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Primitives
-import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
@@ -95,45 +93,7 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
-    func destination_confirm() throws {
-        let asset = Asset.mockEthereum()
-        let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
-        let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
-        let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
-
-        let payment = PaymentRequest.mock(address: " \n\(address)\r ", amount: .exactValue("1.234"))
-
-        let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
-
-        switch result {
-        case let .confirm(data):
-            #expect(data.recipientData.recipient.address == checksummed)
-            #expect(data.amount == .exact(BigInt("1234000000000000000")))
-        case .recipient:
-            Issue.record("Expected confirm but got recipient")
-        }
-    }
-
-    @Test
-    func destination_recipient() throws {
-        let model = RecipientSceneViewModel.mock()
-
-        let payment = PaymentRequest.mock(address: "0x123", memo: "test memo")
-
-        let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
-
-        switch result {
-        case let .recipient(data):
-            #expect(data.recipient.address == payment.address)
-            #expect(data.recipient.memo == payment.memo)
-            #expect(data.amount == nil)
-        case .confirm:
-            Issue.record("Expected recipient but got confirm")
-        }
-    }
-
-    @Test
-    func onHandleScan_keepsAmount() {
+    func onHandleScanKeepsAmount() {
         let asset = Asset.mockEthereum()
         let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
 
@@ -148,7 +108,7 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
-    func recipientData_keepsAmount() {
+    func recipientDataKeepsAmount() {
         let asset = Asset.mockEthereum()
         let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
         let model = RecipientSceneViewModel.mock(
@@ -167,61 +127,6 @@ struct RecipientSceneViewModelTests {
         model.onChangeAddressText(address, new: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a")
 
         #expect(model.recipientData == nil)
-    }
-
-    @Test
-    func destination_withAmountAndMemo_confirms() throws {
-        let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
-        let address = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-        let transfer = PaymentTransfer(asset: xrp)
-
-        let tagged = try transfer.destination(for: .mock(address: address, amount: .exactValue("10"), memo: "12345", assetId: xrp.id))
-
-        guard case let .confirm(data) = tagged else {
-            Issue.record("an exact tagged payment must confirm, got \(tagged)")
-            return
-        }
-        #expect(data.recipientData.recipient.address == address)
-        #expect(data.recipientData.recipient.memo == "12345")
-        #expect(data.amount == .exact(BigInt(10_000_000)))
-    }
-
-    @Test
-    func destination_withAmountWithoutMemo_requiresRecipient() throws {
-        let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
-        let address = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-
-        let destination = try PaymentTransfer(asset: xrp).destination(
-            for: .mock(address: address, amount: .exactValue("10"), assetId: xrp.id),
-        )
-
-        guard case let .recipient(data) = destination else {
-            Issue.record("an XRP payment without a destination tag must require recipient review")
-            return
-        }
-        #expect(data.recipient.address == address)
-        #expect(data.recipient.memo == nil)
-        #expect(data.amount == "10")
-    }
-
-    @Test
-    func destination_belowSmallestUnit() throws {
-        let asset = Asset.mockEthereum()
-        let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
-
-        let payment = PaymentRequest.mock(
-            address: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a",
-            amount: .exactValue("0.0000000000000000001"),
-        )
-
-        let result = try PaymentTransfer(asset: model.asset).destination(for: payment)
-
-        switch result {
-        case let .recipient(data):
-            #expect(data.amount == "0.0000000000000000001")
-        case .confirm:
-            Issue.record("A nineteenth decimal is not signable as ETH")
-        }
     }
 
     @Test

@@ -63,7 +63,10 @@ mod tests {
         assert_eq!(
             UrlAction::from_url("not a url"),
             Some(UrlAction::Payment {
-                payment: Payment::Request(PaymentRequest::new_address("not a url")),
+                payment: Payment::Request(PaymentRequest {
+                    address: "not a url".to_string(),
+                    ..PaymentRequest::mock()
+                }),
             })
         );
     }

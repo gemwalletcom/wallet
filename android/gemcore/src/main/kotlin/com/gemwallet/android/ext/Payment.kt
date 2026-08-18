@@ -1,7 +1,5 @@
 package com.gemwallet.android.ext
 
-import com.gemwallet.android.serializer.packRoutePayload
-import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentRequest
@@ -21,7 +19,3 @@ val PaymentRequest.exactAmount: String?
 
 fun decodePayment(url: String): Payment? =
     runCatching { paymentDecodeUrl(url) }.getOrNull()?.toPrimitives()
-
-fun PaymentRequest.pack(): String? = packRoutePayload()
-
-fun unpackPaymentRequest(input: String): PaymentRequest? = unpackRoutePayload(input)

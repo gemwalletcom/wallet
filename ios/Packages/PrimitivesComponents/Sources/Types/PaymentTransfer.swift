@@ -2,7 +2,6 @@
 
 import BigInt
 import Formatters
-import Foundation
 import GemstonePrimitives
 import Localization
 import Primitives

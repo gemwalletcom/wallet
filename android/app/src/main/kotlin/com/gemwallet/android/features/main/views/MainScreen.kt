@@ -67,7 +67,6 @@ fun MainScreen(
 ) {
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
-    val coroutineScope = rememberCoroutineScope()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
     var isPresentingScanner by remember { mutableStateOf(false) }
 
@@ -87,6 +86,7 @@ fun MainScreen(
     val activitiesListState = rememberLazyListState()
     val settingsScrollState = rememberScrollState()
     val tabStateHolder = rememberSaveableStateHolder()
+    val coroutineScope = rememberCoroutineScope()
     val scrollTabToTop: (String) -> Unit = { route ->
         coroutineScope.launch {
             when (route) {

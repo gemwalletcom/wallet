@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.models.navigation
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toNftAssetId
-import com.gemwallet.android.ext.unpackPaymentRequest
+import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PaymentRequest
@@ -30,5 +30,5 @@ fun SavedStateHandle.optionalNftAssetId(argument: RouteArgument = RouteArgument.
 
 fun SavedStateHandle.optionalPaymentRequest(argument: RouteArgument = RouteArgument.Payment): PaymentRequest? {
     val value = get<String>(argument.key) ?: return null
-    return checkNotNull(unpackPaymentRequest(value)) { "Invalid route argument ${argument.key}: $value" }
+    return checkNotNull(unpackRoutePayload<PaymentRequest>(value)) { "Invalid route argument ${argument.key}: $value" }
 }

@@ -2,8 +2,9 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.ext.pack
+import com.gemwallet.android.features.asset_select.presents.views.SelectSendScreen
 import com.gemwallet.android.features.recipient.presents.RecipientScreen
+import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -11,7 +12,6 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
-import com.gemwallet.android.features.asset_select.presents.views.SelectSendScreen
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PaymentRequest
@@ -49,7 +49,7 @@ fun EntryProviderScope<NavKey>.recipientInput(
             routeArguments(
                 assetIdArgument(key.assetId),
                 RouteArgument.NftAssetId to key.nftAssetId,
-                RouteArgument.Payment to key.payment?.pack(),
+                RouteArgument.Payment to key.payment?.packRoutePayload(),
             )
         },
     ) {

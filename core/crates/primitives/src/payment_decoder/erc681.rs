@@ -2,7 +2,7 @@ use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
 use crate::{
-    AssetId, Chain, EVMChain,
+    AssetId, Chain, ChainType,
     payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
@@ -59,7 +59,7 @@ fn chain(chain_id: &str) -> Option<Chain> {
         None => chain_id.parse().ok()?,
     };
 
-    EVMChain::from_chain_id(chain_id).map(|chain| chain.to_chain())
+    Chain::from_chain_id(chain_id).filter(|chain| chain.chain_type() == ChainType::Ethereum)
 }
 
 #[cfg(test)]

@@ -64,7 +64,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                     walletConnectViewModel = walletConnectViewModel,
                     walletConnectEnabled = viewModel.isWalletConnectEnabled,
                     onSystemAuthRequired = systemAuthenticator::authenticate,
-                    onIntentConsumed = viewModel::consumePendingNavigation,
+                    onPendingNavigationConsumed = viewModel::consumePendingNavigation,
                     onOpenSystemAuthSettings = systemAuthenticator::openSettings,
                     onWalletConnectPairingToastShown = viewModel::dismissWalletConnectPairingToast,
                     onScanErrorShown = viewModel::dismissScanError,

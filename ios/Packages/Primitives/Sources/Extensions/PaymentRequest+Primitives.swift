@@ -1,5 +1,3 @@
-import Foundation
-
 public extension PaymentRequest {
     var exactAmount: String? {
         switch amount {

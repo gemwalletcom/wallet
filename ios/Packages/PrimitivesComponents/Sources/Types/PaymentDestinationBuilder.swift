@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -28,9 +27,9 @@ public enum PaymentDestinationBuilder {
     private static func build(payment: PaymentRequest, assetData: AssetData) throws -> PaymentDestination {
         switch try PaymentTransfer(asset: assetData.asset).destination(for: payment) {
         case let .confirm(transfer):
-            return .confirm(transfer)
+            .confirm(transfer)
         case let .recipient(recipient):
-            return .recipient(
+            .recipient(
                 SelectedAssetInput(
                     type: .send(.asset(assetData.asset)),
                     assetData: assetData,

@@ -11,10 +11,10 @@ impl PaymentURLDecoder {
         let uri = string.trim();
         let payment = Self::decode_uri(uri.split_once('#').map_or(uri, |(uri, _)| uri))?;
 
-        if matches!(&payment, Payment::Request(request) if request.address.is_empty()) {
-            return Err(PaymentDecoderError::MissingField("address".to_string()));
+        match payment {
+            Payment::Request(request) if request.address.is_empty() => Err(PaymentDecoderError::MissingField("address".to_string())),
+            payment @ (Payment::Request(_) | Payment::Link(_)) => Ok(payment),
         }
-        Ok(payment)
     }
 
     fn decode_uri(uri: &str) -> Result<Payment> {
@@ -46,7 +46,10 @@ mod tests {
     fn test_address() {
         assert_eq!(
             PaymentURLDecoder::decode("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326").unwrap(),
-            Payment::Request(PaymentRequest::new_address("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"))
+            Payment::Request(PaymentRequest {
+                address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326".to_string(),
+                ..PaymentRequest::mock()
+            })
         );
 
         assert_eq!(
