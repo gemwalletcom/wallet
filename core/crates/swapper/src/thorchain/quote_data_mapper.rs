@@ -3,9 +3,9 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+use super::contracts::RouterInterface;
 use alloy_primitives::{Address, U256, hex::encode_prefixed as HexEncode};
 use alloy_sol_types::SolCall;
-use gem_evm::thorchain::contracts::RouterInterface;
 use num_bigint::BigInt;
 use primitives::swap::ApprovalData;
 
