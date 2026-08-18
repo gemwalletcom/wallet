@@ -42,6 +42,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     public let bannersQuery: ObservableQuery<BannersRequest>
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
+    public var isPresentingScanner = false
     public var isPresentingWallets: Binding<Bool>
     public var isPresentingSheet: WalletSheetType?
     public var isPresentingSearch = false
@@ -114,6 +115,10 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
 
     public var searchImage: Image {
         Images.System.search
+    }
+
+    public var scannerImage: Image {
+        Images.System.qrCodeViewfinder
     }
 
     public var manageImage: Image {
@@ -192,6 +197,10 @@ public extension WalletSceneViewModel {
         isPresentingSearch.toggle()
     }
 
+    func onSelectScanner() {
+        isPresentingScanner = true
+    }
+
     func onSelectAddCustomToken() {
         isPresentingSheet = .addAsset
     }
@@ -203,7 +212,7 @@ public extension WalletSceneViewModel {
     internal func onHeaderAction(type: HeaderButtonType) {
         switch type {
         case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
-        case .send: isPresentingSheet = .selectAsset(.send, chains: [])
+        case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
         case .sell, .swap, .more, .stake, .deposit, .withdraw: break
         }

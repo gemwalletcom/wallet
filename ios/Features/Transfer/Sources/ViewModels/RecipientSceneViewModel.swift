@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import GemstonePrimitives
 import Keystore
@@ -33,7 +32,7 @@ public final class RecipientSceneViewModel {
     public var isPresentingScanner: RecipientScene.Field?
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
-    var amount: String = ""
+    private(set) var recipientData: RecipientData?
 
     public let contactsQuery: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -47,6 +46,7 @@ public final class RecipientSceneViewModel {
         nameService: any NameServiceable,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
+        recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
     ) {
@@ -69,6 +69,10 @@ public final class RecipientSceneViewModel {
         )
 
         contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
+
+        if let recipient {
+            update(from: recipient)
+        }
     }
 
     var tittle: String {
@@ -135,7 +139,7 @@ extension RecipientSceneViewModel {
                     address: addressInputModel.resolvedAddress,
                     memo: memo,
                 ),
-                amount: amount.isEmpty ? .none : amount,
+                amount: recipientData?.amount,
             ),
         )
     }
@@ -158,10 +162,9 @@ extension RecipientSceneViewModel {
         }
     }
 
-    func onChangeAddressText(_: String, new _: String) {
-        if !amount.isEmpty {
-            amount = .empty
-        }
+    func onChangeAddressText(_: String, new: String) {
+        guard new != recipientData?.recipient.address else { return }
+        recipientData = .none
     }
 
     func onSelectRecipient(_ recipient: RecipientAddress) {
@@ -181,44 +184,6 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    // TODO: Add unit tests, will be added once moved to package
-    private func paymentScan(string: String) throws -> PaymentScanResult {
-        let payment = try PaymentURLDecoder.decode(string)
-
-        return PaymentScanResult(
-            address: payment.address,
-            amount: payment.amount,
-            memo: payment.memo,
-        )
-    }
-
-    func getRecipientScanResult(payment: PaymentScanResult) throws -> RecipientScanResult {
-        let address = asset.chain.checksumAddress(payment.address)
-        if let amount = payment.amount, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
-           asset.chain.isValidAddress(address)
-        {
-            let transferType: TransferDataType = switch type {
-            case let .asset(asset): .transfer(asset)
-            case let .nft(asset): .transferNft(asset)
-            }
-
-            let value = try BigNumberFormatter.standard.number(from: amount, decimals: asset.decimals.asInt)
-            let recipientData = RecipientData(
-                recipient: Recipient(
-                    name: .none,
-                    address: address,
-                    memo: payment.memo,
-                ),
-                amount: .none,
-            )
-            return .transferData(
-                TransferData(type: transferType, recipientData: recipientData, amount: .exact(value)),
-            )
-        }
-
-        return .recipient(address: address, memo: payment.memo, amount: payment.amount)
-    }
-
     private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<RecipientAddress>] {
         switch section {
         case .contacts:
@@ -251,17 +216,37 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        let payment = try paymentScan(string: string)
-        let scanResult = try getRecipientScanResult(payment: payment)
-        switch scanResult {
-        case let .transferData(data):
-            handle(transferData: data)
-        case let .recipient(address, memo, amount):
-            // TODO: - open if all fields filled
-            addressInputModel.update(text: address)
+        switch try PaymentURLDecoder.decode(string) {
+        case let .request(payment):
+            try handle(payment: payment)
+        case .link:
+            throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
+        }
+    }
 
-            if let memo { self.memo = memo }
-            if let amount { self.amount = amount }
+    private func handle(payment: PaymentRequest) throws {
+        switch type {
+        case let .asset(asset):
+            switch try PaymentTransfer(asset: asset).destination(for: payment) {
+            case let .confirm(data): handle(transferData: data)
+            case let .recipient(data): update(from: data)
+            }
+        case .nft:
+            update(
+                from: RecipientData(
+                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address), memo: payment.memo),
+                    amount: .none,
+                ),
+            )
+        }
+    }
+
+    private func update(from recipientData: RecipientData) {
+        self.recipientData = recipientData
+        addressInputModel.update(text: recipientData.recipient.address)
+
+        if let memo = recipientData.recipient.memo {
+            self.memo = memo
         }
     }
 

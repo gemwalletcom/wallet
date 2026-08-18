@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.R
@@ -25,12 +26,16 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.WalletType
 
+private const val ScanActionTag = "assetsScanAction"
+private const val ManageActionTag = "assetsManageAction"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AssetsTopBar(
     walletSummary: WalletSummaryAggregate?,
     onShowWallets: () -> Unit,
     onSearch: () -> Unit,
+    onScan: () -> Unit,
 ) {
     val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletIcon?.imageUrl)
         ?: walletSummary?.walletIcon?.placeholder
@@ -62,10 +67,22 @@ internal fun AssetsTopBar(
                 }
             }
         },
+        navigationIcon = {
+            IconButton(
+                onClick = onScan,
+                Modifier.testTag(ScanActionTag)
+            ) {
+                Icon(
+                    imageVector = AppIcons.QrCodeScanner,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = stringResource(R.string.wallet_scan_qr_code),
+                )
+            }
+        },
         actions = {
             IconButton(
                 onClick = onSearch,
-                Modifier.testTag("assetsManageAction")
+                Modifier.testTag(ManageActionTag)
             ) {
                 Icon(
                     imageVector = AppIcons.Search,

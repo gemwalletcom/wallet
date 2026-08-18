@@ -185,6 +185,7 @@ public struct ViewModelFactory: Sendable {
         wallet: Wallet,
         asset: Asset,
         type: RecipientAssetType,
+        recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
     ) -> RecipientSceneViewModel {
@@ -194,6 +195,7 @@ public struct ViewModelFactory: Sendable {
             walletSessionService: walletSessionService,
             nameService: nameService,
             type: type,
+            recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
         )

@@ -16,6 +16,12 @@ public struct DeveloperScene: View {
 
     public var body: some View {
         List {
+            Section {
+                NavigationLink(value: Scenes.DeveloperPayments()) {
+                    ListItemView(title: "Payments")
+                }
+            }
+
             Section("Device") {
                 ListItemView(title: "Device ID", subtitle: model.deviceId)
                     .contextMenu(.copy(value: model.deviceId))

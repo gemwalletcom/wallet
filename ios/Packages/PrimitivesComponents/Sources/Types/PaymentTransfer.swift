@@ -1,0 +1,59 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import BigInt
+import Formatters
+import GemstonePrimitives
+import Localization
+import Primitives
+
+public struct PaymentTransfer: Sendable {
+    public enum Destination: Sendable {
+        case confirm(TransferData)
+        case recipient(RecipientData)
+    }
+
+    private let asset: Asset
+
+    public init(asset: Asset) {
+        self.asset = asset
+    }
+
+    public func destination(for payment: PaymentRequest) throws -> Destination {
+        if let assetId = payment.assetId, assetId != asset.id {
+            throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
+        }
+        let address = asset.chain.checksumAddress(payment.address)
+        let recipient = Recipient(name: .none, address: address, memo: payment.memo)
+
+        guard let value = confirmableValue(of: payment, address: address) else {
+            return .recipient(RecipientData(recipient: recipient, amount: payment.exactAmount))
+        }
+        return .confirm(
+            TransferData(
+                type: .transfer(asset),
+                recipientData: RecipientData(recipient: recipient, amount: .none),
+                amount: .exact(value),
+            ),
+        )
+    }
+}
+
+// MARK: - Private
+
+private extension PaymentTransfer {
+    func confirmableValue(of payment: PaymentRequest, address: String) -> BigInt? {
+        guard asset.chain.isValidAddress(address) else { return .none }
+        if asset.chain.isMemoSupported {
+            guard payment.memo?.isEmpty == false else { return .none }
+        }
+        return transferValue(of: payment)
+    }
+
+    func transferValue(of payment: PaymentRequest) -> BigInt? {
+        switch payment.amount {
+        case let .exactValue(value): try? BigNumberFormatter.standard.exactNumber(from: value, decimals: asset.decimals.asInt)
+        case let .atomicValue(value): BigInt(value)
+        case .none: .none
+        }
+    }
+}

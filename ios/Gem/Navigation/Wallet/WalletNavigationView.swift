@@ -12,6 +12,7 @@ import PriceAlerts
 import PriceService
 import Primitives
 import PrimitivesComponents
+import QRScanner
 import StakeService
 import Store
 import SwiftUI
@@ -22,6 +23,7 @@ import WalletTab
 struct WalletNavigationView: View {
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.balanceService) private var balanceService
+    @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
@@ -73,6 +75,12 @@ struct WalletNavigationView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !model.isPresentingSearch {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: model.onSelectScanner) {
+                        model.scannerImage
+                    }
+                    .accessibilityIdentifier("scan")
+                }
                 ToolbarItem(placement: .principal) {
                     WalletBarView(
                         model: model.walletBarModel,
@@ -216,6 +224,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
+        .scanQRCodeSheet(isPresented: $model.isPresentingScanner, action: onScan)
         .sheet(item: $model.isPresentingSheet) { sheet in
             Group {
                 switch sheet {
@@ -278,6 +287,10 @@ struct WalletNavigationView: View {
 // MARK: - Actions
 
 extension WalletNavigationView {
+    private func onScan(_ code: String) {
+        Task { await navigationHandler.handle(code: code) }
+    }
+
     private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
         Task {
             do {

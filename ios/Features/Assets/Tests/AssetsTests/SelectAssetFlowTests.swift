@@ -8,7 +8,7 @@ import Testing
 struct SelectAssetFlowTests {
     @Test
     func rowSelection() {
-        #expect(SelectAssetType.send.flow.rowSelection == .navigate)
+        #expect(SelectAssetType.send(.none).flow.rowSelection == .navigate)
         #expect(SelectAssetType.receive(.asset).flow.rowSelection == .navigate)
         #expect(SelectAssetType.receive(.collection).flow.rowSelection == .navigate)
         #expect(SelectAssetType.buy.flow.rowSelection == .navigate)
@@ -29,7 +29,7 @@ struct SelectAssetFlowTests {
 
     @Test
     func capabilities() {
-        #expect(SelectAssetType.send.flow.capabilities == [.chainFilter, .recents])
+        #expect(SelectAssetType.send(.none).flow.capabilities == [.chainFilter, .recents])
         #expect(SelectAssetType.receive(.asset).flow.capabilities == [.networkSearch, .chainFilter, .recents])
         #expect(SelectAssetType.receive(.collection).flow.capabilities == [.networkSearch, .recents])
         #expect(SelectAssetType.buy.flow.capabilities == [.networkSearch, .chainFilter, .recents, .popularSection])
@@ -43,7 +43,7 @@ struct SelectAssetFlowTests {
 
     @Test
     func defaultFilters() {
-        #expect(SelectAssetType.send.flow.defaultFilters == [.enabled, .hasBalance])
+        #expect(SelectAssetType.send(.none).flow.defaultFilters == [.enabled, .hasBalance])
         #expect(SelectAssetType.receive(.asset).flow.defaultFilters == [.enabled])
         #expect(SelectAssetType.buy.flow.defaultFilters == [.enabled, .buyable])
         #expect(SelectAssetType.swap(.pay).flow.defaultFilters == [.enabled, .swappable, .hasBalance])

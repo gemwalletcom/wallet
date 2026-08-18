@@ -2,7 +2,7 @@ pub mod asset;
 pub mod balance;
 pub mod chain_address;
 pub mod connection;
-mod custom_types;
+pub(crate) mod custom_types;
 pub mod gateway;
 pub mod nft;
 pub mod node;

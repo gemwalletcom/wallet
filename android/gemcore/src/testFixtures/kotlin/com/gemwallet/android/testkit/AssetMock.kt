@@ -35,6 +35,20 @@ fun mockAssetSolanaUSDC() = mockAsset(
     type = AssetType.SPL,
 )
 
+fun mockAssetXrp() = mockAsset(
+    chain = Chain.Xrp,
+    name = "XRP",
+    symbol = "XRP",
+    decimals = 6,
+)
+
+fun mockAssetSmartChain() = mockAsset(
+    chain = Chain.SmartChain,
+    name = "BNB",
+    symbol = "BNB",
+    decimals = 18,
+)
+
 fun mockAssetEthereum() = mockAsset(
     chain = Chain.Ethereum,
     name = "Ethereum",

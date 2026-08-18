@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,11 +69,11 @@ import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import uniffi.gemstone.paymentDecodeUrl
 import java.nio.ByteBuffer
 import kotlin.math.min
 
 private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
+private const val SCAN_FROM_GALLERY_TAG = "scanFromGallery"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -161,8 +162,8 @@ fun QRScannerScene(
                         mapOf(DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE))
                     )
                 }.decode(binaryBmp)
-                imageResult = paymentDecodeUrl(result.text).address
-                if (imageResult.isEmpty()) {
+                imageResult = result.text.orEmpty()
+                if (imageResult.isBlank()) {
                     throw Exception()
                 }
             } catch (e: Exception) {
@@ -181,7 +182,10 @@ fun QRScannerScene(
                     Icon(imageVector = AppIcons.Camera, contentDescription = "from_camera")
                 }
             }
-            IconButton(onClick = { galleryLauncher.launch("image/*") }) {
+            IconButton(
+                onClick = { galleryLauncher.launch("image/*") },
+                modifier = Modifier.testTag(SCAN_FROM_GALLERY_TAG),
+            ) {
                 Icon(imageVector = AppIcons.Image, contentDescription = "from_image")
             }
             if (imageUri != null) {

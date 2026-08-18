@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Primitives
@@ -94,49 +93,40 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
-    func getRecipientScanResult_transferData() throws {
+    func onHandleScanKeepsAmount() {
         let asset = Asset.mockEthereum()
         let model = RecipientSceneViewModel.mock(asset: asset, type: .mockAsset(asset))
-        let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
-        let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
 
-        let payment = PaymentScanResult(
-            address: " \n\(address)\r ",
-            amount: "1.234",
-            memo: nil,
-        )
+        model.onHandleScan("ethereum:0x123?amount=1.5", for: .address)
+        model.onChangeAddressText("", new: model.addressInputModel.text)
 
-        let result = try model.getRecipientScanResult(payment: payment)
+        #expect(model.recipientData?.amount == "1.5")
 
-        switch result {
-        case let .transferData(data):
-            #expect(data.recipientData.recipient.address == checksummed)
-            #expect(data.amount == .exact(BigInt("1234000000000000000")))
-        case .recipient:
-            Issue.record("Expected transferData but got recipient")
-        }
+        model.onChangeAddressText("", new: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326")
+
+        #expect(model.recipientData == nil)
     }
 
     @Test
-    func getRecipientScanResult_recipient() throws {
-        let model = RecipientSceneViewModel.mock()
-
-        let payment = PaymentScanResult(
-            address: "0x123",
-            amount: nil,
-            memo: "test memo",
+    func recipientDataKeepsAmount() {
+        let asset = Asset.mockEthereum()
+        let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
+        let model = RecipientSceneViewModel.mock(
+            asset: asset,
+            type: .mockAsset(asset),
+            recipient: RecipientData(
+                recipient: Recipient(name: .none, address: address, memo: "12345"),
+                amount: "10",
+            ),
         )
 
-        let result = try model.getRecipientScanResult(payment: payment)
+        #expect(model.addressInputModel.text == address)
+        #expect(model.memo == "12345")
+        #expect(model.recipientData?.amount == "10")
 
-        switch result {
-        case let .recipient(address, memo, amount):
-            #expect(address == payment.address)
-            #expect(memo == payment.memo)
-            #expect(amount == payment.amount)
-        case .transferData:
-            Issue.record("Expected recipient but got transferData")
-        }
+        model.onChangeAddressText(address, new: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a")
+
+        #expect(model.recipientData == nil)
     }
 
     @Test
@@ -154,6 +144,7 @@ extension RecipientSceneViewModel {
         wallet: Wallet = .mock(),
         asset: Asset = .mockEthereum(),
         type: RecipientAssetType = .mockAsset(),
+        recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction = nil,
         onTransferAction: TransferDataAction = nil,
     ) -> RecipientSceneViewModel {
@@ -163,6 +154,7 @@ extension RecipientSceneViewModel {
             walletSessionService: WalletSessionService.mock(),
             nameService: .mock(),
             type: type,
+            recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
         )

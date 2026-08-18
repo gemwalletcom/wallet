@@ -1,148 +1,190 @@
+use super::amount;
 use super::error::{PaymentDecoderError, Result};
-use std::collections::HashMap;
+use super::query;
+use crate::{
+    AssetId, Chain, ChainType,
+    payment::{Payment, PaymentAmount, PaymentRequest},
+};
 
 pub const ETHEREUM_SCHEME: &str = "ethereum";
-pub const PAY_PREFIX: &str = "pay-";
+const PAY_PREFIX: &str = "pay-";
+const HEXADECIMAL_PREFIX: &str = "0x";
+const TRANSFER_FUNCTION: &str = "transfer";
 
-#[derive(Debug)]
-pub struct TransactionRequest {
-    pub target_address: String,
-    pub prefix: Option<String>,
-    pub chain_id: Option<u64>,
-    pub function_name: Option<String>,
-    pub parameters: HashMap<String, String>,
+const QUERY_ADDRESS: &str = "address";
+const QUERY_AMOUNT: &str = "amount";
+const QUERY_MEMO: &str = "memo";
+const QUERY_UINT256: &str = "uint256";
+const QUERY_VALUE: &str = "value";
+
+pub fn decode(path: &str) -> Result<Payment> {
+    let (path, query) = path.split_once('?').unwrap_or((path, ""));
+    let (target, function) = path.split_once('/').map_or((path, None), |(target, function)| (target, Some(function)));
+    let (target, chain) = match target.split_once('@') {
+        Some((target, chain_id)) => (
+            target,
+            chain(chain_id).ok_or_else(|| PaymentDecoderError::InvalidFormat(format!("Unsupported chain id: {chain_id}")))?,
+        ),
+        None => (target, Chain::Ethereum),
+    };
+    let target = target.strip_prefix(PAY_PREFIX).unwrap_or(target);
+    let parameters = query::parameters(query);
+    let memo = query::value(&parameters, QUERY_MEMO);
+
+    match function {
+        Some(TRANSFER_FUNCTION) => Ok(Payment::Request(PaymentRequest {
+            address: query::value(&parameters, QUERY_ADDRESS).ok_or_else(|| PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string()))?,
+            amount: query::value(&parameters, QUERY_UINT256)
+                .and_then(|value| amount::atomic(&value))
+                .map(PaymentAmount::AtomicValue),
+            memo,
+            asset_id: Some(AssetId::from(chain, Some(target.to_string()))),
+        })),
+        Some(function) => Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}"))),
+        None => Ok(Payment::Request(PaymentRequest {
+            address: target.to_string(),
+            amount: query::value(&parameters, QUERY_VALUE)
+                .and_then(|value| amount::exact_from_atomic(&value, chain))
+                .or_else(|| query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)))
+                .map(PaymentAmount::ExactValue),
+            memo,
+            asset_id: Some(AssetId::from_chain(chain)),
+        })),
+    }
 }
 
-impl TransactionRequest {
-    pub fn parse(uri: &str) -> Result<Self> {
-        // Split the URI into the scheme and the main part
-        let splits = uri.split(':').collect::<Vec<&str>>();
-        if splits.len() != 2 {
-            return Err(PaymentDecoderError::InvalidFormat("Invalid uri without expected ':'".to_string()));
-        }
+fn chain(chain_id: &str) -> Option<Chain> {
+    let chain_id = match chain_id.strip_prefix(HEXADECIMAL_PREFIX) {
+        Some(hexadecimal) => u64::from_str_radix(hexadecimal, 16).ok()?,
+        None => chain_id.parse().ok()?,
+    };
 
-        // Validate the scheme
-        let prefix = splits[0];
-        if !prefix.eq(ETHEREUM_SCHEME) {
-            return Err(PaymentDecoderError::InvalidScheme);
-        }
-
-        // Split the main part and the query string
-        let parts: Vec<&str> = splits[1].split('?').collect();
-        let query_string = if parts.len() > 1 { parts[1] } else { "" };
-
-        // Split the main part by '/'
-        let main_parts: Vec<&str> = parts[0].split('/').collect();
-
-        // The first part should be the target address with optional chain id and pay prefix
-        let mut target_address = main_parts.first().ok_or(PaymentDecoderError::MissingField("target address".to_string()))?.to_string();
-
-        // Parse chain id in integer and 0x format
-        let target_parts = target_address.split('@').collect::<Vec<&str>>();
-        let mut chain_id = None;
-        if target_parts.len() == 2 {
-            if target_parts[1].starts_with("0x") {
-                chain_id = u64::from_str_radix(target_parts[1].replace("0x", "").as_str(), 16).ok();
-            } else {
-                chain_id = target_parts[1].parse().ok();
-            }
-            target_address = target_parts[0].to_string();
-        }
-
-        let mut prefix = None;
-        let prefix_parts = target_address.split('-').collect::<Vec<&str>>();
-        if prefix_parts.len() == 2 {
-            prefix = Some(prefix_parts[0].to_string());
-            target_address = prefix_parts[1].to_string();
-        }
-
-        // The second part (if exists) is the function name
-        let function_name = if main_parts.len() > 1 { Some(main_parts[1].to_string()) } else { None };
-
-        // Parse the query string into key-value pairs
-        let mut parameters = HashMap::new();
-        for pair in query_string.split('&') {
-            if let Some((key, value)) = pair.split_once('=') {
-                parameters.insert(key.to_string(), value.to_string());
-            }
-        }
-
-        Ok(TransactionRequest {
-            target_address,
-            prefix,
-            chain_id,
-            function_name,
-            parameters,
-        })
-    }
+    Chain::from_chain_id(chain_id).filter(|chain| chain.chain_type() == ChainType::Ethereum)
 }
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
+
     use super::*;
 
+    const ADDRESS: &str = "0xcB3028d6120802148f03d6c884D6AD6A210Df62A";
+    const TOKEN: &str = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+
     #[test]
-    fn test_minimal_uri() {
-        let uri = "ethereum:0x32Be343B94f860124dC4fEe278FDCBD38C102D88";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
-        assert_eq!(erc681.prefix, None);
-        assert_eq!(erc681.chain_id, None);
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.len(), 0);
+    fn test_decode() {
+        assert_eq!(
+            decode(&format!("{ADDRESS}@1")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: ADDRESS.to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode(&format!("{ADDRESS}@0x38?amount=1.23")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: ADDRESS.to_string(),
+                amount: Some(PaymentAmount::ExactValue("1.23".to_string())),
+                asset_id: Some(AssetId::from_chain(Chain::SmartChain)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode(&format!("{ADDRESS}?value=2.014e18")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: ADDRESS.to_string(),
+                amount: Some(PaymentAmount::ExactValue("2.014".to_string())),
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode(&format!("pay-{ADDRESS}?value=1e6")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: ADDRESS.to_string(),
+                amount: Some(PaymentAmount::ExactValue("0.000000000001".to_string())),
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode("0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "0x32Be343B94f860124dC4fEe278FDCBD38C102D88".to_string(),
+                amount: Some(PaymentAmount::ExactValue("0.00000000000000001".to_string())),
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                ..PaymentRequest::mock()
+            })
+        );
+
+        assert_eq!(
+            decode("my-wallet.eth").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "my-wallet.eth".to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode("pay-gemwallet.eth@1").unwrap(),
+            Payment::Request(PaymentRequest {
+                address: "gemwallet.eth".to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                ..PaymentRequest::mock()
+            })
+        );
     }
 
     #[test]
-    fn test_invalid_uri() {
-        let uri = "bitcoin:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W";
-        let erc681 = TransactionRequest::parse(uri);
-        assert!(erc681.is_err());
+    fn test_decode_token_transfer() {
+        let token = Some(AssetId::from(Chain::Ethereum, Some(TOKEN.to_string())));
+
+        let one_and_a_half_usdc = Payment::Request(PaymentRequest {
+            address: ADDRESS.to_string(),
+            amount: Some(PaymentAmount::AtomicValue(BigUint::from(1_500_000u32))),
+            asset_id: token.clone(),
+            ..PaymentRequest::mock()
+        });
+
+        assert_eq!(decode(&format!("{TOKEN}@1/transfer?address={ADDRESS}&uint256=1500000")).unwrap(), one_and_a_half_usdc);
+        assert_eq!(decode(&format!("{TOKEN}@1/transfer?address={ADDRESS}&uint256=1.5e6")).unwrap(), one_and_a_half_usdc);
+        assert_eq!(
+            decode(&format!("{TOKEN}/transfer?address={ADDRESS}&uint256=1.5")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: ADDRESS.to_string(),
+                asset_id: token,
+                ..PaymentRequest::mock()
+            })
+        );
     }
 
     #[test]
-    fn test_ens_name_uri() {
-        let uri = "ethereum:pay-gemwallet.eth@1";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "gemwallet.eth");
-        assert_eq!(erc681.prefix.unwrap(), "pay");
-        assert_eq!(erc681.chain_id, Some(1));
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.len(), 0);
-    }
+    fn test_decode_refuses_what_it_cannot_sign() {
+        assert_eq!(
+            decode(&format!("{ADDRESS}/approve?value=1000000000000000000")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported function: approve".to_string()))
+        );
+        assert_eq!(
+            decode(&format!("{TOKEN}/transfer?uint256=1")),
+            Err(PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string()))
+        );
 
-    #[test]
-    fn test_chain_id_uri() {
-        let uri = "ethereum:pay-0x32Be343B94f860124dC4fEe278FDCBD38C102D88@0x38";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
-        assert_eq!(erc681.prefix.unwrap(), "pay");
-        assert_eq!(erc681.chain_id, Some(56));
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.len(), 0);
-    }
-
-    #[test]
-    fn test_eth_transfer_uri() {
-        let uri = "ethereum:0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x32Be343B94f860124dC4fEe278FDCBD38C102D88");
-        assert_eq!(erc681.prefix, None);
-        assert_eq!(erc681.chain_id, None);
-        assert_eq!(erc681.function_name, None);
-        assert_eq!(erc681.parameters.get("value").unwrap(), "10");
-        assert_eq!(erc681.parameters.get("gas").unwrap(), "200000");
-        assert_eq!(erc681.parameters.get("gasPrice").unwrap(), "20000000000");
-    }
-
-    #[test]
-    fn test_erc20_transfer_uri() {
-        let uri = "ethereum:0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7/transfer?address=0x8e23ee67d1332ad560396262c48ffbb01f93d052&uint256=1";
-        let erc681 = TransactionRequest::parse(uri).unwrap();
-        assert_eq!(erc681.target_address, "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7");
-        assert_eq!(erc681.prefix, None);
-        assert_eq!(erc681.chain_id, None);
-        assert_eq!(erc681.function_name.unwrap(), "transfer");
-        assert_eq!(erc681.parameters.get("address").unwrap(), "0x8e23ee67d1332ad560396262c48ffbb01f93d052");
-        assert_eq!(erc681.parameters.get("uint256").unwrap(), "1");
+        assert_eq!(
+            decode(&format!("{ADDRESS}@999999?amount=1")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 999999".to_string()))
+        );
+        assert_eq!(
+            decode(&format!("{ADDRESS}@1337?amount=1")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 1337".to_string()))
+        );
+        assert_eq!(
+            decode(&format!("{ADDRESS}@0x?amount=1")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 0x".to_string()))
+        );
+        assert_eq!(
+            decode(&format!("{ADDRESS}@chain?amount=1")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: chain".to_string()))
+        );
     }
 }

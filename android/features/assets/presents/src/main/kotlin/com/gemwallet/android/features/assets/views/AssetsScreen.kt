@@ -71,6 +71,7 @@ private const val ImportingItemKey = "importing"
 private const val FooterItemKey = "footer"
 private const val PerpetualsSectionItemKey = "perpetuals_section"
 private const val CollectionsSectionItemKey = "collections_section"
+private const val AssetsListTag = "assets_list"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,7 +111,14 @@ fun AssetsScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { AssetsTopBar(walletSummary, { onAction(AssetsAction.ShowWallets) }, { onAction(AssetsAction.Search) }) },
+        topBar = {
+            AssetsTopBar(
+                walletSummary = walletSummary,
+                onShowWallets = { onAction(AssetsAction.ShowWallets) },
+                onSearch = { onAction(AssetsAction.Search) },
+                onScan = { onAction(AssetsAction.Scan) },
+            )
+        },
         snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.surface,
@@ -130,7 +138,7 @@ fun AssetsScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .testTag("assets_list"),
+                    .testTag(AssetsListTag),
                 state = listState
             ) {
                 item(key = AssetsHeadItemKey) {

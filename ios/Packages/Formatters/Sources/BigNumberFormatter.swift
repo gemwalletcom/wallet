@@ -28,6 +28,14 @@ public final class BigNumberFormatter: Sendable {
     }
 
     public func number(from string: String, decimals: Int) throws -> BigInt {
+        try number(from: string, decimals: decimals, truncating: true)
+    }
+
+    public func exactNumber(from string: String, decimals: Int) throws -> BigInt {
+        try number(from: string, decimals: decimals, truncating: false)
+    }
+
+    private func number(from string: String, decimals: Int, truncating: Bool) throws -> BigInt {
         guard let decimalIndex = string.firstIndex(where: { String($0) == decimalSeparator }) else {
             if let value = BigInt(string).flatMap({ $0 * BigInt(10).power(decimals) }) {
                 return value
@@ -45,6 +53,9 @@ public final class BigNumberFormatter: Sendable {
             let endIndex = fractionPartString.index(fractionPartString.startIndex, offsetBy: decimals)
             let trimmedFractionString = fractionPartString[..<endIndex]
 
+            guard truncating || fractionPartString[endIndex...].allSatisfy({ $0 == "0" }) else {
+                throw AnyError("\(string) carries more than \(decimals) decimals")
+            }
             fullString = String(integerPartString + trimmedFractionString)
         }
 

@@ -3,11 +3,9 @@
 import AppService
 import AvatarService
 import Components
-import ConnectionsService
 import DeviceService
 import EventPresenterService
 import Foundation
-import GemstonePrimitives
 import Localization
 import LockManager
 import Onboarding
@@ -26,7 +24,6 @@ final class RootSceneViewModel {
     private let onstartService: OnstartService
     private let onstartWalletService: OnstartWalletService
     private let transactionStateScheduler: TransactionStateScheduler
-    private let connectionsService: ConnectionsService
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
     private let releaseAlertService: ReleaseAlertService
@@ -80,7 +77,6 @@ final class RootSceneViewModel {
         onstartService: OnstartService,
         onstartWalletService: OnstartWalletService,
         transactionStateScheduler: TransactionStateScheduler,
-        connectionsService: ConnectionsService,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
@@ -99,7 +95,6 @@ final class RootSceneViewModel {
         self.onstartService = onstartService
         self.onstartWalletService = onstartWalletService
         self.transactionStateScheduler = transactionStateScheduler
-        self.connectionsService = connectionsService
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
@@ -150,18 +145,7 @@ extension RootSceneViewModel {
     }
 
     func handleOpenUrl(_ url: URL) async {
-        do {
-            let action = try URLParser.from(url: url)
-            switch action {
-            case let .walletConnect(walletConnectAction):
-                try await handleWalletConnect(walletConnectAction)
-            case .deeplink:
-                await navigationHandler.handle(action)
-            }
-        } catch {
-            debugLog("RootSceneViewModel handleUrl error: \(error)")
-            isPresentingConnectorError = error.localizedDescription
-        }
+        await navigationHandler.handle(url: url)
     }
 
     func dismissCreateWallet() {
@@ -224,18 +208,6 @@ extension RootSceneViewModel {
             message: Localized.UpdateApp.description(release.version),
             actions: actions,
         )
-    }
-
-    private func handleWalletConnect(_ action: WalletConnectAction) async throws {
-        isPresentingConnectorBar = true
-        switch action {
-        case let .connect(uri):
-            try await connectionsService.pair(uri: uri)
-        case .request:
-            break
-        case .session:
-            connectionsService.updateSessions()
-        }
     }
 
     private func requestPushPermissions() {

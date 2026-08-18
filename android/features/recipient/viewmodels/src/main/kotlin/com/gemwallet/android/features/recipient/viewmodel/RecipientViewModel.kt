@@ -13,9 +13,12 @@ import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
+import com.gemwallet.android.ext.decodePayment
+import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.isValidAddress
+import com.gemwallet.android.ext.request
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
@@ -23,19 +26,23 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.model.PaymentDestination
+import com.gemwallet.android.model.PaymentTransfer
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
-import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.name.NameRecordState
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
+import com.gemwallet.android.ui.models.navigation.optionalPaymentRequest
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NameRecord
+import com.wallet.core.primitives.PaymentRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -56,7 +63,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,6 +92,7 @@ class RecipientViewModel @Inject constructor(
 
     private val _memo = MutableStateFlow("")
     val memo = _memo.asStateFlow()
+    private var requestedAmount: String? = null
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -149,6 +156,10 @@ class RecipientViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    init {
+        savedStateHandle.optionalPaymentRequest(RouteArgument.Payment)?.let(::updateFrom)
+    }
+
     fun onNext(
         type: RecipientType,
         amountAction: AmountTransactionAction,
@@ -195,52 +206,52 @@ class RecipientViewModel @Inject constructor(
             when (type) {
                 is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
                 is RecipientType.Asset -> amountAction(
-                    AmountParams.Transfer(type.assetInfo.id(), destination, memo.value)
+                    AmountParams.Transfer(type.assetInfo.id(), destination, memo.value, requestedAmount)
                 )
             }
         }
     }
 
-    fun onAddress(input: String) = addressInput.onTextChange(input)
+    fun onAddress(input: String) {
+        if (input != address.value) {
+            requestedAmount = null
+        }
+        addressInput.onTextChange(input)
+    }
 
     fun onMemo(input: String) {
         _memo.value = input
     }
 
     fun setQrData(type: RecipientType, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
-        val paymentWrapper = uniffi.gemstone.paymentDecodeUrl(data)
-        val amount = try {
-            BigInteger(paymentWrapper.amount ?: throw IllegalArgumentException())
-        } catch (_: Throwable) {
-            null
-        }
-        val assetInfo = type.assetInfo
-        val address = assetInfo.asset.chain.checksumAddress(paymentWrapper.address)
-        val memo = paymentWrapper.memo
-
-        val owner = assetInfo.owner
-        if (
-            address.isNotEmpty()
-            && amount != null
-            && owner != null
-            && (assetInfo.asset.chain.isMemoSupport() || !memo.isNullOrEmpty())
-        ) {
-            val params = ConfirmParams.Builder(assetInfo.asset, owner, amount, false).transfer(DestinationAddress(address), memo)
-            confirmAction(params)
-            return
-        }
-
         when (field) {
             QrScanField.None -> Unit
-            QrScanField.Address -> {
-                addressInput.applyExternalAddress(address.ifEmpty { data })
-                _memo.value = memo?.ifEmpty { _memo.value } ?: _memo.value
-            }
-            QrScanField.Memo -> {
-                addressInput.applyExternalAddress(address.ifEmpty { addressInput.text.value })
-                _memo.value = paymentWrapper.memo ?: data
-            }
+            QrScanField.Memo -> _memo.value = data
+            QrScanField.Address -> onAddressScan(type, data, confirmAction)
         }
+    }
+
+    private fun onAddressScan(type: RecipientType, data: String, confirmAction: ConfirmTransactionAction) {
+        when (val destination = scannedDestination(type, data)) {
+            PaymentDestination.Unsupported -> addressInput.markInvalid()
+            is PaymentDestination.Confirm -> confirmAction(destination.params)
+            is PaymentDestination.Recipient -> updateFrom(destination.request)
+        }
+    }
+
+    private fun scannedDestination(type: RecipientType, data: String): PaymentDestination.Transfer {
+        val request = decodePayment(data)?.request ?: return PaymentDestination.Unsupported
+
+        return when (type) {
+            is RecipientType.Nft -> PaymentDestination.Recipient(type.assetInfo.asset.id, request.copy(amount = null))
+            is RecipientType.Asset -> PaymentTransfer(type.assetInfo).destination(request)
+        }
+    }
+
+    private fun updateFrom(request: PaymentRequest) {
+        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address))
+        request.memo?.let { _memo.value = it }
+        requestedAmount = request.exactAmount
     }
 
     private fun onNftConfirm(nftAsset: NFTAsset, destination: DestinationAddress, confirmAction: ConfirmTransactionAction) {

@@ -11,6 +11,8 @@ sealed interface SettingsAction {
     data class PriceAlertTargetComplete(val message: String) : SettingsAction
     data class Chart(val assetId: AssetId) : SettingsAction
     data object InAppNotifications : SettingsAction
+    data object DeveloperPayments : SettingsAction
+    data class Payment(val payload: String) : SettingsAction
     data class OpenNotificationUrl(val url: String) : SettingsAction
     data object Cancel : SettingsAction
 }

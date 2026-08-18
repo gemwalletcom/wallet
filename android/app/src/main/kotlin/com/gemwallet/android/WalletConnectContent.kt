@@ -40,21 +40,6 @@ internal fun rememberWalletConnectOverlay(
 }
 
 @Composable
-internal fun WalletConnectPairingToast(
-    visible: Boolean,
-    onShown: () -> Unit,
-) {
-    val context = LocalContext.current
-    val message = stringResource(id = R.string.wallet_connect_connection_title)
-    LaunchedEffect(visible) {
-        if (visible) {
-            makeText(context, message, Toast.LENGTH_SHORT).show()
-            onShown()
-        }
-    }
-}
-
-@Composable
 internal fun WalletConnectErrorDialog(
     error: String?,
     onDismiss: () -> Unit,

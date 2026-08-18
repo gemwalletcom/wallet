@@ -26,13 +26,14 @@ internal fun MainContent(
     activeWalletConnectRequest: ActiveWalletConnectRequest,
     walletConnectEnabled: Boolean,
     onSystemAuthRequired: () -> Unit,
-    onIntentConsumed: () -> Unit,
+    onPendingNavigationConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
     onWalletConnectPairingToastShown: () -> Unit,
+    onScanErrorShown: () -> Unit,
     onWalletConnectError: (String) -> Unit,
     onWalletConnectErrorDismiss: () -> Unit,
 ) {
-    val pendingRoutes = (pendingNavigation as? PendingNavigation.Route)?.routes.orEmpty()
+    val pendingRoutes = (pendingNavigation as? PendingNavigation.Routes)?.routes.orEmpty()
     val canAttemptSystemAuth = !systemAuthEnrollmentMissing
     val requiresAuthPrompt = state.initialAuth == AuthState.Required || state.authState == AuthState.Required
     val isWalletUnlocked = state.initialAuth == AuthState.Success
@@ -63,7 +64,7 @@ internal fun MainContent(
             if (state.hasUnlockedApp) {
                 WalletApp(
                     pendingRoutes = unlockedPendingRoutes,
-                    onIntentConsumed = onIntentConsumed,
+                    onPendingNavigationConsumed = onPendingNavigationConsumed,
                     onContentReady = onWalletContentReady,
                     walletConnectOverlay = walletConnectOverlay,
                 )
@@ -78,11 +79,17 @@ internal fun MainContent(
         }
 
         if (walletConnectEnabled) {
-            WalletConnectPairingToast(
+            MessageToast(
                 visible = state.isWalletConnectPairingToastVisible,
+                message = R.string.wallet_connect_connection_title,
                 onShown = onWalletConnectPairingToastShown,
             )
         }
+        MessageToast(
+            visible = state.isScanErrorVisible,
+            message = R.string.errors_not_supported,
+            onShown = onScanErrorShown,
+        )
         WalletConnectErrorDialog(
             error = state.walletConnectError ?: unsupportedWalletConnectError,
             onDismiss = onWalletConnectErrorDismiss,

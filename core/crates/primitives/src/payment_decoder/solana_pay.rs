@@ -1,129 +1,113 @@
+use super::amount;
 use super::error::{PaymentDecoderError, Result};
-use std::collections::HashMap;
-use url::Url;
-use url::form_urlencoded;
+use super::query;
+use crate::{
+    AssetId, Chain,
+    payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest},
+};
+use url::{Url, form_urlencoded};
+
 pub const SOLANA_PAY_SCHEME: &str = "solana";
-pub const SOLANA_PAY_USDC_SPL_TOKEN: &str = crate::asset_constants::SOLANA_USDC_TOKEN_ID;
+const TRANSACTION_LINK_PREFIX: &str = "https";
 
-#[derive(Debug, Clone)]
-pub enum RequestType {
-    Transfer(PayTransfer),
-    Transaction(String),
-}
+const QUERY_AMOUNT: &str = "amount";
+const QUERY_SPL_TOKEN: &str = "spl-token";
+const QUERY_MEMO: &str = "memo";
+const QUERY_REFERENCE: &str = "reference";
 
-#[derive(Debug, Clone)]
-pub struct PayTransfer {
-    pub recipient: String,
-    pub amount: Option<String>,
-    pub spl_token: Option<String>,
-    pub reference: Option<Vec<String>>,
-    pub label: Option<String>,
-    pub message: Option<String>,
-    pub memo: Option<String>,
-}
-
-pub fn parse(uri: &str) -> Result<RequestType> {
-    let scheme = format!("{SOLANA_PAY_SCHEME}:");
-    if !uri.starts_with(&scheme) {
-        return Err(PaymentDecoderError::InvalidScheme);
+pub fn decode(path: &str) -> Result<Payment> {
+    if path.starts_with(TRANSACTION_LINK_PREFIX) {
+        return Ok(Payment::Link(PaymentLink::SolanaPay(transaction_link(path)?)));
     }
 
-    let query_part = uri.replace(&scheme, "");
-    if query_part.starts_with("https") {
-        let encoded = format!("value={query_part}");
-        let decoded = form_urlencoded::parse(encoded.as_bytes())
-            .next()
-            .map(|(_, v)| v.into_owned())
-            .ok_or_else(|| PaymentDecoderError::InvalidFormat("Invalid percent encoding".to_string()))?;
-        let url = Url::parse(&decoded)?;
-        return Ok(RequestType::Transaction(url.to_string()));
+    let (recipient, query) = path.split_once('?').unwrap_or((path, ""));
+    let parameters = query::parameters(query);
+
+    if parameters.contains_key(QUERY_REFERENCE) {
+        return Err(PaymentDecoderError::InvalidFormat("Unsupported payment reference".to_string()));
     }
 
-    // Handle Transfer Request
-    let (recipient, query) = query_part
-        .split_once('?')
-        .ok_or_else(|| PaymentDecoderError::InvalidFormat("Invalid URL query string".to_string()))?;
+    let token = query::value(&parameters, QUERY_SPL_TOKEN);
+    let amount = query::value(&parameters, QUERY_AMOUNT)
+        .and_then(|value| match &token {
+            Some(_) => amount::decimal(&value),
+            None => amount::exact(&value, Chain::Solana),
+        })
+        .map(PaymentAmount::ExactValue);
 
-    let query_params: HashMap<String, String> = form_urlencoded::parse(query.as_bytes()).into_owned().collect();
-
-    let amount = query_params.get("amount").cloned();
-    let spl_token = query_params.get("spl-token").cloned();
-    let reference = query_params.get("reference").map(|v| v.split(',').map(String::from).collect());
-    let label = query_params.get("label").cloned();
-    let message = query_params.get("message").cloned();
-    let memo = query_params.get("memo").cloned();
-
-    Ok(RequestType::Transfer(PayTransfer {
-        recipient: recipient.to_string(),
+    Ok(Payment::Request(PaymentRequest {
+        address: recipient.to_string(),
         amount,
-        spl_token,
-        reference,
-        label,
-        message,
-        memo,
+        memo: query::value(&parameters, QUERY_MEMO),
+        asset_id: Some(AssetId::from(Chain::Solana, token)),
     }))
+}
+
+fn transaction_link(path: &str) -> Result<String> {
+    let decoded = form_urlencoded::parse(format!("value={path}").as_bytes())
+        .next()
+        .map(|(_, value)| value.into_owned())
+        .ok_or_else(|| PaymentDecoderError::InvalidFormat("Invalid percent encoding".to_string()))?;
+
+    Ok(Url::parse(&decoded)?.to_string())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::asset_constants::SOLANA_USDC_TOKEN_ID;
+
+    const RECIPIENT: &str = "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5";
 
     #[test]
-    fn test_parse_transaction_encoded_https() {
-        let uri = "solana:https%3A%2F%2Fmy.site%2Fpay%3Fcheckout%3D1";
-        let link = match parse(uri).unwrap() {
-            RequestType::Transaction(pay_url) => pay_url,
-            _ => panic!("Wrong type"),
-        };
-
-        assert_eq!(link, "https://my.site/pay?checkout=1");
-    }
-
-    #[test]
-    fn test_parse_transaction_plain_https() {
-        let uri = "solana:https://another.example/pay";
-        let link = match parse(uri).unwrap() {
-            RequestType::Transaction(pay_url) => pay_url,
-            _ => panic!("Wrong type"),
-        };
-
-        assert_eq!(link, "https://another.example/pay");
-    }
-
-    #[test]
-    fn test_parse_transfer() {
-        let uri = format!(
-            "solana:mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN?amount=1&spl-token={SOLANA_PAY_USDC_SPL_TOKEN}&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny&label=Michael&message=Thanks%20for%20all%20the%20fish&memo=OrderId5678"
+    fn test_decode() {
+        assert_eq!(
+            decode(RECIPIENT).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: RECIPIENT.to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                ..PaymentRequest::mock()
+            })
         );
-        let pay_url = match parse(&uri).unwrap() {
-            RequestType::Transfer(pay_url) => pay_url,
-            _ => panic!("Wrong type"),
-        };
-        assert_eq!(pay_url.recipient, "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN");
-        assert_eq!(pay_url.amount.unwrap(), "1");
-        assert_eq!(pay_url.spl_token.unwrap(), SOLANA_PAY_USDC_SPL_TOKEN);
-        assert_eq!(pay_url.reference.unwrap(), vec!["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny".to_string()]);
-        assert_eq!(pay_url.label.unwrap(), "Michael");
-        assert_eq!(pay_url.message.unwrap(), "Thanks for all the fish");
-        assert_eq!(pay_url.memo.unwrap(), "OrderId5678");
+        assert_eq!(
+            decode(&format!("{RECIPIENT}?amount=0.266232")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: RECIPIENT.to_string(),
+                amount: Some(PaymentAmount::ExactValue("0.266232".to_string())),
+                asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                ..PaymentRequest::mock()
+            })
+        );
+        assert_eq!(
+            decode(&format!("{RECIPIENT}?amount=1&spl-token={SOLANA_USDC_TOKEN_ID}&label=Michael&memo=OrderId5678")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: RECIPIENT.to_string(),
+                amount: Some(PaymentAmount::ExactValue("1".to_string())),
+                memo: Some("OrderId5678".to_string()),
+                asset_id: Some(AssetId::from(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID.to_string()))),
+            })
+        );
     }
 
     #[test]
-    fn test_parse_transaction() {
-        let uri = "solana:https://example.com/solana-pay";
-        let link = match parse(uri).unwrap() {
-            RequestType::Transaction(pay_url) => pay_url,
-            _ => panic!("Wrong type"),
-        };
+    fn test_decode_transaction_link() {
+        assert_eq!(
+            decode("https://merchant.example/pay?order=12345").unwrap(),
+            Payment::Link(PaymentLink::SolanaPay("https://merchant.example/pay?order=12345".to_string()))
+        );
+        assert_eq!(
+            decode("https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1%3Fnetwork%3Dsol").unwrap(),
+            Payment::Link(PaymentLink::SolanaPay(
+                "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1?network=sol".to_string()
+            ))
+        );
+    }
 
-        assert_eq!(link, "https://example.com/solana-pay");
-
-        let uri = "solana:https%3A%2F%2Fexample.com%2Fsolana-pay%3Forder%3D12345";
-        let link = match parse(uri).unwrap() {
-            RequestType::Transaction(pay_url) => pay_url,
-            _ => panic!("Wrong type"),
-        };
-
-        assert_eq!(link, "https://example.com/solana-pay?order=12345");
+    #[test]
+    fn test_decode_refuses_a_reference() {
+        assert_eq!(
+            decode(&format!("{RECIPIENT}?amount=1&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported payment reference".to_string()))
+        );
     }
 }

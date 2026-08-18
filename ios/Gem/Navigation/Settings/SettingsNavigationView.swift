@@ -151,6 +151,11 @@ struct SettingsNavigationView: View {
                 perpetualService: perpetualService,
             ))
         }
+        .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in
+            DeveloperPaymentsScene { payload in
+                Task { await navigationHandler.handle(code: payload) }
+            }
+        }
         .navigationDestination(for: Scenes.InAppNotifications.self) { _ in
             if let wallet = walletSessionService.currentWallet {
                 InAppNotificationsScene(

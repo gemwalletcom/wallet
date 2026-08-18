@@ -1,38 +1,44 @@
+use super::amount;
 use super::error::{PaymentDecoderError, Result};
-
-use crate::{AssetId, Chain};
+use super::query;
+use crate::{
+    AssetId, Chain,
+    payment::{Payment, PaymentAmount, PaymentRequest},
+};
 
 pub const TON_PAY_SCHEME: &str = "ton";
-pub const TON_PAY_TYPE_TRANSFER: &str = "transfer";
+const TRANSFER_PATH: &str = "transfer";
 
-#[derive(Debug, Clone)]
-pub struct TonPayment {
-    pub recipient: String,
-    pub asset_id: AssetId,
-}
+const QUERY_AMOUNT: &str = "amount";
+const QUERY_TEXT: &str = "text";
+const QUERY_BODY: &str = "bin";
+const QUERY_STATE_INIT: &str = "init";
 
-pub fn parse(uri: &str) -> Result<TonPayment> {
-    let scheme = format!("{TON_PAY_SCHEME}:");
-    if !uri.starts_with(&scheme) {
-        return Err(PaymentDecoderError::InvalidScheme);
+pub fn decode(path: &str) -> Result<Payment> {
+    let (path, query) = path.split_once('?').unwrap_or((path, ""));
+    let parameters = query::parameters(query);
+
+    if parameters.contains_key(QUERY_BODY) || parameters.contains_key(QUERY_STATE_INIT) {
+        return Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()));
     }
-    let query_part = &uri[scheme.len()..];
-    let recipient = extract_address(query_part)?;
 
-    Ok(TonPayment {
-        recipient,
-        asset_id: AssetId::from_chain(Chain::Ton),
-    })
+    Ok(Payment::Request(PaymentRequest {
+        address: address(path)?,
+        amount: query::value(&parameters, QUERY_AMOUNT)
+            .and_then(|value| amount::exact_from_atomic(&value, Chain::Ton))
+            .map(PaymentAmount::ExactValue),
+        memo: query::value(&parameters, QUERY_TEXT),
+        asset_id: Some(AssetId::from_chain(Chain::Ton)),
+    }))
 }
 
-fn extract_address(query_part: &str) -> Result<String> {
-    let parts: Vec<&str> = query_part.split('/').filter(|s| !s.is_empty()).collect();
-    if parts.len() == 2 && parts[0] == TON_PAY_TYPE_TRANSFER {
-        Ok(parts[1].to_string())
-    } else if parts.len() == 1 {
-        Ok(parts[0].to_string())
-    } else {
-        Err(PaymentDecoderError::InvalidFormat(format!("Invalid URI format: {}", query_part)))
+fn address(path: &str) -> Result<String> {
+    let path = path.trim_matches('/');
+
+    match path.split_once('/') {
+        None => Ok(path.to_string()),
+        Some((TRANSFER_PATH, address)) if !address.contains('/') => Ok(address.to_string()),
+        Some(_) => Err(PaymentDecoderError::InvalidFormat(format!("Not a transfer path: {path}"))),
     }
 }
 
@@ -40,23 +46,39 @@ fn extract_address(query_part: &str) -> Result<String> {
 mod tests {
     use super::*;
 
+    const ADDRESS: &str = "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
+
     #[test]
-    fn test_parse_with_transfer() {
-        let uri = "ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
-        let payment = parse(uri).unwrap();
-        assert_eq!(payment.recipient, "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA");
+    fn test_decode() {
+        let ton = Payment::Request(PaymentRequest {
+            address: ADDRESS.to_string(),
+            asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            ..PaymentRequest::mock()
+        });
+
+        assert_eq!(
+            decode(&format!("//transfer/{ADDRESS}?amount=1000000000&text=order+7")).unwrap(),
+            Payment::Request(PaymentRequest {
+                address: ADDRESS.to_string(),
+                amount: Some(PaymentAmount::ExactValue("1".to_string())),
+                memo: Some("order 7".to_string()),
+                asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            })
+        );
+        assert_eq!(decode(&format!("//transfer/{ADDRESS}")).unwrap(), ton);
+        assert_eq!(decode(ADDRESS).unwrap(), ton);
     }
 
     #[test]
-    fn test_parse_without_transfer() {
-        let uri = "ton://UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
-        let payment = parse(uri).unwrap();
-        assert_eq!(payment.recipient, "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA");
-    }
-
-    #[test]
-    fn test_parse_invalid_uri() {
-        let uri = "ton://invalid/format";
-        assert!(parse(uri).is_err());
+    fn test_decode_refuses_what_it_cannot_sign() {
+        assert_eq!(
+            decode(&format!("//transfer/{ADDRESS}?amount=1&bin=te6cc")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
+        );
+        assert_eq!(
+            decode(&format!("//transfer/{ADDRESS}?amount=1&init=te6cc")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
+        );
+        assert!(decode("//invalid/format").is_err());
     }
 }

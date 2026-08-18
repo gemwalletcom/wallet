@@ -67,10 +67,12 @@ fun WalletNavGraph(
     navigator: WalletNavigator,
     onboard: @Composable () -> Unit,
     onAcceptTerms: () -> Unit,
+    onPayment: (String) -> Unit,
     onWalletContentReady: () -> Unit = {},
 ) {
     val onCancel: () -> Unit = navigator::pop
     val currentOnWalletContentReady by rememberUpdatedState(onWalletContentReady)
+    val currentOnPayment by rememberUpdatedState(onPayment)
 
     val entryProvider = remember(navigator, onboard, onAcceptTerms) {
         entryProvider<NavKey> {
@@ -155,8 +157,8 @@ fun WalletNavGraph(
             swapSelect(navigator = navigator, onCancel = onCancel)
 
             recipientInput(
+                navigator = navigator,
                 cancelAction = onCancel,
-                recipientAction = navigator::openRecipient,
                 amountAction = navigator::openAmount,
                 confirmAction = navigator::openConfirm,
             )
@@ -249,6 +251,8 @@ fun WalletNavGraph(
                         is SettingsAction.PriceAlertTargetComplete -> navigator.popWithToast(action.message)
                         is SettingsAction.Chart -> navigator.openAssetChart(action.assetId)
                         SettingsAction.InAppNotifications -> navigator.openInAppNotifications()
+                        SettingsAction.DeveloperPayments -> navigator.openDeveloperPayments()
+                        is SettingsAction.Payment -> currentOnPayment(action.payload)
                         is SettingsAction.OpenNotificationUrl -> navigator.openNotificationUrl(action.url)
                         SettingsAction.Cancel -> onCancel()
                     }

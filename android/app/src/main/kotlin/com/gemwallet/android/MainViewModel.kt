@@ -66,11 +66,14 @@ class MainViewModel @Inject constructor(
             combine(
                 _uiState.map { it.initialAuth == AuthState.Success }.distinctUntilChanged(),
                 pendingNavigation,
-            ) { unlocked, pending -> unlocked && pending is PendingNavigation.RawIntent }
+            ) { unlocked, pending -> unlocked && pending is PendingNavigation.Input }
                 .distinctUntilChanged()
                 .filter { it }
                 .collect {
-                    pendingNavigationCoordinator.resolve(walletConnectHandler)
+                    val handled = pendingNavigationCoordinator.buildRoutes(walletConnectHandler)
+                    if (!handled) {
+                        _uiState.update { it.copy(isScanErrorVisible = true) }
+                    }
                 }
         }
     }
@@ -150,7 +153,11 @@ class MainViewModel @Inject constructor(
 
     fun handleIntent(intent: Intent) = pendingNavigationCoordinator.handleIntent(intent)
 
-    fun consumePendingNavigation() = pendingNavigationCoordinator.consume()
+    fun consumePendingNavigation() = pendingNavigationCoordinator.clear()
+
+    fun dismissScanError() {
+        _uiState.update { it.copy(isScanErrorVisible = false) }
+    }
 
     fun dismissWalletConnectPairingToast() {
         _uiState.update { it.copy(isWalletConnectPairingToastVisible = false) }
@@ -195,6 +202,7 @@ class MainViewModel @Inject constructor(
         val isWalletConnectPairingToastVisible: Boolean = false,
         val walletConnectError: String? = null,
         val isWalletConnectUnsupportedVisible: Boolean = false,
+        val isScanErrorVisible: Boolean = false,
     )
 }
 

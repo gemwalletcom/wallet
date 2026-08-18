@@ -37,7 +37,7 @@ struct SelectAssetViewModelTests {
         let singleChainWallet = Wallet.mock(type: .single, accounts: [.mock(chain: .ethereum)])
 
         #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .manage).showAddToken == true)
-        #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .send).showAddToken == false)
+        #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .send(.none)).showAddToken == false)
         #expect(SelectAssetViewModel.mock(wallet: walletWithoutTokens, selectType: .manage).showAddToken == false)
 
         #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .manage).showFilter == true)

@@ -5,12 +5,14 @@ import Components
 import NFT
 import NFTService
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 import Transactions
 
 @Observable
 final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingAssetInput: SelectedAssetInput?
+    @MainActor private var _isPresentingPayment: PaymentDestination?
     @MainActor private var _isPresentingPriceAlert: SetPriceAlertInput?
     @MainActor private var _isPresentingSupport: Bool = false
     @MainActor private var _isPresentingWallets: Bool = false
@@ -22,6 +24,10 @@ final class NavigationPresenter: Sendable {
 extension NavigationPresenter {
     var isPresentingAssetInput: Binding<SelectedAssetInput?> {
         Binding(get: { self._isPresentingAssetInput }, set: { self._isPresentingAssetInput = $0 })
+    }
+
+    var isPresentingPayment: Binding<PaymentDestination?> {
+        Binding(get: { self._isPresentingPayment }, set: { self._isPresentingPayment = $0 })
     }
 
     var isPresentingPriceAlert: Binding<SetPriceAlertInput?> {

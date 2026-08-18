@@ -164,14 +164,6 @@ struct ServicesFactory {
             pushNotificationService: pushNotificationEnablerService,
         )
         let navigationPresenter = NavigationPresenter()
-        let navigationHandler = NavigationHandler(
-            navigationState: navigation,
-            presenter: navigationPresenter,
-            assetsService: assetsService,
-            transactionsService: transactionsService,
-            walletSessionService: walletSessionService,
-        )
-
         let priceService = PriceService(
             priceStore: storeManager.priceStore,
             fiatRateStore: storeManager.fiatRateStore,
@@ -293,6 +285,16 @@ struct ServicesFactory {
         let authService = AuthService(apiService: apiService, keystore: storages.keystore)
         let rewardsService = RewardsService(apiService: apiService, authService: authService)
         let eventPresenterService = EventPresenterService()
+        let navigationHandler = NavigationHandler(
+            navigationState: navigation,
+            presenter: navigationPresenter,
+            assetsService: assetsService,
+            connectionsService: connectionsService,
+            eventPresenterService: eventPresenterService,
+            transactionsService: transactionsService,
+            walletConnectorPresenter: presenter,
+            walletSessionService: walletSessionService,
+        )
         let walletSearchService = WalletSearchService(
             assetsService: assetsService,
             searchStore: storeManager.searchStore,

@@ -12,6 +12,7 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.settings.aboutus.presents.AboutUsScreen
 import com.gemwallet.android.features.settings.currency.presents.CurrenciesScene
 import com.gemwallet.android.features.settings.develop.presents.DevelopScene
+import com.gemwallet.android.features.settings.develop.presents.PaymentsScene
 import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsAction
 import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsScene
 import com.gemwallet.android.features.settings.networks.presents.NetworksScreen
@@ -37,6 +38,9 @@ data object SecurityRoute : NavKey
 
 @Serializable
 data object DevelopRoute : NavKey
+
+@Serializable
+data object DevelopPaymentsRoute : NavKey
 
 @Serializable
 data object InAppNotificationsRoute : NavKey
@@ -84,6 +88,14 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     entry<DevelopRoute> {
         DevelopScene(
             onInAppNotifications = { onAction(SettingsAction.InAppNotifications) },
+            onPayments = { onAction(SettingsAction.DeveloperPayments) },
+            onCancel = onCancel,
+        )
+    }
+
+    entry<DevelopPaymentsRoute> {
+        PaymentsScene(
+            onSelect = { onAction(SettingsAction.Payment(it)) },
             onCancel = onCancel,
         )
     }

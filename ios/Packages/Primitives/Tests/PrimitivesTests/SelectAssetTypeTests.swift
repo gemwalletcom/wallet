@@ -19,6 +19,6 @@ struct SelectAssetTypeTests {
         #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).recentActivityData(assetId: assetId)?.type == .swapSelect)
         #expect(SelectAssetType.receive(.asset).recentActivityData(assetId: assetId)?.type == .receive)
         #expect(SelectAssetType.buy.recentActivityData(assetId: assetId)?.type == .fiatBuy)
-        #expect(SelectAssetType.send.recentActivityData(assetId: assetId) == nil)
+        #expect(SelectAssetType.send(.none).recentActivityData(assetId: assetId) == nil)
     }
 }

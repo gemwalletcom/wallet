@@ -21,12 +21,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -46,6 +47,7 @@ import com.gemwallet.android.features.settings.settings.presents.views.SettingsS
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
+import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.navigation.WalletNavigator
@@ -66,6 +68,16 @@ fun MainScreen(
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
+    var isPresentingScanner by remember { mutableStateOf(false) }
+
+    QrCodeScannerModal(
+        isVisible = isPresentingScanner,
+        onDismissRequest = { isPresentingScanner = false },
+        onResult = { code ->
+            isPresentingScanner = false
+            viewModel.onScan(code)
+        },
+    )
 
     BackHandler(isRootRouteActive && currentTab.value != assetsRoute) {
         currentTab.value = assetsRoute
@@ -184,6 +196,7 @@ fun MainScreen(
                                 when (action) {
                                     AssetsAction.ShowWallets -> navigator.openWallets()
                                     AssetsAction.Manage -> navigator.openAssetsManage()
+                                    AssetsAction.Scan -> isPresentingScanner = true
                                     AssetsAction.Search -> navigator.openAssetsSearch()
                                     AssetsAction.Send -> navigator.openRecipient()
                                     AssetsAction.Receive -> navigator.openReceive()
