@@ -5,7 +5,7 @@ use std::str::FromStr;
 use alloy_primitives::{Address, Bytes, U256};
 use gem_evm::encode::{encode_erc20_approve_max_value, encode_erc20_transfer};
 use gem_evm::signer::{EvmSigner, TransactionParams, build_eip1559_transaction, sign_and_encode};
-use primitives::{SignerError, SignerInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, decode_hex};
+use primitives::{EVMChain, SignerError, SignerInput, decode_hex};
 
 use transaction::{TempoTransaction, TransactionCall};
 
@@ -15,7 +15,10 @@ impl EvmSigner for TempoSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let params = TransactionParams::from_input(input)?;
         let data = encode_erc20_transfer(&input.destination_address, &input.get_value()?)?;
-        sign_and_encode(&build_eip1559_transaction(&params, TEMPO_PATHUSD_TOKEN_ID, U256::ZERO, Bytes::from(data))?, private_key)
+        let contract = EVMChain::Tempo
+            .native_asset_contract()
+            .ok_or_else(|| SignerError::invalid_input("missing Tempo native asset contract"))?;
+        sign_and_encode(&build_eip1559_transaction(&params, contract, U256::ZERO, Bytes::from(data))?, private_key)
     }
 
     fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
@@ -63,7 +66,9 @@ fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {
     }
     let token_id = match &fee_asset.token_id {
         Some(token_id) => token_id.as_str(),
-        None => TEMPO_PATHUSD_TOKEN_ID,
+        None => EVMChain::Tempo
+            .native_asset_contract()
+            .ok_or_else(|| SignerError::invalid_input("missing Tempo native asset contract"))?,
     };
     Address::from_str(token_id).map_err(SignerError::from_display)
 }
