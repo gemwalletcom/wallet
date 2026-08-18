@@ -44,7 +44,7 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, appro
                 data: SwapQuoteData {
                     to: TEMPO_TEST_ROUTER_ADDRESS.to_string(),
                     data: "abcd".to_string(),
-                    gas_limit: has_approval.then(|| DEFAULT_SWAP_GAS_LIMIT.to_string()),
+                    gas_limit: if has_approval { Some(DEFAULT_SWAP_GAS_LIMIT.to_string()) } else { None },
                     approval,
                     ..swap_data.data
                 },

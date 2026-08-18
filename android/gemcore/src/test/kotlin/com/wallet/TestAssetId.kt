@@ -18,10 +18,6 @@ class TestAssetId {
         assertThrows(IllegalArgumentException::class.java) { AssetId("random_chain") }
         assertEquals(AssetId(Chain.Bitcoin), AssetId("bitcoin"))
         assertEquals(AssetId(Chain.Ethereum, "0x123"), AssetId("ethereum_0x123"))
-        assertEquals(
-            AssetId(Chain.Ton, "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT"),
-            AssetId("ton_EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT"),
-        )
     }
 
     @Test

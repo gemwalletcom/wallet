@@ -2,7 +2,6 @@
 
 @testable import GemstonePrimitives
 import Primitives
-import PrimitivesTestKit
 import Testing
 
 final class AssetTests {

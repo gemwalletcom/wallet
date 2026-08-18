@@ -7,7 +7,7 @@ pub fn asset_ids_for_feed_id(feed_id: &str) -> Vec<AssetId> {
         .into_iter()
         .filter(|&chain| price_feed_id_for_chain(chain) == Some(feed_id))
         .map(|c| c.as_asset_id())
-        .chain((feed_id == TEMPO_PATHUSD_FEED_ID).then(|| TEMPO_PATHUSD_ASSET_ID.clone()))
+        .chain(if feed_id == TEMPO_PATHUSD_FEED_ID { Some(TEMPO_PATHUSD_ASSET_ID.clone()) } else { None })
         .collect()
 }
 
