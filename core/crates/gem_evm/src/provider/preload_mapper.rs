@@ -69,14 +69,13 @@ pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHisto
 }
 
 pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
-    let value = BigInt::from_str_radix(&input.value, 10)?;
+    let value = input.get_value()?;
 
     match &input.input_type {
         TransactionInputType::Transfer(asset) | TransactionInputType::Deposit(asset) => match asset.id.token_subtype() {
             AssetSubtype::NATIVE => Ok(TransactionParams::new(input.destination_address.clone(), vec![], value)),
             AssetSubtype::TOKEN => {
                 let to = asset.token_id.as_ref().ok_or("Missing token ID")?.clone();
-                let value = BigInt::from_str_radix(&input.value, 10)?;
                 let data = encode_erc20_transfer(&input.destination_address, &value)?;
                 Ok(TransactionParams::new(to, data, BigInt::from(0)))
             }
@@ -110,7 +109,7 @@ pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> 
                         SwapQuoteDataType::Contract => Ok(TransactionParams::new(swap_data.data.to.clone(), hex::decode(swap_data.data.data.clone())?, BigInt::ZERO)),
                         SwapQuoteDataType::Transfer => {
                             let to = from_asset.token_id.clone().ok_or("Missing token ID")?.clone();
-                            let data = encode_erc20_transfer(&swap_data.data.to.clone(), &BigInt::from_str_radix(&input.value, 10)?)?;
+                            let data = encode_erc20_transfer(&swap_data.data.to, &value)?;
                             Ok(TransactionParams::new(to, data, BigInt::ZERO))
                         }
                     },
@@ -122,11 +121,7 @@ pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> 
             encode_erc20_approve_max_value(&approval.spender)?,
             BigInt::from(0),
         )),
-        TransactionInputType::Generic(_, _, extra) => Ok(TransactionParams::new(
-            extra.to.clone(),
-            extra.data.clone().unwrap_or_default(),
-            BigInt::from_str_radix(&input.value, 10)?,
-        )),
+        TransactionInputType::Generic(_, _, extra) => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
         TransactionInputType::Stake(_, stake_type) => match chain.to_chain() {
             Chain::SmartChain => {
                 let data = encode_stake_hub(stake_type, &BigInt::from_str_radix(&input.value, 10)?)?;

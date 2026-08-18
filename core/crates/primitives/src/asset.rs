@@ -86,6 +86,7 @@ impl ChainAsset {
             Chain::XLayer => ChainAsset::new(chain, "X Layer", "OKB", 18),
             Chain::Robinhood => ChainAsset::with_network_name(chain, "Robinhood", "Robinhood ETH", "ETH", 18),
             Chain::Stable => ChainAsset::new(chain, "Stable", "USDT0", 18),
+            Chain::Tempo => ChainAsset::new(chain, "Tempo", "USD", 6),
         }
     }
 

@@ -4,7 +4,12 @@ use crate::stake_type::StakeType;
 use crate::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
-use crate::{Asset, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata, nft::NFTAsset, perpetual::AccountDataType};
+use crate::{
+    Asset, AssetId, Chain, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata,
+    asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
+    nft::NFTAsset,
+    perpetual::AccountDataType,
+};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
@@ -42,6 +47,17 @@ impl TransactionInputType {
             TransactionInputType::Account(asset, _) => asset,
             TransactionInputType::Perpetual(asset, _) => asset,
             TransactionInputType::Earn(asset, _, _) => asset,
+        }
+    }
+
+    pub fn get_fee_asset_id(&self) -> AssetId {
+        let asset = self.get_asset();
+        match self {
+            _ if asset.chain == Chain::Tempo && asset.id.is_token() => asset.id.clone(),
+            _ if asset.chain == Chain::Tempo => TEMPO_PATHUSD_ASSET_ID.clone(),
+            TransactionInputType::Perpetual(_, _) if asset.chain == Chain::HyperCore => HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+            _ if asset.chain == Chain::HyperCore => HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
+            _ => AssetId::from_chain(asset.chain),
         }
     }
 
@@ -165,6 +181,7 @@ impl TransactionLoadInput {
             gas_price_type: self.gas_price.clone(),
             gas_limit: 0.into(),
             options: HashMap::new(),
+            fee_asset: self.input_type.get_fee_asset_id(),
         }
     }
 }
@@ -181,6 +198,10 @@ impl TransactionLoadInput {
     pub fn value_as_u64(&self) -> Result<u64, SignerError> {
         self.value.parse::<u64>().map_err(|_| SignerError::invalid_input("invalid transaction amount"))
     }
+
+    pub fn get_value(&self) -> Result<BigInt, SignerError> {
+        BigInt::from_str(&self.value).map_err(|_| SignerError::invalid_input("invalid transaction amount"))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -192,6 +213,18 @@ pub struct SignerInput {
 impl SignerInput {
     pub fn new(input: TransactionLoadInput, fee: TransactionFee) -> Self {
         Self { input, fee }
+    }
+
+    pub fn get_swap_gas_limit(&self) -> Result<u64, SignerError> {
+        let swap_data = &self.input_type.get_swap_data()?.data;
+        match &swap_data.approval {
+            Some(_) => swap_data
+                .gas_limit
+                .as_ref()
+                .and_then(|gas_limit| gas_limit.parse().ok())
+                .ok_or_else(|| SignerError::invalid_input("missing swap gas limit")),
+            None => self.fee.gas_limit(),
+        }
     }
 
     pub fn swap_value_u64(&self) -> Result<u64, SignerError> {
@@ -239,7 +272,7 @@ pub struct TransactionLoadData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Asset, Chain, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, SwapProvider};
+    use crate::{Asset, AssetType, Chain, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, SwapProvider};
 
     fn swap_signer_input(swap_data: SwapData, value: &str) -> SignerInput {
         SignerInput::mock_evm(
@@ -317,6 +350,19 @@ mod tests {
         assert_eq!(
             TransactionInputType::Transfer(Asset::mock()).get_perpetual_type().unwrap_err(),
             "expected perpetual transaction"
+        );
+    }
+
+    #[test]
+    fn fee_asset_follows_chain_rules() {
+        let ethereum_token = Asset::mock_with_params(Chain::Ethereum, Some("token".to_string()), "Token".to_string(), "TKN".to_string(), 6, AssetType::ERC20);
+        assert_eq!(TransactionInputType::Transfer(ethereum_token).get_fee_asset_id(), AssetId::from_chain(Chain::Ethereum));
+
+        let tempo_token = crate::known_assets::TEMPO_USDC.clone();
+        assert_eq!(TransactionInputType::Transfer(tempo_token.clone()).get_fee_asset_id(), tempo_token.id);
+        assert_eq!(
+            TransactionInputType::Generic(Asset::from_chain(Chain::Tempo), WalletConnectionSessionAppMetadata::mock(), TransferDataExtra::mock()).get_fee_asset_id(),
+            TEMPO_PATHUSD_ASSET_ID.clone()
         );
     }
 

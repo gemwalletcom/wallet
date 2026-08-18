@@ -14,6 +14,7 @@ use gem_polkadot::signer::PolkadotChainSigner;
 use gem_solana::signer::SolanaChainSigner;
 use gem_stellar::StellarChainSigner;
 use gem_sui::signer::SuiChainSigner;
+use gem_tempo::TempoSigner;
 use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
@@ -29,7 +30,10 @@ pub struct GemChainSigner {
 impl GemChainSigner {
     pub fn new(chain: Chain) -> Self {
         let signer: Box<dyn ChainSigner> = match chain.chain_type() {
-            ChainType::Ethereum => Box::new(EvmChainSigner),
+            ChainType::Ethereum => match chain {
+                Chain::Tempo => Box::new(EvmChainSigner::new(TempoSigner)),
+                _ => Box::new(EvmChainSigner::default()),
+            },
             ChainType::Aptos => Box::new(AptosChainSigner),
             ChainType::HyperCore => Box::new(HyperCoreSigner),
             ChainType::Sui => Box::new(SuiChainSigner),
@@ -245,7 +249,7 @@ mod tests {
             recipient_token_address: None,
             sequence: 1,
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
 
         let signed = GemChainSigner::new(Chain::Ton).sign_input(input.into(), Zeroizing::new(private_key)).unwrap();
 

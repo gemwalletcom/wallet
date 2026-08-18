@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, LinkType, Price, perpetual::PerpetualBasic};
+use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, Chain, LinkType, Price, perpetual::PerpetualBasic};
 
 #[typeshare(swift = "Sendable")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,11 +104,12 @@ pub struct AssetProperties {
 impl AssetProperties {
     pub fn default(asset_id: AssetId) -> Self {
         let is_stakeable = asset_id.is_native() && asset_id.chain.is_stake_supported();
+        let is_swapable = asset_id.chain.is_swap_supported() && !(asset_id.chain == Chain::Tempo && asset_id.is_native());
         Self {
             is_enabled: true,
             is_buyable: false,
             is_sellable: false,
-            is_swapable: asset_id.chain.is_swap_supported(),
+            is_swapable,
             is_stakeable,
             staking_apr: None,
             is_earnable: false,
@@ -141,7 +142,13 @@ mod tests {
     use chrono::Utc;
 
     use super::*;
-    use crate::{Asset, PriceProvider};
+    use crate::{Asset, PriceProvider, asset_constants::TEMPO_PATHUSD_ASSET_ID};
+
+    #[test]
+    fn tempo_network_anchor_is_not_swappable() {
+        assert!(!AssetProperties::default(AssetId::from_chain(Chain::Tempo)).is_swapable);
+        assert!(AssetProperties::default(TEMPO_PATHUSD_ASSET_ID.clone()).is_swapable);
+    }
 
     #[test]
     fn test_asset_basic_with_rate() {

@@ -3,12 +3,16 @@ use num_bigint::BigInt;
 use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 
 pub fn map_transaction_status(receipt: &TransactionReceipt) -> TransactionUpdate {
+    map_transaction_status_with_fee(receipt, receipt.get_fee().into())
+}
+
+/// Maps a receipt with a fee already converted to the chain's fee-asset units (Tempo scales to TIP-20 decimals).
+pub fn map_transaction_status_with_fee(receipt: &TransactionReceipt, network_fee: BigInt) -> TransactionUpdate {
     let state = match receipt.get_state() {
         TransactionState::Confirmed => TransactionState::Confirmed,
         TransactionState::Reverted => TransactionState::Reverted,
         TransactionState::Pending | TransactionState::InTransit | TransactionState::Failed => return TransactionUpdate::new_state(TransactionState::Pending),
     };
-    let network_fee: BigInt = receipt.get_fee().into();
     TransactionUpdate::new(
         state,
         vec![TransactionChange::BlockNumber(receipt.block_number.to_string()), TransactionChange::NetworkFee(network_fee)],
@@ -18,7 +22,7 @@ pub fn map_transaction_status(receipt: &TransactionReceipt) -> TransactionUpdate
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigUint;
+    use num_bigint::{BigInt, BigUint};
 
     const BLOCK_HASH: &str = "0x1111111111111111111111111111111111111111111111111111111111111111";
 
@@ -31,6 +35,7 @@ mod tests {
             status: status.to_string(),
             block_hash: block_hash.to_string(),
             block_number,
+            fee_token: None,
         }
     }
 

@@ -43,6 +43,7 @@ pub enum EVMChain {
     XLayer,
     Robinhood,
     Stable,
+    Tempo,
 }
 
 impl EVMChain {
@@ -82,8 +83,15 @@ impl EVMChain {
         self.chain_stack() == ChainStack::ZkSync
     }
 
-    pub fn weth_contract(&self) -> Option<&str> {
+    pub fn weth_contract(&self) -> Option<&'static str> {
         self.config().weth_contract
+    }
+
+    pub fn native_asset_contract(&self) -> Option<&'static str> {
+        match self {
+            EVMChain::Celo => self.weth_contract(),
+            _ => None,
+        }
     }
 
     pub fn from_chain(chain: Chain) -> Option<Self> {

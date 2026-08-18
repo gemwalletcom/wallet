@@ -20,7 +20,7 @@ impl ChainSigner for NearChainSigner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Asset, AssetType, FeeOption, TransactionFee, TransactionInputType, TransactionLoadInput, asset_constants::NEAR_USDT_ASSET_ID};
+    use primitives::{Asset, AssetId, AssetType, Chain, FeeOption, TransactionFee, TransactionInputType, TransactionLoadInput, asset_constants::NEAR_USDT_ASSET_ID};
 
     fn private_key() -> Vec<u8> {
         bs58::decode("3hoMW1HvnRLSFCLZnvPzWeoGwtdHzke34B2cTHM8rhcbG3TbuLKtShTv3DvyejnXKXKBiV7YPkLeqUHN1ghnqpFv")
@@ -42,7 +42,7 @@ mod tests {
 
         let input = SignerInput::new(
             TransactionLoadInput::mock_near("test.near", "whatever.near", "1", 1, "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM"),
-            TransactionFee::new_from_fee(0.into()),
+            TransactionFee::new_from_fee(0.into(), AssetId::from_chain(Chain::Near)),
         );
 
         let signed = NearChainSigner.sign_transfer(&input, &private_key[..32]).unwrap();
@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_sign_near_token_transfer() {
         let private_key = private_key();
-        let input = token_transfer_input(Some("invoice-1"), TransactionFee::new_from_fee(0.into()));
+        let input = token_transfer_input(Some("invoice-1"), TransactionFee::new_from_fee(0.into(), AssetId::from_chain(Chain::Near)));
 
         let signed = NearChainSigner.sign_token_transfer(&input, &private_key[..32]).unwrap();
         assert_eq!(
@@ -68,7 +68,12 @@ mod tests {
     #[test]
     fn test_sign_near_token_transfer_with_registration() {
         let private_key = private_key();
-        let fee = TransactionFee::new_from_fee_with_option(0.into(), FeeOption::TokenAccountCreation, 1_250_000_000_000_000_000_000u128.into());
+        let fee = TransactionFee::new_from_fee_with_option(
+            0.into(),
+            FeeOption::TokenAccountCreation,
+            1_250_000_000_000_000_000_000u128.into(),
+            AssetId::from_chain(Chain::Near),
+        );
         let input = token_transfer_input(None, fee);
 
         let signed = NearChainSigner.sign_token_transfer(&input, &private_key[..32]).unwrap();

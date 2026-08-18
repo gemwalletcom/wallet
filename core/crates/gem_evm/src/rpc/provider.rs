@@ -3,9 +3,22 @@ use std::{error::Error, ops::Deref};
 use async_trait::async_trait;
 use chain_traits::{ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
-use primitives::AssetBalance;
+use num_bigint::BigInt;
+use primitives::{AssetBalance, TransactionFee, TransactionLoadInput};
 
 use super::EthereumClient;
+use crate::provider::preload_mapper::TransactionParams;
+
+/// Chain-specific fee calculation seam for EVM-family chains (Tempo pays fees in TIP-20 tokens).
+#[async_trait]
+pub trait EvmFeeCalculator: Send + Sync {
+    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
+}
+
+#[derive(Default)]
+pub struct EvmProviderExtensions {
+    pub fee_calculator: Option<Box<dyn EvmFeeCalculator>>,
+}
 
 #[async_trait]
 pub trait AssetBalanceProvider: Send + Sync {
@@ -25,6 +38,7 @@ pub struct EthereumProvider<C: Client + Clone> {
     client: EthereumClient<C>,
     transactions_by_address_provider: Box<dyn ChainTransactions>,
     asset_balance_provider: Box<dyn AssetBalanceProvider>,
+    fee_calculator: Option<Box<dyn EvmFeeCalculator>>,
 }
 
 impl<C: Client + Clone> EthereumProvider<C> {
@@ -33,11 +47,23 @@ impl<C: Client + Clone> EthereumProvider<C> {
             client,
             transactions_by_address_provider,
             asset_balance_provider,
+            fee_calculator: None,
         }
     }
 
     pub fn new_rpc_only(client: EthereumClient<C>) -> Self {
         Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider))
+    }
+
+    pub fn new_rpc_only_with_extensions(client: EthereumClient<C>, extensions: EvmProviderExtensions) -> Self {
+        Self {
+            fee_calculator: extensions.fee_calculator,
+            ..Self::new_rpc_only(client)
+        }
+    }
+
+    pub(crate) fn fee_calculator(&self) -> Option<&dyn EvmFeeCalculator> {
+        self.fee_calculator.as_deref()
     }
 
     pub(crate) async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {

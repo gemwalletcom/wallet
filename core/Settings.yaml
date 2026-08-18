@@ -234,6 +234,8 @@ chains:
     url: https://rpc.mainnet.chain.robinhood.com
   stable:
     url: https://rpc.stable.xyz
+  tempo:
+    url: https://rpc.tempo.xyz
 
 swap:
   okx:

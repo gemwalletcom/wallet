@@ -18,6 +18,18 @@ use crate::rpc::{
 #[async_trait]
 impl<C: Client + Clone> ChainBlockTransactions for EthereumProvider<C> {
     async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        Ok(self
+            .get_transactions_by_block_with_receipts(block_number)
+            .await?
+            .into_iter()
+            .map(|(transaction, _)| transaction)
+            .collect())
+    }
+}
+
+#[cfg(feature = "rpc")]
+impl<C: Client + Clone> EthereumProvider<C> {
+    pub async fn get_transactions_by_block_with_receipts(&self, block_number: u64) -> Result<Vec<(Transaction, TransactionReceipt)>, Box<dyn Error + Sync + Send>> {
         let block = self.get_block(block_number).await?;
         if block.transactions.is_empty() {
             return Ok(Vec::new());
@@ -29,15 +41,11 @@ impl<C: Client + Clone> ChainBlockTransactions for EthereumProvider<C> {
             .transactions
             .into_iter()
             .zip(receipts)
-            .filter_map(|(tx, receipt)| EthereumMapper::map_transaction(chain, &tx, &receipt, &block.timestamp))
+            .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction(chain, &transaction, &receipt, &block.timestamp).map(|transaction| (transaction, receipt)))
             .collect())
     }
-}
 
-#[cfg(feature = "rpc")]
-#[async_trait]
-impl<C: Client + Clone> ChainTransaction for EthereumProvider<C> {
-    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+    pub async fn get_transaction_with_receipt(&self, request: TransactionIdRequest) -> Result<Option<(Transaction, TransactionReceipt)>, Box<dyn Error + Sync + Send>> {
         let TransactionIdRequest { hash, block_number, .. } = request;
         let (transaction, receipt, timestamp) = match block_number {
             Some(block_number) => {
@@ -75,7 +83,15 @@ impl<C: Client + Clone> ChainTransaction for EthereumProvider<C> {
             Some(timestamp) => timestamp,
             None => self.get_block_timestamp(receipt.block_number).await?,
         };
-        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &timestamp))
+        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &timestamp).map(|transaction| (transaction, receipt)))
+    }
+}
+
+#[cfg(feature = "rpc")]
+#[async_trait]
+impl<C: Client + Clone> ChainTransaction for EthereumProvider<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        Ok(self.get_transaction_with_receipt(request).await?.map(|(transaction, _)| transaction))
     }
 }
 

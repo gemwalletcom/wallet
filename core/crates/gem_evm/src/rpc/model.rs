@@ -27,10 +27,36 @@ pub struct Transaction {
     #[serde(deserialize_with = "deserialize_u64_from_str_or_int")]
     pub gas: u64,
     pub hash: String,
+    #[serde(default)]
     pub input: String,
     pub to: Option<String>,
-    #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
+    #[serde(default, deserialize_with = "deserialize_biguint_from_hex_str")]
     pub value: BigUint,
+    #[serde(default)]
+    pub calls: Option<Vec<TransactionCall>>,
+}
+
+impl Transaction {
+    pub(crate) fn with_primary_call(&self) -> Transaction {
+        match self.calls.as_ref().and_then(|calls| calls.last()) {
+            Some(call) => Transaction {
+                to: call.to.clone(),
+                value: call.value.clone(),
+                input: call.input.clone(),
+                ..self.clone()
+            },
+            None => self.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionCall {
+    pub to: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_biguint_from_hex_str")]
+    pub value: BigUint,
+    pub input: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -47,6 +73,8 @@ pub struct TransactionReceipt {
     pub block_hash: String,
     #[serde(default, deserialize_with = "deserialize_u64_from_str")]
     pub block_number: u64,
+    #[serde(default)]
+    pub fee_token: Option<String>,
 }
 
 impl TransactionReceipt {
@@ -173,9 +201,50 @@ pub struct FromTo<T> {
 
 #[cfg(test)]
 mod tests {
+    use primitives::asset_constants::TEMPO_USDC_TOKEN_ID;
     use primitives::testkit::json_rpc::load_json_rpc_result;
 
     use super::*;
+    use crate::address::ethereum_address_checksum;
+
+    const BATCH_PRIMARY_CALL_TARGET: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91";
+
+    #[test]
+    fn test_decode_batched_call_transaction() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/tempo_swap_batched_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/tempo_swap_batched_transaction_receipt.json"));
+        let block = load_json_rpc_result::<Block>(include_str!("../../testdata/tempo_swap_batched_block.json"));
+
+        assert_eq!(transaction.to, None);
+        assert_eq!(transaction.value, BigUint::from(0u8));
+        assert_eq!(transaction.input, "");
+        assert_eq!(transaction.calls.as_ref().unwrap().len(), 2);
+        assert_eq!(ethereum_address_checksum(receipt.fee_token.as_deref().unwrap()).unwrap(), TEMPO_USDC_TOKEN_ID);
+        assert_eq!(receipt.get_fee(), BigUint::from(471_789u64 * 1_260_212_000u64));
+        assert_eq!(block.transactions.len(), 1);
+        assert_eq!(block.transactions[0].hash, transaction.hash);
+
+        let swap_transaction = transaction.with_primary_call();
+        assert_eq!(ethereum_address_checksum(swap_transaction.to.as_deref().unwrap()).unwrap(), BATCH_PRIMARY_CALL_TARGET);
+        assert_eq!(swap_transaction.value, BigUint::from(0u8));
+        assert_eq!(&swap_transaction.input[..10], "0x3593564c");
+
+        let mut transaction_with_value = transaction.clone();
+        transaction_with_value.calls.as_mut().unwrap().last_mut().unwrap().value = BigUint::from(42u8);
+        assert_eq!(transaction_with_value.with_primary_call().value, BigUint::from(42u8));
+
+        let mut single_call = transaction.clone();
+        single_call.calls.as_mut().unwrap().truncate(1);
+        let approval_transaction = single_call.with_primary_call();
+        assert_eq!(ethereum_address_checksum(approval_transaction.to.as_deref().unwrap()).unwrap(), TEMPO_USDC_TOKEN_ID);
+        assert_eq!(&approval_transaction.input[..10], "0x095ea7b3");
+
+        let type2 = load_json_rpc_result::<Transaction>(include_str!("../../testdata/transfer_erc20.json"));
+        let unchanged = type2.with_primary_call();
+        assert_eq!(type2.calls, None);
+        assert_eq!(unchanged.to, type2.to);
+        assert_eq!(unchanged.input, type2.input);
+    }
 
     #[test]
     fn test_root_call_error_detects_top_level_revert_only() {

@@ -170,7 +170,12 @@ mod tests {
             TransactionInputType::TransferNft(Asset::from_chain(Chain::Ton), NFTAsset::mock_ton()),
             TransactionLoadMetadata::mock_ton(1),
         );
-        input.fee = TransactionFee::new_from_fee_with_option(BigInt::from(0), FeeOption::TokenAccountCreation, BigInt::from(NFT_TRANSFER_ATTACHMENT));
+        input.fee = TransactionFee::new_from_fee_with_option(
+            BigInt::from(0),
+            FeeOption::TokenAccountCreation,
+            BigInt::from(NFT_TRANSFER_ATTACHMENT),
+            AssetId::from_chain(Chain::Ton),
+        );
 
         assert_eq!(
             signer.sign_nft_transfer(&input, Some(1_000_000_000)).unwrap(),

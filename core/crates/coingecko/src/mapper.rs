@@ -43,6 +43,7 @@ const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Stable, "stable-2"),
     (Chain::Robinhood, "robinhood"),
     (Chain::XLayer, "x-layer"),
+    (Chain::Tempo, "tempo"),
 ];
 
 pub fn get_chains_for_coingecko_market_id(id: &str) -> Vec<Chain> {
@@ -127,6 +128,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
         Chain::Plasma => "plasma",
         Chain::XLayer => "okb",
         Chain::Stable => "tether", // USDT0 is the native gas token
+        Chain::Tempo => "",
     }
 }
 

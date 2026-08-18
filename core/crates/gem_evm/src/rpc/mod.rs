@@ -15,4 +15,4 @@ pub(crate) use indexer::EVMIndexerClient;
 pub(crate) use indexer::TransactionReference;
 pub use indexer::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider};
 pub use mapper::EthereumMapper;
-pub use provider::{AssetBalanceProvider, EthereumProvider};
+pub use provider::{AssetBalanceProvider, EthereumProvider, EvmFeeCalculator, EvmProviderExtensions};

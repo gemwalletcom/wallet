@@ -111,3 +111,6 @@ pub static SUI_WAL: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Sui, S
 pub static THORCHAIN_TCY: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Thorchain, THORCHAIN_TCY_TOKEN_ID, "TCY", "TCY", 8, AssetType::TOKEN));
 
 pub static TRON_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tron, TRON_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::TRC20));
+
+pub static TEMPO_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_USDC_TOKEN_ID, "Bridged USDC", "USDC.e", 6, AssetType::TIP20));
+pub static TEMPO_PATHUSD: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID, "pathUSD", "pathUSD", 6, AssetType::TIP20));

@@ -30,7 +30,7 @@ impl PolkadotChainSigner {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Asset, Chain, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadMetadata};
+    use primitives::{Asset, AssetId, Chain, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadMetadata};
 
     use super::*;
 
@@ -49,7 +49,7 @@ mod tests {
     }
 
     fn input() -> SignerInput {
-        let fee = TransactionFee::new_from_fee(10.into());
+        let fee = TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot));
         SignerInput::new(
             TransactionLoadInput {
                 input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Polkadot)),

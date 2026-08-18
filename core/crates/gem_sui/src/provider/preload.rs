@@ -6,8 +6,8 @@ use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
 use primitives::{
-    FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
-    TransferDataExtra,
+    AssetId, Chain, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
+    TransactionPreloadInput, TransferDataExtra,
 };
 
 use crate::{
@@ -119,6 +119,7 @@ impl SuiClient {
             gas_price_type: gas_price.clone(),
             gas_limit: BigInt::from(gas_limit),
             options: HashMap::new(),
+            fee_asset: AssetId::from_chain(Chain::Sui),
         })
     }
 

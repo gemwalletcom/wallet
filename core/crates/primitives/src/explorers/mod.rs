@@ -55,6 +55,8 @@ mod swaps_xyz;
 pub use swaps_xyz::SwapsXyzScan;
 pub mod hypercore;
 pub use hypercore::{FlowScan, HyperliquidExplorer, HypurrScan};
+pub mod tempo;
+pub use tempo::TempoExplorer;
 pub mod metadata;
 pub mod stellar_expert;
 pub use metadata::{Explorer, Metadata, MultiChainExplorer};

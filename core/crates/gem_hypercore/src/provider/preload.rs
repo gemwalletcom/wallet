@@ -56,7 +56,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
             TransactionInputType::Transfer(_) | TransactionInputType::TransferNft(_, _) | TransactionInputType::Account(_, _) | TransactionInputType::Stake(_, _) => {
                 // Only signature is required
                 Ok(TransactionLoadData {
-                    fee: TransactionFee::new_from_fee(BigInt::from(0)),
+                    fee: TransactionFee::new_from_fee(BigInt::from(0), input.input_type.get_fee_asset_id()),
                     metadata: TransactionLoadMetadata::Hyperliquid { order: None },
                 })
             }
@@ -72,7 +72,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
                 };
 
                 Ok(TransactionLoadData {
-                    fee: TransactionFee::new_from_fee(fee_amount),
+                    fee: TransactionFee::new_from_fee(fee_amount, input.input_type.get_fee_asset_id()),
                     metadata: TransactionLoadMetadata::Hyperliquid { order },
                 })
             }
@@ -88,7 +88,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
                 let fee_amount = calculate_perpetual_fee_amount(fiat_value, fee_rates.perpetual_cross);
 
                 Ok(TransactionLoadData {
-                    fee: TransactionFee::new_from_fee(fee_amount),
+                    fee: TransactionFee::new_from_fee(fee_amount, input.input_type.get_fee_asset_id()),
                     metadata: TransactionLoadMetadata::Hyperliquid { order: Some(order) },
                 })
             }

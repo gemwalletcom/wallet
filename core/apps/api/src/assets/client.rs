@@ -23,7 +23,6 @@ impl AssetsClient {
         Self { database, config }
     }
 
-    #[allow(unused)]
     pub fn get_asset(&self, asset_id: &AssetId) -> Result<Asset, Box<dyn Error + Send + Sync>> {
         Ok(self.database.assets()?.get_asset(asset_id)?)
     }

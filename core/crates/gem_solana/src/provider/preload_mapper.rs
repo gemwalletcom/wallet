@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use primitives::{AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, StakeType, TransactionFee, TransactionInputType};
+use primitives::{AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, StakeType, TransactionFee, TransactionInputType};
 use std::collections::HashMap;
 
 use crate::{
@@ -21,7 +21,13 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_ty
     if let TransactionInputType::Stake(_, StakeType::Stake(_)) = input_type {
         options.insert(FeeOption::TokenAccountCreation, BigInt::from(STAKE_ACCOUNT_CREATION_FEE));
     }
-    TransactionFee::new_gas_price_type(gas_price_type.clone(), gas_price_type.total_fee(), get_gas_limit(input_type), options)
+    TransactionFee::new_gas_price_type(
+        gas_price_type.clone(),
+        gas_price_type.total_fee(),
+        get_gas_limit(input_type),
+        options,
+        AssetId::from_chain(Chain::Solana),
+    )
 }
 
 pub fn calculate_priority_fee(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> BigInt {

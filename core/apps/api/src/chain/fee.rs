@@ -11,6 +11,7 @@ use settings_chain::{TransactionFeeEstimate, TransactionFeeEstimates};
 use strum::IntoEnumIterator;
 
 use crate::api_clients::PermissionChainRead;
+use crate::assets::AssetsClient;
 use crate::params::ChainParam;
 use crate::responders::{ApiError, ApiResponse};
 
@@ -44,6 +45,7 @@ pub async fn get_chain_fee_estimates(
     _permission: PermissionChainRead,
     chain: ChainParam,
     chain_client: &State<ChainClient>,
+    assets_client: &State<AssetsClient>,
     price_client: &State<PriceClient>,
     cacher: &State<CacherClient>,
 ) -> Result<ApiResponse<ChainFeeEstimates>, ApiError> {
@@ -56,8 +58,15 @@ pub async fn get_chain_fee_estimates(
         return Ok(estimates.into());
     }
 
-    let asset = Asset::from_chain(chain);
-    let (estimates, price) = futures::try_join!(chain_client.get_transaction_fee_estimates(chain), price_client.get_cache_price(&asset.id))?;
+    let estimates = chain_client.get_transaction_fee_estimates(chain).await?;
+    let fee_asset_id = &estimates
+        .transfer
+        .first()
+        .ok_or_else(|| ApiError::InternalServerError(format!("Missing fee estimate for {chain}")))?
+        .fee
+        .fee_asset;
+    let asset = assets_client.get_asset(fee_asset_id)?;
+    let price = price_client.get_cache_price(fee_asset_id).await?;
     let estimates = map_fee_estimates(asset, estimates, price.price.price)?;
     cacher.set_cached(CacheKey::TransactionFeeEstimates(chain.as_ref()), &estimates).await?;
     cacher.set_cached(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref()), &()).await?;
@@ -113,7 +122,7 @@ fn map_estimates_by_priority(
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Asset, Chain, FeePriority, GasPriceType, TransactionFee};
+    use primitives::{Asset, AssetId, Chain, FeePriority, GasPriceType, TransactionFee};
     use settings_chain::{TransactionFeeEstimate, TransactionFeeEstimates};
 
     use super::map_fee_estimates;
@@ -128,6 +137,7 @@ mod tests {
                     1_092_000_000_000u64.into(),
                     21_000u64.into(),
                     Default::default(),
+                    AssetId::from_chain(Chain::Ethereum),
                 ),
             }],
             token_transfer: None,
@@ -150,6 +160,7 @@ mod tests {
                     15_000u64.into(),
                     100_000u64.into(),
                     Default::default(),
+                    AssetId::from_chain(Chain::Solana),
                 ),
             }],
             token_transfer: None,

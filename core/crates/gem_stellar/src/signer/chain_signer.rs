@@ -27,7 +27,7 @@ mod tests {
     use crate::models::signing::{Memo, Operation, StellarAssetData, StellarTransaction};
     use crate::signer::signing::sign_transaction;
     use gem_encoding::decode_base64;
-    use primitives::{Address, Asset, AssetType, Chain, TransactionFee, TransactionLoadInput, TransactionLoadMetadata};
+    use primitives::{Address, Asset, AssetId, AssetType, Chain, TransactionFee, TransactionLoadInput, TransactionLoadMetadata};
     use signer::Ed25519KeyPair;
 
     const PRIVATE_KEY: &str = "59a313f46ef1c23a9e4f71cea10fc0c56a2a6bb8a4b9ea3d5348823e5a478722";
@@ -56,7 +56,7 @@ mod tests {
                 Some("Hello, world!"),
                 metadata(2, true),
             ),
-            TransactionFee::new_from_fee(1000.into()),
+            TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
         );
         let signed = StellarChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(
@@ -67,7 +67,7 @@ mod tests {
         // Transfer to non-existent destination (creates account)
         let input = SignerInput::new(
             TransactionLoadInput::mock_transfer(Asset::from_chain(Chain::Stellar), SENDER, DESTINATION, "10000000", 1000, None, metadata(2, false)),
-            TransactionFee::new_from_fee(1000.into()),
+            TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
         );
         let signed = StellarChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(
@@ -94,7 +94,7 @@ mod tests {
                 None,
                 metadata(144098454883270661, true),
             ),
-            TransactionFee::new_from_fee(1000.into()),
+            TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
         );
         let signed = StellarChainSigner
             .sign_token_transfer(&input, &hex::decode("3c0635f8638605aed6e461cf3fa2d508dd895df1a1655ff92c79bfbeaf88d4b9").unwrap())
@@ -133,7 +133,7 @@ mod tests {
             .sign_transfer(
                 &SignerInput::new(
                     TransactionLoadInput::mock_transfer(Asset::from_chain(Chain::Stellar), SENDER, DESTINATION, "10000000", 1000, None, metadata(2, true)),
-                    TransactionFee::new_from_fee(1000.into()),
+                    TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
                 ),
                 &transfer_key,
             )
