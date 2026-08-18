@@ -1,0 +1,56 @@
+# Payment QR codes
+
+The payment scanner decodes QR payloads in Core and opens confirmation, recipient review, or asset selection based on the result.
+
+Enable Developer Mode, open the scanner from the wallet screen, and scan this page from another device. Use a test wallet and do not submit these example transactions.
+
+## Supported formats
+
+| Type | Supported fields | Core implementation |
+|---|---|---|
+| Plain address and BIP-21-style URI | Raw addresses or recognized chain schemes with `amount` and `memo`. XRP accepts `xrp:`, `ripple:`, `xrpl:`, and destination tag `dt` | [BIP-21-style decoder](../core/crates/primitives/src/payment_decoder/bip21.rs) |
+| ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/primitives/src/payment_decoder/erc681.rs) |
+| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, and `memo` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
+| TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/primitives/src/payment_decoder/ton_pay.rs) |
+
+## How decoding works
+
+```mermaid
+flowchart TD
+    Scan["Scanned text"] --> Action["URL action router"]
+    Action -->|"wc:"| WalletConnect["WalletConnect"]
+    Action -->|"gem:// or gemwallet.com"| Deeplink["Gem deeplink"]
+    Action --> Decoder["Payment decoder"]
+    Decoder --> Scheme{"URI scheme"}
+    Scheme -->|"ethereum:"| ERC681["ERC-681"]
+    Scheme -->|"solana:"| Solana["Solana Pay"]
+    Scheme -->|"ton:"| TON["TON transfer"]
+    Scheme -->|"Supported chain scheme"| BIP21["BIP-21-style decoder"]
+    Scheme -->|"No scheme"| Address["Plain address request<br/>No asset selected"]
+    ERC681 & Solana & TON & BIP21 & Address --> Request{"Payment request?"}
+    Request -->|"No"| Reject["Not supported"]
+    Request -->|"Yes"| Assets{"Matching wallet assets"}
+    Assets -->|"None"| Reject
+    Assets -->|"Multiple"| Select["Asset selection"]
+    Assets -->|"One, signable amount + memo when supported"| Confirm["Confirmation"]
+    Assets -->|"One, amount or memo missing/unusable"| Recipient["Recipient review"]
+```
+
+WalletConnect and Gem deeplinks are routed before payments. Solana transaction links decode as payment links, but the scanner currently routes only payment requests.
+
+Core entry points:
+
+- [URL action routing](../core/crates/primitives/src/url_action.rs)
+- [Payment decoder dispatch](../core/crates/primitives/src/payment_decoder/decoder.rs)
+- [UniFFI bridge](../core/gemstone/src/payment.rs)
+
+## Payment flows
+
+| | |
+|---|---|
+| **Bitcoin amount**<br><img src="data/payments/bitcoin-exact-amount.png" width="180" alt="Bitcoin amount QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.0001`<br>Confirm `0.0001 BTC`. | **Bitcoin address only**<br><img src="data/payments/bitcoin-address-only.png" width="180" alt="Bitcoin address QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4`<br>Open the recipient screen. |
+| **Plain EVM address**<br><img src="data/payments/evm-address-selection.png" width="180" alt="EVM address QR code"><br>`0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326`<br>Select an asset when multiple EVM chains match. | **Ethereum USDC**<br><img src="data/payments/ethereum-usdc.png" width="180" alt="Ethereum USDC QR code"><br>`ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48@1/transfer?address=0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326&uint256=1500000`<br>Confirm `1.5 USDC`. |
+| **Solana USDC**<br><img src="data/payments/solana-usdc.png" width="180" alt="Solana USDC QR code"><br>`solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=1&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`<br>Confirm `1 USDC`. | **XRP destination tag**<br><img src="data/payments/xrp-destination-tag.png" width="180" alt="XRP destination tag QR code"><br>`ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?amount=10&dt=12345`<br>Confirm amount `10` with tag `12345`. |
+| **TON comment**<br><img src="data/payments/ton-comment.png" width="180" alt="TON comment QR code"><br>`ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=order+7`<br>Confirm `1 TON` with comment `order 7`. | **Excess BTC precision**<br><img src="data/payments/bitcoin-too-precise.png" width="180" alt="Bitcoin excessive precision QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.000000001`<br>Do not round; open recipient review. |
+
+Token tests require the exact token to be enabled in the wallet.

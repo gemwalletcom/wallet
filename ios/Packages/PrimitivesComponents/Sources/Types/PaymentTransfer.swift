@@ -43,12 +43,11 @@ public struct PaymentTransfer: Sendable {
 
 private extension PaymentTransfer {
     func confirmableValue(of payment: PaymentRequest, address: String) -> BigInt? {
-        guard asset.chain.isValidAddress(address), !needsMemoReview(payment) else { return .none }
+        guard asset.chain.isValidAddress(address) else { return .none }
+        if asset.chain.isMemoSupported {
+            guard payment.memo?.isEmpty == false else { return .none }
+        }
         return transferValue(of: payment)
-    }
-
-    func needsMemoReview(_ payment: PaymentRequest) -> Bool {
-        asset.chain.isMemoSupported && payment.memo != nil
     }
 
     func transferValue(of payment: PaymentRequest) -> BigInt? {

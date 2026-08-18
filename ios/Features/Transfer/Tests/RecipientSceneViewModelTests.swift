@@ -170,26 +170,38 @@ struct RecipientSceneViewModelTests {
     }
 
     @Test
-    func destination_memoReview() throws {
+    func destination_withAmountAndMemo_confirms() throws {
         let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
         let address = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         let transfer = PaymentTransfer(asset: xrp)
 
         let tagged = try transfer.destination(for: .mock(address: address, amount: .exactValue("10"), memo: "12345", assetId: xrp.id))
 
-        guard case let .recipient(data) = tagged else {
-            Issue.record("a destination tag must be reviewed, got \(tagged)")
+        guard case let .confirm(data) = tagged else {
+            Issue.record("an exact tagged payment must confirm, got \(tagged)")
             return
         }
-        #expect(data.recipient.memo == "12345")
+        #expect(data.recipientData.recipient.address == address)
+        #expect(data.recipientData.recipient.memo == "12345")
+        #expect(data.amount == .exact(BigInt(10_000_000)))
+    }
+
+    @Test
+    func destination_withAmountWithoutMemo_requiresRecipient() throws {
+        let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
+        let address = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+
+        let destination = try PaymentTransfer(asset: xrp).destination(
+            for: .mock(address: address, amount: .exactValue("10"), assetId: xrp.id),
+        )
+
+        guard case let .recipient(data) = destination else {
+            Issue.record("an XRP payment without a destination tag must require recipient review")
+            return
+        }
+        #expect(data.recipient.address == address)
+        #expect(data.recipient.memo == nil)
         #expect(data.amount == "10")
-
-        let untagged = try transfer.destination(for: .mock(address: address, amount: .exactValue("10"), assetId: xrp.id))
-
-        guard case .confirm = untagged else {
-            Issue.record("no tag to review, got \(untagged)")
-            return
-        }
     }
 
     @Test

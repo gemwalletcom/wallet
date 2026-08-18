@@ -187,7 +187,7 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func showError(_ error: Error) {
+    private func showError(_ error: any Error) {
         debugLog("NavigationHandler error: \(error)")
         eventPresenterService.toastPresenter.toastMessage = .error(error.localizedDescription)
     }

@@ -18,6 +18,7 @@ import com.gemwallet.android.features.settings.develop.viewmodels.DevelopViewMod
 @Composable
 fun DevelopScene(
     onInAppNotifications: () -> Unit,
+    onPayments: () -> Unit,
     onCancel: () -> Unit,
     viewModel: DevelopViewModel = hiltViewModel(),
 ) {
@@ -30,6 +31,12 @@ fun DevelopScene(
         onClose = onCancel,
     ) {
         LazyColumn {
+            item {
+                LinkItem(
+                    title = "Payments",
+                    onClick = onPayments,
+                )
+            }
             if (notificationsAvailable) {
                 item {
                     LinkItem(

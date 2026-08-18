@@ -28,15 +28,15 @@ class PaymentTransfer(private val assetInfo: AssetInfo) {
         val owner = assetInfo.owner ?: return null
         val value = transferValue(request) ?: return null
 
-        if (!asset.chain.isValidAddress(address) || needsMemoReview(request)) {
+        if (!asset.chain.isValidAddress(address)) {
+            return null
+        }
+        if (asset.chain.isMemoSupport() && request.memo.isNullOrEmpty()) {
             return null
         }
         return ConfirmParams.Builder(asset, owner, value)
             .transfer(DestinationAddress(address), request.memo)
     }
-
-    private fun needsMemoReview(request: PaymentRequest): Boolean =
-        assetInfo.asset.chain.isMemoSupport() && request.memo != null
 
     private fun transferValue(request: PaymentRequest): BigInteger? =
         when (val amount = request.amount) {

@@ -82,6 +82,7 @@ fun WalletApp(
         navigator = navigator,
         onWalletContentReady = onContentReady,
         onAcceptTerms = viewModel::acceptTerms,
+        onPayment = viewModel::openPayment,
         onboard = {
             OnboardScreen(
                 onCreateWallet = {

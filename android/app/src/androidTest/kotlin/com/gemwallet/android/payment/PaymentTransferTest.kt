@@ -1,7 +1,6 @@
 package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
@@ -17,6 +16,7 @@ import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockAssetXrp
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentRequest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -84,16 +84,23 @@ class PaymentTransferTest {
     }
 
     @Test
-    fun destination_memoReview() {
-        val reviewed = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10&dt=12345")
+    fun destination_withAmountAndMemo_confirms() {
+        val confirm = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10&dt=12345")
 
-        assertTrue("a destination tag must be reviewed, got $reviewed", reviewed is PaymentDestination.Recipient)
-        assertEquals("12345", (reviewed as PaymentDestination.Recipient).request.memo)
-        assertEquals("10", reviewed.request.exactAmount)
+        assertTrue("an exact tagged payment must confirm, got $confirm", confirm is PaymentDestination.Confirm)
+        val params = (confirm as PaymentDestination.Confirm).params
+        assertEquals(BigInteger("10000000"), params.amount)
+        assertEquals(RIPPLE_ADDRESS, params.destination()?.address)
+        assertEquals("12345", params.memo())
+    }
 
-        val untagged = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10")
+    @Test
+    fun destination_withAmountWithoutMemo_requiresRecipient() {
+        val recipient = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10")
 
-        assertTrue("no tag to review, got $untagged", untagged is PaymentDestination.Confirm)
+        assertTrue("an XRP payment without a destination tag must require recipient review", recipient is PaymentDestination.Recipient)
+        assertEquals(PaymentAmount.ExactValue("10"), (recipient as PaymentDestination.Recipient).request.amount)
+        assertEquals(null, recipient.request.memo)
     }
 
     @Test

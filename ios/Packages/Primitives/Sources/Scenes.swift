@@ -51,6 +51,10 @@ public enum Scenes {
         public init() {}
     }
 
+    public struct DeveloperPayments: Hashable, Codable {
+        public init() {}
+    }
+
     public struct Security: Hashable, Codable {
         public init() {}
     }

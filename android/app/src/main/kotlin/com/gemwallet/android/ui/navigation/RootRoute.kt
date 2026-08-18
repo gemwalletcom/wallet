@@ -45,6 +45,7 @@ import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
 import com.gemwallet.android.ui.navigation.routes.EditContactRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.DevelopRoute
+import com.gemwallet.android.ui.navigation.routes.DevelopPaymentsRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.FiatTransactionsRoute
@@ -217,6 +218,7 @@ class WalletNavigator(
     fun openContact(contactId: String) = push(EditContactRoute(contactId))
     fun openSecurity() = push(SecurityRoute)
     fun openDevelop() = push(DevelopRoute)
+    fun openDeveloperPayments() = push(DevelopPaymentsRoute)
     fun openInAppNotifications() = push(InAppNotificationsRoute)
     fun openNotificationUrl(url: String): Boolean {
         val action = runCatching { urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return false
