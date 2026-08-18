@@ -237,7 +237,7 @@ mod tests {
     };
 
     fn map_swap(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> primitives::Transaction {
-        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default()).unwrap()
+        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default(), &[]).unwrap()
     }
 
     #[test]

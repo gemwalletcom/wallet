@@ -112,6 +112,7 @@ impl From<IERC20Calls> for DecodedCall {
                 "allowance",
                 vec![("owner", "address", allowance.owner.to_string()), ("spender", "address", allowance.spender.to_string())],
             ),
+            IERC20Calls::balanceOf(balance_of) => ("balanceOf", vec![("account", "address", balance_of.account.to_string())]),
         };
 
         DecodedCall {

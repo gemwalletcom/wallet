@@ -198,7 +198,7 @@ mod tests {
         for (transaction_json, receipt_json, from, from_value, to_value) in cases {
             let transaction = load_json_rpc_result::<Transaction>(transaction_json);
             let receipt = load_json_rpc_result::<TransactionReceipt>(receipt_json);
-            let parsed = ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default()).unwrap();
+            let parsed = ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default(), &[]).unwrap();
             let metadata = serde_json::from_value::<TransactionSwapMetadata>(parsed.metadata.unwrap()).unwrap();
 
             assert_eq!(parsed.transaction_type, TransactionType::Swap);
@@ -219,7 +219,7 @@ mod tests {
             (FulfillMethod::Eth, AssetId::from_chain(Chain::Polygon), POLYGON_USDC_ASSET_ID.clone()),
         ] {
             let transaction = fulfillment_transaction(cases[0].2, 9_906_901, order_hash, method);
-            let parsed = ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default()).unwrap();
+            let parsed = ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default(), &[]).unwrap();
             let metadata = serde_json::from_value::<TransactionSwapMetadata>(parsed.metadata.unwrap()).unwrap();
             assert_eq!(metadata.from_asset, expected_from);
             assert_eq!(metadata.to_asset, expected_to);
@@ -235,7 +235,7 @@ mod tests {
             .data
             .replace_range(2..66, "0000000000000000000000000000000000000000000000000000000000000001");
         assert_eq!(
-            ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &mismatched_receipt, DateTime::default()),
+            ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &mismatched_receipt, DateTime::default(), &[]),
             None
         );
     }

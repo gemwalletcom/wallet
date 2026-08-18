@@ -55,6 +55,10 @@ pub fn map_transaction_preload(nonce_hex: String, chain_id: String) -> Result<Tr
 }
 
 pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHistory) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
+    map_eip1559_fee_rates(chain, fee_history)
+}
+
+pub fn map_eip1559_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHistory) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
     let base_fee = fee_history.base_fee_per_gas.last().ok_or("No base fee available")?;
     let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
@@ -69,6 +73,10 @@ pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHisto
 }
 
 pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
+    map_evm_transaction_params(chain, input)
+}
+
+pub fn map_evm_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
     let value = BigInt::from_str_radix(&input.value, 10)?;
 
     match &input.input_type {

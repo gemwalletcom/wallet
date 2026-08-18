@@ -166,6 +166,6 @@ mod tests {
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../../testdata/smartchain/transaction_staking_delegate_receipt.json"));
         transaction.to = Some("0x1234567890123456789012345678901234567890".to_string());
 
-        assert!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &receipt, DateTime::default()).is_none());
+        assert!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &receipt, DateTime::default(), &[]).is_none());
     }
 }

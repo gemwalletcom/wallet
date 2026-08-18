@@ -1,5 +1,5 @@
 use alloy_sol_types::{SolCall, sol};
-use primitives::EVMChain;
+use primitives::{ChainStack, EVMChain};
 
 // https://www.multicall3.com/
 sol! {
@@ -65,34 +65,8 @@ pub fn decode_call3_return<T: SolCall>(result: &IMulticall3::Result) -> Result<T
 }
 
 pub fn deployment_by_chain(chain: &EVMChain) -> &'static str {
-    match chain {
-        EVMChain::Ethereum
-        | EVMChain::Base
-        | EVMChain::Optimism
-        | EVMChain::Arbitrum
-        | EVMChain::AvalancheC
-        | EVMChain::Fantom
-        | EVMChain::SmartChain
-        | EVMChain::Polygon
-        | EVMChain::OpBNB
-        | EVMChain::Gnosis
-        | EVMChain::Manta
-        | EVMChain::Blast
-        | EVMChain::Linea
-        | EVMChain::Mantle
-        | EVMChain::Celo
-        | EVMChain::World
-        | EVMChain::Sonic
-        | EVMChain::SeiEvm
-        | EVMChain::Berachain
-        | EVMChain::Ink
-        | EVMChain::Unichain
-        | EVMChain::Hyperliquid
-        | EVMChain::Monad
-        | EVMChain::XLayer
-        | EVMChain::Robinhood
-        | EVMChain::Plasma
-        | EVMChain::Stable => "0xcA11bde05977b3631167028862bE2a173976CA11",
-        EVMChain::ZkSync | EVMChain::Abstract => "0xF9cda624FBC7e059355ce98a31693d299FACd963",
+    match chain.chain_stack() {
+        ChainStack::ZkSync => "0xF9cda624FBC7e059355ce98a31693d299FACd963",
+        ChainStack::Native | ChainStack::Optimism => "0xcA11bde05977b3631167028862bE2a173976CA11",
     }
 }

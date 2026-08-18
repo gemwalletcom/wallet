@@ -24,7 +24,7 @@ use self::{
     yo::YoParser,
 };
 
-const EVENT_WORD_SIZE: usize = 64;
+pub const EVENT_WORD_SIZE: usize = 64;
 
 pub struct ParseContext<'a> {
     pub chain: &'a Chain,
@@ -57,12 +57,12 @@ impl ParseContext<'_> {
     }
 }
 
-pub trait ProtocolParser {
+pub trait ProtocolParser: Send + Sync {
     fn matches(&self, context: &ParseContext<'_>) -> bool;
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction>;
 }
 
-fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<BigUint> {
+pub fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<BigUint> {
     data.trim_start_matches("0x").get(start..end).and_then(|s| BigUint::from_str_radix(s, 16).ok())
 }
 
@@ -83,7 +83,13 @@ impl ProtocolParsers {
         ]
     }
 
-    pub fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime<Utc>) -> Option<PrimitivesTransaction> {
+    pub fn map_transaction(
+        chain: &Chain,
+        transaction: &Transaction,
+        receipt: &TransactionReceipt,
+        created_at: DateTime<Utc>,
+        extra_parsers: &[Box<dyn ProtocolParser>],
+    ) -> Option<PrimitivesTransaction> {
         let context = ParseContext {
             chain,
             transaction,
@@ -91,8 +97,10 @@ impl ProtocolParsers {
             created_at,
         };
 
-        Self::parsers()
-            .into_iter()
+        extra_parsers
+            .iter()
+            .map(|parser| parser.as_ref())
+            .chain(Self::parsers())
             .filter(|parser| parser.matches(&context))
             .find_map(|parser| parser.parse(&context))
     }

@@ -49,12 +49,15 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
         let recorder = recorder.record_timed(method::ETH_GAS_PRICE, self.get_gas_price()).await;
         let recorder = recorder.record_timed(method::ETH_GET_CODE, self.get_code(address)).await;
         let recorder = recorder.record_available_timed(method::ETH_CALL, self.eth_call(address, &[])).await;
-        let recorder = if self.get_chain() == Chain::Monad {
-            recorder
-                .record_available_timed(ETH_CALL_MONAD_DELEGATIONS_CHECK, self.call_monad_delegations(address))
-                .await
-        } else {
-            recorder
+        let staking_check = self.staking().and_then(|staking| staking.node_check_method().map(|method_name| (staking, method_name)));
+        let recorder = match staking_check {
+            Some((staking, method_name)) => recorder.record_available_timed(method_name, staking.node_check_probe(address)).await,
+            None if self.get_chain() == Chain::Monad => {
+                recorder
+                    .record_available_timed(ETH_CALL_MONAD_DELEGATIONS_CHECK, self.call_monad_delegations(address))
+                    .await
+            }
+            None => recorder,
         };
         let recorder = recorder
             .record_timed(method::ETH_ESTIMATE_GAS, self.estimate_gas(Some(address), address, None, Some("0x")))

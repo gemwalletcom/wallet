@@ -122,11 +122,7 @@ impl Chain {
     }
 
     pub fn fee_unit_type(&self) -> FeeUnitType {
-        match self.chain_type() {
-            ChainType::Bitcoin => FeeUnitType::SatVb,
-            ChainType::Ethereum => FeeUnitType::Gwei,
-            _ => FeeUnitType::Native,
-        }
+        self.config().fee_unit_type
     }
 
     pub fn default_asset_type(&self) -> Option<AssetType> {

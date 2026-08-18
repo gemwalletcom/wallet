@@ -6,7 +6,7 @@ use crate::provider::preload_mapper::{
     bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
     map_transaction_preload,
 };
-use crate::rpc::{EthereumClient, EthereumProvider};
+use crate::rpc::EthereumProvider;
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
@@ -14,6 +14,8 @@ use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use gem_client::Client;
 #[cfg(feature = "rpc")]
 use num_bigint::BigInt;
+#[cfg(feature = "rpc")]
+use num_traits::Num;
 #[cfg(feature = "rpc")]
 use primitives::ContractCallData;
 use primitives::GasPriceType;
@@ -54,9 +56,12 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 }
 
 #[cfg(feature = "rpc")]
-impl<C: Client + Clone> EthereumClient<C> {
+impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let params = get_transaction_params(self.chain, &input)?;
+        let params = match (&input.input_type, self.staking()) {
+            (TransactionInputType::Stake(_, stake_type), Some(staking)) => staking.encode_stake(stake_type, &BigInt::from_str_radix(&input.value, 10)?)?,
+            _ => get_transaction_params(self.chain, &input)?,
+        };
 
         let gas_estimate = {
             let estimate = self
@@ -70,7 +75,10 @@ impl<C: Client + Clone> EthereumClient<C> {
             bigint_from_hex_str(&estimate)?
         };
         let gas_limit = calculate_gas_limit_with_increase(gas_estimate);
-        let fee = self.calculate_fee(&input, &gas_limit).await?;
+        let fee = match self.fee_calculator() {
+            Some(fee_calculator) => fee_calculator.calculate_fee(&input, &params, &gas_limit).await?,
+            None => self.calculate_fee(&input, &gas_limit).await?,
+        };
 
         let metadata = if let TransactionInputType::Stake(_, _) = &input.input_type {
             match input.metadata {
@@ -95,7 +103,7 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         if self.chain.is_opstack() {
-            OptimismGasOracle::new(self.chain, self.clone()).calculate_fee(input, gas_limit).await
+            OptimismGasOracle::new(self.chain, self.client().clone()).calculate_fee(input, gas_limit).await
         } else {
             calculate_fee(input, gas_limit)
         }
@@ -103,7 +111,7 @@ impl<C: Client + Clone> EthereumClient<C> {
 }
 
 #[cfg(feature = "rpc")]
-fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
     let fee_gas_limit = gas_limit + get_extra_fee_gas_limit(input)?;
     let fee = input.gas_price.total_fee() * fee_gas_limit;
 

@@ -13,6 +13,9 @@ use gem_client::Client;
 #[async_trait]
 impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
+        if let Some(staking) = self.staking() {
+            return staking.get_staking_apy().await;
+        }
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_staking_apy().await,
             EVMChain::Ethereum => self.get_ethereum_staking_apy().await,
@@ -22,6 +25,9 @@ impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
     }
 
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
+        if let Some(staking) = self.staking() {
+            return staking.get_staking_validators(apy).await;
+        }
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_validators(apy.unwrap_or(0.0)).await,
             EVMChain::Ethereum => self.get_ethereum_validators(apy.unwrap_or(0.0)).await,
@@ -31,6 +37,9 @@ impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
+        if let Some(staking) = self.staking() {
+            return staking.get_staking_delegations(&address).await;
+        }
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_delegations(&address).await,
             EVMChain::Ethereum => self.get_ethereum_delegations(&address).await,

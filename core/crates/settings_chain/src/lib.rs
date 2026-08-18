@@ -12,7 +12,7 @@ use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, alchemy_url};
+use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, EvmProviderExtensions, alchemy_url};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_near::rpc::{NearClient, NearIndexer, NearProvider};
@@ -91,6 +91,7 @@ impl ProviderFactory {
                         client,
                         Box::new(EVMTransactionsByAddressProvider::new(indexer.clone())),
                         Box::new(EVMAssetBalanceProvider::new(indexer)),
+                        EvmProviderExtensions::default(),
                     )
                 } else {
                     EthereumProvider::new_rpc_only(client)

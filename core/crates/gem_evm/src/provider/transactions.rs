@@ -29,7 +29,7 @@ impl<C: Client + Clone> ChainBlockTransactions for EthereumProvider<C> {
             .transactions
             .into_iter()
             .zip(receipts)
-            .filter_map(|(tx, receipt)| EthereumMapper::map_transaction(chain, &tx, &receipt, &block.timestamp))
+            .filter_map(|(tx, receipt)| EthereumMapper::map_transaction(chain, &tx, &receipt, &block.timestamp, self.parsers()))
             .collect())
     }
 }
@@ -75,7 +75,7 @@ impl<C: Client + Clone> ChainTransaction for EthereumProvider<C> {
             Some(timestamp) => timestamp,
             None => self.get_block_timestamp(receipt.block_number).await?,
         };
-        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &timestamp))
+        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &timestamp, self.parsers()))
     }
 }
 

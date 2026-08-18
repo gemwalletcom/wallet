@@ -61,7 +61,7 @@ mod tests {
     fn test_parse_across_deposit() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/across_polygon_deposit_transaction.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/across_polygon_deposit_receipt.json"));
-        let parsed = ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default()).unwrap();
+        let parsed = ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default(), &[]).unwrap();
         let metadata = serde_json::from_value::<TransactionSwapMetadata>(parsed.metadata.unwrap()).unwrap();
 
         assert_eq!(parsed.transaction_type, TransactionType::Swap);

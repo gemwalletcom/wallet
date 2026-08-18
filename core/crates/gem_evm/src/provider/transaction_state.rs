@@ -16,7 +16,7 @@ impl<C: Client + Clone> ChainTransactionState for EthereumProvider<C> {
         let Some(receipt) = self.get_transaction_receipt(&request.id).await? else {
             return Ok(TransactionUpdate::new_state(TransactionState::Pending));
         };
-        Ok(map_transaction_status(&receipt))
+        Ok(map_transaction_status(self.chain, &receipt))
     }
 }
 

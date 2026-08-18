@@ -9,6 +9,7 @@ use serde_serializers::biguint_from_hex_str;
 use std::str::FromStr;
 
 use super::model::{Block, BlockHeader, TraceCallResult, TransactionReceipt};
+use crate::contracts::IERC20;
 use crate::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use crate::models::fee::EthereumFeeHistory;
 #[cfg(feature = "rpc")]
@@ -119,13 +120,18 @@ impl<C: Client + Clone> EthereumClient<C> {
         self.client.request(EthereumRpc::FeeHistory { blocks, reward_percentiles }).await
     }
 
-    pub async fn batch_token_balance_calls(&self, address: &str, contracts: &[String]) -> Result<Vec<String>, Box<dyn std::error::Error + Sync + Send>> {
-        let data = hex::decode(format!("0x70a08231000000000000000000000000{:0>40}", address.strip_prefix("0x").unwrap_or(address)))?;
-        let requests: Vec<EthereumRpc> = contracts
-            .iter()
-            .map(|contract| EthereumRpc::Call(TransactionObject::new_call(contract, data.clone()), BlockParameter::Latest))
+    pub async fn batch_call_data(&self, calls: Vec<(&str, Vec<u8>)>) -> Result<Vec<String>, Box<dyn std::error::Error + Sync + Send>> {
+        let requests: Vec<EthereumRpc> = calls
+            .into_iter()
+            .map(|(contract, data)| EthereumRpc::Call(TransactionObject::new_call(contract, data), BlockParameter::Latest))
             .collect();
         Ok(self.client.batch_request(requests).await?.take_all()?)
+    }
+
+    pub async fn batch_token_balance_calls(&self, address: &str, contracts: &[String]) -> Result<Vec<String>, Box<dyn std::error::Error + Sync + Send>> {
+        let account = Address::from_str(address)?;
+        let data = IERC20::balanceOfCall { account }.abi_encode();
+        self.batch_call_data(contracts.iter().map(|contract| (contract.as_str(), data.clone())).collect()).await
     }
 
     pub async fn estimate_gas(&self, from: Option<&str>, to: &str, value: Option<&str>, data: Option<&str>) -> Result<String, JsonRpcError> {

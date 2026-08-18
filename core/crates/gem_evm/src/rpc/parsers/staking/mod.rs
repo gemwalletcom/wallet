@@ -1,7 +1,7 @@
 mod everstake;
 mod monad;
 mod smartchain;
-mod transaction;
+pub mod transaction;
 
 #[cfg(test)]
 use chrono::DateTime;
@@ -14,15 +14,15 @@ use crate::rpc::model::{Transaction, TransactionReceipt};
 #[cfg(test)]
 use super::ProtocolParsers;
 use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
-use transaction::make_staking_transaction;
 
 pub use everstake::EverstakeParser;
 pub use monad::MonadStakingParser;
 pub use smartchain::SmartChainStakingParser;
+pub use transaction::make_staking_transaction;
 
 #[cfg(test)]
 fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
-    ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default()).unwrap()
+    ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default(), &[]).unwrap()
 }
 
 #[cfg(test)]

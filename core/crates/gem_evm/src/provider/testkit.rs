@@ -9,8 +9,6 @@ use crate::{
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-use gem_jsonrpc::JsonRpcClient;
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use primitives::{EVMChain, FeeRate};
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use settings::testkit::get_test_settings;
@@ -19,8 +17,7 @@ pub use crate::testkit::{TEST_ADDRESS, TEST_MONAD_ADDRESS, TEST_SMARTCHAIN_STAKI
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 fn build_test_client(chain: EVMChain, rpc_url: &str) -> EthereumProvider<ReqwestClient> {
-    let client = ReqwestClient::new_test_client(rpc_url.to_string());
-    EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain))
+    EthereumProvider::new_rpc_only(EthereumClient::mock_with_url(chain, rpc_url))
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]

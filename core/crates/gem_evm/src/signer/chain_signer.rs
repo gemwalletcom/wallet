@@ -144,10 +144,8 @@ fn value_u256(value: &str) -> Result<U256, SignerError> {
     U256::from_str(value).map_err(SignerError::from_display)
 }
 
-fn build_eip1559_transaction(params: &TransactionParams, to: &str, value: U256, input: Bytes) -> Result<TxEip1559, SignerError> {
-    let to_address = Address::parse_checksummed(to, None)
-        .or_else(|_| to.parse::<Address>())
-        .map_err(|_| SignerError::invalid_input("invalid to address"))?;
+pub fn build_eip1559_transaction(params: &TransactionParams, to: &str, value: U256, input: Bytes) -> Result<TxEip1559, SignerError> {
+    let to_address = Address::from_str(to).map_err(SignerError::from_display)?;
 
     Ok(TxEip1559 {
         chain_id: params.chain_id,
@@ -162,7 +160,7 @@ fn build_eip1559_transaction(params: &TransactionParams, to: &str, value: U256, 
     })
 }
 
-fn sign_and_encode(transaction: &TxEip1559, private_key: &[u8]) -> Result<String, SignerError> {
+pub fn sign_and_encode(transaction: &TxEip1559, private_key: &[u8]) -> Result<String, SignerError> {
     Ok(hex::encode(sign_eip1559_tx(transaction, private_key)?))
 }
 
