@@ -97,18 +97,14 @@ impl TransactionFee {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Chain;
-
-    fn eth() -> AssetId {
-        AssetId::from_chain(Chain::Ethereum)
-    }
+    use crate::Asset;
 
     #[test]
     fn test_transaction_fee_calculate() {
         let gas_price_type = GasPriceType::regular(BigInt::from(100u64));
         let gas_limit = 1000u64;
 
-        let fee = TransactionFee::calculate(gas_limit, &gas_price_type, eth());
+        let fee = TransactionFee::calculate(gas_limit, &gas_price_type, Asset::mock_eth().id);
 
         assert_eq!(fee.fee, BigInt::from(100000u64)); // 100 * 1000
         assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(100u64));
@@ -118,7 +114,13 @@ mod tests {
     #[test]
     fn test_new_gas_price_type() {
         // Without options
-        let fee = TransactionFee::new_gas_price_type(GasPriceType::regular(BigInt::from(200)), BigInt::from(50000), BigInt::from(500), HashMap::new(), eth());
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::regular(BigInt::from(200)),
+            BigInt::from(50000),
+            BigInt::from(500),
+            HashMap::new(),
+            Asset::mock_eth().id,
+        );
         assert_eq!(fee.fee, BigInt::from(50000));
         assert_eq!(fee.gas_limit, BigInt::from(500));
 
@@ -128,7 +130,7 @@ mod tests {
             BigInt::from(30000),
             BigInt::from(400),
             HashMap::from([(FeeOption::TokenAccountCreation, BigInt::from(5000))]),
-            eth(),
+            Asset::mock_eth().id,
         );
         assert_eq!(fee.fee, BigInt::from(35000)); // 30000 + 5000
 
@@ -138,7 +140,7 @@ mod tests {
             BigInt::from(60000),
             BigInt::from(200),
             HashMap::new(),
-            eth(),
+            Asset::mock_eth().id,
         );
         assert_eq!(fee.gas_price_type.priority_fee(), BigInt::from(10));
     }
@@ -148,7 +150,7 @@ mod tests {
         let base_fee = BigInt::from(10000);
         let option_value = BigInt::from(2500);
 
-        let fee = TransactionFee::new_from_fee_with_option(base_fee.clone(), FeeOption::TokenAccountCreation, option_value.clone(), eth());
+        let fee = TransactionFee::new_from_fee_with_option(base_fee.clone(), FeeOption::TokenAccountCreation, option_value.clone(), Asset::mock_eth().id);
 
         assert_eq!(fee.fee, BigInt::from(12500)); // 10000 + 2500
         assert_eq!(fee.gas_price_type.gas_price(), base_fee);
@@ -158,7 +160,13 @@ mod tests {
 
     #[test]
     fn test_fee_accessors() {
-        let fee = TransactionFee::new_gas_price_type(GasPriceType::regular(BigInt::from(7u64)), BigInt::from(70u64), BigInt::from(10u64), HashMap::new(), eth());
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::regular(BigInt::from(7u64)),
+            BigInt::from(70u64),
+            BigInt::from(10u64),
+            HashMap::new(),
+            Asset::mock_eth().id,
+        );
         assert_eq!(fee.gas_limit().unwrap(), 10);
         assert_eq!(fee.gas_price_u64().unwrap(), 7);
 
@@ -167,12 +175,12 @@ mod tests {
             BigInt::from(10u64),
             BigInt::from(1u64),
             HashMap::new(),
-            eth(),
+            Asset::mock_eth().id,
         );
         assert_eq!(fee.unit_price_u64().unwrap(), 2);
 
         assert_eq!(
-            TransactionFee::new_from_fee(BigInt::ZERO, eth()).gas_limit().unwrap_err().to_string(),
+            TransactionFee::new_from_fee(BigInt::ZERO, Asset::mock_eth().id).gas_limit().unwrap_err().to_string(),
             "Invalid input: missing gas limit"
         );
     }
