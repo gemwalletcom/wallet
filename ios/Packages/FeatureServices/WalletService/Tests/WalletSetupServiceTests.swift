@@ -54,6 +54,22 @@ struct WalletSetupServiceTests {
         #expect(isEnabled == true)
     }
 
+    @Test
+    func setupTempoAssets() throws {
+        let (db, balanceStore, walletStore, service) = setupService()
+        let wallet = Wallet.mock(id: .single(chain: .tempo, address: "0xtest"), type: .single, accounts: [.mock(chain: .tempo)])
+
+        try addAsset(db: db, asset: Asset(.tempo))
+        try addAsset(db: db, asset: .tempoUSDC())
+        try addAsset(db: db, asset: .tempoPathUSD())
+        try walletStore.addWallet(wallet)
+        try service.setup(wallet: wallet)
+
+        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: AssetId(chain: .tempo)) == nil)
+        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: Asset.tempoUSDC().id)?.isEnabled == true)
+        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: Asset.tempoPathUSD().id)?.isEnabled == false)
+    }
+
     private func setupService() -> (DB, BalanceStore, WalletStore, WalletSetupService) {
         let db = DB.mock()
         let balanceStore = BalanceStore.mock(db: db)

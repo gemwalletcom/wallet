@@ -2,6 +2,7 @@ package com.gemwallet.android.domains.asset
 
 import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.isSwapSupport
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.wallet.core.primitives.Chain
@@ -71,5 +72,18 @@ class AssetDefaultsTest {
         verify(exactly = 0) { assetDefaultRank(any()) }
         verify(exactly = 1) { Chain.Solana.isSwapSupport() }
         verify(exactly = 0) { Chain.Solana.isStakeSupported() }
+    }
+
+    @Test
+    fun defaultBasic_tempoNetworkAnchor_isNotSwappable() {
+        mockkStatic("com.gemwallet.android.ext.ChainKt")
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { Chain.Tempo.isSwapSupport() } returns true
+        every { Chain.Tempo.isStakeSupported() } returns false
+        every { assetDefaultRank(Chain.Tempo.string) } returns 15
+
+        val basic = mockAsset(chain = Chain.Tempo).defaultBasic
+
+        assertFalse(basic.properties.isSwapable)
     }
 }

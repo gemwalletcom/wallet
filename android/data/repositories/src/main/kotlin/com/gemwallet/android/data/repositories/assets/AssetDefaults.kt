@@ -13,7 +13,23 @@ val tronUSDT = Asset(
     type = AssetType.TRC20,
 )
 
-val defaultTokenAssets = listOf(tronUSDT)
+val tempoUSDC = Asset(
+    id = AssetId(Chain.Tempo, "0x20C000000000000000000000b9537d11c60E8b50"),
+    name = "Bridged USDC",
+    symbol = "USDC.e",
+    decimals = 6,
+    type = AssetType.TIP20,
+)
+
+val tempoPathUSD = Asset(
+    id = AssetId(Chain.Tempo, "0x20C0000000000000000000000000000000000000"),
+    name = "pathUSD",
+    symbol = "pathUSD",
+    decimals = 6,
+    type = AssetType.TIP20,
+)
+
+val defaultTokenAssets = listOf(tronUSDT, tempoUSDC, tempoPathUSD)
 
 val visibleByDefault = listOf(
     AssetId(Chain.Bitcoin),
@@ -22,4 +38,5 @@ val visibleByDefault = listOf(
     AssetId(Chain.Solana),
     AssetId(Chain.Tron),
     tronUSDT.id,
+    tempoUSDC.id,
 )

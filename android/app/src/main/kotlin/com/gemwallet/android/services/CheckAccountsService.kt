@@ -4,6 +4,7 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.domains.asset.networkOnlyAssetIds
 import com.gemwallet.android.ext.available
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -31,7 +32,7 @@ class CheckAccountsService @Inject constructor(
             val nativeAssets = assetsRepository.getNativeAssets(wallet)
 
             if (wallet.type != WalletType.Multicoin) {
-                if (nativeAssets.isEmpty()) {
+                if (wallet.accounts.any { AssetId(it.chain) !in networkOnlyAssetIds } && nativeAssets.isEmpty()) {
                     assetsRepository.invalidateDefault(wallet)
                 }
                 assetsRepository.ensureDefaultAssets(wallet)
@@ -59,7 +60,7 @@ class CheckAccountsService @Inject constructor(
             }
 
             val nativeAssetIds = nativeAssets.map { it.id }.toSet()
-            val missingNativeAssetIds = accountChains.map { AssetId(it) }.filterNot(nativeAssetIds::contains)
+            val missingNativeAssetIds = accountChains.map { AssetId(it) }.filterNot(networkOnlyAssetIds::contains).filterNot(nativeAssetIds::contains)
             if (missingNativeAssetIds.isNotEmpty()) {
                 assetsRepository.invalidateDefault(wallet)
             }

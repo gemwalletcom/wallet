@@ -14,7 +14,7 @@ public extension AssetBasic {
                 isEnabled: true,
                 isBuyable: score.rank >= 40,
                 isSellable: false,
-                isSwapable: config.isSwapSupported,
+                isSwapable: !AssetConfiguration.networkOnlyAssetIds.contains(asset.id) && config.isSwapSupported,
                 isStakeable: config.isStakeSupported,
                 stakingApr: .none,
                 isEarnable: false,

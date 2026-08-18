@@ -67,6 +67,7 @@ public enum Images {
         public static let xlayer = Image(.xlayer)
         public static let robinhood = Image(.robinhood)
         public static let stable = Image(.stable)
+        public static let tempo = Image(.tempo)
     }
 
     public enum SwapProviders {

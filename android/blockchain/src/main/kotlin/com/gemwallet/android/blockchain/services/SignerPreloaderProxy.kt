@@ -27,7 +27,6 @@ class SignerPreloaderProxy(
     suspend fun preload(params: ConfirmParams, selection: FeeSelection): SignerParams = withContext(Dispatchers.IO) {
         val assetId = params.assetId
         val chain = assetId.chain
-        val feeAssetId = AssetId(chain)
         val gemChain = assetId.chain.string
         val destination = requireNotNull(params.destination()?.address)
 
@@ -78,7 +77,7 @@ class SignerPreloaderProxy(
             }
             scanDeferred.await()?.validate(params)
             val result = transactionLoadDeferred.await()
-            val fee = chain.toFee(feeAssetId, selectedPriority, result.fee)
+            val fee = result.fee.toFee(selectedPriority)
 
             SignerParams(
                 input = params,

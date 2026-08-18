@@ -13,6 +13,7 @@ public struct TransactionInputViewModel: Sendable {
     let transactionData: TransactionData?
     let metaData: TransferDataMetadata?
     let transferAmount: TransferAmountValidation?
+    let feeAsset: Asset
 
     private let preferences: Preferences
 
@@ -21,12 +22,14 @@ public struct TransactionInputViewModel: Sendable {
         transactionData: TransactionData?,
         metaData: TransferDataMetadata?,
         transferAmount: TransferAmountValidation?,
+        feeAsset: Asset,
         preferences: Preferences = Preferences.standard,
     ) {
         self.transactionData = transactionData
         self.data = data
         self.metaData = metaData
         self.transferAmount = transferAmount
+        self.feeAsset = feeAsset
         self.preferences = preferences
     }
 
@@ -51,7 +54,7 @@ public struct TransactionInputViewModel: Sendable {
             currency: preferences.currency,
             asset: displayAsset,
             assetPrice: metaData?.assetPrice,
-            feeAsset: asset.feeAsset,
+            feeAsset: feeAsset,
             feeAssetPrice: metaData?.feePrice,
             value: value,
             feeValue: transactionData?.fee.fee,

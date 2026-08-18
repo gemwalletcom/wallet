@@ -13,11 +13,13 @@ public struct WalletSetupService: Sendable {
 
     public func setup(wallet: Wallet) throws {
         let chains = wallet.chains
-        let defaultAssets = chains.map(\.defaultAssets.assetIds).flatMap(\.self)
-        let assetIds = chains.ids + defaultAssets
+        let defaultAssets = chains.flatMap(\.defaultAssets).assetIds
+        let assetIds = (chains.ids + defaultAssets).filter { !AssetConfiguration.networkOnlyAssetIds.contains($0) }
 
         let (enabledByDefault, disabledByDefault) = assetIds.reduce(into: ([AssetId](), [AssetId]())) { result, assetId in
-            if AssetConfiguration.enabledByDefault.contains(assetId) || (wallet.accounts.count == 1 && chains.count == 1) {
+            if AssetConfiguration.hiddenByDefault.contains(assetId) {
+                result.1.append(assetId)
+            } else if AssetConfiguration.enabledByDefault.contains(assetId) || (wallet.accounts.count == 1 && chains.count == 1) {
                 result.0.append(assetId)
             } else {
                 result.1.append(assetId)

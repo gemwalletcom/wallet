@@ -20,6 +20,7 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
+import com.gemwallet.android.domains.asset.networkOnlyAssetIds
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toAssetId
@@ -122,6 +123,10 @@ class AssetsRepository @Inject constructor(
         val assetIds = mutableListOf<AssetId>()
         wallet.accounts.forEach { account ->
             val asset = account.chain.asset()
+            if (asset.id in networkOnlyAssetIds) {
+                add(listOf(asset.defaultBasic))
+                return@forEach
+            }
             val isVisible = account.isVisibleByDefault(wallet.type)
             insertLocalAsset(wallet.id.id, asset, isVisible)
             if (isVisible) assetIds.add(asset.id)
@@ -141,10 +146,11 @@ class AssetsRepository @Inject constructor(
         val stored = hasAssets(missing.map { it.id })
 
         missing.forEach { asset ->
+            val visible = asset.id in visibleByDefault
             if (stored.contains(asset.id)) {
-                linkAssetToWallet(wallet.id.id, asset.id, true)
+                linkAssetToWallet(wallet.id.id, asset.id, visible)
             } else {
-                add(wallet.id.id, asset, true)
+                add(wallet.id.id, asset, visible)
             }
         }
     }
@@ -250,7 +256,7 @@ class AssetsRepository @Inject constructor(
     fun invalidateDefault(wallet: Wallet) = scope.launch(Dispatchers.IO) {
         val assets = getNativeAssets(wallet).associateBy( { it.id.toIdentifier() }, { it })
 
-        wallet.accounts.map { account ->
+        wallet.accounts.filterNot { AssetId(it.chain) in networkOnlyAssetIds }.map { account ->
             val asset = account.chain.asset()
             async {
                 if (assets[account.chain.string] == null) {

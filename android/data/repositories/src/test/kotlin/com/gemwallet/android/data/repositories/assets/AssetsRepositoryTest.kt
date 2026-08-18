@@ -282,6 +282,25 @@ class AssetsRepositoryTest {
     }
 
     @Test
+    fun ensureDefaultAssets_addsTempoAssetsWithFeeTokenHidden() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Tempo)),
+        )
+        coEvery { assetsDao.getWalletAssetIds(wallet.id.id, listOf(tempoUSDC.id.toIdentifier())) } returns emptyList()
+        coEvery { assetsDao.getWalletAssetIds(wallet.id.id, listOf(tempoPathUSD.id.toIdentifier())) } returns emptyList()
+        coEvery { assetsDao.getAssetIds(any()) } returns emptyList()
+
+        createSubject().ensureDefaultAssets(wallet)
+
+        coVerify { assetsDao.setWalletAssetVisibility(wallet.id.id, tempoUSDC.id.toIdentifier(), true) }
+        coVerify { assetsDao.setWalletAssetVisibility(wallet.id.id, tempoPathUSD.id.toIdentifier(), false) }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(tempoUSDC.id)) }
+        coVerify(exactly = 0) { streamSubscriptionService.addAssetIds(listOf(tempoPathUSD.id)) }
+    }
+
+    @Test
     fun saveAssetMetadata_persistsUnknownAssetAndMarketInOneAtomicCall() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
 

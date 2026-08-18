@@ -2,10 +2,10 @@ package com.gemwallet.android.blockchain.gemstone
 
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.toFeePriority
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.FeeSelection
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRate
@@ -43,17 +43,13 @@ internal fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee
         is Fee.Plain -> "0"
     },
     options = GemFeeOptions(
-        when (this) {
-            is Fee.Plain -> options
-            is Fee.Regular -> options
-            is Fee.Eip1559 -> options
-            is Fee.Solana -> options
-        }.mapNotNull { (key, value) ->
+        options.mapNotNull { (key, value) ->
             runCatching { GemFeeOption.valueOf(key) }.getOrNull()?.let { option ->
                 option to value.toString()
             }
         }.toMap()
-    )
+    ),
+    feeAsset = feeAssetId.toIdentifier(),
 )
 
 internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate = when (selection) {
@@ -69,26 +65,27 @@ internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate
     }
 }
 
-internal fun Chain.toFee(
-    feeAssetId: AssetId,
+internal fun GemTransactionLoadFee.toFee(
     priority: FeePriority,
-    gemFee: GemTransactionLoadFee,
-): Fee = when (toChainType()) {
-    ChainType.Solana -> gemFee.toSolanaFee(feeAssetId, priority)
-    ChainType.Bitcoin,
-    ChainType.Cosmos,
-    ChainType.Tron,
-    ChainType.Aptos -> gemFee.toRegularFee(feeAssetId, priority)
-    ChainType.Ethereum -> gemFee.toEip1559Fee(feeAssetId, priority)
-    ChainType.HyperCore,
-    ChainType.Ton,
-    ChainType.Sui,
-    ChainType.Xrp,
-    ChainType.Near,
-    ChainType.Stellar,
-    ChainType.Algorand,
-    ChainType.Polkadot,
-    ChainType.Cardano -> gemFee.toPlainFee(feeAssetId, priority)
+): Fee {
+    val feeAssetId = AssetId(feeAsset)
+    return when (feeAssetId.chain.toChainType()) {
+        ChainType.Solana -> toSolanaFee(feeAssetId, priority)
+        ChainType.Bitcoin,
+        ChainType.Cosmos,
+        ChainType.Tron,
+        ChainType.Aptos -> toRegularFee(feeAssetId, priority)
+        ChainType.Ethereum -> toEip1559Fee(feeAssetId, priority)
+        ChainType.HyperCore,
+        ChainType.Ton,
+        ChainType.Sui,
+        ChainType.Xrp,
+        ChainType.Near,
+        ChainType.Stellar,
+        ChainType.Algorand,
+        ChainType.Polkadot,
+        ChainType.Cardano -> toPlainFee(feeAssetId, priority)
+    }
 }
 
 private fun GemTransactionLoadFee.toFeeOptions() = options.options

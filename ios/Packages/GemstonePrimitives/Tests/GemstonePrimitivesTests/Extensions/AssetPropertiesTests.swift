@@ -17,5 +17,7 @@ struct AssetPropertiesTests {
         #expect(AssetProperties.defaultValue(assetId: AssetId(chain: .smartChain, tokenId: "0x")).isSwapable == true)
         #expect(AssetProperties.defaultValue(assetId: .mockSolana()).isSwapable == true)
         #expect(AssetProperties.defaultValue(assetId: .mockSolanaUSDC()).isSwapable == true)
+        #expect(AssetProperties.defaultValue(assetId: AssetId(chain: .tempo)).isSwapable == false)
+        #expect(AssetProperties.defaultValue(assetId: Asset.tempoPathUSD().id).isSwapable == true)
     }
 }

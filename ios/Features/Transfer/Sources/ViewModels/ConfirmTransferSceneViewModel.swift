@@ -69,6 +69,7 @@ public final class ConfirmTransferSceneViewModel {
         state = ConfirmTransferState(
             simulation: confirmService.simulationState(request: request),
             metadata: try? confirmService.metadata(request: request),
+            feeAsset: request.data.type.asset.feeAsset,
             transaction: .loading,
         )
     }
@@ -130,7 +131,7 @@ public final class ConfirmTransferSceneViewModel {
     public var feeModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             chain: request.data.chain,
-            feeAsset: request.data.type.asset.feeAsset,
+            feeAsset: state.feeAsset,
             currency: currency,
             selection: feeSelection,
             rates: state.feeRates,
@@ -336,7 +337,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     public func swapFromAsset(to asset: Asset) -> Asset {
-        dataModel.asset.id == asset.id ? dataModel.asset.feeAsset : dataModel.asset
+        dataModel.asset.id == asset.id ? state.feeAsset : dataModel.asset
     }
 
     public var assetAcquisitionWallet: Wallet {

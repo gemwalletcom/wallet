@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
-import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.domains.confirm.BalanceRequirement
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.ext.toIdentifier
@@ -39,7 +38,7 @@ internal fun transferAmountInput(
     inputType = params.toDto(),
     value = params.amount.toString(),
     availableValue = availableValue.toString(),
-    feeAsset = feeAssetInfo.asset.toGem(),
+    feeAsset = feeAssetInfo.asset.id.toIdentifier(),
     feeAssetBalance = feeAssetInfo.balance.balance.available,
     fee = fee.toString(),
     isMaxAmount = params.useMaxAmount,

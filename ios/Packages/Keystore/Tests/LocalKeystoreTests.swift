@@ -165,7 +165,8 @@ struct LocalKeystoreTests {
                      .plasma,
                      .xLayer,
                      .robinhood,
-                     .stable:
+                     .stable,
+                     .tempo:
                     "0x8f348F300873Fd5DA36950B2aC75a26584584feE"
                 case .solana:
                     "57mwmnV2rFuVDmhiJEjonD7cfuFtcaP9QvYNGfDEWK71"

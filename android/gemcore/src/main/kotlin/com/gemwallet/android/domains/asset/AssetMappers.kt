@@ -1,8 +1,8 @@
 package com.gemwallet.android.domains.asset
 
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAttributeType
@@ -81,7 +81,7 @@ private fun NFTAttributeType.toGemNftAttributeType() = when (this) {
 }
 
 fun GemAsset.toDTO() = Asset(
-    id = id.toAssetId()!!,
+    id = AssetId(id),
     name = name,
     symbol = symbol,
     decimals = decimals,

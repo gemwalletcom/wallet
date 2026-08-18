@@ -14,17 +14,20 @@ public struct Fee: Sendable {
     public let gasPriceType: GasPriceType
     public let gasLimit: BigInt
     public let options: FeeOptionMap
+    public let feeAssetId: AssetId
 
     public init(
         fee: BigInt,
         gasPriceType: GasPriceType,
         gasLimit: BigInt,
         options: FeeOptionMap = [:],
+        feeAssetId: AssetId,
     ) {
         self.fee = fee
         self.gasPriceType = gasPriceType
         self.gasLimit = gasLimit
         self.options = options
+        self.feeAssetId = feeAssetId
     }
 
     public var gasPrice: BigInt {
@@ -53,6 +56,7 @@ public struct Fee: Sendable {
             gasPriceType: gasPriceType,
             gasLimit: gasLimit,
             options: options,
+            feeAssetId: feeAssetId,
         )
     }
 }

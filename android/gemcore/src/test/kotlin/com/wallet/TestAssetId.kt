@@ -5,11 +5,21 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
 class TestAssetId {
+
+    @Test
+    fun parsesIdentifier() {
+        assertThrows(IllegalArgumentException::class.java) { AssetId("") }
+        assertThrows(IllegalArgumentException::class.java) { AssetId("random_chain") }
+        assertEquals(AssetId(Chain.Bitcoin), AssetId("bitcoin"))
+        assertEquals(AssetId(Chain.Ethereum, "0x123"), AssetId("ethereum_0x123"))
+    }
+
     @Test
     fun testTonAssetId() {
         val assetId = "ton_EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT".toAssetId()!!

@@ -32,4 +32,9 @@ final class AssetTests {
         let native = Asset(.hyperCore)
         #expect(native.feeAsset == Asset.hypercoreSpotUSDC())
     }
+
+    @Test
+    func feeAssetTempo() {
+        #expect(Asset.tempoUSDC().feeAsset == Asset.tempoPathUSD())
+    }
 }

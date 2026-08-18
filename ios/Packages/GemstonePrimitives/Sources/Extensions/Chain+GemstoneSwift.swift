@@ -125,6 +125,11 @@ public extension Primitives.Chain {
                 .hypercoreUSDC(),
                 .hypercoreSpotUSDC(),
             ]
+        case .tempo:
+            [
+                .tempoUSDC(),
+                .tempoPathUSD(),
+            ]
         default:
             []
         }

@@ -524,6 +524,16 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func swapFromAssetUsesLoadedFeeAsset() {
+        let asset = Asset.tempoPathUSD()
+        let feeAsset = Asset.tempoUSDC()
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
+        model.state = .mock(feeAsset: feeAsset)
+
+        #expect(model.swapFromAsset(to: asset) == feeAsset)
+    }
+
+    @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
         model.onSelectListError(error: .amount(.insufficientBalance(
@@ -667,7 +677,10 @@ private extension ConfirmService {
     static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmService {
         ConfirmService(
             metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
-            inputProvider: ConfirmTransferInputProvider(transferTransactionProvider: TransferTransactionProviderMock(result: transaction)),
+            inputProvider: ConfirmTransferInputProvider(
+                transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
+                feeAssetProvider: FeeAssetProviderMock(),
+            ),
             simulationService: ConfirmSimulationService(addressNameService: .mock(addressStore: .mock()), assetsService: .mock()),
             transferExecutor: TransferExecutorMock(),
             activityService: .mock(),

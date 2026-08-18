@@ -10,7 +10,7 @@ public extension AssetProperties {
         case .native: assetId.chain.isStakeSupported
         case .token: false
         }
-        let isSwapable = assetId.chain.isSwapSupported
+        let isSwapable = assetId.chain.isSwapSupported && !AssetConfiguration.networkOnlyAssetIds.contains(assetId)
         return AssetProperties(
             isEnabled: true,
             isBuyable: false,
