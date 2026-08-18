@@ -85,10 +85,6 @@ impl<C: Client + Clone> EthereumProvider<C> {
         Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider), extensions)
     }
 
-    pub(crate) fn client(&self) -> &EthereumClient<C> {
-        &self.client
-    }
-
     pub(crate) fn staking(&self) -> Option<&dyn EvmStakingClient> {
         self.staking.as_deref()
     }

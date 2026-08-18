@@ -1,33 +1,22 @@
-use alloy_primitives::hex;
-use num_bigint::{BigInt, Sign};
-use num_traits::Num;
-use primitives::{EVMChain, TransactionFee, TransactionInputType, TransactionLoadInput, contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT};
 use std::collections::HashMap;
 use std::error::Error;
 
-#[cfg(feature = "rpc")]
-use crate::rpc::client::EthereumClient;
-#[cfg(feature = "rpc")]
+use alloy_primitives::hex;
+use async_trait::async_trait;
 use gem_client::Client;
-use primitives::GasPriceType;
+use gem_evm::provider::preload_mapper::{TransactionParams, get_extra_fee_gas_limit};
+use gem_evm::rpc::{EthereumClient, EvmFeeCalculator};
+use num_bigint::{BigInt, Sign};
+use num_traits::Num;
+use primitives::{GasPriceType, TransactionFee, TransactionInputType, TransactionLoadInput, contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT};
 
-use super::preload_mapper::{get_extra_fee_gas_limit, get_transaction_params};
-
-#[cfg(feature = "rpc")]
 pub struct OptimismGasOracle<C: Client + Clone> {
-    pub chain: EVMChain,
-    pub client: EthereumClient<C>,
+    client: EthereumClient<C>,
 }
 
-#[cfg(feature = "rpc")]
-impl<C: Client + Clone> OptimismGasOracle<C> {
-    pub fn new(chain: EVMChain, client: EthereumClient<C>) -> Self {
-        Self { chain, client }
-    }
-
-    pub async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let params = get_transaction_params(self.chain, input)?;
-
+#[async_trait]
+impl<C: Client + Clone> EvmFeeCalculator for OptimismGasOracle<C> {
+    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         let nonce = input.metadata.get_sequence()?;
         let chain_id = input.metadata.get_chain_id()?.parse::<u64>()?;
 
@@ -42,10 +31,10 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
                     let parsed_value = BigInt::from_str_radix(&input.value, 10)?;
                     parsed_value - gas_limit * &input.gas_price.gas_price()
                 } else {
-                    params.value
+                    params.value.clone()
                 }
             }
-            _ => params.value,
+            _ => params.value.clone(),
         };
 
         let encoded = self.encode_transaction_for_l1_fee(
@@ -71,6 +60,12 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
             gas_limit.clone(),
             HashMap::new(),
         ))
+    }
+}
+
+impl<C: Client + Clone> OptimismGasOracle<C> {
+    pub fn new(client: EthereumClient<C>) -> Self {
+        Self { client }
     }
 
     async fn get_l1_fee(&self, data: &[u8]) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
@@ -150,5 +145,58 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
         }
 
         Ok(encoded)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_client::testkit::MockClient;
+    use gem_jsonrpc::JsonRpcClient;
+    use primitives::{Asset, Chain, EVMChain};
+
+    use super::*;
+
+    #[test]
+    fn test_encode_transaction_for_l1_fee() {
+        let oracle = OptimismGasOracle::new(EthereumClient::new(JsonRpcClient::new(MockClient::new()), EVMChain::Optimism));
+        let native_transfer = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(Asset::from_chain(Chain::Optimism)), "1000000000000000000");
+
+        let encoded = oracle
+            .encode_transaction_for_l1_fee(
+                &BigInt::from(21_000u64),
+                &BigInt::from(2_000_000_000u64),
+                &BigInt::from(1_000_000_000u64),
+                5,
+                None,
+                "0x000000000000000000000000000000000000dead",
+                10,
+                Some(&BigInt::from(1_000_000_000_000_000_000u64)),
+                &native_transfer,
+            )
+            .unwrap();
+
+        assert_eq!(
+            alloy_primitives::hex::encode(&encoded),
+            "020000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a764000080c0"
+        );
+
+        let token_transfer = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(Asset::mock_erc20()), "1000000000000000000");
+        let encoded_token = oracle
+            .encode_transaction_for_l1_fee(
+                &BigInt::from(21_000u64),
+                &BigInt::from(2_000_000_000u64),
+                &BigInt::from(1_000_000_000u64),
+                5,
+                None,
+                "0x000000000000000000000000000000000000dead",
+                10,
+                Some(&BigInt::from(1_000_000_000_000_000_000u64)),
+                &token_transfer,
+            )
+            .unwrap();
+
+        // Token transfers keep the full prefix; native transfers drop the byte at index 2.
+        assert_eq!(encoded_token.len(), encoded.len() + 1);
+        assert_eq!(encoded_token[0], 0x02);
     }
 }

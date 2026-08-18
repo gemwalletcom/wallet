@@ -3864,6 +3864,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_optimism"
+version = "2.114.8"
+dependencies = [
+ "alloy-primitives",
+ "async-trait",
+ "gem_client",
+ "gem_evm",
+ "gem_jsonrpc",
+ "num-bigint 0.5.1",
+ "num-traits",
+ "primitives",
+]
+
+[[package]]
 name = "gem_polkadot"
 version = "2.114.9"
 dependencies = [
@@ -4111,6 +4125,7 @@ dependencies = [
  "gem_jsonrpc",
  "gem_keystore",
  "gem_near",
+ "gem_optimism",
  "gem_polkadot",
  "gem_solana",
  "gem_stellar",
@@ -7903,6 +7918,7 @@ dependencies = [
  "gem_hypercore",
  "gem_jsonrpc",
  "gem_near",
+ "gem_optimism",
  "gem_polkadot",
  "gem_solana",
  "gem_stellar",

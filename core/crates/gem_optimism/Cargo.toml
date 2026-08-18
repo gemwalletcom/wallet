@@ -1,0 +1,23 @@
+[package]
+name = "gem_optimism"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client"]
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_evm = { path = "../gem_evm" }
+
+gem_client = { path = "../gem_client", optional = true }
+async-trait = { workspace = true, optional = true }
+alloy-primitives = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }
+gem_client = { path = "../gem_client", features = ["testkit"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }

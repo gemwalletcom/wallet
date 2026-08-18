@@ -72,11 +72,6 @@ impl EVMChain {
         self.config().is_ethereum_layer2
     }
 
-    // https://docs.optimism.io/stack/getting-started
-    pub fn is_opstack(&self) -> bool {
-        self.chain_stack() == ChainStack::Optimism
-    }
-
     // https://docs.zksync.io/zk-stack/running/quickstart
     pub fn is_zkstack(&self) -> bool {
         self.chain_stack() == ChainStack::ZkSync

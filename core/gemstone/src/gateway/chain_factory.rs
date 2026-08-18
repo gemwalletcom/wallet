@@ -5,11 +5,13 @@ use gem_algorand::rpc::{AlgorandClient, AlgorandProvider};
 use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::client::CardanoClient;
+use gem_client::Client;
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EthereumClient, EthereumProvider};
+use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmProviderExtensions};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_near::rpc::{NearClient, NearProvider};
+use gem_optimism::OptimismGasOracle;
 use gem_polkadot::rpc::{PolkadotClient, PolkadotProvider};
 use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_stellar::rpc::client::StellarClient;
@@ -17,7 +19,7 @@ use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_xrp::rpc::XrpClient;
-use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosChain};
+use primitives::{BitcoinChain, Chain, ChainStack, ChainType, EVMChain, chain_cosmos::CosmosChain};
 
 use super::{GatewayError, GemPreferences, PreferencesWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
@@ -74,10 +76,23 @@ impl ChainClientFactory {
                 let client = JsonRpcClient::new(alien_client.clone());
                 Ok(Arc::new(SolanaProvider::new_rpc_only(SolanaClient::new(client))))
             }
-            ChainType::Ethereum => Ok(Arc::new(EthereumProvider::new_rpc_only(EthereumClient::new(
-                JsonRpcClient::new(alien_client),
-                EVMChain::from_chain(chain).unwrap(),
-            )))),
+            ChainType::Ethereum => {
+                let evm_chain = EVMChain::from_chain(chain).unwrap();
+                let client = EthereumClient::new(JsonRpcClient::new(alien_client), evm_chain);
+                let extensions = evm_provider_extensions(evm_chain, &client);
+                Ok(Arc::new(EthereumProvider::new_rpc_only_with_extensions(client, extensions)))
+            }
         }
+    }
+}
+
+// Keep in sync with evm_provider_extensions in crates/settings_chain/src/lib.rs
+fn evm_provider_extensions<C: Client + Clone + 'static>(chain: EVMChain, client: &EthereumClient<C>) -> EvmProviderExtensions {
+    match chain.chain_stack() {
+        ChainStack::Optimism => EvmProviderExtensions {
+            fee_calculator: Some(Box::new(OptimismGasOracle::new(client.clone()))),
+            ..Default::default()
+        },
+        ChainStack::Native | ChainStack::ZkSync => EvmProviderExtensions::default(),
     }
 }

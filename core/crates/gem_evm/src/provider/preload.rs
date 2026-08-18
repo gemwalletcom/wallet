@@ -1,5 +1,3 @@
-#[cfg(feature = "rpc")]
-use super::preload_optimism::OptimismGasOracle;
 use crate::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT, TRANSFER_GAS_LIMIT};
 use crate::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use crate::provider::preload_mapper::{
@@ -77,7 +75,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
         let gas_limit = calculate_gas_limit_with_increase(gas_estimate);
         let fee = match self.fee_calculator() {
             Some(fee_calculator) => fee_calculator.calculate_fee(&input, &params, &gas_limit).await?,
-            None => self.calculate_fee(&input, &gas_limit).await?,
+            None => calculate_fee(&input, &gas_limit)?,
         };
 
         let metadata = if let TransactionInputType::Stake(_, _) = &input.input_type {
@@ -99,14 +97,6 @@ impl<C: Client + Clone> EthereumProvider<C> {
         };
 
         Ok(TransactionLoadData { fee, metadata })
-    }
-
-    pub async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        if self.chain.is_opstack() {
-            OptimismGasOracle::new(self.chain, self.client().clone()).calculate_fee(input, gas_limit).await
-        } else {
-            calculate_fee(input, gas_limit)
-        }
     }
 }
 
