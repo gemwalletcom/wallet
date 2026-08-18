@@ -41,7 +41,7 @@ struct ConfirmTransferInputProviderTests {
         let result = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
 
         #expect(result.input.feeAsset == feeAsset)
-        #expect(result.input.feeAssetBalance == feeAssetBalance)
+        #expect(result.metadata.assetFeeBalance == feeAssetBalance)
         #expect(result.metadata.feeAssetId == feeAsset.id)
     }
 

@@ -209,8 +209,6 @@ fn map_pathusd_transfer_input(input: TransactionLoadInput) -> TransactionLoadInp
 
 #[cfg(test)]
 mod tests {
-    use std::cell::Cell;
-
     use super::*;
     use gem_evm::provider::preload_mapper::map_evm_transaction_params;
     use gem_evm::rpc::model::TransactionReceipt;
@@ -224,13 +222,9 @@ mod tests {
         let provider = TempoProvider::new_or_else(tempo, |_| unreachable!());
         assert_eq!(provider.get_chain(), Chain::Tempo);
 
-        let fallback_called = Cell::new(false);
         let ethereum = EthereumClient::new(mock_jsonrpc_client(|_, _| unreachable!()), EVMChain::Ethereum);
-        TempoProvider::new_or_else(ethereum, |client| {
-            fallback_called.set(true);
-            Box::new(EthereumProvider::new_rpc_only(client))
-        });
-        assert!(fallback_called.get());
+        let provider = TempoProvider::new_or_else(ethereum, |client| Box::new(EthereumProvider::new_rpc_only(client)));
+        assert_eq!(provider.get_chain(), Chain::Ethereum);
     }
 
     #[test]

@@ -14,13 +14,8 @@ use super::{
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperProvider, SwapperQuoteData,
-    approval::check_approval_erc20,
-    config::get_swap_proxy_url,
-    cross_chain::VaultAddresses,
-    fees::DEFAULT_REFERRER,
+    SwapperProvider, SwapperQuoteData, approval::check_approval_erc20, config::get_swap_proxy_url, cross_chain::VaultAddresses, fees::DEFAULT_REFERRER,
     fees::default_referral_fees,
-    native_asset::{is_native_erc20, native_erc20_address},
 };
 
 #[derive(Debug)]
@@ -159,11 +154,12 @@ where
         }
         let token = if let Some(token_id) = from_asset_id.token_id.clone() {
             token_id
-        } else if is_native_erc20(from_asset_id.chain) {
-            let evm_chain = EVMChain::from_chain(from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
-            native_erc20_address(&evm_chain).ok_or(SwapperError::NotSupportedChain)?.to_string()
         } else {
-            return Ok(None);
+            let evm_chain = EVMChain::from_chain(from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
+            let Some(token_id) = evm_chain.native_asset_contract() else {
+                return Ok(None);
+            };
+            token_id.to_string()
         };
 
         let spender = quote_response.router_address().ok_or(SwapperError::InvalidRoute)?;
@@ -214,7 +210,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_check_evm_approval_native_erc20() -> Result<(), SwapperError> {
+    async fn test_check_evm_approval_native_asset_contract() -> Result<(), SwapperError> {
         let relay = mock_relay_with_allowance(ZERO_ALLOWANCE);
         let approval = relay
             .check_evm_approval(&mock_quote(Chain::Celo), &mock_quote_response(), &AssetId::from_chain(Chain::Celo))
@@ -245,10 +241,9 @@ mod tests {
 mod swap_integration_tests {
     use super::*;
     use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
-    use primitives::asset_constants::{CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
     use primitives::{
         AssetId,
-        asset_constants::{BASE_USDC_ASSET_ID, TEMPO_USDC_ASSET_ID},
+        asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, TEMPO_USDC_ASSET_ID},
     };
     use std::collections::HashMap;
 
@@ -386,9 +381,6 @@ mod swap_integration_tests {
 
         let quote = relay.get_quote(&request).await?;
         let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
-
-        println!("quote: from_value={}, to_value={}", quote.from_value, quote.to_value);
-        println!("quote_data: to={}, value={}, data_len={}", quote_data.to, quote_data.value, quote_data.data.len());
 
         assert_eq!(quote_data.value, "0");
         assert!(!quote_data.to.is_empty());

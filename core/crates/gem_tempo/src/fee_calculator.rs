@@ -48,7 +48,19 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
             return Ok(map_asset_id(AssetId::from_token(Chain::Tempo, &token_id)));
         }
 
-        if !matches!(input_type, TransactionInputType::Swap(_, _, _)) {
+        let uses_account_fee_token = match input_type {
+            TransactionInputType::Swap(_, _, _) => false,
+            TransactionInputType::Transfer(_)
+            | TransactionInputType::Deposit(_)
+            | TransactionInputType::Stake(_, _)
+            | TransactionInputType::TokenApprove(_, _)
+            | TransactionInputType::Generic(_, _, _)
+            | TransactionInputType::TransferNft(_, _)
+            | TransactionInputType::Account(_, _)
+            | TransactionInputType::Perpetual(_, _)
+            | TransactionInputType::Earn(_, _, _) => true,
+        };
+        if uses_account_fee_token {
             let account_fee_token = self.user_fee_token(&input.sender_address).await?;
             if !account_fee_token.is_zero() {
                 return Ok(map_asset_id(AssetId::from_token(Chain::Tempo, &account_fee_token.to_checksum(None))));

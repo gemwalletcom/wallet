@@ -1417,7 +1417,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
                 min_priority_fee: 0,
                 chain_stack: ChainStack::Native,
                 is_ethereum_layer2: false,
-                weth_contract: Some(TEMPO_PATHUSD_TOKEN_ID),
+                weth_contract: None,
             }),
             stake: None,
         },

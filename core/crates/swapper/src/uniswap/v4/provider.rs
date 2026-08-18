@@ -15,7 +15,6 @@ use crate::{
         deadline::get_sig_deadline,
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
-        is_native_erc20,
         quote_result::{QuotePosition, get_best_quote},
         requires_native_wrapping,
         swap_route::{RouteData, build_swap_route, get_intermediaries},
@@ -66,7 +65,7 @@ impl UniswapV4 {
     }
 
     fn is_base_pair(token_in: &Address, token_out: &Address, evm_chain: &EVMChain) -> bool {
-        let base_set: HashSet<Address> = HashSet::from_iter(get_base_pair(evm_chain, is_native_erc20(evm_chain.to_chain())).unwrap().path_building_array());
+        let base_set: HashSet<Address> = HashSet::from_iter(get_base_pair(evm_chain, evm_chain.native_asset_contract().is_some()).unwrap().path_building_array());
         base_set.contains(token_in) || base_set.contains(token_out)
     }
 
@@ -99,7 +98,7 @@ impl UniswapV4 {
     async fn preload_pool_candidates(&self, chain: Chain, token_in: Address, token_out: Address) -> Result<(), SwapperError> {
         let deployment = get_uniswap_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
-        let base_pair = get_base_pair(&evm_chain, is_native_erc20(chain)).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract().is_some()).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let client = self.client_for(chain)?;
         let fee_tiers = self.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
@@ -154,7 +153,7 @@ impl Swapper for UniswapV4 {
         let deployment = get_uniswap_deployment_by_chain(&from_chain).ok_or(SwapperError::NotSupportedChain)?;
         let (evm_chain, token_in, token_out, from_value) = Self::parse_request(request)?;
         let fee_tiers = self.get_tiers();
-        let base_pair = get_base_pair(&evm_chain, is_native_erc20(from_chain)).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract().is_some()).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
         let quote_amount_in = if fee_token_is_input && fee_bps > 0 {
@@ -297,7 +296,7 @@ impl Swapper for UniswapV4 {
 
         let sig_deadline = get_sig_deadline();
         let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-        let base_pair = get_base_pair(&evm_chain, is_native_erc20(from_asset.chain));
+        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract().is_some());
         let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, token_in, token_out);
 
         let commands = build_commands(

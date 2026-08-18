@@ -44,6 +44,7 @@ mod tests {
     use gem_evm::ethereum_address_checksum;
     use gem_evm::rpc::mapper::EthereumMapper;
     use gem_evm::rpc::model::Transaction as RpcTransaction;
+    use gem_evm::testkit::rpc_mock::{TEMPO_BATCHED_TRANSACTION_JSON, TEMPO_BATCHED_TRANSACTION_RECEIPT_JSON};
     use num_bigint::BigUint;
     use primitives::testkit::json_rpc::load_json_rpc_result;
     use primitives::{
@@ -58,8 +59,8 @@ mod tests {
 
     #[test]
     fn test_map_transaction_batched_swap() {
-        let transaction = load_json_rpc_result::<RpcTransaction>(include_str!("../testdata/tempo_swap_batched_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../testdata/tempo_swap_batched_tx_receipt.json"));
+        let transaction = load_json_rpc_result::<RpcTransaction>(TEMPO_BATCHED_TRANSACTION_JSON);
+        let receipt = load_json_rpc_result::<TransactionReceipt>(TEMPO_BATCHED_TRANSACTION_RECEIPT_JSON);
 
         let mapped_transaction = map_tempo_transaction(&transaction, &receipt);
 

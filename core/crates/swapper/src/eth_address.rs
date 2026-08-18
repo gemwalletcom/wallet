@@ -16,7 +16,10 @@ pub(crate) fn parse_or_native_address(asset: &AssetId, evm_chain: EVMChain) -> R
     if let Some(token_id) = &asset.token_id {
         parse_str(token_id)
     } else {
-        let contract = evm_chain.weth_contract().ok_or(SwapperError::NotSupportedChain)?;
+        let contract = evm_chain
+            .native_asset_contract()
+            .or_else(|| evm_chain.weth_contract())
+            .ok_or(SwapperError::NotSupportedChain)?;
         parse_str(contract)
     }
 }

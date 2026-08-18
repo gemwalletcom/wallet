@@ -1,13 +1,13 @@
 package com.gemwallet.android.blockchain.services
 
 import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetTempoUSDCe
-import com.gemwallet.android.testkit.mockGemTransactionLoadFee
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
@@ -19,10 +19,12 @@ import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemFeeRate
 import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemGatewayInterface
 import uniffi.gemstone.GemTransactionData
+import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadInput
 import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
@@ -84,9 +86,9 @@ class SignerPreloaderProxyTest {
         val feeAsset = mockAssetTempoUSDCe()
         val params = transferParams(feeAsset)
         stubPreload()
-        coEvery { gateway.getTransactionLoad(any(), any()) } returns GemTransactionData(
-            fee = mockGemTransactionLoadFee(feeAssetId = feeAsset.id),
-            metadata = evmMetadata(),
+        coEvery { gateway.getTransactionLoad(any(), any()) } returns transactionData(
+            gasPriceType = GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3"),
+            feeAssetId = feeAsset.id,
         )
 
         val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal))
@@ -163,10 +165,16 @@ class SignerPreloaderProxyTest {
         contractCall = null,
     )
 
-    private fun transactionData(gasPriceType: GemGasPriceType) = GemTransactionData(
-        fee = mockGemTransactionLoadFee(
+    private fun transactionData(
+        gasPriceType: GemGasPriceType,
+        feeAssetId: AssetId = mockAssetEthereum().id,
+    ) = GemTransactionData(
+        fee = GemTransactionLoadFee(
             fee = "21000",
             gasPriceType = gasPriceType,
+            gasLimit = "21000",
+            options = GemFeeOptions(emptyMap()),
+            feeAsset = feeAssetId.toIdentifier(),
         ),
         metadata = evmMetadata(),
     )

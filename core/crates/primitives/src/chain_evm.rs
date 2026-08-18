@@ -78,8 +78,16 @@ impl EVMChain {
         self.chain_stack() == ChainStack::ZkSync
     }
 
-    pub fn weth_contract(&self) -> Option<&str> {
+    pub fn weth_contract(&self) -> Option<&'static str> {
         self.config().weth_contract
+    }
+
+    pub fn native_asset_contract(&self) -> Option<&'static str> {
+        match self {
+            EVMChain::Celo => self.weth_contract(),
+            EVMChain::Tempo => Some(crate::asset_constants::TEMPO_PATHUSD_TOKEN_ID),
+            _ => None,
+        }
     }
 
     pub fn from_chain(chain: Chain) -> Option<Self> {
@@ -113,7 +121,8 @@ mod tests {
     }
 
     #[test]
-    fn test_tempo_weth_contract_is_pathusd() {
-        assert_eq!(EVMChain::Tempo.weth_contract(), Some(crate::asset_constants::TEMPO_PATHUSD_TOKEN_ID));
+    fn test_tempo_native_asset_contract_is_pathusd() {
+        assert_eq!(EVMChain::Tempo.weth_contract(), None);
+        assert_eq!(EVMChain::Tempo.native_asset_contract(), Some(crate::asset_constants::TEMPO_PATHUSD_TOKEN_ID));
     }
 }

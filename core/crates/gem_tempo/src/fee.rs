@@ -8,7 +8,7 @@ use primitives::asset_constants::TEMPO_PATHUSD_TOKEN_ID;
 use crate::contracts::ITempoFeeManager;
 use gem_evm::ethereum_address_checksum;
 
-pub const FEE_MANAGER_ADDRESS: &str = "0xfeEC000000000000000000000000000000000000";
+pub(crate) const FEE_MANAGER_ADDRESS: &str = "0xfeEC000000000000000000000000000000000000";
 #[cfg(feature = "rpc")]
 pub(crate) const USD_CURRENCY: &str = "USD";
 const FEE_SCALE: u64 = 1_000_000_000_000;

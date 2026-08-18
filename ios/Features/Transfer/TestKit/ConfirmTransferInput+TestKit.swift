@@ -15,13 +15,11 @@ public extension ConfirmTransferInput {
             TransferAmount(value: BigInt(100), networkFee: BigInt(21000), useMaxAmount: false),
         ),
         feeAsset: Asset = .mock(),
-        feeAssetBalance: Balance = .mock(),
     ) -> ConfirmTransferInput {
         ConfirmTransferInput(
             transactionData: transactionData,
             transferAmount: transferAmount,
             feeAsset: feeAsset,
-            feeAssetBalance: feeAssetBalance,
         )
     }
 }

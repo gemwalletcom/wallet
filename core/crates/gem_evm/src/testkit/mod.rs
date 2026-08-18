@@ -10,7 +10,6 @@ use primitives::asset_constants::{ETHEREUM_DAI_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID}
 use crate::rpc::EthereumClient;
 
 pub mod eip712_mock;
-pub mod fee_history_mock;
 #[cfg(feature = "rpc")]
 pub mod rpc_mock;
 pub mod siwe_mock;

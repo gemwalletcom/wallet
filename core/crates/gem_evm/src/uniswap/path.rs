@@ -67,10 +67,11 @@ impl BasePair {
     }
 }
 
-pub fn get_base_pair(chain: &EVMChain, weth_as_native: bool) -> Option<BasePair> {
-    let native = match chain {
-        _ if weth_as_native => chain.weth_contract()?.parse().ok()?,
-        _ => Address::ZERO,
+pub fn get_base_pair(chain: &EVMChain, contract_as_native: bool) -> Option<BasePair> {
+    let native = if contract_as_native {
+        chain.native_asset_contract().or_else(|| chain.weth_contract())?.parse().ok()?
+    } else {
+        Address::ZERO
     };
 
     let btc: &str = match chain {

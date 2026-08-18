@@ -56,7 +56,6 @@ public struct ConfirmTransferInputProvider: Sendable {
                     fee: fee.fee,
                 ),
                 feeAsset: feeAsset,
-                feeAssetBalance: feeAssetBalance,
             )
             return ConfirmTransferPreload(
                 metadata: metadata,

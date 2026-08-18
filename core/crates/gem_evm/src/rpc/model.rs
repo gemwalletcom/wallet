@@ -209,7 +209,6 @@ mod tests {
 
     #[test]
     fn test_decode_batched_call_transaction() {
-        // https://explore.tempo.xyz/receipt/0x99649df228014eca4fe3058455b9bb30fbf700461daebb65e63251c180cccd85
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/tempo_swap_batched_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/tempo_swap_batched_tx_receipt.json"));
         let block = load_json_rpc_result::<Block>(include_str!("../../testdata/tempo_swap_batched_block.json"));
@@ -226,13 +225,13 @@ mod tests {
         let swap_transaction = transaction.with_primary_call();
         assert_eq!(ethereum_address_checksum(swap_transaction.to.as_deref().unwrap()).unwrap(), BATCH_PRIMARY_CALL_TARGET);
         assert_eq!(swap_transaction.value, BigUint::from(0u8));
-        assert!(swap_transaction.input.starts_with("0x3593564c"));
+        assert_eq!(&swap_transaction.input[..10], "0x3593564c");
 
         let mut single_call = transaction.clone();
         single_call.calls.as_mut().unwrap().truncate(1);
         let approval_transaction = single_call.with_primary_call();
         assert_eq!(ethereum_address_checksum(approval_transaction.to.as_deref().unwrap()).unwrap(), TEMPO_USDC_TOKEN_ID);
-        assert!(approval_transaction.input.starts_with("0x095ea7b3"));
+        assert_eq!(&approval_transaction.input[..10], "0x095ea7b3");
 
         let type2 = load_json_rpc_result::<Transaction>(include_str!("../../testdata/transfer_erc20.json"));
         let unchanged = type2.with_primary_call();

@@ -3,7 +3,7 @@ use alloy_rlp::{BufMut, EMPTY_STRING_CODE, Encodable, Header};
 use primitives::SignerError;
 use signer::Signer;
 
-pub(crate) const TEMPO_TX_TYPE_ID: u8 = 0x76;
+const TEMPO_TX_TYPE_ID: u8 = 0x76;
 
 pub(super) struct TransactionCall {
     to: Address,
@@ -88,7 +88,7 @@ impl TempoTransaction {
         keccak256(&buf)
     }
 
-    pub(crate) fn sign(&self, private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
+    pub(super) fn sign(&self, private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
         let signature = Bytes::from(Signer::sign_ethereum_digest(self.signature_hash().as_slice(), private_key)?);
 
         let payload_length = self.fields_payload_length() + signature.length();
