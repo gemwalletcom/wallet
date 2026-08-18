@@ -17,6 +17,11 @@ public extension Asset {
 
     var feeAsset: Asset {
         switch id.chain {
+        case .tempo:
+            switch id.type {
+            case .native: Asset.tempoPathUSD()
+            case .token: self
+            }
         case .hyperCore:
             switch map().assetType {
             case .native: Asset.hypercoreSpotUSDC()

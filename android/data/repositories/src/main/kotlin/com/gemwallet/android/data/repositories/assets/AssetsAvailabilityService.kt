@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.domains.asset.calculateAvailabilityChanges
+import com.gemwallet.android.domains.asset.networkOnlyAssetIds
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.swapSupport
 import com.gemwallet.android.ext.toIdentifier
@@ -40,11 +41,13 @@ class AssetsAvailabilityService @Inject constructor(
     }
 
     suspend fun syncSwapSupportChains() {
-        val nativeAssetIds = Chain.entries.map { it.asset().id.toIdentifier() }
+        val nativeAssetIds = Chain.entries.map { it.asset().id }.filterNot(networkOnlyAssetIds::contains).map { it.toIdentifier() }
         syncAvailability(
             currentEnabledAssetIds = assetsDao.getSwapAvailableAssetIds(nativeAssetIds),
             targetEnabledAssetIds = Chain.swapSupport()
-                .map { it.asset().id.toIdentifier() },
+                .map { it.asset().id }
+                .filterNot(networkOnlyAssetIds::contains)
+                .map { it.toIdentifier() },
             trackedAssetIds = nativeAssetIds,
             setAvailability = assetsDao::setSwapAvailable,
         )

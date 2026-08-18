@@ -11,9 +11,8 @@ use gem_evm::provider::transaction_state_mapper::map_transaction_status_with_fee
 use gem_evm::rpc::mapper::EthereumMapper;
 use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmProviderExtensions};
 use primitives::{
-    Asset, AssetBalance, AssetId, AssetType, BroadcastOptions, Chain, FeeRate, SimulationInput, SimulationResult, Transaction, TransactionInputType, TransactionLoadData,
-    TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionState, TransactionStateRequest, TransactionUpdate, asset_constants::TEMPO_PATHUSD_TOKEN_ID,
-    fee::FeePriority,
+    Asset, AssetBalance, BroadcastOptions, Chain, FeeRate, SimulationInput, SimulationResult, Transaction, TransactionInputType, TransactionLoadData, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionPreloadInput, TransactionState, TransactionStateRequest, TransactionUpdate, asset_constants::TEMPO_PATHUSD_ASSET_ID, fee::FeePriority,
 };
 
 use crate::{fee::scale_fee_to_token_units, fee_calculator::TempoFeeCalculator, mapper};
@@ -50,15 +49,8 @@ impl<C: Client + Clone> ChainProvider for TempoProvider<C> {
 
 #[async_trait]
 impl<C: Client + Clone> ChainBalances for TempoProvider<C> {
-    async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-        let balance = self
-            .provider
-            .batch_token_balance_calls(&address, &[TEMPO_PATHUSD_TOKEN_ID.to_string()])
-            .await?
-            .into_iter()
-            .next()
-            .ok_or("Missing pathUSD balance result")?;
-        gem_evm::provider::balances_mapper::map_balance_coin(balance, Chain::Tempo)
+    async fn get_balance_coin(&self, _address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
+        Ok(AssetBalance::new_zero_balance(Chain::Tempo.as_asset_id()))
     }
 
     async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
@@ -94,7 +86,7 @@ impl<C: Client + Clone> ChainTransactionLoad for TempoProvider<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        self.provider.map_transaction_load(map_pathusd_transfer_input(input)).await
+        self.provider.map_transaction_load(input).await
     }
 }
 
@@ -118,7 +110,7 @@ impl<C: Client + Clone> ChainTransaction for TempoProvider<C> {
         let Some(receipt) = self.provider.get_transaction_receipt(&hash).await? else {
             return Ok(None);
         };
-        Ok(Some(mapper::map_transaction(transaction, &receipt)))
+        Ok(Some(mapper::map_transaction(transaction, &receipt)?))
     }
 }
 
@@ -138,14 +130,13 @@ impl<C: Client + Clone> ChainBlockTransactions for TempoProvider<C> {
         }
 
         let receipts = self.provider.get_block_receipts(block_number).await?;
-        Ok(block
+        block
             .transactions
             .into_iter()
             .zip(receipts)
-            .filter_map(|(transaction, receipt)| {
-                EthereumMapper::map_transaction(Chain::Tempo, &transaction, &receipt, &block.timestamp, &[]).map(|mapped| mapper::map_transaction(mapped, &receipt))
-            })
-            .collect())
+            .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction(Chain::Tempo, &transaction, &receipt, &block.timestamp, &[]).map(|mapped| (mapped, receipt)))
+            .map(|(transaction, receipt)| mapper::map_transaction(transaction, &receipt))
+            .collect()
     }
 }
 
@@ -205,6 +196,7 @@ impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
             estimates.retain(|estimate| estimate.priority == FeePriority::Normal);
             for estimate in estimates {
                 estimate.fee.fee = scale_fee_to_token_units(estimate.fee.fee.clone());
+                estimate.fee.fee_asset = TEMPO_PATHUSD_ASSET_ID.clone();
             }
         };
         scale(&mut estimates.transfer);
@@ -218,33 +210,15 @@ impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
     }
 }
 
-fn map_pathusd_transfer_input(input: TransactionLoadInput) -> TransactionLoadInput {
-    let asset = match &input.input_type {
-        TransactionInputType::Transfer(asset) | TransactionInputType::Deposit(asset) if asset.id.is_native() => asset,
-        _ => return input,
-    };
-    let pathusd = Asset::new(
-        AssetId::from_token(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID),
-        asset.name.clone(),
-        asset.symbol.clone(),
-        asset.decimals,
-        AssetType::TIP20,
-    );
-    let input_type = match input.input_type {
-        TransactionInputType::Deposit(_) => TransactionInputType::Deposit(pathusd),
-        _ => TransactionInputType::Transfer(pathusd),
-    };
-    TransactionLoadInput { input_type, ..input }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_evm::encode::encode_erc20_transfer;
     use gem_evm::provider::preload_mapper::map_evm_transaction_params;
     use gem_evm::rpc::model::TransactionReceipt;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use num_bigint::{BigInt, BigUint};
-    use primitives::{EVMChain, TransactionChange, asset_constants::TEMPO_USDC_TOKEN_ID, hex, testkit::signer_mock::TEST_EVM_RECIPIENT};
+    use primitives::{EVMChain, TransactionChange, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_PATHUSD, testkit::signer_mock::TEST_EVM_RECIPIENT};
 
     #[test]
     fn selects_tempo_provider() {
@@ -258,19 +232,13 @@ mod tests {
     }
 
     #[test]
-    fn maps_chain_asset_transfer_to_pathusd_contract() {
-        let input = map_pathusd_transfer_input(TransactionLoadInput::mock_evm(TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)), "1000000"));
+    fn maps_pathusd_transfer_as_tip20() {
+        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_PATHUSD.clone()), "1000000");
         let params = map_evm_transaction_params(EVMChain::Tempo, &input).unwrap();
 
         assert_eq!(params.to, TEMPO_PATHUSD_TOKEN_ID);
         assert_eq!(params.value, BigInt::ZERO);
-        assert_eq!(hex::encode(&params.data[..4]), "a9059cbb");
-        assert!(hex::encode(&params.data).contains(&TEST_EVM_RECIPIENT[2..].to_lowercase()));
-
-        let token = Asset::mock_tempo_usdc();
-        let unchanged = map_pathusd_transfer_input(TransactionLoadInput::mock_evm(TransactionInputType::Transfer(token.clone()), "1000000"));
-        assert_eq!(unchanged.input_type.get_asset(), &token);
-        assert_eq!(unchanged.input_type.get_asset().token_id.as_deref(), Some(TEMPO_USDC_TOKEN_ID));
+        assert_eq!(params.data, encode_erc20_transfer(TEST_EVM_RECIPIENT, &BigInt::from(1_000_000u64)).unwrap());
     }
 
     #[test]
@@ -313,6 +281,7 @@ mod tests {
         assert_eq!(estimates.transfer[0].priority, FeePriority::Normal);
         assert_eq!(estimates.transfer[0].fee.gas_limit, BigInt::from(65_000u64));
         assert_eq!(estimates.transfer[0].fee.fee, BigInt::from(1_300u64));
+        assert_eq!(estimates.transfer[0].fee.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
         assert_eq!(estimates.token_transfer.unwrap()[0].fee.fee, BigInt::from(1_300u64));
     }
 }
@@ -325,9 +294,9 @@ mod chain_integration_tests {
     use primitives::TransactionPreloadInput;
 
     #[tokio::test]
-    async fn test_get_transaction_load_native_transfer() -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn test_get_transaction_load_pathusd_transfer() -> Result<(), Box<dyn Error + Send + Sync>> {
         let provider = TempoProvider::new(create_tempo_test_client());
-        let input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo));
+        let input_type = TransactionInputType::Transfer(primitives::known_assets::TEMPO_PATHUSD.clone());
 
         let metadata = provider
             .get_transaction_preload(TransactionPreloadInput {
@@ -355,7 +324,7 @@ mod chain_integration_tests {
             .await?;
 
         assert!(load_data.fee.gas_limit > BigInt::from(21_000u64));
-        assert_eq!(load_data.fee.fee_asset, AssetId::from_chain(Chain::Tempo));
+        assert_eq!(load_data.fee.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
         assert!(load_data.fee.fee > BigInt::ZERO);
 
         Ok(())

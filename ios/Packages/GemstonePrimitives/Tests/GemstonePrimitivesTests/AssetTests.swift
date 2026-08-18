@@ -34,4 +34,14 @@ final class AssetTests {
         #expect(native.feeAsset == Asset.hypercoreSpotUSDC())
     }
 
+    @Test
+    func feeAssetTempoToken() {
+        let token = Asset.tempoUSDC()
+        #expect(token.feeAsset == token)
+    }
+
+    @Test
+    func feeAssetTempoNetwork() {
+        #expect(Asset(.tempo).feeAsset == Asset.tempoPathUSD())
+    }
 }

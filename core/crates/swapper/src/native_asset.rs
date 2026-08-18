@@ -12,7 +12,6 @@ mod tests {
     fn test_requires_native_wrapping() {
         use primitives::Chain;
 
-        assert!(!requires_native_wrapping(&AssetId::from_chain(Chain::Tempo)));
         assert!(!requires_native_wrapping(&AssetId::from_chain(Chain::Celo)));
         assert!(requires_native_wrapping(&AssetId::from_chain(Chain::Ethereum)));
     }

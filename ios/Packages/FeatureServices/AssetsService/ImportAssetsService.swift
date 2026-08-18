@@ -30,8 +30,8 @@ public struct ImportAssetsService: Sendable {
         let releaseVersion = Bundle.main.buildVersionNumber
 
         let chains = AssetConfiguration.allChains
-        let defaultAssets = chains.map(\.defaultAssets).flatMap(\.self)
-        let assetIds = chains.map(\.id) + defaultAssets.ids
+        let tokenAssets = chains.flatMap(\.defaultAssets)
+        let assetIds = chains.map(\.id) + tokenAssets.ids
 
         let existingAssets = try assetStore.getAssets(for: assetIds)
         let hasMissingAssets = existingAssets.count != assetIds.count
@@ -44,7 +44,7 @@ public struct ImportAssetsService: Sendable {
 
         if hasMissingAssets {
             let chainAssets = chains.map { AssetBasic.native($0.asset) }
-            let defaultTokenAssets = defaultAssets.map { AssetBasic.seed($0) }
+            let defaultTokenAssets = tokenAssets.map { AssetBasic.seed($0) }
 
             try assetStore.add(assets: chainAssets)
             try assetStore.insert(assets: defaultTokenAssets)

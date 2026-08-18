@@ -2,8 +2,6 @@ use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
-#[cfg(feature = "rpc")]
-use primitives::asset_constants::TEMPO_PATHUSD_TOKEN_ID;
 
 use crate::contracts::ITempoFeeManager;
 use gem_evm::ethereum_address_checksum;
@@ -21,11 +19,6 @@ pub(crate) fn decode_set_user_fee_token(input_type: &TransactionInputType) -> Op
         return None;
     }
     ITempoFeeManager::setUserTokenCall::abi_decode(extra.data.as_deref()?).ok().map(|call| call.token)
-}
-
-#[cfg(feature = "rpc")]
-pub(crate) fn is_pathusd_contract(contract_address: &str) -> bool {
-    ethereum_address_checksum(contract_address).is_ok_and(|address| address == TEMPO_PATHUSD_TOKEN_ID)
 }
 
 pub(crate) fn scale_fee_to_token_units(fee: BigInt) -> BigInt {

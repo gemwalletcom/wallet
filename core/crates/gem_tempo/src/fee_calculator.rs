@@ -7,11 +7,10 @@ use gem_evm::provider::preload;
 use gem_evm::provider::preload_mapper::TransactionParams;
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator};
 use num_bigint::BigInt;
-use primitives::{AssetId, Chain, TransactionFee, TransactionInputType, TransactionLoadInput};
+use primitives::{AssetId, Chain, TransactionFee, TransactionLoadInput, TransactionType, asset_constants::TEMPO_PATHUSD_ASSET_ID};
 
 use crate::contracts::{ITIP20, ITempoFeeManager};
 use crate::fee::{FEE_MANAGER_ADDRESS, USD_CURRENCY, decode_set_user_fee_token, scale_fee_to_token_units};
-use crate::mapper::map_asset_id;
 
 pub struct TempoFeeCalculator<C: Client + Clone> {
     client: EthereumClient<C>,
@@ -43,37 +42,23 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
             if self.tip20_currency(&token_id).await? != USD_CURRENCY {
                 return Err("Tempo fee token must use USD currency".into());
             }
-            return Ok(map_asset_id(AssetId::from_token(Chain::Tempo, &token_id)));
+            return Ok(AssetId::from_token(Chain::Tempo, &token_id));
         }
 
-        let uses_account_fee_token = match input_type {
-            TransactionInputType::Swap(_, _, _) => false,
-            TransactionInputType::Transfer(_)
-            | TransactionInputType::Deposit(_)
-            | TransactionInputType::Stake(_, _)
-            | TransactionInputType::TokenApprove(_, _)
-            | TransactionInputType::Generic(_, _, _)
-            | TransactionInputType::TransferNft(_, _)
-            | TransactionInputType::Account(_, _)
-            | TransactionInputType::Perpetual(_, _)
-            | TransactionInputType::Earn(_, _, _) => true,
-        };
-        if uses_account_fee_token {
+        if input_type.transaction_type() != TransactionType::Swap {
             let account_fee_token = self.user_fee_token(&input.sender_address).await?;
             if !account_fee_token.is_zero() {
-                return Ok(map_asset_id(AssetId::from_token(Chain::Tempo, &account_fee_token.to_checksum(None))));
+                return Ok(AssetId::from_token(Chain::Tempo, &account_fee_token.to_checksum(None)));
             }
         }
 
         let fee_asset = input_type.get_fee_asset_id();
-        let Some(token_id) = fee_asset.token_id.as_deref() else {
-            return Ok(fee_asset);
-        };
+        let token_id = fee_asset.get_token_id()?;
         if self.tip20_currency(token_id).await? != USD_CURRENCY {
-            return Ok(AssetId::from_chain(Chain::Tempo));
+            return Ok(TEMPO_PATHUSD_ASSET_ID.clone());
         }
 
-        Ok(map_asset_id(fee_asset))
+        Ok(fee_asset)
     }
     async fn user_fee_token(&self, address: &str) -> Result<Address, Box<dyn Error + Send + Sync>> {
         self.client
@@ -93,7 +78,10 @@ mod tests {
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
-    use primitives::{Asset, Chain, EVMChain, GasPriceType, SwapProvider, TransactionLoadInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, swap::SwapData};
+    use primitives::{
+        Asset, Chain, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_USDC,
+        swap::SwapData,
+    };
     use serde_json::Value;
 
     use super::*;
@@ -118,11 +106,7 @@ mod tests {
 
     fn swap_input(from_asset: Asset) -> TransactionLoadInput {
         TransactionLoadInput::mock_evm(
-            TransactionInputType::Swap(
-                from_asset,
-                Asset::from_chain(Chain::Tempo),
-                SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None),
-            ),
+            TransactionInputType::Swap(from_asset, TEMPO_USDC.clone(), SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None)),
             "0",
         )
     }
@@ -141,23 +125,23 @@ mod tests {
             }
         });
         let gas_limit = BigInt::from(21_000u64);
-        let mut input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)), "1000000");
+        let mut input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_USDC.clone()), "1000000");
         input.gas_price = GasPriceType::eip1559(BigInt::from(20_000_000_001u64), BigInt::from(0u64));
         let fee = calculate_fee(&calculator, &input, &gas_limit).await?;
 
         assert_eq!(fee.fee, BigInt::from(421u64));
-        assert_eq!(fee.fee_asset, AssetId::from_chain(Chain::Tempo));
+        assert_eq!(fee.fee_asset, TEMPO_USDC.id);
         assert_eq!(fee.gas_limit, gas_limit);
         assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(20_000_000_001u64));
 
-        let token_asset = Asset::mock_tempo_usdc();
+        let token_asset = TEMPO_USDC.clone();
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(token_asset.clone()), "1000000");
         let fee = calculate_fee(&calculator, &input, &BigInt::from(65_000u64)).await?;
         assert_eq!(fee.fee_asset, token_asset.id);
 
         let input = TransactionLoadInput::mock_evm(mock_tempo_generic_input("0x0000000000000000000000000000000000000001", vec![0xab, 0xcd]), "0");
         let fee = calculate_fee(&calculator, &input, &BigInt::from(100_000u64)).await?;
-        assert_eq!(fee.fee_asset, AssetId::from_chain(Chain::Tempo));
+        assert_eq!(fee.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
 
         Ok(())
     }
@@ -176,7 +160,7 @@ mod tests {
 
         let fee_asset = calculator.fee_asset(&input).await.unwrap();
 
-        assert_eq!(fee_asset, AssetId::from_chain(Chain::Tempo));
+        assert_eq!(fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
 
         let invalid_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
         assert!(invalid_calculator.fee_asset(&input).await.is_err());
@@ -185,13 +169,13 @@ mod tests {
     #[tokio::test]
     async fn test_swap_fee_asset_requires_usd_currency() {
         let usd_calculator = new_calculator(|_, _| Ok(encode_currency(USD_CURRENCY)));
-        let usdc = Asset::mock_tempo_usdc();
+        let usdc = TEMPO_USDC.clone();
         assert_eq!(usd_calculator.fee_asset(&swap_input(usdc.clone())).await.unwrap(), usdc.id);
 
         let btc_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
         assert_eq!(
             btc_calculator.fee_asset(&swap_input(mock_tempo_cbbtc_asset())).await.unwrap(),
-            AssetId::from_chain(Chain::Tempo)
+            TEMPO_PATHUSD_ASSET_ID.clone()
         );
     }
 }

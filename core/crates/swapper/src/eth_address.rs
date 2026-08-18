@@ -39,13 +39,10 @@ pub(crate) fn parse_str(str: &str) -> Result<Address, SwapperError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Chain, asset_constants::TEMPO_PATHUSD_TOKEN_ID};
+    use primitives::Chain;
 
     #[test]
-    fn test_parse_tempo_native_address() {
-        assert_eq!(
-            parse_or_native_address(&AssetId::from_chain(Chain::Tempo), EVMChain::Tempo).unwrap(),
-            TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap()
-        );
+    fn test_rejects_tempo_native_address() {
+        assert!(parse_or_native_address(&AssetId::from_chain(Chain::Tempo), EVMChain::Tempo).is_err());
     }
 }

@@ -3,22 +3,17 @@ pub mod transaction;
 use std::str::FromStr;
 
 use alloy_primitives::{Address, Bytes, U256};
-use gem_evm::encode::{encode_erc20_approve_max_value, encode_erc20_transfer};
-use gem_evm::signer::{EvmSigner, TransactionParams, build_eip1559_transaction, sign_and_encode};
-use primitives::{EVMChain, SignerError, SignerInput, decode_hex};
+use gem_evm::encode::encode_erc20_approve_max_value;
+use gem_evm::signer::{EvmSigner, TransactionParams};
+use primitives::{SignerError, SignerInput, decode_hex};
 
 use transaction::{TempoTransaction, TransactionCall};
 
 pub struct TempoSigner;
 
 impl EvmSigner for TempoSigner {
-    fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let params = TransactionParams::from_input(input)?;
-        let data = encode_erc20_transfer(&input.destination_address, &input.get_value()?)?;
-        let contract = EVMChain::Tempo
-            .native_asset_contract()
-            .ok_or_else(|| SignerError::invalid_input("missing Tempo native asset contract"))?;
-        sign_and_encode(&build_eip1559_transaction(&params, contract, U256::ZERO, Bytes::from(data))?, private_key)
+    fn sign_transfer(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
+        Err(SignerError::invalid_input("Tempo does not support native transfers"))
     }
 
     fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
@@ -64,13 +59,7 @@ fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {
     if fee_asset.chain != primitives::Chain::Tempo || input.input_type.get_asset().chain != primitives::Chain::Tempo {
         return Err(SignerError::invalid_input("mismatched Tempo fee asset"));
     }
-    let token_id = match &fee_asset.token_id {
-        Some(token_id) => token_id.as_str(),
-        None => EVMChain::Tempo
-            .native_asset_contract()
-            .ok_or_else(|| SignerError::invalid_input("missing Tempo native asset contract"))?,
-    };
-    Address::from_str(token_id).map_err(SignerError::from_display)
+    Address::from_str(fee_asset.get_token_id()?).map_err(SignerError::from_display)
 }
 
 #[cfg(test)]
@@ -81,23 +70,24 @@ mod tests {
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         Asset, AssetId, AssetType, Chain, ChainSigner, TransactionInputType, TransactionLoadMetadata,
-        asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
+        asset_constants::TEMPO_USDC_TOKEN_ID,
+        known_assets::{TEMPO_PATHUSD, TEMPO_USDC},
     };
 
     #[test]
-    fn test_sign_transfer_native_as_erc20() {
+    fn test_rejects_native_transfer() {
         let signer = EvmChainSigner::new(TempoSigner);
         let metadata = TransactionLoadMetadata::mock_evm(0, 4217);
         let input = SignerInput::mock_evm_with_metadata(TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)), "1000000", 65_000, metadata);
         assert_eq!(
-            signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
-            "02f8b282107980843b9aca008504a817c80082fde89420c000000000000000000000000000000000000080b844a9059cbb0000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cf00000000000000000000000000000000000000000000000000000000000f4240c080a0d28a29e235b9bdd1f046162709dab035b2fb8d1134c3e91c72a5c67d1d9b3f1fa06f6d021eebf706e572f393f432b605e1f270229eabf57cae46980da4f3d3925d"
+            signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap_err(),
+            SignerError::invalid_input("Tempo does not support native transfers")
         );
     }
 
     #[test]
     fn test_get_fee_token() {
-        let usdc = Asset::mock_tempo_usdc();
+        let usdc = TEMPO_USDC.clone();
         let user_token = crate::testkit::TEMPO_TEST_USER_FEE_TOKEN;
 
         let token_input = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), None);
@@ -110,8 +100,14 @@ mod tests {
         );
         assert_eq!(get_fee_token(&user_token_input).unwrap(), user_token.parse::<Address>().unwrap());
 
+        let pathusd_input = mock_tempo_swap_input(usdc.clone(), TEMPO_PATHUSD.id.clone(), None);
+        assert_eq!(
+            get_fee_token(&pathusd_input).unwrap(),
+            TEMPO_PATHUSD.token_id.as_deref().unwrap().parse::<Address>().unwrap()
+        );
+
         let native_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_chain(Chain::Tempo), None);
-        assert_eq!(get_fee_token(&native_input).unwrap(), TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap());
+        assert!(get_fee_token(&native_input).is_err());
 
         let wrong_chain_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_chain(Chain::Ethereum), None);
         assert!(get_fee_token(&wrong_chain_input).is_err());
@@ -123,7 +119,7 @@ mod tests {
     #[test]
     fn test_sign_swap() {
         let signer = EvmChainSigner::new(TempoSigner);
-        let usdc = Asset::mock_tempo_usdc();
+        let usdc = TEMPO_USDC.clone();
 
         let input = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), None);
         assert_eq!(
@@ -141,9 +137,9 @@ mod tests {
             ]
         );
 
-        let native_input = mock_tempo_swap_input(Asset::from_chain(Chain::Tempo), AssetId::from_chain(Chain::Tempo), None);
+        let pathusd_input = mock_tempo_swap_input(TEMPO_PATHUSD.clone(), TEMPO_PATHUSD.id.clone(), None);
         assert_eq!(
-            signer.sign_swap(&native_input, &TEST_PRIVATE_KEY).unwrap(),
+            signer.sign_swap(&pathusd_input, &TEST_PRIVATE_KEY).unwrap(),
             vec![
                 "76f88c821079843b9aca008504a817c8008307a120dad994a2dc7d0266f0cc50b3eeaf36c9bfcecff1beea918082abcdc0808080809420c000000000000000000000000000000000000080c0b841bb18fb84e469f215edd9283dcb13d1d564bef790dd861b9abc89a145c76af3d04b3d9f6a5b509cc72010ee3258f058ac2e68b1dc6fea615e2a57cadbac9d3b3a1b"
             ]

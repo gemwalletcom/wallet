@@ -377,3 +377,4 @@ pub const TEMPO_USDC_TOKEN_ID: &str = "0x20C000000000000000000000b9537d11c60E8b5
 pub static TEMPO_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_USDC_TOKEN_ID));
 
 pub const TEMPO_PATHUSD_TOKEN_ID: &str = "0x20C0000000000000000000000000000000000000";
+pub static TEMPO_PATHUSD_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID));

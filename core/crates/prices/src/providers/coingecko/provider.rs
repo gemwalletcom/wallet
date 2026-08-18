@@ -43,6 +43,7 @@ impl<C: Client + 'static> PriceAssetsProvider for CoinGeckoPricesProvider<C> {
         let native_ids: Vec<String> = Chain::all()
             .into_iter()
             .map(get_coingecko_market_id_for_chain)
+            .filter(|id| !id.is_empty())
             .map(str::to_string)
             .collect::<HashSet<_>>()
             .into_iter()

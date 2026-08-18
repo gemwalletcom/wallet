@@ -85,7 +85,6 @@ impl EVMChain {
     pub fn native_asset_contract(&self) -> Option<&'static str> {
         match self {
             EVMChain::Celo => self.weth_contract(),
-            EVMChain::Tempo => Some(crate::asset_constants::TEMPO_PATHUSD_TOKEN_ID),
             _ => None,
         }
     }

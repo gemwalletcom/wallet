@@ -53,14 +53,14 @@ impl TokenPair {
 
 #[derive(Debug)]
 pub struct BasePair {
-    pub native: Address,
+    pub primary: Address,
     pub stables: Vec<Address>,
     pub alternatives: Vec<Address>,
 }
 
 impl BasePair {
     pub fn path_building_array(&self) -> Vec<Address> {
-        let mut array = vec![self.native];
+        let mut array = vec![self.primary];
         array.extend(self.stables.iter().cloned());
         // alternatives is not used for path building to reduce requests
         array
@@ -68,10 +68,10 @@ impl BasePair {
 }
 
 pub fn get_base_pair(chain: &EVMChain, contract_as_native: bool) -> Option<BasePair> {
-    let native = if contract_as_native {
-        chain.native_asset_contract().or_else(|| chain.weth_contract())?.parse().ok()?
-    } else {
-        Address::ZERO
+    let primary = match chain {
+        EVMChain::Tempo => TEMPO_PATHUSD_TOKEN_ID.parse().ok()?,
+        _ if contract_as_native => chain.native_asset_contract().or_else(|| chain.weth_contract())?.parse().ok()?,
+        _ => Address::ZERO,
     };
 
     let btc: &str = match chain {
@@ -160,7 +160,7 @@ pub fn get_base_pair(chain: &EVMChain, contract_as_native: bool) -> Option<BaseP
     }
     let alternatives = { if btc.is_empty() { vec![] } else { vec![btc.parse().ok()?] } };
 
-    Some(BasePair { native, stables, alternatives })
+    Some(BasePair { primary, stables, alternatives })
 }
 
 pub fn build_direct_pair(token_in: &Address, token_out: &Address, fee_tier: FeeTier) -> Bytes {
@@ -284,16 +284,16 @@ mod tests {
     fn test_robinhood_base_pair() {
         let base_pair = get_base_pair(&EVMChain::Robinhood, true).unwrap();
 
-        assert_eq!(base_pair.native, ROBINHOOD_WETH_TOKEN_ID.parse::<Address>().unwrap());
+        assert_eq!(base_pair.primary, ROBINHOOD_WETH_TOKEN_ID.parse::<Address>().unwrap());
         assert_eq!(base_pair.stables, vec![ROBINHOOD_USDG_TOKEN_ID.parse::<Address>().unwrap()]);
         assert!(base_pair.alternatives.is_empty());
     }
 
     #[test]
     fn test_tempo_base_pair() {
-        let base_pair = get_base_pair(&EVMChain::Tempo, true).unwrap();
+        let base_pair = get_base_pair(&EVMChain::Tempo, false).unwrap();
 
-        assert_eq!(base_pair.native, TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap());
+        assert_eq!(base_pair.primary, TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap());
         assert_eq!(base_pair.stables, vec![TEMPO_USDC_TOKEN_ID.parse::<Address>().unwrap()]);
         assert!(base_pair.alternatives.is_empty());
     }

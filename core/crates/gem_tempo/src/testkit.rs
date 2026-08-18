@@ -12,6 +12,7 @@ use primitives::{Asset, Chain, TransactionInputType, TransferDataExtra, WalletCo
 #[cfg(feature = "signer")]
 use primitives::{
     AssetId, SignerInput, TransactionLoadMetadata,
+    known_assets::TEMPO_PATHUSD,
     swap::{ApprovalData, SwapData, SwapQuoteData},
 };
 
@@ -55,7 +56,7 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, appro
     let mut input = SignerInput::mock_evm_with_metadata(
         TransactionInputType::Swap(
             from_asset,
-            Asset::from_chain(Chain::Tempo),
+            TEMPO_PATHUSD.clone(),
             SwapData {
                 data: SwapQuoteData {
                     to: TEMPO_TEST_ROUTER_ADDRESS.to_string(),

@@ -128,7 +128,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
         Chain::Plasma => "plasma",
         Chain::XLayer => "okb",
         Chain::Stable => "tether", // USDT0 is the native gas token
-        Chain::Tempo => "pathusd", // no native gas token; pathUSD as default asset
+        Chain::Tempo => "",
     }
 }
 

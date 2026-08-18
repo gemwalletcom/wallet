@@ -13,15 +13,6 @@ public extension Asset {
         id.tokenId
     }
 
-    var feeAssetId: AssetId {
-        switch id.type {
-        case .native:
-            id
-        case .token:
-            id.chain.assetId
-        }
-    }
-
     func getTokenId() throws -> String {
         try id.getTokenId()
     }
@@ -99,6 +90,16 @@ public extension Asset {
             id: AssetId(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"),
             name: "Bridged USDC",
             symbol: "USDC.e",
+            decimals: 6,
+            type: .tip20,
+        )
+    }
+
+    static func tempoPathUSD() -> Asset {
+        Asset(
+            id: AssetId(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"),
+            name: "pathUSD",
+            symbol: "pathUSD",
             decimals: 6,
             type: .tip20,
         )

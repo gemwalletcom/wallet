@@ -128,6 +128,7 @@ public extension Primitives.Chain {
         case .tempo:
             [
                 .tempoUSDC(),
+                .tempoPathUSD(),
             ]
         default:
             []

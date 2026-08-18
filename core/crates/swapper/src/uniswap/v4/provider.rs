@@ -437,7 +437,7 @@ mod swap_integration_tests {
             slippage: 100.into(),
             use_max_amount: false,
         };
-        let pathusd = AssetId::from_chain(Chain::Tempo);
+        let pathusd = primitives::asset_constants::TEMPO_PATHUSD_ASSET_ID.clone();
 
         for (from_asset, to_asset) in [(TEMPO_USDC_ASSET_ID.clone(), pathusd.clone()), (pathusd, TEMPO_USDC_ASSET_ID.clone())] {
             let request = QuoteRequest {
