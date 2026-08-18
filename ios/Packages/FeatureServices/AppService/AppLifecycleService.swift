@@ -9,6 +9,7 @@ import Preferences
 import Primitives
 import StreamService
 import SwiftUI
+import WalletSessionService
 
 public actor AppLifecycleService: Sendable {
     private let preferences: Preferences
@@ -18,8 +19,7 @@ public actor AppLifecycleService: Sendable {
     private let streamObserverService: StreamObserverService
     private let streamSubscriptionService: StreamSubscriptionService
     private let perpetualEnablerService: PerpetualEnablerService
-
-    private var currentWallet: Wallet?
+    private let walletSessionService: any WalletSessionManageable
 
     public init(
         preferences: Preferences,
@@ -29,6 +29,7 @@ public actor AppLifecycleService: Sendable {
         streamObserverService: StreamObserverService,
         streamSubscriptionService: StreamSubscriptionService,
         perpetualEnablerService: PerpetualEnablerService,
+        walletSessionService: any WalletSessionManageable,
     ) {
         self.preferences = preferences
         self.connectionsService = connectionsService
@@ -37,6 +38,7 @@ public actor AppLifecycleService: Sendable {
         self.streamObserverService = streamObserverService
         self.streamSubscriptionService = streamSubscriptionService
         self.perpetualEnablerService = perpetualEnablerService
+        self.walletSessionService = walletSessionService
     }
 
     public func setup() async {
@@ -47,16 +49,15 @@ public actor AppLifecycleService: Sendable {
         _ = await (walletConnect, device, observers)
     }
 
-    public func setupWallet(_ wallet: Wallet) async {
-        currentWallet = wallet
-        async let assets: () = setupPriceAssets(wallet: wallet)
+    public func updateWalletConnections() async {
+        async let assets: () = setupPriceAssets()
         async let perpetual: () = connectPerpetual()
         async let stream: () = connectStreamObserver()
         _ = await (assets, perpetual, stream)
     }
 
     public func updatePerpetualConnection() async {
-        await perpetualEnablerService.updateEnablement(wallet: currentWallet)
+        await perpetualEnablerService.updateEnablement(wallet: walletSessionService.currentWallet)
     }
 
     public func handleScenePhase(_ phase: ScenePhase) async {
@@ -94,9 +95,9 @@ extension AppLifecycleService {
         }
     }
 
-    private func setupPriceAssets(wallet: Wallet) async {
+    private func setupPriceAssets() async {
         do {
-            try await streamSubscriptionService.setupAssets(walletId: wallet.id)
+            try await streamSubscriptionService.setupAssets()
         } catch {
             debugLog("AppLifecycleService setupPriceAssets error: \(error)")
         }
@@ -111,7 +112,10 @@ extension AppLifecycleService {
     }
 
     private func connectStreamObserver() async {
-        guard currentWallet != nil else { return }
+        guard walletSessionService.currentWalletId != nil else {
+            await streamObserverService.disconnect()
+            return
+        }
         if preferences.isDeviceRegistered == false {
             await registerDevice()
         }
@@ -127,7 +131,7 @@ extension AppLifecycleService {
     }
 
     private func connectPerpetual() async {
-        await perpetualEnablerService.updateConnection(wallet: currentWallet)
+        await perpetualEnablerService.updateConnection(wallet: walletSessionService.currentWallet)
     }
 
     private func disconnectObservers() async {

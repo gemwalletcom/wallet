@@ -3,9 +3,11 @@
 import Foundation
 import Primitives
 import PrimitivesTestKit
+@testable import StreamService
 import StreamServiceTestKit
 import Testing
-@testable import StreamService
+import WalletSessionService
+import WalletSessionServiceTestKit
 import WebSocketClientTestKit
 
 struct StreamSubscriptionServiceTests {
@@ -14,9 +16,9 @@ struct StreamSubscriptionServiceTests {
     @Test
     func setupBeforeConnectionSubscribesOnce() async throws {
         let webSocket = WebSocketConnectionMock()
-        let service = StreamSubscriptionService.mock(webSocket: webSocket)
+        let service = makeService(webSocket: webSocket)
 
-        try await service.setupAssets(walletId: .mock())
+        try await service.setupAssets()
         #expect(await webSocket.getSentData().isEmpty)
 
         await webSocket.simulateConnected()
@@ -30,11 +32,11 @@ struct StreamSubscriptionServiceTests {
     @Test
     func setupSkipsSameAssets() async throws {
         let webSocket = WebSocketConnectionMock()
-        let service = StreamSubscriptionService.mock(webSocket: webSocket)
+        let service = makeService(webSocket: webSocket)
 
         await webSocket.simulateConnected()
-        try await service.setupAssets(walletId: .mock())
-        try await service.setupAssets(walletId: .mock())
+        try await service.setupAssets()
+        try await service.setupAssets()
         await service.resubscribe()
 
         let messages = try await sentMessages(webSocket)
@@ -45,16 +47,37 @@ struct StreamSubscriptionServiceTests {
     @Test
     func resetAllowsReconnectResubscribe() async throws {
         let webSocket = WebSocketConnectionMock()
-        let service = StreamSubscriptionService.mock(webSocket: webSocket)
+        let service = makeService(webSocket: webSocket)
 
         await webSocket.simulateConnected()
-        try await service.setupAssets(walletId: .mock())
+        try await service.setupAssets()
         await service.resetSubscriptions()
         await service.resubscribe()
 
         let messages = try await sentMessages(webSocket)
         #expect(messages.count == 2)
         #expect(Set(messages.last?.assets ?? []) == Set(AssetConfiguration.enabledByDefault))
+    }
+
+    @Test
+    func setupSkipsWithoutCurrentWallet() async throws {
+        let webSocket = WebSocketConnectionMock()
+        let service = makeService(webSocket: webSocket, currentWalletId: nil)
+
+        await webSocket.simulateConnected()
+        try await service.setupAssets()
+        await service.resubscribe()
+
+        #expect(await webSocket.getSentData().isEmpty)
+    }
+
+    private func makeService(
+        webSocket: WebSocketConnectionMock,
+        currentWalletId: WalletId? = .mock(),
+    ) -> StreamSubscriptionService {
+        let walletSessionService = WalletSessionService.mock()
+        walletSessionService.setCurrent(walletId: currentWalletId)
+        return .mock(walletSessionService: walletSessionService, webSocket: webSocket)
     }
 
     private func sentMessages(_ webSocket: WebSocketConnectionMock) async throws -> [StreamMessagePrices] {
