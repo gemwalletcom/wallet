@@ -67,5 +67,7 @@ enum class EVMChain(val string: String) {
 	Robinhood("robinhood"),
 	@SerialName("stable")
 	Stable("stable"),
+	@SerialName("tempo")
+	Tempo("tempo"),
 }
 

@@ -130,7 +130,7 @@ public final class ConfirmTransferSceneViewModel {
     public var feeModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             chain: request.data.chain,
-            feeAsset: request.data.type.asset.feeAsset,
+            feeAsset: state.transaction.value?.feeAsset ?? request.data.type.asset.feeAsset,
             currency: currency,
             selection: feeSelection,
             rates: state.feeRates,

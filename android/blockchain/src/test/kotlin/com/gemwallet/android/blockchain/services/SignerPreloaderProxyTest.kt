@@ -6,7 +6,10 @@ import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetTempoUSDCe
+import com.gemwallet.android.testkit.mockGemTransactionLoadFee
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.ScanTransaction
 import io.mockk.coEvery
@@ -16,12 +19,10 @@ import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemFeeRate
 import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemGatewayInterface
 import uniffi.gemstone.GemTransactionData
-import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadInput
 import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
@@ -79,6 +80,21 @@ class SignerPreloaderProxyTest {
     }
 
     @Test
+    fun preload_usesFeeAssetIdFromGatewayWhenPresent() = runBlocking {
+        val feeAsset = mockAssetTempoUSDCe()
+        val params = transferParams(feeAsset)
+        stubPreload()
+        coEvery { gateway.getTransactionLoad(any(), any()) } returns GemTransactionData(
+            fee = mockGemTransactionLoadFee(feeAssetId = feeAsset.id),
+            metadata = evmMetadata(),
+        )
+
+        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal))
+
+        assertEquals(feeAsset.id, result.fee().feeAssetId)
+    }
+
+    @Test
     fun preload_blocksMaliciousScan() = runBlocking {
         val params = transferParams()
         val subject = SignerPreloaderProxy(
@@ -110,9 +126,7 @@ class SignerPreloaderProxyTest {
         assertEquals(params.asset.symbol, (error as? ConfirmError.ScanTransactionMemoRequired)?.symbol)
     }
 
-    private fun transferParams(): ConfirmParams {
-        val asset = mockAssetEthereum()
-
+    private fun transferParams(asset: Asset = mockAssetEthereum()): ConfirmParams {
         return ConfirmParams.Builder(
             asset = asset,
             from = sender(asset),
@@ -150,11 +164,9 @@ class SignerPreloaderProxyTest {
     )
 
     private fun transactionData(gasPriceType: GemGasPriceType) = GemTransactionData(
-        fee = GemTransactionLoadFee(
+        fee = mockGemTransactionLoadFee(
             fee = "21000",
             gasPriceType = gasPriceType,
-            gasLimit = "21000",
-            options = GemFeeOptions(emptyMap()),
         ),
         metadata = evmMetadata(),
     )

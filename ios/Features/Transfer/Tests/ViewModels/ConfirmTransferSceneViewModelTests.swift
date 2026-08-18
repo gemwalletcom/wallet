@@ -667,7 +667,10 @@ private extension ConfirmService {
     static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmService {
         ConfirmService(
             metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
-            inputProvider: ConfirmTransferInputProvider(transferTransactionProvider: TransferTransactionProviderMock(result: transaction)),
+            inputProvider: ConfirmTransferInputProvider(
+                transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
+                feeAssetProvider: FeeAssetProviderMock(),
+            ),
             simulationService: ConfirmSimulationService(addressNameService: .mock(addressStore: .mock()), assetsService: .mock()),
             transferExecutor: TransferExecutorMock(),
             activityService: .mock(),

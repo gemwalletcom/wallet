@@ -9,6 +9,7 @@ public extension TransferAmount {
     static func calculate(
         transferData: TransferData,
         availableValue: BigInt,
+        feeAsset: Asset,
         assetFeeBalance: BigInt,
         fee: BigInt,
     ) throws -> TransferAmount {
@@ -20,7 +21,7 @@ public extension TransferAmount {
             inputType: transferData.type.map(),
             value: transferData.value.description,
             availableValue: availableValue.description,
-            feeAsset: transferData.type.asset.feeAsset.map(),
+            feeAsset: feeAsset.map(),
             feeAssetBalance: assetFeeBalance.description,
             fee: fee.description,
             isMaxAmount: isMaxAmount,

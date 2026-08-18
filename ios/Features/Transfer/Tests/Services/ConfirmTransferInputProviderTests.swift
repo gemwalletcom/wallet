@@ -55,6 +55,7 @@ private extension ConfirmTransferInputProvider {
     static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmTransferInputProvider {
         ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
+            feeAssetProvider: FeeAssetProviderMock(),
         )
     }
 }

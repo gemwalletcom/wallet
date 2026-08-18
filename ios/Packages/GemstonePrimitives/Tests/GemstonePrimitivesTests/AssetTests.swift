@@ -2,6 +2,7 @@
 
 @testable import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 import Testing
 
 final class AssetTests {
@@ -31,5 +32,12 @@ final class AssetTests {
     func feeAssetHypercoreNative() {
         let native = Asset(.hyperCore)
         #expect(native.feeAsset == Asset.hypercoreSpotUSDC())
+    }
+
+    @Test
+    func feeAssetUsesSentAssetOnlyWhenFeeAssetIdMatches() {
+        #expect(tokenAsset.feeAsset(for: Fee.mock(feeAssetId: tokenAsset.id)) == tokenAsset)
+        #expect(tokenAsset.feeAsset(for: Fee.mock(feeAssetId: tokenAsset.feeAsset.id)) == tokenAsset.feeAsset)
+        #expect(tokenAsset.feeAsset(for: Fee.mock(feeAssetId: AssetId(chain: .bitcoin))) == tokenAsset.feeAsset)
     }
 }

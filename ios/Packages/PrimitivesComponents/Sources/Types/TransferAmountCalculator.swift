@@ -13,6 +13,7 @@ public struct TransferAmountCalculator {
     public func validate(
         transferData: TransferData,
         availableValue: BigInt,
+        feeAsset: Asset,
         assetFeeBalance: BigInt,
         fee: BigInt,
     ) -> TransferAmountValidation {
@@ -22,12 +23,13 @@ public struct TransferAmountCalculator {
                 TransferAmount.calculate(
                     transferData: transferData,
                     availableValue: availableValue,
+                    feeAsset: feeAsset,
                     assetFeeBalance: assetFeeBalance,
                     fee: fee,
                 )
             )
         } catch let error as TransferAmountError {
-            return .failure(TransferAmountCalculatorError(error, asset: asset, assetFee: asset.feeAsset))
+            return .failure(TransferAmountCalculatorError(error, asset: asset, assetFee: feeAsset))
         } catch {
             return .failure(.insufficientBalance(asset, requirement: BalanceRequirement(required: transferData.value, available: availableValue)))
         }

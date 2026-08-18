@@ -34,4 +34,5 @@ public enum EVMChain: String, Codable, CaseIterable, Equatable, Hashable, Sendab
 	case xLayer = "xlayer"
 	case robinhood
 	case stable
+	case tempo
 }

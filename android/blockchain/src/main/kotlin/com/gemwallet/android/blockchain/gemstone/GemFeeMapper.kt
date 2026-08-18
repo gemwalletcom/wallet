@@ -1,5 +1,6 @@
 package com.gemwallet.android.blockchain.gemstone
 
+import com.gemwallet.android.ext.identifier
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.Fee
@@ -53,7 +54,8 @@ internal fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee
                 option to value.toString()
             }
         }.toMap()
-    )
+    ),
+    feeAssetId = feeAssetId.identifier,
 )
 
 internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate = when (selection) {

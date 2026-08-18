@@ -59,4 +59,5 @@ public enum Chain: String, Codable, CaseIterable, Equatable, Hashable, Sendable 
 	case xLayer = "xlayer"
 	case robinhood
 	case stable
+	case tempo
 }

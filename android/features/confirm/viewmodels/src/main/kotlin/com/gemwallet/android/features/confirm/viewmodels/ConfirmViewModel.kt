@@ -51,9 +51,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -192,14 +194,17 @@ class ConfirmViewModel @Inject constructor(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val feeAssetInfo = preloadData.flatMapLatest { signerParams ->
-        if (signerParams == null) {
-            flowOf(null)
-        } else {
-            assetsRepository.getAssetInfo(signerParams.fee().feeAssetId)
+    val feeAssetInfo = preloadData
+        .map { it?.fee()?.feeAssetId }
+        .distinctUntilChanged()
+        .flatMapLatest { assetId ->
+            if (assetId == null) {
+                flowOf(null)
+            } else {
+                assetInfoWithUpdatedBalance(assetId)
+            }
         }
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val transferAmount = combine(preloadData, assetsInfo, feeAssetInfo) { signerParams, assetsInfo, feeAssetInfo ->
         if (signerParams == null || feeAssetInfo == null) return@combine null
@@ -362,6 +367,24 @@ class ConfirmViewModel @Inject constructor(
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
         val str = assetId.toIdentifier()
         return firstOrNull { it.id().toIdentifier() == str }
+    }
+
+    private fun assetInfo(assetId: AssetId) = flow {
+        searchAssetIfMissing(assetId)
+        emitAll(assetsRepository.getTokenInfo(assetId))
+    }
+
+    private fun assetInfoWithUpdatedBalance(assetId: AssetId) = flow {
+        searchAssetIfMissing(assetId)
+        assetsRepository.updateBalances(assetId)
+        emitAll(assetsRepository.getTokenInfo(assetId))
+    }
+
+    private suspend fun searchAssetIfMissing(assetId: AssetId) {
+        val current = assetsRepository.getTokenInfo(assetId).firstOrNull()
+        if (current == null && assetId.tokenId != null) {
+            assetsRepository.searchToken(assetId, sessionRepository.getCurrentCurrency())
+        }
     }
 
     private fun buildDetailElements(

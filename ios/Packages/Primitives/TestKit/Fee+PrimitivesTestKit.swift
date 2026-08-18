@@ -10,12 +10,14 @@ public extension Fee {
         gasPriceType: GasPriceType = .regular(gasPrice: BigInt(1_000_000_000)),
         gasLimit: BigInt = BigInt(21000),
         options: FeeOptionMap = [:],
+        feeAssetId: AssetId = .mock(),
     ) -> Fee {
         Fee(
             fee: fee,
             gasPriceType: gasPriceType,
             gasLimit: gasLimit,
             options: options,
+            feeAssetId: feeAssetId,
         )
     }
 }

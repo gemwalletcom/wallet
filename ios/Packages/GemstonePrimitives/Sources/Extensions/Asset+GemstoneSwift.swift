@@ -31,6 +31,10 @@ public extension Asset {
         }
     }
 
+    func feeAsset(for fee: Fee) -> Asset {
+        fee.feeAssetId == id ? self : feeAsset
+    }
+
     var defaultBasic: AssetBasic {
         AssetBasic(
             asset: self,

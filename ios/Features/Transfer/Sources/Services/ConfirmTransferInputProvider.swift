@@ -7,9 +7,14 @@ import Validators
 
 public struct ConfirmTransferInputProvider: Sendable {
     private let transferTransactionProvider: any TransferTransactionProvidable
+    private let feeAssetProvider: any FeeAssetProvidable
 
-    public init(transferTransactionProvider: any TransferTransactionProvidable) {
+    public init(
+        transferTransactionProvider: any TransferTransactionProvidable,
+        feeAssetProvider: any FeeAssetProvidable,
+    ) {
         self.transferTransactionProvider = transferTransactionProvider
+        self.feeAssetProvider = feeAssetProvider
     }
 
     public func load(
@@ -24,16 +29,27 @@ public struct ConfirmTransferInputProvider: Sendable {
                 selection: selection,
                 available: metadata.available,
             )
+            let asset = request.data.type.asset
+            let fee = transactionData.transactionData.fee
+            let (feeAsset, feeAssetBalance) = try await feeAssetProvider.feeAsset(wallet: request.wallet, asset: asset, fee: fee)
+            let metadata = metadata.withFeeAsset(feeAssetId: feeAsset.id, balance: feeAssetBalance)
             let input = ConfirmTransferInput(
                 transactionData: transactionData.transactionData,
                 transferAmount: TransferAmountCalculator().validate(
                     transferData: request.data,
                     availableValue: request.data.availableValue(metadata: metadata),
-                    assetFeeBalance: metadata.assetFeeBalance.available,
-                    fee: transactionData.transactionData.fee.fee,
+                    feeAsset: feeAsset,
+                    assetFeeBalance: metadata.feeAvailable,
+                    fee: fee.fee,
                 ),
+                feeAsset: feeAsset,
+                feeAssetBalance: feeAssetBalance,
             )
-            return ConfirmTransferPreload(metadata: metadata, input: input, feeRates: transactionData.rates)
+            return ConfirmTransferPreload(
+                metadata: metadata,
+                input: input,
+                feeRates: transactionData.rates,
+            )
         } catch {
             throw preloadFailureError(metadata: metadata) ?? error
         }

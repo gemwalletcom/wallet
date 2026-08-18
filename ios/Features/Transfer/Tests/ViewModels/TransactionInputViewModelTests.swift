@@ -61,6 +61,20 @@ struct TransactionInputViewModelTests {
     }
 
     @Test
+    func customFeeAsset() {
+        let feeAsset = Asset.mockEthereumUSDT()
+        let viewModel = TransactionInputViewModel(
+            data: .mock(),
+            transactionData: TransactionData(fee: .mock(fee: 1_000_000, feeAssetId: feeAsset.id)),
+            metaData: nil,
+            transferAmount: nil,
+            feeAsset: feeAsset,
+        )
+
+        #expect(viewModel.networkFeeText == "1 USDT")
+    }
+
+    @Test
     func testNetworkFeeFiatText() {
         let metaData = TransferDataMetadata(
             assetId: .mock(),

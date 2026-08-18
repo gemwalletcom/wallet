@@ -11,6 +11,7 @@ enum TransactionFactory {
         amount: TransferAmount,
         hash: String,
         transactionIndex: Int,
+        transactionsCount: Int,
         simulation: SimulationResult? = nil,
     ) throws -> Primitives.Transaction {
         let senderAddress = try wallet.account(for: transferData.chain).address
@@ -26,16 +27,17 @@ enum TransactionFactory {
         }
         let metadata = transferData.type.metadata
         let direction: TransactionDirection = senderAddress == recipientAddress ? .selfTransfer : .outgoing
+        let isApprovalTransaction = transactionIndex == 0 && transactionsCount > 1
 
         let data: (type: TransactionType, metadata: AnyCodableValue?) = switch transferData.type {
         case let .swap(_, _, data):
             switch data.approval {
-            case .some: transactionIndex == 0 ? (.tokenApproval, .null) : (.swap, metadata)
+            case .some: isApprovalTransaction ? (.tokenApproval, .null) : (.swap, metadata)
             case .none: (.swap, transferData.type.metadata)
             }
         case let .earn(_, _, data):
             switch data.approval {
-            case .some: transactionIndex == 0 ? (.tokenApproval, .null) : (transferData.type.transactionType, metadata)
+            case .some: isApprovalTransaction ? (.tokenApproval, .null) : (transferData.type.transactionType, metadata)
             case .none: (transferData.type.transactionType, metadata)
             }
         default: (transferData.type.transactionType, metadata)
@@ -55,7 +57,7 @@ enum TransactionFactory {
             blockNumber: (try? String(transactionData.metadata.getBlockNumber())) ?? "0",
             sequence: (try? String(transactionData.metadata.getSequence())) ?? "0",
             fee: amount.networkFee.description,
-            feeAssetId: transferData.type.asset.feeAsset.id,
+            feeAssetId: transactionData.fee.feeAssetId,
             value: value,
             memo: transferData.recipientData.recipient.memo ?? "",
             direction: direction,

@@ -59,8 +59,9 @@ internal fun List<ChainAddress>.belongsTo(wallet: GemWallet): Boolean {
 }
 
 private fun Account.addressMatches(sessionAccount: ChainAddress): Boolean {
-    return when (chain.toChainType()) {
-        ChainType.Ethereum -> address.equals(sessionAccount.address, ignoreCase = true)
-        else -> address == sessionAccount.address
+    return if (chain.toChainType() == ChainType.Ethereum) {
+        address.equals(sessionAccount.address, ignoreCase = true)
+    } else {
+        address == sessionAccount.address
     }
 }

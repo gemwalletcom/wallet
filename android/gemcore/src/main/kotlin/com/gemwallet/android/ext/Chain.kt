@@ -44,6 +44,8 @@ fun Chain.assetType(): AssetType? {
         Chain.Aptos,
         Chain.Sui -> AssetType.TOKEN
 
+        Chain.Tempo -> AssetType.TIP20
+
         Chain.Ethereum,
         Chain.Polygon,
         Chain.Arbitrum,
@@ -201,6 +203,7 @@ fun Chain.toChainType(): ChainType {
         Chain.Stable,
         Chain.Robinhood,
         Chain.Ethereum -> ChainType.Ethereum
+        Chain.Tempo -> ChainType.Ethereum
     }
 }
 

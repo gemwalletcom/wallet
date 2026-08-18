@@ -51,11 +51,7 @@ public extension TransactionInput {
     }
 
     var defaultFee: Fee {
-        Fee(
-            fee: gasPrice.totalFee,
-            gasPriceType: gasPrice,
-            gasLimit: 1,
-        )
+        defaultFee(gasLimit: 1)
     }
 
     func defaultFee(gasLimit: BigInt) -> Fee {
@@ -63,6 +59,7 @@ public extension TransactionInput {
             fee: gasPrice.totalFee,
             gasPriceType: gasPrice,
             gasLimit: gasLimit,
+            feeAssetId: AssetId(chain: asset.id.chain, tokenId: nil),
         )
     }
 }

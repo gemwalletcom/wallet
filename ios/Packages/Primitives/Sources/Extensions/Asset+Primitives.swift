@@ -93,4 +93,14 @@ public extension Asset {
             type: .token,
         )
     }
+
+    static func tempoUSDC() -> Asset {
+        Asset(
+            id: AssetId(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"),
+            name: "Bridged USDC",
+            symbol: "USDC.e",
+            decimals: 6,
+            type: .tip20,
+        )
+    }
 }
