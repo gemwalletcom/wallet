@@ -1,14 +1,16 @@
 use gem_evm::ethereum_address_checksum;
 use gem_evm::rpc::model::TransactionReceipt;
-use primitives::{AssetId, Chain, Transaction, TransactionSwapMetadata, asset_constants::TEMPO_PATHUSD_TOKEN_ID};
+use primitives::{AssetId, Chain, Transaction, TransactionSwapMetadata};
 
 use crate::fee::{is_pathusd_contract, scale_fee_to_token_units};
 
 pub(crate) fn map_transaction(transaction: Transaction, receipt: &TransactionReceipt) -> Transaction {
-    let fee_asset_id = match receipt.fee_token.as_deref().and_then(|fee_token| ethereum_address_checksum(fee_token).ok()) {
-        Some(fee_token) if fee_token != TEMPO_PATHUSD_TOKEN_ID => AssetId::from_token(Chain::Tempo, &fee_token),
-        _ => AssetId::from_chain(Chain::Tempo),
-    };
+    let fee_asset_id = receipt
+        .fee_token
+        .as_deref()
+        .and_then(|fee_token| ethereum_address_checksum(fee_token).ok())
+        .map(|fee_token| map_asset_id(AssetId::from_token(Chain::Tempo, &fee_token)))
+        .unwrap_or_else(|| AssetId::from_chain(Chain::Tempo));
 
     let metadata = match transaction.metadata.clone().map(serde_json::from_value::<TransactionSwapMetadata>) {
         Some(Ok(swap)) => serde_json::to_value(TransactionSwapMetadata {
@@ -29,7 +31,7 @@ pub(crate) fn map_transaction(transaction: Transaction, receipt: &TransactionRec
     }
 }
 
-fn map_asset_id(asset_id: AssetId) -> AssetId {
+pub(crate) fn map_asset_id(asset_id: AssetId) -> AssetId {
     match asset_id.token_id.as_deref() {
         Some(contract_address) if is_pathusd_contract(contract_address) => AssetId::from_chain(asset_id.chain),
         _ => asset_id,

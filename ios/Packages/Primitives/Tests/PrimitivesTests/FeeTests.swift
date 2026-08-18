@@ -9,7 +9,7 @@ import Testing
 final class FeeTests {
     @Test
     func testTotalFee() {
-        let fee = Fee(fee: BigInt(1), gasPriceType: .regular(gasPrice: BigInt(1)), gasLimit: .zero, feeAsset: .mock())
+        let fee = Fee(fee: BigInt(1), gasPriceType: .regular(gasPrice: BigInt(1)), gasLimit: .zero, feeAssetId: Asset.mock().id)
         #expect(fee.totalFee == BigInt(1))
     }
 
@@ -20,7 +20,7 @@ final class FeeTests {
             gasPriceType: .regular(gasPrice: BigInt(1)),
             gasLimit: .zero,
             options: [.tokenAccountCreation: BigInt(10)],
-            feeAsset: .mock(),
+            feeAssetId: Asset.mock().id,
         )
         #expect(fee.totalFee == BigInt(11))
     }

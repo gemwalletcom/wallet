@@ -283,7 +283,7 @@ mod chain_integration_tests {
             .await?;
 
         assert!(load_data.fee.gas_limit > BigInt::from(21_000u64));
-        assert_eq!(load_data.fee.fee_asset, Asset::from_chain(Chain::Tempo));
+        assert_eq!(load_data.fee.fee_asset, AssetId::from_chain(Chain::Tempo));
         assert!(load_data.fee.fee > BigInt::ZERO);
 
         Ok(())

@@ -201,7 +201,13 @@ mod tests {
         let input = TransactionLoadInput::mock_aptos_token_transfer("0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b");
         let input = SignerInput::new(
             input,
-            TransactionFee::new_gas_price_type(GasPriceType::regular(1u64), 42u64.into(), 42u64.into(), Default::default(), Asset::from_chain(Chain::Aptos)),
+            TransactionFee::new_gas_price_type(
+                GasPriceType::regular(1u64),
+                42u64.into(),
+                42u64.into(),
+                Default::default(),
+                AssetId::from_chain(Chain::Aptos),
+            ),
         );
 
         assert_eq!(input.fee.gas_limit().unwrap(), 42);

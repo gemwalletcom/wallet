@@ -30,16 +30,18 @@ public struct ConfirmTransferInputProvider: Sendable {
                 available: metadata.available,
             )
             let fee = transactionData.transactionData.fee
-            let feeAsset = fee.feeAsset
+            let feeAssetId = fee.feeAssetId
+            let feeAsset: Asset
             let feeAssetBalance: Balance
-            if feeAsset.id == metadata.assetId {
+            if feeAssetId == metadata.assetId {
+                feeAsset = request.data.type.asset
                 feeAssetBalance = metadata.assetBalance
             } else {
-                feeAssetBalance = try await feeAssetProvider.balance(wallet: request.wallet, feeAsset: feeAsset)
+                (feeAsset, feeAssetBalance) = try await feeAssetProvider.load(wallet: request.wallet, feeAssetId: feeAssetId)
             }
             let metadata = TransferDataMetadata(
                 assetId: metadata.assetId,
-                feeAssetId: feeAsset.id,
+                feeAssetId: feeAssetId,
                 assetBalance: metadata.assetBalance,
                 assetFeeBalance: feeAssetBalance,
                 assetPrices: metadata.assetPrices,
@@ -53,6 +55,7 @@ public struct ConfirmTransferInputProvider: Sendable {
                     assetFeeBalance: metadata.feeAvailable,
                     fee: fee.fee,
                 ),
+                feeAsset: feeAsset,
                 feeAssetBalance: feeAssetBalance,
             )
             return ConfirmTransferPreload(

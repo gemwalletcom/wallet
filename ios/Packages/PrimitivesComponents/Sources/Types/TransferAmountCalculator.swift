@@ -23,7 +23,7 @@ public struct TransferAmountCalculator {
                 TransferAmount.calculate(
                     transferData: transferData,
                     availableValue: availableValue,
-                    feeAsset: feeAsset,
+                    feeAssetId: feeAsset.id,
                     assetFeeBalance: assetFeeBalance,
                     fee: fee,
                 )

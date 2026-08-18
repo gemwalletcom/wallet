@@ -17,7 +17,7 @@ public extension Fee {
             gasPriceType: gasPriceType,
             gasLimit: gasLimit,
             options: options,
-            feeAsset: feeAsset,
+            feeAssetId: feeAsset.id,
         )
     }
 }

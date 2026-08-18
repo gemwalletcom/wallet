@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use primitives::{Asset, Chain, FeeOption, TransactionFee, TransactionLoadData, TransactionLoadInput};
+use primitives::{AssetId, Chain, FeeOption, TransactionFee, TransactionLoadData, TransactionLoadInput};
 use std::error::Error;
 
 pub fn map_transaction_load(input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Send + Sync>> {
@@ -10,7 +10,7 @@ pub fn map_transaction_load(input: TransactionLoadInput) -> Result<TransactionLo
             input.gas_price.gas_price(),
             FeeOption::TokenAccountCreation,
             BigInt::ZERO,
-            Asset::from_chain(Chain::Stellar),
+            AssetId::from_chain(Chain::Stellar),
         )
     };
 

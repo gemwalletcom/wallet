@@ -49,7 +49,7 @@ mod tests {
     }
 
     fn input() -> SignerInput {
-        let fee = TransactionFee::new_from_fee(10.into(), Asset::from_chain(Chain::Polkadot));
+        let fee = TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot));
         SignerInput::new(
             TransactionLoadInput {
                 input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Polkadot)),

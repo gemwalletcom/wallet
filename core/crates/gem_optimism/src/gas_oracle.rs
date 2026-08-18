@@ -58,7 +58,7 @@ impl<C: Client + Clone> EvmFeeCalculator for OptimismGasOracle<C> {
             fee,
             gas_limit.clone(),
             HashMap::new(),
-            input.input_type.get_fee_asset(),
+            input.input_type.get_fee_asset_id(),
         ))
     }
 }

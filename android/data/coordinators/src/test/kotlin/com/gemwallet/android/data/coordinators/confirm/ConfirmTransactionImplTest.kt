@@ -119,7 +119,7 @@ class ConfirmTransactionImplTest {
                     dataType = GemSwapQuoteDataType.TRANSFER,
                 ),
                 selectedData = SignerParams.Data(
-                    fee = Fee.Plain(hype, FeePriority.Normal, BigInteger.ZERO, emptyMap()),
+                    fee = Fee.Plain(hype.id, FeePriority.Normal, BigInteger.ZERO, emptyMap()),
                     metadata = GemTransactionLoadMetadata.None,
                 ),
                 feeRates = emptyList(),

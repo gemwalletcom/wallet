@@ -2,16 +2,16 @@ use std::error::Error;
 
 use alloy_primitives::Address;
 use async_trait::async_trait;
-use chain_traits::ChainToken;
 use gem_client::Client;
 use gem_evm::provider::preload;
 use gem_evm::provider::preload_mapper::TransactionParams;
 use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmFeeCalculator};
 use num_bigint::BigInt;
-use primitives::{Asset, Chain, TransactionFee, TransactionInputType, TransactionLoadInput};
+use primitives::{AssetId, Chain, TransactionFee, TransactionInputType, TransactionLoadInput};
 
 use crate::contracts::{ITIP20, ITempoFeeManager};
-use crate::fee::{FEE_MANAGER_ADDRESS, USD_CURRENCY, decode_set_user_fee_token, is_pathusd_contract, scale_fee_to_token_units};
+use crate::fee::{FEE_MANAGER_ADDRESS, USD_CURRENCY, decode_set_user_fee_token, scale_fee_to_token_units};
+use crate::mapper::map_asset_id;
 
 pub struct TempoFeeCalculator<C: Client + Clone> {
     provider: EthereumProvider<C>,
@@ -38,35 +38,32 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
         }
     }
 
-    async fn fee_asset(&self, input: &TransactionLoadInput) -> Result<Asset, Box<dyn Error + Sync + Send>> {
+    async fn fee_asset(&self, input: &TransactionLoadInput) -> Result<AssetId, Box<dyn Error + Sync + Send>> {
         let input_type = &input.input_type;
         if let Some(token) = decode_set_user_fee_token(input_type) {
             let token_id = token.to_checksum(None);
             if self.tip20_currency(&token_id).await? != USD_CURRENCY {
                 return Err("Tempo fee token must use USD currency".into());
             }
-            return self.token_asset(token_id).await;
+            return Ok(map_asset_id(AssetId::from_token(Chain::Tempo, &token_id)));
         }
 
         if !matches!(input_type, TransactionInputType::Swap(_, _, _)) {
             let account_fee_token = self.user_fee_token(&input.sender_address).await?;
             if !account_fee_token.is_zero() {
-                return self.token_asset(account_fee_token.to_checksum(None)).await;
+                return Ok(map_asset_id(AssetId::from_token(Chain::Tempo, &account_fee_token.to_checksum(None))));
             }
         }
 
-        let fee_asset = input_type.get_fee_asset();
+        let fee_asset = input_type.get_fee_asset_id();
         let Some(token_id) = fee_asset.token_id.as_deref() else {
             return Ok(fee_asset);
         };
-        if is_pathusd_contract(token_id) {
-            return Ok(Asset::from_chain(Chain::Tempo));
-        }
         if self.tip20_currency(token_id).await? != USD_CURRENCY {
-            return Ok(Asset::from_chain(Chain::Tempo));
+            return Ok(AssetId::from_chain(Chain::Tempo));
         }
 
-        Ok(fee_asset)
+        Ok(map_asset_id(fee_asset))
     }
     async fn user_fee_token(&self, address: &str) -> Result<Address, Box<dyn Error + Send + Sync>> {
         self.provider
@@ -76,13 +73,6 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
 
     async fn tip20_currency(&self, token_id: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
         self.provider.call_contract(token_id.parse()?, ITIP20::currencyCall {}).await
-    }
-
-    async fn token_asset(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
-        if is_pathusd_contract(&token_id) {
-            return Ok(Asset::from_chain(Chain::Tempo));
-        }
-        self.provider.get_token_data(token_id).await
     }
 }
 
@@ -146,18 +136,18 @@ mod tests {
         let fee = calculate_fee(&calculator, &input, &gas_limit).await?;
 
         assert_eq!(fee.fee, BigInt::from(421u64));
-        assert_eq!(fee.fee_asset, Asset::from_chain(Chain::Tempo));
+        assert_eq!(fee.fee_asset, AssetId::from_chain(Chain::Tempo));
         assert_eq!(fee.gas_limit, gas_limit);
         assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(20_000_000_001u64));
 
         let token_asset = Asset::mock_tempo_usdc();
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(token_asset.clone()), "1000000");
         let fee = calculate_fee(&calculator, &input, &BigInt::from(65_000u64)).await?;
-        assert_eq!(fee.fee_asset, token_asset);
+        assert_eq!(fee.fee_asset, token_asset.id);
 
         let input = TransactionLoadInput::mock_evm(mock_tempo_generic_input("0x0000000000000000000000000000000000000001", vec![0xab, 0xcd]), "0");
         let fee = calculate_fee(&calculator, &input, &BigInt::from(100_000u64)).await?;
-        assert_eq!(fee.fee_asset, Asset::from_chain(Chain::Tempo));
+        assert_eq!(fee.fee_asset, AssetId::from_chain(Chain::Tempo));
 
         Ok(())
     }
@@ -176,7 +166,7 @@ mod tests {
 
         let fee_asset = calculator.fee_asset(&input).await.unwrap();
 
-        assert_eq!(fee_asset, Asset::from_chain(Chain::Tempo));
+        assert_eq!(fee_asset, AssetId::from_chain(Chain::Tempo));
 
         let invalid_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
         assert!(invalid_calculator.fee_asset(&input).await.is_err());
@@ -186,12 +176,12 @@ mod tests {
     async fn test_swap_fee_asset_requires_usd_currency() {
         let usd_calculator = new_calculator(|_, _| Ok(encode_currency(USD_CURRENCY)));
         let usdc = Asset::mock_tempo_usdc();
-        assert_eq!(usd_calculator.fee_asset(&swap_input(usdc.clone())).await.unwrap(), usdc);
+        assert_eq!(usd_calculator.fee_asset(&swap_input(usdc.clone())).await.unwrap(), usdc.id);
 
         let btc_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
         assert_eq!(
             btc_calculator.fee_asset(&swap_input(mock_tempo_cbbtc_asset())).await.unwrap(),
-            Asset::from_chain(Chain::Tempo)
+            AssetId::from_chain(Chain::Tempo)
         );
     }
 }

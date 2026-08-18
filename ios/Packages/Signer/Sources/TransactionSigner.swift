@@ -23,7 +23,7 @@ public struct TransactionSigner: TransactionSigneable {
             gasPriceType: transactionData.fee.gasPriceType,
             gasLimit: transactionData.fee.gasLimit,
             options: transactionData.fee.options,
-            feeAsset: transactionData.fee.feeAsset,
+            feeAssetId: transactionData.fee.feeAssetId,
         )
 
         let input = try SignerInput(

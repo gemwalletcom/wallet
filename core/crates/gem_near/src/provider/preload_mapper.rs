@@ -1,7 +1,7 @@
 use std::{collections::HashMap, error::Error};
 
 use num_bigint::BigInt;
-use primitives::{Asset, Chain, FeeOption, TransactionFee, TransactionLoadInput, TransactionLoadMetadata};
+use primitives::{AssetId, Chain, FeeOption, TransactionFee, TransactionLoadInput, TransactionLoadMetadata};
 
 use crate::{
     address::is_implicit_address,
@@ -64,7 +64,7 @@ pub(super) fn map_transaction_fee(
     let fee = &send_gas * &current_gas_price + &execution_gas * receipt_gas_price;
     let gas_limit = &send_gas + &execution_gas;
 
-    TransactionFee::new_gas_price_type(input.gas_price.clone(), fee, gas_limit, options, Asset::from_chain(Chain::Near))
+    TransactionFee::new_gas_price_type(input.gas_price.clone(), fee, gas_limit, options, AssetId::from_chain(Chain::Near))
 }
 
 #[cfg(test)]

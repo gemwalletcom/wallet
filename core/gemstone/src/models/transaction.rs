@@ -412,7 +412,7 @@ pub struct GemTransactionLoadFee {
     pub gas_price_type: GemGasPriceType,
     pub gas_limit: String,
     pub options: GemFeeOptions,
-    pub fee_asset: GemAsset,
+    pub fee_asset: GemAssetId,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

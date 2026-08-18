@@ -174,7 +174,7 @@ mod tests {
             BigInt::from(0),
             FeeOption::TokenAccountCreation,
             BigInt::from(NFT_TRANSFER_ATTACHMENT),
-            Asset::from_chain(Chain::Ton),
+            AssetId::from_chain(Chain::Ton),
         );
 
         assert_eq!(

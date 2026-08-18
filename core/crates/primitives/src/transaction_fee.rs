@@ -1,4 +1,4 @@
-use crate::{Asset, GasPriceType, SignerError};
+use crate::{AssetId, GasPriceType, SignerError};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
@@ -16,11 +16,11 @@ pub struct TransactionFee {
     pub gas_price_type: GasPriceType,
     pub gas_limit: BigInt,
     pub options: HashMap<FeeOption, BigInt>,
-    pub fee_asset: Asset,
+    pub fee_asset: AssetId,
 }
 
 impl TransactionFee {
-    pub fn new_from_fee(fee: BigInt, fee_asset: Asset) -> Self {
+    pub fn new_from_fee(fee: BigInt, fee_asset: AssetId) -> Self {
         Self {
             fee: fee.clone(),
             gas_price_type: GasPriceType::regular(fee),
@@ -30,7 +30,7 @@ impl TransactionFee {
         }
     }
 
-    pub fn new_from_fee_with_option(fee: BigInt, option: FeeOption, option_value: BigInt, fee_asset: Asset) -> Self {
+    pub fn new_from_fee_with_option(fee: BigInt, option: FeeOption, option_value: BigInt, fee_asset: AssetId) -> Self {
         Self {
             fee: fee.clone() + option_value.clone(),
             gas_price_type: GasPriceType::regular(fee.clone()),
@@ -40,7 +40,7 @@ impl TransactionFee {
         }
     }
 
-    pub fn new_gas_price_type(gas_price_type: GasPriceType, base_fee: BigInt, gas_limit: BigInt, options: HashMap<FeeOption, BigInt>, fee_asset: Asset) -> Self {
+    pub fn new_gas_price_type(gas_price_type: GasPriceType, base_fee: BigInt, gas_limit: BigInt, options: HashMap<FeeOption, BigInt>, fee_asset: AssetId) -> Self {
         Self {
             fee: base_fee + options.values().sum::<BigInt>(),
             gas_price_type,
@@ -50,7 +50,7 @@ impl TransactionFee {
         }
     }
 
-    pub fn calculate(gas_limit: u64, gas_price_type: &GasPriceType, fee_asset: Asset) -> Self {
+    pub fn calculate(gas_limit: u64, gas_price_type: &GasPriceType, fee_asset: AssetId) -> Self {
         let gas_limit = BigInt::from(gas_limit);
         let gas_price = gas_price_type.gas_price();
         let total_fee = gas_price.clone() * &gas_limit;
@@ -99,8 +99,8 @@ mod tests {
     use super::*;
     use crate::Chain;
 
-    fn eth() -> Asset {
-        Asset::from_chain(Chain::Ethereum)
+    fn eth() -> AssetId {
+        AssetId::from_chain(Chain::Ethereum)
     }
 
     #[test]

@@ -157,7 +157,7 @@ mod tests {
     fn plan_with_fee_rate(value: &str, fee_rate: u64) -> SpendPlan {
         let mut input = mock_signer_input(value, false);
         input.input.gas_price = GasPriceType::regular(BigInt::from(fee_rate));
-        input.fee = TransactionFee::new_from_fee(BigInt::from(fee_rate), Asset::from_chain(Chain::Bitcoin));
+        input.fee = TransactionFee::new_from_fee(BigInt::from(fee_rate), AssetId::from_chain(Chain::Bitcoin));
         UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Bitcoin, &input).unwrap()).unwrap()
     }
 

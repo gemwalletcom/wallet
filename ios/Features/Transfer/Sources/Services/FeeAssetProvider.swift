@@ -6,7 +6,7 @@ import GemstonePrimitives
 import Primitives
 
 public protocol FeeAssetProvidable: Sendable {
-    func balance(wallet: Wallet, feeAsset: Asset) async throws -> Balance
+    func load(wallet: Wallet, feeAssetId: AssetId) async throws -> (Asset, Balance)
 }
 
 public struct FeeAssetProvider: FeeAssetProvidable {
@@ -21,18 +21,17 @@ public struct FeeAssetProvider: FeeAssetProvidable {
         self.balanceService = balanceService
     }
 
-    public func balance(wallet: Wallet, feeAsset: Asset) async throws -> Balance {
-        let feeAssetId = feeAsset.id
+    public func load(wallet: Wallet, feeAssetId: AssetId) async throws -> (Asset, Balance) {
+        let feeAsset = try await assetsService.getOrFetchTokenAsset(for: feeAssetId)
         if let balance = try balanceService.getBalance(walletId: wallet.id, assetId: feeAssetId) {
-            return balance
+            return (feeAsset, balance)
         }
 
-        try assetsService.addAssets(assets: [feeAsset.defaultBasic])
         try balanceService.addAssetsBalancesIfMissing(assetIds: [feeAssetId], wallet: wallet, isEnabled: false)
         await balanceService.updateBalance(for: wallet, assetIds: [feeAssetId])
         guard let balance = try balanceService.getBalance(walletId: wallet.id, assetId: feeAssetId) else {
             throw AnyError("Missing balance for feeAssetId: \(feeAssetId.identifier)")
         }
-        return balance
+        return (feeAsset, balance)
     }
 }

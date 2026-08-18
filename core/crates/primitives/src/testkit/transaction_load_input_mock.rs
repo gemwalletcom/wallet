@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER};
 use crate::{
-    Asset, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction,
-    TransferDataOutputType, WalletConnectionSessionAppMetadata,
+    Asset, AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
+    TransferDataOutputAction, TransferDataOutputType, WalletConnectionSessionAppMetadata,
 };
 use num_bigint::BigInt;
 use std::collections::HashMap;
@@ -141,7 +141,7 @@ impl SignerInput {
                 fee_amount,
                 BigInt::from(200_000u64),
                 HashMap::new(),
-                Asset::from_chain(Chain::Osmosis),
+                AssetId::from_chain(Chain::Osmosis),
             ),
         )
     }
@@ -158,14 +158,14 @@ impl SignerInput {
                 is_max_value: false,
                 metadata,
             },
-            TransactionFee::new_from_fee(BigInt::ZERO, Asset::from_chain(Chain::Ton)),
+            TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Ton)),
         )
     }
 
     pub fn mock_solana(block_hash: &str) -> Self {
         SignerInput::new(
             TransactionLoadInput::mock_solana(block_hash),
-            TransactionFee::new_from_fee(BigInt::ZERO, Asset::from_chain(Chain::Solana)),
+            TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Solana)),
         )
     }
 }

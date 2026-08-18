@@ -11,7 +11,7 @@ use primitives::EVMChain;
 use primitives::{Asset, Chain, TransactionInputType, TransferDataExtra, WalletConnectionSessionAppMetadata};
 #[cfg(feature = "signer")]
 use primitives::{
-    SignerInput, TransactionLoadMetadata,
+    AssetId, SignerInput, TransactionLoadMetadata,
     swap::{ApprovalData, SwapData, SwapQuoteData},
 };
 
@@ -51,7 +51,7 @@ pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionIn
 }
 
 #[cfg(feature = "signer")]
-pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: Asset, approval: Option<ApprovalData>) -> SignerInput {
+pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, approval: Option<ApprovalData>) -> SignerInput {
     let has_approval = approval.is_some();
     let gas_limit = if has_approval { TOKEN_TRANSFER_GAS_LIMIT } else { DEFAULT_SWAP_GAS_LIMIT };
     let swap_data = SwapData::mock();

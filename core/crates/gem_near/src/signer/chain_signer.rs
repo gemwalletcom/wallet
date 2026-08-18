@@ -42,7 +42,7 @@ mod tests {
 
         let input = SignerInput::new(
             TransactionLoadInput::mock_near("test.near", "whatever.near", "1", 1, "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM"),
-            TransactionFee::new_from_fee(0.into(), Asset::from_chain(Chain::Near)),
+            TransactionFee::new_from_fee(0.into(), AssetId::from_chain(Chain::Near)),
         );
 
         let signed = NearChainSigner.sign_transfer(&input, &private_key[..32]).unwrap();
@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_sign_near_token_transfer() {
         let private_key = private_key();
-        let input = token_transfer_input(Some("invoice-1"), TransactionFee::new_from_fee(0.into(), Asset::from_chain(Chain::Near)));
+        let input = token_transfer_input(Some("invoice-1"), TransactionFee::new_from_fee(0.into(), AssetId::from_chain(Chain::Near)));
 
         let signed = NearChainSigner.sign_token_transfer(&input, &private_key[..32]).unwrap();
         assert_eq!(
@@ -72,7 +72,7 @@ mod tests {
             0.into(),
             FeeOption::TokenAccountCreation,
             1_250_000_000_000_000_000_000u128.into(),
-            Asset::from_chain(Chain::Near),
+            AssetId::from_chain(Chain::Near),
         );
         let input = token_transfer_input(None, fee);
 

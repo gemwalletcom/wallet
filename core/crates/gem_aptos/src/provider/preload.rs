@@ -4,7 +4,7 @@ use std::error::Error;
 
 use gem_client::Client;
 use primitives::{
-    Asset, Chain, FeePriority, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
+    AssetId, Chain, FeePriority, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
     TransactionPreloadInput,
 };
 
@@ -28,7 +28,7 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let gas_limit = self.calculate_gas_limit(&input).await?;
-        let fee = TransactionFee::calculate(gas_limit, &input.gas_price, Asset::from_chain(Chain::Aptos));
+        let fee = TransactionFee::calculate(gas_limit, &input.gas_price, AssetId::from_chain(Chain::Aptos));
 
         let data = match &input.input_type {
             TransactionInputType::Stake(_, stake_type) => match stake_type {

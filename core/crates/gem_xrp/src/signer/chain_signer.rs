@@ -114,7 +114,7 @@ mod tests {
     }
 
     fn signer_input(load: TransactionLoadInput, fee: u64) -> SignerInput {
-        SignerInput::new(load, TransactionFee::new_from_fee(fee.into(), Asset::from_chain(Chain::Xrp)))
+        SignerInput::new(load, TransactionFee::new_from_fee(fee.into(), AssetId::from_chain(Chain::Xrp)))
     }
 
     fn transfer_input(asset: Asset, sender: &str, destination: &str, value: &str, fee: u64, sequence: u64, block_number: u64, memo: Option<&str>) -> SignerInput {

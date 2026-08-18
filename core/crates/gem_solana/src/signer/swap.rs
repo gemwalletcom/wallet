@@ -76,7 +76,7 @@ mod tests {
             5_000u64.into(),
             1u64.into(),
             Default::default(),
-            Asset::from_chain(Chain::Solana),
+            AssetId::from_chain(Chain::Solana),
         );
         let input = SignerInput::new(input, fee);
 
@@ -99,7 +99,7 @@ mod tests {
             5_000u64.into(),
             1u64.into(),
             Default::default(),
-            Asset::from_chain(Chain::Solana),
+            AssetId::from_chain(Chain::Solana),
         );
         let input = SignerInput::new(input, fee);
 

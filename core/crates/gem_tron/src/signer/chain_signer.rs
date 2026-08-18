@@ -98,7 +98,7 @@ mod tests {
             BigInt::from(fee),
             BigInt::from(gas_limit),
             HashMap::new(),
-            Asset::from_chain(Chain::Tron),
+            AssetId::from_chain(Chain::Tron),
         )
     }
 

@@ -1,8 +1,8 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.domains.asset.toGem
-import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
@@ -10,11 +10,11 @@ import uniffi.gemstone.GemTransactionLoadFee
 fun mockGemTransactionLoadFee(
     fee: String = "500",
     gasPriceType: GemGasPriceType = GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3"),
-    feeAsset: Asset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18),
+    feeAssetId: AssetId = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18).id,
 ) = GemTransactionLoadFee(
     fee = fee,
     gasPriceType = gasPriceType,
     gasLimit = "21000",
     options = GemFeeOptions(emptyMap()),
-    feeAsset = feeAsset.toGem(),
+    feeAsset = feeAssetId.toIdentifier(),
 )

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use num_bigint::BigInt;
-use primitives::{Asset, Chain, GasPriceType, TransactionFee, TransactionLoadMetadata, UTXO};
+use primitives::{AssetId, Chain, GasPriceType, TransactionFee, TransactionLoadMetadata, UTXO};
 
 use crate::models::utxo::UTXO as CardanoUTXO;
 
@@ -18,6 +18,6 @@ pub(crate) fn map_transaction_fee(fee: u64) -> TransactionFee {
         BigInt::from(fee),
         BigInt::from(1u64),
         HashMap::new(),
-        Asset::from_chain(Chain::Cardano),
+        AssetId::from_chain(Chain::Cardano),
     )
 }

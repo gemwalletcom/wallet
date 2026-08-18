@@ -19,7 +19,7 @@ extension ConfirmTransferState {
             simulation: data.simulation,
             metadata: data.preload.metadata,
             feeRates: data.preload.feeRates,
-            feeAsset: data.preload.input.transactionData.fee.feeAsset,
+            feeAsset: data.preload.input.feeAsset,
             transaction: .data(data.preload.input),
         )
     }
@@ -27,7 +27,7 @@ extension ConfirmTransferState {
     mutating func update(_ preload: ConfirmTransferPreload) {
         metadata = preload.metadata
         feeRates = preload.feeRates
-        feeAsset = preload.input.transactionData.fee.feeAsset
+        feeAsset = preload.input.feeAsset
         transaction = .data(preload.input)
     }
 

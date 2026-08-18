@@ -109,14 +109,14 @@ pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result
         fee,
         gas_limit.clone(),
         HashMap::new(),
-        input.input_type.get_fee_asset(),
+        input.input_type.get_fee_asset_id(),
     ))
 }
 
 #[cfg(all(test, feature = "rpc"))]
 mod tests {
     use super::*;
-    use primitives::{Asset, Chain, TransactionInputType, swap::SwapData};
+    use primitives::{Asset, AssetId, Chain, TransactionInputType, swap::SwapData};
 
     #[test]
     fn test_calculate_fee_swap_approval_keeps_transaction_gas_limit() -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
@@ -128,7 +128,7 @@ mod tests {
 
         assert_eq!(fee.gas_limit, approval_gas_limit);
         assert_eq!(fee.fee, input.gas_price.total_fee() * (&approval_gas_limit + swap_gas_limit));
-        assert_eq!(fee.fee_asset, Asset::from_chain(Chain::Ethereum));
+        assert_eq!(fee.fee_asset, AssetId::from_chain(Chain::Ethereum));
 
         Ok(())
     }

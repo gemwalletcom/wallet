@@ -1,4 +1,4 @@
-use primitives::{Asset, Chain, FeePriority, FeeRate, FeeUnitType, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, TransactionFee};
+use primitives::{AssetId, Chain, FeePriority, FeeRate, FeeUnitType, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, TransactionFee};
 
 pub enum TransactionFeeOperation {
     Transfer,
@@ -41,7 +41,7 @@ impl TransactionFeeEstimate {
         };
         Self {
             priority: rate.priority,
-            fee: TransactionFee::new_gas_price_type(gas_price_type, fee, units.unwrap_or(1).into(), Default::default(), Asset::from_chain(chain)),
+            fee: TransactionFee::new_gas_price_type(gas_price_type, fee, units.unwrap_or(1).into(), Default::default(), AssetId::from_chain(chain)),
         }
     }
 }

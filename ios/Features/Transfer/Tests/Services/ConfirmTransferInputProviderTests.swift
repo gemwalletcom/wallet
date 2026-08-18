@@ -25,6 +25,27 @@ struct ConfirmTransferInputProviderTests {
     }
 
     @Test
+    func loadResolvesFeeAssetFromTransactionFeeId() async throws {
+        let feeAsset = Asset.hypercoreUSDC()
+        let feeAssetBalance = Balance.mock(available: 42)
+        let provider = ConfirmTransferInputProvider(
+            transferTransactionProvider: TransferTransactionProviderMock(result: .success(
+                TransferTransactionData(
+                    allRates: [],
+                    transactionData: .mock(feeAsset: feeAsset),
+                ),
+            )),
+            feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance),
+        )
+
+        let result = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
+
+        #expect(result.input.feeAsset == feeAsset)
+        #expect(result.input.feeAssetBalance == feeAssetBalance)
+        #expect(result.metadata.feeAssetId == feeAsset.id)
+    }
+
+    @Test
     func loadMapsPreloadFailureToInsufficientNetworkFee() async {
         let provider = ConfirmTransferInputProvider.mock(transaction: .failure(AnyError("network")))
         let metadata = TransferDataMetadata.mock(
