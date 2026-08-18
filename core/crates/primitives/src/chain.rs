@@ -39,6 +39,8 @@ pub enum Chain {
     Gnosis,
     Celestia,
     Injective,
+    // TODO: Remove Sei after November 15, 2026.
+    #[typeshare(skip)]
     Sei,
     SeiEvm,
     Manta,
@@ -171,7 +173,7 @@ impl Chain {
     }
 
     pub fn all() -> Vec<Self> {
-        Self::iter().collect::<Vec<_>>()
+        Self::iter().filter(|chain| *chain != Self::Sei).collect()
     }
 
     pub fn stakeable() -> Vec<Self> {
@@ -190,6 +192,13 @@ mod tests {
     #[test]
     fn test_mayachain_swap_not_supported() {
         assert!(!Chain::Mayachain.is_swap_supported());
+    }
+
+    #[test]
+    fn test_all_excludes_legacy_sei() {
+        let chains = Chain::all();
+        assert!(!chains.contains(&Chain::Sei));
+        assert!(chains.contains(&Chain::SeiEvm));
     }
 
     #[test]

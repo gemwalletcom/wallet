@@ -15,6 +15,7 @@ pub enum StakeChain {
     Cosmos,
     Osmosis,
     Injective,
+    #[typeshare(skip)]
     Sei,
     Celestia,
     Ethereum,

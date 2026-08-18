@@ -101,7 +101,6 @@ class TestCreateAccountOperator {
         Chain.Xrp -> "rPwE3gChNKtZ1mhH3Ko8YFGqKmGRWLWXV3"
         Chain.Celestia -> "celestia142j9u5eaduzd7faumygud6ruhdwme98qpwmfv7"
         Chain.Injective -> "inj13u6g7vqgw074mgmf2ze2cadzvkz9snlwcrtq8a"
-        Chain.Sei -> "sei142j9u5eaduzd7faumygud6ruhdwme98qagm0sj"
         Chain.Noble -> "noble142j9u5eaduzd7faumygud6ruhdwme98qc8l3wa"
         Chain.Near -> "0c91f6106ff835c0195d5388565a2d69e25038a7e23d26198f85caf6594117ec"
         Chain.Stellar -> "GA3H6I4C5XUBYGVB66KXR27JV5KS3APSTKRUWOIXZ5MVWZKVTLXWKZ2P"

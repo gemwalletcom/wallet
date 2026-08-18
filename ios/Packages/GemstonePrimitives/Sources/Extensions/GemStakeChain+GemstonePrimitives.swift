@@ -11,7 +11,6 @@ public extension StakeChain {
         case .cosmos: .cosmos
         case .osmosis: .osmosis
         case .injective: .injective
-        case .sei: .sei
         case .celestia: .celestia
         case .ethereum: .ethereum
         case .solana: .solana

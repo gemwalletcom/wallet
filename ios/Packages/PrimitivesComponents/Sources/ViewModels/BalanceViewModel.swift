@@ -66,7 +66,7 @@ public struct BalanceViewModel: Sendable {
         let amount = switch type {
         case .stake:
             switch StakeChain(rawValue: asset.chain.rawValue) {
-            case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
+            case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
                 balance.staked + balance.pending
             case .tron:
                 balance.frozen + balance.locked + balance.pending
@@ -79,7 +79,7 @@ public struct BalanceViewModel: Sendable {
 
     public var hasStakingResources: Bool {
         switch StakeChain(rawValue: asset.chain.rawValue) {
-        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
+        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
             false
         case .tron:
             true
@@ -88,7 +88,7 @@ public struct BalanceViewModel: Sendable {
 
     public var hasFrozenResources: Bool {
         switch StakeChain(rawValue: asset.chain.rawValue) {
-        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
+        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
             false
         case .tron:
             !(balance.frozen + balance.locked).isZero

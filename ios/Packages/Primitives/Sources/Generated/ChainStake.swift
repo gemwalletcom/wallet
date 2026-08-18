@@ -8,7 +8,6 @@ public enum StakeChain: String, Codable, CaseIterable, Equatable, Sendable {
 	case cosmos
 	case osmosis
 	case injective
-	case sei
 	case celestia
 	case ethereum
 	case solana

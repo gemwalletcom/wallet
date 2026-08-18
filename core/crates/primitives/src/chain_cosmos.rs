@@ -17,6 +17,7 @@ pub enum CosmosChain {
     Thorchain,
     Mayachain,
     Injective,
+    #[typeshare(skip)]
     Sei,
     Noble,
 }

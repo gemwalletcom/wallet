@@ -15,8 +15,6 @@ enum class StakeChain(val string: String) {
 	Osmosis("osmosis"),
 	@SerialName("injective")
 	Injective("injective"),
-	@SerialName("sei")
-	Sei("sei"),
 	@SerialName("celestia")
 	Celestia("celestia"),
 	@SerialName("ethereum")

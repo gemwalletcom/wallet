@@ -23,6 +23,26 @@ struct Migrations {
         try? db.execute(sql: "DELETE FROM \(AssetRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
     }
 
+    static func removeChain(_ db: Database, chain: String) throws {
+        try db.execute(
+            sql: "DELETE FROM \(WalletConnectionRecord.databaseTableName) WHERE instr(chains, '\"' || ? || '\"') > 0",
+            arguments: [chain],
+        )
+        try db.execute(
+            sql: "DELETE FROM \(NotificationRecord.databaseTableName) WHERE instr(item, '\"' || ? || '\"') > 0 OR instr(item, '\"' || ? || '_') > 0",
+            arguments: [chain, chain],
+        )
+        try db.execute(
+            sql: "UPDATE \(AssetRecord.databaseTableName) SET associations = '[]' WHERE instr(associations, '\"' || ? || '\"') > 0 OR instr(associations, '\"' || ? || '_') > 0",
+            arguments: [chain, chain],
+        )
+        try db.execute(
+            sql: "DELETE FROM \(ContactAddressRecord.databaseTableName) WHERE chain = ?",
+            arguments: [chain],
+        )
+        try db.execute(sql: "DELETE FROM \(AssetRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+    }
+
     private static func clearTables(_ db: Database, tableNames: [String]) throws {
         for tableName in tableNames where try db.tableExists(tableName) {
             try db.execute(sql: "DELETE FROM \(tableName)")
@@ -511,6 +531,10 @@ struct Migrations {
             try? db.alter(table: TransactionRecord.databaseTableName) {
                 $0.add(column: TransactionRecord.Columns.confirmationEtaSeconds.name, .integer)
             }
+        }
+
+        migrator.registerMigration("Remove Sei chain", foreignKeyChecks: .immediate) { db in
+            try Self.removeChain(db, chain: "sei")
         }
 
         try migrator.migrate(dbQueue)

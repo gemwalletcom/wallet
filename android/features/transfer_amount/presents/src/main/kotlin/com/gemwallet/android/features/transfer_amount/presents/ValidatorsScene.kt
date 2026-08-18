@@ -69,7 +69,7 @@ fun PreviewValidatorsScene() {
                 recommended = emptyList(),
                 validators = listOf(
                     DelegationValidator(
-                        chain = Chain.Sei,
+                        chain = Chain.Cosmos,
                         id = "some_validator_id",
                         name = "Castlenode",
                         isActive = true,
@@ -78,7 +78,7 @@ fun PreviewValidatorsScene() {
                         providerType = StakeProviderType.Stake,
                     ),
                     DelegationValidator(
-                        chain = Chain.Sei,
+                        chain = Chain.Cosmos,
                         id = "some_validator_id_1",
                         name = "Ubik Capital 0%Fee",
                         isActive = true,
@@ -87,7 +87,7 @@ fun PreviewValidatorsScene() {
                         providerType = StakeProviderType.Stake,
                     ),
                     DelegationValidator(
-                        chain = Chain.Sei,
+                        chain = Chain.Cosmos,
                         id = "some_validator_id_2",
                         name = "Virtual Hive",
                         isActive = true,

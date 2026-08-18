@@ -76,7 +76,6 @@ fun Chain.assetType(): AssetType? {
         Chain.Osmosis,
         Chain.Celestia,
         Chain.Injective,
-        Chain.Sei,
         Chain.Noble,
         Chain.Celo,
         Chain.Bitcoin,
@@ -169,7 +168,6 @@ fun Chain.toChainType(): ChainType {
         Chain.Osmosis,
         Chain.Celestia,
         Chain.Injective,
-        Chain.Sei,
         Chain.Noble,
         Chain.Cosmos -> ChainType.Cosmos
         Chain.AvalancheC,

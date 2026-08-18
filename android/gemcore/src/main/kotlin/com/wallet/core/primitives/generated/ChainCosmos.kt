@@ -21,8 +21,6 @@ enum class CosmosChain(val string: String) {
 	Mayachain("mayachain"),
 	@SerialName("injective")
 	Injective("injective"),
-	@SerialName("sei")
-	Sei("sei"),
 	@SerialName("noble")
 	Noble("noble"),
 }

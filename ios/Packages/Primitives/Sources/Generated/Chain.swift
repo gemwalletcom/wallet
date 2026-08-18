@@ -32,7 +32,6 @@ public enum Chain: String, Codable, CaseIterable, Equatable, Hashable, Sendable 
 	case gnosis
 	case celestia
 	case injective
-	case sei
 	case seiEvm = "seievm"
 	case manta
 	case blast

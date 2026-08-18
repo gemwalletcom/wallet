@@ -29,7 +29,6 @@ fun StakeChain.freezed(): Boolean = when (this) {
     StakeChain.Tron -> true
     StakeChain.Cosmos,
     StakeChain.Injective,
-    StakeChain.Sei,
     StakeChain.Celestia,
     StakeChain.Osmosis,
     StakeChain.Solana,
@@ -45,7 +44,6 @@ fun StakeChain.toGemStakeChain(): GemStakeChain = when (this) {
     StakeChain.Cosmos -> GemStakeChain.COSMOS
     StakeChain.Osmosis -> GemStakeChain.OSMOSIS
     StakeChain.Injective -> GemStakeChain.INJECTIVE
-    StakeChain.Sei -> GemStakeChain.SEI
     StakeChain.Celestia -> GemStakeChain.CELESTIA
     StakeChain.Ethereum -> GemStakeChain.ETHEREUM
     StakeChain.Solana -> GemStakeChain.SOLANA

@@ -18,7 +18,6 @@ public extension CosmosChain {
         case .osmosis: CosmosDenom.uosmo
         case .celestia: CosmosDenom.utia
         case .injective: CosmosDenom.inj
-        case .sei: CosmosDenom.usei
         case .noble: CosmosDenom.uusdc
         }
     }
