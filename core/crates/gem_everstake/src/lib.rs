@@ -1,8 +1,10 @@
-pub mod stake_hub;
-pub use stake_hub::HUB_READER_ADDRESS;
+pub mod constants;
+pub mod contracts;
+pub mod mapper;
+pub mod models;
 
 #[cfg(feature = "rpc")]
-pub mod mapper;
+pub mod client;
 #[cfg(feature = "rpc")]
 pub mod parser;
 #[cfg(feature = "rpc")]
@@ -12,6 +14,6 @@ pub mod staking;
 pub mod testkit;
 
 #[cfg(feature = "rpc")]
-pub use parser::SmartChainStakingParser;
+pub use parser::EverstakeParser;
 #[cfg(feature = "rpc")]
-pub use staking::BscStakingClient;
+pub use staking::EverstakeStakingClient;

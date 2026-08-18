@@ -8,12 +8,10 @@ use chain_traits::{
     node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
 };
 use gem_client::Client;
-use primitives::{Chain, NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
+use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
 
 use crate::{jsonrpc::TransactionObject, method, rpc::EthereumProvider};
 use receipt_history::record_receipt_checks;
-
-const ETH_CALL_MONAD_DELEGATIONS_CHECK: &str = "eth_call_monad_delegations";
 
 #[async_trait]
 impl<C: Client + Clone> ChainTraits for EthereumProvider<C> {
@@ -52,11 +50,6 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
         let staking_check = self.staking().and_then(|staking| staking.node_check_method().map(|method_name| (staking, method_name)));
         let recorder = match staking_check {
             Some((staking, method_name)) => recorder.record_available_timed(method_name, staking.node_check_probe(address)).await,
-            None if self.get_chain() == Chain::Monad => {
-                recorder
-                    .record_available_timed(ETH_CALL_MONAD_DELEGATIONS_CHECK, self.call_monad_delegations(address))
-                    .await
-            }
             None => recorder,
         };
         let recorder = recorder

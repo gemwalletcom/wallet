@@ -3,6 +3,8 @@ pub mod mayan;
 pub mod okx;
 pub mod pancakeswap;
 pub mod staking;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 pub mod universal_router;
 pub mod yo;
 
@@ -14,15 +16,7 @@ use super::model::{Transaction, TransactionReceipt};
 use crate::ethereum_address_checksum;
 use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionType};
 
-use self::{
-    across::AcrossParser,
-    mayan::MayanParser,
-    okx::OkxParser,
-    pancakeswap::PancakeSwapParser,
-    staking::{EverstakeParser, MonadStakingParser, SmartChainStakingParser},
-    universal_router::UniversalRouterParser,
-    yo::YoParser,
-};
+use self::{across::AcrossParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, universal_router::UniversalRouterParser, yo::YoParser};
 
 pub const EVENT_WORD_SIZE: usize = 64;
 
@@ -69,18 +63,8 @@ pub fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Opt
 pub struct ProtocolParsers;
 
 impl ProtocolParsers {
-    fn parsers() -> [&'static dyn ProtocolParser; 9] {
-        [
-            &EverstakeParser,
-            &MonadStakingParser,
-            &SmartChainStakingParser,
-            &AcrossParser,
-            &MayanParser,
-            &OkxParser,
-            &YoParser,
-            &PancakeSwapParser,
-            &UniversalRouterParser,
-        ]
+    fn parsers() -> [&'static dyn ProtocolParser; 6] {
+        [&AcrossParser, &MayanParser, &OkxParser, &YoParser, &PancakeSwapParser, &UniversalRouterParser]
     }
 
     pub fn map_transaction(

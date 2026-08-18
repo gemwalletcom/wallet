@@ -58,6 +58,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = match (&input.input_type, self.staking()) {
             (TransactionInputType::Stake(_, stake_type), Some(staking)) => staking.encode_stake(stake_type, &BigInt::from_str_radix(&input.value, 10)?)?,
+            (TransactionInputType::Stake(_, _), None) => return Err("Chain does not support staking".into()),
             _ => get_transaction_params(self.chain, &input)?,
         };
 

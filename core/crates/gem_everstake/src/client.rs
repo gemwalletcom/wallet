@@ -1,34 +1,37 @@
-pub const EVERSTAKE_API_BASE_URL: &str = "https://eth-api-b2c.everstake.one";
-pub const EVERSTAKE_STATS_PATH: &str = "/api/v1/stats";
-pub const EVERSTAKE_VALIDATORS_QUEUE_PATH: &str = "/api/v1/validators/queue";
-
-use super::{EVERSTAKE_ACCOUNTING_ADDRESS, IAccounting, models::AccountState};
-use crate::multicall3::{IMulticall3, create_call3, decode_call3_return};
+use crate::constants::EVERSTAKE_ACCOUNTING_ADDRESS;
+use crate::contracts::IAccounting;
+use crate::models::AccountState;
+#[cfg(feature = "reqwest")]
+use crate::models::{QueueStatsResponse, StatsResponse};
+use gem_evm::multicall3::{IMulticall3, create_call3, decode_call3_return};
 
 use alloy_primitives::Address;
 use gem_client::Client;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "reqwest")]
 use gem_client::ClientExt;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use std::{error::Error, str::FromStr};
 
-#[cfg(feature = "rpc")]
-use crate::rpc::client::EthereumClient;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "reqwest")]
 use gem_client::ReqwestClient;
+use gem_evm::rpc::EthereumClient;
 
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
-pub async fn get_everstake_validator_queue() -> Result<super::models::QueueStatsResponse, Box<dyn Error + Send + Sync>> {
+pub const EVERSTAKE_API_BASE_URL: &str = "https://eth-api-b2c.everstake.one";
+pub const EVERSTAKE_STATS_PATH: &str = "/api/v1/stats";
+pub const EVERSTAKE_VALIDATORS_QUEUE_PATH: &str = "/api/v1/validators/queue";
+
+#[cfg(feature = "reqwest")]
+pub async fn get_everstake_validator_queue() -> Result<QueueStatsResponse, Box<dyn Error + Send + Sync>> {
     let client = ReqwestClient::new(EVERSTAKE_API_BASE_URL.to_string(), gem_client::reqwest_client());
     let response = client.get(EVERSTAKE_VALIDATORS_QUEUE_PATH).await?;
     Ok(response)
 }
 
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "reqwest")]
 pub async fn get_everstake_staking_apy() -> Result<Option<f64>, Box<dyn Error + Send + Sync>> {
     let client = ReqwestClient::new(EVERSTAKE_API_BASE_URL.to_string(), gem_client::reqwest_client());
-    let response: super::models::StatsResponse = client.get(EVERSTAKE_STATS_PATH).await?;
+    let response: StatsResponse = client.get(EVERSTAKE_STATS_PATH).await?;
 
     Ok(Some(response.apr * 100.0))
 }
@@ -85,7 +88,7 @@ where
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest", feature = "chain_integration_tests"))]
 mod tests {
-    use crate::everstake::client::get_everstake_validator_queue;
+    use crate::client::get_everstake_validator_queue;
 
     #[tokio::test]
     async fn test_validator_queue() -> Result<(), Box<dyn std::error::Error + Sync + Send>> {

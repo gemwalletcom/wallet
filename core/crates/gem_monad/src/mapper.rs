@@ -1,15 +1,73 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::str::FromStr;
 
-use alloy_primitives::{Address, U256};
+use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
-use num_bigint::{BigInt, BigUint, Sign};
-use num_traits::Zero;
-use primitives::{DelegationState, StakeType};
+use chrono::{DateTime, Utc};
+use num_bigint::{BigInt, BigUint};
+use num_traits::{ToPrimitive, Zero};
+use primitives::{AssetId, Chain, DelegationBase, DelegationState, DelegationValidator, StakeType};
 
-use crate::monad::constants::DEFAULT_WITHDRAW_ID;
-use crate::monad::contracts::{IMonadStaking, IMonadStakingLens};
-use crate::u256::u256_to_biguint;
+use crate::constants::{DEFAULT_WITHDRAW_ID, MONAD_SCALE, STAKING_CONTRACT};
+use crate::contracts::{IMonadStaking, IMonadStakingLens};
+use gem_evm::u256::{bigint_to_u256, u256_to_biguint};
+
+pub fn map_lens_validator(validator: &MonadLensValidatorInfo, validator_names: &HashMap<u64, &str>, network_apy: f64) -> DelegationValidator {
+    let validator_name = validator_names
+        .get(&validator.validator_id)
+        .map(|name| (*name).to_string())
+        .unwrap_or_else(|| validator.validator_id.to_string());
+
+    DelegationValidator::stake(
+        Chain::Monad,
+        validator.validator_id.to_string(),
+        validator_name,
+        validator.is_active,
+        validator.commission.to_f64().unwrap_or(0.0) / MONAD_SCALE,
+        if validator.apy_bps > 0 { validator.apy_bps as f64 / 100.0 } else { network_apy },
+    )
+}
+
+pub fn map_lens_state(position: &MonadLensDelegation) -> DelegationState {
+    match position.state {
+        IMonadStakingLens::DelegationState::Active => DelegationState::Active,
+        IMonadStakingLens::DelegationState::Activating => DelegationState::Activating,
+        IMonadStakingLens::DelegationState::Deactivating => DelegationState::Deactivating,
+        IMonadStakingLens::DelegationState::AwaitingWithdrawal => DelegationState::AwaitingWithdrawal,
+        IMonadStakingLens::DelegationState::__Invalid => DelegationState::Inactive,
+    }
+}
+
+pub fn map_lens_delegations(address: &str, positions: Vec<MonadLensDelegation>) -> Vec<DelegationBase> {
+    let mut delegations = Vec::new();
+
+    for position in positions {
+        if position.amount.is_zero() && position.rewards.is_zero() {
+            continue;
+        }
+
+        let state = map_lens_state(&position);
+        let completion_date = if position.completion_timestamp == 0 {
+            None
+        } else {
+            DateTime::<Utc>::from_timestamp(position.completion_timestamp as i64, 0)
+        };
+
+        delegations.push(DelegationBase {
+            asset_id: AssetId::from_chain(Chain::Monad),
+            state,
+            balance: position.amount,
+            shares: BigUint::zero(),
+            rewards: position.rewards,
+            completion_date,
+            delegation_id: delegation_id(address, position.validator_id, state, position.withdraw_id),
+            validator_id: position.validator_id.to_string(),
+        });
+    }
+
+    delegations
+}
 
 #[derive(Clone)]
 pub struct MonadLensDelegation {
@@ -120,24 +178,21 @@ pub fn decode_get_lens_validators(data: &[u8]) -> Result<(Vec<MonadLensValidator
     ))
 }
 
-pub fn encode_monad_staking(stake_type: &StakeType, amount: &BigInt) -> Result<(Vec<u8>, BigInt), Box<dyn Error + Sync + Send>> {
+pub fn encode_monad_staking(stake_type: &StakeType, amount: &BigInt) -> Result<(&'static str, Vec<u8>, BigInt), Box<dyn Error + Sync + Send>> {
     let amount = amount.clone();
 
     match stake_type {
         StakeType::Stake(validator) => {
             let validator_id = validator.id.parse::<u64>().map_err(|_| "Invalid validator id for Monad")?;
-            Ok((IMonadStaking::delegateCall { validatorId: validator_id }.abi_encode(), amount))
+            Ok((STAKING_CONTRACT, IMonadStaking::delegateCall { validatorId: validator_id }.abi_encode(), amount))
         }
         StakeType::Unstake(delegation) => {
             let validator_id = delegation.base.validator_id.parse::<u64>().map_err(|_| "Invalid validator id for Monad")?;
             let current_withdraw_id = get_withdraw_id(&delegation.base.delegation_id).unwrap_or(DEFAULT_WITHDRAW_ID);
             let next_withdraw_id = current_withdraw_id.saturating_add(1);
-            if amount.sign() == Sign::Minus {
-                return Err("Negative values are not supported".into());
-            }
-            let (_, amount_bytes) = amount.to_bytes_be();
-            let amount_u256 = U256::from_be_slice(&amount_bytes);
+            let amount_u256 = bigint_to_u256(&amount)?;
             Ok((
+                STAKING_CONTRACT,
                 IMonadStaking::undelegateCall {
                     validatorId: validator_id,
                     amount: amount_u256,
@@ -152,6 +207,7 @@ pub fn encode_monad_staking(stake_type: &StakeType, amount: &BigInt) -> Result<(
             let withdraw_id = get_withdraw_id(&delegation.base.delegation_id).ok_or("Invalid withdraw id for Monad")?;
 
             Ok((
+                STAKING_CONTRACT,
                 IMonadStaking::withdrawCall {
                     validatorId: validator_id,
                     withdrawId: withdraw_id,
@@ -163,7 +219,7 @@ pub fn encode_monad_staking(stake_type: &StakeType, amount: &BigInt) -> Result<(
         StakeType::Rewards(validators) => {
             let validator = validators.first().ok_or("Missing validator for rewards")?;
             let validator_id = validator.id.parse::<u64>().map_err(|_| "Invalid validator id for Monad")?;
-            Ok((IMonadStaking::claimRewardsCall { validatorId: validator_id }.abi_encode(), BigInt::zero()))
+            Ok((STAKING_CONTRACT, IMonadStaking::claimRewardsCall { validatorId: validator_id }.abi_encode(), BigInt::zero()))
         }
         StakeType::Redelegate(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => Err("Unsupported stake type for Monad".into()),
     }
@@ -171,6 +227,8 @@ pub fn encode_monad_staking(stake_type: &StakeType, amount: &BigInt) -> Result<(
 
 #[cfg(test)]
 mod tests {
+    use alloy_primitives::U256;
+
     use super::*;
     use crate::testkit::TEST_MONAD_ADDRESS;
     use primitives::{Delegation, DelegationBase, StakeType};
@@ -224,7 +282,8 @@ mod tests {
         ];
 
         for (stake_type, amount, expected_data) in cases {
-            let (data, value) = encode_monad_staking(&stake_type, &amount).unwrap();
+            let (to, data, value) = encode_monad_staking(&stake_type, &amount).unwrap();
+            assert_eq!(to, STAKING_CONTRACT);
 
             assert_eq!(value, BigInt::zero());
             assert_eq!(data, expected_data);

@@ -4,12 +4,15 @@ use chain_traits::ChainTraits;
 use gem_algorand::rpc::{AlgorandClient, AlgorandProvider};
 use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
+use gem_bsc::{BscStakingClient, SmartChainStakingParser};
 use gem_cardano::rpc::client::CardanoClient;
 use gem_client::Client;
 use gem_cosmos::rpc::client::CosmosClient;
+use gem_everstake::{EverstakeParser, EverstakeStakingClient};
 use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmProviderExtensions};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
+use gem_monad::{MonadStakingClient, MonadStakingParser};
 use gem_near::rpc::{NearClient, NearProvider};
 use gem_optimism::OptimismGasOracle;
 use gem_polkadot::rpc::{PolkadotClient, PolkadotProvider};
@@ -88,11 +91,29 @@ impl ChainClientFactory {
 
 // Keep in sync with evm_provider_extensions in crates/settings_chain/src/lib.rs
 fn evm_provider_extensions<C: Client + Clone + 'static>(chain: EVMChain, client: &EthereumClient<C>) -> EvmProviderExtensions {
+    let extensions = match chain {
+        EVMChain::Ethereum => EvmProviderExtensions {
+            staking: Some(Box::new(EverstakeStakingClient::new(client.clone()))),
+            parsers: vec![Box::new(EverstakeParser)],
+            ..Default::default()
+        },
+        EVMChain::SmartChain => EvmProviderExtensions {
+            staking: Some(Box::new(BscStakingClient::new(client.clone()))),
+            parsers: vec![Box::new(SmartChainStakingParser)],
+            ..Default::default()
+        },
+        EVMChain::Monad => EvmProviderExtensions {
+            staking: Some(Box::new(MonadStakingClient::new(client.clone()))),
+            parsers: vec![Box::new(MonadStakingParser)],
+            ..Default::default()
+        },
+        _ => EvmProviderExtensions::default(),
+    };
     match chain.chain_stack() {
         ChainStack::Optimism => EvmProviderExtensions {
             fee_calculator: Some(Box::new(OptimismGasOracle::new(client.clone()))),
-            ..Default::default()
+            ..extensions
         },
-        ChainStack::Native | ChainStack::ZkSync => EvmProviderExtensions::default(),
+        ChainStack::Native | ChainStack::ZkSync => extensions,
     }
 }

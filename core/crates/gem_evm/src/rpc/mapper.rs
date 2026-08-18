@@ -470,20 +470,6 @@ mod tests {
     }
 
     #[test]
-    fn test_map_smartchain_staking_transaction() {
-        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/smartchain/transaction_staking_delegate.json"));
-        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/smartchain/transaction_staking_delegate_receipt.json"));
-        let tx = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &receipt, &BigUint::from(1735671600u64), &[]).unwrap();
-
-        assert_eq!(tx.transaction_type, TransactionType::StakeDelegate);
-        assert_eq!(tx.from, "0x51eD60604637989d19D29e43c5D94B098A0d1Af7");
-        assert_eq!(tx.to, "0xd34403249B2d82AAdDB14e778422c966265e5Fb5");
-        assert_eq!(tx.contract.as_deref(), Some("0x0000000000000000000000000000000000002002"));
-        assert_eq!(tx.value, "1000000000000000000");
-        assert_eq!(tx.metadata, None);
-    }
-
-    #[test]
     fn test_mayan_native_swap() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/mayan_native_swap_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/mayan_native_swap_tx_receipt.json"));

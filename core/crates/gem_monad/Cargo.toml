@@ -1,28 +1,30 @@
 [package]
-name = "gem_bsc"
+name = "gem_monad"
 version = { workspace = true }
 edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["dep:gem_evm", "gem_evm/rpc", "dep:primitives", "dep:gem_client", "dep:async-trait", "dep:chrono", "dep:num-bigint"]
+rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client"]
 reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]
-hex = { workspace = true }
-alloy-primitives = { workspace = true }
-alloy-sol-types = { workspace = true }
+primitives = { path = "../primitives" }
+gem_evm = { path = "../gem_evm" }
 
-primitives = { path = "../primitives", optional = true }
-gem_evm = { path = "../gem_evm", optional = true }
 gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
-chrono = { workspace = true, optional = true }
-num-bigint = { workspace = true, optional = true }
+alloy-primitives = { workspace = true }
+alloy-sol-types = { workspace = true }
+chrono = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
 
 [dev-dependencies]
 gem_evm = { path = "../gem_evm", features = ["rpc", "testkit"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 settings = { path = "../settings", features = ["testkit"] }
+serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

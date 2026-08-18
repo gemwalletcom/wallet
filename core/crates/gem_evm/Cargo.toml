@@ -17,7 +17,6 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
-gem_bsc = { path = "../gem_bsc" }
 signer = { path = "../signer" }
 
 hex = { workspace = true }

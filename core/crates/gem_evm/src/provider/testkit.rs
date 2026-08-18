@@ -13,7 +13,7 @@ use primitives::{EVMChain, FeeRate};
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use settings::testkit::get_test_settings;
 
-pub use crate::testkit::{TEST_ADDRESS, TEST_MONAD_ADDRESS, TEST_SMARTCHAIN_STAKING_ADDRESS, TEST_TRANSACTION_ID, TOKEN_DAI_ADDRESS, TOKEN_USDC_ADDRESS};
+pub use crate::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, TOKEN_DAI_ADDRESS, TOKEN_USDC_ADDRESS};
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 fn build_test_client(chain: EVMChain, rpc_url: &str) -> EthereumProvider<ReqwestClient> {
@@ -72,12 +72,6 @@ pub fn create_smartchain_test_client() -> EthereumProvider<ReqwestClient> {
 pub fn create_arbitrum_test_client() -> EthereumProvider<ReqwestClient> {
     let settings = get_test_settings();
     build_test_client(EVMChain::Arbitrum, &settings.chains.arbitrum.url)
-}
-
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_monad_test_client() -> EthereumProvider<ReqwestClient> {
-    let settings = get_test_settings();
-    build_test_client(EVMChain::Monad, &settings.chains.monad.url)
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]

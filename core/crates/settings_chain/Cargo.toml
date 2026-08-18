@@ -23,6 +23,9 @@ gem_cosmos = { path = "../gem_cosmos", features = ["rpc", "reqwest"] }
 gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest"] }
 gem_hypercore = { path = "../gem_hypercore", features = ["reqwest"] }
 gem_near = { path = "../gem_near", features = ["rpc", "reqwest"] }
+gem_bsc = { path = "../gem_bsc", features = ["rpc"] }
+gem_everstake = { path = "../gem_everstake", features = ["rpc", "reqwest"] }
+gem_monad = { path = "../gem_monad", features = ["rpc"] }
 gem_optimism = { path = "../gem_optimism", features = ["rpc"] }
 gem_polkadot = { path = "../gem_polkadot", features = ["rpc", "reqwest"] }
 gem_solana = { path = "../gem_solana", features = ["rpc", "reqwest"] }
