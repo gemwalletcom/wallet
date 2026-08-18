@@ -61,6 +61,7 @@ public struct StateButton: View {
                     Text(textValue.text)
                         .foregroundStyle(textValue.style.color)
                         .truncationMode(textValue.truncationMode)
+                        .multilineTextAlignment(.center)
                 }
                 .font(textValue.style.font)
             }
