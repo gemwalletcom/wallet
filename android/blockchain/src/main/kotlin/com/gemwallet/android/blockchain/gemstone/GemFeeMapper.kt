@@ -2,7 +2,6 @@ package com.gemwallet.android.blockchain.gemstone
 
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.toFeePriority
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.FeeSelection
@@ -69,7 +68,7 @@ internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate
 internal fun GemTransactionLoadFee.toFee(
     priority: FeePriority,
 ): Fee {
-    val feeAssetId = checkNotNull(feeAsset.toAssetId()) { "Invalid fee asset ID: $feeAsset" }
+    val feeAssetId = AssetId(feeAsset)
     return when (feeAssetId.chain.toChainType()) {
         ChainType.Solana -> toSolanaFee(feeAssetId, priority)
         ChainType.Bitcoin,

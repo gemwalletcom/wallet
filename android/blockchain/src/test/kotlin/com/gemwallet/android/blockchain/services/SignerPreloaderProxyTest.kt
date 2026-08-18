@@ -6,10 +6,12 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetTempoUSDCe
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.ScanTransaction
 import io.mockk.coEvery
@@ -84,7 +86,7 @@ class SignerPreloaderProxyTest {
     @Test
     fun preload_usesFeeAssetIdFromGatewayWhenPresent() = runBlocking {
         val feeAsset = mockAssetTempoUSDCe()
-        val params = transferParams(feeAsset)
+        val params = transferParams(mockAsset(chain = Chain.Tempo, decimals = 6))
         stubPreload()
         coEvery { gateway.getTransactionLoad(any(), any()) } returns transactionData(
             gasPriceType = GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3"),
