@@ -6,15 +6,13 @@ import PrimitivesTestKit
 import Transfer
 
 public struct FeeAssetProviderMock: FeeAssetProvidable {
-    private let asset: Asset
-    private let balance: Balance
+    private let assetData: AssetData
 
-    public init(asset: Asset = .mock(), balance: Balance = .mock()) {
-        self.asset = asset
-        self.balance = balance
+    public init(asset: Asset = .mock(), balance: Balance = .mock(), price: Price? = nil) {
+        assetData = .mock(asset: asset, balance: balance, price: price)
     }
 
-    public func load(wallet _: Wallet, feeAssetId _: AssetId) async throws -> (Asset, Balance) {
-        (asset, balance)
+    public func load(walletId _: WalletId, feeAssetId _: AssetId) throws -> AssetData {
+        assetData
     }
 }

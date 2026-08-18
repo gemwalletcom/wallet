@@ -5,7 +5,7 @@ use std::str::FromStr;
 use alloy_primitives::{Address, Bytes, U256};
 use gem_evm::encode::{encode_erc20_approve_max_value, encode_erc20_transfer};
 use gem_evm::signer::{EvmSigner, TransactionParams, build_eip1559_transaction, sign_and_encode};
-use primitives::{SignerError, SignerInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, decode_hex, swap::ApprovalData};
+use primitives::{SignerError, SignerInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, decode_hex};
 
 use transaction::{TempoTransaction, TransactionCall};
 
@@ -21,57 +21,39 @@ impl EvmSigner for TempoSigner {
     fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap_data = &input.input_type.get_swap_data()?.data;
         let value = U256::from_str(&swap_data.value).map_err(SignerError::from_display)?;
-        sign_swap_call(
-            input,
-            &swap_data.to,
-            decode_hex(&swap_data.data)?,
-            input.get_swap_gas_limit()?,
-            value,
-            swap_data.approval.as_ref(),
-            private_key,
-        )
-    }
-}
-
-fn sign_swap_call(
-    input: &SignerInput,
-    contract_address: &str,
-    call_data: Vec<u8>,
-    gas_limit: u64,
-    value: U256,
-    approval: Option<&ApprovalData>,
-    private_key: &[u8],
-) -> Result<Vec<String>, SignerError> {
-    if value != U256::ZERO {
-        return Err(SignerError::invalid_input(
-            "Tempo's CALLVALUE is always 0; swap value must route through the ERC-20 call, not msg.value",
-        ));
-    }
-    let fee_token = get_fee_token(input)?;
-    let params = TransactionParams::from_input(input)?;
-    let swap_call = TransactionCall::new(Address::from_str(contract_address).map_err(SignerError::from_display)?, Bytes::from(call_data));
-
-    let (calls, gas_limit) = match approval {
-        Some(approval) => {
-            let approve_call = TransactionCall::new(
-                Address::from_str(&approval.token).map_err(SignerError::from_display)?,
-                Bytes::from(encode_erc20_approve_max_value(&approval.spender)?),
-            );
-            (vec![approve_call, swap_call], params.gas_limit + gas_limit)
+        if value != U256::ZERO {
+            return Err(SignerError::invalid_input(
+                "Tempo's CALLVALUE is always 0; swap value must route through the ERC-20 call, not msg.value",
+            ));
         }
-        None => (vec![swap_call], gas_limit),
-    };
+        let params = TransactionParams::from_input(input)?;
+        let swap_gas_limit = input.get_swap_gas_limit()?;
+        let swap_call = TransactionCall::new(
+            Address::from_str(&swap_data.to).map_err(SignerError::from_display)?,
+            Bytes::from(decode_hex(&swap_data.data)?),
+        );
+        let (calls, gas_limit) = match &swap_data.approval {
+            Some(approval) => {
+                let approve_call = TransactionCall::new(
+                    Address::from_str(&approval.token).map_err(SignerError::from_display)?,
+                    Bytes::from(encode_erc20_approve_max_value(&approval.spender)?),
+                );
+                (vec![approve_call, swap_call], params.gas_limit + swap_gas_limit)
+            }
+            None => (vec![swap_call], swap_gas_limit),
+        };
 
-    let transaction = TempoTransaction {
-        chain_id: params.chain_id,
-        max_priority_fee_per_gas: params.max_priority_fee_per_gas,
-        max_fee_per_gas: params.max_fee_per_gas,
-        gas_limit,
-        nonce: params.nonce,
-        fee_token,
-        calls,
-    };
-    Ok(vec![hex::encode(transaction.sign(private_key)?)])
+        let transaction = TempoTransaction {
+            chain_id: params.chain_id,
+            max_priority_fee_per_gas: params.max_priority_fee_per_gas,
+            max_fee_per_gas: params.max_fee_per_gas,
+            gas_limit,
+            nonce: params.nonce,
+            fee_token: get_fee_token(input)?,
+            calls,
+        };
+        Ok(vec![hex::encode(transaction.sign(private_key)?)])
+    }
 }
 
 fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {

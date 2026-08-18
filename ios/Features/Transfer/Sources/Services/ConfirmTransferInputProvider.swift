@@ -31,31 +31,28 @@ public struct ConfirmTransferInputProvider: Sendable {
             )
             let fee = transactionData.transactionData.fee
             let feeAssetId = fee.feeAssetId
-            let feeAsset: Asset
-            let feeAssetBalance: Balance
-            if feeAssetId == metadata.assetId {
-                feeAsset = request.data.type.asset
-                feeAssetBalance = metadata.assetBalance
-            } else {
-                (feeAsset, feeAssetBalance) = try await feeAssetProvider.load(wallet: request.wallet, feeAssetId: feeAssetId)
+            let feeAssetData = try feeAssetProvider.load(walletId: request.wallet.id, feeAssetId: feeAssetId)
+            var assetPrices = metadata.assetPrices
+            if let feePrice = feeAssetData.price {
+                assetPrices[feeAssetId] = feePrice
             }
             let metadata = TransferDataMetadata(
                 assetId: metadata.assetId,
                 feeAssetId: feeAssetId,
                 assetBalance: metadata.assetBalance,
-                assetFeeBalance: feeAssetBalance,
-                assetPrices: metadata.assetPrices,
+                assetFeeBalance: feeAssetData.balance,
+                assetPrices: assetPrices,
             )
             let input = ConfirmTransferInput(
                 transactionData: transactionData.transactionData,
                 transferAmount: TransferAmountCalculator().validate(
                     transferData: request.data,
                     availableValue: request.data.availableValue(metadata: metadata),
-                    feeAsset: feeAsset,
+                    feeAsset: feeAssetData.asset,
                     assetFeeBalance: metadata.feeAvailable,
                     fee: fee.fee,
                 ),
-                feeAsset: feeAsset,
+                feeAsset: feeAssetData.asset,
             )
             return ConfirmTransferPreload(
                 metadata: metadata,

@@ -6,7 +6,7 @@ use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
 use crate::{
     Asset, AssetId, Chain, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata,
-    known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC},
+    asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     nft::NFTAsset,
     perpetual::AccountDataType,
 };
@@ -54,8 +54,8 @@ impl TransactionInputType {
         let asset = self.get_asset();
         match self {
             TransactionInputType::Transfer(_) | TransactionInputType::Deposit(_) | TransactionInputType::Swap(_, _, _) if asset.chain == Chain::Tempo => asset.id.clone(),
-            TransactionInputType::Perpetual(_, _) if asset.chain == Chain::HyperCore => HYPERCORE_PERPETUAL_USDC.id.clone(),
-            _ if asset.chain == Chain::HyperCore => HYPERCORE_SPOT_USDC.id.clone(),
+            TransactionInputType::Perpetual(_, _) if asset.chain == Chain::HyperCore => HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+            _ if asset.chain == Chain::HyperCore => HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
             _ => AssetId::from_chain(asset.chain),
         }
     }

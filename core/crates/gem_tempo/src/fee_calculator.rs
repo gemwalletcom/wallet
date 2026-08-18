@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::provider::preload;
 use gem_evm::provider::preload_mapper::TransactionParams;
-use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmFeeCalculator};
+use gem_evm::rpc::{EthereumClient, EvmFeeCalculator};
 use num_bigint::BigInt;
 use primitives::{AssetId, Chain, TransactionFee, TransactionInputType, TransactionLoadInput};
 
@@ -14,7 +14,7 @@ use crate::fee::{FEE_MANAGER_ADDRESS, USD_CURRENCY, decode_set_user_fee_token, s
 use crate::mapper::map_asset_id;
 
 pub struct TempoFeeCalculator<C: Client + Clone> {
-    provider: EthereumProvider<C>,
+    client: EthereumClient<C>,
 }
 
 #[async_trait]
@@ -33,9 +33,7 @@ impl<C: Client + Clone> EvmFeeCalculator for TempoFeeCalculator<C> {
 
 impl<C: Client + Clone> TempoFeeCalculator<C> {
     pub fn new(client: EthereumClient<C>) -> Self {
-        Self {
-            provider: EthereumProvider::new_rpc_only(client),
-        }
+        Self { client }
     }
 
     async fn fee_asset(&self, input: &TransactionLoadInput) -> Result<AssetId, Box<dyn Error + Sync + Send>> {
@@ -78,13 +76,13 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
         Ok(map_asset_id(fee_asset))
     }
     async fn user_fee_token(&self, address: &str) -> Result<Address, Box<dyn Error + Send + Sync>> {
-        self.provider
+        self.client
             .call_contract(FEE_MANAGER_ADDRESS.parse()?, ITempoFeeManager::userTokensCall { user: address.parse()? })
             .await
     }
 
     async fn tip20_currency(&self, token_id: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
-        self.provider.call_contract(token_id.parse()?, ITIP20::currencyCall {}).await
+        self.client.call_contract(token_id.parse()?, ITIP20::currencyCall {}).await
     }
 }
 

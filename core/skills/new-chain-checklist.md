@@ -26,9 +26,9 @@ How to add a chain to Core. The unit of integration is a dedicated `crates/gem_<
 3. **Wiring**: seam-only chains extend the `evm_provider_extensions` helpers; wrapper chains diverge inside the factories' `ChainType::Ethereum` arms on `EVMChain::<Chain>` (provider) and on `Chain::<Chain>` in `GemChainSigner` (signer).
 4. **Equality gates**: family-wide `chain_type() == ChainType::Ethereum` gates now cover the chain automatically — audit each one the new chain newly satisfies (swap provider capability checks especially) and confirm the per-chain asset lists or route mappings still exclude it where unsupported. Chain-specific behavior gates on `Chain::<Chain>` (e.g. uniswap v4 gas limit for Tempo).
 5. **Generated models**: run `just generate` — typeshare (`ChainType`, `Chain`) and UniFFI bindings must ship in the same change or the apps crash on unknown enum values.
-6. **Apps**: regenerate models; the family `ChainType` means existing fee-mapping, namespace, and address-comparison switches already cover the chain. Both apps resolve validation/derivation/signing through gemstone, so most chain behavior needs no app code.
+6. **Apps**: regenerate models; the family `ChainType` means existing fee-mapping, namespace, and address-comparison switches already cover the chain. Both apps perform validation, derivation, and signing through gemstone, so most chain behavior needs no app code.
 7. **Docs**: update [FEATURES.md](../docs/FEATURES.md) tables (chain capabilities, WalletConnect, indexing, swap providers) in the same change.
 
 ## Fee assets
 
-`TransactionFee.fee_asset` is a required `Asset` end to end — every constructor takes it explicitly (native asset of the chain for standard chains), and a chain fee calculator overrides it when fees are paid in another asset (Tempo). No optional field, ID reconstruction, or default fill-in at the FFI boundary: apps always receive the concrete fee asset the calculator resolved.
+`TransactionFee.fee_asset` is a required `AssetId` end to end — every constructor takes it explicitly (native asset ID of the chain for standard chains), and a chain fee calculator sets it when fees are paid in another asset (Tempo). No optional field, ID reconstruction, or default fill-in at the FFI boundary: apps always receive the fee asset ID selected by the calculator.

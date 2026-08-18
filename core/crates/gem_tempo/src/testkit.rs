@@ -23,9 +23,6 @@ pub(crate) const TEMPO_TEST_USER_FEE_TOKEN: &str = "0x20C00000000000000000000014
 #[cfg(feature = "rpc")]
 pub(crate) const TEMPO_TEST_CBBTC_TOKEN: &str = "0x20C000000000000000000000c412Ec89D0c08be5";
 
-#[cfg(feature = "signer")]
-const SWAP_CALL_DATA: &str = "abcd";
-
 #[cfg(feature = "rpc")]
 pub(crate) fn mock_tempo_cbbtc_asset() -> Asset {
     Asset::mock_with_params(
@@ -62,7 +59,7 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, appro
             SwapData {
                 data: SwapQuoteData {
                     to: TEMPO_TEST_ROUTER_ADDRESS.to_string(),
-                    data: SWAP_CALL_DATA.to_string(),
+                    data: "abcd".to_string(),
                     gas_limit: has_approval.then(|| DEFAULT_SWAP_GAS_LIMIT.to_string()),
                     approval,
                     ..swap_data.data

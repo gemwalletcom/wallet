@@ -25,9 +25,10 @@ struct ConfirmTransferInputProviderTests {
     }
 
     @Test
-    func loadResolvesFeeAssetFromTransactionFeeId() async throws {
+    func loadUsesFeeAssetFromTransactionFee() async throws {
         let feeAsset = Asset.hypercoreUSDC()
         let feeAssetBalance = Balance.mock(available: 42)
+        let feeAssetPrice = Price.mock(price: 1)
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(
                 TransferTransactionData(
@@ -35,7 +36,7 @@ struct ConfirmTransferInputProviderTests {
                     transactionData: .mock(feeAsset: feeAsset),
                 ),
             )),
-            feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance),
+            feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
         )
 
         let result = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
@@ -43,6 +44,7 @@ struct ConfirmTransferInputProviderTests {
         #expect(result.input.feeAsset == feeAsset)
         #expect(result.metadata.assetFeeBalance == feeAssetBalance)
         #expect(result.metadata.feeAssetId == feeAsset.id)
+        #expect(result.metadata.feePrice == feeAssetPrice)
     }
 
     @Test

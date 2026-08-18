@@ -86,15 +86,6 @@ pub static HYPERCORE_SPOT_HYPE: LazyLock<Asset> =
     LazyLock::new(|| Asset::new(HYPERCORE_SPOT_HYPE_ASSET_ID.clone(), "Hyperliquid".to_string(), "HYPE".to_string(), 8, AssetType::TOKEN));
 pub static HYPERCORE_SPOT_USDC: LazyLock<Asset> =
     LazyLock::new(|| Asset::new(HYPERCORE_SPOT_USDC_ASSET_ID.clone(), USDC_NAME.to_string(), USDC_SYMBOL.to_string(), 8, AssetType::TOKEN));
-pub static HYPERCORE_PERPETUAL_USDC: LazyLock<Asset> = LazyLock::new(|| {
-    Asset::new(
-        HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
-        USDC_NAME.to_string(),
-        USDC_SYMBOL.to_string(),
-        6,
-        AssetType::PERPETUAL,
-    )
-});
 pub static HYPERCORE_SPOT_UBTC: LazyLock<Asset> =
     LazyLock::new(|| Asset::new(HYPERCORE_SPOT_UBTC_ASSET_ID.clone(), "Bitcoin".to_string(), "UBTC".to_string(), 10, AssetType::TOKEN));
 
