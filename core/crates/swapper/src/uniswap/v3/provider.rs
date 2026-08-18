@@ -59,8 +59,8 @@ impl UniswapV3 {
         let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
         Ok((
             evm_chain,
-            eth_address::parse_or_weth_address(from_asset, evm_chain)?,
-            eth_address::parse_or_weth_address(to_asset, evm_chain)?,
+            eth_address::parse_or_native_address(from_asset, evm_chain)?,
+            eth_address::parse_or_native_address(to_asset, evm_chain)?,
         ))
     }
 

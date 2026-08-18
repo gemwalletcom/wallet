@@ -15,7 +15,6 @@ use crate::{
         deadline::get_sig_deadline,
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
-        is_native_erc20,
         quote_result::{QuotePosition, get_best_quote},
         requires_native_wrapping,
         swap_route::{RouteData, build_swap_route, get_intermediaries},
@@ -66,7 +65,7 @@ impl UniswapV4 {
     }
 
     fn is_base_pair(token_in: &Address, token_out: &Address, evm_chain: &EVMChain) -> bool {
-        let base_set: HashSet<Address> = HashSet::from_iter(get_base_pair(evm_chain, is_native_erc20(evm_chain.to_chain())).unwrap().path_building_array());
+        let base_set: HashSet<Address> = HashSet::from_iter(get_base_pair(evm_chain, evm_chain.native_asset_contract().is_some()).unwrap().path_building_array());
         base_set.contains(token_in) || base_set.contains(token_out)
     }
 
@@ -74,7 +73,7 @@ impl UniswapV4 {
         if requires_native_wrapping(asset_id) {
             Ok(Address::ZERO)
         } else {
-            eth_address::parse_or_weth_address(asset_id, evm_chain)
+            eth_address::parse_or_native_address(asset_id, evm_chain)
         }
     }
 
@@ -99,7 +98,7 @@ impl UniswapV4 {
     async fn preload_pool_candidates(&self, chain: Chain, token_in: Address, token_out: Address) -> Result<(), SwapperError> {
         let deployment = get_uniswap_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
-        let base_pair = get_base_pair(&evm_chain, is_native_erc20(chain)).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract().is_some()).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let client = self.client_for(chain)?;
         let fee_tiers = self.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
@@ -154,7 +153,7 @@ impl Swapper for UniswapV4 {
         let deployment = get_uniswap_deployment_by_chain(&from_chain).ok_or(SwapperError::NotSupportedChain)?;
         let (evm_chain, token_in, token_out, from_value) = Self::parse_request(request)?;
         let fee_tiers = self.get_tiers();
-        let base_pair = get_base_pair(&evm_chain, is_native_erc20(from_chain)).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract().is_some()).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
         let quote_amount_in = if fee_token_is_input && fee_bps > 0 {
@@ -293,11 +292,15 @@ impl Swapper for UniswapV4 {
             .await?
             .approval_data()
         };
-        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_SWAP_GAS_LIMIT);
+        let swap_gas_limit = match from_asset.chain {
+            Chain::Tempo => 900_000,
+            _ => DEFAULT_SWAP_GAS_LIMIT,
+        };
+        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, swap_gas_limit);
 
         let sig_deadline = get_sig_deadline();
         let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-        let base_pair = get_base_pair(&evm_chain, is_native_erc20(from_asset.chain));
+        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract().is_some());
         let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, token_in, token_out);
 
         let commands = build_commands(
@@ -364,7 +367,10 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
 mod swap_integration_tests {
     use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
-    use primitives::{AssetId, Chain, asset_constants::ROBINHOOD_USDG_TOKEN_ID};
+    use primitives::{
+        AssetId, Chain,
+        asset_constants::{ROBINHOOD_USDG_TOKEN_ID, TEMPO_USDC_ASSET_ID},
+    };
     use std::sync::Arc;
 
     #[tokio::test]
@@ -423,6 +429,32 @@ mod swap_integration_tests {
             .await
             .map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
         assert!(!gas.is_empty());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_tempo_quotes() -> Result<(), SwapperError> {
+        let network_provider = Arc::new(NativeProvider::default());
+        let swap_provider = uniswap::default::boxed_uniswap_v4(network_provider);
+        let options = Options {
+            slippage: 100.into(),
+            use_max_amount: false,
+        };
+        let pathusd = primitives::asset_constants::TEMPO_PATHUSD_ASSET_ID.clone();
+
+        for (from_asset, to_asset) in [(TEMPO_USDC_ASSET_ID.clone(), pathusd.clone()), (pathusd, TEMPO_USDC_ASSET_ID.clone())] {
+            let request = QuoteRequest {
+                from_asset: from_asset.into(),
+                to_asset: to_asset.into(),
+                wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
+                destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
+                value: "1000000".into(),
+                options: options.clone(),
+            };
+            let quote = swap_provider.get_quote(&request).await?;
+            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        }
 
         Ok(())
     }

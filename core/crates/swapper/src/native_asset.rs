@@ -1,9 +1,18 @@
-use primitives::{AssetId, Chain};
+use primitives::{AssetId, EVMChain};
 
 pub fn requires_native_wrapping(asset_id: &AssetId) -> bool {
-    asset_id.is_native() && !is_native_erc20(asset_id.chain)
+    asset_id.is_native() && EVMChain::from_chain(asset_id.chain).and_then(|chain| chain.native_asset_contract()).is_none()
 }
 
-pub fn is_native_erc20(chain: Chain) -> bool {
-    chain == Chain::Celo
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_requires_native_wrapping() {
+        use primitives::Chain;
+
+        assert!(!requires_native_wrapping(&AssetId::from_chain(Chain::Celo)));
+        assert!(requires_native_wrapping(&AssetId::from_chain(Chain::Ethereum)));
+    }
 }

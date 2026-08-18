@@ -23,15 +23,35 @@ mod tests {
     use gem_evm::ethereum_address_checksum;
     use gem_evm::rpc::mapper::EthereumMapper;
     use gem_evm::rpc::model::Transaction as RpcTransaction;
+    use gem_evm::testkit::rpc_mock::{TEMPO_BATCHED_TRANSACTION_JSON, TEMPO_BATCHED_TRANSACTION_RECEIPT_JSON};
     use num_bigint::BigUint;
+    use primitives::testkit::json_rpc::load_json_rpc_result;
     use primitives::{
-        Chain, TransactionType,
+        Chain, TransactionSwapMetadata, TransactionType,
         asset_constants::{TEMPO_PATHUSD_ASSET_ID, TEMPO_USDC_ASSET_ID, TEMPO_USDC_TOKEN_ID},
     };
 
     fn map_tempo_transaction(transaction: &RpcTransaction, receipt: &TransactionReceipt) -> Transaction {
         let mapped = EthereumMapper::map_transaction(Chain::Tempo, transaction, receipt, &BigUint::from(1735671600u64)).unwrap();
         map_transaction(mapped, receipt).unwrap()
+    }
+
+    #[test]
+    fn test_map_transaction_batched_swap() {
+        let transaction = load_json_rpc_result::<RpcTransaction>(TEMPO_BATCHED_TRANSACTION_JSON);
+        let receipt = load_json_rpc_result::<TransactionReceipt>(TEMPO_BATCHED_TRANSACTION_RECEIPT_JSON);
+
+        let mapped_transaction = map_tempo_transaction(&transaction, &receipt);
+
+        assert_eq!(mapped_transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(mapped_transaction.fee, "595");
+        assert_eq!(mapped_transaction.fee_asset_id, TEMPO_USDC_ASSET_ID.clone());
+
+        let metadata: TransactionSwapMetadata = serde_json::from_value(mapped_transaction.metadata.unwrap()).unwrap();
+        assert_eq!(metadata.from_asset, TEMPO_USDC_ASSET_ID.clone());
+        assert_eq!(metadata.from_value, "200000");
+        assert_eq!(metadata.to_asset, TEMPO_PATHUSD_ASSET_ID.clone());
+        assert_eq!(metadata.to_value, "198979");
     }
 
     #[test]

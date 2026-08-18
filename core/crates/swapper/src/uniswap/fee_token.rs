@@ -7,8 +7,8 @@ use alloy_primitives::Address;
 use gem_evm::uniswap::path::BasePair;
 
 fn fee_token_priority(base_pair: Option<&BasePair>, token: &FeeToken) -> FeeTokenPriority {
-    if base_pair.is_some_and(|pair| token.address == pair.native) {
-        return FeeTokenPriority::Native;
+    if base_pair.is_some_and(|pair| token.address == pair.primary) {
+        return FeeTokenPriority::Primary;
     }
     if is_stablecoin_symbol(token.symbol) || base_pair.is_some_and(|pair| pair.stables.contains(&token.address)) {
         return FeeTokenPriority::Stable;
