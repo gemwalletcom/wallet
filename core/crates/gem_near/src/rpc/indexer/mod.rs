@@ -4,15 +4,14 @@ use std::{
     cmp::Reverse,
     collections::{BTreeMap, BTreeSet, HashMap},
     error::Error,
-    str::FromStr,
 };
 
 use futures::future::try_join_all;
 use gem_client::{Client, ClientExt};
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint};
 use primitives::Transaction;
 use serde::{Deserialize, Serialize};
-use serde_serializers::deserialize_u64_from_str;
+use serde_serializers::{deserialize_bigint_from_str, deserialize_biguint_from_str, deserialize_u64_from_str};
 
 use self::mapper::map_transaction;
 
@@ -45,7 +44,8 @@ struct TransfersResponse {
 
 #[derive(Debug, Deserialize)]
 pub(super) struct FastNearTransfer {
-    pub amount: String,
+    #[serde(deserialize_with = "deserialize_bigint_from_str")]
+    pub amount: BigInt,
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub block_timestamp: u64,
     pub predecessor_id: String,
@@ -89,22 +89,15 @@ struct FastNearExecutionOutcome {
 
 #[derive(Debug, Deserialize)]
 struct FastNearOutcome {
-    tokens_burnt: String,
-}
-
-impl FastNearExecutionOutcome {
-    fn tokens_burnt(&self) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
-        Ok(BigUint::from_str(&self.outcome.tokens_burnt)?)
-    }
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    tokens_burnt: BigUint,
 }
 
 impl FastNearTransaction {
-    fn fee(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let transaction_fee = self.execution_outcome.tokens_burnt()?;
-        self.receipts
-            .iter()
-            .try_fold(transaction_fee, |fee, receipt| Ok(fee + receipt.execution_outcome.tokens_burnt()?))
-            .map(|fee: BigUint| fee.to_string())
+    fn fee(&self) -> BigUint {
+        self.receipts.iter().fold(self.execution_outcome.outcome.tokens_burnt.clone(), |fee, receipt| {
+            fee + &receipt.execution_outcome.outcome.tokens_burnt
+        })
     }
 }
 
@@ -141,7 +134,7 @@ impl<C: Client> NearIndexer<C> {
         Ok(response.transfers)
     }
 
-    async fn get_transaction_fees(&self, transfers: &[FastNearTransfer], address: &str) -> Result<HashMap<String, String>, Box<dyn Error + Send + Sync>> {
+    async fn get_transaction_fees(&self, transfers: &[FastNearTransfer], address: &str) -> Result<HashMap<String, BigUint>, Box<dyn Error + Send + Sync>> {
         let transaction_ids = transfers
             .iter()
             .filter(|transfer| transfer.signer_id == address && transfer.predecessor_id == address)
@@ -156,7 +149,7 @@ impl<C: Client> NearIndexer<C> {
                 .transactions
                 .into_iter()
                 .map(|transaction| {
-                    let fee = transaction.fee()?;
+                    let fee = transaction.fee();
                     Ok((transaction.transaction.hash, fee))
                 })
                 .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()

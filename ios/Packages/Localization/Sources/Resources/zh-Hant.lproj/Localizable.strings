@@ -72,7 +72,8 @@
 "wallet.default_name" = "錢包 #%d";
 "wallet.default_name_chain" = "%@ 錢包 #%d";
 "wallet.copy_address" = "複製地址";
-"wallet.watch.tooltip.title" = "您正在觀察此錢包。";
+"wallet.watch.tooltip.title" = "僅供觀察的錢包。這些資金不受您控制。";
+"wallet.watch_empty_state_title" = "您正在觀察此錢包。";
 "wallet.stake" = "質押";
 "wallet.receive.no_memo_required" = "不需要備忘";
 "wallet.receive.no_destination_tag_required" = "不需要目的地標籤";
@@ -222,6 +223,7 @@
 "transaction.date" = "日期";
 "transaction.view_on" = "在 %@ 上查看";
 "transaction.status" = "狀態";
+"transaction.estimated_confirmation" = "預計確認";
 "transaction.status.confirmed" = "成功";
 "transaction.status.pending" = "等待確認";
 "transaction.status.failed" = "失敗";
@@ -424,6 +426,7 @@
 "info.network_fee.description" = "在 %@ 網路上的每筆交易都需要以 %@ 支付給礦工的手續費，以處理您的交易，Gem Wallet 不收取此費用。網路手續費會根據網路使用情況而有所不同。";
 "info.transaction.error.description" = "由於錯誤（例如資金不足、輸入無效或網路拒絕）導致交易無法完成。請查看詳細資訊並重試。";
 "info.transaction.pending.description" = "交易已提交並正在等待網路確認。處理時間可能有所不同。請回來查看更新。";
+"info.estimated_confirmation_description" = "此估算根據交易手續費和 %@ 網路目前的活動。實際確認時間可能會變更，且無法保證。";
 "info.transaction.success.description" = "交易已完成並在網路上確認。您可以查看詳細資訊來驗證其狀態。";
 "info.lock_time.description" = "鎖倉期（又稱解鎖期或解綁期）是指你發起解除質押後，資產在一段時間內無法使用的等待期間。";
 "info.price_impact.description" = "價格影響表示交易對價格的衝擊。價格影響越大，收到的代幣越少，可能因為流動性低或交易金額大。";

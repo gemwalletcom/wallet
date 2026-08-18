@@ -191,13 +191,6 @@ impl StreamProducer {
         .await
     }
 
-    pub async fn bind_exchange(&self, exchange: ExchangeName, queues: Vec<QueueName>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        for queue in queues {
-            self.bind_queue(&queue.to_string(), &exchange.to_string(), "").await?;
-        }
-        Ok(())
-    }
-
     pub async fn bind_queue_routing_key(&self, queue: QueueName, routing_key: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         let exchange_name = format!("{}{}", queue, ROUTING_KEY_EXCHANGE_SUFFIX);
         let queue_name = format!("{}.{}", queue, routing_key);
@@ -252,13 +245,6 @@ impl StreamProducer {
             }
         }
         Ok(true)
-    }
-
-    pub async fn publish_to_exchange<T>(&self, exchange: ExchangeName, message: &T) -> Result<bool, Box<dyn Error + Send + Sync>>
-    where
-        T: serde::Serialize,
-    {
-        self.publish_message(&exchange.to_string(), "", message).await
     }
 
     pub async fn publish_to_exchange_with_routing_key<T>(&self, exchange: ExchangeName, routing_key: &str, message: &T) -> Result<bool, Box<dyn Error + Send + Sync>>

@@ -50,8 +50,7 @@ import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetContextMenuRow
-import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -80,13 +79,13 @@ import kotlinx.coroutines.flow.drop
 @Composable
 fun AssetSelectScene(
     title: String,
-    popular: ImmutableList<AssetItemUIModel>,
-    pinned: ImmutableList<AssetItemUIModel>,
-    unpinned: ImmutableList<AssetItemUIModel>,
+    popular: ImmutableList<AssetInfoDataAggregate>,
+    pinned: ImmutableList<AssetInfoDataAggregate>,
+    unpinned: ImmutableList<AssetInfoDataAggregate>,
     recent: ImmutableList<Asset>,
     state: UIState,
-    titleBadge: (AssetItemUIModel) -> String?,
-    support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
+    titleBadge: (AssetInfoDataAggregate) -> String?,
+    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
     tags: List<AssetTag?>,
     selectedTag: AssetTag?,
@@ -96,7 +95,7 @@ fun AssetSelectScene(
     balanceFilter: Boolean = false,
     searchable: Boolean = true,
     onAction: (AssetSelectAction) -> Unit,
-    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
+    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     contextActions: AssetContextActions = AssetContextActions.Empty,
     recentsSheetEnabled: Boolean = false,
@@ -138,13 +137,13 @@ fun AssetSelectScene(
 @Composable
 fun AssetSelectScene(
     title: @Composable () -> Unit,
-    popular: ImmutableList<AssetItemUIModel>,
-    pinned: ImmutableList<AssetItemUIModel>,
-    unpinned: ImmutableList<AssetItemUIModel>,
+    popular: ImmutableList<AssetInfoDataAggregate>,
+    pinned: ImmutableList<AssetInfoDataAggregate>,
+    unpinned: ImmutableList<AssetInfoDataAggregate>,
     recent: ImmutableList<Asset>,
     state: UIState,
-    titleBadge: (AssetItemUIModel) -> String?,
-    support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
+    titleBadge: (AssetInfoDataAggregate) -> String?,
+    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
     tags: List<AssetTag?>,
     selectedTag: AssetTag?,
@@ -154,7 +153,7 @@ fun AssetSelectScene(
     balanceFilter: Boolean = false,
     searchable: Boolean = true,
     onAction: (AssetSelectAction) -> Unit,
-    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
+    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     contextActions: AssetContextActions = AssetContextActions.Empty,
     recentsSheetEnabled: Boolean = false,
@@ -301,12 +300,12 @@ fun AssetSelectScene(
 }
 
 private fun LazyListScope.assets(
-    items: List<AssetItemUIModel>,
+    items: List<AssetInfoDataAggregate>,
     group: AssetsGroupType,
     onSelect: ((AssetId) -> Unit)?,
-    support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
-    titleBadge: (AssetItemUIModel) -> String?,
-    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)?,
+    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
+    titleBadge: (AssetInfoDataAggregate) -> String?,
+    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
     contextActions: AssetContextActions,
 ) {
@@ -318,11 +317,11 @@ private fun LazyListScope.assets(
 }
 
 fun LazyListScope.assetRows(
-    items: List<AssetItemUIModel>,
+    items: List<AssetInfoDataAggregate>,
     onSelect: ((AssetId) -> Unit)?,
-    support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
-    titleBadge: (AssetItemUIModel) -> String?,
-    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)?,
+    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
+    titleBadge: (AssetInfoDataAggregate) -> String?,
+    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
     contextActions: AssetContextActions,
     indexOffset: Int = 0,
@@ -345,19 +344,19 @@ fun LazyListScope.assetRows(
 @Composable
 fun AssetSelectRow(
     position: ListPosition,
-    item: AssetItemUIModel,
-    support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
-    titleBadge: (AssetItemUIModel) -> String?,
-    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)?,
+    item: AssetInfoDataAggregate,
+    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
+    titleBadge: (AssetInfoDataAggregate) -> String?,
+    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
     onSelect: ((AssetId) -> Unit)?,
     contextActions: AssetContextActions,
 ) {
     AssetContextMenuRow(
         assetId = item.asset.id,
-        address = item.owner,
-        isPinned = item.metadata?.isPinned == true,
-        isBalanceEnabled = item.metadata?.isBalanceEnabled == true,
+        address = item.accountAddress,
+        isPinned = item.pinned,
+        isBalanceEnabled = item.balanceEnabled,
         longPressed = longPressedAsset,
         actions = contextActions,
         onClick = { onSelect?.invoke(item.asset.id) },
@@ -446,9 +445,9 @@ private fun LazyListScope.recent(
 fun PreviewAssetScreenUI() {
     MaterialTheme {
         AssetSelectScene(
-            pinned = emptyList<AssetInfoUIModel>().toImmutableList(),
-            unpinned = emptyList<AssetInfoUIModel>().toImmutableList(),
-            popular = emptyList<AssetInfoUIModel>().toImmutableList(),
+            pinned = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+            unpinned = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+            popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
             recent = emptyList<Asset>().toImmutableList(),
             state = UIState.Idle,
             title = "Send",

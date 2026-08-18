@@ -7,66 +7,44 @@ import Primitives
 import Style
 import SwiftUI
 
-@Observable
-@MainActor
-public final class NetworkFeeSceneViewModel {
-    public enum Mode: Sendable {
-        case standard
-        case custom
-    }
-
+public struct NetworkFeeSceneViewModel {
     private let chain: Chain
     private let feeAsset: Asset
     private let currency: Currency
-    private let mode: Mode
-
-    private var rates: [FeeRate] = []
-    private var feeAssetPrice: Price?
-
-    public var selection: FeeSelection
-    public var feeAmount: BigInt?
+    private let selection: FeeSelection
+    private let rates: [FeeRate]
+    private let feeAssetPrice: Price?
+    private let feeAmount: BigInt?
+    private let onSelect: (@MainActor (FeeSelection) -> Void)?
 
     public init(
         chain: Chain,
         feeAsset: Asset,
-        priority: FeePriority,
         currency: Currency,
+        selection: FeeSelection,
+        rates: [FeeRate] = [],
+        feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
-        mode: Mode = .standard,
+        onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
     ) {
         self.chain = chain
         self.feeAsset = feeAsset
-        selection = .preset(priority)
         self.currency = currency
+        self.selection = selection
+        self.rates = rates
+        self.feeAssetPrice = feeAssetPrice
         self.feeAmount = feeAmount
-        self.mode = mode
+        self.onSelect = onSelect
     }
 
     // MARK: - Network Fee
 
-    public var title: String {
-        Localized.Transfer.networkFee
-    }
-
-    public var infoIcon: String {
-        Localized.FeeRates.info
-    }
-
-    public var value: String? {
-        feeAmount.map { display(for: $0).amount.text }
-    }
-
-    public var fiatValue: String? {
-        feeAmount.flatMap { display(for: $0).fiat?.text }
-    }
-
-    public var showFeeRates: Bool {
-        rates.count > 1
-    }
-
-    public var showFeeDetails: Bool {
-        showFeeRates || feeAmount != nil
-    }
+    public var title: String { Localized.Transfer.networkFee }
+    public var infoIcon: String { Localized.FeeRates.info }
+    public var value: String? { feeAmount.map { display(for: $0).amount.text } }
+    public var fiatValue: String? { feeAmount.flatMap { display(for: $0).fiat?.text } }
+    public var showFeeRates: Bool { rates.count > 1 }
+    public var showFeeDetails: Bool { showFeeRates || feeAmount != nil }
 
     // MARK: - Fee Rates
 
@@ -101,10 +79,6 @@ public final class NetworkFeeSceneViewModel {
         }
     }
 
-    private var feeRateDecimals: Int {
-        chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt)
-    }
-
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
         estimatedFee(for: rate.feeRate).flatMap { display(for: $0).fiat?.text }
     }
@@ -116,21 +90,11 @@ public final class NetworkFeeSceneViewModel {
 
     // MARK: - Custom Fee
 
-    public var supportsCustomFee: Bool {
-        switch mode {
-        case .standard: false
-        case .custom: chain.customFeeEnabled && showFeeRates
-        }
-    }
+    public var supportsCustomFee: Bool { onSelect != nil && chain.customFeeEnabled && showFeeRates }
+    public var isCustomSelected: Bool { selection.customRate != nil }
+    public var customRowItem: ListItemModel { rowItem(title: Localized.FeeRate.custom, rate: customFeeRateViewModel) }
 
-    public var isCustomSelected: Bool {
-        selection.customRate != nil
-    }
-
-    public var customRowItem: ListItemModel {
-        rowItem(title: Localized.FeeRate.custom, rate: customFeeRateViewModel)
-    }
-
+    @MainActor
     public func customFeeModel() -> NetworkFeeCustomViewModel {
         NetworkFeeCustomViewModel(
             chain: chain,
@@ -141,37 +105,21 @@ public final class NetworkFeeSceneViewModel {
             baseTotal: selectedBaseTotalFee,
             normalTotal: (rates.first(where: { $0.priority == .normal }) ?? rates.first)?.gasPriceType.totalFee ?? selectedBaseTotalFee,
             initialRate: selection.customRate,
-            onSelect: { [weak self] rate in
-                self?.selection = .custom(rate)
-            },
+            onSelect: { onSelect?(.custom($0)) },
         )
     }
-}
 
-// MARK: - Business Logic
-
-public extension NetworkFeeSceneViewModel {
-    func update(rates: [FeeRate], feeAssetPrice: Price?) {
-        self.rates = rates
-        self.feeAssetPrice = feeAssetPrice
-    }
-
-    func update(feeAmount: BigInt?) {
-        self.feeAmount = feeAmount
-    }
-
-    func select(_ selection: FeeSelection) {
-        self.selection = selection
-    }
-
-    func reset() {
-        feeAmount = nil
+    @MainActor
+    public func select(_ selection: FeeSelection) {
+        onSelect?(selection)
     }
 }
 
 // MARK: - Private
 
 private extension NetworkFeeSceneViewModel {
+    var feeRateDecimals: Int { chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt) }
+
     var customFeeRateViewModel: FeeRateViewModel? {
         selection.customRate.map {
             FeeRateViewModel(

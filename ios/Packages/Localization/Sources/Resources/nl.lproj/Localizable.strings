@@ -72,7 +72,8 @@
 "wallet.default_name" = "Portemonnee #%d";
 "wallet.default_name_chain" = "%@ Portemonnee #%d";
 "wallet.copy_address" = "Kopieer adres";
-"wallet.watch.tooltip.title" = "Je houdt deze portemonnee in de gaten.";
+"wallet.watch.tooltip.title" = "Alleen-kijken-portemonnee. Je hebt geen controle over deze tegoeden.";
+"wallet.watch_empty_state_title" = "Je houdt deze portemonnee in de gaten.";
 "wallet.stake" = "Inzet";
 "wallet.receive.no_memo_required" = "Geen notitie vereist";
 "wallet.receive.no_destination_tag_required" = "Geen bestemmingstag vereist";
@@ -222,6 +223,7 @@
 "transaction.date" = "Datum";
 "transaction.view_on" = "Bekijk op %@";
 "transaction.status" = "Status";
+"transaction.estimated_confirmation" = "Geschatte bevestiging";
 "transaction.status.confirmed" = "Succesvol";
 "transaction.status.pending" = "In behandeling";
 "transaction.status.failed" = "Mislukt";
@@ -424,6 +426,7 @@
 "info.network_fee.description" = "Voor elke transactie op het %@ netwerk is een vergoeding van %@ vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.";
 "info.transaction.error.description" = "De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.";
 "info.transaction.pending.description" = "De transactie is verzonden en wacht op bevestiging op het netwerk. Verwerkingstijden kunnen variëren. Kom later terug voor updates.";
+"info.estimated_confirmation_description" = "Deze schatting is gebaseerd op de transactiekosten en de huidige activiteit op het %@-netwerk. De werkelijke bevestigingstijd kan veranderen en wordt niet gegarandeerd.";
 "info.transaction.success.description" = "De transactie is voltooid en bevestigd op het netwerk. U kunt de details bekijken om de status ervan te verifiëren.";
 "info.lock_time.description" = "De vergrendelingstijd, ook wel de unbonding- of unfreezing-periode genoemd, is de tijdsduur gedurende welke de inzet van activa ontoegankelijk is nadat u besluit deze weer op te heffen.";
 "info.price_impact.description" = "Prijsimpact is de verandering in de tokenprijs die wordt veroorzaakt door de omvang van uw transactie. Een hogere prijsimpact betekent dat u minder tokens ontvangt vanwege de lage liquiditeit of een grote ordergrootte.";

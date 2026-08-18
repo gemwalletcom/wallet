@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 
-fun getAssetBadge(item: AssetItemUIModel): String {
+fun getAssetBadge(item: AssetInfoDataAggregate): String {
     return if (item.asset.symbol == item.asset.name) "" else item.asset.symbol
 }

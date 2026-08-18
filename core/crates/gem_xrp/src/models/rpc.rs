@@ -1,7 +1,19 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use serde::{Deserialize, Serialize};
-use serde_serializers::{deserialize_biguint_from_str, deserialize_u64_from_str};
+use serde::{Deserialize, Serialize, de};
+use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_u64_from_str};
+
+use primitives::TransactionState;
+
+use crate::constants::{RESULT_SUCCESS, XRP_DEFAULT_ASSET_DECIMALS};
+
+fn deserialize_issued_amount<'de, D>(deserializer: D) -> Result<BigUint, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    let amount = String::deserialize(deserializer)?;
+    BigNumberFormatter::value_from_amount_biguint(&amount, XRP_DEFAULT_ASSET_DECIMALS).map_err(de::Error::custom)
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LedgerCurrent {
@@ -71,7 +83,8 @@ pub struct AccountLedgerTransaction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountLedgerTransactionJSON {
     #[serde(rename = "Fee")]
-    pub fee: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub fee: Option<BigUint>,
     #[serde(rename = "Account")]
     pub account: Option<String>,
     #[serde(rename = "DeliverMax")]
@@ -91,7 +104,8 @@ pub struct AccountLedgerTransactionJSON {
 pub struct Transaction {
     pub hash: String,
     #[serde(rename = "Fee")]
-    pub fee: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub fee: Option<BigUint>,
     #[serde(rename = "Account")]
     pub account: Option<String>,
     #[serde(rename = "Amount")]
@@ -120,7 +134,7 @@ pub struct TransactionMeta {
 #[serde(untagged)]
 pub enum Amount {
     Null,
-    Str(String),
+    Str(#[serde(deserialize_with = "deserialize_biguint_from_str")] BigUint),
     Amount(AmountCurrency),
 }
 
@@ -128,8 +142,8 @@ impl Amount {
     pub fn as_value_string(&self) -> Option<String> {
         match self {
             Amount::Null => None,
-            Amount::Str(amount) => Some(amount.clone()),
-            Amount::Amount(amount) => BigNumberFormatter::value_from_amount(&amount.value, 15).ok(),
+            Amount::Str(amount) => Some(amount.to_string()),
+            Amount::Amount(amount) => Some(amount.value.to_string()),
         }
     }
 
@@ -144,7 +158,8 @@ impl Amount {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AmountCurrency {
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_issued_amount")]
+    pub value: BigUint,
     pub issuer: Option<String>,
     pub currency: Option<String>,
     pub mpt_issuance_id: Option<String>,
@@ -218,10 +233,23 @@ pub struct TransactionJson {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionStatus {
-    pub status: String,
+    #[serde(default)]
+    pub validated: bool,
+    #[serde(rename = "metaData", alias = "meta")]
+    pub meta: Option<TransactionMeta>,
     #[serde(rename = "Fee")]
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub fee: BigUint,
+}
+
+impl TransactionStatus {
+    pub fn state(&self) -> TransactionState {
+        match &self.meta {
+            Some(meta) if self.validated && meta.result == RESULT_SUCCESS => TransactionState::Confirmed,
+            Some(_) if self.validated => TransactionState::Failed,
+            _ => TransactionState::Pending,
+        }
+    }
 }
 
 #[cfg(test)]

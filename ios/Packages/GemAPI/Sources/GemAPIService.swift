@@ -37,10 +37,6 @@ public extension GemAPIAssetsService {
     }
 }
 
-public protocol GemAPINameService: Sendable {
-    func getName(name: String, chain: String) async throws -> NameRecord?
-}
-
 public protocol GemAPIAddressNamesService: Sendable {
     func getAddressNames(requests: [ChainAddress]) async throws -> [AddressName]
 }
@@ -66,7 +62,7 @@ public protocol GemAPISubscriptionService: Sendable {
 public protocol GemAPITransactionService: Sendable {
     func getDeviceTransactions(walletId: WalletId, fromTimestamp: Int) async throws -> TransactionsResponse
     func getDeviceTransactionsForAsset(walletId: WalletId, asset: AssetId, fromTimestamp: Int) async throws -> TransactionsResponse
-    func getDeviceTransaction(transactionId: TransactionId) async throws -> Transaction
+    func getDeviceTransaction(walletId: WalletId, transactionId: TransactionId) async throws -> Transaction
 }
 
 public protocol GemAPIPriceAlertService: Sendable {
@@ -178,7 +174,7 @@ extension GemAPIService: GemAPIConfigService {
     }
 }
 
-extension GemAPIService: GemAPINameService {
+extension GemAPIService: NameServiceable {
     public func getName(name: String, chain: String) async throws -> NameRecord? {
         try await requestDevice(.getNameRecord(name: name, chain: chain))
             .mapResponse(as: NameRecord?.self)
@@ -211,8 +207,8 @@ extension GemAPIService: GemAPITransactionService {
             .mapResponse(as: TransactionsResponse.self)
     }
 
-    public func getDeviceTransaction(transactionId: TransactionId) async throws -> Transaction {
-        try await requestDevice(.getTransaction(transactionId: transactionId))
+    public func getDeviceTransaction(walletId: WalletId, transactionId: TransactionId) async throws -> Transaction {
+        try await requestDevice(.getTransaction(walletId: walletId, transactionId: transactionId))
             .mapResponse(as: Transaction.self)
     }
 }

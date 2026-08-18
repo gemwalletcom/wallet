@@ -25,3 +25,13 @@ fun buildExtendedTransactionsSql(
         .orderBy("tx.createdAt DESC")
         .build()
 }
+
+fun buildTransactionsCountSql(
+    walletId: WalletId,
+    filters: List<TransactionsRequestFilter>,
+): SqlQuery {
+    val source = EXTENDED_SOURCE.replace(":walletId", "?")
+    return SqlQueryBuilder(baseSql = "SELECT COUNT(DISTINCT tx.id) $source", baseArgs = listOf(walletId.id))
+        .whereAll(filters.map { it.toSqlClause() })
+        .build()
+}

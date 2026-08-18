@@ -212,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_delegatie_call() {
+    fn test_encode_delegate_call() {
         let data = encode_delegate_call("0x773760b0708a5Cc369c346993a0c225D8e4043B1", false).unwrap();
 
         assert_eq!(
@@ -222,7 +222,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_undelegatie_call() {
+    fn test_encode_undelegate_call() {
         let data = encode_undelegate_call("0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A", "99794610853032924").unwrap();
 
         assert_eq!(
@@ -232,7 +232,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_redelegatie_call() {
+    fn test_encode_redelegate_call() {
         let data = encode_redelegate_call(
             "0x773760b0708a5Cc369c346993a0c225D8e4043B1",
             "0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A",

@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use num_bigint::BigUint;
 use primitives::{Transaction, TransactionState, TransactionType, chain::Chain};
 
 use crate::constants::{TRANSACTION_TYPE_TRANSFER_ALLOW_DEATH, TRANSACTION_TYPE_TRANSFER_KEEP_ALIVE};
@@ -47,7 +48,7 @@ pub fn map_transaction(chain: Chain, transaction: Extrinsic, created_at: DateTim
     }
 }
 
-fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address: String, value: String, created_at: DateTime<Utc>) -> Option<Transaction> {
+fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address: String, value: BigUint, created_at: DateTime<Utc>) -> Option<Transaction> {
     if method != TRANSACTION_TYPE_TRANSFER_ALLOW_DEATH && method != TRANSACTION_TYPE_TRANSFER_KEEP_ALIVE {
         return None;
     }
@@ -63,9 +64,9 @@ fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address
         None,
         TransactionType::Transfer,
         state,
-        transaction.info.partial_fee.unwrap_or("0".to_string()),
+        transaction.info.partial_fee.unwrap_or_default().to_string(),
         chain.as_asset_id(),
-        value,
+        value.to_string(),
         None,
         None,
         created_at,

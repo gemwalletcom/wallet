@@ -86,7 +86,9 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 nft::get_nft_collection_preview,
                 markets::get_markets,
                 referral::get_rewards_leaderboard,
+                chain::fee::get_fee_estimates,
                 swap::post_near_intents_quote,
+                swap::post_swaps_xyz_action,
                 swap::okx::post_okx_quote_v6,
                 swap::okx::post_okx_swap_v6,
             ],
@@ -162,6 +164,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 chain::block::get_latest_block_number,
                 chain::block::get_block_transactions,
                 chain::block::get_block_transactions_finalize,
+                chain::fee::get_chain_fee_estimates,
                 chain::node::get_nodes_status,
                 chain::swap::get_swap_result,
                 chain::swap::get_swap_quote,
@@ -269,6 +272,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     );
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
     let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
+    let swaps_xyz_client = swap::SwapsXyzProxyClient::new(cacher_client.clone());
     let okx_provider = OkxProviderProxy::new(
         OkxClientConfig {
             api_key: settings.swap.okx.key.public.clone(),
@@ -316,6 +320,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         .manage(support_client)
         .manage(support_image_upload_config)
         .manage(near_intents_client)
+        .manage(swaps_xyz_client)
         .manage(okx_provider)
         .manage(portfolio_client)
         .manage(auth_client)

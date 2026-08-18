@@ -83,9 +83,7 @@ class PriceAlertDataAggregateImpl(
 
     override val price: String
         get() = priceAlert.price?.let { value ->
-            Currency.entries.firstOrNull { it.string == priceAlert.currency }
-                ?.let { CurrencyFormatter(currency = it).string(value) }
-                ?: ""
+            CurrencyFormatter(currency = priceAlert.currency).string(value)
         } ?: assetPrice?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) }.orEmpty()
 
     override val percentage: String

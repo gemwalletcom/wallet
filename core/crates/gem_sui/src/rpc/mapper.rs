@@ -1,6 +1,6 @@
-use std::{error::Error, str::FromStr};
+use std::error::Error;
 
-use num_bigint::{BigInt, BigUint};
+use num_bigint::BigUint;
 
 use super::proto::{self, Command, OwnerKind, Timestamp};
 use crate::models::transaction::{STATUS_FAILURE, STATUS_SUCCESS, SuiStatus};
@@ -113,7 +113,7 @@ fn map_balance_change(change: proto::BalanceChange) -> Result<BalanceChange, Box
     Ok(BalanceChange {
         owner: Owner::OwnerObject(OwnerObject { address_owner: change.address }),
         coin_type: change.coin_type.ok_or("missing Sui balance change coin type")?,
-        amount: BigInt::from_str(&change.amount.ok_or("missing Sui balance change amount")?)?,
+        amount: change.amount.ok_or("missing Sui balance change amount")?,
     })
 }
 

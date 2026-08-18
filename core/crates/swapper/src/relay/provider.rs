@@ -242,6 +242,8 @@ mod swap_integration_tests {
     use super::*;
     use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use primitives::AssetId;
+    use primitives::asset_constants::{CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
+    use std::collections::HashMap;
 
     #[tokio::test]
     async fn test_relay_eth_to_base() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -306,9 +308,6 @@ mod swap_integration_tests {
 
     #[tokio::test]
     async fn test_relay_celo_to_bsc_usdt() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        use primitives::asset_constants::{CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
-        use std::collections::HashMap;
-
         let provider = Arc::new(NativeProvider::new_with_endpoints(HashMap::from([(Chain::Celo, "https://forno.celo.org".to_string())])));
         let relay = Relay::new(provider);
 

@@ -20,7 +20,7 @@ class ExcludePriceAlertImpl(
         priceAlertRepository.getPriceAlert(priceAlertId)?.priceAlert?.let { priceAlert ->
             invoke(
                 priceAlert.assetId,
-                Currency.entries.firstOrNull { it.string == priceAlert.currency },
+                priceAlert.currency,
                 priceAlert.price,
                 priceAlert.pricePercentChange,
                 priceAlert.priceDirection
@@ -35,7 +35,7 @@ class ExcludePriceAlertImpl(
         percentage: Double?,
         direction: PriceAlertDirection?,
     ) {
-        val currency = currency?.string ?: sessionRepository.getCurrentCurrency().string
+        val currency = currency ?: sessionRepository.getCurrentCurrency()
         val priceAlert = PriceAlert(
             assetId = assetId,
             currency = currency,

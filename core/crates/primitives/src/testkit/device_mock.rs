@@ -1,4 +1,4 @@
-use crate::{Device, Platform, PlatformStore};
+use crate::{Device, DeviceLocale, Platform, PlatformStore, currency::Currency};
 
 impl Device {
     pub fn mock() -> Self {
@@ -9,9 +9,9 @@ impl Device {
             os: "iOS 17.0".to_string(),
             model: "iPhone 15".to_string(),
             token: "test-token-123".to_string(),
-            locale: "en".to_string(),
+            locale: DeviceLocale::EN,
             version: "1.0.0".to_string(),
-            currency: "USD".to_string(),
+            currency: Currency::USD,
             is_push_enabled: true,
             is_price_alerts_enabled: Some(true),
             subscriptions_version: 1,

@@ -89,5 +89,8 @@ public struct WalletsScene: View {
         )
         .navigationBarTitle(model.title)
         .bindQuery(model.pinnedWalletsQuery, model.walletsQuery)
+        .onChange(of: model.hasWallets) {
+            model.onChangeWallets(dismiss: dismiss)
+        }
     }
 }

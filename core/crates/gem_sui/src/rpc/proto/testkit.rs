@@ -1,12 +1,14 @@
+use num_bigint::BigInt;
+
 use crate::rpc::proto::transactions::{ExecutionError, ExecutionStatus};
 use crate::rpc::proto::{BalanceChange, TransactionEffects};
 
 impl BalanceChange {
-    pub fn mock(address: &str, coin_type: &str, amount: &str) -> Self {
+    pub fn mock(address: &str, coin_type: &str, amount: i64) -> Self {
         Self {
             address: Some(address.to_string()),
             coin_type: Some(coin_type.to_string()),
-            amount: Some(amount.to_string()),
+            amount: Some(BigInt::from(amount)),
         }
     }
 }

@@ -27,6 +27,7 @@ use streamer::{
 
 use crate::consumers::runner::ChainConsumerRunner;
 use crate::consumers::{chain_providers, chain_providers_for, consumer_config, reader_config};
+use crate::model::{IndexerConsumer, IndexerService};
 
 use fetch_address_transactions_consumer::FetchAddressTransactionsConsumer;
 use fetch_assets_consumer::FetchAssetsConsumer;
@@ -41,29 +42,20 @@ use fetch_transaction_consumer::FetchTransactionConsumer;
 
 pub async fn run_consumer_indexer(
     settings: Settings,
+    service: IndexerService,
     shutdown_rx: ShutdownReceiver,
     reporter: Arc<dyn ConsumerStatusReporter>,
-    only: Option<crate::model::IndexerConsumer>,
+    only: Option<IndexerConsumer>,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
-    use crate::model::IndexerConsumer::*;
+    use IndexerConsumer::*;
 
     let database = Database::new(&settings.postgres.url, settings.postgres.pool);
     let settings = Arc::new(settings);
 
-    let selected: Vec<crate::model::IndexerConsumer> = match only {
-        Some(one) => vec![one],
-        None => vec![
-            FetchBlocks,
-            FetchAssets,
-            FetchLists,
-            FetchPrices,
-            FetchTokenAssociations,
-            FetchCoinAssociations,
-            FetchNftAssociations,
-            FetchNftAssets,
-            FetchAddressTransactions,
-            FetchTransactions,
-        ],
+    let selected = match only {
+        Some(consumer) if service.consumers().contains(&consumer) => vec![consumer],
+        Some(consumer) => return Err(format!("Indexer consumer {} does not belong to {}", consumer.as_ref(), service.as_ref()).into()),
+        None => service.consumers().to_vec(),
     };
 
     let handles: Vec<_> = selected

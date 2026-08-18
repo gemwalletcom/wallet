@@ -103,11 +103,16 @@ data class SwapSelection(
 fun rememberWalletNavigationState(
     startDestination: NavKey,
     currentTab: MutableState<String>,
+    assetNavigationPolicy: AssetNavigationPolicy,
 ): WalletNavigator {
     return key(startDestination) {
         val backStack = rememberWalletNavBackStack(startDestination)
-        remember(backStack, currentTab) {
-            WalletNavigator(backStack = backStack, currentTab = currentTab)
+        remember(backStack, currentTab, assetNavigationPolicy) {
+            WalletNavigator(
+                backStack = backStack,
+                currentTab = currentTab,
+                assetNavigationPolicy = assetNavigationPolicy,
+            )
         }
     }
 }
@@ -115,6 +120,7 @@ fun rememberWalletNavigationState(
 class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
+    private val assetNavigationPolicy: AssetNavigationPolicy,
 ) {
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
@@ -193,7 +199,11 @@ class WalletNavigator(
     fun finishWalletSecurityReminder(walletId: WalletId, type: WalletType) = replaceTop(WalletPhraseRoute(walletId, type))
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
-    fun openAsset(assetId: AssetId) = push(AssetRoute(assetId))
+    fun openAsset(assetId: AssetId) {
+        if (assetNavigationPolicy.canOpen(assetId)) {
+            push(AssetRoute(assetId))
+        }
+    }
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openAssetChart(assetId: AssetId) = push(AssetChartRoute(assetId))
     fun openPortfolioChart(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioChartRoute(type))

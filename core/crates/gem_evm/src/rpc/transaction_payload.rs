@@ -3,6 +3,7 @@ use num_traits::Num;
 
 use crate::{
     address::{ethereum_address_checksum, ethereum_address_from_topic},
+    constants::TRANSFER_GAS_LIMIT,
     rpc::model::{Log, Transaction, TransactionReceipt},
 };
 
@@ -15,8 +16,6 @@ const FUNCTION_ERC1155_TRANSFER: &str = "0xf242432a";
 pub(crate) const TRANSFER_TOPIC: &str = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 const APPROVAL_TOPIC: &str = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925";
 const TRANSFER_SINGLE: &str = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62";
-const TRANSFER_GAS_LIMIT: u64 = 21000;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LogSearch {
     FirstMatch,
@@ -75,7 +74,7 @@ impl TransactionPayload {
                 Some(approval) => Self::Erc20Approve(approval),
                 None => Self::SmartContractCall,
             },
-            input if input.starts_with(FUNCTION_ERC20_TRANSFER) => match Self::erc20_transfer(transaction_receipt) {
+            input if input.starts_with(FUNCTION_ERC20_TRANSFER) => match Self::erc20_transfer_events(transaction_receipt).next() {
                 Some(transfer) => Self::Erc20Transfer(transfer),
                 None => Self::SmartContractCall,
             },
@@ -85,7 +84,7 @@ impl TransactionPayload {
             input if input.starts_with(FUNCTION_ERC1155_TRANSFER) => {
                 Self::nft_transfer_or_contract_call(Self::erc1155_transfer(transaction_receipt), Self::Erc1155Transfer, transaction_receipt, from, to)
             }
-            _ => match Self::relevant_erc20_transfer(transaction_receipt, from, to) {
+            _ => match Self::single_erc20_transfer(transaction_receipt, from, to) {
                 Some(transfer) => Self::Erc20Transfer(transfer),
                 None if has_call_data
                     && transaction.gas > TRANSFER_GAS_LIMIT
@@ -103,27 +102,34 @@ impl TransactionPayload {
         transaction.to.is_some() && transaction.input.len() > INPUT_0X.len()
     }
 
-    fn erc20_transfer(transaction_receipt: &TransactionReceipt) -> Option<Erc20TransferPayload> {
-        let log = Self::log_with_topic(transaction_receipt, TRANSFER_TOPIC, 3, LogSearch::FirstMatch)?;
-        let from = ethereum_address_from_topic(log.topics.get(1)?)?;
-        let to = ethereum_address_from_topic(log.topics.get(2)?)?;
-        let value = biguint_from_hex(&log.data)?;
-        let contract_address = ethereum_address_checksum(&log.address).ok()?;
-
-        Some(Erc20TransferPayload {
-            from,
-            to,
-            contract_address,
-            value,
+    fn erc20_transfer_events(transaction_receipt: &TransactionReceipt) -> impl Iterator<Item = Erc20TransferPayload> + '_ {
+        transaction_receipt.logs.iter().filter(|log| Self::has_topic(log, TRANSFER_TOPIC, 3)).filter_map(|log| {
+            let from = ethereum_address_from_topic(log.topics.get(1)?)?;
+            let to = ethereum_address_from_topic(log.topics.get(2)?)?;
+            let contract_address = ethereum_address_checksum(&log.address).ok()?;
+            let value = biguint_from_hex(&log.data)?;
+            Some(Erc20TransferPayload {
+                from,
+                to,
+                contract_address,
+                value,
+            })
         })
     }
 
-    fn relevant_erc20_transfer(transaction_receipt: &TransactionReceipt, from: &str, to: &str) -> Option<Erc20TransferPayload> {
-        let transfer = Self::erc20_transfer(transaction_receipt)?;
-        match transaction_receipt.logs.len() <= 2 && (transfer.from == from || transfer.from == to) {
-            true => Some(transfer),
-            false => None,
+    pub(super) fn erc20_transfers(transaction_receipt: &TransactionReceipt, transaction_from: &str, transaction_to: &str) -> Vec<Erc20TransferPayload> {
+        Self::erc20_transfer_events(transaction_receipt)
+            .filter(|transfer| transfer.from == transaction_from || transfer.from == transaction_to || transfer.to == transaction_from || transfer.to == transaction_to)
+            .collect()
+    }
+
+    fn single_erc20_transfer(transaction_receipt: &TransactionReceipt, transaction_from: &str, transaction_to: &str) -> Option<Erc20TransferPayload> {
+        if transaction_receipt.logs.len() > 2 {
+            return None;
         }
+
+        let transfer = Self::erc20_transfer_events(transaction_receipt).next()?;
+        (transfer.from == transaction_from || transfer.from == transaction_to).then_some(transfer)
     }
 
     fn nft_transfer_or_contract_call(
@@ -135,7 +141,7 @@ impl TransactionPayload {
     ) -> Self {
         match nft_transfer {
             Some(transfer) => nft_payload(transfer),
-            None => match Self::relevant_erc20_transfer(transaction_receipt, from, to) {
+            None => match Self::single_erc20_transfer(transaction_receipt, from, to) {
                 Some(transfer) => Self::Erc20Transfer(transfer),
                 None => Self::SmartContractCall,
             },

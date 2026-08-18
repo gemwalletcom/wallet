@@ -13,6 +13,7 @@ final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingAssetInput: SelectedAssetInput?
     @MainActor private var _isPresentingPriceAlert: SetPriceAlertInput?
     @MainActor private var _isPresentingSupport: Bool = false
+    @MainActor private var _isPresentingWallets: Bool = false
 
     init() {}
 }
@@ -29,6 +30,10 @@ extension NavigationPresenter {
 
     var isPresentingSupport: Binding<Bool> {
         Binding(get: { self._isPresentingSupport }, set: { self._isPresentingSupport = $0 })
+    }
+
+    var isPresentingWallets: Binding<Bool> {
+        Binding(get: { self._isPresentingWallets }, set: { self._isPresentingWallets = $0 })
     }
 
     func presentAssetInput(type: SelectedAssetType, for asset: Asset, wallet: Wallet) throws {
@@ -64,6 +69,9 @@ extension NavigationPresenter {
     ) async throws {
         switch action {
         case let .asset(assetId), let .perpetual(assetId):
+            guard wallet.accounts.contains(where: { $0.chain == assetId.chain }) else {
+                return
+            }
             let asset = try await assetsService.getOrFetchAsset(for: assetId)
             navigationState.openAsset(asset)
         case let .swap(fromAssetId, toAssetId):

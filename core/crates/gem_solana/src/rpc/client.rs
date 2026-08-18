@@ -1,7 +1,7 @@
 use crate::jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
 use crate::models::{
-    AccountData, EpochInfo, InflationRate, ResultTokenInfo, Signature, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance,
-    blockhash::SolanaBlockhashResult, prioritization_fee::SolanaPrioritizationFee, simulation::SimulateTransactionResult, transaction::BlockTransactions,
+    AccountData, EpochInfo, InflationRate, ResultTokenInfo, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance, blockhash::SolanaBlockhashResult,
+    prioritization_fee::SolanaPrioritizationFee, simulation::SimulateTransactionResult, transaction::BlockTransactions,
 };
 use crate::{
     STAKE_PROGRAM_ID,
@@ -162,15 +162,6 @@ impl<C: Client + Clone> SolanaClient<C> {
 
     pub async fn get_block_transactions(&self, slot: u64) -> Result<BlockTransactions, JsonRpcError> {
         self.client.request(SolanaRpc::GetBlock(slot)).await
-    }
-
-    pub async fn get_signatures_for_address(&self, address: &str, limit: usize) -> Result<Vec<Signature>, JsonRpcError> {
-        self.client
-            .request(SolanaRpc::GetSignaturesForAddress {
-                address: address.to_string(),
-                limit,
-            })
-            .await
     }
 
     pub async fn get_token_accounts(&self, address: &str, token_mints: &[String]) -> Result<Vec<ValueResult<Vec<TokenAccountInfo>>>, Box<dyn Error + Send + Sync>> {

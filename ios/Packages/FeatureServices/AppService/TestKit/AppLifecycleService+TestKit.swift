@@ -23,6 +23,7 @@ public extension AppLifecycleService {
         streamObserverService: StreamObserverService = .mock(),
         streamSubscriptionService: StreamSubscriptionService = .mock(),
         hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
+        perpetualService: any PerpetualServiceable = PerpetualServiceMock(),
     ) -> AppLifecycleService {
         AppLifecycleService(
             preferences: preferences,
@@ -31,7 +32,11 @@ public extension AppLifecycleService {
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
-            hyperliquidObserverService: hyperliquidObserverService,
+            perpetualEnablerService: PerpetualEnablerService(
+                observer: hyperliquidObserverService,
+                service: perpetualService,
+                preferences: preferences,
+            ),
         )
     }
 }

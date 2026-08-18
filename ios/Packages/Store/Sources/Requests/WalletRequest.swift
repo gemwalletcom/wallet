@@ -11,13 +11,17 @@ public struct WalletRequest: DatabaseQueryable {
         self.walletId = walletId
     }
 
-    public func fetch(_ db: Database) throws -> Wallet? {
-        try WalletRecord
+    public func fetch(_ db: Database) throws -> Wallet {
+        guard let wallet = try WalletRecord
             .including(all: WalletRecord.accounts)
             .asRequest(of: WalletRecordInfo.self)
             .filter(WalletRecord.Columns.id == walletId.id)
             .fetchOne(db)?
             .mapToWallet()
+        else {
+            throw AnyError("wallet not found: \(walletId.id)")
+        }
+        return wallet
     }
 }
 

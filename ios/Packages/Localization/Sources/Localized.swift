@@ -573,6 +573,10 @@ public enum Localized {
     public static func balanceRequiredTitle(_ p1: Any) -> String {
       return Localized.tr("Localizable", "info.balance_required_title", String(describing: p1), fallback: "%@ required")
     }
+    /// This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.
+    public static func estimatedConfirmationDescription(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "info.estimated_confirmation_description", String(describing: p1), fallback: "This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.")
+    }
     /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
     public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
     /// Freeze TRX to Stake
@@ -1416,6 +1420,8 @@ public enum Localized {
   public enum Transaction {
     /// Date
     public static let date = Localized.tr("Localizable", "transaction.date", fallback: "Date")
+    /// Estimated confirmation
+    public static let estimatedConfirmation = Localized.tr("Localizable", "transaction.estimated_confirmation", fallback: "Estimated confirmation")
     /// Recipient
     public static let recipient = Localized.tr("Localizable", "transaction.recipient", fallback: "Recipient")
     /// Sender
@@ -1632,6 +1638,8 @@ public enum Localized {
     public static let title = Localized.tr("Localizable", "wallet.title", fallback: "Wallet")
     /// Transfer from another wallet
     public static let transferFromAnotherWallet = Localized.tr("Localizable", "wallet.transfer_from_another_wallet", fallback: "Transfer from another wallet")
+    /// You are watching this wallet.
+    public static let watchEmptyStateTitle = Localized.tr("Localizable", "wallet.watch_empty_state_title", fallback: "You are watching this wallet.")
     /// Withdraw
     public static let withdraw = Localized.tr("Localizable", "wallet.withdraw", fallback: "Withdraw")
     public enum AddToken {
@@ -1666,8 +1674,8 @@ public enum Localized {
     }
     public enum Watch {
       public enum Tooltip {
-        /// You are watching this wallet.
-        public static let title = Localized.tr("Localizable", "wallet.watch.tooltip.title", fallback: "You are watching this wallet.")
+        /// Watch-only wallet. You don't control these funds.
+        public static let title = Localized.tr("Localizable", "wallet.watch.tooltip.title", fallback: "Watch-only wallet. You don't control these funds.")
       }
     }
   }

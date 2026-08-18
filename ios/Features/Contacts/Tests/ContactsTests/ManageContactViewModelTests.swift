@@ -3,7 +3,6 @@
 import Components
 @testable import Contacts
 import ContactService
-import NameServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import StoreTestKit
@@ -12,20 +11,12 @@ import Testing
 @MainActor
 struct ManageContactViewModelTests {
     @Test
-    func buttonStateAddModeEmptyName() {
-        let model = ManageContactViewModel.mock(mode: .add)
-
-        #expect(model.buttonState == .disabled)
-    }
-
-    @Test
     func buttonStateAddMode() {
-        let model = ManageContactViewModel.mock(mode: .add)
-        model.nameInputModel.text = "John"
+        let model = ManageContactViewModel.mock(mode: .add())
 
         #expect(model.buttonState == .disabled)
 
-        model.addresses = [.mock()]
+        model.nameInputModel.text = "John"
 
         #expect(model.buttonState == .normal)
     }
@@ -34,11 +25,11 @@ struct ManageContactViewModelTests {
     func buttonStateEditMode() {
         let model = ManageContactViewModel.mock(mode: .edit(.mock(contact: .mock(name: "John"), addresses: [.mock()])))
 
-        #expect(model.buttonState == .disabled)
-
-        model.nameInputModel.text = "Jane"
-
         #expect(model.buttonState == .normal)
+
+        model.nameInputModel.text = ""
+
+        #expect(model.buttonState == .disabled)
     }
 }
 

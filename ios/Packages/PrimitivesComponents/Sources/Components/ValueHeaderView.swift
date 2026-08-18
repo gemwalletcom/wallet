@@ -112,17 +112,24 @@ public struct ValueHeaderView: View {
                     HStack {
                         Images.System.eye
 
+                        Spacer(minLength: .zero)
+
                         Text(Localized.Wallet.Watch.Tooltip.title)
                             .foregroundStyle(Colors.black)
                             .font(.callout)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Spacer(minLength: .zero)
 
                         Images.System.info
                             .tint(Colors.black)
                     }
                     .padding()
-                    .background(Colors.grayDarkBackground)
+                    .frame(maxWidth: .infinity)
+                    .background(Colors.listStyleColor)
                     .cornerRadius(.medium)
-                    .padding(.top, .space10)
+                    .padding(.top, .space8)
                 }
 
             case false:

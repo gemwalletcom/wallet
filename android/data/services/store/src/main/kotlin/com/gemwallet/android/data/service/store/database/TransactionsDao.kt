@@ -93,8 +93,18 @@ interface TransactionsDao {
         filters: List<TransactionsRequestFilter> = emptyList(),
     ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
 
-    @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state IN (:states)")
-    fun getTransactionsCount(walletId: WalletId, states: List<TransactionState>): Flow<Int?>
+    @RawQuery(
+        observedEntities = [
+            DbTransaction::class,
+            DbAsset::class,
+        ]
+    )
+    fun getTransactionsCount(query: SupportSQLiteQuery): Flow<Int?>
+
+    fun getTransactionsCount(
+        walletId: WalletId,
+        filters: List<TransactionsRequestFilter>,
+    ): Flow<Int?> = getTransactionsCount(buildTransactionsCountSql(walletId, filters).toSupportSQLiteQuery())
 
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
@@ -119,6 +129,17 @@ interface TransactionsDao {
 
     @Query("UPDATE transactions SET metadata = :metadata, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
     fun updateMetadata(id: TransactionId, walletId: WalletId, metadata: String, updatedAt: Long = System.currentTimeMillis())
+
+    @Query("UPDATE transactions SET state = :state, fee = :fee, metadata = :metadata, estimatedConfirmationInSeconds = :confirmationEtaSeconds, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
+    fun updateTransaction(
+        id: TransactionId,
+        walletId: WalletId,
+        state: TransactionState,
+        fee: String,
+        metadata: String?,
+        confirmationEtaSeconds: Long?,
+        updatedAt: Long = System.currentTimeMillis(),
+    ): Int
 
     @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)

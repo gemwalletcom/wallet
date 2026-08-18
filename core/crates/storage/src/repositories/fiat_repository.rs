@@ -1,5 +1,6 @@
 use crate::{DatabaseError, DieselResultExt};
 use chrono::NaiveDateTime;
+use primitives::currency::Currency;
 use primitives::{AssetId, FiatProviderCountry, FiatProviderName, FiatRate, FiatTransaction};
 
 use crate::DatabaseClient;
@@ -18,7 +19,7 @@ pub trait FiatRepository {
     fn get_fiat_assets_for_asset_id(&mut self, asset_id: &AssetId) -> Result<Vec<crate::models::FiatAssetRow>, DatabaseError>;
     fn set_fiat_rates(&mut self, rates: Vec<crate::models::FiatRateRow>) -> Result<usize, DatabaseError>;
     fn get_fiat_rates(&mut self) -> Result<Vec<FiatRate>, DatabaseError>;
-    fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRate, DatabaseError>;
+    fn get_fiat_rate(&mut self, currency: &Currency) -> Result<FiatRate, DatabaseError>;
     fn get_fiat_providers(&mut self) -> Result<Vec<crate::models::FiatProviderRow>, DatabaseError>;
     fn update_fiat_provider_payment_methods(&mut self, provider_id: FiatProviderName, values: serde_json::Value) -> Result<usize, DatabaseError>;
 }
@@ -76,7 +77,7 @@ impl FiatRepository for DatabaseClient {
         Ok(result.into_iter().map(|x| x.as_primitive()).collect())
     }
 
-    fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRate, DatabaseError> {
+    fn get_fiat_rate(&mut self, currency: &Currency) -> Result<FiatRate, DatabaseError> {
         let result = FiatStore::get_fiat_rate(self, currency).or_not_found(currency.to_string())?;
         Ok(result.as_primitive())
     }

@@ -19,11 +19,17 @@ struct TransactionStateJob: Job {
     func run() async -> JobStatus {
         let transactionWallet = await context.transactionWallet()
         let result = await service.update(for: transactionWallet.transaction)
-        if let currentTransactionWallet = try? service.transactionWallet(
+        guard let currentTransactionWallet = try? service.transactionWallet(
             walletId: transactionWallet.wallet.id,
             transactionId: result.transactionId,
-        ) {
-            await context.update(currentTransactionWallet)
+        ) else {
+            return .cancelled
+        }
+        await context.update(currentTransactionWallet)
+        if transactionWallet.transaction.state == .pending,
+           currentTransactionWallet.transaction.state == .inTransit
+        {
+            await service.updateBalances(currentTransactionWallet)
         }
         return result.status
     }

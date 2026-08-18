@@ -10,7 +10,6 @@ import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.svg.SvgDecoder
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -21,8 +20,6 @@ class App : Application(), SingletonImageLoader.Factory {
     lateinit var appLifecycleCoordinator: AppLifecycleCoordinator
     @Inject
     lateinit var getTransactions: GetTransactions
-    @Inject
-    lateinit var transactionPostProcessingService: TransactionPostProcessingService
 
     override fun onCreate() {
         super.onCreate()

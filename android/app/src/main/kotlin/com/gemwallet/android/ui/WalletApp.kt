@@ -30,6 +30,7 @@ import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
+import com.gemwallet.android.ui.navigation.WalletAssetNavigationPolicy
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
@@ -52,7 +53,14 @@ fun WalletApp(
 
     val start = startDestination ?: return
     val currentTab = rememberSaveable { mutableStateOf(assetsRoute) }
-    val navigator = rememberWalletNavigationState(startDestination = start, currentTab = currentTab)
+    val assetNavigationPolicy = remember(state.session?.wallet) {
+        WalletAssetNavigationPolicy(state.session?.wallet)
+    }
+    val navigator = rememberWalletNavigationState(
+        startDestination = start,
+        currentTab = currentTab,
+        assetNavigationPolicy = assetNavigationPolicy,
+    )
     var confirmPendingNavigation by remember(pendingRoutes) { mutableStateOf(false) }
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute

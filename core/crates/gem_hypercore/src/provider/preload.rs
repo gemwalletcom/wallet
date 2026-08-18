@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use futures::try_join;
 use num_bigint::BigInt;
 use std::error::Error;
@@ -10,6 +10,7 @@ use primitives::{
     TransactionPreloadInput, perpetual::PerpetualType,
 };
 
+use crate::constants::TRANSACTION_FEE_UNITS;
 use crate::is_spot_swap;
 use crate::provider::fee_calculator::{calculate_perpetual_fee_amount, calculate_spot_fee_amount};
 use crate::provider::preload_cache::{HyperCoreCache, UserFeeRates};
@@ -42,6 +43,10 @@ impl<C: Client> HyperCoreClient<C> {
 
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
+    fn transaction_fee_estimate_units(&self, _operation: TransactionFeeOperation) -> Option<u64> {
+        Some(TRANSACTION_FEE_UNITS)
+    }
+
     async fn get_transaction_preload(&self, _input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
         Ok(TransactionLoadMetadata::None)
     }

@@ -50,7 +50,7 @@ impl FiatWebhookConsumer {
         let notifications: Vec<GorushNotification> = devices
             .iter()
             .filter_map(|device| {
-                let localizer = LanguageLocalizer::new_with_language(device.locale.as_str());
+                let localizer = LanguageLocalizer::new_with_language(device.locale.as_ref());
                 let message = Pusher::fiat_transaction_message(&localizer, &quote_type, provider.name(), &asset, crypto_value).ok()?;
                 let data = PushNotification::new_fiat_transaction(wallet_id.clone(), asset.id.clone());
                 GorushNotification::from_device(device.clone(), message.title, message.message.unwrap_or_default(), data)

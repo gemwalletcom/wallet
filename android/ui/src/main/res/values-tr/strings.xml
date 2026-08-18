@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Cüzdan # %1$d</string>
   <string name="wallet_default_name_chain">%1$s Cüzdan # %2$d</string>
   <string name="wallet_copy_address">Adresi Kopyala</string>
-  <string name="wallet_watch_tooltip_title">Bu cüzdanı izliyorsunuz.</string>
+  <string name="wallet_watch_tooltip_title">Yalnızca izleme cüzdanı. Bu fonlar sizin kontrolünüzde değil.</string>
+  <string name="wallet_watch_empty_state_title">Bu cüzdanı izliyorsunuz.</string>
   <string name="wallet_stake">Stake</string>
   <string name="wallet_receive_no_memo_required">Memo gerekli değil</string>
   <string name="wallet_receive_no_destination_tag_required">Hedef etiketi gerekmiyor</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">Tarih</string>
   <string name="transaction_view_on">%1$s üzerinde görüntüle</string>
   <string name="transaction_status">Durum</string>
+  <string name="transaction_estimated_confirmation">Tahmini onay</string>
   <string name="transaction_status_confirmed">Başarılı</string>
   <string name="transaction_status_pending">Beklemede</string>
   <string name="transaction_status_failed">Başarısız</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">%1$s ağındaki her işlem, işleminizi gerçekleştirmek için madencilere Gem Wallet\'a değil, %2$s tutarında bir ücret ödenmesini gerektirir. Ağ ücretleri ağ kullanımına göre değişir.</string>
   <string name="info_transaction_error_description">İşlem, yetersiz fon, geçersiz giriş veya ağ tarafından reddedilme gibi bir hata nedeniyle tamamlanamadı. Lütfen ayrıntıları inceleyin ve tekrar deneyin.</string>
   <string name="info_transaction_pending_description">İşlem gönderildi ve ağda onay bekleniyor. İşlem süreleri değişiklik gösterebilir. Lütfen güncellemeler için tekrar kontrol edin.</string>
+  <string name="info_estimated_confirmation_description">Bu tahmin işlem ücreti ve mevcut %1$s ağı etkinliğine dayanır. Gerçek onay süresi değişebilir ve garanti edilmez.</string>
   <string name="info_transaction_success_description">İşlem tamamlandı ve ağda onaylandı. Durumunu doğrulamak için ayrıntıları inceleyebilirsiniz.</string>
   <string name="info_lock_time_description">Kilitlenme süresi, aynı zamanda bağlanmayı kaldırma veya dondurmayı kaldırma dönemi olarak da bilinir, stake edilen varlıklara, siz onları stake etmeye karar verdikten sonra erişilemez olduğu süredir.</string>
   <string name="info_price_impact_description">Fiyat etkisi, işlem boyutunuzdan kaynaklanan token fiyatındaki değişikliktir. Daha yüksek fiyat etkisi, düşük likidite veya büyük sipariş boyutu nedeniyle daha az token aldığınız anlamına gelir.</string>

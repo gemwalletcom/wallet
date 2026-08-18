@@ -33,4 +33,5 @@ pub enum NameProvider {
     Basenames,
     Hyperliquid,
     AllDomains,
+    Near,
 }

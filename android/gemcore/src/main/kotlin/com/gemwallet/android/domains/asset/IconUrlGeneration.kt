@@ -116,6 +116,7 @@ fun SwapperProvider.getSwapProviderIcon(): String {
         SwapperProvider.PANORA -> "panora"
         SwapperProvider.OKX -> "okx"
         SwapperProvider.SQUID -> "squid"
+        SwapperProvider.SWAPS_XYZ -> "swaps_xyz"
     }
     return "file:///android_asset/swap/${iconName.lowercase()}.svg"
 }

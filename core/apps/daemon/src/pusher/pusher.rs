@@ -160,7 +160,7 @@ impl Pusher {
     ) -> Result<Vec<GorushNotification>, Box<dyn Error + Send + Sync>> {
         let transaction = transaction.finalize(vec![subscription.address.clone()]).without_utxo();
 
-        let localizer = LanguageLocalizer::new_with_language(subscription.device.locale.as_str());
+        let localizer = LanguageLocalizer::new_with_language(subscription.device.locale.as_ref());
         let message = self.message(localizer, &transaction, &subscription.address, &assets)?;
 
         let notification_transaction = PushNotificationTransaction {

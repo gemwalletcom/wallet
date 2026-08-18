@@ -13,7 +13,7 @@ struct PriceUsdRequestTests {
         let fiatRateStore = FiatRateStore(db: db)
         let priceStore = PriceStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: Currency.jpy.rawValue, rate: 150)])
+        try fiatRateStore.add([FiatRate(symbol: .jpy, rate: 150)])
 
         let ethId = AssetId(chain: .ethereum)
         try priceStore.updatePrice(

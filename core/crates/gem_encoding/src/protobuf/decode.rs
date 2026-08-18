@@ -22,13 +22,6 @@ impl<'a> Field<'a> {
         }
     }
 
-    pub fn fixed32(self) -> MessageResult<u32> {
-        match self.value {
-            FieldValue::Fixed32(value) => Ok(value),
-            _ => Err(format!("protobuf field {} is not fixed32", self.number).into()),
-        }
-    }
-
     pub fn bytes(self) -> MessageResult<&'a [u8]> {
         match self.value {
             FieldValue::Bytes(value) => Ok(value),
@@ -50,7 +43,7 @@ enum FieldValue<'a> {
     Varint(u64),
     Fixed64(u64),
     Bytes(&'a [u8]),
-    Fixed32(u32),
+    Fixed32,
 }
 
 pub fn visit_fields(data: &[u8], mut visitor: impl FnMut(Field<'_>) -> MessageResult<()>) -> MessageResult<()> {
@@ -72,7 +65,10 @@ pub fn visit_fields(data: &[u8], mut visitor: impl FnMut(Field<'_>) -> MessageRe
                 position = end;
                 FieldValue::Bytes(value)
             }
-            WIRE_FIXED32 => FieldValue::Fixed32(read_fixed32(data, &mut position)?),
+            WIRE_FIXED32 => {
+                skip_fixed32(data, &mut position)?;
+                FieldValue::Fixed32
+            }
             _ => return Err(format!("unsupported protobuf wire type {wire_type}").into()),
         };
         visitor(Field { number, value })?;
@@ -112,14 +108,13 @@ fn read_fixed64(data: &[u8], position: &mut usize) -> MessageResult<u64> {
     Ok(value)
 }
 
-fn read_fixed32(data: &[u8], position: &mut usize) -> MessageResult<u32> {
+fn skip_fixed32(data: &[u8], position: &mut usize) -> MessageResult<()> {
     let end = position.checked_add(4).ok_or("invalid protobuf fixed32 length")?;
     if end > data.len() {
         return Err("truncated protobuf fixed32".into());
     }
-    let value = u32::from_le_bytes(data[*position..end].try_into()?);
     *position = end;
-    Ok(value)
+    Ok(())
 }
 
 #[macro_export]

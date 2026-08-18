@@ -27,7 +27,7 @@ impl InAppNotificationsConsumer {
         points: i32,
         reward_value: Option<&str>,
     ) -> Option<GorushNotification> {
-        let localizer = LanguageLocalizer::new_with_language(device.locale.as_str());
+        let localizer = LanguageLocalizer::new_with_language(device.locale.as_ref());
         let (title, message) = notification_content(&localizer, notification_type, points, reward_value);
         let data = PushNotification {
             notification_type: PushNotificationTypes::Rewards,

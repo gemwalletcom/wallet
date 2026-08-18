@@ -1,7 +1,7 @@
 use crate::{
     AssetList, FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset,
     SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across, alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses,
-    fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, thorchain, uniswap,
+    fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz, thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -90,6 +90,7 @@ impl GemSwapper {
             Box::new(cetus_clmm::CetusClmm::new(rpc_provider.clone())),
             Box::new(relay::Relay::new(rpc_provider.clone())),
             Box::new(squid::Squid::new(rpc_provider.clone())),
+            Box::new(swaps_xyz::SwapsXyz::new(rpc_provider.clone())),
             uniswap::default::boxed_aerodrome(rpc_provider.clone()),
         ];
 
@@ -268,7 +269,7 @@ mod tests {
                 .collect::<Vec<_>>()
         };
 
-        // Cross chain swaps (same chain will be filtered out)
+        // Cross-chain providers are eligible across different chains.
         assert_eq!(filter(Chain::Ethereum, Chain::Optimism), vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents]);
 
         assert_eq!(
@@ -286,6 +287,8 @@ mod tests {
             filter(Chain::Ethereum, Chain::Ethereum),
             vec![SwapperProvider::UniswapV3, SwapperProvider::PancakeswapV3, SwapperProvider::Jupiter]
         );
+
+        assert!(filter(Chain::Near, Chain::Near).contains(&SwapperProvider::NearIntents));
     }
 
     #[test]

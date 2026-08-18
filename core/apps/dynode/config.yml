@@ -19,6 +19,7 @@ monitoring:
     failures: 15 # consecutive or rate minimum
     rate: 50 # percent in window
     window: 1m
+    latency: 1500ms
 
 request:
   timeout: 3s

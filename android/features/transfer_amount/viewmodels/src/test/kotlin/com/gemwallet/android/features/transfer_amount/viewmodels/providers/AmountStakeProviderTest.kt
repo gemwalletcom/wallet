@@ -188,7 +188,7 @@ class AmountStakeProviderTest {
     @Test
     fun `unfreeze has zero minimum and zero reserve`() {
         val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth))
-        assertEquals(BigInteger.ZERO, provider.minimumValue)
+        assertEquals(BigInteger.ZERO, provider.minimumValue.value)
         assertEquals(BigInteger.ZERO, provider.reserveForFee)
     }
 

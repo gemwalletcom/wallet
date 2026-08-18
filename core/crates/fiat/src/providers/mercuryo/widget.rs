@@ -71,10 +71,6 @@ impl MercuryoWidget {
         format!("v2:{}", hash)
     }
 
-    pub fn merchant_transaction_id(&self) -> &str {
-        &self.merchant_transaction_id
-    }
-
     pub fn to_url(&self) -> String {
         let mut url = Url::parse(MERCURYO_REDIRECT_URL).unwrap();
 

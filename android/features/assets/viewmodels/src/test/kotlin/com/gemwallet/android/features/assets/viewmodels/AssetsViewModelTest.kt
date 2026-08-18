@@ -132,6 +132,7 @@ class AssetsViewModelTest {
             price = null,
             position = 0,
             pinned = pinned,
+            balanceEnabled = true,
             accountAddress = "address-$symbol",
         )
     }

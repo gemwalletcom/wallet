@@ -108,6 +108,7 @@ class TransactionDetailsAggregateImplTest {
         price: Price? = null,
         feePrice: Price? = null,
         assets: List<Asset> = emptyList(),
+        confirmationEtaSeconds: UInt? = null,
     ) = TransactionExtended(
         transaction = transaction,
         asset = asset,
@@ -115,6 +116,7 @@ class TransactionDetailsAggregateImplTest {
         price = price,
         feePrice = feePrice,
         assets = assets,
+        confirmationEtaSeconds = confirmationEtaSeconds,
     )
 
     private fun createAssetInfo(asset: Asset) = AssetInfo(
@@ -204,18 +206,6 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(btcAsset, plainAmount.asset)
         Assert.assertEquals("-1 BTC", plainAmount.value)
         Assert.assertEquals("", plainAmount.equivalent)
-    }
-
-    @Test
-    fun testAmountPlain_malformedValue() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            value = "54.108086",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, price = null)
-        val aggregate = createAggregate(extended)
-
-        Assert.assertTrue(aggregate.amount is TransactionDetailsValue.Amount.None)
     }
 
     @Test
@@ -433,14 +423,9 @@ class TransactionDetailsAggregateImplTest {
             swapProvider = createSwapProvider(),
         )
 
-        val progress = aggregate.swapProgress
-        Assert.assertNotNull(progress)
-        Assert.assertEquals(ethAsset, progress?.fromAsset)
-        Assert.assertEquals("1000000000000000000", progress?.fromValue)
-        Assert.assertEquals("NEAR Intents", progress?.providerName)
-        Assert.assertEquals(TransactionState.Confirmed, progress?.state)
-        Assert.assertEquals(6, aggregate.valueGroups.size)
-        Assert.assertTrue(aggregate.valueGroups[2].items.single() is TransactionDetailsValue.SwapAgain)
+        Assert.assertNull(aggregate.swapProgress)
+        Assert.assertEquals(5, aggregate.valueGroups.size)
+        Assert.assertTrue(aggregate.valueGroups[1].items.single() is TransactionDetailsValue.SwapAgain)
     }
 
     @Test
@@ -719,7 +704,7 @@ class TransactionDetailsAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = feePrice)
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals(btcAsset, fee.asset)
         Assert.assertEquals("0.00001 BTC", fee.value)
         Assert.assertEquals("\$0.5", fee.equivalent)
@@ -738,7 +723,7 @@ class TransactionDetailsAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = feePrice)
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals("0.00001 BTC", fee.value)
         Assert.assertEquals("\$0.0000428", fee.equivalent)
     }
@@ -751,21 +736,10 @@ class TransactionDetailsAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = null)
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals(btcAsset, fee.asset)
         Assert.assertEquals("0.00001 BTC", fee.value)
         Assert.assertEquals("", fee.equivalent)
-    }
-
-    @Test
-    fun testFee_malformedValue() {
-        val transaction = createTransaction(
-            fee = "0.006671888",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = null)
-        val aggregate = createAggregate(extended)
-
-        Assert.assertNull(aggregate.fee)
     }
 
     @Test
@@ -780,7 +754,7 @@ class TransactionDetailsAggregateImplTest {
         )
         val aggregate = createAggregate(extended)
 
-        val fee = requireNotNull(aggregate.fee)
+        val fee = aggregate.fee
         Assert.assertEquals(ethAsset, fee.asset)
         Assert.assertEquals("0.001 ETH", fee.value)
         Assert.assertEquals("", fee.equivalent)
@@ -1111,5 +1085,24 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(Currency.EUR, aggregate.currency)
         val valueGroups = aggregate.valueGroups
         Assert.assertEquals(4, valueGroups.size)
+    }
+
+    @Test
+    fun estimatedConfirmation_isOnlyAvailableWhilePending() {
+        val pending = createAggregate(
+            createTransactionExtended(
+                transaction = createTransaction(state = TransactionState.Pending),
+                confirmationEtaSeconds = 720u,
+            )
+        )
+        val confirmed = createAggregate(
+            createTransactionExtended(
+                transaction = createTransaction(state = TransactionState.Confirmed),
+                confirmationEtaSeconds = 720u,
+            )
+        )
+
+        Assert.assertEquals(720u, pending.estimatedConfirmation?.seconds)
+        Assert.assertNull(confirmed.estimatedConfirmation)
     }
 }

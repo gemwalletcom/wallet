@@ -108,6 +108,18 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
+    func showFiatTypePickerWhenSellEnabledWithZeroBalance() {
+        let model = FiatSceneViewModelTests.mock()
+
+        model.assetQuery.value = .mock(
+            balance: .zero,
+            metadata: .mock(isSellEnabled: true),
+        )
+
+        #expect(model.showFiatTypePicker)
+    }
+
+    @Test
     func testRateValue() {
         let model = FiatSceneViewModelTests.mock()
         let quote = FiatQuote.mock(fiatAmount: 1200, cryptoAmount: 2.0, type: model.type)

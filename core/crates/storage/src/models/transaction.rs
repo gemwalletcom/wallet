@@ -86,7 +86,7 @@ impl TransactionRow {
             state: self.state.0,
             block_number: None,
             sequence: None,
-            fee: self.fee.clone().unwrap(),
+            fee: self.fee.clone().unwrap_or("0".to_string()),
             fee_asset_id: self.fee_asset_id.0.clone(),
             value: self.value.clone().unwrap_or("0".to_string()),
             memo: self.memo.clone(),

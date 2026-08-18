@@ -87,6 +87,8 @@ sealed interface TransactionDetailsValue {
 
     class Status(val data: TransactionState) : TransactionDetailsValue
 
+    class EstimatedConfirmation(val seconds: UInt) : TransactionDetailsValue
+
     class Rate(val rate: AssetRatePair) : TransactionDetailsValue
 
     class SwapProgress(

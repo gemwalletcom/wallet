@@ -3,31 +3,32 @@ package com.gemwallet.android.features.recipient.presents.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.NameRecord
+import com.gemwallet.android.ui.components.fields.AddressChainField
+import com.gemwallet.android.ui.components.fields.MemoTextField
+import com.gemwallet.android.ui.models.name.NameRecordState
 
 fun LazyListScope.destinationView(
-    asset: AssetInfo,
     hasMemo: Boolean,
+    assetName: String,
     address: String,
-    addressError: RecipientError,
+    addressError: Boolean,
+    nameResolveState: NameRecordState,
     memo: String,
     memoError: RecipientError,
-    onAddress: (String, NameRecord?) -> Unit,
+    onAddress: (String) -> Unit,
     onMemo: (String) -> Unit,
     onQrScan: (QrScanField) -> Unit,
 ) {
     item {
         Column {
             AddressChainField(
-                chain = asset.asset.chain,
                 value = address,
                 label = stringResource(id = R.string.transfer_recipient_address_field),
-                error = recipientErrorString(error = addressError),
+                state = nameResolveState,
+                error = if (addressError) stringResource(R.string.errors_invalid_asset_address, assetName) else "",
                 onValueChange = onAddress,
                 onQrScanner = { onQrScan(QrScanField.Address) }
             )
@@ -36,7 +37,7 @@ fun LazyListScope.destinationView(
                     value = memo,
                     label = stringResource(id = R.string.transfer_memo),
                     onValueChange = onMemo,
-                    error = memoError,
+                    error = recipientErrorString(error = memoError),
                     onQrScanner = { onQrScan(QrScanField.Memo) },
                 )
             }

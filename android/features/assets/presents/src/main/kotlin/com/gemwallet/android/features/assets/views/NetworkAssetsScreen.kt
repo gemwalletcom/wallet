@@ -20,7 +20,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
@@ -81,7 +81,7 @@ fun NetworkAssetsScreen(
 }
 
 private fun LazyListScope.networkAssetRows(
-    items: List<AssetItemUIModel>,
+    items: List<AssetInfoDataAggregate>,
     onSelect: (AssetId) -> Unit,
     longPressedAsset: MutableState<AssetId?>,
     contextActions: AssetContextActions,

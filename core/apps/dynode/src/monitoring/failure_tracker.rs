@@ -94,6 +94,7 @@ mod tests {
             failures,
             rate: 50,
             window: MINUTE,
+            latency: None,
         }
     }
 

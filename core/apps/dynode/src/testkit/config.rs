@@ -10,6 +10,7 @@ pub fn monitoring_config() -> NodeMonitoringConfig {
             failures: 15,
             rate: 50,
             window: MINUTE,
+            latency: None,
         },
     }
 }

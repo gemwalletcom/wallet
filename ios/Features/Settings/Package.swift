@@ -69,6 +69,7 @@ let package = Package(
                 "Settings",
                 "Primitives",
                 .product(name: "PriceServiceTestKit", package: "FeatureServices"),
+                .product(name: "DeviceServiceTestKit", package: "FeatureServices"),
             ],
         ),
     ],

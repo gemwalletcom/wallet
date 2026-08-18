@@ -18,16 +18,16 @@ import ExplorerService
 import Foundation
 import GRDB
 import Keystore
-import NameService
 import NFTService
 import NodeService
 import NotificationService
 import PerpetualService
 import PriceAlertService
 import PriceService
+import Primitives
 import RewardsService
-import ServiceStatusService
 import ScanService
+import ServiceStatusService
 import StakeService
 import Store
 import StreamService
@@ -71,7 +71,7 @@ extension EnvironmentValues {
     @Entry var perpetualService: PerpetualService = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
     @Entry var transactionStateScheduler: TransactionStateScheduler = AppResolver.main.services.transactionStateScheduler
-    @Entry var nameService: NameService = AppResolver.main.services.nameService
+    @Entry var nameService: any NameServiceable = AppResolver.main.services.nameService
     @Entry var addressNameService: AddressNameService = AppResolver.main.services.addressNameService
     @Entry var activityService: ActivityService = AppResolver.main.services.activityService
     @Entry var eventPresenterService: EventPresenterService = AppResolver.main.services.eventPresenterService

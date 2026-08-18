@@ -1,11 +1,12 @@
 use crate::schema::fiat_providers;
-use crate::sql_types::{AssetId, FiatProviderNameRow};
+use crate::sql_types::{AssetId, Currency, FiatProviderNameRow};
 use crate::{DatabaseClient, models::*};
 use chrono::NaiveDateTime;
 use diesel::associations::HasTable;
 use diesel::dsl::count_star;
 use diesel::prelude::*;
 use diesel::upsert::excluded;
+use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::{FiatProviderName, FiatTransactionUpdate};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,7 +36,7 @@ pub(crate) trait FiatStore {
     fn get_fiat_assets_for_asset_id(&mut self, asset_id: &str) -> Result<Vec<FiatAssetRow>, diesel::result::Error>;
     fn set_fiat_rates(&mut self, rates: Vec<FiatRateRow>) -> Result<usize, diesel::result::Error>;
     fn get_fiat_rates(&mut self) -> Result<Vec<FiatRateRow>, diesel::result::Error>;
-    fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRateRow, diesel::result::Error>;
+    fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error>;
     fn get_fiat_providers(&mut self) -> Result<Vec<FiatProviderRow>, diesel::result::Error>;
     fn add_fiat_transaction(&mut self, transaction: NewFiatTransactionRow) -> Result<usize, diesel::result::Error>;
     fn update_fiat_provider_payment_methods(&mut self, provider_id: FiatProviderName, values: serde_json::Value) -> Result<usize, diesel::result::Error>;
@@ -225,9 +226,9 @@ impl FiatStore for DatabaseClient {
         fiat_rates.select(FiatRateRow::as_select()).load(&mut self.connection)
     }
 
-    fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRateRow, diesel::result::Error> {
+    fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error> {
         use crate::schema::fiat_rates::dsl::*;
-        fiat_rates.find(currency).select(FiatRateRow::as_select()).first(&mut self.connection)
+        fiat_rates.find(Currency(currency.clone())).select(FiatRateRow::as_select()).first(&mut self.connection)
     }
 
     fn get_fiat_providers(&mut self) -> Result<Vec<FiatProviderRow>, diesel::result::Error> {
@@ -326,10 +327,6 @@ impl DatabaseClient {
         FiatStore::add_fiat_providers_countries(self, values)
     }
 
-    pub fn get_fiat_providers_countries(&mut self) -> Result<Vec<FiatProviderCountryRow>, diesel::result::Error> {
-        FiatStore::get_fiat_providers_countries(self)
-    }
-
     pub fn update_fiat_transaction(&mut self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<FiatTransactionRow, diesel::result::Error> {
         FiatStore::update_fiat_transaction(self, provider, update)
     }
@@ -338,20 +335,8 @@ impl DatabaseClient {
         FiatStore::get_fiat_transaction(self, provider, transaction_id)
     }
 
-    pub fn get_fiat_transactions_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionRow>, diesel::result::Error> {
-        FiatStore::get_fiat_transactions_by_device_and_wallet_id(self, device_id, wallet_id)
-    }
-
-    pub fn get_fiat_transactions_by_device_id(&mut self, device_id: i32) -> Result<Vec<FiatTransactionRow>, diesel::result::Error> {
-        FiatStore::get_fiat_transactions_by_device_id(self, device_id)
-    }
-
     pub fn get_fiat_assets_by_filter(&mut self, filters: Vec<FiatAssetFilter>) -> Result<Vec<FiatAssetRow>, diesel::result::Error> {
         FiatStore::get_fiat_assets_by_filter(self, filters)
-    }
-
-    pub fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, diesel::result::Error> {
-        FiatStore::get_fiat_assets_popular(self, from, limit)
     }
 
     pub fn set_fiat_rates(&mut self, rates: Vec<FiatRateRow>) -> Result<usize, diesel::result::Error> {
@@ -362,7 +347,7 @@ impl DatabaseClient {
         FiatStore::get_fiat_rates(self)
     }
 
-    pub fn get_fiat_rate(&mut self, currency: &str) -> Result<FiatRateRow, diesel::result::Error> {
+    pub fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error> {
         FiatStore::get_fiat_rate(self, currency)
     }
 

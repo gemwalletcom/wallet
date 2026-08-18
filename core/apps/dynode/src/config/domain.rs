@@ -10,6 +10,8 @@ use super::url::{Override, Url};
 pub struct ChainConfig {
     pub chain: Chain,
     pub poll_interval_seconds: Option<u64>,
+    #[serde(default, deserialize_with = "serde_serializers::duration::deserialize_option")]
+    pub latency: Option<Duration>,
     pub overrides: Option<Vec<Override>>,
     pub allowlist: Option<AllowlistConfig>,
     pub urls: Vec<Url>,
@@ -18,6 +20,10 @@ pub struct ChainConfig {
 impl ChainConfig {
     pub fn monitoring_interval(&self, monitoring_config: &NodeMonitoringConfig) -> Duration {
         self.poll_interval_seconds.map(Duration::from_secs).unwrap_or(monitoring_config.interval)
+    }
+
+    pub fn monitoring_latency(&self, monitoring_config: &NodeMonitoringConfig) -> Option<Duration> {
+        self.latency.or(monitoring_config.trigger.latency)
     }
 
     pub fn resolve_url(&self, base_url: &Url, rpc_method: Option<&str>, request_path: Option<&str>) -> Url {
@@ -55,6 +61,7 @@ mod tests {
         ChainConfig {
             chain: primitives::Chain::Ethereum,
             poll_interval_seconds: poll_interval,
+            latency: None,
             overrides: None,
             allowlist: None,
             urls: vec![],
@@ -72,6 +79,7 @@ mod tests {
         ChainConfig {
             chain: primitives::Chain::Ethereum,
             poll_interval_seconds: None,
+            latency: None,
             overrides: Some(overrides),
             allowlist: None,
             urls: vec![make_url("https://example.com")],
@@ -97,6 +105,25 @@ mod tests {
         let chain_config = make_chain_config(None);
         let config = make_monitoring_config(45);
         assert_eq!(chain_config.monitoring_interval(&config), Duration::from_secs(45));
+    }
+
+    #[test]
+    fn monitoring_latency_uses_chain_override() {
+        let mut chain_config = make_chain_config(None);
+        chain_config.latency = Some(Duration::from_secs(3));
+        let mut config = make_monitoring_config(45);
+        config.trigger.latency = Some(Duration::from_secs(1));
+
+        assert_eq!(chain_config.monitoring_latency(&config), Some(Duration::from_secs(3)));
+    }
+
+    #[test]
+    fn monitoring_latency_uses_global_fallback() {
+        let chain_config = make_chain_config(None);
+        let mut config = make_monitoring_config(45);
+        config.trigger.latency = Some(Duration::from_secs(1));
+
+        assert_eq!(chain_config.monitoring_latency(&config), Some(Duration::from_secs(1)));
     }
 
     #[test]

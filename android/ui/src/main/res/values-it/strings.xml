@@ -77,7 +77,8 @@
   <string name="wallet_default_name">Portafoglio n.%1$d</string>
   <string name="wallet_default_name_chain">%1$s Portafoglio n.%2$d</string>
   <string name="wallet_copy_address">Copia indirizzo</string>
-  <string name="wallet_watch_tooltip_title">Stai guardando questo portafoglio.</string>
+  <string name="wallet_watch_tooltip_title">Portafoglio di sola osservazione. Non controlli questi fondi.</string>
+  <string name="wallet_watch_empty_state_title">Stai guardando questo portafoglio.</string>
   <string name="wallet_stake">Stake</string>
   <string name="wallet_receive_no_memo_required">Nessun promemoria richiesto</string>
   <string name="wallet_receive_no_destination_tag_required">Nessun tag di destinazione richiesto</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">Data</string>
   <string name="transaction_view_on">Visualizza su %1$s</string>
   <string name="transaction_status">Stato</string>
+  <string name="transaction_estimated_confirmation">Conferma stimata</string>
   <string name="transaction_status_confirmed">Riuscita</string>
   <string name="transaction_status_pending">In sospeso</string>
   <string name="transaction_status_failed">Fallito</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">Ogni transazione sulla rete %1$s richiede una commissione in %2$s pagata ai minatori per elaborare la transazione, non a Gem Wallet. Le tariffe di rete variano in base all\'utilizzo della rete.</string>
   <string name="info_transaction_error_description">La transazione non è stata completata a causa di un errore, ad esempio fondi insufficienti, input non validi o rifiuto da parte della rete. Si prega di controllare i dettagli e riprovare.</string>
   <string name="info_transaction_pending_description">La transazione è stata inoltrata ed è in attesa di conferma sulla rete. I tempi di elaborazione possono variare. Si prega di controllare regolarmente per aggiornamenti.</string>
+  <string name="info_estimated_confirmation_description">Questa stima si basa sulla commissione della transazione e sull’attuale attività della rete %1$s. Il tempo effettivo di conferma può cambiare e non è garantito.</string>
   <string name="info_transaction_success_description">La transazione è stata completata e confermata sulla rete. Puoi controllare i dettagli per verificarne lo stato.</string>
   <string name="info_lock_time_description">Il tempo di blocco, noto anche come periodo di svincolo o sblocco, è la durata durante la quale le risorse vincolate sono inaccessibili dopo che hai deciso di rimuoverle.</string>
   <string name="info_price_impact_description">L\'impatto sul prezzo è la variazione del prezzo del token causata dalla dimensione del tuo trade. Un impatto sul prezzo più elevato significa che ricevi meno token a causa della bassa liquidità o di una grande dimensione dell\'ordine.</string>

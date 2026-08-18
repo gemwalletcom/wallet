@@ -18,11 +18,11 @@ public extension WalletSceneViewModel {
             assetDiscoveryService: .mock(),
             balanceService: .mock(),
             bannerService: .mock(),
-            walletSessionService: WalletSessionService.mock(),
             nftService: .mock(),
             observablePreferences: .mock(),
             wallet: wallet,
             isPresentingSelectedAssetInput: .constant(.none),
+            isPresentingWallets: .constant(false),
         )
     }
 }

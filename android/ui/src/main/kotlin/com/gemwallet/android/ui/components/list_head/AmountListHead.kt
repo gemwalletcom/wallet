@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
@@ -64,7 +63,6 @@ import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -189,7 +187,8 @@ fun AmountListHead(
             if (actions != null) {
                 Spacer(modifier = Modifier.size(space10))
                 Box(
-                    modifier = Modifier.width(IntrinsicSize.Min)
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
                 ) {
                     actions()
                 }
@@ -242,6 +241,7 @@ fun AssetHeadActions(
         AssetHeadActionItem(R.string.wallet_swap, AppIcons.SwapVert, operationsEnabled, onSwap),
     )
     Row(
+        modifier = Modifier.width(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -271,10 +271,11 @@ private fun AssetWatchOnly() {
     val openWatchWalletInfo = { showInfoSheet = InfoSheetEntity.WatchWalletInfo }
     Button(
         modifier = Modifier
-            .widthIn(min = SceneSizing.contentMaxWidth)
+            .fillMaxWidth()
             .testTag("watchWalletBanner"),
         onClick = openWatchWalletInfo,
         enabled = true,
+        shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults
             .buttonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
@@ -294,11 +295,11 @@ private fun AssetWatchOnly() {
             )
             Spacer8()
             Text(
+                modifier = Modifier.weight(1f),
                 text = stringResource(id = R.string.wallet_watch_tooltip_title),
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.W400,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
             Spacer8()
             IconButton(

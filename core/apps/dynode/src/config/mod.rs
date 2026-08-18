@@ -45,6 +45,8 @@ pub struct FailureTriggerConfig {
     pub rate: u8,
     #[serde(deserialize_with = "duration::deserialize")]
     pub window: Duration,
+    #[serde(default, deserialize_with = "duration::deserialize_option")]
+    pub latency: Option<Duration>,
 }
 
 impl FailureTriggerConfig {
@@ -57,6 +59,9 @@ impl FailureTriggerConfig {
         }
         if self.window.is_zero() {
             return Err(ConfigError::Message("monitoring.trigger.window must be greater than zero".to_string()));
+        }
+        if self.latency.is_some_and(|latency| latency.is_zero()) {
+            return Err(ConfigError::Message("monitoring.trigger.latency must be greater than zero".to_string()));
         }
         Ok(())
     }
@@ -172,6 +177,10 @@ mod tests {
         trigger.rate = 1;
 
         trigger.window = Duration::ZERO;
+        assert!(trigger.validate().is_err());
+
+        trigger.window = Duration::from_secs(60);
+        trigger.latency = Some(Duration::ZERO);
         assert!(trigger.validate().is_err());
     }
 }

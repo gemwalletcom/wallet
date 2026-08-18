@@ -1,4 +1,6 @@
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_serializers::deserialize_biguint_from_str;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Data<T> {
@@ -24,7 +26,8 @@ pub struct Transaction {
     pub hash: String,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
-    pub fee: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub fee: BigUint,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -43,11 +46,13 @@ pub struct AddressTransaction {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Input {
     pub address: String,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Output {
     pub address: String,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }

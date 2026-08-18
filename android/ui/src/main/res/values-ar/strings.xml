@@ -77,7 +77,8 @@
   <string name="wallet_default_name">المحفظة #%1$d</string>
   <string name="wallet_default_name_chain">%1$s المحفظة رقم %2$d</string>
   <string name="wallet_copy_address">نسخ العنوان</string>
-  <string name="wallet_watch_tooltip_title">أنت تشاهد هذه المحفظة.</string>
+  <string name="wallet_watch_tooltip_title">محفظة للمراقبة فقط. أنت لا تتحكم في هذه الأموال.</string>
+  <string name="wallet_watch_empty_state_title">أنت تشاهد هذه المحفظة.</string>
   <string name="wallet_stake">التخزين</string>
   <string name="wallet_receive_no_memo_required">لا مذكرة المطلوبة</string>
   <string name="wallet_receive_no_destination_tag_required">لا توجد علامة الوجهة المطلوبة</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">تاريخ</string>
   <string name="transaction_view_on">عرض على %1$s</string>
   <string name="transaction_status">حالة</string>
+  <string name="transaction_estimated_confirmation">التأكيد المقدّر</string>
   <string name="transaction_status_confirmed">ناجح</string>
   <string name="transaction_status_pending">قيد الانتظار</string>
   <string name="transaction_status_failed">فشل</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">تتطلب كل معاملة على شبكة %1$s رسومًا بعملة %2$s تُدفع لعمال المناجم لمعالجة معاملتك، وليس Gem Wallet. تختلف رسوم الشبكة حسب استخدام الشبكة.</string>
   <string name="info_transaction_error_description">تعذّر إتمام المعاملة بسبب خطأ، مثل عدم كفاية الرصيد، أو إدخال غير صحيح، أو رفض من قِبل الشبكة. يُرجى مراجعة التفاصيل والمحاولة مرة أخرى.</string>
   <string name="info_transaction_pending_description">تم إرسال المعاملة وهي بانتظار التأكيد على الشبكة. قد تختلف أوقات المعالجة. يُرجى مراجعة التحديثات.</string>
+  <string name="info_estimated_confirmation_description">يعتمد هذا التقدير على رسوم المعاملة ونشاط شبكة %1$s الحالي. قد يتغير وقت التأكيد الفعلي وهو غير مضمون.</string>
   <string name="info_transaction_success_description">تم إتمام المعاملة وتأكيدها على الشبكة. يمكنك مراجعة التفاصيل للتحقق من حالتها.</string>
   <string name="info_lock_time_description">وقت القفل، المعروف أيضًا باسم فترة إلغاء التجميد أو إلغاء التجميد، هو المدة التي لا يمكن خلالها الوصول إلى الأصول المرهونة بعد أن تقرر إلغاء ملكيتها.</string>
   <string name="info_price_impact_description">تأثير السعر هو التغيير في سعر الرمز المميز الناتج عن حجم تداولك. يعني ارتفاع تأثير السعر أنك ستتلقى عددًا أقل من الرموز المميزة بسبب انخفاض السيولة أو حجم الطلب الكبير.</string>

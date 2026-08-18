@@ -2,28 +2,20 @@
 
 import Components
 import Primitives
+import PrimitivesComponents
 
 struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
     private let state: StateViewType<ConfirmTransferInput>
-    private let title: String
-    private let value: String?
-    private let fiatValue: String?
-    private let selectable: Bool
+    private let feeModel: NetworkFeeSceneViewModel
     private let infoAction: VoidAction
 
     init(
         state: StateViewType<ConfirmTransferInput>,
-        title: String,
-        value: String?,
-        fiatValue: String?,
-        selectable: Bool,
+        feeModel: NetworkFeeSceneViewModel,
         infoAction: VoidAction,
     ) {
         self.state = state
-        self.title = title
-        self.value = value
-        self.fiatValue = fiatValue
-        self.selectable = selectable
+        self.feeModel = feeModel
         self.infoAction = infoAction
     }
 }
@@ -34,12 +26,12 @@ extension ConfirmNetworkFeeViewModel {
     var itemModel: ConfirmTransferItemModel {
         .networkFee(
             .init(
-                title: title,
+                title: feeModel.title,
                 subtitle: networkFeeValue,
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),
-            selectable: selectable && state.value != nil,
+            selectable: feeModel.showFeeDetails && !state.isError,
         )
     }
 }
@@ -49,6 +41,6 @@ extension ConfirmNetworkFeeViewModel {
 extension ConfirmNetworkFeeViewModel {
     private var networkFeeValue: String? {
         if state.isError { return "-" }
-        return fiatValue ?? value
+        return feeModel.fiatValue ?? feeModel.value
     }
 }

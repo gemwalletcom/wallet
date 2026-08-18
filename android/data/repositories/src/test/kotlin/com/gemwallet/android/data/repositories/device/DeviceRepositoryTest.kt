@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.device
 import com.gemwallet.android.testkit.mockDevice
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
@@ -21,9 +22,8 @@ class DeviceRepositoryTest {
         val remote = mockDevice(
             id = "device-id",
             token = "push-token",
-            locale = "en-US",
         )
-        val local = remote.copy(currency = "EUR")
+        val local = remote.copy(currency = Currency.EUR)
 
         assertTrue(deviceHasChanges(remote, local))
     }
@@ -33,7 +33,6 @@ class DeviceRepositoryTest {
         val remote = mockDevice(
             id = "device-id",
             token = "push-token",
-            locale = "en-US",
         )
 
         assertFalse(deviceHasChanges(remote, remote.copy()))

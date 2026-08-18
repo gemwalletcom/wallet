@@ -16,9 +16,11 @@ const APTOS_NATIVE_METADATA_ADDRESS: &str = "0xa";
 #[derive(serde::Deserialize)]
 struct PanoraSwapSummaryEventData {
     input_token_address: String,
-    input_token_amount: String,
+    #[serde(deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    input_token_amount: BigUint,
     output_token_address: String,
-    output_token_amount: String,
+    #[serde(deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    output_token_amount: BigUint,
 }
 
 fn map_token_address_to_asset_id(chain: Chain, token_address: &str) -> AssetId {
@@ -85,11 +87,11 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         let balance_diffs = vec![
             BalanceDiff {
                 asset_id: from_asset,
-                diff: -BigInt::parse_bytes(summary.input_token_amount.as_bytes(), 10)?,
+                diff: -BigInt::from(summary.input_token_amount),
             },
             BalanceDiff {
                 asset_id: to_asset,
-                diff: BigInt::parse_bytes(summary.output_token_amount.as_bytes(), 10)?,
+                diff: BigInt::from(summary.output_token_amount),
             },
         ];
 
@@ -125,11 +127,11 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
     let balance_diffs = vec![
         BalanceDiff {
             asset_id: from_asset,
-            diff: -BigInt::parse_bytes(withdraw_amount.as_bytes(), 10)?,
+            diff: -BigInt::from(withdraw_amount),
         },
         BalanceDiff {
             asset_id: to_asset,
-            diff: BigInt::parse_bytes(deposit_amount.as_bytes(), 10)?,
+            diff: BigInt::from(deposit_amount),
         },
     ];
 
@@ -226,7 +228,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
             deposit_event.guid.account_address.clone()
         };
 
-        let value = deposit_event.get_amount()?;
+        let value = deposit_event.get_amount()?.to_string();
 
         return Some(build_transaction(meta, asset_id.clone(), asset_id, to, value, TransactionType::Transfer, None));
     }
@@ -357,14 +359,5 @@ mod tests {
         assert_eq!(tx.state, TransactionState::Confirmed);
         assert_eq!(tx.transaction_type, TransactionType::StakeUndelegate);
         assert_eq!(tx.fee, "88400");
-    }
-
-    #[test]
-    fn test_map_transaction_rejects_non_integer_stake_amount() {
-        let transaction: Transaction = serde_json::from_str(include_str!("../../testdata/transaction_stake_delegate_malformed_amount.json")).unwrap();
-
-        let result = map_transaction(transaction);
-
-        assert!(result.is_none());
     }
 }

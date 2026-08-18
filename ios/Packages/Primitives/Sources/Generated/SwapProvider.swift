@@ -27,4 +27,5 @@ public enum SwapProvider: String, Codable, Equatable, Hashable, Sendable {
 	case orca
 	case squid
 	case mayachain
+	case swapsXyz = "swaps_xyz"
 }

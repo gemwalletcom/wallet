@@ -206,7 +206,7 @@ struct Migrations {
             }
         }
 
-        // not revelevant for new users, only debug
+        // not relevant for new users, only debug
         migrator.registerMigration("Add initial nft setup tables drop") { db in
             try? db.drop(table: NFTCollectionRecord.databaseTableName)
             try? db.drop(table: NFTAssetRecord.databaseTableName)
@@ -504,6 +504,12 @@ struct Migrations {
                 $0.add(column: AssetRecord.Columns.associations.name, .jsonText)
                     .notNull()
                     .defaults(to: "[]")
+            }
+        }
+
+        migrator.registerMigration("Add estimated confirmation to \(TransactionRecord.databaseTableName)") { db in
+            try? db.alter(table: TransactionRecord.databaseTableName) {
+                $0.add(column: TransactionRecord.Columns.confirmationEtaSeconds.name, .integer)
             }
         }
 

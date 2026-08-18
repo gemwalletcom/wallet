@@ -18,7 +18,10 @@ public struct AssetPriceAlertsScene: View {
     public var body: some View {
         List {
             Section {
-                autoAlertToggleView
+                Toggle(isOn: model.isAutoAlertEnabledBinding) {
+                    ListAssetItemView(model: model.autoAlertItemModel)
+                }
+                .toggleStyle(AppToggleStyle())
             } footer: {
                 Text(Localized.PriceAlerts.autoFooter)
             }
@@ -57,13 +60,6 @@ public struct AssetPriceAlertsScene: View {
             )
         }
         .toast(message: $model.isPresentingToastMessage)
-    }
-
-    private var autoAlertToggleView: some View {
-        Toggle(isOn: model.isAutoAlertEnabledBinding) {
-            ListAssetItemView(model: model.autoAlertItemModel)
-        }
-        .toggleStyle(AppToggleStyle())
     }
 
     private func alertView(model: PriceAlertItemViewModel) -> some View {

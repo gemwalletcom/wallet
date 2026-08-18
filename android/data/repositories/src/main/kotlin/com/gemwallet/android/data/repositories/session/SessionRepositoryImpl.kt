@@ -33,8 +33,7 @@ class SessionRepositoryImpl(
     val session = sessionDao.session().flatMapLatest { record ->
         val walletId = record?.walletId ?: return@flatMapLatest flow { emit(null) }
         walletsRepository.getWallet(WalletId(walletId)).mapLatest { wallet ->
-            val session = record.toDTO(wallet ?: return@mapLatest null)
-            session
+            record.toDTO(wallet ?: return@mapLatest null)
         }
     }
     .stateIn(scope, SharingStarted.Eagerly, null)
@@ -53,7 +52,7 @@ class SessionRepositoryImpl(
                 walletId = wallet.id.id,
                 currency = android.icu.util.Currency.getInstance(Locale.getDefault()).let { sysCurrency ->
                     Currency.entries.firstOrNull { it.string == sysCurrency.currencyCode } ?: Currency.USD
-                }.string,
+                },
             )
         } else {
             oldSession.copy(walletId = wallet.id.id)
@@ -62,7 +61,7 @@ class SessionRepositoryImpl(
     }
 
     override suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {
-        sessionDao.setCurrency(currency.string)
+        sessionDao.setCurrency(currency)
     }
 
     override suspend fun reset() = withContext(Dispatchers.IO) {
@@ -70,9 +69,7 @@ class SessionRepositoryImpl(
     }
 
     override suspend fun getCurrentCurrency(): Currency = withContext(Dispatchers.IO) {
-        val currency = sessionDao.getCurrency()
-        val result = Currency.entries.firstOrNull { it.string == currency } ?: Currency.USD
-        result
+        sessionDao.getCurrency() ?: Currency.USD
     }
 
     override fun getCurrency(): Flow<Currency> = session().map { it?.currency ?: Currency.USD }

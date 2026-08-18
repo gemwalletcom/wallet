@@ -9,7 +9,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import TransactionsService
-import WalletSessionService
 
 @Observable
 @MainActor
@@ -18,10 +17,9 @@ public final class TransactionsViewModel {
     public let transactionsService: TransactionsService
     public let preferences: Preferences
 
-    private let walletSessionService: any WalletSessionManageable
     private let type: TransactionsRequestType
 
-    public private(set) var wallet: Wallet
+    public let wallet: Wallet
 
     public var transactions: [TransactionExtended] {
         filterModel.query.value
@@ -34,12 +32,10 @@ public final class TransactionsViewModel {
 
     public init(
         transactionsService: TransactionsService,
-        walletSessionService: any WalletSessionManageable,
         wallet: Wallet,
         type: TransactionsRequestType,
         preferences: Preferences = .standard,
     ) {
-        self.walletSessionService = walletSessionService
         self.transactionsService = transactionsService
 
         self.type = type
@@ -50,10 +46,6 @@ public final class TransactionsViewModel {
 
     public var title: String {
         Localized.Activity.title
-    }
-
-    public var currentWallet: Wallet? {
-        walletSessionService.currentWallet
     }
 
     public var walletId: WalletId {
@@ -76,12 +68,6 @@ public final class TransactionsViewModel {
 // MARK: - Business Logic
 
 public extension TransactionsViewModel {
-    func onChangeWallet(_: Wallet?, _ newWallet: Wallet?) {
-        if let newWallet, wallet != newWallet {
-            refresh(for: newWallet)
-        }
-    }
-
     func onSelectFilterButton() {
         isPresentingSheet = .filter
     }
@@ -98,13 +84,8 @@ public extension TransactionsViewModel {
 // MARK: - Private
 
 extension TransactionsViewModel {
-    private func refresh(for wallet: Wallet) {
-        self.wallet = wallet
-        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
-    }
-
     private func onSelectCleanFilters() {
-        refresh(for: wallet)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
     }
 
     private func onSelectReceive() {

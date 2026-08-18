@@ -77,7 +77,8 @@
   <string name="wallet_default_name">钱包 #%1$d</string>
   <string name="wallet_default_name_chain">%1$s 钱包 #%2$d</string>
   <string name="wallet_copy_address">复制地址</string>
-  <string name="wallet_watch_tooltip_title">正在观察这个钱包。</string>
+  <string name="wallet_watch_tooltip_title">仅供观察的钱包。这些资金不受您控制。</string>
+  <string name="wallet_watch_empty_state_title">正在观察这个钱包。</string>
   <string name="wallet_stake">质押</string>
   <string name="wallet_receive_no_memo_required">无需备忘录</string>
   <string name="wallet_receive_no_destination_tag_required">无需目的地标签</string>
@@ -237,6 +238,7 @@
   <string name="transaction_date">日期</string>
   <string name="transaction_view_on">在 %1$s 上查看</string>
   <string name="transaction_status">状态</string>
+  <string name="transaction_estimated_confirmation">预计确认</string>
   <string name="transaction_status_confirmed">成功</string>
   <string name="transaction_status_pending">待确认</string>
   <string name="transaction_status_failed">失败</string>
@@ -439,6 +441,7 @@
   <string name="info_network_fee_description">在 %1$s 网络上的每笔交易都需要以 %2$s 支付给矿工的手续费，以处理您的交易，Gem Wallet 不收取此费用。网络手续费根据网络使用情况而变化。</string>
   <string name="info_transaction_error_description">由于资金不足、输入无效或网络拒绝等错误，交易无法完成。请检查详情并重试。</string>
   <string name="info_transaction_pending_description">交易已提交，正在等待网络确认。处理时间可能有所不同。请稍后查看更新。</string>
+  <string name="info_estimated_confirmation_description">此估算基于交易手续费和 %1$s 网络当前的活动。实际确认时间可能会发生变化，且无法保证。</string>
   <string name="info_transaction_success_description">交易已完成并已在网络上确认。可查看详情以核实状态。</string>
   <string name="info_lock_time_description">锁仓期（又称为解锁期或解绑期）是指你发起解除质押后，资产在一段时间内无法使用的等待期间。</string>
   <string name="info_price_impact_description">价格影响表示交易对价格的冲击。价格影响越大，收到的代币越少，可能由于流动性低或交易金额大。</string>

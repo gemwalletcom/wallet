@@ -1,7 +1,6 @@
-use std::str::FromStr;
-
-use num_bigint::BigInt;
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
 #[cfg(feature = "signer")]
 use super::{ExecuteContractValue, IbcTransferValue};
@@ -45,13 +44,8 @@ pub struct AuthInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Coin {
     pub denom: String,
-    pub amount: String,
-}
-
-impl Coin {
-    pub fn get_amount(&self) -> Option<BigInt> {
-        BigInt::from_str(&self.amount).ok()
-    }
+    #[serde(deserialize_with = "deserialize_biguint_from_str", serialize_with = "serialize_biguint")]
+    pub amount: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -86,12 +80,6 @@ pub struct MsgBeginRedelegate {
 pub struct MsgWithdrawDelegatorReward {
     pub delegator_address: String,
     pub validator_address: String,
-}
-
-impl MsgSend {
-    pub fn get_amount(&self, denom: &str) -> Option<BigInt> {
-        Some(self.amount.iter().filter(|c| c.denom == denom).flat_map(Coin::get_amount).sum())
-    }
 }
 
 #[cfg(feature = "signer")]
@@ -250,7 +238,7 @@ mod tests {
                 assert_eq!(contract, "osmo1n6ney9tsf55etz9nrmzyd8wa7e64qd3s06a74fqs30ka8pps6cvqtsycr6");
                 assert_eq!(funds.len(), 1);
                 assert_eq!(funds[0].denom, "uosmo");
-                assert_eq!(funds[0].amount, "10000000");
+                assert_eq!(funds[0].amount, BigUint::from(10_000_000u32));
             }
             _ => panic!("expected ExecuteContract"),
         }

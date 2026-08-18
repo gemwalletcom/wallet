@@ -1,16 +1,9 @@
 package com.gemwallet.android.features.bridge.views
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -22,21 +15,10 @@ import com.gemwallet.android.features.bridge.viewmodels.WCRequestViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
-import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.components.list_head.CenteredListHead
-import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
-import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.requestAuth
-import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
 
@@ -83,10 +65,10 @@ fun RequestScene(
         is RequestSceneState.Content -> (sceneState as RequestSceneState.Content).let { sceneState ->
             val request = sceneState.request
             when (request) {
-                is WCRequest.SignMessage -> SignMessageScene(
-                    state = sceneState,
-                    request = request,
+                is WCRequest.SignMessage -> WalletConnectReviewScene(
+                    model = request,
                     buttonState = buttonState,
+                    walletRow = { PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = ListPosition.First) },
                     onApprove = { viewModel.onSign(onError) },
                     onReject = viewModel::onReject,
                 )
@@ -102,86 +84,4 @@ fun RequestScene(
         }
         RequestSceneState.Cancel -> onCancel()
     }
-}
-
-@Composable
-private fun SignMessageScene(
-    state: RequestSceneState.Content,
-    request: WCRequest.SignMessage,
-    buttonState: ButtonState,
-    onApprove: () -> Unit,
-    onReject: () -> Unit,
-) {
-    val context = LocalContext.current
-    var sheetType by remember { mutableStateOf<SignMessageSheetType?>(null) }
-
-    Scene(
-        title = stringResource(id = R.string.transfer_review_request),
-        backHandle = true,
-        closeIcon = true,
-        mainAction = {
-            MainActionButton(
-                title = stringResource(id = R.string.transfer_confirm),
-                state = buttonState,
-            ) {
-                context.requestAuth(AuthRequest.Confirmation) {
-                    onApprove()
-                }
-            }
-        },
-        onClose = onReject,
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding() + paddingDefault),
-        ) {
-            item {
-                CenteredListHead(
-                    icon = request.icon,
-                    title = request.name,
-                    subtitle = request.uri,
-                    contentDescription = "wallet_connect_app_icon",
-                    subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
-                )
-            }
-            item { PropertyItem(R.string.common_wallet, state.walletName, listPosition = ListPosition.First) }
-            item { PropertyNetworkItem(request.chain, listPosition = ListPosition.Last) }
-            simulationWarningsContent(request.simulation.warnings)
-            if (request.hasPayload) {
-                simulationPayloadFieldsContent(
-                    fields = request.primaryPayloadFields,
-                    onDetailsClick = { sheetType = SignMessageSheetType.Details },
-                )
-            }
-
-            if (!request.hasPayload) {
-                walletConnectTextMessage(request.plainMessage)
-            }
-        }
-
-        when (sheetType) {
-            SignMessageSheetType.Details -> {
-                WalletConnectPayloadDetailsSheet(
-                    primaryFields = request.primaryPayloadFields,
-                    secondaryFields = request.secondaryPayloadFields,
-                    onViewFullMessage = { sheetType = SignMessageSheetType.FullMessage },
-                    onDismissRequest = { sheetType = null },
-                )
-            }
-
-            SignMessageSheetType.FullMessage -> {
-                WalletConnectFullMessageSheet(
-                    message = request.plainMessage,
-                    onDismissRequest = { sheetType = null },
-                )
-            }
-
-            null -> Unit
-        }
-    }
-}
-
-private enum class SignMessageSheetType {
-    Details,
-    FullMessage,
 }

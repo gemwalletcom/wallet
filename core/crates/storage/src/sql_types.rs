@@ -3,6 +3,7 @@ use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{self, Output, ToSql};
 use primitives::AssetId as PrimitiveAssetId;
+use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::nft::NFTType as PrimitiveNFTType;
 use primitives::rewards::{
     RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType,
@@ -10,12 +11,12 @@ use primitives::rewards::{
 };
 use primitives::scan::AddressType as PrimitiveAddressType;
 use primitives::{
-    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, FiatProviderName as PrimitiveFiatProviderName,
-    FiatQuoteType as PrimitiveFiatQuoteType, FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType,
-    ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform,
-    PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider,
-    TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus,
-    WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
+    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale,
+    FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType, FiatTransactionStatus as PrimitiveFiatTransactionStatus,
+    IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType,
+    PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection,
+    PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState,
+    TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -24,24 +25,20 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 use crate::schema::sql_types::{
-    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, FiatTransactionStatus as FiatTransactionStatusSql,
-    FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql,
-    Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql,
-    RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql,
-    TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
+    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql,
+    FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql,
+    NftType as NftTypeSql, NotificationType as NotificationTypeSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql,
+    RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, TagVisibility as TagVisibilitySql,
+    TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql,
+    WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
-    ($wrapper:ident, $inner:ty, $sql_type:ty, [$($variant:ident),+ $(,)?]) => {
+    ($wrapper:ident, $inner:ty, $sql_type:ty) => {
         #[derive(Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow)]
         #[serde(transparent)]
         #[diesel(sql_type = $sql_type)]
         pub struct $wrapper(pub $inner);
-
-        #[allow(non_upper_case_globals)]
-        impl $wrapper {
-            $(pub const $variant: Self = Self(<$inner>::$variant);)+
-        }
 
         impl Deref for $wrapper {
             type Target = $inner;
@@ -68,6 +65,14 @@ macro_rules! diesel_enum {
                 out.write_all(self.0.as_ref().as_bytes())?;
                 Ok(serialize::IsNull::No)
             }
+        }
+    };
+    ($wrapper:ident, $inner:ty, $sql_type:ty, [$($variant:ident),+ $(,)?]) => {
+        diesel_enum!($wrapper, $inner, $sql_type);
+
+        #[allow(non_upper_case_globals)]
+        impl $wrapper {
+            $(pub const $variant: Self = Self(<$inner>::$variant);)+
         }
     };
 }
@@ -163,6 +168,17 @@ diesel_enum!(
 diesel_enum!(UsernameStatus, PrimitiveUsernameStatus, UsernameStatusSql, [Unverified, Verified]);
 
 diesel_enum!(Platform, PrimitivePlatform, PlatformSql, [IOS, Android]);
+
+diesel_enum!(Currency, PrimitiveCurrency, CurrencySql);
+
+diesel_enum!(
+    DeviceLocale,
+    PrimitiveDeviceLocale,
+    DeviceLocaleSql,
+    [
+        AR, BN, CS, DA, DE, EN, ES, FA, FIL, FR, HA, HE, HI, ID, IT, JA, KO, MS, NL, PL, PtBR, RO, RU, SW, TH, TR, UK, UR, VI, ZhHans, ZhHant
+    ]
+);
 
 diesel_enum!(
     PlatformStore,

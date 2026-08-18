@@ -104,11 +104,6 @@ impl<C: Client> HyperCoreClient<C> {
         self.info(json!({"type": "delegations", "user": user})).await
     }
 
-    pub async fn get_staking_apy(&self) -> Result<f64, Box<dyn Error + Send + Sync>> {
-        let validators = self.get_validators().await?;
-        Ok(Validator::max_apr(validators))
-    }
-
     pub async fn get_spot_balances(&self, user: &str) -> Result<Balances, Box<dyn Error + Send + Sync>> {
         self.info(json!({
             "type": "spotClearinghouseState",

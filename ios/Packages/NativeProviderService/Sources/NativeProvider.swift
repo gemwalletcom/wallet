@@ -3,7 +3,7 @@
 import Foundation
 import enum Gemstone.AlienError
 import protocol Gemstone.AlienProvider
-import struct Gemstone.AlienResponse
+import class Gemstone.AlienResponse
 import struct Gemstone.AlienTarget
 import typealias Gemstone.Chain
 import Primitives

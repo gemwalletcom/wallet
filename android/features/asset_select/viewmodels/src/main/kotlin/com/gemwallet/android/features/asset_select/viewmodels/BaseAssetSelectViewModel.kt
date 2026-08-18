@@ -17,8 +17,9 @@ import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.RecentType
-import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
-import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
 import com.gemwallet.android.ui.models.AssetToastEmitterImpl
@@ -107,14 +108,15 @@ open class BaseAssetSelectViewModel(
             .filter { (chainFilter.isEmpty() || it.id().chain in chainFilter) && (!balanceFilter || it.balance.totalAmount > 0.0) }
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
-                AssetInfoUIModel(if (item.owner == owner) item else item.copy(owner = owner))
+                val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
+                assetInfo.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative)
             }
     }
     .flowOn(Dispatchers.IO)
     .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     private val assets = assetsContent
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
     val popular = assets.map { items ->
         items.filter {
@@ -122,19 +124,19 @@ open class BaseAssetSelectViewModel(
         }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
+    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
 
     val pinned = assets.map { items ->
-        items.filter { it.metadata?.isPinned == true && it.metadata?.isBalanceEnabled == true }.toImmutableList()
+        items.filter { it.pinned && it.balanceEnabled }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
+    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
 
     val unpinned = assets.map { items ->
-        items.filter { it.metadata?.isPinned != true || it.metadata?.isBalanceEnabled != true }.toImmutableList()
+        items.filter { !it.pinned || !it.balanceEnabled }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
+    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
 
     val recent = currentQuery
         .flatMapLatest { query ->
@@ -175,7 +177,7 @@ open class BaseAssetSelectViewModel(
         val session = session.value ?: return@launch
         session.wallet.getAccount(assetId.chain) ?: return@launch
         val item = assets.value.firstOrNull { it.asset.id == assetId }
-        val willPin = item?.metadata?.isPinned != true
+        val willPin = item?.pinned != true
         toggleAssetPin(assetId)
         item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
     }

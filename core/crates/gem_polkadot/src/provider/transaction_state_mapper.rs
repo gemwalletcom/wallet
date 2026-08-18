@@ -27,9 +27,7 @@ mod tests {
                 pallet: "test".to_string(),
                 method: "test".to_string(),
             },
-            info: ExtrinsicInfo {
-                partial_fee: Some("0".to_string()),
-            },
+            info: ExtrinsicInfo { partial_fee: Some(0u32.into()) },
             success,
             args: ExtrinsicArguments::Other(serde_json::json!({})),
             signature: None,

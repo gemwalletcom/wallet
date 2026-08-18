@@ -16,6 +16,9 @@ use crate::{
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use gem_sui::{SuiClient, build_transfer_message_bytes};
+use num_bigint::BigUint;
+use num_integer::Integer;
+use num_traits::Zero;
 use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
 use std::{fmt::Debug, sync::Arc};
 
@@ -82,10 +85,6 @@ impl NearIntents<RpcClient> {
         let explorer = NearIntentsExplorer::new(RpcClient::new(explorer_url(), rpc_provider.clone()));
         let sui_client = create_sui_client(rpc_provider.clone()).expect("failed to create Sui gRPC client");
         Self::with_client(client, explorer, sui_client)
-    }
-
-    pub fn boxed(rpc_provider: Arc<dyn RpcProvider>) -> Box<dyn crate::swapper_trait::Swapper> {
-        Box::new(Self::new(rpc_provider))
     }
 }
 
@@ -223,11 +222,37 @@ where
     }
 
     fn extract_quote(response: QuoteResponseResult, from_decimals: u32) -> Result<QuoteResponse, SwapperError> {
-        match response {
-            QuoteResponseResult::Ok(quote) => Ok(*quote),
-            QuoteResponseResult::Err(error) => Err(map_quote_error(&error, from_decimals)),
-        }
+        let quote_response = match response {
+            QuoteResponseResult::Ok(response) => *response,
+            QuoteResponseResult::Err(error) => return Err(map_quote_error(&error, from_decimals)),
+        };
+        validate_minimum_amount(
+            &quote_response.quote.amount_in,
+            &quote_response.quote.amount_out,
+            &quote_response.quote.min_amount_out,
+            &quote_response.quote.withdraw_fee,
+        )?;
+        Ok(quote_response)
     }
+}
+
+fn validate_minimum_amount(amount_in: &BigUint, amount_out: &BigUint, min_amount_out: &BigUint, withdrawal_fee: &BigUint) -> Result<(), SwapperError> {
+    if min_amount_out > amount_out {
+        return Err(SwapperError::ComputeQuoteError("Near Intents returned an invalid minimum output".into()));
+    }
+
+    let withdrawal_budget = amount_out - min_amount_out;
+    if withdrawal_fee <= &withdrawal_budget {
+        return Ok(());
+    }
+    if withdrawal_budget.is_zero() {
+        return Err(SwapperError::NoQuoteAvailable);
+    }
+
+    let minimum_amount = (amount_in * withdrawal_fee).div_ceil(&withdrawal_budget);
+    Err(SwapperError::InputAmountError {
+        min_amount: Some(minimum_amount.to_string()),
+    })
 }
 
 fn map_quote_error(error: &QuoteResponseError, from_decimals: u32) -> SwapperError {
@@ -500,6 +525,15 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    fn test_validate_minimum_amount() {
+        assert_eq!(validate_minimum_amount(&100_u32.into(), &100_u32.into(), &90_u32.into(), &10_u32.into()), Ok(()));
+        assert_eq!(
+            validate_minimum_amount(&100_u32.into(), &100_u32.into(), &90_u32.into(), &11_u32.into()),
+            Err(SwapperError::InputAmountError { min_amount: Some("110".into()) })
+        );
+    }
 }
 
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
@@ -509,7 +543,7 @@ mod swap_integration_tests {
     use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ARBITRUM_USDC_ASSET_ID, BASE_USDC_ASSET_ID},
+        asset_constants::{ARBITRUM_USDC_ASSET_ID, BASE_USDC_ASSET_ID, NEAR_USDT_ASSET_ID},
     };
     use std::sync::Arc;
 
@@ -535,6 +569,25 @@ mod swap_integration_tests {
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(!quote_data.to.is_empty());
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_near_intents_near_to_usdt_quote() -> Result<(), SwapperError> {
+        let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
+        let provider = NearIntents::new(rpc_provider);
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Near)),
+            to_asset: SwapperQuoteAsset::from(NEAR_USDT_ASSET_ID.clone()),
+            wallet_address: "test.near".to_string(),
+            destination_address: "test.near".to_string(),
+            value: "1000000000000000000000000".to_string(),
+            options: Options::mock_exact(100),
+        };
+
+        let quote = provider.get_quote(&request).await?;
+
+        assert!(!quote.to_value.is_empty());
         Ok(())
     }
 

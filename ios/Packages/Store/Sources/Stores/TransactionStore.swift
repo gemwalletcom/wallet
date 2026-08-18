@@ -42,7 +42,7 @@ public struct TransactionStore: Sendable {
     public func getTransactions(states: [TransactionState]) throws -> [Transaction] {
         try db.read { db in
             try TransactionRecord
-                .filter(states.map(\.rawValue).contains(TransactionRecord.Columns.state) )
+                .filter(states.map(\.rawValue).contains(TransactionRecord.Columns.state))
                 .fetchAll(db)
                 .compactMap { $0.mapToTransaction() }
         }
@@ -96,6 +96,10 @@ public struct TransactionStore: Sendable {
 
     public func updateCreatedAt(transactionId: TransactionId, date: Date) throws -> Int {
         try updateValues(id: transactionId, values: [TransactionRecord.Columns.createdAt.set(to: date)])
+    }
+
+    public func updateConfirmationEtaSeconds(transactionId: TransactionId, seconds: UInt32) throws -> Int {
+        try updateValues(id: transactionId, values: [TransactionRecord.Columns.confirmationEtaSeconds.set(to: seconds)])
     }
 
     public func updateMetadata(transactionId: TransactionId, metadata: AnyCodableValue) throws -> Int {

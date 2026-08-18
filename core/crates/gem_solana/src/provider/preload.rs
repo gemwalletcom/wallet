@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use std::error::Error;
 
+use crate::constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT};
 use crate::provider::preload_mapper::{calculate_fee_rates, calculate_transaction_fee};
 use gem_client::Client;
 use primitives::{
@@ -21,6 +22,13 @@ struct SolanaNftPreload {
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
+    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
+        Some(match operation {
+            TransactionFeeOperation::Transfer | TransactionFeeOperation::TokenTransfer => DEFAULT_GAS_LIMIT as u64,
+            TransactionFeeOperation::Swap => DEFAULT_SWAP_GAS_LIMIT as u64,
+        })
+    }
+
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let TransactionPreloadInput {
             input_type,

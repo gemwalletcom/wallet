@@ -8,7 +8,10 @@ use crate::{
 use chrono::DateTime;
 use num_bigint::BigUint;
 use primitives::{
-    AssetId, NFTAssetId, Transaction as PrimitivesTransaction, TransactionType, chain::Chain, hex::decode_hex_utf8, transaction_metadata_types::TransactionNFTTransferMetadata,
+    AssetId, NFTAssetId, Transaction as PrimitivesTransaction, TransactionType,
+    chain::Chain,
+    hex::decode_hex_utf8,
+    transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata, TransactionNFTTransferMetadata},
 };
 
 pub struct EthereumMapper;
@@ -108,18 +111,52 @@ impl EthereumMapper {
             .with_data(data)
         };
 
-        match payload {
-            TransactionPayload::NativeTransfer => Some(build_native_asset_transaction(TransactionType::Transfer, None, None)),
+        let transaction = match payload {
+            TransactionPayload::NativeTransfer => build_native_asset_transaction(TransactionType::Transfer, None, None),
             TransactionPayload::NativeTransferWithCallData => {
                 let memo = decode_hex_utf8(&transaction.input).filter(|value| !value.is_empty());
-                Some(build_native_asset_transaction(TransactionType::Transfer, memo, Some(transaction.input.clone())))
+                build_native_asset_transaction(TransactionType::Transfer, memo, Some(transaction.input.clone()))
             }
-            TransactionPayload::Erc20Approve(approval) => Some(build_erc20_approval(approval)),
-            TransactionPayload::Erc20Transfer(transfer) => Some(build_erc20_transfer(transfer)),
-            TransactionPayload::Erc721Transfer(transfer) | TransactionPayload::Erc1155Transfer(transfer) => Some(build_nft_transfer(transfer)),
-            TransactionPayload::SmartContractCall => Some(build_native_asset_transaction(TransactionType::SmartContractCall, None, None)),
-            TransactionPayload::Unknown => None,
+            TransactionPayload::Erc20Approve(approval) => build_erc20_approval(approval),
+            TransactionPayload::Erc20Transfer(transfer) => PrimitivesTransaction {
+                metadata: Self::asset_transfers_metadata(chain, transaction_receipt, &from, &to),
+                ..build_erc20_transfer(transfer)
+            },
+            TransactionPayload::Erc721Transfer(transfer) | TransactionPayload::Erc1155Transfer(transfer) => build_nft_transfer(transfer),
+            TransactionPayload::SmartContractCall => PrimitivesTransaction {
+                metadata: Self::asset_transfers_metadata(chain, transaction_receipt, &from, &to),
+                ..build_native_asset_transaction(TransactionType::SmartContractCall, None, None)
+            },
+            TransactionPayload::Unknown => return None,
+        };
+        Some(transaction)
+    }
+
+    fn asset_transfers_metadata(chain: Chain, receipt: &TransactionReceipt, from: &str, to: &str) -> Option<serde_json::Value> {
+        let erc20_transfers = TransactionPayload::erc20_transfers(receipt, from, to);
+        if erc20_transfers.len() < 2 {
+            return None;
         }
+
+        let asset_transfers = erc20_transfers
+            .into_iter()
+            .map(|transfer| TransactionAssetTransfer {
+                asset_id: AssetId::from_token(chain, &transfer.contract_address),
+                from: transfer.from,
+                to: transfer.to,
+                value: transfer.value,
+            })
+            .fold(Vec::<TransactionAssetTransfer>::new(), |mut asset_transfers, transfer| {
+                match asset_transfers
+                    .iter_mut()
+                    .find(|existing| existing.asset_id == transfer.asset_id && existing.from == transfer.from && existing.to == transfer.to)
+                {
+                    Some(existing) => existing.value += transfer.value,
+                    None => asset_transfers.push(transfer),
+                }
+                asset_transfers
+            });
+        serde_json::to_value(TransactionAssetTransfersMetadata { asset_transfers }).ok()
     }
 }
 
@@ -166,6 +203,7 @@ mod tests {
         assert_eq!(transaction.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
         assert_eq!(transaction.to, "0x2Fc617E933a52713247CE25730f6695920B3befe");
         assert_eq!(transaction.value, "4801292");
+        assert_eq!(transaction.metadata, None);
     }
 
     #[test]
@@ -256,6 +294,50 @@ mod tests {
         assert_eq!(transaction.from, "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7");
         assert_eq!(transaction.to, "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC");
         assert_eq!(transaction.value, "930678651");
+    }
+
+    #[test]
+    fn test_smart_contract_batch_erc20_transfers() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/arbitrum_hyperliquid_batch_withdrawal_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/arbitrum_hyperliquid_batch_withdrawal_receipt.json"));
+
+        let mapped = EthereumMapper::map_transaction(Chain::Arbitrum, &transaction, &receipt, &BigUint::from(1_786_655_440u64)).unwrap();
+        assert_eq!(mapped.transaction_type, TransactionType::SmartContractCall);
+        let metadata: TransactionAssetTransfersMetadata = serde_json::from_value(mapped.metadata.clone().unwrap()).unwrap();
+        assert_eq!(metadata.asset_transfers.len(), 2);
+        assert!(metadata.asset_transfers.iter().all(|transfer| transfer.asset_id == ARBITRUM_USDC_ASSET_ID.clone()));
+
+        let first = mapped.finalize(vec!["0x6b3edb41b7a42d420a720d7a29a27a160af0c64d".to_string()]);
+        assert_eq!(first.transaction_type, TransactionType::Transfer);
+        assert_eq!(first.asset_id, ARBITRUM_USDC_ASSET_ID.clone());
+        assert_eq!(first.from, "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7");
+        assert_eq!(first.to, "0x6B3EdB41B7a42d420a720D7a29a27a160aF0c64d");
+        assert_eq!(first.value, "81447000");
+
+        let second = mapped.finalize(vec!["0x59642dd5b10066a6d8545bf6b378ea99edc46cca".to_string()]);
+        assert_eq!(second.transaction_type, TransactionType::Transfer);
+        assert_eq!(second.asset_id, ARBITRUM_USDC_ASSET_ID.clone());
+        assert_eq!(second.value, "90810000");
+
+        let mut transfers_only_receipt = receipt.clone();
+        transfers_only_receipt.logs.retain(|log| log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC));
+        let transfers_only = EthereumMapper::map_transaction(Chain::Arbitrum, &transaction, &transfers_only_receipt, &BigUint::from(1_786_655_440u64)).unwrap();
+        let metadata: TransactionAssetTransfersMetadata = serde_json::from_value(transfers_only.metadata.unwrap()).unwrap();
+        assert_eq!(metadata.asset_transfers.len(), 2);
+
+        let mut mixed_assets_receipt = receipt.clone();
+        mixed_assets_receipt.logs[2].address = "0x0000000000000000000000000000000000000001".to_string();
+        let mixed_assets = EthereumMapper::map_transaction(Chain::Arbitrum, &transaction, &mixed_assets_receipt, &BigUint::from(1_786_655_440u64)).unwrap();
+        let metadata: TransactionAssetTransfersMetadata = serde_json::from_value(mixed_assets.metadata.unwrap()).unwrap();
+        assert_eq!(metadata.asset_transfers.len(), 2);
+        assert_ne!(metadata.asset_transfers[0].asset_id, metadata.asset_transfers[1].asset_id);
+
+        let mut repeated_destination_receipt = receipt;
+        repeated_destination_receipt.logs[2].topics[2] = repeated_destination_receipt.logs[0].topics[2].clone();
+        let merged = EthereumMapper::map_transaction(Chain::Arbitrum, &transaction, &repeated_destination_receipt, &BigUint::from(1_786_655_440u64)).unwrap();
+        let metadata: TransactionAssetTransfersMetadata = serde_json::from_value(merged.metadata.unwrap()).unwrap();
+        assert_eq!(metadata.asset_transfers.len(), 1);
+        assert_eq!(metadata.asset_transfers[0].value, BigUint::from(172_257_000u64));
     }
 
     #[test]

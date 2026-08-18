@@ -9,7 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class FiatRate (
-	val symbol: String,
+	val symbol: Currency,
 	val rate: Double
 )
 

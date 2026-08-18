@@ -29,12 +29,12 @@ private fun EmptyContentType.title(): String = when (this) {
     is EmptyContentType.PriceAlerts -> stringResource(R.string.price_alerts_state_empty_title)
     is EmptyContentType.Contacts -> stringResource(R.string.contacts_state_empty_title)
     is EmptyContentType.Asset -> if (isViewOnly) {
-        stringResource(R.string.wallet_watch_tooltip_title)
+        stringResource(R.string.wallet_watch_empty_state_title)
     } else {
         stringResource(R.string.asset_state_empty_title)
     }
     is EmptyContentType.Activity -> if (isViewOnly) {
-        stringResource(R.string.wallet_watch_tooltip_title)
+        stringResource(R.string.wallet_watch_empty_state_title)
     } else {
         stringResource(R.string.activity_state_empty_title)
     }

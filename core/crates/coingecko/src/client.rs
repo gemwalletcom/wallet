@@ -3,7 +3,7 @@ use crate::model::{
     TopGainersLosers,
 };
 use gem_client::{Client, ClientExt, ReqwestClient, build_path_with_query, retry};
-use primitives::{DEFAULT_FIAT_CURRENCY, FiatRate};
+use primitives::{FiatRate, currency::Currency};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::error::Error;
 
@@ -147,19 +147,18 @@ impl<C: Client> CoinGeckoClient<C> {
     pub async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
         let path = "/api/v3/exchange_rates";
         let rates: ExchangeRates = self.get_json(path).await?;
-        let usd_rate = rates
-            .rates
-            .get(DEFAULT_FIAT_CURRENCY.to_lowercase().as_str())
-            .ok_or("Default fiat currency rate not found")?
-            .value;
+        let usd_symbol = Currency::USD.as_ref().to_lowercase();
+        let usd_rate = rates.rates.get(&usd_symbol).ok_or("Default fiat currency rate not found")?.value;
 
         let fiat_rates: Vec<FiatRate> = rates
             .rates
             .into_iter()
-            .filter(|x| x.1.rate_type == "fiat")
-            .map(|x| FiatRate {
-                symbol: x.0.to_uppercase(),
-                rate: x.1.value / usd_rate,
+            .filter(|(_, rate)| rate.rate_type == "fiat")
+            .filter_map(|(identifier, rate)| {
+                Some(FiatRate {
+                    symbol: identifier.to_uppercase().parse().ok()?,
+                    rate: rate.value / usd_rate,
+                })
             })
             .collect();
         Ok(fiat_rates)

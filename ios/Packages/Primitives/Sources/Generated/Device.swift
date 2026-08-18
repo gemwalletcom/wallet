@@ -11,14 +11,14 @@ public struct Device: Codable, Equatable, Sendable {
 	public let os: String
 	public let model: String
 	public let token: String
-	public let locale: String
+	public let locale: DeviceLocale
 	public let version: String
-	public let currency: String
+	public let currency: Currency
 	public let isPushEnabled: Bool
 	public let isPriceAlertsEnabled: Bool?
 	public let subscriptionsVersion: Int32
 
-	public init(id: String, platform: Platform, platformStore: PlatformStore, os: String, model: String, token: String, locale: String, version: String, currency: String, isPushEnabled: Bool, isPriceAlertsEnabled: Bool?, subscriptionsVersion: Int32) {
+	public init(id: String, platform: Platform, platformStore: PlatformStore, os: String, model: String, token: String, locale: DeviceLocale, version: String, currency: Currency, isPushEnabled: Bool, isPriceAlertsEnabled: Bool?, subscriptionsVersion: Int32) {
 		self.id = id
 		self.platform = platform
 		self.platformStore = platformStore

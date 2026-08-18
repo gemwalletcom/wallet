@@ -105,7 +105,7 @@ public struct DelegationSceneViewModel {
             switch model.state {
             case .active: stakeChain.supportRedelegate ? [.stake, .unstake, .redelegate] : [.unstake]
             case .inactive: stakeChain.supportRedelegate ? [.unstake, .redelegate] : [.unstake]
-            case .awaitingWithdrawal: stakeChain.supportWidthdraw ? [.withdraw] : []
+            case .awaitingWithdrawal: stakeChain.supportWithdraw ? [.withdraw] : []
             case .pending, .activating, .deactivating: []
             }
         case .earn:

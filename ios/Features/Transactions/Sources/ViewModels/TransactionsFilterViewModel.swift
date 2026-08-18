@@ -24,9 +24,7 @@ public final class TransactionsFilterViewModel {
 
     private let transactionTypes = TransactionType.allCases
 
-    private let defaultFilters: [TransactionsRequestFilter] = [
-        .assetRankGreaterThan(AssetScore.defaultScore),
-    ]
+    private let defaultFilters = TransactionsRequestFilter.activityDefaults
 
     var isPresentingChains: Bool = false
     var isPresentingTypes: Bool = false

@@ -4,12 +4,12 @@
 
 - Run tests through Gradle or the Android `justfile`
 - Default commands:
-  - `just test` or `./gradlew testGoogleDebugUnitTest` — Google Debug unit tests
-  - `just test-integration` or `./gradlew connectedGoogleDebugAndroidTest` — instrumented tests (requires emulator)
+  - `just test` — unit tests for every module (`testGoogleDebugUnitTest` for `:app` plus `testDebugUnitTest` for library modules); builds the host gemstone library first because gemstone-dependent tests load it through JNA
+  - `just test-integration` — instrumented tests for every module (requires emulator)
   - `./gradlew :app:testGoogleDebugUnitTest` — app module only
   - `./gradlew :<module>:testDebugUnitTest` — one feature or shared module
 - Run the narrowest relevant target while iterating, then finish with broader validation
-- For local instrumented tests, start the emulator from the repo root first with `just start-emulator`, then run `just android test-integration` or `cd android && ./gradlew connectedGoogleDebugAndroidTest`
+- For local instrumented tests, start the emulator from the repo root first with `just start-emulator`, then run `just android test-integration`
 
 ## Test Structure
 

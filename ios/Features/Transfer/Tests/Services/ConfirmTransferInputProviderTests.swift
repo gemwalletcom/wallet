@@ -18,10 +18,10 @@ struct ConfirmTransferInputProviderTests {
             ),
         ))
 
-        let input = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
+        let result = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
 
-        #expect(input.feeRates.count == 1)
-        #expect(input.transactionData.fee.fee == 1)
+        #expect(result.feeRates.count == 1)
+        #expect(result.input.transactionData.fee.fee == 1)
     }
 
     @Test

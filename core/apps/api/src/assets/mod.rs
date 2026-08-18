@@ -19,7 +19,7 @@ pub async fn get_asset(
     price_client: &State<PriceClient>,
 ) -> Result<ApiResponse<AssetFull>, ApiError> {
     let asset = client.get_asset_full(&asset_id.0)?;
-    let rate = price_client.get_fiat_rate(currency.0.as_ref())?.rate;
+    let rate = price_client.get_fiat_rate(&currency.0)?.rate;
     Ok(asset.with_rate(rate).into())
 }
 
@@ -30,7 +30,7 @@ pub async fn get_assets(
     client: &State<AssetsClient>,
     price_client: &State<PriceClient>,
 ) -> Result<ApiResponse<Vec<AssetBasic>>, ApiError> {
-    let rate = price_client.get_fiat_rate(currency.0.as_ref())?.rate;
+    let rate = price_client.get_fiat_rate(&currency.0)?.rate;
 
     Ok(client.get_assets(asset_ids.0, rate)?.into())
 }

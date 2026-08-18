@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use primitives::{Asset, AssetBalance, Chain, ChainAddress, Transaction, TransactionStateRequest, TransactionUpdate};
-use settings_chain::{ChainProviders, TransactionIdRequest, TransactionsRequest};
+use settings_chain::{ChainProviders, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest};
 
 pub struct ChainClient {
     providers: ChainProviders,
@@ -34,9 +34,14 @@ impl ChainClient {
     }
 
     pub async fn get_transactions(&self, request: ChainAddress, from_timestamp: Option<u64>, limit: usize) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        self.providers
-            .get_transactions_by_address(request.chain, TransactionsRequest::new(request.address, limit).with_from_timestamp(from_timestamp))
-            .await
+        let address = request.address;
+        Ok(self
+            .providers
+            .get_transactions_by_address(request.chain, TransactionsRequest::new(address.clone(), limit).with_from_timestamp(from_timestamp))
+            .await?
+            .into_iter()
+            .map(|transaction| transaction.finalize(vec![address.clone()]))
+            .collect())
     }
 
     pub async fn get_validators(&self, chain: Chain) -> Result<Vec<primitives::StakeValidator>, Box<dyn Error + Send + Sync>> {
@@ -55,6 +60,10 @@ impl ChainClient {
         self.providers.get_transaction_status(chain, request).await
     }
 
+    pub async fn get_transaction_fee_estimates(&self, chain: Chain) -> Result<TransactionFeeEstimates, Box<dyn Error + Send + Sync>> {
+        self.providers.get_transaction_fee_estimates(chain).await
+    }
+
     pub async fn get_block_transactions(&self, chain: Chain, block_number: i64, transaction_type: Option<&str>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         let transactions = self.providers.get_block_transactions(chain, block_number as u64).await?;
         Ok(self.filter_transactions(transactions, transaction_type))
@@ -68,7 +77,8 @@ impl ChainClient {
         transaction_type: Option<&str>,
     ) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         let transactions = self
-            .get_block_transactions(chain, block_number, None)
+            .providers
+            .get_block_transactions(chain, block_number as u64)
             .await?
             .into_iter()
             .map(|x| x.finalize(addresses.clone()))

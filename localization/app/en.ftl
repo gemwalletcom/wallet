@@ -168,8 +168,10 @@ wallet_default_name = Wallet #%d
 wallet_default_name_chain = %@ Wallet #%d
 # Used in wallet creation, import, receive, and wallet detail screens for the copy address label.
 wallet_copy_address = Copy Address
-# Used in wallet creation, import, receive, and wallet detail screens for the watch tooltip title.
-wallet_watch_tooltip_title = You are watching this wallet.
+# Used in the wallet and asset header banner for watch wallets.
+wallet_watch_tooltip_title = Watch-only wallet. You don't control these funds.
+# Used as the empty state title on asset and activity screens for watch wallets.
+wallet_watch_empty_state_title = You are watching this wallet.
 # Used in wallet creation, import, receive, and wallet detail screens for the stake label.
 wallet_stake = Stake
 # Used in wallet creation, import, receive, and wallet detail screens for the receive no memo required label.
@@ -521,6 +523,8 @@ transaction_date = Date
 transaction_view_on = View on %@
 # Used in transaction status and detail screens for the status label.
 transaction_status = Status
+# Used in transaction details for the pending network confirmation estimate.
+transaction_estimated_confirmation = Estimated confirmation
 # Used in transaction status and detail screens for the status confirmed label.
 transaction_status_confirmed = Successful
 # Used in transaction status and detail screens for the status pending label.
@@ -994,6 +998,8 @@ info_network_fee_description = Every transaction on the %@ network requires a fe
 info_transaction_error_description = The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.
 # Used in Info bottom sheets for the transaction pending description.
 info_transaction_pending_description = The transaction has been submitted and is awaiting confirmation on the network. Processing times may vary. Please check back for updates.
+# Explains that the pending confirmation estimate can change with network conditions. %@ is the network name.
+info_estimated_confirmation_description = This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.
 # Used in Info bottom sheets for the transaction success description.
 info_transaction_success_description = The transaction has been completed and confirmed on the network. You can review the details to verify its status.
 # Used in Info bottom sheets for the lock time description.

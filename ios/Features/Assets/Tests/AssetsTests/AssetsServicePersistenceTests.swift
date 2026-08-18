@@ -40,7 +40,7 @@ struct AssetsServicePersistenceTests {
             ),
         )
 
-        try fiatRateStore.add([.mock(symbol: Currency.eur.rawValue, rate: 0.5)])
+        try fiatRateStore.add([.mock(symbol: .eur, rate: 0.5)])
 
         let service = AssetsService.mock(
             assetStore: assetStore,
@@ -80,7 +80,7 @@ struct AssetsServicePersistenceTests {
         let asset = Asset.mock()
 
         try assetStore.add(assets: [.mock(asset: asset)])
-        try fiatRateStore.add([.mock(symbol: Currency.usd.rawValue, rate: 1)])
+        try fiatRateStore.add([.mock(symbol: .usd, rate: 1)])
         try priceStore.updatePrice(
             price: .mock(assetId: asset.id, price: 100, priceChangePercentage24h: 10),
             currency: Currency.usd.rawValue,

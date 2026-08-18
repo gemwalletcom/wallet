@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
 use number_formatter::BigNumberFormatter;
 use std::error::Error;
@@ -10,6 +10,7 @@ use primitives::{
     TransactionPreloadInput, UTXO,
 };
 
+use crate::constants::{LEGACY_TRANSACTION_VBYTES, SEGWIT_TRANSACTION_VBYTES};
 use crate::models::Address;
 use crate::provider::preload_mapper::{map_transaction_preload, map_transaction_preload_zcash, map_utxos};
 use crate::rpc::client::BitcoinClient;
@@ -17,6 +18,14 @@ use crate::signer::estimate_transaction_fee;
 
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
+    fn transaction_fee_estimate_units(&self, _operation: TransactionFeeOperation) -> Option<u64> {
+        match self.chain {
+            BitcoinChain::Bitcoin | BitcoinChain::Litecoin => Some(SEGWIT_TRANSACTION_VBYTES),
+            BitcoinChain::BitcoinCash | BitcoinChain::Doge => Some(LEGACY_TRANSACTION_VBYTES),
+            BitcoinChain::Zcash => None,
+        }
+    }
+
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let address = Address::new(&input.sender_address, self.get_chain()).full();
         match self.chain {

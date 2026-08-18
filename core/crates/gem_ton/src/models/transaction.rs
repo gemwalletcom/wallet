@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use num_bigint::BigUint;
 use primitives::TransactionState;
 use serde::{Deserialize, Serialize};
-use serde_serializers::deserialize_biguint_from_str;
+use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str};
 
 use crate::address::Address;
 
@@ -133,7 +133,8 @@ pub struct JettonSwapDetails {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SwapTransfer {
-    pub amount: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount: BigUint,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -141,7 +142,8 @@ pub struct JettonTransferDetails {
     pub asset: String,
     pub sender: String,
     pub receiver: String,
-    pub amount: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount: BigUint,
     pub comment: Option<String>,
 }
 
@@ -169,7 +171,8 @@ pub struct TransactionMessage {
 pub struct OutMessage {
     pub source: String,
     pub destination: Option<String>,
-    pub value: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub value: Option<BigUint>,
     #[serde(alias = "opcode")]
     pub op_code: Option<String>,
     pub comment: Option<String>,
@@ -180,7 +183,8 @@ pub struct OutMessage {
 pub struct TransactionInMessage {
     pub source: Option<String>,
     pub destination: String,
-    pub value: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub value: Option<BigUint>,
     pub opcode: Option<String>,
 }
 

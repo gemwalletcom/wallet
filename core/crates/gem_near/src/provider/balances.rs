@@ -1,12 +1,14 @@
-use async_trait::async_trait;
-use chain_traits::ChainBalances;
 use std::error::Error;
 
+use async_trait::async_trait;
+use chain_traits::ChainBalances;
+use futures::future::try_join_all;
 use gem_client::Client;
 use gem_jsonrpc::types::JsonRpcError;
 use primitives::{AssetBalance, Chain};
 
-use super::balances_mapper;
+use super::balances_mapper::map_native_balance;
+use super::token_mapper::map_token_balance;
 use crate::rpc::NearProvider;
 
 const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = -32000;
@@ -19,11 +21,16 @@ impl<C: Client + Clone> ChainBalances for NearProvider<C> {
             Err(error) if is_account_missing(&error) => return Ok(AssetBalance::new_zero_balance(Chain::Near.as_asset_id())),
             Err(error) => return Err(error.into()),
         };
-        balances_mapper::map_native_balance(&account)
+        Ok(map_native_balance(&account))
     }
 
-    async fn get_balance_tokens(&self, _address: String, _token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![])
+    async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
+        let balances = try_join_all(token_ids.iter().map(|token_id| async {
+            let value: String = self.call_function(token_id, "ft_balance_of", &serde_json::json!({ "account_id": address })).await?;
+            map_token_balance(token_id, &value)
+        }))
+        .await?;
+        Ok(balances)
     }
 
     async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
@@ -61,6 +68,18 @@ mod chain_integration_tests {
         let assets = client.get_balance_assets(address).await?;
 
         assert_eq!(assets.len(), 0);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_near_get_balance_tokens() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        use primitives::asset_constants::NEAR_USDT_TOKEN_ID;
+
+        let client = create_near_test_client();
+        let balances = client.get_balance_tokens(TEST_ADDRESS.to_string(), vec![NEAR_USDT_TOKEN_ID.to_string()]).await?;
+
+        assert_eq!(balances.len(), 1);
+        assert_eq!(balances[0].asset_id.token_id.as_deref(), Some(NEAR_USDT_TOKEN_ID));
         Ok(())
     }
 }

@@ -90,7 +90,7 @@ public enum SystemImage {
         (SystemImage.eyeglasses, "Eyeglasses"),
         (SystemImage.plus, "Plus"),
         (SystemImage.eye, "Eye"),
-        (SystemImage.errorOccurred, "Error Ocurred"),
+        (SystemImage.errorOccurred, "Error Occurred"),
         (SystemImage.gallery, "Gallery"),
         (SystemImage.xmarkCircle, "X MarkCircle"),
         (SystemImage.xmark, "X Mark"),

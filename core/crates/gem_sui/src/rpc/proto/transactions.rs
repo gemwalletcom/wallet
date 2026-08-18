@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use num_bigint::BigInt;
 use serde_json::Value;
 
 use super::json::decode_json_value;
@@ -253,13 +256,13 @@ proto_decode!(ChangedObject {
 pub struct BalanceChange {
     pub address: Option<String>,
     pub coin_type: Option<String>,
-    pub amount: Option<String>,
+    pub amount: Option<BigInt>,
 }
 
 proto_decode!(BalanceChange {
-    1 => address: optional_string,
-    2 => coin_type: optional_string,
-    3 => amount: optional_string,
+    1 => |value, field| value.address = Some(field.string()?),
+    2 => |value, field| value.coin_type = Some(field.string()?),
+    3 => |value, field| value.amount = Some(BigInt::from_str(&field.string()?)?),
 });
 
 #[derive(Clone, Debug, Default)]

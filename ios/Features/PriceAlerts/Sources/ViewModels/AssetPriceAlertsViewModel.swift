@@ -46,7 +46,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
         PriceAlertItemViewModel(data: PriceAlertData(
             asset: asset,
             price: priceQuery.value?.price,
-            priceAlert: .default(for: asset.id, currency: Preferences.standard.currency),
+            priceAlert: .default(for: asset.id, currency: .default),
         ))
     }
 
@@ -83,8 +83,8 @@ extension AssetPriceAlertsViewModel {
     }
 
     func toggleAutoAlert(enabled: Bool) async {
-        let currency = Preferences.standard.currency
         do {
+            let currency = try Currency(id: Preferences.standard.currency)
             if enabled {
                 try await priceAlertService.enable(priceAlert: .default(for: asset.id, currency: currency))
             } else {

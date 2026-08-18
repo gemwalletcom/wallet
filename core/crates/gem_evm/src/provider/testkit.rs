@@ -72,12 +72,6 @@ pub fn create_smartchain_test_client() -> EthereumProvider<ReqwestClient> {
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_polygon_test_client() -> EthereumProvider<ReqwestClient> {
-    let settings = get_test_settings();
-    build_test_client(EVMChain::Polygon, &settings.chains.polygon.url)
-}
-
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 pub fn create_arbitrum_test_client() -> EthereumProvider<ReqwestClient> {
     let settings = get_test_settings();
     build_test_client(EVMChain::Arbitrum, &settings.chains.arbitrum.url)

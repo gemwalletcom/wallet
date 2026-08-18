@@ -1,15 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import DeviceService
 import Foundation
 import Localization
 import PriceService
 import Primitives
 
 @Observable
+@MainActor
 public final class CurrencySceneViewModel {
     private var currencyStorage: CurrencyStorable
     private let priceService: PriceService
+    private let deviceService: any DeviceServiceable
     private let defaultCurrencies: [Currency] = [.usd, .eur, .gbp, .cny, .jpy, .inr, .rub]
 
     private(set) var currency: Currency {
@@ -27,9 +30,11 @@ public final class CurrencySceneViewModel {
     public init(
         currencyStorage: CurrencyStorable,
         priceService: PriceService,
+        deviceService: any DeviceServiceable,
     ) {
         self.currencyStorage = currencyStorage
         self.priceService = priceService
+        self.deviceService = deviceService
     }
 
     public var selectedCurrencyValue: String {
@@ -65,6 +70,10 @@ public final class CurrencySceneViewModel {
     func setCurrency(_ currency: Currency) throws {
         self.currency = currency
         try priceService.changeCurrency(currency: currency.rawValue)
+    }
+
+    func updateDevice() async {
+        try? await deviceService.update()
     }
 }
 

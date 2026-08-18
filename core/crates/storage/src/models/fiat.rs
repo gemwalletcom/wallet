@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::DatabaseError;
-use crate::sql_types::{AssetId, FiatProviderNameRow, FiatTransactionStatusRow, FiatTransactionType};
+use crate::sql_types::{AssetId, Currency, FiatProviderNameRow, FiatTransactionStatusRow, FiatTransactionType};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::{
@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[diesel(table_name = crate::schema::fiat_rates)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct FiatRateRow {
-    pub id: String,
+    pub id: Currency,
     pub name: String,
     pub rate: f64,
 }
@@ -22,14 +22,14 @@ pub struct FiatRateRow {
 impl FiatRateRow {
     pub fn as_primitive(&self) -> FiatRate {
         FiatRate {
-            symbol: self.id.clone(),
+            symbol: self.id.0.clone(),
             rate: self.rate,
         }
     }
 
     pub fn from_primitive(rate: FiatRate) -> Self {
         FiatRateRow {
-            id: rate.symbol,
+            id: rate.symbol.into(),
             name: "".to_string(),
             rate: rate.rate,
         }
@@ -164,14 +164,6 @@ impl FiatProviderRow {
             sell_enabled: self.sell_enabled,
             payment_methods,
         }
-    }
-
-    pub fn is_buy_enabled(&self) -> bool {
-        self.enabled && self.buy_enabled
-    }
-
-    pub fn is_sell_enabled(&self) -> bool {
-        self.enabled && self.sell_enabled
     }
 }
 

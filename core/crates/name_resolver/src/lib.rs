@@ -15,6 +15,7 @@ pub mod icns;
 pub mod injective;
 pub mod lens;
 pub mod model;
+pub mod near;
 pub mod sns;
 pub mod spaceid;
 pub mod suins;
@@ -44,6 +45,7 @@ impl NameProviderFactory {
             Box::new(base::Basenames::new(settings.name.base.url)),
             Box::new(hyperliquid::Hyperliquid::new(settings.name.hyperliquid.url)),
             Box::new(alldomains::AllDomainsClient::new(settings.name.alldomains.url)),
+            Box::new(near::NearNameClient::new(settings.chains.near.url)),
         ]
     }
 }

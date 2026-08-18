@@ -5,7 +5,9 @@ use typeshare::typeshare;
 
 pub use crate::gas_price_type::GasPriceType;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq)]
+pub const SOLANA_PRIORITY_FEE_SCALE: u64 = 1_000_000;
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq, PartialOrd, Ord)]
 #[typeshare(swift = "Equatable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]

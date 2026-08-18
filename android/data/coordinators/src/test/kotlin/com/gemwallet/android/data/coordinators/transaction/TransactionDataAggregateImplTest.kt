@@ -236,7 +236,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("", aggregate.address)
+        assertEquals("bc1qre...eiver", aggregate.address)
     }
 
     @Test
@@ -434,19 +434,6 @@ class TransactionDataAggregateImplTest {
     }
 
     @Test
-    fun testValue_malformedTransferValue() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            direction = TransactionDirection.Outgoing,
-            value = "54.108086",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
-        val aggregate = createAggregate(extended)
-
-        assertEquals("", aggregate.value)
-    }
-
-    @Test
     fun testValue_smallAmount() {
         val transaction = createTransaction(
             type = TransactionType.Transfer,
@@ -456,19 +443,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset)
         val aggregate = createAggregate(extended)
 
-        assertEquals("-0 BTC", aggregate.value)
+        assertEquals("-<0.0001 BTC", aggregate.value)
     }
 
-    @Test
-    fun testValue_largeAmount() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            direction = TransactionDirection.Incoming,
-            value = "2100000000000000",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
-        val aggregate = createAggregate(extended)
-
-        assertEquals("+21M BTC", aggregate.value)
-    }
 }

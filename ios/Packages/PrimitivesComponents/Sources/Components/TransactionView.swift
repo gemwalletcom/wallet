@@ -72,6 +72,7 @@ private struct ExplorerMock: ExplorerLinkFetchable {
         prices: [],
         fromAddress: AddressName(chain: .smartChain, address: "0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB", name: "test1", type: .address, status: .verified),
         toAddress: AddressName(chain: .smartChain, address: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F", name: "test2", type: .address, status: .verified),
+        confirmationEtaSeconds: nil,
     )
 
     let transactionVMMock = TransactionViewModel(

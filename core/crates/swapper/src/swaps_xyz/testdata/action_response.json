@@ -1,0 +1,33 @@
+{
+  "txId": "0xquote",
+  "vmId": "alt-vm",
+  "tx": {
+    "to": "deposit",
+    "toExtra": "1234",
+    "value": "1000000",
+    "chainId": 999000433,
+    "chainKey": "atom"
+  },
+  "amountIn": {
+    "amount": "1000000",
+    "chainId": 999000433,
+    "address": "0x0000000000000000000000000000000000000000",
+    "decimals": 6,
+    "isNative": true
+  },
+  "amountOut": {
+    "amount": "48729287",
+    "chainId": 999000338,
+    "address": "0x0000000000000000000000000000000000000000",
+    "decimals": 7,
+    "isNative": true
+  },
+  "applicationFee": {
+    "amount": "5000",
+    "chainId": 999000433,
+    "address": "0x0000000000000000000000000000000000000000",
+    "decimals": 6,
+    "isNative": true
+  },
+  "estimatedTxTime": 216.33
+}

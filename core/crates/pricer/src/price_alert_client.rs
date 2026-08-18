@@ -2,9 +2,10 @@ use chrono::{Duration, Utc};
 use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
 use number_formatter::NumberFormatter;
+use primitives::currency::Currency;
 use primitives::{
-    Asset, AssetId, DEFAULT_FIAT_CURRENCY, Device, GorushNotification, Price, PriceAlert, PriceAlertDirection, PriceAlertType, PriceAlerts, PriceData, PushNotification,
-    PushNotificationAsset, PushNotificationTypes,
+    Asset, AssetId, Device, GorushNotification, Price, PriceAlert, PriceAlertDirection, PriceAlertType, PriceAlerts, PriceData, PushNotification, PushNotificationAsset,
+    PushNotificationTypes,
 };
 use std::collections::HashSet;
 use std::error::Error;
@@ -179,7 +180,7 @@ impl PriceAlertClient {
         milestone: Option<f64>,
     ) -> Result<PriceAlertNotification, Box<dyn Error + Send + Sync>> {
         let asset = self.database.assets()?.get_asset(&price_alert.asset_id)?;
-        let base_rate = self.database.fiat()?.get_fiat_rate(DEFAULT_FIAT_CURRENCY)?;
+        let base_rate = self.database.fiat()?.get_fiat_rate(&Currency::USD)?;
         let rate = self.database.fiat()?.get_fiat_rate(&device.currency)?;
 
         let price = Price::new(price_data.price, price_data.price_change_percentage_24h, price_data.last_updated_at, price_data.provider);
@@ -204,23 +205,23 @@ impl PriceAlertClient {
                 continue;
             }
 
-            let current_price = match formatter.currency(alert.price.price, &alert.device.currency) {
+            let current_price = match formatter.currency(alert.price.price, alert.device.currency.as_ref()) {
                 Some(p) => p,
                 None => {
-                    info_with_fields!("unknown_currency_symbol", currency = &alert.device.currency);
+                    info_with_fields!("unknown_currency_symbol", currency = alert.device.currency.as_ref());
                     continue;
                 }
             };
 
-            let change = formatter.percent(alert.price.price_change_percentage_24h, alert.device.locale.as_str());
-            let localizer = LanguageLocalizer::new_with_language(alert.device.locale.as_str());
+            let change = formatter.percent(alert.price.price_change_percentage_24h, alert.device.locale.as_ref());
+            let localizer = LanguageLocalizer::new_with_language(alert.device.locale.as_ref());
 
             let message = match &alert.alert_type {
                 PriceAlertType::PriceUp | PriceAlertType::PriceDown | PriceAlertType::PriceMilestone => {
                     let Some(target_value) = Self::price_alert_target_value(&alert) else {
                         continue;
                     };
-                    let Some(target_price) = formatter.currency(target_value, &alert.device.currency) else {
+                    let Some(target_price) = formatter.currency(target_value, alert.device.currency.as_ref()) else {
                         continue;
                     };
                     localizer.price_alert_target(&alert.asset.full_name(), &target_price, &current_price, &change)
@@ -269,7 +270,7 @@ mod tests {
             asset: asset.clone(),
             price: Price::new(80_954.0, -0.27, Utc::now(), PriceProvider::Coingecko),
             alert_type: PriceAlertType::PriceDown,
-            price_alert: PriceAlert::new_price(asset.id.clone(), "USD".to_string(), 81_000.0, PriceAlertDirection::Down),
+            price_alert: PriceAlert::new_price(asset.id.clone(), Currency::USD, 81_000.0, PriceAlertDirection::Down),
             milestone: None,
         };
 
@@ -277,7 +278,7 @@ mod tests {
 
         let milestone_alert = PriceAlertNotification {
             alert_type: PriceAlertType::PriceMilestone,
-            price_alert: PriceAlert::new_auto(asset.id, "USD".to_string()),
+            price_alert: PriceAlert::new_auto(asset.id, Currency::USD),
             milestone: Some(100_000.0),
             ..alert.clone()
         };

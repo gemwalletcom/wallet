@@ -49,7 +49,8 @@ public final class AddressInputViewModel {
         switch nameResolveState {
         case .none: inputModel.isValid && inputModel.text.isNotEmpty
         case .loading, .error: false
-        case .complete: true
+        case let .complete(record):
+            record.isValidRecipient(name: text, chain: chain)
         }
     }
 

@@ -5,7 +5,7 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use typeshare::typeshare;
 
 use crate::chain_config::{ChainConfig, get_chain_config};
-use crate::{AssetId, AssetType, ChainType};
+use crate::{AssetId, AssetType, ChainType, FeeUnitType};
 
 #[derive(Copy, Clone, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Ord, PartialOrd, Eq, Hash)]
 #[typeshare(swift = "Equatable, CaseIterable, Sendable, Hashable")]
@@ -121,6 +121,14 @@ impl Chain {
         self.config().chain_type.clone()
     }
 
+    pub fn fee_unit_type(&self) -> FeeUnitType {
+        match self.chain_type() {
+            ChainType::Bitcoin => FeeUnitType::SatVb,
+            ChainType::Ethereum => FeeUnitType::Gwei,
+            _ => FeeUnitType::Native,
+        }
+    }
+
     pub fn default_asset_type(&self) -> Option<AssetType> {
         self.config().default_asset_type.clone()
     }
@@ -187,6 +195,11 @@ mod tests {
     #[test]
     fn test_robinhood_swap_supported() {
         assert!(Chain::Robinhood.is_swap_supported());
+    }
+
+    #[test]
+    fn test_near_token_asset_type() {
+        assert_eq!(Chain::Near.default_asset_type(), Some(AssetType::TOKEN));
     }
 
     #[test]

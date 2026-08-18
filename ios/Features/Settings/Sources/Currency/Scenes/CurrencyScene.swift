@@ -44,9 +44,12 @@ extension CurrencyScene {
 
         do {
             try model.setCurrency(currency)
-            dismiss()
         } catch {
             return
         }
+        Task {
+            await model.updateDevice()
+        }
+        dismiss()
     }
 }

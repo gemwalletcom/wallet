@@ -26,7 +26,6 @@ let package = Package(
         .package(name: "QRScanner", path: "../QRScanner"),
         .package(name: "Keystore", path: "../../Packages/Keystore"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "Store", path: "../../Packages/Store"),
     ],
     targets: [
@@ -40,7 +39,6 @@ let package = Package(
                 "Style",
                 "Localization",
                 "PrimitivesComponents",
-                .product(name: "NameService", package: "ChainServices"),
                 "QRScanner",
                 "Keystore",
                 .product(name: "WalletService", package: "FeatureServices"),
@@ -61,7 +59,6 @@ let package = Package(
                 .product(name: "WalletSessionService", package: "FeatureServices"),
                 .product(name: "WalletSessionServiceTestKit", package: "FeatureServices"),
                 .product(name: "KeystoreTestKit", package: "Keystore"),
-                .product(name: "NameServiceTestKit", package: "ChainServices"),
                 .product(name: "StoreTestKit", package: "Store"),
             ],
             path: "Tests",

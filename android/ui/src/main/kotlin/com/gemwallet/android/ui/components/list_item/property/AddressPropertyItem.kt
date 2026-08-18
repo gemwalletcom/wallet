@@ -25,7 +25,7 @@ import com.wallet.core.primitives.BlockExplorerLink
 fun AddressPropertyItem(
     @StringRes title: Int,
     displayText: String,
-    copyValue: String = displayText,
+    copyValue: String,
     explorerLink: BlockExplorerLink? = null,
     listPosition: ListPosition = ListPosition.Middle,
 ) {

@@ -67,7 +67,7 @@ class GetPortfolioDataImplTest {
         val held = mockAssetInfo(asset = bitcoin, balance = AssetBalance.create(bitcoin, available = "1000"))
         val empty = mockAssetInfo(asset = ethereum, balance = AssetBalance.create(ethereum))
         every { assetsRepository.getAssetsInfo() } returns flowOf(listOf(held, empty))
-        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate(Currency.EUR, 2.0))
         coEvery { gemDeviceApiClient.getPortfolioAssets("day", any()) } returns portfolio()
 
         val result = subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.EUR)
@@ -88,7 +88,7 @@ class GetPortfolioDataImplTest {
         val bitcoin = mockAsset()
         every { assetsRepository.getAssetsInfo() } returns
             flowOf(listOf(mockAssetInfo(asset = bitcoin, balance = AssetBalance.create(bitcoin, available = "1"))))
-        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate("EUR", 2.0))
+        every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate(Currency.EUR, 2.0))
         val allTimeHigh = ChartValuePercentage(date = 10L, value = 99f, percentage = 5f)
         val allTimeLow = ChartValuePercentage(date = 20L, value = 10f, percentage = -3f)
         coEvery { gemDeviceApiClient.getPortfolioAssets(any(), any()) } returns

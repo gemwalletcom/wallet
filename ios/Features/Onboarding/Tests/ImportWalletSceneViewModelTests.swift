@@ -2,7 +2,6 @@
 
 import Keystore
 import KeystoreTestKit
-import NameServiceTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit
@@ -37,16 +36,52 @@ struct ImportWalletSceneViewModelTests {
 
         #expect(walletSessionService.currentWalletId == walletB.id)
 
-        let model = ImportWalletSceneViewModel(
+        let model = ImportWalletSceneViewModel.mock(
             walletService: service,
             walletSessionService: walletSessionService,
-            nameService: MockNameService(),
-            type: .chain(.ethereum),
-            onComplete: nil,
         )
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
         #expect(walletSessionService.currentWalletId == walletA.id)
+    }
+
+    @Test
+    func resolvesNameOnlyForAddressImport() async throws {
+        let nameService = MockNameService()
+        let model = ImportWalletSceneViewModel.mock(nameService: nameService)
+
+        try await enterName(in: model, importType: .privateKey)
+
+        #expect(await nameService.requests.isEmpty)
+
+        try await enterName(in: model, importType: .address)
+
+        #expect(await nameService.requests == ["vitalik.eth"])
+    }
+
+    private func enterName(in model: ImportWalletSceneViewModel, importType: WalletImportType) async throws {
+        model.importType = importType
+        model.onChangeInput("", newValue: "vitalik.eth")
+        try await Task.sleep(for: .milliseconds(500))
+    }
+}
+
+@MainActor
+private extension ImportWalletSceneViewModel {
+    static func mock(
+        walletService: WalletService? = nil,
+        walletSessionService: (any WalletSessionManageable)? = nil,
+        nameService: any NameServiceable = MockNameService(),
+    ) -> ImportWalletSceneViewModel {
+        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
+        let sessionService = walletSessionService ?? WalletSessionService.mock(store: walletStore)
+        return ImportWalletSceneViewModel(
+            walletService: walletService ?? .mock(walletStore: walletStore, walletSessionService: sessionService),
+            walletSessionService: sessionService,
+            nameService: nameService,
+            type: .chain(.ethereum),
+            onComplete: nil,
+        )
     }
 }

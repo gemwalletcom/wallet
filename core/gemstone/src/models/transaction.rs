@@ -107,6 +107,7 @@ pub enum TransactionChange {
     Metadata(TransactionMetadata),
     BlockNumber(String),
     NetworkFee(BigInt),
+    ConfirmationEtaSeconds(u32),
 }
 
 #[uniffi::remote(Record)]

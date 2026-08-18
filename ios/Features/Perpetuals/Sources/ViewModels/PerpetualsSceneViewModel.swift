@@ -5,7 +5,6 @@ import Components
 import Foundation
 import Localization
 import PerpetualService
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -16,11 +15,12 @@ import SwiftUI
 @Observable
 @MainActor
 final class PerpetualsSceneViewModel {
+    private static let marketsUpdateIntervalHours = 1
+
     private let observerService: any PerpetualObservable
     let perpetualService: PerpetualServiceable
     let activityService: ActivityService
 
-    let preferences: Preferences = .standard
     let wallet: Wallet
 
     let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
@@ -130,7 +130,7 @@ final class PerpetualsSceneViewModel {
     }
 }
 
-// MARK: - Businesss Logic
+// MARK: - Business Logic
 
 extension PerpetualsSceneViewModel {
     func fetch() async {
@@ -156,11 +156,10 @@ extension PerpetualsSceneViewModel {
     }
 
     func updateMarkets() async {
-        guard preferences.perpetualMarketsUpdatedAt.isOutdated(byHours: 1) else { return }
+        guard perpetualService.marketsUpdatedAt.isOutdated(byHours: Self.marketsUpdateIntervalHours) else { return }
 
         do {
             try await perpetualService.updateMarkets()
-            preferences.perpetualMarketsUpdatedAt = .now
         } catch {
             debugLog("Failed to update markets: \(error)")
         }

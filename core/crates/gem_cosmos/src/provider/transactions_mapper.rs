@@ -60,11 +60,10 @@ pub fn map_transaction(cosmos_chain: CosmosChain, body: TransactionBody, auth_in
     let native_asset_id = chain.as_asset_id();
 
     let fee_coin = auth_info.and_then(|info| info.fee.amount.into_iter().next());
-    let fee = fee_coin.as_ref().map(|f| f.amount.clone()).unwrap_or_else(|| get_base_fee(cosmos_chain).to_string());
+    let fee = fee_coin.as_ref().map_or_else(|| get_base_fee(cosmos_chain).to_string(), |coin| coin.amount.to_string());
     let fee_asset_id = fee_coin
         .as_ref()
-        .map(|coin| asset_id_from_denom(chain, &coin.denom, &default_denom))
-        .unwrap_or_else(|| native_asset_id.clone());
+        .map_or_else(|| native_asset_id.clone(), |coin| asset_id_from_denom(chain, &coin.denom, &default_denom));
 
     let memo = if body.memo.is_empty() { None } else { Some(body.memo.clone()) };
 
@@ -86,28 +85,28 @@ pub fn map_transaction(cosmos_chain: CosmosChain, body: TransactionBody, auth_in
             let coin = message.amount.first()?;
             asset_id = asset_id_from_denom(chain, &coin.denom, &default_denom);
             transaction_type = TransactionType::Transfer;
-            value = coin.amount.clone();
+            value = coin.amount.to_string();
             from_address = message.from_address;
             to_address = message.to_address;
         }
         Message::MsgDelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeDelegate;
-            value = message.amount?.amount.clone();
+            value = message.amount?.amount.to_string();
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgUndelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeUndelegate;
-            value = message.amount?.amount.clone();
+            value = message.amount?.amount.to_string();
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgBeginRedelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeRedelegate;
-            value = message.amount?.amount.clone();
+            value = message.amount?.amount.to_string();
             from_address = message.delegator_address;
             to_address = message.validator_dst_address;
         }

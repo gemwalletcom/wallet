@@ -53,23 +53,6 @@ impl NFTProviders {
             .filter(move |provider| provider.chains().iter().any(|nft_chain| Chain::from(*nft_chain) == chain))
     }
 
-    async fn fetch_assets(chain: Chain, address: String, providers: impl Iterator<Item = &Arc<dyn NFTProvider>>) -> Vec<NFTAssetId> {
-        let operations = providers.map(|provider| provider.get_assets(chain, address.clone())).collect::<Vec<_>>();
-        match try_in_order(operations).await {
-            Ok(Some(asset_ids)) => asset_ids,
-            Ok(None) | Err(_) => Vec::new(),
-        }
-    }
-
-    pub async fn get_assets(&self, addresses: HashMap<Chain, String>) -> Vec<NFTAssetId> {
-        let futures = addresses.into_iter().map(|(chain, address)| {
-            let providers = self.providers_for_chain(chain);
-            async move { Self::fetch_assets(chain, address, providers).await }
-        });
-
-        futures::future::join_all(futures).await.into_iter().flatten().collect()
-    }
-
     pub async fn get_collection(&self, collection_id: NFTCollectionId) -> Option<NFTCollection> {
         let operations = self
             .providers_for_chain(collection_id.chain)

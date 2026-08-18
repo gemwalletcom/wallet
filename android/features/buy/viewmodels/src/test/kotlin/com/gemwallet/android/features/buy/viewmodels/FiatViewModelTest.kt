@@ -185,7 +185,7 @@ class FiatViewModelTest {
     }
 
     @Test
-    fun `fiat type picker requires enabled metadata and available balance`() = runTest(testDispatcher) {
+    fun `fiat type picker requires sell enabled metadata`() = runTest(testDispatcher) {
         assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
         val viewModel = createViewModel()
 
@@ -194,10 +194,6 @@ class FiatViewModelTest {
             assertFalse(viewModel.showFiatTypePicker.value)
 
             assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "0")
-            runCurrent()
-            assertFalse(viewModel.showFiatTypePicker.value)
-
-            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = OneBitcoin)
             runCurrent()
             assertTrue(viewModel.showFiatTypePicker.value)
         } finally {
@@ -213,7 +209,7 @@ class FiatViewModelTest {
         try {
             runCurrent()
 
-            assertEquals("1 BTC", viewModel.assetInfoUIModel.value?.cryptoFormatted)
+            assertEquals("1 BTC", viewModel.assetInfoUIModel.value?.balance)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -229,7 +225,7 @@ class FiatViewModelTest {
             viewModel.setType(FiatQuoteType.Sell)
             assertEquals(FiatQuoteType.Buy, viewModel.type.value)
 
-            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "1")
+            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "0")
             runCurrent()
             viewModel.setType(FiatQuoteType.Sell)
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)

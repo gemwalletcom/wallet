@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
 
 use gem_client::Client;
@@ -15,6 +15,7 @@ use primitives::{
 
 use crate::{
     address::TronAddress,
+    constants::{SWAP_FEE_ESTIMATE, TOKEN_TRANSFER_FEE_ESTIMATE, TRANSFER_FEE_ESTIMATE},
     models::{ChainParameter, TriggerSmartContractData, account::TronAccountUsage},
     provider::preload_mapper::{
         FEE_LIMIT_BUFFER_PERCENT, FeeEstimateContext, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT, calculate_stake_fee_rate, calculate_token_fee_rate_with_data, map_stake_data,
@@ -26,6 +27,14 @@ use crate::{
 
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for TronProvider<C> {
+    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
+        Some(match operation {
+            TransactionFeeOperation::Transfer => TRANSFER_FEE_ESTIMATE,
+            TransactionFeeOperation::TokenTransfer => TOKEN_TRANSFER_FEE_ESTIMATE,
+            TransactionFeeOperation::Swap => SWAP_FEE_ESTIMATE,
+        })
+    }
+
     async fn get_transaction_preload(&self, _input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
         Ok(TransactionLoadMetadata::None)
     }

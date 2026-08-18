@@ -14,7 +14,9 @@ import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
@@ -51,6 +53,24 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WalletNavigatorTest {
+
+    @Test
+    fun openAsset_requiresSupportedWalletChain() {
+        val navigator = navigatorWith(
+            WalletRootRoute,
+            assetNavigationPolicy = WalletAssetNavigationPolicy(
+                mockWallet(accounts = listOf(mockAccount(chain = Chain.Tron))),
+            ),
+        )
+
+        navigator.openAsset(mockAssetId(Chain.Ton))
+        navigator.openAsset(mockAssetId(Chain.Tron))
+
+        assertEquals(
+            listOf(WalletRootRoute, AssetRoute(mockAssetId(Chain.Tron))),
+            navigator.backStack.toList(),
+        )
+    }
 
     @Test
     fun finishAcceptTerms_replacesCreateTermsRoute() {
@@ -502,10 +522,14 @@ class WalletNavigatorTest {
         assertNull(navigator.toastMessage(target))
     }
 
-    private fun navigatorWith(vararg routes: NavKey): WalletNavigator {
+    private fun navigatorWith(
+        vararg routes: NavKey,
+        assetNavigationPolicy: AssetNavigationPolicy = AssetNavigationPolicy { true },
+    ): WalletNavigator {
         return WalletNavigator(
             backStack = NavBackStack(*routes),
             currentTab = mutableStateOf(assetsRoute),
+            assetNavigationPolicy = assetNavigationPolicy,
         )
     }
 }

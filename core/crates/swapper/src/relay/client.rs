@@ -26,8 +26,8 @@ where
         self.client.post_with("/quote/v2", &request, headers).await.map_err(SwapperError::from)
     }
 
-    pub async fn get_request(&self, transaction_hash: &str) -> Result<RelayRequestsResponse, SwapperError> {
-        let path = format!("/requests/v2?hash={}", transaction_hash);
+    pub async fn get_request(&self, identifier: &str) -> Result<RelayRequestsResponse, SwapperError> {
+        let path = format!("/requests/v3?term={}", identifier);
         self.client.get(&path).await.map_err(SwapperError::from)
     }
 

@@ -20,4 +20,11 @@ impl SolanaTokenProgramId {
             _ => None,
         }
     }
+
+    pub fn asset_type(&self) -> AssetType {
+        match self {
+            Self::Token => AssetType::SPL,
+            Self::Token2022 => AssetType::SPL2022,
+        }
+    }
 }

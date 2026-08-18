@@ -33,12 +33,14 @@ internal fun TransactionUpdate.toPrimitives(): TransactionChanges {
         ?.v1?.toBigIntegerOrNull()
     val hashChanges = changes.firstNotNullOfOrNull { it as? TransactionChange.HashChange }
     val metadata = changes.firstNotNullOfOrNull { it.swapMetadataJson() }
+    val confirmationEtaSeconds = changes.firstNotNullOfOrNull { (it as? TransactionChange.ConfirmationEtaSeconds)?.v1 }
 
     return TransactionChanges(
         state = state.toPrimitives(),
         fee = fee,
         hashChanges = hashChanges?.let { HashChanges(it.old, it.new) },
         metadata = metadata,
+        confirmationEtaSeconds = confirmationEtaSeconds,
     )
 }
 

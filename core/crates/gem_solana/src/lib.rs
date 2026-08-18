@@ -19,6 +19,7 @@ pub mod transaction;
 pub mod signer;
 
 pub use address::{SolanaAddress, validate_address};
+pub use constants::DEFAULT_SWAP_GAS_LIMIT;
 pub use jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
 pub use solana_primitives::{Pubkey, SolanaError, find_program_address};
 pub use transaction::{decode_transaction, encode_v0_transaction, instruction_from_primitive, instructions_from_primitives, try_decode_blockhash, try_decode_transaction};
@@ -41,7 +42,6 @@ pub use primitives::contract_constants::{
     SOLANA_TOKEN_2022_PROGRAM_ID as TOKEN_PROGRAM_2022, SOLANA_TOKEN_PROGRAM_ID as TOKEN_PROGRAM, SOLANA_VOTE_PROGRAM_ID as VOTE_PROGRAM_ID,
     SOLANA_WRAPPED_SOL_TOKEN_ADDRESS as WSOL_TOKEN_ADDRESS,
 };
-pub const DEFAULT_SWAP_GAS_LIMIT: u32 = 420_000;
 pub const SYSTEM_PROGRAMS: &[&str] = &[
     SYSTEM_PROGRAM_ID,
     COMPUTE_BUDGET_PROGRAM_ID,

@@ -32,7 +32,7 @@ pub async fn main() {
     let service_arg = args.iter().skip(1).map(|s| s.as_str()).collect::<Vec<_>>().join(" ");
 
     let service = DaemonService::from_str(&service_arg).unwrap_or_else(|e| {
-        panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer fetch_transactions");
+        panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
     });
 
     let settings = settings::Settings::new().unwrap();
@@ -59,7 +59,7 @@ pub async fn main() {
             parser::run(settings, chain, health_state, parser_metrics).await.expect("Parser failed");
         }
         DaemonService::Consumer(opts) => {
-            let services = match opts.service.clone() {
+            let services = match opts.service {
                 Some(consumer) => vec![consumer],
                 None => ConsumerService::all(),
             };
@@ -184,8 +184,8 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
     let handles: Vec<_> = services
         .iter()
         .map(|service| {
-            let svc = service.clone();
-            let svc_name = svc.as_ref().to_string();
+            let svc = *service;
+            let svc_name = svc.name();
             let settings = settings.clone();
             let reporter = reporter.clone();
             let shutdown_rx = shutdown_rx.clone();
@@ -197,21 +197,21 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
                     if *shutdown_rx.borrow() {
                         break;
                     }
-                    match run_consumer((*settings.as_ref()).clone(), svc.clone(), shutdown_rx.clone(), reporter.clone(), options.clone()).await {
+                    match run_consumer((*settings.as_ref()).clone(), svc, shutdown_rx.clone(), reporter.clone(), options.clone()).await {
                         Ok(_) => {
-                            info_with_fields!("consumer stopped", consumer = svc_name.as_str(), status = "ok");
+                            info_with_fields!("consumer stopped", consumer = svc_name, status = "ok");
                             break;
                         }
                         Err(err) => {
                             let message = err.to_string();
-                            error_with_fields!("consumer failed", &*err, consumer = svc_name.as_str());
+                            error_with_fields!("consumer failed", &*err, consumer = svc_name);
                             if let Ok(mut list) = failures.lock() {
                                 list.push(format!("{}: {}", svc_name, message));
                             }
                             if shutdown::sleep_or_shutdown(restart_delay, &shutdown_rx).await {
                                 break;
                             }
-                            info_with_fields!("consumer restarting", consumer = svc_name.as_str());
+                            info_with_fields!("consumer restarting", consumer = svc_name);
                         }
                     }
                 }
@@ -243,7 +243,7 @@ async fn run_consumer(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     match service {
         ConsumerService::Store => consumers::run_consumer_store(settings, shutdown_rx, reporter).await,
-        ConsumerService::Indexer => consumers::run_consumer_indexer(settings, shutdown_rx, reporter, options.indexer).await,
+        ConsumerService::Indexer(indexer) => consumers::run_consumer_indexer(settings, indexer, shutdown_rx, reporter, options.indexer).await,
         ConsumerService::Notifications => consumers::notifications::run(settings, shutdown_rx, reporter).await,
         ConsumerService::Rewards => consumers::run_consumer_rewards(settings, shutdown_rx, reporter).await,
         ConsumerService::Support => consumers::run_consumer_support(settings, shutdown_rx, reporter).await,

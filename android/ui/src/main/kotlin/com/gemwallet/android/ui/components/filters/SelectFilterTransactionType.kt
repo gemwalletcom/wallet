@@ -37,5 +37,6 @@ fun TransactionTypeFilter.getLabel() = when (this) {
     TransactionTypeFilter.Swap -> R.string.wallet_swap
     TransactionTypeFilter.Stake -> R.string.wallet_stake
     TransactionTypeFilter.SmartContract -> R.string.transfer_smart_contract_title
+    TransactionTypeFilter.Perpetuals -> R.string.perpetuals_title
     TransactionTypeFilter.Other -> R.string.transfer_other_title
 }

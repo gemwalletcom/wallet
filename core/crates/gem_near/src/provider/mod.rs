@@ -6,6 +6,8 @@ pub mod request_classifier;
 pub mod state;
 pub mod state_mapper;
 pub mod testkit;
+pub mod token;
+pub mod token_mapper;
 pub mod transaction_broadcast;
 pub mod transaction_broadcast_mapper;
 pub mod transaction_state;

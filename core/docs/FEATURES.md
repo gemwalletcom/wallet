@@ -27,7 +27,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | THORChain | Cosmos | ✅ | ❌ | ➖ | ✅ | ➖ | ➖ | ❌ |
 | MayaChain | Cosmos | ✅ | ❌ | ➖ | ❌ | ➖ | ➖ | ❌ |
 | Cosmos | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ❌ | ❌ |
-| Osmosis | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
+| Osmosis | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ❌ | ❌ |
 | Arbitrum | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
 | TON | TON | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 | Tron | Tron | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
@@ -57,7 +57,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | World Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Stellar | Stellar | ✅ | ❌ | ➖ | ✅ | ➖ | ❌ | ❌ |
 | Sonic | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Algorand | Algorand | ✅ | ❌ | ➖ | ❌ | ❌ | ❌ | ❌ |
+| Algorand | Algorand | ✅ | ❌ | ➖ | ✅ | ❌ | ❌ | ❌ |
 | Polkadot | Polkadot | ✅ | ❌ | ➖ | ❌ | ❌ | ❌ | ❌ |
 | Plasma | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Cardano | Cardano | ✅ | ❌ | ➖ | ✅ | ❌ | ❌ | ❌ |
@@ -253,6 +253,7 @@ These tables compare Core route eligibility with current provider-advertised sup
 | [Squid](../crates/swapper/src/squid/provider.rs) | Cross-chain | 6/54 | Cosmos, Osmosis, Celestia, Injective, Sei, Noble | Missing: Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid, Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[code](../crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/api-and-sdk-integration/key-concepts/get-supported-tokens-and-chains)</sub> |
 | [MayaChain](../crates/swapper/src/thorchain/provider.rs) | Cross-chain | 6/54 | THORChain, Bitcoin, Ethereum, Arbitrum, Zcash, Cardano | ➖ | <sub>[code](../crates/swapper/src/thorchain/chain.rs) · [live chains API](https://mayanode.mayachain.info/mayachain/inbound_addresses)</sub> |
 | [Chainflip](../crates/swapper/src/chainflip/provider.rs) | Cross-chain | 5/54 | Bitcoin (destination only), Ethereum, Solana, Tron, Arbitrum | Missing: Polkadot | <sub>[asset mapping](../crates/swapper/src/chainflip/client/model.rs) · [source-chain guard and cached minimum amounts](../crates/swapper/src/chainflip/provider.rs) · [live assets API](https://docs.chainflip-broker.io/features/view-assets/) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
+| [Swaps.xyz](../crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | 10/54 | Algorand, Stellar, Cardano, TON, Cosmos, Osmosis, Aptos, Sui, XRP, Tron | Native assets only | <sub>[code](../crates/swapper/src/swaps_xyz/provider.rs) · [API introduction](https://docs.swaps.xyz/)</sub> |
 | [Hyperliquid](../crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | 2/54 | HyperCore, Hyperliquid | ➖ | <sub>[code](../crates/swapper/src/hyperliquid/provider/hyperliquid.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
 
 ### Provider behavior
@@ -278,6 +279,7 @@ These tables compare Core route eligibility with current provider-advertised sup
 | [Squid](../crates/swapper/src/squid/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ |
 | [MayaChain](../crates/swapper/src/thorchain/provider.rs) | Cross-chain | Fixed from EVM; flexible otherwise | Exact | ✅ | ✅ |
 | [Chainflip](../crates/swapper/src/chainflip/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ |
+| [Swaps.xyz](../crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ (quoted address) |
 | [Hyperliquid](../crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | Flexible | Exact | ➖ (assumed complete) | ➖ |
 
 <sub>Sources: [provider modes and slippage](../crates/swapper/src/models.rs), [amount-mode implementations](../crates/swapper/src), and [active provider registry](../crates/swapper/src/swapper.rs).</sub>

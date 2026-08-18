@@ -28,6 +28,7 @@ public extension SwapProvider {
         case .panora: Images.SwapProviders.panora
         case .okx: Images.SwapProviders.okx
         case .squid: Images.SwapProviders.squid
+        case .swapsXyz: Images.SwapProviders.swapsXyz
         }
     }
 }

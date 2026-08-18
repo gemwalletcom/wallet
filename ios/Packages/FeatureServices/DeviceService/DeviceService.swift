@@ -133,7 +133,6 @@ public struct DeviceService: DeviceServiceable {
         ignoreSubscriptionsVersion: Bool = false,
     ) throws -> Device {
         let deviceToken = try securePreferences.get(key: .deviceToken) ?? .empty
-        let locale = Locale.current.usageLanguageIdentifier()
         #if targetEnvironment(simulator)
             let platformStore = PlatformStore.local
         #else
@@ -147,9 +146,9 @@ public struct DeviceService: DeviceServiceable {
             os: UIDevice.current.osName,
             model: UIDevice.current.modelName,
             token: deviceToken,
-            locale: locale,
+            locale: Locale.current.deviceLocale(),
             version: Bundle.main.releaseVersionNumber,
-            currency: preferences.currency,
+            currency: try Currency(id: preferences.currency),
             isPushEnabled: preferences.isPushNotificationsEnabled,
             isPriceAlertsEnabled: preferences.isPriceAlertsEnabled,
             subscriptionsVersion: ignoreSubscriptionsVersion ? 0 : preferences.subscriptionsVersion.asInt32,

@@ -6,6 +6,7 @@ use serde_serializers::deserialize_biguint_from_str;
 pub struct Account {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub amount: BigUint,
+    pub storage_usage: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

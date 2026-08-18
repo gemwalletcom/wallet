@@ -97,19 +97,16 @@ pub async fn get_device_transactions_v2(
 
 #[get("/devices/transactions/<id>")]
 pub async fn get_device_transaction_by_id_v2(
-    _device: AuthenticatedDevice,
+    device: AuthenticatedDeviceWallet,
     id: TransactionIdParam,
     client: &State<TransactionsClient>,
 ) -> Result<ApiResponse<Transaction>, ApiError> {
-    get_device_transaction(id, client)
+    Ok(client.get_transaction_by_wallet_id(device.device_row.id, device.wallet_id, &id.0)?.into())
 }
 
+// TODO: Remove the legacy singular route after 2026-11-15.
 #[get("/devices/transaction/<id>")]
 pub async fn get_device_transaction_v2(_device: AuthenticatedDevice, id: TransactionIdParam, client: &State<TransactionsClient>) -> Result<ApiResponse<Transaction>, ApiError> {
-    get_device_transaction(id, client)
-}
-
-fn get_device_transaction(id: TransactionIdParam, client: &State<TransactionsClient>) -> Result<ApiResponse<Transaction>, ApiError> {
     Ok(client.get_transaction_by_id(&id.0)?.into())
 }
 
@@ -175,7 +172,7 @@ pub async fn create_device_referral_v2(
             &request.data.code,
             device.device_row.id,
             &ip.to_string(),
-            device.device_row.locale.as_str(),
+            device.device_row.locale.as_ref(),
         )
         .await?
         .into())
@@ -402,7 +399,7 @@ pub async fn get_fiat_quote_url_v2(
     ip: std::net::IpAddr,
     client: &State<FiatQuotesClient>,
 ) -> Result<ApiResponse<FiatQuoteUrl>, ApiError> {
-    let locale = device.device_row.locale.as_str();
+    let locale = device.device_row.locale.as_ref();
     let ip_address = ip.to_string();
     let url = client.get_quote_url(quote_id, device.wallet_id, device.device_row.id, &ip_address, locale).await?;
     Ok(url.into())

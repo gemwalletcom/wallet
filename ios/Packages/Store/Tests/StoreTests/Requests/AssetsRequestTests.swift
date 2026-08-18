@@ -162,7 +162,7 @@ struct AssetsRequestTests {
         let priceStore = PriceStore(db: db)
         let fiatRateStore = FiatRateStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: Currency.usd.rawValue, rate: 1)])
+        try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
 
         let assets = [AssetBasic].mock()
         try priceStore.updatePrices(
@@ -205,7 +205,7 @@ struct AssetsRequestTests {
         let fiatRateStore = FiatRateStore(db: db)
         let balanceStore = BalanceStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: Currency.usd.rawValue, rate: 1)])
+        try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
 
         try priceStore.updatePrice(
             price: AssetPrice(

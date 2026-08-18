@@ -51,6 +51,8 @@ pub mod relay;
 pub use relay::RelayScan;
 pub mod skip;
 pub use skip::SkipExplorer;
+mod swaps_xyz;
+pub use swaps_xyz::SwapsXyzScan;
 pub mod hypercore;
 pub use hypercore::{FlowScan, HyperliquidExplorer, HypurrScan};
 pub mod metadata;

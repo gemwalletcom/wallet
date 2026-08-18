@@ -41,6 +41,8 @@ enum class NameProvider(val string: String) {
 	Hyperliquid("hyperliquid"),
 	@SerialName("alldomains")
 	AllDomains("alldomains"),
+	@SerialName("near")
+	Near("near"),
 }
 
 @Serializable

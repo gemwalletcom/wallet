@@ -16,10 +16,6 @@ impl UsernameRow {
         let len = self.username.len();
         (4..=16).contains(&len) && self.username.chars().all(|c| c.is_ascii_alphanumeric())
     }
-
-    pub fn is_verified(&self) -> bool {
-        self.status.is_verified()
-    }
 }
 
 #[derive(Debug, Insertable, Clone)]

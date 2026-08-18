@@ -17,16 +17,16 @@ import EventPresenterService
 import ExplorerService
 import FiatService
 import Foundation
-import NameService
 import NFTService
 import NodeService
 import NotificationService
 import PerpetualService
 import PriceAlertService
 import PriceService
+import Primitives
 import RewardsService
-import ServiceStatusService
 import ScanService
+import ServiceStatusService
 import StakeService
 import StreamService
 import SupportChatService
@@ -79,7 +79,7 @@ extension AppResolver {
         let walletConnectorManager: WalletConnectorManager
         let perpetualService: PerpetualService
         let hyperliquidObserverService: any PerpetualObservable
-        let nameService: NameService
+        let nameService: any NameServiceable
         let addressNameService: AddressNameService
         let activityService: ActivityService
         let eventPresenterService: EventPresenterService
@@ -134,7 +134,7 @@ extension AppResolver {
             walletConnectorManager: WalletConnectorManager,
             perpetualService: PerpetualService,
             hyperliquidObserverService: any PerpetualObservable,
-            nameService: NameService,
+            nameService: any NameServiceable,
             addressNameService: AddressNameService,
             activityService: ActivityService,
             eventPresenterService: EventPresenterService,

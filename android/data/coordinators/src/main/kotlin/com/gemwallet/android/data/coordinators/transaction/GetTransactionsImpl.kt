@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
 
+private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+
 class GetTransactionsImpl(
     private val transactionsRepository: TransactionRepository,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -111,13 +113,11 @@ class TransactionDataAggregateImpl(
                 AmountSign.Incoming.format(formatter.string(value, asset))
             } ?: ""
         }
-        TransactionType.PerpetualOpenPosition -> data.transaction.value.toBigIntegerOrNull()?.let {
-            CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(
-                CryptoFiatConverter.toFiat(Crypto(it), HypercoreUSDC.decimals, price = 1.0).atomicValue,
-            )
-        } ?: ""
+        TransactionType.PerpetualOpenPosition -> usdFiatFormatter.string(
+            CryptoFiatConverter.toFiat(Crypto(data.transaction.value), HypercoreUSDC.decimals, price = 1.0).atomicValue,
+        )
         TransactionType.PerpetualClosePosition -> pnl?.let {
-            PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)).string(it)
+            PriceChangeFormatter(usdFiatFormatter).string(it)
         } ?: ""
         TransactionType.StakeUndelegate,
         TransactionType.StakeRewards,
@@ -127,8 +127,8 @@ class TransactionDataAggregateImpl(
         TransactionType.StakeDelegate,
         TransactionType.EarnDeposit,
         TransactionType.StakeFreeze,
-        TransactionType.StakeUnfreeze -> getFormattedValue() ?: ""
-        TransactionType.Transfer -> getFormattedValue()?.let { AmountSign(data.transaction.direction).format(it) } ?: ""
+        TransactionType.StakeUnfreeze -> getFormattedValue()
+        TransactionType.Transfer -> AmountSign(data.transaction.direction).format(getFormattedValue())
         TransactionType.TokenApproval -> data.asset.symbol
         TransactionType.TransferNFT,
         TransactionType.AssetActivation,
@@ -175,8 +175,8 @@ class TransactionDataAggregateImpl(
         return value.toBigIntegerOrNull()?.let { Pair(it, asset) }
     }
 
-    private fun getFormattedValue(): String? =
-        data.transaction.value.toBigIntegerOrNull()?.let { formatter.string(it, data.asset) }
+    private fun getFormattedValue(): String =
+        formatter.string(data.transaction.value.toBigInteger(), data.asset)
 
     private companion object {
         val formatter = ValueFormatter(style = ValueFormatter.Style.Short)

@@ -16,44 +16,41 @@ data class DbPrice(
     val value: Double? = 0.0,
     @ColumnInfo("usd_value") val usdValue: Double? = 0.0,
     @ColumnInfo("day_changed") val dayChanged: Double? = 0.0,
-    val currency: String,
+    val currency: Currency,
 )
 
 fun AssetPrice.toRecord(rate: FiatRate): DbPrice {
-    val currency = Currency.entries.firstOrNull { it.string == rate.symbol } ?: Currency.USD
     return DbPrice(
         assetId = assetId.toIdentifier(),
         value = price * rate.rate,
         usdValue = price,
         dayChanged = priceChangePercentage24h,
-        currency = currency.string
+        currency = rate.symbol
     )
 }
 
 fun List<AssetPrice>.toRecord(rate: FiatRate) = map { it.toRecord(rate) }
 
 fun AssetFull.toPriceRecord(rate: FiatRate): DbPrice? {
-    val currency = Currency.entries.firstOrNull { it.string == rate.symbol } ?: Currency.USD
     return price?.let { price ->
         DbPrice(
             assetId = asset.id.toIdentifier(),
             value = price.price * rate.rate,
             usdValue = price.price,
             dayChanged = price.priceChangePercentage24h,
-            currency = currency.string,
+            currency = rate.symbol,
         )
     }
 }
 
 fun AssetBasic.toPriceRecord(rate: FiatRate): DbPrice? {
-    val currency = Currency.entries.firstOrNull { it.string == rate.symbol } ?: Currency.USD
     return price?.let { price ->
         DbPrice(
             assetId = asset.id.toIdentifier(),
             value = price.price * rate.rate,
             usdValue = price.price,
             dayChanged = price.priceChangePercentage24h,
-            currency = currency.string,
+            currency = rate.symbol,
         )
     }
 }

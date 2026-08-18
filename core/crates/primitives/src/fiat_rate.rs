@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
+use crate::currency::Currency;
+
 #[typeshare(swift = "Sendable")]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FiatRate {
-    pub symbol: String,
+    pub symbol: Currency,
     pub rate: f64,
 }
 

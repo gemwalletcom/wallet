@@ -1,8 +1,7 @@
 use gem_encoding::decode_base64;
-use num_bigint::BigInt;
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use std::str;
-use std::str::FromStr;
 
 use super::message::{AuthInfo, Message};
 
@@ -62,56 +61,35 @@ pub struct TransactionResponseData {
 pub struct TransactionEvent {
     #[serde(rename = "type")]
     pub event_type: String,
-    pub attributes: Vec<TransactionEventAtribute>,
+    pub attributes: Vec<TransactionEventAttribute>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionEventAtribute {
+pub struct TransactionEventAttribute {
     pub key: String,
     pub value: Option<String>,
 }
 
 impl TransactionResponse {
-    pub fn get_rewards_value(&self, denom: &str) -> Option<BigInt> {
-        let attributes = self
-            .tx_response
-            .events
-            .clone()
-            .into_iter()
-            .filter(|x| x.event_type == crate::constants::EVENTS_WITHDRAW_REWARDS_TYPE)
-            .flat_map(|x| x.attributes)
-            .collect::<Vec<_>>();
-
+    pub fn get_rewards_value(&self, denom: &str) -> Option<BigUint> {
         //base64 decoding added for sei/celestia. This is a temporary solution until the issue is resolved in the cosmos-sdk
-        let value = attributes
-            .into_iter()
-            .filter(|x| {
-                if let Ok(value) = decode_base64(&x.key) {
-                    str::from_utf8(&value).unwrap() == crate::constants::EVENTS_ATTRIBUTE_AMOUNT
-                } else {
-                    x.key == crate::constants::EVENTS_ATTRIBUTE_AMOUNT
-                }
+        self.tx_response
+            .events
+            .iter()
+            .filter(|event| event.event_type == crate::constants::EVENTS_WITHDRAW_REWARDS_TYPE)
+            .flat_map(|event| &event.attributes)
+            .filter(|attribute| {
+                decode_base64(&attribute.key)
+                    .ok()
+                    .and_then(|value| str::from_utf8(&value).ok().map(|value| value == crate::constants::EVENTS_ATTRIBUTE_AMOUNT))
+                    .unwrap_or(attribute.key == crate::constants::EVENTS_ATTRIBUTE_AMOUNT)
             })
-            .map(|x| {
-                let value = x.value.unwrap_or_default();
-                let decoded_value;
-                let str_value = if let Ok(decoded) = decode_base64(&value) {
-                    decoded_value = decoded;
-                    str::from_utf8(&decoded_value).unwrap_or_default()
-                } else {
-                    &value
-                };
-                str_value
-                    .split(',')
-                    .filter(|x| x.contains(denom))
-                    .collect::<Vec<&str>>()
-                    .first()
-                    .unwrap_or(&"0")
-                    .to_string()
-                    .replace(denom, "")
+            .try_fold(BigUint::ZERO, |total, attribute| {
+                let value = attribute.value.as_deref().unwrap_or_default();
+                let decoded = decode_base64(value).ok();
+                let value = decoded.as_deref().and_then(|value| str::from_utf8(value).ok()).unwrap_or(value);
+                let amount = value.split(',').find_map(|value| value.strip_suffix(denom)).unwrap_or("0").parse::<BigUint>().ok()?;
+                Some(total + amount)
             })
-            .flat_map(|x| BigInt::from_str(&x).ok())
-            .sum();
-        Some(value)
     }
 }

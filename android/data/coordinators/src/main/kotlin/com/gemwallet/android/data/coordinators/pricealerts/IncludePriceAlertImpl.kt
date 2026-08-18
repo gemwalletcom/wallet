@@ -27,7 +27,7 @@ class IncludePriceAlertImpl(
         percentage: Double?,
         direction: PriceAlertDirection?
     ) {
-        val currency = currency?.string ?: sessionRepository.getCurrentCurrency().string
+        val currency = currency ?: sessionRepository.getCurrentCurrency()
         val priceAlert = PriceAlert(
             assetId = assetId,
             currency = currency,

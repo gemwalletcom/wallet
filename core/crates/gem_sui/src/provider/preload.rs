@@ -3,7 +3,7 @@ use std::{collections::HashMap, error::Error};
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
-use chain_traits::ChainTransactionLoad;
+use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
 use primitives::{
     FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
@@ -11,7 +11,7 @@ use primitives::{
 };
 
 use crate::{
-    ESTIMATION_GAS_BUDGET,
+    constants::{ESTIMATION_GAS_BUDGET, SWAP_GAS_UNITS, TOKEN_TRANSFER_GAS_UNITS, TRANSFER_GAS_UNITS},
     gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, OwnedCoins, SuiObject},
 };
@@ -24,6 +24,14 @@ use crate::{
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl ChainTransactionLoad for SuiProvider {
+    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
+        Some(match operation {
+            TransactionFeeOperation::Transfer => TRANSFER_GAS_UNITS,
+            TransactionFeeOperation::TokenTransfer => TOKEN_TRANSFER_GAS_UNITS,
+            TransactionFeeOperation::Swap => SWAP_GAS_UNITS,
+        })
+    }
+
     async fn get_transaction_preload(&self, _input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         Ok(TransactionLoadMetadata::None)
     }

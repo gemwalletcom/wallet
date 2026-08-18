@@ -2,7 +2,6 @@
 
 import Components
 @testable import Contacts
-import NameServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -10,34 +9,25 @@ import Testing
 @MainActor
 struct ManageContactAddressViewModelTests {
     @Test
-    func buttonStateAddModeEmptyAddress() {
+    func buttonStateAddMode() {
         let model = ManageContactAddressViewModel.mock(mode: .add)
 
         #expect(model.buttonState == .disabled)
-    }
 
-    @Test
-    func buttonStateAddModeValidAddress() {
-        let model = ManageContactAddressViewModel.mock(mode: .add)
-        model.addressInputModel.text = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-        model.addressInputModel.update()
+        model.addressInputModel.update(text: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
 
         #expect(model.buttonState == .normal)
     }
 
     @Test
-    func buttonStateEditModeNoChanges() {
+    func buttonStateEditMode() {
         let model = ManageContactAddressViewModel.mock(mode: .edit(.mock(address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")))
-
-        #expect(model.buttonState == .disabled)
-    }
-
-    @Test
-    func buttonStateEditModeWithChanges() {
-        let model = ManageContactAddressViewModel.mock(mode: .edit(.mock(address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")))
-        model.memo = "new memo"
 
         #expect(model.buttonState == .normal)
+
+        model.addressInputModel.update(text: "")
+
+        #expect(model.buttonState == .disabled)
     }
 
     @Test
@@ -54,6 +44,7 @@ struct ManageContactAddressViewModelTests {
     @Test
     func nameResolveState() {
         let model = ManageContactAddressViewModel.mock(mode: .add)
+        model.addressInputModel.text = "john"
 
         model.addressInputModel.nameRecordViewModel.state = .loading
         #expect(model.buttonState == .disabled)
@@ -61,7 +52,7 @@ struct ManageContactAddressViewModelTests {
         model.addressInputModel.nameRecordViewModel.state = .error
         #expect(model.buttonState == .disabled)
 
-        model.addressInputModel.nameRecordViewModel.state = .complete(.mock())
+        model.addressInputModel.nameRecordViewModel.state = .complete(.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"))
         #expect(model.buttonState == .normal)
 
         model.onSelectChain(.bitcoin)

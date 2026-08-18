@@ -22,10 +22,6 @@ pub struct ReferralFee {
 }
 
 impl ReferralFees {
-    pub fn evm(evm: ReferralFee) -> Self {
-        Self { evm, ..Default::default() }
-    }
-
     pub fn for_chain(&self, chain: Chain) -> Option<&ReferralFee> {
         let fee = match chain.chain_type() {
             ChainType::Ethereum => &self.evm,

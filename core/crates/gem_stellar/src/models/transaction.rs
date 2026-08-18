@@ -1,5 +1,23 @@
 use num_bigint::BigUint;
+#[cfg(feature = "rpc")]
+use number_formatter::BigNumberFormatter;
+#[cfg(feature = "rpc")]
+use serde::de;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "rpc")]
+use crate::constants::STELLAR_DECIMALS;
+
+#[cfg(feature = "rpc")]
+fn deserialize_option_stellar_amount<'de, D>(deserializer: D) -> Result<Option<BigUint>, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    let amount = Option::<String>::deserialize(deserializer)?;
+    amount
+        .map(|amount| BigNumberFormatter::value_from_amount_biguint(&amount, STELLAR_DECIMALS).map_err(de::Error::custom))
+        .transpose()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StellarTransactionBroadcast {
@@ -32,7 +50,9 @@ pub struct Payment {
     pub asset_type: Option<String>,
     pub from: Option<String>,
     pub to: Option<String>,
-    pub amount: Option<String>,
+    #[serde(default)]
+    #[cfg_attr(feature = "rpc", serde(deserialize_with = "deserialize_option_stellar_amount"))]
+    pub amount: Option<BigUint>,
 
     pub created_at: String,
 
@@ -40,7 +60,9 @@ pub struct Payment {
     pub source_account: Option<String>,
     pub funder: Option<String>,
     pub account: Option<String>,
-    pub starting_balance: Option<String>,
+    #[serde(default)]
+    #[cfg_attr(feature = "rpc", serde(deserialize_with = "deserialize_option_stellar_amount"))]
+    pub starting_balance: Option<BigUint>,
 
     pub transaction: Option<StellarPaymentTransaction>,
 }
@@ -53,12 +75,6 @@ pub struct StellarPaymentTransaction {
 
 #[cfg(feature = "rpc")]
 impl Payment {
-    fn amount_formatter(value: &str) -> Option<String> {
-        use number_formatter::BigNumberFormatter;
-        use primitives::{Asset, Chain};
-        BigNumberFormatter::value_from_amount(value, Asset::from_chain(Chain::Stellar).decimals as u32).ok()
-    }
-
     pub fn from_address(&self) -> Option<String> {
         use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PAYMENT};
         match self.payment_type.as_str() {
@@ -88,8 +104,8 @@ impl Payment {
     pub fn get_value(&self) -> Option<String> {
         use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PAYMENT};
         match self.payment_type.as_str() {
-            TRANSACTION_TYPE_PAYMENT => Self::amount_formatter(self.amount.as_ref()?),
-            TRANSACTION_TYPE_CREATE_ACCOUNT => Self::amount_formatter(self.starting_balance.as_ref()?),
+            TRANSACTION_TYPE_PAYMENT => Some(self.amount.as_ref()?.to_string()),
+            TRANSACTION_TYPE_CREATE_ACCOUNT => Some(self.starting_balance.as_ref()?.to_string()),
             _ => None,
         }
     }

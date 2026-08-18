@@ -107,6 +107,7 @@ mod tests {
                 failures: 2,
                 rate: 100,
                 window: MINUTE,
+                latency: None,
             },
         );
 

@@ -17,7 +17,7 @@ impl NotificationsClient {
 
     pub fn get_notifications(&self, device_id: &str, from_timestamp: Option<u64>, limit: usize) -> Result<Vec<InAppNotification>, Box<dyn Error + Send + Sync>> {
         let device = self.database.devices()?.get_device(device_id)?;
-        let localizer = LanguageLocalizer::new_with_language(device.locale.as_str());
+        let localizer = LanguageLocalizer::new_with_language(device.locale.as_ref());
         let from_datetime = from_timestamp.and_then(|ts| DateTime::<Utc>::from_timestamp(ts as i64, 0).map(|dt| dt.naive_utc()));
         let notifications = self.database.notifications()?.get_notifications_by_device_id(device_id, from_datetime, limit)?;
         Ok(notifications.into_iter().filter_map(|n| map_notification(n, &localizer)).collect())

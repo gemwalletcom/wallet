@@ -65,7 +65,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
             ListSection(type: .header, [.header]),
             ListSection(type: .swapProgress, [.swapProgress]),
             ListSection(type: .swapAction, [.swapButton]),
-            ListSection(type: .details, [.date, .status, .participant, .memo, .rate, .network, .pnl, .price, .provider]),
+            ListSection(type: .details, [.date, .status, .estimatedConfirmation, .participant, .memo, .rate, .network, .pnl, .price, .provider]),
             ListSection(type: .fee, [.fee]),
             ListSection(type: .explorer, [.explorerLink]),
         ]
@@ -78,6 +78,11 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .swapButton: TransactionSwapButtonViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), state: model.transaction.transaction.state)
         case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
+        case .estimatedConfirmation:
+            TransactionEstimatedConfirmationViewModel(
+                seconds: model.transaction.transaction.state == .pending ? transactionExtended.confirmationEtaSeconds : nil,
+                onInfoAction: onSelectEstimatedConfirmationInfo,
+            )
         case .participant: TransactionParticipantViewModel(transactionViewModel: model, onAddContact: onAddContact)
         case .memo: TransactionMemoViewModel(transaction: model.transaction.transaction)
         case .rate: TransactionRateViewModel(transaction: model.transaction, direction: rateDirection)
@@ -139,6 +144,10 @@ extension TransactionSceneViewModel {
             state: model.transaction.transaction.state,
         ))
     }
+
+    private func onSelectEstimatedConfirmationInfo() {
+        isPresentingTransactionSheet = .info(.estimatedConfirmation(model.transaction.transaction.assetId.chain))
+    }
 }
 
 // MARK: - Private
@@ -199,14 +208,13 @@ extension TransactionSceneViewModel {
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        let viewModel = NetworkFeeSceneViewModel(
+        NetworkFeeSceneViewModel(
             chain: model.transaction.transaction.assetId.chain,
             feeAsset: model.transaction.feeAsset,
-            priority: .normal,
             currency: Currency(rawValue: preferences.currency) ?? .usd,
+            selection: .preset(.normal),
+            feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),
         )
-        viewModel.update(rates: [], feeAssetPrice: model.transaction.feePrice)
-        return viewModel
     }
 }

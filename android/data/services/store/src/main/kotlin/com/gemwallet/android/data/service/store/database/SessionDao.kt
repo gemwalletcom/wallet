@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.gemwallet.android.data.service.store.database.entities.DbSession
+import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,10 +20,10 @@ interface SessionDao {
     suspend fun update(session: DbSession)
 
     @Query("UPDATE session SET currency = :currency WHERE id = 1")
-    suspend fun setCurrency(currency: String)
+    suspend fun setCurrency(currency: Currency)
 
     @Query("SELECT currency FROM session WHERE id = 1")
-    suspend fun getCurrency(): String?
+    suspend fun getCurrency(): Currency?
 
     @Query("DELETE FROM session")
     suspend fun clear()

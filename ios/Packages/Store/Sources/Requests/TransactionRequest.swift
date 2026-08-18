@@ -69,6 +69,7 @@ public extension TransactionExtended {
             prices: [],
             fromAddress: nil,
             toAddress: nil,
+            confirmationEtaSeconds: nil,
         )
     }()
 }

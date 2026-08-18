@@ -224,7 +224,6 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected network fee item model for error state")
         }
 
-        model.feeModel.update(feeAmount: BigInt(1_000_000_000_000_000))
         model.state = .mock(transaction: .data(.mock()))
         let loadedFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
@@ -234,6 +233,62 @@ struct ConfirmTransferSceneViewModelTests {
         } else {
             Issue.record("Expected network fee item model with loaded fee")
         }
+    }
+
+    @Test
+    func networkFeeStaysSelectableWhileReloading() {
+        let rates = [
+            FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
+            FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
+        ]
+        let model = ConfirmTransferSceneViewModel.mock()
+
+        model.state = .mock(transaction: .loading, feeRates: rates)
+        let reloadingFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
+
+        if case let .networkFee(listItem, selectable) = reloadingFeeItem?.itemModel {
+            #expect(listItem.subtitle == nil)
+            #expect(listItem.hasSubtitlePlaceholder)
+            #expect(selectable)
+        } else {
+            Issue.record("Expected network fee item model while reloading")
+        }
+    }
+
+    @Test
+    func fetchAfterFeeChangeKeepsSimulationState() async {
+        let rates = [
+            FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
+            FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
+        ]
+        let model = ConfirmTransferSceneViewModel.mock(
+            confirmService: .mock(transaction: .success(TransferTransactionData(allRates: rates, transactionData: .mock()))),
+        )
+
+        await model.fetch()
+        #expect(model.state.feeRates == rates)
+
+        let sentinel = ConfirmSimulationState.mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
+        model.state.simulation = sentinel
+        model.feeSelection = .preset(.fast)
+        await model.fetch()
+
+        #expect(model.state.simulation.warnings == sentinel.warnings)
+        #expect(model.state.transaction.value != nil)
+        #expect(model.state.feeRates == rates)
+    }
+
+    @Test
+    func fetchIgnoresErrorAfterCancellation() async {
+        let model = ConfirmTransferSceneViewModel.mock(
+            confirmService: .mock(transaction: .failure(AnyError("network"))),
+        )
+
+        let task = Task { await model.fetch() }
+        task.cancel()
+        await task.value
+
+        #expect(model.state.transaction.isLoading)
     }
 
     @Test
@@ -608,7 +663,40 @@ struct ConfirmTransferSceneViewModelTests {
     }
 }
 
+private extension ConfirmService {
+    static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmService {
+        ConfirmService(
+            metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
+            inputProvider: ConfirmTransferInputProvider(transferTransactionProvider: TransferTransactionProviderMock(result: transaction)),
+            simulationService: ConfirmSimulationService(addressNameService: .mock(addressStore: .mock()), assetsService: .mock()),
+            transferExecutor: TransferExecutorMock(),
+            activityService: .mock(),
+            eventPresenterService: .mock(),
+            keystore: KeystoreMock(),
+            chainService: ChainServiceMock(),
+            explorerService: MockExplorerLink(),
+            addressNameService: .mock(addressStore: .mock()),
+        )
+    }
+}
+
 private extension ConfirmTransferSceneViewModel {
+    static func mock(
+        wallet: Wallet = .mock(),
+        data: TransferData = .mock(),
+        confirmService: ConfirmService,
+    ) -> ConfirmTransferSceneViewModel {
+        ConfirmTransferSceneViewModel(
+            request: ConfirmTransferRequest(
+                wallet: wallet,
+                data: data,
+                simulation: nil,
+            ),
+            confirmService: confirmService,
+            onComplete: {},
+        )
+    }
+
     static func mock(
         wallet: Wallet = .mock(),
         data: TransferData = .mock(),

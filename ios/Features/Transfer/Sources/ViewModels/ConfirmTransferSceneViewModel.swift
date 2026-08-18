@@ -19,7 +19,7 @@ import WalletConnector
 @Observable
 @MainActor
 public final class ConfirmTransferSceneViewModel {
-    public var feeModel: NetworkFeeSceneViewModel
+    var feeSelection: FeeSelection
     var state: ConfirmTransferState {
         didSet { onStateChange(state: state) }
     }
@@ -58,13 +58,7 @@ public final class ConfirmTransferSceneViewModel {
 
         let currency = Currency(rawValue: Preferences.standard.currency) ?? .usd
         self.currency = currency
-        feeModel = NetworkFeeSceneViewModel(
-            chain: request.data.chain,
-            feeAsset: request.data.type.asset.feeAsset,
-            priority: confirmService.defaultPriority(for: request.data.type),
-            currency: currency,
-            mode: .custom,
-        )
+        feeSelection = .preset(confirmService.defaultPriority(for: request.data.type))
 
         let recipientAddress = request.data.recipientData.recipient.address
         recipientAddressNameQuery = ObservableQuery(
@@ -110,20 +104,10 @@ public final class ConfirmTransferSceneViewModel {
         state.simulation.warnings
     }
 
-    public var primaryPayloadFields: [SimulationPayloadField] {
-        state.simulation.primaryFields
-    }
-
-    public var secondaryPayloadFields: [SimulationPayloadField] {
-        state.simulation.secondaryFields
-    }
-
-    var hasPayloadDetails: Bool {
-        state.simulation.hasDetails
-    }
+    public var payloadModel: SimulationPayloadModel { state.simulation.payload }
 
     var isButtonDisabled: Bool {
-        simulationWarnings.contains(where: { $0.severity == .critical })
+        simulationWarnings.hasCritical
     }
 
     var confirmButtonModel: ConfirmButtonViewModel {
@@ -142,6 +126,19 @@ public final class ConfirmTransferSceneViewModel {
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
         state.simulation.balanceChanges.map(ConfirmBalanceChangeViewModel.init)
     }
+
+    public var feeModel: NetworkFeeSceneViewModel {
+        NetworkFeeSceneViewModel(
+            chain: request.data.chain,
+            feeAsset: request.data.type.asset.feeAsset,
+            currency: currency,
+            selection: feeSelection,
+            rates: state.feeRates,
+            feeAssetPrice: state.metadata?.feePrice,
+            feeAmount: state.transaction.value?.transactionData.fee.fee,
+            onSelect: { [weak self] in self?.feeSelection = $0 },
+        )
+    }
 }
 
 // MARK: - ListSectionProvideable
@@ -152,7 +149,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ListSection(type: .header, [.header]),
             ListSection(type: .details, detailItems),
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
-            primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
+            payloadModel.primaryFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
             ListSection(type: .fee, [.networkFee]),
             ListSection(type: .error, [.error]),
@@ -190,16 +187,13 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .details:
             detailsViewModel
         case .payload:
-            ConfirmTransferItemModel.payload(primaryPayloadFields)
+            ConfirmTransferItemModel.payload(payloadModel.primaryFields)
         case let .balanceChange(index):
             ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 state: state.transaction,
-                title: feeModel.title,
-                value: feeModel.value,
-                fiatValue: feeModel.fiatValue,
-                selectable: feeModel.showFeeDetails,
+                feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
             )
         case .error:
@@ -230,23 +224,10 @@ extension ConfirmTransferSceneViewModel {
     }
 
     public func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
-        var items = payloadFieldViewModel(for: field).contextMenuItems
-        if field.fieldType == .address {
-            let link = confirmService.explorerLink(chain: dataModel.chain, address: field.value)
-            items.append(.url(title: Localized.Transaction.viewOn(link.name), onOpen: { [weak self] in
-                if let url = URL(string: link.link) {
-                    self?.isPresentingSheet = .url(url)
-                }
-            }))
-        }
-        return items
-    }
-
-    public func payloadFieldViewModel(for field: SimulationPayloadField) -> SimulationPayloadFieldViewModel {
-        SimulationPayloadFieldViewModel(
-            field: field,
-            chain: dataModel.chain,
-            addressName: state.simulation.addressName(chain: dataModel.chain, for: field),
+        payloadModel.contextMenuItems(
+            for: field,
+            explorerLink: { confirmService.explorerLink(chain: dataModel.chain, address: $0) },
+            onOpenURL: { [weak self] in self?.isPresentingSheet = .url($0) },
         )
     }
 
@@ -286,13 +267,16 @@ extension ConfirmTransferSceneViewModel {
 
     func fetch() async {
         state.transaction = .loading
-        feeModel.reset()
         do {
-            let data = try await confirmService.load(request: request, selection: feeModel.selection)
-            state = .loaded(data)
-            feeModel.update(rates: data.input.feeRates, feeAssetPrice: data.metadata.feePrice)
-            feeModel.update(feeAmount: data.input.transactionData.fee.fee)
+            if state.feeRates.isEmpty {
+                let data = try await confirmService.load(request: request, selection: feeSelection)
+                state = .loaded(data)
+            } else {
+                let preload = try await confirmService.preload(request: request, selection: feeSelection)
+                state.update(preload)
+            }
         } catch {
+            guard !Task.isCancelled else { return }
             state.transaction.setError(error)
             debugLog("preload transaction error: \(error)")
         }

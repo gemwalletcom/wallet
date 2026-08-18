@@ -38,6 +38,7 @@ impl fmt::Display for NodeMonitorError {
 pub(super) enum NodeSwitchReason {
     BlockHeight,
     CurrentNodeError { error: NodeMonitorError, message: String },
+    Latency,
     PreferredNode,
 }
 
@@ -46,6 +47,7 @@ impl NodeSwitchReason {
         match self {
             Self::BlockHeight => "block_height".to_string(),
             Self::CurrentNodeError { error, .. } => error.to_string(),
+            Self::Latency => "latency".to_string(),
             Self::PreferredNode => "preferred_node".to_string(),
         }
     }
@@ -77,6 +79,7 @@ mod tests {
             );
         }
         assert_eq!(NodeSwitchReason::PreferredNode.metric_reason(), "preferred_node");
+        assert_eq!(NodeSwitchReason::Latency.metric_reason(), "latency");
     }
 
     #[test]

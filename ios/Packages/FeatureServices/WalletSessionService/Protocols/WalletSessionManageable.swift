@@ -14,7 +14,6 @@ public protocol WalletSessionManageable: WalletSessionManageableThrowing {
     var currentWallet: Wallet? { get }
     var currentWalletId: WalletId? { get }
 
-    func setCurrent(index: Int) -> WalletId?
     func setCurrent(walletId: WalletId?)
 }
 

@@ -18,13 +18,9 @@ let bytes = hex::decode(input)?;
 
 Known occurrences:
 - `crates/gem_hypercore/src/signer/core_signer.rs`
-- `crates/gem_hypercore/src/core/hahser.rs`
+- `crates/gem_hypercore/src/core/hasher.rs`
 - `crates/signer/src/eip712/hash_impl.rs`
 - `crates/gem_rewards/src/transfer_provider/evm/provider.rs`
-
-## Misspelled File: `hahser.rs`
-
-`crates/gem_hypercore/src/core/hahser.rs` should be `hasher.rs`. Fix when touching this file.
 
 ## Duplicate Constants
 

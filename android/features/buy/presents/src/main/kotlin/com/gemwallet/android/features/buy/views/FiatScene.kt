@@ -31,7 +31,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.image.AsyncImage
-import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -57,7 +57,7 @@ import com.wallet.core.primitives.FiatQuoteType
 @Composable
 fun BuyScene(
     asset: Asset,
-    assetInfo: AssetInfoUIModel?,
+    assetInfo: AssetInfoDataAggregate?,
     state: FiatSceneState,
     type: FiatQuoteType,
     providers: List<BuyFiatProviderUIModel>,
@@ -113,7 +113,7 @@ fun BuyScene(
         AssetListItem(
             asset = asset,
             listPosition = ListPosition.Single,
-            support = { ListItemSupportText(assetInfo?.cryptoFormatted ?: " ") },
+            support = { ListItemSupportText(assetInfo?.balance ?: " ") },
             trailing = assetRowSuggestions.takeIf { it.isNotEmpty() }?.let { suggestions ->
                 {
                     FiatSuggestionRow(

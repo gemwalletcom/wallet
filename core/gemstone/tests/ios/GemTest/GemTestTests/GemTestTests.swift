@@ -14,7 +14,7 @@ struct GemTestTests {
 
     @Test
     func testGetExplorerName() throws {
-        let chain = "bitcoin" // Primitive::Chain::Bitcion as_str()
+        let chain = "bitcoin" // Primitive::Chain::Bitcoin as_str()
         let explorers = Config().getBlockExplorers(chain: chain)
 
         try #require(explorers.count >= 2)

@@ -20,29 +20,29 @@ public struct ConfirmSimulationService: Sendable {
 
     func makeState(data: TransferData, simulation: SimulationResult?) -> ConfirmSimulationState {
         let assets = simulationAssets(simulation)
-        return buildState(
-            simulation: simulation,
-            payload: payloadFields(for: data.type, simulation: simulation),
-            payloadAddressNames: [:],
+        return ConfirmSimulationState(
+            warnings: simulation?.warnings ?? [],
+            payload: payloadModel(data: data, simulation: simulation),
             headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),
             balanceChanges: balanceChanges(simulation: simulation, assets: assets),
         )
     }
 
     func updateState(data: TransferData, simulation: SimulationResult?) async -> ConfirmSimulationState {
-        let payload = payloadFields(for: data.type, simulation: simulation)
-        async let names = payloadAddressNames(chain: data.chain, payload: payload)
+        var payload = payloadModel(data: data, simulation: simulation)
+        let addressRequests = payload.addressRequests
+        async let names = addressNameService.getAddressNames(requests: addressRequests)
         do {
             try await assetsService.prefetchAssets(assetIds: simulation?.simulationAssetIds ?? [])
         } catch {
             debugLog("simulation asset prefetch error: \(error)")
         }
+        payload.addressNames = await (try? names) ?? [:]
 
         let assets = simulationAssets(simulation)
-        return await buildState(
-            simulation: simulation,
+        return ConfirmSimulationState(
+            warnings: simulation?.warnings ?? [],
             payload: payload,
-            payloadAddressNames: names,
             headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),
             balanceChanges: balanceChanges(simulation: simulation, assets: assets),
         )
@@ -50,20 +50,12 @@ public struct ConfirmSimulationService: Sendable {
 }
 
 private extension ConfirmSimulationService {
-    func buildState(
-        simulation: SimulationResult?,
-        payload: [SimulationPayloadField],
-        payloadAddressNames: [ChainAddress: AddressName],
-        headerData: AssetValueHeaderData?,
-        balanceChanges: [SimulationAssetChange],
-    ) -> ConfirmSimulationState {
-        ConfirmSimulationState(
-            warnings: simulation?.warnings ?? [],
-            primaryFields: payload.filter { $0.display == .primary },
-            secondaryFields: payload.filter { $0.display == .secondary },
-            payloadAddressNames: payloadAddressNames,
-            headerData: headerData,
-            balanceChanges: balanceChanges,
+    func payloadModel(data: TransferData, simulation: SimulationResult?) -> SimulationPayloadModel {
+        let fields = payloadFields(for: data.type, simulation: simulation)
+        return SimulationPayloadModel(
+            chain: data.chain,
+            primaryFields: fields.primaryFields,
+            secondaryFields: fields.secondaryFields,
         )
     }
 
@@ -138,28 +130,6 @@ private extension ConfirmSimulationService {
         }
         let assets = (try? assetsService.getAssets(for: simulation.simulationAssetIds)) ?? []
         return Dictionary(uniqueKeysWithValues: assets.map { ($0.id, $0) })
-    }
-
-    func payloadAddressNames(chain: Chain, payload: [SimulationPayloadField]) async -> [ChainAddress: AddressName] {
-        let requests = payloadAddressRequests(chain: chain, payload: payload)
-
-        do {
-            return try await addressNameService.getAddressNames(requests: requests)
-        } catch {
-            if !error.isCancelled {
-                debugLog("payload address name lookup error: \(error)")
-            }
-            return [:]
-        }
-    }
-
-    func payloadAddressRequests(chain: Chain, payload: [SimulationPayloadField]) -> [ChainAddress] {
-        payload.compactMap {
-            guard $0.fieldType == .address else {
-                return nil
-            }
-            return ChainAddress(chain: chain, address: $0.value)
-        }
     }
 
     func shouldHideValueField(for transferType: TransferDataType, simulation: SimulationResult?) -> Bool {

@@ -5,10 +5,12 @@ use crate::method;
 
 #[derive(Clone, Debug)]
 pub enum NearRpc {
+    CallFunction { contract_id: String, method_name: String, args_base64: String },
     GetAccount(String),
     GetAccountAccessKey { address: String, public_key: String },
     GetGasPrice,
     GetLatestBlock,
+    GetProtocolConfig,
     GetStatus,
     GetTransactionStatus { transaction_hash: String, sender_account_id: String },
     SendTransaction(String),
@@ -17,9 +19,10 @@ pub enum NearRpc {
 impl ToJsonRpcRequest for NearRpc {
     fn method(&self) -> &'static str {
         match self {
-            Self::GetAccount(_) | Self::GetAccountAccessKey { .. } => method::QUERY,
+            Self::CallFunction { .. } | Self::GetAccount(_) | Self::GetAccountAccessKey { .. } => method::QUERY,
             Self::GetGasPrice => method::GAS_PRICE,
             Self::GetLatestBlock => method::BLOCK,
+            Self::GetProtocolConfig => method::PROTOCOL_CONFIG,
             Self::GetStatus => method::STATUS,
             Self::GetTransactionStatus { .. } => method::TRANSACTION,
             Self::SendTransaction(_) => method::SEND_TRANSACTION,
@@ -28,6 +31,17 @@ impl ToJsonRpcRequest for NearRpc {
 
     fn params(&self) -> serde_json::Value {
         match self {
+            Self::CallFunction {
+                contract_id,
+                method_name,
+                args_base64,
+            } => json!({
+                "request_type": "call_function",
+                "finality": "final",
+                "account_id": contract_id,
+                "method_name": method_name,
+                "args_base64": args_base64
+            }),
             Self::GetAccount(address) => json!({
                 "request_type": "view_account",
                 "finality": "final",
@@ -41,6 +55,7 @@ impl ToJsonRpcRequest for NearRpc {
             }),
             Self::GetGasPrice => json!([null]),
             Self::GetLatestBlock => json!({"finality": "final"}),
+            Self::GetProtocolConfig => json!({"finality": "final"}),
             Self::GetStatus => json!([]),
             Self::GetTransactionStatus {
                 transaction_hash,
@@ -79,6 +94,25 @@ mod tests {
                 "finality": "final",
                 "account_id": "account.near",
                 "public_key": "ed25519:key"
+            }),
+        );
+    }
+
+    #[test]
+    fn builds_function_call_query() {
+        assert_request(
+            NearRpc::CallFunction {
+                contract_id: "token.near".into(),
+                method_name: "ft_balance_of".into(),
+                args_base64: "encoded-args".into(),
+            },
+            method::QUERY,
+            json!({
+                "request_type": "call_function",
+                "finality": "final",
+                "account_id": "token.near",
+                "method_name": "ft_balance_of",
+                "args_base64": "encoded-args"
             }),
         );
     }

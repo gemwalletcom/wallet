@@ -10,19 +10,15 @@ import SwiftUI
 @MainActor
 public protocol CollectionsViewable: AnyObject, Observable {
     var query: ObservableQuery<NFTRequest> { get }
-    var nftDataList: [NFTData] { get }
 
     var title: String { get }
     var columns: [GridItem] { get }
     var content: CollectionsContent { get }
     var emptyContentModel: EmptyContentTypeViewModel { get }
 
-    var wallet: Wallet { get set }
-
     var isPresentingReceiveSelectAssetType: SelectAssetType? { get set }
 
     func fetch() async
-    func onChangeWallet(_ oldWallet: Wallet?, _ newWallet: Wallet?)
     func onSelectReceive()
 }
 
@@ -39,13 +35,6 @@ public extension CollectionsViewable {
 
     func onSelectReceive() {
         isPresentingReceiveSelectAssetType = .receive(.collection)
-    }
-
-    func onChangeWallet(_: Wallet?, _ newWallet: Wallet?) {
-        if let newWallet, wallet != newWallet {
-            wallet = newWallet
-            query.request = NFTRequest(walletId: newWallet.id, filter: .all)
-        }
     }
 
     func buildGridItem(from data: NFTData) -> GridPosterViewItem {

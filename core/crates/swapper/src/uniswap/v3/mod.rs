@@ -15,5 +15,3 @@ pub trait UniversalRouterProvider: Send + Sync + Debug {
     fn get_tiers(&self) -> Vec<FeeTier>;
     fn get_deployment_by_chain(&self, chain: &Chain) -> Option<V3Deployment>;
 }
-
-const DEFAULT_SWAP_GAS_LIMIT: u64 = 500_000; // gwei
