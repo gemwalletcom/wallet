@@ -55,22 +55,31 @@ public struct StreamEventService: Sendable {
     public func handle(_ event: StreamEvent) async {
         switch event {
         case let .prices(payload):
+            debugLog("stream event handler: prices: \(payload.prices.count), rates: \(payload.rates.count)")
             await perform { try handlePrices(payload) }
         case let .balances(update):
+            debugLog("stream event handler: balances: assets: \(update.assetIds.map(\.identifier))")
             Task { await perform { try await handleBalanceUpdate(update) } }
         case let .transactions(update):
+            debugLog("stream event handler: transactions: \(update.transactions.map(\.identifier)), assets: \(update.assetIds.map(\.identifier))")
             Task { await perform { try await handleTransactionUpdate(update) } }
         case let .nft(update):
+            debugLog("stream event handler: nft: wallet: \(update.walletId.id)")
             Task { await perform { try await handleNftUpdate(update) } }
         case let .perpetual(update):
+            debugLog("stream event handler: perpetual: wallet: \(update.walletId.id)")
             Task { await perform { try await handlePerpetualUpdate(update) } }
         case let .inAppNotification(update):
+            debugLog("stream event handler: in-app notification: wallet: \(update.walletId.id)")
             await perform { try notificationStore.addNotifications([update.notification]) }
-        case .priceAlerts:
+        case let .priceAlerts(update):
+            debugLog("stream event handler: price alerts: assets: \(update.assets.count)")
             Task { await perform { try await priceAlertService.update() } }
         case let .fiatTransaction(update):
+            debugLog("stream event handler: fiat transaction: wallet: \(update.walletId.id)")
             Task { await perform { try await handleFiatTransactionUpdate(update) } }
         case let .support(supportEvent):
+            debugLog("stream event handler: support")
             await perform { try await supportChatService.receive(supportEvent) }
         }
     }
@@ -88,7 +97,6 @@ extension StreamEventService {
     }
 
     private func handlePrices(_ payload: WebSocketPricePayload) throws {
-        debugLog("stream event handler: prices: \(payload.prices.count), rates: \(payload.rates.count)")
         try priceService.addRates(payload.rates)
         try priceService.updatePrices(payload.prices, currency: preferences.currency)
     }
