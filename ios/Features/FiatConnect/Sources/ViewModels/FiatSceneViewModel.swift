@@ -178,7 +178,7 @@ public final class FiatSceneViewModel {
     }
 
     var showFiatTypePicker: Bool {
-        assetData.balance.available > 0 && assetData.metadata.isSellEnabled
+        assetData.metadata.isSellEnabled
     }
 
     var assetBalance: String? {
