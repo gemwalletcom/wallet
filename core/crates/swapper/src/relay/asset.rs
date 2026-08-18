@@ -27,7 +27,7 @@ pub fn map_currency_to_asset_id(chain: Chain, currency: &str) -> AssetId {
     if is_native_currency(chain, currency) {
         return AssetId::from_chain(chain);
     }
-    if chain.chain_type() == ChainType::Ethereum
+    if let ChainType::Ethereum = chain.chain_type()
         && let Ok(address) = ethereum_address_checksum(currency)
     {
         return AssetId::from_token(chain, &address);

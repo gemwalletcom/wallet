@@ -8,7 +8,6 @@ use chain_traits::{
 };
 use gem_client::Client;
 use gem_evm::provider::transaction_state_mapper::map_transaction_status_with_fee;
-use gem_evm::rpc::mapper::EthereumMapper;
 use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmProviderExtensions};
 use primitives::{
     Asset, AssetBalance, BroadcastOptions, Chain, FeeRate, SimulationInput, SimulationResult, Transaction, TransactionInputType, TransactionLoadData, TransactionLoadInput,
@@ -103,11 +102,7 @@ impl<C: Client + Clone> ChainTransactionState for TempoProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainTransaction for TempoProvider<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let hash = request.hash.clone();
-        let Some(transaction) = self.provider.get_transaction_by_hash(request).await? else {
-            return Ok(None);
-        };
-        let Some(receipt) = self.provider.get_transaction_receipt(&hash).await? else {
+        let Some((transaction, receipt)) = self.provider.get_transaction_with_receipt(request).await? else {
             return Ok(None);
         };
         Ok(Some(mapper::map_transaction(transaction, &receipt)?))
@@ -124,17 +119,10 @@ impl<C: Client + Clone> ChainTransactions for TempoProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainBlockTransactions for TempoProvider<C> {
     async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let block = self.provider.get_block(block_number).await?;
-        if block.transactions.is_empty() {
-            return Ok(Vec::new());
-        }
-
-        let receipts = self.provider.get_block_receipts(block_number).await?;
-        block
-            .transactions
+        self.provider
+            .get_transactions_by_block_with_receipts(block_number)
+            .await?
             .into_iter()
-            .zip(receipts)
-            .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction(Chain::Tempo, &transaction, &receipt, &block.timestamp, &[]).map(|mapped| (mapped, receipt)))
             .map(|(transaction, receipt)| mapper::map_transaction(transaction, &receipt))
             .collect()
     }
@@ -219,17 +207,6 @@ mod tests {
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use num_bigint::{BigInt, BigUint};
     use primitives::{EVMChain, TransactionChange, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_PATHUSD, testkit::signer_mock::TEST_EVM_RECIPIENT};
-
-    #[test]
-    fn selects_tempo_provider() {
-        let tempo = EthereumClient::new(mock_jsonrpc_client(|_, _| unreachable!()), EVMChain::Tempo);
-        let provider = TempoProvider::new_or_else(tempo, |_| unreachable!());
-        assert_eq!(provider.get_chain(), Chain::Tempo);
-
-        let ethereum = EthereumClient::new(mock_jsonrpc_client(|_, _| unreachable!()), EVMChain::Ethereum);
-        let provider = TempoProvider::new_or_else(ethereum, |client| Box::new(EthereumProvider::new_rpc_only(client)));
-        assert_eq!(provider.get_chain(), Chain::Ethereum);
-    }
 
     #[test]
     fn maps_pathusd_transfer_as_tip20() {

@@ -4,8 +4,6 @@ use gem_client::ReqwestClient;
 use gem_evm::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT};
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 use gem_evm::rpc::EthereumClient;
-#[cfg(feature = "rpc")]
-use primitives::AssetType;
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 use primitives::EVMChain;
 use primitives::{Asset, Chain, TransactionInputType, TransferDataExtra, WalletConnectionSessionAppMetadata};
@@ -21,21 +19,6 @@ pub(crate) const TEMPO_TEST_ADDRESS: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d27
 #[cfg(feature = "signer")]
 pub(crate) const TEMPO_TEST_ROUTER_ADDRESS: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91";
 pub(crate) const TEMPO_TEST_USER_FEE_TOKEN: &str = "0x20C00000000000000000000014f22CA97301EB73";
-#[cfg(feature = "rpc")]
-pub(crate) const TEMPO_TEST_CBBTC_TOKEN: &str = "0x20C000000000000000000000c412Ec89D0c08be5";
-
-#[cfg(feature = "rpc")]
-pub(crate) fn mock_tempo_cbbtc_asset() -> Asset {
-    Asset::mock_with_params(
-        Chain::Tempo,
-        Some(TEMPO_TEST_CBBTC_TOKEN.to_string()),
-        "Coinbase Wrapped BTC".to_string(),
-        "cbBTC".to_string(),
-        6,
-        AssetType::TIP20,
-    )
-}
-
 pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionInputType {
     TransactionInputType::Generic(
         Asset::from_chain(Chain::Tempo),

@@ -30,7 +30,6 @@ val tempoPathUSD = Asset(
 )
 
 val defaultTokenAssets = listOf(tronUSDT, tempoUSDC, tempoPathUSD)
-val hiddenByDefault = setOf(tempoPathUSD.id)
 
 val visibleByDefault = listOf(
     AssetId(Chain.Bitcoin),

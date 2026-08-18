@@ -27,7 +27,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::testkit::json_rpc::load_json_rpc_result;
     use primitives::{
-        AssetId, Chain, TransactionSwapMetadata, TransactionType,
+        Chain, TransactionSwapMetadata, TransactionType,
         asset_constants::{TEMPO_PATHUSD_ASSET_ID, TEMPO_USDC_ASSET_ID, TEMPO_USDC_TOKEN_ID},
     };
 
@@ -61,13 +61,15 @@ mod tests {
         let pathusd = primitives::asset_constants::TEMPO_PATHUSD_TOKEN_ID;
 
         let pathusd_transaction = RpcTransaction::mock_erc20_transfer(pathusd);
-        let pathusd_receipt = TransactionReceipt::mock_with_log(gem_evm::rpc::model::Log::mock_erc20_transfer(pathusd, from, to, 1_000_000));
+        let mut pathusd_receipt = TransactionReceipt::mock_with_log(gem_evm::rpc::model::Log::mock_erc20_transfer(pathusd, from, to, 1_000_000));
+        pathusd_receipt.fee_token = Some(pathusd.to_string());
         let pathusd_transfer = map_tempo_transaction(&pathusd_transaction, &pathusd_receipt);
         assert_eq!(pathusd_transfer.transaction_type, TransactionType::Transfer);
         assert_eq!(pathusd_transfer.asset_id, TEMPO_PATHUSD_ASSET_ID.clone());
 
         let token_transaction = RpcTransaction::mock_erc20_transfer(TEMPO_USDC_TOKEN_ID);
         let mut token_receipt = TransactionReceipt::mock_with_log(gem_evm::rpc::model::Log::mock_erc20_transfer(TEMPO_USDC_TOKEN_ID, from, to, 1_000_000));
+        token_receipt.fee_token = Some(TEMPO_USDC_TOKEN_ID.to_string());
         let token_transfer = map_tempo_transaction(&token_transaction, &token_receipt);
         assert_eq!(token_transfer.transaction_type, TransactionType::Transfer);
         assert_eq!(token_transfer.asset_id, TEMPO_USDC_ASSET_ID.clone());

@@ -146,7 +146,7 @@ class AssetsRepository @Inject constructor(
         val stored = hasAssets(missing.map { it.id })
 
         missing.forEach { asset ->
-            val visible = asset.id !in hiddenByDefault
+            val visible = asset.id in visibleByDefault
             if (stored.contains(asset.id)) {
                 linkAssetToWallet(wallet.id.id, asset.id, visible)
             } else {

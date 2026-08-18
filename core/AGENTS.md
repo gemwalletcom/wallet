@@ -4,7 +4,7 @@ Guidance for AI assistants (Claude Code, Gemini, Codex, etc.) collaborating on t
 
 ## Skills
 
-Read this file first, then load the relevant skills for your current task. `project-structure.md`, `development-commands.md`, `code-style.md`, `tests.md`, and `defensive-programming.md` are the default set for most Core work. Load `error-handling.md` when touching error surfaces or JSON access, `architecture.md` when changing provider/repository/UniFFI patterns, `common-issues.md` when debugging tricky failures, `new-chain-checklist.md` when adding a chain, and `swapper-checklist.md` only for swapper integrations.
+Read this file first, then load the relevant skills for your current task. `project-structure.md`, `development-commands.md`, `code-style.md`, `tests.md`, and `defensive-programming.md` are the default set for most Core work. Load `error-handling.md` when touching error surfaces or JSON access, `architecture.md` when changing provider/repository/UniFFI patterns, `common-issues.md` when debugging tricky failures, and `swapper-checklist.md` only for swapper integrations.
 
 - [Project Structure](skills/project-structure.md) — Repo layout, crates, and tech stack
 - [Development Commands](skills/development-commands.md) — Build, test, lint, format, mobile
@@ -15,7 +15,6 @@ Read this file first, then load the relevant skills for your current task. `proj
 - [Defensive Programming](skills/defensive-programming.md) — Safety rules and exhaustive patterns
 - [Common Issues](skills/common-issues.md) — Known anti-patterns and their fixes
 - [Swapper Checklist](skills/swapper-checklist.md) — Integration checklist for swapper providers
-- [New Chain Checklist](skills/new-chain-checklist.md) — Boundary rules and steps for adding a chain (dedicated `gem_<chain>` crate owns provider and signer)
 
 ## Design Docs
 

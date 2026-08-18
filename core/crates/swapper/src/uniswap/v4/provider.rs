@@ -29,8 +29,8 @@ use gem_jsonrpc::client::JsonRpcClient;
 use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
 
 use super::{
+    DEFAULT_SWAP_GAS_LIMIT,
     commands::build_commands,
-    default_swap_gas_limit,
     path::{build_pool_key, build_pool_keys, build_quote_exact_params, get_intermediary_token},
     quoter::{build_quote_exact_requests, build_quote_exact_single_request},
 };
@@ -292,7 +292,11 @@ impl Swapper for UniswapV4 {
             .await?
             .approval_data()
         };
-        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, default_swap_gas_limit(&from_asset.chain));
+        let swap_gas_limit = match from_asset.chain {
+            Chain::Tempo => 900_000,
+            _ => DEFAULT_SWAP_GAS_LIMIT,
+        };
+        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, swap_gas_limit);
 
         let sig_deadline = get_sig_deadline();
         let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;

@@ -288,13 +288,4 @@ mod tests {
         assert_eq!(base_pair.stables, vec![ROBINHOOD_USDG_TOKEN_ID.parse::<Address>().unwrap()]);
         assert!(base_pair.alternatives.is_empty());
     }
-
-    #[test]
-    fn test_tempo_base_pair() {
-        let base_pair = get_base_pair(&EVMChain::Tempo, false).unwrap();
-
-        assert_eq!(base_pair.primary, TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap());
-        assert_eq!(base_pair.stables, vec![TEMPO_USDC_TOKEN_ID.parse::<Address>().unwrap()]);
-        assert!(base_pair.alternatives.is_empty());
-    }
 }

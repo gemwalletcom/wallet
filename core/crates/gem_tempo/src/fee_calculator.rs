@@ -38,17 +38,13 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
     async fn fee_asset(&self, input: &TransactionLoadInput) -> Result<AssetId, Box<dyn Error + Sync + Send>> {
         let input_type = &input.input_type;
         if let Some(token) = decode_set_user_fee_token(input_type) {
-            let token_id = token.to_checksum(None);
-            if self.tip20_currency(&token_id).await? != USD_CURRENCY {
-                return Err("Tempo fee token must use USD currency".into());
-            }
-            return Ok(AssetId::from_token(Chain::Tempo, &token_id));
+            return self.validate_fee_token(token).await;
         }
 
         if input_type.transaction_type() != TransactionType::Swap {
             let account_fee_token = self.user_fee_token(&input.sender_address).await?;
             if !account_fee_token.is_zero() {
-                return Ok(AssetId::from_token(Chain::Tempo, &account_fee_token.to_checksum(None)));
+                return self.validate_fee_token(account_fee_token).await;
             }
         }
 
@@ -60,6 +56,15 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
 
         Ok(fee_asset)
     }
+
+    async fn validate_fee_token(&self, token: Address) -> Result<AssetId, Box<dyn Error + Sync + Send>> {
+        let token_id = token.to_checksum(None);
+        if self.tip20_currency(&token_id).await? != USD_CURRENCY {
+            return Err("Tempo fee token must use USD currency".into());
+        }
+        Ok(AssetId::from_token(Chain::Tempo, &token_id))
+    }
+
     async fn user_fee_token(&self, address: &str) -> Result<Address, Box<dyn Error + Send + Sync>> {
         self.client
             .call_contract(FEE_MANAGER_ADDRESS.parse()?, ITempoFeeManager::userTokensCall { user: address.parse()? })
@@ -87,7 +92,7 @@ mod tests {
     use super::*;
     use crate::contracts::{ITIP20, ITempoFeeManager};
     use crate::fee::FEE_MANAGER_ADDRESS;
-    use crate::testkit::{mock_tempo_cbbtc_asset, mock_tempo_generic_input};
+    use crate::testkit::{TEMPO_TEST_USER_FEE_TOKEN, mock_tempo_generic_input};
 
     fn encode_currency(currency: &str) -> serde_json::Value {
         serde_json::json!(encode_prefixed(ITIP20::currencyCall::abi_encode_returns(&currency.to_string())))
@@ -167,15 +172,35 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_account_fee_token_requires_usd_currency() {
+        let account_token = TEMPO_TEST_USER_FEE_TOKEN.parse().unwrap();
+        let calculator = new_calculator(move |_, params| {
+            if params[0]["to"].as_str().unwrap().eq_ignore_ascii_case(FEE_MANAGER_ADDRESS) {
+                Ok(user_token_response(account_token))
+            } else {
+                Ok(encode_currency("BTC"))
+            }
+        });
+        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_USDC.clone()), "1000000");
+
+        assert!(calculator.fee_asset(&input).await.is_err());
+    }
+
+    #[tokio::test]
     async fn test_swap_fee_asset_requires_usd_currency() {
         let usd_calculator = new_calculator(|_, _| Ok(encode_currency(USD_CURRENCY)));
         let usdc = TEMPO_USDC.clone();
         assert_eq!(usd_calculator.fee_asset(&swap_input(usdc.clone())).await.unwrap(), usdc.id);
 
         let btc_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
-        assert_eq!(
-            btc_calculator.fee_asset(&swap_input(mock_tempo_cbbtc_asset())).await.unwrap(),
-            TEMPO_PATHUSD_ASSET_ID.clone()
+        let cbbtc = Asset::mock_with_params(
+            Chain::Tempo,
+            Some("0x20C000000000000000000000c412Ec89D0c08be5".to_string()),
+            "Coinbase Wrapped BTC".to_string(),
+            "cbBTC".to_string(),
+            6,
+            primitives::AssetType::TIP20,
         );
+        assert_eq!(btc_calculator.fee_asset(&swap_input(cbbtc)).await.unwrap(), TEMPO_PATHUSD_ASSET_ID.clone());
     }
 }
