@@ -1,8 +1,19 @@
-use primitives::{Asset, AssetType, Chain, TransactionInputType, TransferDataExtra, WalletConnectionSessionAppMetadata};
+use gem_evm::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT};
+use primitives::{
+    Asset, AssetId, AssetType, Chain, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, WalletConnectionSessionAppMetadata,
+    swap::{ApprovalData, SwapData, SwapQuoteData},
+};
 
 pub const TEMPO_TEST_ADDRESS: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
+pub const TEMPO_TEST_ROUTER_ADDRESS: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91";
 pub const TEMPO_TEST_USER_FEE_TOKEN: &str = "0x20C00000000000000000000014f22CA97301EB73";
 pub const TEMPO_TEST_CBBTC_TOKEN: &str = "0x20C000000000000000000000c412Ec89D0c08be5";
+
+const SWAP_CALL_DATA: &str = "abcd";
+
+fn tempo_chain_id() -> u64 {
+    Chain::Tempo.network_id().parse().expect("Tempo network id is numeric")
+}
 
 pub fn mock_tempo_cbbtc_asset() -> Asset {
     Asset::mock_with_params(
@@ -25,6 +36,51 @@ pub fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionInputType
             ..TransferDataExtra::mock()
         },
     )
+}
+
+pub fn mock_tempo_swap_input(from_asset: Asset, fee_asset_id: AssetId, approval: Option<ApprovalData>) -> SignerInput {
+    let has_approval = approval.is_some();
+    let gas_limit = if has_approval { TOKEN_TRANSFER_GAS_LIMIT } else { DEFAULT_SWAP_GAS_LIMIT };
+    let swap_data = SwapData::mock();
+    let mut input = SignerInput::mock_evm_with_metadata(
+        TransactionInputType::Swap(
+            from_asset,
+            Asset::from_chain(Chain::Tempo),
+            SwapData {
+                data: SwapQuoteData {
+                    to: TEMPO_TEST_ROUTER_ADDRESS.to_string(),
+                    data: SWAP_CALL_DATA.to_string(),
+                    gas_limit: has_approval.then(|| DEFAULT_SWAP_GAS_LIMIT.to_string()),
+                    approval,
+                    ..swap_data.data
+                },
+                ..swap_data
+            },
+        ),
+        "0",
+        gas_limit,
+        TransactionLoadMetadata::mock_evm(0, tempo_chain_id()),
+    );
+    input.fee.fee_asset_id = fee_asset_id;
+    input
+}
+
+#[cfg(all(test, feature = "signer"))]
+impl crate::signer::transaction::TempoTransaction {
+    pub(crate) fn mock() -> Self {
+        Self {
+            chain_id: tempo_chain_id(),
+            max_priority_fee_per_gas: 0,
+            max_fee_per_gas: 20_000_000_000,
+            gas_limit: 300_000,
+            nonce: 0,
+            fee_token: primitives::asset_constants::TEMPO_USDC_TOKEN_ID.parse().unwrap(),
+            calls: vec![crate::signer::transaction::TransactionCall::new(
+                TEMPO_TEST_ROUTER_ADDRESS.parse().unwrap(),
+                alloy_primitives::Bytes::from(vec![0xab, 0xcd]),
+            )],
+        }
+    }
 }
 
 #[cfg(all(feature = "rpc", feature = "reqwest"))]

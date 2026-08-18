@@ -68,7 +68,10 @@ impl BasePair {
 }
 
 pub fn get_base_pair(chain: &EVMChain, weth_as_native: bool) -> Option<BasePair> {
-    let native = if weth_as_native { chain.weth_contract()?.parse().ok()? } else { Address::ZERO };
+    let native = match chain {
+        _ if weth_as_native => chain.weth_contract()?.parse().ok()?,
+        _ => Address::ZERO,
+    };
 
     let btc: &str = match chain {
         EVMChain::Ethereum => ETHEREUM_WBTC_TOKEN_ID,
@@ -115,6 +118,7 @@ pub fn get_base_pair(chain: &EVMChain, weth_as_native: bool) -> Option<BasePair>
         EVMChain::Robinhood => ROBINHOOD_USDG_TOKEN_ID,
         EVMChain::OpBNB | EVMChain::Plasma => "",
         EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b", // USDC.e (Stargate)
+        EVMChain::Tempo => TEMPO_USDC_TOKEN_ID,
         _ => panic!("USDC is not configured for this chain"),
     };
 
@@ -141,8 +145,8 @@ pub fn get_base_pair(chain: &EVMChain, weth_as_native: bool) -> Option<BasePair>
         EVMChain::Monad => MONAD_USDT_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID, // USDT0
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
-        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", // USDT0
-        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood => "",    // None
+        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",                // USDT0
+        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo => "", // None
         _ => panic!("USDT is not configured for this chain"),
     };
 
@@ -281,6 +285,15 @@ mod tests {
 
         assert_eq!(base_pair.native, ROBINHOOD_WETH_TOKEN_ID.parse::<Address>().unwrap());
         assert_eq!(base_pair.stables, vec![ROBINHOOD_USDG_TOKEN_ID.parse::<Address>().unwrap()]);
+        assert!(base_pair.alternatives.is_empty());
+    }
+
+    #[test]
+    fn test_tempo_base_pair() {
+        let base_pair = get_base_pair(&EVMChain::Tempo, true).unwrap();
+
+        assert_eq!(base_pair.native, TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap());
+        assert_eq!(base_pair.stables, vec![TEMPO_USDC_TOKEN_ID.parse::<Address>().unwrap()]);
         assert!(base_pair.alternatives.is_empty());
     }
 }
