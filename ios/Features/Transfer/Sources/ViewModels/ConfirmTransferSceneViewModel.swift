@@ -337,7 +337,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     public func swapFromAsset(to asset: Asset) -> Asset {
-        dataModel.asset.id == asset.id ? dataModel.asset.feeAsset : dataModel.asset
+        dataModel.asset.id == asset.id ? state.feeAsset : dataModel.asset
     }
 
     public var assetAcquisitionWallet: Wallet {

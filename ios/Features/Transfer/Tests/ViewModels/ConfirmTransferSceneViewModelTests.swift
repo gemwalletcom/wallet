@@ -524,6 +524,16 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func swapFromAssetUsesLoadedFeeAsset() {
+        let asset = Asset.tempoPathUSD()
+        let feeAsset = Asset.tempoUSDC()
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
+        model.state = .mock(feeAsset: feeAsset)
+
+        #expect(model.swapFromAsset(to: asset) == feeAsset)
+    }
+
+    @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
         model.onSelectListError(error: .amount(.insufficientBalance(

@@ -34,13 +34,7 @@ final class AssetTests {
     }
 
     @Test
-    func feeAssetTempoToken() {
-        let token = Asset.tempoUSDC()
-        #expect(token.feeAsset == token)
-    }
-
-    @Test
-    func feeAssetTempoNetwork() {
-        #expect(Asset(.tempo).feeAsset == Asset.tempoPathUSD())
+    func feeAssetTempo() {
+        #expect(Asset.tempoUSDC().feeAsset == Asset.tempoPathUSD())
     }
 }
