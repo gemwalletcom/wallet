@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use alloy_sol_types::SolCall;
+use alloy_primitives::Address;
 use async_trait::async_trait;
 use chain_traits::ChainToken;
 use gem_client::Client;
@@ -21,11 +21,13 @@ pub struct TempoFeeCalculator<C: Client + Clone> {
 impl<C: Client + Clone> EvmFeeCalculator for TempoFeeCalculator<C> {
     async fn calculate_fee(&self, input: &TransactionLoadInput, _params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         let fee_asset = self.fee_asset(input).await?;
-        let mut transaction_fee = preload::calculate_fee(input, gas_limit)?;
-        transaction_fee.fee = scale_fee_to_token_units(transaction_fee.fee);
-        transaction_fee.fee_asset = fee_asset;
+        let transaction_fee = preload::calculate_fee(input, gas_limit)?;
 
-        Ok(transaction_fee)
+        Ok(TransactionFee {
+            fee: scale_fee_to_token_units(transaction_fee.fee),
+            fee_asset,
+            ..transaction_fee
+        })
     }
 }
 
@@ -46,13 +48,11 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
             return self.token_asset(token_id).await;
         }
 
-        let account_fee_token = if let TransactionInputType::Swap(_, _, _) = input_type {
-            None
-        } else {
-            self.user_fee_token(&input.sender_address).await?
-        };
-        if let Some(token_id) = account_fee_token {
-            return self.token_asset(token_id).await;
+        if !matches!(input_type, TransactionInputType::Swap(_, _, _)) {
+            let account_fee_token = self.user_fee_token(&input.sender_address).await?;
+            if !account_fee_token.is_zero() {
+                return self.token_asset(account_fee_token.to_checksum(None)).await;
+            }
         }
 
         let fee_asset = input_type.get_fee_asset();
@@ -68,16 +68,14 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
 
         Ok(fee_asset)
     }
-    async fn user_fee_token(&self, address: &str) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let call_data = ITempoFeeManager::userTokensCall { user: address.parse()? }.abi_encode();
-        let result = self.provider.eth_call(FEE_MANAGER_ADDRESS, &call_data).await?;
-        let token = ITempoFeeManager::userTokensCall::abi_decode_returns(&result)?;
-        Ok((!token.is_zero()).then(|| token.to_checksum(None)))
+    async fn user_fee_token(&self, address: &str) -> Result<Address, Box<dyn Error + Send + Sync>> {
+        self.provider
+            .call_contract(FEE_MANAGER_ADDRESS.parse()?, ITempoFeeManager::userTokensCall { user: address.parse()? })
+            .await
     }
 
     async fn tip20_currency(&self, token_id: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let result = self.provider.eth_call(token_id, &ITIP20::currencyCall {}.abi_encode()).await?;
-        Ok(ITIP20::currencyCall::abi_decode_returns(&result)?)
+        self.provider.call_contract(token_id.parse()?, ITIP20::currencyCall {}).await
     }
 
     async fn token_asset(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
@@ -120,7 +118,7 @@ mod tests {
 
     fn swap_input(from_asset: Asset) -> TransactionLoadInput {
         TransactionLoadInput::mock_evm(
-            primitives::TransactionInputType::Swap(
+            TransactionInputType::Swap(
                 from_asset,
                 Asset::from_chain(Chain::Tempo),
                 SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None),
@@ -129,16 +127,12 @@ mod tests {
         )
     }
 
-    async fn calculate_fee(
-        calculator: &TempoFeeCalculator<MockClient>,
-        input: &TransactionLoadInput,
-        gas_limit: &BigInt,
-    ) -> Result<TransactionFee, Box<dyn std::error::Error + Sync + Send>> {
+    async fn calculate_fee(calculator: &TempoFeeCalculator<MockClient>, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         EvmFeeCalculator::calculate_fee(calculator, input, &TransactionParams::new(String::new(), vec![], BigInt::ZERO), gas_limit).await
     }
 
     #[tokio::test]
-    async fn test_calculate_fee() -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+    async fn test_calculate_fee() -> Result<(), Box<dyn Error + Sync + Send>> {
         let calculator = new_calculator(|_, params| {
             if params[0]["to"].as_str().unwrap().eq_ignore_ascii_case(FEE_MANAGER_ADDRESS) {
                 Ok(user_token_response(Address::ZERO))

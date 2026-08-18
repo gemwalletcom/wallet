@@ -44,12 +44,7 @@ internal fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee
         is Fee.Plain -> "0"
     },
     options = GemFeeOptions(
-        when (this) {
-            is Fee.Plain -> options
-            is Fee.Regular -> options
-            is Fee.Eip1559 -> options
-            is Fee.Solana -> options
-        }.mapNotNull { (key, value) ->
+        options.mapNotNull { (key, value) ->
             runCatching { GemFeeOption.valueOf(key) }.getOrNull()?.let { option ->
                 option to value.toString()
             }

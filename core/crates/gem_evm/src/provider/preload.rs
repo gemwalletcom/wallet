@@ -13,7 +13,6 @@ use gem_client::Client;
 #[cfg(feature = "rpc")]
 use num_bigint::BigInt;
 #[cfg(feature = "rpc")]
-#[cfg(feature = "rpc")]
 use primitives::ContractCallData;
 use primitives::GasPriceType;
 #[cfg(feature = "rpc")]

@@ -28,7 +28,7 @@ public struct FeeAssetProvider: FeeAssetProvidable {
         }
 
         try assetsService.addAssets(assets: [feeAsset.defaultBasic])
-        try assetsService.addBalanceIfMissing(walletId: wallet.id, assetId: feeAssetId)
+        try balanceService.addAssetsBalancesIfMissing(assetIds: [feeAssetId], wallet: wallet, isEnabled: false)
         await balanceService.updateBalance(for: wallet, assetIds: [feeAssetId])
         guard let balance = try balanceService.getBalance(walletId: wallet.id, assetId: feeAssetId) else {
             throw AnyError("Missing balance for feeAssetId: \(feeAssetId.identifier)")

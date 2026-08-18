@@ -30,16 +30,6 @@ impl TransactionFee {
         }
     }
 
-    pub fn new_from_gas_price_and_limit(gas_price: BigInt, gas_limit: BigInt, fee_asset: Asset) -> Self {
-        Self {
-            fee: gas_price.clone() * &gas_limit,
-            gas_price_type: GasPriceType::regular(gas_price),
-            gas_limit,
-            options: HashMap::new(),
-            fee_asset,
-        }
-    }
-
     pub fn new_from_fee_with_option(fee: BigInt, option: FeeOption, option_value: BigInt, fee_asset: Asset) -> Self {
         Self {
             fee: fee.clone() + option_value.clone(),

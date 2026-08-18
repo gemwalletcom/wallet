@@ -1,7 +1,6 @@
 use alloy_primitives::Address;
 
 use super::error::{INVALID_ADDRESS, SwapperError};
-use crate::native_asset::native_erc20_address;
 use primitives::{AssetId, EVMChain};
 
 pub(crate) fn convert_native_to_weth(asset: &AssetId) -> Option<AssetId> {
@@ -17,9 +16,7 @@ pub(crate) fn parse_or_native_address(asset: &AssetId, evm_chain: EVMChain) -> R
     if let Some(token_id) = &asset.token_id {
         parse_str(token_id)
     } else {
-        let contract = native_erc20_address(&evm_chain)
-            .or_else(|| evm_chain.weth_contract())
-            .ok_or(SwapperError::NotSupportedChain)?;
+        let contract = evm_chain.weth_contract().ok_or(SwapperError::NotSupportedChain)?;
         parse_str(contract)
     }
 }

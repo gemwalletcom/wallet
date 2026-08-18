@@ -7,7 +7,7 @@ use gem_aptos::AptosChainSigner;
 use gem_bitcoin::signer::BitcoinChainSigner;
 use gem_cardano::signer::CardanoChainSigner;
 use gem_cosmos::signer::CosmosChainSigner;
-use gem_evm::signer::{EvmChainSigner, EvmSigner};
+use gem_evm::signer::EvmChainSigner;
 use gem_hypercore::signer::HyperCoreSigner;
 use gem_near::NearChainSigner;
 use gem_polkadot::signer::PolkadotChainSigner;
@@ -27,17 +27,13 @@ pub struct GemChainSigner {
     signer: Box<dyn ChainSigner>,
 }
 
-fn evm_signer(chain: EVMChain) -> Option<Box<dyn EvmSigner>> {
-    match chain {
-        EVMChain::Tempo => Some(Box::new(TempoSigner)),
-        _ => None,
-    }
-}
-
 impl GemChainSigner {
     pub fn new(chain: Chain) -> Self {
         let signer: Box<dyn ChainSigner> = match chain.chain_type() {
-            ChainType::Ethereum => Box::new(EvmChainSigner::new(evm_signer(EVMChain::from_chain(chain).unwrap()))),
+            ChainType::Ethereum => match EVMChain::from_chain(chain).unwrap() {
+                EVMChain::Tempo => Box::new(EvmChainSigner::new(TempoSigner)),
+                _ => Box::new(EvmChainSigner::default()),
+            },
             ChainType::Aptos => Box::new(AptosChainSigner),
             ChainType::HyperCore => Box::new(HyperCoreSigner),
             ChainType::Sui => Box::new(SuiChainSigner),

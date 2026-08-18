@@ -10,6 +10,7 @@ sealed interface Fee {
     val priority: FeePriority
     val feeAsset: Asset
     val feeAssetId: AssetId get() = feeAsset.id
+    val options: Map<String, BigInteger>
 
     val amount: BigInteger
 
@@ -17,7 +18,7 @@ sealed interface Fee {
         override val feeAsset: Asset,
         override val priority: FeePriority,
         override val amount: BigInteger,
-        val options: Map<String, BigInteger>,
+        override val options: Map<String, BigInteger>,
     ) : Fee
 
     class Regular(
@@ -26,7 +27,7 @@ sealed interface Fee {
         override val amount: BigInteger,
         val maxGasPrice: BigInteger,
         val limit: BigInteger,
-        val options: Map<String, BigInteger>,
+        override val options: Map<String, BigInteger>,
     ) : Fee
 
     class Eip1559(
@@ -36,7 +37,7 @@ sealed interface Fee {
         val maxGasPrice: BigInteger,
         val minerFee: BigInteger,
         val limit: BigInteger,
-        val options: Map<String, BigInteger>,
+        override val options: Map<String, BigInteger>,
     ) : Fee
 
     class Solana(
@@ -47,6 +48,6 @@ sealed interface Fee {
         val maxGasPrice: BigInteger,
         val unitFee: BigInteger,
         val limit: BigInteger,
-        val options: Map<String, BigInteger>,
+        override val options: Map<String, BigInteger>,
     ) : Fee
 }

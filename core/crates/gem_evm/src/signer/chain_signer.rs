@@ -8,8 +8,7 @@ use super::model::TransactionParams;
 use super::sign_eip1559_tx;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
 
-/// Chain-specific signing overrides for EVM-family chains, injected by the signer
-/// factory the same way `EvmStakingClient` / `EvmFeeCalculator` extend the provider.
+/// Signing strategy for transactions that differ between EVM-family chains.
 pub trait EvmSigner: Send + Sync {
     /// Signs a native-asset transfer when the chain redefines it (Tempo: ERC-20 `transfer()` on pathUSD).
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError>;
@@ -17,27 +16,50 @@ pub trait EvmSigner: Send + Sync {
     fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError>;
 }
 
-#[derive(Default)]
 pub struct EvmChainSigner {
-    signer: Option<Box<dyn EvmSigner>>,
+    signer: Box<dyn EvmSigner>,
 }
 
 impl EvmChainSigner {
-    pub fn new(signer: Option<Box<dyn EvmSigner>>) -> Self {
-        Self { signer }
+    pub fn new(signer: impl EvmSigner + 'static) -> Self {
+        Self { signer: Box::new(signer) }
     }
 }
 
-impl ChainSigner for EvmChainSigner {
+impl Default for EvmChainSigner {
+    fn default() -> Self {
+        Self::new(StandardEvmSigner)
+    }
+}
+
+struct StandardEvmSigner;
+
+impl EvmSigner for StandardEvmSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        if let Some(signer) = &self.signer {
-            return signer.sign_transfer(input, private_key);
-        }
         let params = TransactionParams::from_input(input)?;
         sign_and_encode(
             &build_eip1559_transaction(&params, &input.destination_address, value_u256(&input.value)?, Bytes::new())?,
             private_key,
         )
+    }
+
+    fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
+        let swap_data = &input.input_type.get_swap_data()?.data;
+        sign_contract_call(
+            input,
+            &swap_data.to,
+            decode_hex(&swap_data.data)?,
+            input.get_swap_gas_limit()?,
+            value_u256(&swap_data.value)?,
+            swap_data.approval.as_ref(),
+            private_key,
+        )
+    }
+}
+
+impl ChainSigner for EvmChainSigner {
+    fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        self.signer.sign_transfer(input, private_key)
     }
 
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
@@ -91,22 +113,7 @@ impl ChainSigner for EvmChainSigner {
                     )?])
                 }
             }
-            SwapQuoteDataType::Contract => {
-                if let Some(signer) = &self.signer {
-                    return signer.sign_swap_contract(input, private_key);
-                }
-                let value = value_u256(&swap_data.value)?;
-                let gas_limit = input.get_swap_gas_limit()?;
-                sign_contract_call(
-                    input,
-                    &swap_data.to,
-                    decode_hex(&swap_data.data)?,
-                    gas_limit,
-                    value,
-                    swap_data.approval.as_ref(),
-                    private_key,
-                )
-            }
+            SwapQuoteDataType::Contract => self.signer.sign_swap_contract(input, private_key),
         }
     }
 

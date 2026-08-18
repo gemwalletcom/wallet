@@ -1,16 +1,32 @@
+#[cfg(all(feature = "rpc", feature = "reqwest"))]
+use gem_client::ReqwestClient;
+#[cfg(feature = "signer")]
 use gem_evm::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT};
+#[cfg(all(feature = "rpc", feature = "reqwest"))]
+use gem_evm::rpc::EthereumClient;
+#[cfg(feature = "rpc")]
+use primitives::AssetType;
+#[cfg(all(feature = "rpc", feature = "reqwest"))]
+use primitives::EVMChain;
+use primitives::{Asset, Chain, TransactionInputType, TransferDataExtra, WalletConnectionSessionAppMetadata};
+#[cfg(feature = "signer")]
 use primitives::{
-    Asset, AssetType, Chain, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, WalletConnectionSessionAppMetadata,
+    SignerInput, TransactionLoadMetadata,
     swap::{ApprovalData, SwapData, SwapQuoteData},
 };
 
+#[cfg(feature = "rpc")]
 pub(crate) const TEMPO_TEST_ADDRESS: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
+#[cfg(feature = "signer")]
 pub(crate) const TEMPO_TEST_ROUTER_ADDRESS: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91";
 pub(crate) const TEMPO_TEST_USER_FEE_TOKEN: &str = "0x20C00000000000000000000014f22CA97301EB73";
+#[cfg(feature = "rpc")]
 pub(crate) const TEMPO_TEST_CBBTC_TOKEN: &str = "0x20C000000000000000000000c412Ec89D0c08be5";
 
+#[cfg(feature = "signer")]
 const SWAP_CALL_DATA: &str = "abcd";
 
+#[cfg(feature = "rpc")]
 pub(crate) fn mock_tempo_cbbtc_asset() -> Asset {
     Asset::mock_with_params(
         Chain::Tempo,
@@ -34,6 +50,7 @@ pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionIn
     )
 }
 
+#[cfg(feature = "signer")]
 pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: Asset, approval: Option<ApprovalData>) -> SignerInput {
     let has_approval = approval.is_some();
     let gas_limit = if has_approval { TOKEN_TRANSFER_GAS_LIMIT } else { DEFAULT_SWAP_GAS_LIMIT };
@@ -62,7 +79,7 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: Asset, approva
 }
 
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
-pub(crate) fn create_tempo_test_client() -> gem_evm::rpc::EthereumClient<gem_client::ReqwestClient> {
+pub(crate) fn create_tempo_test_client() -> EthereumClient<ReqwestClient> {
     let settings = settings::testkit::get_test_settings();
-    gem_evm::rpc::EthereumClient::mock_with_url(primitives::EVMChain::Tempo, &settings.chains.tempo.url)
+    EthereumClient::mock_with_url(EVMChain::Tempo, &settings.chains.tempo.url)
 }

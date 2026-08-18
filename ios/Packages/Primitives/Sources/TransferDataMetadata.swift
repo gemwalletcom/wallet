@@ -43,14 +43,4 @@ public extension TransferDataMetadata {
     var feePrice: Price? {
         assetPrices[feeAssetId]
     }
-
-    func withFeeAsset(feeAssetId: AssetId, balance: Balance) -> TransferDataMetadata {
-        TransferDataMetadata(
-            assetId: assetId,
-            feeAssetId: feeAssetId,
-            assetBalance: assetBalance,
-            assetFeeBalance: feeAssetId == assetId ? assetBalance : balance,
-            assetPrices: assetPrices,
-        )
-    }
 }

@@ -31,8 +31,19 @@ public struct ConfirmTransferInputProvider: Sendable {
             )
             let fee = transactionData.transactionData.fee
             let feeAsset = fee.feeAsset
-            let feeAssetBalance = try await feeAssetProvider.balance(wallet: request.wallet, feeAsset: feeAsset)
-            let metadata = metadata.withFeeAsset(feeAssetId: feeAsset.id, balance: feeAssetBalance)
+            let feeAssetBalance: Balance
+            if feeAsset.id == metadata.assetId {
+                feeAssetBalance = metadata.assetBalance
+            } else {
+                feeAssetBalance = try await feeAssetProvider.balance(wallet: request.wallet, feeAsset: feeAsset)
+            }
+            let metadata = TransferDataMetadata(
+                assetId: metadata.assetId,
+                feeAssetId: feeAsset.id,
+                assetBalance: metadata.assetBalance,
+                assetFeeBalance: feeAssetBalance,
+                assetPrices: metadata.assetPrices,
+            )
             let input = ConfirmTransferInput(
                 transactionData: transactionData.transactionData,
                 transferAmount: TransferAmountCalculator().validate(

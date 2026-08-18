@@ -1,12 +1,15 @@
 use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
 use num_bigint::BigInt;
-use primitives::{TransactionInputType, asset_constants::TEMPO_PATHUSD_TOKEN_ID};
+use primitives::TransactionInputType;
+#[cfg(feature = "rpc")]
+use primitives::asset_constants::TEMPO_PATHUSD_TOKEN_ID;
 
 use crate::contracts::ITempoFeeManager;
 use gem_evm::ethereum_address_checksum;
 
 pub const FEE_MANAGER_ADDRESS: &str = "0xfeEC000000000000000000000000000000000000";
+#[cfg(feature = "rpc")]
 pub(crate) const USD_CURRENCY: &str = "USD";
 const FEE_SCALE: u64 = 1_000_000_000_000;
 
@@ -20,6 +23,7 @@ pub(crate) fn decode_set_user_fee_token(input_type: &TransactionInputType) -> Op
     ITempoFeeManager::setUserTokenCall::abi_decode(extra.data.as_deref()?).ok().map(|call| call.token)
 }
 
+#[cfg(feature = "rpc")]
 pub(crate) fn is_pathusd_contract(contract_address: &str) -> bool {
     ethereum_address_checksum(contract_address).is_ok_and(|address| address == TEMPO_PATHUSD_TOKEN_ID)
 }
@@ -33,7 +37,7 @@ pub(crate) fn scale_fee_to_token_units(fee: BigInt) -> BigInt {
 mod tests {
     use super::*;
     use crate::testkit::{TEMPO_TEST_USER_FEE_TOKEN, mock_tempo_generic_input};
-    use primitives::{Chain, hex};
+    use primitives::{Asset, Chain, hex};
 
     #[test]
     fn test_decode_set_user_fee_token() {
@@ -46,10 +50,7 @@ mod tests {
             None
         );
         assert_eq!(decode_set_user_fee_token(&mock_tempo_generic_input(FEE_MANAGER_ADDRESS, vec![0xab, 0xcd])), None);
-        assert_eq!(
-            decode_set_user_fee_token(&TransactionInputType::Transfer(primitives::Asset::from_chain(Chain::Tempo))),
-            None
-        );
+        assert_eq!(decode_set_user_fee_token(&TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo))), None);
     }
 
     #[test]

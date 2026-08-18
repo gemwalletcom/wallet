@@ -2,7 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{
-    ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainToken, ChainTraits,
+    ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainState, ChainToken, ChainTraits,
     ChainTransaction, ChainTransactionBroadcast, ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionFeeOperation, TransactionIdRequest,
     TransactionsRequest, TransactionsResult,
 };
@@ -34,12 +34,6 @@ impl<C: Client + Clone + 'static> TempoProvider<C> {
     }
 }
 
-impl<C: Client + Clone> TempoProvider<C> {
-    fn client(&self) -> &EthereumClient<C> {
-        &self.provider
-    }
-}
-
 impl<C: Client + Clone> ChainProvider for TempoProvider<C> {
     fn get_chain(&self) -> Chain {
         self.provider.get_chain()
@@ -50,7 +44,7 @@ impl<C: Client + Clone> ChainProvider for TempoProvider<C> {
 impl<C: Client + Clone> ChainBalances for TempoProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let balance = self
-            .client()
+            .provider
             .batch_token_balance_calls(&address, &[TEMPO_PATHUSD_TOKEN_ID.to_string()])
             .await?
             .into_iter()
@@ -79,7 +73,6 @@ impl<C: Client + Clone> ChainTransactionLoad for TempoProvider<C> {
     }
 
     async fn get_transaction_fee_rates(&self, input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        // Tempo has a single fee lane: priority fees are always 0, so only the Normal rate is meaningful.
         Ok(self
             .provider
             .get_transaction_fee_rates(input_type)
@@ -97,7 +90,7 @@ impl<C: Client + Clone> ChainTransactionLoad for TempoProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionState for TempoProvider<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
-        let Some(receipt) = self.client().get_transaction_receipt(&request.id).await? else {
+        let Some(receipt) = self.provider.get_transaction_receipt(&request.id).await? else {
             return Ok(TransactionUpdate::new_state(TransactionState::Pending));
         };
         Ok(map_transaction_status_with_fee(&receipt, scale_fee_to_token_units(receipt.get_fee().into())))
@@ -111,7 +104,7 @@ impl<C: Client + Clone> ChainTransaction for TempoProvider<C> {
         let Some(transaction) = self.provider.get_transaction_by_hash(request).await? else {
             return Ok(None);
         };
-        let Some(receipt) = self.client().get_transaction_receipt(&hash).await? else {
+        let Some(receipt) = self.provider.get_transaction_receipt(&hash).await? else {
             return Ok(None);
         };
         Ok(Some(mapper::map_transaction(transaction, &receipt)))
@@ -128,12 +121,12 @@ impl<C: Client + Clone> ChainTransactions for TempoProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainBlockTransactions for TempoProvider<C> {
     async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let block = self.client().get_block(block_number).await?;
+        let block = self.provider.get_block(block_number).await?;
         if block.transactions.is_empty() {
             return Ok(Vec::new());
         }
 
-        let receipts = self.client().get_block_receipts(block_number).await?;
+        let receipts = self.provider.get_block_receipts(block_number).await?;
         Ok(block
             .transactions
             .into_iter()
@@ -164,9 +157,9 @@ impl<C: Client + Clone> ChainToken for TempoProvider<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> chain_traits::ChainState for TempoProvider<C> {
+impl<C: Client + Clone> ChainState for TempoProvider<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        chain_traits::ChainState::get_chain_id(&self.provider).await
+        ChainState::get_chain_id(&self.provider).await
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
@@ -257,10 +250,10 @@ mod chain_integration_tests {
     use super::*;
     use crate::testkit::{TEMPO_TEST_ADDRESS, create_tempo_test_client};
     use num_bigint::BigInt;
-    use primitives::{AssetId, TransactionPreloadInput};
+    use primitives::TransactionPreloadInput;
 
     #[tokio::test]
-    async fn test_get_transaction_load_native_transfer() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn test_get_transaction_load_native_transfer() -> Result<(), Box<dyn Error + Send + Sync>> {
         let provider = TempoProvider::new(create_tempo_test_client());
         let input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo));
 
@@ -289,11 +282,7 @@ mod chain_integration_tests {
             })
             .await?;
 
-        println!("Tempo native transfer load: {:#?}", load_data.fee);
-
-        // Native transfers execute as pathUSD ERC-20 calls, so the estimate exceeds the plain 21k transfer.
         assert!(load_data.fee.gas_limit > BigInt::from(21_000u64));
-        // The fee is scaled to pathUSD 6-decimal units.
         assert_eq!(load_data.fee.fee_asset, Asset::from_chain(Chain::Tempo));
         assert!(load_data.fee.fee > BigInt::ZERO);
 

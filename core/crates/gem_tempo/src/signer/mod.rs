@@ -89,18 +89,18 @@ mod tests {
     use gem_evm::signer::EvmChainSigner;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
-        Asset, AssetType, Chain, ChainSigner,
+        Asset, AssetType, Chain, ChainSigner, TransactionInputType, TransactionLoadMetadata,
         asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
     };
 
     fn tempo_chain_signer() -> EvmChainSigner {
-        EvmChainSigner::new(Some(Box::new(TempoSigner)))
+        EvmChainSigner::new(TempoSigner)
     }
 
     #[test]
     fn test_sign_transfer_native_as_erc20() {
-        let metadata = primitives::TransactionLoadMetadata::mock_evm(0, 4217);
-        let input = SignerInput::mock_evm_with_metadata(primitives::TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)), "1000000", 65_000, metadata);
+        let metadata = TransactionLoadMetadata::mock_evm(0, 4217);
+        let input = SignerInput::mock_evm_with_metadata(TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)), "1000000", 65_000, metadata);
         assert_eq!(
             tempo_chain_signer().sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
             "02f8b282107980843b9aca008504a817c80082fde89420c000000000000000000000000000000000000080b844a9059cbb0000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cf00000000000000000000000000000000000000000000000000000000000f4240c080a0d28a29e235b9bdd1f046162709dab035b2fb8d1134c3e91c72a5c67d1d9b3f1fa06f6d021eebf706e572f393f432b605e1f270229eabf57cae46980da4f3d3925d"
