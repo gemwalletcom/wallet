@@ -513,9 +513,15 @@ struct Migrations {
             }
         }
 
-        migrator.registerMigration("Add avatar to \(ContactRecord.databaseTableName)") { db in
+        migrator.registerMigration("Add imageUrl to \(ContactRecord.databaseTableName)") { db in
             try? db.alter(table: ContactRecord.databaseTableName) {
-                $0.add(column: ContactRecord.Columns.avatar.name, .text)
+                $0.add(column: ContactRecord.Columns.imageUrl.name, .text)
+            }
+        }
+
+        migrator.registerMigration("Add imageUrl to \(AddressRecord.databaseTableName)") { db in
+            try? db.alter(table: AddressRecord.databaseTableName) {
+                $0.add(column: AddressRecord.Columns.imageUrl.name, .text)
             }
         }
 

@@ -17,23 +17,26 @@ data class ManageContactUIState(
     val isEdit: Boolean = false,
     val name: String = "",
     val description: String = "",
-    val avatar: String? = null,
+    val avatar: ContactAvatarState = ContactAvatarState.Empty,
     val addresses: List<ContactAddress> = emptyList(),
     val page: ManageContactPage = ManageContactPage.Form,
     val addressInput: ContactAddressInput? = null,
+    val isSaving: Boolean = false,
     val saved: Boolean = false,
 ) {
     val isSaveEnabled: Boolean
-        get() = name.trim().isNotEmpty()
+        get() = name.trim().isNotEmpty() && !isSaving
 }
 
 data class ManageContactState(
     val isEdit: Boolean = false,
     val name: String = "",
     val description: String = "",
+    val avatar: ContactAvatarState = ContactAvatarState.Empty,
     val addresses: List<ContactAddress> = emptyList(),
     val page: ManageContactPage = ManageContactPage.Form,
     val form: ContactAddressForm? = null,
+    val isSaving: Boolean = false,
     val saved: Boolean = false,
 )
 

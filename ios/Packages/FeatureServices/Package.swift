@@ -175,6 +175,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
+                .product(name: "LocalStore", package: "SystemServices"),
             ],
             path: "AvatarService",
             exclude: ["TestKit"],
@@ -602,6 +603,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
+                .product(name: "LocalStore", package: "SystemServices"),
             ],
             path: "ContactService",
         ),

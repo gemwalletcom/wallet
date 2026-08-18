@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.contacts.viewmodels.ContactsViewModel
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -62,7 +63,7 @@ fun ContactsNavScreen(
                         actions = {
                             ActionIcon(
                                 onClick = {
-                                    viewModel.deleteContact(item.contact.id)
+                                    viewModel.deleteContact(item.contact)
                                     revealed.value = null
                                 },
                                 backgroundColor = MaterialTheme.colorScheme.error,
@@ -95,7 +96,7 @@ private fun ContactListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
         minHeight = ListItemDefaults.defaultMinHeight,
-        leading = { ContactAvatar(name = contact.name, emoji = contact.avatar) },
+        leading = { ContactAvatar(name = contact.name, avatar = ContactAvatarState.from(contact.imageUrl)) },
         title = { ListItemTitleText(text = contact.name) },
         subtitle = contact.description?.takeIf { it.isNotBlank() }?.let { description ->
             {

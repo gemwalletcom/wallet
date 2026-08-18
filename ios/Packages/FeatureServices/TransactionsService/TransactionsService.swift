@@ -36,7 +36,7 @@ public final class TransactionsService: Sendable {
 
         try await prefetchAssets(walletId: walletId, transactions: response.transactions)
         try transactionStore.addTransactions(walletId: walletId, transactions: response.transactions)
-        try addressStore.addAddressNames(response.addressNames)
+        try addressStore.updateAddressNames(response.addressNames)
 
         store.transactionsTimestamp = newTimestamp
     }
@@ -52,7 +52,7 @@ public final class TransactionsService: Sendable {
 
         try await prefetchAssets(walletId: walletId, transactions: response.transactions)
         try transactionStore.addTransactions(walletId: walletId, transactions: response.transactions)
-        try addressStore.addAddressNames(response.addressNames)
+        try addressStore.updateAddressNames(response.addressNames)
 
         store.setTransactionsForAssetTimestamp(assetId: assetId.identifier, value: newTimestamp)
     }

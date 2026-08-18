@@ -38,7 +38,7 @@ public struct ScanTransactionPayload: Codable, Equatable, Sendable {
 	}
 }
 
-public enum AddressType: String, Codable, Equatable, Sendable {
+public enum AddressType: String, Codable, CaseIterable, Equatable, Sendable {
 	case address
 	case contract
 	case validator

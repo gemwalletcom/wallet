@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.gemwallet.android.ui.components.image.EmojiView
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
@@ -24,11 +25,10 @@ fun EmojiPickerGrid(
     emojis: List<String>,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
-    columns: Int = EMOJI_COLUMNS,
     background: Color = MaterialTheme.colorScheme.surface,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
+        columns = GridCells.Fixed(EMOJI_COLUMNS),
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(paddingDefault),
     ) {

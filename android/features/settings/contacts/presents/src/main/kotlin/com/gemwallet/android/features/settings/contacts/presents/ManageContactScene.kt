@@ -11,7 +11,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
@@ -65,9 +65,14 @@ fun ManageContactScene(
                 ) {
                     ContactAvatar(
                         name = state.name,
-                        emoji = state.avatar,
+                        avatar = state.avatar,
                         size = extraLargeIconSize,
                         modifier = Modifier.clickable { onAction(ManageContactAction.SelectAvatar) },
+                        onRemove = if (state.avatar is ContactAvatarState.Empty) {
+                            null
+                        } else {
+                            { onAction(ManageContactAction.RemoveAvatar) }
+                        },
                     )
                 }
             }

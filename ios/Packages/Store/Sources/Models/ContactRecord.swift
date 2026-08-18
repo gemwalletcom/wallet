@@ -11,7 +11,7 @@ public struct ContactRecord: Codable, FetchableRecord, PersistableRecord, Sendab
         static let id = Column("id")
         static let name = Column("name")
         static let description = Column("description")
-        static let avatar = Column("avatar")
+        static let imageUrl = Column("imageUrl")
         static let createdAt = Column("createdAt")
         static let updatedAt = Column("updatedAt")
     }
@@ -19,7 +19,7 @@ public struct ContactRecord: Codable, FetchableRecord, PersistableRecord, Sendab
     public var id: String
     public var name: String
     public var description: String?
-    public var avatar: String?
+    public var imageUrl: String?
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -34,7 +34,7 @@ extension ContactRecord: CreateTable {
             $0.column(Columns.name.name, .text)
                 .notNull()
             $0.column(Columns.description.name, .text)
-            $0.column(Columns.avatar.name, .text)
+            $0.column(Columns.imageUrl.name, .text)
             $0.column(Columns.createdAt.name, .date)
                 .notNull()
             $0.column(Columns.updatedAt.name, .date)
@@ -49,7 +49,7 @@ extension ContactRecord {
             id: id,
             name: name,
             description: description,
-            avatar: avatar,
+            imageUrl: imageUrl,
             createdAt: createdAt,
             updatedAt: updatedAt,
         )
@@ -62,7 +62,7 @@ extension Contact {
             id: id,
             name: name,
             description: description,
-            avatar: avatar,
+            imageUrl: imageUrl,
             createdAt: createdAt,
             updatedAt: updatedAt,
         )

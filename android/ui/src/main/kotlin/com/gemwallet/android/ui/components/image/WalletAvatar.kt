@@ -59,7 +59,7 @@ fun WalletAvatar(
 }
 
 @Composable
-private fun BoxScope.RemoveBadge(onClick: () -> Unit) {
+fun BoxScope.RemoveBadge(onClick: () -> Unit) {
     IconButton(
         onClick = onClick,
         modifier = Modifier

@@ -71,7 +71,7 @@ public final class ContactsViewModel {
     func deleteContacts(at offsets: IndexSet) {
         do {
             for index in offsets {
-                try service.deleteContact(id: contacts[index].contact.id)
+                try service.deleteContact(contacts[index].contact)
             }
         } catch {
             debugLog("ContactsViewModel deleteContacts error: \(error)")

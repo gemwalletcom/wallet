@@ -141,6 +141,25 @@ struct ConfirmRecipientViewModelTests {
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.account.name == "Vitalik.eth")
     }
+
+    @Test
+    func contactImage() {
+        let withImage = ConfirmRecipientViewModel(
+            model: .mock(type: .transfer(.mock())),
+            addressName: .mock(type: .contact, imageUrl: "avatar.png"),
+            addressLink: .mock(),
+        )
+        let withoutImage = ConfirmRecipientViewModel(
+            model: .mock(type: .transfer(.mock())),
+            addressName: .mock(type: .contact, imageUrl: nil),
+            addressLink: .mock(),
+        )
+
+        guard case let .recipient(withImageItem) = withImage.itemModel,
+              case let .recipient(withoutImageItem) = withoutImage.itemModel else { return }
+        #expect(withImageItem.account.assetImage?.imageURL == ImageSource("avatar.png").url)
+        #expect(withoutImageItem.account.assetImage?.imageURL == nil)
+    }
 }
 
 private extension TransferDataViewModel {

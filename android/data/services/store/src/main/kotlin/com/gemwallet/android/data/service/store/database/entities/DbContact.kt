@@ -17,7 +17,7 @@ data class DbContact(
     @PrimaryKey val id: String,
     val name: String,
     val description: String? = null,
-    val avatar: String? = null,
+    val imageUrl: String? = null,
     val createdAt: Long,
     val updatedAt: Long,
 )
@@ -60,7 +60,7 @@ fun Contact.toRecord(): DbContact = DbContact(
     id = id,
     name = name,
     description = description,
-    avatar = avatar,
+    imageUrl = imageUrl,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )
@@ -77,7 +77,7 @@ fun DbContact.toModel(): Contact = Contact(
     id = id,
     name = name,
     description = description,
-    avatar = avatar,
+    imageUrl = imageUrl,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )

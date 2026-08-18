@@ -4,6 +4,7 @@ import com.wallet.core.primitives.ContactAddress
 
 sealed interface ManageContactAction {
     data object SelectAvatar : ManageContactAction
+    data object RemoveAvatar : ManageContactAction
     data object AddAddress : ManageContactAction
     data class EditAddress(val address: ContactAddress) : ManageContactAction
     data class DeleteAddress(val address: ContactAddress) : ManageContactAction

@@ -14,13 +14,26 @@ public struct AddressStore: Sendable {
     public func addAddressNames(_ addressNames: [AddressName]) throws {
         try db.write { db in
             for addressName in addressNames {
-                try AddressRecord(
-                    chain: addressName.chain,
-                    address: addressName.address,
-                    name: addressName.name,
-                    type: addressName.type,
-                    status: addressName.status,
-                ).save(db, onConflict: .replace)
+                try addressName.record.insert(db, onConflict: .replace)
+            }
+        }
+    }
+
+    public func updateAddressNames(_ addressNames: [AddressName]) throws {
+        let localTypes = AddressType.allCases.filter(\.isLocal).map(\.rawValue)
+        try db.write { db in
+            for addressName in addressNames {
+                try AddressRecord
+                    .filter(AddressRecord.Columns.chain == addressName.chain.rawValue)
+                    .filter(AddressRecord.Columns.address == addressName.address)
+                    .filter(!localTypes.contains(AddressRecord.Columns.type))
+                    .updateAll(db, [
+                        AddressRecord.Columns.name.set(to: addressName.name),
+                        AddressRecord.Columns.type.set(to: addressName.type.rawValue),
+                        AddressRecord.Columns.status.set(to: addressName.status.rawValue),
+                        AddressRecord.Columns.imageUrl.set(to: addressName.imageUrl),
+                    ])
+                try addressName.record.insert(db, onConflict: .ignore)
             }
         }
     }

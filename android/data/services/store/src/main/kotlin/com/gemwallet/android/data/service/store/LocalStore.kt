@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.wallet.viewmodels
+package com.gemwallet.android.data.service.store
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext

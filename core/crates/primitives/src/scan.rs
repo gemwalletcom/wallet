@@ -32,7 +32,7 @@ pub struct ScanAddressTarget {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[typeshare(swift = "CaseIterable, Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum AddressType {

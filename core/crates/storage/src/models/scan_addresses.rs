@@ -35,6 +35,7 @@ impl ScanAddressRow {
             } else {
                 VerificationStatus::Unverified
             },
+            image_url: None,
         })
     }
 }

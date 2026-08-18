@@ -8,11 +8,11 @@ public extension Contact {
         id: String = "contact-1",
         name: String = "John Doe",
         description: String? = nil,
-        avatar: String? = nil,
+        imageUrl: String? = nil,
         createdAt: Date = .now,
         updatedAt: Date = .now,
     ) -> Contact {
-        Contact(id: id, name: name, description: description, avatar: avatar, createdAt: createdAt, updatedAt: updatedAt)
+        Contact(id: id, name: name, description: description, imageUrl: imageUrl, createdAt: createdAt, updatedAt: updatedAt)
     }
 }
 

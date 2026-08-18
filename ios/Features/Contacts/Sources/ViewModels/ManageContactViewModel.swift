@@ -27,6 +27,16 @@ public final class ManageContactViewModel {
         }
     }
 
+    enum Avatar {
+        case empty
+        case image(imageUrl: String)
+        case emoji(EmojiValue)
+
+        init(imageUrl: String?) {
+            self = imageUrl.map { .image(imageUrl: $0) } ?? .empty
+        }
+    }
+
     private let service: ContactService
     private let mode: Mode
 
@@ -35,7 +45,7 @@ public final class ManageContactViewModel {
 
     var nameInputModel: InputValidationViewModel
     var description: String = ""
-    var avatar: String?
+    var avatar: Avatar = .empty
     var addresses: [ContactAddress] = []
     var isPresentingAddress: ManageContactAddressViewModel.Mode?
     var isPresentingAvatar: Bool = false
@@ -66,7 +76,7 @@ public final class ManageContactViewModel {
             contactId = contactData.contact.id
             nameInputModel.text = contactData.contact.name
             description = contactData.contact.description ?? ""
-            avatar = contactData.contact.avatar
+            avatar = Avatar(imageUrl: contactData.contact.imageUrl)
             addresses = contactData.addresses
         }
     }
@@ -112,33 +122,42 @@ public final class ManageContactViewModel {
         return .normal
     }
 
-    let avatarSize: CGFloat = .image.extraLarge
-
     var avatarImage: AssetImage {
-        currentContact.avatarImage
-    }
-
-    var hasAvatar: Bool {
-        avatar != nil
+        switch avatar {
+        case .empty: AssetImage(type: .text(initials))
+        case let .image(imageUrl): AssetImage(type: .text(initials), imageURL: ImageSource(imageUrl).url)
+        case let .emoji(value): AssetImage(type: .emoji(value.emoji))
+        }
     }
 
     var onClearAvatar: VoidAction {
-        hasAvatar ? { [weak self] in self?.avatar = nil } : nil
-    }
-
-    private var currentContact: Contact {
-        Contact.new(
-            id: contactId,
-            name: nameInputModel.text.trim(),
-            description: description.isEmpty ? nil : description,
-            avatar: avatar,
-            createdAt: mode.contact?.createdAt ?? .now,
-        )
+        switch avatar {
+        case .empty: nil
+        case .image, .emoji: { [weak self] in self?.avatar = .empty }
+        }
     }
 
     func onSelectAvatar(_ value: EmojiValue) {
-        avatar = value.emoji
+        avatar = .emoji(value)
         isPresentingAvatar = false
+    }
+
+    private func saveAvatar() throws -> String? {
+        switch avatar {
+        case .empty:
+            return nil
+        case let .image(imageUrl):
+            return imageUrl
+        case let .emoji(value):
+            guard let data = EmojiAvatarRenderer.image(emoji: value.emoji, size: .image.extraLarge, color: value.color.uiColor).pngData() else {
+                throw AnyError("Render avatar image failed")
+            }
+            return try service.saveAvatar(data)
+        }
+    }
+
+    private var initials: String {
+        String(nameInputModel.text.trim().prefix(2))
     }
 
     func listItemModel(for address: ContactAddress) -> ListItemModel {
@@ -164,10 +183,21 @@ public final class ManageContactViewModel {
 
     func onSave() {
         do {
+            let contact = Contact.new(
+                id: contactId,
+                name: nameInputModel.text.trim(),
+                description: description.isEmpty ? nil : description,
+                imageUrl: try saveAvatar(),
+                createdAt: mode.contact?.createdAt ?? .now,
+            )
             switch mode {
-            case .add: try service.addContact(currentContact, addresses: addresses)
-            case .edit: try service.updateContact(currentContact, addresses: addresses)
+            case .add: try service.addContact(contact, addresses: addresses)
+            case .edit: try service.updateContact(contact, addresses: addresses)
             }
+            if let previous = mode.contact?.imageUrl, previous != contact.imageUrl {
+                try? service.removeAvatar(previous)
+            }
+            avatar = Avatar(imageUrl: contact.imageUrl)
         } catch {
             debugLog("ManageContactViewModel save error: \(error)")
         }

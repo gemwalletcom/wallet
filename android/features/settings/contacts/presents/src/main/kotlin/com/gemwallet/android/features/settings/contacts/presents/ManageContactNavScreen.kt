@@ -33,6 +33,7 @@ fun ManageContactNavScreen(
                 onAction = { action ->
                     when (action) {
                         ManageContactAction.SelectAvatar -> viewModel.selectAvatar()
+                        ManageContactAction.RemoveAvatar -> viewModel.removeAvatar()
                         ManageContactAction.AddAddress -> viewModel.addAddress()
                         is ManageContactAction.EditAddress -> viewModel.editAddress(action.address)
                         is ManageContactAction.DeleteAddress -> viewModel.deleteAddress(action.address)

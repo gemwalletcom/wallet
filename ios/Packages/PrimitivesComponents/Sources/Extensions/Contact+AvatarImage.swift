@@ -5,6 +5,9 @@ import Primitives
 
 public extension Contact {
     var avatarImage: AssetImage {
-        AssetImage(type: avatar.map(AssetImageType.emoji) ?? .text(String(name.prefix(2))))
+        AssetImage(
+            type: .text(String(name.prefix(2))),
+            imageURL: imageUrl.map { ImageSource($0).url },
+        )
     }
 }

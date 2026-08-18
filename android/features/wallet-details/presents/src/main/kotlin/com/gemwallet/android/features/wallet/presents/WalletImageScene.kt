@@ -139,39 +139,30 @@ internal fun WalletImageScene(
 private fun NftGrid(
     nftImages: List<NftItemUIModel>,
     onNftImage: (String) -> Unit,
-) = PickerGrid(columns = NFT_COLUMNS, entries = nftImages) { item ->
-    val source = item.toImageSource()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(paddingDefault))
-            .clickable { onNftImage(source.url) },
-    ) {
-        NftImage(
-            source = source,
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
-
-@Composable
-private fun <T> PickerGrid(
-    columns: Int,
-    entries: List<T>,
-    cell: @Composable (T) -> Unit,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
+        columns = GridCells.Fixed(NFT_COLUMNS),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(paddingDefault),
     ) {
-        items(entries) { entry ->
+        items(nftImages) { item ->
+            val source = item.toImageSource()
             Box(
                 modifier = Modifier
                     .aspectRatio(1f)
                     .padding(paddingSmall),
             ) {
-                cell(entry)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(paddingDefault))
+                        .clickable { onNftImage(source.url) },
+                ) {
+                    NftImage(
+                        source = source,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         }
     }

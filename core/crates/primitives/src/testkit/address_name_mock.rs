@@ -8,6 +8,7 @@ impl AddressName {
             name: name.to_string(),
             address_type,
             status,
+            image_url: None,
         }
     }
 }

@@ -12,7 +12,7 @@ data class Contact (
 	val id: String,
 	val name: String,
 	val description: String? = null,
-	val avatar: String? = null,
+	val imageUrl: String? = null,
 	val createdAt: SerializedDate,
 	val updatedAt: SerializedDate
 )

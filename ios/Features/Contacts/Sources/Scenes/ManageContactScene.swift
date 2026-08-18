@@ -83,7 +83,7 @@ extension ManageContactScene {
         Section {
             AvatarView(
                 avatarImage: model.avatarImage,
-                size: model.avatarSize,
+                size: .image.extraLarge,
                 action: onSelectAvatar,
                 removeAction: model.onClearAvatar,
             )
