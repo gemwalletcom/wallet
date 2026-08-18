@@ -61,7 +61,11 @@ fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {
     if fee_asset.chain != primitives::Chain::Tempo || input.input_type.get_asset().chain != primitives::Chain::Tempo {
         return Err(SignerError::invalid_input("mismatched Tempo fee asset"));
     }
-    Address::from_str(fee_asset.token_id.as_deref().unwrap_or(TEMPO_PATHUSD_TOKEN_ID)).map_err(SignerError::from_display)
+    let token_id = match &fee_asset.token_id {
+        Some(token_id) => token_id.as_str(),
+        None => TEMPO_PATHUSD_TOKEN_ID,
+    };
+    Address::from_str(token_id).map_err(SignerError::from_display)
 }
 
 #[cfg(test)]
