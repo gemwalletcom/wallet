@@ -1,10 +1,17 @@
 package com.gemwallet.android
 
 import android.text.format.DateUtils
+import com.gemwallet.android.data.repositories.bridge.WalletConnectEvent
+import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
+import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectValidation
+import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.data.repositories.config.UserConfig
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -46,21 +53,57 @@ class LockTimerTest {
 
     @Test
     fun shouldRelock_returnsFalseWhenWalletConnectRequestActive() = runTest {
-        val activeRequestState = WalletConnectActiveRequestState().apply { setActive(true) }
-        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0, activeRequestState = activeRequestState)
+        val timer = lockTimer(
+            authRequired = true,
+            lockIntervalMinutes = 0,
+            activeRequest = activeWalletConnectRequest(sessionProposalEvent()),
+        )
         timer.setPausedAt(0L)
 
         assertFalse(timer.shouldRelock(now = Long.MAX_VALUE))
     }
 
+    @Test
+    fun shouldRelock_returnsTrueWhenWalletConnectRequestFinished() = runTest {
+        val activeRequest = activeWalletConnectRequest(sessionProposalEvent())
+        activeRequest.finish()
+        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0, activeRequest = activeRequest)
+        timer.setPausedAt(0L)
+
+        assertTrue(timer.shouldRelock(now = Long.MAX_VALUE))
+    }
+
     private fun lockTimer(
         authRequired: Boolean,
         lockIntervalMinutes: Int,
-        activeRequestState: WalletConnectActiveRequestState = WalletConnectActiveRequestState(),
+        activeRequest: ActiveWalletConnectRequest = activeWalletConnectRequest(),
     ): LockTimer {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.getLockInterval() } returns flowOf(lockIntervalMinutes)
-        return LockTimer(userConfig, activeRequestState)
+        return LockTimer(userConfig, activeRequest)
     }
+
+    private fun activeWalletConnectRequest(vararg events: WalletConnectEvent) = ActiveWalletConnectRequest(
+        events = flowOf(*events),
+        scope = CoroutineScope(UnconfinedTestDispatcher()),
+    )
+
+    private fun sessionProposalEvent() = WalletConnectEvent.SessionProposal(
+        proposal = WalletConnectSessionProposal(
+            name = "Dapp",
+            description = "",
+            url = "https://dapp.test",
+            icons = emptyList(),
+            requiredNamespaces = emptyMap(),
+            optionalNamespaces = emptyMap(),
+            proposerPublicKey = "key",
+            properties = null,
+        ),
+        verifyContext = WalletConnectVerifyContext(
+            origin = "https://dapp.test",
+            validation = WalletConnectValidation.Valid,
+            isScam = false,
+        ),
+    )
 }
