@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Components
 import ExplorerService
 import Formatters
 import Foundation
@@ -14,14 +13,12 @@ import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
-import Style
 import SwiftUI
 import TransactionsService
 
 @Observable
 @MainActor
 public final class PerpetualSceneViewModel {
-    private let perpetualService: PerpetualServiceable
     private let observerService: any PerpetualObservable
     private let transactionsService: TransactionsService
     private let onTransferData: TransferDataAction
@@ -55,18 +52,13 @@ public final class PerpetualSceneViewModel {
         transactionsQuery.value
     }
 
-    public var state: StateViewType<[ChartCandleStick]> = .loading
-    public var currentPeriod: ChartPeriod {
-        didSet { preferences.perpetualChartPeriod = currentPeriod }
-    }
+    public let chart: PerpetualChartModel
 
     public var isPresentingInfoSheet: InfoSheetType?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: Bool = false
 
     private let preferences: Preferences
-
-    private var observeTask: Task<Void, Never>?
 
     public init(
         wallet: Wallet,
@@ -80,11 +72,14 @@ public final class PerpetualSceneViewModel {
     ) {
         self.wallet = wallet
         self.asset = asset
-        self.perpetualService = perpetualService
         self.transactionsService = transactionsService
         self.observerService = observerService
         self.preferences = preferences
-        currentPeriod = preferences.perpetualChartPeriod
+        chart = PerpetualChartModel(
+            perpetualService: perpetualService,
+            observerService: observerService,
+            preferences: preferences,
+        )
         self.onTransferData = onTransferData
         self.onPerpetualRecipientData = onPerpetualRecipientData
 
@@ -123,14 +118,6 @@ public final class PerpetualSceneViewModel {
 
     public var transactionsSectionTitle: String {
         Localized.Activity.title
-    }
-
-    public var emptyChartTitle: String {
-        Localized.Common.notAvailable
-    }
-
-    public var emptyChartImage: Image {
-        Images.EmptyContent.activity
     }
 
     public var closePositionTitle: String {
@@ -187,14 +174,6 @@ public final class PerpetualSceneViewModel {
             }
         }
     }
-
-    private var currentChartInterval: String {
-        currentPeriod.hyperliquidInterval
-    }
-
-    private var currentCandleSubscription: GemPerpetualSubscription {
-        .candle(symbol: perpetual.coin, interval: currentChartInterval)
-    }
 }
 
 // MARK: - Actions
@@ -203,25 +182,19 @@ public extension PerpetualSceneViewModel {
     func fetch() async {
         async let updateObserver: () = observerService.update(for: wallet)
         async let refreshTransactions: () = updateTransactions()
-        async let refreshCandlesticks: () = updateCandlesticks()
+        async let refreshCandlesticks: () = chart.refresh(symbol: perpetual.coin)
         _ = await (updateObserver, refreshTransactions, refreshCandlesticks)
     }
 
     func onAppear() async {
         async let refresh: () = fetch()
-        await subscribeCandles(currentCandleSubscription)
+        await chart.onAppear(symbol: perpetual.coin)
         await subscribeMarket(perpetual.coin)
-        observeTask?.cancel()
-        observeTask = Task {
-            await observeCandles()
-        }
         _ = await refresh
     }
 
     func onDisappear() async {
-        observeTask?.cancel()
-        observeTask = nil
-        await unsubscribeCandles(currentCandleSubscription)
+        await chart.onDisappear(symbol: perpetual.coin)
         await unsubscribeMarket(perpetual.coin)
     }
 
@@ -229,7 +202,7 @@ public extension PerpetualSceneViewModel {
         switch newPhase {
         case .active:
             Task { await updateTransactions() }
-            Task { await updateCandlesticks() }
+            Task { await chart.refresh(symbol: perpetual.coin) }
         case .inactive, .background: break
         @unknown default: break
         }
@@ -237,9 +210,7 @@ public extension PerpetualSceneViewModel {
 
     func onPeriodChange(_ oldPeriod: ChartPeriod, _ newPeriod: ChartPeriod) {
         Task {
-            await unsubscribeCandles(.candle(symbol: perpetual.coin, interval: oldPeriod.hyperliquidInterval))
-            await updateCandlesticks()
-            await subscribeCandles(.candle(symbol: perpetual.coin, interval: newPeriod.hyperliquidInterval))
+            await chart.onPeriodChange(symbol: perpetual.coin, from: oldPeriod, to: newPeriod)
         }
     }
 
@@ -359,35 +330,6 @@ public extension PerpetualSceneViewModel {
 // MARK: - Private
 
 private extension PerpetualSceneViewModel {
-    func updateCandlesticks() async {
-        state = .loading
-        do {
-            let candlesticks = try await perpetualService.candlesticks(
-                symbol: perpetual.coin,
-                period: currentPeriod,
-            )
-            state = .data(candlesticks)
-        } catch {
-            state.setError(error)
-        }
-    }
-
-    func subscribeCandles(_ subscription: GemPerpetualSubscription) async {
-        do {
-            try await observerService.subscribe(subscription)
-        } catch {
-            debugLog("Chart subscription failed: \(error)")
-        }
-    }
-
-    func unsubscribeCandles(_ subscription: GemPerpetualSubscription) async {
-        do {
-            try await observerService.unsubscribe(subscription)
-        } catch {
-            debugLog("Chart unsubscribe failed: \(error)")
-        }
-    }
-
     func subscribeMarket(_ coin: String) async {
         do {
             try await observerService.subscribe(.marketData(symbol: coin))
@@ -402,33 +344,6 @@ private extension PerpetualSceneViewModel {
         } catch {
             debugLog("Market data unsubscribe failed: \(error)")
         }
-    }
-
-    func observeCandles() async {
-        for await update in await observerService.chartService.makeStream() {
-            if Task.isCancelled { break }
-            handleChartUpdate(update)
-        }
-    }
-
-    func handleChartUpdate(_ update: ChartCandleUpdate) {
-        guard update.coin == perpetual.coin,
-              update.interval == currentChartInterval,
-              case var .data(candlesticks) = state,
-              let lastCandle = candlesticks.last
-        else {
-            return
-        }
-
-        let candle = update.candle
-        if lastCandle.date == candle.date {
-            candlesticks[candlesticks.count - 1] = candle
-        } else if candle.date > lastCandle.date {
-            candlesticks.removeFirst()
-            candlesticks.append(candle)
-        }
-
-        state = .data(candlesticks)
     }
 
     func createTransferData(direction: PerpetualDirection, leverage: UInt8, marginType: PerpetualMarginType) -> PerpetualTransferData? {
@@ -461,19 +376,6 @@ private extension PerpetualSceneViewModel {
             try await transactionsService.updateForAsset(walletId: wallet.id, assetId: asset.id)
         } catch {
             debugLog("perpetual scene: fetchTransactions error \(error)")
-        }
-    }
-}
-
-private extension ChartPeriod {
-    var hyperliquidInterval: String {
-        switch self {
-        case .hour: "1m"
-        case .day: "30m"
-        case .week: "4h"
-        case .month: "12h"
-        case .year: "1w"
-        case .all: "1M"
         }
     }
 }

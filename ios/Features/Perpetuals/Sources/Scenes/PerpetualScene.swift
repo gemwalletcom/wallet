@@ -18,19 +18,21 @@ public struct PerpetualScene: View {
     }
 
     public var body: some View {
+        @Bindable var chart = model.chart
+
         List {
             Section {} header: {
                 VStack {
                     VStack {
-                        switch model.state {
+                        switch chart.state {
                         case .noData:
-                            StateEmptyView(title: model.emptyChartTitle, image: model.emptyChartImage)
+                            StateEmptyView(title: chart.emptyTitle, image: chart.emptyImage)
                         case .loading: LoadingView()
                         case let .data(data):
                             CandlestickChartView(
                                 model: CandlestickChartViewModel(
                                     candles: data,
-                                    period: model.currentPeriod,
+                                    period: chart.currentPeriod,
                                     lines: model.chartLineModels,
                                     formatter: CurrencyFormatter(
                                         type: .currency,
@@ -47,7 +49,7 @@ public struct PerpetualScene: View {
                     }
                     .frame(height: 320)
 
-                    PeriodSelectorView(selectedPeriod: $model.currentPeriod)
+                    PeriodSelectorView(selectedPeriod: $chart.currentPeriod)
                         .padding(.horizontal, Spacing.medium)
                 }
             }
@@ -165,6 +167,6 @@ public struct PerpetualScene: View {
             Task { await model.onDisappear() }
         }
         .onChange(of: scenePhase, model.onScenePhaseChange)
-        .onChange(of: model.currentPeriod, model.onPeriodChange)
+        .onChange(of: chart.currentPeriod, model.onPeriodChange)
     }
 }
