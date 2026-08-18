@@ -13,6 +13,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.cases.security.AuthRequester
+import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.connection.ConnectionStatusObserver
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
@@ -27,10 +28,10 @@ import javax.inject.Inject
 class MainActivity : FragmentActivity(), AuthRequester {
     private val viewModel: MainViewModel by viewModels()
     private val appViewModel: AppViewModel by viewModels()
-    private val walletConnectViewModel: WalletConnectViewModel by viewModels()
     private lateinit var systemAuthenticator: SystemAuthenticator
 
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
+    @Inject lateinit var activeWalletConnectRequest: ActiveWalletConnectRequest
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -61,7 +62,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                     state = state,
                     pendingNavigation = pendingNavigation,
                     systemAuthEnrollmentMissing = systemAuthEnrollmentMissing,
-                    walletConnectViewModel = walletConnectViewModel,
+                    activeWalletConnectRequest = activeWalletConnectRequest,
                     walletConnectEnabled = viewModel.isWalletConnectEnabled,
                     onSystemAuthRequired = systemAuthenticator::authenticate,
                     onIntentConsumed = viewModel::consumePendingNavigation,

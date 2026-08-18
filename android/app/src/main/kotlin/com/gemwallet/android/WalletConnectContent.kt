@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.data.repositories.bridge.WalletConnectUserRequest
 import com.gemwallet.android.features.bridge.views.AuthRequestScene
 import com.gemwallet.android.features.bridge.views.ProposalScene
 import com.gemwallet.android.features.bridge.views.RequestScene
@@ -25,12 +27,12 @@ import com.wallet.core.primitives.AssetId
 
 @Composable
 internal fun rememberWalletConnectOverlay(
-    viewModel: WalletConnectViewModel,
+    activeRequest: ActiveWalletConnectRequest,
     onError: (String) -> Unit,
-): @Composable ((AcquireAssetAction, AssetId) -> Unit) -> Unit = remember(viewModel, onError) {
+): @Composable ((AcquireAssetAction, AssetId) -> Unit) -> Unit = remember(activeRequest, onError) {
     { onAcquireAsset ->
         WalletConnectOverlay(
-            viewModel = viewModel,
+            activeRequest = activeRequest,
             onAcquireAsset = onAcquireAsset,
             onError = onError,
         )
@@ -75,72 +77,35 @@ internal fun WalletConnectErrorDialog(
 
 @Composable
 private fun WalletConnectOverlay(
-    viewModel: WalletConnectViewModel,
+    activeRequest: ActiveWalletConnectRequest,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
     onError: (String) -> Unit,
 ) {
-    val context = LocalContext.current
-    val walletConnect by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(walletConnect) {
-        when (val event = walletConnect) {
-            is WalletConnectIntent.SessionProposal -> {
-                if (event.verifyContext == null) {
-                    makeText(context, R.string.errors_error_occurred, Toast.LENGTH_LONG).show()
-                    viewModel.rejectSessionProposal(event.sessionProposal)
-                }
-            }
-            is WalletConnectIntent.SessionRequest -> {
-                if (event.verifyContext == null) {
-                    viewModel.rejectSessionRequest(event.request)
-                }
-            }
-            is WalletConnectIntent.AuthRequest -> {
-                if (event.verifyContext == null) {
-                    viewModel.rejectSessionAuthenticate(event.request)
-                }
-            }
-            WalletConnectIntent.Idle,
-            WalletConnectIntent.Cancel -> Unit
-        }
-    }
+    val request by activeRequest.current.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier.navigationBarsPadding(),
     ) {
-        when (val event = walletConnect) {
-            WalletConnectIntent.Idle,
-            WalletConnectIntent.Cancel -> Unit
-            is WalletConnectIntent.AuthRequest -> {
-                event.verifyContext?.let { verifyContext ->
-                    AuthRequestScene(
-                        request = event.request,
-                        verifyContext = verifyContext,
-                        onCancel = viewModel::onCancel,
-                    )
-                }
-            }
-            is WalletConnectIntent.SessionProposal -> {
-                event.verifyContext?.let { verifyContext ->
-                    ProposalScene(
-                        proposal = event.sessionProposal,
-                        verifyContext = verifyContext,
-                        onCancel = viewModel::onCancel,
-                        onError = onError,
-                    )
-                }
-            }
-            is WalletConnectIntent.SessionRequest -> {
-                event.verifyContext?.let { verifyContext ->
-                    RequestScene(
-                        request = event.request,
-                        verifyContext = verifyContext,
-                        onAcquireAsset = onAcquireAsset,
-                        onCancel = viewModel::onCancel,
-                        onError = onError,
-                    )
-                }
-            }
+        when (val current = request) {
+            null -> Unit
+            is WalletConnectUserRequest.AuthenticationRequest -> AuthRequestScene(
+                request = current.request,
+                verifyContext = current.verifyContext,
+                onCancel = activeRequest::finish,
+            )
+            is WalletConnectUserRequest.SessionProposal -> ProposalScene(
+                proposal = current.proposal,
+                verifyContext = current.verifyContext,
+                onCancel = activeRequest::finish,
+                onError = onError,
+            )
+            is WalletConnectUserRequest.SessionRequest -> RequestScene(
+                request = current.request,
+                verifyContext = current.verifyContext,
+                onAcquireAsset = onAcquireAsset,
+                onCancel = activeRequest::finish,
+                onError = onError,
+            )
         }
     }
 }

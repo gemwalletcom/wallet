@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.ConnectionsRepository
 import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
+import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import dagger.Module
@@ -32,5 +33,13 @@ object BridgesModule {
     ): BridgesRepository = BridgesRepository(
         connectionsRepository = connectionsRepository,
         walletConnectClient = walletConnectClient,
+    )
+
+    @Singleton
+    @Provides
+    fun provideActiveWalletConnectRequest(
+        bridgesRepository: BridgesRepository,
+    ): ActiveWalletConnectRequest = ActiveWalletConnectRequest(
+        events = bridgesRepository.bridgeEvents,
     )
 }
