@@ -1,4 +1,4 @@
-use crate::models::{GemAssetId, GemTransactionInputType};
+use crate::models::GemTransactionInputType;
 use num_bigint::BigInt;
 use primitives::{AssetId, TransactionInputType, TransferAmount, TransferAmountError, TransferAmountInput};
 
@@ -26,7 +26,7 @@ pub struct GemTransferAmountInput {
     pub input_type: GemTransactionInputType,
     pub value: GemBigInt,
     pub available_value: GemBigInt,
-    pub fee_asset: GemAssetId,
+    pub fee_asset: AssetId,
     pub fee_asset_balance: GemBigInt,
     pub fee: GemBigInt,
     pub is_max_amount: bool,

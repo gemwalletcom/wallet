@@ -1,7 +1,6 @@
 use primitives::{Asset, AssetId, AssetScore, AssetType, Chain, ChainAsset};
 
 pub type GemAsset = Asset;
-pub type GemAssetId = AssetId;
 pub type GemAssetType = AssetType;
 pub type GemChainAsset = ChainAsset;
 
@@ -32,7 +31,7 @@ pub enum GemAssetType {
 
 #[uniffi::remote(Record)]
 pub struct GemAsset {
-    pub id: GemAssetId,
+    pub id: AssetId,
     pub chain: Chain,
     pub token_id: Option<String>,
     pub name: String,

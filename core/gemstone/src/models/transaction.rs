@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use num_bigint::BigInt;
 use primitives::contract_call_data::ContractCallData;
 use primitives::{
-    AccountDataType, Asset, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider,
+    AccountDataType, Asset, AssetId, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider,
     PerpetualType, Resource, SignerInput, StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata,
     TransactionPerpetualMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, TransferDataExtra,
     TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64, WalletConnectionSessionAppMetadata,
@@ -412,7 +412,7 @@ pub struct GemTransactionLoadFee {
     pub gas_price_type: GemGasPriceType,
     pub gas_limit: String,
     pub options: GemFeeOptions,
-    pub fee_asset: GemAssetId,
+    pub fee_asset: AssetId,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
