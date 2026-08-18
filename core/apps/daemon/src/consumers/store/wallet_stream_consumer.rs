@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
-use primitives::{StreamBalanceUpdate, StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, WalletId, device_stream_channel, unix_timestamp};
+use primitives::{StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, WalletId, device_stream_channel, unix_timestamp};
 use storage::{Database, WalletsRepository};
 use streamer::{WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 
@@ -15,19 +15,11 @@ pub struct WalletStreamConsumer {
 
 fn stream_events(wallet_id: WalletId, event: WalletStreamEvent) -> Vec<StreamEvent> {
     match event {
-        WalletStreamEvent::Transactions { transaction_ids, asset_ids } => std::iter::once(StreamEvent::Transactions(StreamTransactionsUpdate {
-            wallet_id: wallet_id.clone(),
+        WalletStreamEvent::Transactions { transaction_ids, asset_ids } => vec![StreamEvent::Transactions(StreamTransactionsUpdate {
+            wallet_id,
             transactions: transaction_ids,
-            asset_ids: asset_ids.clone(),
-        }))
-        .chain(asset_ids.into_iter().map(|asset_id| {
-            StreamEvent::Balances(StreamBalanceUpdate {
-                wallet_id: wallet_id.clone(),
-                asset_id: asset_id.clone(),
-                asset_ids: vec![asset_id],
-            })
-        }))
-        .collect(),
+            asset_ids,
+        })],
         WalletStreamEvent::FiatTransaction => vec![StreamEvent::FiatTransaction(StreamWalletUpdate { wallet_id })],
         WalletStreamEvent::Nft => vec![StreamEvent::Nft(StreamWalletUpdate { wallet_id })],
         WalletStreamEvent::Perpetual => vec![StreamEvent::Perpetual(StreamWalletUpdate { wallet_id })],
@@ -85,7 +77,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_stream_events_combines_transaction_and_balances() {
+    fn test_stream_events_sends_transaction_with_affected_assets() {
         let wallet_id = WalletId::Multicoin("wallet".to_string());
         let transaction_id = TransactionId::new(Chain::Ethereum, "0x123".to_string());
         let asset_id = AssetId::from_chain(Chain::Ethereum);
@@ -98,22 +90,14 @@ mod tests {
             },
         );
 
-        assert_eq!(events.len(), 2);
+        assert_eq!(events.len(), 1);
         match &events[0] {
             StreamEvent::Transactions(update) => {
                 assert_eq!(update.wallet_id, wallet_id);
                 assert_eq!(update.transactions, vec![transaction_id]);
-                assert_eq!(update.asset_ids, vec![asset_id.clone()]);
-            }
-            _ => panic!("expected transaction event"),
-        }
-        match &events[1] {
-            StreamEvent::Balances(update) => {
-                assert_eq!(update.wallet_id, wallet_id);
-                assert_eq!(update.asset_id, asset_id.clone());
                 assert_eq!(update.asset_ids, vec![asset_id]);
             }
-            _ => panic!("expected balance event"),
+            _ => panic!("expected transaction event"),
         }
     }
 }
