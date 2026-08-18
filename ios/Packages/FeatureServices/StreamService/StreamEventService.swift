@@ -58,10 +58,10 @@ public struct StreamEventService: Sendable {
             debugLog("stream event handler: prices: \(payload.prices.count), rates: \(payload.rates.count)")
             await perform { try handlePrices(payload) }
         case let .balances(update):
-            debugLog("stream event handler: balances: assets: \(update.assetIds.map(\.identifier))")
+            debugLog("stream event handler: balances: wallet: \(update.walletId.id), assets: \(update.assetIds.map(\.identifier))")
             Task { await perform { try await handleBalanceUpdate(update) } }
         case let .transactions(update):
-            debugLog("stream event handler: transactions: \(update.transactions.map(\.identifier)), assets: \(update.assetIds.map(\.identifier))")
+            debugLog("stream event handler: transactions: wallet: \(update.walletId.id), transactions: \(update.transactions.map(\.identifier)), assets: \(update.assetIds.map(\.identifier))")
             Task { await perform { try await handleTransactionUpdate(update) } }
         case let .nft(update):
             debugLog("stream event handler: nft: wallet: \(update.walletId.id)")
@@ -70,16 +70,21 @@ public struct StreamEventService: Sendable {
             debugLog("stream event handler: perpetual: wallet: \(update.walletId.id)")
             Task { await perform { try await handlePerpetualUpdate(update) } }
         case let .inAppNotification(update):
-            debugLog("stream event handler: in-app notification: wallet: \(update.walletId.id)")
+            debugLog("stream event handler: in-app notification: wallet: \(update.walletId.id), id: \(update.notification.item.id)")
             await perform { try notificationStore.addNotifications([update.notification]) }
         case let .priceAlerts(update):
-            debugLog("stream event handler: price alerts: assets: \(update.assets.count)")
+            debugLog("stream event handler: price alerts: assets: \(update.assets.map(\.identifier))")
             Task { await perform { try await priceAlertService.update() } }
         case let .fiatTransaction(update):
             debugLog("stream event handler: fiat transaction: wallet: \(update.walletId.id)")
             Task { await perform { try await handleFiatTransactionUpdate(update) } }
         case let .support(supportEvent):
-            debugLog("stream event handler: support")
+            switch supportEvent {
+            case let .message(message):
+                debugLog("stream event handler: support message: id: \(message.id), images: \(message.images.count)")
+            case let .typing(typing):
+                debugLog("stream event handler: support typing: status: \(typing.status.rawValue)")
+            }
             await perform { try await supportChatService.receive(supportEvent) }
         }
     }
