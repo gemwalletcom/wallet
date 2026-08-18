@@ -42,7 +42,7 @@ mod tests {
         // Native transfer
         let input = SignerInput::new(
             TransactionLoadInput::mock_transfer(Asset::from_chain(Chain::Algorand), SENDER, DESTINATION, "1000000", 2340, None, metadata(15775683)),
-            TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
+            TransactionFee::new_from_fee(2340.into(), Asset::from_chain(Chain::Algorand)),
         );
         let signed = AlgorandChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(
@@ -53,7 +53,7 @@ mod tests {
         // Token transfer
         let input = SignerInput::new(
             TransactionLoadInput::mock_transfer(token.clone(), SENDER, DESTINATION, "1000000", 2340, None, metadata(15775683)),
-            TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
+            TransactionFee::new_from_fee(2340.into(), Asset::from_chain(Chain::Algorand)),
         );
         let signed = AlgorandChainSigner.sign_token_transfer(&input, &key).unwrap();
         assert_eq!(
@@ -64,7 +64,7 @@ mod tests {
         // Account action (asset opt-in)
         let input = SignerInput::new(
             TransactionLoadInput::mock_transfer(token, SENDER, "", "0", 2340, None, metadata(15775553)),
-            TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
+            TransactionFee::new_from_fee(2340.into(), Asset::from_chain(Chain::Algorand)),
         );
         let signed = AlgorandChainSigner.sign_account_action(&input, &key).unwrap();
         assert_eq!(
@@ -89,7 +89,7 @@ mod tests {
                 chain_id: "mainnet-v1.0".into(),
             },
         );
-        let input = SignerInput::new(load, TransactionFee::new_from_fee(263000.into(), AssetId::from_chain(Chain::Algorand)));
+        let input = SignerInput::new(load, TransactionFee::new_from_fee(263000.into(), Asset::from_chain(Chain::Algorand)));
 
         let signed = AlgorandChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(

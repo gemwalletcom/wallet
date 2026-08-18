@@ -15,7 +15,6 @@ gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 num-bigint = { workspace = true }
-num-traits = { workspace = true }
 
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }

@@ -13,12 +13,14 @@ public extension TransactionInputViewModel {
         transactionData: TransactionData? = nil,
         metaData: TransferDataMetadata? = nil,
         transferAmount: TransferAmountValidation? = nil,
+        feeAsset: Asset = .mock(),
     ) -> TransactionInputViewModel {
         TransactionInputViewModel(
             data: data,
             transactionData: transactionData,
             metaData: metaData,
             transferAmount: transferAmount,
+            feeAsset: feeAsset,
         )
     }
 }

@@ -34,10 +34,4 @@ final class AssetTests {
         #expect(native.feeAsset == Asset.hypercoreSpotUSDC())
     }
 
-    @Test
-    func feeAssetUsesSentAssetOnlyWhenFeeAssetIdMatches() {
-        #expect(tokenAsset.feeAsset(for: Fee.mock(feeAssetId: tokenAsset.id)) == tokenAsset)
-        #expect(tokenAsset.feeAsset(for: Fee.mock(feeAssetId: tokenAsset.feeAsset.id)) == tokenAsset.feeAsset)
-        #expect(tokenAsset.feeAsset(for: Fee.mock(feeAssetId: AssetId(chain: .bitcoin))) == tokenAsset.feeAsset)
-    }
 }

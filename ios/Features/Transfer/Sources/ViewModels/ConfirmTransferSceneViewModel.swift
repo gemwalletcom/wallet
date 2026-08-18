@@ -69,6 +69,7 @@ public final class ConfirmTransferSceneViewModel {
         state = ConfirmTransferState(
             simulation: confirmService.simulationState(request: request),
             metadata: try? confirmService.metadata(request: request),
+            feeAsset: request.data.type.asset.feeAsset,
             transaction: .loading,
         )
     }
@@ -130,7 +131,7 @@ public final class ConfirmTransferSceneViewModel {
     public var feeModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             chain: request.data.chain,
-            feeAsset: state.transaction.value?.feeAsset ?? request.data.type.asset.feeAsset,
+            feeAsset: state.feeAsset,
             currency: currency,
             selection: feeSelection,
             rates: state.feeRates,

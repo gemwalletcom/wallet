@@ -85,7 +85,7 @@ class SignerPreloaderProxyTest {
         val params = transferParams(feeAsset)
         stubPreload()
         coEvery { gateway.getTransactionLoad(any(), any()) } returns GemTransactionData(
-            fee = mockGemTransactionLoadFee(feeAssetId = feeAsset.id),
+            fee = mockGemTransactionLoadFee(feeAsset = feeAsset),
             metadata = evmMetadata(),
         )
 

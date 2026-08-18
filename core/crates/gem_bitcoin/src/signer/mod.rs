@@ -38,7 +38,7 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
         gas_price_type: input.gas_price.clone(),
         gas_limit: BigInt::from(1u8),
         options: HashMap::new(),
-        fee_asset_id: input.input_type.get_asset().chain.as_asset_id(),
+        fee_asset: input.input_type.get_fee_asset(),
     })
 }
 

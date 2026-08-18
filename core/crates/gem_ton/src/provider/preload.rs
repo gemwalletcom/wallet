@@ -3,7 +3,7 @@ use chain_traits::ChainTransactionLoad;
 use gem_client::Client;
 use num_bigint::BigInt;
 use primitives::{
-    AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput,
+    Asset, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput,
     TransactionLoadMetadata, TransactionPreloadInput, swap::SwapQuoteDataType,
 };
 use std::collections::HashMap;
@@ -50,7 +50,7 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
         _ => base_fee.clone(),
     };
 
-    TransactionFee::new_gas_price_type(GasPriceType::regular(fee.clone()), fee.clone(), BigInt::from(1), options, AssetId::from_chain(Chain::Ton))
+    TransactionFee::new_gas_price_type(GasPriceType::regular(fee.clone()), fee.clone(), BigInt::from(1), options, Asset::from_chain(Chain::Ton))
 }
 
 fn transfer_fee(asset_subtype: AssetSubtype, memo: Option<&str>, recipient_token_address: Option<&str>, base_fee: &BigInt, options: &mut HashMap<FeeOption, BigInt>) -> BigInt {

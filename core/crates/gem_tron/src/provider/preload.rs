@@ -8,8 +8,8 @@ use num_bigint::BigInt;
 use gem_client::Client;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    Asset, AssetId, AssetSubtype, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionPreloadInput, TransferDataOutputAction, TronStakeData, decode_hex,
+    Asset, AssetSubtype, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
+    TransactionPreloadInput, TransferDataOutputAction, TronStakeData, decode_hex,
     swap::{ApprovalData, SwapData, SwapQuoteData, SwapQuoteDataType},
 };
 
@@ -92,7 +92,7 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                 TransferDataOutputAction::Sign => native_transfer_fee(&fee_context, false)?,
             },
             TransactionInputType::Stake(_asset, stake_type) => {
-                TransactionFee::new_from_fee(calculate_stake_fee_rate(&chain_parameters, &account_usage, stake_type)?, AssetId::from_chain(Chain::Tron))
+                TransactionFee::new_from_fee(calculate_stake_fee_rate(&chain_parameters, &account_usage, stake_type)?, input.input_type.get_fee_asset())
             }
             TransactionInputType::TokenApprove(_, approval) => self.estimate_token_approval_fee(&input.sender_address, approval, &chain_parameters, &account_usage).await?,
             TransactionInputType::Swap(from_asset, _, swap_data) => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
@@ -178,7 +178,7 @@ impl<C: Client> TronClient<C> {
                 gas_limit,
                 gas_price_type: approval_fee.gas_price_type,
                 options: approval_fee.options,
-                fee_asset_id: AssetId::from_chain(Chain::Tron),
+                fee_asset: Asset::from_chain(Chain::Tron),
             });
         }
 
@@ -327,7 +327,7 @@ fn transaction_fee_from_energy_estimate(
         BigInt::from(token_fee.fee),
         BigInt::from(token_fee.fee_limit),
         HashMap::new(),
-        AssetId::from_chain(Chain::Tron),
+        Asset::from_chain(Chain::Tron),
     ))
 }
 

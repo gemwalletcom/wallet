@@ -221,7 +221,7 @@ mod tests {
                 fee_amount,
                 BigInt::from(2_500_000u64),
                 HashMap::new(),
-                AssetId::from_chain(Chain::Cosmos),
+                Asset::from_chain(Chain::Cosmos),
             ),
         );
 
@@ -257,7 +257,7 @@ mod tests {
                 fee_amount,
                 BigInt::from(110_000u64),
                 HashMap::new(),
-                AssetId::from_chain(Chain::Cosmos),
+                Asset::from_chain(Chain::Cosmos),
             ),
         );
 

@@ -17,7 +17,7 @@ use num_bigint::BigInt;
 use primitives::ContractCallData;
 use primitives::GasPriceType;
 #[cfg(feature = "rpc")]
-use primitives::{AssetId, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 #[cfg(feature = "rpc")]
 use serde_serializers::bigint::bigint_from_hex_str;
 use std::collections::HashMap;
@@ -110,7 +110,7 @@ pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result
         fee,
         gas_limit.clone(),
         HashMap::new(),
-        AssetId::from_chain(input.input_type.get_asset().chain),
+        input.input_type.get_fee_asset(),
     ))
 }
 
@@ -129,7 +129,7 @@ mod tests {
 
         assert_eq!(fee.gas_limit, approval_gas_limit);
         assert_eq!(fee.fee, input.gas_price.total_fee() * (&approval_gas_limit + swap_gas_limit));
-        assert_eq!(fee.fee_asset_id, AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(fee.fee_asset, Asset::from_chain(Chain::Ethereum));
 
         Ok(())
     }

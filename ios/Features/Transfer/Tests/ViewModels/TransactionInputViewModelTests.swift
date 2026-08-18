@@ -16,6 +16,7 @@ struct TransactionInputViewModelTests {
             transactionData: nil,
             metaData: nil,
             transferAmount: .success(TransferAmount(value: 200, networkFee: 1, useMaxAmount: false)),
+            feeAsset: .mock(),
         )
 
         #expect(viewModel.value == BigInt(200))
@@ -31,6 +32,7 @@ struct TransactionInputViewModelTests {
                 .mock(),
                 requirement: BalanceRequirement(required: 1, available: 0),
             )),
+            feeAsset: .mock(),
         )
 
         #expect(viewModel.value == 100)
@@ -43,6 +45,7 @@ struct TransactionInputViewModelTests {
             transactionData: nil,
             metaData: nil,
             transferAmount: nil,
+            feeAsset: .mock(),
         )
 
         #expect(viewModel.value == .zero)
@@ -55,6 +58,7 @@ struct TransactionInputViewModelTests {
             transactionData: .mock(),
             metaData: nil,
             transferAmount: nil,
+            feeAsset: .mock(),
         )
 
         #expect(viewModel.networkFeeText == "0.00000001 BTC")
@@ -65,7 +69,7 @@ struct TransactionInputViewModelTests {
         let feeAsset = Asset.mockEthereumUSDT()
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: TransactionData(fee: .mock(fee: 1_000_000, feeAssetId: feeAsset.id)),
+            transactionData: TransactionData(fee: .mock(fee: 1_000_000, feeAsset: feeAsset)),
             metaData: nil,
             transferAmount: nil,
             feeAsset: feeAsset,
@@ -88,6 +92,7 @@ struct TransactionInputViewModelTests {
             transactionData: .mock(),
             metaData: metaData,
             transferAmount: nil,
+            feeAsset: .mock(),
         )
 
         #expect(viewModel.networkFeeFiatText == "$0.000000015")
@@ -100,6 +105,7 @@ struct TransactionInputViewModelTests {
             transactionData: nil,
             metaData: nil,
             transferAmount: nil,
+            feeAsset: .mock(),
         )
 
         #expect(viewModel.networkFeeText == "-")

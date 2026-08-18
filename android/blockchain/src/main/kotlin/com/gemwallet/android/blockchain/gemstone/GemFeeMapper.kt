@@ -1,12 +1,12 @@
 package com.gemwallet.android.blockchain.gemstone
 
-import com.gemwallet.android.ext.identifier
+import com.gemwallet.android.domains.asset.toDTO
+import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.FeeSelection
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRate
@@ -55,7 +55,7 @@ internal fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee
             }
         }.toMap()
     ),
-    feeAssetId = feeAssetId.identifier,
+    feeAsset = feeAsset.toGem(),
 )
 
 internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate = when (selection) {
@@ -71,17 +71,17 @@ internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate
     }
 }
 
-internal fun Chain.toFee(
-    feeAssetId: AssetId,
+internal fun GemTransactionLoadFee.toFee(
     priority: FeePriority,
-    gemFee: GemTransactionLoadFee,
-): Fee = when (toChainType()) {
-    ChainType.Solana -> gemFee.toSolanaFee(feeAssetId, priority)
+): Fee {
+    val feeAsset = feeAsset.toDTO()
+    return when (feeAsset.id.chain.toChainType()) {
+    ChainType.Solana -> toSolanaFee(feeAsset, priority)
     ChainType.Bitcoin,
     ChainType.Cosmos,
     ChainType.Tron,
-    ChainType.Aptos -> gemFee.toRegularFee(feeAssetId, priority)
-    ChainType.Ethereum -> gemFee.toEip1559Fee(feeAssetId, priority)
+    ChainType.Aptos -> toRegularFee(feeAsset, priority)
+    ChainType.Ethereum -> toEip1559Fee(feeAsset, priority)
     ChainType.HyperCore,
     ChainType.Ton,
     ChainType.Sui,
@@ -90,26 +90,27 @@ internal fun Chain.toFee(
     ChainType.Stellar,
     ChainType.Algorand,
     ChainType.Polkadot,
-    ChainType.Cardano -> gemFee.toPlainFee(feeAssetId, priority)
+    ChainType.Cardano -> toPlainFee(feeAsset, priority)
+    }
 }
 
 private fun GemTransactionLoadFee.toFeeOptions() = options.options
     .mapKeys { it.key.name }
     .mapValues { it.value.toBigInteger() }
 
-private fun GemTransactionLoadFee.toPlainFee(feeAssetId: AssetId, priority: FeePriority): Fee.Plain {
+private fun GemTransactionLoadFee.toPlainFee(feeAsset: Asset, priority: FeePriority): Fee.Plain {
     return Fee.Plain(
-        feeAssetId = feeAssetId,
+        feeAsset = feeAsset,
         priority = priority,
         amount = fee.toBigInteger(),
         options = toFeeOptions(),
     )
 }
 
-private fun GemTransactionLoadFee.toRegularFee(feeAssetId: AssetId, priority: FeePriority): Fee.Regular {
+private fun GemTransactionLoadFee.toRegularFee(feeAsset: Asset, priority: FeePriority): Fee.Regular {
     val price = gasPriceType as GemGasPriceType.Regular
     return Fee.Regular(
-        feeAssetId = feeAssetId,
+        feeAsset = feeAsset,
         priority = priority,
         maxGasPrice = price.gasPrice.toBigInteger(),
         limit = gasLimit.toBigInteger(),
@@ -118,10 +119,10 @@ private fun GemTransactionLoadFee.toRegularFee(feeAssetId: AssetId, priority: Fe
     )
 }
 
-private fun GemTransactionLoadFee.toEip1559Fee(feeAssetId: AssetId, priority: FeePriority): Fee.Eip1559 {
+private fun GemTransactionLoadFee.toEip1559Fee(feeAsset: Asset, priority: FeePriority): Fee.Eip1559 {
     val price = gasPriceType as GemGasPriceType.Eip1559
     return Fee.Eip1559(
-        feeAssetId = feeAssetId,
+        feeAsset = feeAsset,
         priority = priority,
         maxGasPrice = price.gasPrice.toBigInteger(),
         minerFee = price.priorityFee.toBigInteger(),
@@ -131,10 +132,10 @@ private fun GemTransactionLoadFee.toEip1559Fee(feeAssetId: AssetId, priority: Fe
     )
 }
 
-private fun GemTransactionLoadFee.toSolanaFee(feeAssetId: AssetId, priority: FeePriority): Fee.Solana {
+private fun GemTransactionLoadFee.toSolanaFee(feeAsset: Asset, priority: FeePriority): Fee.Solana {
     val price = gasPriceType as GemGasPriceType.Solana
     return Fee.Solana(
-        feeAssetId = feeAssetId,
+        feeAsset = feeAsset,
         priority = priority,
         maxGasPrice = price.gasPrice.toBigInteger(),
         minerFee = price.priorityFee.toBigInteger(),

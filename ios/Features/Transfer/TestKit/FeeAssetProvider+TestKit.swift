@@ -12,7 +12,7 @@ public struct FeeAssetProviderMock: FeeAssetProvidable {
         self.balance = balance
     }
 
-    public func feeAsset(wallet _: Wallet, asset: Asset, fee _: Fee) async throws -> (asset: Asset, balance: Balance) {
-        (asset, balance)
+    public func balance(wallet _: Wallet, feeAsset _: Asset) async throws -> Balance {
+        balance
     }
 }

@@ -36,7 +36,7 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
             is_max_value: false,
             metadata,
         },
-        TransactionFee::new_from_fee(BigInt::from(10u64), AssetId::from_chain(Chain::Bitcoin)),
+        TransactionFee::new_from_fee(BigInt::from(10u64), Asset::from_chain(Chain::Bitcoin)),
     )
 }
 

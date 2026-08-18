@@ -3,16 +3,15 @@ use alloy_rlp::{BufMut, EMPTY_STRING_CODE, Encodable, Header};
 use primitives::SignerError;
 use signer::Signer;
 
-/// <https://docs.tempo.xyz/protocol/transactions/spec-tempo-transaction>
 pub(crate) const TEMPO_TX_TYPE_ID: u8 = 0x76;
 
-pub struct TransactionCall {
+pub(super) struct TransactionCall {
     to: Address,
     input: Bytes,
 }
 
 impl TransactionCall {
-    pub fn new(to: Address, input: Bytes) -> Self {
+    pub(super) fn new(to: Address, input: Bytes) -> Self {
         Self { to, input }
     }
 
@@ -37,14 +36,14 @@ impl Encodable for TransactionCall {
     }
 }
 
-pub struct TempoTransaction {
-    pub chain_id: u64,
-    pub max_priority_fee_per_gas: u128,
-    pub max_fee_per_gas: u128,
-    pub gas_limit: u64,
-    pub nonce: u64,
-    pub fee_token: Address,
-    pub calls: Vec<TransactionCall>,
+pub(super) struct TempoTransaction {
+    pub(super) chain_id: u64,
+    pub(super) max_priority_fee_per_gas: u128,
+    pub(super) max_fee_per_gas: u128,
+    pub(super) gas_limit: u64,
+    pub(super) nonce: u64,
+    pub(super) fee_token: Address,
+    pub(super) calls: Vec<TransactionCall>,
 }
 
 impl TempoTransaction {
@@ -54,15 +53,14 @@ impl TempoTransaction {
         self.max_fee_per_gas.encode(out);
         self.gas_limit.encode(out);
         self.calls.encode(out);
-        Header { list: true, payload_length: 0 }.encode(out); // access_list = []
-        U256::ZERO.encode(out); // nonce_key = 0 (protocol nonce)
+        Header { list: true, payload_length: 0 }.encode(out);
+        U256::ZERO.encode(out);
         self.nonce.encode(out);
-        out.put_u8(EMPTY_STRING_CODE); // valid_before = None
-        out.put_u8(EMPTY_STRING_CODE); // valid_after = None
+        out.put_u8(EMPTY_STRING_CODE);
+        out.put_u8(EMPTY_STRING_CODE);
         self.fee_token.encode(out);
-        out.put_u8(EMPTY_STRING_CODE); // fee_payer_signature = None
-        Header { list: true, payload_length: 0 }.encode(out); // aa_authorization_list = []
-        // key_authorization: omitted entirely (no bytes) when None, per spec
+        out.put_u8(EMPTY_STRING_CODE);
+        Header { list: true, payload_length: 0 }.encode(out);
     }
 
     fn fields_payload_length(&self) -> usize {
@@ -71,14 +69,14 @@ impl TempoTransaction {
             + self.max_fee_per_gas.length()
             + self.gas_limit.length()
             + self.calls.length()
-            + 1 // access_list = []
+            + 1
             + U256::ZERO.length()
             + self.nonce.length()
-            + 1 // valid_before = None
-            + 1 // valid_after = None
+            + 1
+            + 1
             + self.fee_token.length()
-            + 1 // fee_payer_signature = None
-            + 1 // aa_authorization_list = []
+            + 1
+            + 1
     }
 
     fn signature_hash(&self) -> B256 {
@@ -107,11 +105,22 @@ impl TempoTransaction {
 mod tests {
     use super::*;
     use alloy_primitives::Signature;
-    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
+    use primitives::{Chain, testkit::signer_mock::TEST_PRIVATE_KEY};
 
     #[test]
     fn test_sign_is_byte_stable_and_recovers_signer() {
-        let transaction = TempoTransaction::mock();
+        let transaction = TempoTransaction {
+            chain_id: Chain::Tempo.network_id().parse().unwrap(),
+            max_priority_fee_per_gas: 0,
+            max_fee_per_gas: 20_000_000_000,
+            gas_limit: 300_000,
+            nonce: 0,
+            fee_token: primitives::asset_constants::TEMPO_USDC_TOKEN_ID.parse().unwrap(),
+            calls: vec![TransactionCall::new(
+                crate::testkit::TEMPO_TEST_ROUTER_ADDRESS.parse().unwrap(),
+                alloy_primitives::Bytes::from(vec![0xab, 0xcd]),
+            )],
+        };
         let signed = transaction.sign(&TEST_PRIVATE_KEY).unwrap();
 
         assert_eq!(

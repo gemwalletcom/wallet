@@ -12,7 +12,7 @@ public extension GemTransactionLoadFee {
             gasPriceType: gasPriceType.map(),
             gasLimit: BigInt.from(string: gasLimit),
             options: options.map(),
-            feeAssetId: AssetId(id: feeAssetId),
+            feeAsset: try feeAsset.map(),
         )
     }
 }
@@ -24,7 +24,7 @@ public extension Fee {
             gasPriceType: gasPriceType.map(),
             gasLimit: gasLimit.description,
             options: options.map(),
-            feeAssetId: feeAssetId.identifier,
+            feeAsset: feeAsset.map(),
         )
     }
 }

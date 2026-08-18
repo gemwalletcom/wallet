@@ -9,13 +9,11 @@ rpc = ["gem_evm/rpc", "dep:async-trait", "dep:chain_traits", "dep:gem_client"]
 reqwest = ["rpc", "gem_evm/reqwest"]
 signer = ["gem_evm/signer", "dep:alloy-rlp", "alloy-primitives/rlp", "dep:signer"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
-testkit = ["primitives/testkit", "gem_evm/testkit"]
 
 [dependencies]
 primitives = { path = "../primitives" }
 gem_evm = { path = "../gem_evm" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
-serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 signer = { path = "../signer", optional = true }
 
 gem_client = { path = "../gem_client", optional = true }
@@ -26,8 +24,6 @@ alloy-sol-types = { workspace = true }
 alloy-rlp = { workspace = true, optional = true }
 hex = { workspace = true }
 num-bigint = { workspace = true }
-num-traits = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]

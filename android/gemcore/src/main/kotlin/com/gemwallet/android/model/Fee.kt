@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import java.math.BigInteger
@@ -7,19 +8,20 @@ import java.math.BigInteger
 sealed interface Fee {
 
     val priority: FeePriority
-    val feeAssetId: AssetId
+    val feeAsset: Asset
+    val feeAssetId: AssetId get() = feeAsset.id
 
     val amount: BigInteger
 
     class Plain(
-        override val feeAssetId: AssetId,
+        override val feeAsset: Asset,
         override val priority: FeePriority,
         override val amount: BigInteger,
         val options: Map<String, BigInteger>,
     ) : Fee
 
     class Regular(
-        override val feeAssetId: AssetId,
+        override val feeAsset: Asset,
         override val priority: FeePriority,
         override val amount: BigInteger,
         val maxGasPrice: BigInteger,
@@ -28,7 +30,7 @@ sealed interface Fee {
     ) : Fee
 
     class Eip1559(
-        override val feeAssetId: AssetId,
+        override val feeAsset: Asset,
         override val priority: FeePriority,
         override val amount: BigInteger,
         val maxGasPrice: BigInteger,
@@ -38,7 +40,7 @@ sealed interface Fee {
     ) : Fee
 
     class Solana(
-        override val feeAssetId: AssetId,
+        override val feeAsset: Asset,
         override val priority: FeePriority,
         override val amount: BigInteger,
         val minerFee: BigInteger,

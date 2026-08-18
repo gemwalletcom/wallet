@@ -4,7 +4,6 @@ import com.gemwallet.android.blockchain.gemstone.selectFeeRate
 import com.gemwallet.android.blockchain.gemstone.toFee
 import com.gemwallet.android.blockchain.gemstone.toScanTransactionPayload
 import com.gemwallet.android.blockchain.gemstone.validate
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeSelection
@@ -78,8 +77,7 @@ class SignerPreloaderProxy(
             }
             scanDeferred.await()?.validate(params)
             val result = transactionLoadDeferred.await()
-            val feeAssetId = requireNotNull(result.fee.feeAssetId.toAssetId()) { "Invalid fee asset ID: ${result.fee.feeAssetId}" }
-            val fee = chain.toFee(feeAssetId, selectedPriority, result.fee)
+            val fee = result.fee.toFee(selectedPriority)
 
             SignerParams(
                 input = params,

@@ -3737,7 +3737,7 @@ dependencies = [
 
 [[package]]
 name = "gem_everstake"
-version = "2.114.8"
+version = "2.114.9"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3866,7 +3866,7 @@ dependencies = [
 
 [[package]]
 name = "gem_monad"
-version = "2.114.8"
+version = "2.114.9"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3909,7 +3909,7 @@ dependencies = [
 
 [[package]]
 name = "gem_optimism"
-version = "2.114.8"
+version = "2.114.9"
 dependencies = [
  "alloy-primitives",
  "async-trait",
@@ -3917,7 +3917,6 @@ dependencies = [
  "gem_evm",
  "gem_jsonrpc",
  "num-bigint 0.5.1",
- "num-traits",
  "primitives",
 ]
 
@@ -4047,7 +4046,7 @@ dependencies = [
 
 [[package]]
 name = "gem_tempo"
-version = "2.114.8"
+version = "2.114.9"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -4059,11 +4058,8 @@ dependencies = [
  "gem_jsonrpc",
  "hex",
  "num-bigint 0.5.1",
- "num-traits",
  "primitives",
- "serde",
  "serde_json",
- "serde_serializers",
  "settings",
  "signer",
  "tokio",

@@ -1,26 +1,19 @@
-pub mod contracts;
-pub mod fee;
+mod contracts;
+#[cfg(any(feature = "rpc", test))]
+mod fee;
 
 #[cfg(feature = "rpc")]
-pub mod balances;
+mod fee_calculator;
 #[cfg(feature = "rpc")]
-pub mod client;
+mod mapper;
 #[cfg(feature = "rpc")]
-pub mod fee_calculator;
-#[cfg(feature = "rpc")]
-pub mod mapper;
-#[cfg(feature = "rpc")]
-pub mod preload;
-#[cfg(feature = "rpc")]
-pub mod provider;
-#[cfg(feature = "rpc")]
-pub mod transaction_state;
+mod provider;
 
 #[cfg(feature = "signer")]
-pub mod signer;
+mod signer;
 
-#[cfg(any(test, feature = "testkit"))]
-pub mod testkit;
+#[cfg(test)]
+mod testkit;
 
 #[cfg(feature = "rpc")]
 pub use provider::TempoProvider;

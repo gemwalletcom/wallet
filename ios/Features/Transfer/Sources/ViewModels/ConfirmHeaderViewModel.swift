@@ -62,7 +62,7 @@ private extension ConfirmHeaderViewModel {
             transactionData: state.transaction.value?.transactionData,
             metaData: state.metadata,
             transferAmount: state.transaction.value?.transferAmount,
-            feeAsset: state.transaction.value?.feeAsset,
+            feeAsset: state.feeAsset,
         ).headerType
     }
 }

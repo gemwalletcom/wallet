@@ -5,9 +5,7 @@ use std::str::FromStr;
 use alloy_primitives::{Address, Bytes, U256};
 use gem_evm::encode::{encode_erc20_approve_max_value, encode_erc20_transfer};
 use gem_evm::signer::{EvmSigner, TransactionParams, build_eip1559_transaction, sign_and_encode};
-use primitives::{SignerError, SignerInput, decode_hex, swap::ApprovalData};
-
-use crate::fee::native_token_contract;
+use primitives::{SignerError, SignerInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, decode_hex, swap::ApprovalData};
 
 use transaction::{TempoTransaction, TransactionCall};
 
@@ -17,7 +15,7 @@ impl EvmSigner for TempoSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let params = TransactionParams::from_input(input)?;
         let data = encode_erc20_transfer(&input.destination_address, &input.get_value()?)?;
-        sign_and_encode(&build_eip1559_transaction(&params, native_token_contract(), U256::ZERO, Bytes::from(data))?, private_key)
+        sign_and_encode(&build_eip1559_transaction(&params, TEMPO_PATHUSD_TOKEN_ID, U256::ZERO, Bytes::from(data))?, private_key)
     }
 
     fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
@@ -77,11 +75,11 @@ fn sign_swap_call(
 }
 
 fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {
-    let fee_asset_id = &input.fee.fee_asset_id;
-    if fee_asset_id.chain != input.input_type.get_asset().chain {
+    let fee_asset = &input.fee.fee_asset;
+    if fee_asset.chain != input.input_type.get_asset().chain {
         return Err(SignerError::invalid_input("mismatched Tempo fee asset"));
     }
-    Address::from_str(fee_asset_id.token_id.as_deref().unwrap_or(native_token_contract())).map_err(SignerError::from_display)
+    Address::from_str(fee_asset.token_id.as_deref().unwrap_or(TEMPO_PATHUSD_TOKEN_ID)).map_err(SignerError::from_display)
 }
 
 #[cfg(test)]
@@ -91,7 +89,7 @@ mod tests {
     use gem_evm::signer::EvmChainSigner;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
-        Asset, AssetId, Chain, ChainSigner,
+        Asset, AssetType, Chain, ChainSigner,
         asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
     };
 
@@ -114,16 +112,20 @@ mod tests {
         let usdc = Asset::mock_tempo_usdc();
         let user_token = crate::testkit::TEMPO_TEST_USER_FEE_TOKEN;
 
-        let token_input = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), None);
+        let token_input = mock_tempo_swap_input(usdc.clone(), usdc.clone(), None);
         assert_eq!(get_fee_token(&token_input).unwrap(), TEMPO_USDC_TOKEN_ID.parse::<Address>().unwrap());
 
-        let user_token_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_token(Chain::Tempo, user_token), None);
+        let user_token_input = mock_tempo_swap_input(
+            usdc.clone(),
+            Asset::mock_with_params(Chain::Tempo, Some(user_token.to_string()), "User USD".to_string(), "USD".to_string(), 6, AssetType::TIP20),
+            None,
+        );
         assert_eq!(get_fee_token(&user_token_input).unwrap(), user_token.parse::<Address>().unwrap());
 
-        let native_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_chain(Chain::Tempo), None);
+        let native_input = mock_tempo_swap_input(usdc.clone(), Asset::from_chain(Chain::Tempo), None);
         assert_eq!(get_fee_token(&native_input).unwrap(), TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap());
 
-        let wrong_chain_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_chain(Chain::Ethereum), None);
+        let wrong_chain_input = mock_tempo_swap_input(usdc.clone(), Asset::from_chain(Chain::Ethereum), None);
         assert!(get_fee_token(&wrong_chain_input).is_err());
     }
 
@@ -131,7 +133,7 @@ mod tests {
     fn test_sign_swap() {
         let usdc = Asset::mock_tempo_usdc();
 
-        let input = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), None);
+        let input = mock_tempo_swap_input(usdc.clone(), usdc.clone(), None);
         assert_eq!(
             tempo_chain_signer().sign_swap(&input, &TEST_PRIVATE_KEY).unwrap(),
             vec![
@@ -139,7 +141,7 @@ mod tests {
             ]
         );
 
-        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), Some(primitives::swap::ApprovalData::mock()));
+        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.clone(), Some(primitives::swap::ApprovalData::mock()));
         assert_eq!(
             tempo_chain_signer().sign_swap(&input_with_approval, &TEST_PRIVATE_KEY).unwrap(),
             vec![
@@ -147,7 +149,7 @@ mod tests {
             ]
         );
 
-        let native_input = mock_tempo_swap_input(Asset::from_chain(Chain::Tempo), AssetId::from_chain(Chain::Tempo), None);
+        let native_input = mock_tempo_swap_input(Asset::from_chain(Chain::Tempo), Asset::from_chain(Chain::Tempo), None);
         assert_eq!(
             tempo_chain_signer().sign_swap(&native_input, &TEST_PRIVATE_KEY).unwrap(),
             vec![

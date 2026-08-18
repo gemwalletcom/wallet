@@ -6,7 +6,7 @@ import GemstonePrimitives
 import Primitives
 
 public protocol FeeAssetProvidable: Sendable {
-    func feeAsset(wallet: Wallet, asset: Asset, fee: Fee) async throws -> (asset: Asset, balance: Balance)
+    func balance(wallet: Wallet, feeAsset: Asset) async throws -> Balance
 }
 
 public struct FeeAssetProvider: FeeAssetProvidable {
@@ -21,33 +21,13 @@ public struct FeeAssetProvider: FeeAssetProvidable {
         self.balanceService = balanceService
     }
 
-    public func feeAsset(wallet: Wallet, asset: Asset, fee: Fee) async throws -> (asset: Asset, balance: Balance) {
-        let feeAssetId = fee.feeAssetId
-        return try await (
-            asset: feeAsset(for: feeAssetId, asset: asset),
-            balance: balance(for: feeAssetId, wallet: wallet)
-        )
-    }
-}
-
-// MARK: - Private
-
-extension FeeAssetProvider {
-    private func feeAsset(for feeAssetId: AssetId, asset: Asset) async throws -> Asset {
-        if feeAssetId == asset.id {
-            asset
-        } else if feeAssetId == asset.feeAsset.id {
-            asset.feeAsset
-        } else {
-            try await assetsService.getOrFetchTokenAsset(for: feeAssetId)
-        }
-    }
-
-    private func balance(for feeAssetId: AssetId, wallet: Wallet) async throws -> Balance {
+    public func balance(wallet: Wallet, feeAsset: Asset) async throws -> Balance {
+        let feeAssetId = feeAsset.id
         if let balance = try balanceService.getBalance(walletId: wallet.id, assetId: feeAssetId) {
             return balance
         }
 
+        try assetsService.addAssets(assets: [feeAsset.defaultBasic])
         try assetsService.addBalanceIfMissing(walletId: wallet.id, assetId: feeAssetId)
         await balanceService.updateBalance(for: wallet, assetIds: [feeAssetId])
         guard let balance = try balanceService.getBalance(walletId: wallet.id, assetId: feeAssetId) else {

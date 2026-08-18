@@ -31,4 +31,4 @@ How to add a chain to Core. The unit of integration is a dedicated `crates/gem_<
 
 ## Fee assets
 
-`TransactionFee.fee_asset_id` is a required `AssetId` end to end — every constructor takes it explicitly (native asset of the chain for standard chains), and a chain fee calculator overrides it when fees are paid in another asset (Tempo). No optional field, no default fill-in at the FFI boundary: apps always receive the concrete fee asset the calculator resolved.
+`TransactionFee.fee_asset` is a required `Asset` end to end — every constructor takes it explicitly (native asset of the chain for standard chains), and a chain fee calculator overrides it when fees are paid in another asset (Tempo). No optional field, ID reconstruction, or default fill-in at the FFI boundary: apps always receive the concrete fee asset the calculator resolved.

@@ -7,7 +7,7 @@ use gem_client::Client;
 use gem_evm::provider::preload_mapper::{TransactionParams, get_extra_fee_gas_limit};
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator};
 use num_bigint::{BigInt, Sign};
-use primitives::{AssetId, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadInput, contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT};
+use primitives::{GasPriceType, TransactionFee, TransactionInputType, TransactionLoadInput, contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT};
 
 pub struct OptimismGasOracle<C: Client + Clone> {
     client: EthereumClient<C>,
@@ -58,7 +58,7 @@ impl<C: Client + Clone> EvmFeeCalculator for OptimismGasOracle<C> {
             fee,
             gas_limit.clone(),
             HashMap::new(),
-            AssetId::from_chain(input.input_type.get_asset().chain),
+            input.input_type.get_fee_asset(),
         ))
     }
 }

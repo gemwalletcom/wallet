@@ -32,7 +32,7 @@ struct TransferExecutorTests {
         let input = TransferConfirmationInput(
             data: .mock(type: .perpetual(.hypercoreUSDC(), .open(.mock()))),
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAssetId: Asset.hypercoreUSDC().id),
+            transactionData: .mock(feeAsset: Asset.hypercoreUSDC()),
             amount: .mock(),
             delegate: nil,
         )
@@ -101,7 +101,7 @@ struct TransferExecutorTests {
         let input = TransferConfirmationInput(
             data: .mock(type: .swap(hype, usdc, swapData)),
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAssetId: Asset.hypercoreSpotUSDC().id),
+            transactionData: .mock(feeAsset: Asset.hypercoreSpotUSDC()),
             amount: .mock(),
             delegate: nil,
         )
@@ -136,7 +136,7 @@ struct TransferExecutorTests {
         let input = TransferConfirmationInput(
             data: .mock(type: .stake(.mockHypercore(), .unstake(.mock()))),
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAssetId: Asset.hypercoreSpotUSDC().id),
+            transactionData: .mock(feeAsset: Asset.hypercoreSpotUSDC()),
             amount: .mock(),
             delegate: nil,
         )
