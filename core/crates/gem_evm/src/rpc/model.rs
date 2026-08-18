@@ -41,7 +41,7 @@ impl Transaction {
         match self.calls.as_ref().and_then(|calls| calls.last()) {
             Some(call) => Transaction {
                 to: call.to.clone(),
-                value: BigUint::from(0u8),
+                value: call.value.clone(),
                 input: call.input.clone(),
                 ..self.clone()
             },
@@ -54,6 +54,8 @@ impl Transaction {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionCall {
     pub to: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_biguint_from_hex_str")]
+    pub value: BigUint,
     pub input: String,
 }
 
@@ -226,6 +228,10 @@ mod tests {
         assert_eq!(ethereum_address_checksum(swap_transaction.to.as_deref().unwrap()).unwrap(), BATCH_PRIMARY_CALL_TARGET);
         assert_eq!(swap_transaction.value, BigUint::from(0u8));
         assert_eq!(&swap_transaction.input[..10], "0x3593564c");
+
+        let mut transaction_with_value = transaction.clone();
+        transaction_with_value.calls.as_mut().unwrap().last_mut().unwrap().value = BigUint::from(42u8);
+        assert_eq!(transaction_with_value.with_primary_call().value, BigUint::from(42u8));
 
         let mut single_call = transaction.clone();
         single_call.calls.as_mut().unwrap().truncate(1);

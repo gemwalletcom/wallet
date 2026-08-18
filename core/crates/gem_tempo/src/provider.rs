@@ -3,8 +3,8 @@ use std::error::Error;
 use async_trait::async_trait;
 use chain_traits::{
     ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainState, ChainToken, ChainTraits,
-    ChainTransaction, ChainTransactionBroadcast, ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionFeeOperation, TransactionIdRequest,
-    TransactionsRequest, TransactionsResult,
+    ChainTransaction, ChainTransactionBroadcast, ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionFeeEstimate, TransactionFeeEstimates,
+    TransactionFeeOperation, TransactionIdRequest, TransactionsRequest, TransactionsResult,
 };
 use gem_client::Client;
 use gem_evm::provider::transaction_state_mapper::map_transaction_status_with_fee;
@@ -73,7 +73,10 @@ impl<C: Client + Clone> ChainBalances for TempoProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionLoad for TempoProvider<C> {
     fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
-        self.provider.transaction_fee_estimate_units(operation)
+        self.provider.transaction_fee_estimate_units(match operation {
+            TransactionFeeOperation::Transfer => TransactionFeeOperation::TokenTransfer,
+            operation => operation,
+        })
     }
 
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
@@ -186,7 +189,34 @@ impl<C: Client + Clone> ChainStaking for TempoProvider<C> {}
 impl<C: Client + Clone> ChainPerpetual for TempoProvider<C> {}
 impl<C: Client + Clone> ChainAccount for TempoProvider<C> {}
 impl<C: Client + Clone> ChainAddressStatus for TempoProvider<C> {}
-impl<C: Client + Clone> ChainTraits for TempoProvider<C> {}
+#[async_trait]
+impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
+    async fn get_transaction_fee_estimates(&self) -> Result<TransactionFeeEstimates, Box<dyn Error + Sync + Send>> {
+        let mut estimates = self.provider.get_transaction_fee_estimates().await?;
+        let transfer_units = self
+            .transaction_fee_estimate_units(TransactionFeeOperation::Transfer)
+            .ok_or("Missing transfer fee estimate units")?;
+        for estimate in &mut estimates.transfer {
+            estimate.fee.gas_limit = transfer_units.into();
+            estimate.fee.fee = estimate.fee.gas_price_type.total_fee() * &estimate.fee.gas_limit;
+        }
+
+        let scale = |estimates: &mut Vec<TransactionFeeEstimate>| {
+            estimates.retain(|estimate| estimate.priority == FeePriority::Normal);
+            for estimate in estimates {
+                estimate.fee.fee = scale_fee_to_token_units(estimate.fee.fee.clone());
+            }
+        };
+        scale(&mut estimates.transfer);
+        if let Some(estimates) = &mut estimates.token_transfer {
+            scale(estimates);
+        }
+        if let Some(estimates) = &mut estimates.swap {
+            scale(estimates);
+        }
+        Ok(estimates)
+    }
+}
 
 fn map_pathusd_transfer_input(input: TransactionLoadInput) -> TransactionLoadInput {
     let asset = match &input.input_type {
@@ -262,6 +292,28 @@ mod tests {
             result.changes,
             vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigInt::from(595u64))]
         );
+    }
+
+    #[tokio::test]
+    async fn scales_fee_estimates_to_tip20_units() {
+        let client = EthereumClient::new(
+            mock_jsonrpc_client(|_, _| {
+                Ok(serde_json::json!({
+                    "reward": [["0x0", "0x0"]],
+                    "baseFeePerGas": ["0x4a817c800", "0x4a817c800"],
+                    "gasUsedRatio": [0.5],
+                    "oldestBlock": "0x1"
+                }))
+            }),
+            EVMChain::Tempo,
+        );
+
+        let estimates = TempoProvider::new(client).get_transaction_fee_estimates().await.unwrap();
+        assert_eq!(estimates.transfer.len(), 1);
+        assert_eq!(estimates.transfer[0].priority, FeePriority::Normal);
+        assert_eq!(estimates.transfer[0].fee.gas_limit, BigInt::from(65_000u64));
+        assert_eq!(estimates.transfer[0].fee.fee, BigInt::from(1_300u64));
+        assert_eq!(estimates.token_transfer.unwrap()[0].fee.fee, BigInt::from(1_300u64));
     }
 }
 

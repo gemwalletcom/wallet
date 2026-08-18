@@ -1402,7 +1402,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             denom: None,
             slip44: 60,
             chain_type: ChainType::Ethereum,
-            fee_unit_type: FeeUnitType::Native,
+            fee_unit_type: FeeUnitType::Gwei,
             default_asset_type: Some(AssetType::TIP20),
             account_activation_fee: None,
             token_activation_fee: None,

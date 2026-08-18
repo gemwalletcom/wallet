@@ -72,6 +72,24 @@ struct ConfirmTransferInputProviderTests {
             try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
         }
     }
+
+    @Test
+    func loadRethrowsFeeAssetFailure() async {
+        let provider = ConfirmTransferInputProvider(
+            transferTransactionProvider: TransferTransactionProviderMock(result: .success(
+                TransferTransactionData(allRates: [], transactionData: .mock()),
+            )),
+            feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
+        )
+        let metadata = TransferDataMetadata.mock(
+            feeAssetId: AssetId(chain: .ethereum, tokenId: nil),
+            assetFeeBalance: .mock(available: .zero),
+        )
+
+        await #expect(throws: AnyError.self) {
+            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+        }
+    }
 }
 
 private extension ConfirmTransferInputProvider {

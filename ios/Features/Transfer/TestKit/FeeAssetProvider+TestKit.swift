@@ -6,13 +6,25 @@ import PrimitivesTestKit
 import Transfer
 
 public struct FeeAssetProviderMock: FeeAssetProvidable {
-    private let assetData: AssetData
+    private enum Result {
+        case success(AssetData)
+        case failure(String)
+    }
+
+    private let result: Result
 
     public init(asset: Asset = .mock(), balance: Balance = .mock(), price: Price? = nil) {
-        assetData = .mock(asset: asset, balance: balance, price: price)
+        result = .success(.mock(asset: asset, balance: balance, price: price))
+    }
+
+    public init(error: String) {
+        result = .failure(error)
     }
 
     public func load(walletId _: WalletId, feeAssetId _: AssetId) throws -> AssetData {
-        assetData
+        switch result {
+        case let .success(assetData): assetData
+        case let .failure(error): throw AnyError(error)
+        }
     }
 }
