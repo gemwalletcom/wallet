@@ -32,6 +32,14 @@ impl<C: Client + Clone + 'static> TempoProvider<C> {
             provider: EthereumProvider::new_rpc_only_with_extensions(client, extensions),
         }
     }
+
+    pub fn new_or_else(client: EthereumClient<C>, fallback: impl FnOnce(EthereumClient<C>) -> Box<dyn ChainTraits>) -> Box<dyn ChainTraits> {
+        if client.get_chain() == Chain::Tempo {
+            Box::new(Self::new(client))
+        } else {
+            fallback(client)
+        }
+    }
 }
 
 impl<C: Client + Clone> ChainProvider for TempoProvider<C> {
@@ -201,11 +209,29 @@ fn map_pathusd_transfer_input(input: TransactionLoadInput) -> TransactionLoadInp
 
 #[cfg(test)]
 mod tests {
+    use std::cell::Cell;
+
     use super::*;
     use gem_evm::provider::preload_mapper::map_evm_transaction_params;
     use gem_evm::rpc::model::TransactionReceipt;
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use num_bigint::{BigInt, BigUint};
     use primitives::{EVMChain, TransactionChange, asset_constants::TEMPO_USDC_TOKEN_ID, hex, testkit::signer_mock::TEST_EVM_RECIPIENT};
+
+    #[test]
+    fn selects_tempo_provider() {
+        let tempo = EthereumClient::new(mock_jsonrpc_client(|_, _| unreachable!()), EVMChain::Tempo);
+        let provider = TempoProvider::new_or_else(tempo, |_| unreachable!());
+        assert_eq!(provider.get_chain(), Chain::Tempo);
+
+        let fallback_called = Cell::new(false);
+        let ethereum = EthereumClient::new(mock_jsonrpc_client(|_, _| unreachable!()), EVMChain::Ethereum);
+        TempoProvider::new_or_else(ethereum, |client| {
+            fallback_called.set(true);
+            Box::new(EthereumProvider::new_rpc_only(client))
+        });
+        assert!(fallback_called.get());
+    }
 
     #[test]
     fn maps_chain_asset_transfer_to_pathusd_contract() {

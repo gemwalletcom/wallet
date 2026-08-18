@@ -83,11 +83,11 @@ impl ChainClientFactory {
             ChainType::Ethereum => {
                 let evm_chain = EVMChain::from_chain(chain).unwrap();
                 let client = EthereumClient::new(JsonRpcClient::new(alien_client), evm_chain);
-                if evm_chain == EVMChain::Tempo {
-                    return Ok(Arc::new(TempoProvider::new(client)));
-                }
-                let extensions = evm_provider_extensions(evm_chain, &client);
-                Ok(Arc::new(EthereumProvider::new_rpc_only_with_extensions(client, extensions)))
+                let provider = TempoProvider::new_or_else(client, |client| {
+                    let extensions = evm_provider_extensions(evm_chain, &client);
+                    Box::new(EthereumProvider::new_rpc_only_with_extensions(client, extensions))
+                });
+                Ok(Arc::from(provider))
             }
         }
     }

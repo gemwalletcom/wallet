@@ -104,37 +104,36 @@ impl ProviderFactory {
                 let evm_chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
                 let client = EthereumClient::new(rpc_client, evm_chain);
-                if evm_chain == EVMChain::Tempo {
-                    return Box::new(TempoProvider::new(client));
-                }
-                let indexer = EVMIndexer::for_chain(
-                    gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
-                        chain,
-                        &config.indexers.alchemy.url,
-                        &config.indexers.alchemy.key,
-                    )),
-                    gem_client.clone().with_request_timeout(config.indexers.ankr.timeout).with_base_url(format!(
-                        "{}/{}",
-                        config.indexers.ankr.url.trim_end_matches('/'),
-                        config.indexers.ankr.key
-                    )),
-                    config.indexers.blockscout.configure_client(gem_client),
-                    config.indexers.blockscout.key,
-                    evm_chain,
-                );
-                let extensions = evm_provider_extensions(evm_chain, &client);
-                let provider = if let Some(indexer) = indexer {
-                    let indexer = Arc::new(indexer);
-                    EthereumProvider::new(
-                        client,
-                        Box::new(EVMTransactionsByAddressProvider::new(indexer.clone())),
-                        Box::new(EVMAssetBalanceProvider::new(indexer)),
-                        extensions,
-                    )
-                } else {
-                    EthereumProvider::new_rpc_only_with_extensions(client, extensions)
-                };
-                Box::new(provider)
+                TempoProvider::new_or_else(client, |client| {
+                    let indexer = EVMIndexer::for_chain(
+                        gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
+                            chain,
+                            &config.indexers.alchemy.url,
+                            &config.indexers.alchemy.key,
+                        )),
+                        gem_client.clone().with_request_timeout(config.indexers.ankr.timeout).with_base_url(format!(
+                            "{}/{}",
+                            config.indexers.ankr.url.trim_end_matches('/'),
+                            config.indexers.ankr.key
+                        )),
+                        config.indexers.blockscout.configure_client(gem_client),
+                        config.indexers.blockscout.key,
+                        evm_chain,
+                    );
+                    let extensions = evm_provider_extensions(evm_chain, &client);
+                    let provider = if let Some(indexer) = indexer {
+                        let indexer = Arc::new(indexer);
+                        EthereumProvider::new(
+                            client,
+                            Box::new(EVMTransactionsByAddressProvider::new(indexer.clone())),
+                            Box::new(EVMAssetBalanceProvider::new(indexer)),
+                            extensions,
+                        )
+                    } else {
+                        EthereumProvider::new_rpc_only_with_extensions(client, extensions)
+                    };
+                    Box::new(provider)
+                })
             }
             ChainType::Cardano => Box::new(CardanoClient::new(gem_client)),
             ChainType::Cosmos => {
