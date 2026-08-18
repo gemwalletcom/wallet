@@ -3,11 +3,7 @@ use crate::{
     SwapperSlippage, SwapperSlippageMode,
 };
 use async_trait::async_trait;
-use primitives::{
-    AssetId, Chain,
-    asset_constants::TON_USDT_TOKEN_ID,
-    swap::{ProxyQuoteRequest, QuoteAsset, SlippageMode},
-};
+use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
 
 use super::{Options, Quote, QuoteRequest};
 
@@ -106,20 +102,6 @@ pub fn mock_bitcoin_max_quote(to_asset: SwapperQuoteAsset) -> QuoteRequest {
     request.value = "89100".into();
     request.options.use_max_amount = true;
     request
-}
-
-pub fn mock_proxy_quote_request_from_assets(from_asset: AssetId, to_asset: AssetId, address: &str, value: &str, slippage_bps: u32) -> ProxyQuoteRequest {
-    ProxyQuoteRequest {
-        from_address: address.to_string(),
-        to_address: address.to_string(),
-        from_asset: QuoteAsset::from(from_asset),
-        to_asset: QuoteAsset::from(to_asset),
-        from_value: value.to_string(),
-        referral_bps: 70,
-        slippage_bps,
-        slippage_mode: SlippageMode::Auto,
-        use_max_amount: false,
-    }
 }
 
 pub fn mock_ton(wallet_address: String) -> QuoteRequest {

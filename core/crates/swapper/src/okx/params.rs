@@ -17,7 +17,7 @@ const OKX_MAX_SLIPPAGE_BPS_EVM: u32 = HUNDRED_PERCENT_IN_BPS;
 const OKX_MAX_SLIPPAGE_BPS_SOLANA: u32 = HUNDRED_PERCENT_IN_BPS - 1;
 const MAX_SLIPPAGE_PERCENT_BPS: u32 = 100;
 
-pub(super) fn limit_slippage_bps(slippage_bps: u32, chain: Chain) -> u32 {
+fn limit_slippage_bps(slippage_bps: u32, chain: Chain) -> u32 {
     let max = if chain == Chain::Solana {
         OKX_MAX_SLIPPAGE_BPS_SOLANA
     } else {
@@ -26,7 +26,7 @@ pub(super) fn limit_slippage_bps(slippage_bps: u32, chain: Chain) -> u32 {
     slippage_bps.min(max)
 }
 
-pub(super) fn slippage_percent(slippage_bps: u32) -> String {
+fn slippage_percent(slippage_bps: u32) -> String {
     bps_to_percent_string(slippage_bps.min(MAX_SLIPPAGE_PERCENT_BPS)).unwrap_or_else(|_| "1".to_string())
 }
 

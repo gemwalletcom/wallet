@@ -91,8 +91,6 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 swap::post_swaps_xyz_action,
                 swap::okx::post_okx_quote_v6,
                 swap::okx::post_okx_swap_v6,
-                swap::okx::post_okx_quote_legacy,
-                swap::okx::post_okx_quote_data_legacy,
             ],
         )
         .mount(
