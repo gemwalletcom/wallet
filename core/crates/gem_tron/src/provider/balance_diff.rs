@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint};
 use primitives::Address as _;
 
 use crate::address::TronAddress;
@@ -41,14 +41,8 @@ pub fn internal_transaction_deltas(internal_transactions: &[InternalTransaction]
 }
 
 fn decode_transfer_delta(log: &TronLog, owner: &TronAddress) -> Option<(String, BigInt)> {
-    let topics = log.topics.as_ref()?;
-    if topics.len() != 3 || topics[0] != ERC20_TRANSFER_EVENT_SIGNATURE {
-        return None;
-    }
-
-    let from = TronAddress::from_topic(&topics[1])?;
-    let to = TronAddress::from_topic(&topics[2])?;
-    let amount = BigInt::parse_bytes(log.data.as_deref()?.as_bytes(), 16)?;
+    let (token, from, to, amount) = decode_token_transfer(log)?;
+    let amount = BigInt::from(amount);
 
     let delta = match (from == *owner, to == *owner) {
         (false, false) => return None,
@@ -57,7 +51,20 @@ fn decode_transfer_delta(log: &TronLog, owner: &TronAddress) -> Option<(String, 
         (true, true) => BigInt::default(),
     };
 
-    Some((log.address?.encode(), delta))
+    Some((token?.encode(), delta))
+}
+
+pub(super) fn decode_token_transfer(log: &TronLog) -> Option<(Option<TronAddress>, TronAddress, TronAddress, BigUint)> {
+    let topics = log.topics.as_ref()?;
+    if topics.len() != 3 || topics[0] != ERC20_TRANSFER_EVENT_SIGNATURE {
+        return None;
+    }
+
+    let from = TronAddress::from_topic(&topics[1])?;
+    let to = TronAddress::from_topic(&topics[2])?;
+    let amount = BigUint::parse_bytes(log.data.as_deref()?.as_bytes(), 16)?;
+
+    Some((log.address, from, to, amount))
 }
 
 #[cfg(test)]

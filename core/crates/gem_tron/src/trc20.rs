@@ -4,6 +4,8 @@ use primitives::Address as _;
 use crate::address::TronAddress;
 
 const ABI_WORD_LEN: usize = 32;
+#[cfg(feature = "rpc")]
+const GASFREE_PERMIT_TRANSFER_SELECTOR: [u8; 4] = [0x6f, 0x21, 0xb8, 0x98];
 const TRC20_APPROVE_SELECTOR: [u8; 4] = [0x09, 0x5e, 0xa7, 0xb3];
 #[cfg(feature = "signer")]
 const TRC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
@@ -43,6 +45,20 @@ pub(crate) fn decode_approval(data: &[u8]) -> Option<ApprovalCall> {
     let value = BigUint::from_bytes_be(data.get(TRC20_APPROVE_SELECTOR.len() + ABI_WORD_LEN..)?);
 
     Some(ApprovalCall { spender, value })
+}
+
+#[cfg(feature = "rpc")]
+pub(crate) fn decode_gasfree_permit_transfer_hex(data: &str) -> Option<(TronAddress, TronAddress, BigUint)> {
+    let data = hex::decode(data).ok()?;
+    let arguments = data.strip_prefix(&GASFREE_PERMIT_TRANSFER_SELECTOR)?;
+    let mut words = arguments.chunks_exact(ABI_WORD_LEN);
+    let token = TronAddress::from_abi_word(words.next()?)?;
+    words.next()?;
+    let receiver = TronAddress::from_abi_word(words.next()?)?;
+    let value = BigUint::from_bytes_be(words.next()?);
+    words.nth(4)?;
+
+    Some((token, receiver, value))
 }
 
 fn pad_left(data: &[u8], len: usize) -> Result<Vec<u8>, &'static str> {

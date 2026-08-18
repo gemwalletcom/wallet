@@ -2,8 +2,8 @@ use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{DateTime, Utc};
 use num_bigint::{BigInt, BigUint};
 use primitives::{
-    Address as _, AssetId, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain, decode_hex,
-    hex::decode_hex_utf8, stake_type::Resource,
+    Address as _, AssetId, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain, hex::decode_hex_utf8,
+    stake_type::Resource,
 };
 use serde_json::Value;
 use std::collections::HashMap;
@@ -13,8 +13,7 @@ use crate::address::TronAddress;
 use crate::models::{
     BlockTransactions, ContractParameterValue, InternalTransaction, Transaction as TronTransaction, TransactionReceiptData, TronContractType, TronLog, TronTransactionBroadcast,
 };
-use crate::provider::balance_diff::{internal_transaction_deltas, token_balance_deltas};
-use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
+use crate::provider::balance_diff::{decode_token_transfer, internal_transaction_deltas, token_balance_deltas};
 use crate::trc20;
 
 fn decode_hex_message(hex_str: &str) -> String {
@@ -170,6 +169,7 @@ impl TransactionContext {
 
     fn map_trigger_smart_contract(&self, contract_value: &ContractParameterValue, logs: &[TronLog], internal_transactions: &[InternalTransaction]) -> Option<Transaction> {
         self.map_token_approval(contract_value)
+            .or_else(|| self.map_gasfree_transfer(contract_value, logs))
             .or_else(|| self.map_swap(contract_value, logs, internal_transactions))
             .or_else(|| self.map_token_transfer(contract_value, logs))
     }
@@ -207,18 +207,33 @@ impl TransactionContext {
             return None;
         }
 
-        let log = logs.first()?;
-        let topics = log.topics.as_ref()?;
-        if topics.len() != 3 || topics.first()?.as_str() != ERC20_TRANSFER_EVENT_SIGNATURE {
-            return None;
-        }
-
-        let from = TronAddress::from_topic(&topics[1])?.encode();
-        let to = TronAddress::from_topic(&topics[2])?.encode();
-        let value = BigUint::from_bytes_be(&decode_hex(log.data.as_deref()?).ok()?).to_string();
+        let (_, from, to, value) = decode_token_transfer(logs.first()?)?;
         let asset_id = AssetId::from_token(self.chain, contract_value.contract_address.as_ref()?);
 
-        Some(self.build_transaction(asset_id, from, to, TransactionType::Transfer, value, None))
+        Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value.to_string(), None))
+    }
+
+    fn map_gasfree_transfer(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
+        let (token, receiver, value) = trc20::decode_gasfree_permit_transfer_hex(contract_value.data.as_deref()?)?;
+        let (transfer_index, from) = logs.iter().enumerate().find_map(|(index, log)| {
+            let (transferred_token, from, to, transferred_value) = decode_token_transfer(log)?;
+            (transferred_token == Some(token) && to == receiver && transferred_value == value).then_some((index, from))
+        })?;
+        let fee = logs
+            .iter()
+            .enumerate()
+            .filter(|(index, _)| *index != transfer_index)
+            .filter_map(|(_, log)| decode_token_transfer(log))
+            .filter(|(fee_token, fee_from, _, _)| *fee_token == Some(token) && *fee_from == from)
+            .map(|(_, _, _, value)| value)
+            .sum::<BigUint>();
+        let asset_id = AssetId::from_token(self.chain, &token.encode());
+
+        Some(Transaction {
+            fee: fee.to_string(),
+            fee_asset_id: asset_id.clone(),
+            ..self.build_transaction(asset_id, from.encode(), receiver.encode(), TransactionType::Transfer, value.to_string(), None)
+        })
     }
 
     fn build_transaction(&self, asset_id: AssetId, from: String, to: String, transaction_type: TransactionType, value: String, metadata: Option<Value>) -> Transaction {
@@ -251,7 +266,7 @@ fn map_transaction_state(contract_ret: &str) -> TransactionState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{BlockTransactions, TransactionReceipt, TransactionReceiptData, TriggerConstantContractResponse, TronContractType, TronTransactionBroadcast};
+    use crate::models::{BlockTransactions, TransactionReceipt, TransactionReceiptData, TriggerConstantContractResponse, TronContractType, TronLog, TronTransactionBroadcast};
     use crate::provider::testkit::{TEST_TOKEN_APPROVAL_TRANSACTION_ID, TEST_TRANSACTION_ID};
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 
@@ -412,23 +427,54 @@ mod tests {
             receipt: TransactionReceipt {
                 result: Some("SUCCESS".to_string()),
             },
-            log: Some(vec![crate::models::TronLog {
-                address: None,
-                topics: Some(vec![
-                    "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".to_string(),
-                    "0000000000000000000000002e1d447fa4169390cf5f5b3d12d380decfbfe20f".to_string(),
-                    "0000000000000000000000006e2cf2878020b966786f01ab45ea1fcef6880092".to_string(),
-                ]),
-                data: Some("00000000000000000000000000000000000000000000000000000000017d7840".to_string()),
-            }]),
+            log: Some(vec![TronLog::mock_transfer(
+                TRON_USDT_TOKEN_ID,
+                "0000000000000000000000002e1d447fa4169390cf5f5b3d12d380decfbfe20f",
+                "0000000000000000000000006e2cf2878020b966786f01ab45ea1fcef6880092",
+                "00000000000000000000000000000000000000000000000000000000017d7840",
+            )]),
             internal_transactions: None,
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
         assert!(result.is_some());
         let transaction = result.unwrap();
+        assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
-        assert_ne!(transaction.from, transaction.to);
+        assert_eq!(transaction.from, "TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb");
+        assert_eq!(transaction.to, "TL1mBABLk68nZwt92dgGc43p5uk1j3YtY9");
+        assert_eq!(transaction.value, "25000000");
+        assert_eq!(transaction.fee, "1000");
+        assert_eq!(transaction.fee_asset_id, Chain::Tron.as_asset_id());
+    }
+
+    #[test]
+    fn test_map_transaction_gasfree_transfer() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_transfer.json")).unwrap();
+        let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_transfer_receipt.json")).unwrap();
+        let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
+
+        assert_eq!(transaction.hash, "81f98d55de44617532d28fa8449f1b9a47952a55637e32d93c54e020b00b64db");
+        assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.from, "TELzUTyXVWaEpnfmaMm6gUghqmL5EyY2kY");
+        assert_eq!(transaction.to, "TL6NY1hGXH2v6pF9fxtj1Fg6Ax5MzBMw5M");
+        assert_eq!(transaction.value, "4653000000");
+        assert_eq!(transaction.fee, "1500000");
+        assert_eq!(transaction.fee_asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
+
+        let activation: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_activation.json")).unwrap();
+        let activation_receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_activation_receipt.json")).unwrap();
+        let activation = map_transaction(Chain::Tron, activation, activation_receipt).unwrap();
+
+        assert_eq!(activation.hash, "097fcb9ad088f99c102b656ef5a2b45b4c3b9f78b46729c087e45c42aa34805c");
+        assert_eq!(activation.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
+        assert_eq!(activation.transaction_type, TransactionType::Transfer);
+        assert_eq!(activation.from, "TG54m1MyZ4iNXf4scDSc5Wg6uEJC2VMUNo");
+        assert_eq!(activation.to, "TQD9VCkck55CrsH26dz9QHMp2exDiA4ua7");
+        assert_eq!(activation.value, "5680000000");
+        assert_eq!(activation.fee, "3000000");
+        assert_eq!(activation.fee_asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
     }
 
     #[test]
