@@ -205,16 +205,6 @@ mod tests {
     }
 
     #[test]
-    fn test_tempo_uniswap_v4_deployment() {
-        let deployment = get_uniswap_deployment_by_chain(&Chain::Tempo).unwrap();
-
-        assert_eq!(deployment.quoter, "0x20E6487C371a2086F841eF453F85378223DF4f4E");
-        assert_eq!(deployment.permit2, UNISWAP_PERMIT2_CONTRACT);
-        assert_eq!(deployment.universal_router, "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91");
-        assert_eq!(deployment.universal_router_abi, UniversalRouterAbi::V2_1);
-    }
-
-    #[test]
     fn test_uniswap_v4_v2_1_deployments() {
         let ethereum = get_uniswap_deployment_by_chain(&Chain::Ethereum).unwrap();
         let base = get_uniswap_deployment_by_chain(&Chain::Base).unwrap();

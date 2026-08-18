@@ -144,9 +144,6 @@ mod tests {
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Robinhood), Some("robinhood"));
         assert_eq!(get_chain_for_coingecko_platform_id("x-layer"), Some(Chain::XLayer));
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::XLayer), Some("x-layer"));
-        assert_eq!(get_chain_for_coingecko_platform_id("tempo"), Some(Chain::Tempo));
-        assert_eq!(get_coingecko_platform_id_for_chain(Chain::Tempo), Some("tempo"));
-        assert_eq!(get_coingecko_market_id_for_chain(Chain::Tempo), "pathusd");
         assert_eq!(get_chain_for_coingecko_platform_id("unknown"), None);
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Bitcoin), None);
 

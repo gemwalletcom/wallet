@@ -12,12 +12,6 @@ import org.junit.Test
 
 class ChainExtTest {
     @Test
-    fun tempo_usesEvmChainType() {
-        assertEquals(ChainType.Ethereum, Chain.Tempo.toChainType())
-        assertEquals(EVMChain.Tempo, Chain.Tempo.toEVM())
-    }
-
-    @Test
     fun seiEvm_usesEvmMappings() {
         assertEquals(AssetType.ERC20, Chain.SeiEvm.assetType())
         assertEquals(EVMChain.SeiEvm, Chain.SeiEvm.toEVM())

@@ -209,8 +209,8 @@ mod tests {
 
     #[test]
     fn test_decode_batched_call_transaction() {
-        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/tempo_swap_batched_tx.json"));
-        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/tempo_swap_batched_tx_receipt.json"));
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/tempo_swap_batched_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/tempo_swap_batched_transaction_receipt.json"));
         let block = load_json_rpc_result::<Block>(include_str!("../../testdata/tempo_swap_batched_block.json"));
 
         assert_eq!(transaction.to, None);

@@ -10,8 +10,8 @@ use crate::rpc::{
 
 use super::TEST_TRANSACTION_ID;
 
-pub const TEMPO_BATCHED_TRANSACTION_JSON: &str = include_str!("../../testdata/tempo_swap_batched_tx.json");
-pub const TEMPO_BATCHED_TRANSACTION_RECEIPT_JSON: &str = include_str!("../../testdata/tempo_swap_batched_tx_receipt.json");
+pub const TEMPO_BATCHED_TRANSACTION_JSON: &str = include_str!("../../testdata/tempo_swap_batched_transaction.json");
+pub const TEMPO_BATCHED_TRANSACTION_RECEIPT_JSON: &str = include_str!("../../testdata/tempo_swap_batched_transaction_receipt.json");
 
 impl Log {
     pub fn mock_erc20_transfer(contract: &str, from: &str, to: &str, value: u64) -> Self {

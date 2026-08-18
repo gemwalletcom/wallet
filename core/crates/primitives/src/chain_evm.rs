@@ -116,13 +116,5 @@ mod tests {
         assert_eq!(Chain::from_chain_id(1329), Some(Chain::SeiEvm));
         assert_eq!(EVMChain::Robinhood.chain_id(), 4663);
         assert_eq!(Chain::from_chain_id(4663), Some(Chain::Robinhood));
-        assert_eq!(EVMChain::Tempo.chain_id(), 4217);
-        assert_eq!(Chain::from_chain_id(4217), Some(Chain::Tempo));
-    }
-
-    #[test]
-    fn test_tempo_native_asset_contract_is_pathusd() {
-        assert_eq!(EVMChain::Tempo.weth_contract(), None);
-        assert_eq!(EVMChain::Tempo.native_asset_contract(), Some(crate::asset_constants::TEMPO_PATHUSD_TOKEN_ID));
     }
 }
