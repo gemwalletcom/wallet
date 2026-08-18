@@ -6,7 +6,8 @@ use num_bigint::BigInt;
 
 use gem_client::Client;
 use primitives::{
-    FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    AssetId, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
+    TransactionPreloadInput,
 };
 
 use crate::{constants::TRANSACTION_FEE_ESTIMATE, rpc::PolkadotProvider};
@@ -34,7 +35,7 @@ impl<C: Client> ChainTransactionLoad for PolkadotProvider<C> {
 
     async fn get_transaction_fee_from_data(&self, transaction: String) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         let fee = self.estimate_fee(&transaction).await?;
-        Ok(TransactionFee::new_from_fee(BigInt::from(fee.partial_fee)))
+        Ok(TransactionFee::new_from_fee(BigInt::from(fee.partial_fee), AssetId::from_chain(Chain::Polkadot)))
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {

@@ -113,7 +113,7 @@ fn map_estimates_by_priority(
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Asset, Chain, FeePriority, GasPriceType, TransactionFee};
+    use primitives::{Asset, AssetId, Chain, FeePriority, GasPriceType, TransactionFee};
     use settings_chain::{TransactionFeeEstimate, TransactionFeeEstimates};
 
     use super::map_fee_estimates;
@@ -128,6 +128,7 @@ mod tests {
                     1_092_000_000_000u64.into(),
                     21_000u64.into(),
                     Default::default(),
+                    AssetId::from_chain(Chain::Ethereum),
                 ),
             }],
             token_transfer: None,
@@ -150,6 +151,7 @@ mod tests {
                     15_000u64.into(),
                     100_000u64.into(),
                     Default::default(),
+                    AssetId::from_chain(Chain::Solana),
                 ),
             }],
             token_transfer: None,

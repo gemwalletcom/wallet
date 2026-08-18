@@ -21,7 +21,7 @@ pub fn map_transaction_status_with_fee(receipt: &TransactionReceipt, network_fee
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigUint;
+    use num_bigint::{BigInt, BigUint};
 
     const BLOCK_HASH: &str = "0x1111111111111111111111111111111111111111111111111111111111111111";
 
@@ -34,6 +34,7 @@ mod tests {
             status: status.to_string(),
             block_hash: block_hash.to_string(),
             block_number,
+            fee_token: None,
         }
     }
 

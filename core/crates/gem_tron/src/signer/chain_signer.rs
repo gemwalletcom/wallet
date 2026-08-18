@@ -93,7 +93,13 @@ mod tests {
     }
 
     fn fee(fee: u64, gas_limit: u64) -> TransactionFee {
-        TransactionFee::new_gas_price_type(GasPriceType::regular(0), BigInt::from(fee), BigInt::from(gas_limit), HashMap::new())
+        TransactionFee::new_gas_price_type(
+            GasPriceType::regular(0),
+            BigInt::from(fee),
+            BigInt::from(gas_limit),
+            HashMap::new(),
+            AssetId::from_chain(Chain::Tron),
+        )
     }
 
     fn native_input(value: &str, transaction_fee: TransactionFee, memo: Option<&str>) -> SignerInput {
@@ -142,7 +148,7 @@ mod tests {
     // https://github.com/trustwallet/wallet-core/blob/master/tests/chains/Tron/SignerTests.cpp
     #[test]
     fn sign_transfer_matches_wallet_core() {
-        let input = native_input("2000000", TransactionFee::default(), None);
+        let input = native_input("2000000", TransactionFee::mock(), None);
         let output = signed_json(TronChainSigner.sign_transfer(&input, &private_key()).unwrap());
 
         assert_eq!(output["txID"], "dc6f6d9325ee44ab3c00528472be16e1572ab076aa161ccd12515029869d0451");
@@ -169,7 +175,7 @@ mod tests {
             "TFnYQCt892UNjn67pjAULTSTkB7YvqsnPp",
             "TBUCzgc29vykkvFaEG2mgRtxKvaKe6skwX",
             "100000",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             Some("Test memo"),
             TransactionLoadMetadata::Tron {
                 block_number: 66_725_852,
@@ -286,7 +292,7 @@ mod tests {
 
     #[test]
     fn sign_transfer_based_swap_uses_swap_destination() {
-        let input = swap_input(None, None, "2000000", TransactionFee::default());
+        let input = swap_input(None, None, "2000000", TransactionFee::mock());
         let output = signed_json(TronChainSigner.sign_swap(&input, &private_key()).unwrap().remove(0));
 
         assert_eq!(
@@ -336,7 +342,7 @@ mod tests {
             NILE_SENDER,
             "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi",
             "10000000",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             Some(note),
             nile_metadata(TronStakeData::Votes(vec![])),
         );
@@ -441,7 +447,7 @@ mod tests {
             SENDER,
             RECIPIENT,
             "0",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             metadata(TronStakeData::Votes(vec![TronVote {
                 validator: RECIPIENT.to_string(),
@@ -494,7 +500,7 @@ mod tests {
             SENDER,
             RECIPIENT,
             "0",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             metadata(TronStakeData::Votes(vec![TronVote {
                 validator: RECIPIENT.to_string(),
@@ -520,7 +526,7 @@ mod tests {
             NILE_SENDER,
             RECIPIENT,
             "10000000",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             nile_metadata(TronStakeData::Votes(vec![])),
         );
@@ -540,7 +546,7 @@ mod tests {
             NILE_SENDER,
             RECIPIENT,
             "510000000",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             nile_metadata(TronStakeData::Votes(vec![])),
         );
@@ -561,7 +567,7 @@ mod tests {
             SENDER,
             RECIPIENT,
             "0",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             metadata(TronStakeData::Votes(vec![])),
         );
@@ -581,7 +587,7 @@ mod tests {
             NILE_SENDER,
             RECIPIENT,
             "0",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             nile_metadata(TronStakeData::Votes(vec![])),
         );
@@ -602,7 +608,7 @@ mod tests {
             SENDER,
             RECIPIENT,
             "0",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             metadata(TronStakeData::Unfreeze(vec![
                 TronUnfreeze {
@@ -673,7 +679,7 @@ mod tests {
             SENDER,
             RECIPIENT,
             "0",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             TransactionLoadMetadata::None,
         )
@@ -810,7 +816,7 @@ mod tests {
             SENDER,
             "INVALID_NOT_BASE58",
             "100",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             metadata(TronStakeData::Votes(vec![])),
         );
@@ -823,7 +829,7 @@ mod tests {
 
     #[test]
     fn sign_transfer_rejects_sender_private_key_mismatch() {
-        let input = native_input("100", TransactionFee::default(), None);
+        let input = native_input("100", TransactionFee::mock(), None);
 
         assert_eq!(
             TronChainSigner.sign_transfer(&input, &nile_private_key()).unwrap_err().to_string(),
@@ -838,7 +844,7 @@ mod tests {
             SENDER,
             RECIPIENT,
             "100",
-            TransactionFee::default(),
+            TransactionFee::mock(),
             None,
             TransactionLoadMetadata::None,
         );

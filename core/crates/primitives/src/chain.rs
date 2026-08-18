@@ -66,6 +66,7 @@ pub enum Chain {
     XLayer,
     Robinhood,
     Stable,
+    Tempo,
 }
 
 impl fmt::Debug for Chain {
@@ -182,6 +183,13 @@ impl Chain {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fee_unit_type() {
+        assert_eq!(Chain::Ethereum.fee_unit_type(), FeeUnitType::Gwei);
+        assert_eq!(Chain::Bitcoin.fee_unit_type(), FeeUnitType::SatVb);
+        assert_eq!(Chain::Tempo.fee_unit_type(), FeeUnitType::Native);
+    }
 
     #[test]
     fn test_mayachain_swap_not_supported() {

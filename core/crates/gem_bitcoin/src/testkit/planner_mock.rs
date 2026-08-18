@@ -4,7 +4,7 @@ use bitcoin::{
     script::PushBytesBuf,
 };
 use num_bigint::BigInt;
-use primitives::{BitcoinChain, GasPriceType, SignerError, SignerInput, TransactionFee, UTXO};
+use primitives::{AssetId, BitcoinChain, Chain, GasPriceType, SignerError, SignerInput, TransactionFee, UTXO};
 
 use crate::{
     signer::{PlanInput, address::UnlockingScript},
@@ -37,7 +37,7 @@ pub(crate) fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<Str
     input.input.gas_price = GasPriceType::regular(BigInt::from(20u64));
     input.input.memo = memo;
     input.input.is_max_value = is_max;
-    input.fee = TransactionFee::new_from_fee(BigInt::from(20u64));
+    input.fee = TransactionFee::new_from_fee(BigInt::from(20u64), AssetId::from_chain(Chain::Bitcoin));
     input
 }
 

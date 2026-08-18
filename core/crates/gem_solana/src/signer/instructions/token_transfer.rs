@@ -108,7 +108,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), None, Some(SolanaTokenProgramId::Token)),
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
 
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
 
@@ -142,7 +142,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token2022)),
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
 
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
 
@@ -162,7 +162,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token2022)),
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
         assert_eq!(
             signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap_err().to_string(),
             "Invalid input: Solana token program metadata does not match asset type"
@@ -178,7 +178,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token)),
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
         let transaction = crate::decode_transaction(&result).unwrap();
         assert_eq!(

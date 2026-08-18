@@ -43,6 +43,7 @@ const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Stable, "stable-2"),
     (Chain::Robinhood, "robinhood"),
     (Chain::XLayer, "x-layer"),
+    (Chain::Tempo, "tempo"),
 ];
 
 pub fn get_chains_for_coingecko_market_id(id: &str) -> Vec<Chain> {
@@ -127,6 +128,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
         Chain::Plasma => "plasma",
         Chain::XLayer => "okb",
         Chain::Stable => "tether", // USDT0 is the native gas token
+        Chain::Tempo => "pathusd", // no native gas token; pathUSD as default asset
     }
 }
 
@@ -142,6 +144,9 @@ mod tests {
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Robinhood), Some("robinhood"));
         assert_eq!(get_chain_for_coingecko_platform_id("x-layer"), Some(Chain::XLayer));
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::XLayer), Some("x-layer"));
+        assert_eq!(get_chain_for_coingecko_platform_id("tempo"), Some(Chain::Tempo));
+        assert_eq!(get_coingecko_platform_id_for_chain(Chain::Tempo), Some("tempo"));
+        assert_eq!(get_coingecko_market_id_for_chain(Chain::Tempo), "pathusd");
         assert_eq!(get_chain_for_coingecko_platform_id("unknown"), None);
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Bitcoin), None);
 

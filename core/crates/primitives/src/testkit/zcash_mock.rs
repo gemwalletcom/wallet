@@ -1,6 +1,6 @@
 use num_bigint::BigInt;
 
-use crate::{Asset, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
+use crate::{Asset, AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
 
 pub const TEST_ZCASH_BRANCH_ID: &str = "4dec4df0";
 
@@ -24,6 +24,6 @@ pub fn mock_signer_input(sender_address: String, destination_address: String) ->
                 }],
             },
         },
-        TransactionFee::new_from_fee(BigInt::from(1u64)),
+        TransactionFee::new_from_fee(BigInt::from(1u64), AssetId::from_chain(Chain::Zcash)),
     )
 }

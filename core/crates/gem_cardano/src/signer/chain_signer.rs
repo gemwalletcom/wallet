@@ -67,7 +67,7 @@ mod tests {
                     ],
                 },
             },
-            TransactionFee::default(),
+            TransactionFee::mock(),
         )
     }
 

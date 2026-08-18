@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use num_bigint::BigInt;
-use primitives::{GasPriceType, StakeType, SwapProvider, TransactionFee, TransactionInputType, chain_cosmos::CosmosChain};
+use primitives::{AssetId, GasPriceType, StakeType, SwapProvider, TransactionFee, TransactionInputType, chain_cosmos::CosmosChain};
 
 use crate::constants::get_base_fee;
 
@@ -105,6 +105,7 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, chain: Cosmo
         gas_price_type: gas_price_type.clone(),
         gas_limit: BigInt::from(gas_limit),
         options: std::collections::HashMap::new(),
+        fee_asset_id: AssetId::from_chain(chain.as_chain()),
     })
 }
 

@@ -4,7 +4,7 @@ use num_bigint::BigInt;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{AssetId, Chain, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{provider::state_mapper::map_transaction_params_to_fee, rpc::AlgorandProvider};
 
@@ -23,7 +23,7 @@ impl<C: Client> ChainTransactionLoad for AlgorandProvider<C> {
         };
 
         Ok(TransactionLoadData {
-            fee: TransactionFee::new_from_fee(BigInt::from(params.min_fee)),
+            fee: TransactionFee::new_from_fee(BigInt::from(params.min_fee), AssetId::from_chain(Chain::Algorand)),
             metadata,
         })
     }

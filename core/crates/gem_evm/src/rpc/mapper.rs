@@ -24,6 +24,7 @@ impl EthereumMapper {
         timestamp: &BigUint,
         extra_parsers: &[Box<dyn ProtocolParser>],
     ) -> Option<PrimitivesTransaction> {
+        let transaction = &transaction.with_primary_call();
         let state = transaction_receipt.get_state();
         let hash = transaction.hash.clone();
         let value = transaction.value.to_string();
@@ -377,6 +378,7 @@ mod tests {
             input: INPUT_0X.to_string(),
             to: Some("0xf170892b35fe3d17c75e066fbeb37a73d5b7e5d6".to_string()),
             value: BigUint::from(44_665_000_000_000_000_000u128),
+            calls: None,
         };
         let receipt = TransactionReceipt {
             gas_used: BigUint::from(21_000u64),
@@ -391,6 +393,7 @@ mod tests {
             status: "0x1".to_string(),
             block_hash: "0x270bff304e402943393102149e5034d2a4771ecb7a217b3cb526ebf44bdfa0fa".to_string(),
             block_number: 87_308_906,
+            fee_token: None,
         };
 
         let mapped_transaction = EthereumMapper::map_transaction(Chain::Polygon, &transaction, &receipt, &BigUint::from(1_779_530_294u64), &[]).unwrap();
@@ -425,6 +428,7 @@ mod tests {
             input: INPUT_0X.to_string(),
             to: Some("0x0700572b54cca24dad0ed4cdad2c3d3ab6db652a".to_string()),
             value: BigUint::from(0u8),
+            calls: None,
         };
         let receipt = TransactionReceipt {
             gas_used: BigUint::from(21442u64),
@@ -434,6 +438,7 @@ mod tests {
             status: "0x1".to_string(),
             block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
             block_number: 1000,
+            fee_token: None,
         };
 
         assert_eq!(
@@ -509,6 +514,7 @@ mod tests {
             value: BigUint::from(1_000_000_000_000_000_000u64),
             gas: 50000,
             input: input.clone(),
+            calls: None,
         };
 
         let receipt = TransactionReceipt {
@@ -519,6 +525,7 @@ mod tests {
             status: "0x1".to_string(),
             block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
             block_number: 1000,
+            fee_token: None,
         };
 
         let tx = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &receipt, &BigUint::from(1735671600u64), &[]).unwrap();

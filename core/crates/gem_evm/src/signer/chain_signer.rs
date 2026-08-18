@@ -2,18 +2,37 @@ use std::str::FromStr;
 
 use alloy_consensus::TxEip1559;
 use alloy_primitives::{Address, Bytes, TxKind, U256};
-use num_bigint::BigInt;
-use num_traits::Num;
 use primitives::{ChainSigner, NFTType, SignerError, SignerInput, StakeType, decode_hex, swap::SwapQuoteDataType};
 
 use super::model::TransactionParams;
 use super::sign_eip1559_tx;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
 
-pub struct EvmChainSigner;
+/// Chain-specific signing overrides for EVM-family chains, injected by the signer
+/// factory the same way `EvmStakingClient` / `EvmFeeCalculator` extend the provider.
+pub trait EvmSigner: Send + Sync {
+    /// Signs a native-asset transfer when the chain redefines it (Tempo: ERC-20 `transfer()` on pathUSD).
+    fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError>;
+    /// Signs a swap contract call when the chain redefines it (Tempo: type `0x76` batched call with a `fee_token`).
+    fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError>;
+}
+
+#[derive(Default)]
+pub struct EvmChainSigner {
+    signer: Option<Box<dyn EvmSigner>>,
+}
+
+impl EvmChainSigner {
+    pub fn new(signer: Option<Box<dyn EvmSigner>>) -> Self {
+        Self { signer }
+    }
+}
 
 impl ChainSigner for EvmChainSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        if let Some(signer) = &self.signer {
+            return signer.sign_transfer(input, private_key);
+        }
         let params = TransactionParams::from_input(input)?;
         sign_and_encode(
             &build_eip1559_transaction(&params, &input.destination_address, value_u256(&input.value)?, Bytes::new())?,
@@ -24,7 +43,7 @@ impl ChainSigner for EvmChainSigner {
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let params = TransactionParams::from_input(input)?;
         let token_id = input.input_type.get_asset().id.get_token_id()?;
-        let data = encode_erc20_transfer(&input.destination_address, &BigInt::from_str_radix(&input.value, 10)?)?;
+        let data = encode_erc20_transfer(&input.destination_address, &input.get_value()?)?;
         sign_and_encode(&build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?, private_key)
     }
 
@@ -59,7 +78,7 @@ impl ChainSigner for EvmChainSigner {
                 let params = TransactionParams::from_input(input)?;
                 if from_asset.id.is_token() {
                     let token_id = from_asset.id.get_token_id()?;
-                    let amount = BigInt::from_str_radix(&input.value, 10)?;
+                    let amount = input.get_value()?;
                     let data = encode_erc20_transfer(&swap_data.to, &amount)?;
                     Ok(vec![sign_and_encode(
                         &build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?,
@@ -73,11 +92,11 @@ impl ChainSigner for EvmChainSigner {
                 }
             }
             SwapQuoteDataType::Contract => {
+                if let Some(signer) = &self.signer {
+                    return signer.sign_swap_contract(input, private_key);
+                }
                 let value = value_u256(&swap_data.value)?;
-                let gas_limit = match &swap_data.approval {
-                    Some(_) => swap_data.gas_limit.as_ref().and_then(|gl| gl.parse().ok()).ok_or("missing swap gas limit")?,
-                    None => input.fee.gas_limit()?,
-                };
+                let gas_limit = input.get_swap_gas_limit()?;
                 sign_contract_call(
                     input,
                     &swap_data.to,
@@ -204,7 +223,7 @@ mod tests {
 
     #[test]
     fn test_sign_transfer() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let input = SignerInput::mock_evm(TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)), "1000000000000000000", 21000);
         assert_eq!(
             signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
@@ -214,7 +233,7 @@ mod tests {
 
     #[test]
     fn test_sign_token_transfer() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let input = SignerInput::mock_evm(TransactionInputType::Transfer(Asset::mock_erc20()), "1000000", 65000);
         assert_eq!(
             signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
@@ -224,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_sign_nft_transfer() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
 
         let input = SignerInput::mock_evm(TransactionInputType::TransferNft(Asset::from_chain(Chain::Ethereum), NFTAsset::mock()), "0", 100000);
         assert_eq!(
@@ -245,7 +264,7 @@ mod tests {
 
     #[test]
     fn test_sign_token_approval() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let input = SignerInput::mock_evm(TransactionInputType::TokenApprove(Asset::from_chain(Chain::Ethereum), ApprovalData::mock()), "0", 65000);
         assert_eq!(
             signer.sign_token_approval(&input, &TEST_PRIVATE_KEY).unwrap(),
@@ -255,7 +274,7 @@ mod tests {
 
     #[test]
     fn test_sign_swap_without_approval() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let swap_data = SwapData {
             quote: SwapQuote::mock(),
             data: SwapQuoteData {
@@ -280,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_sign_swap_with_approval() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let swap_data = SwapData {
             quote: SwapQuote::mock(),
             data: SwapQuoteData {
@@ -309,7 +328,7 @@ mod tests {
 
     #[test]
     fn test_sign_stake() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let metadata = TransactionLoadMetadata::Evm {
             nonce: 5,
             chain_id: 1,
@@ -333,7 +352,7 @@ mod tests {
 
     #[test]
     fn test_sign_data() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let extra = TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]);
         let input = SignerInput::mock_evm(
             TransactionInputType::Generic(Asset::from_chain(Chain::Ethereum), WalletConnectionSessionAppMetadata::mock(), extra),
@@ -348,7 +367,7 @@ mod tests {
 
     #[test]
     fn test_sign_earn() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let input = SignerInput::mock_evm(
             TransactionInputType::Earn(
                 Asset::from_chain(Chain::Ethereum),
@@ -368,7 +387,7 @@ mod tests {
 
     #[test]
     fn test_sign_earn_with_approval() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let earn_data = ContractCallData {
             approval: Some(ApprovalData::mock()),
             gas_limit: Some("200000".to_string()),
@@ -393,7 +412,7 @@ mod tests {
 
     #[test]
     fn test_invalid_metadata() {
-        let signer = EvmChainSigner;
+        let signer = EvmChainSigner::default();
         let input = SignerInput::mock_evm_with_metadata(
             TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
             "1000000000000000000",

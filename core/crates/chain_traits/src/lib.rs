@@ -73,7 +73,7 @@ pub trait ChainTraits:
         let rates = self.get_transaction_fee_rates(TransactionInputType::Transfer(Asset::from_chain(chain))).await?;
         let estimate = |operation| {
             let units = self.transaction_fee_estimate_units(operation);
-            rates.iter().map(|rate| TransactionFeeEstimate::new(rate, units, chain.fee_unit_type())).collect()
+            rates.iter().map(|rate| TransactionFeeEstimate::new(chain, rate, units, chain.fee_unit_type())).collect()
         };
         Ok(TransactionFeeEstimates {
             transfer: estimate(TransactionFeeOperation::Transfer),

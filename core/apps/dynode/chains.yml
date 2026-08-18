@@ -82,3 +82,8 @@ chains:
   - chain: robinhood
     urls:
       - url: https://rpc.mainnet.chain.robinhood.com
+
+  # Tempo
+  - chain: tempo
+    urls:
+      - url: https://rpc.tempo.xyz

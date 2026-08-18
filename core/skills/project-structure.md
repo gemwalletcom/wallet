@@ -30,6 +30,7 @@ Shared Rust library compiled to iOS Swift Package and Android AAR using UniFFI b
 Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - **Bitcoin family** (`gem_bitcoin`): Bitcoin, Bitcoin Cash, Litecoin, Dogecoin
 - **EVM chains** (`gem_evm`): shared client, provider, signer and primitives for the whole EVM family; chain-specific extensions live in their own crates on top of it — `gem_bsc` (BSC stake hub), `gem_monad` (Monad staking), `gem_everstake` (Ethereum staking via Everstake), `gem_optimism` (OP stack gas oracle)
+- **Tempo** (`gem_tempo`): builds on `gem_evm` internals; owns the 0x76 signer, dynamic fee assets, and pathUSD-native behavior
 - **Alternative L1s**: Solana (`gem_solana`), Sui (`gem_sui`), TON (`gem_ton`), Aptos (`gem_aptos`), NEAR (`gem_near`), Stellar (`gem_stellar`), Algorand (`gem_algorand`), Tron (`gem_tron`), XRP (`gem_xrp`), Cardano (`gem_cardano`), Polkadot (`gem_polkadot`)
 - **Cosmos ecosystem** (`gem_cosmos`): Cosmos Hub, Osmosis, Celestia, Injective, Sei, Noble
 

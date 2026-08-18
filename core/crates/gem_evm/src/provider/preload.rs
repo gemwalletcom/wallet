@@ -13,12 +13,11 @@ use gem_client::Client;
 #[cfg(feature = "rpc")]
 use num_bigint::BigInt;
 #[cfg(feature = "rpc")]
-use num_traits::Num;
 #[cfg(feature = "rpc")]
 use primitives::ContractCallData;
 use primitives::GasPriceType;
 #[cfg(feature = "rpc")]
-use primitives::{FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{AssetId, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 #[cfg(feature = "rpc")]
 use serde_serializers::bigint::bigint_from_hex_str;
 use std::collections::HashMap;
@@ -57,7 +56,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = match (&input.input_type, self.staking()) {
-            (TransactionInputType::Stake(_, stake_type), Some(staking)) => staking.encode_stake(stake_type, &BigInt::from_str_radix(&input.value, 10)?)?,
+            (TransactionInputType::Stake(_, stake_type), Some(staking)) => staking.encode_stake(stake_type, &input.get_value()?)?,
             (TransactionInputType::Stake(_, _), None) => return Err("Chain does not support staking".into()),
             _ => get_transaction_params(self.chain, &input)?,
         };
@@ -111,6 +110,7 @@ pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result
         fee,
         gas_limit.clone(),
         HashMap::new(),
+        AssetId::from_chain(input.input_type.get_asset().chain),
     ))
 }
 
@@ -129,6 +129,7 @@ mod tests {
 
         assert_eq!(fee.gas_limit, approval_gas_limit);
         assert_eq!(fee.fee, input.gas_price.total_fee() * (&approval_gas_limit + swap_gas_limit));
+        assert_eq!(fee.fee_asset_id, AssetId::from_chain(Chain::Ethereum));
 
         Ok(())
     }
@@ -229,7 +230,6 @@ mod chain_integration_tests {
         assert_eq!(fee_rates.len(), 3);
 
         for fee_rate in &fee_rates {
-            //assert!(fee_rate.gas_price_type.gas_price() >= BigInt::from(100_000_000));
             assert!(fee_rate.gas_price_type.gas_price() < BigInt::from(1_000_000_000));
             assert!(fee_rate.gas_price_type.priority_fee() > BigInt::from(0));
         }

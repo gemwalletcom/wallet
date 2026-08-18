@@ -19,6 +19,7 @@ use gem_polkadot::rpc::{PolkadotClient, PolkadotProvider};
 use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::{SuiClient, SuiProvider};
+use gem_tempo::TempoProvider;
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_xrp::rpc::XrpClient;
@@ -82,6 +83,9 @@ impl ChainClientFactory {
             ChainType::Ethereum => {
                 let evm_chain = EVMChain::from_chain(chain).unwrap();
                 let client = EthereumClient::new(JsonRpcClient::new(alien_client), evm_chain);
+                if evm_chain == EVMChain::Tempo {
+                    return Ok(Arc::new(TempoProvider::new(client)));
+                }
                 let extensions = evm_provider_extensions(evm_chain, &client);
                 Ok(Arc::new(EthereumProvider::new_rpc_only_with_extensions(client, extensions)))
             }

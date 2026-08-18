@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER};
 use crate::{
-    Asset, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction,
-    TransferDataOutputType, WalletConnectionSessionAppMetadata,
+    Asset, AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
+    TransferDataOutputAction, TransferDataOutputType, WalletConnectionSessionAppMetadata,
 };
 use num_bigint::BigInt;
 use std::collections::HashMap;
@@ -95,7 +95,7 @@ impl SignerInput {
                 is_max_value: false,
                 metadata,
             },
-            TransactionFee::default(),
+            TransactionFee::mock(),
         )
     }
 
@@ -136,7 +136,13 @@ impl SignerInput {
                 is_max_value: false,
                 metadata: TransactionLoadMetadata::mock_osmosis(),
             },
-            TransactionFee::new_gas_price_type(GasPriceType::regular(fee_amount.clone()), fee_amount, BigInt::from(200_000u64), HashMap::new()),
+            TransactionFee::new_gas_price_type(
+                GasPriceType::regular(fee_amount.clone()),
+                fee_amount,
+                BigInt::from(200_000u64),
+                HashMap::new(),
+                AssetId::from_chain(Chain::Osmosis),
+            ),
         )
     }
 
@@ -152,12 +158,15 @@ impl SignerInput {
                 is_max_value: false,
                 metadata,
             },
-            TransactionFee::default(),
+            TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Ton)),
         )
     }
 
     pub fn mock_solana(block_hash: &str) -> Self {
-        SignerInput::new(TransactionLoadInput::mock_solana(block_hash), TransactionFee::default())
+        SignerInput::new(
+            TransactionLoadInput::mock_solana(block_hash),
+            TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Solana)),
+        )
     }
 }
 

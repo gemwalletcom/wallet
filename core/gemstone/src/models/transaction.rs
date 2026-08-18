@@ -412,6 +412,7 @@ pub struct GemTransactionLoadFee {
     pub gas_price_type: GemGasPriceType,
     pub gas_limit: String,
     pub options: GemFeeOptions,
+    pub fee_asset_id: GemAssetId,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -690,6 +691,7 @@ impl From<GemTransactionLoadFee> for TransactionFee {
             gas_price_type: value.gas_price_type.into(),
             gas_limit: value.gas_limit.parse().unwrap_or_default(),
             options: value.options.options.into_iter().map(|(key, value)| (key, value.parse().unwrap_or_default())).collect(),
+            fee_asset_id: value.fee_asset_id,
         }
     }
 }
@@ -701,6 +703,7 @@ impl From<TransactionFee> for GemTransactionLoadFee {
             gas_price_type: value.gas_price_type.into(),
             gas_limit: value.gas_limit.to_string(),
             options: GemFeeOptions::from_primitives(value.options),
+            fee_asset_id: value.fee_asset_id,
         }
     }
 }

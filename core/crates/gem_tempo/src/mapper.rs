@@ -1,0 +1,67 @@
+use gem_evm::rpc::model::TransactionReceipt;
+use primitives::{Transaction, TransactionSwapMetadata};
+
+use crate::fee::{map_asset_id, map_transaction_fee};
+
+/// Applies Tempo fee semantics on top of the generic EVM mapping: the fee is
+/// denominated in the receipt's fee token (scaled to 6 decimals) and the
+/// pathUSD contract collapses to the native asset.
+pub fn map_transaction(transaction: Transaction, receipt: &TransactionReceipt) -> Transaction {
+    let (fee, fee_asset_id) = map_transaction_fee(receipt);
+
+    let metadata = match transaction.metadata.clone().map(serde_json::from_value::<TransactionSwapMetadata>) {
+        Some(Ok(swap)) => serde_json::to_value(TransactionSwapMetadata {
+            from_asset: map_asset_id(swap.from_asset.clone()),
+            to_asset: map_asset_id(swap.to_asset.clone()),
+            ..swap
+        })
+        .ok(),
+        _ => transaction.metadata.clone(),
+    };
+
+    Transaction {
+        asset_id: map_asset_id(transaction.asset_id.clone()),
+        fee,
+        fee_asset_id,
+        metadata,
+        ..transaction
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gem_evm::ethereum_address_checksum;
+    use gem_evm::rpc::mapper::EthereumMapper;
+    use gem_evm::rpc::model::Transaction as RpcTransaction;
+    use num_bigint::BigUint;
+    use primitives::{
+        AssetId, Chain, TransactionType,
+        asset_constants::{TEMPO_USDC_ASSET_ID, TEMPO_USDC_TOKEN_ID},
+    };
+
+    fn map_tempo_transaction(transaction: &RpcTransaction, receipt: &TransactionReceipt) -> Transaction {
+        let mapped = EthereumMapper::map_transaction(Chain::Tempo, transaction, receipt, &BigUint::from(1735671600u64), &[]).unwrap();
+        map_transaction(mapped, receipt)
+    }
+
+    #[test]
+    fn test_map_transaction_native_contract_transfer_identity() {
+        let from = crate::testkit::TEMPO_TEST_ADDRESS;
+        let to = "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC";
+        let pathusd = primitives::asset_constants::TEMPO_PATHUSD_TOKEN_ID;
+
+        let native_transaction = RpcTransaction::mock_erc20_transfer(pathusd);
+        let native_receipt = TransactionReceipt::mock_with_log(gem_evm::rpc::model::Log::mock_erc20_transfer(pathusd, from, to, 1_000_000));
+        let native_transfer = map_tempo_transaction(&native_transaction, &native_receipt);
+        assert_eq!(native_transfer.transaction_type, TransactionType::Transfer);
+        assert_eq!(native_transfer.asset_id, AssetId::from_chain(Chain::Tempo));
+
+        let token_transaction = RpcTransaction::mock_erc20_transfer(TEMPO_USDC_TOKEN_ID);
+        let token_receipt = TransactionReceipt::mock_with_log(gem_evm::rpc::model::Log::mock_erc20_transfer(TEMPO_USDC_TOKEN_ID, from, to, 1_000_000));
+        let token_transfer = map_tempo_transaction(&token_transaction, &token_receipt);
+        assert_eq!(token_transfer.transaction_type, TransactionType::Transfer);
+        assert_eq!(token_transfer.asset_id, TEMPO_USDC_ASSET_ID.clone());
+        assert_eq!(ethereum_address_checksum(&token_transfer.asset_id.token_id.clone().unwrap()).unwrap(), TEMPO_USDC_TOKEN_ID);
+    }
+}

@@ -152,12 +152,12 @@ mod tests {
         signer_mock::{TEST_UTXO_TXID, mock_transfer_input_with_utxos, mock_utxo_with},
     };
     use num_bigint::BigInt;
-    use primitives::{GasPriceType, TransactionFee};
+    use primitives::{AssetId, Chain, GasPriceType, TransactionFee};
 
     fn plan_with_fee_rate(value: &str, fee_rate: u64) -> SpendPlan {
         let mut input = mock_signer_input(value, false);
         input.input.gas_price = GasPriceType::regular(BigInt::from(fee_rate));
-        input.fee = TransactionFee::new_from_fee(BigInt::from(fee_rate));
+        input.fee = TransactionFee::new_from_fee(BigInt::from(fee_rate), AssetId::from_chain(Chain::Bitcoin));
         UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Bitcoin, &input).unwrap()).unwrap()
     }
 

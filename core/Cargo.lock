@@ -4046,6 +4046,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_tempo"
+version = "2.114.8"
+dependencies = [
+ "alloy-primitives",
+ "alloy-rlp",
+ "alloy-sol-types",
+ "async-trait",
+ "chain_traits",
+ "gem_client",
+ "gem_evm",
+ "gem_jsonrpc",
+ "hex",
+ "num-bigint 0.5.1",
+ "num-traits",
+ "primitives",
+ "serde",
+ "serde_json",
+ "serde_serializers",
+ "settings",
+ "signer",
+ "tokio",
+]
+
+[[package]]
 name = "gem_ton"
 version = "2.114.9"
 dependencies = [
@@ -4177,6 +4201,7 @@ dependencies = [
  "gem_solana",
  "gem_stellar",
  "gem_sui",
+ "gem_tempo",
  "gem_ton",
  "gem_tron",
  "gem_wallet_connect",
@@ -7973,6 +7998,7 @@ dependencies = [
  "gem_solana",
  "gem_stellar",
  "gem_sui",
+ "gem_tempo",
  "gem_ton",
  "gem_tracing",
  "gem_tron",

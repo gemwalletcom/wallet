@@ -24,6 +24,7 @@ use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer, PolkadotProvider};
 use gem_solana::rpc::{SolanaClient, SolanaIndexer, SolanaProvider};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::{SuiClient, SuiIndexer, SuiProvider};
+use gem_tempo::TempoProvider;
 use gem_ton::rpc::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XrpClient;
@@ -103,6 +104,9 @@ impl ProviderFactory {
                 let evm_chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
                 let client = EthereumClient::new(rpc_client, evm_chain);
+                if evm_chain == EVMChain::Tempo {
+                    return Box::new(TempoProvider::new(client));
+                }
                 let indexer = EVMIndexer::for_chain(
                     gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
                         chain,
@@ -241,6 +245,7 @@ impl ProviderFactory {
             Chain::XLayer => &settings.chains.xlayer,
             Chain::Robinhood => &settings.chains.robinhood,
             Chain::Stable => &settings.chains.stable,
+            Chain::Tempo => &settings.chains.tempo,
         }
     }
 

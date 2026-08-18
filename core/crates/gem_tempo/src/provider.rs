@@ -1,0 +1,230 @@
+use std::error::Error;
+
+use async_trait::async_trait;
+use chain_traits::{
+    ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainToken, ChainTraits,
+    ChainTransaction, ChainTransactionBroadcast, ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionFeeOperation, TransactionIdRequest,
+    TransactionsRequest, TransactionsResult,
+};
+use gem_client::Client;
+use gem_evm::rpc::mapper::EthereumMapper;
+use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmProviderExtensions};
+use primitives::{
+    Asset, AssetBalance, BroadcastOptions, Chain, FeeRate, SimulationInput, SimulationResult, Transaction, TransactionInputType, TransactionLoadData, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionPreloadInput, TransactionState, TransactionStateRequest, TransactionUpdate, fee::FeePriority,
+};
+
+use crate::fee_calculator::TempoFeeCalculator;
+use crate::preload::map_native_transfer_input;
+use crate::{balances, mapper, transaction_state};
+
+pub struct TempoProvider<C: Client + Clone> {
+    provider: EthereumProvider<C>,
+}
+
+impl<C: Client + Clone + 'static> TempoProvider<C> {
+    pub fn new(client: EthereumClient<C>) -> Self {
+        let extensions = EvmProviderExtensions {
+            fee_calculator: Some(Box::new(TempoFeeCalculator::new(client.clone()))),
+            ..Default::default()
+        };
+        Self {
+            provider: EthereumProvider::new_rpc_only_with_extensions(client, extensions),
+        }
+    }
+}
+
+impl<C: Client + Clone> TempoProvider<C> {
+    fn client(&self) -> &EthereumClient<C> {
+        &self.provider
+    }
+}
+
+impl<C: Client + Clone> ChainProvider for TempoProvider<C> {
+    fn get_chain(&self) -> Chain {
+        self.provider.get_chain()
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainBalances for TempoProvider<C> {
+    async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
+        balances::get_balance_coin(self.client(), &address).await
+    }
+
+    async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
+        self.provider.get_balance_tokens(address, token_ids).await
+    }
+
+    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+        self.provider.get_balance_assets(address).await
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransactionLoad for TempoProvider<C> {
+    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
+        self.provider.transaction_fee_estimate_units(operation)
+    }
+
+    async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
+        self.provider.get_transaction_preload(input).await
+    }
+
+    async fn get_transaction_fee_rates(&self, input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
+        // Tempo has a single fee lane: priority fees are always 0, so only the Normal rate is meaningful.
+        Ok(self
+            .provider
+            .get_transaction_fee_rates(input_type)
+            .await?
+            .into_iter()
+            .filter(|rate| rate.priority == FeePriority::Normal)
+            .collect())
+    }
+
+    async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
+        self.provider.map_transaction_load(map_native_transfer_input(input)).await
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransactionState for TempoProvider<C> {
+    async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
+        let Some(receipt) = self.client().get_transaction_receipt(&request.id).await? else {
+            return Ok(TransactionUpdate::new_state(TransactionState::Pending));
+        };
+        Ok(transaction_state::map_transaction_status(&receipt))
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransaction for TempoProvider<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let hash = request.hash.clone();
+        let Some(transaction) = self.provider.get_transaction_by_hash(request).await? else {
+            return Ok(None);
+        };
+        let Some(receipt) = self.client().get_transaction_receipt(&hash).await? else {
+            return Ok(None);
+        };
+        Ok(Some(mapper::map_transaction(transaction, &receipt)))
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransactions for TempoProvider<C> {
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        self.provider.get_transactions_by_address(request).await
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainBlockTransactions for TempoProvider<C> {
+    async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        let block = self.client().get_block(block_number).await?;
+        if block.transactions.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let receipts = self.client().get_block_receipts(block_number).await?;
+        Ok(block
+            .transactions
+            .into_iter()
+            .zip(receipts)
+            .filter_map(|(transaction, receipt)| {
+                EthereumMapper::map_transaction(Chain::Tempo, &transaction, &receipt, &block.timestamp, &[]).map(|mapped| mapper::map_transaction(mapped, &receipt))
+            })
+            .collect())
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransactionBroadcast for TempoProvider<C> {
+    async fn transaction_broadcast(&self, data: String, options: BroadcastOptions) -> Result<String, Box<dyn Error + Sync + Send>> {
+        self.provider.transaction_broadcast(data, options).await
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainToken for TempoProvider<C> {
+    async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
+        self.provider.get_token_data(token_id).await
+    }
+
+    fn get_is_token_address(&self, token_id: &str) -> bool {
+        self.provider.get_is_token_address(token_id)
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> chain_traits::ChainState for TempoProvider<C> {
+    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
+        chain_traits::ChainState::get_chain_id(&self.provider).await
+    }
+
+    async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
+        self.provider.get_block_latest_number().await
+    }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainSimulation for TempoProvider<C> {
+    async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
+        self.provider.simulate_transaction(input).await
+    }
+}
+
+impl<C: Client + Clone> ChainStaking for TempoProvider<C> {}
+impl<C: Client + Clone> ChainPerpetual for TempoProvider<C> {}
+impl<C: Client + Clone> ChainAccount for TempoProvider<C> {}
+impl<C: Client + Clone> ChainAddressStatus for TempoProvider<C> {}
+impl<C: Client + Clone> ChainTraits for TempoProvider<C> {}
+
+#[cfg(all(test, feature = "chain_integration_tests"))]
+mod chain_integration_tests {
+    use super::*;
+    use crate::testkit::{TEMPO_TEST_ADDRESS, create_tempo_test_client};
+    use num_bigint::BigInt;
+    use primitives::{AssetId, TransactionPreloadInput};
+
+    #[tokio::test]
+    async fn test_get_transaction_load_native_transfer() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let provider = TempoProvider::new(create_tempo_test_client());
+        let input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo));
+
+        let metadata = provider
+            .get_transaction_preload(TransactionPreloadInput {
+                input_type: input_type.clone(),
+                sender_address: TEMPO_TEST_ADDRESS.to_string(),
+                destination_address: TEMPO_TEST_ADDRESS.to_string(),
+            })
+            .await?;
+
+        let fee_rates = provider.get_transaction_fee_rates(input_type.clone()).await?;
+        assert_eq!(fee_rates.len(), 1);
+        assert_eq!(fee_rates[0].priority, FeePriority::Normal);
+
+        let load_data = provider
+            .get_transaction_load(TransactionLoadInput {
+                input_type,
+                sender_address: TEMPO_TEST_ADDRESS.to_string(),
+                destination_address: TEMPO_TEST_ADDRESS.to_string(),
+                value: "1000".to_string(),
+                gas_price: fee_rates[0].gas_price_type.clone(),
+                memo: None,
+                is_max_value: false,
+                metadata,
+            })
+            .await?;
+
+        println!("Tempo native transfer load: {:#?}", load_data.fee);
+
+        // Native transfers execute as pathUSD ERC-20 calls, so the estimate exceeds the plain 21k transfer.
+        assert!(load_data.fee.gas_limit > BigInt::from(21_000u64));
+        // The fee is scaled to pathUSD 6-decimal units.
+        assert_eq!(load_data.fee.fee_asset_id, AssetId::from_chain(Chain::Tempo));
+        assert!(load_data.fee.fee > BigInt::ZERO);
+
+        Ok(())
+    }
+}
