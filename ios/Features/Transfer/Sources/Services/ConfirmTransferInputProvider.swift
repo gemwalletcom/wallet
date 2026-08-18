@@ -37,10 +37,9 @@ public struct ConfirmTransferInputProvider: Sendable {
         let fee = transactionData.transactionData.fee
         let feeAssetId = fee.feeAssetId
         let feeAssetData = try feeAssetProvider.load(walletId: request.wallet.id, feeAssetId: feeAssetId)
-        var assetPrices = metadata.assetPrices
-        if let feePrice = feeAssetData.price {
-            assetPrices[feeAssetId] = feePrice
-        }
+        let assetPrices = metadata.assetPrices.merging(
+            feeAssetData.price.map { [feeAssetId: $0] } ?? [:]
+        ) { _, feeAssetPrice in feeAssetPrice }
         let metadata = TransferDataMetadata(
             assetId: metadata.assetId,
             feeAssetId: feeAssetId,
