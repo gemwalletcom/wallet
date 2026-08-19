@@ -54,6 +54,7 @@ async fn run_store_transactions(
         swap_outdated_timeout: config_cacher.get_duration(ConfigKey::TransactionSwapOutdatedTimeout)?,
         outdated_block_count: config_cacher.get_i64(ConfigKey::TransactionsOutdatedBlockCount)? as u64,
         outdated_min_timeout: config_cacher.get_duration(ConfigKey::TransactionsOutdatedMinTimeout)?,
+        max_asset_transfer_count: config_cacher.get_usize(ConfigKey::TransactionsMaxAssetTransferCount)?,
         min_amount_usd: config_cacher.get_f64(ConfigKey::TransactionsMinAmountUsd)?,
         primary_price_max_age: config_cacher.get_duration(ConfigKey::PricePrimaryMaxAge)?,
     };

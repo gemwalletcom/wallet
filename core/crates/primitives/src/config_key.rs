@@ -108,6 +108,7 @@ pub enum ConfigKey {
     FiatValidateSubscription,
 
     // Transactions
+    TransactionsMaxAssetTransferCount,
     TransactionsMinAmountUsd,
     TransactionsOutdatedBlockCount,
     TransactionsOutdatedMinTimeout,
@@ -323,6 +324,7 @@ impl ConfigKey {
             Self::ReferralAbuseVelocityPenaltyPerSignal => "100",
             Self::ReferralAbuseDisabledReferrerPenalty => "80",
             Self::FiatValidateSubscription => "false",
+            Self::TransactionsMaxAssetTransferCount => "10",
             Self::TransactionsMinAmountUsd => "0.05",
             Self::TransactionsOutdatedBlockCount => "12",
             Self::TransactionsOutdatedMinTimeout => "15m",

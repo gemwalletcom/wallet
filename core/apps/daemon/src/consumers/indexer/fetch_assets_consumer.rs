@@ -7,6 +7,8 @@ use settings_chain::ChainProviders;
 use storage::{AssetsRepository, Database};
 use streamer::{FetchAssetsPayload, consumer::MessageConsumer};
 
+use crate::asset_spam;
+
 pub struct FetchAssetsConsumer {
     pub database: Database,
     pub providers: ChainProviders,
@@ -24,7 +26,7 @@ impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
             return Ok(0);
         };
         let asset = self.providers.get_token_data(payload.asset_id.chain, token_id.to_string()).await?;
-        let added = self.database.assets()?.add_assets(vec![asset.as_basic_primitive()])?;
+        let added = self.database.assets()?.add_assets(vec![asset_spam::apply(asset.as_basic_primitive())])?;
         let name = format!("{:?}", asset.name);
         info_with_fields!(
             "fetch asset",
