@@ -5,7 +5,7 @@ mod perpetual_observer;
 use cacher::CacherClient;
 use job_runner::{JobHandle, ShutdownReceiver};
 use perpetual_address_refresher::PerpetualAddressRefresher;
-use perpetual_classifier::{PerpetualPositionClassifier, PerpetualPriorityConfig};
+use perpetual_classifier::{PerpetualPositionClassifier, PerpetualPositionClassifierConfig};
 use perpetual_observer::PerpetualPositionObserver;
 use primitives::{Chain, ConfigKey};
 use settings_chain::ChainProviders;
@@ -32,15 +32,21 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
         &settings,
         &settings::service_user_agent("daemon", Some("perpetual_observer")),
     ));
-    let priority_config = PerpetualPriorityConfig {
+    let classifier_config = PerpetualPositionClassifierConfig {
         trigger_bps: config.get_i64(ConfigKey::PerpetualPriorityTriggerBps)?,
         liquidation_bps: config.get_i64(ConfigKey::PerpetualPriorityLiquidationBps)?,
+        concurrency: config.get_usize(ConfigKey::PerpetualClassifierConcurrency)?,
     };
     let refresher = Arc::new(PerpetualAddressRefresher::new(providers.clone(), database.clone(), cacher.clone()));
 
     ctx.plan_builder(WorkerService::Perpetuals, &config, shutdown_rx)
         .jobs(WorkerJob::ClassifyPerpetualAddresses, Chain::perpetual_chains(), |chain, _| {
-            let classifier = Arc::new(PerpetualPositionClassifier::new(chain, providers.clone(), cacher.clone(), priority_config));
+            let classifier = Arc::new(PerpetualPositionClassifier::new(
+                chain,
+                providers.clone(),
+                cacher.clone(),
+                classifier_config,
+            ));
             move |_| {
                 let classifier = classifier.clone();
                 async move { classifier.classify().await }

@@ -204,6 +204,7 @@ pub enum ConfigKey {
 
     // Perpetuals
     PerpetualClassifierInterval,
+    PerpetualClassifierConcurrency,
     PerpetualObserverInterval,
     PerpetualAddressRefreshInterval,
     PerpetualPriorityObserverInterval,
@@ -401,6 +402,7 @@ impl ConfigKey {
             Self::TransactionCleanupAddressLimit => "200",
             Self::TransactionCleanupLookback => "90d",
             Self::PerpetualClassifierInterval => "15m",
+            Self::PerpetualClassifierConcurrency => "3",
             Self::PerpetualObserverInterval => "1m",
             Self::PerpetualAddressRefreshInterval => "1h",
             Self::PerpetualPriorityObserverInterval => "10s",
