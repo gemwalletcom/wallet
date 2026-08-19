@@ -16,7 +16,6 @@ import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -28,7 +27,6 @@ data class DbAssetInfo(
     val type: AssetType,
     val pinned: Boolean?,
     val visible: Boolean?,
-    val listPosition: Int?,
     val isBuyEnabled: Boolean,
     val isSellEnabled: Boolean,
     val isSwapEnabled: Boolean,
@@ -42,10 +40,6 @@ data class DbAssetInfo(
     val derivationPath: String?,
     val chain: Chain,
     val extendedPublicKey: String?,
-    // wallet
-    val sessionId: Int?,
-    val walletName: String?,
-    val walletType: WalletType?,
     // price
     val priceValue: Double?,
     val priceDayChanges: Double?,
@@ -75,8 +69,6 @@ data class DbAssetInfo(
     val bandwidthAvailable: Long?,
     val bandwidthTotal: Long?,
     val assetIsActive: Boolean?,
-
-    val balanceUpdatedAt: Long?,
 )
 
 fun Flow<List<DbAssetInfo>>.toAssetInfoModel() = map { it.toAssetInfoModels() }
@@ -168,11 +160,6 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             stakingApr = entity.stakingApr,
             earnApr = null,
         ),
-        rank = entity.assetRank,
-        walletName = entity.walletName ?: "",
-        walletType = entity.walletType ?: WalletType.Multicoin,
-        stakeApr = entity.stakingApr,
-        position = entity.listPosition ?: 0,
         walletId = walletId?.let(::WalletId),
         associations = entity.associations,
     )

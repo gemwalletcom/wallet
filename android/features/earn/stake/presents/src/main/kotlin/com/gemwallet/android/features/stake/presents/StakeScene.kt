@@ -132,7 +132,7 @@ private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
     val minAmountValue = Config().getStakeConfig(assetInfo.asset.chain.string).minAmount.toLong()
     val iconUrl = assetInfo.id().getIconUrl()
     val rows = listOfNotNull(
-        StakeInfoRow.Apr(assetInfo.stakeApr ?: 0.0, iconUrl),
+        StakeInfoRow.Apr(assetInfo.metadata?.stakingApr ?: 0.0, iconUrl),
         assetInfo.lockTime?.let { StakeInfoRow.LockTime(it, iconUrl) },
         minAmountValue.takeIf { it > 0 }?.let { StakeInfoRow.MinAmount(it, assetInfo.asset.chain) },
     )

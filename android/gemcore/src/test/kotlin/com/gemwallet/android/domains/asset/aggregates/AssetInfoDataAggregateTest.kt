@@ -13,7 +13,6 @@ import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -262,17 +261,6 @@ class AssetInfoDataAggregateTest {
     }
 
     @Test
-    fun assetInfoDataAggregate_position_returnsCorrectPosition() {
-        val assetInfo = createAssetInfo(
-            asset = btcAsset,
-            position = 5
-        )
-        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
-
-        assertEquals(5, aggregate.position)
-    }
-
-    @Test
     fun assetInfoDataAggregate_pinned_pinnedTrue_returnsTrue() {
         val assetInfo = createAssetInfo(
             asset = btcAsset,
@@ -399,26 +387,16 @@ class AssetInfoDataAggregateTest {
         owner: Account? = null,
         balance: AssetBalance = AssetBalance.create(asset),
         walletId: String? = "wallet1",
-        walletType: WalletType = WalletType.Multicoin,
-        walletName: String = "Test Wallet",
         price: AssetPriceInfo? = null,
         metadata: AssetMetaData? = null,
-        rank: Int = 0,
-        stakeApr: Double? = null,
-        position: Int = 0
     ): AssetInfo {
         return AssetInfo(
             owner = owner,
             asset = asset,
             balance = balance,
             walletId = walletId?.let(::mockWalletId),
-            walletType = walletType,
-            walletName = walletName,
             price = price,
             metadata = metadata,
-            rank = rank,
-            stakeApr = stakeApr,
-            position = position
         )
     }
 

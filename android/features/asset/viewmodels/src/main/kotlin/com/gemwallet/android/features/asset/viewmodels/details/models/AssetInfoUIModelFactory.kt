@@ -19,11 +19,12 @@ import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.StakeChain
+import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.Explorer
 
 object AssetInfoUIModelFactory {
 
-    fun create(chainAssetInfo: ChainAssetInfo, explorerName: String): AssetInfoUIModel {
+    fun create(chainAssetInfo: ChainAssetInfo, explorerName: String, walletType: WalletType): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
         val asset = assetInfo.asset
@@ -52,7 +53,7 @@ object AssetInfoUIModelFactory {
                 Explorer(asset.chain.string).getTokenUrl(explorerName, it)
             },
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
-                walletType = assetInfo.walletType,
+                walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
                 totalFiat = fiatTotal,
                 owner = assetInfo.owner?.address ?: "",
@@ -84,7 +85,7 @@ object AssetInfoUIModelFactory {
         }
         val balances = assetInfo.balance
         return if (balances.balanceAmount.getStakedAmount() == 0.0) {
-            "APR ${(assetInfo.stakeApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
+            "APR ${(assetInfo.metadata?.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
         } else {
             formatter.string(balances.balance.getStakedAmount(), balances.asset)
         }

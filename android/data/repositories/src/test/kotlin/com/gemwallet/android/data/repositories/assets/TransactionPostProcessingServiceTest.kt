@@ -4,6 +4,7 @@ import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionExtended
@@ -40,7 +41,7 @@ class TransactionPostProcessingServiceTest {
     @Test
     fun completeStakeTransaction_syncsDelegations() = runBlocking {
         val asset = mockAssetSolana()
-        val assetInfo = mockAssetInfo(asset = asset, walletId = mockWalletId("wallet-1")).copy(stakeApr = 7.5)
+        val assetInfo = mockAssetInfo(asset = asset, walletId = mockWalletId("wallet-1"), metadata = mockAssetMetaData(stakingApr = 7.5))
         every { assetsRepository.getAssetsInfo(any<List<AssetId>>()) } returns flowOf(listOf(assetInfo))
 
         val subject = createSubject()
