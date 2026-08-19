@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityService
-import AddressNameService
 import AppService
 import AssetsService
 import AvatarService
@@ -13,11 +12,8 @@ import ConnectionStatusService
 import ContactService
 import DeviceService
 import DiscoverAssetsService
-import EventPresenterService
-import ExplorerService
 import Foundation
 import GRDB
-import Keystore
 import NFTService
 import NodeService
 import NotificationService
@@ -26,7 +22,6 @@ import PriceAlertService
 import PriceService
 import Primitives
 import RewardsService
-import ScanService
 import ServiceStatusService
 import StakeService
 import Store
@@ -34,19 +29,16 @@ import StreamService
 import SupportChatService
 import SwiftUI
 import TransactionsService
-import TransactionStateService
 import WalletConnector
 import WalletService
 import WalletSessionService
 
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
-    @Entry var keystore: any Keystore = AppResolver.main.storages.keystore
     @Entry var nodeService: NodeService = AppResolver.main.services.nodeService
     @Entry var serviceStatusService: any ServiceStatusServiceable = AppResolver.main.services.serviceStatusService
     @Entry var priceService: PriceService = AppResolver.main.services.priceService
     @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
-    @Entry var explorerService: ExplorerService = AppResolver.main.services.explorerService
     @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
     @Entry var assetDiscoveryService: any AssetDiscoverable = AppResolver.main.services.assetDiscoveryService
     @Entry var walletService: WalletService = AppResolver.main.services.walletService
@@ -67,18 +59,13 @@ extension EnvironmentValues {
     @Entry var nftService: NFTService = AppResolver.main.services.nftService
     @Entry var avatarService: AvatarService = AppResolver.main.services.avatarService
     @Entry var releaseService: AppReleaseService = AppResolver.main.services.appReleaseService
-    @Entry var scanService: ScanService = AppResolver.main.services.scanService
     @Entry var perpetualService: PerpetualService = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
-    @Entry var transactionStateScheduler: TransactionStateScheduler = AppResolver.main.services.transactionStateScheduler
     @Entry var nameService: any NameServiceable = AppResolver.main.services.nameService
-    @Entry var addressNameService: AddressNameService = AppResolver.main.services.addressNameService
     @Entry var activityService: ActivityService = AppResolver.main.services.activityService
-    @Entry var eventPresenterService: EventPresenterService = AppResolver.main.services.eventPresenterService
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
     @Entry var rewardsService: RewardsService = AppResolver.main.services.rewardsService
     @Entry var walletSearchService: WalletSearchService = AppResolver.main.services.walletSearchService
-    @Entry var assetSearchService: AssetSearchService = AppResolver.main.services.assetSearchService
     @Entry var inAppNotificationService: InAppNotificationService = AppResolver.main.services.inAppNotificationService
     @Entry var portfolioService: PortfolioService = AppResolver.main.services.portfolioService
     @Entry var contactService: ContactService = AppResolver.main.services.contactService

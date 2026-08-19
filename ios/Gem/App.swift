@@ -46,7 +46,7 @@ struct GemApp: App {
                     deviceService: resolver.services.deviceService,
                 ),
             )
-            .inject(resolver: resolver)
+            .databaseQueue(resolver.storages.db.dbQueue)
             .navigationBarTitleDisplayMode(.inline)
             .tint(Colors.black)
         }
