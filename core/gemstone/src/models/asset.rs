@@ -1,6 +1,6 @@
 use primitives::{
     Asset, AssetId, AssetProperties, AssetScore, AssetType, Chain, ChainAsset, WalletType,
-    known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC, SOLANA_USDC, SOLANA_USDT, TEMPO_BRIDGED_USDC, TEMPO_PATHUSD, TEMPO_USDC, TRON_USDT},
+    known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC, SOLANA_USDC, SOLANA_USDT, TEMPO_BRIDGED_USDC, TEMPO_PATHUSD, TEMPO_USDT0, TRON_USDT},
 };
 
 pub type GemAsset = Asset;
@@ -58,7 +58,7 @@ pub fn wallet_default_assets(chain: Chain) -> Vec<GemAsset> {
     match chain {
         Chain::HyperCore => vec![HYPERCORE_PERPETUAL_USDC.clone(), HYPERCORE_SPOT_USDC.clone()],
         Chain::Solana => vec![SOLANA_USDC.clone(), SOLANA_USDT.clone()],
-        Chain::Tempo => vec![TEMPO_BRIDGED_USDC.clone(), TEMPO_PATHUSD.clone(), TEMPO_USDC.clone()],
+        Chain::Tempo => vec![TEMPO_BRIDGED_USDC.clone(), TEMPO_PATHUSD.clone(), TEMPO_USDT0.clone()],
         Chain::Tron => vec![TRON_USDT.clone()],
         _ => vec![],
     }
@@ -103,7 +103,7 @@ mod tests {
     fn test_wallet_asset_is_enabled() {
         assert!(wallet_asset_is_enabled(TEMPO_BRIDGED_USDC.id.clone(), WalletType::Single));
         assert!(wallet_asset_is_enabled(TEMPO_PATHUSD.id.clone(), WalletType::Single));
-        assert!(wallet_asset_is_enabled(TEMPO_USDC.id.clone(), WalletType::Single));
+        assert!(wallet_asset_is_enabled(TEMPO_USDT0.id.clone(), WalletType::Single));
         assert!(!wallet_asset_is_enabled(TEMPO_BRIDGED_USDC.id.clone(), WalletType::Multicoin));
         assert!(!wallet_asset_is_enabled(AssetId::from_chain(Chain::Tempo), WalletType::Single));
         assert!(!wallet_asset_is_enabled(
