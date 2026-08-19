@@ -3,13 +3,19 @@ use std::collections::HashMap;
 use std::error::Error;
 use storage::{AssetUsageRankRow, AssetsUsageRanksRepository, Database, TransactionsRepository};
 
+#[derive(Clone, Copy)]
+pub struct UsageRankUpdaterConfig {
+    pub batch_size: usize,
+}
+
 pub struct UsageRankUpdater {
     database: Database,
+    config: UsageRankUpdaterConfig,
 }
 
 impl UsageRankUpdater {
-    pub fn new(database: Database) -> Self {
-        UsageRankUpdater { database }
+    pub fn new(database: Database, config: UsageRankUpdaterConfig) -> Self {
+        UsageRankUpdater { database, config }
     }
 
     pub async fn update_usage_ranks(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -34,8 +40,10 @@ impl UsageRankUpdater {
             })
             .collect();
 
-        self.database.assets_usage_ranks()?.delete_usage_ranks_before(thirty_days_ago)?;
-        Ok(self.database.assets_usage_ranks()?.upsert_usage_ranks(rows)?)
+        let mut repository = self.database.assets_usage_ranks()?;
+        repository.delete_usage_ranks_before(thirty_days_ago)?;
+        rows.chunks(self.config.batch_size)
+            .try_fold(0, |total, batch| Ok(total + repository.upsert_usage_ranks(batch)?))
     }
 }
 

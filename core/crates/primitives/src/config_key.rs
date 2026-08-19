@@ -154,6 +154,7 @@ pub enum ConfigKey {
     AssetsTimerUpdateStakeApy,
     AssetsTimerUpdatePerpetuals,
     AssetsTimerUpdateUsageRank,
+    AssetsUsageRankBatchSize,
     AssetsTimerUpdateImages,
     AssetsTimerUpdateHasPrice,
 
@@ -363,6 +364,7 @@ impl ConfigKey {
             Self::AssetsTimerUpdateStakeApy => "1d",
             Self::AssetsTimerUpdatePerpetuals => "1h",
             Self::AssetsTimerUpdateUsageRank => "1h",
+            Self::AssetsUsageRankBatchSize => "1000",
             Self::AssetsTimerUpdateImages => "8h",
             Self::AssetsTimerUpdateHasPrice => "1h",
             Self::ListsTimerUpdateLists => "1d",
