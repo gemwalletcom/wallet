@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ValueFormatter
@@ -55,6 +56,7 @@ internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
         .string(progress.fromValue.toBigInteger(), progress.fromAsset)
 
     val statuses = progress.state.swapProgressStatuses()
+    val estimatedTime = progress.etaInSeconds?.let(::formatEstimatedConfirmation)
 
     Row(
         modifier = Modifier
@@ -76,11 +78,13 @@ internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
                 title = stringResource(R.string.transfer_title),
                 subtitle = "$transferValue ($chainName)",
                 status = statuses.transfer,
+                estimatedTime = estimatedTime,
             )
             ProgressStep(
                 title = stringResource(R.string.wallet_swap),
                 subtitle = progress.providerName,
                 status = statuses.swap,
+                estimatedTime = estimatedTime,
             )
         }
     }
@@ -91,6 +95,7 @@ private fun ProgressStep(
     title: String,
     subtitle: String,
     status: SwapProgressStatus,
+    estimatedTime: String?,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -112,13 +117,28 @@ private fun ProgressStep(
             )
             StatusTag(status = status)
         }
-        Text(
-            text = subtitle,
-            color = MaterialTheme.colorScheme.secondary,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(space8),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = subtitle,
+                color = MaterialTheme.colorScheme.secondary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            estimatedTime?.takeIf { status == SwapProgressStatus.Pending }?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.secondary,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
     }
 }
 

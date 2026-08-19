@@ -20,7 +20,7 @@ struct TransactionSwapProgressViewModel {
 
 extension TransactionSwapProgressViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        guard let progress = progressModel else {
+        guard let progress else {
             return .empty
         }
         return .swapProgress(progress)
@@ -30,7 +30,7 @@ extension TransactionSwapProgressViewModel: ItemModelProvidable {
 // MARK: - Private
 
 extension TransactionSwapProgressViewModel {
-    private var progressModel: TransactionSwapProgressItemModel? {
+    var progress: TransactionSwapProgressItemModel? {
         guard
             transaction.transaction.type == .swap,
             let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self),
@@ -42,7 +42,7 @@ extension TransactionSwapProgressViewModel {
         }
 
         let provider = swapperProviderConfig(provider: swapProvider)
-        guard provider.mode.isCrossChain else {
+        guard provider.mode != .onChain else {
             return nil
         }
 
@@ -52,6 +52,9 @@ extension TransactionSwapProgressViewModel {
         let transferSubtitle = "\(amount) (\(chainName))"
         let swapTitle = Localized.Wallet.swap
         let swapSubtitle = provider.name
+        let estimatedTime = transaction.transaction.state.isCompleted
+            ? nil
+            : transaction.confirmationEtaSeconds.flatMap { $0 > 0 ? EstimatedConfirmationFormatter().string(seconds: $0) : nil }
 
         let transferStatus: TransactionSwapProgressItemModel.Step.Status
         let swapStatus: TransactionSwapProgressItemModel.Step.Status
@@ -73,17 +76,17 @@ extension TransactionSwapProgressViewModel {
         }
 
         return TransactionSwapProgressItemModel(
-            transfer: .init(title: transferTitle, subtitle: transferSubtitle, status: transferStatus),
-            swap: .init(title: swapTitle, subtitle: swapSubtitle, status: swapStatus),
+            transfer: .init(
+                title: transferTitle,
+                subtitle: transferSubtitle,
+                status: transferStatus,
+            ),
+            swap: .init(
+                title: swapTitle,
+                subtitle: swapSubtitle,
+                status: swapStatus,
+            ),
+            estimatedTime: estimatedTime,
         )
-    }
-}
-
-private extension SwapperProviderMode {
-    var isCrossChain: Bool {
-        switch self {
-        case .crossChain, .bridge, .omniChain: true
-        case .onChain: false
-        }
     }
 }

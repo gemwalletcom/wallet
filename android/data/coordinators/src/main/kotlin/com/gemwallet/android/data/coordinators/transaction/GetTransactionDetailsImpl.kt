@@ -19,6 +19,7 @@ import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
+import com.gemwallet.android.ext.isCompleted
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -200,7 +201,7 @@ class TransactionDetailsAggregateImpl(
     override val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state)
 
     override val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = data.confirmationEtaSeconds
-        ?.takeIf { data.transaction.state == TransactionState.Pending && it > 0u }
+        ?.takeIf { it > 0u && state == TransactionState.Pending && swapProgress == null }
         ?.let { TransactionDetailsValue.EstimatedConfirmation(it) }
 
     override val memo: TransactionDetailsValue.Memo? = data.transaction.memo
@@ -303,8 +304,8 @@ class TransactionDetailsAggregateImpl(
 
     override val swapProgress: TransactionDetailsValue.SwapProgress?
         get() {
-            if (data.transaction.type != TransactionType.Swap) return null
-            if (data.transaction.state == TransactionState.Confirmed) return null
+            if (type != TransactionType.Swap) return null
+            if (state == TransactionState.Confirmed) return null
 
             val metadata = swapMetadata ?: return null
             val provider = swapProvider?.takeIf { it.mode.isCrossChain } ?: return null
@@ -318,7 +319,8 @@ class TransactionDetailsAggregateImpl(
                 fromAsset = fromAsset,
                 fromValue = metadata.fromValue,
                 providerName = provider.name,
-                state = data.transaction.state,
+                state = state,
+                etaInSeconds = data.confirmationEtaSeconds?.takeIf { it > 0u && !state.isCompleted() },
             )
         }
 

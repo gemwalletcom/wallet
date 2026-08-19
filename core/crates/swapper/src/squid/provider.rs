@@ -183,6 +183,7 @@ where
         Ok(SwapResult {
             status: result.squid_transaction_status.swap_status(),
             metadata: None,
+            eta_in_seconds: None,
         })
     }
 }

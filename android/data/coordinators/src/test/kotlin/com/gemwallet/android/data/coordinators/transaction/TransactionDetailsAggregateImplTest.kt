@@ -320,7 +320,12 @@ class TransactionDetailsAggregateImplTest {
             metadata = metadata,
         )
         val aggregate = createAggregate(
-            data = createTransactionExtended(transaction, asset = ethAsset, assets = listOf(ethAsset, btcAsset)),
+            data = createTransactionExtended(
+                transaction,
+                asset = ethAsset,
+                assets = listOf(ethAsset, btcAsset),
+                confirmationEtaSeconds = 720u,
+            ),
             associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(btcAsset)),
             swapMetadata = swapMetadata,
             swapProvider = createSwapProvider(),
@@ -332,6 +337,8 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals("1000000000000000000", progress?.fromValue)
         Assert.assertEquals("NEAR Intents", progress?.providerName)
         Assert.assertEquals(TransactionState.Pending, progress?.state)
+        Assert.assertEquals(720u, progress?.etaInSeconds)
+        Assert.assertNull(aggregate.estimatedConfirmation)
         Assert.assertEquals(5, aggregate.valueGroups.size)
         Assert.assertTrue(aggregate.valueGroups[1].items.single() is TransactionDetailsValue.SwapProgress)
     }
@@ -364,6 +371,7 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(zecAsset, progress?.fromAsset)
         Assert.assertEquals("2000000", progress?.fromValue)
         Assert.assertEquals(TransactionState.Pending, progress?.state)
+        Assert.assertNull(progress?.etaInSeconds)
         Assert.assertTrue(aggregate.valueGroups[1].items.single() is TransactionDetailsValue.SwapProgress)
     }
 
@@ -384,7 +392,12 @@ class TransactionDetailsAggregateImplTest {
             metadata = metadata,
         )
         val aggregate = createAggregate(
-            data = createTransactionExtended(transaction, asset = ethAsset, assets = listOf(ethAsset, btcAsset)),
+            data = createTransactionExtended(
+                transaction,
+                asset = ethAsset,
+                assets = listOf(ethAsset, btcAsset),
+                confirmationEtaSeconds = 720u,
+            ),
             associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(btcAsset)),
             swapMetadata = swapMetadata,
             swapProvider = createSwapProvider(),
@@ -396,6 +409,8 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals("1000000000000000000", progress?.fromValue)
         Assert.assertEquals("NEAR Intents", progress?.providerName)
         Assert.assertEquals(TransactionState.InTransit, progress?.state)
+        Assert.assertEquals(720u, progress?.etaInSeconds)
+        Assert.assertNull(aggregate.estimatedConfirmation)
         Assert.assertEquals(5, aggregate.valueGroups.size)
         Assert.assertTrue(aggregate.valueGroups[1].items.single() is TransactionDetailsValue.SwapProgress)
     }
@@ -445,7 +460,12 @@ class TransactionDetailsAggregateImplTest {
             metadata = metadata,
         )
         val aggregate = createAggregate(
-            data = createTransactionExtended(transaction, asset = ethAsset, assets = listOf(ethAsset, btcAsset)),
+            data = createTransactionExtended(
+                transaction,
+                asset = ethAsset,
+                assets = listOf(ethAsset, btcAsset),
+                confirmationEtaSeconds = 720u,
+            ),
             associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(btcAsset)),
             swapMetadata = swapMetadata,
             swapProvider = createSwapProvider(),
@@ -457,6 +477,7 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals("1000000000000000000", progress?.fromValue)
         Assert.assertEquals("NEAR Intents", progress?.providerName)
         Assert.assertEquals(TransactionState.Failed, progress?.state)
+        Assert.assertNull(progress?.etaInSeconds)
         Assert.assertEquals(5, aggregate.valueGroups.size)
     }
 
@@ -1088,10 +1109,16 @@ class TransactionDetailsAggregateImplTest {
     }
 
     @Test
-    fun estimatedConfirmation_isOnlyAvailableWhilePending() {
+    fun estimatedConfirmation_onlyAppearsForRegularPendingTransaction() {
         val pending = createAggregate(
             createTransactionExtended(
                 transaction = createTransaction(state = TransactionState.Pending),
+                confirmationEtaSeconds = 720u,
+            )
+        )
+        val inTransitTransfer = createAggregate(
+            createTransactionExtended(
+                transaction = createTransaction(state = TransactionState.InTransit),
                 confirmationEtaSeconds = 720u,
             )
         )
@@ -1101,8 +1128,23 @@ class TransactionDetailsAggregateImplTest {
                 confirmationEtaSeconds = 720u,
             )
         )
+        val missing = createAggregate(
+            createTransactionExtended(
+                transaction = createTransaction(state = TransactionState.Pending),
+                confirmationEtaSeconds = null,
+            )
+        )
+        val zero = createAggregate(
+            createTransactionExtended(
+                transaction = createTransaction(state = TransactionState.Pending),
+                confirmationEtaSeconds = 0u,
+            )
+        )
 
         Assert.assertEquals(720u, pending.estimatedConfirmation?.seconds)
+        Assert.assertNull(inTransitTransfer.estimatedConfirmation)
         Assert.assertNull(confirmed.estimatedConfirmation)
+        Assert.assertNull(missing.estimatedConfirmation)
+        Assert.assertNull(zero.estimatedConfirmation)
     }
 }

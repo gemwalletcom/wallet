@@ -12,6 +12,7 @@ public extension SwapperSwapResult {
         SwapperSwapResult(
             status: status,
             metadata: metadata,
+            etaInSeconds: nil,
         )
     }
 }

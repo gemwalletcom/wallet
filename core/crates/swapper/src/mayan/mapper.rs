@@ -35,7 +35,11 @@ pub fn map_swap_result(result: &MayanTransactionResult) -> SwapResult {
         None
     };
 
-    SwapResult { status, metadata }
+    SwapResult {
+        status,
+        metadata,
+        eta_in_seconds: None,
+    }
 }
 
 #[cfg(test)]
@@ -62,6 +66,7 @@ mod tests {
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: None,
+                eta_in_seconds: None,
             }
         );
 
@@ -76,6 +81,7 @@ mod tests {
                     to_value: "33060513057817862".to_string(),
                     provider: Some("mayan".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
         assert_eq!(
@@ -89,6 +95,7 @@ mod tests {
                     to_value: "398724622644505839482".to_string(),
                     provider: Some("mayan".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
         assert_eq!(
@@ -102,6 +109,7 @@ mod tests {
                     to_value: "278080608518046".to_string(),
                     provider: Some("mayan".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
 
@@ -121,6 +129,7 @@ mod tests {
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: None,
+                eta_in_seconds: None,
             }
         );
     }

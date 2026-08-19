@@ -96,6 +96,7 @@ sealed interface TransactionDetailsValue {
         val fromValue: String,
         val providerName: String,
         val state: TransactionState,
+        val etaInSeconds: UInt?,
     ) : TransactionDetailsValue
 
     class SwapAgain(

@@ -32,13 +32,16 @@ public struct TransactionSwapProgressItemModel: Equatable {
 
     public let transfer: Step
     public let swap: Step
+    public let estimatedTime: String?
 
     public init(
         transfer: Step,
         swap: Step,
+        estimatedTime: String?,
     ) {
         self.transfer = transfer
         self.swap = swap
+        self.estimatedTime = estimatedTime
     }
 }
 

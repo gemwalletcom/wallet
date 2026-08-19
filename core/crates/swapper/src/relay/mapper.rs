@@ -41,6 +41,7 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
     SwapResult {
         status: request.status.clone().into_swap_status(),
         metadata,
+        eta_in_seconds: None,
     }
 }
 

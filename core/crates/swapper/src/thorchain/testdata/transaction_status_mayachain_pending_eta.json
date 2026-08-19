@@ -1,34 +1,35 @@
 {
   "tx": {
-    "id": "2BC884C03438AAD437ABE2C18D97B5A7CAB9312F68C59CECBB3AD5715FE4C15D",
+    "id": "09DCAEF3F7D76AB1D621E684824503DD7E36C48A2F35C5122569159DA884153F",
     "chain": "BTC",
-    "from_address": "bc1qatt33ste4xywa97skmt9tmxwnpzrvqszwpm6pu",
-    "to_address": "bc1q2llgpmptppvuahaz9av983t5dypl9gehewjwud",
+    "from_address": "bc1qexamplefromaddress",
+    "to_address": "bc1qexamplevaultaddress",
     "coins": [
       {
         "asset": "BTC.BTC",
-        "amount": "23516479"
+        "amount": "1500000"
       }
     ],
     "gas": [
       {
         "asset": "BTC.BTC",
-        "amount": "830"
+        "amount": "1200"
       }
     ],
-    "memo": "=:TRON.USDT:TMwHWhFuEqSoicouuxgNqy3Z8yTiUoPetA:0/5/0:ej:75"
+    "memo": "=:ETH.ETH:0x1111111111111111111111111111111111111111:0/1/0:g1:50"
   },
   "stages": {
     "inbound_observed": {
-      "final_count": 103,
+      "pre_confirmation_count": 1,
+      "final_count": 2,
       "completed": true
     },
     "inbound_confirmation_counted": {
-      "remaining_confirmation_seconds": 600,
+      "remaining_confirmation_seconds": 300,
       "completed": false
     },
     "inbound_finalised": {
-      "completed": true
+      "completed": false
     },
     "swap_status": {
       "pending": true

@@ -9,4 +9,5 @@ use typeshare::typeshare;
 pub struct SwapResult {
     pub status: SwapStatus,
     pub metadata: Option<TransactionSwapMetadata>,
+    pub eta_in_seconds: Option<u32>,
 }

@@ -1,19 +1,21 @@
 {
-  "state": "SENDING",
+  "state": "RECEIVING",
+  "swapId": "332925",
   "srcAsset": "USDC",
-  "srcChain": "Solana",
+  "srcChain": "Ethereum",
   "destAsset": "BTC",
   "destChain": "Bitcoin",
+  "destAddress": "bc1qexampledestination",
   "estimatedDurationSeconds": 1920,
   "estimatedDurationsSeconds": {
     "deposit": 1806,
     "swap": 12,
     "egress": 102
   },
+  "srcChainRequiredBlockConfirmations": 5,
   "deposit": {
-    "amount": "495625000"
+    "amount": "100000000"
   },
-  "swap": {
-    "swappedOutputAmount": "695407"
-  }
+  "swap": null,
+  "refundEgress": null
 }

@@ -78,6 +78,11 @@
     "swap_finalised": {
       "completed": true
     },
+    "outbound_delay": {
+      "remaining_delay_blocks": 20,
+      "remaining_delay_seconds": 120,
+      "completed": false
+    },
     "outbound_signed": {
       "completed": false
     }
