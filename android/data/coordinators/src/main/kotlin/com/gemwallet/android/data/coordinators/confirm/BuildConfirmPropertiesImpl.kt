@@ -40,6 +40,8 @@ class BuildConfirmPropertiesImpl(
                         domain = destination.domain,
                         address = destination.address,
                         chain = destination.chain,
+                        addressType = destination.addressType,
+                        imageUrl = destination.imageUrl,
                         explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, destination.address)),
                     )
                     is ConfirmProperty.Destination.Stake -> destination.address?.let { address ->

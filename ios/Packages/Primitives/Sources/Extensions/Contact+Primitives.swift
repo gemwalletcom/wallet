@@ -7,12 +7,14 @@ public extension Contact {
         id: String,
         name: String,
         description: String?,
+        imageUrl: String?,
         createdAt: Date = .now,
     ) -> Contact {
         Contact(
             id: id,
             name: name,
             description: description,
+            imageUrl: imageUrl,
             createdAt: createdAt,
             updatedAt: .now,
         )

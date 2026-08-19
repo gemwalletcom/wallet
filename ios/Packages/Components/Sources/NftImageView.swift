@@ -33,15 +33,15 @@ public struct NftImageView: View {
                         }
                     }
                 } else {
-                    NftImagePlaceholderView(name: assetImage.type)
+                    NftImagePlaceholderView(name: assetImage.type?.value)
                 }
             case let .success(image):
                 image.resizable()
                     .onAppear { isImageLoaded = true }
             case .failure:
-                NftImagePlaceholderView(name: assetImage.type)
+                NftImagePlaceholderView(name: assetImage.type?.value)
             @unknown default:
-                NftImagePlaceholderView(name: assetImage.type)
+                NftImagePlaceholderView(name: assetImage.type?.value)
             }
         }
     }

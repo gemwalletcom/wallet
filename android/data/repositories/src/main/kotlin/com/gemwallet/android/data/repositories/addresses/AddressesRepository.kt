@@ -24,7 +24,7 @@ class AddressesRepository(
 
     override suspend fun saveAddressNames(addressNames: List<AddressName>) {
         if (addressNames.isEmpty()) return
-        addressesDao.insert(addressNames.toRecord())
+        addressesDao.updateNames(addressNames.toRecord())
     }
 
     override fun getAddressNameFlow(chain: Chain, address: String): Flow<AddressName?> =

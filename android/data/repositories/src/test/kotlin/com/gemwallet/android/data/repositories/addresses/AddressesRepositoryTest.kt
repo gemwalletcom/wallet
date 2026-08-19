@@ -35,6 +35,6 @@ class AddressesRepositoryTest {
 
         assertEquals(listOf("Cached", "USDC"), result.map { it.name })
         coVerify(exactly = 1) { gemDeviceApiClient.getAddressNames(listOf(missing)) }
-        coVerify { addressesDao.insert(any()) }
+        coVerify { addressesDao.updateNames(any()) }
     }
 }

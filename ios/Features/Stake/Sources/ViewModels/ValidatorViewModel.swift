@@ -66,7 +66,7 @@ public struct ValidatorViewModel {
         switch validator.providerType {
         case .stake:
             AssetImage(
-                type: String(name.first ?? " "),
+                type: .text(String(name.first ?? " ")),
                 imageURL: imageUrl,
             )
         case .earn:

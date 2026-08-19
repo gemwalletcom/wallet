@@ -62,6 +62,7 @@ class ContactsRepository(
                 name = contact.name,
                 type = AddressType.Contact,
                 status = VerificationStatus.Verified,
+                imageUrl = contact.imageUrl,
             )
         }
         runCatching { addressesDao.insert(addressNames.toRecord()) }

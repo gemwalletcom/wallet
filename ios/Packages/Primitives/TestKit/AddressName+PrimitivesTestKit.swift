@@ -10,6 +10,7 @@ public extension AddressName {
         name: String = "Hyperliquid",
         type: AddressType = .address,
         status: VerificationStatus = .verified,
+        imageUrl: String? = nil,
     ) -> AddressName {
         AddressName(
             chain: chain,
@@ -17,6 +18,7 @@ public extension AddressName {
             name: name,
             type: type,
             status: status,
+            imageUrl: imageUrl,
         )
     }
 }

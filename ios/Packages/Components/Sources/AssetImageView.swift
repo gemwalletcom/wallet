@@ -53,36 +53,35 @@ public struct AssetImageView: View {
                 .resizable()
                 .scaledToFit()
                 .cornerRadius(cornerRadius)
-        } else if let tokenType = assetImage.type {
-            GeometryReader { geo in
-                let diameter = min(geo.size.width, geo.size.height)
-                ZStack {
-                    Circle()
-                        .ifElse(tokenType.count == 1) { view in
-                            view.foregroundStyle(.clear)
-                        } elseContent: { view in
-                            view.foregroundStyle(.tertiary)
-                        }
-
-                    Text(tokenType.uppercased())
-                        .ifElse(tokenType.count == 1, ifContent: { view in
-                            view
-                                .font(.system(size: diameter, weight: .semibold))
-                        }, elseContent: { view in
-                            view
-                                .font(.system(size: diameter * 0.35, weight: .semibold))
-                                .padding(.horizontal, .space6)
-                        })
-                        .minimumScaleFactor(0.4)
-                        .lineLimit(1)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.primary)
-                }
+        } else if let type = assetImage.type {
+            switch type {
+            case let .emoji(emoji):
+                EmojiView(color: Colors.grayVeryLight, emoji: emoji)
+            case let .text(text):
+                textPlaceholder(text)
             }
         } else {
             Rectangle()
                 .foregroundStyle(.tertiary)
                 .cornerRadius(cornerRadius)
+        }
+    }
+
+    private func textPlaceholder(_ text: String) -> some View {
+        GeometryReader { geo in
+            let diameter = min(geo.size.width, geo.size.height)
+            ZStack {
+                Circle()
+                    .foregroundStyle(.tertiary)
+
+                Text(text.uppercased())
+                    .font(.system(size: diameter * AvatarScale.initials, weight: .semibold))
+                    .padding(.horizontal, .space6)
+                    .minimumScaleFactor(0.4)
+                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.primary)
+            }
         }
     }
 }
@@ -134,7 +133,7 @@ public extension AssetImageView {
     Group {
         AssetImageView(
             assetImage: AssetImage(
-                type: "SPL",
+                type: .text("SPL"),
                 imageURL: URL(string: "https://example.com/token.png"),
                 placeholder: Image(systemName: "bitcoinsign.circle"),
                 chainPlaceholder: Image(systemName: "bolt.circle.fill"),
@@ -144,7 +143,7 @@ public extension AssetImageView {
 
         AssetImageView(
             assetImage: AssetImage(
-                type: "MIGRAINE",
+                type: .text("MIGRAINE"),
                 imageURL: nil,
                 placeholder: nil,
                 chainPlaceholder: Image(systemName: "bolt.circle.fill"),
@@ -155,7 +154,7 @@ public extension AssetImageView {
 
         AssetImageView(
             assetImage: AssetImage(
-                type: Emoji.WalletAvatar.gem.rawValue,
+                type: .emoji(Emoji.WalletAvatar.gem.rawValue),
                 imageURL: nil,
                 placeholder: nil,
                 chainPlaceholder: Image(systemName: "bolt.circle.fill"),

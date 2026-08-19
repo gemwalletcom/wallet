@@ -46,7 +46,7 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
 
     private func assetImage(for icon: CoreListItemIcon) -> AssetImage {
         switch icon {
-        case let .emoji(emoji): AssetImage(type: emoji.value)
+        case let .emoji(emoji): AssetImage(type: .emoji(emoji.value))
         case let .asset(assetId): AssetIdViewModel(assetId: assetId).assetImage
         case let .image(url): AssetImage(imageURL: url.asURL)
         }

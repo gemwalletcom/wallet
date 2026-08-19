@@ -25,6 +25,6 @@ struct AssetListItemViewModel: Identifiable {
     }
 
     var image: AssetImage {
-        AssetImage(type: list.name, imageURL: assetImageFormatter.getListUrl(for: list.id))
+        AssetImage(type: .text(list.name), imageURL: assetImageFormatter.getListUrl(for: list.id))
     }
 }

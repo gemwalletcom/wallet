@@ -1,19 +1,15 @@
-package com.gemwallet.android.features.wallet.viewmodels
+package com.gemwallet.android.ui.components.image
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import com.gemwallet.android.ui.theme.extraLargeIconSize
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlin.math.roundToInt
 
-class EmojiAvatarRenderer @Inject constructor(
-    @ApplicationContext private val context: Context,
-) {
+object EmojiAvatarRenderer {
 
-    fun render(emoji: String, backgroundColor: Int): ByteArray {
+    fun render(context: Context, emoji: String, backgroundColor: Int): ByteArray {
         val size = (extraLargeIconSize.value * context.resources.displayMetrics.density).roundToInt()
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -23,7 +19,7 @@ class EmojiAvatarRenderer @Inject constructor(
         canvas.drawCircle(center, center, center, backgroundPaint)
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = size * EMOJI_SCALE
+            textSize = size * AvatarScale.EMOJI
             textAlign = Paint.Align.CENTER
         }
         val metrics = textPaint.fontMetrics
@@ -31,9 +27,5 @@ class EmojiAvatarRenderer @Inject constructor(
         canvas.drawText(emoji, center, baseline, textPaint)
 
         return bitmap.toPng()
-    }
-
-    private companion object {
-        const val EMOJI_SCALE = 0.7f
     }
 }

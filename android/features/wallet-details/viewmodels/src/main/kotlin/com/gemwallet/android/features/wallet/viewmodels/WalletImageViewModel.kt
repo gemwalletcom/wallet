@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.ui.models.NftItemUIModel
+import com.gemwallet.android.ui.theme.AvatarEmoji
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +29,7 @@ class WalletImageViewModel @Inject constructor(
     val wallet = getWalletDetails.getWallet(walletId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val emojis: List<String> = WalletAvatarEmoji.all
+    val emojis: List<String> = AvatarEmoji.all
 
     val nftImages: StateFlow<List<NftItemUIModel>> = getListNftCase.getListNft(walletId)
         .map { data ->

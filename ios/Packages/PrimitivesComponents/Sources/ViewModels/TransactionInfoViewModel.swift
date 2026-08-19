@@ -74,7 +74,7 @@ public struct TransactionInfoViewModel: Sendable {
         case let .nft(name, id): .nft(
                 name: name,
                 image: AssetImage(
-                    type: "NFT",
+                    type: .text("NFT"),
                     imageURL: AssetImageFormatter().getNFTUrl(for: id),
                     placeholder: .none,
                     chainPlaceholder: .none,

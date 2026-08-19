@@ -18,7 +18,7 @@ public struct AssetIdViewModel: Sendable {
 
     public var networkAssetImage: AssetImage {
         AssetImage(
-            type: .empty,
+            type: .text(.empty),
             imageURL: .none,
             placeholder: ChainImage(chain: assetId.chain).l2Image ?? imagePlaceholder,
             chainPlaceholder: .none,
@@ -27,7 +27,7 @@ public struct AssetIdViewModel: Sendable {
 
     public var assetImage: AssetImage {
         let defaultAssetImage = AssetImage(
-            type: assetId.assetType?.rawValue ?? .empty,
+            type: .text(assetId.assetType?.rawValue ?? .empty),
             imageURL: imageURL,
             placeholder: imagePlaceholder,
             chainPlaceholder: chainPlaceholder,

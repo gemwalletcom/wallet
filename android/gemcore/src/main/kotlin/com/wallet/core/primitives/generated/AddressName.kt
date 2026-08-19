@@ -13,6 +13,7 @@ data class AddressName (
 	val address: String,
 	val name: String,
 	val type: AddressType,
-	val status: VerificationStatus
+	val status: VerificationStatus,
+	val imageUrl: String? = null
 )
 

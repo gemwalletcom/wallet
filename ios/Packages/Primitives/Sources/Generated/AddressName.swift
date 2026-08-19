@@ -10,12 +10,14 @@ public struct AddressName: Codable, Equatable, Hashable, Sendable {
 	public let name: String
 	public let type: AddressType
 	public let status: VerificationStatus
+	public let imageUrl: String?
 
-	public init(chain: Chain, address: String, name: String, type: AddressType, status: VerificationStatus) {
+	public init(chain: Chain, address: String, name: String, type: AddressType, status: VerificationStatus, imageUrl: String?) {
 		self.chain = chain
 		self.address = address
 		self.name = name
 		self.type = type
 		self.status = status
+		self.imageUrl = imageUrl
 	}
 }

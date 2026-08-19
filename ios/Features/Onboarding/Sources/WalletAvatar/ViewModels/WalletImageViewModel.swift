@@ -78,7 +78,7 @@ public final class WalletImageViewModel: Sendable {
                 NFTAssetImageItem(
                     id: $0.id.identifier,
                     assetImage: AssetImage(
-                        type: $0.name,
+                        type: .text($0.name),
                         imageURL: $0.images.preview.url.asURL,
                         placeholder: nil,
                         chainPlaceholder: nil,
@@ -87,13 +87,8 @@ public final class WalletImageViewModel: Sendable {
             }
     }
 
-    func getColumns(for tab: WalletImageScene.Tab) -> [GridItem] {
-        switch tab {
-        case .emoji:
-            Array(repeating: GridItem(.flexible(), spacing: .medium), count: 4)
-        case .collections:
-            Array(repeating: GridItem(spacing: .medium), count: 2)
-        }
+    var nftColumns: [GridItem] {
+        Array(repeating: GridItem(spacing: .medium), count: 2)
     }
 
     // MARK: - Public methods
@@ -123,46 +118,7 @@ public final class WalletImageViewModel: Sendable {
     // MARK: - Private methods
 
     private func drawImage(color: UIColor, text: String) -> UIImage? {
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = UIScreen.main.scale
-
-        let renderer = UIGraphicsImageRenderer(
-            size: CGSize(width: emojiViewSize, height: emojiViewSize),
-            format: format,
-        )
-
-        return renderer.image { context in
-            let rect = CGRect(x: 0, y: 0, width: emojiViewSize, height: emojiViewSize)
-
-            let path = UIBezierPath(ovalIn: rect.insetBy(dx: -0.5, dy: -0.5))
-            UIColor.clear.setFill()
-            context.fill(rect)
-
-            color.setFill()
-            path.fill()
-
-            let fontSize = emojiViewSize * 0.7
-            let font = UIFont.boldSystemFont(ofSize: fontSize)
-
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.alignment = .center
-
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: font,
-                .paragraphStyle: paragraphStyle,
-            ]
-            let attributedString = NSAttributedString(string: text, attributes: attributes)
-
-            let textSize = attributedString.size()
-            let textRect = CGRect(
-                x: (emojiViewSize - textSize.width) / 2,
-                y: (emojiViewSize - textSize.height) / 2,
-                width: textSize.width,
-                height: textSize.height,
-            )
-
-            attributedString.draw(in: textRect)
-        }
+        EmojiAvatarRenderer.image(emoji: text, size: emojiViewSize, color: color)
     }
 
     private func setImage(_ image: UIImage) {

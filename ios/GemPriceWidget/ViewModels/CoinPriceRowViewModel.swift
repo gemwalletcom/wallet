@@ -32,7 +32,7 @@ final class CoinPriceRowViewModel {
 
     var assetImage: AssetImage {
         AssetImage(
-            type: coin.symbol,
+            type: .text(coin.symbol),
             placeholder: coin.image,
             chainPlaceholder: chainPlaceholder,
         )

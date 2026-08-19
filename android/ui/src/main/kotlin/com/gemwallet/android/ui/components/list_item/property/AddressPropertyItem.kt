@@ -15,10 +15,12 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.image.InitialsAvatar
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.BlockExplorerLink
 
 @Composable
@@ -26,6 +28,8 @@ fun AddressPropertyItem(
     @StringRes title: Int,
     displayText: String,
     copyValue: String,
+    icon: Any? = null,
+    placeholderText: String? = null,
     explorerLink: BlockExplorerLink? = null,
     listPosition: ListPosition = ListPosition.Middle,
 ) {
@@ -46,7 +50,18 @@ fun AddressPropertyItem(
                 data = {
                     PropertyDataText(
                         text = displayText,
-                        badge = explorerLink?.let { { DataBadgeChevron() } },
+                        badge = when {
+                            icon != null -> {
+                                { DataBadgeChevron(icon, explorerLink != null) }
+                            }
+                            placeholderText != null -> {
+                                { DataBadgeChevron(explorerLink != null) { InitialsAvatar(text = placeholderText, size = smallIconSize) } }
+                            }
+                            explorerLink != null -> {
+                                { DataBadgeChevron() }
+                            }
+                            else -> null
+                        },
                     )
                 },
                 listPosition = listPosition,

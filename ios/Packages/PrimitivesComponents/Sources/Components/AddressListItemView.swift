@@ -17,8 +17,6 @@ public struct AddressListItemView: View {
             title: model.title,
             subtitle: showAddress ? model.addressSubtitle : model.subtitle,
             assetImage: model.assetImage,
-            assetImageStyle: model.assetImageStyle,
-            imageSize: model.assetImageSize,
         )
         .onTap {
             if model.canToggleAddress {

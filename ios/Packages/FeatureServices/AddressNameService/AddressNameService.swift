@@ -58,7 +58,7 @@ private extension AddressNameService {
             return [:]
         }
 
-        try addressStore.addAddressNames(remoteAddressNames)
+        try addressStore.updateAddressNames(remoteAddressNames)
         return Dictionary(uniqueKeysWithValues: remoteAddressNames.map {
             (ChainAddress(chain: $0.chain, address: $0.address), $0)
         })

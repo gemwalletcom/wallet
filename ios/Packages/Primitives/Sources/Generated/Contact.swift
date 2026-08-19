@@ -8,13 +8,15 @@ public struct Contact: Codable, Equatable, Hashable, Identifiable, Sendable {
 	public let id: String
 	public let name: String
 	public let description: String?
+	public let imageUrl: String?
 	public let createdAt: Date
 	public let updatedAt: Date
 
-	public init(id: String, name: String, description: String?, createdAt: Date, updatedAt: Date) {
+	public init(id: String, name: String, description: String?, imageUrl: String?, createdAt: Date, updatedAt: Date) {
 		self.id = id
 		self.name = name
 		self.description = description
+		self.imageUrl = imageUrl
 		self.createdAt = createdAt
 		self.updatedAt = updatedAt
 	}
