@@ -11,7 +11,7 @@ pub fn asset_ids_for_feed_id(feed_id: &str) -> Vec<AssetId> {
         .collect()
 }
 
-pub fn price_feed_id_for_asset_id(asset_id: &AssetId) -> Option<&'static str> {
+pub(crate) fn price_feed_id_for_asset_id(asset_id: &AssetId) -> Option<&'static str> {
     if asset_id == &*TEMPO_PATHUSD_ASSET_ID {
         Some(TEMPO_PATHUSD_FEED_ID)
     } else if asset_id.is_native() {

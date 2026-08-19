@@ -25,7 +25,7 @@ impl EvmSigner for TempoSigner {
             ));
         }
         let params = TransactionParams::from_input(input)?;
-        let swap_gas_limit = input.get_swap_gas_limit()?;
+        let swap_gas_limit = input.swap_gas_limit()?;
         let swap_call = TransactionCall::new(
             Address::from_str(&swap_data.to).map_err(SignerError::from_display)?,
             Bytes::from(decode_hex(&swap_data.data)?),

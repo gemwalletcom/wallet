@@ -11,7 +11,7 @@ use primitives::{AssetId, Chain, TransactionFee, TransactionLoadInput, Transacti
 use crate::contracts::{ITIP20, ITempoFeeManager};
 use crate::fee::{FEE_MANAGER_ADDRESS, USD_CURRENCY, decode_set_user_fee_token, scale_fee_to_token_units};
 
-pub struct TempoFeeCalculator<C: Client + Clone> {
+pub(crate) struct TempoFeeCalculator<C: Client + Clone> {
     client: EthereumClient<C>,
 }
 
@@ -30,7 +30,7 @@ impl<C: Client + Clone> EvmFeeCalculator for TempoFeeCalculator<C> {
 }
 
 impl<C: Client + Clone> TempoFeeCalculator<C> {
-    pub fn new(client: EthereumClient<C>) -> Self {
+    pub(crate) fn new(client: EthereumClient<C>) -> Self {
         Self { client }
     }
 

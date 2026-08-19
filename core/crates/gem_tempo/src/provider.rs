@@ -4,9 +4,10 @@ use async_trait::async_trait;
 use chain_traits::{
     ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainState, ChainToken, ChainTraits,
     ChainTransaction, ChainTransactionBroadcast, ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionFeeEstimate, TransactionFeeEstimates,
-    TransactionFeeOperation, TransactionIdRequest, TransactionsRequest, TransactionsResult,
+    TransactionIdRequest, TransactionsRequest, TransactionsResult,
 };
 use gem_client::Client;
+use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
 use gem_evm::provider::transaction_state_mapper::map_transaction_status_with_fee;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use primitives::{
@@ -60,13 +61,6 @@ impl<C: Client + Clone> ChainBalances for TempoProvider<C> {
 
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionLoad for TempoProvider<C> {
-    fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
-        self.provider.transaction_fee_estimate_units(match operation {
-            TransactionFeeOperation::Transfer => TransactionFeeOperation::TokenTransfer,
-            operation => operation,
-        })
-    }
-
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         self.provider.get_transaction_preload(input).await
     }
@@ -169,11 +163,8 @@ impl<C: Client + Clone> ChainAddressStatus for TempoProvider<C> {}
 impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
     async fn get_transaction_fee_estimates(&self) -> Result<TransactionFeeEstimates, Box<dyn Error + Sync + Send>> {
         let mut estimates = self.provider.get_transaction_fee_estimates().await?;
-        let transfer_units = self
-            .transaction_fee_estimate_units(TransactionFeeOperation::Transfer)
-            .ok_or("Missing transfer fee estimate units")?;
         for estimate in &mut estimates.transfer {
-            estimate.fee = estimate.gas_price_type.total_fee() * transfer_units;
+            estimate.fee = estimate.gas_price_type.total_fee() * TOKEN_TRANSFER_GAS_LIMIT;
         }
 
         let scale = |estimates: &mut Vec<TransactionFeeEstimate>| {

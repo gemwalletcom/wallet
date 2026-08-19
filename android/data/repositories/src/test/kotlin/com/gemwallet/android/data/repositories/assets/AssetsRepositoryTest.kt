@@ -579,7 +579,7 @@ class AssetsRepositoryTest {
                     walletId = "wallet-1",
                     visible = true,
                     sessionId = 1,
-                    assetRank = 0,
+                    assetRank = -1,
                 ),
             )
         )

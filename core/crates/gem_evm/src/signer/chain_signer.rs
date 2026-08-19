@@ -46,7 +46,7 @@ impl EvmSigner for StandardEvmSigner {
             input,
             &swap_data.to,
             decode_hex(&swap_data.data)?,
-            input.get_swap_gas_limit()?,
+            input.swap_gas_limit()?,
             value_u256(&swap_data.value)?,
             swap_data.approval.as_ref(),
             private_key,
@@ -62,7 +62,7 @@ impl ChainSigner for EvmChainSigner {
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let params = TransactionParams::from_input(input)?;
         let token_id = input.input_type.get_asset().id.get_token_id()?;
-        let data = encode_erc20_transfer(&input.destination_address, &input.get_value()?)?;
+        let data = encode_erc20_transfer(&input.destination_address, &input.value_as_bigint()?)?;
         sign_and_encode(&build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?, private_key)
     }
 
@@ -97,7 +97,7 @@ impl ChainSigner for EvmChainSigner {
                 let params = TransactionParams::from_input(input)?;
                 if from_asset.id.is_token() {
                     let token_id = from_asset.id.get_token_id()?;
-                    let amount = input.get_value()?;
+                    let amount = input.value_as_bigint()?;
                     let data = encode_erc20_transfer(&swap_data.to, &amount)?;
                     Ok(vec![sign_and_encode(
                         &build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?,

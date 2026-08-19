@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use super::parsers::ProtocolParsers;
 pub(crate) use super::transaction_payload::TRANSFER_TOPIC;
 use super::transaction_payload::{Erc20ApprovalPayload, Erc20TransferPayload, NftTransferPayload, TransactionPayload};
@@ -18,7 +20,19 @@ pub struct EthereumMapper;
 
 impl EthereumMapper {
     pub fn map_transaction(chain: Chain, transaction: &Transaction, transaction_receipt: &TransactionReceipt, timestamp: &BigUint) -> Option<PrimitivesTransaction> {
-        let transaction = &transaction.with_primary_call();
+        let transaction = match transaction.calls.as_ref().and_then(|calls| calls.last()) {
+            Some(call) => Cow::Owned(Transaction {
+                from: transaction.from.clone(),
+                gas: transaction.gas,
+                hash: transaction.hash.clone(),
+                input: call.input.clone(),
+                to: call.to.clone(),
+                value: call.value.clone(),
+                calls: None,
+            }),
+            None => Cow::Borrowed(transaction),
+        };
+        let transaction = transaction.as_ref();
         let state = transaction_receipt.get_state();
         let hash = transaction.hash.clone();
         let value = transaction.value.to_string();

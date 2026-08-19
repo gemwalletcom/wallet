@@ -199,7 +199,7 @@ impl TransactionLoadInput {
         self.value.parse::<u64>().map_err(|_| SignerError::invalid_input("invalid transaction amount"))
     }
 
-    pub fn get_value(&self) -> Result<BigInt, SignerError> {
+    pub fn value_as_bigint(&self) -> Result<BigInt, SignerError> {
         BigInt::from_str(&self.value).map_err(|_| SignerError::invalid_input("invalid transaction amount"))
     }
 }
@@ -215,7 +215,7 @@ impl SignerInput {
         Self { input, fee }
     }
 
-    pub fn get_swap_gas_limit(&self) -> Result<u64, SignerError> {
+    pub fn swap_gas_limit(&self) -> Result<u64, SignerError> {
         let swap_data = &self.input_type.get_swap_data()?.data;
         match &swap_data.approval {
             Some(_) => swap_data
