@@ -22,7 +22,7 @@ public enum EmojiAvatarRenderer {
             color.setFill()
             path.fill()
 
-            let font = UIFont.boldSystemFont(ofSize: size * 0.6)
+            let font = UIFont.boldSystemFont(ofSize: size * AvatarScale.emoji)
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.alignment = .center
 

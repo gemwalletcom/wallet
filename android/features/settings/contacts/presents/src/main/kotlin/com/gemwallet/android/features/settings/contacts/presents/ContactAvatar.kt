@@ -9,7 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.ui.components.image.AsyncImage
-import com.gemwallet.android.ui.components.image.EMOJI_AVATAR_SCALE
+import com.gemwallet.android.ui.components.image.AvatarScale
 import com.gemwallet.android.ui.components.image.EmojiView
 import com.gemwallet.android.ui.components.image.InitialsAvatar
 import com.gemwallet.android.ui.components.image.RemoveBadge
@@ -37,7 +37,7 @@ internal fun ContactAvatar(
                 emoji = avatar.emoji,
                 modifier = Modifier.size(size),
                 background = Color(avatar.backgroundColor),
-                scale = EMOJI_AVATAR_SCALE,
+                scale = AvatarScale.EMOJI,
             )
         }
         if (onRemove != null) {

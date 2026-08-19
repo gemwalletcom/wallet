@@ -75,7 +75,7 @@ public struct AssetImageView: View {
                     .foregroundStyle(.tertiary)
 
                 Text(text.uppercased())
-                    .font(.system(size: diameter * 0.35, weight: .semibold))
+                    .font(.system(size: diameter * AvatarScale.initials, weight: .semibold))
                     .padding(.horizontal, .space6)
                     .minimumScaleFactor(0.4)
                     .lineLimit(1)

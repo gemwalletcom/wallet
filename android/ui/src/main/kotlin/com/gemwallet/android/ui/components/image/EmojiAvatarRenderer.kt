@@ -19,7 +19,7 @@ object EmojiAvatarRenderer {
         canvas.drawCircle(center, center, center, backgroundPaint)
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = size * EMOJI_AVATAR_SCALE
+            textSize = size * AvatarScale.EMOJI
             textAlign = Paint.Align.CENTER
         }
         val metrics = textPaint.fontMetrics

@@ -41,6 +41,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.secondaryFaded
 
 private const val NFT_COLUMNS = 2
 
@@ -56,8 +57,8 @@ internal fun WalletImageScene(
 ) {
     wallet ?: return
     var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
-    val emojiBackground = MaterialTheme.colorScheme.surface.toArgb()
-    val onEmoji: (String) -> Unit = { onAction(WalletImageAction.SetEmoji(it, emojiBackground)) }
+    val emojiBackground = MaterialTheme.colorScheme.secondaryFaded
+    val onEmoji: (String) -> Unit = { onAction(WalletImageAction.SetEmoji(it, emojiBackground.toArgb())) }
 
     Scene(
         title = stringResource(id = R.string.common_avatar),
@@ -86,7 +87,7 @@ internal fun WalletImageScene(
                         .fillMaxWidth()
                         .weight(1f),
                 ) {
-                    EmojiPickerGrid(emojis = emojis, onSelect = onEmoji)
+                    EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
                 }
 
                 WalletImageSource.Wallet -> {
@@ -111,7 +112,7 @@ internal fun WalletImageScene(
                             .weight(1f),
                     ) {
                         when (selectedTab) {
-                            WalletImageTab.EMOJI -> EmojiPickerGrid(emojis = emojis, onSelect = onEmoji)
+                            WalletImageTab.EMOJI -> EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
                             WalletImageTab.COLLECTIONS -> if (nftImages.isEmpty()) {
                                 Text(
                                     text = stringResource(id = R.string.nft_state_empty_title),

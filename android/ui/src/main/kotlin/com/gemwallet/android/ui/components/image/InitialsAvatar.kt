@@ -14,8 +14,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.theme.secondaryFaded
 
-private const val INITIALS_SCALE = 0.35f
-
 @Composable
 fun InitialsAvatar(
     text: String,
@@ -32,7 +30,7 @@ fun InitialsAvatar(
         Text(
             text = text,
             style = MaterialTheme.typography.titleMedium,
-            fontSize = with(LocalDensity.current) { (size * INITIALS_SCALE).toSp() },
+            fontSize = with(LocalDensity.current) { (size * AvatarScale.INITIALS).toSp() },
             color = MaterialTheme.colorScheme.onSurface,
         )
     }

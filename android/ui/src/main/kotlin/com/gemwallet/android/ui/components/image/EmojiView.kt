@@ -11,8 +11,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 
-const val EMOJI_AVATAR_SCALE = 0.7f
-
 @Composable
 fun EmojiView(
     emoji: String,
