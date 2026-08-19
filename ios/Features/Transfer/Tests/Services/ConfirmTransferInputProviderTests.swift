@@ -74,6 +74,19 @@ struct ConfirmTransferInputProviderTests {
     }
 
     @Test
+    func loadRethrowsPreloadFailureForTempoFeeAsset() async {
+        let provider = ConfirmTransferInputProvider.mock(transaction: .failure(AnyError("network")))
+        let metadata = TransferDataMetadata.mock(
+            feeAssetId: Asset.tempoPathUSD().id,
+            assetFeeBalance: .mock(available: .zero),
+        )
+
+        await #expect(throws: AnyError.self) {
+            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+        }
+    }
+
+    @Test
     func loadRethrowsFeeAssetFailure() async {
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(

@@ -528,7 +528,7 @@ struct ConfirmTransferSceneViewModelTests {
         let asset = Asset.tempoPathUSD()
         let feeAsset = Asset.tempoUSDC()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.state = .mock(feeAsset: feeAsset)
+        model.state = .mock(transaction: .data(.mock(feeAsset: feeAsset)), feeAsset: feeAsset)
 
         #expect(model.swapFromAsset(to: asset) == feeAsset)
     }
@@ -643,9 +643,9 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func tronInsufficientNetworkFeeUsesNativeAsset() {
+    func tronInsufficientNetworkFeeUsesFeeAsset() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTronUSDT(), requirement: nil)))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTron(), requirement: nil)))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .insufficientNetworkFee(asset, _, _, _, _, action) = sheet

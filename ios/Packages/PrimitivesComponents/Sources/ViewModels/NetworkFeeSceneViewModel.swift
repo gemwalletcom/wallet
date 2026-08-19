@@ -8,7 +8,6 @@ import Style
 import SwiftUI
 
 public struct NetworkFeeSceneViewModel {
-    private let chain: Chain
     private let feeAsset: Asset
     private let currency: Currency
     private let selection: FeeSelection
@@ -18,7 +17,6 @@ public struct NetworkFeeSceneViewModel {
     private let onSelect: (@MainActor (FeeSelection) -> Void)?
 
     public init(
-        chain: Chain,
         feeAsset: Asset,
         currency: Currency,
         selection: FeeSelection,
@@ -27,7 +25,6 @@ public struct NetworkFeeSceneViewModel {
         feeAmount: BigInt? = nil,
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
     ) {
-        self.chain = chain
         self.feeAsset = feeAsset
         self.currency = currency
         self.selection = selection
@@ -52,7 +49,7 @@ public struct NetworkFeeSceneViewModel {
         rates.map {
             FeeRateViewModel(
                 feeRate: $0,
-                unitType: chain.feeUnitType,
+                unitType: feeAsset.chain.feeUnitType,
                 decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
             )
@@ -73,7 +70,7 @@ public struct NetworkFeeSceneViewModel {
     }
 
     public func valueForRate(_ rate: FeeRateViewModel) -> String {
-        switch chain.feeUnitType {
+        switch feeAsset.chain.feeUnitType {
         case .native: estimatedFee(for: rate.feeRate).map { display(for: $0).amount.text } ?? rate.valueText
         case .gwei, .satVb: rate.valueText
         }
@@ -90,14 +87,14 @@ public struct NetworkFeeSceneViewModel {
 
     // MARK: - Custom Fee
 
-    public var supportsCustomFee: Bool { onSelect != nil && chain.customFeeEnabled && showFeeRates }
+    public var supportsCustomFee: Bool { onSelect != nil && feeAsset.chain.customFeeEnabled && showFeeRates }
     public var isCustomSelected: Bool { selection.customRate != nil }
     public var customRowItem: ListItemModel { rowItem(title: Localized.FeeRate.custom, rate: customFeeRateViewModel) }
 
     @MainActor
     public func customFeeModel() -> NetworkFeeCustomViewModel {
         NetworkFeeCustomViewModel(
-            chain: chain,
+            chain: feeAsset.chain,
             feeAsset: feeAsset,
             feeAssetPrice: feeAssetPrice,
             currency: currency,
@@ -118,13 +115,13 @@ public struct NetworkFeeSceneViewModel {
 // MARK: - Private
 
 private extension NetworkFeeSceneViewModel {
-    var feeRateDecimals: Int { chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt) }
+    var feeRateDecimals: Int { feeAsset.chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt) }
 
     var customFeeRateViewModel: FeeRateViewModel? {
         selection.customRate.map {
             FeeRateViewModel(
                 feeRate: FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: $0)),
-                unitType: chain.feeUnitType,
+                unitType: feeAsset.chain.feeUnitType,
                 decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
             )

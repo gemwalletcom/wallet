@@ -69,7 +69,7 @@ public final class ConfirmTransferSceneViewModel {
         state = ConfirmTransferState(
             simulation: confirmService.simulationState(request: request),
             metadata: try? confirmService.metadata(request: request),
-            feeAsset: request.data.type.asset.feeAsset,
+            feeAsset: request.data.type.feeAsset,
             transaction: .loading,
         )
     }
@@ -130,7 +130,6 @@ public final class ConfirmTransferSceneViewModel {
 
     public var feeModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
-            chain: request.data.chain,
             feeAsset: state.feeAsset,
             currency: currency,
             selection: feeSelection,
@@ -221,7 +220,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectNetworkFeeInfo() {
-        isPresentingSheet = .info(.networkFee(dataModel.chain))
+        isPresentingSheet = .info(.networkFee(state.feeAsset))
     }
 
     public func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {

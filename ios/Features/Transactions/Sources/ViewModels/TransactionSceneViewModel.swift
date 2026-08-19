@@ -132,8 +132,7 @@ extension TransactionSceneViewModel {
     }
 
     private func onSelectFee() {
-        let chain = model.transaction.transaction.assetId.chain
-        isPresentingTransactionSheet = .info(.networkFee(chain))
+        isPresentingTransactionSheet = .info(.networkFee(model.transaction.feeAsset))
     }
 
     private func onSelectStatusInfo() {
@@ -209,7 +208,6 @@ extension TransactionSceneViewModel {
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
-            chain: model.transaction.transaction.assetId.chain,
             feeAsset: model.transaction.feeAsset,
             currency: Currency(rawValue: preferences.currency) ?? .usd,
             selection: .preset(.normal),
