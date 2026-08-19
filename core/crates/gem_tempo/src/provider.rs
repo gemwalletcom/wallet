@@ -198,7 +198,7 @@ mod tests {
     use primitives::{EVMChain, TransactionChange, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_PATHUSD, testkit::signer_mock::TEST_EVM_RECIPIENT};
 
     #[tokio::test]
-    async fn returns_no_staking_balance() {
+    async fn test_returns_no_staking_balance() {
         let client = EthereumClient::new(mock_jsonrpc_client(|_, _| unreachable!()), EVMChain::Tempo);
 
         let balance = TempoProvider::new(client).get_balance_staking(TEMPO_TEST_ADDRESS.to_string()).await.unwrap();
@@ -207,7 +207,7 @@ mod tests {
     }
 
     #[test]
-    fn maps_pathusd_transfer_as_tip20() {
+    fn test_maps_pathusd_transfer_as_tip20() {
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_PATHUSD.clone()), "1000000");
         let params = get_transaction_params(EVMChain::Tempo, &input).unwrap();
 
@@ -217,7 +217,7 @@ mod tests {
     }
 
     #[test]
-    fn scales_transaction_status_fee_to_tip20_units() {
+    fn test_scales_transaction_status_fee_to_tip20_units() {
         let receipt = TransactionReceipt {
             gas_used: BigUint::from(471_789u64),
             effective_gas_price: BigUint::from(1_260_212_000u64),
@@ -238,7 +238,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn scales_fee_estimates_to_tip20_units() {
+    async fn test_scales_fee_estimates_to_tip20_units() {
         let client = EthereumClient::new(
             mock_jsonrpc_client(|_, _| {
                 Ok(serde_json::json!({

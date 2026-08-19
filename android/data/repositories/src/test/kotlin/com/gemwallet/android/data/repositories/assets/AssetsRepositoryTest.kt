@@ -20,13 +20,12 @@ import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.mockDbAsset
 import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
 import com.gemwallet.android.domains.asset.defaultBasic
-import com.gemwallet.android.domains.asset.toDTO
+import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.toGemstone
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetLink
@@ -64,7 +63,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.assetDefaultRank
-import uniffi.gemstone.walletDefaultAssets
 
 class AssetsRepositoryTest {
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
@@ -209,7 +207,7 @@ class AssetsRepositoryTest {
     @Test
     fun ensureDefaultAssets_addsMissingAssets() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
-        val assets = walletDefaultAssets(Chain.Tron.toGemstone()).map { it.toDTO() }
+        val assets = Chain.Tron.defaultAssets
         val wallet = mockWallet(
             id = "wallet-1",
             accounts = listOf(mockAccount(chain = Chain.Tron)),
@@ -234,7 +232,7 @@ class AssetsRepositoryTest {
     @Test
     fun ensureDefaultAssets_linksStoredAssets() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
-        val assets = walletDefaultAssets(Chain.Tron.toGemstone()).map { it.toDTO() }
+        val assets = Chain.Tron.defaultAssets
         val assetIds = assets.map { it.id.toIdentifier() }
         val wallet = mockWallet(
             id = "wallet-1",
@@ -259,7 +257,7 @@ class AssetsRepositoryTest {
     @Test
     fun ensureDefaultAssets_preservesExistingVisibility() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
-        val assets = walletDefaultAssets(Chain.Tron.toGemstone()).map { it.toDTO() }
+        val assets = Chain.Tron.defaultAssets
         val assetIds = assets.map { it.id.toIdentifier() }
         val wallet = mockWallet(
             id = "wallet-1",
@@ -284,7 +282,7 @@ class AssetsRepositoryTest {
     @Test
     fun ensureDefaultAssets_enablesTempoAssetsForSingleWallet() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
-        val assets = walletDefaultAssets(Chain.Tempo.toGemstone()).map { it.toDTO() }
+        val assets = Chain.Tempo.defaultAssets
         val wallet = mockWallet(
             id = "wallet-1",
             type = WalletType.Single,
@@ -304,7 +302,7 @@ class AssetsRepositoryTest {
     @Test
     fun ensureDefaultAssets_hidesTempoAssetsForMulticoinWallet() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
-        val assets = walletDefaultAssets(Chain.Tempo.toGemstone()).map { it.toDTO() }
+        val assets = Chain.Tempo.defaultAssets
         val wallet = mockWallet(
             id = "wallet-1",
             type = WalletType.Multicoin,

@@ -312,11 +312,12 @@ public extension PerpetualSceneViewModel {
         guard let transferData = createTransferData(direction: direction, leverage: position.leverage, marginType: position.marginType) else {
             return
         }
+        let baseAsset = Chain.hyperCore.defaultAsset(type: .perpetual)
 
         onPositionAction(
             .reduce(
                 transferData,
-                available: BigInt(position.marginAmount * pow(10.0, Double(position.baseAsset.decimals))),
+                available: BigInt(position.marginAmount * pow(10.0, Double(baseAsset.decimals))),
                 positionDirection: position.direction,
             ),
         )

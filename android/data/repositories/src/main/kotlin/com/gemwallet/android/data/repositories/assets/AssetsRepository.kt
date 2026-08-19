@@ -21,11 +21,11 @@ import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.domains.asset.defaultAssetRank
-import com.gemwallet.android.domains.asset.toDTO
+import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toGemstone
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
@@ -58,7 +58,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.walletDefaultAssets
 import uniffi.gemstone.walletAssetIsEnabled
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -130,7 +129,7 @@ class AssetsRepository @Inject constructor(
                 add(listOf(asset.defaultBasic))
                 return@forEach
             }
-            val isVisible = walletAssetIsEnabled(asset.id.toIdentifier(), wallet.type.toGemstone())
+            val isVisible = walletAssetIsEnabled(asset.id.toIdentifier(), wallet.type.toGem())
             insertLocalAsset(wallet.id.id, asset, isVisible)
             if (isVisible) assetIds.add(asset.id)
         }
@@ -142,15 +141,14 @@ class AssetsRepository @Inject constructor(
 
     suspend fun ensureDefaultAssets(wallet: Wallet) {
         val assets = wallet.accounts
-            .flatMap { walletDefaultAssets(it.chain.toGemstone()) }
-            .map { it.toDTO() }
+            .flatMap { it.chain.defaultAssets }
             .distinctBy { it.id }
         val existing = hasWalletAssets(wallet.id.id, assets.map { it.id })
         val missing = assets.filterNot { existing.contains(it.id) }
         val stored = hasAssets(missing.map { it.id })
 
         missing.forEach { asset ->
-            val visible = walletAssetIsEnabled(asset.id.toIdentifier(), wallet.type.toGemstone())
+            val visible = walletAssetIsEnabled(asset.id.toIdentifier(), wallet.type.toGem())
             if (stored.contains(asset.id)) {
                 linkAssetToWallet(wallet.id.id, asset.id, visible)
             } else {

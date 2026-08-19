@@ -13,9 +13,13 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.assetDefaultRank
 import uniffi.gemstone.assetIsSwapable
 import uniffi.gemstone.defaultTokenRank
+import uniffi.gemstone.walletDefaultAssets
 
 val Chain.defaultAssetRank: Int
     get() = assetDefaultRank(string)
+
+val Chain.defaultAssets: List<Asset>
+    get() = walletDefaultAssets(string).map { it.toDTO() }
 
 val Asset.defaultBasic: AssetBasic
     get() {

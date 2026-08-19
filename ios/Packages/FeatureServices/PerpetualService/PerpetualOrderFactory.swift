@@ -41,7 +41,7 @@ public struct PerpetualOrderFactory {
         let data = makePerpetualConfirmData(
             direction: perpetual.direction,
             marginType: perpetual.marginType,
-            baseAsset: perpetual.baseAsset,
+            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
             fiatValue: fiatValue,
             assetIndex: Int32(perpetual.assetIndex),
             provider: perpetual.provider,
