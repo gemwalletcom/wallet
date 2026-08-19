@@ -47,7 +47,7 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
             }
         }
 
-        let fee_asset = input_type.get_fee_asset_id();
+        let fee_asset = input_type.get_asset().id.clone();
         let token_id = fee_asset.get_token_id()?;
         if self.tip20_currency(token_id).await? != USD_CURRENCY {
             return Ok(TEMPO_PATHUSD_ASSET_ID.clone());
@@ -84,7 +84,9 @@ mod tests {
     use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::{
-        Asset, Chain, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_USDC,
+        Asset, AssetType, Chain, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput,
+        asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
+        known_assets::TEMPO_BRIDGED_USDC,
         swap::SwapData,
     };
     use serde_json::Value;
@@ -92,7 +94,7 @@ mod tests {
     use super::*;
     use crate::contracts::{ITIP20, ITempoFeeManager};
     use crate::fee::FEE_MANAGER_ADDRESS;
-    use crate::testkit::{TEMPO_TEST_USER_FEE_TOKEN, mock_tempo_generic_input};
+    use crate::testkit::mock_tempo_generic_input;
 
     fn encode_currency(currency: &str) -> serde_json::Value {
         serde_json::json!(encode_prefixed(ITIP20::currencyCall::abi_encode_returns(&currency.to_string())))
@@ -111,7 +113,11 @@ mod tests {
 
     fn swap_input(from_asset: Asset) -> TransactionLoadInput {
         TransactionLoadInput::mock_evm(
-            TransactionInputType::Swap(from_asset, TEMPO_USDC.clone(), SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None)),
+            TransactionInputType::Swap(
+                from_asset,
+                TEMPO_BRIDGED_USDC.clone(),
+                SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None),
+            ),
             "0",
         )
     }
@@ -126,16 +132,16 @@ mod tests {
             }
         });
         let gas_limit = BigInt::from(21_000u64);
-        let mut input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_USDC.clone()), "1000000");
+        let mut input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_BRIDGED_USDC.clone()), "1000000");
         input.gas_price = GasPriceType::eip1559(BigInt::from(20_000_000_001u64), BigInt::from(0u64));
         let fee = calculator.calculate_fee(&input, &gas_limit).await?;
 
         assert_eq!(fee.fee, BigInt::from(421u64));
-        assert_eq!(fee.fee_asset, TEMPO_USDC.id);
+        assert_eq!(fee.fee_asset, TEMPO_BRIDGED_USDC.id);
         assert_eq!(fee.gas_limit, gas_limit);
         assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(20_000_000_001u64));
 
-        let token_asset = TEMPO_USDC.clone();
+        let token_asset = TEMPO_BRIDGED_USDC.clone();
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(token_asset.clone()), "1000000");
         let fee = calculator.calculate_fee(&input, &BigInt::from(TOKEN_TRANSFER_GAS_LIMIT)).await?;
         assert_eq!(fee.fee_asset, token_asset.id);
@@ -169,7 +175,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_account_fee_token_requires_usd_currency() {
-        let account_token = TEMPO_TEST_USER_FEE_TOKEN.parse().unwrap();
+        let account_token = TEMPO_USDC_TOKEN_ID.parse().unwrap();
         let calculator = new_calculator(move |_, params| {
             if params[0]["to"].as_str().unwrap().eq_ignore_ascii_case(FEE_MANAGER_ADDRESS) {
                 Ok(user_token_response(account_token))
@@ -177,7 +183,7 @@ mod tests {
                 Ok(encode_currency("BTC"))
             }
         });
-        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_USDC.clone()), "1000000");
+        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_BRIDGED_USDC.clone()), "1000000");
 
         assert!(calculator.fee_asset(&input).await.is_err());
     }
@@ -185,7 +191,7 @@ mod tests {
     #[tokio::test]
     async fn test_swap_fee_asset_requires_usd_currency() {
         let usd_calculator = new_calculator(|_, _| Ok(encode_currency(USD_CURRENCY)));
-        let usdc = TEMPO_USDC.clone();
+        let usdc = TEMPO_BRIDGED_USDC.clone();
         assert_eq!(usd_calculator.fee_asset(&swap_input(usdc.clone())).await.unwrap(), usdc.id);
 
         let btc_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
@@ -195,7 +201,7 @@ mod tests {
             "Coinbase Wrapped BTC".to_string(),
             "cbBTC".to_string(),
             6,
-            primitives::AssetType::TIP20,
+            AssetType::TIP20,
         );
         assert_eq!(btc_calculator.fee_asset(&swap_input(cbbtc)).await.unwrap(), TEMPO_PATHUSD_ASSET_ID.clone());
     }

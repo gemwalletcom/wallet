@@ -267,14 +267,14 @@ mod chain_integration_tests {
     use gem_client::ReqwestClient;
     use gem_jsonrpc::JsonRpcClient;
     use num_bigint::BigInt;
-    use primitives::{EVMChain, TransactionPreloadInput};
+    use primitives::{EVMChain, TransactionPreloadInput, known_assets::TEMPO_PATHUSD};
 
     #[tokio::test]
     async fn test_get_transaction_load_pathusd_transfer() -> Result<(), Box<dyn Error + Send + Sync>> {
         let settings = settings::testkit::get_test_settings();
         let client = ReqwestClient::new_test_client(settings.chains.tempo.url.clone());
         let provider = TempoProvider::new(EthereumClient::new(JsonRpcClient::new(client), EVMChain::Tempo));
-        let input_type = TransactionInputType::Transfer(primitives::known_assets::TEMPO_PATHUSD.clone());
+        let input_type = TransactionInputType::Transfer(TEMPO_PATHUSD.clone());
 
         let metadata = provider
             .get_transaction_preload(TransactionPreloadInput {

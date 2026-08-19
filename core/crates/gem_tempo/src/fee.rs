@@ -29,13 +29,13 @@ pub(crate) fn scale_fee_to_token_units(fee: BigInt) -> BigInt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::{TEMPO_TEST_USER_FEE_TOKEN, mock_tempo_generic_input};
-    use primitives::{Asset, Chain, hex};
+    use crate::testkit::mock_tempo_generic_input;
+    use primitives::{Asset, Chain, asset_constants::TEMPO_USDC_TOKEN_ID, hex};
 
     #[test]
     fn test_decode_set_user_fee_token() {
         let calldata = hex::decode_hex("0xe789744400000000000000000000000020c00000000000000000000014f22ca97301eb73").unwrap();
-        let token = TEMPO_TEST_USER_FEE_TOKEN.parse::<Address>().unwrap();
+        let token = TEMPO_USDC_TOKEN_ID.parse::<Address>().unwrap();
 
         assert_eq!(decode_set_user_fee_token(&mock_tempo_generic_input(FEE_MANAGER_ADDRESS, calldata.clone())), Some(token));
         assert_eq!(

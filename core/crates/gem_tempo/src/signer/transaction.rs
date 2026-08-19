@@ -105,7 +105,7 @@ impl TempoTransaction {
 mod tests {
     use super::*;
     use alloy_primitives::Signature;
-    use primitives::{Chain, asset_constants::TEMPO_USDC_TOKEN_ID, testkit::signer_mock::TEST_PRIVATE_KEY};
+    use primitives::{Chain, asset_constants::TEMPO_BRIDGED_USDC_TOKEN_ID, testkit::signer_mock::TEST_PRIVATE_KEY};
 
     #[test]
     fn test_sign_is_byte_stable_and_recovers_signer() {
@@ -115,7 +115,7 @@ mod tests {
             max_fee_per_gas: 20_000_000_000,
             gas_limit: 300_000,
             nonce: 0,
-            fee_token: TEMPO_USDC_TOKEN_ID.parse().unwrap(),
+            fee_token: TEMPO_BRIDGED_USDC_TOKEN_ID.parse().unwrap(),
             calls: vec![TransactionCall::new(
                 crate::testkit::TEMPO_TEST_ROUTER_ADDRESS.parse().unwrap(),
                 Bytes::from(vec![0xab, 0xcd]),

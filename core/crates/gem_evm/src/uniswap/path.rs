@@ -119,7 +119,7 @@ pub fn get_base_pair(chain: &EVMChain, native_asset_token: Option<&str>) -> Opti
         EVMChain::Robinhood => ROBINHOOD_USDG_TOKEN_ID,
         EVMChain::OpBNB | EVMChain::Plasma => "",
         EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b", // USDC.e (Stargate)
-        EVMChain::Tempo => TEMPO_USDC_TOKEN_ID,
+        EVMChain::Tempo => TEMPO_BRIDGED_USDC_TOKEN_ID,
         _ => panic!("USDC is not configured for this chain"),
     };
 

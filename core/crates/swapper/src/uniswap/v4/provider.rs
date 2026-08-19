@@ -332,6 +332,7 @@ impl Swapper for UniswapV4 {
 mod tests {
     use super::*;
     use crate::{Options, alien::mock::ProviderMock};
+    use primitives::asset_constants::TEMPO_BRIDGED_USDC_ASSET_ID;
     use std::sync::Arc;
 
     #[test]
@@ -366,8 +367,8 @@ mod tests {
     #[test]
     fn rejects_tempo_network_asset() {
         let native = AssetId::from_chain(Chain::Tempo);
-        assert!(UniswapV4::parse_assets(&native, &primitives::asset_constants::TEMPO_USDC_ASSET_ID).is_err());
-        assert!(UniswapV4::parse_assets(&primitives::asset_constants::TEMPO_USDC_ASSET_ID, &native).is_err());
+        assert!(UniswapV4::parse_assets(&native, &TEMPO_BRIDGED_USDC_ASSET_ID).is_err());
+        assert!(UniswapV4::parse_assets(&TEMPO_BRIDGED_USDC_ASSET_ID, &native).is_err());
     }
 }
 
@@ -376,7 +377,7 @@ mod swap_integration_tests {
     use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ROBINHOOD_USDG_TOKEN_ID, TEMPO_USDC_ASSET_ID},
+        asset_constants::{ROBINHOOD_USDG_TOKEN_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
     };
     use std::sync::Arc;
 
@@ -448,9 +449,9 @@ mod swap_integration_tests {
             slippage: 100.into(),
             use_max_amount: false,
         };
-        let pathusd = primitives::asset_constants::TEMPO_PATHUSD_ASSET_ID.clone();
+        let pathusd = TEMPO_PATHUSD_ASSET_ID.clone();
 
-        for (from_asset, to_asset) in [(TEMPO_USDC_ASSET_ID.clone(), pathusd.clone()), (pathusd, TEMPO_USDC_ASSET_ID.clone())] {
+        for (from_asset, to_asset) in [(TEMPO_BRIDGED_USDC_ASSET_ID.clone(), pathusd.clone()), (pathusd, TEMPO_BRIDGED_USDC_ASSET_ID.clone())] {
             let request = QuoteRequest {
                 from_asset: from_asset.into(),
                 to_asset: to_asset.into(),

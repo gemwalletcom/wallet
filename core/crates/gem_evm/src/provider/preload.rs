@@ -18,7 +18,7 @@ use num_bigint::BigInt;
 use primitives::ContractCallData;
 use primitives::GasPriceType;
 #[cfg(feature = "rpc")]
-use primitives::{FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{AssetId, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 #[cfg(feature = "rpc")]
 use serde_serializers::bigint::bigint_from_hex_str;
 use std::collections::HashMap;
@@ -123,7 +123,7 @@ pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result
         fee,
         gas_limit.clone(),
         HashMap::new(),
-        input.input_type.get_fee_asset_id(),
+        AssetId::from_chain(input.input_type.get_asset().chain),
     ))
 }
 

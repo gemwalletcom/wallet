@@ -91,10 +91,9 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                 },
                 TransferDataOutputAction::Sign => native_transfer_fee(&fee_context, false)?,
             },
-            TransactionInputType::Stake(_asset, stake_type) => TransactionFee::new_from_fee(
-                calculate_stake_fee_rate(&chain_parameters, &account_usage, stake_type)?,
-                input.input_type.get_fee_asset_id(),
-            ),
+            TransactionInputType::Stake(_asset, stake_type) => {
+                TransactionFee::new_from_fee(calculate_stake_fee_rate(&chain_parameters, &account_usage, stake_type)?, AssetId::from_chain(Chain::Tron))
+            }
             TransactionInputType::TokenApprove(_, approval) => self.estimate_token_approval_fee(&input.sender_address, approval, &chain_parameters, &account_usage).await?,
             TransactionInputType::Swap(from_asset, _, swap_data) => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
             _ => native_transfer_fee(&fee_context, has_memo)?,

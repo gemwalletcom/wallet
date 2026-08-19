@@ -383,11 +383,6 @@ impl GemTransactionInputType {
     }
 }
 
-#[uniffi::export]
-pub fn transaction_input_fee_asset(input_type: GemTransactionInputType) -> GemAsset {
-    TransactionInputType::from(input_type).get_fee_asset()
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransactionLoadInput {
     pub input_type: GemTransactionInputType,

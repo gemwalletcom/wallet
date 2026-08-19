@@ -70,8 +70,9 @@ mod tests {
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         Asset, AssetId, AssetType, Chain, ChainSigner, TransactionInputType, TransactionLoadMetadata,
-        asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
-        known_assets::{TEMPO_PATHUSD, TEMPO_USDC},
+        asset_constants::{TEMPO_BRIDGED_USDC_TOKEN_ID, TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
+        known_assets::{TEMPO_BRIDGED_USDC, TEMPO_PATHUSD},
+        swap::ApprovalData,
     };
 
     #[test]
@@ -92,11 +93,11 @@ mod tests {
 
     #[test]
     fn test_get_fee_token() {
-        let usdc = TEMPO_USDC.clone();
-        let user_token = crate::testkit::TEMPO_TEST_USER_FEE_TOKEN;
+        let usdc = TEMPO_BRIDGED_USDC.clone();
+        let user_token = TEMPO_USDC_TOKEN_ID;
 
         let token_input = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), None);
-        assert_eq!(get_fee_token(&token_input).unwrap(), TEMPO_USDC_TOKEN_ID.parse::<Address>().unwrap());
+        assert_eq!(get_fee_token(&token_input).unwrap(), TEMPO_BRIDGED_USDC_TOKEN_ID.parse::<Address>().unwrap());
 
         let user_token_input = mock_tempo_swap_input(
             usdc.clone(),
@@ -121,7 +122,7 @@ mod tests {
     #[test]
     fn test_sign_swap() {
         let signer = EvmChainSigner::new(TempoSigner);
-        let usdc = TEMPO_USDC.clone();
+        let usdc = TEMPO_BRIDGED_USDC.clone();
 
         let input = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), None);
         assert_eq!(
@@ -131,7 +132,7 @@ mod tests {
             ]
         );
 
-        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), Some(primitives::swap::ApprovalData::mock()));
+        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), Some(ApprovalData::mock()));
         assert_eq!(
             signer.sign_swap(&input_with_approval, &TEST_PRIVATE_KEY).unwrap(),
             vec![

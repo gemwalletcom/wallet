@@ -243,7 +243,7 @@ mod swap_integration_tests {
     use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use primitives::{
         AssetId,
-        asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, TEMPO_USDC_ASSET_ID},
+        asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID},
     };
     use std::collections::HashMap;
 
@@ -371,7 +371,7 @@ mod swap_integration_tests {
         let relay = Relay::new(provider);
 
         let request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(TEMPO_USDC_ASSET_ID.clone()),
+            from_asset: SwapperQuoteAsset::from(TEMPO_BRIDGED_USDC_ASSET_ID.clone()),
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
