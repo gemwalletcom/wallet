@@ -3,6 +3,7 @@ use std::str::FromStr;
 use alloy_primitives::Address;
 use num_bigint::BigUint;
 
+use crate::constants::TOKEN_TRANSFER_GAS_LIMIT;
 use crate::rpc::{
     mapper::TRANSFER_TOPIC,
     model::{Log, Transaction, TransactionReceipt},
@@ -33,7 +34,7 @@ impl Transaction {
         Self {
             hash: TEST_TRANSACTION_ID.to_string(),
             from: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            gas: 65_000,
+            gas: TOKEN_TRANSFER_GAS_LIMIT,
             input: "0xa9059cbb".to_string(),
             to: Some(contract.to_string()),
             value: BigUint::from(0u8),

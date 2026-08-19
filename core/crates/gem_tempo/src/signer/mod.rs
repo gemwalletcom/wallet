@@ -66,7 +66,7 @@ fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {
 mod tests {
     use super::*;
     use crate::testkit::mock_tempo_swap_input;
-    use gem_evm::signer::EvmChainSigner;
+    use gem_evm::{constants::TOKEN_TRANSFER_GAS_LIMIT, signer::EvmChainSigner};
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         Asset, AssetId, AssetType, Chain, ChainSigner, TransactionInputType, TransactionLoadMetadata,
@@ -77,8 +77,13 @@ mod tests {
     #[test]
     fn test_rejects_native_transfer() {
         let signer = EvmChainSigner::new(TempoSigner);
-        let metadata = TransactionLoadMetadata::mock_evm(0, 4217);
-        let input = SignerInput::mock_evm_with_metadata(TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)), "1000000", 65_000, metadata);
+        let metadata = TransactionLoadMetadata::mock_evm(0, Chain::Tempo.network_id().parse().unwrap());
+        let input = SignerInput::mock_evm_with_metadata(
+            TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)),
+            "1000000",
+            TOKEN_TRANSFER_GAS_LIMIT,
+            metadata,
+        );
         assert_eq!(
             signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap_err(),
             SignerError::invalid_input("Tempo does not support native transfers")

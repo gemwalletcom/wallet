@@ -81,6 +81,7 @@ mod tests {
     use alloy_sol_types::SolCall;
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
+    use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::{
         Asset, Chain, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_USDC,
@@ -136,7 +137,7 @@ mod tests {
 
         let token_asset = TEMPO_USDC.clone();
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(token_asset.clone()), "1000000");
-        let fee = calculator.calculate_fee(&input, &BigInt::from(65_000u64)).await?;
+        let fee = calculator.calculate_fee(&input, &BigInt::from(TOKEN_TRANSFER_GAS_LIMIT)).await?;
         assert_eq!(fee.fee_asset, token_asset.id);
 
         let input = TransactionLoadInput::mock_evm(mock_tempo_generic_input("0x0000000000000000000000000000000000000001", vec![0xab, 0xcd]), "0");

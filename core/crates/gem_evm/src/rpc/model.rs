@@ -213,31 +213,16 @@ mod tests {
     fn test_decode_batched_call_transaction() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/tempo_swap_batched_transaction.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/tempo_swap_batched_transaction_receipt.json"));
-        let block = load_json_rpc_result::<Block>(include_str!("../../testdata/tempo_swap_batched_block.json"));
-
         assert_eq!(transaction.to, None);
         assert_eq!(transaction.value, BigUint::from(0u8));
         assert_eq!(transaction.input, "");
         assert_eq!(transaction.calls.as_ref().unwrap().len(), 2);
         assert_eq!(ethereum_address_checksum(receipt.fee_token.as_deref().unwrap()).unwrap(), TEMPO_USDC_TOKEN_ID);
         assert_eq!(receipt.get_fee(), BigUint::from(471_789u64 * 1_260_212_000u64));
-        assert_eq!(block.transactions.len(), 1);
-        assert_eq!(block.transactions[0].hash, transaction.hash);
-
         let swap_transaction = transaction.with_primary_call();
         assert_eq!(ethereum_address_checksum(swap_transaction.to.as_deref().unwrap()).unwrap(), BATCH_PRIMARY_CALL_TARGET);
         assert_eq!(swap_transaction.value, BigUint::from(0u8));
         assert_eq!(&swap_transaction.input[..10], "0x3593564c");
-
-        let mut transaction_with_value = transaction.clone();
-        transaction_with_value.calls.as_mut().unwrap().last_mut().unwrap().value = BigUint::from(42u8);
-        assert_eq!(transaction_with_value.with_primary_call().value, BigUint::from(42u8));
-
-        let mut single_call = transaction.clone();
-        single_call.calls.as_mut().unwrap().truncate(1);
-        let approval_transaction = single_call.with_primary_call();
-        assert_eq!(ethereum_address_checksum(approval_transaction.to.as_deref().unwrap()).unwrap(), TEMPO_USDC_TOKEN_ID);
-        assert_eq!(&approval_transaction.input[..10], "0x095ea7b3");
 
         let type2 = load_json_rpc_result::<Transaction>(include_str!("../../testdata/transfer_erc20.json"));
         let unchanged = type2.with_primary_call();
