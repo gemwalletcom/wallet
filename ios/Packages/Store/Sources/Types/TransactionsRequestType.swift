@@ -7,7 +7,6 @@ public enum TransactionsRequestType: Equatable {
     case all
     case pending
     case asset(assetId: AssetId)
-    case assetsTransactionType(assetIds: [AssetId], type: TransactionType, states: [TransactionState])
     case transaction(id: String)
 }
 
@@ -18,8 +17,6 @@ extension TransactionsRequestType: Identifiable {
         case .pending: "pending"
         case let .transaction(id): id
         case let .asset(asset): asset.identifier
-        case let .assetsTransactionType(assetIds, type, _):
-            assetIds.map(\.identifier).joined() + type.rawValue
         }
     }
 }
