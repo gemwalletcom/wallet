@@ -173,15 +173,14 @@ impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
             .transaction_fee_estimate_units(TransactionFeeOperation::Transfer)
             .ok_or("Missing transfer fee estimate units")?;
         for estimate in &mut estimates.transfer {
-            estimate.fee.gas_limit = transfer_units.into();
-            estimate.fee.fee = estimate.fee.gas_price_type.total_fee() * &estimate.fee.gas_limit;
+            estimate.gas_limit = transfer_units.into();
+            estimate.fee = estimate.gas_price_type.total_fee() * &estimate.gas_limit;
         }
 
         let scale = |estimates: &mut Vec<TransactionFeeEstimate>| {
             estimates.retain(|estimate| estimate.priority == FeePriority::Normal);
             for estimate in estimates {
-                estimate.fee.fee = scale_fee_to_token_units(estimate.fee.fee.clone());
-                estimate.fee.fee_asset = TEMPO_PATHUSD_ASSET_ID.clone();
+                estimate.fee = scale_fee_to_token_units(estimate.fee.clone());
             }
         };
         scale(&mut estimates.transfer);
@@ -191,6 +190,7 @@ impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
         if let Some(estimates) = &mut estimates.swap {
             scale(estimates);
         }
+        estimates.fee_asset = TEMPO_PATHUSD_ASSET_ID.clone();
         Ok(estimates)
     }
 }
@@ -254,10 +254,10 @@ mod tests {
         let estimates = TempoProvider::new(client).get_transaction_fee_estimates().await.unwrap();
         assert_eq!(estimates.transfer.len(), 1);
         assert_eq!(estimates.transfer[0].priority, FeePriority::Normal);
-        assert_eq!(estimates.transfer[0].fee.gas_limit, BigInt::from(TOKEN_TRANSFER_GAS_LIMIT));
-        assert_eq!(estimates.transfer[0].fee.fee, BigInt::from(1_300u64));
-        assert_eq!(estimates.transfer[0].fee.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
-        assert_eq!(estimates.token_transfer.unwrap()[0].fee.fee, BigInt::from(1_300u64));
+        assert_eq!(estimates.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
+        assert_eq!(estimates.transfer[0].gas_limit, BigInt::from(TOKEN_TRANSFER_GAS_LIMIT));
+        assert_eq!(estimates.transfer[0].fee, BigInt::from(1_300u64));
+        assert_eq!(estimates.token_transfer.unwrap()[0].fee, BigInt::from(1_300u64));
     }
 }
 

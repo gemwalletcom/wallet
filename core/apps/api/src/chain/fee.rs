@@ -59,14 +59,8 @@ pub async fn get_chain_fee_estimates(
     }
 
     let estimates = chain_client.get_transaction_fee_estimates(chain).await?;
-    let fee_asset_id = &estimates
-        .transfer
-        .first()
-        .ok_or_else(|| ApiError::InternalServerError(format!("Missing fee estimate for {chain}")))?
-        .fee
-        .fee_asset;
-    let asset = assets_client.get_asset(fee_asset_id)?;
-    let price = price_client.get_cache_price(fee_asset_id).await?;
+    let asset = assets_client.get_asset(&estimates.fee_asset)?;
+    let price = price_client.get_cache_price(&estimates.fee_asset).await?;
     let estimates = map_fee_estimates(asset, estimates, price.price.price)?;
     cacher.set_cached(CacheKey::TransactionFeeEstimates(chain.as_ref()), &estimates).await?;
     cacher.set_cached(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref()), &()).await?;
@@ -106,12 +100,12 @@ fn map_estimates_by_priority(
     estimates
         .into_iter()
         .map(|estimate| {
-            let value = estimate.fee.fee.to_string();
+            let value = estimate.fee.to_string();
             Ok((
                 estimate.priority,
                 FeeEstimate {
-                    base: BigNumberFormatter::value(&estimate.fee.gas_price_type.gas_price().to_string(), rate_decimals)?,
-                    priority_fee: BigNumberFormatter::value(&estimate.fee.gas_price_type.priority_fee().to_string(), rate_decimals)?,
+                    base: BigNumberFormatter::value(&estimate.gas_price_type.gas_price().to_string(), rate_decimals)?,
+                    priority_fee: BigNumberFormatter::value(&estimate.gas_price_type.priority_fee().to_string(), rate_decimals)?,
                     value: BigNumberFormatter::value(&value, asset_decimals)?,
                     fiat_value: CryptoFiatConverter::to_fiat(&value, asset_decimals as u32, price_usd)?,
                 },
@@ -122,7 +116,7 @@ fn map_estimates_by_priority(
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Asset, AssetId, Chain, FeePriority, GasPriceType, TransactionFee};
+    use primitives::{Asset, Chain, FeePriority, GasPriceType};
     use settings_chain::{TransactionFeeEstimate, TransactionFeeEstimates};
 
     use super::map_fee_estimates;
@@ -130,15 +124,12 @@ mod tests {
     #[test]
     fn test_map_fee_estimates() {
         let estimates = TransactionFeeEstimates {
+            fee_asset: Asset::from_chain(Chain::Ethereum).id,
             transfer: vec![TransactionFeeEstimate {
                 priority: FeePriority::Normal,
-                fee: TransactionFee::new_gas_price_type(
-                    GasPriceType::eip1559(51_000_000u64, 1_000_000u64),
-                    1_092_000_000_000u64.into(),
-                    21_000u64.into(),
-                    Default::default(),
-                    AssetId::from_chain(Chain::Ethereum),
-                ),
+                gas_price_type: GasPriceType::eip1559(51_000_000u64, 1_000_000u64),
+                fee: 1_092_000_000_000u64.into(),
+                gas_limit: 21_000u64.into(),
             }],
             token_transfer: None,
             swap: None,
@@ -153,15 +144,12 @@ mod tests {
         assert_eq!(response.transfer[&FeePriority::Normal].fiat_value, "0.00384429864");
 
         let estimates = TransactionFeeEstimates {
+            fee_asset: Asset::from_chain(Chain::Solana).id,
             transfer: vec![TransactionFeeEstimate {
                 priority: FeePriority::Normal,
-                fee: TransactionFee::new_gas_price_type(
-                    GasPriceType::solana(5_000u64, 10_000u64, 100_000u64),
-                    15_000u64.into(),
-                    100_000u64.into(),
-                    Default::default(),
-                    AssetId::from_chain(Chain::Solana),
-                ),
+                gas_price_type: GasPriceType::solana(5_000u64, 10_000u64, 100_000u64),
+                fee: 15_000u64.into(),
+                gas_limit: 100_000u64.into(),
             }],
             token_transfer: None,
             swap: None,
