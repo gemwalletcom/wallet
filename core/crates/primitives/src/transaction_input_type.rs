@@ -6,7 +6,7 @@ use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
 use crate::{
     Asset, AssetId, Chain, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata,
-    asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
+    known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC, TEMPO_PATHUSD},
     nft::NFTAsset,
     perpetual::AccountDataType,
 };
@@ -50,15 +50,19 @@ impl TransactionInputType {
         }
     }
 
-    pub fn get_fee_asset_id(&self) -> AssetId {
+    pub fn get_fee_asset(&self) -> Asset {
         let asset = self.get_asset();
         match self {
-            _ if asset.chain == Chain::Tempo && asset.id.is_token() => asset.id.clone(),
-            _ if asset.chain == Chain::Tempo => TEMPO_PATHUSD_ASSET_ID.clone(),
-            TransactionInputType::Perpetual(_, _) if asset.chain == Chain::HyperCore => HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
-            _ if asset.chain == Chain::HyperCore => HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
-            _ => AssetId::from_chain(asset.chain),
+            _ if asset.chain == Chain::Tempo && asset.id.is_token() => asset.clone(),
+            _ if asset.chain == Chain::Tempo => TEMPO_PATHUSD.clone(),
+            TransactionInputType::Perpetual(_, _) if asset.chain == Chain::HyperCore => HYPERCORE_PERPETUAL_USDC.clone(),
+            _ if asset.chain == Chain::HyperCore => HYPERCORE_SPOT_USDC.clone(),
+            _ => Asset::from_chain(asset.chain),
         }
+    }
+
+    pub fn get_fee_asset_id(&self) -> AssetId {
+        self.get_fee_asset().id
     }
 
     pub fn get_swap_data(&self) -> Result<&SwapData, &'static str> {
@@ -356,13 +360,20 @@ mod tests {
     #[test]
     fn fee_asset_follows_chain_rules() {
         let ethereum_token = Asset::mock_with_params(Chain::Ethereum, Some("token".to_string()), "Token".to_string(), "TKN".to_string(), 6, AssetType::ERC20);
-        assert_eq!(TransactionInputType::Transfer(ethereum_token).get_fee_asset_id(), AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(TransactionInputType::Transfer(ethereum_token).get_fee_asset(), Asset::from_chain(Chain::Ethereum));
 
         let tempo_token = crate::known_assets::TEMPO_USDC.clone();
-        assert_eq!(TransactionInputType::Transfer(tempo_token.clone()).get_fee_asset_id(), tempo_token.id);
+        assert_eq!(TransactionInputType::Transfer(tempo_token.clone()).get_fee_asset(), tempo_token);
         assert_eq!(
-            TransactionInputType::Generic(Asset::mock_with_chain(Chain::Tempo), WalletConnectionSessionAppMetadata::mock(), TransferDataExtra::mock()).get_fee_asset_id(),
-            TEMPO_PATHUSD_ASSET_ID.clone()
+            TransactionInputType::Generic(Asset::mock_with_chain(Chain::Tempo), WalletConnectionSessionAppMetadata::mock(), TransferDataExtra::mock()).get_fee_asset(),
+            TEMPO_PATHUSD.clone()
+        );
+
+        assert_eq!(TransactionInputType::Transfer(HYPERCORE_SPOT_USDC.clone()).get_fee_asset(), HYPERCORE_SPOT_USDC.clone());
+        let perpetual = PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None));
+        assert_eq!(
+            TransactionInputType::Perpetual(Asset::mock_with_chain(Chain::HyperCore), perpetual).get_fee_asset(),
+            HYPERCORE_PERPETUAL_USDC.clone()
         );
     }
 

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import Gemstone
 import Primitives
 
 public extension TransferDataType {
@@ -23,18 +23,12 @@ public extension TransferDataType {
     }
 
     var feeAsset: Asset {
-        let asset = asset
-        if case .perpetual = self, asset.chain == .hyperCore {
-            return Chain.hyperCore.defaultAsset(type: .perpetual)
+        guard
+            let input = try? map(),
+            let asset = try? Gemstone.transactionInputFeeAsset(inputType: input).map()
+        else {
+            preconditionFailure("Invalid fee asset for \(self)")
         }
-        return switch asset.chain {
-        case .tempo: asset
-        case .hyperCore: Chain.hyperCore.defaultAsset(type: .token)
-        default:
-            switch asset.id.type {
-            case .native: asset
-            case .token: asset.chain.asset
-            }
-        }
+        return asset
     }
 }
