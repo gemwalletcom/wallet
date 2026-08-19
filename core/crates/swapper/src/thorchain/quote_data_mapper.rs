@@ -5,11 +5,10 @@ use std::{
 
 use alloy_primitives::{Address, U256, hex::encode_prefixed as HexEncode};
 use alloy_sol_types::SolCall;
-use gem_evm::thorchain::contracts::RouterInterface;
 use num_bigint::BigInt;
 use primitives::swap::ApprovalData;
 
-use super::{DEFAULT_DEPOSIT_GAS_LIMIT, asset::THORChainAsset, model::RouteData};
+use super::{DEFAULT_DEPOSIT_GAS_LIMIT, asset::THORChainAsset, contracts::RouterInterface, model::RouteData};
 use crate::{SwapperQuoteData, approval::get_swap_gas_limit_with_approval};
 
 pub fn map_quote_data(
