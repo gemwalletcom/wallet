@@ -78,7 +78,6 @@ struct ConfirmNetworkFeeViewModelTests {
         feeAmount: BigInt? = BigInt(1_000_000_000_000_000),
     ) -> NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
-            chain: .ethereum,
             feeAsset: .mockEthereum(),
             currency: .usd,
             selection: .preset(.normal),

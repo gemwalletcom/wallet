@@ -47,7 +47,7 @@ public struct PerpetualService: PerpetualServiceable {
         try store.upsertPerpetuals(perpetuals)
         // setup prices
         try priceStore.updatePrice(price: AssetPrice(
-            assetId: Asset.hypercoreUSDC().id,
+            assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
             price: 1,
             priceChangePercentage24h: 0,
             updatedAt: .now,
@@ -90,11 +90,11 @@ public struct PerpetualService: PerpetualServiceable {
     }
 
     private func clearBalance() throws {
-        try balanceStore.deleteBalance(assetId: Asset.hypercoreUSDC().id)
+        try balanceStore.deleteBalance(assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id)
     }
 
     private func syncProviderBalances(walletId: WalletId, balance: PerpetualBalance) throws {
-        let usd = Asset.hypercoreUSDC()
+        let usd = Chain.hyperCore.defaultAsset(type: .perpetual)
         try balanceStore.addMissingBalances(walletId: walletId, assetIds: [usd.id], isEnabled: false)
 
         let perpetuals = try store.getPerpetuals().map(\.assetId)

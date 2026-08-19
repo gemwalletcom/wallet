@@ -28,7 +28,8 @@ pub fn get_uniswap_permit2_by_chain(chain: &Chain) -> Option<&'static str> {
         | Chain::Monad
         | Chain::XLayer
         | Chain::Stable
-        | Chain::Robinhood => Some(UNISWAP_PERMIT2_CONTRACT),
+        | Chain::Robinhood
+        | Chain::Tempo => Some(UNISWAP_PERMIT2_CONTRACT),
         Chain::ZkSync | Chain::Abstract => Some(ZKSYNC_UNISWAP_PERMIT2_CONTRACT),
         _ => None,
     }

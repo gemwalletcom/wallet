@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.assetIdsEnabledByDefault
 import Primitives
 import PrimitivesTestKit
 @testable import StreamService
@@ -26,7 +27,7 @@ struct StreamSubscriptionServiceTests {
 
         let messages = try await sentMessages(webSocket)
         #expect(messages.count == 1)
-        #expect(Set(messages.first?.assets ?? []) == Set(AssetConfiguration.enabledByDefault))
+        #expect(Set(messages.first?.assets ?? []) == Set(try assetIdsEnabledByDefault().map(AssetId.init(id:))))
     }
 
     @Test
@@ -41,7 +42,7 @@ struct StreamSubscriptionServiceTests {
 
         let messages = try await sentMessages(webSocket)
         #expect(messages.count == 1)
-        #expect(Set(messages.first?.assets ?? []) == Set(AssetConfiguration.enabledByDefault))
+        #expect(Set(messages.first?.assets ?? []) == Set(try assetIdsEnabledByDefault().map(AssetId.init(id:))))
     }
 
     @Test
@@ -56,7 +57,7 @@ struct StreamSubscriptionServiceTests {
 
         let messages = try await sentMessages(webSocket)
         #expect(messages.count == 2)
-        #expect(Set(messages.last?.assets ?? []) == Set(AssetConfiguration.enabledByDefault))
+        #expect(Set(messages.last?.assets ?? []) == Set(try assetIdsEnabledByDefault().map(AssetId.init(id:))))
     }
 
     @Test

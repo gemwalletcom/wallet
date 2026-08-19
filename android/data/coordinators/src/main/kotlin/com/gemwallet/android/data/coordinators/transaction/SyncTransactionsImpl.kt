@@ -11,7 +11,7 @@ import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.currentTimestamp
 import com.gemwallet.android.ext.getAssociatedAssetIds
-import com.gemwallet.android.ext.identifier
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionsResponse
 import com.wallet.core.primitives.Wallet
@@ -49,7 +49,7 @@ class SyncTransactionsImpl @Inject constructor(
     private suspend fun syncAssetTransactions(wallet: Wallet, assetId: AssetId) {
         val walletId = wallet.id
         val preferences = walletPreferencesFactory.create(walletId.id)
-        val assetIdentifier = assetId.identifier
+        val assetIdentifier = assetId.toIdentifier()
         val timestamp = preferences.transactionsForAssetTimestamp(assetIdentifier)
         val response = runCatching {
             gemDeviceApiClient.getTransactions(walletId, assetIdentifier, timestamp)

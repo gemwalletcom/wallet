@@ -8,7 +8,8 @@ import Primitives
 public protocol TransferMetadataProvidable: Sendable {
     func metadata(
         walletId: WalletId,
-        asset: Asset,
+        assetId: AssetId,
+        feeAssetId: AssetId,
         extraIds: [AssetId],
     ) throws -> TransferDataMetadata
 }
@@ -20,7 +21,8 @@ public extension TransferMetadataProvidable {
     ) throws -> TransferDataMetadata {
         try metadata(
             walletId: wallet.id,
-            asset: data.type.asset,
+            assetId: data.type.asset.id,
+            feeAssetId: data.type.feeAsset.id,
             extraIds: data.type.assetIds,
         )
     }
@@ -40,16 +42,14 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
 
     public func metadata(
         walletId: WalletId,
-        asset: Asset,
+        assetId: AssetId,
+        feeAssetId: AssetId,
         extraIds: [AssetId] = [],
     ) throws -> TransferDataMetadata {
-        let assetId = asset.id
-        let feeAssetId = asset.feeAsset.id
-
         guard let balance = try balanceService.getBalance(walletId: walletId, assetId: assetId) else {
             throw AnyError("Missing balance for assetId: \(assetId.identifier)")
         }
-        guard let fee = try balanceService.getBalance(walletId: walletId, assetId: feeAssetId) else {
+        guard let feeBalance = try balanceService.getBalance(walletId: walletId, assetId: feeAssetId) else {
             throw AnyError("Missing balance for feeAssetId: \(feeAssetId.identifier)")
         }
 
@@ -61,7 +61,7 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
             assetId: assetId,
             feeAssetId: feeAssetId,
             assetBalance: balance,
-            assetFeeBalance: fee,
+            assetFeeBalance: feeBalance,
             assetPrices: prices,
         )
     }

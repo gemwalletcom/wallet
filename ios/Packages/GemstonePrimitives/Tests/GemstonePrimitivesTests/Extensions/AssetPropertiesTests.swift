@@ -2,6 +2,7 @@
 
 @testable import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 import Testing
 
 struct AssetPropertiesTests {
@@ -17,5 +18,10 @@ struct AssetPropertiesTests {
         #expect(AssetProperties.defaultValue(assetId: AssetId(chain: .smartChain, tokenId: "0x")).isSwapable == true)
         #expect(AssetProperties.defaultValue(assetId: .mockSolana()).isSwapable == true)
         #expect(AssetProperties.defaultValue(assetId: .mockSolanaUSDC()).isSwapable == true)
+        let tempo = AssetProperties.defaultValue(assetId: AssetId(chain: .tempo))
+        #expect(tempo.isEnabled == false)
+        #expect(tempo.isSwapable == false)
+        #expect(tempo.isStakeable == false)
+        #expect(AssetProperties.defaultValue(assetId: Asset.mockTempoPathUSD().id).isSwapable == true)
     }
 }

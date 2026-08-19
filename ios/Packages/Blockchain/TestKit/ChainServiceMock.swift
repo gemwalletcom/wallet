@@ -4,6 +4,7 @@ import BigInt
 import Blockchain
 import Foundation
 import Primitives
+import PrimitivesTestKit
 
 public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     // Injected data
@@ -11,7 +12,7 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var tokenBalances: [String: [AssetBalance]] = [:]
     public var stakeBalance: AssetBalance?
     public var broadcastResponses: [String] = []
-    public var fee: Fee = .init(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero)
+    public var fee: Fee = .init(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id)
     public var feeRates: [FeeRate] = []
     public var chainID: String?
     public var latestBlock: BigInt = .zero
@@ -20,7 +21,7 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var inSync: Bool = true
     public var tokenData: [String: Asset] = [:]
     public var tokenDataError: (any Error)?
-    public var transactionData: TransactionData = .init(fee: Fee(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero))
+    public var transactionData: TransactionData = .init(fee: Fee(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id))
     public var transactionPreload: TransactionLoadMetadata = .none
     public var transactionState: TransactionChanges = .init(state: .pending, changes: [])
     public var nodeStatus: NodeStatus = .init(chainId: "1", latestBlockNumber: .zero, latency: .from(duration: 1000))

@@ -1,21 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.assetIsSwapable
 import func Gemstone.defaultTokenRank
 import Primitives
 
 public extension AssetProperties {
     static func defaultValue(assetId: AssetId) -> AssetProperties {
+        let isEnabled = AssetScore.defaultValue(assetId: assetId).rank >= 0
         let isStakeable = switch assetId.type {
-        case .native: assetId.chain.isStakeSupported
+        case .native: isEnabled && assetId.chain.isStakeSupported
         case .token: false
         }
-        let isSwapable = assetId.chain.isSwapSupported
         return AssetProperties(
-            isEnabled: true,
+            isEnabled: isEnabled,
             isBuyable: false,
             isSellable: false,
-            isSwapable: isSwapable,
+            isSwapable: Gemstone.assetIsSwapable(assetId: assetId.identifier),
             isStakeable: isStakeable,
             stakingApr: .none,
             isEarnable: false,

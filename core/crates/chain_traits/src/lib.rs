@@ -76,6 +76,7 @@ pub trait ChainTraits:
             rates.iter().map(|rate| TransactionFeeEstimate::new(rate, units, chain.fee_unit_type())).collect()
         };
         Ok(TransactionFeeEstimates {
+            fee_asset: AssetId::from_chain(chain),
             transfer: estimate(TransactionFeeOperation::Transfer),
             token_transfer: chain.default_asset_type().is_some().then(|| estimate(TransactionFeeOperation::TokenTransfer)),
             swap: chain.is_swap_supported().then(|| estimate(TransactionFeeOperation::Swap)),

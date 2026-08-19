@@ -66,6 +66,7 @@ pub enum Chain {
     XLayer,
     Robinhood,
     Stable,
+    Tempo,
 }
 
 impl fmt::Debug for Chain {

@@ -253,7 +253,7 @@ public extension PerpetualSceneViewModel {
             perpetual: perpetual,
             position: position,
             asset: asset,
-            baseAsset: .hypercoreUSDC(),
+            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
         )
 
         let transferData = TransferData(
@@ -312,11 +312,12 @@ public extension PerpetualSceneViewModel {
         guard let transferData = createTransferData(direction: direction, leverage: position.leverage, marginType: position.marginType) else {
             return
         }
+        let baseAsset = Chain.hyperCore.defaultAsset(type: .perpetual)
 
         onPositionAction(
             .reduce(
                 transferData,
-                available: BigInt(position.marginAmount * pow(10.0, Double(position.baseAsset.decimals))),
+                available: BigInt(position.marginAmount * pow(10.0, Double(baseAsset.decimals))),
                 positionDirection: position.direction,
             ),
         )
@@ -355,7 +356,7 @@ private extension PerpetualSceneViewModel {
             provider: perpetual.provider,
             direction: direction,
             asset: asset,
-            baseAsset: .hypercoreUSDC(),
+            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
             assetIndex: assetIndex,
             price: perpetual.price,
             leverage: leverage,

@@ -13,15 +13,6 @@ public extension Asset {
         id.tokenId
     }
 
-    var feeAssetId: AssetId {
-        switch id.type {
-        case .native:
-            id
-        case .token:
-            id.chain.assetId
-        }
-    }
-
     func getTokenId() throws -> String {
         try id.getTokenId()
     }
@@ -57,40 +48,6 @@ public extension AssetFull {
             properties: properties,
             score: score,
             price: price,
-        )
-    }
-}
-
-// MARK: - Assets
-
-public extension Asset {
-    static func tronUSDT() -> Asset {
-        Asset(
-            id: AssetId(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
-            name: "Tether",
-            symbol: "USDT",
-            decimals: 6,
-            type: .trc20,
-        )
-    }
-
-    static func hypercoreUSDC() -> Asset {
-        Asset(
-            id: AssetId(chain: .hyperCore, tokenId: "perpetual::USDC"),
-            name: "USDC",
-            symbol: "USDC",
-            decimals: 6,
-            type: .perpetual,
-        )
-    }
-
-    static func hypercoreSpotUSDC() -> Asset {
-        Asset(
-            id: AssetId(chain: .hyperCore, tokenId: "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
-            name: "USDC",
-            symbol: "USDC",
-            decimals: 8,
-            type: .token,
         )
     }
 }

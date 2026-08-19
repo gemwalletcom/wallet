@@ -6,7 +6,7 @@ use crate::provider::preload_mapper::{
     bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
     map_transaction_preload,
 };
-use crate::rpc::{EthereumClient, EthereumProvider};
+use crate::rpc::{EthereumClient, EthereumProvider, EvmFeeCalculator};
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
@@ -18,7 +18,7 @@ use num_bigint::BigInt;
 use primitives::ContractCallData;
 use primitives::GasPriceType;
 #[cfg(feature = "rpc")]
-use primitives::{FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{AssetId, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 #[cfg(feature = "rpc")]
 use serde_serializers::bigint::bigint_from_hex_str;
 use std::collections::HashMap;
@@ -54,7 +54,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 }
 
 #[cfg(feature = "rpc")]
-impl<C: Client + Clone> EthereumClient<C> {
+impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = get_transaction_params(self.chain, &input)?;
 
@@ -70,7 +70,7 @@ impl<C: Client + Clone> EthereumClient<C> {
             bigint_from_hex_str(&estimate)?
         };
         let gas_limit = calculate_gas_limit_with_increase(gas_estimate);
-        let fee = self.calculate_fee(&input, &gas_limit).await?;
+        let fee = self.fee_calculator.calculate_fee(&input, &gas_limit).await?;
 
         let metadata = if let TransactionInputType::Stake(_, _) = &input.input_type {
             match input.metadata {
@@ -92,7 +92,10 @@ impl<C: Client + Clone> EthereumClient<C> {
 
         Ok(TransactionLoadData { fee, metadata })
     }
+}
 
+#[cfg(feature = "rpc")]
+impl<C: Client + Clone> EthereumClient<C> {
     pub async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         if self.chain.is_opstack() {
             OptimismGasOracle::new(self.chain, self.clone()).calculate_fee(input, gas_limit).await
@@ -103,7 +106,15 @@ impl<C: Client + Clone> EthereumClient<C> {
 }
 
 #[cfg(feature = "rpc")]
-fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+#[async_trait]
+impl<C: Client + Clone> EvmFeeCalculator for EthereumClient<C> {
+    async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+        EthereumClient::calculate_fee(self, input, gas_limit).await
+    }
+}
+
+#[cfg(feature = "rpc")]
+pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
     let fee_gas_limit = gas_limit + get_extra_fee_gas_limit(input)?;
     let fee = input.gas_price.total_fee() * fee_gas_limit;
 
@@ -112,13 +123,14 @@ fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<Tra
         fee,
         gas_limit.clone(),
         HashMap::new(),
+        AssetId::from_chain(input.input_type.get_asset().chain),
     ))
 }
 
 #[cfg(all(test, feature = "rpc"))]
 mod tests {
     use super::*;
-    use primitives::{Asset, Chain, TransactionInputType, swap::SwapData};
+    use primitives::{Asset, AssetId, Chain, TransactionInputType, swap::SwapData};
 
     #[test]
     fn test_calculate_fee_swap_approval_keeps_transaction_gas_limit() -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
@@ -130,6 +142,7 @@ mod tests {
 
         assert_eq!(fee.gas_limit, approval_gas_limit);
         assert_eq!(fee.fee, input.gas_price.total_fee() * (&approval_gas_limit + swap_gas_limit));
+        assert_eq!(fee.fee_asset, AssetId::from_chain(Chain::Ethereum));
 
         Ok(())
     }
@@ -230,7 +243,6 @@ mod chain_integration_tests {
         assert_eq!(fee_rates.len(), 3);
 
         for fee_rate in &fee_rates {
-            //assert!(fee_rate.gas_price_type.gas_price() >= BigInt::from(100_000_000));
             assert!(fee_rate.gas_price_type.gas_price() < BigInt::from(1_000_000_000));
             assert!(fee_rate.gas_price_type.priority_fee() > BigInt::from(0));
         }

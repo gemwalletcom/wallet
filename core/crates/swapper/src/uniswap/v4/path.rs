@@ -129,7 +129,7 @@ mod tests {
     fn test_get_intermediary_token() {
         let token_in = Address::from_str(ETHEREUM_UNI_TOKEN_ID).unwrap();
         let token_out = Address::from_str(ETHEREUM_USDS_TOKEN_ID).unwrap();
-        let base_pair = get_base_pair(&EVMChain::Ethereum, true).unwrap();
+        let base_pair = get_base_pair(&EVMChain::Ethereum, EVMChain::Ethereum.weth_contract()).unwrap();
         let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
         let fee_tiers = vec![FeeTier::FiveHundred, FeeTier::ThreeThousand];
         let quote_exact_params = build_quote_exact_params(1_000_000, &token_in, &token_out, &fee_tiers, &intermediaries);

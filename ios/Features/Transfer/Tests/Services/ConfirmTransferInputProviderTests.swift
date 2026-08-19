@@ -25,6 +25,29 @@ struct ConfirmTransferInputProviderTests {
     }
 
     @Test
+    func loadUsesFeeAssetFromTransactionFee() async throws {
+        let feeAsset = Asset.mockHypercoreUSDC()
+        let feeAssetBalance = Balance.mock(available: 42)
+        let feeAssetPrice = Price.mock(price: 1)
+        let provider = ConfirmTransferInputProvider(
+            transferTransactionProvider: TransferTransactionProviderMock(result: .success(
+                TransferTransactionData(
+                    allRates: [],
+                    transactionData: .mock(feeAsset: feeAsset),
+                ),
+            )),
+            feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
+        )
+
+        let result = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
+
+        #expect(result.input.feeAsset == feeAsset)
+        #expect(result.metadata.assetFeeBalance == feeAssetBalance)
+        #expect(result.metadata.feeAssetId == feeAsset.id)
+        #expect(result.metadata.feePrice == feeAssetPrice)
+    }
+
+    @Test
     func loadMapsPreloadFailureToInsufficientNetworkFee() async {
         let provider = ConfirmTransferInputProvider.mock(transaction: .failure(AnyError("network")))
         let metadata = TransferDataMetadata.mock(
@@ -49,12 +72,44 @@ struct ConfirmTransferInputProviderTests {
             try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
         }
     }
+
+    @Test
+    func loadRethrowsPreloadFailureForTempoFeeAsset() async {
+        let provider = ConfirmTransferInputProvider.mock(transaction: .failure(AnyError("network")))
+        let metadata = TransferDataMetadata.mock(
+            feeAssetId: Asset.mockTempoPathUSD().id,
+            assetFeeBalance: .mock(available: .zero),
+        )
+
+        await #expect(throws: AnyError.self) {
+            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+        }
+    }
+
+    @Test
+    func loadRethrowsFeeAssetFailure() async {
+        let provider = ConfirmTransferInputProvider(
+            transferTransactionProvider: TransferTransactionProviderMock(result: .success(
+                TransferTransactionData(allRates: [], transactionData: .mock()),
+            )),
+            feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
+        )
+        let metadata = TransferDataMetadata.mock(
+            feeAssetId: AssetId(chain: .ethereum, tokenId: nil),
+            assetFeeBalance: .mock(available: .zero),
+        )
+
+        await #expect(throws: AnyError.self) {
+            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+        }
+    }
 }
 
 private extension ConfirmTransferInputProvider {
     static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmTransferInputProvider {
         ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
+            feeAssetProvider: FeeAssetProviderMock(),
         )
     }
 }

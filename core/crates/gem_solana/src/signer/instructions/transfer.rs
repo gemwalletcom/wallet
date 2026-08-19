@@ -19,7 +19,7 @@ pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) ->
 mod tests {
     use crate::signer::{SolanaChainSigner, testkit::*};
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{Asset, ChainSigner, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput};
+    use primitives::{Asset, AssetId, Chain, ChainSigner, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput};
     use solana_primitives::instructions::program_ids::{COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID};
 
     // https://github.com/trustwallet/wallet-core/blob/master/rust/tw_tests/tests/chains/solana/solana_sign.rs
@@ -45,7 +45,13 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(None, None, None),
         };
-        let fee = TransactionFee::new_gas_price_type(GasPriceType::solana(5_000u64, 0u64, 2u64), 5_000u64.into(), 2_000u64.into(), Default::default());
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::solana(5_000u64, 0u64, 2u64),
+            5_000u64.into(),
+            2_000u64.into(),
+            Default::default(),
+            AssetId::from_chain(Chain::Solana),
+        );
         let input = SignerInput::new(input, fee);
 
         let result = signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
@@ -86,7 +92,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(None, None, None),
         };
-        let transfer = SignerInput::new(transfer, TransactionFee::default());
+        let transfer = SignerInput::new(transfer, TransactionFee::mock());
 
         let result = signer.sign_transfer(&transfer, &private_key).unwrap();
 

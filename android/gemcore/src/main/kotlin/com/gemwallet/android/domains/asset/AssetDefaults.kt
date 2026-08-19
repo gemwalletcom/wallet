@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.asset
 
 import com.gemwallet.android.ext.isStakeSupported
-import com.gemwallet.android.ext.isSwapSupport
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
@@ -11,28 +11,35 @@ import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.assetDefaultRank
+import uniffi.gemstone.assetIsSwapable
 import uniffi.gemstone.defaultTokenRank
+import uniffi.gemstone.walletDefaultAssets
 
 val Chain.defaultAssetRank: Int
     get() = assetDefaultRank(string)
 
-val Asset.defaultBasic: AssetBasic
-    get() = AssetBasic(
-        asset = this,
-        properties = id.defaultProperties,
-        score = id.defaultScore,
-    )
+val Chain.defaultAssets: List<Asset>
+    get() = walletDefaultAssets(string).map { it.toDTO() }
 
-private val AssetId.defaultProperties: AssetProperties
-    get() = AssetProperties(
-        isEnabled = true,
-        isBuyable = false,
-        isSellable = false,
-        isSwapable = chain.isSwapSupport(),
-        isStakeable = type() == AssetSubtype.NATIVE && chain.isStakeSupported(),
-        isEarnable = false,
-        hasImage = false,
-    )
+val Asset.defaultBasic: AssetBasic
+    get() {
+        val isNative = id.type() == AssetSubtype.NATIVE
+        val score = id.defaultScore
+        val isEnabled = score.rank >= 0
+        return AssetBasic(
+            asset = this,
+            properties = AssetProperties(
+                isEnabled = isEnabled,
+                isBuyable = false,
+                isSellable = false,
+                isSwapable = assetIsSwapable(id.toIdentifier()),
+                isStakeable = isEnabled && isNative && id.chain.isStakeSupported(),
+                isEarnable = false,
+                hasImage = false,
+            ),
+            score = score,
+        )
+    }
 
 private val AssetId.defaultScore: AssetScore
     get() = AssetScore(

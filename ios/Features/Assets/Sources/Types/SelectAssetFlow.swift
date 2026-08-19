@@ -160,7 +160,7 @@ public extension SelectAssetType {
             SelectAssetFlow(
                 title: Localized.Wallet.withdraw,
                 listType: .view,
-                defaultFilters: [.chainsOrAssets([], [Asset.hypercoreUSDC().id.identifier])],
+                defaultFilters: [.chainsOrAssets([], [Chain.hyperCore.defaultAsset(type: .perpetual).id.identifier])],
                 rowSelection: .navigate,
                 capabilities: [.depositAssetDisplay],
             )

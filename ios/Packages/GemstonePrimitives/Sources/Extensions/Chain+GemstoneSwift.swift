@@ -8,8 +8,11 @@ import Primitives
 
 private let chainAssets: [Primitives.Chain: ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
     let wrapper = chainAssetWrapper(chain: chain.rawValue)
+    guard let asset = try? wrapper.asset.map() else {
+        preconditionFailure("Invalid chain asset for \(chain)")
+    }
     result[chain] = ChainAsset(
-        asset: try! wrapper.asset.map(),
+        asset: asset,
         networkName: wrapper.networkName,
     )
 }
@@ -21,6 +24,10 @@ public extension Gemstone.Chain {
 }
 
 public extension Primitives.Chain {
+    func map() -> Gemstone.Chain {
+        rawValue
+    }
+
     var asset: Asset {
         chainAsset.asset
     }
@@ -69,7 +76,10 @@ public extension Primitives.Chain {
     }
 
     var type: ChainType {
-        ChainType(rawValue: ChainConfig.config(chain: self).chainType)!
+        guard let type = ChainType(rawValue: ChainConfig.config(chain: self).chainType) else {
+            preconditionFailure("Invalid chain type for \(self)")
+        }
+        return type
     }
 
     var feeUnitType: FeeUnitType {
@@ -115,19 +125,19 @@ public extension Primitives.Chain {
     }
 
     var defaultAssets: [Asset] {
-        switch self {
-        case .tron:
-            [
-                .tronUSDT(),
-            ]
-        case .hyperCore:
-            [
-                .hypercoreUSDC(),
-                .hypercoreSpotUSDC(),
-            ]
-        default:
-            []
+        Gemstone.walletDefaultAssets(chain: map()).map { asset in
+            guard let asset = try? asset.map() else {
+                preconditionFailure("Invalid default asset for \(self)")
+            }
+            return asset
         }
+    }
+
+    func defaultAsset(type: AssetType) -> Asset {
+        guard let asset = defaultAssets.first(where: { $0.type == type }) else {
+            preconditionFailure("Missing \(type) default asset for \(self)")
+        }
+        return asset
     }
 
     func isValidAddress(_ address: String) -> Bool {
@@ -152,7 +162,10 @@ public extension Primitives.Chain {
 
 private extension Primitives.Chain {
     var chainAsset: ChainAsset {
-        chainAssets[self]!
+        guard let asset = chainAssets[self] else {
+            preconditionFailure("Missing chain asset for \(self)")
+        }
+        return asset
     }
 }
 

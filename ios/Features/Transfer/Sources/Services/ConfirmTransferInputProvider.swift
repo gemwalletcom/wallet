@@ -7,9 +7,14 @@ import Validators
 
 public struct ConfirmTransferInputProvider: Sendable {
     private let transferTransactionProvider: any TransferTransactionProvidable
+    private let feeAssetProvider: any FeeAssetProvidable
 
-    public init(transferTransactionProvider: any TransferTransactionProvidable) {
+    public init(
+        transferTransactionProvider: any TransferTransactionProvidable,
+        feeAssetProvider: any FeeAssetProvidable,
+    ) {
         self.transferTransactionProvider = transferTransactionProvider
+        self.feeAssetProvider = feeAssetProvider
     }
 
     public func load(
@@ -17,26 +22,49 @@ public struct ConfirmTransferInputProvider: Sendable {
         metadata: TransferDataMetadata,
         selection: FeeSelection,
     ) async throws -> ConfirmTransferPreload {
+        let transactionData: TransferTransactionData
         do {
-            let transactionData = try await transferTransactionProvider.loadTransferTransactionData(
+            transactionData = try await transferTransactionProvider.loadTransferTransactionData(
                 wallet: request.wallet,
                 data: request.data,
                 selection: selection,
                 available: metadata.available,
             )
-            let input = ConfirmTransferInput(
-                transactionData: transactionData.transactionData,
-                transferAmount: TransferAmountCalculator().validate(
-                    transferData: request.data,
-                    availableValue: request.data.availableValue(metadata: metadata),
-                    assetFeeBalance: metadata.assetFeeBalance.available,
-                    fee: transactionData.transactionData.fee.fee,
-                ),
-            )
-            return ConfirmTransferPreload(metadata: metadata, input: input, feeRates: transactionData.rates)
         } catch {
             throw preloadFailureError(metadata: metadata) ?? error
         }
+
+        let fee = transactionData.transactionData.fee
+        let feeAssetId = fee.feeAssetId
+        let feeAssetData = try feeAssetProvider.getAssetData(walletId: request.wallet.id, assetId: feeAssetId)
+        let assetPrices = if let feeAssetPrice = feeAssetData.price {
+            metadata.assetPrices.merging([feeAssetId: feeAssetPrice]) { _, feeAssetPrice in feeAssetPrice }
+        } else {
+            metadata.assetPrices
+        }
+        let metadata = TransferDataMetadata(
+            assetId: metadata.assetId,
+            feeAssetId: feeAssetId,
+            assetBalance: metadata.assetBalance,
+            assetFeeBalance: feeAssetData.balance,
+            assetPrices: assetPrices,
+        )
+        let input = ConfirmTransferInput(
+            transactionData: transactionData.transactionData,
+            transferAmount: TransferAmountCalculator().validate(
+                transferData: request.data,
+                availableValue: request.data.availableValue(metadata: metadata),
+                feeAsset: feeAssetData.asset,
+                assetFeeBalance: metadata.feeAvailable,
+                fee: fee.fee,
+            ),
+            feeAsset: feeAssetData.asset,
+        )
+        return ConfirmTransferPreload(
+            metadata: metadata,
+            input: input,
+            feeRates: transactionData.rates,
+        )
     }
 
     private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {

@@ -247,7 +247,7 @@ public struct TransactionViewModel: Sendable {
             return AmountDisplay.currency(value: metadata.pnl, currencyCode: Currency.usd.rawValue)
         case .perpetualOpenPosition:
             return AmountDisplay.numeric(
-                asset: .hypercoreUSDC(),
+                asset: Chain.hyperCore.defaultAsset(type: .perpetual),
                 price: Price(price: 1, priceChangePercentage24h: .zero, updatedAt: .now),
                 value: transaction.transaction.valueBigInt,
                 currency: Currency.usd.rawValue,

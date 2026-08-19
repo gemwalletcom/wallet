@@ -1,6 +1,6 @@
 use num_bigint::BigInt;
 use primitives::{
-    Asset, BitcoinChain, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO,
+    Asset, AssetId, BitcoinChain, Chain, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO,
     swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData},
 };
 
@@ -36,7 +36,7 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
             is_max_value: false,
             metadata,
         },
-        TransactionFee::new_from_fee(BigInt::from(10u64)),
+        TransactionFee::new_from_fee(BigInt::from(10u64), AssetId::from_chain(Chain::Bitcoin)),
     )
 }
 

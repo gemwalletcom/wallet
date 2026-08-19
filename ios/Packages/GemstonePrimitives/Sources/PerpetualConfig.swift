@@ -24,7 +24,7 @@ public struct PerpetualConfig {
         guard let assetId = try? AssetId(id: depositAssetId) else {
             preconditionFailure("Invalid perpetual deposit asset id: \(depositAssetId)")
         }
-        let usdc = Asset.hypercoreUSDC()
+        let usdc = Chain.hyperCore.defaultAsset(type: .perpetual)
         return Asset(id: assetId, name: usdc.name, symbol: usdc.symbol, decimals: usdc.decimals, type: .token)
     }
 

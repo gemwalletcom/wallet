@@ -142,6 +142,7 @@ alloy-signer = { version = "2.2.0" }
 alloy-signer-local = { version = "2.2.0" }
 alloy-network = { version = "2.2.0" }
 alloy-consensus = { version = "2.2.0" }
+alloy-rlp = { version = "0.3.16" }
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 
 [profile.dev]

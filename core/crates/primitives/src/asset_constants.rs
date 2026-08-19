@@ -372,3 +372,12 @@ pub static INJECTIVE_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId
 
 pub const SEI_USDC_TOKEN_ID: &str = "ibc/CA6FBFAF399474A06263E10D0CE5AEBBE15189D6D4B2DD9ADE61007E68EB9DB0";
 pub static SEI_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Sei, SEI_USDC_TOKEN_ID));
+
+pub const TEMPO_BRIDGED_USDC_TOKEN_ID: &str = "0x20C000000000000000000000b9537d11c60E8b50";
+pub static TEMPO_BRIDGED_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID));
+
+pub const TEMPO_USDC_TOKEN_ID: &str = "0x20C00000000000000000000014f22CA97301EB73";
+pub static TEMPO_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_USDC_TOKEN_ID));
+
+pub const TEMPO_PATHUSD_TOKEN_ID: &str = "0x20C0000000000000000000000000000000000000";
+pub static TEMPO_PATHUSD_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID));

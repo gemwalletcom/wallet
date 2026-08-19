@@ -7,7 +7,7 @@ use primitives::AssetId;
 
 use super::{
     client::PythClient,
-    mapper::{asset_ids_for_feed_id, price_feed_id_for_chain},
+    mapper::{asset_ids_for_feed_id, price_feed_id_for_asset_id},
 };
 use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvider, PriceProviderAsset};
 
@@ -44,10 +44,8 @@ impl PriceAssetsProvider for PythProvider {
     }
 
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
-        Ok(asset_id
-            .is_native()
-            .then(|| price_feed_id_for_chain(asset_id.chain).map(|feed_id| AssetPriceMapping::new(asset_id.clone(), feed_id.to_string())))
-            .flatten()
+        Ok(price_feed_id_for_asset_id(asset_id)
+            .map(|feed_id| AssetPriceMapping::new(asset_id.clone(), feed_id.to_string()))
             .into_iter()
             .collect())
     }

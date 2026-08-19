@@ -15,22 +15,6 @@ public extension Asset {
         )
     }
 
-    var feeAsset: Asset {
-        switch id.chain {
-        case .hyperCore:
-            switch map().assetType {
-            case .native: Asset.hypercoreSpotUSDC()
-            case .perpetual: Asset.hypercoreUSDC()
-            default: Asset.hypercoreSpotUSDC()
-            }
-        default:
-            switch id.type {
-            case .native: self
-            case .token: id.chain.asset
-            }
-        }
-    }
-
     var defaultBasic: AssetBasic {
         AssetBasic(
             asset: self,

@@ -4,7 +4,7 @@ use primitives::{AssetId, Chain, EVMChain, contract_constants::SOLANA_WRAPPED_SO
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum FeeTokenPriority {
-    Native,
+    Primary,
     Stable,
     Other,
 }
@@ -23,7 +23,7 @@ impl<'a> FeeToken<'a> {
 impl FeeTokenPriority {
     pub(crate) fn from_asset(asset_id: &AssetId, symbol: &str) -> Self {
         if asset_id.is_native() || is_wrapped_native_token(asset_id) {
-            return Self::Native;
+            return Self::Primary;
         }
         if is_stablecoin_symbol(symbol) {
             return Self::Stable;
@@ -33,7 +33,7 @@ impl FeeTokenPriority {
 
     pub(crate) fn rank(self) -> u8 {
         match self {
-            Self::Native => 3,
+            Self::Primary => 3,
             Self::Stable => 2,
             Self::Other => 1,
         }
@@ -69,16 +69,16 @@ mod tests {
         let cake = SMARTCHAIN_CAKE_ASSET_ID.clone();
         let wsol = AssetId::from_token(Chain::Solana, SOLANA_WRAPPED_SOL_TOKEN_ADDRESS);
 
-        assert_eq!(FeeTokenPriority::from_asset(&bnb, "BNB"), FeeTokenPriority::Native);
-        assert_eq!(FeeTokenPriority::from_asset(&wbnb, "WBNB"), FeeTokenPriority::Native);
+        assert_eq!(FeeTokenPriority::from_asset(&bnb, "BNB"), FeeTokenPriority::Primary);
+        assert_eq!(FeeTokenPriority::from_asset(&wbnb, "WBNB"), FeeTokenPriority::Primary);
         assert_eq!(FeeTokenPriority::from_asset(&usdc, "USDC"), FeeTokenPriority::Stable);
         assert_eq!(FeeTokenPriority::from_asset(&cake, "CAKE"), FeeTokenPriority::Other);
-        assert_eq!(FeeTokenPriority::from_asset(&wsol, "SOL"), FeeTokenPriority::Native);
+        assert_eq!(FeeTokenPriority::from_asset(&wsol, "SOL"), FeeTokenPriority::Primary);
     }
 
     #[test]
     fn test_fee_token_priority_ordering() {
-        assert!(FeeTokenPriority::Native.rank() > FeeTokenPriority::Stable.rank());
+        assert!(FeeTokenPriority::Primary.rank() > FeeTokenPriority::Stable.rank());
         assert!(FeeTokenPriority::Stable.rank() > FeeTokenPriority::Other.rank());
     }
 }

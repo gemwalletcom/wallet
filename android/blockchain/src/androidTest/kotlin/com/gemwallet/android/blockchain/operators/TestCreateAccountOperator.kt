@@ -86,7 +86,8 @@ class TestCreateAccountOperator {
         Chain.Plasma,
         Chain.XLayer,
         Chain.Robinhood,
-        Chain.Stable -> "0x8f348F300873Fd5DA36950B2aC75a26584584feE"
+        Chain.Stable,
+        Chain.Tempo -> "0x8f348F300873Fd5DA36950B2aC75a26584584feE"
         Chain.Solana -> "57mwmnV2rFuVDmhiJEjonD7cfuFtcaP9QvYNGfDEWK71"
         Chain.Thorchain -> "thor1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2kyhc65"
         Chain.Mayachain -> "maya1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2knf5vy"

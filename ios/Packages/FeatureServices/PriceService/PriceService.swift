@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.assetIdsEnabledByDefault
 import Primitives
 import Store
 
@@ -39,7 +40,7 @@ public struct PriceService: Sendable {
     public func observableAssets(walletId: WalletId) throws -> [AssetId] {
         let priceAssets = try priceStore.enabledPriceAssets(walletId: walletId)
         if priceAssets.isEmpty {
-            return AssetConfiguration.enabledByDefault
+            return try assetIdsEnabledByDefault().map(AssetId.init(id:))
         }
         return priceAssets
     }

@@ -1,6 +1,8 @@
 use primitives::asset_constants::{ETHEREUM_DAI_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID};
 
 pub mod eip712_mock;
+#[cfg(feature = "rpc")]
+pub mod rpc_mock;
 pub mod siwe_mock;
 pub mod trace_call_action_mock;
 pub mod transaction_object_mock;

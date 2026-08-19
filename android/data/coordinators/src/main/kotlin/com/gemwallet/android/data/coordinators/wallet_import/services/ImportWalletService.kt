@@ -13,8 +13,8 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.identifier
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
@@ -73,7 +73,7 @@ class ImportWalletService(
         val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
 
         searchTokensCase.search(tokenIds, sessionRepository.getCurrentCurrency())
-        val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull().orEmpty()
+        val assets = assetsRepository.getTokensInfo(assetIds.map { it.toIdentifier() }).firstOrNull().orEmpty()
 
         val linkedIds = assets.mapNotNull { assetInfo ->
             val asset = assetInfo.asset

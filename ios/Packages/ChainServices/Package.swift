@@ -131,7 +131,7 @@ let package = Package(
                 "Preferences",
             ],
             path: "ExplorerService",
-            exclude: ["Tests", "TestKit"],
+            exclude: ["TestKit"],
         ),
         .target(
             name: "ChainService",

@@ -13,7 +13,8 @@ public struct TransferMetadataProviderMock: TransferMetadataProvidable {
 
     public func metadata(
         walletId _: WalletId,
-        asset _: Asset,
+        assetId _: AssetId,
+        feeAssetId _: AssetId,
         extraIds _: [AssetId],
     ) throws -> TransferDataMetadata {
         try metadataResult.get()

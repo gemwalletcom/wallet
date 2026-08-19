@@ -178,7 +178,7 @@ mod tests {
 
     use num_bigint::BigInt;
     use primitives::{
-        Asset, Chain, Delegation, DelegationValidator, GasPriceType, RedelegateData, StakeType, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput,
+        Asset, AssetId, Chain, Delegation, DelegationValidator, GasPriceType, RedelegateData, StakeType, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput,
         TransactionLoadMetadata, swap::SwapData,
     };
     use serde_json::Value;
@@ -216,7 +216,13 @@ mod tests {
                     chain_id: "thorchain-mainnet-v1".to_string(),
                 },
             },
-            TransactionFee::new_gas_price_type(GasPriceType::regular(fee_amount.clone()), fee_amount, BigInt::from(2_500_000u64), HashMap::new()),
+            TransactionFee::new_gas_price_type(
+                GasPriceType::regular(fee_amount.clone()),
+                fee_amount,
+                BigInt::from(2_500_000u64),
+                HashMap::new(),
+                AssetId::from_chain(Chain::Cosmos),
+            ),
         );
 
         let signed = CosmosChainSigner.sign_transfer(&input, &private_key).unwrap();
@@ -246,7 +252,13 @@ mod tests {
                     chain_id: "injective-1".to_string(),
                 },
             },
-            TransactionFee::new_gas_price_type(GasPriceType::regular(fee_amount.clone()), fee_amount, BigInt::from(110_000u64), HashMap::new()),
+            TransactionFee::new_gas_price_type(
+                GasPriceType::regular(fee_amount.clone()),
+                fee_amount,
+                BigInt::from(110_000u64),
+                HashMap::new(),
+                AssetId::from_chain(Chain::Cosmos),
+            ),
         );
 
         let signed = CosmosChainSigner.sign_transfer(&input, &private_key).unwrap();

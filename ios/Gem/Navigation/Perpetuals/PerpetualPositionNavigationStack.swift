@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -31,7 +32,7 @@ struct PerpetualPositionNavigationStack: View {
                 model: viewModelFactory.amountScene(
                     input: AmountInput(
                         type: .perpetual(perpetualRecipientData),
-                        asset: .hypercoreUSDC(),
+                        asset: Chain.hyperCore.defaultAsset(type: .perpetual),
                     ),
                     wallet: wallet,
                     onTransferAction: {

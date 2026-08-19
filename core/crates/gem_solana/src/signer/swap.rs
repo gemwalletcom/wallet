@@ -62,7 +62,7 @@ mod tests {
     use crate::signer::{SolanaChainSigner, testkit::SINGLE_SIG_TX};
     use primitives::swap::SwapData;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{Asset, ChainSigner, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput};
+    use primitives::{Asset, AssetId, Chain, ChainSigner, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput};
 
     #[test]
     fn test_sign_swap_without_quote_gas_limit_uses_embedded_limit() {
@@ -71,7 +71,13 @@ mod tests {
         let swap_data = SwapData::mock_with_provider_data(SwapProvider::Jupiter, SINGLE_SIG_TX, None);
         let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), swap_data);
         let input = TransactionLoadInput::mock_with_input_type(input_type);
-        let fee = TransactionFee::new_gas_price_type(GasPriceType::solana(5_000u64, 0u64, 0u64), 5_000u64.into(), 1u64.into(), Default::default());
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::solana(5_000u64, 0u64, 0u64),
+            5_000u64.into(),
+            1u64.into(),
+            Default::default(),
+            AssetId::from_chain(Chain::Solana),
+        );
         let input = SignerInput::new(input, fee);
 
         let result = signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap();
@@ -88,7 +94,13 @@ mod tests {
         let swap_data = SwapData::mock_with_provider_data(SwapProvider::Jupiter, SINGLE_SIG_TX, Some(&gas_limit));
         let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), swap_data);
         let input = TransactionLoadInput::mock_with_input_type(input_type);
-        let fee = TransactionFee::new_gas_price_type(GasPriceType::solana(5_000u64, 0u64, 0u64), 5_000u64.into(), 1u64.into(), Default::default());
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::solana(5_000u64, 0u64, 0u64),
+            5_000u64.into(),
+            1u64.into(),
+            Default::default(),
+            AssetId::from_chain(Chain::Solana),
+        );
         let input = SignerInput::new(input, fee);
 
         let result = signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap();

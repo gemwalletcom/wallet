@@ -86,6 +86,15 @@ pub static HYPERCORE_SPOT_HYPE: LazyLock<Asset> =
     LazyLock::new(|| Asset::new(HYPERCORE_SPOT_HYPE_ASSET_ID.clone(), "Hyperliquid".to_string(), "HYPE".to_string(), 8, AssetType::TOKEN));
 pub static HYPERCORE_SPOT_USDC: LazyLock<Asset> =
     LazyLock::new(|| Asset::new(HYPERCORE_SPOT_USDC_ASSET_ID.clone(), USDC_NAME.to_string(), USDC_SYMBOL.to_string(), 8, AssetType::TOKEN));
+pub static HYPERCORE_PERPETUAL_USDC: LazyLock<Asset> = LazyLock::new(|| {
+    Asset::new(
+        HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+        USDC_NAME.to_string(),
+        USDC_SYMBOL.to_string(),
+        6,
+        AssetType::PERPETUAL,
+    )
+});
 pub static HYPERCORE_SPOT_UBTC: LazyLock<Asset> =
     LazyLock::new(|| Asset::new(HYPERCORE_SPOT_UBTC_ASSET_ID.clone(), "Bitcoin".to_string(), "UBTC".to_string(), 10, AssetType::TOKEN));
 
@@ -111,3 +120,7 @@ pub static SUI_WAL: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Sui, S
 pub static THORCHAIN_TCY: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Thorchain, THORCHAIN_TCY_TOKEN_ID, "TCY", "TCY", 8, AssetType::TOKEN));
 
 pub static TRON_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tron, TRON_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::TRC20));
+
+pub static TEMPO_BRIDGED_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID, "Bridged USDC", "USDC.e", 6, AssetType::TIP20));
+pub static TEMPO_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::TIP20));
+pub static TEMPO_PATHUSD: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID, "pathUSD", "pathUSD", 6, AssetType::TIP20));

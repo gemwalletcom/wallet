@@ -524,6 +524,16 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func swapFromAssetUsesLoadedFeeAsset() {
+        let asset = Asset.mockTempoPathUSD()
+        let feeAsset = Asset.mockTempoUSDC()
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
+        model.state = .mock(transaction: .data(.mock(feeAsset: feeAsset)), feeAsset: feeAsset)
+
+        #expect(model.swapFromAsset(to: asset) == feeAsset)
+    }
+
+    @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
         model.onSelectListError(error: .amount(.insufficientBalance(
@@ -633,9 +643,9 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func tronInsufficientNetworkFeeUsesNativeAsset() {
+    func tronInsufficientNetworkFeeUsesFeeAsset() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTronUSDT(), requirement: nil)))
+        model.onSelectListError(error: .amount(.insufficientNetworkFee(.mockTron(), requirement: nil)))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .insufficientNetworkFee(asset, _, _, _, _, action) = sheet
@@ -667,7 +677,10 @@ private extension ConfirmService {
     static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmService {
         ConfirmService(
             metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
-            inputProvider: ConfirmTransferInputProvider(transferTransactionProvider: TransferTransactionProviderMock(result: transaction)),
+            inputProvider: ConfirmTransferInputProvider(
+                transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
+                feeAssetProvider: FeeAssetProviderMock(),
+            ),
             simulationService: ConfirmSimulationService(addressNameService: .mock(addressStore: .mock()), assetsService: .mock()),
             transferExecutor: TransferExecutorMock(),
             activityService: .mock(),

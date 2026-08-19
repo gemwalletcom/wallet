@@ -5,4 +5,5 @@ mod quoter;
 pub mod provider;
 pub use provider::UniswapV4;
 
-const DEFAULT_SWAP_GAS_LIMIT: u64 = 300_000; // gwei
+const DEFAULT_SWAP_GAS_LIMIT: u64 = 300_000;
+const TEMPO_SWAP_GAS_LIMIT: u64 = 900_000;

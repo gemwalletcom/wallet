@@ -7,7 +7,7 @@ use crate::models::ChainParameter;
 use crate::models::TronAccountUsage;
 use crate::models::account::{TronAccount, TronFrozen};
 use crate::rpc::constants::{DEFAULT_BANDWIDTH_BYTES, GET_CREATE_ACCOUNT_FEE, GET_CREATE_NEW_ACCOUNT_FEE_IN_SYSTEM_CONTRACT, GET_ENERGY_FEE, GET_MEMO_FEE, GET_TRANSACTION_FEE};
-use primitives::{StakeType, TransactionFee, TronStakeData, TronUnfreeze, TronVote};
+use primitives::{AssetId, Chain, StakeType, TransactionFee, TronStakeData, TronUnfreeze, TronVote};
 
 pub(crate) const FEE_LIMIT_BUFFER_PERCENT: u64 = 20;
 pub(crate) const SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT: u64 = 30;
@@ -19,12 +19,10 @@ pub(crate) struct FeeEstimateContext<'a> {
 }
 
 pub(crate) fn native_transfer_fee(context: &FeeEstimateContext<'_>, has_memo: bool) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-    Ok(TransactionFee::new_from_fee(calculate_transfer_fee_rate(
-        context.chain_parameters,
-        context.account_usage,
-        context.is_new_account,
-        has_memo,
-    )?))
+    Ok(TransactionFee::new_from_fee(
+        calculate_transfer_fee_rate(context.chain_parameters, context.account_usage, context.is_new_account, has_memo)?,
+        AssetId::from_chain(Chain::Tron),
+    ))
 }
 
 pub fn calculate_transfer_fee_rate(

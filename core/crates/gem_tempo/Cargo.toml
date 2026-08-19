@@ -1,0 +1,38 @@
+[package]
+name = "gem_tempo"
+edition = { workspace = true }
+version = { workspace = true }
+
+[features]
+default = []
+rpc = ["gem_evm/rpc", "dep:async-trait", "dep:chain_traits", "dep:gem_client"]
+reqwest = ["rpc", "gem_evm/reqwest"]
+signer = ["gem_evm/signer", "dep:alloy-rlp", "alloy-primitives/rlp", "dep:hex", "dep:signer"]
+chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_evm = { path = "../gem_evm" }
+signer = { path = "../signer", optional = true }
+
+gem_client = { path = "../gem_client", optional = true }
+chain_traits = { path = "../chain_traits", optional = true }
+async-trait = { workspace = true, optional = true }
+alloy-primitives = { workspace = true }
+alloy-sol-types = { workspace = true }
+alloy-rlp = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
+num-bigint = { workspace = true }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }
+gem_evm = { path = "../gem_evm", features = ["testkit"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
+gem_client = { path = "../gem_client", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[dependencies.settings]
+path = "../settings"
+optional = true

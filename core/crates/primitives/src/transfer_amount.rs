@@ -1,4 +1,4 @@
-use crate::{Asset, AssetId, AssetType, Chain, EarnType, StakeType, TransactionInputType};
+use crate::{AssetId, AssetType, Chain, EarnType, StakeType, TransactionInputType};
 use num_bigint::BigInt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -64,7 +64,7 @@ pub struct TransferAmountInput {
     pub input_type: TransactionInputType,
     pub value: BigInt,
     pub available_value: BigInt,
-    pub fee_asset: Asset,
+    pub fee_asset: AssetId,
     pub fee_asset_balance: BigInt,
     pub fee: BigInt,
     pub is_max_amount: bool,
@@ -92,7 +92,7 @@ impl TransferAmountInput {
     pub fn calculate(&self) -> Result<TransferAmount, TransferAmountError> {
         let asset = self.input_type.get_asset();
         let spends_balance = self.input_type.spends_balance();
-        let should_deduct_fee = spends_balance && asset.id == self.fee_asset.id;
+        let should_deduct_fee = spends_balance && asset.id == self.fee_asset;
 
         let value = match self.is_max_amount && should_deduct_fee {
             true => self.value.clone().min(&self.available_value - &self.fee),
@@ -119,7 +119,7 @@ impl TransferAmountInput {
 
         if self.fee_asset_balance < self.fee && !should_skip_fee_check {
             return Err(TransferAmountError::insufficient_network_fee(
-                &self.fee_asset.id,
+                &self.fee_asset,
                 self.fee.clone(),
                 self.fee_asset_balance.clone(),
             ));
@@ -148,13 +148,13 @@ impl TransferAmountInput {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AccountDataType, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, PerpetualType, Resource, nft::NFTAsset, swap::ApprovalData};
+    use crate::{AccountDataType, Asset, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, PerpetualType, Resource, nft::NFTAsset, swap::ApprovalData};
 
     const SOLANA_MINIMUM_ACCOUNT_BALANCE: u64 = 890_880;
     const FEE: u64 = 5_000;
 
     fn input(input_type: TransactionInputType, value: u64, available_value: u64, fee_asset_balance: u64) -> TransferAmountInput {
-        let fee_asset = Asset::from_chain(input_type.get_asset().chain);
+        let fee_asset = AssetId::from_chain(input_type.get_asset().chain);
         TransferAmountInput {
             input_type,
             value: BigInt::from(value),
@@ -267,7 +267,7 @@ mod tests {
 
         let hypercore = Asset::from_chain(Chain::HyperCore);
         let mut zero_transfer = input(TransactionInputType::Transfer(hypercore.clone()), 0, 1_000_000, 0);
-        zero_transfer.fee_asset = hypercore;
+        zero_transfer.fee_asset = hypercore.id;
         assert_eq!(
             zero_transfer.calculate().unwrap_err(),
             TransferAmountError::InsufficientNetworkFee {

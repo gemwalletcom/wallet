@@ -45,15 +45,12 @@ impl WalletConnectCAIP2 {
     pub fn get_chain(namespace: String, reference: String) -> Option<Chain> {
         let namespace = WalletConnectCAIP2::from_str(&namespace).ok()?;
         match namespace {
-            WalletConnectCAIP2::Eip155 | WalletConnectCAIP2::Cosmos => {
-                let chain_type = Self::get_chain_type(namespace.as_ref().to_string())?;
-                Chain::all()
-                    .into_iter()
-                    .filter(|chain| chain.chain_type() == chain_type && chain.network_id() == reference)
-                    .collect::<Vec<_>>()
-                    .first()
-                    .cloned()
-            }
+            WalletConnectCAIP2::Eip155 => Chain::all()
+                .into_iter()
+                .find(|chain| chain.chain_type() == ChainType::Ethereum && chain.network_id() == reference),
+            WalletConnectCAIP2::Cosmos => Chain::all()
+                .into_iter()
+                .find(|chain| chain.chain_type() == ChainType::Cosmos && chain.network_id() == reference),
             WalletConnectCAIP2::Solana => Some(Chain::Solana),
             WalletConnectCAIP2::Algorand => Some(Chain::Algorand),
             WalletConnectCAIP2::Sui => Some(Chain::Sui),

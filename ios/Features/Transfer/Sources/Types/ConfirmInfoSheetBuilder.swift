@@ -36,14 +36,13 @@ enum ConfirmInfoSheetBuilder {
     ) -> InfoSheetType {
         switch error {
         case let .insufficientBalance(asset, requirement):
-            return .balanceRequired(asset, image: image(for: asset), requirement: requirement, action: { onGetAsset(asset, nil) })
+            .balanceRequired(asset, image: image(for: asset), requirement: requirement, action: { onGetAsset(asset, nil) })
         case let .insufficientNetworkFee(asset, requirement):
-            let feeAsset = asset.chain.asset
-            return .insufficientNetworkFee(feeAsset, image: image(for: feeAsset), requirement: requirement, price: feePrice, currency: currency, action: {
-                onGetAsset(feeAsset, FiatConfig.insufficientNetworkFeeBuyAmount)
+            .insufficientNetworkFee(asset, image: image(for: asset), requirement: requirement, price: feePrice, currency: currency, action: {
+                onGetAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount)
             })
         case let .minimumAccountBalanceTooLow(asset, requirement):
-            return .accountMinimalBalance(asset, required: requirement.required)
+            .accountMinimalBalance(asset, required: requirement.required)
         }
     }
 

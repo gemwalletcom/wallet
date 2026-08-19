@@ -1,4 +1,4 @@
-use crate::models::{GemAsset, GemTransactionInputType};
+use crate::models::GemTransactionInputType;
 use num_bigint::BigInt;
 use primitives::{AssetId, TransactionInputType, TransferAmount, TransferAmountError, TransferAmountInput};
 
@@ -26,7 +26,7 @@ pub struct GemTransferAmountInput {
     pub input_type: GemTransactionInputType,
     pub value: GemBigInt,
     pub available_value: GemBigInt,
-    pub fee_asset: GemAsset,
+    pub fee_asset: AssetId,
     pub fee_asset_balance: GemBigInt,
     pub fee: GemBigInt,
     pub is_max_amount: bool,
@@ -64,7 +64,7 @@ mod tests {
             input_type: GemTransactionInputType::Transfer { asset: asset.clone() },
             value: BigInt::from(value),
             available_value: BigInt::from(available_value),
-            fee_asset: asset,
+            fee_asset: asset.id,
             fee_asset_balance: BigInt::from(fee_asset_balance),
             fee: BigInt::from(5_000),
             is_max_amount: false,

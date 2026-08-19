@@ -21,4 +21,20 @@ public extension TransferDataType {
             asset.chain.asset
         }
     }
+
+    var feeAsset: Asset {
+        let asset = asset
+        if case .perpetual = self, asset.chain == .hyperCore {
+            return Chain.hyperCore.defaultAsset(type: .perpetual)
+        }
+        return switch asset.chain {
+        case .tempo: asset
+        case .hyperCore: Chain.hyperCore.defaultAsset(type: .token)
+        default:
+            switch asset.id.type {
+            case .native: asset
+            case .token: asset.chain.asset
+            }
+        }
+    }
 }

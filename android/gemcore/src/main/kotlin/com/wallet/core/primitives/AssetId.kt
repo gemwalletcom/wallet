@@ -8,6 +8,13 @@ data class AssetId (
 	val chain: Chain,
 	val tokenId: String? = null
 ) {
+	constructor(identifier: String) : this(
+		chain = Chain.entries.firstOrNull { it.string == identifier.substringBefore("_") }
+			?: throw IllegalArgumentException("Invalid asset ID: $identifier"),
+		tokenId = identifier.substringAfter("_").takeIf { "_" in identifier }
+			?.ifEmpty { throw IllegalArgumentException("Invalid asset ID: $identifier") },
+	)
+
 	override fun equals(other: Any?): Boolean {
 		return (other as? AssetId)?.let {
             it.chain == chain && it.tokenId == tokenId
