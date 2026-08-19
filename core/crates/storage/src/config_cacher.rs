@@ -108,6 +108,10 @@ impl ConfigCacher {
     }
 
     pub fn get_vec<T: DeserializeOwned>(&self, key: ConfigKey) -> Result<Vec<T>, DatabaseError> {
+        self.get_json(key)
+    }
+
+    pub fn get_json<T: DeserializeOwned>(&self, key: ConfigKey) -> Result<T, DatabaseError> {
         Ok(serde_json::from_str(&self.get(key)?)?)
     }
 

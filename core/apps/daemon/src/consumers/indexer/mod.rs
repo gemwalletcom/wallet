@@ -25,6 +25,7 @@ use streamer::{
     StreamConnection, StreamReader, run_consumer,
 };
 
+use crate::asset_spam::AssetClassificationRules;
 use crate::consumers::runner::ChainConsumerRunner;
 use crate::consumers::{chain_providers, chain_providers_for, consumer_config, reader_config};
 use crate::model::{IndexerConsumer, IndexerService};
@@ -129,10 +130,12 @@ async fn run_fetch_assets(
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
     let cacher = CacherClient::new(&settings.redis.url).await?;
+    let classification_rules = AssetClassificationRules::from_config(&ConfigCacher::new(database.clone()))?;
     let consumer = FetchAssetsConsumer {
         providers: chain_providers(&settings, &name),
         database,
         cacher,
+        classification_rules,
     };
     run_consumer::<FetchAssetsPayload, FetchAssetsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }

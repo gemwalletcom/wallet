@@ -23,6 +23,7 @@ use storage::ConfigCacher;
 use usage_rank_updater::UsageRankUpdater;
 use validator_scanner::ValidatorScanner;
 
+use crate::asset_spam::AssetClassificationRules;
 use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
@@ -31,11 +32,13 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let database = ctx.database();
     let settings = ctx.settings();
     let config = ConfigCacher::new(database.clone());
+    let classification_rules = AssetClassificationRules::from_config(&config)?;
     ctx.plan_builder(WorkerService::Assets, &config, shutdown_rx)
         .job(WorkerJob::UpdateSuspiciousAssetRanks, {
             let database = database.clone();
+            let classification_rules = classification_rules.clone();
             move |_| {
-                let suspicious_updater = AssetRankUpdater::new(database.clone());
+                let suspicious_updater = AssetRankUpdater::new(database.clone(), classification_rules.clone());
                 async move { suspicious_updater.update_suspicious_assets().await }
             }
         })

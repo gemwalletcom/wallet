@@ -148,6 +148,8 @@ pub enum ConfigKey {
     PriceMissingPublishInterval,
 
     // Assets
+    AssetsSpamMarkers,
+    AssetsFraudulentAssets,
     AssetsTimerUpdateSuspicious,
     AssetsTimerUpdateStakeApy,
     AssetsTimerUpdatePerpetuals,
@@ -355,6 +357,8 @@ impl ConfigKey {
             Self::PriceOutdated => "7d",
             Self::PricePrimaryMaxAge => "24h",
             Self::PriceMissingPublishInterval => "1h",
+            Self::AssetsSpamMarkers => r#"["www."]"#,
+            Self::AssetsFraudulentAssets => r#"[{"name":"Tether","symbols":["USDT"]},{"name":"Tether USD","symbols":["USDT","$USD₮"]},{"name":"USD Coin","symbols":["USDC"]}]"#,
             Self::AssetsTimerUpdateSuspicious => "1h",
             Self::AssetsTimerUpdateStakeApy => "1d",
             Self::AssetsTimerUpdatePerpetuals => "1h",
