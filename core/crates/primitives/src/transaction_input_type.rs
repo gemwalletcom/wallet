@@ -361,7 +361,7 @@ mod tests {
         let tempo_token = crate::known_assets::TEMPO_USDC.clone();
         assert_eq!(TransactionInputType::Transfer(tempo_token.clone()).get_fee_asset_id(), tempo_token.id);
         assert_eq!(
-            TransactionInputType::Generic(Asset::from_chain(Chain::Tempo), WalletConnectionSessionAppMetadata::mock(), TransferDataExtra::mock()).get_fee_asset_id(),
+            TransactionInputType::Generic(Asset::mock_with_chain(Chain::Tempo), WalletConnectionSessionAppMetadata::mock(), TransferDataExtra::mock()).get_fee_asset_id(),
             TEMPO_PATHUSD_ASSET_ID.clone()
         );
     }

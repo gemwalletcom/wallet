@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.stream
 
-import com.gemwallet.android.data.repositories.assets.visibleByDefault
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.wallet.core.primitives.AssetId
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.assetIdsEnabledByDefault
 
 class StreamSubscriptionServiceTest {
 
@@ -46,7 +46,7 @@ class StreamSubscriptionServiceTest {
         service.setupAssets(WalletId("wallet-1"))
 
         val subscribe = service.messages.receive() as StreamMessage.SubscribePrices
-        assertEquals(visibleByDefault, subscribe.data.assets)
+        assertEquals(assetIdsEnabledByDefault().map(::AssetId), subscribe.data.assets)
     }
 
     @Test

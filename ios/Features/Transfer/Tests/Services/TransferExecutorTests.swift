@@ -16,7 +16,7 @@ import TransactionStateServiceTestKit
 struct TransferExecutorTests {
     @Test
     func hyperCorePerpetualStoresPrimaryOrder() async throws {
-        let db = DB.mockAssets(assets: [.mock(asset: .hypercoreUSDC())])
+        let db = DB.mockAssets(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
             signer: TransactionSignerMock(signedData: [
@@ -30,9 +30,9 @@ struct TransferExecutorTests {
         )
 
         let input = TransferConfirmationInput(
-            data: .mock(type: .perpetual(.hypercoreUSDC(), .open(.mock()))),
+            data: .mock(type: .perpetual(Asset.mockHypercoreUSDC(), .open(.mock()))),
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAsset: Asset.hypercoreUSDC()),
+            transactionData: .mock(feeAsset: Asset.mockHypercoreUSDC()),
             amount: .mock(),
             delegate: nil,
         )
@@ -71,7 +71,7 @@ struct TransferExecutorTests {
     @Test
     func hyperCoreSpotSwapStoresOnlyFinalOrder() async throws {
         let hype = Asset.mockHypercore()
-        let usdc = Asset.hypercoreSpotUSDC()
+        let usdc = Asset.mockHypercoreSpotUSDC()
         let db = DB.mockAssets(assets: [.mock(asset: hype), .mock(asset: usdc)])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
@@ -101,7 +101,7 @@ struct TransferExecutorTests {
         let input = TransferConfirmationInput(
             data: .mock(type: .swap(hype, usdc, swapData)),
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAsset: Asset.hypercoreSpotUSDC()),
+            transactionData: .mock(feeAsset: Asset.mockHypercoreSpotUSDC()),
             amount: .mock(),
             delegate: nil,
         )
@@ -117,7 +117,7 @@ struct TransferExecutorTests {
     func hyperCoreUnstakeStoresFinalAction() async throws {
         let db = DB.mockAssets(assets: [
             .mock(asset: .mockHypercore()),
-            .mock(asset: .hypercoreSpotUSDC()),
+            .mock(asset: Asset.mockHypercoreSpotUSDC()),
         ])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
@@ -136,7 +136,7 @@ struct TransferExecutorTests {
         let input = TransferConfirmationInput(
             data: .mock(type: .stake(.mockHypercore(), .unstake(.mock()))),
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAsset: Asset.hypercoreSpotUSDC()),
+            transactionData: .mock(feeAsset: Asset.mockHypercoreSpotUSDC()),
             amount: .mock(),
             delegate: nil,
         )
@@ -175,7 +175,7 @@ struct TransferExecutorTests {
 
     @Test
     func perpetualModifyDoesNotStoreTransaction() async throws {
-        let db = DB.mockAssets(assets: [.mock(asset: .hypercoreUSDC())])
+        let db = DB.mockAssets(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
             signer: TransactionSignerMock(signedData: ["modify_tx"]),
@@ -185,7 +185,7 @@ struct TransferExecutorTests {
         )
 
         let input = TransferConfirmationInput(
-            data: .mock(type: .perpetual(.hypercoreUSDC(), .mockModify())),
+            data: .mock(type: .perpetual(Asset.mockHypercoreUSDC(), .mockModify())),
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
             transactionData: .mock(),
             amount: .mock(),

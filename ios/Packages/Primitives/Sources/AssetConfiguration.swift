@@ -8,11 +8,9 @@ public struct AssetConfiguration: Sendable {
             .sui,
             .aptos,
             .tron,
-            .aptos,
             .algorand,
             .xrp,
             .stellar,
-            .xrp,
             .hyperCore,
         ],
         EVMChain.allCases.compactMap { Chain(rawValue: $0.rawValue) },
@@ -20,18 +18,4 @@ public struct AssetConfiguration: Sendable {
     .flatMap(\.self)
 
     public static let allChains: [Chain] = Chain.allCases
-
-    public static let enabledByDefault: [AssetId] = [
-        AssetId(chain: .bitcoin),
-        AssetId(chain: .ethereum),
-        AssetId(chain: .solana),
-        AssetId(chain: .smartChain),
-        AssetId(chain: .tron),
-        Asset.tronUSDT().id,
-        Asset.tempoUSDC().id,
-    ]
-
-    public static let hiddenByDefault: Set<AssetId> = [
-        Asset.tempoPathUSD().id,
-    ]
 }

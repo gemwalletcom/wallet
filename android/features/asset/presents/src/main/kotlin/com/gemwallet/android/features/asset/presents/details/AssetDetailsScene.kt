@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.domains.asset.defaultAssetRank
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.ui.components.list_item.energyItem
@@ -64,7 +65,14 @@ internal fun AssetDetailsScene(
     )
     val addToastMessage = stringResource(R.string.asset_added_to_wallet)
     val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
-        { onAction(AssetDetailsAction.Swap(uiState.asset.id, if (uiState.asset.type == AssetType.NATIVE) null else uiState.asset.id.chain.asset().id)) }
+        {
+            val toAssetId = if (uiState.asset.type != AssetType.NATIVE && uiState.asset.id.chain.defaultAssetRank >= 0) {
+                uiState.asset.id.chain.asset().id
+            } else {
+                null
+            }
+            onAction(AssetDetailsAction.Swap(uiState.asset.id, toAssetId))
+        }
     } else {
         null
     }

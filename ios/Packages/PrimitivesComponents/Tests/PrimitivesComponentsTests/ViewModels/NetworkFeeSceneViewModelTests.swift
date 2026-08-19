@@ -283,7 +283,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func valueUsesFeeAssetForHyperCorePerpetualFee() {
         let feeAmount = BigInt(12_345_678)
-        let feeAsset = Asset.hypercoreUSDC()
+        let feeAsset = Asset.mockHypercoreUSDC()
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: feeAsset,
             feeAmount: feeAmount,

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
 
 public struct SwapPairSelectorViewModel: Equatable {
@@ -32,7 +33,7 @@ public extension SwapPairSelectorViewModel {
         }
         return SwapPairSelectorViewModel(
             fromAssetId: asset.id,
-            toAssetId: asset.chain.assetId,
+            toAssetId: AssetScore.defaultRank(chain: asset.chain) >= 0 ? asset.chain.assetId : nil,
         )
     }
 }

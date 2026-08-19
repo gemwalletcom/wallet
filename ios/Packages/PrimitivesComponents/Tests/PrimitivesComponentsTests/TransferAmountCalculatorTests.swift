@@ -11,7 +11,7 @@ struct TransferAmountCalculatorTests {
     let service = TransferAmountCalculator()
     let asset = Asset.mockSolana()
     let token = Asset.mockSolanaUSDC()
-    let tempoToken = Asset.tempoUSDC()
+    let tempoToken = Asset.mockTempoUSDC()
     let fee = BigInt(5000)
 
     @Test

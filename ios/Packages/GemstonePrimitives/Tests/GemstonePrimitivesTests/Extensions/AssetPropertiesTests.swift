@@ -2,6 +2,7 @@
 
 @testable import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 import Testing
 
 struct AssetPropertiesTests {
@@ -21,6 +22,6 @@ struct AssetPropertiesTests {
         #expect(tempo.isEnabled == false)
         #expect(tempo.isSwapable == false)
         #expect(tempo.isStakeable == false)
-        #expect(AssetProperties.defaultValue(assetId: Asset.tempoPathUSD().id).isSwapable == true)
+        #expect(AssetProperties.defaultValue(assetId: Asset.mockTempoPathUSD().id).isSwapable == true)
     }
 }

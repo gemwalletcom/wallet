@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
-import com.gemwallet.android.data.repositories.assets.visibleByDefault
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.ext.toAssetId
@@ -14,6 +13,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import uniffi.gemstone.assetIdsEnabledByDefault
 
 class StreamSubscriptionService(
     private val assetsDao: AssetsDao,
@@ -58,7 +58,7 @@ class StreamSubscriptionService(
         val ids = assetsDao.getAssetsPriceUpdate(walletId).mapNotNull { it.toAssetId() }
         val priceAlerts = priceAlertRepository.getPriceAlertAssetIds().firstOrNull() ?: emptyList()
         return (ids + priceAlerts).takeIf { it.isNotEmpty() }
-            ?: visibleByDefault
+            ?: assetIdsEnabledByDefault().map(::AssetId)
     }
 
     companion object {

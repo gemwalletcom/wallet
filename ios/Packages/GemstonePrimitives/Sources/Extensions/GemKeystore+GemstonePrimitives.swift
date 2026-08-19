@@ -15,7 +15,18 @@ public extension GemKeystoreAccount {
 }
 
 public extension GemWalletType {
-    var walletType: WalletType {
+    func map() -> WalletType {
+        switch self {
+        case .multicoin: .multicoin
+        case .single: .single
+        case .privateKey: .privateKey
+        case .view: .view
+        }
+    }
+}
+
+public extension WalletType {
+    func map() -> GemWalletType {
         switch self {
         case .multicoin: .multicoin
         case .single: .single
@@ -29,7 +40,7 @@ public extension GemWalletImport {
     func mapToPreview() throws -> WalletImport {
         try WalletImport(
             walletId: WalletId.from(id: walletId),
-            walletType: walletType.walletType,
+            walletType: walletType.map(),
             accounts: accounts.map { try $0.mapToAccount() },
         )
     }
@@ -43,7 +54,7 @@ public extension GemStoredWallet {
             externalId: nil,
             name: name,
             index: 0,
-            type: walletType.walletType,
+            type: walletType.map(),
             accounts: accounts.map { try $0.mapToAccount() },
             isPinned: false,
             imageUrl: nil,

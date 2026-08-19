@@ -57,6 +57,10 @@ impl<C: Client + Clone> ChainBalances for TempoProvider<C> {
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         self.provider.get_balance_assets(address).await
     }
+
+    async fn get_balance_staking(&self, address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
+        self.provider.get_balance_staking(address).await
+    }
 }
 
 #[async_trait]
@@ -162,38 +166,45 @@ impl<C: Client + Clone> ChainAddressStatus for TempoProvider<C> {}
 #[async_trait]
 impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
     async fn get_transaction_fee_estimates(&self) -> Result<TransactionFeeEstimates, Box<dyn Error + Sync + Send>> {
-        let mut estimates = self.provider.get_transaction_fee_estimates().await?;
-        for estimate in &mut estimates.transfer {
-            estimate.fee = estimate.gas_price_type.total_fee() * TOKEN_TRANSFER_GAS_LIMIT;
-        }
-
-        let scale = |estimates: &mut Vec<TransactionFeeEstimate>| {
-            estimates.retain(|estimate| estimate.priority == FeePriority::Normal);
-            for estimate in estimates {
-                estimate.fee = scale_fee_to_token_units(estimate.fee.clone());
-            }
+        let estimates = self.provider.get_transaction_fee_estimates().await?;
+        let scale = |estimates: Vec<TransactionFeeEstimate>, gas_limit: Option<u64>| {
+            estimates
+                .into_iter()
+                .filter(|estimate| estimate.priority == FeePriority::Normal)
+                .map(|estimate| TransactionFeeEstimate {
+                    fee: scale_fee_to_token_units(gas_limit.map_or_else(|| estimate.fee.clone(), |gas_limit| estimate.gas_price_type.total_fee() * gas_limit)),
+                    ..estimate
+                })
+                .collect()
         };
-        scale(&mut estimates.transfer);
-        if let Some(estimates) = &mut estimates.token_transfer {
-            scale(estimates);
-        }
-        if let Some(estimates) = &mut estimates.swap {
-            scale(estimates);
-        }
-        estimates.fee_asset = TEMPO_PATHUSD_ASSET_ID.clone();
-        Ok(estimates)
+        Ok(TransactionFeeEstimates {
+            fee_asset: TEMPO_PATHUSD_ASSET_ID.clone(),
+            transfer: scale(estimates.transfer, Some(TOKEN_TRANSFER_GAS_LIMIT)),
+            token_transfer: estimates.token_transfer.map(|estimates| scale(estimates, None)),
+            swap: estimates.swap.map(|estimates| scale(estimates, None)),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::TEMPO_TEST_ADDRESS;
     use gem_evm::encode::encode_erc20_transfer;
     use gem_evm::provider::preload_mapper::get_transaction_params;
     use gem_evm::rpc::model::TransactionReceipt;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use num_bigint::{BigInt, BigUint};
     use primitives::{EVMChain, TransactionChange, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_PATHUSD, testkit::signer_mock::TEST_EVM_RECIPIENT};
+
+    #[tokio::test]
+    async fn returns_no_staking_balance() {
+        let client = EthereumClient::new(mock_jsonrpc_client(|_, _| unreachable!()), EVMChain::Tempo);
+
+        let balance = TempoProvider::new(client).get_balance_staking(TEMPO_TEST_ADDRESS.to_string()).await.unwrap();
+
+        assert_eq!(balance, None);
+    }
 
     #[test]
     fn maps_pathusd_transfer_as_tip20() {

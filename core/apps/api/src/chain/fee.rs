@@ -116,15 +116,16 @@ fn map_estimates_by_priority(
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Asset, Chain, FeePriority, GasPriceType};
+    use primitives::{Asset, FeePriority, GasPriceType};
     use settings_chain::{TransactionFeeEstimate, TransactionFeeEstimates};
 
     use super::map_fee_estimates;
 
     #[test]
     fn test_map_fee_estimates() {
+        let ethereum = Asset::mock();
         let estimates = TransactionFeeEstimates {
-            fee_asset: Asset::from_chain(Chain::Ethereum).id,
+            fee_asset: ethereum.id.clone(),
             transfer: vec![TransactionFeeEstimate {
                 priority: FeePriority::Normal,
                 gas_price_type: GasPriceType::eip1559(51_000_000u64, 1_000_000u64),
@@ -134,16 +135,16 @@ mod tests {
             swap: None,
         };
 
-        let response = map_fee_estimates(Asset::from_chain(Chain::Ethereum), estimates, 3_520.42).unwrap();
+        let response = map_fee_estimates(ethereum.clone(), estimates, 3_520.42).unwrap();
 
-        assert_eq!(response.asset, Asset::from_chain(Chain::Ethereum));
+        assert_eq!(response.asset, ethereum);
         assert_eq!(response.transfer[&FeePriority::Normal].base, "0.051");
         assert_eq!(response.transfer[&FeePriority::Normal].priority_fee, "0.001");
         assert_eq!(response.transfer[&FeePriority::Normal].value, "0.000001092");
         assert_eq!(response.transfer[&FeePriority::Normal].fiat_value, "0.00384429864");
 
         let estimates = TransactionFeeEstimates {
-            fee_asset: Asset::from_chain(Chain::Solana).id,
+            fee_asset: Asset::mock_sol().id,
             transfer: vec![TransactionFeeEstimate {
                 priority: FeePriority::Normal,
                 gas_price_type: GasPriceType::solana(5_000u64, 10_000u64, 100_000u64),
@@ -152,7 +153,7 @@ mod tests {
             token_transfer: None,
             swap: None,
         };
-        let response = map_fee_estimates(Asset::from_chain(Chain::Solana), estimates, 150.0).unwrap();
+        let response = map_fee_estimates(Asset::mock_sol(), estimates, 150.0).unwrap();
 
         assert_eq!(response.transfer[&FeePriority::Normal].base, "0.000005");
         assert_eq!(response.transfer[&FeePriority::Normal].priority_fee, "0.00001");

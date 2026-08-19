@@ -525,8 +525,8 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func swapFromAssetUsesLoadedFeeAsset() {
-        let asset = Asset.tempoPathUSD()
-        let feeAsset = Asset.tempoUSDC()
+        let asset = Asset.mockTempoPathUSD()
+        let feeAsset = Asset.mockTempoUSDC()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
         model.state = .mock(transaction: .data(.mock(feeAsset: feeAsset)), feeAsset: feeAsset)
 

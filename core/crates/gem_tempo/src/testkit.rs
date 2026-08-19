@@ -15,7 +15,7 @@ pub(crate) const TEMPO_TEST_ROUTER_ADDRESS: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9
 pub(crate) const TEMPO_TEST_USER_FEE_TOKEN: &str = "0x20C00000000000000000000014f22CA97301EB73";
 pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionInputType {
     TransactionInputType::Generic(
-        Asset::from_chain(Chain::Tempo),
+        Asset::mock_with_chain(Chain::Tempo),
         WalletConnectionSessionAppMetadata::mock(),
         TransferDataExtra {
             to: to.to_string(),

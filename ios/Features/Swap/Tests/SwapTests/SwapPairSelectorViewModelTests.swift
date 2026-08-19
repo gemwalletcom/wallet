@@ -23,4 +23,13 @@ struct SwapPairSelectorViewModelTests {
         #expect(result.fromAssetId == token.id)
         #expect(result.toAssetId == token.chain.assetId)
     }
+
+    @Test
+    func defaultPairDoesNotSelectHiddenNativeAsset() {
+        let token = Asset.mockTempoUSDC()
+        let result = SwapPairSelectorViewModel.defaultSwapPair(for: token)
+
+        #expect(result.fromAssetId == token.id)
+        #expect(result.toAssetId == nil)
+    }
 }

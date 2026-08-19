@@ -84,6 +84,7 @@ let package = Package(
             name: "PerpetualService",
             dependencies: [
                 "Primitives",
+                "GemstonePrimitives",
                 "Store",
                 "Blockchain",
                 "Formatters",
@@ -184,6 +185,7 @@ let package = Package(
                 "Primitives",
                 "Store",
                 "GemAPI",
+                "Gemstone",
             ],
             path: "PriceService",
             exclude: ["TestKit"],
@@ -799,6 +801,7 @@ let package = Package(
                 "StreamService",
                 "StreamServiceTestKit",
                 "PriceServiceTestKit",
+                "Gemstone",
                 "WalletSessionService",
                 "WalletSessionServiceTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
@@ -833,6 +836,7 @@ let package = Package(
             dependencies: [
                 "WalletService",
                 "WalletServiceTestKit",
+                "GemstonePrimitives",
                 "WalletSessionService",
                 "WalletSessionServiceTestKit",
                 "BalanceServiceTestKit",

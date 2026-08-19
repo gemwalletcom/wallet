@@ -26,7 +26,7 @@ struct ConfirmTransferInputProviderTests {
 
     @Test
     func loadUsesFeeAssetFromTransactionFee() async throws {
-        let feeAsset = Asset.hypercoreUSDC()
+        let feeAsset = Asset.mockHypercoreUSDC()
         let feeAssetBalance = Balance.mock(available: 42)
         let feeAssetPrice = Price.mock(price: 1)
         let provider = ConfirmTransferInputProvider(
@@ -77,7 +77,7 @@ struct ConfirmTransferInputProviderTests {
     func loadRethrowsPreloadFailureForTempoFeeAsset() async {
         let provider = ConfirmTransferInputProvider.mock(transaction: .failure(AnyError("network")))
         let metadata = TransferDataMetadata.mock(
-            feeAssetId: Asset.tempoPathUSD().id,
+            feeAssetId: Asset.mockTempoPathUSD().id,
             assetFeeBalance: .mock(available: .zero),
         )
 

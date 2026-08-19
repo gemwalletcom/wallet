@@ -253,7 +253,7 @@ public extension PerpetualSceneViewModel {
             perpetual: perpetual,
             position: position,
             asset: asset,
-            baseAsset: .hypercoreUSDC(),
+            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
         )
 
         let transferData = TransferData(
@@ -355,7 +355,7 @@ private extension PerpetualSceneViewModel {
             provider: perpetual.provider,
             direction: direction,
             asset: asset,
-            baseAsset: .hypercoreUSDC(),
+            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
             assetIndex: assetIndex,
             price: perpetual.price,
             leverage: leverage,

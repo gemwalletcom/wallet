@@ -43,7 +43,7 @@ mod tests {
             None
         );
         assert_eq!(decode_set_user_fee_token(&mock_tempo_generic_input(FEE_MANAGER_ADDRESS, vec![0xab, 0xcd])), None);
-        assert_eq!(decode_set_user_fee_token(&TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo))), None);
+        assert_eq!(decode_set_user_fee_token(&TransactionInputType::Transfer(Asset::mock_with_chain(Chain::Tempo))), None);
     }
 
     #[test]

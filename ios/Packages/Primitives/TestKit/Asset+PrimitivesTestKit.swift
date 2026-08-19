@@ -129,4 +129,44 @@ public extension Asset {
             type: .native,
         )
     }
+
+    static func mockHypercoreUSDC() -> Asset {
+        .mock(
+            id: AssetId(chain: .hyperCore, tokenId: "perpetual::USDC"),
+            name: "USDC",
+            symbol: "USDC",
+            decimals: 6,
+            type: .perpetual,
+        )
+    }
+
+    static func mockHypercoreSpotUSDC() -> Asset {
+        .mock(
+            id: AssetId(chain: .hyperCore, tokenId: "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
+            name: "USDC",
+            symbol: "USDC",
+            decimals: 8,
+            type: .token,
+        )
+    }
+
+    static func mockTempoUSDC() -> Asset {
+        .mock(
+            id: AssetId(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"),
+            name: "Bridged USDC",
+            symbol: "USDC.e",
+            decimals: 6,
+            type: .tip20,
+        )
+    }
+
+    static func mockTempoPathUSD() -> Asset {
+        .mock(
+            id: AssetId(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"),
+            name: "pathUSD",
+            symbol: "pathUSD",
+            decimals: 6,
+            type: .tip20,
+        )
+    }
 }

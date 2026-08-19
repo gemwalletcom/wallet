@@ -5,7 +5,7 @@ use std::str::FromStr;
 use alloy_primitives::{Address, Bytes, U256};
 use gem_evm::encode::encode_erc20_approve_max_value;
 use gem_evm::signer::{EvmSigner, TransactionParams};
-use primitives::{SignerError, SignerInput, decode_hex};
+use primitives::{Chain, SignerError, SignerInput, decode_hex};
 
 use transaction::{TempoTransaction, TransactionCall};
 
@@ -56,7 +56,7 @@ impl EvmSigner for TempoSigner {
 
 fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {
     let fee_asset = &input.fee.fee_asset;
-    if fee_asset.chain != primitives::Chain::Tempo || input.input_type.get_asset().chain != primitives::Chain::Tempo {
+    if fee_asset.chain != Chain::Tempo || input.input_type.get_asset().chain != Chain::Tempo {
         return Err(SignerError::invalid_input("mismatched Tempo fee asset"));
     }
     Address::from_str(fee_asset.get_token_id()?).map_err(SignerError::from_display)
@@ -70,7 +70,7 @@ mod tests {
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         Asset, AssetId, AssetType, Chain, ChainSigner, TransactionInputType, TransactionLoadMetadata,
-        asset_constants::TEMPO_USDC_TOKEN_ID,
+        asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
         known_assets::{TEMPO_PATHUSD, TEMPO_USDC},
     };
 
@@ -79,7 +79,7 @@ mod tests {
         let signer = EvmChainSigner::new(TempoSigner);
         let metadata = TransactionLoadMetadata::mock_evm(0, Chain::Tempo.network_id().parse().unwrap());
         let input = SignerInput::mock_evm_with_metadata(
-            TransactionInputType::Transfer(Asset::from_chain(Chain::Tempo)),
+            TransactionInputType::Transfer(Asset::mock_with_chain(Chain::Tempo)),
             "1000000",
             TOKEN_TRANSFER_GAS_LIMIT,
             metadata,
@@ -106,10 +106,7 @@ mod tests {
         assert_eq!(get_fee_token(&user_token_input).unwrap(), user_token.parse::<Address>().unwrap());
 
         let pathusd_input = mock_tempo_swap_input(usdc.clone(), TEMPO_PATHUSD.id.clone(), None);
-        assert_eq!(
-            get_fee_token(&pathusd_input).unwrap(),
-            TEMPO_PATHUSD.token_id.as_deref().unwrap().parse::<Address>().unwrap()
-        );
+        assert_eq!(get_fee_token(&pathusd_input).unwrap(), TEMPO_PATHUSD_TOKEN_ID.parse::<Address>().unwrap());
 
         let native_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_chain(Chain::Tempo), None);
         assert!(get_fee_token(&native_input).is_err());
