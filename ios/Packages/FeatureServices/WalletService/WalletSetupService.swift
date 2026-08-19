@@ -14,7 +14,7 @@ public struct WalletSetupService: Sendable {
     public func setup(wallet: Wallet) throws {
         let chains = wallet.chains
         let defaultAssets = chains.flatMap(\.defaultAssets).assetIds
-        let assetIds = (chains.ids + defaultAssets).filter { !AssetConfiguration.networkOnlyAssetIds.contains($0) }
+        let assetIds = (chains.ids + defaultAssets).filter { !AssetConfiguration.networkAnchorAssetIds.contains($0) }
 
         let (enabledByDefault, disabledByDefault) = assetIds.reduce(into: ([AssetId](), [AssetId]())) { result, assetId in
             if AssetConfiguration.hiddenByDefault.contains(assetId) {

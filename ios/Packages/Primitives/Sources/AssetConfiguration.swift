@@ -21,7 +21,7 @@ public struct AssetConfiguration: Sendable {
 
     public static let allChains: [Chain] = Chain.allCases
 
-    public static let networkOnlyAssetIds: Set<AssetId> = [
+    public static let networkAnchorAssetIds: Set<AssetId> = [
         AssetId(chain: .tempo),
     ]
 

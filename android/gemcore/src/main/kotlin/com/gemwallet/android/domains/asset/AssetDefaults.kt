@@ -16,7 +16,7 @@ import uniffi.gemstone.defaultTokenRank
 val Chain.defaultAssetRank: Int
     get() = assetDefaultRank(string)
 
-val networkOnlyAssetIds = setOf(AssetId(Chain.Tempo))
+val networkAnchorAssetIds = setOf(AssetId(Chain.Tempo))
 
 val Asset.defaultBasic: AssetBasic
     get() = AssetBasic(
@@ -32,7 +32,7 @@ private val AssetId.defaultProperties: AssetProperties
             isEnabled = true,
             isBuyable = false,
             isSellable = false,
-            isSwapable = this !in networkOnlyAssetIds && chain.isSwapSupport(),
+            isSwapable = this !in networkAnchorAssetIds && chain.isSwapSupport(),
             isStakeable = isNative && chain.isStakeSupported(),
             isEarnable = false,
             hasImage = false,
