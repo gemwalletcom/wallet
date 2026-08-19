@@ -7,6 +7,20 @@ import StoreTestKit
 import Testing
 
 struct AssetsRequestTests {
+    @Test func excludesNegativeRank() throws {
+        let visible = AssetBasic.mock(asset: .mock(id: AssetId(chain: .ethereum)), score: .mock(rank: 0))
+        let hidden = AssetBasic.mock(asset: .mock(id: AssetId(chain: .tempo)), score: .mock(rank: -1))
+        let db = DB.mockAssets(assets: [visible, hidden])
+
+        try db.dbQueue.read { db in
+            let assets = try AssetsRequest.mock().fetch(db)
+            let priceAlertAssets = try AssetsRequest.mock(filters: [.priceAlerts]).fetch(db)
+
+            #expect(assets.map(\.asset.id) == [visible.asset.id])
+            #expect(priceAlertAssets.map(\.asset.id) == [visible.asset.id])
+        }
+    }
+
     @Test func addAssets() throws {
         let db = DB.mock()
         let store = AssetStore(db: db)

@@ -147,6 +147,7 @@ extension AssetsRequest {
             .including(optional: AssetRecord.account)
             .including(optional: AssetRecord.balance)
             .including(optional: AssetRecord.price)
+            .filter(AssetRecord.Columns.rank >= 0)
             .joining(optional: AssetRecord.balance
                 .filter(BalanceRecord.Columns.walletId == walletId.id))
             .filter(
@@ -177,6 +178,7 @@ extension AssetsRequest {
         var request = AssetRecord
             .including(all: AssetRecord.priceAlerts)
             .including(optional: AssetRecord.price)
+            .filter(AssetRecord.Columns.rank >= 0)
             .order(AssetRecord.Columns.rank.desc)
             .limit(Self.defaultQueryLimit)
 

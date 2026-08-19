@@ -72,6 +72,7 @@ extension WalletSearchRequest {
             .including(optional: AssetRecord.account)
             .including(optional: AssetRecord.balance)
             .including(optional: AssetRecord.price)
+            .filter(AssetRecord.Columns.rank >= 0)
             .joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
             .filter(TableAlias(name: AccountRecord.databaseTableName)[AccountRecord.Columns.walletId] == walletId.id)
 

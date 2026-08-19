@@ -155,7 +155,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             )
         } else null,
         metadata = AssetMetaData(
-            isEnabled = entity.assetRank > 0,
+            isEnabled = entity.assetRank >= 0,
             isBuyEnabled = entity.isBuyEnabled,
             isSellEnabled = entity.isSellEnabled,
             isSwapEnabled = entity.isSwapEnabled,

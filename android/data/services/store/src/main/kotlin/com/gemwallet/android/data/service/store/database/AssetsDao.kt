@@ -234,13 +234,13 @@ interface AssetsDao {
     @Query("SELECT asset_info.* FROM $ASSET_INFO WHERE chain = :chain AND id = :assetId")
     fun getTokenInfo(walletId: String, assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank > 0 ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfo(walletId: String): Flow<List<DbAssetInfo>>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible = 0 AND assetRank > 0 AND balanceTotalAmount > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible = 0 AND assetRank >= 0 AND balanceTotalAmount > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
     fun getHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
     @Query("SELECT * FROM $ASSET_INFO WHERE id IN (:ids) AND walletId = :walletId ORDER BY balanceFiatTotalAmount DESC")
@@ -268,7 +268,7 @@ interface AssetsDao {
             asset_info.id NOT IN (:exclude)
             AND chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
             AND (walletId = :walletId OR walletId IS NULL)
-            AND assetRank > 0
+            AND assetRank >= 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
             OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
@@ -285,7 +285,7 @@ interface AssetsDao {
             asset_info.id NOT IN (:exclude)
             AND chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
             AND (walletId = :walletId OR walletId IS NULL)
-            AND assetRank > 0
+            AND assetRank >= 0
             AND search.`query` = :query
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
             LIMIT :limit
@@ -295,7 +295,7 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO WHERE
-            assetRank > 0
+            assetRank >= 0
             AND
             (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
@@ -310,7 +310,7 @@ interface AssetsDao {
         FROM $ASSET_INFO
         JOIN search ON asset_info.id = search.assetId
         WHERE
-            assetRank > 0
+            assetRank >= 0
             AND
             search.`query` = :query
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
@@ -322,7 +322,7 @@ interface AssetsDao {
         SELECT asset_info.*
         FROM $ASSET_INFO WHERE
             (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
-            AND assetRank > 0
+            AND assetRank >= 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
             OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
@@ -336,7 +336,7 @@ interface AssetsDao {
         JOIN search ON asset_info.id = search.assetId
         WHERE
             (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
-            AND assetRank > 0
+            AND assetRank >= 0
             AND search.`query` = :query
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
         """)
@@ -350,6 +350,7 @@ interface AssetsDao {
             AND recent_assets.wallet_id = :walletId
         WHERE
             recent_assets.type IN (:type)
+            AND asset.rank >= 0
             AND (NOT :buyable OR asset.is_buy_enabled = 1)
             AND (NOT :swappable OR asset.is_swap_enabled = 1)
             AND (NOT :hasBalance OR EXISTS (

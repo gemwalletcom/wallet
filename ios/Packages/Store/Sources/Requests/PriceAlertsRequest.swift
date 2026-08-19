@@ -15,6 +15,7 @@ public struct PriceAlertsRequest: DatabaseQueryable {
         var request = AssetRecord
             .including(required: AssetRecord.priceAlert)
             .including(optional: AssetRecord.price)
+            .filter(AssetRecord.Columns.rank >= 0)
             .order(AssetRecord.Columns.rank.desc)
 
         if let assetId {
