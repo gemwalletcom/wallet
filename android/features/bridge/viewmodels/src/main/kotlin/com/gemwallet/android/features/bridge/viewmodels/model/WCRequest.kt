@@ -203,11 +203,10 @@ private fun WalletConnectTransaction.map(
     request: WCRequest.Transaction,
     isSendable: Boolean,
 ): Generic {
-    val asset = request.chain.asset()
     return when (this) {
         is WalletConnectTransaction.Ethereum -> Generic(
             requestId = request.requestId.toString(),
-            asset = asset,
+            asset = request.chain.asset(),
             from = request.account,
             memo = data.data,
             name = request.name,
@@ -221,77 +220,37 @@ private fun WalletConnectTransaction.map(
             isSendable = isSendable,
             decodedTransactionType = transactionType.toPrimitives(),
         )
-        is WalletConnectTransaction.Solana -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data.transaction,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
-        is WalletConnectTransaction.Sui -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data.transaction,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
-        is WalletConnectTransaction.Ton -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
-        is WalletConnectTransaction.Tron -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            memo = data,
-            from = request.account,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
+        is WalletConnectTransaction.Solana ->
+            buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
+        is WalletConnectTransaction.Sui ->
+            buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
+        is WalletConnectTransaction.Ton ->
+            buildEncodedTransactionParams(request, data, outputType, isSendable)
+        is WalletConnectTransaction.Tron ->
+            buildEncodedTransactionParams(request, data, outputType, isSendable)
     }
 }
+
+private fun buildEncodedTransactionParams(
+    request: WCRequest.Transaction,
+    encodedTransaction: String,
+    outputType: TransferDataOutputType,
+    isSendable: Boolean,
+): Generic = Generic(
+    requestId = request.requestId.toString(),
+    asset = request.chain.asset(),
+    from = request.account,
+    memo = encodedTransaction,
+    name = request.name,
+    description = request.description,
+    url = request.url,
+    icon = request.icon,
+    gasLimit = "",
+    inputType = when (outputType) {
+        TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
+        TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
+    },
+    destination = DestinationAddress(""),
+    amount = BigInteger.ZERO,
+    isSendable = isSendable,
+)
