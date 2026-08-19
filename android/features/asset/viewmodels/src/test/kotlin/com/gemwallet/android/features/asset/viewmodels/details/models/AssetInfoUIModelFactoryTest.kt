@@ -8,6 +8,7 @@ import com.gemwallet.android.testkit.mockAssetInfo
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletType
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -80,6 +81,7 @@ class AssetInfoUIModelFactoryTest {
         return AssetInfoUIModelFactory.create(
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
             explorerName = "Explorer",
+            walletType = WalletType.Multicoin,
         )
     }
 }

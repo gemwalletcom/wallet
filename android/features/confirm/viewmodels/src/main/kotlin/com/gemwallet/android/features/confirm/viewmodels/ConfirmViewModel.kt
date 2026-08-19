@@ -261,10 +261,11 @@ class ConfirmViewModel @Inject constructor(
             if (address == null) flowOf(null) else getAddressName.getAddressNameFlow(chain, address)
         }
 
-    val txProperties = combine(request, assetsInfo, recipientAddressName) { request, assetsInfo, addressName ->
+    val txProperties = combine(request, session, assetsInfo, recipientAddressName) { request, session, assetsInfo, addressName ->
         request ?: return@combine emptyList()
+        session ?: return@combine emptyList()
         assetsInfo ?: return@combine emptyList()
-        buildConfirmProperties(request, assetsInfo, addressName)
+        buildConfirmProperties(request, session.wallet, assetsInfo, addressName)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

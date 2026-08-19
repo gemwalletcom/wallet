@@ -582,22 +582,18 @@ class AssetsRepositoryTest {
             )
         } returns flowOf(
             listOf(
-                mockDbAssetInfo(asset = enabledAsset, walletId = "wallet-1", visible = true, sessionId = 1),
-                mockDbAssetInfo(asset = hiddenAsset, walletId = "wallet-1", visible = false, sessionId = 1),
+                mockDbAssetInfo(asset = enabledAsset, walletId = "wallet-1", visible = true),
+                mockDbAssetInfo(asset = hiddenAsset, walletId = "wallet-1", visible = false),
                 mockDbAssetInfo(
                     asset = unlinkedAsset,
                     walletId = null,
                     visible = false,
-                    sessionId = null,
-                    walletName = null,
-                    walletType = null,
                     address = null,
                 ),
                 mockDbAssetInfo(
                     asset = disabledAsset,
                     walletId = "wallet-1",
                     visible = true,
-                    sessionId = 1,
                     assetRank = -1,
                 ),
             )
@@ -635,8 +631,8 @@ class AssetsRepositoryTest {
             )
         } returns flowOf(
             listOf(
-                mockDbAssetInfo(asset = highPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
-                mockDbAssetInfo(asset = lowPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
+                mockDbAssetInfo(asset = highPriorityAsset, walletId = "wallet-1", visible = true),
+                mockDbAssetInfo(asset = lowPriorityAsset, walletId = "wallet-1", visible = true),
             )
         )
 

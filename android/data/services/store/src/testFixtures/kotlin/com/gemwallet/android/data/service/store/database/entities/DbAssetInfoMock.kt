@@ -6,7 +6,6 @@ import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletType
 
 fun mockDbAssetInfo(
     asset: Asset,
@@ -14,9 +13,6 @@ fun mockDbAssetInfo(
     isSwapEnabled: Boolean = true,
     assetRank: Int = 1,
     walletId: String? = "wallet-1",
-    sessionId: Int? = 1,
-    walletName: String? = "Wallet",
-    walletType: WalletType? = WalletType.Multicoin,
     address: String? = "address",
 ) = mockDbAssetInfo(
     chain = asset.id.chain,
@@ -29,9 +25,6 @@ fun mockDbAssetInfo(
     isSwapEnabled = isSwapEnabled,
     assetRank = assetRank,
     walletId = walletId,
-    sessionId = sessionId,
-    walletName = walletName,
-    walletType = walletType,
     address = address,
 )
 
@@ -44,7 +37,6 @@ fun mockDbAssetInfo(
     type: AssetType = AssetType.NATIVE,
     pinned: Boolean? = false,
     visible: Boolean? = true,
-    listPosition: Int? = 0,
     isBuyEnabled: Boolean = true,
     isSellEnabled: Boolean = true,
     isSwapEnabled: Boolean = true,
@@ -55,9 +47,6 @@ fun mockDbAssetInfo(
     walletId: String? = "wallet-1",
     derivationPath: String? = "",
     extendedPublicKey: String? = null,
-    sessionId: Int? = 1,
-    walletName: String? = "Wallet",
-    walletType: WalletType? = WalletType.Multicoin,
     priceValue: Double? = null,
     priceDayChanges: Double? = null,
     priceCurrency: Currency? = null,
@@ -85,7 +74,6 @@ fun mockDbAssetInfo(
     bandwidthAvailable: Long? = null,
     bandwidthTotal: Long? = null,
     assetIsActive: Boolean? = true,
-    balanceUpdatedAt: Long? = null,
     associations: List<AssetAssociation> = emptyList(),
 ) = DbAssetInfo(
     id = id,
@@ -95,7 +83,6 @@ fun mockDbAssetInfo(
     type = type,
     pinned = pinned,
     visible = visible,
-    listPosition = listPosition,
     isBuyEnabled = isBuyEnabled,
     isSellEnabled = isSellEnabled,
     isSwapEnabled = isSwapEnabled,
@@ -108,9 +95,6 @@ fun mockDbAssetInfo(
     derivationPath = derivationPath,
     chain = chain,
     extendedPublicKey = extendedPublicKey,
-    sessionId = sessionId,
-    walletName = walletName,
-    walletType = walletType,
     priceValue = priceValue,
     priceDayChanges = priceDayChanges,
     priceCurrency = priceCurrency,
@@ -138,5 +122,4 @@ fun mockDbAssetInfo(
     bandwidthAvailable = bandwidthAvailable,
     bandwidthTotal = bandwidthTotal,
     assetIsActive = assetIsActive,
-    balanceUpdatedAt = balanceUpdatedAt,
 )

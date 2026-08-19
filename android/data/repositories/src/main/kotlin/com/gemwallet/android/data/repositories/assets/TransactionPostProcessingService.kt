@@ -54,7 +54,7 @@ class TransactionPostProcessingService @Inject constructor(
                 walletId = walletId,
                 assetId = transaction.assetId,
                 address = transaction.from,
-                apr = assetInfos.firstOrNull { it.id() == transaction.assetId }?.stakeApr ?: 0.0,
+                apr = assetInfos.firstOrNull { it.id() == transaction.assetId }?.metadata?.stakingApr ?: 0.0,
             )
             TransactionType.TransferNFT -> syncNfts.sync(walletId)
             else -> Unit
